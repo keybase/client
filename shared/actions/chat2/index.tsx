@@ -2371,6 +2371,7 @@ const markThreadAsRead = async (
   await RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     msgID: readMsgID,
+    forceUnread: false,
   })
 }
 
@@ -2399,6 +2400,7 @@ const markAsUnread = async (state: Container.TypedState, action: Chat2Gen.MarkAs
   RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     msgID: message ? message.id : unreadLineID,
+    forceUnread: true,
   })
     .then(() => {})
     .catch(() => {})

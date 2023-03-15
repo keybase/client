@@ -48,9 +48,9 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   }, [swipeCloseRef, conversationIDKey])
 
   const dispatch = Container.useDispatch()
-  const onMarkConversationAsUnread = Container.useEvent(() => {
-    dispatch(Chat2Gen.createMarkAsUnread({conversationIDKey, readMsgID: null}))
-  })
+  // const onMarkConversationAsUnread = Container.useEvent(() => {
+  //   dispatch(Chat2Gen.createMarkAsUnread({conversationIDKey, readMsgID: null}))
+  // })
   const onMuteConversation = Container.useEvent(() => {
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted}))
   })
@@ -60,10 +60,10 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
 
   const isMuted = Container.useSelector(state => state.chat2.mutedMap.get(conversationIDKey) ?? false)
 
-  const onMarkAsUnread = Container.useEvent(() => {
-    onMarkConversationAsUnread()
-    swipeCloseRef?.current?.()
-  })
+  // const onMarkAsUnread = Container.useEvent(() => {
+  //   onMarkConversationAsUnread()
+  //   swipeCloseRef?.current?.()
+  // })
 
   const onMute = Container.useEvent(() => {
     onMuteConversation()
@@ -77,14 +77,15 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
 
   const makeActions = Container.useEvent((progress: Reanimated.SharedValue<number>) => (
     <Kb.NativeView style={styles.container}>
-      <Action
+      // TODO
+      {/* <Action
         text={'Mark as unread'}
         color={Styles.globalColors.blue}
         iconType="iconfont-envelope-solid"
         onClick={onMarkAsUnread}
         mult={0}
         progress={progress}
-      />
+      /> */}
       <Action
         text={isMuted ? 'Unmute' : 'Mute'}
         color={Styles.globalColors.orange}
