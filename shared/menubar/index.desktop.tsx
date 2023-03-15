@@ -1,24 +1,29 @@
-import * as React from 'react'
+import * as ConfigGen from '../actions/config-gen'
+import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
 import * as FsGen from '../actions/fs-gen'
-import * as ConfigGen from '../actions/config-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Container from '../util/container'
-import * as Kb from '../common-adapters'
 import * as FsTypes from '../constants/types/fs'
-import * as Tabs from '../constants/tabs'
+import * as Kb from '../common-adapters'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as React from 'react'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as SettingsGen from '../actions/settings-gen'
 import * as Styles from '../styles'
-import openUrl from '../util/open-url'
-import type * as ConfigTypes from '../constants/types/config'
-import {_setDarkModePreference} from '../styles/dark-mode'
+import * as Tabs from '../constants/tabs'
 import ChatContainer from './chat-container.desktop'
 import FilesPreview from './files-container.desktop'
-import {isDarwin} from '../constants/platform'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
-import {useUploadCountdown} from '../fs/footer/use-upload-countdown'
+import openUrl from '../util/open-url'
+import type * as ConfigTypes from '../constants/types/config'
 import {Loading} from '../fs/simple-screens'
+import {_setDarkModePreference} from '../styles/dark-mode'
+import {isLinux, isDarwin} from '../constants/platform'
 import {type _InnerMenuItem} from '../common-adapters/floating-menu/menu-layout'
+import {useUploadCountdown} from '../fs/footer/use-upload-countdown'
+import KB2 from '../util/electron.desktop'
+
+const {hideWindow, ctlQuit} = KB2.functions
 
 export type Props = {
   daemonHandshakeState: ConfigTypes.DaemonHandshakeState
@@ -27,10 +32,7 @@ export type Props = {
   loggedIn: boolean
   kbfsDaemonStatus: FsTypes.KbfsDaemonStatus
   kbfsEnabled: boolean
-  updateNow?: () => void
   outOfDate?: ConfigTypes.OutOfDate
-  quit: () => void
-  hideWindow?: () => void
   showingDiskSpaceBanner: boolean
   username: string
   navBadges: Map<string, number>
@@ -70,7 +72,7 @@ const UploadWithCountdown = (p: UWCDProps) => {
 const useMenuItems = (
   p: Props & {showBadges?: boolean; openApp: (tab?: Tabs.AppTab) => void}
 ): ReadonlyArray<_InnerMenuItem> => {
-  const {showBadges, navBadges, daemonHandshakeState, username, quit, kbfsEnabled, hideWindow, openApp} = p
+  const {showBadges, navBadges, daemonHandshakeState, username, kbfsEnabled, openApp} = p
   const dispatch = Container.useDispatch()
   const countMap = navBadges
   const startingUp = daemonHandshakeState !== 'done'
@@ -94,7 +96,23 @@ const useMenuItems = (
       },
       title: 'Help',
     },
-    {onClick: quit, title: 'Quit Keybase'},
+    {
+      onClick: () => {
+        if (!__DEV__) {
+          if (isLinux) {
+            dispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
+          } else {
+            dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
+          }
+        }
+        // In case dump log doesn't exit for us
+        hideWindow?.()
+        setTimeout(() => {
+          ctlQuit?.()
+        }, 2000)
+      },
+      title: 'Quit Keybase',
+    },
   ]
 
   if (startingUp) {
@@ -214,7 +232,7 @@ const badgeTypesInHeader = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teams
 const badgesInMenu = [Tabs.walletsTab, Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
 const LoggedIn = (p: Props) => {
   const {endEstimate, files, kbfsDaemonStatus, totalSyncingBytes, fileName} = p
-  const {outOfDate, updateNow, windowShownCount} = p
+  const {outOfDate, windowShownCount} = p
 
   const dispatch = Container.useDispatch()
   const refreshUserFileEdits = Container.useThrottledCallback(() => {
@@ -227,7 +245,7 @@ const LoggedIn = (p: Props) => {
 
   return (
     <>
-      <OutOfDate outOfDate={outOfDate} updateNow={updateNow} />
+      <OutOfDate outOfDate={outOfDate} />
       <Kb.ScrollView style={styles.flexOne}>
         <ChatContainer convLimit={5} />
         {kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected ? (
