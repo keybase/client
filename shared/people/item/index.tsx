@@ -4,15 +4,15 @@ import * as Styles from '../../styles'
 import {formatTimeForPeopleItem} from '../../util/timestamp'
 import type {Props as ButtonProps} from '../../common-adapters/button'
 
-export type TaskButton =
-  | {
-      label: string
-      onClick: () => void
-      type?: ButtonProps['type']
-      mode?: ButtonProps['mode']
-      waiting?: ButtonProps['waiting']
-    }
-  | React.ReactElement
+type NonReactTaskButton = {
+  label: string
+  onClick: () => void
+  type?: ButtonProps['type']
+  mode?: ButtonProps['mode']
+  waiting?: ButtonProps['waiting']
+}
+
+export type TaskButton = NonReactTaskButton | React.ReactElement
 
 export type Props = {
   badged: boolean
@@ -48,7 +48,12 @@ const PeopleItem = (props: Props) => (
                 {b}
               </Kb.Box>
             ) : (
-              <Kb.Button key={b.label} small={true} style={styles.button} {...b} />
+              <Kb.Button
+                key={(b as NonReactTaskButton).label}
+                small={true}
+                style={styles.button}
+                {...(b as NonReactTaskButton)}
+              />
             )
           )}
       </Kb.Box2>

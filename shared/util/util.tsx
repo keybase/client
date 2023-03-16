@@ -7,7 +7,7 @@ function renderElementOrComponentOrNot(
     if (React.isValidElement(item)) {
       return item
     } else {
-      return React.createElement(item)
+      return React.createElement(item as any)
     }
   }
   return undefined
