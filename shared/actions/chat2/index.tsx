@@ -2351,6 +2351,7 @@ const markThreadAsRead = async (
   const mmap = state.chat2.messageMap.get(conversationIDKey)
   if (mmap) {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+    // @ts-ignore this exists in our js and in ts 5
     const ordinal = [...ordinals].findLast(o => {
       const m = mmap.get(o)
       return m ? !!m.id : false
