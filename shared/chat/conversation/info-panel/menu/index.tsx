@@ -38,6 +38,7 @@ export type Props = {
   onUnhideConv: () => void
   onManageChannels: () => void
   onMarkAsRead: () => void
+  onMarkAsUnread: () => void
   onViewTeam: () => void
 }
 
@@ -119,7 +120,7 @@ const InfoPanelMenu = (p: Props) => {
   const {channelname, hasHeader, isSmallTeam, onManageChannels, onAddPeople, manageChannelsSubtitle} = p
   const {manageChannelsTitle, badgeSubscribe, teamname, isMuted, onMuteConv, onBlockConv, onJoinChannel} = p
   const {visible, fullname, onViewTeam, onHidden, attachTo, floatingMenuContainerStyle, teamID} = p
-  const {onLeaveTeam, onLeaveChannel, onMarkAsRead, canAddPeople} = p
+  const {onLeaveTeam, onLeaveChannel, onMarkAsRead, onMarkAsUnread, canAddPeople} = p
   const isGeneralChannel = !!(channelname && channelname === 'general')
   const hasChannelSection = !isSmallTeam && !hasHeader
   const addPeopleItems: Kb.MenuItems = [
@@ -221,10 +222,24 @@ const InfoPanelMenu = (p: Props) => {
       title,
     }
   })()
+  const markAsUnread = (() => {
+    if (!conversationIDKey) {
+      return null
+    }
+    return {
+      icon: 'iconfont-envelope-solid',
+      iconIsVisible: false,
+      onClick: onMarkAsUnread,
+      title: 'Mark as unread',
+    }
+  })()
 
   const isAdhoc = (isSmallTeam && !conversationIDKey) || !!(teamType === 'adhoc')
   const items: Kb.MenuItems = []
   if (isAdhoc) {
+    if (markAsUnread) {
+      items.push(markAsUnread as Kb.MenuItem)
+    }
     if (muteItem) {
       items.push(muteItem as Kb.MenuItem)
     }
@@ -241,6 +256,9 @@ const InfoPanelMenu = (p: Props) => {
   } else {
     if (hasChannelSection) {
       items.push(channelHeader)
+    }
+    if (markAsUnread) {
+      items.push(markAsUnread as Kb.MenuItem)
     }
     if (muteItem) {
       items.push(muteItem as Kb.MenuItem)
@@ -267,12 +285,15 @@ const InfoPanelMenu = (p: Props) => {
     if (hasChannelSection) {
       items.push(teamHeader)
     }
-    items.push({
-      icon: 'iconfont-envelope',
-      iconIsVisible: false,
-      onClick: onMarkAsRead,
-      title: 'Mark all as read',
-    })
+    if (!isSmallTeam) {
+      // Only show if we have multiple channels
+      items.push({
+        icon: 'iconfont-envelope',
+        iconIsVisible: false,
+        onClick: onMarkAsRead,
+        title: 'Mark all as read',
+      })
+    }
     items.push(channelItem, {
       icon: 'iconfont-info',
       iconIsVisible: false,

@@ -155,6 +155,14 @@ export default Container.connect(
         })
       )
     },
+    _onMarkAsUnread: (id: number) => {
+      dispatch(
+        Chat2Gen.createMarkAsUnread({
+          conversationIDKey: ownProps.conversationIDKey,
+          readMsgID: id,
+        })
+      )
+    },
     _onReact: (emoji: string) => {
       dispatch(
         Chat2Gen.createToggleMessageReaction({
@@ -271,6 +279,11 @@ export default Container.connect(
         onClick: () => dispatchProps._onPinMessage(message.id),
         title: 'Pin message',
       })
+      items.push({
+        icon: 'iconfont-envelope-solid',
+        onClick: () => dispatchProps._onMarkAsUnread(message.id),
+        title: 'Mark as unread',
+      })
     } else {
       if (stateProps._mapUnfurl?.mapInfo && !stateProps._mapUnfurl.mapInfo.isLiveLocationDone) {
         const url = stateProps._mapUnfurl.url
@@ -306,6 +319,11 @@ export default Container.connect(
         icon: 'iconfont-pin',
         onClick: () => dispatchProps._onPinMessage(message.id),
         title: 'Pin message',
+      })
+      items.push({
+        icon: 'iconfont-envelope-solid',
+        onClick: () => dispatchProps._onMarkAsUnread(message.id),
+        title: 'Mark as unread',
       })
     }
     if (stateProps._canExplodeNow) {

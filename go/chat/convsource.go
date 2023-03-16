@@ -685,7 +685,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// requested.
 			if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
 				readMsgID := thread.Messages[0].GetMessageID()
-				if err = s.G().InboxSource.MarkAsRead(ctx, convID, uid, &readMsgID); err != nil {
+				if err = s.G().InboxSource.MarkAsRead(ctx, convID, uid, &readMsgID, false /* forceUnread */); err != nil {
 					return chat1.ThreadView{}, err
 				}
 				if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {

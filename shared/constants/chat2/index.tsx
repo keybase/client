@@ -104,6 +104,7 @@ export const makeState = (): Types.State => ({
   mutedMap: new Map(),
   mutualTeamMap: new Map(),
   orangeLineMap: new Map(), // last message we've seen,
+  markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   participantMap: new Map(),
   paymentConfirmInfo: undefined,
   paymentStatusMap: new Map(),

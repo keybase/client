@@ -1267,12 +1267,21 @@ const getUnreadline = async (
       readMsgID: readMsgID < 0 ? 0 : readMsgID,
     })
     const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
+    logger.info(`marking unreadline ${conversationIDKey} ${unreadlineID}`)
     listenerApi.dispatch(
       Chat2Gen.createUpdateUnreadline({
         conversationIDKey,
         messageID: Types.numberToMessageID(unreadlineID),
       })
     )
+    if (state.chat2.markedAsUnreadMap.get(conversationIDKey)) {
+      listenerApi.dispatch(
+        // Remove the force unread bit for the next time we view the thread.
+        Chat2Gen.createClearMarkAsUnread({
+          conversationIDKey,
+        })
+      )
+    }
   } catch (error) {
     if (error instanceof RPCError) {
       if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
@@ -2342,7 +2351,8 @@ const markThreadAsRead = async (
   const mmap = state.chat2.messageMap.get(conversationIDKey)
   if (mmap) {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const ordinal = [...ordinals].reverse().find(o => {
+    // @ts-ignore this exists in our js and in ts 5
+    const ordinal = [...ordinals].findLast((o: Types.Ordinal) => {
       const m = mmap.get(o)
       return m ? !!m.id : false
     })
@@ -2353,10 +2363,52 @@ const markThreadAsRead = async (
   if (meta) {
     readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
   }
-  logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
+  if (action.type === Chat2Gen.updateUnreadline && readMsgID && readMsgID >= action.payload.messageID) {
+    // If we are marking as unread, don't send the local RPC.
+    return
+  }
+
+  logger.info(`marking read messages ${conversationIDKey} ${readMsgID} for ${action.type}`)
   await RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     msgID: readMsgID,
+    forceUnread: false,
+  })
+}
+
+const markAsUnread = async (state: Container.TypedState, action: Chat2Gen.MarkAsUnreadPayload) => {
+  if (!state.config.loggedIn) {
+    logger.info('bail on not logged in')
+    return
+  }
+  const {conversationIDKey, readMsgID} = action.payload
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxVisibleMsgID : 0
+
+  // Find first visible message prior to what we have marked as unread. The
+  // server will use this value to calculate our badge state.
+  const messageMap = state.chat2.messageMap.get(conversationIDKey)
+  const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
+  const ord =
+    messageMap &&
+    // @ts-ignore this exists in our js and in ts 5
+    [...ordinals].findLast((o: Types.Ordinal) => {
+      const message = messageMap.get(o)
+      return !!(message && message.id < unreadLineID)
+    })
+  const message = ord ? messageMap?.get(ord) : null
+
+  logger.info(`marking unread messages ${conversationIDKey} ${readMsgID}`)
+  RPCChatTypes.localMarkAsReadLocalRpcPromise({
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    msgID: message ? message.id : unreadLineID,
+    forceUnread: true,
+  })
+    .then(() => {})
+    .catch(() => {})
+  return Chat2Gen.createUpdateUnreadline({
+    conversationIDKey,
+    messageID: unreadLineID,
   })
 }
 
@@ -3828,7 +3880,8 @@ const initChat = () => {
     ],
     markThreadAsRead
   )
-  Container.listenAction([Chat2Gen.markTeamAsRead], markTeamAsRead)
+  Container.listenAction(Chat2Gen.markTeamAsRead, markTeamAsRead)
+  Container.listenAction(Chat2Gen.markAsUnread, markAsUnread)
   Container.listenAction(Chat2Gen.messagesAdd, messagesAdd)
   Container.listenAction(
     [

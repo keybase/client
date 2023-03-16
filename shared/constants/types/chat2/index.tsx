@@ -264,6 +264,7 @@ export type State = {
   readonly mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
   readonly mutualTeamMap: Map<Common.ConversationIDKey, Array<Team.TeamID>>
   readonly orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
+  readonly markedAsUnreadMap: Map<Common.ConversationIDKey, boolean> // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   readonly participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
   readonly paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
   readonly paymentStatusMap: Map<Wallet.PaymentID, _Message.ChatPaymentInfo>

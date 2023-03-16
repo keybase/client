@@ -1048,7 +1048,7 @@ protocol local {
      boolean offline;
      array<RateLimit> rateLimits;
   }
-  MarkAsReadLocalRes markAsReadLocal(int sessionID, ConversationID conversationID, union { null, MessageID } msgID);
+  MarkAsReadLocalRes markAsReadLocal(int sessionID, ConversationID conversationID, union { null, MessageID } msgID, boolean forceUnread);
 
   record MarkTLFAsReadLocalRes {
      boolean offline;

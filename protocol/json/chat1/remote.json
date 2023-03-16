@@ -1295,6 +1295,10 @@
         {
           "name": "msgID",
           "type": "MessageID"
+        },
+        {
+          "name": "forceUnread",
+          "type": "boolean"
         }
       ],
       "response": "MarkAsReadRes"

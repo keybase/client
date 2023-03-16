@@ -136,6 +136,14 @@ export default Container.connect(
         })
       )
     },
+    _onMarkAsUnread: (message: Types.Message) => {
+      dispatch(
+        Chat2Gen.createMarkAsUnread({
+          conversationIDKey: message.conversationIDKey,
+          readMsgID: message.id,
+        })
+      )
+    },
     _onReact: (message: Types.Message, emoji: string) => {
       dispatch(
         Chat2Gen.createToggleMessageReaction({
@@ -198,6 +206,7 @@ export default Container.connect(
       onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
+      onMarkAsUnread: () => dispatchProps._onMarkAsUnread(message),
       onReact: (emoji: string) => dispatchProps._onReact(message, emoji),
       onReply: () => dispatchProps._onReply(message),
       onSaveAttachment:
