@@ -47,7 +47,7 @@ const JoinTeam = (props: Props) => {
     <Kb.Modal
       banners={[
         !!props.errorText && (
-          <Kb.Banner color="red">
+          <Kb.Banner key="red" color="red">
             <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
           </Kb.Banner>
         ),
