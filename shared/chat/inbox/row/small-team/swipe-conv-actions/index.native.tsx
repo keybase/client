@@ -48,9 +48,9 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   }, [swipeCloseRef, conversationIDKey])
 
   const dispatch = Container.useDispatch()
-  // const onMarkConversationAsUnread = Container.useEvent(() => {
-  //   dispatch(Chat2Gen.createMarkAsUnread({conversationIDKey, readMsgID: null}))
-  // })
+  const onMarkConversationAsUnread = Container.useEvent(() => {
+    dispatch(Chat2Gen.createMarkAsUnread({conversationIDKey, readMsgID: null}))
+  })
   const onMuteConversation = Container.useEvent(() => {
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted}))
   })
@@ -60,10 +60,10 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
 
   const isMuted = Container.useSelector(state => state.chat2.mutedMap.get(conversationIDKey) ?? false)
 
-  // const onMarkAsUnread = Container.useEvent(() => {
-  //   onMarkConversationAsUnread()
-  //   swipeCloseRef?.current?.()
-  // })
+  const onMarkAsUnread = Container.useEvent(() => {
+    onMarkConversationAsUnread()
+    swipeCloseRef?.current?.()
+  })
 
   const onMute = Container.useEvent(() => {
     onMuteConversation()
@@ -77,21 +77,20 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
 
   const makeActions = Container.useEvent((progress: Reanimated.SharedValue<number>) => (
     <Kb.NativeView style={styles.container}>
-      // TODO
-      {/* <Action
-        text={'Mark as unread'}
+      <Action
+        text="Mark unread"
         color={Styles.globalColors.blue}
         iconType="iconfont-envelope-solid"
         onClick={onMarkAsUnread}
         mult={0}
         progress={progress}
-      /> */}
+      />
       <Action
         text={isMuted ? 'Unmute' : 'Mute'}
         color={Styles.globalColors.orange}
         iconType="iconfont-shh"
         onClick={onMute}
-        mult={0}
+        mult={1 / 3}
         progress={progress}
       />
       <Action
@@ -99,7 +98,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
         color={Styles.globalColors.greyDarker}
         iconType="iconfont-hide"
         onClick={onHide}
-        mult={0.5}
+        mult={2 / 3}
         progress={progress}
       />
     </Kb.NativeView>
@@ -126,7 +125,7 @@ const SwipeConvActionsImpl = React.memo(function SwipeConvActionsImpl(props: IPr
   const {children, swipeCloseRef, makeActions, extraData} = props
   return (
     <Swipeable
-      actionWidth={128}
+      actionWidth={64 * 3}
       swipeCloseRef={swipeCloseRef}
       makeActions={makeActions}
       style={styles.row}
