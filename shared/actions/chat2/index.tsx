@@ -2371,12 +2371,12 @@ const markThreadAsRead = async (
   logger.info(`marking read messages ${conversationIDKey} ${readMsgID} for ${action.type}`)
   await RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
-    msgID: readMsgID,
     forceUnread: false,
+    msgID: readMsgID,
   })
 }
 
-const markAsUnread = async (state: Container.TypedState, action: Chat2Gen.MarkAsUnreadPayload) => {
+const markAsUnread = (state: Container.TypedState, action: Chat2Gen.MarkAsUnreadPayload) => {
   if (!state.config.loggedIn) {
     logger.info('bail on not logged in')
     return
@@ -2401,8 +2401,8 @@ const markAsUnread = async (state: Container.TypedState, action: Chat2Gen.MarkAs
   logger.info(`marking unread messages ${conversationIDKey} ${readMsgID}`)
   RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
-    msgID: message ? message.id : unreadLineID,
     forceUnread: true,
+    msgID: message ? message.id : unreadLineID,
   })
     .then(() => {})
     .catch(() => {})

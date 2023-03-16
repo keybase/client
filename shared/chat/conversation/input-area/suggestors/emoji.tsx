@@ -25,7 +25,7 @@ export const transformer = (
   return Common.standardTransformer(`${marker}${emoji.short_name}:`, tData, preview)
 }
 
-const keyExtractor = (item: EmojiData, idx: number) => String(idx) // emojis can have conflicts on the names
+const keyExtractor = (_item: EmojiData, idx: number) => String(idx) // emojis can have conflicts on the names
 
 const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
   const {item, selected} = p

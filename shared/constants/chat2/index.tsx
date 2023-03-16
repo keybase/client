@@ -94,6 +94,7 @@ export const makeState = (): Types.State => ({
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
   lastCoord: undefined,
+  markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
   messageMap: new Map(), // messages in a thread,
@@ -104,7 +105,6 @@ export const makeState = (): Types.State => ({
   mutedMap: new Map(),
   mutualTeamMap: new Map(),
   orangeLineMap: new Map(), // last message we've seen,
-  markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   participantMap: new Map(),
   paymentConfirmInfo: undefined,
   paymentStatusMap: new Map(),
