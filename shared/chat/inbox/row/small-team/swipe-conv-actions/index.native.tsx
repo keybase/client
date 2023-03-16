@@ -78,7 +78,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const makeActions = Container.useEvent((progress: Reanimated.SharedValue<number>) => (
     <Kb.NativeView style={styles.container}>
       <Action
-        text="Mark unread"
+        text="Unread"
         color={Styles.globalColors.blue}
         iconType="iconfont-envelope-solid"
         onClick={onMarkAsUnread}
