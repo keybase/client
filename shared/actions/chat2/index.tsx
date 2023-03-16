@@ -2352,7 +2352,7 @@ const markThreadAsRead = async (
   if (mmap) {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
     // @ts-ignore this exists in our js and in ts 5
-    const ordinal = [...ordinals].findLast(o => {
+    const ordinal = [...ordinals].findLast((o: Types.Ordinal) => {
       const m = mmap.get(o)
       return m ? !!m.id : false
     })
@@ -2391,7 +2391,8 @@ const markAsUnread = async (state: Container.TypedState, action: Chat2Gen.MarkAs
   const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
   const ord =
     messageMap &&
-    [...ordinals].reverse().find(o => {
+    // @ts-ignore this exists in our js and in ts 5
+    [...ordinals].findLast((o: Types.Ordinal) => {
       const message = messageMap.get(o)
       return !!(message && message.id < unreadLineID)
     })
