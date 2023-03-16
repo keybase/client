@@ -147,19 +147,19 @@ export default Container.connect(
           path: [{props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}],
         })
       ),
-    _onPinMessage: (id: number) => {
-      dispatch(
-        Chat2Gen.createPinMessage({
-          conversationIDKey: ownProps.conversationIDKey,
-          messageID: id,
-        })
-      )
-    },
     _onMarkAsUnread: (id: number) => {
       dispatch(
         Chat2Gen.createMarkAsUnread({
           conversationIDKey: ownProps.conversationIDKey,
           readMsgID: id,
+        })
+      )
+    },
+    _onPinMessage: (id: number) => {
+      dispatch(
+        Chat2Gen.createPinMessage({
+          conversationIDKey: ownProps.conversationIDKey,
+          messageID: id,
         })
       )
     },

@@ -137,19 +137,19 @@ export default Container.connect(
           path: [{props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}],
         })
       ),
-    _onPinMessage: (message: Types.Message) => {
-      dispatch(
-        Chat2Gen.createPinMessage({
-          conversationIDKey: message.conversationIDKey,
-          messageID: message.id,
-        })
-      )
-    },
     _onMarkAsUnread: (message: Types.Message) => {
       dispatch(
         Chat2Gen.createMarkAsUnread({
           conversationIDKey: message.conversationIDKey,
           readMsgID: message.id,
+        })
+      )
+    },
+    _onPinMessage: (message: Types.Message) => {
+      dispatch(
+        Chat2Gen.createPinMessage({
+          conversationIDKey: message.conversationIDKey,
+          messageID: message.id,
         })
       )
     },
@@ -237,8 +237,8 @@ export default Container.connect(
       onHidden: () => ownProps.onHidden(),
       onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),
-      onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onMarkAsUnread: () => dispatchProps._onMarkAsUnread(message),
+      onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReact: (emoji: string) => dispatchProps._onReact(message, emoji),
       onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,
       onReplyPrivately:
