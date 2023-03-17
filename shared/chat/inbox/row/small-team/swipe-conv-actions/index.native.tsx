@@ -75,39 +75,44 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     swipeCloseRef?.current?.()
   })
 
-  const makeActions = Container.useEvent((progress: Reanimated.SharedValue<number>) => (
-    <Kb.NativeView style={styles.container}>
-      <Action
-        text="Unread"
-        color={Styles.globalColors.blue}
-        iconType="iconfont-envelope-solid"
-        onClick={onMarkAsUnread}
-        mult={0}
-        progress={progress}
-      />
-      <Action
-        text={isMuted ? 'Unmute' : 'Mute'}
-        color={Styles.globalColors.orange}
-        iconType="iconfont-shh"
-        onClick={onMute}
-        mult={1 / 3}
-        progress={progress}
-      />
-      <Action
-        text="Hide"
-        color={Styles.globalColors.greyDarker}
-        iconType="iconfont-hide"
-        onClick={onHide}
-        mult={2 / 3}
-        progress={progress}
-      />
-    </Kb.NativeView>
-  ))
+  const makeActionsRef = React.useRef<(p: Reanimated.SharedValue<number>) => React.ReactNode>(
+    (_p: Reanimated.SharedValue<number>) => null
+  )
+  React.useEffect(() => {
+    makeActionsRef.current = (progress: Reanimated.SharedValue<number>) => (
+      <Kb.NativeView style={styles.container}>
+        <Action
+          text="Unread"
+          color={Styles.globalColors.blue}
+          iconType="iconfont-envelope-solid"
+          onClick={onMarkAsUnread}
+          mult={0}
+          progress={progress}
+        />
+        <Action
+          text={isMuted ? 'Unmute' : 'Mute'}
+          color={Styles.globalColors.orange}
+          iconType="iconfont-shh"
+          onClick={onMute}
+          mult={1 / 3}
+          progress={progress}
+        />
+        <Action
+          text="Hide"
+          color={Styles.globalColors.greyDarker}
+          iconType="iconfont-hide"
+          onClick={onHide}
+          mult={2 / 3}
+          progress={progress}
+        />
+      </Kb.NativeView>
+    )
+  }, [onMarkAsUnread, onMute, onHide, isMuted])
 
   const props = {
     children,
     extraData,
-    makeActions,
+    makeActionsRef,
     swipeCloseRef,
   }
 
@@ -118,16 +123,16 @@ type IProps = {
   children: React.ReactNode
   extraData: unknown
   swipeCloseRef: Props['swipeCloseRef']
-  makeActions: (progress: Reanimated.SharedValue<number>) => React.ReactNode
+  makeActionsRef: React.MutableRefObject<(p: Reanimated.SharedValue<number>) => React.ReactNode>
 }
 
 const SwipeConvActionsImpl = React.memo(function SwipeConvActionsImpl(props: IProps) {
-  const {children, swipeCloseRef, makeActions, extraData} = props
+  const {children, swipeCloseRef, makeActionsRef, extraData} = props
   return (
     <Swipeable
       actionWidth={64 * 3}
       swipeCloseRef={swipeCloseRef}
-      makeActions={makeActions}
+      makeActionsRef={makeActionsRef}
       style={styles.row}
       extraData={extraData}
     >
