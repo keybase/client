@@ -39,7 +39,7 @@ const AudioSend = (props: Props) => {
     />
   )
   return (
-    <Kb.Portal hostName="audioSend">
+    <Kb.Portal hostName="audioSend" useFullScreenOverlay={false}>
       <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
         <Kb.Box2 direction="horizontal" alignItems="center">
           <Kb.Box style={styles.icon}>
