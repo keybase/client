@@ -66,7 +66,7 @@ const useTooltip = () => {
   }, [showTooltip])
 
   const tooltip = showTooltip ? (
-    <Kb.Portal hostName="convOverlay">
+    <Kb.Portal hostName="convOverlay" useFullScreenOverlay={false}>
       <Animated.View style={animatedStyles}>
         <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
           <Kb.Text type="BodySmall" negative={true}>
@@ -279,7 +279,7 @@ const useIconAndOverlay = (p: {
 
   const overlay =
     visible === Visible.HIDDEN ? null : (
-      <Kb.Portal hostName="convOverlay">
+      <Kb.Portal hostName="convOverlay" useFullScreenOverlay={false}>
         <Animated.View style={styles.container} pointerEvents="box-none">
           <BigBackground fadeSV={fadeSV} />
           <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
