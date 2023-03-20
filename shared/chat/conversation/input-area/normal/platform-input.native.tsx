@@ -515,6 +515,7 @@ const PlatformInput = (p: Props) => {
 }
 
 const AnimatedPlainInput = createAnimatedComponent(Kb.PlainInput)
+
 const AnimatedInput = (() => {
   if (skipAnimations) {
     return React.memo(
