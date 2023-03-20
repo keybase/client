@@ -6,9 +6,10 @@ import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as WaitingGen from '../actions/waiting-gen'
 import type {TypedDispatch, TypedActions} from '../util/container'
+import {debugFullLogs} from '../local-debug'
 import logger from '../logger'
 
-const TEMP_FULL_ACTION_OUTPUT = __DEV__ && false
+const TEMP_FULL_ACTION_OUTPUT = __DEV__ && debugFullLogs
 if (TEMP_FULL_ACTION_OUTPUT) {
   for (let i = 0; i < 10; ++i) {
     console.error('TEMP_FULL_ACTION_OUTPUT enabled in action logger!')
