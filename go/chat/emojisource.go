@@ -225,9 +225,6 @@ func (s *DevConvEmojiSource) normalizeShortName(shortName string) string {
 }
 
 func (s *DevConvEmojiSource) validateShortName(shortName string) error {
-	if s.IsStockEmoji(shortName) {
-		return NewEmojiValidationErrorJustError(errors.New("alias already exists"))
-	}
 	if len(shortName) > maxShortNameLength {
 		err := errors.New("alias is too long")
 		return NewEmojiValidationError(err, fmt.Sprintf("alias is too long, must be less than %d",
@@ -542,7 +539,6 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 	topicType := chat1.TopicType_EMOJI
 	storage := s.makeStorage(topicType)
 	var sourceTLFID *chat1.TLFID
-	seenAliases := make(map[string]int)
 	if convID != nil {
 		conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, *convID, types.InboxSourceDataSourceAll)
 		if err != nil {
@@ -561,6 +557,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 		return res, aliasLookup, err
 	}
 	convs := ibox.Convs
+	seenAliases := make(map[string]int)
 	addEmojis := func(convs []chat1.ConversationLocal, isCrossTeam bool) {
 		if opts.OnlyInTeam && isCrossTeam {
 			return
@@ -614,6 +611,10 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 					emoji.Alias += fmt.Sprintf("#%d", seen)
 				} else {
 					seenAliases[alias] = 2
+					if s.IsStockEmoji(alias) {
+						emoji.Alias += fmt.Sprintf("#%d", seenAliases[alias])
+						seenAliases[alias]++
+					}
 				}
 				aliasLookup[emoji.Alias] = emoji
 				group.Emojis = append(group.Emojis, emoji)
@@ -636,7 +637,7 @@ func (s *DevConvEmojiSource) getNoSet(ctx context.Context, uid gregor1.UID, conv
 
 func (s *DevConvEmojiSource) Get(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID,
 	opts chat1.EmojiFetchOpts) (res chat1.UserEmojis, err error) {
-	defer s.Trace(ctx, &err, "Get")()
+	defer s.Trace(ctx, &err, "Get %v", opts)()
 	var aliasLookup map[string]chat1.Emoji
 	if res, aliasLookup, err = s.getNoSet(ctx, uid, convID, opts); err != nil {
 		return res, err
