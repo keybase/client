@@ -8,7 +8,7 @@ import makeStore from '../store/configure-store'
 import {AppRegistry, AppState, Appearance, Linking} from 'react-native'
 import {PortalProvider} from '../common-adapters/portal.native'
 import {Provider, useDispatch} from 'react-redux'
-import {SafeAreaProvider} from 'react-native-safe-area-context'
+import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 
@@ -108,7 +108,7 @@ const Keybase = () => {
     <GestureHandlerRootView style={styles.gesture}>
       <Provider store={_store.store}>
         <PortalProvider>
-          <SafeAreaProvider>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
             <Styles.DarkModeContext.Provider value={darkMode}>
               <Styles.CanFixOverdrawContext.Provider value={true}>
                 <Main />
