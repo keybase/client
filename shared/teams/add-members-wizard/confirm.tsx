@@ -410,10 +410,18 @@ const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
     s => !s.teams.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
   )
   const onChangeFromDefault = () => dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: []}))
-  const onAdd = (toAdd: Array<Types.ChannelNameID>) =>
-    dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd}))
-  const onRemove = (toRemove: Types.ChannelNameID) =>
-    dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toRemove}))
+  const onAdd = React.useCallback(
+    (toAdd: Array<Types.ChannelNameID>) => {
+      dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd}))
+    },
+    [dispatch]
+  )
+  const onRemove = React.useCallback(
+    (toRemove: Types.ChannelNameID) => {
+      dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toRemove}))
+    },
+    [dispatch]
+  )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Text type="BodySmallSemibold">Join channels</Kb.Text>

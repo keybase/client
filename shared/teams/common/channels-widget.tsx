@@ -16,7 +16,7 @@ type Props = {
 }
 
 // always shows #general
-const ChannelsWidget = (props: Props) => (
+export const ChannelsWidget = (props: Props) => (
   <Kb.Box2 direction="vertical" gap="tiny" style={styles.container} fullWidth={true}>
     <ChannelInput
       onAdd={props.onAddChannel}
@@ -52,22 +52,29 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
 
   const {channelMetas} = useAllChannelMetas(teamID)
-  const channelItems = [...channelMetas.values()]
-    .filter(
-      c =>
-        !selected.find(channel => channel.conversationIDKey === c.conversationIDKey) &&
-        (!disableGeneral || c.channelname !== 'general') &&
-        (!disabledChannels || !disabledChannels.some(dc => dc.conversationIDKey === c.conversationIDKey))
-    )
-    .map(c => ({
-      label: `#${c.channelname}`,
-      value: {channelname: c.channelname, conversationIDKey: c.conversationIDKey},
-    }))
+  const channelItems = React.useMemo(
+    () =>
+      [...channelMetas.values()]
+        .filter(
+          c =>
+            !selected.find(channel => channel.conversationIDKey === c.conversationIDKey) &&
+            (!disableGeneral || c.channelname !== 'general') &&
+            (!disabledChannels || !disabledChannels.some(dc => dc.conversationIDKey === c.conversationIDKey))
+        )
+        .map(c => ({
+          label: `#${c.channelname}`,
+          value: {channelname: c.channelname, conversationIDKey: c.conversationIDKey},
+        })),
+    [channelMetas, disableGeneral, disabledChannels, selected]
+  )
 
-  const onSelect = (value: Unpacked<typeof channelItems>['value']) => {
-    onAdd([value])
-    setFilter('')
-  }
+  const onSelect = React.useCallback(
+    (value: Unpacked<typeof channelItems>['value']) => {
+      onAdd([value])
+      setFilter('')
+    },
+    [onAdd, setFilter]
+  )
 
   const {popup, popupAnchor, onKeyDown, setShowingPopup} = useAutocompleter(channelItems, onSelect, filter)
 
@@ -164,5 +171,3 @@ const styles = Styles.styleSheetCreate(() => ({
     flexWrap: 'wrap',
   },
 }))
-
-export default ChannelsWidget
