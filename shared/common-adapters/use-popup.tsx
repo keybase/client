@@ -1,5 +1,4 @@
 import * as React from 'react'
-// import {usePrevious} from '../util/container'
 
 // The type parameter (optional) is the type of the component that the popup will be attaching to.
 // `popupAnchor` should be passed to that component as its `ref`.
@@ -9,18 +8,16 @@ export const usePopup = <T extends React.Component<any>>(
   const [showingPopup, setShowingPopup] = React.useState(false)
   const [popup, setPopup] = React.useState<React.ReactNode>(null)
   const popupAnchor = React.useRef<T | null>(null)
-  // const prevExtraData = usePrevious(extraData)
-  // const dataChanged = prevExtraData ? extraData?.some((d, index) => d !== prevExtraData[index]) : false
 
   const toggleShowingPopup = React.useCallback(() => {
     setShowingPopup(s => !s)
   }, [setShowingPopup])
 
   React.useEffect(() => {
-    if (showingPopup === !popup /* || dataChanged*/) {
+    if (showingPopup === !popup) {
       setPopup(showingPopup ? makePopup(() => popupAnchor.current) : null)
     }
-  }, [showingPopup, popup, makePopup /*, dataChanged*/])
+  }, [showingPopup, popup, makePopup])
 
   return {
     popup,
