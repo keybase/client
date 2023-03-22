@@ -2376,7 +2376,11 @@ const markThreadAsRead = async (
   })
 }
 
-const markAsUnread = (state: Container.TypedState, action: Chat2Gen.MarkAsUnreadPayload) => {
+const markAsUnread = async (
+  state: Container.TypedState,
+  action: Chat2Gen.MarkAsUnreadPayload,
+  listenerApi: Container.ListenerApi
+) => {
   if (!state.config.loggedIn) {
     logger.info('bail on not logged in')
     return
@@ -2384,25 +2388,85 @@ const markAsUnread = (state: Container.TypedState, action: Chat2Gen.MarkAsUnread
   const {conversationIDKey, readMsgID} = action.payload
   const meta = state.chat2.metaMap.get(conversationIDKey)
   const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxVisibleMsgID : 0
+  let msgID = unreadLineID
 
   // Find first visible message prior to what we have marked as unread. The
   // server will use this value to calculate our badge state.
   const messageMap = state.chat2.messageMap.get(conversationIDKey)
-  const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
-  const ord =
-    messageMap &&
-    // @ts-ignore this exists in our js and in ts 5
-    [...ordinals].findLast((o: Types.Ordinal) => {
-      const message = messageMap.get(o)
-      return !!(message && message.id < unreadLineID)
-    })
-  const message = ord ? messageMap?.get(ord) : null
 
-  logger.info(`marking unread messages ${conversationIDKey} ${readMsgID}`)
+  if (messageMap) {
+    const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
+    const ord =
+      messageMap &&
+      // @ts-ignore this exists in our js and in ts 5
+      [...ordinals].findLast((o: Types.Ordinal) => {
+        const message = messageMap.get(o)
+        return !!(message && message.id < unreadLineID)
+      })
+    const message = ord ? messageMap?.get(ord) : null
+    if (message) {
+      msgID = message.id
+    }
+  } else {
+    const pagination = {
+      last: false,
+      next: '',
+      num: 2, // we need 2 items
+      previous: '',
+    }
+    try {
+      await new Promise<void>(resolve => {
+        const onGotThread = (p: any) => {
+          try {
+            const d = JSON.parse(p)
+            msgID = d?.messages[1]?.valid?.messageID
+            resolve()
+          } catch {}
+        }
+        RPCChatTypes.localGetThreadNonblockRpcListener(
+          {
+            incomingCallMap: {
+              'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
+              'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
+            },
+            params: {
+              cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
+              conversationID: Types.keyToConversationID(conversationIDKey),
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              knownRemotes: [],
+              pagination,
+              pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
+              query: {
+                disablePostProcessThread: false,
+                disableResolveSupersedes: false,
+                enableDeletePlaceholders: true,
+                markAsRead: false,
+                messageIDControl: null,
+                messageTypes: loadThreadMessageTypes,
+              },
+              reason: reasonToRPCReason(''),
+            },
+          },
+          listenerApi
+        )
+          .then(() => {})
+          .catch(() => {
+            resolve()
+          })
+      })
+    } catch {}
+  }
+
+  if (!msgID) {
+    logger.info(`marking unread messages ${conversationIDKey} failed due to no id`)
+    return
+  }
+
+  logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
   RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     forceUnread: true,
-    msgID: message ? message.id : unreadLineID,
+    msgID,
   })
     .then(() => {})
     .catch(() => {})
