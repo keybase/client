@@ -250,7 +250,7 @@ const UIItemToRetentionPolicies = (
 }
 
 export const inboxUIItemToConversationMeta = (
-  state: TypedState,
+  state: TypedState | undefined,
   i: RPCChatTypes.InboxUIItem
 ): ConversationMeta | null => {
   // Private chats only
@@ -292,7 +292,7 @@ export const inboxUIItemToConversationMeta = (
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
   const conversationIDKey = Types.stringToConversationIDKey(i.convID)
   let pinnedMsg: PinnedMessageInfo | undefined
-  if (i.pinnedMsg) {
+  if (i.pinnedMsg && state) {
     const {getLastOrdinal, username, devicename} = Message.getMessageStateExtras(state, conversationIDKey)
     const message = Message.uiMessageToMessage(
       conversationIDKey,

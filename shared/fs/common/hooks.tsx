@@ -203,9 +203,8 @@ export const useFuseClosedSourceConsent = (
 ) => {
   const [agreed, setAgreed] = React.useState<boolean>(false)
 
-  return {
-    canContinue: !Platform.isDarwin || agreed,
-    component: Platform.isDarwin ? (
+  const component = React.useMemo(() => {
+    return Platform.isDarwin ? (
       <Kb.Checkbox
         disabled={disabled}
         checked={agreed}
@@ -217,6 +216,11 @@ export const useFuseClosedSourceConsent = (
           </Kb.Text>
         }
       />
-    ) : undefined,
+    ) : undefined
+  }, [disabled, agreed, backgroundColor, textStyle])
+
+  return {
+    canContinue: !Platform.isDarwin || agreed,
+    component,
   }
 }

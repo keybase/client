@@ -23,20 +23,22 @@ type ExplodingButtonProps = Pick<Props, 'explodingModeSeconds' | 'conversationID
 }
 const ExplodingButton = (p: ExplodingButtonProps) => {
   const {explodingModeSeconds, conversationIDKey, focusInput} = p
-  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(
-    attachTo => {
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
       return (
         <SetExplodingMessagePopup
           attachTo={attachTo}
           conversationIDKey={conversationIDKey}
           onAfterSelect={focusInput}
           onHidden={toggleShowingPopup}
-          visible={showingPopup}
+          visible={true}
         />
       )
     },
     [conversationIDKey, focusInput]
   )
+  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box
