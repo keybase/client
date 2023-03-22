@@ -2,6 +2,8 @@ import * as React from 'react'
 
 // The type parameter (optional) is the type of the component that the popup will be attaching to.
 // `popupAnchor` should be passed to that component as its `ref`.
+// deprecated. Adds extra useEffects and won't update the popup if any dependencies change, better to use
+// usePopup2 with a React.useCallback(makePopup)
 export const usePopup = <T extends React.Component<any>>(
   makePopup: (getAttachmentRef: () => T | null) => React.ReactNode
 ) => {
