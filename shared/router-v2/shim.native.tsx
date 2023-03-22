@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
 import * as Container from '../util/container'
-import {SafeAreaProvider} from 'react-native-safe-area-context'
+import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {useHeaderHeight} from '@react-navigation/elements'
 import {View} from 'react-native'
 
@@ -25,7 +25,7 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
     const wrapInSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
     if (wrapInSafe) {
       wrap = (
-        <SafeAreaProvider>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
           <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
             {wrap}
           </Kb.SafeAreaView>
