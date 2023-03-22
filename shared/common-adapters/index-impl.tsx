@@ -340,6 +340,9 @@ module.exports = {
   get usePopup() {
     return require('./use-popup').usePopup
   },
+  get usePopup2() {
+    return require('./use-popup').usePopup2
+  },
   get useSafeAreaInsets() {
     return require('./safe-area-view').useSafeAreaInsets
   },
