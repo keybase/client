@@ -5,7 +5,7 @@ import * as Shared from './shim.shared'
 import * as Container from '../util/container'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {useHeaderHeight} from '@react-navigation/elements'
-import {View, type LayoutChangeEvent} from 'react-native'
+import {View} from 'react-native'
 
 export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
   Shared.shim(routes, shimNewRoute, isModal, isLoggedOut)
@@ -22,31 +22,31 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
 
     let wrap = <Original {...props} />
 
-    const wrapInSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
+    const wrapInSafe = /*navigationOptions?.needsSafe ||*/ isModal || isLoggedOut
     // either they want it, or its a modal/loggedout and they haven't explicitly opted out
     const wrapInKeyboard =
-      navigationOptions?.needsKeyboard ||
+      // navigationOptions?.needsKeyboard ||
       (isModal && (navigationOptions?.needsKeyboard ?? true)) ||
       (isLoggedOut && (navigationOptions?.needsKeyboard ?? true))
 
     // making this explicit opt in so we don't cut off screens by accident
-    const needsHeightFix = navigationOptions?.heightFix ?? false
-    if (needsHeightFix) {
-      let heightThrashType = 'normal'
-      if (isModal) {
-        heightThrashType += ':modal'
-      }
-      if (wrapInSafe) {
-        heightThrashType += ':safe'
-      }
-      if (wrapInKeyboard) {
-        heightThrashType += ':kb'
-      }
+    // const needsHeightFix = navigationOptions?.heightFix ?? false
+    // if (needsHeightFix) {
+    //   let heightThrashType = 'normal'
+    //   if (isModal) {
+    //     heightThrashType += ':modal'
+    //   }
+    //   if (wrapInSafe) {
+    //     heightThrashType += ':safe'
+    //   }
+    //   if (wrapInKeyboard) {
+    //     heightThrashType += ':kb'
+    //   }
 
-      // needed to stop getting lots of heights
-      // https://github.com/software-mansion/react-native-screens/issues/1504
-      wrap = <HeightThrashWrapper type={heightThrashType}>{wrap}</HeightThrashWrapper>
-    }
+    //   // needed to stop getting lots of heights
+    //   // https://github.com/software-mansion/react-native-screens/issues/1504
+    //   wrap = <HeightThrashWrapper type={heightThrashType}>{wrap}</HeightThrashWrapper>
+    // }
 
     if (wrapInSafe) {
       wrap = (
@@ -71,40 +71,51 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
   return ShimmedNew
 }
 
-const heightCache = new Map<string, number>()
+// const heightCache = new Map<string, number>()
 
 // there is an issue where we get a lot of sizing when we layout, so we cache it per type and use that
-const HeightThrashWrapper = (p: {children: React.ReactNode; type: string}) => {
-  const {children, type} = p
+// const HeightThrashWrapper = (p: {children: React.ReactNode; type: string}) => {
+//   const {children, type} = p
 
-  const iAmSettingCache = React.useRef(heightCache.get(type) === undefined)
+//   const iAmSettingCache = React.useRef(heightCache.get(type) === undefined)
 
-  // take it so no one else does
-  if (iAmSettingCache.current) {
-    heightCache.set(type, -1)
-  }
+//   console.log('aaa', initialWindowMetrics, useSafeAreaInsets)
 
-  const onLayout = React.useCallback(
-    (e: LayoutChangeEvent) => {
-      if (iAmSettingCache.current) {
-        heightCache.set(type, e.nativeEvent.layout.height)
-      }
-    },
-    [type]
-  )
+//   // take it so no one else does
+//   if (iAmSettingCache.current) {
+//     heightCache.set(type, -1)
+//   }
 
-  const style = React.useMemo(() => {
-    const height = heightCache.get(type)
-    if ((height ?? -1) === -1) return styles.keyboard
-    return [styles.keyboard, {height, maxHeight: height}]
-  }, [type])
+//   const onLayout = React.useCallback(
+//     (e: LayoutChangeEvent) => {
+//       console.log('aaa', e.nativeEvent.layout.height)
+//       // if (iAmSettingCache.current) {
+//       //   heightCache.set(type, e.nativeEvent.layout.height)
+//       // }
+//     },
+//     [
+//       /*type*/
+//     ]
+//   )
 
-  return (
-    <View style={style} onLayout={iAmSettingCache.current ? onLayout : undefined}>
-      {children}
-    </View>
-  )
-}
+//   const style = React.useMemo(
+//     () => {
+//       return styles.keyboard
+//       // const height = heightCache.get(type)
+//       // if ((height ?? -1) === -1) return styles.keyboard
+//       // return [styles.keyboard, {maxHeight: height}]
+//     },
+//     [
+//       /*type*/
+//     ]
+//   )
+
+//   return (
+//     <View style={style} onLayout={onLayout /*iAmSettingCache.current ? onLayout : undefined*/}>
+//       {children}
+//     </View>
+//   )
+// }
 
 const useSafeHeaderHeight = () => {
   try {

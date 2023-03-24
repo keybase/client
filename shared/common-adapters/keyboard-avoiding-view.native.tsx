@@ -17,7 +17,7 @@ import {useHeaderHeight} from '@react-navigation/elements'
 import type {Props as KAVProps} from './keyboard-avoiding-view'
 import * as React from 'react'
 
-type Props = React.ComponentProps<typeof OldKeyboardAvoidingViewType>
+type Props = React.ComponentProps<typeof OldKeyboardAvoidingViewType> & {extraPadding?: number}
 
 type ViewLayout = {
   x: number
@@ -130,7 +130,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
         // @ts-ignore actually exists but not in the api until 71
         const h = Keyboard.metrics()?.height ?? 0
         this._bottom = h
-        this.setState({bottom: h})
+        this.setState({bottom: h + (this.props.extraPadding ?? 0)})
       } else {
         this._bottom = 0
         this.setState({bottom: 0})
@@ -157,7 +157,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
       })
     }
     this._bottom = height
-    this.setState({bottom: height})
+    this.setState({bottom: height + (this.props.extraPadding ?? 0)})
   }
 
   componentDidMount(): void {
@@ -260,7 +260,7 @@ const styles = Styles.styleSheetCreate(
 )
 
 export const KeyboardAvoidingView2 = (p: KAVProps) => {
-  const {children, extraOffset} = p
+  const {children, extraOffset, extraPadding} = p
   const headerHeight = useSafeHeaderHeight()
   const keyboardVerticalOffset = headerHeight + (extraOffset ?? 0)
 
@@ -269,6 +269,7 @@ export const KeyboardAvoidingView2 = (p: KAVProps) => {
       keyboardVerticalOffset={keyboardVerticalOffset}
       pointerEvents="box-none"
       style={styles.keyboard}
+      extraPadding={extraPadding}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {children}

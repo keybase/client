@@ -144,6 +144,9 @@ module.exports = {
   get KeyboardAvoidingView() {
     return Index.KeyboardAvoidingView
   },
+  get KeyboardAvoidingView2() {
+    return Index.KeyboardAvoidingView2
+  },
   get LabeledInput() {
     return Index.LabeledInput
   },
