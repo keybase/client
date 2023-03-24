@@ -16,11 +16,11 @@ export const VerifyInput = () => {
     }
   }, [dispatch])
   return (
-    <>
+    <Kb.KeyboardAvoidingView2>
       <OperationBanner operation={operation} />
       <Input operation={operation} />
       <InputActionsBar operation={operation} />
-    </>
+    </Kb.KeyboardAvoidingView2>
   )
 }
 export const VerifyOutput = () => (

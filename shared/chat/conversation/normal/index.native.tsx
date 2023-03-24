@@ -6,6 +6,7 @@ import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../../styles'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import DropView, {type DropItems} from '../../../common-adapters/drop-view.native'
 import Banner from '../bottom-banner/container'
 import InputArea from '../input-area/container'
@@ -110,16 +111,34 @@ const Conversation = React.memo(function Conversation(props: Props) {
     [dispatch, conversationIDKey]
   )
 
+  const insets = useSafeAreaInsets()
+  const headerHeight = 44
+  const height = Styles.dimensionHeight - insets.top - headerHeight
+
+  const safeStyle = React.useMemo(
+    () => ({
+      height,
+      maxHeight: height,
+      minHeight: height,
+      paddingBottom: insets.bottom,
+    }),
+    [height, insets.bottom]
+  )
+
   return (
-    <Kb.Box style={styles.innerContainer}>
-      <DropView style={styles.dropView} onDropped={onDropped}>
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-          {props.threadLoadedOffline && <Offline />}
-          {innerComponent}
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
+      <Kb.KeyboardAvoidingView2 extraPadding={-insets.bottom}>
+        <Kb.Box2 direction="vertical" style={styles.innerContainer} fullWidth={true} fullHeight={true}>
+          <DropView style={styles.dropView} onDropped={onDropped}>
+            <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+              {props.threadLoadedOffline && <Offline />}
+              {innerComponent}
+            </Kb.Box2>
+            <Kb.PortalHost name="convOverlay" />
+          </DropView>
         </Kb.Box2>
-        <Kb.PortalHost name="convOverlay" />
-      </DropView>
-    </Kb.Box>
+      </Kb.KeyboardAvoidingView2>
+    </Kb.Box2>
   )
 })
 
@@ -138,6 +157,11 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
+      sav: {
+        flexGrow: 1,
+        maxHeight: '100%',
+        position: 'relative',
+      },
     } as const)
 )
 

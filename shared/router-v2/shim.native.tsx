@@ -22,25 +22,18 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
 
     let wrap = <Original {...props} />
 
-    const wrapInSafe = navigationOptions?.needsSafe || isModal || isLoggedOut
-    if (wrapInSafe) {
+    if (isModal || isLoggedOut) {
       wrap = (
-        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-          <Kb.SafeAreaView style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}>
-            {wrap}
-          </Kb.SafeAreaView>
-        </SafeAreaProvider>
+        <Kb.KeyboardAvoidingView2 extraOffset={40}>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+            <Kb.SafeAreaView
+              style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
+            >
+              {wrap}
+            </Kb.SafeAreaView>
+          </SafeAreaProvider>
+        </Kb.KeyboardAvoidingView2>
       )
-    }
-
-    // either they want it, or its a modal/loggedout and they haven't explicitly opted out
-    const wrapInKeyboard =
-      navigationOptions?.needsKeyboard ||
-      (isModal && (navigationOptions?.needsKeyboard ?? true)) ||
-      (isLoggedOut && (navigationOptions?.needsKeyboard ?? true))
-
-    if (wrapInKeyboard) {
-      wrap = <Kb.KeyboardAvoidingView2 extraOffset={40}>{wrap}</Kb.KeyboardAvoidingView2>
     }
 
     if (isModal) {
