@@ -16,16 +16,16 @@ const SendFeedback = (props: Props) => {
 
   return (
     <SignupScreen
-      banners={[
-        ...(feedbackSent
-          ? [
-              <Kb.Banner key="feedbackSent" color="green">
-                <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
-              </Kb.Banner>,
-            ]
-          : []),
-        ...(props.sendError ? errorBanner(props.sendError.message) : []),
-      ]}
+      banners={
+        <>
+          {feedbackSent ? (
+            <Kb.Banner key="feedbackSent" color="green">
+              <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
+            </Kb.Banner>
+          ) : null}
+          {props.sendError ? errorBanner(props.sendError.message) : null}
+        </>
+      }
       title="Send feedback"
       onBack={props.onBack}
       showHeaderInfoicon={false}

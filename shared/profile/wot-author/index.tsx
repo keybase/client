@@ -417,13 +417,13 @@ export const Review = (props: ReviewProps) => {
         title: 'Review claim',
       }}
       mode="DefaultFullHeight"
-      banners={[
-        !!props.error && (
+      banners={
+        props.error ? (
           <Kb.Banner key="error" color="red">
             <Kb.BannerParagraph bannerColor="red" content={props.error} />
           </Kb.Banner>
-        ),
-      ]}
+        ) : null
+      }
       footer={{
         content: (
           <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>
@@ -583,13 +583,13 @@ const WotModal = (props: WotModalProps) => {
         title: 'Web of Trust',
       }}
       mode="DefaultFullHeight"
-      banners={[
-        !!props.error && (
+      banners={
+        props.error ? (
           <Kb.Banner key="error" color="red">
             <Kb.BannerParagraph bannerColor="red" content={props.error} />
           </Kb.Banner>
-        ),
-      ]}
+        ) : null
+      }
       footer={{
         content: (
           <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>

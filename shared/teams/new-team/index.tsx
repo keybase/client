@@ -37,26 +37,28 @@ const CreateNewTeam = (props: Props) => {
 
   return (
     <Kb.Modal
-      banners={[
-        !isSubteam && (
-          <Kb.Banner color="blue">
-            For security reasons, team names are unique and can't be changed, so choose carefully.
-          </Kb.Banner>
-        ),
-        isSubteam && (
-          <Kb.Banner color="blue">
-            <Kb.BannerParagraph
-              bannerColor="blue"
-              content={[`You are creating a subteam of ${props.baseTeam}.`]}
-            />
-            <Kb.BannerParagraph
-              bannerColor="blue"
-              content={[{onClick: openSubteamInfo, text: 'Learn more'}]}
-            />
-          </Kb.Banner>
-        ),
-        !!props.errorText && <Kb.Banner color="red">{props.errorText}</Kb.Banner>,
-      ]}
+      banners={
+        <>
+          {!isSubteam ? (
+            <Kb.Banner color="blue">
+              For security reasons, team names are unique and can't be changed, so choose carefully.
+            </Kb.Banner>
+          ) : null}
+          {isSubteam ? (
+            <Kb.Banner color="blue">
+              <Kb.BannerParagraph
+                bannerColor="blue"
+                content={[`You are creating a subteam of ${props.baseTeam}.`]}
+              />
+              <Kb.BannerParagraph
+                bannerColor="blue"
+                content={[{onClick: openSubteamInfo, text: 'Learn more'}]}
+              />
+            </Kb.Banner>
+          ) : null}
+          {props.errorText ? <Kb.Banner color="red">{props.errorText}</Kb.Banner> : null}
+        </>
+      }
       footer={{
         content: (
           <Kb.Button

@@ -63,13 +63,11 @@ const ConfirmReset = (_: Props) => {
         style: styles.footer,
       }}
       banners={
-        error
-          ? [
-              <Kb.Banner color="red" key="errors">
-                <Kb.BannerParagraph bannerColor="red" content={error} />
-              </Kb.Banner>,
-            ]
-          : undefined
+        error ? (
+          <Kb.Banner color="red" key="errors">
+            <Kb.BannerParagraph bannerColor="red" content={error} />
+          </Kb.Banner>
+        ) : null
       }
     >
       <Kb.Box2

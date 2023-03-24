@@ -57,13 +57,11 @@ const ResetModalImpl = () => {
           ),
         }}
         banners={
-          error
-            ? [
-                <Kb.Banner color="red" key="errors">
-                  <Kb.BannerParagraph bannerColor="red" content={error} />
-                </Kb.Banner>,
-              ]
-            : undefined
+          error ? (
+            <Kb.Banner color="red" key="errors">
+              <Kb.BannerParagraph bannerColor="red" content={error} />
+            </Kb.Banner>
+          ) : null
         }
       >
         <Kb.Box2 fullWidth={true} direction="vertical">
