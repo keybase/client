@@ -61,6 +61,7 @@ const Conversation = (p: SwitchProps) => {
 // @ts-ignore
 Conversation.navigationOptions = ({route}) => ({
   ...headerNavigationOptions(route),
+  heightFix: true,
   needsKeyboard: true,
   needsSafe: true,
   presentation: undefined,
