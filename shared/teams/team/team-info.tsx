@@ -70,13 +70,17 @@ const TeamInfo = (props: Props) => {
           />
         ),
       }}
-      banners={Object.keys(errors)
-        .filter(k => !!errors[k])
-        .map(k => (
-          <Kb.Banner color="red" key={k}>
-            {errors[k]!}
-          </Kb.Banner>
-        ))}
+      banners={
+        <>
+          {Object.keys(errors).map(k =>
+            errors[k] ? (
+              <Kb.Banner color="red" key={k}>
+                {errors[k]}
+              </Kb.Banner>
+            ) : null
+          )}
+        </>
+      }
       allowOverflow={true}
       backgroundStyle={styles.bg}
     >

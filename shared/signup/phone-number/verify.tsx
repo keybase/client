@@ -23,13 +23,11 @@ const VerifyPhoneNumber = (props: Props) => {
     <SignupScreen
       onBack={props.onBack}
       banners={
-        props.error
-          ? [
-              <Kb.Banner key="error" color="red">
-                <Kb.BannerParagraph bannerColor="red" content={props.error} />
-              </Kb.Banner>,
-            ]
-          : []
+        props.error ? (
+          <Kb.Banner key="error" color="red">
+            <Kb.BannerParagraph bannerColor="red" content={props.error} />
+          </Kb.Banner>
+        ) : null
       }
       buttons={[{label: 'Continue', onClick: onContinue, type: 'Success', waiting: props.verifyWaiting}]}
       titleComponent={
