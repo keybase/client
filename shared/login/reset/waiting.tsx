@@ -64,13 +64,11 @@ const Waiting = (props: Props) => {
       title="Account reset"
       noBackground={true}
       banners={
-        sendAgainSuccess
-          ? [
-              <Kb.Banner color="green" key="success">
-                Instructions sent.
-              </Kb.Banner>,
-            ]
-          : []
+        sendAgainSuccess ? (
+          <Kb.Banner color="green" key="success">
+            Instructions sent.
+          </Kb.Banner>
+        ) : null
       }
       buttons={[{label: 'Close', onClick: onClose, type: 'Dim'}]}
     >

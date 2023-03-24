@@ -40,16 +40,16 @@ const ForgotUsername = () => {
 
   return (
     <SignupScreen
-      banners={[
-        ...errorBanner(error),
-        ...(forgotUsernameResult === 'success'
-          ? [
-              <Kb.Banner key="successBanner" color="blue">
-                <Kb.BannerParagraph bannerColor="green" content="We just sent you your username." />
-              </Kb.Banner>,
-            ]
-          : []),
-      ]}
+      banners={
+        <>
+          {errorBanner(error)}
+          {forgotUsernameResult === 'success' ? (
+            <Kb.Banner key="successBanner" color="blue">
+              <Kb.BannerParagraph bannerColor="green" content="We just sent you your username." />
+            </Kb.Banner>
+          ) : null}
+        </>
+      }
       buttons={[
         {
           disabled,

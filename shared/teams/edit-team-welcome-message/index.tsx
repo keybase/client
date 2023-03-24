@@ -47,13 +47,11 @@ const EditTeamWelcomeMessage = (props: Props) => {
     <Kb.Modal
       mode="Default"
       banners={
-        error
-          ? [
-              <Kb.Banner color="red" key="err">
-                {error}
-              </Kb.Banner>,
-            ]
-          : undefined
+        error ? (
+          <Kb.Banner color="red" key="err">
+            {error}
+          </Kb.Banner>
+        ) : null
       }
       onClose={onClose}
       footer={{

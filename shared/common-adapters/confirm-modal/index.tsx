@@ -40,13 +40,11 @@ const ConfirmModal = (props: Props) => (
         : undefined
     }
     banners={
-      props.error
-        ? [
-            <Banner key="error" color="red">
-              <BannerParagraph bannerColor="red" content={props.error} />
-            </Banner>,
-          ]
-        : []
+      props.error ? (
+        <Banner key="error" color="red">
+          <BannerParagraph bannerColor="red" content={props.error} />
+        </Banner>
+      ) : null
     }
     footer={{
       content: (

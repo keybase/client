@@ -58,14 +58,16 @@ class LogOut extends React.Component<Props, State> {
     ) : (
       <Kb.Modal
         backgroundStyle={styles.logoutBackground}
-        banners={[
-          this.props.checkPasswordIsCorrect === false && (
-            <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
-          ),
-          this.props.checkPasswordIsCorrect === true && (
-            <Kb.Banner color="green">Your password is correct.</Kb.Banner>
-          ),
-        ]}
+        banners={
+          <>
+            {this.props.checkPasswordIsCorrect === false ? (
+              <Kb.Banner color="red">Wrong password. Please try again.</Kb.Banner>
+            ) : null}
+            {this.props.checkPasswordIsCorrect === true ? (
+              <Kb.Banner color="green">Your password is correct.</Kb.Banner>
+            ) : null}
+          </>
+        }
         footer={{
           content: !this.props.checkPasswordIsCorrect ? (
             <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>

@@ -16,11 +16,11 @@ export const DecryptInput = () => {
     }
   }, [dispatch])
   return (
-    <>
+    <Kb.KeyboardAvoidingView2>
       <OperationBanner operation={operation} />
       <Input operation={operation} />
       <InputActionsBar operation={operation} />
-    </>
+    </Kb.KeyboardAvoidingView2>
   )
 }
 

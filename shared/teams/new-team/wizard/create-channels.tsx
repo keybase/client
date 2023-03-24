@@ -11,7 +11,7 @@ type Props = {
   onSubmitChannels?: (channels: Array<string>) => void
   teamID?: Types.TeamID
   waiting?: boolean
-  banners?: Array<React.ReactNode>
+  banners?: React.ReactNode
 }
 
 const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
