@@ -39,13 +39,14 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const {swipeCloseRef, children} = p
   const conversationIDKey = React.useContext(ConversationIDKeyContext)
   const [extraData, setExtraData] = React.useState(0)
-
-  React.useEffect(() => {
+  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  if (lastCID !== conversationIDKey) {
+    setLastCID(conversationIDKey)
     // only if open
     if (swipeCloseRef?.current) {
       setExtraData(d => d + 1)
     }
-  }, [swipeCloseRef, conversationIDKey])
+  }
 
   const dispatch = Container.useDispatch()
   const onMarkConversationAsUnread = Container.useEvent(() => {
@@ -78,36 +79,34 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const makeActionsRef = React.useRef<(p: Reanimated.SharedValue<number>) => React.ReactNode>(
     (_p: Reanimated.SharedValue<number>) => null
   )
-  React.useEffect(() => {
-    makeActionsRef.current = (progress: Reanimated.SharedValue<number>) => (
-      <Kb.NativeView style={styles.container}>
-        <Action
-          text="Unread"
-          color={Styles.globalColors.blue}
-          iconType="iconfont-envelope-solid"
-          onClick={onMarkAsUnread}
-          mult={0}
-          progress={progress}
-        />
-        <Action
-          text={isMuted ? 'Unmute' : 'Mute'}
-          color={Styles.globalColors.orange}
-          iconType="iconfont-shh"
-          onClick={onMute}
-          mult={1 / 3}
-          progress={progress}
-        />
-        <Action
-          text="Hide"
-          color={Styles.globalColors.greyDarker}
-          iconType="iconfont-hide"
-          onClick={onHide}
-          mult={2 / 3}
-          progress={progress}
-        />
-      </Kb.NativeView>
-    )
-  }, [onMarkAsUnread, onMute, onHide, isMuted])
+  makeActionsRef.current = (progress: Reanimated.SharedValue<number>) => (
+    <Kb.NativeView style={styles.container}>
+      <Action
+        text="Unread"
+        color={Styles.globalColors.blue}
+        iconType="iconfont-envelope-solid"
+        onClick={onMarkAsUnread}
+        mult={0}
+        progress={progress}
+      />
+      <Action
+        text={isMuted ? 'Unmute' : 'Mute'}
+        color={Styles.globalColors.orange}
+        iconType="iconfont-shh"
+        onClick={onMute}
+        mult={1 / 3}
+        progress={progress}
+      />
+      <Action
+        text="Hide"
+        color={Styles.globalColors.greyDarker}
+        iconType="iconfont-hide"
+        onClick={onHide}
+        mult={2 / 3}
+        progress={progress}
+      />
+    </Kb.NativeView>
+  )
 
   const props = {
     children,

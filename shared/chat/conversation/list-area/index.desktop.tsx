@@ -20,6 +20,16 @@ import {getMessageRender} from '../messages/wrapper'
 import {globalMargins} from '../../../styles/shared'
 import {useMemo} from '../../../util/memoize'
 
+const useIsMounted = () => {
+  const isMountedRef = React.useRef(true)
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+  return isMountedRef
+}
+
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
 // We use react-measure to cache the heights
@@ -178,7 +188,7 @@ const useScrolling = (
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
   const listEdgeSlopTop = 1000
-  const isMountedRef = Hooks.useIsMounted()
+  const isMountedRef = useIsMounted()
   const isScrollingRef = React.useRef(false)
   const ignoreOnScrollRef = React.useRef(false)
   const lockedToBottomRef = React.useRef(true)

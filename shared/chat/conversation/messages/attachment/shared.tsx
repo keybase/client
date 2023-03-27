@@ -22,17 +22,25 @@ export const ShowToastAfterSaving = Container.isMobile
   ? ({transferState}: Props) => {
       const [showingToast, setShowingToast] = React.useState(false)
       const [wasSaving, setWasSaving] = React.useState(false)
+      const [lastWasSaving, setLastWasSaving] = React.useState(wasSaving)
       const setShowingToastFalseLater = Kb.useTimeout(() => setShowingToast(false), 1500)
-      React.useEffect(() => {
-        transferState === 'mobileSaving' && setWasSaving(true)
-      }, [transferState])
-      React.useEffect(() => {
+      const [lastTS, setLastTS] = React.useState(transferState)
+      if (lastTS !== transferState) {
+        setLastTS(transferState)
+        if (transferState === 'mobileSaving') {
+          setWasSaving(true)
+        }
+      }
+
+      if (lastWasSaving !== wasSaving || lastTS !== transferState) {
+        setLastTS(transferState)
+        setLastWasSaving(wasSaving)
         if (wasSaving && !transferState) {
           setWasSaving(false)
           setShowingToast(true)
           setShowingToastFalseLater()
         }
-      }, [wasSaving, transferState, setShowingToast, setShowingToastFalseLater])
+      }
       return showingToast ? (
         <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={showingToast} />
       ) : null
