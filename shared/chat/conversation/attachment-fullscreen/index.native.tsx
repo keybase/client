@@ -13,14 +13,16 @@ const AutoMaxSizeImage = (p: {source: {uri: string}; onLoad: () => void; opacity
   const {uri} = source
   const [width, setWidth] = React.useState(0)
   const [height, setHeight] = React.useState(0)
+  const [lastUri, setLastUri] = React.useState(uri)
 
-  React.useEffect(() => {
+  if (lastUri !== uri) {
+    setLastUri(uri)
     Kb.NativeImage.getSize(uri, (width, height) => {
       const clamped = Constants.clampImageSize(width, height, Styles.dimensionWidth)
       setWidth(clamped.width)
       setHeight(clamped.height)
     })
-  }, [uri])
+  }
 
   return (
     <Kb.ZoomableBox

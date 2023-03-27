@@ -412,12 +412,14 @@ export const useAttachmentSections = (
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
     RPCChatTypes.GalleryItemTyp.media
   )
+  const [lastCID, setLastCID] = React.useState(conversationIDKey)
 
-  React.useEffect(() => {
+  if (lastCID !== conversationIDKey) {
+    setLastCID(conversationIDKey)
     if (loadImmediately) {
       dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
     }
-  }, [loadImmediately, selectedAttachmentView, conversationIDKey, dispatch])
+  }
 
   const attachmentView = Container.useSelector(state => state.chat2.attachmentViewMap.get(conversationIDKey))
   const attachmentInfo = attachmentView?.get(selectedAttachmentView) || noAttachmentView

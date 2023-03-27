@@ -66,12 +66,14 @@ export const Bot = (props: BotProps) => {
   const {onClick, firstItem} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
   const dispatch = Container.useDispatch()
-  React.useEffect(() => {
+  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  if (conversationIDKey !== lastCID) {
+    setLastCID(conversationIDKey)
     if (conversationIDKey && showChannelAdd) {
       // fetch bot settings if trying to show the add to channel button
       dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
     }
-  }, [dispatch, botUsername, conversationIDKey, showChannelAdd])
+  }
 
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
