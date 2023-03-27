@@ -116,28 +116,37 @@ const Conversation = React.memo(function Conversation(props: Props) {
   const height = Styles.dimensionHeight - insets.top - headerHeight
 
   const safeStyle = React.useMemo(
-    () => ({
-      height,
-      maxHeight: height,
-      minHeight: height,
-      paddingBottom: insets.bottom,
-    }),
+    () =>
+      Styles.isAndroid
+        ? {paddingBottom: insets.bottom}
+        : {
+            height,
+            maxHeight: height,
+            minHeight: height,
+            paddingBottom: insets.bottom,
+          },
     [height, insets.bottom]
   )
 
-  return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-      <Kb.KeyboardAvoidingView2 extraPadding={-insets.bottom}>
-        <Kb.Box2 direction="vertical" style={styles.innerContainer} fullWidth={true} fullHeight={true}>
-          <DropView style={styles.dropView} onDropped={onDropped}>
-            <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-              {props.threadLoadedOffline && <Offline />}
-              {innerComponent}
-            </Kb.Box2>
-            <Kb.PortalHost name="convOverlay" />
-          </DropView>
+  const content = (
+    <Kb.Box2 direction="vertical" style={styles.innerContainer} fullWidth={true} fullHeight={true}>
+      <DropView style={styles.dropView} onDropped={onDropped}>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+          {props.threadLoadedOffline && <Offline />}
+          {innerComponent}
         </Kb.Box2>
-      </Kb.KeyboardAvoidingView2>
+        <Kb.PortalHost name="convOverlay" />
+      </DropView>
+    </Kb.Box2>
+  )
+
+  return Styles.isAndroid ? (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
+      {content}
+    </Kb.Box2>
+  ) : (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
+      <Kb.KeyboardAvoidingView2 extraPadding={-insets.bottom}>{content}</Kb.KeyboardAvoidingView2>
     </Kb.Box2>
   )
 })
