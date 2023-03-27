@@ -277,6 +277,10 @@ const useIconAndOverlay = (p: {
     />
   )
 
+  const durationStyle = useAnimatedStyle(() => ({
+    opacity: fadeSV.value,
+  }))
+
   const overlay =
     visible === Visible.HIDDEN ? null : (
       <Kb.Portal hostName="convOverlay" useFullScreenOverlay={false}>
@@ -293,7 +297,9 @@ const useIconAndOverlay = (p: {
           <LockHint fadeSV={fadeSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
           <CancelHint onCancel={onCancelRecording} fadeSV={fadeSV} lockedSV={lockedSV} dragXSV={dragXSV} />
           <SendRecordingButton fadeSV={fadeSV} lockedSV={lockedSV} sendRecording={onSendRecording} />
-          <AudioCounter fadeSV={fadeSV} />
+          <Animated.View style={[styles.audioCounterStyle, durationStyle]}>
+            <AudioCounter />
+          </Animated.View>
         </Animated.View>
       </Kb.Portal>
     )
@@ -782,8 +788,7 @@ const SendRecordingButton = (props: {fadeSV: SVN; lockedSV: SVN; sendRecording: 
   )
 }
 
-const AudioCounter = (props: {fadeSV: SVN}) => {
-  const {fadeSV} = props
+const AudioCounter = () => {
   const [seconds, setSeconds] = React.useState(0)
   const startTime = React.useRef(Date.now()).current
   React.useEffect(() => {
@@ -792,14 +797,7 @@ const AudioCounter = (props: {fadeSV: SVN}) => {
     }, 1000)
     return () => clearTimeout(timer)
   }, [seconds, startTime])
-  const durationStyle = useAnimatedStyle(() => ({
-    opacity: fadeSV.value,
-  }))
-  return (
-    <Animated.View style={[styles.audioCounterStyle, durationStyle]}>
-      <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>
-    </Animated.View>
-  )
+  return <Kb.Text type="BodyBold">{formatAudioRecordDuration(seconds * 1000)}</Kb.Text>
 }
 
 const micCenterRight = 54
