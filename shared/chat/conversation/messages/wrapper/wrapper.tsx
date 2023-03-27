@@ -446,12 +446,10 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   // passed in context so stable
   const conversationIDKeyRef = React.useRef(conversationIDKey)
+  conversationIDKeyRef.current = conversationIDKey
   const ordinalRef = React.useRef(ordinal)
+  ordinalRef.current = ordinal
 
-  React.useEffect(() => {
-    conversationIDKeyRef.current = conversationIDKey
-    ordinalRef.current = ordinal
-  }, [conversationIDKey, ordinal])
   const getIds = React.useCallback(() => {
     return {conversationIDKey: conversationIDKeyRef.current, ordinal: ordinalRef.current}
   }, [])
