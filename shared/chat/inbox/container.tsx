@@ -121,9 +121,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     }
   }
 
-  const mountedOnceRef = React.useRef(true)
-  if (mountedOnceRef.current) {
-    mountedOnceRef.current = false
+  Container.useOnMountOnce(() => {
     if (!Container.isMobile) {
       // On mobile this is taken care of by NavigationEvents.
       dispatch(Chat2Gen.createTabSelected())
@@ -131,7 +129,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     if (!inboxHasLoaded) {
       dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'}))
     }
-  }
+  })
 
   return (
     <Inbox

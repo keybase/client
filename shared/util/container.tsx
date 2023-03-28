@@ -58,6 +58,7 @@ export function useRemoteStore<S>(): S {
 }
 /**
       like useEffect but doesn't call on initial mount, only when deps change
+TODO deprecate
  */
 export function useDepChangeEffect(f: () => void, deps: Array<unknown>) {
   const mounted = React.useRef(false)
@@ -70,6 +71,27 @@ export function useDepChangeEffect(f: () => void, deps: Array<unknown>) {
     }
     // eslint-disable-next-line
   }, deps)
+}
+
+// Get the mounted state of a component
+export const useIsMounted = () => {
+  const mounted = React.useRef(true)
+  React.useEffect(() => {
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+  const isMounted = React.useCallback(() => mounted.current, [])
+  return isMounted
+}
+
+// Run a function on mount once
+export const useOnMountOnce = (f: () => void) => {
+  const onceRef = React.useRef(true)
+  if (onceRef.current) {
+    onceRef.current = false
+    f()
+  }
 }
 
 export type RouteDef = {

@@ -334,9 +334,6 @@ module.exports = {
   get useModalHeaderTitleAndCancel() {
     return require('./modal/index').useModalHeaderTitleAndCancel
   },
-  get useMounted() {
-    return require('./use-mounted').default
-  },
   get usePopup() {
     return require('./use-popup').usePopup
   },

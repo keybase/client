@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
 import Text from './text'
 import {Box2} from './box'
 import * as Scanner from 'expo-barcode-scanner'
@@ -19,9 +20,7 @@ const QRScanner = (p: Props): React.ReactElement | null => {
   const [hasCameraPermission, setHasCameraPermission] = React.useState<boolean | undefined>(undefined)
   const [scanned, setScanned] = React.useState<boolean>(false)
 
-  const onceRef = React.useRef(true)
-  if (onceRef.current) {
-    onceRef.current = false
+  Container.useOnMountOnce(() => {
     const getPermissionsGranted = async () => {
       const {status} = await Scanner.requestPermissionsAsync()
       setHasCameraPermission(status === Scanner.PermissionStatus.GRANTED)
@@ -29,7 +28,7 @@ const QRScanner = (p: Props): React.ReactElement | null => {
     getPermissionsGranted()
       .then(() => {})
       .catch(() => {})
-  }
+  })
 
   if (hasCameraPermission === undefined) {
     return (

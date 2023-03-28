@@ -1,8 +1,8 @@
 import * as React from 'react'
+import * as Container from '../util/container'
 import {NativeDimensions, NativeView} from './native-wrappers.native'
 import {Portal} from './portal.native'
 import {useTimeout} from './use-timers'
-import useMounted from './use-mounted'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Text from './text'
@@ -57,7 +57,7 @@ const WithTooltip = (props: Props) => {
   const setVisibleFalseLater = useTimeout(() => {
     setVisible(false)
   }, 3000)
-  const getIsMounted = useMounted()
+  const isMounted = Container.useIsMounted()
   const _onClick = () => {
     if (!clickableRef.current || !tooltipRef.current || visible) {
       return
@@ -72,7 +72,7 @@ const WithTooltip = (props: Props) => {
       // @ts-ignore this stucture makes this very hard to type
     ])
       .then(([c, t]: [any, any]) => {
-        if (!getIsMounted()) {
+        if (!isMounted()) {
           return
         }
 

@@ -426,9 +426,6 @@ module.exports = {
   get useInterval() {
     return Index.useInterval
   },
-  get useMounted() {
-    return Index.useMounted
-  },
   get usePopup() {
     return Index.usePopup
   },

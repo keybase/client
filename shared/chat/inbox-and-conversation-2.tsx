@@ -29,9 +29,7 @@ const InboxAndConversation = (props: Props) => {
   })
   const navKey: string = props.route.key
 
-  const mountedOnceRef = React.useRef(true)
-  if (mountedOnceRef.current) {
-    mountedOnceRef.current = false
+  Container.useOnMountOnce(() => {
     if (needSelectConvoID) {
       // hack to select the convo after we render
       setTimeout(() => {
@@ -43,7 +41,7 @@ const InboxAndConversation = (props: Props) => {
         )
       }, 1)
     }
-  }
+  })
 
   return (
     <Kb.KeyboardAvoidingView2>

@@ -20,16 +20,6 @@ import {getMessageRender} from '../messages/wrapper'
 import {globalMargins} from '../../../styles/shared'
 import {useMemo} from '../../../util/memoize'
 
-const useIsMounted = () => {
-  const isMountedRef = React.useRef(true)
-  React.useEffect(() => {
-    return () => {
-      isMountedRef.current = false
-    }
-  }, [])
-  return isMountedRef
-}
-
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
 // We use react-measure to cache the heights
@@ -188,7 +178,7 @@ const useScrolling = (
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
   const listEdgeSlopTop = 1000
-  const isMountedRef = useIsMounted()
+  const isMounted = Container.useIsMounted()
   const isScrollingRef = React.useRef(false)
   const ignoreOnScrollRef = React.useRef(false)
   const lockedToBottomRef = React.useRef(true)
@@ -229,7 +219,7 @@ const useScrolling = (
   const scrollToBottom = React.useCallback(() => {
     lockedToBottomRef.current = true
     const actuallyScroll = () => {
-      if (!isMountedRef.current) return
+      if (!isMounted()) return
       const list = listRef.current
       if (list) {
         adjustScrollAndIgnoreOnScroll(() => {
@@ -241,7 +231,7 @@ const useScrolling = (
     setTimeout(() => {
       requestAnimationFrame(actuallyScroll)
     }, 1)
-  }, [listRef, adjustScrollAndIgnoreOnScroll, isMountedRef])
+  }, [listRef, adjustScrollAndIgnoreOnScroll, isMounted])
 
   const scrollToCentered = React.useCallback(() => {
     // grab the waypoint we made for the centered ordinal and scroll to it
@@ -373,12 +363,7 @@ const useScrolling = (
     // didn't scroll up
     if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
     const {current} = listRef
-    if (
-      current &&
-      !isLockedToBottom() &&
-      isMountedRef.current &&
-      scrollBottomOffsetRef.current !== undefined
-    ) {
+    if (current && !isLockedToBottom() && isMounted() && scrollBottomOffsetRef.current !== undefined) {
       current.scrollTop = current.scrollHeight - scrollBottomOffsetRef.current
     }
     // we want this to fire when the ordinals change
