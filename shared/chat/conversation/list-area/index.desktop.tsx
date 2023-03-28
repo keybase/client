@@ -185,12 +185,9 @@ const useScrolling = (
   // so we can turn pointer events on / off
   const pointerWrapperRef = React.useRef<HTMLDivElement | null>(null)
 
-  const isLockedToBottom = React.useCallback(
-    () =>
-      // if we don't have the latest message, we can't be locked to the bottom
-      lockedToBottomRef.current && containsLatestMessage,
-    [lockedToBottomRef, containsLatestMessage]
-  )
+  const isLockedToBottom = React.useCallback(() => {
+    return lockedToBottomRef.current
+  }, [lockedToBottomRef])
 
   const adjustScrollAndIgnoreOnScroll = React.useCallback(
     (fn: () => void) => {

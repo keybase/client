@@ -12,7 +12,7 @@ export const usePopup = <T extends React.Component<any>>(
 
   const [lastSP, setLastSP] = React.useState(showingPopup)
   const [lastPopup, setLastPopup] = React.useState(popup)
-  const [lastMP, setLastMP] = React.useState<(getAttachmentRef: () => T | null) => React.ReactNode>(makePopup)
+  const [lastMP, setLastMP] = React.useState(() => makePopup) // need to wrap since you can pass a function to useState
 
   const popupAnchor = React.useRef<T | null>(null)
 
@@ -23,7 +23,7 @@ export const usePopup = <T extends React.Component<any>>(
   if (lastSP !== showingPopup || lastPopup !== popup || lastMP !== makePopup) {
     setLastSP(showingPopup)
     setLastPopup(popup)
-    setLastMP(makePopup)
+    setLastMP(() => makePopup)
 
     if (showingPopup === !popup) {
       setPopup(showingPopup ? makePopup(() => popupAnchor.current) : null)
