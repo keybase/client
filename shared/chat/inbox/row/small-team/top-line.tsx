@@ -125,15 +125,19 @@ const SimpleTopLineImpl = React.memo(function SimpleTopLineImpl(p: IProps) {
 
   const iconHoverColor = isSelected ? Styles.globalColors.white_75 : Styles.globalColors.black
 
-  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <TeamMenu
-      visible={showingPopup}
-      attachTo={attachTo}
-      onHidden={toggleShowingPopup}
-      hasHeader={true}
-      isSmallTeam={true}
-    />
-  ))
+  const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
+    const {attachTo, toggleShowingPopup} = p
+    return (
+      <TeamMenu
+        visible={true}
+        attachTo={attachTo}
+        onHidden={toggleShowingPopup}
+        hasHeader={true}
+        isSmallTeam={true}
+      />
+    )
+  }, [])
+  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const tssubColor = (!hasBadge || isSelected) && subColor
   const timestampStyle = React.useMemo(

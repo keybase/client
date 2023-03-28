@@ -9,17 +9,26 @@ export const usePopup = <T extends React.Component<any>>(
 ) => {
   const [showingPopup, setShowingPopup] = React.useState(false)
   const [popup, setPopup] = React.useState<React.ReactNode>(null)
+
+  const [lastSP, setLastSP] = React.useState(showingPopup)
+  const [lastPopup, setLastPopup] = React.useState(popup)
+  const [lastMP, setLastMP] = React.useState<(getAttachmentRef: () => T | null) => React.ReactNode>(makePopup)
+
   const popupAnchor = React.useRef<T | null>(null)
 
   const toggleShowingPopup = React.useCallback(() => {
     setShowingPopup(s => !s)
   }, [setShowingPopup])
 
-  React.useEffect(() => {
+  if (lastSP !== showingPopup || lastPopup !== popup || lastMP !== makePopup) {
+    setLastSP(showingPopup)
+    setLastPopup(popup)
+    setLastMP(makePopup)
+
     if (showingPopup === !popup) {
       setPopup(showingPopup ? makePopup(() => popupAnchor.current) : null)
     }
-  }, [showingPopup, popup, makePopup])
+  }
 
   return {
     popup,
