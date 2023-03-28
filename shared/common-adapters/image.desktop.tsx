@@ -8,7 +8,7 @@ const RequireImage = React.forwardRef<any, ReqProps>(({src, style}: ReqProps, re
 ))
 const Image = React.forwardRef<any, Props>(function Image(props: Props, ref: any) {
   const [loading, setLoading] = React.useState(true)
-  const isMounted = React.useRef<Boolean>(true)
+  const isMounted = React.useRef(true)
   React.useEffect(
     () => () => {
       isMounted.current = false

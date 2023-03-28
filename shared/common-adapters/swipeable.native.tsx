@@ -63,12 +63,14 @@ const useGesture = (
 ) => {
   const startx = Reanimated.useSharedValue(0)
   const dx = Reanimated.useSharedValue(0)
+  const [lastED, setLastED] = React.useState(extraData)
 
   // parent is different, close immediately
-  React.useEffect(() => {
+  if (lastED !== extraData) {
+    setLastED(extraData)
     startx.value = 0
     dx.value = 0
-  }, [extraData])
+  }
 
   const gesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
@@ -118,9 +120,13 @@ export const Swipeable = React.memo(function Swipeable2(p: {
   const actions = hasSwiped ? makeActionsRef.current(tx) : null
 
   // parent is different, close immediately
-  React.useEffect(() => {
+  const [lastED, setLastED] = React.useState(extraData)
+
+  // parent is different, close immediately
+  if (lastED !== extraData) {
+    setLastED(extraData)
     tx.value = 0
-  }, [extraData])
+  }
 
   return (
     <GestureDetector gesture={gesture}>

@@ -6,12 +6,13 @@ import type {Props} from '.'
 
 const FloatingBox = (p: Props) => {
   const {hideKeyboard, children, containerStyle} = p
-
-  React.useEffect(() => {
+  const [lastHK, setLastHK] = React.useState(hideKeyboard)
+  if (lastHK !== hideKeyboard) {
+    setLastHK(hideKeyboard)
     if (hideKeyboard) {
       Keyboard.dismiss()
     }
-  }, [hideKeyboard])
+  }
 
   return (
     <Portal hostName="popup-root">
