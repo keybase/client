@@ -11,6 +11,8 @@ import {Provider, useDispatch} from 'react-redux'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
+import {enableFreeze} from 'react-native-screens'
+enableFreeze(true)
 
 type ConfigureStore = ReturnType<typeof makeStore>
 let _store: ConfigureStore | undefined
