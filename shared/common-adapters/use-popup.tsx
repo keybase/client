@@ -20,7 +20,9 @@ export const usePopup = <T extends React.Component<any>>(
     setShowingPopup(s => !s)
   }, [setShowingPopup])
 
-  if (lastSP !== showingPopup || lastPopup !== popup || lastMPRef.current !== makePopup) {
+  // the lastMPRef check should exist but this doesn't support that, use usePopup2 instead!
+  if (lastSP !== showingPopup || lastPopup !== popup /* || lastMPRef.current !== makePopup*/) {
+    console.log('aaa usepop has changes', lastSP, showingPopup, lastPopup, makePopup)
     setLastSP(showingPopup)
     setLastPopup(popup)
     lastMPRef.current = makePopup
