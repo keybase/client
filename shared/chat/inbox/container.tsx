@@ -73,6 +73,7 @@ type WrapperProps = Pick<
 >
 
 const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
+  console.log('aaa inboxwrapper rneder >>>>>>>>>>>>>>>>>>>>>.', Math.random())
   const dispatch = Container.useDispatch()
   const inboxHasLoaded = Container.useSelector(state => state.chat2.inboxHasLoaded)
   const isFocused = useIsFocused()
