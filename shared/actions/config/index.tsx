@@ -318,21 +318,14 @@ const maybeDoneWithLogoutHandshake = async (state: Container.TypedState) => {
   }
 }
 
-const showMonsterPushPrompt = () => [
-  RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-  RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
-  RouteTreeGen.createNavigateAppend({
-    path: ['settingsPushPrompt'],
-  }),
-]
-
 // Monster push prompt
 // We've just started up, we don't have the permissions, we're logged in and we
 // haven't just signed up. This handles the scenario where the push notifications
 // permissions checker finishes after the routeToInitialScreen is done.
-const onShowPermissionsPrompt = (
+const onShowPermissionsPrompt = async (
   state: Container.TypedState,
-  action: PushGen.ShowPermissionsPromptPayload
+  action: PushGen.ShowPermissionsPromptPayload,
+  listenerApi: Container.ListenerApi
 ) => {
   if (
     !Platform.isMobile ||
@@ -345,7 +338,10 @@ const onShowPermissionsPrompt = (
   }
 
   logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
-  return showMonsterPushPrompt()
+  listenerApi.dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
+  await Container.timeoutPromise(100)
+  listenerApi.dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
+  listenerApi.dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsPushPrompt']}))
 }
 
 const onAndroidShare = (state: Container.TypedState) => {
