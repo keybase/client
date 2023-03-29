@@ -73,7 +73,6 @@ type WrapperProps = Pick<
 >
 
 const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
-  console.log('aaa inboxwrapper rneder >>>>>>>>>>>>>>>>>>>>>.', Math.random())
   const dispatch = Container.useDispatch()
   const inboxHasLoaded = Container.useSelector(state => state.chat2.inboxHasLoaded)
   const isFocused = useIsFocused()
@@ -148,6 +147,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
 
 const buttonWidth = 132
 export const getOptions = () => ({
+  freezeOnBlur: false, // let it render even if not visible
   headerLeft: () => <Kb.HeaderLeftBlank />,
   headerLeftContainerStyle: {
     ...Common.defaultNavigationOptions.headerLeftContainerStyle,
@@ -241,7 +241,6 @@ const Connected = Container.connect(
         }
       }
     }
-
     return {
       isSearching: stateProps.isSearching,
       navKey,
