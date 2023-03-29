@@ -141,7 +141,7 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
       return [
         {
           ...CommonActions.navigate({name: action.payload.tab, params: action.payload.params}),
-          target: navigationState.routes[0].state.key,
+          target: navigationState.routes[0]?.state?.key,
         },
       ]
     }
