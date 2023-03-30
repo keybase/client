@@ -57,21 +57,25 @@ export const useCommon = (ordinal: Types.Ordinal) => {
     const shouldShowPopup = Constants.shouldShowPopup(state, m ?? undefined)
     return {shouldShowPopup, type}
   }, shallowEqual)
-
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo =>
-    messageShowsPopup(type) && shouldShowPopup && showingPopup ? (
-      <MessagePopup
-        conversationIDKey={conversationIDKey}
-        ordinal={ordinal}
-        key="popup"
-        attachTo={attachTo}
-        onHidden={toggleShowingPopup}
-        position="top right"
-        style={styles.messagePopupContainer}
-        visible={showingPopup}
-      />
-    ) : null
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return messageShowsPopup(type) && shouldShowPopup ? (
+        <MessagePopup
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
+          key="popup"
+          attachTo={attachTo}
+          onHidden={toggleShowingPopup}
+          position="top right"
+          style={styles.messagePopupContainer}
+          visible={true}
+        />
+      ) : null
+    },
+    [conversationIDKey, ordinal, shouldShowPopup, type]
   )
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return {popup, popupAnchor, showCenteredHighlight, showingPopup, toggleShowingPopup, type}
 }

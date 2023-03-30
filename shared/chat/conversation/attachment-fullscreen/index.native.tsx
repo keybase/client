@@ -48,17 +48,25 @@ const AutoMaxSizeImage = (p: {source: {uri: string}; onLoad: () => void; opacity
 const Fullscreen = (p: Props) => {
   const {path, previewHeight, message, onAllMedia, onClose, isVideo} = p
   const [loaded, setLoaded] = React.useState(false)
+  const {conversationIDKey, id} = message
 
-  const {toggleShowingPopup, showingPopup, popup} = Kb.usePopup(attachTo => (
-    <MessagePopup
-      attachTo={attachTo}
-      conversationIDKey={message.conversationIDKey}
-      ordinal={message.id}
-      onHidden={toggleShowingPopup}
-      position="bottom left"
-      visible={showingPopup}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <MessagePopup
+          attachTo={attachTo}
+          conversationIDKey={conversationIDKey}
+          ordinal={id}
+          onHidden={toggleShowingPopup}
+          position="bottom left"
+          visible={true}
+        />
+      )
+    },
+    [conversationIDKey, id]
+  )
+  const {toggleShowingPopup, popup} = Kb.usePopup2(makePopup)
 
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null

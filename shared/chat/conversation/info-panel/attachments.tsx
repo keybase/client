@@ -172,18 +172,27 @@ type DocViewRowProps = {item: Doc}
 
 const DocViewRow = (props: DocViewRowProps) => {
   const {item} = props
-  const {toggleShowingPopup, showingPopup, popup} = Kb.usePopup(attachTo =>
-    item.message ? (
-      <MessagePopup
-        attachTo={attachTo}
-        conversationIDKey={item.message.conversationIDKey}
-        ordinal={item.message.id}
-        onHidden={toggleShowingPopup}
-        position="top right"
-        visible={showingPopup}
-      />
-    ) : null
+  const {message} = item
+  const {conversationIDKey, id} = message ?? {}
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+
+      return conversationIDKey && id ? (
+        <MessagePopup
+          attachTo={attachTo}
+          conversationIDKey={conversationIDKey}
+          ordinal={id}
+          onHidden={toggleShowingPopup}
+          position="top right"
+          visible={true}
+        />
+      ) : null
+    },
+    [conversationIDKey, id]
   )
+  const {toggleShowingPopup, popup} = Kb.usePopup2(makePopup)
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.ClickableBox onClick={item.onDownload} onLongPress={toggleShowingPopup}>
@@ -211,7 +220,7 @@ const DocViewRow = (props: DocViewRowProps) => {
           </Kb.Text>
         </Kb.Box2>
       )}
-      {Styles.isMobile && showingPopup && item.message && popup}
+      {Styles.isMobile && item.message && popup}
     </Kb.Box2>
   )
 }

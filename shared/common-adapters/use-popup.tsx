@@ -1,46 +1,5 @@
 import * as React from 'react'
 
-// The type parameter (optional) is the type of the component that the popup will be attaching to.
-// `popupAnchor` should be passed to that component as its `ref`.
-// deprecated. Adds extra useEffects and won't update the popup if any dependencies change, better to use
-// usePopup2 with a React.useCallback(makePopup)
-export const usePopup = <T extends React.Component<any>>(
-  makePopup: (getAttachmentRef: () => T | null) => React.ReactNode
-) => {
-  const [showingPopup, setShowingPopup] = React.useState(false)
-  const [popup, setPopup] = React.useState<React.ReactNode>(null)
-
-  const [lastSP, setLastSP] = React.useState(showingPopup)
-  const [lastPopup, setLastPopup] = React.useState(popup)
-  const lastMPRef = React.useRef(makePopup)
-
-  const popupAnchor = React.useRef<T | null>(null)
-
-  const toggleShowingPopup = React.useCallback(() => {
-    setShowingPopup(s => !s)
-  }, [setShowingPopup])
-
-  // the lastMPRef check should exist but this doesn't support that, use usePopup2 instead!
-  if (lastSP !== showingPopup || lastPopup !== popup /* || lastMPRef.current !== makePopup*/) {
-    console.log('aaa usepop has changes', lastSP, showingPopup, lastPopup, makePopup)
-    setLastSP(showingPopup)
-    setLastPopup(popup)
-    lastMPRef.current = makePopup
-
-    if (showingPopup === !popup) {
-      setPopup(showingPopup ? makePopup(() => popupAnchor.current) : null)
-    }
-  }
-
-  return {
-    popup,
-    popupAnchor,
-    setShowingPopup,
-    showingPopup,
-    toggleShowingPopup,
-  }
-}
-
 export type Popup2Parms = {
   attachTo: () => React.Component | null
   toggleShowingPopup: () => void
