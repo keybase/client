@@ -223,7 +223,7 @@ const ChannelMemberRow = (props: Props) => {
       )
     },
     [
-      fullNameLabel,
+      fullname,
       roleLabel,
       teamID,
       dispatch,

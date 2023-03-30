@@ -88,15 +88,18 @@ export const TeamMemberRow = (props: Props) => {
   const anySelected = !!teamSelectedMembers?.size
   const selected = !!teamSelectedMembers?.has(props.username)
 
-  const onSelect = (selected: boolean) => {
-    dispatch(TeamsGen.createTeamSetMemberSelected({selected, teamID, username: props.username}))
-  }
+  const onSelect = React.useCallback(
+    (selected: boolean) => {
+      dispatch(TeamsGen.createTeamSetMemberSelected({selected, teamID, username: props.username}))
+    },
+    [dispatch, teamID, props.username]
+  )
 
   const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
   const pOnClick = props.onClick
   const onClick = React.useMemo(
     () => (anySelected ? () => onSelect(!selected) : canEnterMemberPage ? pOnClick : undefined),
-    [anySelected, pOnClick]
+    [anySelected, pOnClick, canEnterMemberPage, onSelect, selected]
   )
 
   const checkCircle = (

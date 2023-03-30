@@ -288,7 +288,7 @@ const SelfChannelActions = ({
   const inChannel = meta.membershipType === 'active'
 
   const [waiting, setWaiting] = React.useState(false)
-  const stopWaiting = () => setWaiting(false)
+  const stopWaiting = React.useCallback(() => setWaiting(false), [])
 
   const onEditChannel = React.useCallback(() => {
     dispatch(
@@ -310,7 +310,7 @@ const SelfChannelActions = ({
         ],
       })
     )
-  }, [dispatch, nav])
+  }, [dispatch, nav, meta, reloadChannels, stopWaiting])
   const onChannelSettings = React.useCallback(() => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(
@@ -320,7 +320,7 @@ const SelfChannelActions = ({
         ],
       })
     )
-  }, [dispatch])
+  }, [dispatch, meta])
   const onDelete = React.useCallback(() => {
     // TODO: consider not using the confirm modal
     dispatch(
@@ -333,7 +333,7 @@ const SelfChannelActions = ({
         ],
       })
     )
-  }, [dispatch, nav])
+  }, [dispatch, nav, meta])
 
   const joinRPC = Container.useRPC(RPCChatGen.localJoinConversationByIDLocalRpcPromise)
   const leaveRPC = Container.useRPC(RPCChatGen.localLeaveConversationLocalRpcPromise)
@@ -348,7 +348,7 @@ const SelfChannelActions = ({
       },
       stopWaiting
     )
-  }, [])
+  }, [convID, leaveRPC, reloadChannels, stopWaiting])
   const onJoin = React.useCallback(() => {
     setWaiting(true)
     joinRPC(
@@ -358,7 +358,7 @@ const SelfChannelActions = ({
       },
       stopWaiting
     )
-  }, [])
+  }, [convID, joinRPC, reloadChannels, stopWaiting])
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
