@@ -719,23 +719,31 @@ export const TeamMemberHeader = (props: Props) => {
 }
 
 const BlockDropdown = (props: {username: string}) => {
+  const {username} = props
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBlock = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [{props: {username: props.username}, selected: 'chatBlockingModal'}],
-      })
-    )
-  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(getAttachmentRef => (
-    <Kb.FloatingMenu
-      attachTo={getAttachmentRef}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      closeOnSelect={true}
-      items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const onBlock = () =>
+        dispatch(
+          nav.safeNavigateAppendPayload({
+            path: [{props: {username}, selected: 'chatBlockingModal'}],
+          })
+        )
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          closeOnSelect={true}
+          items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
+        />
+      )
+    },
+    [dispatch, nav, username]
+  )
+  const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.Button

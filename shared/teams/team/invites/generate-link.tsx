@@ -82,21 +82,25 @@ const GenerateLinkModal = (props: Props) => {
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
-  const menuItems = [
-    {onClick: () => setValidity(validityOneUse), title: validityOneUse},
-    {onClick: () => setValidity(validityOneYear), title: validityOneYear},
-    {onClick: () => setValidity(validityForever), title: validityForever},
-  ]
+  const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
+    const {attachTo, toggleShowingPopup} = p
+    const menuItems = [
+      {onClick: () => setValidity(validityOneUse), title: validityOneUse},
+      {onClick: () => setValidity(validityOneYear), title: validityOneYear},
+      {onClick: () => setValidity(validityForever), title: validityForever},
+    ]
+    return (
+      <Kb.FloatingMenu
+        attachTo={attachTo}
+        closeOnSelect={true}
+        items={menuItems}
+        onHidden={toggleShowingPopup}
+        visible={true}
+      />
+    )
+  }, [])
 
-  const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={menuItems}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-    />
-  ))
+  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const generateLinkRPC = Container.useRPC(RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
   const onGenerate = () => {
