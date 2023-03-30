@@ -90,7 +90,8 @@ export const useOnMountOnce = (f: () => void) => {
   const onceRef = React.useRef(true)
   if (onceRef.current) {
     onceRef.current = false
-    f()
+    // defer a frame so you don't get react issues
+    setTimeout(f, 1)
   }
 }
 

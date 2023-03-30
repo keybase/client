@@ -424,6 +424,9 @@ export const useAttachmentSections = (
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
 
+  Container.useOnMountOnce(() => {
+    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
+  })
   if (lastCID !== conversationIDKey || lastSAV !== selectedAttachmentView) {
     setLastCID(conversationIDKey)
     setLastSAV(selectedAttachmentView)
