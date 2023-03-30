@@ -13,7 +13,7 @@ const AutoMaxSizeImage = (p: {source: {uri: string}; onLoad: () => void; opacity
   const {uri} = source
   const [width, setWidth] = React.useState(0)
   const [height, setHeight] = React.useState(0)
-  const [lastUri, setLastUri] = React.useState(uri)
+  const [lastUri, setLastUri] = React.useState('')
 
   if (lastUri !== uri) {
     setLastUri(uri)
