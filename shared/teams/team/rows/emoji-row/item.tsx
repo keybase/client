@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../../../constants/types/chat2'
@@ -41,32 +42,43 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
   const removeRpc = useRPC(RPCChatTypes.localRemoveEmojiRpcPromise)
-  const doRemove = canRemove
-    ? () => {
-        removeRpc(
-          [
-            {
-              alias: emojiData.short_name,
-              convID: ChatTypes.keyToConversationID(conversationIDKey),
-            },
-          ],
-          () => reloadEmojis(),
-          err => {
-            throw err
+  const doRemove = React.useMemo(
+    () =>
+      canRemove
+        ? () => {
+            removeRpc(
+              [
+                {
+                  alias: emojiData.short_name,
+                  convID: ChatTypes.keyToConversationID(conversationIDKey),
+                },
+              ],
+              () => reloadEmojis(),
+              err => {
+                throw err
+              }
+            )
           }
-        )
-      }
-    : undefined
-  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <EmojiMenu
-      attachTo={attachTo}
-      visible={showingPopup}
-      onAddAlias={doAddAlias}
-      onRemove={doRemove}
-      onHidden={toggleShowingPopup}
-      isAlias={emoji.isAlias}
-    />
-  ))
+        : undefined,
+    [canRemove, emojiData.short_name, conversationIDKey, removeRpc, reloadEmojis]
+  )
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <EmojiMenu
+          attachTo={attachTo}
+          visible={true}
+          onAddAlias={doAddAlias}
+          onRemove={doRemove}
+          onHidden={toggleShowingPopup}
+          isAlias={emoji.isAlias}
+        />
+      )
+    },
+    [doAddAlias, doRemove, emoji.isAlias]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box style={styles.outerContainer}>

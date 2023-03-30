@@ -76,122 +76,139 @@ const useMenuItems = (
   const dispatch = Container.useDispatch()
   const countMap = navBadges
   const startingUp = daemonHandshakeState !== 'done'
-  const common = [
-    {onClick: () => openUrl(`https://keybase.io/${username || ''}`), title: 'Keybase.io'},
-    {
-      onClick: () => {
-        const version = __VERSION__
-        openUrl(
-          `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
-            version
-          )}`
-        )
+  const ret = React.useMemo(() => {
+    const common = [
+      {onClick: () => openUrl(`https://keybase.io/${username || ''}`), title: 'Keybase.io'},
+      {
+        onClick: () => {
+          const version = __VERSION__
+          openUrl(
+            `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
+              version
+            )}`
+          )
+        },
+        title: 'Report a bug',
       },
-      title: 'Report a bug',
-    },
-    {
-      onClick: () => {
-        openUrl('https://keybase.io/docs')
-        hideWindow?.()
+      {
+        onClick: () => {
+          openUrl('https://keybase.io/docs')
+          hideWindow?.()
+        },
+        title: 'Help',
       },
-      title: 'Help',
-    },
-    {
-      onClick: () => {
-        if (!__DEV__) {
-          if (isLinux) {
-            dispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
-          } else {
-            dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
+      {
+        onClick: () => {
+          if (!__DEV__) {
+            if (isLinux) {
+              dispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
+            } else {
+              dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
+            }
           }
-        }
-        // In case dump log doesn't exit for us
-        hideWindow?.()
-        setTimeout(() => {
-          ctlQuit?.()
-        }, 2000)
+          // In case dump log doesn't exit for us
+          hideWindow?.()
+          setTimeout(() => {
+            ctlQuit?.()
+          }, 2000)
+        },
+        title: 'Quit Keybase',
       },
-      title: 'Quit Keybase',
-    },
-  ]
+    ]
 
-  if (startingUp) {
-    return common
-  }
+    if (startingUp) {
+      return common
+    }
 
-  const openAppItem = [{onClick: () => openApp(), title: 'Open main app'}, 'Divider'] as const
+    const openAppItem = [{onClick: () => openApp(), title: 'Open main app'}, 'Divider'] as const
 
-  if (showBadges) {
-    return [
-      {
-        onClick: () => openApp(Tabs.walletsTab),
-        title: 'Wallet',
-        view: (
-          <TabView title="Wallet" iconType="iconfont-nav-2-wallets" count={countMap.get(Tabs.walletsTab)} />
-        ),
-      },
-      {
-        onClick: () => openApp(Tabs.gitTab),
-        title: 'Git',
-        view: <TabView title="Git" iconType="iconfont-nav-2-git" count={countMap.get(Tabs.gitTab)} />,
-      },
-      {
-        onClick: () => openApp(Tabs.devicesTab),
-        title: 'Devices',
-        view: (
-          <TabView title="Devices" iconType="iconfont-nav-2-devices" count={countMap.get(Tabs.devicesTab)} />
-        ),
-      },
-      {
-        onClick: () => openApp(Tabs.settingsTab),
-        title: 'Settings',
-        view: (
-          <TabView
-            title="Settings"
-            iconType="iconfont-nav-2-settings"
-            count={countMap.get(Tabs.settingsTab)}
-          />
-        ),
-      },
-      'Divider' as const,
-      ...openAppItem,
-      ...(kbfsEnabled
-        ? ([
-            {
-              onClick: () => {
-                dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath}))
+    if (showBadges) {
+      return [
+        {
+          onClick: () => openApp(Tabs.walletsTab),
+          title: 'Wallet',
+          view: (
+            <TabView title="Wallet" iconType="iconfont-nav-2-wallets" count={countMap.get(Tabs.walletsTab)} />
+          ),
+        },
+        {
+          onClick: () => openApp(Tabs.gitTab),
+          title: 'Git',
+          view: <TabView title="Git" iconType="iconfont-nav-2-git" count={countMap.get(Tabs.gitTab)} />,
+        },
+        {
+          onClick: () => openApp(Tabs.devicesTab),
+          title: 'Devices',
+          view: (
+            <TabView
+              title="Devices"
+              iconType="iconfont-nav-2-devices"
+              count={countMap.get(Tabs.devicesTab)}
+            />
+          ),
+        },
+        {
+          onClick: () => openApp(Tabs.settingsTab),
+          title: 'Settings',
+          view: (
+            <TabView
+              title="Settings"
+              iconType="iconfont-nav-2-settings"
+              count={countMap.get(Tabs.settingsTab)}
+            />
+          ),
+        },
+        'Divider' as const,
+        ...openAppItem,
+        ...(kbfsEnabled
+          ? ([
+              {
+                onClick: () => {
+                  dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath}))
+                },
+                title: `Open folders in ${Styles.fileUIName}`,
               },
-              title: `Open folders in ${Styles.fileUIName}`,
-            },
-            'Divider',
-          ] as const)
-        : []),
-      ...common,
-    ] as const
-  }
-  return [...openAppItem, ...common] as const
+              'Divider',
+            ] as const)
+          : []),
+        ...common,
+      ] as const
+    }
+    return [...openAppItem, ...common] as const
+  }, [dispatch, username, countMap, kbfsEnabled, openApp, showBadges, startingUp])
+  return ret
 }
 
 const IconBar = (p: Props & {showBadges?: boolean}) => {
   const {navBadges, showBadges} = p
   const dispatch = Container.useDispatch()
-  const openApp = (tab?: Tabs.AppTab) => {
-    dispatch(ConfigGen.createShowMain())
-    tab && dispatch(RouteTreeGen.createSwitchTab({tab}))
-  }
+  const openApp = React.useCallback(
+    (tab?: Tabs.AppTab) => {
+      dispatch(ConfigGen.createShowMain())
+      tab && dispatch(RouteTreeGen.createSwitchTab({tab}))
+    },
+    [dispatch]
+  )
 
   const menuItems = useMenuItems({...p, openApp})
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      closeOnSelect={true}
-      items={menuItems}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      attachTo={attachTo}
-      position="bottom right"
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          closeOnSelect={true}
+          items={menuItems}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          attachTo={attachTo}
+          position="bottom right"
+        />
+      )
+    },
+    [menuItems]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const badgeCountInMenu = badgesInMenu.reduce((acc, val) => navBadges.get(val) ?? 0 + acc, 0)
 

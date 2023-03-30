@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import {typeToLabel} from '../../../../../constants/teams'
 import type {TeamRoleType} from '../../../../../constants/types/teams'
@@ -36,15 +37,23 @@ export const TeamInviteRow = (props: Props) => {
 }
 
 const TeamInviteMenu = (props: {onCancelInvite?: () => void}) => {
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      items={[{danger: true, icon: 'iconfont-remove', onClick: props.onCancelInvite, title: 'Cancel invite'}]}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      closeOnSelect={true}
-      attachTo={attachTo}
-    />
-  ))
+  const {onCancelInvite} = props
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          items={[{danger: true, icon: 'iconfont-remove', onClick: onCancelInvite, title: 'Cancel invite'}]}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          closeOnSelect={true}
+          attachTo={attachTo}
+        />
+      )
+    },
+    [onCancelInvite]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.Button

@@ -1,4 +1,5 @@
 import * as Kb from '../../../../common-adapters'
+import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
@@ -43,12 +44,20 @@ const showCrown: BoolTypeMap = {
 // you're changing one remember to change the other.
 
 export const TeamMemberRow = (props: Props) => {
-  const {roleType, fullName} = props
+  const {roleType, fullName, username, youCanManageMembers} = props
+  const {onOpenProfile, onChat, onBlock, onRemoveFromTeam} = props
   const active = props.status === 'active'
-  const crown =
-    active && roleType && showCrown[roleType] ? (
-      <Kb.Icon type={('iconfont-crown-' + roleType) as Kb.IconType} style={styles.crownIcon} fontSize={10} />
-    ) : null
+  const crown = React.useMemo(
+    () =>
+      active && roleType && showCrown[roleType] ? (
+        <Kb.Icon
+          type={('iconfont-crown-' + roleType) as Kb.IconType}
+          style={styles.crownIcon}
+          fontSize={10}
+        />
+      ) : null,
+    [active, roleType]
+  )
 
   const fullNameLabel =
     fullName && active ? (
@@ -84,7 +93,11 @@ export const TeamMemberRow = (props: Props) => {
   }
 
   const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK
-  const onClick = anySelected ? () => onSelect(!selected) : canEnterMemberPage ? props.onClick : undefined
+  const pOnClick = props.onClick
+  const onClick = React.useMemo(
+    () => (anySelected ? () => onSelect(!selected) : canEnterMemberPage ? pOnClick : undefined),
+    [anySelected, pOnClick]
+  )
 
   const checkCircle = (
     <Kb.CheckCircle
@@ -127,70 +140,92 @@ export const TeamMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  const menuHeader = (
-    <MenuHeader
-      username={props.username}
-      fullName={props.fullName}
-      label={
-        <Kb.Box2 direction="horizontal">
-          <Kb.Text type="BodySmall">{crown}</Kb.Text>
-          <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
-        </Kb.Box2>
-      }
-    />
-  )
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const menuHeader = (
+        <MenuHeader
+          username={username}
+          fullName={fullName}
+          label={
+            <Kb.Box2 direction="horizontal">
+              <Kb.Text type="BodySmall">{crown}</Kb.Text>
+              <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
+            </Kb.Box2>
+          }
+        />
+      )
 
-  const menuItems: Kb.MenuItems = [
-    'Divider',
-    ...(props.youCanManageMembers
-      ? ([
-          {
-            icon: 'iconfont-chat',
-            onClick: () =>
-              dispatch(
-                nav.safeNavigateAppendPayload({
-                  path: [{props: {teamID, usernames: [props.username]}, selected: 'teamAddToChannels'}],
-                })
-              ),
-            title: 'Add to channels...',
-          },
-          {icon: 'iconfont-crown-admin', onClick: props.onClick, title: 'Edit role...'},
-        ] as Kb.MenuItems)
-      : []),
-    {icon: 'iconfont-person', onClick: props.onOpenProfile, title: 'View profile'},
-    {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
-    ...(props.youCanManageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
-    ...(props.youCanManageMembers
-      ? ([
-          {
-            danger: true,
-            icon: 'iconfont-remove',
-            onClick: props.onRemoveFromTeam,
-            title: 'Remove from team',
-          },
-        ] as Kb.MenuItems)
-      : []),
-    ...(!isYou
-      ? ([
-          {
-            danger: true,
-            icon: 'iconfont-block',
-            onClick: props.onBlock,
-            title: 'Block',
-          },
-        ] as Kb.MenuItems)
-      : []),
-  ]
-  const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      header={menuHeader}
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={menuItems}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-    />
-  ))
+      const menuItems: Kb.MenuItems = [
+        'Divider',
+        ...(youCanManageMembers
+          ? ([
+              {
+                icon: 'iconfont-chat',
+                onClick: () =>
+                  dispatch(
+                    nav.safeNavigateAppendPayload({
+                      path: [{props: {teamID, usernames: [username]}, selected: 'teamAddToChannels'}],
+                    })
+                  ),
+                title: 'Add to channels...',
+              },
+              {icon: 'iconfont-crown-admin', onClick: onClick, title: 'Edit role...'},
+            ] as Kb.MenuItems)
+          : []),
+        {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
+        {icon: 'iconfont-chat', onClick: onChat, title: 'Chat'},
+        ...(youCanManageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
+        ...(youCanManageMembers
+          ? ([
+              {
+                danger: true,
+                icon: 'iconfont-remove',
+                onClick: onRemoveFromTeam,
+                title: 'Remove from team',
+              },
+            ] as Kb.MenuItems)
+          : []),
+        ...(!isYou
+          ? ([
+              {
+                danger: true,
+                icon: 'iconfont-block',
+                onClick: onBlock,
+                title: 'Block',
+              },
+            ] as Kb.MenuItems)
+          : []),
+      ]
+      return (
+        <Kb.FloatingMenu
+          header={menuHeader}
+          attachTo={attachTo}
+          closeOnSelect={true}
+          items={menuItems}
+          onHidden={toggleShowingPopup}
+          visible={true}
+        />
+      )
+    },
+    [
+      crown,
+      fullName,
+      roleLabel,
+      dispatch,
+      nav,
+      teamID,
+      username,
+      youCanManageMembers,
+      isYou,
+      onBlock,
+      onChat,
+      onOpenProfile,
+      onRemoveFromTeam,
+      onClick,
+    ]
+  )
+  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const actions = (
     <Kb.Box2
