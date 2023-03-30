@@ -11,12 +11,12 @@ const WrapperPayment = React.memo(function WrapperPayment(p: Props) {
   const common = useCommon(ordinal)
   const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
 
-  if (message?.type !== 'requestPayment') return null
+  if (message?.type !== 'requestPayment' && message?.type !== 'sendPayment') return null
 
   const PaymentMessage = require('./container').default as typeof PaymentMessageType
   return (
     <WrapperMessage {...p} {...common}>
-      <PaymentMessage key="requestPayment" message={message} />
+      <PaymentMessage message={message} />
     </WrapperMessage>
   )
 })
