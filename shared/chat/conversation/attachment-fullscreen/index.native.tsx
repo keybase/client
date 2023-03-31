@@ -16,7 +16,12 @@ const AutoMaxSizeImage = (p: {source: {uri: string}; onLoad: () => void; opacity
 
   React.useEffect(() => {
     Kb.NativeImage.getSize(uri, (width, height) => {
-      const clamped = Constants.clampImageSize(width, height, Styles.dimensionWidth)
+      const clamped = Constants.clampImageSize(
+        width,
+        height,
+        Styles.dimensionWidth,
+        Styles.dimensionHeight - (Styles.isIOS ? 40 : 0)
+      )
       setWidth(clamped.width)
       setHeight(clamped.height)
     })
