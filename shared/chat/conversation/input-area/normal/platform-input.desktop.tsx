@@ -41,10 +41,11 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
   const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box
+    <Kb.Box2
+      direction="horizontal"
       className={Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
       onClick={toggleShowingPopup}
-      forwardedRef={popupAnchor}
+      ref={popupAnchor}
       style={Styles.collapseStyles([
         styles.explodingIconContainer,
         styles.explodingIconContainerClickable,
@@ -69,7 +70,7 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
           />
         </Kb.WithTooltip>
       )}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 

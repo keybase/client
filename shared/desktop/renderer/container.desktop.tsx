@@ -8,18 +8,17 @@ import './style.css'
 // if we want to load the read profiler before the app is loaded
 const deferLoadingApp = __DEV__ && false
 
-// TODO if we use it, add it here
-// <React.StrictMode>
-// </React.StrictMode>
 const Root = ({store, children}: any) => {
   return (
-    <GlobalKeyEventHandler>
-      <GatewayProvider>
-        <CanFixOverdrawContext.Provider value={true}>
-          <Provider store={store}>{children}</Provider>
-        </CanFixOverdrawContext.Provider>
-      </GatewayProvider>
-    </GlobalKeyEventHandler>
+    <React.StrictMode>
+      <GlobalKeyEventHandler>
+        <GatewayProvider>
+          <CanFixOverdrawContext.Provider value={true}>
+            <Provider store={store}>{children}</Provider>
+          </CanFixOverdrawContext.Provider>
+        </GatewayProvider>
+      </GlobalKeyEventHandler>
+    </React.StrictMode>
   )
 }
 

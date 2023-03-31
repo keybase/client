@@ -3,11 +3,9 @@ import * as Styles from '../styles'
 import type {Box2Props} from './box'
 import './box.css'
 
-export class Box extends React.PureComponent<any> {
-  render() {
-    const {forwardedRef, onLayout, ...rest} = this.props
-    return <div {...rest} ref={this.props.forwardedRef} />
-  }
+export const Box = (p: any) => {
+  const {forwardedRef, onLayout, ...rest} = p
+  return <div {...rest} ref={p.forwardedRef} />
 }
 
 export const Box2 = React.forwardRef<HTMLDivElement, Box2Props>(function Box2(

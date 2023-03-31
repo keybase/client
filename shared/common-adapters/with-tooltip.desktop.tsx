@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import Box from './box'
+import Box2 from './box'
 import Toast from './toast'
 import Text from './text'
 import type {Props} from './with-tooltip'
 
 const Kb = {
-  Box,
+  Box2,
   Text,
   Toast,
 }
@@ -36,15 +36,16 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
 
   return (
     <>
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
         style={containerStyle}
-        forwardedRef={setAttachmentRef}
+        ref={setAttachmentRef}
         onMouseOver={onMouseEnter}
         onMouseLeave={onMouseLeave}
         className={className}
       >
         {children}
-      </Kb.Box>
+      </Kb.Box2>
       {!disabled && mouseIn && (
         <Kb.Toast
           containerStyle={Styles.collapseStyles([

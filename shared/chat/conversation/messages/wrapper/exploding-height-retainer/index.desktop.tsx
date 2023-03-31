@@ -73,7 +73,8 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
 
   render() {
     return (
-      <Kb.Box
+      <Kb.Box2
+        direction="vertical"
         style={Styles.collapseStyles([
           styles.container,
           this.props.style,
@@ -85,7 +86,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
             position: 'relative',
           },
         ])}
-        forwardedRef={this._setBoxRef}
+        ref={this._setBoxRef}
       >
         {this.state.children}
         <Ashes
@@ -94,7 +95,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
           explodedBy={this.props.explodedBy}
           height={this.state.height}
         />
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
 }
