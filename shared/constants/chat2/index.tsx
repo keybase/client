@@ -4,7 +4,6 @@ import * as TeamBuildingConstants from '../team-building'
 import * as Types from '../types/chat2'
 import * as Router2 from '../router2'
 import * as TeamConstants from '../teams'
-import clamp from 'lodash/clamp'
 import {isMobile, isTablet} from '../platform'
 import {
   noConversationIDKey,
