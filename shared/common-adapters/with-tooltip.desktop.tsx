@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import Box2 from './box'
+import {Box2} from './box'
 import Toast from './toast'
 import Text from './text'
 import type {Props} from './with-tooltip'
@@ -38,6 +38,7 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
     <>
       <Kb.Box2
         direction="vertical"
+        fullWidth={true}
         style={containerStyle}
         ref={setAttachmentRef}
         onMouseOver={onMouseEnter}

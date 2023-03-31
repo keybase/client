@@ -10,15 +10,13 @@ const deferLoadingApp = __DEV__ && false
 
 const Root = ({store, children}: any) => {
   return (
-    <React.StrictMode>
-      <GlobalKeyEventHandler>
-        <GatewayProvider>
-          <CanFixOverdrawContext.Provider value={true}>
-            <Provider store={store}>{children}</Provider>
-          </CanFixOverdrawContext.Provider>
-        </GatewayProvider>
-      </GlobalKeyEventHandler>
-    </React.StrictMode>
+    <GlobalKeyEventHandler>
+      <GatewayProvider>
+        <CanFixOverdrawContext.Provider value={true}>
+          <Provider store={store}>{children}</Provider>
+        </CanFixOverdrawContext.Provider>
+      </GatewayProvider>
+    </GlobalKeyEventHandler>
   )
 }
 
