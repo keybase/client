@@ -38,7 +38,8 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
     <>
       <Kb.Box2
         direction="vertical"
-        fullWidth={true}
+        alignSelf="stretch"
+        alignItems="center"
         style={containerStyle}
         ref={setAttachmentRef}
         onMouseOver={onMouseEnter}

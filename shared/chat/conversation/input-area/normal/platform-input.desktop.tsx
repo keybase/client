@@ -41,11 +41,10 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
   const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box2
-      direction="horizontal"
+    <Kb.ClickableBox2
       className={Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
       onClick={toggleShowingPopup}
-      ref={popupAnchor}
+      ref={popupAnchor as any}
       style={Styles.collapseStyles([
         styles.explodingIconContainer,
         styles.explodingIconContainerClickable,
@@ -70,7 +69,7 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
           />
         </Kb.WithTooltip>
       )}
-    </Kb.Box2>
+    </Kb.ClickableBox2>
   )
 }
 
@@ -318,7 +317,7 @@ type SideButtonsProps = Pick<Props, 'conversationIDKey' | 'showWalletsIcon' | 'c
 const SideButtons = (p: SideButtonsProps) => {
   const {htmlInputRef, conversationIDKey, cannotWrite, showWalletsIcon, inputRef} = p
   return (
-    <>
+    <Kb.Box2 direction="horizontal">
       {!cannotWrite && showWalletsIcon && (
         <Kb.WithTooltip tooltip="Lumens">
           <WalletsIcon size={16} style={styles.walletsIcon} conversationIDKey={conversationIDKey} />
@@ -331,7 +330,7 @@ const SideButtons = (p: SideButtonsProps) => {
           <FileButton conversationIDKey={conversationIDKey} htmlInputRef={htmlInputRef} />
         </>
       )}
-    </>
+    </Kb.Box2>
   )
 }
 
@@ -427,7 +426,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
                 type="Dim"
               />
             )}
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
+            <Kb.Box2 direction="horizontal" style={styles.inputBox}>
               <Kb.PlainInput
                 allowKeyboardEvents={true}
                 disabled={cannotWrite ?? false}
@@ -530,7 +529,8 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       inputBox: {
-        flex: 1,
+        flexGrow: 1,
+        flexShrink: 0,
         paddingBottom: Styles.globalMargins.xtiny,
         paddingLeft: 6,
         paddingRight: 6,
