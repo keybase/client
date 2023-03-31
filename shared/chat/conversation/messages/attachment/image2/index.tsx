@@ -56,11 +56,12 @@ const Image2 = React.memo(function Image2(p: Props) {
 
 const styles = Styles.styleSheetCreate(() => {
   return {
-    container: {alignSelf: 'center', paddingRight: Styles.globalMargins.tiny},
+    container: {
+      alignSelf: 'center',
+    },
     containerHighlighted: {
       alignSelf: 'center',
       backgroundColor: Styles.globalColors.yellowLight,
-      paddingRight: Styles.globalMargins.tiny,
     },
     contentContainer: {
       backgroundColor: Styles.globalColors.black_05_on_white,

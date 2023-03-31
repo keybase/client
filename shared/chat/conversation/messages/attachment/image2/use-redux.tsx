@@ -15,7 +15,6 @@ export const useRedux = () => {
     const message = m?.type === 'attachment' ? m : missingMessage
     const {previewURL, previewHeight, previewWidth} = message
     const {height, width} = Constants.clampImageSize(previewWidth, previewHeight, maxWidth)
-
     return {height, previewURL, width}
   }, shallowEqual)
 }
