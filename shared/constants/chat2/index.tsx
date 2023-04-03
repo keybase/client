@@ -4,7 +4,6 @@ import * as TeamBuildingConstants from '../team-building'
 import * as Types from '../types/chat2'
 import * as Router2 from '../router2'
 import * as TeamConstants from '../teams'
-import clamp from 'lodash/clamp'
 import {isMobile, isTablet} from '../platform'
 import {
   noConversationIDKey,
@@ -458,16 +457,27 @@ export const isAssertion = (username: string) => username.includes('@')
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
 
-export const clampImageSize = (width: number, height: number, maxSize: number) =>
-  height > width
-    ? {
-        height: Math.ceil(clamp(height || 0, 0, maxSize)),
-        width: Math.ceil((clamp(height || 0, 0, maxSize) * width) / (height || 1)),
-      }
-    : {
-        height: Math.ceil((clamp(width || 0, 0, maxSize) * height) / (width || 1)),
-        width: Math.ceil(clamp(width || 0, 0, maxSize)),
-      }
+export const clampImageSize = (width: number, height: number, maxWidth: number, maxHeight: number) => {
+  const aspectRatio = width / height
+
+  let newWidth = width
+  let newHeight = height
+
+  if (newWidth > maxWidth) {
+    newWidth = maxWidth
+    newHeight = newWidth / aspectRatio
+  }
+
+  if (newHeight > maxHeight) {
+    newHeight = maxHeight
+    newWidth = newHeight * aspectRatio
+  }
+
+  return {
+    height: Math.ceil(newHeight),
+    width: Math.ceil(newWidth),
+  }
+}
 
 export const zoomImage = (width: number, height: number, maxThumbSize: number) => {
   const dims =
