@@ -157,8 +157,20 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   )
 
   return (
-    <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
-      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
+    <Kb.Box2
+      pointerEvents="box-none"
+      key="author"
+      direction="horizontal"
+      style={styles.authorContainer}
+      gap="tiny"
+    >
+      <Kb.Box2
+        pointerEvents="box-none"
+        direction="horizontal"
+        gap="xtiny"
+        fullWidth={true}
+        style={styles.usernameCrown}
+      >
         {botAliasOrUsername}
         {ownerAdminTooltipIcon}
         {botIcon}
@@ -235,6 +247,7 @@ const Separator = React.memo(function Separator(p: SProps) {
       direction="horizontal"
       style={showUsername ? styles.container : styles.containerNoName}
       fullWidth={true}
+      pointerEvents="box-none"
       className="WrapperMessage-hoverColor"
     >
       {showUsername ? <LeftSide username={showUsername} /> : null}
