@@ -388,9 +388,9 @@ export const Routable = (routableProps: RoutableProps) => {
       }
     : navigateUp
 
-  React.useEffect(() => {
+  Container.useOnMountOnce(() => {
     Kb.keyboardDismiss()
-  }, [])
+  })
 
   return (
     <WrapperMobile

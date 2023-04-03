@@ -292,7 +292,6 @@ const BotTab = (props: Props) => {
       dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100}))
     }
   }
-  React.useEffect(() => {}, [featuredBotsLength, dispatch, conversationIDKey, loadedAllBots])
 
   const items: Array<string | RPCTypes.FeaturedBot> = [
     ...(canManageBots ? [addBotButton] : []),

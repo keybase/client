@@ -366,12 +366,14 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     [sendTyping, sendTypingThrottled, setUnsentText, unsentTextChanged, unsentTextChangedThrottled]
   )
 
-  React.useEffect(() => {
+  const [lastUnsentText, setLastUnsentText] = React.useState<string | undefined>('init')
+  if (lastUnsentText !== unsentText) {
+    setLastUnsentText(unsentText)
     if (unsentText !== undefined) {
       lastTextRef.current = unsentText
       setTextInput(unsentText)
     }
-  }, [unsentText, setTextInput])
+  }
 
   const data = Container.useSelector(state => {
     const isActiveForFocus = state.chat2.focus === null

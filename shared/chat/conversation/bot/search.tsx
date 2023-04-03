@@ -56,10 +56,11 @@ const SearchBotPopup = (props: Props) => {
       })
     )
   }
-  React.useEffect(() => {
+
+  Container.useOnMountOnce(() => {
     dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query: '', results: undefined}))
     dispatch(BotsGen.createGetFeaturedBots({}))
-  }, [dispatch])
+  })
 
   const botData: Array<RPCTypes.FeaturedBot | string> =
     lastQuery.length > 0

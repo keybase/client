@@ -37,16 +37,19 @@ const MinWriterRole = (props: Props) => {
     }
   }
 
-  const lastMinWriterRole = Container.usePrevious(minWriterRole)
+  const [lastMinWriterRole, setLastMinWriterRole] = React.useState(minWriterRole)
+  const [lastSelected, setLastSelected] = React.useState(selected)
 
-  React.useEffect(() => {
+  if (lastSelected !== selected || lastMinWriterRole !== minWriterRole) {
+    setLastSelected(selected)
+    setLastMinWriterRole(minWriterRole)
     if (minWriterRole !== lastMinWriterRole) {
       setSelected(minWriterRole)
     }
     if (selected === minWriterRole) {
       setSaving(false)
     }
-  }, [lastMinWriterRole, minWriterRole, selected])
+  }
 
   const items = TeamConstants.teamRoleTypes.map(role => ({
     isSelected: role === minWriterRole,
