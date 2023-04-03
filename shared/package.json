@@ -228,6 +228,10 @@
     "**/@types/react-native": "0.70.6",
     "**/@types/react": "18.0.25"
   },
+  "typecoverage": {
+    "detail": true,
+    "strict": true
+  },
   "expo": {
     "autolinking": {
       "exclude": []
