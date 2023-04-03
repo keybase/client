@@ -28,26 +28,26 @@ const EnterUsername = (props: Props) => {
   }
   return (
     <SignupScreen
-      banners={[
-        ...(props.usernameTaken
-          ? [
-              <Kb.Banner key="usernameTaken" color="blue">
-                <Kb.BannerParagraph
-                  bannerColor="blue"
-                  content={[
-                    'Sorry, this username is already taken. Did you mean to ',
-                    {
-                      onClick: () => props.usernameTaken && props.onLogin(props.usernameTaken),
-                      text: `log in as ${props.usernameTaken}`,
-                    },
-                    '?',
-                  ]}
-                />
-              </Kb.Banner>,
-            ]
-          : []),
-        ...errorBanner(props.error),
-      ]}
+      banners={
+        <>
+          {props.usernameTaken ? (
+            <Kb.Banner key="usernameTaken" color="blue">
+              <Kb.BannerParagraph
+                bannerColor="blue"
+                content={[
+                  'Sorry, this username is already taken. Did you mean to ',
+                  {
+                    onClick: () => props.usernameTaken && props.onLogin(props.usernameTaken),
+                    text: `log in as ${props.usernameTaken}`,
+                  },
+                  '?',
+                ]}
+              />
+            </Kb.Banner>
+          ) : null}
+          {errorBanner(props.error)}
+        </>
+      }
       buttons={[
         {
           disabled: disabled,

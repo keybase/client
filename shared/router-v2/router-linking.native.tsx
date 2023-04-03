@@ -41,7 +41,6 @@ const makeLinking = (options: OptionsType) => {
             }, {}),
           },
         },
-        settingsPushPrompt: 'settingsPushPrompt',
       },
     },
     draft => {

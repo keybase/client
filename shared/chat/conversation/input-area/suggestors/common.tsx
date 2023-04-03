@@ -48,7 +48,7 @@ export type ItemRendererProps<T> = {selected: boolean; item: T; conversationIDKe
 export type ListProps<T> = {
   expanded: boolean
   items: Array<T>
-  keyExtractor: (item: T) => string
+  keyExtractor: (item: T, idx: number) => string
   suggestBotCommandsUpdateStatus?: RPCChatTypes.UIBotCommandsUpdateStatusTyp
   listStyle: Styles.StylesCrossPlatform
   spinnerStyle: Styles.StylesCrossPlatform
@@ -67,7 +67,7 @@ export function List<T>(p: ListProps<T>) {
 
   const renderItem = React.useCallback(
     (idx, item: T) => (
-      <Kb.ClickableBox key={keyExtractor(item)} onClick={() => onSelected(item, true)}>
+      <Kb.ClickableBox key={keyExtractor(item, idx)} onClick={() => onSelected(item, true)}>
         <ItemRenderer selected={idx === selectedIndex} item={item} conversationIDKey={conversationIDKey} />
       </Kb.ClickableBox>
     ),

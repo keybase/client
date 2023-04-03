@@ -28,36 +28,34 @@ const Username = (props: Props) => {
 
   return (
     <SignupScreen
-      banners={[
-        ...(props.resetBannerUser
-          ? [
-              <Kb.Banner color="green" key="resetBanner">
-                <Kb.BannerParagraph
-                  bannerColor="green"
-                  content={`You have successfully reset your account, ${props.resetBannerUser}. You can now log in as usual.`}
-                />
-              </Kb.Banner>,
-            ]
-          : []),
-        ...errorBanner(props.error),
-        ...(props.inlineSignUpLink
-          ? [
-              <Kb.Banner key="usernameTaken" color="blue">
-                <Kb.BannerParagraph
-                  bannerColor="blue"
-                  content={[
-                    "This username doesn't exist. Did you mean to ",
-                    {
-                      onClick: () => props.onGoToSignup(username),
-                      text: 'create a new account',
-                    },
-                    '?',
-                  ]}
-                />
-              </Kb.Banner>,
-            ]
-          : []),
-      ]}
+      banners={
+        <>
+          {props.resetBannerUser ? (
+            <Kb.Banner color="green" key="resetBanner">
+              <Kb.BannerParagraph
+                bannerColor="green"
+                content={`You have successfully reset your account, ${props.resetBannerUser}. You can now log in as usual.`}
+              />
+            </Kb.Banner>
+          ) : null}
+          {errorBanner(props.error)}
+          {props.inlineSignUpLink ? (
+            <Kb.Banner key="usernameTaken" color="blue">
+              <Kb.BannerParagraph
+                bannerColor="blue"
+                content={[
+                  "This username doesn't exist. Did you mean to ",
+                  {
+                    onClick: () => props.onGoToSignup(username),
+                    text: 'create a new account',
+                  },
+                  '?',
+                ]}
+              />
+            </Kb.Banner>
+          ) : null}
+        </>
+      }
       buttons={[
         {
           disabled: !username,

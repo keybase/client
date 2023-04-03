@@ -3,11 +3,11 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 
-const useAutocompleter = <T extends React.Component<any>, U>(
+function useAutocompleter<U>(
   items: Array<{label: string; value: U}>,
   onSelect: (value: U) => void,
   filter: string
-) => {
+) {
   const [selected, setSelected] = React.useState(0)
   const filterLCase = filter.trim().toLowerCase()
   const prevFilterLCase = Container.usePrevious(filterLCase)
@@ -16,41 +16,50 @@ const useAutocompleter = <T extends React.Component<any>, U>(
       setSelected(0)
     }
   }, [setSelected, prevFilterLCase, filterLCase])
-  let itemsFiltered = filter ? items.filter(item => item.label.toLowerCase().includes(filterLCase)) : items
-  itemsFiltered = itemsFiltered.slice(0, 5)
+  const itemsFiltered = React.useMemo(() => {
+    let itemsFiltered = filterLCase
+      ? items.filter(item => item.label.toLowerCase().includes(filterLCase))
+      : items
+    itemsFiltered = itemsFiltered.slice(0, 5)
+    return itemsFiltered
+  }, [items, filterLCase])
 
-  const {popup, popupAnchor, toggleShowingPopup, showingPopup, setShowingPopup} = Kb.usePopup<T>(
-    getAttachmentRef => (
-      <Kb.Overlay
-        attachTo={getAttachmentRef}
-        visible={showingPopup}
-        onHidden={toggleShowingPopup}
-        matchDimension={true}
-        position="top center"
-        positionFallbacks={['bottom center']}
-      >
-        {itemsFiltered.map((item, idx) => (
-          <Kb.ClickableBox
-            key={item.label}
-            onMouseDown={() => onSelect(item.value)}
-            onMouseOver={() => setSelected(idx)}
-            style={styles.optionOuter}
-          >
-            <Kb.Box2
-              direction="horizontal"
-              fullWidth={true}
-              style={Styles.collapseStyles([styles.option, selected === idx && styles.optionSelected])}
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.Overlay
+          attachTo={attachTo}
+          onHidden={toggleShowingPopup}
+          matchDimension={true}
+          position="top center"
+          positionFallbacks={['bottom center']}
+        >
+          {itemsFiltered.map((item, idx) => (
+            <Kb.ClickableBox
+              key={item.label}
+              onMouseDown={() => onSelect(item.value)}
+              onMouseOver={() => setSelected(idx)}
+              style={styles.optionOuter}
             >
-              <Kb.Text type="BodySemibold" lineClamp={1}>
-                {item.label}
-              </Kb.Text>
-            </Kb.Box2>
-          </Kb.ClickableBox>
-        ))}
-      </Kb.Overlay>
-    ),
-    [filterLCase, selected]
+              <Kb.Box2
+                direction="horizontal"
+                fullWidth={true}
+                style={Styles.collapseStyles([styles.option, selected === idx && styles.optionSelected])}
+              >
+                <Kb.Text type="BodySemibold" lineClamp={1}>
+                  {item.label}
+                </Kb.Text>
+              </Kb.Box2>
+            </Kb.ClickableBox>
+          ))}
+        </Kb.Overlay>
+      )
+    },
+    [onSelect, selected, itemsFiltered]
   )
+
+  const {popup, popupAnchor, toggleShowingPopup, setShowingPopup} = Kb.usePopup2(makePopup)
 
   const numItems = itemsFiltered.length
   const selectedItem = itemsFiltered[selected]

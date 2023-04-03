@@ -3433,15 +3433,16 @@ func TestChatSrvGetUnreadLine(t *testing.T) {
 					require.Nil(t, res.UnreadlineID)
 				} else {
 					require.NotNil(t, res.UnreadlineID)
-					require.Equal(t, unreadLineID, *res.UnreadlineID)
+					require.Equal(t, unreadLineID, *res.UnreadlineID, "unread line mismatch")
 				}
 			}
 		}
 
 		// user2 will have an unread id of the TEXT message even after the edit
-		assertUnreadline(ctx1, g1, users[0], 1, msgID1)
+		msgID0 := chat1.MessageID(1)
+		assertUnreadline(ctx1, g1, users[0], msgID0, msgID1)
 		assertUnreadline(ctx1, g1, users[0], msgID1, 0)
-		assertUnreadline(ctx2, g2, users[1], 1, msgID1)
+		assertUnreadline(ctx2, g2, users[1], msgID0, msgID1)
 		assertUnreadline(ctx2, g2, users[1], msgID1, 0)
 
 		// subsequent TEXT post leaves unreadline unchanged.
@@ -3449,9 +3450,18 @@ func TestChatSrvGetUnreadLine(t *testing.T) {
 		msgID2 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
-		assertUnreadline(ctx2, g2, users[1], 1, msgID1)
+		assertUnreadline(ctx2, g2, users[1], msgID0, msgID1)
 		// If user2 has read to msgID1, msgID2 is the next candidate
 		assertUnreadline(ctx2, g2, users[1], msgID1, msgID2)
+
+		_, err := ctc.as(t, users[1]).chatLocalHandler().MarkAsReadLocal(ctx1,
+			chat1.MarkAsReadLocalArg{
+				ConversationID: conv.Id,
+				MsgID:          &msgID0,
+				ForceUnread:    true,
+			})
+		require.NoError(t, err)
+		assertUnreadline(ctx2, g2, users[1], msgID0, msgID1)
 
 		// reaction does not affect things
 		mustReactToMsg(ctx1, t, ctc, users[0], conv, msgID2, ":+1:")

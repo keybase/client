@@ -21,9 +21,15 @@ export default class extends React.PureComponent<Props, State> {
   _videoRef: {
     current: HTMLVideoElement | null
   } = React.createRef()
-  _onVideoClick = () =>
+  _onVideoClick = () => {
     this._videoRef.current &&
-    (this._videoRef.current.paused ? this._videoRef.current.play() : this._videoRef.current.pause())
+      (this._videoRef.current.paused
+        ? this._videoRef.current
+            .play()
+            .then(() => {})
+            .catch(() => {})
+        : this._videoRef.current.pause())
+  }
 
   _onVideoLoadedmetadata = ({target}) => {
     this._mounted &&

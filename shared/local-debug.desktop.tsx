@@ -5,6 +5,7 @@ let config = {
   // Set this to true if you want to turn off most console logging so you can profile easier
   PERF: false,
   allowMultipleInstances: false, // let more run
+  debugFullLogs: false, // only for getting full action logs in debug mode
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
   featureFlagsOverride: '', // Override feature flags
@@ -30,6 +31,7 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
+  config.debugFullLogs = false
   config.enableActionLogging = false
   config.enableStoreLogging = true
   config.filterActionLogs = null // '^chat|entity'
@@ -49,6 +51,12 @@ config = {
   ...KB2.constants.configOverload,
 }
 
+// If debugFullLogs
+if (config.debugFullLogs) {
+  console.warn('\n\n\nlocal debug config.debugFullLogs is ONNNNNn!!!!!1!!!11!!!!\n')
+  config.printRPC = true
+  config.enableActionLogging = true
+}
 // If performance testing
 if (config.PERF) {
   console.warn('\n\n\nlocal debug config.PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
@@ -74,6 +82,7 @@ if (config.PERF) {
 
 export const {
   allowMultipleInstances,
+  debugFullLogs,
   enableActionLogging,
   enableStoreLogging,
   featureFlagsOverride,

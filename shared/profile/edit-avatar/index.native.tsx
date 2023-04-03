@@ -30,7 +30,7 @@ const AvatarUploadWrapper = (props: Props) => {
       }
     } catch (error_) {
       const error = error_ as any
-      setImageError(error)
+      setImageError(String(error))
     }
   }, [setImageError, setSelectedImage, navUp, props.wizard])
 
@@ -170,13 +170,11 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
       return (
         <Kb.Modal
           banners={
-            this.props.error
-              ? [
-                  <Kb.Banner key="err" color="red">
-                    {this.props.error}
-                  </Kb.Banner>,
-                ]
-              : []
+            this.props.error ? (
+              <Kb.Banner key="err" color="red">
+                <Kb.Text type="Body">{this.props.error}</Kb.Text>
+              </Kb.Banner>
+            ) : null
           }
           header={{
             leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={this.props.onBack} />,
@@ -225,7 +223,11 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.HeaderHocHeader onCancel={this.props.onClose} title={isIOS ? 'Zoom and pan' : 'Upload avatar'} />
-        {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
+        {this.props.error ? (
+          <Kb.Banner color="red">
+            <Kb.Text type="Body">{this.props.error}</Kb.Text>
+          </Kb.Banner>
+        ) : null}
         <Kb.Box style={styles.container}>
           <Kb.Box
             style={

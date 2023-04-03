@@ -22,6 +22,7 @@ const PERF = false
 
 const config = {
   allowMultipleInstances: false,
+  debugFullLogs: false,
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
   featureFlagsOverride: '', // Override feature flags

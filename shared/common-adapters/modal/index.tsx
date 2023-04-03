@@ -35,7 +35,7 @@ type FooterProps = {
 
 type Props = {
   allowOverflow?: boolean // desktop only
-  banners?: React.ReactNode[]
+  banners?: React.ReactNode
   children: React.ReactNode
   header?: HeaderProps
   onClose?: () => void // desktop non-fullscreen only
@@ -56,8 +56,8 @@ type Props = {
 
 const ModalInner = (props: Props) => (
   <>
-    {!!props.header && <Header {...props.header} />}
-    {!!props.banners && props.banners}
+    {props.header ? <Header {...props.header} /> : null}
+    {props.banners ? props.banners : null}
     {props.noScrollView ? (
       Styles.isMobile ? (
         <Kb.BoxGrow>{props.children}</Kb.BoxGrow>

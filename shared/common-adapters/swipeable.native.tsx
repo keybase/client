@@ -103,21 +103,19 @@ const useGesture = (
 export const Swipeable = React.memo(function Swipeable2(p: {
   children: React.ReactNode
   actionWidth: number
-  makeActions: (progress: Reanimated.SharedValue<number>) => React.ReactNode
+  makeActionsRef: React.MutableRefObject<(p: Reanimated.SharedValue<number>) => React.ReactNode>
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
   style?: Styles.StylesCrossPlatform
   extraData?: unknown
 }) {
-  const {children, actionWidth, makeActions, swipeCloseRef, style, extraData} = p
+  const {children, actionWidth, makeActionsRef, swipeCloseRef, style, extraData} = p
   const tx = Reanimated.useSharedValue(0)
   const {actionsEnabled} = useActionsEnabled(actionWidth, tx)
   const rowStyle = Reanimated.useAnimatedStyle(() => ({transform: [{translateX: tx.value}]}))
   const actionStyle = Reanimated.useAnimatedStyle(() => ({width: -tx.value}))
   const {closeSelf, closeOthersAndRegisterClose, hasSwiped} = useSyncClosing(tx, swipeCloseRef)
   const gesture = useGesture(actionWidth, tx, closeOthersAndRegisterClose, closeSelf, extraData)
-  const actions = React.useMemo(() => {
-    return hasSwiped ? makeActions(tx) : null
-  }, [makeActions, hasSwiped])
+  const actions = hasSwiped ? makeActionsRef.current(tx) : null
 
   // parent is different, close immediately
   React.useEffect(() => {
@@ -182,7 +180,12 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
       },
       onPanResponderRelease: () => {
         pan.flattenOffset()
-        onSwiped()
+        // only swipe if its actually still over
+        // @ts-ignore _value does exist
+        const val = -pan.x._value
+        if (val > threshold) {
+          onSwiped()
+        }
         resetPosition()
       },
       onPanResponderTerminate: () => {

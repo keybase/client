@@ -443,7 +443,7 @@ PODS:
     - React-Core
     - SDWebImage (~> 5.12.1)
     - SDWebImageWebPCoder (~> 0.8.4)
-  - RNFlashList (1.4.1):
+  - RNFlashList (1.4.2):
     - React-Core
   - RNGestureHandler (2.9.0):
     - React-Core
@@ -835,7 +835,7 @@ SPEC CHECKSUMS:
   RNCPicker: 0bf8ef8f7800524f32d2bb2a8bcadd53eda0ecd1
   RNCPushNotificationIOS: 87b8d16d3ede4532745e05b03c42cff33a36cc45
   RNFastImage: 65fc4932ac71ad7569adc60b66db6a6ed30dad89
-  RNFlashList: 8ec7f7454721145fe84566bb9e88bcf58981c9fe
+  RNFlashList: 7fbca4fc075484a9426f1610d648dbea2de94eb0
   RNGestureHandler: 071d7a9ad81e8b83fe7663b303d132406a7d8f39
   RNReanimated: 0dd48c050ab4b6b55922fbeeddb2965dad1240b3
   RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
@@ -848,6 +848,6 @@ SPEC CHECKSUMS:
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
   ZXingObjC: fdbb269f25dd2032da343e06f10224d62f537bdb
 
-PODFILE CHECKSUM: b2661b65a2011386178152980a4f983168d168da
+PODFILE CHECKSUM: 2b3f6ef6aedd2924333c7fba2c637ee32c751c38
 
 COCOAPODS: 1.12.0

@@ -144,6 +144,9 @@ module.exports = {
   get KeyboardAvoidingView() {
     return Index.KeyboardAvoidingView
   },
+  get KeyboardAvoidingView2() {
+    return Index.KeyboardAvoidingView2
+  },
   get LabeledInput() {
     return Index.LabeledInput
   },
@@ -242,9 +245,6 @@ module.exports = {
   },
   get NativeRefreshControl() {
     return NativeWrappers.NativeRefreshControl
-  },
-  get NativeSafeAreaView() {
-    return NativeWrappers.NativeSafeAreaView
   },
   get NativeScrollView() {
     return NativeWrappers.NativeScrollView

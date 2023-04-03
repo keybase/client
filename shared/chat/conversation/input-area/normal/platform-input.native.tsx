@@ -348,18 +348,15 @@ const PlatformInput = (p: Props) => {
     }
   }, [onQueueSubmit, insertText])
 
-  const {
-    popup: menu,
-    showingPopup,
-    toggleShowingPopup,
-  } = Kb.usePopup(
-    attachTo => {
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
       switch (whichMenu.current) {
         case 'filepickerpopup':
           return (
             <ChatFilePicker
               attachTo={attachTo}
-              showingPopup={showingPopup}
+              showingPopup={true}
               toggleShowingPopup={toggleShowingPopup}
               conversationIDKey={conversationIDKey}
             />
@@ -369,7 +366,7 @@ const PlatformInput = (p: Props) => {
             <MoreMenuPopup
               conversationIDKey={conversationIDKey}
               onHidden={toggleShowingPopup}
-              visible={showingPopup}
+              visible={true}
             />
           )
         default:
@@ -378,13 +375,15 @@ const PlatformInput = (p: Props) => {
               attachTo={attachTo}
               conversationIDKey={conversationIDKey}
               onHidden={toggleShowingPopup}
-              visible={showingPopup}
+              visible={true}
             />
           )
       }
     },
     [conversationIDKey]
   )
+
+  const {popup: menu, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   const ourShowMenu = React.useCallback(
     (menu: MenuType) => {
@@ -515,6 +514,7 @@ const PlatformInput = (p: Props) => {
 }
 
 const AnimatedPlainInput = createAnimatedComponent(Kb.PlainInput)
+
 const AnimatedInput = (() => {
   if (skipAnimations) {
     return React.memo(

@@ -19,14 +19,14 @@ export const EncryptInput = () => {
   }, [dispatch])
 
   return (
-    <>
+    <Kb.KeyboardAvoidingView2>
       <OperationBanner operation={operation} />
       <Recipients />
       <Input operation={operation} />
       <InputActionsBar operation={operation}>
         <EncryptOptions />
       </InputActionsBar>
-    </>
+    </Kb.KeyboardAvoidingView2>
   )
 }
 

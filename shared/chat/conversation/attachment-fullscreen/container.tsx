@@ -9,7 +9,7 @@ import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
 import shallowEqual from 'shallowequal'
-import {maxWidth} from '../messages/attachment/shared'
+import {maxWidth, maxHeight} from '../messages/attachment/shared'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
@@ -52,7 +52,8 @@ const Connected = (props: OwnProps) => {
   const {height: clampedHeight, width: clampedWidth} = Constants.clampImageSize(
     previewWidth,
     previewHeight,
-    maxWidth
+    maxWidth,
+    maxHeight
   )
 
   const submit = Container.useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)

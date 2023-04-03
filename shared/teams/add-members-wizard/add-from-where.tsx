@@ -45,13 +45,11 @@ const AddFromWhere = () => {
       allowOverflow={true}
       onClose={newTeam ? undefined : onClose} // Only show the close button if we're not coming from the new team wizard
       banners={
-        createTeamError
-          ? [
-              <Kb.Banner color="red" key="err">
-                {createTeamError}
-              </Kb.Banner>,
-            ]
-          : []
+        createTeamError ? (
+          <Kb.Banner color="red" key="err">
+            {createTeamError}
+          </Kb.Banner>
+        ) : null
       }
       header={{
         leftButton: newTeam ? (

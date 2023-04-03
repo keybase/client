@@ -457,13 +457,15 @@ const getInitialPushAndroid = async () => {
 const getInitialPushiOS = async () =>
   new Promise<Container.TypedActions | null | false>(resolve => {
     isIOS &&
-      PushNotificationIOS.getInitialNotification().then((n: any) => {
-        const notification = Constants.normalizePush(n)
-        if (notification) {
-          resolve(PushGen.createNotification({notification}))
-        }
-        resolve(null)
-      })
+      PushNotificationIOS.getInitialNotification()
+        .then((n: any) => {
+          const notification = Constants.normalizePush(n)
+          if (notification) {
+            resolve(PushGen.createNotification({notification}))
+          }
+          resolve(null)
+        })
+        .catch(() => {})
   })
 
 export const initPushListener = () => {

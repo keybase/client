@@ -32,19 +32,19 @@ const Password = (props: Props) => {
 
   return (
     <SignupScreen
-      banners={[
-        ...(props.resetEmailSent
-          ? [
-              <Kb.Banner color="green" key="resetBanner">
-                <Kb.BannerParagraph
-                  bannerColor="green"
-                  content="We've sent you an email with password reset instructions."
-                />
-              </Kb.Banner>,
-            ]
-          : []),
-        ...errorBanner(props.error),
-      ]}
+      banners={
+        <>
+          {props.resetEmailSent ? (
+            <Kb.Banner color="green" key="resetBanner">
+              <Kb.BannerParagraph
+                bannerColor="green"
+                content="We've sent you an email with password reset instructions."
+              />
+            </Kb.Banner>
+          ) : null}
+          {errorBanner(props.error)}
+        </>
+      }
       buttons={[
         {
           disabled: !password,

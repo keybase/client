@@ -33,18 +33,20 @@ const CheckPassphraseMobile = () => {
 
   return (
     <Kb.Modal
-      banners={[
-        checkPasswordIsCorrect === false && (
-          <Kb.Banner key="errorBanner" color="red">
-            Wrong password. Please try again.
-          </Kb.Banner>
-        ),
-        checkPasswordIsCorrect === true && (
-          <Kb.Banner key="successBanner" color="green">
-            Your password is correct.
-          </Kb.Banner>
-        ),
-      ]}
+      banners={
+        <>
+          {checkPasswordIsCorrect === false ? (
+            <Kb.Banner key="errorBanner" color="red">
+              Wrong password. Please try again.
+            </Kb.Banner>
+          ) : null}
+          {checkPasswordIsCorrect === true ? (
+            <Kb.Banner key="successBanner" color="green">
+              Your password is correct.
+            </Kb.Banner>
+          ) : null}
+        </>
+      }
       footer={{
         content: (
           <Kb.ButtonBar align="center" direction="column" fullWidth={true} style={styles.buttonBar}>

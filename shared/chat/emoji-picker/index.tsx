@@ -164,62 +164,78 @@ const getResultFilter = (emojiGroups?: Array<RPCChatGen.EmojiGroup>) => {
 
 const getEmojisPerLine = (width: number) => width && Math.floor(width / emojiWidthWithPadding)
 
-const getSectionsAndBookmarks = (
-  width: number,
-  topReacjis: Array<RPCTypes.UserReacji>,
-  hideTopReacjis: boolean,
-  customEmojiGroups?: RPCChatGen.EmojiGroup[]
-) => {
-  if (!width) {
-    return {bookmarks: [], sections: []}
-  }
+const getSectionsAndBookmarks = memoize(
+  (
+    width: number,
+    topReacjis: Array<RPCTypes.UserReacji>,
+    hideTopReacjis: boolean,
+    customEmojiGroups?: RPCChatGen.EmojiGroup[]
+  ) => {
+    if (!width) {
+      return {bookmarks: [], sections: []}
+    }
 
-  const emojisPerLine = getEmojisPerLine(width)
-  const sections: Array<Section> = []
-  const bookmarks: Array<Bookmark> = []
+    const emojisPerLine = getEmojisPerLine(width)
+    const sections: Array<Section> = []
+    const bookmarks: Array<Bookmark> = []
 
-  if (topReacjis.length && !hideTopReacjis) {
-    const frequentSection = getFrequentSection(topReacjis, customEmojiGroups || emptyArray, emojisPerLine)
-    bookmarks.push({
-      coveredSectionKeys: new Set([frequentSection.key]),
-      iconType: 'iconfont-clock',
-      sectionIndex: sections.length,
-    })
-    sections.push(frequentSection)
-  }
-
-  getEmojiSections(emojisPerLine).forEach(section => {
-    const categoryIcon = Data.categoryIcons[section.title]
-    categoryIcon &&
+    if (topReacjis.length && !hideTopReacjis) {
+      const frequentSection = getFrequentSection(topReacjis, customEmojiGroups || emptyArray, emojisPerLine)
       bookmarks.push({
-        coveredSectionKeys: new Set([section.key]),
-        iconType: categoryIcon,
+        coveredSectionKeys: new Set([frequentSection.key]),
+        iconType: 'iconfont-clock',
         sectionIndex: sections.length,
       })
-    sections.push(section)
-  })
+      sections.push(frequentSection)
+    }
 
-  if (customEmojiGroups?.length) {
-    const bookmark = {
-      coveredSectionKeys: new Set<string>(),
-      iconType: 'iconfont-keybase',
-      sectionIndex: sections.length,
-    } as Bookmark
-    getCustomEmojiSections(customEmojiGroups, emojisPerLine).forEach(section => {
-      bookmark.coveredSectionKeys.add(section.key)
+    getEmojiSections(emojisPerLine).forEach(section => {
+      const categoryIcon = Data.categoryIcons[section.title]
+      categoryIcon &&
+        bookmarks.push({
+          coveredSectionKeys: new Set([section.key]),
+          iconType: categoryIcon,
+          sectionIndex: sections.length,
+        })
       sections.push(section)
     })
-    bookmarks.push(bookmark)
+
+    if (customEmojiGroups?.length) {
+      const bookmark = {
+        coveredSectionKeys: new Set<string>(),
+        iconType: 'iconfont-keybase',
+        sectionIndex: sections.length,
+      } as Bookmark
+      getCustomEmojiSections(customEmojiGroups, emojisPerLine).forEach(section => {
+        bookmark.coveredSectionKeys.add(section.key)
+        sections.push(section)
+      })
+      bookmarks.push(bookmark)
+    }
+
+    sections.push({
+      data: [],
+      key: 'not-found',
+      title: 'not-found',
+    })
+
+    return {bookmarks, sections}
   }
+)
 
-  sections.push({
-    data: [],
-    key: 'not-found',
-    title: 'not-found',
-  })
-
-  return {bookmarks, sections}
-}
+const EmojiRow = React.memo(function EmojiRow(p: {
+  row: Row
+  emojisPerLine: number
+  mapper: (e: Row['emojis'][number]) => React.ReactNode
+}) {
+  const {row, emojisPerLine, mapper} = p
+  return (
+    <Kb.Box2 key={row.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
+      {row.emojis.map(mapper)}
+      {[...Array(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
+    </Kb.Box2>
+  )
+})
 
 class EmojiPicker extends React.PureComponent<Props, State> {
   state = {activeSectionKey: ''}
@@ -233,7 +249,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     const skinToneModifier = getSkinToneModifierStrIfAvailable(emoji, skinTone)
     const renderable = emojiDataToRenderableEmoji(emoji, skinToneModifier, skinTone)
     return (
-      <Kb.ClickableBox
+      <Kb.ClickableBox2
         className="emoji-picker-emoji-box"
         onClick={() => this.props.onChoose(getEmojiStr(emoji, skinToneModifier), renderable)}
         onMouseOver={this.props.onHover && (() => this.props.onHover?.(emoji))}
@@ -241,18 +257,16 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         key={emoji.short_name}
       >
         {renderEmoji({emoji: renderable, showTooltip: false, size: singleEmojiWidth})}
-      </Kb.ClickableBox>
+      </Kb.ClickableBox2>
     )
   }
 
+  private mapper = (e: Row['emojis'][number]) => this.getEmojiSingle(e, this.props.skinTone)
   private getEmojiRow = (row: Row, emojisPerLine: number) =>
     // This is possible when we have the cached sections, and we just got mounted
     // and haven't received width yet.
     row.emojis.length > emojisPerLine ? null : (
-      <Kb.Box2 key={row.key} fullWidth={true} style={styles.emojiRowContainer} direction="horizontal">
-        {row.emojis.map(e => this.getEmojiSingle(e, this.props.skinTone))}
-        {[...Array(emojisPerLine - row.emojis.length)].map((_, index) => makeEmojiPlaceholder(index))}
-      </Kb.Box2>
+      <EmojiRow row={row} emojisPerLine={emojisPerLine} mapper={this.mapper} />
     )
 
   private sectionListRef = React.createRef<any>()
@@ -321,6 +335,22 @@ class EmojiPicker extends React.PureComponent<Props, State> {
     </Kb.Box2>
   )
 
+  private getEmojiWidthWithPadding = () => {
+    return emojiWidthWithPadding
+  }
+
+  _sections = new Array<Section>()
+  private getSectionHeaderHeight = (sectionIndex: number) => {
+    return this._sections[sectionIndex].key === 'not-found' ? notFoundHeight : 32
+  }
+
+  _emojisPerLine = 1
+  private renderItem = ({item}: {item: Row; index: number}) => this.getEmojiRow(item, this._emojisPerLine)
+
+  private renderSectionHeader = ({section}) => {
+    return section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)
+  }
+
   render() {
     const {bookmarks, sections} = getSectionsAndBookmarks(
       this.props.width,
@@ -328,7 +358,9 @@ class EmojiPicker extends React.PureComponent<Props, State> {
       this.props.hideFrequentEmoji,
       this.props.customEmojiGroups
     )
+    this._sections = sections
     const emojisPerLine = getEmojisPerLine(this.props.width)
+    this._emojisPerLine = emojisPerLine
     const getFilterResults = getResultFilter(this.props.customEmojiGroups)
     // For filtered results, we have <= `maxEmojiSearchResults` emojis
     // to render. Render them directly rather than going through chunkData
@@ -377,19 +409,15 @@ class EmojiPicker extends React.PureComponent<Props, State> {
         >
           <Kb.SectionList
             ref={this.sectionListRef}
-            getItemHeight={() => emojiWidthWithPadding}
-            getSectionHeaderHeight={sectionIndex =>
-              sections[sectionIndex].key === 'not-found' ? notFoundHeight : 32
-            }
+            getItemHeight={this.getEmojiWidthWithPadding}
+            getSectionHeaderHeight={this.getSectionHeaderHeight}
             keyboardShouldPersistTaps="handled"
             initialNumToRender={14}
             sections={sections}
             onSectionChange={this.onSectionChange}
             stickySectionHeadersEnabled={true}
-            renderItem={({item}: {item: Row; index: number}) => this.getEmojiRow(item, emojisPerLine)}
-            renderSectionHeader={({section}) =>
-              section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)
-            }
+            renderItem={this.renderItem}
+            renderSectionHeader={this.renderSectionHeader}
           />
         </Kb.Box2>
       </>
@@ -417,6 +445,7 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.blue_10,
       },
       bookmarkContainer: {
+        height: 44,
         paddingBottom: Styles.globalMargins.tiny,
         paddingLeft: Styles.globalMargins.tiny,
         paddingRight: Styles.globalMargins.tiny,

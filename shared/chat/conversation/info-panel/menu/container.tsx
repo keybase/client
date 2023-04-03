@@ -41,7 +41,9 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       badgeSubscribe: false,
       canAddPeople: false,
       channelname: '',
+      ignored: false,
       isInChannel: false,
+      isMuted: false,
       manageChannelsSubtitle,
       manageChannelsTitle,
       participants: [],
@@ -92,8 +94,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     return {...common}
   }, shallowEqual)
 
-  const {teamname, teamID, badgeSubscribe, canAddPeople, channelname, isInChannel} = data
-  const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType} = data
+  const {teamname, teamID, badgeSubscribe, canAddPeople, channelname, isInChannel, ignored} = data
+  const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data
 
   const dispatch = Container.useDispatch()
 
@@ -146,6 +148,10 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     dispatch(RouteTreeGen.createClearModals())
     dispatch(ChatGen.createMarkTeamAsRead({teamID}))
   }, [dispatch, teamID])
+  const onMarkAsUnread = React.useCallback(() => {
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(ChatGen.createMarkAsUnread({conversationIDKey, readMsgID: null}))
+  }, [dispatch, conversationIDKey])
   const onViewTeam = React.useCallback(() => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
@@ -171,7 +177,9 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     conversationIDKey,
     floatingMenuContainerStyle,
     hasHeader,
+    ignored,
     isInChannel,
+    isMuted,
     isSmallTeam,
     manageChannelsSubtitle,
     manageChannelsTitle,
@@ -185,6 +193,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     onLeaveTeam,
     onManageChannels,
     onMarkAsRead,
+    onMarkAsUnread,
     onMuteConv,
     onUnhideConv,
     onViewTeam,

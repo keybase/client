@@ -3,7 +3,7 @@ import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
-import Error from './error/container'
+import Error from './error'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import {headerNavigationOptions} from './header-area/container'
@@ -61,8 +61,6 @@ const Conversation = (p: SwitchProps) => {
 // @ts-ignore
 Conversation.navigationOptions = ({route}) => ({
   ...headerNavigationOptions(route),
-  needsKeyboard: true,
-  needsSafe: true,
   presentation: undefined,
 })
 

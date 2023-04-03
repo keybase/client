@@ -17,7 +17,7 @@ import {useHeaderHeight} from '@react-navigation/elements'
 import type {Props as KAVProps} from './keyboard-avoiding-view'
 import * as React from 'react'
 
-type Props = React.ComponentProps<typeof OldKeyboardAvoidingViewType>
+type Props = React.ComponentProps<typeof OldKeyboardAvoidingViewType> & {extraPadding?: number}
 
 type ViewLayout = {
   x: number
@@ -47,6 +47,7 @@ type State = {
 
 // Pulling this from RN since we patch it up
 class KeyboardAvoidingView extends React.Component<Props, State> {
+  _bottom: number = 0
   _frame?: ViewLayout
   _keyboardEvent?: KeyboardEvent
   _subscriptions: Array<EventSubscription> = []
@@ -121,13 +122,17 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
 
   _updateBottomIfNecessary = async () => {
     if (!this._keyboardEvent) {
+      this._bottom = 0
       this.setState({bottom: 0})
 
       // @ts-ignore actually exists but not in the api until 71
       if (Keyboard.isVisible()) {
         // @ts-ignore actually exists but not in the api until 71
-        this.setState({bottom: Keyboard.metrics()?.height ?? 0})
+        const h = Keyboard.metrics()?.height ?? 0
+        this._bottom = h
+        this.setState({bottom: h + (this.props.extraPadding ?? 0)})
       } else {
+        this._bottom = 0
         this.setState({bottom: 0})
       }
       return
@@ -136,7 +141,8 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
     const {duration, easing, endCoordinates} = this._keyboardEvent
     const height = await this._relativeKeyboardHeight(endCoordinates)
 
-    if (this.state.bottom === height) {
+    // do NOT use state here as its async and we can race
+    if (this._bottom === height) {
       return
     }
 
@@ -150,7 +156,8 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
         },
       })
     }
-    this.setState({bottom: height})
+    this._bottom = height
+    this.setState({bottom: height + (this.props.extraPadding ?? 0)})
   }
 
   componentDidMount(): void {
@@ -253,7 +260,7 @@ const styles = Styles.styleSheetCreate(
 )
 
 export const KeyboardAvoidingView2 = (p: KAVProps) => {
-  const {children, extraOffset} = p
+  const {children, extraOffset, extraPadding} = p
   const headerHeight = useSafeHeaderHeight()
   const keyboardVerticalOffset = headerHeight + (extraOffset ?? 0)
 
@@ -262,6 +269,7 @@ export const KeyboardAvoidingView2 = (p: KAVProps) => {
       keyboardVerticalOffset={keyboardVerticalOffset}
       pointerEvents="box-none"
       style={styles.keyboard}
+      extraPadding={extraPadding}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {children}

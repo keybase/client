@@ -6858,6 +6858,7 @@ type MarkAsReadLocalArg struct {
 	SessionID      int            `codec:"sessionID" json:"sessionID"`
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	MsgID          *MessageID     `codec:"msgID,omitempty" json:"msgID,omitempty"`
+	ForceUnread    bool           `codec:"forceUnread" json:"forceUnread"`
 }
 
 type MarkTLFAsReadLocalArg struct {

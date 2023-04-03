@@ -108,13 +108,11 @@ const AddToChannel = (props: Props) => {
       onClose={onClose}
       allowOverflow={true}
       banners={
-        error
-          ? [
-              <Kb.Banner color="red" key="err">
-                {error}
-              </Kb.Banner>,
-            ]
-          : []
+        error ? (
+          <Kb.Banner color="red" key="err">
+            {error}
+          </Kb.Banner>
+        ) : null
       }
     >
       <Kb.SearchFilter
