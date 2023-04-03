@@ -180,7 +180,12 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
       },
       onPanResponderRelease: () => {
         pan.flattenOffset()
-        onSwiped()
+        // only swipe if its actually still over
+        // @ts-ignore _value does exist
+        const val = -pan.x._value
+        if (val > threshold) {
+          onSwiped()
+        }
         resetPosition()
       },
       onPanResponderTerminate: () => {
