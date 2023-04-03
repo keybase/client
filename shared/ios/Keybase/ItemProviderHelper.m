@@ -311,29 +311,30 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   
   if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
     if (self.isShare) {
-      [decodes addObject:^(){
-        [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
-      }];
+      
       // Use the fileHandler here, so if the image is from e.g. the Photos app,
       // we'd go with the copy routine instead of having to encode an NSImage.
       // This is important for staying under the mem limit.
       [decodes addObject:^(){
         [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandlerMedia];
       }];
+      [decodes addObject:^(){
+        [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
+      }];
       // drag drop doesn't give us working urls
       [decodes addObject:^(){
         [item loadObjectOfClass:[UIImage class] completionHandler:imageHandler];
       }];
     } else {
+      // drag drop doesn't give us working urls, must be the first thing we try
+      [decodes addObject:^(){
+        [item loadObjectOfClass:[UIImage class] completionHandler:imageHandler];
+      }];
       [decodes addObject:^(){
         [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
       }];
       [decodes addObject:^(){
         [item loadFileRepresentationForTypeIdentifier:@"public.image" completionHandler:fileHandlerMedia];
-      }];
-      // drag drop doesn't give us working urls
-      [decodes addObject:^(){
-        [item loadObjectOfClass:[UIImage class] completionHandler:imageHandler];
       }];
     }
   }
