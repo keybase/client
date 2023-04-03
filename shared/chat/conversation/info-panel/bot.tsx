@@ -283,11 +283,16 @@ const BotTab = (props: Props) => {
   const loadingBots = !featuredBotsMap.size
 
   const featuredBotsLength = featuredBots.length
-  React.useEffect(() => {
+  const [lastFBL, setLastFBL] = React.useState(-1)
+  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  if (conversationIDKey !== lastCID || lastFBL !== featuredBotsLength) {
+    setLastCID(conversationIDKey)
+    setLastFBL(featuredBotsLength)
     if (featuredBotsLength === 0 && !loadedAllBots) {
       dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100}))
     }
-  }, [featuredBotsLength, dispatch, conversationIDKey, loadedAllBots])
+  }
+  React.useEffect(() => {}, [featuredBotsLength, dispatch, conversationIDKey, loadedAllBots])
 
   const items: Array<string | RPCTypes.FeaturedBot> = [
     ...(canManageBots ? [addBotButton] : []),

@@ -26,15 +26,12 @@ const NativeEventsToRedux = (p: {setDarkMode: (d: boolean) => void}) => {
   const dispatch = useDispatch()
   const appStateRef = React.useRef('active')
 
-  const dispatchAndSetDarkmode = React.useCallback(
-    (dark: boolean) => {
+  React.useEffect(() => {
+    const dispatchAndSetDarkmode = (dark: boolean) => {
       setDarkMode(dark)
       dispatch(ConfigGen.createSetSystemDarkMode({dark}))
-    },
-    [dispatch, setDarkMode]
-  )
+    }
 
-  React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
       appStateRef.current = nextAppState
       nextAppState !== 'unknown' &&
@@ -61,7 +58,7 @@ const NativeEventsToRedux = (p: {setDarkMode: (d: boolean) => void}) => {
       darkSub.remove()
       linkingSub.remove()
     }
-  }, [dispatch, dispatchAndSetDarkmode])
+  }, [dispatch])
 
   return null
 }
