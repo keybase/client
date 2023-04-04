@@ -16,7 +16,7 @@ const cryptoSubRoutes = {
     getScreen: (): typeof Decrypt => require('../operations/decrypt').DecryptIO,
   },
   [Constants.encryptTab]: {
-    getScreen: (): typeof Encrypt => require('../operations/encrypt').default,
+    getScreen: (): typeof Encrypt => require('../operations/encrypt').EncryptIO,
   },
   [Constants.signTab]: {getScreen: (): typeof Sign => require('../operations/sign').default},
   [Constants.verifyTab]: {getScreen: (): typeof Verify => require('../operations/verify').default},
