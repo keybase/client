@@ -13,13 +13,13 @@ import type Verify from '../operations/verify'
 /* Desktop SubNav */
 const cryptoSubRoutes = {
   [Constants.decryptTab]: {
-    getScreen: (): typeof Decrypt => require('../operations/decrypt/index').default,
+    getScreen: (): typeof Decrypt => require('../operations/decrypt').DecryptIO,
   },
   [Constants.encryptTab]: {
-    getScreen: (): typeof Encrypt => require('../operations/encrypt/index').default,
+    getScreen: (): typeof Encrypt => require('../operations/encrypt').default,
   },
-  [Constants.signTab]: {getScreen: (): typeof Sign => require('../operations/sign/index').default},
-  [Constants.verifyTab]: {getScreen: (): typeof Verify => require('../operations/verify/index').default},
+  [Constants.signTab]: {getScreen: (): typeof Sign => require('../operations/sign').default},
+  [Constants.verifyTab]: {getScreen: (): typeof Verify => require('../operations/verify').default},
 }
 function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}) {
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
