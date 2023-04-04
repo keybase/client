@@ -116,7 +116,9 @@ let store
 
 const DarkCSSInjector = () => {
   const isDark = useSelector(state => isDarkMode(state.config))
-  React.useEffect(() => {
+  const [lastIsDark, setLastIsDark] = React.useState<boolean | undefined>()
+  if (lastIsDark !== isDark) {
+    setLastIsDark(isDark)
     // inject it in body so modals get darkMode also
     if (isDark) {
       document.body.classList.add('darkMode')
@@ -125,7 +127,7 @@ const DarkCSSInjector = () => {
       document.body.classList.remove('darkMode')
       document.body.classList.add('lightMode')
     }
-  }, [isDark])
+  }
   return null
 }
 

@@ -95,6 +95,17 @@ export const useOnMountOnce = (f: () => void) => {
   }
 }
 
+// Run a function on unmount, doesn't rerun if the function changes
+export const useOnUnMountOnce = (f: () => void) => {
+  const ref = React.useRef(f)
+  ref.current = f
+  React.useEffect(() => {
+    return () => {
+      ref.current()
+    }
+  }, [])
+}
+
 export type RouteDef = {
   getScreen: () => React.ComponentType<any>
   getOptions?: Object | ((p: {navigation: NavigationContainerRef<{}>; route: Route}) => Object)

@@ -222,10 +222,15 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     onCopyOutput()
   }
 
+  const [lastShowingToast, setLastShowingToast] = React.useState(showingToast)
+
   // Start timeout to clear toast if currently displayed
-  React.useEffect(() => {
-    showingToast && setHideToastTimeout()
-  }, [showingToast, setHideToastTimeout])
+  if (lastShowingToast !== showingToast) {
+    setLastShowingToast(showingToast)
+    if (showingToast) {
+      setHideToastTimeout()
+    }
+  }
 
   return outputStatus && outputStatus === 'success' ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputActionsBarContainer}>
