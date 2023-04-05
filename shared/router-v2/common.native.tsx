@@ -29,7 +29,7 @@ export const TabletWrapper = (p: {children: React.ReactNode}) => {
 
 export const headerDefaultStyle = {
   get backgroundColor() {
-    return Styles.globalColors.fastBlank
+    return Styles.isIOS ? Styles.globalColors.fastBlank : Styles.globalColors.white
   },
   borderBottomColor: Styles.globalColors.black_10,
   borderBottomWidth: Styles.hairlineWidth,
