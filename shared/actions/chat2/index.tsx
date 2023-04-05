@@ -25,6 +25,7 @@ import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as WalletsGen from '../wallets-gen'
+import {findLast} from '../../util/arrays'
 import KB2 from '../../util/electron'
 import NotifyPopup from '../../util/notify-popup'
 import logger from '../../logger'
@@ -2351,8 +2352,7 @@ const markThreadAsRead = async (
   const mmap = state.chat2.messageMap.get(conversationIDKey)
   if (mmap) {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    // @ts-ignore this exists in our js and in ts 5
-    const ordinal = [...ordinals].findLast((o: Types.Ordinal) => {
+    const ordinal = findLast([...ordinals], (o: Types.Ordinal) => {
       const m = mmap.get(o)
       return m ? !!m.id : false
     })
@@ -2398,8 +2398,7 @@ const markAsUnread = async (
     const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
     const ord =
       messageMap &&
-      // @ts-ignore this exists in our js and in ts 5
-      [...ordinals].findLast((o: Types.Ordinal) => {
+      findLast([...ordinals], (o: Types.Ordinal) => {
         const message = messageMap.get(o)
         return !!(message && message.id < unreadLineID)
       })

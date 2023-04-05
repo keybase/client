@@ -10,7 +10,7 @@ import type {RPCError} from '../../util/errors'
 import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine'
 import {isLinux, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
-import {kbfsNotification} from '../../util/kbfs-notifications'
+import {kbfsNotification} from './kbfs-notifications'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import NotifyPopup from '../../util/notify-popup'
 

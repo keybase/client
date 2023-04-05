@@ -1,5 +1,5 @@
 import {Component} from 'react'
-import {ImageInfo} from '../../util/expo-image-picker'
+import {ImageInfo} from '../../util/expo-image-picker.native'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/teams'
 
