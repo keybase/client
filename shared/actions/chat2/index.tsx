@@ -1915,23 +1915,37 @@ const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenRespons
 
 // We always make adhoc convos and never preview it
 const previewConversationPersonMakesAConversation = (
-  _: unknown,
+  state: Container.TypedState,
   action: Chat2Gen.PreviewConversationPayload
 ) => {
-  const {participants, teamname} = action.payload
-  return (
-    !teamname &&
-    participants && [
-      Chat2Gen.createNavigateToThread({
-        conversationIDKey: Constants.pendingWaitingConversationIDKey,
-        reason: 'justCreated',
-      }),
-      Chat2Gen.createCreateConversation({
-        highlightMessageID: action.payload.highlightMessageID,
-        participants,
-      }),
-    ]
-  )
+  const {participants, teamname, reason, highlightMessageID} = action.payload
+  if (teamname) return false
+  if (!participants) return false
+
+  // if stellar just search first, could do others maybe
+  if ((reason === 'requestedPayment' || reason === 'sentPayment') && participants.length === 1) {
+    const username = state.config.username
+    const toFind = participants[0]
+    for (const [cid, p] of state.chat2.participantMap.entries()) {
+      if (p.name.length === 2) {
+        const other = p.name.filter(n => n !== username)
+        if (other[0] === toFind) {
+          return Chat2Gen.createNavigateToThread({
+            conversationIDKey: cid,
+            reason: 'justCreated',
+          })
+        }
+      }
+    }
+  }
+
+  return [
+    Chat2Gen.createNavigateToThread({
+      conversationIDKey: Constants.pendingWaitingConversationIDKey,
+      reason: 'justCreated',
+    }),
+    Chat2Gen.createCreateConversation({highlightMessageID, participants}),
+  ]
 }
 
 const findGeneralConvIDFromTeamID = async (
