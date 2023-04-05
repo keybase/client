@@ -41,6 +41,12 @@ target 'Keybase' do
       :mac_catalyst_enabled => false
     )
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
+    # fix pods xcode 14 losing signing team
+      installer.pods_project.targets.each do |target|
+            target.build_configurations.each do |config|
+                config.build_settings['CODE_SIGN_IDENTITY'] = ''
+            end
+      end
   end
 end
 
