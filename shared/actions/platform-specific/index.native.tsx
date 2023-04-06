@@ -384,10 +384,11 @@ const handleFilePickerError = (_: unknown, action: ConfigGen.FilePickerErrorPayl
 const editAvatar = async () => {
   try {
     const result = await launchImageLibraryAsync('photo')
+    console.log('aaa result', result)
     return result.canceled
       ? null
       : RouteTreeGen.createNavigateAppend({
-          path: [{props: {image: result}, selected: 'profileEditAvatar'}],
+          path: [{props: {image: result?.assets?.[0]}, selected: 'profileEditAvatar'}],
         })
   } catch (error) {
     return ConfigGen.createFilePickerError({error: new Error(error as any)})

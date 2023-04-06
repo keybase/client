@@ -25,6 +25,7 @@ const editProfile = async (state: Container.TypedState, action: ProfileGen.EditP
 
 const uploadAvatar = async (_: unknown, action: ProfileGen.UploadAvatarPayload) => {
   try {
+    console.log('aaa uploadav', action.payload)
     await RPCTypes.userUploadUserAvatarRpcPromise(
       {
         crop: action.payload.crop,
