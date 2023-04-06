@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
 import {isIOS, isTablet} from '../../constants/platform'
 import {type Props} from '.'
-import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
+import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {ModalTitle} from '../../teams/common'
 import * as Container from '../../util/container'
 

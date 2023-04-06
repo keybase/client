@@ -43,10 +43,10 @@ const SelectChannel = (ownProps: OwnProps) => {
   // TODO: this modal could use a little bit of love
   return (
     <Kb.PopupWrapper>
-      <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Kb.Box style={styles.container}>
-          <Kb.Text type="Header">Select a channel</Kb.Text>
-          <Kb.Box style={styles.inner}>
+      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
+        <Kb.ScrollView contentContainerStyle={styles.scrollContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer} gap="tiny">
+            <Kb.Text type="Header">Select a channel</Kb.Text>
             {channelNames.map(name => (
               <Kb.Box key={name} style={styles.row}>
                 <Kb.RadioButton
@@ -57,26 +57,24 @@ const SelectChannel = (ownProps: OwnProps) => {
                 />
               </Kb.Box>
             ))}
-          </Kb.Box>
+          </Kb.Box2>
+        </Kb.ScrollView>
+        <Kb.ButtonBar>
+          <Kb.Button label="Cancel" onClick={onCancel} small={true} type="Dim" />
           <Kb.Button waiting={waiting} label="Submit" onClick={submit} small={true} />
-        </Kb.Box>
-      </Kb.ScrollView>
+        </Kb.ButtonBar>
+      </Kb.Box2>
     </Kb.PopupWrapper>
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
+    width: Styles.isMobile ? '100%' : 300,
+  },
+  innerContainer: {
     paddingBottom: Styles.globalMargins.xtiny,
     paddingTop: Styles.globalMargins.xtiny,
-  },
-  inner: {
-    ...Styles.globalStyles.flexBoxColumn,
-    marginBottom: Styles.globalMargins.medium,
-    marginTop: Styles.globalMargins.medium,
   },
   radioButton: {
     ...Styles.globalStyles.flexBoxRow,
@@ -84,10 +82,10 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   row: {
     ...Styles.globalStyles.flexBoxRow,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
   },
-  scrollContainer: {padding: Styles.globalMargins.large},
+  scrollContainer: {padding: Styles.globalMargins.small},
 }))
 
 export default SelectChannel

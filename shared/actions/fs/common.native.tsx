@@ -3,7 +3,7 @@ import * as FsGen from '../fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
-import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
+import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {errorToActionOrThrow} from './shared'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 

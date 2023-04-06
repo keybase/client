@@ -2,6 +2,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Styles from '../styles'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as React from 'react'
+import * as Container from '../util/container'
 import {chatDebugEnabled} from '../constants/chat2/debug'
 import Main from './main.native'
 import makeStore from '../store/configure-store'
@@ -21,17 +22,19 @@ module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')
 })
 
-const NativeEventsToRedux = (p: {setDarkMode: (d: boolean) => void}) => {
-  const {setDarkMode} = p
+const ReduxHelper = (p: {children: React.ReactNode}) => {
+  const {children} = p
+  const [darkMode, setDarkMode] = React.useState(Styles.isDarkMode())
   const dispatch = useDispatch()
   const appStateRef = React.useRef('active')
 
-  React.useEffect(() => {
-    const dispatchAndSetDarkmode = (dark: boolean) => {
-      setDarkMode(dark)
-      dispatch(ConfigGen.createSetSystemDarkMode({dark}))
-    }
+  // If redux changes this, we need to update
+  const dm = Container.useSelector(() => Styles.isDarkMode())
+  if (dm !== darkMode) {
+    setDarkMode(dm)
+  }
 
+  React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
       appStateRef.current = nextAppState
       nextAppState !== 'unknown' &&
@@ -39,14 +42,14 @@ const NativeEventsToRedux = (p: {setDarkMode: (d: boolean) => void}) => {
         dispatch(ConfigGen.createMobileAppState({nextAppState}))
 
       if (nextAppState === 'active') {
-        dispatchAndSetDarkmode(Appearance.getColorScheme() === 'dark')
+        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
       }
     })
 
     // only watch dark changes if in foreground due to ios calling this to take snapshots
     const darkSub = Appearance.addChangeListener(() => {
       if (appStateRef.current === 'active') {
-        dispatchAndSetDarkmode(Appearance.getColorScheme() === 'dark')
+        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
       }
     })
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
@@ -60,7 +63,7 @@ const NativeEventsToRedux = (p: {setDarkMode: (d: boolean) => void}) => {
     }
   }, [dispatch])
 
-  return null
+  return <Styles.DarkModeContext.Provider value={darkMode}>{children}</Styles.DarkModeContext.Provider>
 }
 
 // dont' remake engine/store on reload
@@ -96,8 +99,6 @@ const ensureStore = () => {
 const Keybase = () => {
   ensureStore()
 
-  const [darkMode, setDarkMode] = React.useState(Styles.isDarkMode())
-
   if (!_store) return null // never happens
 
   // TODO if we use it, add it here
@@ -108,14 +109,13 @@ const Keybase = () => {
       <Provider store={_store.store}>
         <PortalProvider>
           <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-            <Styles.DarkModeContext.Provider value={darkMode}>
+            <ReduxHelper>
               <Styles.CanFixOverdrawContext.Provider value={true}>
                 <Main />
               </Styles.CanFixOverdrawContext.Provider>
-            </Styles.DarkModeContext.Provider>
+            </ReduxHelper>
           </SafeAreaProvider>
         </PortalProvider>
-        <NativeEventsToRedux setDarkMode={setDarkMode} />
       </Provider>
     </GestureHandlerRootView>
   )

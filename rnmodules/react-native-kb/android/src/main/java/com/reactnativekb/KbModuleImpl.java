@@ -489,10 +489,9 @@ public class KbModuleImpl  {
         try {
             final Activity activity = this.reactContext.getCurrentActivity();
             if (activity != null) {
-                Method m = activity.getClass().getMethod("setBackgroundColor", String.class);
+                Method m = activity.getClass().getMethod("setBackgroundColor", DarkModePreference.class);
                 final DarkModePreference pref = DarkModePrefHelper.fromString(prefString);
                 m.invoke(activity, pref);
-                // activity.setBackgroundColor(pref);
             }
         } catch (Exception ex) {
         }

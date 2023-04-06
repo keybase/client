@@ -2,7 +2,7 @@
 import rpc from 'framed-msgpack-rpc'
 import {printRPC, printRPCWaitingSession} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
-import * as LocalConsole from '../util/local-console'
+import * as LocalConsole from './local-console'
 import * as Stats from './stats'
 
 const RobustTransport = rpc.transport.RobustTransport

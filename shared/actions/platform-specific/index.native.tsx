@@ -28,7 +28,7 @@ import {Alert, Linking, ActionSheetIOS} from 'react-native'
 import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine/require'
 import {isIOS, isAndroid} from '../../constants/platform'
-import {launchImageLibraryAsync} from '../../util/expo-image-picker'
+import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {
   getDefaultCountryCode,
   androidOpenSettings,
