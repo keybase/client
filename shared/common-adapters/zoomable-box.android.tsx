@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type {Props} from './zoomable-box'
 import {GestureDetector, Gesture} from 'react-native-gesture-handler'
-import Animated, {useSharedValue, useAnimatedStyle, runOnJS} from 'react-native-reanimated'
+import Animated, {useSharedValue, useAnimatedStyle, runOnJS, withSpring} from 'react-native-reanimated'
 import {View} from 'react-native'
 
 const ZoomableBox = (p: Props) => {
@@ -46,13 +46,13 @@ const ZoomableBox = (p: Props) => {
       let x = savedPositionX.value + e.translationX
       x = Math.min(x, maxW)
       x = Math.max(x, -maxW)
-      positionX.value = x
+      positionX.value = withSpring(x, {damping: 2000, stiffness: 1000})
 
       const maxH = (height - containerHeight.value) / 2
       let y = savedPositionY.value + e.translationY
       y = Math.min(y, maxH)
       y = Math.max(y, -maxH)
-      positionY.value = y
+      positionY.value = withSpring(y, {damping: 2000, stiffness: 1000})
       runOnJS(updateOnZoom)(scale.value, positionX.value, positionY.value)
     })
     .onEnd(() => {
