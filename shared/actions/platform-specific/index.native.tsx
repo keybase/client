@@ -384,7 +384,6 @@ const handleFilePickerError = (_: unknown, action: ConfigGen.FilePickerErrorPayl
 const editAvatar = async () => {
   try {
     const result = await launchImageLibraryAsync('photo')
-    console.log('aaa result', result)
     return result.canceled
       ? null
       : RouteTreeGen.createNavigateAppend({
