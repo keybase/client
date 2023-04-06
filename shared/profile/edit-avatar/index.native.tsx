@@ -81,7 +81,6 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     if (this._z) {
       crop = this._getCropCoordinates()
     }
-    console.log('aaaonsave', crop, this._z)
     this.props.onSave(parseUri(this.props.image), crop)
   }
 
@@ -115,7 +114,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     this._x = x
     this._y = y
     this._z = true
-    console.log('aaa onzoom', {height, width, x, y})
+    // console.log('aaa onzoom', {height, width, x, y})
   }
 
   _imageDimensions = () => {

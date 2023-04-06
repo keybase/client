@@ -12,26 +12,25 @@ const ZoomableBox = (p: Props) => {
   const savedPositionX = useSharedValue(0)
   const positionY = useSharedValue(0)
   const savedPositionY = useSharedValue(0)
-  const contentWidthRef = React.useRef(0)
-  const contentHeightRef = React.useRef(0)
-  const containerWidthRef = React.useRef(0)
-  const containerHeightRef = React.useRef(0)
+  const contentWidth = useSharedValue(0)
+  const contentHeight = useSharedValue(0)
+  const containerWidth = useSharedValue(0)
+  const containerHeight = useSharedValue(0)
 
   const updateOnZoom = React.useCallback(
     (scale: number, px: number, py: number) => {
-      const height = scale * contentHeightRef.current
-      const width = scale * contentWidthRef.current
-      const x = width / 2 - px - containerWidthRef.current / 2
-      const y = height / 2 - py - containerHeightRef.current / 2
-      console.log('aaa updateonzoom', {height, width, x, y, cw: containerWidthRef.current})
+      const height = scale * contentHeight.value
+      const width = scale * contentWidth.value
+      const x = width / 2 - px - containerWidth.value / 2
+      const y = height / 2 - py - containerHeight.value / 2
       onZoom?.({height, width, x, y})
     },
-    [onZoom]
+    [onZoom, contentHeight, contentWidth, containerHeight, containerWidth]
   )
 
   const pinchGesture = Gesture.Pinch()
     .onUpdate(e => {
-      scale.value = savedScale.value * e.scale
+      scale.value = Math.max(1, savedScale.value * e.scale)
       runOnJS(updateOnZoom)(scale.value, positionX.value, positionY.value)
     })
     .onEnd(() => {
@@ -40,8 +39,20 @@ const ZoomableBox = (p: Props) => {
 
   const panGesture = Gesture.Pan()
     .onUpdate(e => {
-      positionX.value = Math.max(0, savedPositionX.value + e.translationX)
-      positionY.value = Math.max(0, savedPositionY.value + e.translationY)
+      const height = scale.value * contentHeight.value
+      const width = scale.value * contentWidth.value
+
+      const maxW = (width - containerWidth.value) / 2
+      let x = savedPositionX.value + e.translationX
+      x = Math.min(x, maxW)
+      x = Math.max(x, -maxW)
+      positionX.value = x
+
+      const maxH = (height - containerHeight.value) / 2
+      let y = savedPositionY.value + e.translationY
+      y = Math.min(y, maxH)
+      y = Math.max(y, -maxH)
+      positionY.value = y
       runOnJS(updateOnZoom)(scale.value, positionX.value, positionY.value)
     })
     .onEnd(() => {
@@ -55,21 +66,27 @@ const ZoomableBox = (p: Props) => {
 
   const gesture = Gesture.Simultaneous(pinchGesture, panGesture)
 
-  const onLayout = React.useCallback((e: any) => {
-    const {nativeEvent} = e
-    const {layout} = nativeEvent
-    const {height, width} = layout
-    contentWidthRef.current = width
-    contentHeightRef.current = height
-  }, [])
+  const onLayout = React.useCallback(
+    (e: any) => {
+      const {nativeEvent} = e
+      const {layout} = nativeEvent
+      const {height, width} = layout
+      contentWidth.value = width
+      contentHeight.value = height
+    },
+    [contentWidth, contentHeight]
+  )
 
-  const onLayoutContainer = React.useCallback((e: any) => {
-    const {nativeEvent} = e
-    const {layout} = nativeEvent
-    const {height, width} = layout
-    containerWidthRef.current = width
-    containerHeightRef.current = height
-  }, [])
+  const onLayoutContainer = React.useCallback(
+    (e: any) => {
+      const {nativeEvent} = e
+      const {layout} = nativeEvent
+      const {height, width} = layout
+      containerWidth.value = width
+      containerHeight.value = height
+    },
+    [containerWidth, containerHeight]
+  )
 
   return (
     <GestureDetector gesture={gesture}>
