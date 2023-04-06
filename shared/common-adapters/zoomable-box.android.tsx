@@ -5,6 +5,7 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   withTiming,
+  withSpring,
   cancelAnimation,
   runOnJS,
 } from 'react-native-reanimated'
@@ -162,10 +163,11 @@ export function ZoomableBox(props: Props) {
         if (scale.value !== 1) {
           resetZoomState()
         } else {
+          const zoom = 3
           // translate the image to the focal point and zoom
-          scale.value = withTiming(maxZoom)
-          translationX.value = withTiming(-1 * (maxZoom * (e.x - viewWidth.value / 2)))
-          translationY.value = withTiming(-1 * (maxZoom * (e.y - viewHeight.value / 2)))
+          scale.value = withTiming(zoom)
+          translationX.value = withTiming(-1 * (zoom * (e.x - viewWidth.value / 2)))
+          translationY.value = withTiming(-1 * (zoom * (e.y - viewHeight.value / 2)))
         }
       })
       .numberOfTaps(2)
@@ -216,7 +218,11 @@ export function ZoomableBox(props: Props) {
 
   const as = useAnimatedStyle(() => {
     return {
-      transform: [{translateX: translationX.value}, {translateY: translationY.value}, {scale: scale.value}],
+      transform: [
+        {translateX: withSpring(translationX.value, {damping: 2000, stiffness: 1000})},
+        {translateY: withSpring(translationY.value, {damping: 2000, stiffness: 1000})},
+        {scale: scale.value},
+      ],
     }
   }, [])
 
