@@ -12,7 +12,7 @@ import {anyErrors, anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<'profileEditAvatar'>
 
-const cancelledImage = {cancelled: true as const}
+const cancelledImage = {canceled: true as const}
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
@@ -65,7 +65,7 @@ export default Container.connect(
     const wizard = params?.wizard ?? false
     const bothProps = {
       error,
-      image: stateProps.image?.cancelled ? undefined : stateProps.image,
+      image: stateProps.image?.canceled ? undefined : stateProps.image,
       onBack: dispatchProps.onBack,
       onClose: dispatchProps.onClose,
       sendChatNotification: stateProps.sendChatNotification,
