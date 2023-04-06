@@ -2,7 +2,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
 import ImageImpl from './imageimpl'
-import {Title, useAttachmentRedux, useCollapseIcon, Collapsed} from '../shared'
+import {ShowToastAfterSaving, Title, useAttachmentRedux, useCollapseIcon, Collapsed} from '../shared'
 
 type Props = {
   toggleMessageMenu: () => void
@@ -11,7 +11,7 @@ type Props = {
 
 const Image2 = React.memo(function Image2(p: Props) {
   const {isHighlighted, toggleMessageMenu} = p
-  const {fileName, isCollapsed, isEditing, showTitle, openFullscreen} = useAttachmentRedux()
+  const {fileName, isCollapsed, isEditing, showTitle, openFullscreen, transferState} = useAttachmentRedux()
   const containerStyle = isHighlighted || isEditing ? styles.containerHighlighted : styles.container
   const collapseIcon = useCollapseIcon(false)
 
@@ -34,6 +34,7 @@ const Image2 = React.memo(function Image2(p: Props) {
           alignSelf="flex-start"
           alignItems="flex-start"
         >
+          <ShowToastAfterSaving transferState={transferState} />
           <Kb.ClickableBox
             onClick={openFullscreen}
             onLongPress={toggleMessageMenu}
@@ -45,7 +46,7 @@ const Image2 = React.memo(function Image2(p: Props) {
         </Kb.Box2>
       </>
     )
-  }, [filename, openFullscreen, toggleMessageMenu, showTitle])
+  }, [filename, openFullscreen, toggleMessageMenu, showTitle, transferState])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">
