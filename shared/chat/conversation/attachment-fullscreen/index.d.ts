@@ -15,6 +15,5 @@ export type Props = {
   onDownloadAttachment?: () => void
   onShowInFinder?: () => void
   isVideo: boolean
-  autoPlay: boolean
 }
 export default class Fullscreen extends React.Component<Props> {}

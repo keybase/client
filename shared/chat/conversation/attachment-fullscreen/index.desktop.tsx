@@ -98,6 +98,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
               >
                 {isVideo ? (
                   <video
+                    autoPlay={true}
                     style={styles.videoFit as any}
                     controlsList="nodownload nofullscreen noremoteplayback"
                     controls={true}

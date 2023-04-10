@@ -131,7 +131,10 @@ const styles = Styles.styleSheetCreate(
       }),
       animationVisible: Styles.platformStyles({
         common: {height: 20, opacity: 1, width: 20},
-        isMobile: {backgroundColor: Styles.globalColors.white},
+        isMobile: {
+          backgroundColor: Styles.globalColors.white,
+          borderRadius: 10,
+        },
       }),
       send: Styles.platformStyles({
         common: {

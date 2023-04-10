@@ -20,16 +20,19 @@ const Toast = (props: Props) => (
 export default Toast
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.black,
-    borderRadius: Styles.borderRadius,
-    borderWidth: 0,
-    justifyContent: 'center',
-    margin: Styles.globalMargins.xtiny,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.xtiny,
-  },
+  container: Styles.platformStyles({
+    isElectron: {
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.black,
+      borderRadius: Styles.borderRadius,
+      borderWidth: 0,
+      justifyContent: 'center',
+      margin: Styles.globalMargins.xtiny,
+      paddingBottom: Styles.globalMargins.xtiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.xtiny,
+      pointerEvents: 'none',
+    },
+  }),
 }))

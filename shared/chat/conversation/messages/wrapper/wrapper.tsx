@@ -401,7 +401,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   ) : null
 
-  const hasVisibleItems = explodingCountdown || revokedIcon || coinsIcon || bot
+  const hasVisibleItems = !!explodingCountdown || !!revokedIcon || !!coinsIcon || !!bot
 
   // On mobile there is no ... menu
   // On Desktop we float the menu on top, if there are no items
