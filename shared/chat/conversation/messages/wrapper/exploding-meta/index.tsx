@@ -152,44 +152,40 @@ class ExplodingMeta2 extends React.Component<Props2> {
   }
 
   render() {
-    const backgroundColor =
-      this.props.explodesAt - Date.now() < oneMinuteInMs ? Styles.globalColors.red : Styles.globalColors.black
+    const backgroundColor = this.props.pending
+      ? Styles.globalColors.black
+      : this.props.explodesAt - Date.now() < oneMinuteInMs
+      ? Styles.globalColors.red
+      : Styles.globalColors.black
     let children: React.ReactNode
-    switch (this.props.mode) {
+    const m = this.props.pending ? 'countdown' : this.props.mode
+    switch (m) {
       case 'countdown':
         {
           children = (
             <Kb.Box2 direction="horizontal" gap="xtiny">
-              {this.props.pending ? (
-                <Kb.Box2 direction="horizontal" style={styles.progressContainer}>
-                  <Kb.ProgressIndicator style={{height: 12, width: 12}} />
-                </Kb.Box2>
-              ) : (
-                <Kb.WithTooltip toastStyle={styles.explodingTooltip} tooltip="Exploding message">
-                  <Kb.Box2
-                    className="explodingTimeContainer"
-                    direction="horizontal"
+              <Kb.WithTooltip toastStyle={styles.explodingTooltip} tooltip="Exploding message">
+                <Kb.Box2
+                  className="explodingTimeContainer"
+                  direction="horizontal"
+                  style={Styles.collapseStyles([
+                    styles.countdownContainer,
+                    {backgroundColor},
+                    this.props.isParentHighlighted && styles.countdownContainerHighlighted,
+                  ])}
+                >
+                  <Kb.Text
+                    className="explodingTimeText"
+                    type="Body"
                     style={Styles.collapseStyles([
-                      styles.countdownContainer,
-                      {
-                        backgroundColor,
-                      },
-                      this.props.isParentHighlighted && styles.countdownContainerHighlighted,
+                      styles.countdown,
+                      this.props.isParentHighlighted && styles.countdownHighlighted,
                     ])}
                   >
-                    <Kb.Text
-                      className="explodingTimeText"
-                      type="Body"
-                      style={Styles.collapseStyles([
-                        styles.countdown,
-                        this.props.isParentHighlighted && styles.countdownHighlighted,
-                      ])}
-                    >
-                      {formatDurationShort(this.props.explodesAt - Date.now())}
-                    </Kb.Text>
-                  </Kb.Box2>
-                </Kb.WithTooltip>
-              )}
+                    {this.props.pending ? '' : formatDurationShort(this.props.explodesAt - Date.now())}
+                  </Kb.Text>
+                </Kb.Box2>
+              </Kb.WithTooltip>
             </Kb.Box2>
           )
         }
@@ -204,11 +200,6 @@ class ExplodingMeta2 extends React.Component<Props2> {
             }
           />
         )
-    }
-
-    if (this.props.pending) {
-      // We already have a send indicator for this
-      children = null
     }
 
     return (
