@@ -40,6 +40,30 @@ export const ShowToastAfterSaving = Container.isMobile
     }
   : () => null
 
+export const Transferring = (p: {ratio: number; transferState: Types.MessageAttachmentTransferState}) => {
+  const {ratio, transferState} = p
+  const isTransferring =
+    transferState === 'uploading' || transferState === 'downloading' || transferState === 'mobileSaving'
+  if (!isTransferring) {
+    return null
+  }
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      style={styles.transferring}
+      alignItems="center"
+      gap="xtiny"
+      gapEnd={true}
+      gapStart={true}
+    >
+      <Kb.Text type="BodySmall" negative={true}>
+        {transferState === 'uploading' ? 'Uploading' : 'Downloading'}
+      </Kb.Text>
+      <Kb.ProgressBar ratio={ratio} />
+    </Kb.Box2>
+  )
+}
+
 export const getEditStyle = (isEditing: boolean, isHighlighted?: boolean) => {
   if (isHighlighted) {
     return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
@@ -100,6 +124,14 @@ const styles = Styles.styleSheetCreate(() => ({
   collapseLabel: {backgroundColor: Styles.globalColors.fastBlank},
   collapseLabelWhite: {color: Styles.globalColors.white_75},
   titleContainer: {paddingTop: Styles.globalMargins.xxtiny},
+  transferring: {
+    backgroundColor: Styles.globalColors.black_50,
+    borderRadius: 2,
+    left: Styles.globalMargins.tiny,
+    overflow: 'hidden',
+    position: 'absolute',
+    top: Styles.globalMargins.tiny,
+  },
 }))
 
 const useCollapseAction = () => {
