@@ -218,9 +218,10 @@ const styles = Styles.styleSheetCreate(
           borderRadius: Styles.borderRadius,
           borderWidth: 1,
           marginBottom: Styles.globalMargins.tiny,
+          maxHeight: 88,
+          minHeight: 88,
           width: '100%',
         },
-        isElectron: {maxHeight: 100},
         isTablet: {
           alignSelf: 'center',
           maxWidth: 460,
