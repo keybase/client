@@ -9,7 +9,7 @@ import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
 import * as Container from '../../util/container'
 import logger from '../../logger'
-import initPlatformSpecific, {ensureDownloadPermissionPromise} from './platform-specific'
+import initPlatformSpecific from './platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Platform from '../../constants/platform'
 import {tlfToPreferredOrder} from '../../util/kbfs'
@@ -17,6 +17,7 @@ import {errorToActionOrThrow} from './shared'
 import NotifyPopup from '../../util/notify-popup'
 import {RPCError} from '../../util/errors'
 import KB2 from '../../util/electron'
+import {requestPermissionsToWrite} from '../platform-specific'
 
 const {darwinCopyToKBFSTempUploadFile} = KB2.functions
 
@@ -407,7 +408,7 @@ const download = async (
   _: unknown,
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ) => {
-  await ensureDownloadPermissionPromise()
+  await requestPermissionsToWrite()
   const downloadID = await RPCTypes.SimpleFSSimpleFSStartDownloadRpcPromise({
     isRegularDownload: action.type === FsGen.download,
     path: Constants.pathToRPCPath(action.payload.path).kbfs,

@@ -54,12 +54,10 @@ const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
   }
 }
 
-const requestPermissionsToWrite = async () => {
+export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
     const p = await MediaLibrary.requestPermissionsAsync(false)
-    return p.accessPrivileges === 'all'
-      ? Promise.resolve()
-      : Promise.reject('Unable to acquire storage permissions')
+    return p.granted ? Promise.resolve() : Promise.reject('Unable to acquire storage permissions')
   }
   return Promise.resolve()
 }
