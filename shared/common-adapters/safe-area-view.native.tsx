@@ -7,7 +7,11 @@ import * as Styles from '../styles'
 export const SafeAreaViewTop = (p: Props) => {
   const {children, style} = p
   const insets = useSafeAreaInsets()
-  return <View style={[{paddingTop: insets.top}, styles.topSafeArea, style]}>{children}</View>
+  return (
+    <View style={[{paddingTop: insets.top}, styles.topSafeArea, style]} pointerEvents="box-none">
+      {children}
+    </View>
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
