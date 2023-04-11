@@ -102,7 +102,10 @@ const MenuLayout = (props: MenuLayoutProps) => {
   const firstIsUnWrapped = props.items[0] !== 'Divider' && props.items[0]?.unWrapped
 
   return (
-    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+    <SafeAreaProvider
+      initialMetrics={initialWindowMetrics}
+      style={[styles.safeProvider, props.safeProviderStyle]}
+    >
       <SafeAreaView
         style={Styles.collapseStyles([
           styles.safeArea,
@@ -242,6 +245,10 @@ const styles = Styles.styleSheetCreate(
       },
       safeArea: {
         backgroundColor: Styles.globalColors.white,
+      },
+      safeProvider: {
+        flex: 0,
+        justifyContent: 'flex-end',
       },
       scrollView: {
         flexGrow: 1,

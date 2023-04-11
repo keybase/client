@@ -174,9 +174,12 @@ const ExplodingPopupMenu = (props: Props) => {
       positionFallbacks={[]}
       containerStyle={props.style}
       visible={props.visible}
+      safeProviderStyle={safeProviderStyle}
     />
   )
 }
+
+const safeProviderStyle = {flex: 1} as const
 
 const oneMinuteInS = 60
 
