@@ -31,3 +31,4 @@ export declare function displayNewMessageNotification(
 export declare function clearAllNotifications(): void
 
 export declare function initPlatformListener(): void
+export declare function requestPermissionsToWrite(): Promise<void>

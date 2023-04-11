@@ -4,6 +4,11 @@ import {Keyboard, StyleSheet} from 'react-native'
 import {Portal} from '../portal.native'
 import type {Props} from '.'
 
+const Kb = {
+  Box,
+  Portal,
+}
+
 const FloatingBox = (p: Props) => {
   const {hideKeyboard, children, containerStyle} = p
   const [lastHK, setLastHK] = React.useState(hideKeyboard)
@@ -15,11 +20,11 @@ const FloatingBox = (p: Props) => {
   }
 
   return (
-    <Portal hostName="popup-root">
-      <Box pointerEvents="box-none" style={[StyleSheet.absoluteFill, containerStyle]}>
+    <Kb.Portal hostName="popup-root">
+      <Kb.Box pointerEvents="box-none" style={[StyleSheet.absoluteFill, containerStyle]}>
         {children}
-      </Box>
-    </Portal>
+      </Kb.Box>
+    </Kb.Portal>
   )
 }
 
