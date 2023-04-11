@@ -7,26 +7,28 @@
 import * as React from 'react'
 import Overlay from '../overlay'
 import MenuLayout, {type MenuItems as _MenuItems} from './menu-layout'
-import type {Position, Color, StylesCrossPlatform} from '../../styles'
+import * as Styles from '../../styles'
 
 export type MenuItems = _MenuItems
 
 export type Props = {
   attachTo?: () => React.Component<any> | null
-  backgroundColor?: Color
+  backgroundColor?: Styles.Color
   closeOnSelect: boolean
   closeText?: string // mobile only; default to "Close",
-  containerStyle?: StylesCrossPlatform
+  containerStyle?: Styles.StylesCrossPlatform
   header?: React.ReactNode
   items: ReadonlyArray<_MenuItems[0]>
   listStyle?: Object
   onHidden: () => void
-  position?: Position
-  positionFallbacks?: Position[]
+  position?: Styles.Position
+  positionFallbacks?: Styles.Position[]
   propagateOutsideClicks?: boolean
   remeasureHint?: number
-  textColor?: Color
+  textColor?: Styles.Color
   visible: boolean
+  // mobile only
+  safeProviderStyle?: Styles.StylesCrossPlatform
 }
 
 const FloatingMenu = (props: Props) => {
@@ -41,7 +43,7 @@ const FloatingMenu = (props: Props) => {
       visible={props.visible}
       attachTo={props.attachTo}
       remeasureHint={props.remeasureHint}
-      style={props.containerStyle}
+      style={Styles.collapseStyles([props.containerStyle])}
       propagateOutsideClicks={props.propagateOutsideClicks}
     >
       <MenuLayout
@@ -53,6 +55,7 @@ const FloatingMenu = (props: Props) => {
         listStyle={props.listStyle}
         textColor={props.textColor}
         backgroundColor={props.backgroundColor}
+        safeProviderStyle={props.safeProviderStyle}
       />
     </Overlay>
   )
