@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import {View} from 'react-native'
 import {Gesture, GestureDetector} from 'react-native-gesture-handler'
+import * as Styles from '../styles'
 
 // mostly based on https://github.com/intergalacticspacehighway/react-native-reanimated-zoom
 export function ZoomableBox(props: Props) {
@@ -245,7 +246,7 @@ export function ZoomableBox(props: Props) {
 
   return (
     <GestureDetector gesture={gesture}>
-      <View style={style} onLayout={onContainerLayout}>
+      <View style={[style, styles.container]} onLayout={onContainerLayout}>
         <Animated.View onLayout={onLayout} style={memoizedStyle}>
           {children}
         </Animated.View>
@@ -253,3 +254,7 @@ export function ZoomableBox(props: Props) {
     </GestureDetector>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  container: {overflow: 'hidden'},
+}))

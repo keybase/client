@@ -26,13 +26,15 @@ const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
   }
 }
 
+export const requestPermissionsToWrite = async () => {
+  return Promise.reject(new Error('Requets permissions - unsupported on this platform'))
+}
+
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
 }
 export async function saveAttachmentToCameraRoll() {
-  return new Promise((_, rej) =>
-    rej(new Error('Save Attachment to camera roll - unsupported on this platform'))
-  )
+  return Promise.reject(new Error('Save Attachment to camera roll - unsupported on this platform'))
 }
 
 export function displayNewMessageNotification() {

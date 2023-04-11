@@ -187,7 +187,6 @@ const styles = Styles.styleSheetCreate(
       zoomableBox: {
         backgroundColor: Styles.globalColors.blackOrBlack,
         height: '100%',
-        overflow: 'hidden',
         position: 'relative',
         width: '100%',
       },
