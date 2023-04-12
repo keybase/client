@@ -29,7 +29,13 @@ const Action = (p: {
 
   return (
     <Reanimated.default.View style={[styles.action, as]}>
-      <RectButton style={[styles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
+      <RectButton
+        style={[styles.rightAction, {backgroundColor: color as string}]}
+        onPress={() => {
+          console.log('aaa rectbutton onclick')
+          onClick()
+        }}
+      >
         <Kb.Icon type={iconType} color={Styles.globalColors.white} />
         <Kb.Text type="BodySmall" style={styles.actionText}>
           {text}
@@ -67,17 +73,20 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const isMuted = Container.useSelector(state => state.chat2.mutedMap.get(conversationIDKey) ?? false)
 
   const onMarkAsUnread = Container.useEvent(() => {
-    onMarkConversationAsUnread()
+    console.log('aaaa onMarkAsUnread')
+    // onMarkConversationAsUnread()
     swipeCloseRef?.current?.()
   })
 
   const onMute = Container.useEvent(() => {
-    onMuteConversation()
+    console.log('aaaa onmute')
+    // onMuteConversation()
     swipeCloseRef?.current?.()
   })
 
   const onHide = Container.useEvent(() => {
-    onHideConversation()
+    console.log('aaaa onhide')
+    // onHideConversation()
     swipeCloseRef?.current?.()
   })
 
