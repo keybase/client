@@ -7,6 +7,7 @@ import {
   GestureDetector,
 } from 'react-native-gesture-handler'
 import * as Styles from '../styles'
+import {colors, darkColors} from '../styles/colors'
 import * as Reanimated from 'react-native-reanimated'
 
 // to be extra careful about closing over extra variables, we try and limit sharing any parent scopes
@@ -63,18 +64,25 @@ const useGesture = (
 ) => {
   const startx = Reanimated.useSharedValue(0)
   const dx = Reanimated.useSharedValue(0)
+  const [lastED, setLastED] = React.useState(extraData)
 
   // parent is different, close immediately
-  React.useEffect(() => {
+  if (lastED !== extraData) {
+    setLastED(extraData)
     startx.value = 0
     dx.value = 0
-  }, [extraData])
+    Reanimated.cancelAnimation(tx)
+    tx.value = 0
+  }
 
   const gesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .minPointers(1)
     .maxPointers(1)
     .onStart(() => {
+      Reanimated.cancelAnimation(tx)
+      startx.value = tx.value
+      dx.value = 0
       Reanimated.runOnJS(closeOthersAndRegisterClose)()
     })
     .onFinalize((_e, success) => {
@@ -82,13 +90,15 @@ const useGesture = (
       if (!success || closing) {
         startx.value = 0
         dx.value = 0
+        Reanimated.cancelAnimation(tx)
+        tx.value = 0
         Reanimated.runOnJS(closeSelf)()
       } else {
         tx.value = Reanimated.withSpring(-actionWidth, {
           stiffness: 100,
           damping: 30,
         })
-        startx.value = tx.value
+        startx.value = -actionWidth
         dx.value = 0
       }
     })
@@ -111,16 +121,26 @@ export const Swipeable = React.memo(function Swipeable2(p: {
   const {children, actionWidth, makeActionsRef, swipeCloseRef, style, extraData} = p
   const tx = Reanimated.useSharedValue(0)
   const {actionsEnabled} = useActionsEnabled(actionWidth, tx)
-  const rowStyle = Reanimated.useAnimatedStyle(() => ({transform: [{translateX: tx.value}]}))
-  const actionStyle = Reanimated.useAnimatedStyle(() => ({width: -tx.value}))
+  const solidColor = Styles.isDarkMode() ? darkColors.white : colors.white
+  const clearColor = Styles.isDarkMode() ? darkColors.fastBlank : colors.fastBlank
+  const rowStyle = Reanimated.useAnimatedStyle(() => ({
+    backgroundColor: tx.value < 0 ? solidColor : clearColor,
+    transform: [{translateX: tx.value}],
+  }))
+  const actionStyle = Reanimated.useAnimatedStyle(() => ({
+    width: Math.min(actionWidth, Math.max(0, -tx.value)),
+  }))
   const {closeSelf, closeOthersAndRegisterClose, hasSwiped} = useSyncClosing(tx, swipeCloseRef)
   const gesture = useGesture(actionWidth, tx, closeOthersAndRegisterClose, closeSelf, extraData)
   const actions = hasSwiped ? makeActionsRef.current(tx) : null
 
+  const [lastED, setLastED] = React.useState(extraData)
+
   // parent is different, close immediately
-  React.useEffect(() => {
+  if (lastED !== extraData) {
+    setLastED(extraData)
     tx.value = 0
-  }, [extraData])
+  }
 
   return (
     <GestureDetector gesture={gesture}>
