@@ -35,7 +35,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const {conversationIDKey, isInWidget, swipeCloseRef} = p
   const {isDecryptingSnippet, snippet} = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
-    let typingSnippet = ''
+    let typingSnippet: undefined | string = undefined
     if (!isInWidget) {
       const typers = state.chat2.typingMap.get(conversationIDKey)
       if (typers?.size) {
@@ -46,7 +46,10 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       }
     }
 
-    const snippet = typingSnippet || meta?.snippetDecorated || layoutSnippet || ''
+    // only use layout if we don't have the meta at all
+    const maybeLayoutSnippet = meta === undefined ? layoutSnippet : undefined
+
+    const snippet = typingSnippet ?? meta?.snippetDecorated ?? maybeLayoutSnippet ?? ''
     const trustedState = meta?.trustedState
     const isDecryptingSnippet =
       conversationIDKey && !snippet
@@ -77,7 +80,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   }, shallowEqual)
 
   const dispatch = Container.useDispatch()
-  const _onSelectConversation = Container.useEvent(() => {
+  const _onSelectConversation: () => void = Container.useEvent(() => {
     if (isInWidget) {
       dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))
     } else {
@@ -97,10 +100,9 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 
   const children = React.useMemo(() => {
     return (
-      <SwipeConvActions swipeCloseRef={swipeCloseRef}>
+      <SwipeConvActions swipeCloseRef={swipeCloseRef} onClick={onSelectConversation}>
         <Kb.ClickableBox
           className={Styles.classNames('small-row', {selected: isSelected})}
-          onClick={onSelectConversation}
           style={
             isInWidget || Styles.isTablet
               ? Styles.collapseStyles([styles.container, {backgroundColor: backgroundColor}])

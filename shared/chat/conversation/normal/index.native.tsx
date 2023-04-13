@@ -6,6 +6,7 @@ import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../../styles'
+import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import DropView, {type DropItems} from '../../../common-adapters/drop-view.native'
 import Banner from '../bottom-banner/container'
 import InputArea from '../input-area/container'
@@ -17,6 +18,7 @@ import type * as Types from '../../../constants/types/chat2'
 import type {LayoutEvent} from '../../../common-adapters/box'
 import type {Props} from '.'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
+import {Dimensions} from 'react-native'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -110,8 +112,25 @@ const Conversation = React.memo(function Conversation(props: Props) {
     [dispatch, conversationIDKey]
   )
 
-  return (
-    <Kb.Box style={styles.innerContainer}>
+  const insets = useSafeAreaInsets()
+  const headerHeight = Styles.isTablet ? 115 : 44
+  const height = Dimensions.get('window').height - insets.top - headerHeight
+
+  const safeStyle = React.useMemo(
+    () =>
+      Styles.isAndroid
+        ? {paddingBottom: insets.bottom}
+        : {
+            height,
+            maxHeight: height,
+            minHeight: height,
+            paddingBottom: Styles.isTablet ? 0 : insets.bottom,
+          },
+    [height, insets.bottom]
+  )
+
+  const content = (
+    <Kb.Box2 direction="vertical" style={styles.innerContainer} fullWidth={true} fullHeight={true}>
       <DropView style={styles.dropView} onDropped={onDropped}>
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
           {props.threadLoadedOffline && <Offline />}
@@ -119,7 +138,19 @@ const Conversation = React.memo(function Conversation(props: Props) {
         </Kb.Box2>
         <Kb.PortalHost name="convOverlay" />
       </DropView>
-    </Kb.Box>
+    </Kb.Box2>
+  )
+
+  return Styles.isAndroid ? (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
+      {content}
+    </Kb.Box2>
+  ) : (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
+      <Kb.KeyboardAvoidingView2 extraPadding={Styles.isTablet ? -65 : -insets.bottom}>
+        {content}
+      </Kb.KeyboardAvoidingView2>
+    </Kb.Box2>
   )
 })
 
@@ -138,6 +169,11 @@ const styles = Styles.styleSheetCreate(
           position: 'relative',
         },
       }),
+      sav: {
+        flexGrow: 1,
+        maxHeight: '100%',
+        position: 'relative',
+      },
     } as const)
 )
 

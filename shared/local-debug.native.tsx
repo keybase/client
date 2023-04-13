@@ -22,6 +22,7 @@ const PERF = false
 
 const config = {
   allowMultipleInstances: false,
+  debugFullLogs: false,
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
   featureFlagsOverride: '', // Override feature flags
@@ -85,6 +86,13 @@ if (__DEV__) {
 //   window.console.error = window.console.log
 //   window.console.info = window.console.log
 // }
+
+// If debugFullLogs
+if (config.debugFullLogs) {
+  console.warn('\n\n\nlocal debug config.debugFullLogs is ONNNNNn!!!!!1!!!11!!!!\n')
+  config.printRPC = true
+  config.enableActionLogging = true
+}
 
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')

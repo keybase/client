@@ -24,6 +24,7 @@ export type Props = {
 }
 
 const ReactionTooltip = (props: Props) => {
+  const insets = Kb.useSafeAreaInsets()
   if (!props.visible) {
     return null
   }
@@ -52,7 +53,7 @@ const ReactionTooltip = (props: Props) => {
             onMouseOver={props.onMouseOver}
             direction="vertical"
             gap="tiny"
-            style={styles.listContainer}
+            style={Styles.collapseStyles([styles.listContainer, {paddingBottom: insets.bottom}])}
           >
             {Styles.isMobile && (
               <Kb.Box2 direction="horizontal">

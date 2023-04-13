@@ -2,10 +2,10 @@
 // Also protects it with an error boundary
 import * as React from 'react'
 import * as Styles from '../../styles'
-import ReactDOM from 'react-dom'
+import * as ReactDOM from 'react-dom/client'
 import RemoteStore from './store.desktop'
 import Root from '../renderer/container.desktop'
-import {disable as disableDragDrop} from '../../util/drag-drop'
+import {disableDragDrop} from '../../util/drag-drop.desktop'
 import ErrorBoundary from '../../common-adapters/error-boundary'
 import {initDesktopStyles} from '../../styles/index.desktop'
 import {enableMapSet} from 'immer'
@@ -90,7 +90,7 @@ export default function (options: {
   initDesktopStyles()
   const node = document.getElementById('root')
   if (node) {
-    ReactDOM.render(
+    ReactDOM.createRoot(node).render(
       <RemoteComponentLoader
         name={options.name}
         params={options.params || ''}
@@ -99,8 +99,7 @@ export default function (options: {
         deserialize={options.deserialize}
       >
         {options.child}
-      </RemoteComponentLoader>,
-      node
+      </RemoteComponentLoader>
     )
   }
 }

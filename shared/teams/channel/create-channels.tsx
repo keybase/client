@@ -29,21 +29,16 @@ const CreateChannels = (props: Props) => {
   const success = prevWaiting && !waiting && !error
 
   const banners = React.useMemo(
-    () => [
-      ...(error
-        ? [
-            <Kb.Banner color="red" key="error">
-              {error}
-            </Kb.Banner>,
-          ]
-        : success
-        ? [
-            <Kb.Banner color="green" key="success">
-              Successfully created channels.
-            </Kb.Banner>,
-          ]
-        : []),
-    ],
+    () =>
+      error ? (
+        <Kb.Banner color="red" key="error">
+          {error}
+        </Kb.Banner>
+      ) : success ? (
+        <Kb.Banner color="green" key="success">
+          Successfully created channels.
+        </Kb.Banner>
+      ) : null,
     [error, success]
   )
 

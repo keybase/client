@@ -9,7 +9,7 @@ import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
 import shallowEqual from 'shallowequal'
-import {maxWidth} from '../messages/attachment/shared'
+import {maxWidth, maxHeight} from '../messages/attachment/shared'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
@@ -19,7 +19,6 @@ const Connected = (props: OwnProps) => {
   const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
   const inOrdinal = props.route.params?.ordinal ?? 0
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
-  const [autoPlay, setAutoPlay] = React.useState(true)
   const dispatch = Container.useDispatch()
   const data = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal)
@@ -52,7 +51,8 @@ const Connected = (props: OwnProps) => {
   const {height: clampedHeight, width: clampedWidth} = Constants.clampImageSize(
     previewWidth,
     previewHeight,
-    maxWidth
+    maxWidth,
+    maxHeight
   )
 
   const submit = Container.useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
@@ -79,13 +79,11 @@ const Connected = (props: OwnProps) => {
               currentDeviceName
             )
             if (goodMessage && goodMessage.type === 'attachment') {
-              setAutoPlay(false)
               setOrdinal(goodMessage.ordinal)
             }
           }
         },
         _error => {
-          setAutoPlay(false)
           setOrdinal(inOrdinal)
         }
       )
@@ -94,7 +92,6 @@ const Connected = (props: OwnProps) => {
 
   return (
     <Fullscreen
-      autoPlay={autoPlay}
       message={message}
       isVideo={Constants.isVideoAttachment(message)}
       onAllMedia={() =>

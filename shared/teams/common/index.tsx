@@ -1,7 +1,7 @@
 import * as React from 'react'
 export {default as ParticipantMeta} from './meta'
 export {default as Activity, useActivityLevels, ModalTitle} from './activity'
-export {default as ChannelsWidget} from './channels-widget'
+export {ChannelsWidget} from './channels-widget'
 export {useChannelMeta, useAllChannelMetas, useChannelParticipants} from './channel-hooks'
 export {default as SelectionPopup} from './selection-popup'
 export {default as EnableContactsPopup} from './enable-contacts'

@@ -1685,6 +1685,7 @@ type GetMessagesRemoteArg struct {
 type MarkAsReadArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	MsgID          MessageID      `codec:"msgID" json:"msgID"`
+	ForceUnread    bool           `codec:"forceUnread" json:"forceUnread"`
 }
 
 type SetConversationStatusArg struct {

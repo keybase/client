@@ -352,22 +352,20 @@ class EditAvatar extends React.Component<Props, State> {
             />
           ),
         }}
-        banners={[
-          ...(this.props.error
-            ? [
-                <Kb.Banner color="red" key="propsError">
-                  {this.props.error}
-                </Kb.Banner>,
-              ]
-            : []),
-          ...(this.state.error
-            ? [
-                <Kb.Banner color="red" key="stateError">
-                  The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
-                </Kb.Banner>,
-              ]
-            : []),
-        ]}
+        banners={
+          <>
+            {this.props.error ? (
+              <Kb.Banner color="red" key="propsError">
+                {this.props.error}
+              </Kb.Banner>
+            ) : null}
+            {this.state.error ? (
+              <Kb.Banner color="red" key="stateError">
+                The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
+              </Kb.Banner>
+            ) : null}
+          </>
+        }
       >
         <Kb.Box
           className={Styles.classNames({dropping: this.state.dropping})}

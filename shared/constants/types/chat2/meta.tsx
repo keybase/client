@@ -43,8 +43,8 @@ export type ConversationMeta = {
   rekeyers: Set<string>
   resetParticipants: Set<string>
   retentionPolicy: RetentionPolicy
-  snippet: string
-  snippetDecorated: string
+  snippet?: string
+  snippetDecorated?: string
   snippetDecoration: RPCChatTypes.SnippetDecoration
   status: RPCChatTypes.ConversationStatus
   supersededBy: Common.ConversationIDKey

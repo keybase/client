@@ -17,7 +17,7 @@ import type {Props} from './platform-input'
 import {NativeKeyboard} from '../../../../common-adapters/mobile.native'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {isOpen} from '../../../../util/keyboard'
-import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
+import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker.native'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
 import {type PastedFile} from '@mattermost/react-native-paste-input'
@@ -230,7 +230,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
             .catch(error => onFilePickerError(new Error(error)))
           break
         case 'library':
-          launchImageLibraryAsync(mediaType)
+          launchImageLibraryAsync(mediaType, true, true)
             .then(handleSelection)
             .catch(error => onFilePickerError(new Error(error)))
           break
@@ -348,18 +348,15 @@ const PlatformInput = (p: Props) => {
     }
   }, [onQueueSubmit, insertText])
 
-  const {
-    popup: menu,
-    showingPopup,
-    toggleShowingPopup,
-  } = Kb.usePopup(
-    attachTo => {
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
       switch (whichMenu.current) {
         case 'filepickerpopup':
           return (
             <ChatFilePicker
               attachTo={attachTo}
-              showingPopup={showingPopup}
+              showingPopup={true}
               toggleShowingPopup={toggleShowingPopup}
               conversationIDKey={conversationIDKey}
             />
@@ -369,7 +366,7 @@ const PlatformInput = (p: Props) => {
             <MoreMenuPopup
               conversationIDKey={conversationIDKey}
               onHidden={toggleShowingPopup}
-              visible={showingPopup}
+              visible={true}
             />
           )
         default:
@@ -378,13 +375,15 @@ const PlatformInput = (p: Props) => {
               attachTo={attachTo}
               conversationIDKey={conversationIDKey}
               onHidden={toggleShowingPopup}
-              visible={showingPopup}
+              visible={true}
             />
           )
       }
     },
     [conversationIDKey]
   )
+
+  const {popup: menu, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   const ourShowMenu = React.useCallback(
     (menu: MenuType) => {
@@ -515,6 +514,7 @@ const PlatformInput = (p: Props) => {
 }
 
 const AnimatedPlainInput = createAnimatedComponent(Kb.PlainInput)
+
 const AnimatedInput = (() => {
   if (skipAnimations) {
     return React.memo(

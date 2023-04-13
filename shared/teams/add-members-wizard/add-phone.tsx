@@ -77,13 +77,11 @@ const AddPhone = () => {
         ),
       }}
       banners={
-        error
-          ? [
-              <Kb.Banner color="red" key="err">
-                {error}
-              </Kb.Banner>,
-            ]
-          : undefined
+        error ? (
+          <Kb.Banner color="red" key="err">
+            {error}
+          </Kb.Banner>
+        ) : null
       }
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body} gap="tiny">

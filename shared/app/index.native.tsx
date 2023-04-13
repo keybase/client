@@ -2,15 +2,18 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Styles from '../styles'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as React from 'react'
+import * as Container from '../util/container'
 import {chatDebugEnabled} from '../constants/chat2/debug'
 import Main from './main.native'
 import makeStore from '../store/configure-store'
 import {AppRegistry, AppState, Appearance, Linking} from 'react-native'
 import {PortalProvider} from '../common-adapters/portal.native'
 import {Provider, useDispatch} from 'react-redux'
-import {SafeAreaProvider} from 'react-native-safe-area-context'
+import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
+import {enableFreeze} from 'react-native-screens'
+enableFreeze(true)
 
 type ConfigureStore = ReturnType<typeof makeStore>
 let _store: ConfigureStore | undefined
@@ -19,18 +22,17 @@ module.hot?.accept(() => {
   console.log('accepted update in shared/index.native')
 })
 
-const NativeEventsToRedux = (p: {setDarkMode: (d: boolean) => void}) => {
-  const {setDarkMode} = p
+const ReduxHelper = (p: {children: React.ReactNode}) => {
+  const {children} = p
+  const [darkMode, setDarkMode] = React.useState(Styles.isDarkMode())
   const dispatch = useDispatch()
   const appStateRef = React.useRef('active')
 
-  const dispatchAndSetDarkmode = React.useCallback(
-    (dark: boolean) => {
-      setDarkMode(dark)
-      dispatch(ConfigGen.createSetSystemDarkMode({dark}))
-    },
-    [dispatch, setDarkMode]
-  )
+  // If redux changes this, we need to update
+  const dm = Container.useSelector(() => Styles.isDarkMode())
+  if (dm !== darkMode) {
+    setDarkMode(dm)
+  }
 
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
@@ -40,14 +42,14 @@ const NativeEventsToRedux = (p: {setDarkMode: (d: boolean) => void}) => {
         dispatch(ConfigGen.createMobileAppState({nextAppState}))
 
       if (nextAppState === 'active') {
-        dispatchAndSetDarkmode(Appearance.getColorScheme() === 'dark')
+        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
       }
     })
 
     // only watch dark changes if in foreground due to ios calling this to take snapshots
     const darkSub = Appearance.addChangeListener(() => {
       if (appStateRef.current === 'active') {
-        dispatchAndSetDarkmode(Appearance.getColorScheme() === 'dark')
+        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
       }
     })
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
@@ -59,9 +61,9 @@ const NativeEventsToRedux = (p: {setDarkMode: (d: boolean) => void}) => {
       darkSub.remove()
       linkingSub.remove()
     }
-  }, [dispatch, dispatchAndSetDarkmode])
+  }, [dispatch])
 
-  return null
+  return <Styles.DarkModeContext.Provider value={darkMode}>{children}</Styles.DarkModeContext.Provider>
 }
 
 // dont' remake engine/store on reload
@@ -97,8 +99,6 @@ const ensureStore = () => {
 const Keybase = () => {
   ensureStore()
 
-  const [darkMode, setDarkMode] = React.useState(Styles.isDarkMode())
-
   if (!_store) return null // never happens
 
   // TODO if we use it, add it here
@@ -108,15 +108,14 @@ const Keybase = () => {
     <GestureHandlerRootView style={styles.gesture}>
       <Provider store={_store.store}>
         <PortalProvider>
-          <SafeAreaProvider>
-            <Styles.DarkModeContext.Provider value={darkMode}>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+            <ReduxHelper>
               <Styles.CanFixOverdrawContext.Provider value={true}>
                 <Main />
               </Styles.CanFixOverdrawContext.Provider>
-            </Styles.DarkModeContext.Provider>
+            </ReduxHelper>
           </SafeAreaProvider>
         </PortalProvider>
-        <NativeEventsToRedux setDarkMode={setDarkMode} />
       </Provider>
     </GestureHandlerRootView>
   )

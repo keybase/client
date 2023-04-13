@@ -28,7 +28,7 @@ import {Alert, Linking, ActionSheetIOS} from 'react-native'
 import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine/require'
 import {isIOS, isAndroid} from '../../constants/platform'
-import {launchImageLibraryAsync} from '../../util/expo-image-picker'
+import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {
   getDefaultCountryCode,
   androidOpenSettings,
@@ -54,12 +54,10 @@ const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
   }
 }
 
-const requestPermissionsToWrite = async () => {
+export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
     const p = await MediaLibrary.requestPermissionsAsync(false)
-    return p.accessPrivileges === 'all'
-      ? Promise.resolve()
-      : Promise.reject('Unable to acquire storage permissions')
+    return p.granted ? Promise.resolve() : Promise.reject('Unable to acquire storage permissions')
   }
   return Promise.resolve()
 }
@@ -384,10 +382,10 @@ const handleFilePickerError = (_: unknown, action: ConfigGen.FilePickerErrorPayl
 const editAvatar = async () => {
   try {
     const result = await launchImageLibraryAsync('photo')
-    return result.cancelled
+    return result.canceled
       ? null
       : RouteTreeGen.createNavigateAppend({
-          path: [{props: {image: result}, selected: 'profileEditAvatar'}],
+          path: [{props: {image: result?.assets?.[0]}, selected: 'profileEditAvatar'}],
         })
   } catch (error) {
     return ConfigGen.createFilePickerError({error: new Error(error as any)})

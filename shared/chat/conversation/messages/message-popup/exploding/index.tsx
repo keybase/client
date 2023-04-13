@@ -50,8 +50,6 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
     const now = __STORYBOOK__ ? 1999999999000 : Date.now()
     let secondsLeft = Math.floor((this.props.explodesAt - now) / 1000)
     if (secondsLeft < 0) {
-      // TODO remove if we end up w/ an "exploded" popup
-      this.props.onHidden()
       secondsLeft = 0
     }
     return secondsLeft
@@ -176,9 +174,12 @@ const ExplodingPopupMenu = (props: Props) => {
       positionFallbacks={[]}
       containerStyle={props.style}
       visible={props.visible}
+      safeProviderStyle={safeProviderStyle}
     />
   )
 }
+
+const safeProviderStyle = {flex: 1} as const
 
 const oneMinuteInS = 60
 

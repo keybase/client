@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import {ConvoIDContext, OrdinalContext} from '../../ids-context'
-import {missingMessage, maxWidth} from '../shared'
+import {missingMessage, maxWidth, maxHeight} from '../shared'
 import shallowEqual from 'shallowequal'
 
 export const useRedux = () => {
@@ -13,7 +13,7 @@ export const useRedux = () => {
     const message = m?.type === 'attachment' ? m : missingMessage
     const {previewURL, previewHeight, previewWidth} = message
     const {fileURL, downloadPath, transferState, videoDuration} = message
-    const {height, width} = Constants.clampImageSize(previewWidth, previewHeight, maxWidth)
+    const {height, width} = Constants.clampImageSize(previewWidth, previewHeight, maxWidth, maxHeight)
     return {downloadPath, height, previewURL, transferState, url: fileURL, videoDuration, width}
   }, shallowEqual)
 }

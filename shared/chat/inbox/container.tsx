@@ -147,6 +147,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
 
 const buttonWidth = 132
 export const getOptions = () => ({
+  freezeOnBlur: false, // let it render even if not visible
   headerLeft: () => <Kb.HeaderLeftBlank />,
   headerLeftContainerStyle: {
     ...Common.defaultNavigationOptions.headerLeftContainerStyle,
@@ -240,7 +241,6 @@ const Connected = Container.connect(
         }
       }
     }
-
     return {
       isSearching: stateProps.isSearching,
       navKey,

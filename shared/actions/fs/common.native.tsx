@@ -3,19 +3,21 @@ import * as FsGen from '../fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
-import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
+import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {errorToActionOrThrow} from './shared'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 
 const pickAndUploadToPromise = async (_: Container.TypedState, action: FsGen.PickAndUploadPayload) => {
   try {
-    const result = await launchImageLibraryAsync(action.payload.type)
+    const result = await launchImageLibraryAsync(action.payload.type, true, true)
     return result.canceled || (result.assets?.length ?? 0) === 0
       ? null
-      : FsGen.createUpload({
-          localPath: parseUri(result.assets[0]),
-          parentPath: action.payload.parentPath,
-        })
+      : result.assets.map(uri =>
+          FsGen.createUpload({
+            localPath: parseUri(uri),
+            parentPath: action.payload.parentPath,
+          })
+        )
   } catch (e) {
     return errorToActionOrThrow(e)
   }

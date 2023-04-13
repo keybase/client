@@ -4,20 +4,27 @@ import {Keyboard, StyleSheet} from 'react-native'
 import {Portal} from '../portal.native'
 import type {Props} from '.'
 
-export default class FloatingBox extends React.Component<Props> {
-  componentDidMount() {
-    if (this.props.hideKeyboard) {
+const Kb = {
+  Box,
+  Portal,
+}
+
+const FloatingBox = (p: Props) => {
+  const {hideKeyboard, children, containerStyle} = p
+
+  React.useEffect(() => {
+    if (hideKeyboard) {
       Keyboard.dismiss()
     }
-  }
-  render() {
-    const props = this.props
-    return (
-      <Portal hostName="popup-root">
-        <Box pointerEvents="box-none" style={[StyleSheet.absoluteFill, props.containerStyle]}>
-          {props.children}
-        </Box>
-      </Portal>
-    )
-  }
+  }, [hideKeyboard])
+
+  return (
+    <Kb.Portal hostName="popup-root">
+      <Kb.Box pointerEvents="box-none" style={[StyleSheet.absoluteFill, containerStyle]}>
+        {children}
+      </Kb.Box>
+    </Kb.Portal>
+  )
 }
+
+export default FloatingBox

@@ -1120,12 +1120,10 @@ func (i *Inbox) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inb
 		i.Debug(ctx, "ReadMessage: no conversation found: convID: %s", convID)
 	} else {
 		// Update conv
-		if conv.Conv.ReaderInfo.ReadMsgid < msgID {
-			i.Debug(ctx, "ReadMessage: updating mtime: readMsgID: %d msgID: %d", conv.Conv.ReaderInfo.ReadMsgid,
-				msgID)
-			conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
-			conv.Conv.ReaderInfo.ReadMsgid = msgID
-		}
+		i.Debug(ctx, "ReadMessage: updating mtime: readMsgID: %d msgID: %d", conv.Conv.ReaderInfo.ReadMsgid,
+			msgID)
+		conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
+		conv.Conv.ReaderInfo.ReadMsgid = msgID
 		conv.Conv.Metadata.Version = vers.ToConvVers()
 		if err := i.writeConv(ctx, uid, conv, false); err != nil {
 			return err

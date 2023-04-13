@@ -41,7 +41,9 @@ export const useAllChannelMetas = (
   const getConversations = Container.useRPC(RPCChatTypes.localGetTLFConversationsLocalRpcPromise)
 
   const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
-  const [inboxUIItems, setConvs] = React.useState<RPCChatTypes.InboxUIItem[] | null>(null)
+  const [channelMetas, setChannelMetas] = React.useState(
+    new Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>()
+  )
   const [loadingChannels, setLoadingChannels] = React.useState(true)
 
   const reloadChannels = React.useCallback(
@@ -59,7 +61,17 @@ export const useAllChannelMetas = (
           ],
           ({convs}) => {
             resolve()
-            convs && setConvs(convs)
+            if (convs) {
+              setChannelMetas(
+                new Map(
+                  filterNull(
+                    convs?.map(conv => ChatConstants.inboxUIItemToConversationMeta(undefined, conv)) ??
+                      emptyArrForUseSelector
+                  ).map(a => [a.conversationIDKey, a])
+                )
+              )
+            }
+
             setLoadingChannels(false)
           },
           error => {
@@ -79,14 +91,6 @@ export const useAllChannelMetas = (
     }
   }, [reloadChannels, dontCallRPC])
 
-  // TODO this will always thrash
-  const conversationMetas = Container.useSelector(
-    state =>
-      inboxUIItems?.map(conv => ChatConstants.inboxUIItemToConversationMeta(state, conv)) ??
-      emptyArrForUseSelector
-  )
-  // TODO: not always a new map?
-  const channelMetas = new Map(filterNull(conversationMetas).map(a => [a.conversationIDKey, a]))
   return {channelMetas, loadingChannels, reloadChannels}
 }
 

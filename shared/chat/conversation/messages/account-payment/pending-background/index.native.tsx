@@ -1,48 +1,49 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
-import type {Props} from '.'
+import * as Container from '../../../../../util/container'
 
 const lightPatternImage = require('../../../../../images/payment-pattern-80.png')
 const darkPatternImage = require('../../../../../images/dark-payment-pattern-80.png')
 
-type State = {
-  yOffset: Kb.NativeAnimated.Value
-}
+const PendingBackground = () => {
+  const offset = React.useRef(new Kb.NativeAnimated.Value(0)).current
 
-class PendingBackground extends React.Component<Props, State> {
-  state = {yOffset: new Kb.NativeAnimated.Value(0)}
-
-  componentDidMount() {
+  Container.useOnMountOnce(() => {
     Kb.NativeAnimated.loop(
-      Kb.NativeAnimated.timing(this.state.yOffset, {
+      Kb.NativeAnimated.timing(offset, {
         duration: 2000,
         easing: Kb.NativeEasing.linear,
         toValue: -80,
         useNativeDriver: true,
       })
     ).start()
-  }
+  })
 
-  render() {
-    return (
+  const source = Styles.isDarkMode() ? darkPatternImage : lightPatternImage
+
+  return (
+    <Kb.Box2 direction="vertical" style={styles.container}>
       <Kb.NativeAnimated.Image
         resizeMode="repeat"
-        source={Styles.isDarkMode() ? darkPatternImage : lightPatternImage}
-        style={Styles.collapseStyles([
-          styles.image,
-          {
-            transform: [{translateY: this.state.yOffset}] as any,
-          },
-        ])}
+        source={source}
+        style={[styles.image, {transform: [{translateY: offset}] as any}]}
       />
-    )
-  }
+    </Kb.Box2>
+  )
 }
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      container: {
+        bottom: 0,
+        left: 0,
+        overflow: 'hidden',
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
       image: {
         bottom: -80,
         height: 'auto',

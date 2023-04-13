@@ -7,14 +7,15 @@ import {
   GestureDetector,
 } from 'react-native-gesture-handler'
 import * as Styles from '../styles'
+import {colors, darkColors} from '../styles/colors'
 import * as Reanimated from 'react-native-reanimated'
 
 // to be extra careful about closing over extra variables, we try and limit sharing any parent scopes
-const useActionsEnabled = (actionWidth: number, tx: Reanimated.SharedValue<number>) => {
+const useActionsEnabled = (tx: Reanimated.SharedValue<number>) => {
   const openSync = Reanimated.useSharedValue(false)
   const [actionsEnabled, setActionsEnabled] = React.useState(false)
   Reanimated.useAnimatedReaction(
-    () => -tx.value > actionWidth * 0.8,
+    () => -tx.value > 10,
     open => {
       if (open !== openSync.value) {
         openSync.value = open
@@ -59,70 +60,116 @@ const useGesture = (
   tx: Reanimated.SharedValue<number>,
   closeOthersAndRegisterClose: () => void,
   closeSelf: () => void,
-  extraData: unknown
+  extraData: unknown,
+  onClick?: () => void
 ) => {
+  const started = Reanimated.useSharedValue(false)
+  const lastIsOpen = Reanimated.useSharedValue(false)
+  const [isOpen, setIsOpen] = React.useState(false)
   const startx = Reanimated.useSharedValue(0)
   const dx = Reanimated.useSharedValue(0)
+  const [lastED, setLastED] = React.useState(extraData)
 
   // parent is different, close immediately
-  React.useEffect(() => {
+  if (lastED !== extraData) {
+    setLastED(extraData)
     startx.value = 0
     dx.value = 0
-  }, [extraData])
+    Reanimated.cancelAnimation(tx)
+    tx.value = 0
+  }
 
-  const gesture = Gesture.Pan()
+  Reanimated.useDerivedValue(() => {
+    const nextIsOpen = tx.value < 0
+    if (lastIsOpen.value !== nextIsOpen) {
+      lastIsOpen.value = nextIsOpen
+      Reanimated.runOnJS(setIsOpen)(nextIsOpen)
+    }
+  })
+
+  const panGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .minPointers(1)
     .maxPointers(1)
     .onStart(() => {
+      Reanimated.cancelAnimation(tx)
+      startx.value = tx.value
+      dx.value = 0
+      started.value = true
       Reanimated.runOnJS(closeOthersAndRegisterClose)()
     })
     .onFinalize((_e, success) => {
+      if (!started.value) {
+        return
+      }
       const closing = dx.value >= 0
       if (!success || closing) {
         startx.value = 0
-        dx.value = 0
+        Reanimated.cancelAnimation(tx)
+        tx.value = 0
         Reanimated.runOnJS(closeSelf)()
       } else {
         tx.value = Reanimated.withSpring(-actionWidth, {
           stiffness: 100,
           damping: 30,
         })
-        startx.value = tx.value
-        dx.value = 0
+        startx.value = -actionWidth
       }
+
+      dx.value = 0
+      started.value = false
     })
     .onUpdate((e: GestureUpdateEvent<PanGestureHandlerEventPayload>) => {
       dx.value = e.velocityX
       tx.value = Math.min(0, Math.max(-actionWidth, e.translationX + startx.value))
     })
-  return gesture
+
+  const tapGesture = Gesture.Tap()
+    .onStart(() => {})
+    .onEnd(() => {
+      if (isOpen) {
+        return
+      }
+      onClick && Reanimated.runOnJS(onClick)()
+    })
+    .enabled(!isOpen)
+
+  return Gesture.Race(panGesture, tapGesture)
 }
 
 // A row swipe container. Shows actions below
 export const Swipeable = React.memo(function Swipeable2(p: {
   children: React.ReactNode
   actionWidth: number
-  makeActions: (progress: Reanimated.SharedValue<number>) => React.ReactNode
+  makeActionsRef: React.MutableRefObject<(p: Reanimated.SharedValue<number>) => React.ReactNode>
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
   style?: Styles.StylesCrossPlatform
   extraData?: unknown
+  onClick?: () => void
 }) {
-  const {children, actionWidth, makeActions, swipeCloseRef, style, extraData} = p
+  const {children, actionWidth, makeActionsRef, swipeCloseRef, style, extraData, onClick} = p
   const tx = Reanimated.useSharedValue(0)
-  const {actionsEnabled} = useActionsEnabled(actionWidth, tx)
-  const rowStyle = Reanimated.useAnimatedStyle(() => ({transform: [{translateX: tx.value}]}))
-  const actionStyle = Reanimated.useAnimatedStyle(() => ({width: -tx.value}))
+  const {actionsEnabled} = useActionsEnabled(tx)
+  const solidColor = Styles.isDarkMode() ? darkColors.white : colors.white
+  const clearColor = Styles.isDarkMode() ? darkColors.fastBlank : colors.fastBlank
+  const rowStyle = Reanimated.useAnimatedStyle(() => ({
+    backgroundColor: tx.value < 0 ? solidColor : clearColor,
+    transform: [{translateX: tx.value}],
+  }))
+  const actionStyle = Reanimated.useAnimatedStyle(() => ({
+    width: Math.min(actionWidth, Math.max(0, -tx.value)),
+  }))
   const {closeSelf, closeOthersAndRegisterClose, hasSwiped} = useSyncClosing(tx, swipeCloseRef)
-  const gesture = useGesture(actionWidth, tx, closeOthersAndRegisterClose, closeSelf, extraData)
-  const actions = React.useMemo(() => {
-    return hasSwiped ? makeActions(tx) : null
-  }, [makeActions, hasSwiped])
+  const gesture = useGesture(actionWidth, tx, closeOthersAndRegisterClose, closeSelf, extraData, onClick)
+  const actions = hasSwiped ? makeActionsRef.current(tx) : null
+
+  const [lastED, setLastED] = React.useState(extraData)
 
   // parent is different, close immediately
-  React.useEffect(() => {
+  if (lastED !== extraData) {
+    setLastED(extraData)
     tx.value = 0
-  }, [extraData])
+  }
 
   return (
     <GestureDetector gesture={gesture}>
@@ -137,7 +184,7 @@ export const Swipeable = React.memo(function Swipeable2(p: {
         ) : null}
         <Reanimated.default.View style={[styles.rowContainer, rowStyle]}>
           <Pressable
-            pointerEvents={actionsEnabled ? 'box-only' : undefined}
+            pointerEvents={actionsEnabled ? 'none' : undefined}
             onPress={actionsEnabled ? closeSelf : undefined}
           >
             {children}
@@ -182,7 +229,12 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
       },
       onPanResponderRelease: () => {
         pan.flattenOffset()
-        onSwiped()
+        // only swipe if its actually still over
+        // @ts-ignore _value does exist
+        const val = -pan.x._value
+        if (val > threshold) {
+          onSwiped()
+        }
         resetPosition()
       },
       onPanResponderTerminate: () => {

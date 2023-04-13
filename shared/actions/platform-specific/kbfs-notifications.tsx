@@ -1,8 +1,13 @@
 import capitalize from 'lodash/capitalize'
-import {FSErrorType, FSNotificationType, FSStatusCode, type FSNotification} from '../constants/types/rpc-gen'
-import {parseFolderNameToUsers} from './kbfs'
-import {pathSep} from '../constants/platform'
-import type {TypedState} from '../constants/reducer'
+import {
+  FSErrorType,
+  FSNotificationType,
+  FSStatusCode,
+  type FSNotification,
+} from '../../constants/types/rpc-gen'
+import {parseFolderNameToUsers} from '../../util/kbfs'
+import {pathSep} from '../../constants/platform'
+import type {TypedState} from '../../constants/reducer'
 
 type DecodedKBFSError = {
   title: string

@@ -1,68 +1,51 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
+import * as Constants from '../../../constants/chat2'
 import MessagePopup from '../messages/message-popup'
 import {Video, ResizeMode} from 'expo-av'
 import logger from '../../../logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
 
-const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
+const AutoMaxSizeImage = (p: {source: {uri: string}; onLoad: () => void; opacity: number}) => {
+  const {source, onLoad, opacity} = p
+  const {uri} = source
+  const [width, setWidth] = React.useState(0)
+  const [height, setHeight] = React.useState(0)
 
-class AutoMaxSizeImage extends React.Component<
-  {
-    source: {uri: string}
-    onLoad: () => void
-    opacity: number
-  },
-  {
-    width: number
-    height: number
-  }
-> {
-  state = {height: 0, width: 0}
-  _mounted: boolean = false
+  React.useEffect(() => {
+    Kb.NativeImage.getSize(uri, (width, height) => {
+      const clamped = Constants.clampImageSize(
+        width,
+        height,
+        Styles.dimensionWidth,
+        Styles.dimensionHeight - (Styles.isIOS ? 40 : 0)
+      )
+      setWidth(clamped.width)
+      setHeight(clamped.height)
+    })
+  }, [uri])
 
-  componentWillUnmount() {
-    this._mounted = false
-  }
-  componentDidMount() {
-    this._mounted = true
-    Kb.NativeImage.getSize(
-      this.props.source.uri,
-      (width, height) => {
-        if (this._mounted) {
-          this.setState({height, width})
-        }
-      },
-      () => {}
-    )
-  }
-
-  render() {
-    return (
-      <Kb.ZoomableBox
-        contentContainerStyle={styles.zoomableBoxContainer}
-        maxZoom={10}
-        style={styles.zoomableBox}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-      >
-        <Kb.NativeFastImage
-          {...this.props}
-          resizeMode={ResizeMode.CONTAIN}
-          style={Styles.collapseStyles([
-            styles.fastImage,
-            {
-              height: Math.min(this.state.height, screenHeight),
-              opacity: this.props.opacity,
-              width: Math.min(this.state.width, screenWidth),
-            },
-          ])}
-        />
-      </Kb.ZoomableBox>
-    )
-  }
+  return (
+    <Kb.ZoomableBox
+      contentContainerStyle={[
+        styles.zoomableBoxContainer,
+        {height, maxHeight: height, maxWidth: width, width},
+      ]}
+      maxZoom={10}
+      style={styles.zoomableBox}
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
+    >
+      <Kb.NativeFastImage
+        onLoad={onLoad}
+        source={source}
+        resizeMode={ResizeMode.CONTAIN}
+        style={[styles.fastImage, {height, opacity, width}]}
+      />
+    </Kb.ZoomableBox>
+  )
 }
 
 const Fullscreen = (p: Props) => {
@@ -171,8 +154,8 @@ const styles = Styles.styleSheetCreate(
         padding: Styles.globalMargins.small,
       },
       fastImage: {
-        alignSelf: 'center',
-        flex: 1,
+        height: Styles.dimensionHeight,
+        width: Styles.dimensionWidth,
       },
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
@@ -204,7 +187,6 @@ const styles = Styles.styleSheetCreate(
       zoomableBox: {
         backgroundColor: Styles.globalColors.blackOrBlack,
         height: '100%',
-        overflow: 'hidden',
         position: 'relative',
         width: '100%',
       },

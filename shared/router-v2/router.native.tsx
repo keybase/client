@@ -16,12 +16,7 @@ import {HeaderLeftCancel2} from '../common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
-import {enableFreeze} from 'react-native-screens'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
-
-import {useNavigation} from '@react-navigation/core'
-
-enableFreeze()
 
 if (module.hot) {
   module.hot.accept('', () => {

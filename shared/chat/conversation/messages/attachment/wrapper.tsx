@@ -28,7 +28,7 @@ export const WrapperAttachmentFile = React.memo(function WrapperAttachmentFile(p
     </WrapperMessage>
   )
 })
-export const WrapperAttachmentVideo = React.memo(function WrapperAttachmentImage(p: Props) {
+export const WrapperAttachmentVideo = React.memo(function WrapperAttachmentVideo(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
   const {showCenteredHighlight, toggleShowingPopup} = common

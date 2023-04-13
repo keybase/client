@@ -151,9 +151,6 @@ module.exports = {
   get Input() {
     return require('./input').default
   },
-  get KeyboardAvoidingView() {
-    return require('./keyboard-avoiding-view').default
-  },
   get KeyboardAvoidingView2() {
     return require('./keyboard-avoiding-view').KeyboardAvoidingView2
   },
@@ -316,6 +313,9 @@ module.exports = {
   get isValidIconType() {
     return require('./icon.shared').isValidIconType
   },
+  get keyboardDismiss() {
+    return require('./keyboard').dismiss
+  },
   get largeListItem2Height() {
     return require('./list-item2').largeHeight
   },
@@ -339,6 +339,9 @@ module.exports = {
   },
   get usePopup() {
     return require('./use-popup').usePopup
+  },
+  get usePopup2() {
+    return require('./use-popup').usePopup2
   },
   get useSafeAreaInsets() {
     return require('./safe-area-view').useSafeAreaInsets

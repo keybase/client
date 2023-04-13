@@ -4,7 +4,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 export type Props = {
   items: Array<any>
-  keyExtractor?: (item: any) => string
+  keyExtractor?: (item: any, idx: number) => string
   renderItem: (index: number, item: any) => React.ReactElement
   selectedIndex: number
   style?: Styles.StylesCrossPlatform

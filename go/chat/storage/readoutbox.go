@@ -14,9 +14,10 @@ import (
 const readOutboxVersion = 1
 
 type ReadOutboxRecord struct {
-	ID     chat1.OutboxID
-	ConvID chat1.ConversationID
-	MsgID  chat1.MessageID
+	ID          chat1.OutboxID
+	ConvID      chat1.ConversationID
+	MsgID       chat1.MessageID
+	ForceUnread bool
 }
 
 type diskReadOutbox struct {
@@ -93,7 +94,7 @@ func (o *ReadOutbox) writeStorage(ctx context.Context, obox diskReadOutbox) (err
 	return nil
 }
 
-func (o *ReadOutbox) PushRead(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID) (err Error) {
+func (o *ReadOutbox) PushRead(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, forceUnread bool) (err Error) {
 	locks.ReadOutbox.Lock()
 	defer locks.ReadOutbox.Unlock()
 	obox := o.readStorage(ctx)
@@ -102,9 +103,10 @@ func (o *ReadOutbox) PushRead(ctx context.Context, convID chat1.ConversationID, 
 		return NewInternalError(ctx, o.DebugLabeler, "failed to generate id: %s", ierr)
 	}
 	obox.Records = append(obox.Records, ReadOutboxRecord{
-		ID:     id,
-		ConvID: convID,
-		MsgID:  msgID,
+		ID:          id,
+		ConvID:      convID,
+		MsgID:       msgID,
+		ForceUnread: forceUnread,
 	})
 	return o.writeStorage(ctx, obox)
 }

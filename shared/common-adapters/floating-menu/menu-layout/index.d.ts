@@ -1,9 +1,9 @@
 import * as React from 'react'
-import {Color} from '../../../styles'
+import * as Styles from '../../../styles'
 import {IconType, IconStyle} from '../../icon'
 
 export type MenuItem = {
-  backgroundColor?: Color
+  backgroundColor?: Styles.Color
   danger?: boolean
   decoration?: React.ReactNode // on the right side. unused if `view` is given,
   disabled?: boolean
@@ -28,7 +28,7 @@ type _InnerMenuItem = MenuItem | 'Divider' | null
 export type MenuItems = Array<_InnerMenuItem>
 
 export type MenuLayoutProps = {
-  backgroundColor?: Color
+  backgroundColor?: Styles.Color
   items: ReadonlyArray<_InnerMenuItem>
   header?: React.ReactNode
   onHidden: () => void
@@ -37,7 +37,8 @@ export type MenuLayoutProps = {
   listStyle?: Object
   hoverColor?: string
   closeText?: string | null // mobile only; default to "Close"
-  textColor?: Color
+  textColor?: Styles.Color
+  safeProviderStyle?: Styles.StylesCrossPlatform
 }
 
 export default class MenuLayout extends React.Component<MenuLayoutProps> {}

@@ -45,13 +45,13 @@ const JoinTeam = (props: Props) => {
 
   return (
     <Kb.Modal
-      banners={[
-        !!props.errorText && (
-          <Kb.Banner color="red">
+      banners={
+        props.errorText ? (
+          <Kb.Banner key="red" color="red">
             <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
           </Kb.Banner>
-        ),
-      ]}
+        ) : null
+      }
       footer={{
         content: (
           <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>

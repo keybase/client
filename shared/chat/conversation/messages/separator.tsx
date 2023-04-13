@@ -94,9 +94,10 @@ type TProps = {
   authorIsBot: boolean
   botAlias: string
   timestamp: number
+  teamType: Types.TeamType
 }
 const TopSide = React.memo(function TopSide(p: TProps) {
-  const {timestamp, botAlias, showUsername, authorIsBot, authorRoleInTeam} = p
+  const {timestamp, botAlias, showUsername, authorIsBot, authorRoleInTeam, teamType} = p
 
   const dispatch = Container.useDispatch()
   const onAuthorClick = React.useCallback(() => {
@@ -109,6 +110,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
 
   const authorIsOwner = authorRoleInTeam === 'owner'
   const authorIsAdmin = authorRoleInTeam === 'admin'
+  const allowCrown = teamType !== 'adhoc' && (authorIsOwner || authorIsAdmin)
 
   const usernameNode = (
     <Kb.ConnectedUsernames
@@ -123,16 +125,15 @@ const TopSide = React.memo(function TopSide(p: TProps) {
     />
   )
 
-  const ownerAdminTooltipIcon =
-    authorIsOwner || authorIsAdmin ? (
-      <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
-        <Kb.Icon
-          color={authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
-          fontSize={10}
-          type="iconfont-crown-owner"
-        />
-      </Kb.WithTooltip>
-    ) : null
+  const ownerAdminTooltipIcon = allowCrown ? (
+    <Kb.WithTooltip tooltip={authorIsOwner ? 'Owner' : 'Admin'}>
+      <Kb.Icon
+        color={authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
+        fontSize={10}
+        type="iconfont-crown-owner"
+      />
+    </Kb.WithTooltip>
+  ) : null
 
   const botIcon = authorIsBot ? (
     <Kb.WithTooltip tooltip="Bot">
@@ -156,8 +157,20 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   )
 
   return (
-    <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
-      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
+    <Kb.Box2
+      pointerEvents="box-none"
+      key="author"
+      direction="horizontal"
+      style={styles.authorContainer}
+      gap="tiny"
+    >
+      <Kb.Box2
+        pointerEvents="box-none"
+        direction="horizontal"
+        gap="xtiny"
+        fullWidth={true}
+        style={styles.usernameCrown}
+      >
         {botAliasOrUsername}
         {ownerAdminTooltipIcon}
         {botIcon}
@@ -199,19 +212,20 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const {author, timestamp} = m
     const meta = Constants.getMeta(state, conversationIDKey)
-    const {teamID, botAliases} = meta
+    const {teamID, botAliases, teamType} = meta
     const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID ?? '')?.get(author)?.type
     const botAlias = botAliases[author] ?? ''
     const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
     const authorIsBot = meta.teamname
       ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
-      : meta.teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
+      : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
       ? !participantInfoNames.includes(author) // if adhoc, check if author in participants
       : false
     return {
       authorIsBot,
       authorRoleInTeam,
       botAlias,
+      teamType,
       timestamp,
     }
   }, shallowEqual)
@@ -226,13 +240,14 @@ type SProps = {
 const Separator = React.memo(function Separator(p: SProps) {
   const {conversationIDKey, ordinal, orangeLineAbove, showUsername} = p
   const mdata = useRedux(conversationIDKey, ordinal)
-  const {botAlias, authorRoleInTeam, authorIsBot, timestamp} = mdata
+  const {botAlias, authorRoleInTeam, authorIsBot, timestamp, teamType} = mdata
 
   return (
     <Kb.Box2
       direction="horizontal"
       style={showUsername ? styles.container : styles.containerNoName}
       fullWidth={true}
+      pointerEvents="box-none"
       className="WrapperMessage-hoverColor"
     >
       {showUsername ? <LeftSide username={showUsername} /> : null}
@@ -243,6 +258,7 @@ const Separator = React.memo(function Separator(p: SProps) {
           timestamp={timestamp}
           authorRoleInTeam={authorRoleInTeam}
           authorIsBot={authorIsBot}
+          teamType={teamType}
         />
       ) : null}
       {orangeLineAbove ? <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} /> : null}

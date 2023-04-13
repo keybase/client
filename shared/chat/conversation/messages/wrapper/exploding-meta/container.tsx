@@ -31,6 +31,7 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
     onClick,
     pending,
   }
+
   return <ExplodingMeta {...props} />
 })
 export default ExplodingMetaContainer

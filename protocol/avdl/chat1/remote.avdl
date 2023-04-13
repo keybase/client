@@ -153,7 +153,7 @@ protocol remote {
 
   GetMessagesRemoteRes getMessagesRemote(ConversationID conversationID, union { null, GetThreadReason } threadReason, array<MessageID> messageIDs);
 
-  MarkAsReadRes markAsRead(ConversationID conversationID, MessageID msgID);
+  MarkAsReadRes markAsRead(ConversationID conversationID, MessageID msgID, boolean forceUnread);
 
   @lint("ignore")
   SetConversationStatusRes SetConversationStatus(ConversationID conversationID, ConversationStatus status);

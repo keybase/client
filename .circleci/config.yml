@@ -21,7 +21,7 @@ jobs:
           command: yarn cache clean --all && yarn modules
       - run:
           working_directory: shared
-          no_output_timeout: 30m
+          no_output_timeout: 1h
           command: yarn run rn-gobuild-android
 
       - run: ls -la shared/android/keybaselib/keybaselib.aar
@@ -31,7 +31,7 @@ jobs:
       - run: mkdir -p shared/android/app/build/intermediates/{assets,res/merged}/releaseUnsigned
       - run:
           working_directory: shared
-          no_output_timeout: 30m
+          no_output_timeout: 1h
           environment:
             REACT_NATIVE_MAX_WORKERS: 1
           command: yarn run react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest android/app/build/intermediates/res/merged/releaseUnsigned
