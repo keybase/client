@@ -10,6 +10,8 @@ import {RectButton} from 'react-native-gesture-handler'
 import {Swipeable} from '../../../../../common-adapters/swipeable.native'
 import {ConversationIDKeyContext} from '../contexts'
 
+const actionWidth = 64
+
 const Action = (p: {
   text: string
   mult: number
@@ -19,9 +21,11 @@ const Action = (p: {
   progress: Reanimated.SharedValue<number>
 }) => {
   const {text, color, iconType, onClick, progress, mult} = p
-  const as = Reanimated.useAnimatedStyle(() => ({
-    transform: [{translateX: -mult * progress.value}],
-  }))
+  const as = Reanimated.useAnimatedStyle(() => {
+    return {
+      transform: [{translateX: mult * -progress.value}],
+    }
+  })
 
   return (
     <Reanimated.default.View style={[styles.action, as]}>
@@ -36,7 +40,7 @@ const Action = (p: {
 }
 
 const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
-  const {swipeCloseRef, children} = p
+  const {swipeCloseRef, children, onClick} = p
   const conversationIDKey = React.useContext(ConversationIDKeyContext)
   const [extraData, setExtraData] = React.useState(0)
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
@@ -112,6 +116,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     children,
     extraData,
     makeActionsRef,
+    onClick,
     swipeCloseRef,
   }
 
@@ -121,19 +126,21 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
 type IProps = {
   children: React.ReactNode
   extraData: unknown
+  onClick?: () => void
   swipeCloseRef: Props['swipeCloseRef']
   makeActionsRef: React.MutableRefObject<(p: Reanimated.SharedValue<number>) => React.ReactNode>
 }
 
 const SwipeConvActionsImpl = React.memo(function SwipeConvActionsImpl(props: IProps) {
-  const {children, swipeCloseRef, makeActionsRef, extraData} = props
+  const {children, swipeCloseRef, makeActionsRef, extraData, onClick} = props
   return (
     <Swipeable
-      actionWidth={64 * 3}
+      actionWidth={actionWidth * 3}
       swipeCloseRef={swipeCloseRef}
       makeActionsRef={makeActionsRef}
       style={styles.row}
       extraData={extraData}
+      onClick={onClick}
     >
       {children}
     </Swipeable>
@@ -148,7 +155,7 @@ const styles = Styles.styleSheetCreate(
         left: 0,
         position: 'absolute',
         top: 0,
-        width: 64,
+        width: actionWidth,
       },
       actionText: {
         backgroundColor: 'transparent',
@@ -158,7 +165,8 @@ const styles = Styles.styleSheetCreate(
         display: 'flex',
         flexDirection: 'row',
         height: '100%',
-        width: 128,
+        position: 'relative',
+        width: '100%',
       },
       rightAction: {
         alignItems: 'center',

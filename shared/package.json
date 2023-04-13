@@ -41,6 +41,7 @@
     "start-prod": "yarn run _helper start-prod",
     "start-profile": "yarn run _helper start-profile",
     "rn-start": "./react-native/packageAndBuild.sh",
+    "rn-start2": "yarn react-native start --reset-cache",
     "rn-gobuild-ios": "./react-native/gobuild.sh ios && yarn postinstall",
     "rn-gobuild-android": "./react-native/gobuild.sh android && yarn postinstall",
     "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
@@ -63,7 +64,8 @@
     "pod-install": "cd ios; pod install --repo-update",
     "pod-install-new": "cd ios; RCT_NEW_ARCH_ENABLED=1 pod install --repo-update",
     "android-clean": "cd android; ./gradlew clean",
-    "android-debug": "react-native run-android --variant 'debug'"
+    "android-debug": "react-native run-android --variant 'debug'",
+    "android-unsigned": "react-native run-android --variant 'releaseUnsigned'"
   },
   "keywords": [],
   "author": "",

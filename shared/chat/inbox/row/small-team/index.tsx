@@ -80,7 +80,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   }, shallowEqual)
 
   const dispatch = Container.useDispatch()
-  const _onSelectConversation = Container.useEvent(() => {
+  const _onSelectConversation: () => void = Container.useEvent(() => {
     if (isInWidget) {
       dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))
     } else {
@@ -100,10 +100,9 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 
   const children = React.useMemo(() => {
     return (
-      <SwipeConvActions swipeCloseRef={swipeCloseRef}>
+      <SwipeConvActions swipeCloseRef={swipeCloseRef} onClick={onSelectConversation}>
         <Kb.ClickableBox
           className={Styles.classNames('small-row', {selected: isSelected})}
-          onClick={onSelectConversation}
           style={
             isInWidget || Styles.isTablet
               ? Styles.collapseStyles([styles.container, {backgroundColor: backgroundColor}])
