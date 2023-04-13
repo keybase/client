@@ -1,9 +1,14 @@
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
 import * as RowSizes from '../../sizes'
+import type {Props} from '.'
 
-const SwipeConvActions = (props: {children: React.ReactNode}) => {
-  return <div style={styles.row}>{props.children}</div>
+const SwipeConvActions = (props: Props) => {
+  return (
+    <div style={styles.row} onClick={props.onClick}>
+      {props.children}
+    </div>
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
