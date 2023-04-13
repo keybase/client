@@ -62,9 +62,12 @@ const useGesture = (
   tx: Reanimated.SharedValue<number>,
   closeOthersAndRegisterClose: () => void,
   closeSelf: () => void,
-  extraData: unknown
+  extraData: unknown,
+  onClick?: () => void
 ) => {
   const started = Reanimated.useSharedValue(false)
+  const lastIsOpen = Reanimated.useSharedValue(false)
+  const [isOpen, setIsOpen] = React.useState(false)
   const startx = Reanimated.useSharedValue(0)
   const dx = Reanimated.useSharedValue(0)
   const [lastED, setLastED] = React.useState(extraData)
@@ -78,7 +81,15 @@ const useGesture = (
     tx.value = 0
   }
 
-  const gesture = Gesture.Pan()
+  Reanimated.useDerivedValue(() => {
+    const nextIsOpen = tx.value < 0
+    if (lastIsOpen.value !== nextIsOpen) {
+      lastIsOpen.value = nextIsOpen
+      Reanimated.runOnJS(setIsOpen)(nextIsOpen)
+    }
+  })
+
+  const panGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .minPointers(1)
     .maxPointers(1)
@@ -94,16 +105,13 @@ const useGesture = (
       if (!started.value) {
         return
       }
-      console.log('aaa onfinalize started=', started.value)
       const closing = dx.value >= 0
       if (!success || closing) {
         startx.value = 0
-        console.log('aaa closing gesture ', tx.value, _e)
         Reanimated.cancelAnimation(tx)
         tx.value = 0
         Reanimated.runOnJS(closeSelf)()
       } else {
-        console.log('aaa opening gesture ', tx.value, _e)
         tx.value = Reanimated.withSpring(-actionWidth, {
           stiffness: 100,
           damping: 30,
@@ -118,7 +126,18 @@ const useGesture = (
       dx.value = e.velocityX
       tx.value = Math.min(0, Math.max(-actionWidth, e.translationX + startx.value))
     })
-  return gesture
+
+  const tapGesture = Gesture.Tap()
+    .onStart(() => {})
+    .onEnd(() => {
+      if (isOpen) {
+        return
+      }
+      onClick && Reanimated.runOnJS(onClick)()
+    })
+    .enabled(!isOpen)
+
+  return Gesture.Race(panGesture, tapGesture)
 }
 
 // A row swipe container. Shows actions below
@@ -129,8 +148,9 @@ export const Swipeable = React.memo(function Swipeable2(p: {
   swipeCloseRef?: React.MutableRefObject<(() => void) | null>
   style?: Styles.StylesCrossPlatform
   extraData?: unknown
+  onClick?: () => void
 }) {
-  const {children, actionWidth, makeActionsRef, swipeCloseRef, style, extraData} = p
+  const {children, actionWidth, makeActionsRef, swipeCloseRef, style, extraData, onClick} = p
   const tx = Reanimated.useSharedValue(0)
   const {actionsEnabled} = useActionsEnabled(tx)
   const solidColor = Styles.isDarkMode() ? darkColors.white : colors.white
@@ -143,7 +163,7 @@ export const Swipeable = React.memo(function Swipeable2(p: {
     width: Math.min(actionWidth, Math.max(0, -tx.value)),
   }))
   const {closeSelf, closeOthersAndRegisterClose, hasSwiped} = useSyncClosing(tx, swipeCloseRef)
-  const gesture = useGesture(actionWidth, tx, closeOthersAndRegisterClose, closeSelf, extraData)
+  const gesture = useGesture(actionWidth, tx, closeOthersAndRegisterClose, closeSelf, extraData, onClick)
   const actions = hasSwiped ? makeActionsRef.current(tx) : null
 
   const [lastED, setLastED] = React.useState(extraData)
@@ -159,6 +179,14 @@ export const Swipeable = React.memo(function Swipeable2(p: {
   return (
     <GestureDetector gesture={gesture}>
       <View style={[styles.container, style]}>
+        {actions ? (
+          <Reanimated.default.View
+            style={[styles.actionContainer, actionStyle]}
+            pointerEvents={actionsEnabled ? undefined : 'none'}
+          >
+            {actions}
+          </Reanimated.default.View>
+        ) : null}
         <Reanimated.default.View style={[styles.rowContainer, rowStyle]}>
           <Pressable
             pointerEvents={actionsEnabled ? 'none' : undefined}
@@ -174,14 +202,6 @@ export const Swipeable = React.memo(function Swipeable2(p: {
             {children}
           </Pressable>
         </Reanimated.default.View>
-        {actions ? (
-          <Reanimated.default.View
-            style={[styles.actionContainer, actionStyle]}
-            pointerEvents={actionsEnabled ? undefined : 'none'}
-          >
-            {actions}
-          </Reanimated.default.View>
-        ) : null}
       </View>
     </GestureDetector>
   )

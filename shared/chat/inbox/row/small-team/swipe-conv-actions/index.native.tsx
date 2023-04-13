@@ -29,13 +29,7 @@ const Action = (p: {
 
   return (
     <Reanimated.default.View style={[styles.action, as]}>
-      <RectButton
-        style={[styles.rightAction, {backgroundColor: color as string}]}
-        onPress={() => {
-          console.log('aaa rectbutton onclick')
-          onClick()
-        }}
-      >
+      <RectButton style={[styles.rightAction, {backgroundColor: color as string}]} onPress={onClick}>
         <Kb.Icon type={iconType} color={Styles.globalColors.white} />
         <Kb.Text type="BodySmall" style={styles.actionText}>
           {text}
@@ -46,7 +40,7 @@ const Action = (p: {
 }
 
 const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
-  const {swipeCloseRef, children} = p
+  const {swipeCloseRef, children, onClick} = p
   const conversationIDKey = React.useContext(ConversationIDKeyContext)
   const [extraData, setExtraData] = React.useState(0)
 
@@ -73,20 +67,17 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const isMuted = Container.useSelector(state => state.chat2.mutedMap.get(conversationIDKey) ?? false)
 
   const onMarkAsUnread = Container.useEvent(() => {
-    console.log('aaaa onMarkAsUnread')
-    // onMarkConversationAsUnread()
+    onMarkConversationAsUnread()
     swipeCloseRef?.current?.()
   })
 
   const onMute = Container.useEvent(() => {
-    console.log('aaaa onmute')
-    // onMuteConversation()
+    onMuteConversation()
     swipeCloseRef?.current?.()
   })
 
   const onHide = Container.useEvent(() => {
-    console.log('aaaa onhide')
-    // onHideConversation()
+    onHideConversation()
     swipeCloseRef?.current?.()
   })
 
@@ -126,6 +117,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     children,
     extraData,
     makeActionsRef,
+    onClick,
     swipeCloseRef,
   }
 
@@ -135,12 +127,13 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
 type IProps = {
   children: React.ReactNode
   extraData: unknown
+  onClick: () => void
   swipeCloseRef: Props['swipeCloseRef']
   makeActionsRef: React.MutableRefObject<(p: Reanimated.SharedValue<number>) => React.ReactNode>
 }
 
 const SwipeConvActionsImpl = React.memo(function SwipeConvActionsImpl(props: IProps) {
-  const {children, swipeCloseRef, makeActionsRef, extraData} = props
+  const {children, swipeCloseRef, makeActionsRef, extraData, onClick} = props
   return (
     <Swipeable
       actionWidth={actionWidth * 3}
@@ -148,6 +141,7 @@ const SwipeConvActionsImpl = React.memo(function SwipeConvActionsImpl(props: IPr
       makeActionsRef={makeActionsRef}
       style={styles.row}
       extraData={extraData}
+      onClick={onClick}
     >
       {children}
     </Swipeable>
