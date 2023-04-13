@@ -508,11 +508,10 @@ const NodeInRow = (props: NodeInRowProps) => {
             <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.expandIcon])}>
               <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
             </Kb.Box2>
-
             <Kb.Box2
               direction="horizontal"
               style={Styles.collapseStyles([
-                Styles.globalStyles.flexGrow,
+                {flexGrow: 1, flexShrink: 1},
                 !expanded && styles.contentCollapsedFixedHeight,
                 expanded && styles.membershipExpanded,
               ] as const)}

@@ -45,14 +45,20 @@ const InboxAndConversation = (props: Props) => {
 
   return (
     <Kb.KeyboardAvoidingView2>
-      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.container}>
         {!Container.isTablet && inboxSearch ? (
           <InboxSearch />
         ) : (
           <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
         )}
-        <Conversation navigation={props.navigation} route={props.route as any} />
-        {infoPanelShowing && <InfoPanel conversationIDKey={conversationIDKey} />}
+        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.conversation}>
+          <Conversation navigation={props.navigation} route={props.route as any} />
+        </Kb.Box2>
+        {infoPanelShowing ? (
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
+            <InfoPanel conversationIDKey={conversationIDKey} />
+          </Kb.Box2>
+        ) : null}
       </Kb.Box2>
     </Kb.KeyboardAvoidingView2>
   )
@@ -77,6 +83,22 @@ export const getOptions = ({navigation, route}) => {
     return {headerTitle: () => <Header navigation={navigation} route={route} />}
   }
 }
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {position: 'relative'},
+      conversation: {flexGrow: 1},
+      infoPanel: {
+        backgroundColor: Styles.globalColors.white,
+        bottom: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        width: 320,
+      },
+    } as const)
+)
 
 const Memoed = React.memo(InboxAndConversation)
 Container.hoistNonReactStatic(Memoed, InboxAndConversation)
