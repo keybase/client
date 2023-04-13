@@ -80,7 +80,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   }, shallowEqual)
 
   const dispatch = Container.useDispatch()
-  const _onSelectConversation = Container.useEvent(() => {
+  const _onSelectConversation: () => void = Container.useEvent(() => {
     if (isInWidget) {
       dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))
     } else {

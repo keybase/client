@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
 import * as RowSizes from '../../sizes'
-import type Props from './index'
+import type {Props} from '.'
 
 const SwipeConvActions = (props: Props) => {
   return (

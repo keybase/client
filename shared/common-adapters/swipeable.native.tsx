@@ -33,14 +33,12 @@ const useSyncClosing = (
 ) => {
   const [hasSwiped, setHasSwiped] = React.useState(false)
   const closeSelf = React.useCallback(() => {
-    console.log('aaa close seldf')
     swipeCloseRef?.current?.()
     if (swipeCloseRef) {
       swipeCloseRef.current = null
     }
   }, [swipeCloseRef])
   const closeOthersAndRegisterClose = React.useCallback(() => {
-    console.log('aaa closeOthersAndRegisterClose ')
     setHasSwiped(true)
     swipeCloseRef?.current?.()
     if (swipeCloseRef) {
@@ -94,7 +92,6 @@ const useGesture = (
     .minPointers(1)
     .maxPointers(1)
     .onStart(() => {
-      console.log('aaa start')
       Reanimated.cancelAnimation(tx)
       startx.value = tx.value
       dx.value = 0
@@ -174,8 +171,6 @@ export const Swipeable = React.memo(function Swipeable2(p: {
     tx.value = 0
   }
 
-  console.log('aaa render swipe, ', actionsEnabled, actionWidth)
-
   return (
     <GestureDetector gesture={gesture}>
       <View style={[styles.container, style]}>
@@ -190,14 +185,7 @@ export const Swipeable = React.memo(function Swipeable2(p: {
         <Reanimated.default.View style={[styles.rowContainer, rowStyle]}>
           <Pressable
             pointerEvents={actionsEnabled ? 'none' : undefined}
-            onPress={
-              actionsEnabled
-                ? () => {
-                    console.log('aaa row press then closeself', tx.value)
-                    closeSelf()
-                  }
-                : undefined
-            }
+            onPress={actionsEnabled ? closeSelf : undefined}
           >
             {children}
           </Pressable>

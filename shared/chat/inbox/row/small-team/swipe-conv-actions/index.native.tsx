@@ -127,7 +127,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
 type IProps = {
   children: React.ReactNode
   extraData: unknown
-  onClick: () => void
+  onClick?: () => void
   swipeCloseRef: Props['swipeCloseRef']
   makeActionsRef: React.MutableRefObject<(p: Reanimated.SharedValue<number>) => React.ReactNode>
 }
