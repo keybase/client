@@ -1,0 +1,30 @@
+diff --git a/node_modules/react-native/Libraries/Lists/VirtualizedList.js b/node_modules/react-native/Libraries/Lists/VirtualizedList.js
+index e948a85..48952cf 100644
+--- a/node_modules/react-native/Libraries/Lists/VirtualizedList.js
++++ b/node_modules/react-native/Libraries/Lists/VirtualizedList.js
+@@ -25,6 +25,7 @@ import RefreshControl from '../Components/RefreshControl/RefreshControl';
+ import ScrollView from '../Components/ScrollView/ScrollView';
+ import View from '../Components/View/View';
+ import Batchinator from '../Interaction/Batchinator';
++import Platform from '../Utilities/Platform';
+ import {findNodeHandle} from '../ReactNative/RendererProxy';
+ import flattenStyle from '../StyleSheet/flattenStyle';
+ import StyleSheet from '../StyleSheet/StyleSheet';
+@@ -1843,9 +1844,14 @@ export default class VirtualizedList extends StateSafePureComponent<
+ }
+ 
+ const styles = StyleSheet.create({
+-  verticallyInverted: {
+-    transform: [{scaleY: -1}],
+-  },
++  verticallyInverted:
++    Platform.OS === 'android'
++      ? {
++          scaleY: -1,
++        }
++      : {
++          transform: [{scaleY: -1}]
++        },
+   horizontallyInverted: {
+     transform: [{scaleX: -1}],
+   },

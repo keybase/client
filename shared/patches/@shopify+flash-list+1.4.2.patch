@@ -1,0 +1,31 @@
+diff --git a/node_modules/@shopify/flash-list/dist/FlashList.js b/node_modules/@shopify/flash-list/dist/FlashList.js
+index 8b05441..566af7c 100644
+--- a/node_modules/@shopify/flash-list/dist/FlashList.js
++++ b/node_modules/@shopify/flash-list/dist/FlashList.js
+@@ -24,7 +24,7 @@ var FlashList = /** @class */ (function (_super) {
+         var _a;
+         _this = _super.call(this, props) || this;
+         _this.listFixedDimensionSize = 0;
+-        _this.transformStyle = { transform: [{ scaleY: -1 }] };
++        _this.transformStyle = react_native_1.Platform.OS === 'ios' ? { transform: [{ scaleY: -1 }] } : {scaleY: -1};
+         _this.transformStyleHorizontal = { transform: [{ scaleX: -1 }] };
+         _this.distanceFromWindow = 0;
+         _this.contentStyle = {
+@@ -109,14 +109,15 @@ var FlashList = /** @class */ (function (_super) {
+             }
+         };
+         _this.separator = function (index) {
++	    const offset = this.props.inverted ? -1 : 1
+             // Make sure we have data and don't read out of bounds
+             if (_this.props.data === null ||
+                 _this.props.data === undefined ||
+-                index + 1 >= _this.props.data.length) {
++                index + offset >= _this.props.data.length) {
+                 return null;
+             }
+             var leadingItem = _this.props.data[index];
+-            var trailingItem = _this.props.data[index + 1];
++            var trailingItem = _this.props.data[index + offset];
+             var props = {
+                 leadingItem: leadingItem,
+                 trailingItem: trailingItem,
