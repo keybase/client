@@ -129,11 +129,6 @@ const styles = Styles.styleSheetCreate(
 const Tab = createBottomTabNavigator()
 const tabRoutes = routes
 
-const TEMP = () => {
-  const nav = useNavigation()
-  return <View style={{backgroundColor: 'blue', width: '100%', height: '100%'}} />
-}
-
 // we must ensure we don't keep remaking these components
 const tabScreensCache = new Map()
 const makeTabStack = (tab: string) => {
@@ -156,8 +151,7 @@ const makeTabStack = (tab: string) => {
             animationDuration: 250,
           }}
         >
-          <S.Screen name="TEMP" component={TEMP} />
-          {/*tabScreens*/}
+          {tabScreens}
         </S.Navigator>
       )
     },
