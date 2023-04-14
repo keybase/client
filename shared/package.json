@@ -62,6 +62,7 @@
     "DEPRECATED_build-storybook": "build-storybook",
     "DEPRECATED_test": "yarn run _helper test",
     "pod-install": "cd ios; pod install --repo-update",
+    "pod-clean": "rm -rf ios/build; rm -rf ios/Pods; rm ios/.xcode.env.local",
     "pod-install-new": "cd ios; RCT_NEW_ARCH_ENABLED=1 pod install --repo-update",
     "android-clean": "cd android; ./gradlew clean",
     "android-debug": "react-native run-android --variant 'debug'",
