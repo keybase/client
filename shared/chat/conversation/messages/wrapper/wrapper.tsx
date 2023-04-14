@@ -17,6 +17,7 @@ import ReactionsRow from '../reactions-row'
 import SendIndicator from './send-indicator'
 import type * as Types from '../../../../constants/types/chat2'
 import capitalize from 'lodash/capitalize'
+// import {useDebugLayout} from '../../../../util/debug'
 
 export type Props = {
   ordinal: Types.Ordinal
@@ -218,13 +219,28 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
     <Kb.Box2 direction="vertical" style={styles.highlighted} />
   ) : null
 
-  const content = exploding ? (
+  let content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <ExplodingHeightRetainer>{children}</ExplodingHeightRetainer>
     </Kb.Box2>
   ) : (
     children
   )
+
+  // uncomment to debug sizing issues
+  // const dump = Container.useEvent(() => p)
+  // const debugLayout = useDebugLayout(dump)
+  // content = (
+  //   <Kb.Box2
+  //     key="TEMP"
+  //     direction="vertical"
+  //     onLayout={debugLayout}
+  //     alignItems="flex-start"
+  //     alignSelf="flex-start"
+  //   >
+  //     {content}
+  //   </Kb.Box2>
+  // )
 
   return (
     <LongPressable {...pressableProps}>
@@ -417,8 +433,8 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   )
 
-  return hasVisibleItems || menu || sendIndicator ? (
-    <>
+  const visibleItems =
+    hasVisibleItems || menu ? (
       <Kb.Box2
         direction="horizontal"
         alignSelf="flex-start"
@@ -435,9 +451,14 @@ const RightSide = React.memo(function RightSide(p: RProps) {
         {coinsIcon}
         {bot}
       </Kb.Box2>
+    ) : null
+
+  return (
+    <>
+      {visibleItems}
       {sendIndicator}
     </>
-  ) : null
+  )
 })
 
 export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {

@@ -28,7 +28,7 @@ PODS:
   - EXMediaLibrary (15.2.3):
     - ExpoModulesCore
     - React-Core
-  - Expo (48.0.10):
+  - Expo (48.0.11):
     - ExpoModulesCore
   - ExpoHaptics (12.2.1):
     - ExpoModulesCore
@@ -802,7 +802,7 @@ SPEC CHECKSUMS:
   EXImageLoader: fd053169a8ee932dd83bf1fe5487a50c26d27c2b
   EXLocation: 74a0ba446f54fd585ea6cfcd19a25644bf22c30d
   EXMediaLibrary: 587cd8aad27a6fc8d7c38b950bc75bc1845a7480
-  Expo: b04d142a2b477a391b47c62d179c1a9e1140e6ad
+  Expo: 81418098ffb16914b2e190f54e06db923248e4a1
   ExpoHaptics: 5156bc5160d8e04c170dd6e645a71154951a2ad9
   ExpoImagePicker: 270dea232b3a072d981dd564e2cafc63a864edb1
   ExpoKeepAwake: 69f5f627670d62318410392d03e0b5db0f85759a
