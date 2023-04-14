@@ -218,8 +218,8 @@ const styles = Styles.styleSheetCreate(
           borderRadius: Styles.borderRadius,
           borderWidth: 1,
           marginBottom: Styles.globalMargins.tiny,
-          maxHeight: 88,
-          minHeight: 88,
+          maxHeight: 42,
+          minHeight: 42,
           width: '100%',
         },
         isTablet: {
