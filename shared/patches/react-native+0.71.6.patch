@@ -1,3 +1,16 @@
+diff --git a/node_modules/react-native/Libraries/Animated/Animated.d.ts b/node_modules/react-native/Libraries/Animated/Animated.d.ts
+index 3301ff3..f80a543 100644
+--- a/node_modules/react-native/Libraries/Animated/Animated.d.ts
++++ b/node_modules/react-native/Libraries/Animated/Animated.d.ts
+@@ -96,7 +96,7 @@ export namespace Animated {
+   }
+ 
+   class AnimatedInterpolation<
+-    OutputT extends number | string,
++    OutputT extends number | string = number,
+   > extends AnimatedWithChildren {
+     interpolate(
+       config: InterpolationConfigType,
 diff --git a/node_modules/react-native/Libraries/Lists/VirtualizedList.js b/node_modules/react-native/Libraries/Lists/VirtualizedList.js
 index e948a85..48952cf 100644
 --- a/node_modules/react-native/Libraries/Lists/VirtualizedList.js
@@ -28,3 +41,16 @@ index e948a85..48952cf 100644
    horizontallyInverted: {
      transform: [{scaleX: -1}],
    },
+diff --git a/node_modules/react-native/types/index.d.ts b/node_modules/react-native/types/index.d.ts
+index ff9d3ec..8d92aa7 100644
+--- a/node_modules/react-native/types/index.d.ts
++++ b/node_modules/react-native/types/index.d.ts
+@@ -68,7 +68,7 @@
+ /// <reference path="modules/BatchedBridge.d.ts" />
+ /// <reference path="modules/Codegen.d.ts" />
+ /// <reference path="modules/Devtools.d.ts" />
+-/// <reference path="modules/globals.d.ts" />
++
+ /// <reference path="modules/LaunchScreen.d.ts" />
+ 
+ export * from '../Libraries/ActionSheetIOS/ActionSheetIOS';

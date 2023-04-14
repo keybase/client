@@ -348,7 +348,7 @@ class Inbox extends React.Component<T.Props, State> {
             ref={this.dragList}
           >
             <AutoSizer>
-              {({height, width}) => (
+              {({height = 1, width = 1}) => (
                 <VariableSizeList
                   height={height}
                   width={width}
