@@ -1,11 +1,19 @@
-#import <React/RCTBridgeModule.h>
-#import <React/RCTEventEmitter.h>
+#ifdef __cplusplus
+#import "react-native-kb.h"
+#endif
 
 @protocol KbProvider
-- (NSDictionary *) fsPaths;
+- (NSDictionary *)fsPaths;
 @end
 
-@interface Kb : RCTEventEmitter <RCTBridgeModule>
-- (void)setBridge:(RCTBridge *)bridge;
-@property (nonatomic, assign) BOOL setBridgeOnMainQueue;
+#ifdef RCT_NEW_ARCH_ENABLED
+#import <RNKbSpec/RNKbSpec.h>
+
+@interface Kb : NSObject <NativeKbSpec>
+#else
+#import <React/RCTBridgeModule.h>
+
+@interface Kb : NSObject <RCTBridgeModule>
+#endif
+
 @end

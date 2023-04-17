@@ -1,28 +1,7 @@
-import {NativeModules, Platform, NativeEventEmitter} from 'react-native'
+import {Platform, NativeEventEmitter} from 'react-native'
+const Kb = require('./NativeKb').default
 
-const LINKING_ERROR =
-  `The package 'react-native-kb' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ios: "- You have run 'pod install'\n", default: ''}) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo managed workflow\n'
-
-// @ts-ignore
-const isTurboModuleEnabled: boolean = global.__turboModuleProxy != null
-
-const KbModule = isTurboModuleEnabled ? require('./NativeKb').default : NativeModules.Kb
-
-const Kb = KbModule
-  ? KbModule
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR)
-        },
-      }
-    )
-
-export const getDefaultCountryCode = (): Promise<string> => {
+export const getDefaultCountryCode = (): string => {
   return Kb.getDefaultCountryCode()
 }
 
@@ -33,15 +12,15 @@ export const logSend = (
   sendMaxBytes: boolean,
   traceDir: string,
   cpuProfileDir: string
-): Promise<string> => {
+): string => {
   return Kb.logSend(status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir)
 }
 
-export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
+export const iosGetHasShownPushPrompt = (): boolean => {
   if (Platform.OS === 'ios') {
     return Kb.iosGetHasShownPushPrompt()
   }
-  return Promise.resolve(false)
+  return false
 }
 
 export const androidOpenSettings = () => {
@@ -50,58 +29,57 @@ export const androidOpenSettings = () => {
   }
 }
 
-export const androidSetSecureFlagSetting = (s: boolean): Promise<boolean> => {
+export const androidSetSecureFlagSetting = (s: boolean): boolean => {
   if (Platform.OS === 'android') {
     return Kb.androidSetSecureFlagSetting(s)
   }
-  return Promise.resolve(false)
+  return false
 }
 
-export const androidGetSecureFlagSetting = (): Promise<boolean> => {
+export const androidGetSecureFlagSetting = (): boolean => {
   if (Platform.OS === 'android') {
     return Kb.androidGetSecureFlagSetting()
   }
-  return Promise.resolve(false)
+  return false
 }
 
-export const androidShareText = (text: string, mimeType: string): Promise<boolean> => {
+export const androidShareText = (text: string, mimeType: string): boolean => {
   if (Platform.OS === 'android') {
     return Kb.androidShareText(text, mimeType)
   }
-  return Promise.resolve(false)
+  return false
 }
 
-export const androidShare = (text: string, mimeType: string): Promise<boolean> => {
+export const androidShare = (text: string, mimeType: string): boolean => {
   if (Platform.OS === 'android') {
     return Kb.androidShare(text, mimeType)
   }
-  return Promise.resolve(false)
+  return false
 }
 
-export const androidCheckPushPermissions = (): Promise<boolean> => {
+export const androidCheckPushPermissions = (): boolean => {
   if (Platform.OS === 'android') {
     return Kb.androidCheckPushPermissions()
   }
-  return Promise.resolve(false)
+  return false
 }
-export const androidRequestPushPermissions = (): Promise<boolean> => {
+export const androidRequestPushPermissions = (): boolean => {
   if (Platform.OS === 'android') {
     return Kb.androidRequestPushPermissions()
   }
-  return Promise.resolve(false)
+  return false
 }
-export const androidGetRegistrationToken = (): Promise<string> => {
+export const androidGetRegistrationToken = (): string => {
   if (Platform.OS === 'android') {
     return Kb.androidGetRegistrationToken()
   }
-  return Promise.resolve('')
+  return ''
 }
 
-export const androidUnlink = (path: string): Promise<void> => {
+export const androidUnlink = (path: string): void => {
   if (Platform.OS === 'android') {
     return Kb.androidUnlink(path)
   }
-  return Promise.resolve()
 }
 
 export const androidAddCompleteDownload = (o: {
@@ -110,11 +88,10 @@ export const androidAddCompleteDownload = (o: {
   path: string
   showNotification: boolean
   title: string
-}): Promise<void> => {
+}): void => {
   if (Platform.OS === 'android') {
     return Kb.androidAddCompleteDownload(o)
   }
-  return Promise.resolve()
 }
 
 export const androidAppColorSchemeChanged = (mode: 'system' | 'alwaysDark' | 'alwaysLight' | ''): void => {
@@ -129,23 +106,23 @@ export const androidSetApplicationIconBadgeNumber = (n: number): void => {
   }
 }
 
-export const androidGetInitialBundleFromNotification = (): Promise<any> => {
+export const androidGetInitialBundleFromNotification = (): any => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialBundleFromNotification()
   }
-  return Promise.resolve(null)
+  return null
 }
-export const androidGetInitialShareFileUrl = (): Promise<string> => {
+export const androidGetInitialShareFileUrl = (): string => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareFileUrl()
   }
-  return Promise.resolve('')
+  return ''
 }
-export const androidGetInitialShareText = (): Promise<string> => {
+export const androidGetInitialShareText = (): string => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareText()
   }
-  return Promise.resolve('')
+  return ''
 }
 export const engineReset = (): void => {
   return Kb.engineReset()

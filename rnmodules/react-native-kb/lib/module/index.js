@@ -1,17 +1,5 @@
-import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
-const LINKING_ERROR = `The package 'react-native-kb' doesn't seem to be linked. Make sure: \n\n` + Platform.select({
-  ios: "- You have run 'pod install'\n",
-  default: ''
-}) + '- You rebuilt the app after installing the package\n' + '- You are not using Expo managed workflow\n'; // @ts-ignore
-
-const isTurboModuleEnabled = global.__turboModuleProxy != null;
-const KbModule = isTurboModuleEnabled ? require('./NativeKb').default : NativeModules.Kb;
-const Kb = KbModule ? KbModule : new Proxy({}, {
-  get() {
-    throw new Error(LINKING_ERROR);
-  }
-
-});
+import { Platform, NativeEventEmitter } from 'react-native';
+const Kb = require('./NativeKb').default;
 export const getDefaultCountryCode = () => {
   return Kb.getDefaultCountryCode();
 };
@@ -22,8 +10,7 @@ export const iosGetHasShownPushPrompt = () => {
   if (Platform.OS === 'ios') {
     return Kb.iosGetHasShownPushPrompt();
   }
-
-  return Promise.resolve(false);
+  return false;
 };
 export const androidOpenSettings = () => {
   if (Platform.OS === 'android') {
@@ -34,64 +21,53 @@ export const androidSetSecureFlagSetting = s => {
   if (Platform.OS === 'android') {
     return Kb.androidSetSecureFlagSetting(s);
   }
-
-  return Promise.resolve(false);
+  return false;
 };
 export const androidGetSecureFlagSetting = () => {
   if (Platform.OS === 'android') {
     return Kb.androidGetSecureFlagSetting();
   }
-
-  return Promise.resolve(false);
+  return false;
 };
 export const androidShareText = (text, mimeType) => {
   if (Platform.OS === 'android') {
     return Kb.androidShareText(text, mimeType);
   }
-
-  return Promise.resolve(false);
+  return false;
 };
 export const androidShare = (text, mimeType) => {
   if (Platform.OS === 'android') {
     return Kb.androidShare(text, mimeType);
   }
-
-  return Promise.resolve(false);
+  return false;
 };
 export const androidCheckPushPermissions = () => {
   if (Platform.OS === 'android') {
     return Kb.androidCheckPushPermissions();
   }
-
-  return Promise.resolve(false);
+  return false;
 };
 export const androidRequestPushPermissions = () => {
   if (Platform.OS === 'android') {
     return Kb.androidRequestPushPermissions();
   }
-
-  return Promise.resolve(false);
+  return false;
 };
 export const androidGetRegistrationToken = () => {
   if (Platform.OS === 'android') {
     return Kb.androidGetRegistrationToken();
   }
-
-  return Promise.resolve('');
+  return '';
 };
 export const androidUnlink = path => {
   if (Platform.OS === 'android') {
     return Kb.androidUnlink(path);
   }
-
-  return Promise.resolve();
 };
 export const androidAddCompleteDownload = o => {
   if (Platform.OS === 'android') {
     return Kb.androidAddCompleteDownload(o);
   }
-
-  return Promise.resolve();
 };
 export const androidAppColorSchemeChanged = mode => {
   if (Platform.OS === 'android') {
@@ -107,22 +83,19 @@ export const androidGetInitialBundleFromNotification = () => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialBundleFromNotification();
   }
-
-  return Promise.resolve(null);
+  return null;
 };
 export const androidGetInitialShareFileUrl = () => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareFileUrl();
   }
-
-  return Promise.resolve('');
+  return '';
 };
 export const androidGetInitialShareText = () => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareText();
   }
-
-  return Promise.resolve('');
+  return '';
 };
 export const engineReset = () => {
   return Kb.engineReset();

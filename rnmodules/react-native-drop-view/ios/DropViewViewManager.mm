@@ -1,11 +1,6 @@
-//
-//  DropViewManager.m
-//  Keybase
-//
-//  Created by Chris Nojima on 9/14/22.
-//  Copyright © 2022 Keybase. All rights reserved.
-//
 #import "../../../shared/ios/Keybase/ItemProviderHelper.h"
+#import "RCTBridge.h"
+#import <React/RCTUIManager.h>
 #import <React/RCTViewManager.h>
 
 #pragma mark DropView
@@ -62,15 +57,15 @@
         UIDragItem *i = obj;
         [items addObject:i.itemProvider];
       }];
-  __weak typeof(self) weakSelf = self;
+  __weak __typeof(self) weakSelf = self;
   self.iph = [[ItemProviderHelper alloc]
            initForShare:false
               withItems:items
              attrString:@""
       completionHandler:^{
-      if (weakSelf.onDropped != nil) {
+        if (weakSelf.onDropped != nil) {
           weakSelf.onDropped(@{@"manifest" : weakSelf.iph.manifest});
-      }
+        }
         weakSelf.iph = nil;
       }];
   [self.iph startProcessing];
@@ -78,15 +73,12 @@
 
 @end
 
-#pragma mark DropViewManager
-
-@interface DropViewManager : RCTViewManager
+@interface DropViewViewManager : RCTViewManager
 @end
 
-@implementation DropViewManager
+@implementation DropViewViewManager
 
-RCT_EXPORT_MODULE(DropView)
-RCT_EXPORT_VIEW_PROPERTY(onDropped, RCTBubblingEventBlock)
+RCT_EXPORT_MODULE(DropViewView)
 
 - (UIView *)view {
   DropView *dv = [[DropView alloc] init];

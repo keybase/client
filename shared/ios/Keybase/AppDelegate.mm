@@ -51,12 +51,12 @@
 
 - (BOOL)turboModuleEnabled
 {
-  return NO;
+  return YES;
 }
 
 - (BOOL)fabricEnabled
 {
-  return NO;
+  return YES;
 }
 
 @end
