@@ -150,8 +150,9 @@ export const Swipeable = React.memo(function Swipeable2(p: {
   const {children, actionWidth, makeActionsRef, swipeCloseRef, style, extraData, onClick} = p
   const tx = Reanimated.useSharedValue(0)
   const {actionsEnabled} = useActionsEnabled(tx)
-  const solidColor = Styles.isDarkMode() ? darkColors.white : colors.white
-  const clearColor = Styles.isDarkMode() ? darkColors.fastBlank : colors.fastBlank
+  const isDarkMode = React.useContext(Styles.DarkModeContext)
+  const solidColor = isDarkMode ? darkColors.white : colors.white
+  const clearColor = isDarkMode ? darkColors.fastBlank : colors.fastBlank
   const rowStyle = Reanimated.useAnimatedStyle(() => ({
     backgroundColor: tx.value < 0 ? solidColor : clearColor,
     transform: [{translateX: tx.value}],
