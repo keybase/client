@@ -101,7 +101,7 @@ const Keybase = () => {
 
   if (!_store) return null // never happens
 
-  // TODO if we use it, add it here
+  // reanimated still isn't compatible yet
   // <React.StrictMode>
   // </React.StrictMode>
   return (

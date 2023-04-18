@@ -1,9 +1,23 @@
 import type { TurboModule } from 'react-native';
 export interface Spec extends TurboModule {
-    readonly getConstants: () => {};
+    addListener: (eventType: string) => void;
+    removeListeners: (count: number) => void;
+    getConstants(): {
+        androidIsDeviceSecure: boolean;
+        androidIsTestDevice: boolean;
+        appVersionCode: string;
+        appVersionName: string;
+        darkModeSupported: boolean;
+        fsCacheDir: string;
+        fsDownloadDir: string;
+        guiConfig: string;
+        serverConfig: string;
+        uses24HourClock: boolean;
+        version: string;
+    };
     getDefaultCountryCode(): string;
     logSend(status: string, feedback: string, sendLogs: boolean, sendMaxBytes: boolean, traceDir: string, cpuProfileDir: string): string;
-    iosGetHasShownPushPrompt(): boolean;
+    iosGetHasShownPushPrompt(): Promise<boolean>;
     androidOpenSettings(): void;
     androidSetSecureFlagSetting(s: boolean): boolean;
     androidGetSecureFlagSetting(): boolean;
@@ -22,7 +36,7 @@ export interface Spec extends TurboModule {
     }): void;
     androidAppColorSchemeChanged(mode: string): void;
     androidSetApplicationIconBadgeNumber(n: number): void;
-    androidGetInitialBundleFromNotification(): any;
+    androidGetInitialBundleFromNotification(): string;
     androidGetInitialShareFileUrl(): string;
     androidGetInitialShareText(): string;
     engineReset(): void;

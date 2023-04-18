@@ -516,7 +516,7 @@ if (isIOS) {
 }
 
 export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.reduce<Color>((obj, name) => {
-  if (isIOS) {
+  if (false /*isIOS*/) {
     // ios actually handles this nicely natively
     return Object.defineProperty(obj, name, {
       configurable: false,

@@ -4,8 +4,6 @@ import type {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './inde
 import logger from '../logger'
 import {engineStart, engineReset, getNativeEmitter} from 'react-native-kb'
 
-const RNEmitter = getNativeEmitter()
-
 class NativeTransport extends TransportShared {
   constructor(
     incomingRPCCallback: incomingRPCCallbackType,
@@ -74,8 +72,9 @@ function createClient(
 
   engineStart()
 
+  const RNEmitter = getNativeEmitter()
   RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
-    console.log('aaaa got engine event', payload)
+    // console.log('aaaa >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got engine event', payload)
     try {
       switch (payload) {
         case 'kb-engine-reset':

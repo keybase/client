@@ -86,7 +86,7 @@ RCT_EXPORT_MODULE()
 - (instancetype)init {
     self = [super init];
     if(self) {
-         
+       
     }
     return self;
 }
@@ -297,6 +297,9 @@ public:
     NSError *error = nil;
     KeybaseReset(&error);
      [self sendEventWithName:metaEventName body:metaEventEngineReset];
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        [self sendEventWithName:metaEventName body:metaEventEngineReset];
+//    });
     
     
 //    __weak __typeof__(self) weakSelf = self;
