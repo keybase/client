@@ -15,6 +15,7 @@
 #import <RNHWKeyboardEvent.h>
 #import <React/RCTLinkingManager.h>
 #import <UserNotifications/UserNotifications.h>
+#import "Kb.h"
 
 @implementation AppDelegate(KB)
 
@@ -24,6 +25,9 @@
   // uncomment to get more console.logs
   // RCTSetLogThreshold(RCTLogLevelInfo - 1);
   self.fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:YES];
+  
+  FsPathsHolder * fph = [FsPathsHolder sharedFsPathsHolder];
+  fph.fsPaths = self.fsPaths;
 
   NSString *systemVer = [[UIDevice currentDevice] systemVersion];
   BOOL isIPad =

@@ -8,11 +8,10 @@
 
 #import <Foundation/Foundation.h>
 #import "AppDelegate.h"
-#import "Kb.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface AppDelegate (KB) <UNUserNotificationCenterDelegate, UIDropInteractionDelegate, KbProvider>
+@interface AppDelegate (KB) <UNUserNotificationCenterDelegate, UIDropInteractionDelegate>
 - (void)didLaunchSetupBefore:(UIApplication *)application;
 - (void)addDrop: (UIView*) rootView;
 - (void)didLaunchSetupAfter: (UIView*) rootView;

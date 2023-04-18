@@ -70,6 +70,7 @@ function createClient(
   engineStart()
 
   RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
+    console.log('aaaa got engine event', payload)
     try {
       switch (payload) {
         case 'kb-engine-reset':
