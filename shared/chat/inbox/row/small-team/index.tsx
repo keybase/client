@@ -188,16 +188,10 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
 })
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      flexShrink: 0,
-      height: RowSizes.smallRowHeight,
-    },
-    isMobile: {
-      marginLeft: Styles.globalMargins.xtiny,
-      marginRight: Styles.globalMargins.xtiny,
-    },
-  }),
+  container: {
+    flexShrink: 0,
+    height: RowSizes.smallRowHeight,
+  },
   conversationRow: {
     ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
@@ -219,6 +213,10 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingRight: Styles.globalMargins.xsmall,
     },
     isElectron: Styles.desktopStyles.clickable,
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
   }),
   withBottomLine: {
     justifyContent: 'flex-end',
