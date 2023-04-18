@@ -1,7 +1,8 @@
 patch package expo image, rn, mattermost
 codegen changes, string / any
-ios: engine rset send event
 event emitter working?
 android
 forced logged in!
 iosDynamicColors not working?
+paste input not fabric
+setState races
