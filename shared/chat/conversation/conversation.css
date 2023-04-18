@@ -28,6 +28,7 @@
 }
 .WrapperMessage-hoverColor:hover {
   background-color: var(--color-blueLighter2);
+  z-index: 1; /* so we don't go over highlight zindex */
 }
 
 .WrapperMessage-decorated {
