@@ -4,5 +4,7 @@ event emitter working?
 android
 forced logged in!
 iosDynamicColors not working?
-paste input not fabric
+paste input not fabric, disabled!
 setState races
+setfreeze off?
+

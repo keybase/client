@@ -13,7 +13,9 @@ import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-con
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import {enableFreeze} from 'react-native-screens'
-enableFreeze(true)
+// enableFreeze(true)
+// // TEMP
+enableFreeze(false)
 
 type ConfigureStore = ReturnType<typeof makeStore>
 let _store: ConfigureStore | undefined
@@ -101,7 +103,7 @@ const Keybase = () => {
 
   if (!_store) return null // never happens
 
-  // reanimated still isn't compatible yet
+  // reanimated still isn't compatible yet with strict mode
   // <React.StrictMode>
   // </React.StrictMode>
   return (

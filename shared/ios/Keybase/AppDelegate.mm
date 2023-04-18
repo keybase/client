@@ -49,14 +49,4 @@
   return true;
 }
 
-- (BOOL)turboModuleEnabled
-{
-  return YES;
-}
-
-- (BOOL)fabricEnabled
-{
-  return YES;
-}
-
 @end
