@@ -67,6 +67,11 @@ function createClient(
     }
   }
 
+  // global.engineWasReset = () => {
+  //   console.log('aaa engineWasReset called!')
+  //   connectCallback()
+  // }
+
   engineStart()
 
   RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {

@@ -86,8 +86,10 @@ export const useShared = () => {
   useConnectNavToRedux()
   // We use useRef and usePrevious so we can understand how our state has changed and do the right thing
   // if we use useEffect and useState we'll have to deal with extra renders which look really bad
-  const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
-  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  // TEMP TEMP TEMP const loggedInLoaded = Container.useSelector(state => state.config.daemonHandshakeState === 'done')
+  const loggedInLoaded = true
+  const loggedIn = true
+  // TEMP TEMP TEMP const loggedIn = Container.useSelector(state => state.config.loggedIn)
   const dispatch = Container.useDispatch()
   const navContainerKey = React.useRef(1)
   const oldNavState = React.useRef<NavState | undefined>(undefined)

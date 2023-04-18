@@ -25,7 +25,9 @@ import {
   androidGetInitialShareFileUrl,
   androidGetInitialShareText,
   getNativeEmitter,
+  // default as Kb,
 } from 'react-native-kb'
+// import {NativeEventEmitter} from 'react-native'
 
 const setApplicationIconBadgeNumber = (n: number) => {
   if (isIOS) {

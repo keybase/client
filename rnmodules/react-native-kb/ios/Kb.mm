@@ -52,7 +52,7 @@ using namespace kb;
 
 
 static const NSString *tagName = @"NativeLogger";
-static NSString *const eventName = @"kb-engine-event";
+//static NSString *const eventName = @"kb-engine-event";
 static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
@@ -80,12 +80,20 @@ void *currentRuntime = nil;
 RCT_EXPORT_MODULE()
 
 + (BOOL)requiresMainQueueSetup {
-    return YES;
+    return NO;
+}
+
+- (instancetype)init {
+    self = [super init];
+    if(self) {
+         
+    }
+    return self;
 }
 
 - (void)invalidate {
     currentRuntime = nil;
-    //    [super invalidate];
+    [super invalidate];
     Teardown();
     self.bridge = nil;
     self.readQueue = nil;
@@ -288,7 +296,33 @@ public:
 - (void)engineReset {
     NSError *error = nil;
     KeybaseReset(&error);
-    // [self sendEventWithName:metaEventName body:metaEventEngineReset];
+     [self sendEventWithName:metaEventName body:metaEventEngineReset];
+    
+    
+//    __weak __typeof__(self) weakSelf = self;
+//    auto invoker = self.bridge.jsCallInvoker;
+//
+//    if (!invoker) {
+//        NSLog(@"Failed to find invoker in EngineWasReset!!!");
+//        return;
+//    }
+//
+//    invoker->invokeAsync([weakSelf]() {
+//        __typeof__(self) strongSelf = weakSelf;
+//        if (!strongSelf) {
+//            NSLog(@"Failed to find self in EngineWasReset invokeAsync!!!");
+//            return;
+//        }
+//        auto jsRuntimePtr = [strongSelf javaScriptRuntimePointer];
+//        if (!jsRuntimePtr) {
+//            NSLog(@"Failed to find jsi in EngineWasReset invokeAsync!!!");
+//            return;
+//        }
+//
+//        auto &jsiRuntime = *jsRuntimePtr;
+//        EngineWasReset(jsiRuntime);
+//    });
+    
     if (error) {
         NSLog(@"Error in reset: %@", error);
     }
@@ -395,15 +429,17 @@ public:
 - (NSNumber *)androidShareText:(NSString *)text mimeType:(NSString *)mimeType {return @-1;}
 - (void)androidUnlink:(NSString *)path {}
 
-//- (NSArray<NSString *> *)supportedEvents {
+- (NSArray<NSString *> *)supportedEvents {
 //  return @[ eventName, metaEventName ];
-//}
+    return @[ metaEventName ];
+}
 
 // Don't compile this code when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params {
-    [self installJsiBindings]; //????? good place?
+    
+    [self installJsiBindings]; // a convenient place thats early enough and not too early
     
   return std::make_shared<facebook::react::NativeKbSpecJSI>(params);
 }

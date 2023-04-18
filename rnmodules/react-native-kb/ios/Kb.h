@@ -1,7 +1,7 @@
 #ifdef __cplusplus
 #import "react-native-kb.h"
 #endif
-
+#import <React/RCTEventEmitter.h>
 //@protocol KbProvider
 //- (NSDictionary *)fsPaths;
 //@end
@@ -19,5 +19,5 @@
 
 #import <RNKbSpec/RNKbSpec.h>
 
-@interface Kb : NSObject <NativeKbSpec>
+@interface Kb : RCTEventEmitter <NativeKbSpec>
 @end

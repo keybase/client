@@ -5,14 +5,13 @@
 
 using namespace facebook;
 using namespace facebook::jsi;
-using namespace std;
 
 namespace kb {
-std::atomic<bool> isTowndown{false};
+std::atomic<bool> isTornDown{false};
 
-void Teardown() { isTowndown.store(true); }
+void Teardown() { isTornDown.store(true); }
 
-void Tearup() { isTowndown.store(false); }
+void Tearup() { isTornDown.store(false); }
 
 Value RpcOnGo(Runtime &runtime, const Value &thisValue, const Value *arguments,
               size_t count, void (*callback)(void *ptr, size_t size)) {
@@ -24,7 +23,7 @@ Value RpcOnGo(Runtime &runtime, const Value &thisValue, const Value *arguments,
     callback(ptr, size);
     return Value(true);
   } catch (const std::exception &e) {
-    throw new std::runtime_error("Error in RpcOnGo: " + string(e.what()));
+    throw new std::runtime_error("Error in RpcOnGo: " + std::string(e.what()));
   } catch (...) {
     throw new std::runtime_error("Unknown error in RpcOnGo");
   }
@@ -115,7 +114,7 @@ msgpack::unpacker unp;
 
 ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
   try {
-    auto values = make_shared<std::vector<msgpack::object_handle>>();
+    auto values = std::make_shared<std::vector<msgpack::object_handle>>();
     if (size > 0) {
       unp.reserve_buffer(size);
       std::copy(data, data + size, unp.buffer());
@@ -126,7 +125,7 @@ ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
           if (g_state == ReadState::needSize) {
             g_state = ReadState::needContent;
           } else {
-            values->push_back(move(result));
+            values->push_back(std::move(result));
             g_state = ReadState::needSize;
           }
         } else {
@@ -136,7 +135,7 @@ ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
     }
     return values;
   } catch (const std::exception &e) {
-    throw new std::runtime_error("Error in PrepRpcOnJS: " + string(e.what()));
+    throw new std::runtime_error("Error in PrepRpcOnJS: " + std::string(e.what()));
   } catch (...) {
     throw new std::runtime_error("Unknown error in PrepRpcOnJS");
   }
@@ -145,26 +144,41 @@ ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
 void RpcOnJS(Runtime &runtime, ShareValues values,
              void (*err_callback)(const std::string &err)) {
   try {
-    if (isTowndown.load()) {
+    if (isTornDown.load()) {
       return;
     }
 
     for (auto &result : *values) {
       msgpack::object obj(result.get());
       Value value = convertMPToJSI(runtime, obj);
-      if (isTowndown.load()) {
+      if (isTornDown.load()) {
         return;
       }
       Function rpcOnJs =
           runtime.global().getPropertyAsFunction(runtime, "rpcOnJs");
-      rpcOnJs.call(runtime, move(value), 1);
+      rpcOnJs.call(runtime, std::move(value), 1);
     }
   } catch (const std::exception &e) {
     err_callback(e.what());
-    throw new std::runtime_error("Error in RpcOnJS: " + string(e.what()));
+    throw new std::runtime_error("Error in RpcOnJS: " + std::string(e.what()));
   } catch (...) {
     err_callback("unknown error");
     throw new std::runtime_error("Unknown error in RpcOnJS");
   }
 }
+
+//void EngineWasReset(Runtime &runtime) {
+//  try {
+//    if (isTornDown.load()) {
+//      return;
+//    }
+//    Function engineWasReset = runtime.global().getPropertyAsFunction(runtime, "engineWasReset");
+//    engineWasReset.call(runtime);
+//  } catch (const std::exception &e) {
+//    throw new std::runtime_error("Error in EngineWasReset: " + std::string(e.what()));
+//  } catch (...) {
+//    throw new std::runtime_error("Unknown error in EngineWasReset");
+//  }
+//}
+
 } // namespace kb
