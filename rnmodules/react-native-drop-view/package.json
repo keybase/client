@@ -54,8 +54,8 @@
     ]
   },
   "codegenConfig": {
-    "name": "RNDropViewViewSpec",
-    "type": "components",
+    "name": "RNDropViewSpec",
+    "type": "all",
     "jsSrcsDir": "src"
   }
 }

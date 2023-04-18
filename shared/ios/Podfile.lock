@@ -717,12 +717,13 @@ PODS:
   - React-logger (0.71.6):
     - glog
   - react-native-drop-view (0.1.0):
-    - RCT-Folly
+    - RCT-Folly (= 2021.07.22.00)
     - RCTRequired
     - RCTTypeSafety
     - React-Codegen
     - React-Core
     - React-RCTFabric
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
   - react-native-flipper-performance-plugin (0.4.0):
     - React-Core
@@ -1290,7 +1291,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 7894956638ff3e00819dd3f9f6f4a84da38f2409
   React-jsinspector: d5ce2ef3eb8fd30c28389d0bc577918c70821bd6
   React-logger: 9332c3e7b4ef007a0211c0a9868253aac3e1da82
-  react-native-drop-view: f98a4129342eb97eed7fa82eea5769fecc1082ff
+  react-native-drop-view: 5115fc2bca2963063ebb0981ff2756eb1ff3aa6b
   react-native-flipper-performance-plugin: 42ec5017abd26e7c5a1f527f2db92c14a90cabdb
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
   react-native-kb: 3eaf6aa5a105ffbb89afc82e8dd0b7fb3524f361

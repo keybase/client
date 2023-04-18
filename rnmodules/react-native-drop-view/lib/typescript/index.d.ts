@@ -1,2 +1,2 @@
-export { default as DropViewView } from './DropViewViewNativeComponent';
-export * from './DropViewViewNativeComponent';
+export { default as DropView } from './DropViewNativeComponent';
+export * from './DropViewNativeComponent';

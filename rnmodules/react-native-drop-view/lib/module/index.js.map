@@ -1,1 +1,1 @@
-{"version":3,"names":["default","DropViewView"],"sources":["index.tsx"],"sourcesContent":["export { default as DropViewView } from './DropViewViewNativeComponent';\nexport * from './DropViewViewNativeComponent';\n"],"mappings":"AAAA,SAASA,OAAO,IAAIC,YAAY,QAAQ,+BAA+B;AACvE,cAAc,+BAA+B"}
+{"version":3,"names":["default","DropView"],"sources":["index.tsx"],"sourcesContent":["export {default as DropView} from './DropViewNativeComponent'\nexport * from './DropViewNativeComponent'\n"],"mappings":"AAAA,SAAQA,OAAO,IAAIC,QAAQ,QAAO,2BAA2B;AAC7D,cAAc,2BAA2B"}
