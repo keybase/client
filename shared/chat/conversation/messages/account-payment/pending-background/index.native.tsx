@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import * as Container from '../../../../../util/container'
-import type Props from '.'
+import type {Props} from '.'
 
 const lightPatternImage = require('../../../../../images/payment-pattern-80.png')
 const darkPatternImage = require('../../../../../images/dark-payment-pattern-80.png')
