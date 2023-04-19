@@ -117,7 +117,7 @@ class GetTitles extends React.Component<Props, State> {
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
               <Kb.PlainInput
                 style={styles.input}
-                autoFocus={true}
+                autoFocus={false}
                 autoCorrect={true}
                 placeholder={titleHint}
                 multiline={true}
@@ -218,8 +218,8 @@ const styles = Styles.styleSheetCreate(
           borderRadius: Styles.borderRadius,
           borderWidth: 1,
           marginBottom: Styles.globalMargins.tiny,
-          maxHeight: 88,
-          minHeight: 88,
+          maxHeight: 42,
+          minHeight: 42,
           width: '100%',
         },
         isTablet: {

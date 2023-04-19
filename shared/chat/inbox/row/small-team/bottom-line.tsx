@@ -4,7 +4,7 @@ import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import shallowEqual from 'shallowequal'
-import {ConversationIDKeyContext, SnippetContext} from './contexts'
+import {ConversationIDKeyContext, SnippetContext, SnippetDecorationContext} from './contexts'
 
 type Props = {
   isDecryptingSnippet: boolean
@@ -13,7 +13,8 @@ type Props = {
   isInWidget?: boolean
 }
 
-const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) => {
+const SnippetDecoration = (p: {type: Kb.IconType; color: string; tooltip?: string}) => {
+  const {type, color, tooltip} = p
   const icon = (
     <Kb.Icon
       color={color}
@@ -28,23 +29,29 @@ const SnippetDecoration = (type: Kb.IconType, color: string, tooltip?: string) =
 const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Styles.StylesCrossPlatform}) {
   const snippet = React.useContext(SnippetContext)
   const {isSelected, style} = p
+
+  const decoration = React.useContext(SnippetDecorationContext)
   let snippetDecoration: React.ReactNode
   let exploded = false
   const defaultIconColor = isSelected ? Styles.globalColors.white : Styles.globalColors.black_20
 
-  switch (snippetDecoration) {
+  switch (decoration) {
     case RPCChatTypes.SnippetDecoration.pendingMessage:
-      snippetDecoration = SnippetDecoration('iconfont-hourglass', defaultIconColor, 'Sending…')
+      snippetDecoration = (
+        <SnippetDecoration type="iconfont-hourglass" color={defaultIconColor} tooltip="Sending…" />
+      )
       break
     case RPCChatTypes.SnippetDecoration.failedPendingMessage:
-      snippetDecoration = SnippetDecoration(
-        'iconfont-exclamation',
-        isSelected ? Styles.globalColors.white : Styles.globalColors.red,
-        'Failed to send'
+      snippetDecoration = (
+        <SnippetDecoration
+          type="iconfont-exclamation"
+          color={isSelected ? Styles.globalColors.white : Styles.globalColors.red}
+          tooltip="Failed to send"
+        />
       )
       break
     case RPCChatTypes.SnippetDecoration.explodingMessage:
-      snippetDecoration = SnippetDecoration('iconfont-timer-solid', defaultIconColor)
+      snippetDecoration = <SnippetDecoration type="iconfont-timer-solid" color={defaultIconColor} />
       break
     case RPCChatTypes.SnippetDecoration.explodedMessage:
       snippetDecoration = (
@@ -60,25 +67,25 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
       exploded = true
       break
     case RPCChatTypes.SnippetDecoration.audioAttachment:
-      snippetDecoration = SnippetDecoration('iconfont-mic-solid', defaultIconColor)
+      snippetDecoration = <SnippetDecoration type="iconfont-mic-solid" color={defaultIconColor} />
       break
     case RPCChatTypes.SnippetDecoration.videoAttachment:
-      snippetDecoration = SnippetDecoration('iconfont-film-solid', defaultIconColor)
+      snippetDecoration = <SnippetDecoration type="iconfont-film-solid" color={defaultIconColor} />
       break
     case RPCChatTypes.SnippetDecoration.photoAttachment:
-      snippetDecoration = SnippetDecoration('iconfont-camera-solid', defaultIconColor)
+      snippetDecoration = <SnippetDecoration type="iconfont-camera-solid" color={defaultIconColor} />
       break
     case RPCChatTypes.SnippetDecoration.fileAttachment:
-      snippetDecoration = SnippetDecoration('iconfont-file-solid', defaultIconColor)
+      snippetDecoration = <SnippetDecoration type="iconfont-file-solid" color={defaultIconColor} />
       break
     case RPCChatTypes.SnippetDecoration.stellarReceived:
-      snippetDecoration = SnippetDecoration('iconfont-stellar-request', defaultIconColor)
+      snippetDecoration = <SnippetDecoration type="iconfont-stellar-request" color={defaultIconColor} />
       break
     case RPCChatTypes.SnippetDecoration.stellarSent:
-      snippetDecoration = SnippetDecoration('iconfont-stellar-send', defaultIconColor)
+      snippetDecoration = <SnippetDecoration type="iconfont-stellar-send" color={defaultIconColor} />
       break
     case RPCChatTypes.SnippetDecoration.pinnedMessage:
-      snippetDecoration = SnippetDecoration('iconfont-pin-solid', defaultIconColor)
+      snippetDecoration = <SnippetDecoration type="iconfont-pin-solid" color={defaultIconColor} />
       break
     default:
       snippetDecoration = null
@@ -296,7 +303,10 @@ const styles = Styles.styleSheetCreate(
       outerBox: {
         ...Styles.globalStyles.flexBoxRow,
       },
-      snippetDecoration: {alignSelf: 'flex-start'},
+      snippetDecoration: Styles.platformStyles({
+        common: {alignSelf: 'flex-start'},
+        isMobile: {marginRight: 4},
+      }),
       typingSnippet: {},
       youAreResetText: Styles.platformStyles({
         isElectron: {
