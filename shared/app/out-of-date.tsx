@@ -2,9 +2,8 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
+import * as React from 'react'
 import type * as Types from '../constants/types/config'
-
-type OwnProps = {}
 
 type Props = {
   message: string
@@ -40,16 +39,18 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  message: state.config.appOutOfDateMessage,
-  status: state.config.appOutOfDateStatus,
-})
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  onOpenAppStore: () => dispatch(ConfigGen.createOpenAppStore()),
-})
+export default () => {
+  const message = Container.useSelector(state => state.config.appOutOfDateMessage)
+  const status = Container.useSelector(state => state.config.appOutOfDateStatus)
+  const dispatch = Container.useDispatch()
+  const onOpenAppStore = React.useCallback(() => {
+    dispatch(ConfigGen.createOpenAppStore())
+  }, [dispatch])
+  const props = {
+    message,
+    onOpenAppStore,
+    status,
+  }
 
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, _: OwnProps) => ({...stateProps, ...dispatchProps})
-)(OutOfDate)
+  return <OutOfDate {...props} />
+}
