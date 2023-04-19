@@ -10,7 +10,7 @@
     "incremental": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "lib": ["ESNext"],
+    "lib": ["ESNext", "dom"],
     "module": "commonjs",
     "paths": {
       "react-native-reanimated": [
