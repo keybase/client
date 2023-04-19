@@ -5,15 +5,11 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigGen from '../../actions/config-gen'
 import type {Props} from '.'
-import useFixStatusbar from '../../common-adapters/use-fix-statusbar.native'
 
 const ChatPDF = (props: Props) => {
   const {message, url} = props.route.params ?? {}
   const title = message?.title || message?.fileName || 'PDF'
   const [error, setError] = React.useState('')
-
-  useFixStatusbar()
-
   const dispatch = Container.useDispatch()
   const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
   const onShare = () =>

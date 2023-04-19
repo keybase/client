@@ -28,61 +28,70 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const blocked = Container.useSelector(state => state.users.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
-  const onMenuAddToTeam = () =>
+  const onMenuAddToTeam = React.useCallback(() => {
     keybaseUsername &&
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {username: keybaseUsername}, selected: 'profileAddToTeam'}],
-      })
-    )
-  const onOpenPrivateFolder = () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {username: keybaseUsername}, selected: 'profileAddToTeam'}],
+        })
+      )
+  }, [dispatch, keybaseUsername])
+
+  const onOpenPrivateFolder = React.useCallback(() => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
       FsConstants.makeActionForOpenPathInFilesTab(
         FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
       )
     )
-  }
-  const onBrowsePublicFolder = () => {
+  }, [dispatch, decoratedUsername, myUsername])
+
+  const onBrowsePublicFolder = React.useCallback(() => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
       FsConstants.makeActionForOpenPathInFilesTab(
         FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`)
       )
     )
-  }
+  }, [dispatch, decoratedUsername])
 
-  const onManageBlocking = () =>
+  const onManageBlocking = React.useCallback(() => {
     keybaseUsername &&
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
-      })
-    )
-  const onChat = () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
+        })
+      )
+  }, [dispatch, keybaseUsername])
+
+  const onChat = React.useCallback(() => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
-  }
-  const onSendLumens = () =>
+  }, [dispatch, decoratedUsername])
+
+  const onSendLumens = React.useCallback(() => {
     keybaseUsername &&
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: WalletsType.noAccountID,
-        isRequest: false,
-        recipientType: 'keybaseUser',
-        to: keybaseUsername,
-      })
-    )
-  const onRequestLumens = () =>
+      dispatch(
+        WalletsGen.createOpenSendRequestForm({
+          from: WalletsType.noAccountID,
+          isRequest: false,
+          recipientType: 'keybaseUser',
+          to: keybaseUsername,
+        })
+      )
+  }, [dispatch, keybaseUsername])
+
+  const onRequestLumens = React.useCallback(() => {
     keybaseUsername &&
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: WalletsType.noAccountID,
-        isRequest: true,
-        recipientType: 'keybaseUser',
-        to: keybaseUsername,
-      })
-    )
+      dispatch(
+        WalletsGen.createOpenSendRequestForm({
+          from: WalletsType.noAccountID,
+          isRequest: true,
+          recipientType: 'keybaseUser',
+          to: keybaseUsername,
+        })
+      )
+  }, [dispatch, keybaseUsername])
 
   const resultIsMe = keybaseUsername === myUsername
   const dropdown = keybaseUsername ? (
@@ -135,45 +144,66 @@ type DropdownProps = {
 }
 
 const DropdownButton = (p: DropdownProps) => {
-  const items: Kb.MenuItems = [
-    p.onAddToTeam && {icon: 'iconfont-add', onClick: p.onAddToTeam, title: 'Add to team...'},
-    p.onSendLumens && {icon: 'iconfont-stellar-send', onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
-    p.onRequestLumens && {
-      icon: 'iconfont-stellar-request',
-      onClick: p.onRequestLumens,
-      title: 'Request Lumens (XLM)',
-    },
-    p.onOpenPrivateFolder && {
-      icon: 'iconfont-folder-open',
-      onClick: p.onOpenPrivateFolder,
-      title: 'Open private folder',
-    },
-    p.onBrowsePublicFolder && {
-      icon: 'iconfont-folder-public',
-      onClick: p.onBrowsePublicFolder,
-      title: 'Browse public folder',
-    },
-    p.onManageBlocking && {
-      danger: true,
-      icon: 'iconfont-add',
-      onClick: p.onManageBlocking,
-      title: p.blocked ? 'Manage blocking' : 'Block',
-    },
-  ].reduce<Kb.MenuItems>((arr, i) => {
-    i && arr.push(i as Kb.MenuItem)
-    return arr
-  }, [])
+  const {onAddToTeam, onSendLumens, onRequestLumens} = p
+  const {onOpenPrivateFolder, onBrowsePublicFolder, onManageBlocking, blocked} = p
+  const items: Kb.MenuItems = React.useMemo(
+    () =>
+      [
+        onAddToTeam && {icon: 'iconfont-add', onClick: onAddToTeam, title: 'Add to team...'},
+        onSendLumens && {icon: 'iconfont-stellar-send', onClick: onSendLumens, title: 'Send Lumens (XLM)'},
+        onRequestLumens && {
+          icon: 'iconfont-stellar-request',
+          onClick: onRequestLumens,
+          title: 'Request Lumens (XLM)',
+        },
+        onOpenPrivateFolder && {
+          icon: 'iconfont-folder-open',
+          onClick: onOpenPrivateFolder,
+          title: 'Open private folder',
+        },
+        onBrowsePublicFolder && {
+          icon: 'iconfont-folder-public',
+          onClick: onBrowsePublicFolder,
+          title: 'Browse public folder',
+        },
+        onManageBlocking && {
+          danger: true,
+          icon: 'iconfont-add',
+          onClick: onManageBlocking,
+          title: blocked ? 'Manage blocking' : 'Block',
+        },
+      ].reduce<Kb.MenuItems>((arr, i) => {
+        i && arr.push(i as Kb.MenuItem)
+        return arr
+      }, []),
+    [
+      blocked,
+      onAddToTeam,
+      onBrowsePublicFolder,
+      onManageBlocking,
+      onOpenPrivateFolder,
+      onRequestLumens,
+      onSendLumens,
+    ]
+  )
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      closeOnSelect={true}
-      attachTo={attachTo}
-      items={items}
-      onHidden={toggleShowingPopup}
-      position="bottom right"
-      visible={showingPopup}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          closeOnSelect={true}
+          attachTo={attachTo}
+          items={items}
+          onHidden={toggleShowingPopup}
+          position="bottom right"
+          visible={true}
+        />
+      )
+    },
+    [items]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.ClickableBox

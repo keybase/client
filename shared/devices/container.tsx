@@ -67,11 +67,9 @@ const ReloadableDevices = (props: Props) => {
   }
 
   const {title} = props
-  React.useEffect(() => {
-    return () => {
-      dispatch(DevicesGen.createClearBadges())
-    }
-  }, [dispatch])
+  Container.useOnUnMountOnce(() => {
+    dispatch(DevicesGen.createClearBadges())
+  })
 
   return (
     <Kb.Reloadable

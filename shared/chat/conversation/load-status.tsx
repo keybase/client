@@ -1,11 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Styles from '../../../styles'
-
-type Props = {
-  status?: RPCChatTypes.UIChatThreadStatus
-}
+import * as Kb from '../../common-adapters'
+import * as Container from '../../util/container'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as Styles from '../../styles'
+import type * as Types from '../../constants/types/chat2'
 
 const ValidatedStatus = () => {
   const [visible, setVisible] = React.useState(true)
@@ -33,20 +31,24 @@ const getBkgColor = (status: RPCChatTypes.UIChatThreadStatus) => {
   }
 }
 
-const ThreadLoadStatus = (props: Props) => {
-  if (!props.status || props.status.typ === RPCChatTypes.UIChatThreadStatusTyp.none) {
+const ThreadLoadStatus = (p: {conversationIDKey: Types.ConversationIDKey}) => {
+  const {conversationIDKey} = p
+
+  const status = Container.useSelector(state => state.chat2.threadLoadStatus.get(conversationIDKey))
+
+  if (!status || status.typ === RPCChatTypes.UIChatThreadStatusTyp.none) {
     return null
   }
-  switch (props.status.typ) {
+  switch (status.typ) {
     case RPCChatTypes.UIChatThreadStatusTyp.server:
       return (
-        <Kb.Banner color={getBkgColor(props.status)} small={true} style={styles.banner}>
+        <Kb.Banner color={getBkgColor(status)} small={true} style={styles.banner}>
           Syncing messages with server...
         </Kb.Banner>
       )
     case RPCChatTypes.UIChatThreadStatusTyp.validating:
       return (
-        <Kb.Banner color={getBkgColor(props.status)} small={true} style={styles.banner}>
+        <Kb.Banner color={getBkgColor(status)} small={true} style={styles.banner}>
           Validating sender signing keys...
         </Kb.Banner>
       )

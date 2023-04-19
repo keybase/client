@@ -90,25 +90,43 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  const onDeleteChannel = () => {
-    dispatch(nav.safeNavigateUpPayload())
-    dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
-  }
+  const menuItems: Array<Kb.MenuItem> = React.useMemo(
+    () => [
+      // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
+      // It's included in the other place this menu appears.
+      ...(canDelete
+        ? [
+            {
+              danger: true,
+              onClick: () => {
+                dispatch(nav.safeNavigateUpPayload())
+                dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
+              },
+              title: 'Delete channel',
+            },
+          ]
+        : []),
+    ],
+    [dispatch, nav, teamID, conversationIDKey, canDelete]
+  )
 
-  const menuItems: Array<Kb.MenuItem> = [
-    // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
-    // It's included in the other place this menu appears.
-    ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
-  ]
-  const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={menuItems}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          items={menuItems}
+          onHidden={toggleShowingPopup}
+          visible={true}
+        />
+      )
+    },
+    [menuItems]
+  )
+
+  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const bottomDescriptorsAndButtons = (
     <>

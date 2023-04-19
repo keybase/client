@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -26,26 +27,32 @@ const _AddPeople = (props: Props) => {
     directAction = props.onAddToChannel
     directLabel = 'Add members to channel'
   }
+  const {isGeneralChannel, onAddToChannel, onAddPeople} = props
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => {
-    if (!props.isGeneralChannel) {
-      // general channel & small teams don't need a menu
-      const items: Kb.MenuItems = [
-        {icon: 'iconfont-people', onClick: props.onAddPeople, title: 'To team'},
-        {icon: 'iconfont-hash', onClick: props.onAddToChannel, title: 'To channel'},
-      ]
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={showingPopup}
-          items={items}
-          onHidden={toggleShowingPopup}
-          position="bottom left"
-          closeOnSelect={true}
-        />
-      )
-    } else return null
-  })
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      if (!isGeneralChannel) {
+        // general channel & small teams don't need a menu
+        const items: Kb.MenuItems = [
+          {icon: 'iconfont-people', onClick: onAddPeople, title: 'To team'},
+          {icon: 'iconfont-hash', onClick: onAddToChannel, title: 'To channel'},
+        ]
+        return (
+          <Kb.FloatingMenu
+            attachTo={attachTo}
+            visible={true}
+            items={items}
+            onHidden={toggleShowingPopup}
+            position="bottom left"
+            closeOnSelect={true}
+          />
+        )
+      } else return null
+    },
+    [isGeneralChannel, onAddPeople, onAddToChannel]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>

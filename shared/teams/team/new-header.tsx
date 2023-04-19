@@ -95,14 +95,14 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const newMemberCount = 0 // TODO plumbing
 
   const callbacks = useHeaderCallbacks(teamID)
-  const teamMenu = Kb.usePopup(attachTo => (
-    <TeamMenu
-      attachTo={attachTo}
-      onHidden={teamMenu.toggleShowingPopup}
-      teamID={props.teamID}
-      visible={teamMenu.showingPopup}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return <TeamMenu attachTo={attachTo} onHidden={toggleShowingPopup} teamID={teamID} visible={true} />
+    },
+    [teamID]
+  )
+  const teamMenu = Kb.usePopup2(makePopup)
 
   const avatar = (
     <Kb.Avatar

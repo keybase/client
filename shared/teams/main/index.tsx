@@ -143,30 +143,39 @@ const sortOrderToTitle = {
 }
 const SortHeader = () => {
   const dispatch = Container.useDispatch()
-  const onChangeSort = (sortOrder: Types.TeamListSort) =>
-    dispatch(TeamsGen.createSetTeamListFilterSort({sortOrder}))
-  const {popup, toggleShowingPopup, popupAnchor, showingPopup} = Kb.usePopup(getAttachmentRef => (
-    <Kb.FloatingMenu
-      attachTo={getAttachmentRef}
-      items={[
-        {icon: 'iconfont-team', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
-        {
-          icon: 'iconfont-campfire',
-          onClick: () => onChangeSort('activity'),
-          title: sortOrderToTitle.activity,
-        },
-        {
-          icon: 'iconfont-sort-alpha',
-          onClick: () => onChangeSort('alphabetical'),
-          title: sortOrderToTitle.alphabetical,
-        },
-      ]}
-      closeOnSelect={true}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-      position="bottom left"
-    />
-  ))
+
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const onChangeSort = (sortOrder: Types.TeamListSort) =>
+        dispatch(TeamsGen.createSetTeamListFilterSort({sortOrder}))
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          items={[
+            {icon: 'iconfont-team', onClick: () => onChangeSort('role'), title: sortOrderToTitle.role},
+            {
+              icon: 'iconfont-campfire',
+              onClick: () => onChangeSort('activity'),
+              title: sortOrderToTitle.activity,
+            },
+            {
+              icon: 'iconfont-sort-alpha',
+              onClick: () => onChangeSort('alphabetical'),
+              title: sortOrderToTitle.alphabetical,
+            },
+          ]}
+          closeOnSelect={true}
+          onHidden={toggleShowingPopup}
+          visible={true}
+          position="bottom left"
+        />
+      )
+    },
+    [dispatch]
+  )
+
+  const {popup, toggleShowingPopup, popupAnchor} = Kb.usePopup2(makePopup)
   const sortOrder = Container.useSelector(s => s.teams.teamListSort)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>

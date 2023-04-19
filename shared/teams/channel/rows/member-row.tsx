@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import type * as Types from '../../../constants/types/teams'
@@ -45,14 +46,15 @@ const ChannelMemberRow = (props: Props) => {
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
-  const crown =
-    active && roleType && showCrown[roleType] ? (
+  const crown = React.useMemo(() => {
+    return active && roleType && showCrown[roleType] ? (
       <Kb.Icon
         type={('iconfont-crown-' + teamMemberInfo.type) as any}
         style={styles.crownIcon}
         fontSize={10}
       />
     ) : null
+  }, [active, roleType, teamMemberInfo.type])
   const fullNameLabel =
     fullname && active ? (
       <Kb.Text style={styles.fullNameLabel} type="BodySmall" lineClamp={1}>
@@ -80,38 +82,16 @@ const ChannelMemberRow = (props: Props) => {
   const onSelect = (selected: boolean) => {
     dispatch(TeamsGen.createChannelSetMemberSelected({conversationIDKey, selected, username: username}))
   }
-  const onChat = () =>
+  const onChat = React.useCallback(() => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))
-  const onEditMember = () =>
+  }, [username, dispatch])
+  const onEditMember = React.useCallback(() => {
     yourOperations.manageMembers &&
-    username &&
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]}))
-  const onOpenProfile = () => username && dispatch(ProfileGen.createShowUserProfile({username}))
-  const onRemoveFromChannel = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, members: [username], teamID},
-            selected: 'teamReallyRemoveChannelMember',
-          },
-        ],
-      })
-    )
-  const onBlock = () =>
-    username &&
-    dispatch(
-      UsersGen.createSetUserBlocks({
-        blocks: [
-          {
-            setChatBlock: true,
-            setFollowBlock: true,
-            username,
-          },
-        ],
-      })
-    )
-
+      username &&
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]})
+      )
+  }, [yourOperations.manageMembers, username, dispatch, teamID])
   const checkCircle = (
     <Kb.CheckCircle
       checked={memberSelected}
@@ -148,70 +128,117 @@ const ChannelMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
-  const menuHeader = (
-    <MenuHeader
-      username={username}
-      fullName={fullname}
-      label={
-        <Kb.Box2 direction="horizontal">
-          <Kb.Text type="BodySmall">{crown}</Kb.Text>
-          <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
-        </Kb.Box2>
-      }
-    />
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const onOpenProfile = () => username && dispatch(ProfileGen.createShowUserProfile({username}))
+      const onRemoveFromChannel = () =>
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [
+              {
+                props: {conversationIDKey, members: [username], teamID},
+                selected: 'teamReallyRemoveChannelMember',
+              },
+            ],
+          })
+        )
+      const onBlock = () =>
+        username &&
+        dispatch(
+          UsersGen.createSetUserBlocks({
+            blocks: [
+              {
+                setChatBlock: true,
+                setFollowBlock: true,
+                username,
+              },
+            ],
+          })
+        )
+
+      const menuItems: Kb.MenuItems = [
+        'Divider',
+        ...(yourOperations.manageMembers
+          ? ([
+              {
+                icon: 'iconfont-chat',
+                onClick: () =>
+                  dispatch(
+                    RouteTreeGen.createNavigateAppend({
+                      path: [{props: {teamID, usernames: [username]}, selected: 'teamAddToChannels'}],
+                    })
+                  ),
+                title: 'Add to channels...',
+              },
+              {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},
+            ] as Kb.MenuItems)
+          : []),
+        {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
+        {icon: 'iconfont-chat', onClick: onChat, title: 'Chat'},
+        ...(yourOperations.manageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
+        ...((yourOperations.manageMembers || isYou) && !props.isGeneral
+          ? ([
+              {
+                danger: true,
+                icon: 'iconfont-remove',
+                onClick: onRemoveFromChannel,
+                title: 'Remove from channel',
+              },
+            ] as Kb.MenuItems)
+          : []),
+        ...(!isYou
+          ? ([
+              {
+                danger: true,
+                icon: 'iconfont-user-block',
+                onClick: onBlock,
+                title: 'Block',
+              },
+            ] as Kb.MenuItems)
+          : []),
+      ]
+      const menuHeader = (
+        <MenuHeader
+          username={username}
+          fullName={fullname}
+          label={
+            <Kb.Box2 direction="horizontal">
+              <Kb.Text type="BodySmall">{crown}</Kb.Text>
+              <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
+            </Kb.Box2>
+          }
+        />
+      )
+
+      return (
+        <Kb.FloatingMenu
+          header={menuHeader}
+          attachTo={attachTo}
+          closeOnSelect={true}
+          items={menuItems}
+          onHidden={toggleShowingPopup}
+          visible={true}
+        />
+      )
+    },
+    [
+      fullname,
+      roleLabel,
+      teamID,
+      dispatch,
+      yourOperations,
+      username,
+      isYou,
+      onChat,
+      onEditMember,
+      props.isGeneral,
+      conversationIDKey,
+      crown,
+    ]
   )
 
-  const menuItems: Kb.MenuItems = [
-    'Divider',
-    ...(yourOperations.manageMembers
-      ? ([
-          {
-            icon: 'iconfont-chat',
-            onClick: () =>
-              dispatch(
-                RouteTreeGen.createNavigateAppend({
-                  path: [{props: {teamID, usernames: [username]}, selected: 'teamAddToChannels'}],
-                })
-              ),
-            title: 'Add to channels...',
-          },
-          {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},
-        ] as Kb.MenuItems)
-      : []),
-    {icon: 'iconfont-person', onClick: onOpenProfile, title: 'View profile'},
-    {icon: 'iconfont-chat', onClick: onChat, title: 'Chat'},
-    ...(yourOperations.manageMembers || !isYou ? (['Divider'] as Kb.MenuItems) : []),
-    ...((yourOperations.manageMembers || isYou) && !props.isGeneral
-      ? ([
-          {
-            danger: true,
-            icon: 'iconfont-remove',
-            onClick: onRemoveFromChannel,
-            title: 'Remove from channel',
-          },
-        ] as Kb.MenuItems)
-      : []),
-    ...(!isYou
-      ? ([
-          {
-            danger: true,
-            icon: 'iconfont-user-block',
-            onClick: onBlock,
-            title: 'Block',
-          },
-        ] as Kb.MenuItems)
-      : []),
-  ]
-  const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      header={menuHeader}
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={menuItems}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-    />
-  ))
+  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
 
   const actions = (
     <Kb.Box2

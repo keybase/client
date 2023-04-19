@@ -1,9 +1,9 @@
-import * as CryptoGen from '../../actions/crypto-gen'
-import * as Container from '../../util/container'
-import * as Constants from '../../constants/crypto'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {appendEncryptRecipientsBuilder} from '../../actions/typed-routes'
+import * as CryptoGen from '../actions/crypto-gen'
+import * as Container from '../util/container'
+import * as Constants from '../constants/crypto'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
+import {appendEncryptRecipientsBuilder} from '../actions/typed-routes'
 
 const placeholder = 'Search people'
 

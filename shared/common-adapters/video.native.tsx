@@ -2,14 +2,11 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import Box from './box'
 import type {Props} from './video'
-import useFixStatusbar from './use-fix-statusbar.native'
 import {StatusBar} from 'react-native'
 import {Video as AVVideo, VideoFullscreenUpdate} from 'expo-av'
 import {useVideoSizer, CheckURL} from './video.shared'
 
-const Kb = {
-  Box,
-}
+const Kb = {Box}
 
 // There seems to be a race between navigation animation and the measurement stuff
 // here that causes stuff to be rendered off-screen. So delay mounting to avoid
@@ -25,7 +22,6 @@ const DelayMount = ({children}) => {
 
 const Video = (props: Props) => {
   const [videoSize, setContainerSize, setVideoNaturalSize] = useVideoSizer()
-  useFixStatusbar()
   return (
     <CheckURL url={props.url} allowFile={props.allowFile}>
       <DelayMount>

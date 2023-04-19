@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
 import Toast from './toast.desktop'
 import Text from './text.desktop'
 
@@ -18,21 +19,17 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   const {src, onZoomed, style} = p
   const [isZoomed, setIsZoomed] = React.useState(false)
   const [imgSize, setImgSize] = React.useState({height: 0, width: 0})
+  const isMounted = Container.useIsMounted()
+  const [lastSrc, setLastSrc] = React.useState(src)
 
-  const isMountedRef = React.useRef(true)
-  React.useEffect(() => {
-    return () => {
-      isMountedRef.current = false
-    }
-  }, [])
-
-  React.useEffect(() => {
+  if (lastSrc !== src) {
+    setLastSrc(src)
     const img = new Image()
     img.src = src
     img.onload = () => {
-      isMountedRef.current && setImgSize({height: img.naturalHeight, width: img.naturalWidth})
+      isMounted() && setImgSize({height: img.naturalHeight, width: img.naturalWidth})
     }
-  }, [src])
+  }
 
   const onImageMouseLeave = React.useCallback(() => {
     const target = document.getElementById('imgAttach')
@@ -49,9 +46,13 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     setZoomRatio(initialZoomRatio)
   }, [isZoomed, onZoomed])
 
-  React.useEffect(() => {
-    !isZoomed && onImageMouseLeave()
-  }, [onImageMouseLeave, isZoomed])
+  const [lastIsZoomed, setLastIsZoomed] = React.useState(isZoomed)
+  if (lastIsZoomed !== isZoomed) {
+    setLastIsZoomed(isZoomed)
+    if (!isZoomed) {
+      onImageMouseLeave()
+    }
+  }
 
   const toastAnchorRef = React.useRef(null)
   const [showToast, setShowToast] = React.useState(false)
@@ -126,9 +127,12 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     img.style.transform = temp
   }, [zoomRatio, imgSize, isZoomed])
 
-  React.useEffect(() => {
+  const [lastZoomRatio, setLastZoomRatio] = React.useState(0)
+  if (lastZoomRatio !== zoomRatio || isZoomed !== lastIsZoomed) {
+    setLastZoomRatio(zoomRatio)
+    setLastIsZoomed(isZoomed)
     adjustImageStyle()
-  }, [adjustImageStyle, zoomRatio, isZoomed])
+  }
 
   const onImageMouseMove = React.useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
