@@ -390,33 +390,28 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
   const dispatch = Container.useDispatch()
   const showingDueToSelect = React.useRef(false)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <TeamInfo
-          attachTo={attachTo}
-          description={description ?? ''}
-          inTeam={inTeam}
-          isOpen={true}
-          name={name}
-          membersCount={memberCount}
-          position="right center"
-          onChat={undefined}
-          onHidden={toggleShowingPopup}
-          onJoinTeam={() => dispatch(TeamsGen.createJoinTeam({teamname: name}))}
-          onViewTeam={() => {
-            dispatch(RouteTreeGen.createClearModals())
-            dispatch(TeamsGen.createShowTeamByName({teamname: name}))
-          }}
-          publicAdmins={publicAdmins ?? []}
-          visible={true}
-        />
-      )
-    },
-    [description, dispatch, inTeam, memberCount, name, publicAdmins]
+  const {showingPopup, setShowingPopup, popup, popupAnchor, toggleShowingPopup} = Kb.usePopup<Kb.Box2>(
+    attachTo => (
+      <TeamInfo
+        attachTo={attachTo}
+        description={description ?? ''}
+        inTeam={inTeam}
+        isOpen={true}
+        name={name}
+        membersCount={memberCount}
+        position="right center"
+        onChat={undefined}
+        onHidden={toggleShowingPopup}
+        onJoinTeam={() => dispatch(TeamsGen.createJoinTeam({teamname: name}))}
+        onViewTeam={() => {
+          dispatch(RouteTreeGen.createClearModals())
+          dispatch(TeamsGen.createShowTeamByName({teamname: name}))
+        }}
+        publicAdmins={publicAdmins ?? []}
+        visible={showingPopup}
+      />
+    )
   )
-  const {showingPopup, setShowingPopup, popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   React.useEffect(() => {
     if (!showingPopup && isSelected && !showingDueToSelect.current) {
@@ -433,7 +428,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
-        ref={popupAnchor as any}
+        ref={popupAnchor}
         centerChildren={true}
         className="hover_background_color_blueGreyDark"
         style={Styles.collapseStyles([

@@ -18,7 +18,7 @@ const Editing = ({editID}: Props) => {
   const edit = Container.useSelector(state => state.fs.edits.get(editID) || Constants.emptyNewFolder)
   const [filename, setFilename] = React.useState(edit.name)
   React.useEffect(() => {
-    dispatch(FsGen.createSetEditName({editID, name: filename}))
+    dispatch(FsGen.createSetEditName({editID: editID, name: filename}))
   }, [editID, filename, dispatch])
   const onKeyUp = (event: React.KeyboardEvent) => event.key === 'Escape' && onCancel()
   return (

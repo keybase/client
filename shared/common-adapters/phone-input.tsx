@@ -10,7 +10,7 @@ import FloatingPicker from './floating-picker'
 import ProgressIndicator from './progress-indicator'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
-import {usePopup2, type Popup2Parms} from './use-popup'
+import {usePopup} from './use-popup'
 import {isIOS, isMobile} from '../constants/platform'
 import {
   countryData,
@@ -33,7 +33,7 @@ const Kb = {
   ProgressIndicator,
   SearchFilter,
   Text,
-  usePopup2,
+  usePopup,
 }
 
 const normalizeCountryCode = (countryCode: string) =>
@@ -607,39 +607,24 @@ const PhoneInput = (p: Props) => {
 
   const {defaultCountry} = p
 
-  const toggleShowingMenu = React.useCallback(
-    (toggleShowingPopup: () => void) => {
-      if (!country && defaultCountry) {
-        countrySelectorRef.current?.onSelectMenu(defaultCountry)
-      }
-      countrySelectorRef.current?.clearFilter()
-      toggleShowingPopup()
-    },
-    [country, defaultCountry]
-  )
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <CountrySelector
+      attachTo={attachTo}
+      onSelect={onSelectCountry}
+      onHidden={toggleShowingMenu}
+      selected={country}
+      visible={showingPopup}
+      ref={countrySelectorRef}
+    />
+  ))
 
-  const makePopup = React.useCallback(
-    (p: Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <CountrySelector
-          attachTo={attachTo}
-          onSelect={onSelectCountry}
-          onHidden={() => toggleShowingMenu(toggleShowingPopup)}
-          selected={country}
-          visible={true}
-          ref={countrySelectorRef}
-        />
-      )
-    },
-    [country, onSelectCountry, toggleShowingMenu]
-  )
-
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
-
-  const _toggleShowingMenu = React.useCallback(() => {
-    toggleShowingMenu(toggleShowingPopup)
-  }, [toggleShowingMenu, toggleShowingPopup])
+  const toggleShowingMenu = React.useCallback(() => {
+    if (!country && defaultCountry) {
+      countrySelectorRef.current?.onSelectMenu(defaultCountry)
+    }
+    countrySelectorRef.current?.clearFilter()
+    toggleShowingPopup()
+  }, [country, defaultCountry, toggleShowingPopup])
 
   // this component is a mess. Has a lot of circular logic in the helpers which can't be easily hookified and i don't
   // want to rewrite this now
@@ -661,7 +646,7 @@ const PhoneInput = (p: Props) => {
       prefix={prefix}
       setPrefix={setPrefix}
       phoneInputRef={phoneInputRef}
-      toggleShowingMenu={_toggleShowingMenu}
+      toggleShowingMenu={toggleShowingMenu}
     />
   )
 }

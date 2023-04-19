@@ -1,4 +1,3 @@
-import * as React from 'react'
 import type * as Types from '../../../../constants/types/teams'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/teams'
@@ -38,43 +37,23 @@ const ChannelRow = (props: ChannelRowProps) => {
       TeamsGen.createSetChannelSelected({channel: channel.conversationIDKey, selected: newSelected, teamID})
     )
   }
-
-  const onEditChannel = React.useCallback(() => {
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {
-              afterEdit: () => {
-                dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
-              },
-              channelname: channel.channelname,
-              conversationIDKey: channel.conversationIDKey,
-              description: channel.description,
-              teamID,
-            },
-            selected: 'teamEditChannel',
-          },
-        ],
-      })
-    )
-  }, [dispatch, nav, channel, teamID])
-  const onNavToChannel = React.useCallback(() => {
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {
-              conversationIDKey: channel.conversationIDKey,
-              teamID,
-            },
-            selected: 'teamChannel',
-          },
-        ],
-      })
-    )
-  }, [dispatch, nav, channel, teamID])
-  const onNavToSettings = React.useCallback(() => {
+  const navPropsForAction = {
+    conversationIDKey: channel.conversationIDKey,
+    teamID,
+  }
+  const editChannelProps = {
+    ...navPropsForAction,
+    afterEdit: () => {
+      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+    },
+    channelname: channel.channelname,
+    description: channel.description,
+  }
+  const onEditChannel = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: editChannelProps, selected: 'teamEditChannel'}]}))
+  const onNavToChannel = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: navPropsForAction, selected: 'teamChannel'}]}))
+  const onNavToSettings = () =>
     dispatch(
       nav.safeNavigateAppendPayload({
         path: [
@@ -89,11 +68,9 @@ const ChannelRow = (props: ChannelRowProps) => {
         ],
       })
     )
-  }, [channel, props, nav, dispatch])
 
-  const onDeleteChannel = React.useCallback(() => {
+  const onDeleteChannel = () =>
     dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey: channel.conversationIDKey, teamID}))
-  }, [dispatch, channel, teamID])
   const checkCircle = (
     <Kb.CheckCircle
       checked={selected}
@@ -122,26 +99,19 @@ const ChannelRow = (props: ChannelRowProps) => {
     </Kb.Box2>
   )
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      const menuItems: Array<Kb.MenuItem> = [
-        {onClick: onNavToSettings, title: 'Settings'},
-        ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
-      ]
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={menuItems}
-          onHidden={toggleShowingPopup}
-          visible={true}
-        />
-      )
-    },
-    [canDelete, onDeleteChannel, onNavToSettings]
-  )
-  const {toggleShowingPopup, popupAnchor, popup} = Kb.usePopup2(makePopup)
+  const menuItems: Array<Kb.MenuItem> = [
+    {onClick: onNavToSettings, title: 'Settings'},
+    ...(canDelete ? [{danger: true, onClick: onDeleteChannel, title: 'Delete channel'}] : []),
+  ]
+  const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      closeOnSelect={true}
+      items={menuItems}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
+    />
+  ))
 
   const actions = canPerform.deleteChannel ? (
     <Kb.Box2

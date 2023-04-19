@@ -43,6 +43,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const {swipeCloseRef, children, onClick} = p
   const conversationIDKey = React.useContext(ConversationIDKeyContext)
   const [extraData, setExtraData] = React.useState(0)
+
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   if (lastCID !== conversationIDKey) {
     setLastCID(conversationIDKey)

@@ -38,44 +38,35 @@ export const TeamRequestRow = (props: Props) => {
   const approveWord = reset ? 'Readmit' : 'Approve'
   const denyWord = reset ? 'Remove' : 'Deny'
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <Kb.FloatingMenu
-          header={
-            <MenuHeader
-              username={username}
-              fullName={fullName ? fullName : undefined}
-              label={
-                reset ? 'Reset their account' : `Requested to join ${formatTimeRelativeToNow(ctime * 1000)}`
-              }
-            />
-          }
-          items={[
-            'Divider',
-            {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
-            {icon: 'iconfont-check', onClick: props.onAccept, title: approveWord},
-            {
-              danger: true,
-              icon: 'iconfont-block',
-              onClick: props.onIgnoreRequest,
-              subTitle: `They won't be notified`,
-              title: denyWord,
-            },
-          ]}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          closeOnSelect={true}
-          attachTo={attachTo}
-          position="bottom left"
-          positionFallbacks={['left center' as const, 'top left' as const]}
+  const {showingPopup, setShowingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      header={
+        <MenuHeader
+          username={username}
+          fullName={fullName ? fullName : undefined}
+          label={reset ? 'Reset their account' : `Requested to join ${formatTimeRelativeToNow(ctime * 1000)}`}
         />
-      )
-    },
-    [approveWord, ctime, denyWord, fullName, props, reset, username]
-  )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+      }
+      items={[
+        'Divider',
+        {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
+        {icon: 'iconfont-check', onClick: props.onAccept, title: approveWord},
+        {
+          danger: true,
+          icon: 'iconfont-block',
+          onClick: props.onIgnoreRequest,
+          subTitle: `They won't be notified`,
+          title: denyWord,
+        },
+      ]}
+      visible={showingPopup}
+      onHidden={() => setShowingPopup(false)}
+      closeOnSelect={true}
+      attachTo={attachTo}
+      position="bottom left"
+      positionFallbacks={['left center' as const, 'top left' as const]}
+    />
+  ))
 
   return (
     <Kb.ListItem2

@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import EmojiRow from '../emoji-row/container'
 import ReactButton from '../react-button/container'
-import ReactionTooltip from '../reaction-tooltip'
+import ReactionTooltip from '../reaction-tooltip/container'
 import type * as Types from '../../../../constants/types/chat2'
 import {ConvoIDContext, OrdinalContext} from '../ids-context'
 

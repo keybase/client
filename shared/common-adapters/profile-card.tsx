@@ -138,15 +138,12 @@ const ProfileCard = ({
     assertion => assertion.state !== 'valid'
   )
   const [showFollowButton, setShowFollowButton] = React.useState(false)
-  if (!showFollowButton) {
-    const shouldShowFollowButton = !isSelf && !hasBrokenProof && !followThem && userDetails.state === 'valid'
+  React.useEffect(() => {
     // Don't show follow button for self; additionally if any proof is broken
     // don't show follow button. If we are aleady following, don't "invite" to
     // unfollow. But dont' hide the button if user has just followed the user.
-    if (shouldShowFollowButton) {
-      setShowFollowButton(true)
-    }
-  }
+    !isSelf && !hasBrokenProof && !followThem && userDetails.state === 'valid' && setShowFollowButton(true)
+  }, [isSelf, hasBrokenProof, followThem, userDetails])
 
   const dispatch = Container.useDispatch()
 

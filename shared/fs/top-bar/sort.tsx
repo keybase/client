@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
@@ -32,29 +31,26 @@ const makeSortOptionItem = (sortSetting: Types.SortSetting, onClick?: () => void
 })
 
 const Sort = (props: SortBarProps) => {
-  const {sortSetting, sortByNameAsc, sortByNameDesc, sortByTimeAsc, sortByTimeDesc} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          position="bottom left"
-          closeOnSelect={true}
-          items={[
-            ...(sortByNameAsc ? [makeSortOptionItem(Types.SortSetting.NameAsc, sortByNameAsc)] : []),
-            ...(sortByNameDesc ? [makeSortOptionItem(Types.SortSetting.NameDesc, sortByNameDesc)] : []),
-            ...(sortByTimeAsc ? [makeSortOptionItem(Types.SortSetting.TimeAsc, sortByTimeAsc)] : []),
-            ...(sortByTimeDesc ? [makeSortOptionItem(Types.SortSetting.TimeDesc, sortByTimeDesc)] : []),
-          ]}
-        />
-      )
-    },
-    [sortByNameAsc, sortByNameDesc, sortByTimeAsc, sortByTimeDesc]
-  )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {sortSetting} = props
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      position="bottom left"
+      closeOnSelect={true}
+      items={[
+        ...(props.sortByNameAsc ? [makeSortOptionItem(Types.SortSetting.NameAsc, props.sortByNameAsc)] : []),
+        ...(props.sortByNameDesc
+          ? [makeSortOptionItem(Types.SortSetting.NameDesc, props.sortByNameDesc)]
+          : []),
+        ...(props.sortByTimeAsc ? [makeSortOptionItem(Types.SortSetting.TimeAsc, props.sortByTimeAsc)] : []),
+        ...(props.sortByTimeDesc
+          ? [makeSortOptionItem(Types.SortSetting.TimeDesc, props.sortByTimeDesc)]
+          : []),
+      ]}
+    />
+  ))
   return sortSetting ? (
     <>
       <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>

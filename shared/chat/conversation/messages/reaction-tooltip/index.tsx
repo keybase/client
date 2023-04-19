@@ -1,14 +1,9 @@
-import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
-import * as Kb from '../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Styles from '../../../styles'
-import ReactButton from './react-button/container'
-import shallowEqual from 'shallowequal'
-import type * as Types from '../../../constants/types/chat2'
-import type * as UsersTypes from '../../../constants/types/users'
-import {ConvoIDContext, OrdinalContext} from './ids-context'
+import * as Styles from '../../../../styles'
+import ReactButton from '../react-button/container'
+import type * as Types from '../../../../constants/types/chat2'
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 
 export type Props = {
   attachmentRef?: () => React.Component<any> | null
@@ -28,93 +23,7 @@ export type Props = {
   visible: boolean
 }
 
-type OwnProps = {
-  attachmentRef?: any
-  conversationIDKey: Types.ConversationIDKey
-  emoji?: string
-  onHidden: () => void
-  onMouseLeave?: (syntheticEvent: React.SyntheticEvent) => void
-  onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void
-  ordinal: Types.Ordinal
-  visible: boolean
-}
-
-const emptyStateProps = {
-  _reactions: new Map<string, Types.ReactionDesc>(),
-  _usersInfo: new Map<string, UsersTypes.UserInfo>(),
-}
-
-const ReactionTooltip = (p: OwnProps) => {
-  const {conversationIDKey, ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
-  const {_reactions, _usersInfo} = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
-    if (message && Constants.isMessageWithReactions(message)) {
-      const _reactions = message.reactions
-      const _usersInfo = state.users.infoMap
-      return {_reactions, _usersInfo}
-    }
-    return emptyStateProps
-  }, shallowEqual)
-
-  const dispatch = Container.useDispatch()
-  const onAddReaction = React.useCallback(() => {
-    onHidden()
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal},
-            selected: 'chatChooseEmoji',
-          },
-        ],
-      })
-    )
-  }, [dispatch, onHidden, conversationIDKey, ordinal])
-
-  let reactions = [..._reactions.keys()]
-    .map(emoji => ({
-      emoji,
-      users: [...(_reactions.get(emoji)?.users ?? new Set())]
-        // Earliest users go at the top
-        .sort((a, b) => a.timestamp - b.timestamp)
-        .map(r => ({
-          fullName: (_usersInfo.get(r.username) || {fullname: ''}).fullname || '',
-          timestamp: r.timestamp,
-          username: r.username,
-        })),
-    }))
-    .sort(
-      // earliest reactions go at the top
-      (a, b) => (a.users[0]?.timestamp || 0) - (b.users[0]?.timestamp || 0)
-    )
-    // strip timestamp
-    .map(e => ({
-      emoji: e.emoji,
-      users: e.users.map(u => ({
-        fullName: u.fullName,
-        username: u.username,
-      })),
-    }))
-  if (!Container.isMobile && emoji) {
-    // Filter down to selected emoji
-    reactions = reactions.filter(r => r.emoji === emoji)
-  }
-  const props = {
-    attachmentRef,
-    conversationIDKey,
-    onAddReaction,
-    onHidden,
-    onMouseLeave,
-    onMouseOver,
-    ordinal,
-    reactions,
-    visible,
-  }
-
-  return <ReactionTooltipImpl {...props} />
-}
-
-const ReactionTooltipImpl = (props: Props) => {
+const ReactionTooltip = (props: Props) => {
   const insets = Kb.useSafeAreaInsets()
   if (!props.visible) {
     return null

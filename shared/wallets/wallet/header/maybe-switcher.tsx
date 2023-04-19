@@ -10,11 +10,13 @@ type Props = {
 const NoSwitcher = (props: Props) => <>{props.children}</>
 
 const Switcher = (props: Props) => {
-  const makePopup = React.useCallback((p: Kb.Popup2Parms) => {
-    const {attachTo, toggleShowingPopup} = p
-    return <WalletSwitcher getAttachmentRef={attachTo} hideMenu={toggleShowingPopup} showingMenu={true} />
-  }, [])
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, setShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <WalletSwitcher
+      getAttachmentRef={attachTo}
+      hideMenu={() => setShowingPopup(false)}
+      showingMenu={showingPopup}
+    />
+  ))
 
   return (
     <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as Container from '../util/container'
 import type {Props, ReqProps} from './image'
 import LoadingStateView from './loading-state-view'
 
@@ -9,7 +8,13 @@ const RequireImage = React.forwardRef<any, ReqProps>(({src, style}: ReqProps, re
 ))
 const Image = React.forwardRef<any, Props>(function Image(props: Props, ref: any) {
   const [loading, setLoading] = React.useState(true)
-  const isMounted = Container.useIsMounted()
+  const isMounted = React.useRef<Boolean>(true)
+  React.useEffect(
+    () => () => {
+      isMounted.current = false
+    },
+    []
+  )
   const style = {
     ...props.style,
     ...(props.showLoadingStateUntilLoaded && loading ? styles.absolute : {}),
@@ -25,8 +30,8 @@ const Image = React.forwardRef<any, Props>(function Image(props: Props, ref: any
         onDragStart={props.onDragStart}
         draggable={props.draggable}
         onLoad={evt => {
-          isMounted() && setLoading(false)
-          props.onLoad?.(evt)
+          isMounted.current && setLoading(false)
+          props.onLoad && props.onLoad(evt)
         }}
         onError={props.onError}
       />

@@ -26,54 +26,41 @@ const getAncestors = memoize(path =>
 
 const Breadcrumb = (props: Props) => {
   const ancestors = getAncestors(props.path || Constants.defaultPath)
-  const {inDestinationPicker} = props
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onOpenPath = React.useCallback(
-    (path: Types.Path) => {
-      inDestinationPicker
-        ? Constants.makeActionsForDestinationPickerOpen(0, path, nav.safeNavigateAppendPayload).forEach(
-            action => dispatch(action)
-          )
-        : dispatch(nav.safeNavigateAppendPayload({path: [{props: {path}, selected: 'fsRoot'}]}))
-    },
-    [dispatch, nav, inDestinationPicker]
-  )
+  const onOpenPath = (path: Types.Path) =>
+    props.inDestinationPicker
+      ? Constants.makeActionsForDestinationPickerOpen(0, path, nav.safeNavigateAppendPayload).forEach(
+          action => dispatch(action)
+        )
+      : dispatch(nav.safeNavigateAppendPayload({path: [{props: {path}, selected: 'fsRoot'}]}))
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <Kb.FloatingMenu
-          containerStyle={styles.floating}
-          attachTo={attachTo}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          items={ancestors
-            .slice(0, -2)
-            .reverse()
-            .map(path => ({
-              onClick: () => onOpenPath(path),
-              title: Types.getPathName(path),
-              view: (
-                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kbfs.ItemIcon path={path} size={16} />
-                  <Kb.Text type="Body" lineClamp={1}>
-                    {Types.getPathName(path)}
-                  </Kb.Text>
-                </Kb.Box2>
-              ),
-            }))}
-          position="bottom left"
-          closeOnSelect={true}
-        />
-      )
-    },
-    [ancestors, onOpenPath]
-  )
-
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      containerStyle={styles.floating}
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      items={ancestors
+        .slice(0, -2)
+        .reverse()
+        .map(path => ({
+          onClick: () => onOpenPath(path),
+          title: Types.getPathName(path),
+          view: (
+            <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+              <Kbfs.ItemIcon path={path} size={16} />
+              <Kb.Text type="Body" lineClamp={1}>
+                {Types.getPathName(path)}
+              </Kb.Text>
+            </Kb.Box2>
+          ),
+        }))}
+      position="bottom left"
+      closeOnSelect={true}
+    />
+  ))
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>

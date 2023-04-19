@@ -14,6 +14,16 @@ export const useActions = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   return {markInitiallyLoadedThreadAsRead}
 }
 
+export const useIsMounted = () => {
+  const isMountedRef = React.useRef(true)
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+  return isMountedRef
+}
+
 export const useJumpToRecent = (
   conversationIDKey: Types.ConversationIDKey,
   scrollToBottom: () => void,

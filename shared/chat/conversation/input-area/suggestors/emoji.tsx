@@ -51,11 +51,9 @@ const empty = []
 
 export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
   const dispatch = Container.useDispatch()
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
+  React.useEffect(() => {
     dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
-  }
+  }, [dispatch, conversationIDKey])
 
   const {userEmojis, userEmojisLoading} = Container.useSelector(state => {
     const userEmojis = state.chat2.userEmojisForAutocomplete

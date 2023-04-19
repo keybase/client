@@ -148,23 +148,14 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const {supersedes, teamType, teamRetentionPolicy, username} = data
   // we defer showing this so it doesn't flash so much
   const [allowDigging, setAllowDigging] = React.useState(false)
-  const [lastOrdinal, setLastOrdinal] = React.useState(ordinal)
-
-  const digTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>()
-  if (ordinal !== lastOrdinal) {
-    setAllowDigging(false)
-    setLastOrdinal(ordinal)
-    digTimerRef.current && clearTimeout(digTimerRef.current)
-    digTimerRef.current = setTimeout(() => {
-      setAllowDigging(true)
-    }, 3000)
-  }
 
   React.useEffect(() => {
-    return () => {
-      digTimerRef.current && clearTimeout(digTimerRef.current)
-    }
-  }, [])
+    setAllowDigging(false)
+    const id = setTimeout(() => {
+      setAllowDigging(true)
+    }, 3000)
+    return () => clearTimeout(id)
+  }, [ordinal])
 
   // could not expose this and just return an enum for the is*convos
   const participantInfoAll = Container.useSelector(

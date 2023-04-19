@@ -94,20 +94,9 @@ const useCustomReacji = (
   const customEmojiGroups = Container.useSelector(s => s.chat2.userEmojis)
   const waiting = Container.useSelector(s => Container.anyWaiting(s, Constants.waitingKeyLoadingEmoji))
   const dispatch = Container.useDispatch()
-
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  const [lastOnlyInTeam, setLastOnlyInTeam] = React.useState(onlyInTeam)
-  const [lastDisabled, setLastDisabled] = React.useState(disabled)
-
-  if (lastCID !== conversationIDKey || lastOnlyInTeam !== onlyInTeam || lastDisabled !== disabled) {
-    setLastCID(conversationIDKey)
-    setLastOnlyInTeam(onlyInTeam)
-    setLastDisabled(disabled)
-    if (!disabled) {
-      dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey, onlyInTeam}))
-    }
-  }
-
+  React.useEffect(() => {
+    !disabled && dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey, onlyInTeam}))
+  }, [conversationIDKey, disabled, dispatch, onlyInTeam])
   return disabled ? {customEmojiGroups: undefined, waiting: false} : {customEmojiGroups, waiting}
 }
 
@@ -388,9 +377,9 @@ export const Routable = (routableProps: RoutableProps) => {
       }
     : navigateUp
 
-  Container.useOnMountOnce(() => {
+  React.useEffect(() => {
     Kb.keyboardDismiss()
-  })
+  }, [])
 
   return (
     <WrapperMobile

@@ -1,6 +1,6 @@
+import * as React from 'react'
 import type {RPCError} from './errors'
 import {useMemo} from './memoize'
-import {useIsMounted} from './container'
 
 type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> = RF extends Promise<infer U>
   ? U
@@ -16,22 +16,29 @@ function useRPC<
   RET = RPCPromiseType<C>,
   ARGS extends Array<any> = Parameters<C>
 >(call: C) {
-  const isMounted = useIsMounted()
+  const isMounted = React.useRef<Boolean>(true)
+
+  React.useEffect(() => {
+    return () => {
+      isMounted.current = false
+    }
+  }, [])
+
   const submit = useMemo(
     () => (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
       call(...args)
         .then((result: RET) => {
-          if (isMounted()) {
+          if (isMounted.current) {
             setResult(result)
           }
         })
         .catch((error: RPCError) => {
-          if (isMounted()) {
+          if (isMounted.current) {
             setError(error)
           }
         })
     },
-    [call, isMounted]
+    [call]
   )
   return submit
 }

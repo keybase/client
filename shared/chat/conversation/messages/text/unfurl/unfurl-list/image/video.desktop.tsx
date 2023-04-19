@@ -7,15 +7,9 @@ export const Video = (p: Props) => {
   const {autoPlay, onClick, height, width, style, url} = p
   const videoRef = React.useRef<HTMLVideoElement | null>(null)
   const [playing, setPlaying] = React.useState(autoPlay)
-  const [lastAutoPlay, setLastAutoPlay] = React.useState(autoPlay)
-  const [lastUrl, setLastUrl] = React.useState(url)
-
-  if (lastAutoPlay !== autoPlay || lastUrl !== url) {
-    setLastAutoPlay(autoPlay)
-    setLastUrl(url)
+  React.useEffect(() => {
     setPlaying(autoPlay)
-  }
-
+  }, [url, autoPlay])
   const _onClick = React.useCallback(() => {
     if (onClick) {
       onClick()

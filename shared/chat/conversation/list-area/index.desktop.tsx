@@ -32,15 +32,18 @@ let markedInitiallyLoaded = false
 // use intersection observer for waypoints
 const useIntersectionObserver = () => {
   const listenersRef = React.useRef(new Map<Element, (isIntersecting: boolean) => void>())
-  const onIntersectionObservedRef = React.useRef((entries: Array<IntersectionObserverEntry>) => {
-    for (const entry of entries) {
-      const cb = listenersRef.current.get(entry.target)
-      if (cb) {
-        const {isIntersecting} = entry
-        cb(isIntersecting)
+  const onIntersectionObservedRef = React.useRef((_entries: Array<IntersectionObserverEntry>) => {})
+  React.useEffect(() => {
+    onIntersectionObservedRef.current = (entries: Array<IntersectionObserverEntry>) => {
+      for (const entry of entries) {
+        const cb = listenersRef.current.get(entry.target)
+        if (cb) {
+          const {isIntersecting} = entry
+          cb(isIntersecting)
+        }
       }
     }
-  })
+  }, [onIntersectionObservedRef])
 
   const intersectionObserverRef = React.useRef<IntersectionObserver | undefined>()
 
@@ -85,20 +88,22 @@ const useIntersectionObserver = () => {
 // we use resize observer to watch for size changes. we use one observer and attach nodes
 const useResizeObserver = () => {
   const listenersRef = React.useRef(new Map<Element, (p: {height: number; width: number}) => void>())
-  const onResizeObservedRef = React.useRef((entries: Array<ResizeObserverEntry>) => {
-    for (const entry of entries) {
-      const cb = listenersRef.current.get(entry.target)
-      if (cb) {
-        const rect = {
-          // ignore floating point issues
-          height: Math.floor(entry.contentRect.height),
-          width: Math.floor(entry.contentRect.width),
+  const onResizeObservedRef = React.useRef((_entries: Array<ResizeObserverEntry>) => {})
+  React.useEffect(() => {
+    onResizeObservedRef.current = (entries: Array<ResizeObserverEntry>) => {
+      for (const entry of entries) {
+        const cb = listenersRef.current.get(entry.target)
+        if (cb) {
+          const rect = {
+            // ignore floating point issues
+            height: Math.floor(entry.contentRect.height),
+            width: Math.floor(entry.contentRect.width),
+          }
+          cb(rect)
         }
-        cb(rect)
       }
     }
-  })
-
+  }, [onResizeObservedRef])
   const resizeObserverRef = React.useRef<ResizeObserver | undefined>(
     new ResizeObserver(entries => onResizeObservedRef.current(entries))
   )
@@ -155,16 +160,11 @@ const useScrolling = (
     }, [dispatch, conversationIDKey]),
     200
   )
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  const conversationIDKeyChanged = lastCID !== conversationIDKey
-  if (conversationIDKeyChanged) {
-    setLastCID(conversationIDKey)
-  }
 
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
-  if (conversationIDKeyChanged) {
+  React.useEffect(() => {
     lastLoadOrdinal.current = -1
-  }
+  }, [conversationIDKey])
   const oldestOrdinal = messageOrdinals[0] ?? -1
   const loadOlderMessages = React.useCallback(() => {
     // already loaded and nothing has changed
@@ -178,16 +178,19 @@ const useScrolling = (
   // pixels away from top/bottom to load/be locked
   const listEdgeSlopBottom = 10
   const listEdgeSlopTop = 1000
-  const isMounted = Container.useIsMounted()
+  const isMountedRef = Hooks.useIsMounted()
   const isScrollingRef = React.useRef(false)
   const ignoreOnScrollRef = React.useRef(false)
   const lockedToBottomRef = React.useRef(true)
   // so we can turn pointer events on / off
   const pointerWrapperRef = React.useRef<HTMLDivElement | null>(null)
 
-  const isLockedToBottom = React.useCallback(() => {
-    return lockedToBottomRef.current
-  }, [lockedToBottomRef])
+  const isLockedToBottom = React.useCallback(
+    () =>
+      // if we don't have the latest message, we can't be locked to the bottom
+      lockedToBottomRef.current && containsLatestMessage,
+    [lockedToBottomRef, containsLatestMessage]
+  )
 
   const adjustScrollAndIgnoreOnScroll = React.useCallback(
     (fn: () => void) => {
@@ -216,7 +219,7 @@ const useScrolling = (
   const scrollToBottom = React.useCallback(() => {
     lockedToBottomRef.current = true
     const actuallyScroll = () => {
-      if (!isMounted()) return
+      if (!isMountedRef.current) return
       const list = listRef.current
       if (list) {
         adjustScrollAndIgnoreOnScroll(() => {
@@ -228,7 +231,7 @@ const useScrolling = (
     setTimeout(() => {
       requestAnimationFrame(actuallyScroll)
     }, 1)
-  }, [listRef, adjustScrollAndIgnoreOnScroll, isMounted])
+  }, [listRef, adjustScrollAndIgnoreOnScroll, isMountedRef])
 
   const scrollToCentered = React.useCallback(() => {
     // grab the waypoint we made for the centered ordinal and scroll to it
@@ -348,9 +351,9 @@ const useScrolling = (
 
   // if we scroll up try and keep the position
   const scrollBottomOffsetRef = React.useRef<number | undefined>()
-  if (conversationIDKeyChanged) {
+  React.useEffect(() => {
     scrollBottomOffsetRef.current = undefined
-  }
+  }, [conversationIDKey])
 
   const prevFirstOrdinal = Container.usePrevious(messageOrdinals[0])
   const prevOrdinalLength = Container.usePrevious(messageOrdinals.length)
@@ -360,7 +363,12 @@ const useScrolling = (
     // didn't scroll up
     if (messageOrdinals.length === prevOrdinalLength || messageOrdinals[0] === prevFirstOrdinal) return
     const {current} = listRef
-    if (current && !isLockedToBottom() && isMounted() && scrollBottomOffsetRef.current !== undefined) {
+    if (
+      current &&
+      !isLockedToBottom() &&
+      isMountedRef.current &&
+      scrollBottomOffsetRef.current !== undefined
+    ) {
       current.scrollTop = current.scrollHeight - scrollBottomOffsetRef.current
     }
     // we want this to fire when the ordinals change
@@ -368,14 +376,12 @@ const useScrolling = (
   }, [messageOrdinals])
 
   // Check to see if our centered ordinal has changed, and if so, scroll to it
-  const [lastCenteredOrdinal, setLastCenteredOrdinal] = React.useState(centeredOrdinal)
-  if (lastCenteredOrdinal !== centeredOrdinal) {
+  React.useEffect(() => {
     if (centeredOrdinal) {
       lockedToBottomRef.current = false
       scrollToCentered()
     }
-    setLastCenteredOrdinal(centeredOrdinal)
-  }
+  }, [centeredOrdinal, scrollToCentered])
 
   requestScrollToBottomRef.current = () => {
     lockedToBottomRef.current = true

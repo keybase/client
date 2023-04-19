@@ -153,32 +153,24 @@ const ChooseEmoji = Styles.isMobile
       return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
     }
   : (props: ChooseEmojiProps) => {
-      const {onChoose, conversationIDKey} = props
-      const makePopup = React.useCallback(
-        (p: Kb.Popup2Parms) => {
-          const {attachTo, toggleShowingPopup} = p
-          return (
-            <Kb.FloatingBox
-              attachTo={attachTo}
-              containerStyle={{paddingTop: Styles.globalMargins.tiny}}
-              position="bottom left"
-              onHidden={toggleShowingPopup}
-              propagateOutsideClicks={false}
-            >
-              <EmojiPickerDesktop
-                conversationIDKey={conversationIDKey}
-                hideFrequentEmoji={true}
-                small={true}
-                onPickAction={onChoose}
-                onDidPick={toggleShowingPopup}
-                onlyTeamCustomEmoji={true}
-              />
-            </Kb.FloatingBox>
-          )
-        },
-        [onChoose, conversationIDKey]
-      )
-      const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
+      const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup(attachTo => (
+        <Kb.FloatingBox
+          attachTo={attachTo}
+          containerStyle={{paddingTop: Styles.globalMargins.tiny}}
+          position="bottom left"
+          onHidden={toggleShowingPopup}
+          propagateOutsideClicks={false}
+        >
+          <EmojiPickerDesktop
+            conversationIDKey={props.conversationIDKey}
+            hideFrequentEmoji={true}
+            small={true}
+            onPickAction={props.onChoose}
+            onDidPick={toggleShowingPopup}
+            onlyTeamCustomEmoji={true}
+          />
+        </Kb.FloatingBox>
+      ))
       return (
         <>
           <Kb.Button mode="Secondary" label="Choose emoji" ref={popupAnchor} onClick={toggleShowingPopup} />

@@ -53,38 +53,29 @@ const IconClickable = props => (
 
 const PathItemAction = (props: Props) => {
   const dispatch = Container.useDispatch()
-  const {initView, path, mode} = props
+  const {initView} = props
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-
-      const hide = () => {
-        toggleShowingPopup()
-        dispatch(FsGen.createSetPathItemActionMenuDownload({downloadID: null, intent: null}))
-      }
-
-      return (
-        <ChooseView
-          path={path}
-          mode={mode}
-          floatingMenuProps={{
-            attachTo,
-            containerStyle: styles.floatingContainer,
-            hide,
-            visible: true,
-          }}
-        />
-      )
-    },
-    [dispatch, path, mode]
-  )
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {setShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <ChooseView
+      path={props.path}
+      mode={props.mode}
+      floatingMenuProps={{
+        attachTo,
+        containerStyle: styles.floatingContainer,
+        hide,
+        visible: showingPopup,
+      }}
+    />
+  ))
 
   const onClick = React.useCallback(() => {
     dispatch(FsGen.createSetPathItemActionMenuView({view: initView}))
-    toggleShowingPopup()
-  }, [initView, dispatch, toggleShowingPopup])
+    setShowingPopup(true)
+  }, [initView, dispatch, setShowingPopup])
+  const hide = React.useCallback(() => {
+    setShowingPopup(false)
+    dispatch(FsGen.createSetPathItemActionMenuDownload({downloadID: null, intent: null}))
+  }, [setShowingPopup, dispatch])
 
   if (props.path === Constants.defaultPath) {
     return null
