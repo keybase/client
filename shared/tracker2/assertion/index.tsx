@@ -136,15 +136,15 @@ const StellarValue = (p: Props) => {
   const {value, color} = p
   const dispatch = Container.useDispatch()
 
-  const onCopyAddress = () => {
+  const onCopyAddress = React.useCallback(() => {
     dispatch(ConfigGen.createCopyToClipboard({text: value}))
-  }
+  }, [dispatch, value])
 
-  const onWhatIsStellar = () => {
+  const onWhatIsStellar = React.useCallback(() => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']}))
-  }
+  }, [dispatch])
 
-  const onRequestLumens = () => {
+  const onRequestLumens = React.useCallback(() => {
     dispatch(
       WalletsGen.createOpenSendRequestForm({
         from: WalletsType.noAccountID,
@@ -153,9 +153,9 @@ const StellarValue = (p: Props) => {
         to: value.split('*')[0],
       })
     )
-  }
+  }, [dispatch, value])
 
-  const onSendLumens = () => {
+  const onSendLumens = React.useCallback(() => {
     dispatch(
       WalletsGen.createOpenSendRequestForm({
         from: WalletsType.noAccountID,
@@ -164,26 +164,36 @@ const StellarValue = (p: Props) => {
         to: value.split('*')[0],
       })
     )
-  }
+  }, [dispatch, value])
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={menuItems}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-      position="bottom center"
-    />
-  ))
+  const menuItems: Kb.MenuItems = React.useMemo(
+    () => [
+      {newTag: true, onClick: onSendLumens, title: 'Send Lumens (XLM)'},
+      {newTag: true, onClick: onRequestLumens, title: 'Request Lumens (XLM)'},
+      {onClick: onCopyAddress, title: 'Copy address'},
+      'Divider' as const,
+      {onClick: onWhatIsStellar, title: 'What is Stellar?'},
+    ],
+    [onCopyAddress, onWhatIsStellar, onRequestLumens, onSendLumens]
+  )
 
-  const menuItems: Kb.MenuItems = [
-    {newTag: true, onClick: onSendLumens, title: 'Send Lumens (XLM)'},
-    {newTag: true, onClick: onRequestLumens, title: 'Request Lumens (XLM)'},
-    {onClick: onCopyAddress, title: 'Copy address'},
-    'Divider' as const,
-    {onClick: onWhatIsStellar, title: 'What is Stellar?'},
-  ]
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          items={menuItems}
+          onHidden={toggleShowingPopup}
+          visible={true}
+          position="bottom center"
+        />
+      )
+    },
+    [menuItems]
+  )
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return Styles.isMobile ? (
     <Kb.Text

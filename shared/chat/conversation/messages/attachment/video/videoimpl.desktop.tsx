@@ -9,10 +9,12 @@ const VideoImpl = (p: Props) => {
   const {openFullscreen, allowPlay} = p
   const {previewURL, height, width, url, videoDuration} = useRedux()
   const [showPoster, setShowPoster] = React.useState(true)
+  const [lastUrl, setLastUrl] = React.useState(url)
 
-  React.useEffect(() => {
+  if (lastUrl !== url) {
+    setLastUrl(url)
     setShowPoster(true)
-  }, [url])
+  }
 
   const onPress = React.useCallback(() => {
     setShowPoster(false)

@@ -208,19 +208,11 @@ const TeamBuilding = () => {
     WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating)
   )
 
-  const fetchUserRecs = React.useCallback(() => {
-    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace}))
-  }, [dispatch, namespace])
-
   const offset = useSharedValue(0)
 
-  const fetchedOnce = React.useRef(false)
-  React.useEffect(() => {
-    if (!fetchedOnce.current) {
-      fetchedOnce.current = true
-      fetchUserRecs()
-    }
-  }, [fetchUserRecs, fetchedOnce])
+  Container.useOnMountOnce(() => {
+    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace}))
+  })
 
   let content: React.ReactNode
   switch (selectedService) {

@@ -41,6 +41,7 @@ const LocationPopup = (props: Props) => {
       })
     )
   }
+
   React.useEffect(() => {
     let unwatch: undefined | (() => void)
     watchPositionForMap(dispatch, conversationIDKey)

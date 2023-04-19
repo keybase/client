@@ -92,22 +92,23 @@ const EmojiButton = (p: EmojiButtonProps) => {
     [inputRef]
   )
 
-  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(attachTo => {
-    return (
-      <Kb.Overlay
-        attachTo={attachTo}
-        visible={showingPopup}
-        onHidden={toggleShowingPopup}
-        position="top right"
-      >
-        <EmojiPickerDesktop
-          conversationIDKey={conversationIDKey}
-          onPickAction={insertEmoji}
-          onDidPick={toggleShowingPopup}
-        />
-      </Kb.Overlay>
-    )
-  })
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.Overlay attachTo={attachTo} visible={true} onHidden={toggleShowingPopup} position="top right">
+          <EmojiPickerDesktop
+            conversationIDKey={conversationIDKey}
+            onPickAction={insertEmoji}
+            onDidPick={toggleShowingPopup}
+          />
+        </Kb.Overlay>
+      )
+    },
+    [conversationIDKey, insertEmoji]
+  )
+
+  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   return (
     <>

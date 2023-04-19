@@ -27,9 +27,11 @@ const isBot = (type: TeamTypes.TeamRoleType) => type === 'bot' || type === 'rest
 
 export const useTeamHumans = (teamID: TeamTypes.TeamID) => {
   const dispatch = Container.useDispatch()
-  React.useEffect(() => {
+  const [lastTID, setLastTID] = React.useState('')
+  if (lastTID !== teamID) {
+    setLastTID(teamID)
     dispatch(TeamsGen.createGetMembers({teamID}))
-  }, [dispatch, teamID])
+  }
   const teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(teamID)) || emptyMap
   const bots = React.useMemo(() => {
     const ret = new Set<string>()
