@@ -20,8 +20,8 @@ const HeaderAvatar = () => {
 }
 
 export const options = {
-  headerLeft: () => <Kb.HeaderLeftBlank />,
-  headerRight: () => <HeaderAvatar />,
+  // headerLeft: () => <Kb.HeaderLeftBlank />,
+  // headerRight: () => <HeaderAvatar />,
   headerTitle: () => <ProfileSearch />,
 }
 

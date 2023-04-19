@@ -7,4 +7,4 @@ iosDynamicColors not working?
 paste input not fabric, disabled!
 setState races
 setfreeze off?
-
+header debug colors on

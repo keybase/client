@@ -337,8 +337,6 @@ const RNApp = React.memo(function RNApp() {
 
   const barStyle = useBarStyle()
 
-  console.log('aaa stack render', loggedInLoaded, loggedIn)
-
   return (
     <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true}>
       <StatusBar barStyle={barStyle} />

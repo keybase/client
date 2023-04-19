@@ -118,6 +118,7 @@ export const headerNavigationOptions = (route: unknown) => {
   return {
     headerLeft: (props: any) => {
       const {onLabelLayout, labelStyle, ...rest} = props
+      console.log('aaaa headerleft', props)
       return <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
     },
     headerRight: () => <HeaderAreaRight conversationIDKey={conversationIDKey} />,

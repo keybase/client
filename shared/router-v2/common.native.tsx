@@ -47,7 +47,7 @@ export const tabBarStyleHidden = {
 } as const
 
 const actionWidth = 64
-const DEBUGCOLORS = __DEV__ && false
+const DEBUGCOLORS = true // __DEV__ && false
 
 // Options used by default on all navigators
 export const defaultNavigationOptions: any = {
@@ -64,6 +64,7 @@ export const defaultNavigationOptions: any = {
     flexGrow: 0,
     flexShrink: 0,
     minWidth: actionWidth,
+    maxWidth: actionWidth,
     paddingLeft: 8,
     width: actionWidth,
     ...(DEBUGCOLORS ? {backgroundColor: 'yellow'} : {}),
@@ -72,6 +73,7 @@ export const defaultNavigationOptions: any = {
     flexGrow: 0,
     flexShrink: 0,
     minWidth: actionWidth,
+    maxWidth: actionWidth,
     paddingRight: 8,
     width: actionWidth,
     ...(DEBUGCOLORS ? {backgroundColor: 'orange'} : {}),
