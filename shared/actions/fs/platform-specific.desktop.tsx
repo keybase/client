@@ -266,8 +266,6 @@ const refreshMountDirs = async (
   ]
 }
 
-export const ensureDownloadPermissionPromise = async () => Promise.resolve()
-
 const setSfmiBannerDismissed = async (
   _: Container.TypedState,
   action: FsGen.SetSfmiBannerDismissedPayload | FsGen.DriverEnablePayload | FsGen.DriverDisablePayload

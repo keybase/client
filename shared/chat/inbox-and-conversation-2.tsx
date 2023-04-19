@@ -29,10 +29,9 @@ const InboxAndConversation = (props: Props) => {
   })
   const navKey: string = props.route.key
 
-  // only on initial mount, auto select a convo if nothing comes in, including pending
-  React.useEffect(() => {
+  Container.useOnMountOnce(() => {
     if (needSelectConvoID) {
-      // hack to select the convo after we render, TODO move this elsewhere maybe
+      // hack to select the convo after we render
       setTimeout(() => {
         dispatch(
           Chat2Gen.createNavigateToThread({
@@ -42,20 +41,24 @@ const InboxAndConversation = (props: Props) => {
         )
       }, 1)
     }
-    // we only want to run this oncer per mount ever
-    // eslint-disable-next-line
-  }, [])
+  })
 
   return (
     <Kb.KeyboardAvoidingView2>
-      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={styles.container}>
         {!Container.isTablet && inboxSearch ? (
           <InboxSearch />
         ) : (
           <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
         )}
-        <Conversation navigation={props.navigation} route={props.route as any} />
-        {infoPanelShowing && <InfoPanel conversationIDKey={conversationIDKey} />}
+        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.conversation}>
+          <Conversation navigation={props.navigation} route={props.route as any} />
+        </Kb.Box2>
+        {infoPanelShowing ? (
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
+            <InfoPanel conversationIDKey={conversationIDKey} />
+          </Kb.Box2>
+        ) : null}
       </Kb.Box2>
     </Kb.KeyboardAvoidingView2>
   )
@@ -80,6 +83,22 @@ export const getOptions = ({navigation, route}) => {
     return {headerTitle: () => <Header navigation={navigation} route={route} />}
   }
 }
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {position: 'relative'},
+      conversation: {flexGrow: 1},
+      infoPanel: {
+        backgroundColor: Styles.globalColors.white,
+        bottom: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        width: 320,
+      },
+    } as const)
+)
 
 const Memoed = React.memo(InboxAndConversation)
 Container.hoistNonReactStatic(Memoed, InboxAndConversation)

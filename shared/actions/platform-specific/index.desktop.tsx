@@ -10,7 +10,7 @@ import type {RPCError} from '../../util/errors'
 import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine'
 import {isLinux, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
-import {kbfsNotification} from '../../util/kbfs-notifications'
+import {kbfsNotification} from './kbfs-notifications'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import NotifyPopup from '../../util/notify-popup'
 
@@ -26,13 +26,15 @@ const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
   }
 }
 
+export const requestPermissionsToWrite = async () => {
+  return Promise.reject(new Error('Requets permissions - unsupported on this platform'))
+}
+
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
 }
 export async function saveAttachmentToCameraRoll() {
-  return new Promise((_, rej) =>
-    rej(new Error('Save Attachment to camera roll - unsupported on this platform'))
-  )
+  return Promise.reject(new Error('Save Attachment to camera roll - unsupported on this platform'))
 }
 
 export function displayNewMessageNotification() {

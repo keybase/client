@@ -23,22 +23,54 @@ export const ShowToastAfterSaving = Container.isMobile
   ? ({transferState}: Props) => {
       const [showingToast, setShowingToast] = React.useState(false)
       const [wasSaving, setWasSaving] = React.useState(false)
+      const [lastWasSaving, setLastWasSaving] = React.useState(wasSaving)
       const setShowingToastFalseLater = Kb.useTimeout(() => setShowingToast(false), 1500)
-      React.useEffect(() => {
-        transferState === 'mobileSaving' && setWasSaving(true)
-      }, [transferState])
-      React.useEffect(() => {
+      const [lastTS, setLastTS] = React.useState(transferState)
+      if (lastTS !== transferState) {
+        setLastTS(transferState)
+        if (transferState === 'mobileSaving') {
+          setWasSaving(true)
+        }
+      }
+
+      if (lastWasSaving !== wasSaving || lastTS !== transferState) {
+        setLastTS(transferState)
+        setLastWasSaving(wasSaving)
         if (wasSaving && !transferState) {
           setWasSaving(false)
           setShowingToast(true)
           setShowingToastFalseLater()
         }
-      }, [wasSaving, transferState, setShowingToast, setShowingToastFalseLater])
+      }
       return showingToast ? (
         <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={showingToast} />
       ) : null
     }
   : () => null
+
+export const Transferring = (p: {ratio: number; transferState: Types.MessageAttachmentTransferState}) => {
+  const {ratio, transferState} = p
+  const isTransferring =
+    transferState === 'uploading' || transferState === 'downloading' || transferState === 'mobileSaving'
+  if (!isTransferring) {
+    return null
+  }
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      style={styles.transferring}
+      alignItems="center"
+      gap="xtiny"
+      gapEnd={true}
+      gapStart={true}
+    >
+      <Kb.Text type="BodySmall" negative={true}>
+        {transferState === 'uploading' ? 'Uploading' : 'Downloading'}
+      </Kb.Text>
+      <Kb.ProgressBar ratio={ratio} />
+    </Kb.Box2>
+  )
+}
 
 export const getEditStyle = (isEditing: boolean, isHighlighted?: boolean) => {
   if (isHighlighted) {
@@ -52,7 +84,7 @@ export const Title = () => {
   const ordinal = React.useContext(OrdinalContext)
   const title = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal)
-    return m?.type === 'attachment' ? m.decoratedText?.stringValue() : ''
+    return m?.type === 'attachment' ? m.decoratedText?.stringValue() ?? m.title ?? '' : ''
   })
 
   const styleOverride = React.useMemo(
@@ -100,6 +132,14 @@ const styles = Styles.styleSheetCreate(() => ({
   collapseLabel: {backgroundColor: Styles.globalColors.fastBlank},
   collapseLabelWhite: {color: Styles.globalColors.white_75},
   titleContainer: {paddingTop: Styles.globalMargins.xxtiny},
+  transferring: {
+    backgroundColor: Styles.globalColors.black_50,
+    borderRadius: 2,
+    left: Styles.globalMargins.tiny,
+    overflow: 'hidden',
+    position: 'absolute',
+    top: Styles.globalMargins.tiny,
+  },
 }))
 
 const useCollapseAction = () => {

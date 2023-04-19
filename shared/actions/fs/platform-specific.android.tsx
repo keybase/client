@@ -3,26 +3,8 @@ import * as FsGen from '../fs-gen'
 import * as Constants from '../../constants/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Container from '../../util/container'
-import {PermissionsAndroid} from 'react-native'
 import nativeInit from './common.native'
 import {androidAddCompleteDownload, fsCacheDir, fsDownloadDir} from 'react-native-kb'
-
-export const ensureDownloadPermissionPromise = async () => {
-  const permissionStatus = await PermissionsAndroid.request(
-    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-    {
-      buttonNegative: 'Cancel',
-      buttonNeutral: 'Ask me later',
-      buttonPositive: 'OK',
-      message: 'Keybase needs access to your storage so we can download a file to it',
-      title: 'Keybase Storage Permission',
-    }
-  )
-
-  if (permissionStatus !== 'granted') {
-    throw new Error('Unable to acquire storage permissions')
-  }
-}
 
 const finishedRegularDownloadIDs = new Set<string>()
 

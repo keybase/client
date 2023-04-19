@@ -17,7 +17,7 @@ import type {Props} from './platform-input'
 import {NativeKeyboard} from '../../../../common-adapters/mobile.native'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {isOpen} from '../../../../util/keyboard'
-import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
+import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker.native'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
 import {type PastedFile} from '@mattermost/react-native-paste-input'
@@ -165,9 +165,11 @@ const AnimatedExpand = (() => {
           {scaleY: -0.6},
         ],
       }))
-      React.useEffect(() => {
+      const [lastExpanded, setLastExpanded] = React.useState(expanded)
+      if (lastExpanded !== expanded) {
+        setLastExpanded(expanded)
         offset.value = expanded ? 1 : 0
-      }, [expanded, offset])
+      }
 
       return (
         <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
@@ -333,8 +335,7 @@ const PlatformInput = (p: Props) => {
     // Enter should send a message like on desktop, when a hardware keyboard's
     // attached.  On Android we get "hardware" keypresses from soft keyboards,
     // so check whether a soft keyboard's up.
-    // @ts-ignore
-    HWKeyboardEvent.onHWKeyPressed((hwKeyEvent: any) => {
+    const cb = (hwKeyEvent: {pressedKey: string}) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
           Styles.isIOS || !isOpen() ? onQueueSubmit() : insertText('\n')
@@ -342,7 +343,8 @@ const PlatformInput = (p: Props) => {
         case 'shift-enter':
           insertText('\n')
       }
-    })
+    }
+    HWKeyboardEvent.onHWKeyPressed(cb as any)
     return () => {
       HWKeyboardEvent.removeOnHWKeyPressed()
     }
@@ -528,15 +530,17 @@ const AnimatedInput = (() => {
       React.forwardRef<any, any>(function AnimatedInput(p: any, ref) {
         const maxInputArea = React.useContext(MaxInputAreaContext)
         const {expanded, ...rest} = p
+        const [lastExpanded, setLastExpanded] = React.useState(expanded)
         const offset = useSharedValue(expanded ? 1 : 0)
         const maxHeight = maxInputArea - inputAreaHeight - 15
         const as = useAnimatedStyle(() => ({
           maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
           minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
         }))
-        React.useEffect(() => {
+        if (expanded !== lastExpanded) {
+          setLastExpanded(expanded)
           offset.value = expanded ? 1 : 0
-        }, [expanded, offset])
+        }
         return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style, as]} />
       })
     )

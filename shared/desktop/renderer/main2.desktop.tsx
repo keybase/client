@@ -8,7 +8,7 @@ import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
 import makeStore from '../../store/configure-store'
 import {makeEngine} from '../../engine'
-import {disable as disableDragDrop} from '../../util/drag-drop'
+import {disableDragDrop} from '../../util/drag-drop.desktop'
 import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
@@ -116,7 +116,9 @@ let store
 
 const DarkCSSInjector = () => {
   const isDark = useSelector(state => isDarkMode(state.config))
-  React.useEffect(() => {
+  const [lastIsDark, setLastIsDark] = React.useState<boolean | undefined>()
+  if (lastIsDark !== isDark) {
+    setLastIsDark(isDark)
     // inject it in body so modals get darkMode also
     if (isDark) {
       document.body.classList.add('darkMode')
@@ -125,7 +127,7 @@ const DarkCSSInjector = () => {
       document.body.classList.remove('darkMode')
       document.body.classList.add('lightMode')
     }
-  }, [isDark])
+  }
   return null
 }
 

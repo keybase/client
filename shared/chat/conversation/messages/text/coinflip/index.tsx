@@ -38,14 +38,21 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
     }, 0) ?? 0
   const revealSummary = `${revealed} / ${numParticipants}`
 
-  const {setShowingPopup, toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <CoinFlipParticipants
-      attachTo={attachTo}
-      onHidden={toggleShowingPopup}
-      participants={participants}
-      visible={showingPopup}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <CoinFlipParticipants
+          attachTo={attachTo}
+          onHidden={toggleShowingPopup}
+          participants={participants}
+          visible={true}
+        />
+      )
+    },
+    [participants]
+  )
+  const {setShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   const showPopup = React.useCallback(() => {
     setShowingPopup(true)
   }, [setShowingPopup])
@@ -54,7 +61,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   }, [setShowingPopup])
 
   const statusText = showParticipants ? (
-    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor}>
+    <Kb.Box2 direction="vertical" onMouseOver={showPopup} onMouseLeave={hidePopup} ref={popupAnchor as any}>
       {!Styles.isMobile && (
         <Kb.Text selectable={true} type="BodySmall">
           Secured by{' '}

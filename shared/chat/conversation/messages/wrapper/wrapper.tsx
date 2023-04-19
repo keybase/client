@@ -17,6 +17,7 @@ import ReactionsRow from '../reactions-row'
 import SendIndicator from './send-indicator'
 import type * as Types from '../../../../constants/types/chat2'
 import capitalize from 'lodash/capitalize'
+// import {useDebugLayout} from '../../../../util/debug'
 
 export type Props = {
   ordinal: Types.Ordinal
@@ -57,21 +58,25 @@ export const useCommon = (ordinal: Types.Ordinal) => {
     const shouldShowPopup = Constants.shouldShowPopup(state, m ?? undefined)
     return {shouldShowPopup, type}
   }, shallowEqual)
-
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo =>
-    messageShowsPopup(type) && shouldShowPopup && showingPopup ? (
-      <MessagePopup
-        conversationIDKey={conversationIDKey}
-        ordinal={ordinal}
-        key="popup"
-        attachTo={attachTo}
-        onHidden={toggleShowingPopup}
-        position="top right"
-        style={styles.messagePopupContainer}
-        visible={showingPopup}
-      />
-    ) : null
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return messageShowsPopup(type) && shouldShowPopup ? (
+        <MessagePopup
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
+          key="popup"
+          attachTo={attachTo}
+          onHidden={toggleShowingPopup}
+          position="top right"
+          style={styles.messagePopupContainer}
+          visible={true}
+        />
+      ) : null
+    },
+    [conversationIDKey, ordinal, shouldShowPopup, type]
   )
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return {popup, popupAnchor, showCenteredHighlight, showingPopup, toggleShowingPopup, type}
 }
@@ -192,6 +197,32 @@ type TSProps = {
   you: string
 }
 
+const HighlightWrapper = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode
+  style: Styles.StylesCrossPlatform
+}) => {
+  return (
+    <Kb.Box2
+      direction="vertical"
+      style={Styles.collapseStyles([style, styles.highlighted])}
+      fullWidth={!Styles.isMobile}
+    >
+      {children}
+    </Kb.Box2>
+  )
+}
+
+const NormalWrapper = ({children, style}: {children: React.ReactNode; style: Styles.StylesCrossPlatform}) => {
+  return (
+    <Kb.Box2 direction="vertical" style={style} fullWidth={!Styles.isMobile}>
+      {children}
+    </Kb.Box2>
+  )
+}
+
 const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   const {botname, bottomChildren, children, decorate} = p
   const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
@@ -212,13 +243,13 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         ref: popupAnchor as any,
       }
 
-  const background = isPendingPayment ? (
-    <PendingPaymentBackground />
-  ) : showCenteredHighlight ? (
-    <Kb.Box2 direction="vertical" style={styles.highlighted} />
-  ) : null
+  const Background = isPendingPayment
+    ? PendingPaymentBackground
+    : showCenteredHighlight
+    ? HighlightWrapper
+    : NormalWrapper
 
-  const content = exploding ? (
+  let content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <ExplodingHeightRetainer>{children}</ExplodingHeightRetainer>
     </Kb.Box2>
@@ -226,21 +257,37 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
     children
   )
 
+  // uncomment to debug sizing issues
+  // const dump = Container.useEvent(() => p)
+  // const debugLayout = useDebugLayout(dump)
+  // content = (
+  //   <Kb.Box2
+  //     key="TEMP"
+  //     direction="vertical"
+  //     onLayout={debugLayout}
+  //     alignItems="flex-start"
+  //     alignSelf="flex-start"
+  //   >
+  //     {content}
+  //   </Kb.Box2>
+  // )
+
   return (
     <LongPressable {...pressableProps}>
-      <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={!Styles.isMobile}>
-        {background}
-        {content}
-        <BottomSide
-          ecrType={ecrType}
-          reactionsPopupPosition={reactionsPopupPosition}
-          hasReactions={hasReactions}
-          bottomChildren={bottomChildren}
-          showCenteredHighlight={showCenteredHighlight}
-          toggleShowingPopup={toggleShowingPopup}
-          setShowingPicker={setShowingPicker}
-          showingPopup={showingPopup}
-        />
+      <Kb.Box2 direction="vertical" style={styles.middle} fullWidth={true}>
+        <Background style={styles.background}>
+          {content}
+          <BottomSide
+            ecrType={ecrType}
+            reactionsPopupPosition={reactionsPopupPosition}
+            hasReactions={hasReactions}
+            bottomChildren={bottomChildren}
+            showCenteredHighlight={showCenteredHighlight}
+            toggleShowingPopup={toggleShowingPopup}
+            setShowingPicker={setShowingPicker}
+            showingPopup={showingPopup}
+          />
+        </Background>
       </Kb.Box2>
       <RightSide
         botname={botname}
@@ -397,7 +444,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   ) : null
 
-  const hasVisibleItems = explodingCountdown || revokedIcon || coinsIcon || bot
+  const hasVisibleItems = !!explodingCountdown || !!revokedIcon || !!coinsIcon || !!bot
 
   // On mobile there is no ... menu
   // On Desktop we float the menu on top, if there are no items
@@ -417,8 +464,8 @@ const RightSide = React.memo(function RightSide(p: RProps) {
     </Kb.WithTooltip>
   )
 
-  return hasVisibleItems || menu || sendIndicator ? (
-    <>
+  const visibleItems =
+    hasVisibleItems || menu ? (
       <Kb.Box2
         direction="horizontal"
         alignSelf="flex-start"
@@ -435,9 +482,14 @@ const RightSide = React.memo(function RightSide(p: RProps) {
         {coinsIcon}
         {bot}
       </Kb.Box2>
+    ) : null
+
+  return (
+    <>
+      {visibleItems}
       {sendIndicator}
     </>
-  ) : null
+  )
 })
 
 export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
@@ -446,12 +498,10 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   // passed in context so stable
   const conversationIDKeyRef = React.useRef(conversationIDKey)
+  conversationIDKeyRef.current = conversationIDKey
   const ordinalRef = React.useRef(ordinal)
+  ordinalRef.current = ordinal
 
-  React.useEffect(() => {
-    conversationIDKeyRef.current = conversationIDKey
-    ordinalRef.current = ordinal
-  }, [conversationIDKey, ordinal])
   const getIds = React.useCallback(() => {
     return {conversationIDKey: conversationIDKeyRef.current, ordinal: ordinalRef.current}
   }, [])
@@ -506,6 +556,12 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      background: {
+        alignSelf: 'stretch',
+        flexGrow: 1,
+        flexShrink: 1,
+        position: 'relative',
+      },
       edited: {color: Styles.globalColors.black_20},
       editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
       ellipsis: Styles.platformStyles({
@@ -548,12 +604,6 @@ const styles = Styles.styleSheetCreate(
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
       highlighted: {
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
-        bottom: 0,
-        left: Styles.isMobile ? 45 : 52,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        zIndex: -1,
       },
       menuButtons: Styles.platformStyles({
         common: {
@@ -566,10 +616,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {height: 24},
       }),
       messagePopupContainer: {marginRight: Styles.globalMargins.small},
-      middleSide: {
-        alignItems: 'stretch',
-        flexGrow: 1,
-        flexShrink: 1,
+      middle: {
         paddingLeft: Styles.isMobile ? 48 : 56,
         paddingRight: 4,
         position: 'relative',

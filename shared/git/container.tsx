@@ -35,9 +35,9 @@ type ExtraProps = {
 const GitReloadable = (p: Omit<GitProps & ExtraProps, 'onToggleExpand'>) => {
   const {clearBadges, _loadGit, ...rest} = p
 
-  React.useEffect(() => {
-    return () => clearBadges()
-  }, [clearBadges])
+  Container.useOnUnMountOnce(() => {
+    clearBadges()
+  })
 
   return (
     <Kb.Reloadable

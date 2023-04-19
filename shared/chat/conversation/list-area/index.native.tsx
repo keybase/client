@@ -33,6 +33,7 @@ type AnimatedChildProps = {
 const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}: AnimatedChildProps) {
   const translateY = new Animated.Value(999)
   const opacity = new Animated.Value(0)
+  const [lastAK, setLastAK] = React.useState(animatingKey)
   React.useEffect(() => {
     // on unmount, mark it null
     return () => {
@@ -42,10 +43,10 @@ const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}
 
   // only animate up once
   const onceRef = React.useRef(false)
-
-  React.useEffect(() => {
+  if (lastAK !== animatingKey) {
     onceRef.current = false
-  }, [animatingKey])
+    setLastAK(animatingKey)
+  }
 
   return (
     <Animated.View
@@ -129,14 +130,17 @@ const maintainVisibleContentPosition = {
 const useScrolling = (p: {
   centeredOrdinal: Types.Ordinal
   messageOrdinals: Array<Types.Ordinal>
+  cidChanged: boolean
   conversationIDKey: Types.ConversationIDKey
   listRef: React.MutableRefObject<FlashList<ItemType> | FlatList<ItemType> | null>
   requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) => {
-  const {listRef, centeredOrdinal, messageOrdinals, conversationIDKey, requestScrollToBottomRef} = p
+  const {messageOrdinals, conversationIDKey, requestScrollToBottomRef} = p
+  const {cidChanged, listRef, centeredOrdinal} = p
   const dispatch = Container.useDispatch()
   const lastLoadOrdinal = React.useRef<Types.Ordinal>(-1)
   const oldestOrdinal = messageOrdinals[messageOrdinals.length - 1] ?? -1
+
   const loadOlderMessages = Container.useEvent(() => {
     // already loaded and nothing has changed
     if (lastLoadOrdinal.current === oldestOrdinal) {
@@ -156,9 +160,9 @@ const useScrolling = (p: {
 
   // only scroll to center once per
   const lastScrollToCentered = React.useRef(-1)
-  React.useEffect(() => {
+  if (cidChanged) {
     lastScrollToCentered.current = -1
-  }, [conversationIDKey])
+  }
 
   const scrollToCentered = Container.useEvent(() => {
     setTimeout(() => {
@@ -198,10 +202,18 @@ const ConversationList = React.memo(function ConversationList(p: {
     </Kb.Text>
   ) : null
 
+  const {conversationIDKey, requestScrollToBottomRef} = p
+
+  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  const cidChanged = lastCID !== conversationIDKey
+  if (cidChanged) {
+    setLastCID(conversationIDKey)
+  }
+
   // used to force a rerender when a type changes, aka placeholder resolves
   const [extraData, setExtraData] = React.useState(0)
+  const [lastED, setLastED] = React.useState(extraData)
 
-  const {conversationIDKey, requestScrollToBottomRef} = p
   const {centeredOrdinal, _messageOrdinals, messageTypeMap} = Container.useSelector(state => {
     const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
     const _messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
@@ -253,9 +265,10 @@ const ConversationList = React.memo(function ConversationList(p: {
   )
 
   const recycleTypeRef = React.useRef(new Map<Types.Ordinal, string>())
-  React.useEffect(() => {
+  if (cidChanged || lastED !== extraData) {
     recycleTypeRef.current = new Map()
-  }, [conversationIDKey, extraData])
+    setLastED(extraData)
+  }
   const setRecycleType = React.useCallback((ordinal: Types.Ordinal, type: string) => {
     recycleTypeRef.current.set(ordinal, type)
   }, [])
@@ -274,6 +287,7 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   const {scrollToCentered, scrollToBottom, onEndReached} = useScrolling({
     centeredOrdinal,
+    cidChanged,
     conversationIDKey,
     listRef,
     messageOrdinals,
@@ -286,12 +300,10 @@ const ConversationList = React.memo(function ConversationList(p: {
     centeredOrdinal && scrollToCentered()
   }, [centeredOrdinal, scrollToCentered])
 
-  React.useEffect(() => {
-    if (!markedInitiallyLoaded) {
-      markedInitiallyLoaded = true
-      markInitiallyLoadedThreadAsRead()
-    }
-  }, [markInitiallyLoadedThreadAsRead])
+  if (!markedInitiallyLoaded) {
+    markedInitiallyLoaded = true
+    markInitiallyLoadedThreadAsRead()
+  }
 
   // We use context to inject a way for items to force the list to rerender when they notice something about their
   // internals have changed (aka a placeholder isn't a placeholder anymore). This can be racy as if you detect this

@@ -1,4 +1,5 @@
 import * as Kb from '../../../common-adapters'
+import * as React from 'react'
 import * as Styles from '../../../styles'
 
 type SendProps = {
@@ -11,25 +12,37 @@ type SendProps = {
 }
 
 export const SendButton = (props: SendProps) => {
-  const menuItems: Kb.MenuItems = [
-    {icon: 'iconfont-mention', onClick: props.onSendToKeybaseUser, title: 'To a Keybase user'},
-    {icon: 'iconfont-identity-stellar', onClick: props.onSendToStellarAddress, title: 'To a Stellar address'},
-    {
-      icon: 'iconfont-wallet-transfer',
-      onClick: props.onSendToAnotherAccount,
-      title: 'To one of your other Stellar accounts',
+  const {onSendToKeybaseUser, onSendToStellarAddress, onSendToAnotherAccount} = props
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const menuItems: Kb.MenuItems = [
+        {icon: 'iconfont-mention', onClick: onSendToKeybaseUser, title: 'To a Keybase user'},
+        {
+          icon: 'iconfont-identity-stellar',
+          onClick: onSendToStellarAddress,
+          title: 'To a Stellar address',
+        },
+        {
+          icon: 'iconfont-wallet-transfer',
+          onClick: onSendToAnotherAccount,
+          title: 'To one of your other Stellar accounts',
+        },
+      ]
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          items={menuItems}
+          onHidden={toggleShowingPopup}
+          visible={true}
+          position="bottom center"
+        />
+      )
     },
-  ]
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={menuItems}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-      position="bottom center"
-    />
-  ))
+    [onSendToKeybaseUser, onSendToStellarAddress, onSendToAnotherAccount]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   const button = (
     <>
       <Kb.Button

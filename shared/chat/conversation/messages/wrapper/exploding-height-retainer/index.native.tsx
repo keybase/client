@@ -185,15 +185,19 @@ class EmojiTower extends React.Component<
     for (let i = 0; i < this.props.numImages * 4; i++) {
       const r = Math.random()
       let emoji
-      if (r < 0.33) {
-        emoji = '💥'
-      } else if (r < 0.66) {
-        emoji = '💣'
+      if (Styles.isAndroid) {
+        emoji = r < 0.5 ? '💥' : '💣'
       } else {
-        emoji = Styles.isAndroid ? '🎇' : '🤯'
+        if (r < 0.33) {
+          emoji = '💥'
+        } else if (r < 0.66) {
+          emoji = '💣'
+        } else {
+          emoji = '🤯'
+        }
       }
       children.push(
-        <Kb.Text key={i} type="Body">
+        <Kb.Text key={i} type="Body" fixOverdraw={false}>
           {emoji}
         </Kb.Text>
       )
@@ -215,11 +219,11 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
   let exploded: React.ReactNode = null
   if (props.showExploded) {
     exploded = !props.explodedBy ? (
-      <Kb.Text type="BodyTiny" style={styles.exploded} fixOverdraw={true}>
+      <Kb.Text type="BodyTiny" style={styles.exploded} fixOverdraw={false}>
         EXPLODED
       </Kb.Text>
     ) : (
-      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.exploded} fixOverdraw={true}>
+      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.exploded} fixOverdraw={false}>
         EXPLODED BY{' '}
         <Kb.ConnectedUsernames
           type="BodySmallBold"
@@ -260,8 +264,8 @@ const styles = Styles.styleSheetCreate(
         width: 20,
       },
       exploded: {
-        backgroundColor: Styles.isDarkMode() ? darkColors.white : colors.white,
-        color: Styles.isDarkMode() ? darkColors.black_20_on_white : colors.black_20_on_white,
+        backgroundColor: Styles.globalColors.white,
+        color: Styles.globalColors.black_20_on_white,
         paddingLeft: Styles.globalMargins.tiny,
       },
       retaining: {

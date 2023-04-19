@@ -8,16 +8,18 @@ import {Pressable} from 'react-native'
 import type {Props} from './videoimpl'
 
 const VideoImpl = (p: Props) => {
-  const {allowPlay} = p
+  const {allowPlay, toggleMessageMenu} = p
   const {previewURL, height, width, url, transferState, videoDuration} = useRedux()
   const source = React.useMemo(() => ({uri: `${url}&contentforce=true`}), [url])
 
   const ref = React.useRef<Video | null>(null)
   const [showPoster, setShowPoster] = React.useState(true)
+  const [lastUrl, setLastUrl] = React.useState(url)
 
-  React.useEffect(() => {
+  if (lastUrl !== url) {
+    setLastUrl(url)
     setShowPoster(true)
-  }, [url])
+  }
 
   const onPress = React.useCallback(() => {
     setShowPoster(false)
@@ -38,7 +40,7 @@ const VideoImpl = (p: Props) => {
   return (
     <>
       <ShowToastAfterSaving transferState={transferState} />
-      <Pressable onPress={onPress} style={styles.pressable}>
+      <Pressable onPress={onPress} style={styles.pressable} onLongPress={toggleMessageMenu}>
         {showPoster ? (
           <Kb.Box2
             direction="vertical"

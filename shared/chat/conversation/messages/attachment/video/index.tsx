@@ -2,30 +2,11 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import VideoImpl from './videoimpl'
-import {Title, useAttachmentRedux, Collapsed, useCollapseIcon} from '../shared'
+import {Title, useAttachmentRedux, Collapsed, useCollapseIcon, Transferring} from '../shared'
 
 type Props = {
   toggleMessageMenu: () => void
   isHighlighted?: boolean
-}
-
-const Transferring = (p: {ratio: number}) => {
-  const {ratio} = p
-  return (
-    <Kb.Box2
-      direction="horizontal"
-      style={styles.transferring}
-      alignItems="center"
-      gap="xtiny"
-      gapEnd={true}
-      gapStart={true}
-    >
-      <Kb.Text type="BodySmall" negative={true}>
-        Uploading
-      </Kb.Text>
-      <Kb.ProgressBar ratio={ratio} />
-    </Kb.Box2>
-  )
 }
 
 const Video = React.memo(function Video(p: Props) {
@@ -33,7 +14,6 @@ const Video = React.memo(function Video(p: Props) {
   const {fileName, isCollapsed, showTitle, openFullscreen, transferState, transferProgress} =
     useAttachmentRedux()
   const containerStyle = isHighlighted ? styles.containerHighlighted : styles.container
-  const isUploading = transferState === 'uploading'
   const collapseIcon = useCollapseIcon(false)
 
   const filename = React.useMemo(() => {
@@ -62,11 +42,11 @@ const Video = React.memo(function Video(p: Props) {
             allowPlay={transferState !== 'uploading'}
           />
           {showTitle ? <Title /> : null}
-          {isUploading ? <Transferring ratio={transferProgress} /> : null}
+          <Transferring transferState={transferState} ratio={transferProgress} />
         </Kb.Box2>
       </>
     )
-  }, [openFullscreen, toggleMessageMenu, showTitle, filename, isUploading, transferProgress, transferState])
+  }, [openFullscreen, toggleMessageMenu, showTitle, filename, transferProgress, transferState])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={containerStyle} alignItems="flex-start">
@@ -90,14 +70,6 @@ const styles = Styles.styleSheetCreate(
         maxWidth: Styles.isMobile ? '100%' : 330,
         padding: 3,
         position: 'relative',
-      },
-      transferring: {
-        backgroundColor: Styles.globalColors.black_50,
-        borderRadius: 2,
-        left: Styles.globalMargins.tiny,
-        overflow: 'hidden',
-        position: 'absolute',
-        top: Styles.globalMargins.tiny,
       },
     } as const)
 )

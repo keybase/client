@@ -29,7 +29,9 @@ const TeamPicker = (props: Props) => {
   const fwdMsg = Container.useRPC(RPCChatTypes.localForwardMessageNonblockRpcPromise)
   const submit = Container.useRPC(RPCChatTypes.localForwardMessageConvSearchRpcPromise)
   const dispatch = Container.useDispatch()
-  const doSearch = React.useCallback(() => {
+  const [lastTerm, setLastTerm] = React.useState('init')
+  if (lastTerm !== term) {
+    setLastTerm(term)
     setWaiting(true)
     submit(
       [{term}],
@@ -43,7 +45,7 @@ const TeamPicker = (props: Props) => {
         logger.info('TeamPicker: error loading search results: ' + error.message)
       }
     )
-  }, [term, submit])
+  }
 
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
@@ -120,10 +122,6 @@ const TeamPicker = (props: Props) => {
       onSubmit()
     }
   }
-
-  React.useEffect(() => {
-    doSearch()
-  }, [doSearch])
 
   const renderResult = (index: number, item: RPCChatTypes.ConvSearchHit) => {
     return (

@@ -1,4 +1,5 @@
 import * as Kb from '../../common-adapters'
+import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
@@ -30,14 +31,14 @@ const TeamRow = (props: Props) => {
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({reason: 'teamRow', teamname: teamMeta.teamname}))
 
-  const {popup, popupAnchor, toggleShowingPopup, showingPopup} = Kb.usePopup(getAttachmentRef => (
-    <TeamMenu
-      teamID={teamID}
-      attachTo={getAttachmentRef}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return <TeamMenu teamID={teamID} attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
+    },
+    [teamID]
+  )
+  const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   const badgeCount = Container.useSelector(s =>
     Constants.getTeamRowBadgeCount(s.teams.newTeamRequests, s.teams.teamIDToResetUsers, teamID)

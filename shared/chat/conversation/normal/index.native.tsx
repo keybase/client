@@ -13,11 +13,12 @@ import InputArea from '../input-area/container'
 import InvitationToBlock from '../../blocking/invitation-to-block'
 import ListArea from '../list-area'
 import PinnedMessage from '../pinned-message/container'
-import ThreadLoadStatus from '../load-status/container'
+import ThreadLoadStatus from '../load-status'
 import type * as Types from '../../../constants/types/chat2'
 import type {LayoutEvent} from '../../../common-adapters/box'
 import type {Props} from '.'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
+import {Dimensions} from 'react-native'
 
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
@@ -112,8 +113,8 @@ const Conversation = React.memo(function Conversation(props: Props) {
   )
 
   const insets = useSafeAreaInsets()
-  const headerHeight = 44
-  const height = Styles.dimensionHeight - insets.top - headerHeight
+  const headerHeight = Styles.isTablet ? 115 : 44
+  const height = Dimensions.get('window').height - insets.top - headerHeight
 
   const safeStyle = React.useMemo(
     () =>
@@ -123,7 +124,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
             height,
             maxHeight: height,
             minHeight: height,
-            paddingBottom: insets.bottom,
+            paddingBottom: Styles.isTablet ? 0 : insets.bottom,
           },
     [height, insets.bottom]
   )
@@ -146,7 +147,9 @@ const Conversation = React.memo(function Conversation(props: Props) {
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={safeStyle}>
-      <Kb.KeyboardAvoidingView2 extraPadding={-insets.bottom}>{content}</Kb.KeyboardAvoidingView2>
+      <Kb.KeyboardAvoidingView2 extraPadding={Styles.isTablet ? -65 : -insets.bottom}>
+        {content}
+      </Kb.KeyboardAvoidingView2>
     </Kb.Box2>
   )
 })

@@ -65,7 +65,7 @@ export const launchImageLibraryAsync = async (
   return ImagePicker.launchImageLibraryAsync({
     ...defaultOptions,
     allowsMultipleSelection,
-    ...(mediaType === 'video' ? {allowsEditing: true} : {}),
+    ...(mediaType === 'video' ? {allowsEditing: true, allowsMultipleSelection: false} : {}),
     mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
   }).catch(
     retyAfterAskingPerm(

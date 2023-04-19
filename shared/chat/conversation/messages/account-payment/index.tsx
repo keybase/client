@@ -77,6 +77,7 @@ const AccountPayment = (props: Props) => {
           <Kb.Text
             type="BodySmall"
             style={Styles.collapseStyles([
+              {flexShrink: 1},
               styles.purple,
               props.pending && styles.purpleOrWhite,
               props.canceled && styles.lineThrough,

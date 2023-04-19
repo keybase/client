@@ -15,19 +15,14 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
   const {containerStyle, className, multiline, backgroundColor, toastStyle} = p
   const {disabled, toastClassName, children, position, textStyle, tooltip} = p
   const attachmentRef = React.useRef(null)
-  const [mouseIn, setMouseIn] = React.useState(false)
   const [visible, setVisible] = React.useState(false)
 
   const onMouseEnter = React.useCallback(() => {
-    setMouseIn(true)
+    setVisible(true)
   }, [])
   const onMouseLeave = React.useCallback(() => {
-    setMouseIn(false)
+    setVisible(false)
   }, [])
-
-  React.useEffect(() => {
-    setVisible(mouseIn)
-  }, [mouseIn])
 
   const setAttachmentRef = React.useCallback(ref => {
     attachmentRef.current = ref
@@ -48,7 +43,7 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
       >
         {children}
       </Kb.Box2>
-      {!disabled && mouseIn && (
+      {!disabled && visible && (
         <Kb.Toast
           containerStyle={Styles.collapseStyles([
             styles.container,

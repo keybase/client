@@ -508,11 +508,10 @@ const NodeInRow = (props: NodeInRowProps) => {
             <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.expandIcon])}>
               <Kb.Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} sizeType="Tiny" />
             </Kb.Box2>
-
             <Kb.Box2
               direction="horizontal"
               style={Styles.collapseStyles([
-                Styles.globalStyles.flexGrow,
+                {flexGrow: 1, flexShrink: 1},
                 !expanded && styles.contentCollapsedFixedHeight,
                 expanded && styles.membershipExpanded,
               ] as const)}
@@ -719,23 +718,31 @@ export const TeamMemberHeader = (props: Props) => {
 }
 
 const BlockDropdown = (props: {username: string}) => {
+  const {username} = props
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBlock = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [{props: {username: props.username}, selected: 'chatBlockingModal'}],
-      })
-    )
-  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(getAttachmentRef => (
-    <Kb.FloatingMenu
-      attachTo={getAttachmentRef}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      closeOnSelect={true}
-      items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const onBlock = () =>
+        dispatch(
+          nav.safeNavigateAppendPayload({
+            path: [{props: {username}, selected: 'chatBlockingModal'}],
+          })
+        )
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          closeOnSelect={true}
+          items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
+        />
+      )
+    },
+    [dispatch, nav, username]
+  )
+  const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.Button

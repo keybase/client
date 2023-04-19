@@ -11,12 +11,14 @@ import type * as Types from '../../../../constants/types/chat2'
 import SwipeConvActions from './swipe-conv-actions'
 import shallowEqual from 'shallowequal'
 import './small-team.css'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {
   IsTeamContext,
   ParticipantsContext,
   TimeContext,
   ConversationIDKeyContext,
   SnippetContext,
+  SnippetDecorationContext,
 } from './contexts'
 
 export type Props = {
@@ -33,7 +35,7 @@ export type Props = {
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime} = p
   const {conversationIDKey, isInWidget, swipeCloseRef} = p
-  const {isDecryptingSnippet, snippet} = Container.useSelector(state => {
+  const {isDecryptingSnippet, snippet, snippetDecoration} = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
     let typingSnippet: undefined | string = undefined
     if (!isInWidget) {
@@ -55,7 +57,8 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       conversationIDKey && !snippet
         ? !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
         : false
-    return {isDecryptingSnippet, snippet}
+    const snippetDecoration = meta?.snippetDecoration ?? RPCChatTypes.SnippetDecoration.none
+    return {isDecryptingSnippet, snippet, snippetDecoration}
   }, shallowEqual)
 
   const participants = Container.useSelector(state => {
@@ -80,7 +83,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   }, shallowEqual)
 
   const dispatch = Container.useDispatch()
-  const _onSelectConversation = Container.useEvent(() => {
+  const _onSelectConversation: () => void = Container.useEvent(() => {
     if (isInWidget) {
       dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey}))
     } else {
@@ -100,10 +103,9 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 
   const children = React.useMemo(() => {
     return (
-      <SwipeConvActions swipeCloseRef={swipeCloseRef}>
+      <SwipeConvActions swipeCloseRef={swipeCloseRef} onClick={onSelectConversation}>
         <Kb.ClickableBox
           className={Styles.classNames('small-row', {selected: isSelected})}
-          onClick={onSelectConversation}
           style={
             isInWidget || Styles.isTablet
               ? Styles.collapseStyles([styles.container, {backgroundColor: backgroundColor}])
@@ -134,7 +136,11 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       <IsTeamContext.Provider value={!!layoutIsTeam}>
         <ParticipantsContext.Provider value={participants}>
           <TimeContext.Provider value={layoutTime ?? 0}>
-            <SnippetContext.Provider value={snippet}>{children}</SnippetContext.Provider>
+            <SnippetContext.Provider value={snippet}>
+              <SnippetDecorationContext.Provider value={snippetDecoration}>
+                {children}
+              </SnippetDecorationContext.Provider>
+            </SnippetContext.Provider>
           </TimeContext.Provider>
         </ParticipantsContext.Provider>
       </IsTeamContext.Provider>
@@ -189,16 +195,10 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
 })
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      flexShrink: 0,
-      height: RowSizes.smallRowHeight,
-    },
-    isMobile: {
-      marginLeft: Styles.globalMargins.xtiny,
-      marginRight: Styles.globalMargins.xtiny,
-    },
-  }),
+  container: {
+    flexShrink: 0,
+    height: RowSizes.smallRowHeight,
+  },
   conversationRow: {
     ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
@@ -220,6 +220,10 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingRight: Styles.globalMargins.xsmall,
     },
     isElectron: Styles.desktopStyles.clickable,
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
   }),
   withBottomLine: {
     justifyContent: 'flex-end',

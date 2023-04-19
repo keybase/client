@@ -87,6 +87,13 @@ if (__DEV__) {
 //   window.console.info = window.console.log
 // }
 
+// If debugFullLogs
+if (config.debugFullLogs) {
+  console.warn('\n\n\nlocal debug config.debugFullLogs is ONNNNNn!!!!!1!!!11!!!!\n')
+  config.printRPC = true
+  config.enableActionLogging = true
+}
+
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
 
