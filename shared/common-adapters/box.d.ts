@@ -40,6 +40,7 @@ export type Box2Props = {
   gap?: keyof typeof globalMargins
   gapStart?: boolean
   gapEnd?: boolean
+  ref?: any
 }
 
 /**
