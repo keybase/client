@@ -12,6 +12,7 @@
   background-size: 80px 80px;
   bottom: -80px;
   left: 0;
+  overflow: hidden;
   position: absolute;
   right: 0;
   top: 0;

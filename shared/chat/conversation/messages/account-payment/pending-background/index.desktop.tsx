@@ -1,13 +1,20 @@
 import * as Styles from '../../../../../styles'
 import './pending-background.css'
+import type {Props} from '.'
 
 const patternImage = Styles.backgroundURL('payment-pattern-80.png')
 
-const PendingBackground = () => (
-  <div style={styles.container as any}>
-    <div className="pendingBackground" style={styles.bg as any} />
-  </div>
-)
+const PendingBackground = (p: Props) => {
+  const {children, style} = p
+  return (
+    <div style={style as any}>
+      <div style={styles.wrap}>
+        <div className="pendingBackground" style={styles.bg as any} />
+      </div>
+      {children}
+    </div>
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -15,11 +22,10 @@ const styles = Styles.styleSheetCreate(
       bg: Styles.platformStyles({
         isElectron: {backgroundImage: patternImage},
       }),
-      container: {
-        height: '100%',
+      wrap: {
+        inset: 0,
         overflow: 'hidden',
         position: 'absolute',
-        width: '100%',
       },
     } as const)
 )

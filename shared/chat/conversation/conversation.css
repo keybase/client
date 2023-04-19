@@ -28,7 +28,6 @@
 }
 .WrapperMessage-hoverColor:hover {
   background-color: var(--color-blueLighter2);
-  z-index: 1; /* so we don't go over highlight zindex */
 }
 
 .WrapperMessage-decorated {
@@ -79,7 +78,7 @@
   background-color: white;
 }
 .darkMode .ReplyBox:hover {
-  background-color: rgba(24, 45, 110, 0.5);
+  background-color: var(--color-yellow);
 }
 .WrapperMessage-hoverBox:hover .sendingStatus {
   visibility: hidden;
