@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
@@ -45,18 +46,25 @@ const TeamHeader = (props: SmallProps) => {
   }
   const isGeneralChannel = !!(channelname && channelname === 'general')
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <ConvoIDContext.Provider value={conversationIDKey}>
-      <InfoPanelMenu
-        attachTo={attachTo}
-        floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
-        onHidden={toggleShowingPopup}
-        hasHeader={false}
-        isSmallTeam={isSmallTeam}
-        visible={showingPopup}
-      />
-    </ConvoIDContext.Provider>
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <ConvoIDContext.Provider value={conversationIDKey}>
+          <InfoPanelMenu
+            attachTo={attachTo}
+            floatingMenuContainerStyle={styles.floatingMenuContainerStyle}
+            onHidden={toggleShowingPopup}
+            hasHeader={false}
+            isSmallTeam={isSmallTeam}
+            visible={true}
+          />
+        </ConvoIDContext.Provider>
+      )
+    },
+    [conversationIDKey, isSmallTeam]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">

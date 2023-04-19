@@ -26,8 +26,8 @@ const InfoPanelConnector = (props: Props) => {
   const smallTeam = meta.teamType !== 'big'
   const teamname = meta.teamname
 
-  const prevShouldNavigateOut = Container.usePrevious(shouldNavigateOut)
   const [selectedTab, onSelectTab] = React.useState<Panel | null>(initialTab)
+  const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
   const dispatch = Container.useDispatch()
   const onCancel = () => {
@@ -36,9 +36,12 @@ const InfoPanelConnector = (props: Props) => {
   }
   const onGoToInbox = React.useCallback(() => dispatch(Chat2Gen.createNavigateToInbox()), [dispatch])
 
-  React.useEffect(() => {
-    !prevShouldNavigateOut && shouldNavigateOut && onGoToInbox()
-  }, [prevShouldNavigateOut, shouldNavigateOut, onGoToInbox])
+  if (lastSNO !== shouldNavigateOut) {
+    setLastSNO(shouldNavigateOut)
+    if (!lastSNO && shouldNavigateOut) {
+      onGoToInbox()
+    }
+  }
 
   return (
     <InfoPanel

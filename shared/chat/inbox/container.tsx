@@ -110,17 +110,18 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     dispatch(Chat2Gen.createToggleSmallTeamsExpanded())
   }, [dispatch])
 
-  if (Container.isMobile) {
-    // eslint-disable-next-line
-    React.useEffect(() => {
+  const [lastIsFocused, setLastIsFocused] = React.useState(isFocused)
+
+  if (lastIsFocused !== isFocused) {
+    setLastIsFocused(isFocused)
+    if (Container.isMobile) {
       if (isFocused && Constants.isSplit) {
         dispatch(Chat2Gen.createTabSelected())
       }
-      // eslint-disable-next-line
-    }, [isFocused])
+    }
   }
 
-  React.useEffect(() => {
+  Container.useOnMountOnce(() => {
     if (!Container.isMobile) {
       // On mobile this is taken care of by NavigationEvents.
       dispatch(Chat2Gen.createTabSelected())
@@ -128,9 +129,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     if (!inboxHasLoaded) {
       dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'}))
     }
-    // we actually only want to run this once, likely we should dispatch a 'inbox saw first'
-    // eslint-disable-next-line
-  }, [])
+  })
 
   return (
     <Inbox

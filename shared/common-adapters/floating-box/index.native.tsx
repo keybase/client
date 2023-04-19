@@ -11,12 +11,13 @@ const Kb = {
 
 const FloatingBox = (p: Props) => {
   const {hideKeyboard, children, containerStyle} = p
-
-  React.useEffect(() => {
+  const [lastHK, setLastHK] = React.useState(hideKeyboard)
+  if (lastHK !== hideKeyboard) {
+    setLastHK(hideKeyboard)
     if (hideKeyboard) {
       Keyboard.dismiss()
     }
-  }, [hideKeyboard])
+  }
 
   return (
     <Kb.Portal hostName="popup-root">

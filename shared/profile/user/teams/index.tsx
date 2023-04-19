@@ -1,4 +1,5 @@
 import * as Kb from '../../../common-adapters'
+import * as React from 'react'
 import type * as Types from '../../../constants/types/tracker2'
 import * as Styles from '../../../styles'
 import type {TeamID} from '../../../constants/types/teams'
@@ -19,27 +20,34 @@ export type Props = {
   onEdit?: () => void
 }
 
-const TeamShowcase = p => {
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <TeamInfo {...p} attachTo={attachTo} onHidden={toggleShowingPopup} visible={showingPopup} />
-  ))
+// TODO types
+const TeamShowcase = (props: any) => {
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return <TeamInfo {...props} attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
+    },
+    [props]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <Kb.ClickableBox ref={popupAnchor} onClick={toggleShowingPopup}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.showcase}>
         <>
           {popup}
-          <Kb.Avatar size={32} teamname={p.name} isTeam={true} />
+          <Kb.Avatar size={32} teamname={props.name} isTeam={true} />
         </>
         <Kb.Text type="BodySemiboldLink" style={styles.link}>
-          {p.name}
+          {props.name}
         </Kb.Text>
-        <OpenMeta isOpen={p.isOpen} />
+        <OpenMeta isOpen={props.isOpen} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
 }
 
-const ShowcaseTeamsOffer = p => (
+// TODO types
+const ShowcaseTeamsOffer = (p: any) => (
   <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
     <Kb.ClickableBox onClick={p.onEdit}>
       <Kb.Box2 direction="horizontal" gap="tiny">

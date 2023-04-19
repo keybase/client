@@ -35,21 +35,28 @@ const Git = (props: Props) => {
     setExpandedSet(new Set(moduleExpandedSet))
   }
 
-  const menuItems = [
-    {icon: 'iconfont-person', onClick: onNewPersonalRepo, title: 'New personal repository'} as const,
-    {icon: 'iconfont-people', onClick: onNewTeamRepo, title: 'New team repository'} as const,
-  ]
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const menuItems = [
+        {icon: 'iconfont-person', onClick: onNewPersonalRepo, title: 'New personal repository'} as const,
+        {icon: 'iconfont-people', onClick: onNewTeamRepo, title: 'New team repository'} as const,
+      ]
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      items={menuItems}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-      position="bottom center"
-    />
-  ))
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          items={menuItems}
+          onHidden={toggleShowingPopup}
+          visible={true}
+          position="bottom center"
+        />
+      )
+    },
+    [onNewPersonalRepo, onNewTeamRepo]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>

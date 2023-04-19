@@ -211,24 +211,32 @@ const AddMoreMembers = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
-  const onAddKeybase = () => dispatch(appendNewTeamBuilder(teamID))
-  const onAddContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))
-  const onAddPhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
-  const onAddEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
-  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(getAttachmentRef => (
-    <Kb.FloatingMenu
-      attachTo={getAttachmentRef}
-      closeOnSelect={true}
-      onHidden={toggleShowingPopup}
-      visible={showingPopup}
-      items={[
-        {onClick: onAddKeybase, title: 'From Keybase'},
-        ...(Styles.isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
-        {onClick: onAddEmail, title: 'By email address'},
-        {onClick: onAddPhone, title: 'By phone number'},
-      ]}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const onAddKeybase = () => dispatch(appendNewTeamBuilder(teamID))
+      const onAddContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))
+      const onAddPhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
+      const onAddEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          onHidden={toggleShowingPopup}
+          visible={true}
+          items={[
+            {onClick: onAddKeybase, title: 'From Keybase'},
+            ...(Styles.isMobile ? [{onClick: onAddContacts, title: 'From contacts'}] : []),
+            {onClick: onAddEmail, title: 'By email address'},
+            {onClick: onAddPhone, title: 'By phone number'},
+          ]}
+        />
+      )
+    },
+    [dispatch, nav, teamID]
+  )
+
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.Button

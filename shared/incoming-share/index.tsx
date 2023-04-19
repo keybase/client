@@ -58,31 +58,45 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
     !originalOnly && syncCompressPreferenceFromServiceToStore()
   }, [originalOnly, syncCompressPreferenceFromServiceToStore])
 
-  const setUseOriginalFromUI = (useOriginal: boolean) => {
-    !originalOnly && setUseOriginalInStore(useOriginal)
-    setUseOriginalInService(useOriginal)
-  }
-
   const useOriginalValue = Container.useSelector(state => state.config.incomingShareUseOriginal)
-  const {popup, showingPopup, toggleShowingPopup} = Kb.usePopup(() => (
-    <Kb.FloatingMenu
-      closeOnSelect={true}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      items={[
-        {
-          icon: useOriginalValue ? 'iconfont-check' : undefined,
-          onClick: () => setUseOriginalFromUI(true),
-          title: `Keep full size (${FsConstants.humanizeBytes(originalTotalSize, 1)})`,
-        },
-        {
-          icon: useOriginalValue ? undefined : 'iconfont-check',
-          onClick: () => setUseOriginalFromUI(false),
-          title: `Compress (${FsConstants.humanizeBytes(scaledTotalSize, 1)})`,
-        },
-      ]}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {toggleShowingPopup} = p
+      const setUseOriginalFromUI = (useOriginal: boolean) => {
+        !originalOnly && setUseOriginalInStore(useOriginal)
+        setUseOriginalInService(useOriginal)
+      }
+
+      return (
+        <Kb.FloatingMenu
+          closeOnSelect={true}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          items={[
+            {
+              icon: useOriginalValue ? 'iconfont-check' : undefined,
+              onClick: () => setUseOriginalFromUI(true),
+              title: `Keep full size (${FsConstants.humanizeBytes(originalTotalSize, 1)})`,
+            },
+            {
+              icon: useOriginalValue ? undefined : 'iconfont-check',
+              onClick: () => setUseOriginalFromUI(false),
+              title: `Compress (${FsConstants.humanizeBytes(scaledTotalSize, 1)})`,
+            },
+          ]}
+        />
+      )
+    },
+    [
+      originalTotalSize,
+      scaledTotalSize,
+      useOriginalValue,
+      originalOnly,
+      setUseOriginalInService,
+      setUseOriginalInStore,
+    ]
+  )
+  const {popup, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   if (originalOnly) {
     return null
@@ -95,7 +109,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
   return (
     <>
       <Kb.Icon type="iconfont-gear" padding="tiny" onClick={toggleShowingPopup} />
-      {showingPopup && popup}
+      {popup}
     </>
   )
 }

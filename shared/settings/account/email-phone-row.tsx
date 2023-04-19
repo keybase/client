@@ -38,33 +38,98 @@ const badge = (backgroundColor: string, menuItem: boolean = false) => (
 )
 
 const EmailPhoneRow = (props: Props) => {
-  const {
-    address,
+  const {address, onDelete, onMakePrimary, onToggleSearchable, onVerify, moreThanOneEmail} = props
+  const {primary, searchable, superseded, type, verified, lastVerifyEmailDate} = props
+
+  const menuItems = React.useMemo(() => {
+    const menuItems: Kb.MenuItems = []
+    if (!verified) {
+      menuItems.push({
+        decoration: verified ? undefined : badge(Styles.globalColors.orange, true),
+        icon: 'iconfont-lock',
+        onClick: onVerify,
+        title: 'Verify',
+      })
+    }
+    if (type === 'email' && !primary) {
+      menuItems.push({
+        icon: 'iconfont-star',
+        onClick: onMakePrimary,
+        subTitle: 'Use this email for important notifications.',
+        title: 'Make primary',
+      })
+    }
+    if (verified) {
+      const copyType = type === 'email' ? 'email' : 'number'
+      menuItems.push({
+        decoration: searchable ? undefined : badge(Styles.globalColors.blue, true),
+        icon: searchable ? 'iconfont-hide' : 'iconfont-unhide',
+        onClick: onToggleSearchable,
+        subTitle: searchable
+          ? `Don't let friends find you by this ${copyType}.`
+          : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
+        title: searchable ? 'Make unsearchable' : 'Make searchable',
+      })
+    }
+
+    if (menuItems.length > 0) {
+      menuItems.push('Divider')
+    }
+    const isUndeletableEmail = type === 'email' && moreThanOneEmail && primary
+    const deleteItem: Kb.MenuItem = isUndeletableEmail
+      ? {
+          disabled: true,
+          icon: 'iconfont-trash',
+          onClick: null,
+          subTitle:
+            'You need to delete your other emails, or make another one primary, before you can delete this email.',
+          title: 'Delete',
+        }
+      : {danger: true, icon: 'iconfont-trash', onClick: onDelete, title: 'Delete'}
+    menuItems.push(deleteItem)
+    return menuItems
+  }, [
+    moreThanOneEmail,
     onDelete,
     onMakePrimary,
     onToggleSearchable,
     onVerify,
     primary,
     searchable,
-    superseded,
     type,
     verified,
-    lastVerifyEmailDate,
-    moreThanOneEmail,
-  } = props
+  ])
 
-  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeText="Cancel"
-      visible={showingPopup}
-      position="bottom right"
-      header={Styles.isMobile ? header : undefined}
-      onHidden={toggleShowingPopup}
-      items={menuItems}
-      closeOnSelect={true}
-    />
-  ))
+  const header = React.useMemo(
+    () => (
+      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
+        <Kb.Text type="BodySmallSemibold">{address}</Kb.Text>
+        {primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
+      </Kb.Box2>
+    ),
+    [address, primary]
+  )
+
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeText="Cancel"
+          visible={true}
+          position="bottom right"
+          header={Styles.isMobile ? header : undefined}
+          onHidden={toggleShowingPopup}
+          items={menuItems}
+          closeOnSelect={true}
+        />
+      )
+    },
+    [menuItems, header]
+  )
+
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   // Short circuit superseded phone numbers - they get their own banner instead
   if (superseded) {
@@ -91,65 +156,12 @@ const EmailPhoneRow = (props: Props) => {
     }
   }
 
-  const menuItems: Kb.MenuItems = []
-  if (!verified) {
-    menuItems.push({
-      decoration: verified ? undefined : badge(Styles.globalColors.orange, true),
-      icon: 'iconfont-lock',
-      onClick: onVerify,
-      title: 'Verify',
-    })
-  }
-  if (type === 'email' && !primary) {
-    menuItems.push({
-      icon: 'iconfont-star',
-      onClick: onMakePrimary,
-      subTitle: 'Use this email for important notifications.',
-      title: 'Make primary',
-    })
-  }
-  if (verified) {
-    const copyType = type === 'email' ? 'email' : 'number'
-    menuItems.push({
-      decoration: searchable ? undefined : badge(Styles.globalColors.blue, true),
-      icon: searchable ? 'iconfont-hide' : 'iconfont-unhide',
-      onClick: onToggleSearchable,
-      subTitle: searchable
-        ? `Don't let friends find you by this ${copyType}.`
-        : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
-      title: searchable ? 'Make unsearchable' : 'Make searchable',
-    })
-  }
-
-  if (menuItems.length > 0) {
-    menuItems.push('Divider')
-  }
-  const isUndeletableEmail = type === 'email' && moreThanOneEmail && primary
-  const deleteItem: Kb.MenuItem = isUndeletableEmail
-    ? {
-        disabled: true,
-        icon: 'iconfont-trash',
-        onClick: null,
-        subTitle:
-          'You need to delete your other emails, or make another one primary, before you can delete this email.',
-        title: 'Delete',
-      }
-    : {danger: true, icon: 'iconfont-trash', onClick: onDelete, title: 'Delete'}
-  menuItems.push(deleteItem)
-
   let gearIconBadge: React.ReactNode | null = null
   if (!verified) {
     gearIconBadge = badge(Styles.globalColors.orange)
   } else if (!searchable) {
     gearIconBadge = badge(Styles.globalColors.blue)
   }
-
-  const header = (
-    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader}>
-      <Kb.Text type="BodySmallSemibold">{address}</Kb.Text>
-      {primary && <Kb.Text type="BodySmall">Primary</Kb.Text>}
-    </Kb.Box2>
-  )
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
