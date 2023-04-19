@@ -197,6 +197,32 @@ type TSProps = {
   you: string
 }
 
+const HighlightWrapper = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode
+  style: Styles.StylesCrossPlatform
+}) => {
+  return (
+    <Kb.Box2
+      direction="vertical"
+      style={Styles.collapseStyles([style, styles.highlighted])}
+      fullWidth={!Styles.isMobile}
+    >
+      {children}
+    </Kb.Box2>
+  )
+}
+
+const NormalWrapper = ({children, style}: {children: React.ReactNode; style: Styles.StylesCrossPlatform}) => {
+  return (
+    <Kb.Box2 direction="vertical" style={style} fullWidth={!Styles.isMobile}>
+      {children}
+    </Kb.Box2>
+  )
+}
+
 const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   const {botname, bottomChildren, children, decorate} = p
   const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
@@ -217,11 +243,11 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         ref: popupAnchor as any,
       }
 
-  const background = isPendingPayment ? (
-    <PendingPaymentBackground />
-  ) : showCenteredHighlight ? (
-    <Kb.Box2 direction="vertical" style={styles.highlighted} />
-  ) : null
+  const Background = isPendingPayment
+    ? PendingPaymentBackground
+    : showCenteredHighlight
+    ? HighlightWrapper
+    : NormalWrapper
 
   let content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -248,19 +274,20 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
   return (
     <LongPressable {...pressableProps}>
-      <Kb.Box2 direction="vertical" style={styles.middleSide} fullWidth={!Styles.isMobile}>
-        {background}
-        {content}
-        <BottomSide
-          ecrType={ecrType}
-          reactionsPopupPosition={reactionsPopupPosition}
-          hasReactions={hasReactions}
-          bottomChildren={bottomChildren}
-          showCenteredHighlight={showCenteredHighlight}
-          toggleShowingPopup={toggleShowingPopup}
-          setShowingPicker={setShowingPicker}
-          showingPopup={showingPopup}
-        />
+      <Kb.Box2 direction="vertical" style={styles.middle} fullWidth={true}>
+        <Background style={styles.background}>
+          {content}
+          <BottomSide
+            ecrType={ecrType}
+            reactionsPopupPosition={reactionsPopupPosition}
+            hasReactions={hasReactions}
+            bottomChildren={bottomChildren}
+            showCenteredHighlight={showCenteredHighlight}
+            toggleShowingPopup={toggleShowingPopup}
+            setShowingPicker={setShowingPicker}
+            showingPopup={showingPopup}
+          />
+        </Background>
       </Kb.Box2>
       <RightSide
         botname={botname}
@@ -529,6 +556,12 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      background: {
+        alignSelf: 'stretch',
+        flexGrow: 1,
+        flexShrink: 1,
+        position: 'relative',
+      },
       edited: {color: Styles.globalColors.black_20},
       editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
       ellipsis: Styles.platformStyles({
@@ -571,12 +604,6 @@ const styles = Styles.styleSheetCreate(
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
       highlighted: {
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
-        bottom: 0,
-        left: Styles.isMobile ? 45 : 52,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        zIndex: -1,
       },
       menuButtons: Styles.platformStyles({
         common: {
@@ -589,10 +616,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {height: 24},
       }),
       messagePopupContainer: {marginRight: Styles.globalMargins.small},
-      middleSide: {
-        alignItems: 'stretch',
-        flexGrow: 1,
-        flexShrink: 1,
+      middle: {
         paddingLeft: Styles.isMobile ? 48 : 56,
         paddingRight: 4,
         position: 'relative',
