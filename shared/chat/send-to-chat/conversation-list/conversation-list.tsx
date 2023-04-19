@@ -61,9 +61,7 @@ const ConversationList = (props: Props) => {
   const [selected, setSelected] = React.useState(0)
   const [results, setResults] = React.useState<Array<RPCChatTypes.SimpleSearchInboxConvNamesHit>>([])
   const submit = Container.useRPC(RPCChatTypes.localSimpleSearchInboxConvNamesRpcPromise)
-  const [lastQuery, setLastQuery] = React.useState('init')
-  if (lastQuery !== query) {
-    setLastQuery(query)
+  const doSearch = React.useCallback(() => {
     setWaiting(true)
     setSelected(0)
     submit(
@@ -77,7 +75,10 @@ const ConversationList = (props: Props) => {
         logger.info('ConversationList: error loading search results: ' + error.message)
       }
     )
-  }
+  }, [query, submit])
+  React.useEffect(() => {
+    doSearch()
+  }, [doSearch])
   const onSelect = (convID: Types.ConversationIDKey, convName: string) => {
     props.onSelect(convID, convName)
     props.onDone?.()

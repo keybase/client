@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
@@ -30,39 +29,29 @@ export const HeaderTitle = () => (
 export const HeaderRightActions = () => {
   const dispatch = Container.useDispatch()
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      const onAddPersonal = () => {
-        dispatch(GitGen.createSetError({}))
-        dispatch(
-          RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]})
-        )
-      }
-      const onAddTeam = () => {
-        dispatch(GitGen.createSetError({}))
-        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
-      }
+  const onAddPersonal = () => {
+    dispatch(GitGen.createSetError({}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]}))
+  }
+  const onAddTeam = () => {
+    dispatch(GitGen.createSetError({}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
+  }
 
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          position="bottom center"
-          positionFallbacks={[]}
-          items={[
-            {icon: 'iconfont-person', onClick: onAddPersonal, title: 'New personal repository'},
-            {icon: 'iconfont-people', onClick: onAddTeam, title: 'New team repository'},
-          ]}
-        />
-      )
-    },
-    [dispatch]
-  )
-
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      closeOnSelect={true}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      position="bottom center"
+      positionFallbacks={[]}
+      items={[
+        {icon: 'iconfont-person', onClick: onAddPersonal, title: 'New personal repository'},
+        {icon: 'iconfont-people', onClick: onAddTeam, title: 'New team repository'},
+      ]}
+    />
+  ))
   return (
     <>
       <Kb.Button

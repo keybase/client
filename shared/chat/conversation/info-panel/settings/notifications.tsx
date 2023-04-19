@@ -138,14 +138,12 @@ const Notifications = (props: Props) => {
     delayUnsave()
   }
 
-  const [lastMeta, setLastMeta] = React.useState<undefined | Types.ConversationMeta>()
-  if (lastMeta !== meta) {
-    setLastMeta(meta)
+  React.useEffect(() => {
     setDesktop(meta.notificationsDesktop)
     setMobile(meta.notificationsMobile)
     setMuted(meta.isMuted)
     setChannelWide(meta.notificationsGlobalIgnoreMentions)
-  }
+  }, [meta])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">

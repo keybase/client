@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -9,36 +8,27 @@ type AddAccountProps = {
 }
 
 const AddAccount = (props: AddAccountProps) => {
-  const {onAddNew, onLinkExisting} = props
-
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <Kb.FloatingMenu
-          items={[
-            {
-              icon: 'iconfont-new',
-              onClick: onAddNew,
-              title: 'Create a new account',
-            },
-            {
-              icon: 'iconfont-identity-stellar',
-              onClick: onLinkExisting,
-              title: 'Link an existing Stellar account',
-            },
-          ]}
-          visible={true}
-          attachTo={attachTo}
-          closeOnSelect={true}
-          onHidden={toggleShowingPopup}
-          position="bottom center"
-        />
-      )
-    },
-    [onAddNew, onLinkExisting]
-  )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      items={[
+        {
+          icon: 'iconfont-new',
+          onClick: props.onAddNew,
+          title: 'Create a new account',
+        },
+        {
+          icon: 'iconfont-identity-stellar',
+          onClick: props.onLinkExisting,
+          title: 'Link an existing Stellar account',
+        },
+      ]}
+      visible={showingPopup}
+      attachTo={attachTo}
+      closeOnSelect={true}
+      onHidden={toggleShowingPopup}
+      position="bottom center"
+    />
+  ))
   return (
     <>
       <Kb.Button

@@ -73,28 +73,19 @@ const MoreNetworksButton = (props: {
   services: Array<ServiceIdWithContact>
   onChangeService: (service: ServiceIdWithContact) => void
 }) => {
-  const {services, onChangeService} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={services.map(service => ({
-            onClick: () => onChangeService(service),
-            title: service,
-            view: <MoreNetworkItem service={service} />,
-          }))}
-          onHidden={toggleShowingPopup}
-          visible={true}
-        />
-      )
-    },
-    [services, onChangeService]
-  )
-
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      closeOnSelect={true}
+      items={props.services.map(service => ({
+        onClick: () => props.onChangeService(service),
+        title: service,
+        view: <MoreNetworkItem service={service} />,
+      }))}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
+    />
+  ))
 
   return (
     <>
@@ -104,7 +95,7 @@ const MoreNetworksButton = (props: {
           style={styles.moreNetworks1}
           fullHeight={true}
           centerChildren={true}
-          ref={popupAnchor as any}
+          ref={popupAnchor}
         >
           <Kb.WithTooltip tooltip="More networks" containerStyle={styles.moreNetworks2}>
             <Kb.ClickableBox onClick={toggleShowingPopup} style={styles.moreNetworks3}>

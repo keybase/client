@@ -29,9 +29,10 @@ const InboxAndConversation = (props: Props) => {
   })
   const navKey: string = props.route.key
 
-  Container.useOnMountOnce(() => {
+  // only on initial mount, auto select a convo if nothing comes in, including pending
+  React.useEffect(() => {
     if (needSelectConvoID) {
-      // hack to select the convo after we render
+      // hack to select the convo after we render, TODO move this elsewhere maybe
       setTimeout(() => {
         dispatch(
           Chat2Gen.createNavigateToThread({
@@ -41,7 +42,9 @@ const InboxAndConversation = (props: Props) => {
         )
       }, 1)
     }
-  })
+    // we only want to run this oncer per mount ever
+    // eslint-disable-next-line
+  }, [])
 
   return (
     <Kb.KeyboardAvoidingView2>

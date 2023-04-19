@@ -26,7 +26,6 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
   const type = Container.useSelector(
     state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.type
   )
-  const [lastType, setLastType] = React.useState(type)
 
   useChatDebugDump(
     `wrapper${o}`,
@@ -35,12 +34,11 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
     })
   )
 
-  if (lastType !== type) {
-    setLastType(type)
+  React.useEffect(() => {
     if (type !== 'placeholder') {
       forceListRedraw()
     }
-  }
+  }, [forceListRedraw, type])
 
   return (
     <WrapperMessage

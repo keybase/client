@@ -42,7 +42,6 @@ enum Visible {
 
 const useTooltip = () => {
   const [showTooltip, setShowTooltip] = React.useState(false)
-  const [lastShowTooltip, setLastShowTooltip] = React.useState(showTooltip)
   const opacitySV = useSharedValue(0)
 
   const animatedStyles = useAnimatedStyle(() => ({opacity: opacitySV.value}))
@@ -54,23 +53,17 @@ const useTooltip = () => {
     )
   }
 
-  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>()
-
-  if (showTooltip !== lastShowTooltip) {
-    setLastShowTooltip(showTooltip)
+  React.useEffect(() => {
     if (showTooltip) {
-      timeoutRef.current && clearTimeout(timeoutRef.current)
-      timeoutRef.current = setTimeout(() => {
+      const id = setTimeout(() => {
         setShowTooltip(false)
       }, 1400)
+      return () => {
+        clearTimeout(id)
+      }
     }
-  }
-
-  React.useEffect(() => {
-    return () => {
-      timeoutRef.current && clearTimeout(timeoutRef.current)
-    }
-  }, [])
+    return
+  }, [showTooltip])
 
   const tooltip = showTooltip ? (
     <Kb.Portal hostName="convOverlay" useFullScreenOverlay={false}>

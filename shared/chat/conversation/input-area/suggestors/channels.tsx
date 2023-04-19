@@ -86,11 +86,9 @@ const getChannelSuggestions = (
 
 export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
   const dispatch = Container.useDispatch()
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
+  React.useEffect(() => {
     dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey}))
-  }
+  }, [dispatch, conversationIDKey])
 
   return Container.useSelector(state => {
     const fil = filter.toLowerCase()

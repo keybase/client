@@ -31,23 +31,16 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
       })
     )
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <TeamMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          teamID={teamID}
-          hasHeader={true}
-          isSmallTeam={false}
-        />
-      )
-    },
-    [teamID]
-  )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <TeamMenu
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      teamID={teamID}
+      hasHeader={true}
+      isSmallTeam={false}
+    />
+  ))
 
   return (
     <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.teamRowContainer}>

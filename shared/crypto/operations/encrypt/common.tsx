@@ -1,17 +1,15 @@
-import * as Constants from '../../constants/crypto'
-import * as Container from '../../util/container'
-import * as CryptoGen from '../../actions/crypto-gen'
-import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
-import Recipients from '../recipients'
-import openURL from '../../util/open-url'
-import {DragAndDrop, Input, InputActionsBar, OperationBanner} from '../input'
-import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import * as Constants from '../../../constants/crypto'
+import * as Container from '../../../util/container'
+import * as CryptoGen from '../../../actions/crypto-gen'
+import openURL from '../../../util/open-url'
+import {OutputInfoBanner} from '../../output'
 
 const operation = Constants.Operations.Encrypt
 
-const EncryptOptions = React.memo(function EncryptOptions() {
+export const EncryptOptions = React.memo(function EncryptOptions() {
   const dispatch = Container.useDispatch()
 
   const hideIncludeSelf = Container.useSelector(state => state.crypto.encrypt.meta.hideIncludeSelf)
@@ -55,7 +53,7 @@ const EncryptOptions = React.memo(function EncryptOptions() {
   )
 })
 
-const EncryptOutputBanner = () => {
+export const EncryptOutputBanner = () => {
   const includeSelf = Container.useSelector(state => state.crypto.encrypt.options.includeSelf)
   const hasRecipients = Container.useSelector(state => state.crypto.encrypt.meta.hasRecipients)
   const recipients = Container.useSelector(state => state.crypto.encrypt.recipients)
@@ -116,68 +114,3 @@ const styles = Styles.styleSheetCreate(
       }),
     } as const)
 )
-
-export const EncryptInput = () => {
-  const options = Container.isMobile ? (
-    <InputActionsBar operation={operation}>
-      <EncryptOptions />
-    </InputActionsBar>
-  ) : (
-    <EncryptOptions />
-  )
-  const content = (
-    <>
-      <OperationBanner operation={operation} />
-      <Recipients />
-      <Input operation={operation} />
-      {options}
-    </>
-  )
-
-  const dispatch = Container.useDispatch()
-  React.useEffect(() => {
-    return () => {
-      if (Container.isMobile) {
-        dispatch(CryptoGen.createResetOperation({operation}))
-      }
-    }
-  }, [dispatch])
-  return Container.isMobile ? (
-    <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
-  ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.inputDesktopMaxHeight}>
-      {content}
-    </Kb.Box2>
-  )
-}
-
-export const EncryptOutput = () => {
-  const content = (
-    <>
-      <EncryptOutputBanner />
-      <SignedSender operation={operation} />
-      {Container.isMobile ? <Kb.Divider /> : null}
-      <OperationOutput operation={operation} />
-      <OutputActionsBar operation={operation} />
-    </>
-  )
-
-  return Container.isMobile ? (
-    content
-  ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.outputDesktopMaxHeight}>
-      {content}
-    </Kb.Box2>
-  )
-}
-
-export const EncryptIO = () => (
-  <DragAndDrop operation={operation} prompt="Drop a file to encrypt">
-    <Kb.Box2 direction="vertical" fullHeight={true}>
-      <EncryptInput />
-      <EncryptOutput />
-    </Kb.Box2>
-  </DragAndDrop>
-)
-
-export default EncryptInput

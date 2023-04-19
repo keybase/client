@@ -6,7 +6,7 @@ export const newRoutes = {
   // Crypto tab is driven by the sub nav on desktop
   cryptoRoot: {
     getOptions: {title: 'Crypto tools'},
-    getScreen: (): typeof SubNav => require('./sub-nav').default,
+    getScreen: (): typeof SubNav => require('./sub-nav/index.desktop').default,
     skipShim: true,
   },
 }

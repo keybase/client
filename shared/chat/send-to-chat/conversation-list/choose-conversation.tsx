@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import type * as Types from '../../../constants/types/chat2'
@@ -11,27 +10,19 @@ type Props = {
 }
 
 const ChooseConversation = (props: Props) => {
-  const {onSelect} = props
   const text = !props.convName.length ? 'Choose a conversation' : props.convName
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <Kb.Overlay
-          attachTo={attachTo}
-          onHidden={toggleShowingPopup}
-          position="center center"
-          style={styles.overlay}
-          visible={true}
-        >
-          <ConversationList onSelect={onSelect} onDone={toggleShowingPopup} />
-        </Kb.Overlay>
-      )
-    },
-    [onSelect]
-  )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.Overlay
+      attachTo={attachTo}
+      onHidden={toggleShowingPopup}
+      position="center center"
+      style={styles.overlay}
+      visible={showingPopup}
+    >
+      <ConversationList onSelect={props.onSelect} onDone={toggleShowingPopup} />
+    </Kb.Overlay>
+  ))
 
   return (
     <>

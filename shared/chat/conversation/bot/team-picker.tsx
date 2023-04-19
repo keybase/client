@@ -20,10 +20,7 @@ const BotTeamPicker = (props: Props) => {
   const [error, setError] = React.useState('')
   const submit = Container.useRPC(RPCChatTypes.localAddBotConvSearchRpcPromise)
   const dispatch = Container.useDispatch()
-
-  const [lastTerm, setLastTerm] = React.useState('init')
-  if (lastTerm !== term) {
-    setLastTerm(term)
+  const doSearch = React.useCallback(() => {
     setWaiting(true)
     submit(
       [{term}],
@@ -37,7 +34,7 @@ const BotTeamPicker = (props: Props) => {
         logger.info('BotTeamPicker: error loading search results: ' + error.message)
       }
     )
-  }
+  }, [term, submit])
 
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
@@ -55,10 +52,12 @@ const BotTeamPicker = (props: Props) => {
       })
     )
   }
-
-  Container.useOnMountOnce(() => {
+  React.useEffect(() => {
+    doSearch()
+  }, [doSearch])
+  React.useEffect(() => {
     dispatch(BotsGen.createGetFeaturedBots({}))
-  })
+  }, [dispatch])
 
   const renderResult = (index: number, item: RPCChatTypes.ConvSearchHit) => {
     return (

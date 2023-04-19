@@ -14,12 +14,10 @@ const VideoImpl = (p: Props) => {
 
   const ref = React.useRef<Video | null>(null)
   const [showPoster, setShowPoster] = React.useState(true)
-  const [lastUrl, setLastUrl] = React.useState(url)
 
-  if (lastUrl !== url) {
-    setLastUrl(url)
+  React.useEffect(() => {
     setShowPoster(true)
-  }
+  }, [url])
 
   const onPress = React.useCallback(() => {
     setShowPoster(false)

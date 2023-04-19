@@ -38,11 +38,7 @@ const MembersTab = (props: Props) => {
   const participants = Container.useSelector(
     state => Constants.getBotsAndParticipants(state, conversationIDKey).participants
   )
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  const [lastTeamName, setLastTeamName] = React.useState('')
-  if (lastTeamName !== teamname || lastCID !== conversationIDKey) {
-    setLastTeamName(teamname)
-    setLastCID(conversationIDKey)
+  React.useEffect(() => {
     if (teamname) {
       refreshParticipants(
         [{convID: Types.keyToConversationID(conversationIDKey)}],
@@ -50,7 +46,7 @@ const MembersTab = (props: Props) => {
         () => {}
       )
     }
-  }
+  }, [conversationIDKey, refreshParticipants, teamname])
 
   const showSpinner = !participants.length
   const participantsItems = participants

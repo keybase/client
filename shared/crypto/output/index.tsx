@@ -1,21 +1,21 @@
 import * as React from 'react'
-import * as Constants from '../constants/crypto'
-import * as Container from '../util/container'
-import type * as Types from '../constants/types/crypto'
-import * as FSGen from '../actions/fs-gen'
-import * as ConfigGen from '../actions/config-gen'
-import * as CryptoGen from '../actions/crypto-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Chat2Gen from '../actions/chat2-gen'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Platforms from '../constants/platform'
-import type {IconType} from '../common-adapters/icon.constants-gen'
-import {humanizeBytes} from '../constants/fs'
+import * as Constants from '../../constants/crypto'
+import * as Container from '../../util/container'
+import type * as Types from '../../constants/types/crypto'
+import * as FSGen from '../../actions/fs-gen'
+import * as ConfigGen from '../../actions/config-gen'
+import * as CryptoGen from '../../actions/crypto-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Platforms from '../../constants/platform'
+import type {IconType} from '../../common-adapters/icon.constants-gen'
+import {humanizeBytes} from '../../constants/fs'
 import capitalize from 'lodash/capitalize'
-import {getStyle} from '../common-adapters/text'
-import * as Path from '../util/path'
-import {pickFiles} from '../util/pick-files'
+import {getStyle} from '../../common-adapters/text'
+import * as Path from '../../util/path'
+import {pickFiles} from '../../util/pick-files'
 
 type OutputProps = {
   operation: Types.Operations
@@ -222,15 +222,10 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     onCopyOutput()
   }
 
-  const [lastShowingToast, setLastShowingToast] = React.useState(showingToast)
-
   // Start timeout to clear toast if currently displayed
-  if (lastShowingToast !== showingToast) {
-    setLastShowingToast(showingToast)
-    if (showingToast) {
-      setHideToastTimeout()
-    }
-  }
+  React.useEffect(() => {
+    showingToast && setHideToastTimeout()
+  }, [showingToast, setHideToastTimeout])
 
   return outputStatus && outputStatus === 'success' ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputActionsBarContainer}>

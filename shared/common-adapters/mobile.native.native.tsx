@@ -426,8 +426,11 @@ module.exports = {
   get useInterval() {
     return Index.useInterval
   },
-  get usePopup2() {
-    return Index.usePopup2
+  get useMounted() {
+    return Index.useMounted
+  },
+  get usePopup() {
+    return Index.usePopup
   },
   get useSafeAreaInsets() {
     return Index.useSafeAreaInsets

@@ -165,11 +165,9 @@ const AnimatedExpand = (() => {
           {scaleY: -0.6},
         ],
       }))
-      const [lastExpanded, setLastExpanded] = React.useState(expanded)
-      if (lastExpanded !== expanded) {
-        setLastExpanded(expanded)
+      React.useEffect(() => {
         offset.value = expanded ? 1 : 0
-      }
+      }, [expanded, offset])
 
       return (
         <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
@@ -335,7 +333,8 @@ const PlatformInput = (p: Props) => {
     // Enter should send a message like on desktop, when a hardware keyboard's
     // attached.  On Android we get "hardware" keypresses from soft keyboards,
     // so check whether a soft keyboard's up.
-    const cb = (hwKeyEvent: {pressedKey: string}) => {
+    // @ts-ignore
+    HWKeyboardEvent.onHWKeyPressed((hwKeyEvent: any) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
           Styles.isIOS || !isOpen() ? onQueueSubmit() : insertText('\n')
@@ -343,8 +342,7 @@ const PlatformInput = (p: Props) => {
         case 'shift-enter':
           insertText('\n')
       }
-    }
-    HWKeyboardEvent.onHWKeyPressed(cb as any)
+    })
     return () => {
       HWKeyboardEvent.removeOnHWKeyPressed()
     }
@@ -530,17 +528,15 @@ const AnimatedInput = (() => {
       React.forwardRef<any, any>(function AnimatedInput(p: any, ref) {
         const maxInputArea = React.useContext(MaxInputAreaContext)
         const {expanded, ...rest} = p
-        const [lastExpanded, setLastExpanded] = React.useState(expanded)
         const offset = useSharedValue(expanded ? 1 : 0)
         const maxHeight = maxInputArea - inputAreaHeight - 15
         const as = useAnimatedStyle(() => ({
           maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
           minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
         }))
-        if (expanded !== lastExpanded) {
-          setLastExpanded(expanded)
+        React.useEffect(() => {
           offset.value = expanded ? 1 : 0
-        }
+        }, [expanded, offset])
         return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style, as]} />
       })
     )

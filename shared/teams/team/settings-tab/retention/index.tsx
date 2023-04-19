@@ -62,6 +62,63 @@ const RetentionPicker = (p: Props) => {
     [policy]
   )
 
+  const makeItems = () => {
+    const policies = baseRetentionPolicies.slice()
+    if (showInheritOption) {
+      policies.unshift(retentionPolicies.policyInherit)
+    }
+    return policies.reduce<Kb.MenuItems>((arr, policy) => {
+      switch (policy.type) {
+        case 'retain':
+        case 'expire':
+          return [
+            ...arr,
+            {
+              isSelected: isSelected(policy),
+              onClick: () => setSelected(policy, true),
+              title: policy.title,
+            } as const,
+          ]
+        case 'inherit':
+          if (teamPolicy) {
+            let title = ''
+            switch (teamPolicy.type) {
+              case 'retain':
+                title = 'Team default (Never)'
+                break
+              case 'expire':
+              case 'explode':
+                title = `Team default (${teamPolicy.title})`
+                break
+            }
+            return [
+              {
+                isSelected: isSelected(policy),
+                onClick: () => setSelected(policy, true),
+                title,
+              } as const,
+              'Divider' as const,
+              ...arr,
+            ]
+          } else {
+            throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
+          }
+        case 'explode':
+          return [
+            ...arr,
+            {
+              icon: 'iconfont-timer',
+              iconIsVisible: true,
+              isSelected: isSelected(policy),
+              onClick: () => setSelected(policy, true),
+              title: policy.title,
+            } as const,
+          ]
+      }
+      return arr
+    }, new Array<Kb.MenuItems[0]>())
+  }
+
   React.useEffect(() => {
     if (userSelectedRef.current) {
       userSelectedRef.current = false
@@ -106,81 +163,18 @@ const RetentionPicker = (p: Props) => {
   lastPolicy.current = policy
   lastTeamPolicy.current = teamPolicy
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
+  const items = makeItems()
 
-      const makeItems = () => {
-        const policies = baseRetentionPolicies.slice()
-        if (showInheritOption) {
-          policies.unshift(retentionPolicies.policyInherit)
-        }
-        return policies.reduce<Kb.MenuItems>((arr, policy) => {
-          switch (policy.type) {
-            case 'retain':
-            case 'expire':
-              return [
-                ...arr,
-                {
-                  isSelected: isSelected(policy),
-                  onClick: () => setSelected(policy, true),
-                  title: policy.title,
-                } as const,
-              ]
-            case 'inherit':
-              if (teamPolicy) {
-                let title = ''
-                switch (teamPolicy.type) {
-                  case 'retain':
-                    title = 'Team default (Never)'
-                    break
-                  case 'expire':
-                  case 'explode':
-                    title = `Team default (${teamPolicy.title})`
-                    break
-                }
-                return [
-                  {
-                    isSelected: isSelected(policy),
-                    onClick: () => setSelected(policy, true),
-                    title,
-                  } as const,
-                  'Divider' as const,
-                  ...arr,
-                ]
-              } else {
-                throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
-              }
-            case 'explode':
-              return [
-                ...arr,
-                {
-                  icon: 'iconfont-timer',
-                  iconIsVisible: true,
-                  isSelected: isSelected(policy),
-                  onClick: () => setSelected(policy, true),
-                  title: policy.title,
-                } as const,
-              ]
-          }
-          return arr
-        }, new Array<Kb.MenuItems[0]>())
-      }
-      const items = makeItems()
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          items={items}
-          position="top center"
-        />
-      )
-    },
-    [isSelected, setSelected, showInheritOption, teamPolicy]
-  )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      closeOnSelect={true}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      items={items}
+      position="top center"
+    />
+  ))
 
   return (
     <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, containerStyle])}>

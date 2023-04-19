@@ -7,7 +7,7 @@ import Overlay from './overlay'
 import ScrollView from './scroll-view'
 import Icon from './icon'
 import {smallHeight, regularHeight} from './button'
-import {usePopup2, type Popup2Parms} from './use-popup'
+import {usePopup} from './use-popup'
 import * as Styles from '../styles'
 import './dropdown.css'
 
@@ -20,7 +20,7 @@ const Kb = {
   ProgressIndicator,
   ScrollView,
   Text,
-  usePopup2,
+  usePopup,
 }
 
 type DropdownButtonProps = {
@@ -97,47 +97,42 @@ function Dropdown<N>(p: Props<N>) {
   const {style, onChanged, onChangedIdx, overlayStyle, selectedBoxStyle} = p
   const {position, itemBoxStyle, items, selected} = p
 
-  const makePopup = React.useCallback(
-    (p: Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <Kb.Overlay
-          style={Styles.collapseStyles([styles.overlay, overlayStyle])}
-          attachTo={attachTo}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          position={position || 'center center'}
-        >
-          <Kb.ScrollView style={styles.scrollView}>
-            {items.map((i: N, idx) => (
-              <Kb.ClickableBox
-                key={idx}
-                onClick={evt => {
-                  evt?.stopPropagation?.()
-                  evt?.preventDefault?.()
-                  // Bug in flow that doesn't let us just call this function
-                  // onSelect(i)
-                  onChanged?.(i)
-                  onChangedIdx?.(idx)
-                  toggleShowingPopup()
-                }}
-                style={styles.itemClickBox}
+  const {toggleShowingPopup, showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup<Box>(
+    attachTo => (
+      <Kb.Overlay
+        style={Styles.collapseStyles([styles.overlay, overlayStyle])}
+        attachTo={attachTo}
+        visible={showingPopup}
+        onHidden={toggleOpen}
+        position={position || 'center center'}
+      >
+        <Kb.ScrollView style={styles.scrollView}>
+          {items.map((i: N, idx) => (
+            <Kb.ClickableBox
+              key={idx}
+              onClick={evt => {
+                evt?.stopPropagation?.()
+                evt?.preventDefault?.()
+                // Bug in flow that doesn't let us just call this function
+                // onSelect(i)
+                onChanged?.(i)
+                onChangedIdx?.(idx)
+                setShowingPopup(false)
+              }}
+              style={styles.itemClickBox}
+            >
+              <Kb.Box
+                style={Styles.collapseStyles([styles.itemBox, itemBoxStyle])}
+                className="hover_background_color_blueLighter2"
               >
-                <Kb.Box
-                  style={Styles.collapseStyles([styles.itemBox, itemBoxStyle])}
-                  className="hover_background_color_blueLighter2"
-                >
-                  {i}
-                </Kb.Box>
-              </Kb.ClickableBox>
-            ))}
-          </Kb.ScrollView>
-        </Kb.Overlay>
-      )
-    },
-    [items, onChanged, onChangedIdx, overlayStyle, position, itemBoxStyle]
+                {i}
+              </Kb.Box>
+            </Kb.ClickableBox>
+          ))}
+        </Kb.ScrollView>
+      </Kb.Overlay>
+    )
   )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const toggleOpen = React.useCallback(
     (evt?: React.BaseSyntheticEvent) => {

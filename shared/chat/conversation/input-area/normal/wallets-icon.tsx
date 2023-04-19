@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
@@ -22,37 +21,30 @@ const WalletsIcon = (props: WalletsIconProps) => {
   const otherParticipants = participantInfo.name.filter(u => u !== you)
   const to = otherParticipants[0]
   const dispatch = Container.useDispatch()
+  const onRequest = () => {
+    dispatch(WalletsGen.createOpenSendRequestForm({isRequest: true, recipientType: 'keybaseUser', to}))
+  }
+  const onSend = () => {
+    dispatch(WalletsGen.createOpenSendRequestForm({isRequest: false, recipientType: 'keybaseUser', to}))
+  }
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      const onRequest = () => {
-        dispatch(WalletsGen.createOpenSendRequestForm({isRequest: true, recipientType: 'keybaseUser', to}))
-      }
-      const onSend = () => {
-        dispatch(WalletsGen.createOpenSendRequestForm({isRequest: false, recipientType: 'keybaseUser', to}))
-      }
-      return (
-        <Kb.FloatingMenu
-          closeOnSelect={true}
-          attachTo={attachTo}
-          items={[
-            {icon: 'iconfont-stellar-send', onClick: onSend, title: 'Send Lumens (XLM)'},
-            {icon: 'iconfont-stellar-request', onClick: onRequest, title: 'Request Lumens (XLM)'},
-          ]}
-          onHidden={toggleShowingPopup}
-          position="top right"
-          visible={true}
-        />
-      )
-    },
-    [dispatch, to]
-  )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      closeOnSelect={true}
+      attachTo={attachTo}
+      items={[
+        {icon: 'iconfont-stellar-send', onClick: onSend, title: 'Send Lumens (XLM)'},
+        {icon: 'iconfont-stellar-request', onClick: onRequest, title: 'Request Lumens (XLM)'},
+      ]}
+      onHidden={toggleShowingPopup}
+      position="top right"
+      visible={showingPopup}
+    />
+  ))
 
   return (
     <Kb.Box2
-      ref={popupAnchor as any}
+      ref={popupAnchor}
       direction="horizontal"
       style={Styles.collapseStyles([styles.container, style])}
     >

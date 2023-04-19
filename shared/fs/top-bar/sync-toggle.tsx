@@ -11,12 +11,13 @@ export type Props = {
   waiting: boolean
 }
 
-const Confirm = (props: Pick<Props, 'waiting' | 'disableSync'> & {toggleShowingPopup: () => void}) => {
-  const {toggleShowingPopup, waiting, disableSync} = props
-  const wasWaiting = React.useRef(waiting)
-  if (wasWaiting.current !== waiting) {
-    wasWaiting.current = waiting
-    toggleShowingPopup()
+const Confirm = (props: Props & {showingPopup: boolean; toggleShowingPopup: () => void}) => {
+  const wasWaiting = React.useRef(props.waiting)
+  if (wasWaiting.current !== props.waiting) {
+    wasWaiting.current = props.waiting
+    if (props.showingPopup) {
+      props.toggleShowingPopup()
+    }
   }
   return (
     <Kb.Box2 direction="vertical" style={styles.popupContainer} centerChildren={true}>
@@ -39,17 +40,17 @@ const Confirm = (props: Pick<Props, 'waiting' | 'disableSync'> & {toggleShowingP
             small={true}
             type="Dim"
             label="Cancel"
-            onClick={toggleShowingPopup}
-            disabled={waiting}
+            onClick={props.toggleShowingPopup}
+            disabled={props.waiting}
           />
           <Kb.Button
             key="yes"
             small={true}
             type="Danger"
             label="Yes, unsync"
-            onClick={disableSync}
-            disabled={waiting}
-            waiting={waiting}
+            onClick={props.disableSync}
+            disabled={props.waiting}
+            waiting={props.waiting}
           />
         </Kb.Box2>
       )}
@@ -58,42 +59,32 @@ const Confirm = (props: Pick<Props, 'waiting' | 'disableSync'> & {toggleShowingP
 }
 
 const SyncToggle = (props: Props) => {
-  const {waiting, disableSync} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          position="bottom left"
-          closeOnSelect={false}
-          containerStyle={styles.floating}
-          header={
-            <Confirm waiting={waiting} disableSync={disableSync} toggleShowingPopup={toggleShowingPopup} />
-          }
-          items={
-            Styles.isMobile
-              ? [
-                  {
-                    danger: true,
-                    disabled: waiting,
-                    icon: 'iconfont-cloud',
-                    inProgress: waiting,
-                    onClick: disableSync,
-                    style: waiting ? {opacity: 0.3} : undefined,
-                    title: waiting ? 'Unsyncing' : 'Yes, unsync',
-                  } as const,
-                ]
-              : []
-          }
-        />
-      )
-    },
-    [disableSync, waiting]
-  )
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      position="bottom left"
+      closeOnSelect={false}
+      containerStyle={styles.floating}
+      header={<Confirm {...props} showingPopup={showingPopup} toggleShowingPopup={toggleShowingPopup} />}
+      items={
+        Styles.isMobile
+          ? [
+              {
+                danger: true,
+                disabled: props.waiting,
+                icon: 'iconfont-cloud',
+                inProgress: props.waiting,
+                onClick: props.disableSync,
+                style: props.waiting ? {opacity: 0.3} : undefined,
+                title: props.waiting ? 'Unsyncing' : 'Yes, unsync',
+              } as const,
+            ]
+          : []
+      }
+    />
+  ))
   return props.syncConfig && !props.hideSyncToggle ? (
     <>
       <Kb.Switch

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Container from '../../util/container'
 import type {Props} from './audio-video'
 
 const AudioVideo = (props: Props) => {
@@ -33,18 +34,21 @@ const AudioVideo = (props: Props) => {
     onEnded()
   }, [onEnded])
 
-  const [lastPaused, setLastPaused] = React.useState(paused)
-  if (lastPaused !== paused) {
-    setLastPaused(paused)
+  const lastPaused = Container.usePrevious(paused)
+  React.useEffect(() => {
+    if (!vidRef.current || paused === lastPaused) {
+      return
+    }
+
     if (paused) {
-      vidRef.current?.pause()
+      vidRef.current.pause()
     } else {
       vidRef.current
-        ?.play()
+        .play()
         .then(() => {})
         .catch(() => {})
     }
-  }
+  }, [paused, lastPaused, vidRef])
 
   return (
     <video

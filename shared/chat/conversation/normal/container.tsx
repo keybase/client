@@ -49,13 +49,11 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
 
   const dragAndDropRejectReason = cannotWrite ? minWriterReason : undefined
 
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (lastCID !== conversationIDKey) {
-    setLastCID(conversationIDKey)
+  React.useEffect(() => {
     if (!Container.isMobile) {
       setFocusInputCounter(c => c + 1)
     }
-  }
+  }, [conversationIDKey])
 
   const dispatch = Container.useDispatch()
   const jumpToRecent = React.useCallback(() => {

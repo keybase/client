@@ -14,34 +14,27 @@ type InfoIconProps = {
 export const InfoIcon = (props: InfoIconProps) => {
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
   const dispatch = Container.useDispatch()
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      const onDocumentation = () => openURL('https://book.keybase.io/docs')
-      const onFeedback = () => {
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut'],
-          })
-        )
-      }
+  const onDocumentation = () => openURL('https://book.keybase.io/docs')
+  const onFeedback = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut'],
+      })
+    )
+  }
 
-      return (
-        <Kb.FloatingMenu
-          items={[
-            {onClick: onFeedback, title: 'Send feedback'},
-            {onClick: onDocumentation, title: 'Documentation'},
-          ]}
-          attachTo={attachTo}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          closeOnSelect={true}
-        />
-      )
-    },
-    [dispatch, loggedIn]
-  )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      items={[
+        {onClick: onFeedback, title: 'Send feedback'},
+        {onClick: onDocumentation, title: 'Documentation'},
+      ]}
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      closeOnSelect={true}
+    />
+  ))
 
   return (
     <>

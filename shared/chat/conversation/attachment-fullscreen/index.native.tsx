@@ -13,10 +13,8 @@ const AutoMaxSizeImage = (p: {source: {uri: string}; onLoad: () => void; opacity
   const {uri} = source
   const [width, setWidth] = React.useState(0)
   const [height, setHeight] = React.useState(0)
-  const [lastUri, setLastUri] = React.useState('')
 
-  if (lastUri !== uri) {
-    setLastUri(uri)
+  React.useEffect(() => {
     Kb.NativeImage.getSize(uri, (width, height) => {
       const clamped = Constants.clampImageSize(
         width,
@@ -27,7 +25,7 @@ const AutoMaxSizeImage = (p: {source: {uri: string}; onLoad: () => void; opacity
       setWidth(clamped.width)
       setHeight(clamped.height)
     })
-  }
+  }, [uri])
 
   return (
     <Kb.ZoomableBox
@@ -53,25 +51,17 @@ const AutoMaxSizeImage = (p: {source: {uri: string}; onLoad: () => void; opacity
 const Fullscreen = (p: Props) => {
   const {path, previewHeight, message, onAllMedia, onClose, isVideo} = p
   const [loaded, setLoaded] = React.useState(false)
-  const {conversationIDKey, id} = message
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <MessagePopup
-          attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
-          ordinal={id}
-          onHidden={toggleShowingPopup}
-          position="bottom left"
-          visible={true}
-        />
-      )
-    },
-    [conversationIDKey, id]
-  )
-  const {toggleShowingPopup, popup} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, showingPopup, popup} = Kb.usePopup(attachTo => (
+    <MessagePopup
+      attachTo={attachTo}
+      conversationIDKey={message.conversationIDKey}
+      ordinal={message.id}
+      onHidden={toggleShowingPopup}
+      position="bottom left"
+      visible={showingPopup}
+    />
+  ))
 
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null

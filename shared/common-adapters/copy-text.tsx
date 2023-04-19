@@ -33,12 +33,9 @@ const CopyText = (props: Props) => {
   const [requestedCopy, setRequestedCopy] = React.useState(false)
   const shareSheet = props.shareSheet && Styles.isMobile
   const setShowingToastFalseLater = useTimeout(() => setShowingToast(false), 1500)
-  const [lastShowingToast, setLastShowingToast] = React.useState(showingToast)
-
-  if (lastShowingToast !== showingToast) {
-    setLastShowingToast(showingToast)
+  React.useEffect(() => {
     showingToast && setShowingToastFalseLater()
-  }
+  }, [showingToast, setShowingToastFalseLater])
 
   React.useEffect(() => {
     if (!withReveal && !text) {

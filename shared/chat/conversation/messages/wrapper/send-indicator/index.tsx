@@ -72,28 +72,27 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
     animationType = `${animationType}Exploding` as Kb.AnimationType
   }
 
-  const [lastFailed, setLastFailed] = React.useState(failed)
-  const [lastSent, setLastSent] = React.useState(sent)
-
-  if (failed !== lastFailed || sent !== lastSent) {
-    setLastFailed(failed)
-    setLastSent(sent)
-    if (failed && !lastFailed) {
+  const lastFailedRef = React.useRef(failed)
+  const lastSentRef = React.useRef(sent)
+  React.useEffect(() => {
+    if (failed && !lastFailedRef.current) {
       setStatus('error')
       timeoutRef.current && clearTimeout(timeoutRef.current)
       timeoutRef.current = undefined
-    } else if (sent && !lastSent) {
+    } else if (sent && !lastSentRef.current) {
       setStatus('sent')
       timeoutRef.current && clearTimeout(timeoutRef.current)
       timeoutRef.current = setTimeout(() => {
         setVisible(false)
         timeoutRef.current = undefined
       }, 400)
-    } else if (!failed && lastFailed) {
+    } else if (!failed && lastFailedRef.current) {
       setVisible(true)
       setStatus('sending')
     }
-  }
+    lastFailedRef.current = failed
+    lastSentRef.current = sent
+  }, [failed, sent])
 
   if (status === 'encrypting' && !timeoutRef.current) {
     timeoutRef.current = setTimeout(() => {

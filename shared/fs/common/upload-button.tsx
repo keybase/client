@@ -1,4 +1,3 @@
-import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -56,29 +55,23 @@ const mergeProps = (
 type UploadButtonProps = ReturnType<typeof mergeProps>
 
 const UploadButton = (props: UploadButtonProps) => {
-  const {pickAndUploadPhoto, pickAndUploadVideo, openAndUploadDirectory, openAndUploadFile} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          items={[
-            ...(pickAndUploadPhoto ? [{onClick: pickAndUploadPhoto, title: 'Upload photo'}] : []),
-            ...(pickAndUploadVideo ? [{onClick: pickAndUploadVideo, title: 'Upload video'}] : []),
-            ...(openAndUploadDirectory ? [{onClick: openAndUploadDirectory, title: 'Upload directory'}] : []),
-            ...(openAndUploadFile ? [{onClick: openAndUploadFile, title: 'Upload file'}] : []),
-          ]}
-          position="bottom left"
-          closeOnSelect={true}
-        />
-      )
-    },
-    [openAndUploadDirectory, openAndUploadFile, pickAndUploadPhoto, pickAndUploadVideo]
-  )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      items={[
+        ...(props.pickAndUploadPhoto ? [{onClick: props.pickAndUploadPhoto, title: 'Upload photo'}] : []),
+        ...(props.pickAndUploadVideo ? [{onClick: props.pickAndUploadVideo, title: 'Upload video'}] : []),
+        ...(props.openAndUploadDirectory
+          ? [{onClick: props.openAndUploadDirectory, title: 'Upload directory'}]
+          : []),
+        ...(props.openAndUploadFile ? [{onClick: props.openAndUploadFile, title: 'Upload file'}] : []),
+      ]}
+      position="bottom left"
+      closeOnSelect={true}
+    />
+  ))
 
   if (!props.canUpload) {
     return null

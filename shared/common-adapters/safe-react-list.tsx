@@ -1,6 +1,5 @@
 import * as React from 'react'
 import ReactList from 'react-list'
-import {useIsMounted} from '../util/container'
 import {useFocusEffect} from '@react-navigation/core'
 
 // Default ReactList will get into a bad state if it redraws while in a hidden parent (like in a stack)
@@ -32,16 +31,23 @@ type ReactListProps = {
 
 const SafeReactList = React.forwardRef<ReactList, ReactListProps>(function SafeReactList(p, ref) {
   const [force, setForce] = React.useState(0)
-  const isMounted = useIsMounted()
+  const mountedRef = React.useRef(true)
+
+  React.useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [mountedRef])
 
   useFocusEffect(
     React.useCallback(() => {
       setTimeout(() => {
-        if (isMounted()) {
+        if (mountedRef.current) {
           setForce(i => i + 1)
         }
       }, 1)
-    }, [isMounted])
+    }, [])
   )
 
   return (

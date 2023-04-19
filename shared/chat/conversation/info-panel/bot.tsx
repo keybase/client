@@ -66,14 +66,12 @@ export const Bot = (props: BotProps) => {
   const {onClick, firstItem} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
   const dispatch = Container.useDispatch()
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (conversationIDKey !== lastCID) {
-    setLastCID(conversationIDKey)
+  React.useEffect(() => {
     if (conversationIDKey && showChannelAdd) {
       // fetch bot settings if trying to show the add to channel button
       dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
     }
-  }
+  }, [dispatch, botUsername, conversationIDKey, showChannelAdd])
 
   const lower = (
     <Kb.Box2 alignSelf="flex-start" direction="horizontal" fullWidth={true}>
@@ -283,15 +281,11 @@ const BotTab = (props: Props) => {
   const loadingBots = !featuredBotsMap.size
 
   const featuredBotsLength = featuredBots.length
-  const [lastFBL, setLastFBL] = React.useState(-1)
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
-  if (conversationIDKey !== lastCID || lastFBL !== featuredBotsLength) {
-    setLastCID(conversationIDKey)
-    setLastFBL(featuredBotsLength)
+  React.useEffect(() => {
     if (featuredBotsLength === 0 && !loadedAllBots) {
       dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100}))
     }
-  }
+  }, [featuredBotsLength, dispatch, conversationIDKey, loadedAllBots])
 
   const items: Array<string | RPCTypes.FeaturedBot> = [
     ...(canManageBots ? [addBotButton] : []),

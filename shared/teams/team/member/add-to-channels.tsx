@@ -288,58 +288,33 @@ const SelfChannelActions = ({
   const inChannel = meta.membershipType === 'active'
 
   const [waiting, setWaiting] = React.useState(false)
-  const stopWaiting = React.useCallback(() => setWaiting(false), [])
+  const stopWaiting = () => setWaiting(false)
 
-  const onEditChannel = React.useCallback(() => {
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {
-              afterEdit: () => {
-                setWaiting(true)
-                reloadChannels().then(stopWaiting, stopWaiting)
-              },
-              channelname: meta.channelname,
-              conversationIDKey: meta.conversationIDKey,
-              description: meta.description,
-              teamID: meta.teamID,
-            },
-            selected: 'teamEditChannel',
-          },
-        ],
-      })
-    )
-  }, [dispatch, nav, meta, reloadChannels, stopWaiting])
-  const onChannelSettings = React.useCallback(() => {
+  const actionProps = {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID}
+  const editChannelProps = {
+    ...actionProps,
+    afterEdit: () => {
+      setWaiting(true)
+      reloadChannels().then(stopWaiting, stopWaiting)
+    },
+    channelname: meta.channelname,
+    description: meta.description,
+  }
+  const onEditChannel = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: editChannelProps, selected: 'teamEditChannel'}]}))
+  const onChannelSettings = () => {
     dispatch(RouteTreeGen.createClearModals())
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID}, selected: 'teamChannel'},
-        ],
-      })
-    )
-  }, [dispatch, meta])
-  const onDelete = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: actionProps, selected: 'teamChannel'}]}))
+  }
+  const onDelete = () =>
     // TODO: consider not using the confirm modal
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
-            selected: 'teamDeleteChannel',
-          },
-        ],
-      })
-    )
-  }, [dispatch, nav, meta])
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: actionProps, selected: 'teamDeleteChannel'}]}))
 
   const joinRPC = Container.useRPC(RPCChatGen.localJoinConversationByIDLocalRpcPromise)
   const leaveRPC = Container.useRPC(RPCChatGen.localLeaveConversationLocalRpcPromise)
 
   const convID = ChatTypes.keyToConversationID(meta.conversationIDKey)
-  const onLeave = React.useCallback(() => {
+  const onLeave = () => {
     setWaiting(true)
     leaveRPC(
       [{convID}],
@@ -348,8 +323,8 @@ const SelfChannelActions = ({
       },
       stopWaiting
     )
-  }, [convID, leaveRPC, reloadChannels, stopWaiting])
-  const onJoin = React.useCallback(() => {
+  }
+  const onJoin = () => {
     setWaiting(true)
     joinRPC(
       [{convID}],
@@ -358,37 +333,26 @@ const SelfChannelActions = ({
       },
       stopWaiting
     )
-  }, [convID, joinRPC, reloadChannels, stopWaiting])
+  }
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      const menuItems = [
-        {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
-        ...(isAdmin
-          ? [
-              {
-                icon: 'iconfont-nav-2-settings' as const,
-                onClick: onChannelSettings,
-                title: 'Channel settings',
-              },
-              {danger: true, icon: 'iconfont-remove' as const, onClick: onDelete, title: 'Delete'},
-            ]
-          : []),
-      ]
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={true}
-          onHidden={toggleShowingPopup}
-          closeOnSelect={true}
-          items={menuItems}
-        />
-      )
-    },
-    [onEditChannel, onChannelSettings, onDelete, isAdmin]
-  )
-  const {popupAnchor, toggleShowingPopup, popup} = Kb.usePopup2(makePopup)
+  const menuItems = [
+    {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
+    ...(isAdmin
+      ? [
+          {icon: 'iconfont-nav-2-settings' as const, onClick: onChannelSettings, title: 'Channel settings'},
+          {danger: true, icon: 'iconfont-remove' as const, onClick: onDelete, title: 'Delete'},
+        ]
+      : []),
+  ]
+  const {popupAnchor, showingPopup, toggleShowingPopup, popup} = Kb.usePopup(getAttachmentRef => (
+    <Kb.FloatingMenu
+      attachTo={getAttachmentRef}
+      visible={showingPopup}
+      onHidden={toggleShowingPopup}
+      closeOnSelect={true}
+      items={menuItems}
+    />
+  ))
   const [buttonMousedOver, setMouseover] = React.useState(false)
   return (
     <Kb.Box2

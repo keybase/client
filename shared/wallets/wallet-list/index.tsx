@@ -13,31 +13,23 @@ type AddProps = {
 const rowHeight = 48
 
 const AddWallet = (props: AddProps) => {
-  const {onAddNew, onLinkExisting} = props
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          closeOnSelect={true}
-          items={[
-            {icon: 'iconfont-new', onClick: onAddNew, title: 'Create a new account'},
-            {
-              icon: 'iconfont-identity-stellar',
-              onClick: onLinkExisting,
-              title: 'Link an existing Stellar account',
-            },
-          ]}
-          onHidden={toggleShowingPopup}
-          visible={true}
-          position="bottom center"
-        />
-      )
-    },
-    [onAddNew, onLinkExisting]
-  )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      attachTo={attachTo}
+      closeOnSelect={true}
+      items={[
+        {icon: 'iconfont-new', onClick: () => props.onAddNew(), title: 'Create a new account'},
+        {
+          icon: 'iconfont-identity-stellar',
+          onClick: () => props.onLinkExisting(),
+          title: 'Link an existing Stellar account',
+        },
+      ]}
+      onHidden={toggleShowingPopup}
+      visible={showingPopup}
+      position="bottom center"
+    />
+  ))
 
   return (
     <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>
