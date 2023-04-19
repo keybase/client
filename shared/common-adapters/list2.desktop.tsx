@@ -66,7 +66,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
   render() {
     return (
       <AutoSizer>
-        {({height, width}) => {
+        {({height = 1, width = 1}) => {
           switch (this.props.itemHeight.type) {
             case 'fixed':
               return this._fixed({height, itemHeight: this.props.itemHeight.height, width})
@@ -77,7 +77,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
             case 'variable':
               return this._variable({getItemLayout: this.props.itemHeight.getItemLayout, height, width})
             default:
-              return null
+              return <></>
           }
         }}
       </AutoSizer>
