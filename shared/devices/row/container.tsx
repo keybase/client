@@ -1,4 +1,5 @@
 import * as Container from '../../util/container'
+import * as React from 'react'
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import type * as Types from '../../constants/types/devices'
@@ -9,27 +10,27 @@ type OwnProps = {
   firstItem: boolean
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const device = Constants.getDevice(state, ownProps.deviceID)
-  return {
+export default (ownProps: OwnProps) => {
+  const device = Container.useSelector(state => Constants.getDevice(state, ownProps.deviceID))
+  const isNew = Container.useSelector(state => state.devices.isNew.has(device.deviceID))
+
+  const stateProps = {
     device,
     isCurrentDevice: device.currentDevice,
-    isNew: state.devices.isNew.has(device.deviceID),
+    isNew,
     isRevoked: !!device.revokedByName,
     name: device.name,
     type: device.type,
   }
-}
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _showExistingDevicePage: (deviceID: Types.DeviceID) =>
-    dispatch(DevicesGen.createShowDevicePage({deviceID})),
-})
-
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  const dispatch = Container.useDispatch()
+  const _showExistingDevicePage = React.useCallback(
+    (deviceID: Types.DeviceID) => {
+      dispatch(DevicesGen.createShowDevicePage({deviceID}))
+    },
+    [dispatch]
+  )
+  const props = {
     device: stateProps.device,
     firstItem: ownProps.firstItem,
     isCurrentDevice: stateProps.isCurrentDevice,
@@ -37,8 +38,9 @@ export default Container.connect(
     isRevoked: stateProps.isRevoked,
     name: stateProps.name,
     showExistingDevicePage: () => {
-      dispatchProps._showExistingDevicePage(ownProps.deviceID)
+      _showExistingDevicePage(ownProps.deviceID)
     },
     type: stateProps.type,
-  })
-)(DeviceRow)
+  }
+  return <DeviceRow {...props} />
+}

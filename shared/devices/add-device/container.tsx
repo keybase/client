@@ -1,4 +1,5 @@
 import * as Container from '../../util/container'
+import * as React from 'react'
 import * as DevicesGen from '../../actions/devices-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
@@ -8,17 +9,27 @@ import AddDevice from '.'
 type OwnProps = Container.RouteProps<'deviceAdd'>
 const noHighlight = []
 
-export default Container.connect(
-  (state: Container.TypedState) => ({iconNumbers: Constants.getNextDeviceIconNumber(state)}),
-  dispatch => ({
-    onAddComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
-    onAddPaperKey: () => dispatch(DevicesGen.createShowPaperKeyPage()),
-    onAddPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-  }),
-  (s, d, o: OwnProps) => ({
-    ...s,
-    ...d,
-    highlight: o.route.params?.highlight ?? noHighlight,
-  })
-)(AddDevice)
+export default (ownProps: OwnProps) => {
+  const iconNumbers = Container.useSelector(state => Constants.getNextDeviceIconNumber(state))
+  const dispatch = Container.useDispatch()
+  const onAddComputer = React.useCallback(
+    () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
+    [dispatch]
+  )
+  const onAddPaperKey = React.useCallback(() => dispatch(DevicesGen.createShowPaperKeyPage()), [dispatch])
+  const onAddPhone = React.useCallback(
+    () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
+    [dispatch]
+  )
+  const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+
+  const props = {
+    iconNumbers,
+    onAddComputer,
+    onAddPaperKey,
+    onAddPhone,
+    onCancel,
+    highlight: ownProps.route.params?.highlight ?? noHighlight,
+  }
+  return <AddDevice {...props} />
+}

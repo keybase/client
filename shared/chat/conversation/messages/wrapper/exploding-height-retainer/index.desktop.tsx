@@ -66,7 +66,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
     this.timerID && SharedTimer.removeObserver(this.props.messageKey, this.timerID)
   }
 
-  private _setBoxRef = (r: HTMLDivElement | null) => {
+  private _setBoxRef = (r: any) => {
     this._boxRef = {current: r}
     this.setHeight()
   }
