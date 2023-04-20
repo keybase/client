@@ -8,7 +8,6 @@ import * as TeamConstants from '../../constants/teams'
 import * as FsConstants from '../../constants/fs'
 import * as Container from '../../util/container'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
-import type * as TeamTypes from '../../constants/types/teams'
 import openURL from '../../util/open-url'
 
 type OwnProps = {
@@ -18,88 +17,89 @@ type OwnProps = {
   onToggleExpand: (id: string) => void
 }
 
-const ConnectedRow = Container.connect(
-  (state, {id, expanded}: OwnProps) => {
-    const git = state.git.idToInfo.get(id) || Constants.makeGitInfo()
-    const teamID = git.teamname ? TeamConstants.getTeamID(state, git.teamname) : undefined
-    return {
-      expanded,
-      git,
-      isNew: state.git.isNew.has(id),
-      lastEditUserFollowing: state.config.following.has(git.lastEditUser),
-      teamID,
-      you: state.config.username,
-    }
-  },
+const ConnectedRow = (ownProps: OwnProps) => {
+  const {id, expanded} = ownProps
+  const git = Container.useSelector(state => state.git.idToInfo.get(id) || Constants.makeGitInfo())
+  const teamID = Container.useSelector(state =>
+    git.teamname ? TeamConstants.getTeamID(state, git.teamname) : undefined
+  )
+  const isNew = Container.useSelector(state => state.git.isNew.has(id))
+  const lastEditUserFollowing = Container.useSelector(state => state.config.following.has(git.lastEditUser))
+  const you = Container.useSelector(state => state.config.username)
 
-  dispatch => ({
-    _onBrowseGitRepo: (path: FsTypes.Path) => dispatch(FsConstants.makeActionForOpenPathInFilesTab(path)),
-    _onOpenChannelSelection: (repoID: string, teamID: TeamTypes.TeamID | undefined, selected: string) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {repoID, selected, teamID}, selected: 'gitSelectChannel'}],
-        })
-      ),
-    _setDisableChat: (disabled: boolean, repoID: string, teamname: string) =>
-      dispatch(
-        GitGen.createSetTeamRepoSettings({
-          chatDisabled: disabled,
-          repoID,
-          teamname,
-        })
-      ),
-    copyToClipboard: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
-    openUserTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-  }),
-
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {git} = stateProps
-    const chatDisabled = git.chatDisabled
-
-    const _onOpenChannelSelection = () =>
-      dispatchProps._onOpenChannelSelection(git.repoID, stateProps.teamID, git.channelName || 'general')
-    return {
-      _onOpenChannelSelection,
-      canDelete: git.canDelete,
-      canEdit: git.canDelete && !!git.teamname,
-      channelName: git.channelName,
-      chatDisabled,
-      devicename: git.devicename,
-      expanded: stateProps.expanded,
-      isNew: stateProps.isNew,
-      lastEditTime: git.lastEditTime,
-      lastEditUser: git.lastEditUser,
-      lastEditUserFollowing: stateProps.lastEditUserFollowing,
-      name: git.name,
-      onBrowseGitRepo: () =>
-        dispatchProps._onBrowseGitRepo(
-          FsTypes.stringToPath(
-            git.url.replace(
-              /keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/,
-              '/keybase/$1/.kbfs_autogit/$3'
-            )
-          )
-        ),
-      onChannelClick: (e: React.BaseSyntheticEvent) => {
-        if (!chatDisabled) {
-          e.preventDefault()
-          _onOpenChannelSelection()
-        }
-      },
-      onClickDevice: () => {
-        git.lastEditUser && openURL(`https://keybase.io/${git.lastEditUser}/devices`)
-      },
-      onCopy: () => dispatchProps.copyToClipboard(git.url),
-      onShowDelete: () => ownProps.onShowDelete(git.id),
-      onToggleChatEnabled: () =>
-        git.teamname && dispatchProps._setDisableChat(!git.chatDisabled, git.repoID, git.teamname),
-      onToggleExpand: () => ownProps.onToggleExpand(git.id),
-      openUserTracker: dispatchProps.openUserTracker,
-      teamname: git.teamname,
-      url: git.url,
-      you: stateProps.you,
-    }
+  const dispatch = Container.useDispatch()
+  const _onBrowseGitRepo = (path: FsTypes.Path) => {
+    dispatch(FsConstants.makeActionForOpenPathInFilesTab(path))
   }
-)(Row)
+
+  const _onOpenChannelSelection = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {repoID: git.repoID, selected: git.channelName || 'general', teamID},
+            selected: 'gitSelectChannel',
+          },
+        ],
+      })
+    )
+  }
+  const _setDisableChat = (disabled: boolean, repoID: string, teamname: string) => {
+    dispatch(
+      GitGen.createSetTeamRepoSettings({
+        chatDisabled: disabled,
+        repoID,
+        teamname,
+      })
+    )
+  }
+  const copyToClipboard = (text: string) => {
+    dispatch(ConfigGen.createCopyToClipboard({text}))
+  }
+  const openUserTracker = (username: string) => {
+    dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+  }
+
+  const chatDisabled = git.chatDisabled
+
+  const props = {
+    _onOpenChannelSelection,
+    canDelete: git.canDelete,
+    canEdit: git.canDelete && !!git.teamname,
+    channelName: git.channelName,
+    chatDisabled,
+    devicename: git.devicename,
+    expanded,
+    isNew,
+    lastEditTime: git.lastEditTime,
+    lastEditUser: git.lastEditUser,
+    lastEditUserFollowing,
+    name: git.name,
+    onBrowseGitRepo: () =>
+      _onBrowseGitRepo(
+        FsTypes.stringToPath(
+          git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3')
+        )
+      ),
+    onChannelClick: (e: React.BaseSyntheticEvent) => {
+      if (!chatDisabled) {
+        e.preventDefault()
+        _onOpenChannelSelection()
+      }
+    },
+    onClickDevice: () => {
+      git.lastEditUser && openURL(`https://keybase.io/${git.lastEditUser}/devices`)
+    },
+    onCopy: () => copyToClipboard(git.url),
+    onShowDelete: () => ownProps.onShowDelete(git.id),
+    onToggleChatEnabled: () => git.teamname && _setDisableChat(!git.chatDisabled, git.repoID, git.teamname),
+    onToggleExpand: () => ownProps.onToggleExpand(git.id),
+    openUserTracker,
+    teamname: git.teamname,
+    url: git.url,
+    you,
+  }
+  return <Row {...props} />
+}
 
 export default ConnectedRow

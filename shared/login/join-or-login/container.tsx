@@ -5,10 +5,8 @@ import * as LoginGen from '../../actions/login-gen'
 import Intro from '.'
 import * as Container from '../../util/container'
 
-type OwnProps = {}
-
-export default Container.connect(
-  state => {
+export default () => {
+  const bannerMessage = Container.useSelector(state => {
     let bannerMessage: string | null = null
 
     if (state.config.justDeletedSelf) {
@@ -16,26 +14,35 @@ export default Container.connect(
     } else if (state.devices.justRevokedSelf) {
       bannerMessage = `${state.devices.justRevokedSelf} was revoked successfully`
     }
-
-    return {
-      bannerMessage,
-      isOnline: state.login.isOnline,
-    }
-  },
-  dispatch => ({
-    _onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
-    checkIsOnline: () => dispatch(LoginGen.createLoadIsOnline()),
-    onLogin: () => dispatch(ProvisionGen.createStartProvision()),
-    onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
-    showProxySettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['proxySettingsModal']})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    bannerMessage: stateProps.bannerMessage,
-    checkIsOnline: dispatchProps.checkIsOnline,
-    isOnline: stateProps.isOnline,
-    onFeedback: Container.isMobile ? dispatchProps._onFeedback : null,
-    onLogin: dispatchProps.onLogin,
-    onSignup: dispatchProps.onSignup,
-    showProxySettings: dispatchProps.showProxySettings,
+    return bannerMessage
   })
-)(Intro)
+
+  const isOnline = Container.useSelector(state => state.login.isOnline)
+
+  const dispatch = Container.useDispatch()
+  const _onFeedback = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+  }
+  const checkIsOnline = () => {
+    dispatch(LoginGen.createLoadIsOnline())
+  }
+  const onLogin = () => {
+    dispatch(ProvisionGen.createStartProvision())
+  }
+  const onSignup = () => {
+    dispatch(SignupGen.createRequestAutoInvite())
+  }
+  const showProxySettings = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['proxySettingsModal']}))
+  }
+  const props = {
+    bannerMessage,
+    checkIsOnline,
+    isOnline,
+    onFeedback: Container.isMobile ? _onFeedback : null,
+    onLogin,
+    onSignup,
+    showProxySettings,
+  }
+  return <Intro {...props} />
+}

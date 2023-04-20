@@ -1,17 +1,17 @@
 import * as SignupGen from '../../../actions/signup-gen'
-import {connect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import RequestInvite from '.'
 
-type OwnProps = {}
-
-export default connect(
-  state => ({
-    emailError: state.signup.emailError,
-    nameError: state.signup.nameError,
-  }),
-  dispatch => ({
-    onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
-    onSubmit: (email: string, name: string) => dispatch(SignupGen.createRequestInvite({email, name})),
-  }),
-  (s, d, _: OwnProps) => ({...s, ...d})
-)(RequestInvite)
+export default () => {
+  const emailError = Container.useSelector(state => state.signup.emailError)
+  const nameError = Container.useSelector(state => state.signup.nameError)
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(SignupGen.createGoBackAndClearErrors())
+  }
+  const onSubmit = (email: string, name: string) => {
+    dispatch(SignupGen.createRequestInvite({email, name}))
+  }
+  const props = {emailError, nameError, onBack, onSubmit}
+  return <RequestInvite {...props} />
+}

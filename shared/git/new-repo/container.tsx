@@ -9,29 +9,41 @@ import {teamsTab} from '../../constants/tabs'
 
 type OwnProps = Container.RouteProps<'gitNewRepo'>
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    error: Constants.getError(state),
-    isTeam: !!ownProps.route.params?.isTeam ?? false,
-    teams: getSortedTeamnames(state),
-    waitingKey: Constants.loadingWaitingKey,
-  }),
-  (dispatch, ownProps: OwnProps) => ({
-    loadTeams: () => dispatch(TeamsGen.createGetTeams()),
-    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onCreate: (name: string, teamname: string | null, notifyTeam: boolean) => {
-      const isTeam = !!ownProps.route.params?.isTeam ?? false
-      const createAction =
-        isTeam && teamname
-          ? GitGen.createCreateTeamRepo({name, notifyTeam, teamname})
-          : GitGen.createCreatePersonalRepo({name})
-      dispatch(createAction)
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onNewTeam: () => {
-      dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
-      dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
-    },
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(NewRepo)
+export default (ownProps: OwnProps) => {
+  const error = Container.useSelector(state => Constants.getError(state))
+  const isTeam = !!ownProps.route.params?.isTeam ?? false
+  const teams = Container.useSelector(state => getSortedTeamnames(state))
+  const waitingKey = Constants.loadingWaitingKey
+
+  const dispatch = Container.useDispatch()
+  const loadTeams = () => {
+    dispatch(TeamsGen.createGetTeams())
+  }
+  const onClose = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onCreate = (name: string, teamname: string | null, notifyTeam: boolean) => {
+    const isTeam = !!ownProps.route.params?.isTeam ?? false
+    const createAction =
+      isTeam && teamname
+        ? GitGen.createCreateTeamRepo({name, notifyTeam, teamname})
+        : GitGen.createCreatePersonalRepo({name})
+    dispatch(createAction)
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onNewTeam = () => {
+    dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
+    dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
+  }
+  const props = {
+    error,
+    isTeam,
+    loadTeams,
+    onClose,
+    onCreate,
+    onNewTeam,
+    teams,
+    waitingKey,
+  }
+  return <NewRepo {...props} />
+}

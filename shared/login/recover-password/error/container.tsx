@@ -2,23 +2,22 @@ import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import Error, {ErrorModal} from '.'
 
-type OwnProps = {}
-
-const connector = Container.connect(
-  state => ({
-    _loggedIn: state.config.loggedIn,
-    error: state.recoverPassword.error.stringValue(),
-  }),
-  dispatch => ({
-    onBack: (loggedIn: boolean) =>
-      loggedIn ? dispatch(RouteTreeGen.createNavigateUp()) : dispatch(RouteTreeGen.createPopStack()),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    error: stateProps.error,
-    onBack: () => dispatchProps.onBack(stateProps._loggedIn),
-  })
-)
-const ConnectedError = connector(Error)
-export const ConnectedErrorModal = connector(ErrorModal)
+const useConn = () => {
+  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  const error = Container.useSelector(state => state.recoverPassword.error.stringValue())
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    loggedIn ? dispatch(RouteTreeGen.createNavigateUp()) : dispatch(RouteTreeGen.createPopStack())
+  }
+  return {error, onBack}
+}
+const ConnectedError = () => {
+  const props = useConn()
+  return <Error {...props} />
+}
+export const ConnectedErrorModal = () => {
+  const props = useConn()
+  return <ErrorModal {...props} />
+}
 
 export default ConnectedError
