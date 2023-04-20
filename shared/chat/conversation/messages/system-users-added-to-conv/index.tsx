@@ -22,7 +22,7 @@ const YouAdded = (props: YouAddedProps) => (
   </UserNotice>
 )
 
-const maxUsernamesToShow = 3
+const maxUsernamesToShow = 1
 const getAddedUsernames = (usernames: Array<string>) => {
   const diff = Math.max(0, usernames.length - maxUsernamesToShow)
   const othersStr = diff ? ` and ${diff} other${diff > 1 ? 's' : ''}` : ''
