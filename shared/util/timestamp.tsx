@@ -35,6 +35,8 @@ export function formatTimeForChat(time: number): string | null {
       }
     }
   }
+  // don't allow line breaks in the timestamp
+  t = t.replaceAll(' ', '\u00A0')
   chatTimeCache.set(time, t)
   return t
 }
