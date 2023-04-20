@@ -9,29 +9,34 @@ type OwnProps = {
   tlfPath: Types.Path
 }
 
-export default Container.connect(
-  (state: Container.TypedState, ownProps: OwnProps) => ({
-    _tlfPathItem: Constants.getPathItem(state.fs.pathItems, ownProps.tlfPath),
-    _tlfs: state.fs.tlfs,
-    waiting: anyWaiting(state, Constants.syncToggleWaitingKey),
-  }),
-  (dispatch, {tlfPath}: OwnProps) => ({
-    disableSync: () => dispatch(FsGen.createSetTlfSyncConfig({enabled: false, tlfPath})),
-    enableSync: () => dispatch(FsGen.createSetTlfSyncConfig({enabled: true, tlfPath})),
-  }),
-  (stateProps, dispatchProps, {tlfPath}: OwnProps) => {
-    const syncConfig = Constants.getTlfFromPath(stateProps._tlfs, tlfPath).syncConfig
-    return {
-      // Disable sync when the TLF is empty and it's not enabled yet.
-      // Band-aid fix for when new user has a non-exisitent TLF which we
-      // can't enable sync for yet.
-      hideSyncToggle:
-        syncConfig.mode === Types.TlfSyncMode.Disabled &&
-        stateProps._tlfPathItem.type === Types.PathType.Folder &&
-        !stateProps._tlfPathItem.children.size,
-      syncConfig,
-      waiting: stateProps.waiting,
-      ...dispatchProps,
-    }
+export default (ownProps: OwnProps) => {
+  const {tlfPath} = ownProps
+  const _tlfPathItem = Container.useSelector(state =>
+    Constants.getPathItem(state.fs.pathItems, ownProps.tlfPath)
+  )
+  const _tlfs = Container.useSelector(state => state.fs.tlfs)
+  const waiting = Container.useSelector(state => anyWaiting(state, Constants.syncToggleWaitingKey))
+
+  const dispatch = Container.useDispatch()
+  const disableSync = () => {
+    dispatch(FsGen.createSetTlfSyncConfig({enabled: false, tlfPath}))
   }
-)(SyncToggle)
+  const enableSync = () => {
+    dispatch(FsGen.createSetTlfSyncConfig({enabled: true, tlfPath}))
+  }
+  const syncConfig = Constants.getTlfFromPath(_tlfs, tlfPath).syncConfig
+  const props = {
+    disableSync,
+    enableSync,
+    // Disable sync when the TLF is empty and it's not enabled yet.
+    // Band-aid fix for when new user has a non-exisitent TLF which we
+    // can't enable sync for yet.
+    hideSyncToggle:
+      syncConfig.mode === Types.TlfSyncMode.Disabled &&
+      _tlfPathItem.type === Types.PathType.Folder &&
+      !_tlfPathItem.children.size,
+    syncConfig,
+    waiting,
+  }
+  return <SyncToggle {...props} />
+}

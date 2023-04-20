@@ -12,48 +12,16 @@ type OwnProps = {
   style?: Styles.StylesCrossPlatform | null
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
-  _pathItem: Constants.getPathItem(state.fs.pathItems, ownProps.path),
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
-  openAndUploadBoth: Platforms.isDarwin
-    ? () => dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Both}))
-    : null,
-  openAndUploadDirectory:
-    Platforms.isElectron && !Platforms.isDarwin
-      ? () =>
-          dispatch(
-            FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Directory})
-          )
-      : null,
-  openAndUploadFile:
-    Platforms.isElectron && !Platforms.isDarwin
-      ? () =>
-          dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.File}))
-      : null,
-  pickAndUploadMixed: Platforms.isIOS
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Mixed}))
-    : null,
-  pickAndUploadPhoto: Platforms.isAndroid
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Photo}))
-    : null,
-  pickAndUploadVideo: Platforms.isAndroid
-    ? () => dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Video}))
-    : null,
-})
-
-const mergeProps = (
-  s: ReturnType<typeof mapStateToProps>,
-  d: ReturnType<typeof mapDispatchToProps>,
-  o: OwnProps
-) => ({
-  canUpload: s._pathItem.type === 'folder' && s._pathItem.writable,
-  style: o.style,
-  ...d,
-})
-
-type UploadButtonProps = ReturnType<typeof mergeProps>
+type UploadButtonProps = {
+  canUpload: boolean
+  openAndUploadBoth: (() => void) | null
+  openAndUploadDirectory: (() => void) | null
+  openAndUploadFile: (() => void) | null
+  pickAndUploadMixed: (() => void) | null
+  pickAndUploadPhoto: (() => void) | null
+  pickAndUploadVideo: (() => void) | null
+  style: Styles.StylesCrossPlatform
+}
 
 const UploadButton = (props: UploadButtonProps) => {
   const {pickAndUploadPhoto, pickAndUploadVideo, openAndUploadDirectory, openAndUploadFile} = props
@@ -104,4 +72,43 @@ const UploadButton = (props: UploadButtonProps) => {
   )
 }
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(UploadButton)
+export default (ownProps: OwnProps) => {
+  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, ownProps.path))
+  const dispatch = Container.useDispatch()
+  const _openAndUploadBoth = () => {
+    dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Both}))
+  }
+  const openAndUploadBoth = Platforms.isDarwin ? _openAndUploadBoth : null
+  const _openAndUploadDirectory = () => {
+    dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Directory}))
+  }
+  const openAndUploadDirectory = Platforms.isElectron && !Platforms.isDarwin ? _openAndUploadDirectory : null
+  const _openAndUploadFile = () => {
+    dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.File}))
+  }
+  const openAndUploadFile = Platforms.isElectron && !Platforms.isDarwin ? _openAndUploadFile : null
+  const _pickAndUploadMixed = () => {
+    dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Mixed}))
+  }
+  const pickAndUploadMixed = Platforms.isIOS ? _pickAndUploadMixed : null
+  const _pickAndUploadPhoto = () => {
+    dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Photo}))
+  }
+  const pickAndUploadPhoto = Platforms.isAndroid ? _pickAndUploadPhoto : null
+  const _pickAndUploadVideo = () => {
+    dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Video}))
+  }
+  const pickAndUploadVideo = Platforms.isAndroid ? _pickAndUploadVideo : null
+
+  const props = {
+    canUpload: _pathItem.type === 'folder' && _pathItem.writable,
+    openAndUploadBoth,
+    openAndUploadDirectory,
+    openAndUploadFile,
+    pickAndUploadMixed,
+    pickAndUploadPhoto,
+    pickAndUploadVideo,
+    style: ownProps.style,
+  }
+  return <UploadButton {...props} />
+}

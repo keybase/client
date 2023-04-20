@@ -2,18 +2,6 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 
-type OwnProps = {}
-
-const mapStateToProps = () => ({})
-
-const mapDispatchToProps = dispatch => ({
-  refresh: () => dispatch(FsGen.createRefreshDriverStatus()),
-})
-
-const mergeProps = (_, d, __: OwnProps) => ({
-  refresh: d.refresh,
-})
-
 type Props = {
   refresh: () => void
 }
@@ -27,4 +15,11 @@ class Component extends React.PureComponent<Props> {
   }
 }
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Component)
+export default () => {
+  const dispatch = Container.useDispatch()
+  const refresh = () => dispatch(FsGen.createRefreshDriverStatus())
+  const props = {
+    refresh,
+  }
+  return <Component {...props} />
+}

@@ -5,15 +5,14 @@ import BarePreview from './bare-preview'
 
 type OwnProps = Container.RouteProps<'barePreview'>
 
-const ConnectedBarePreview = Container.isMobile
-  ? Container.connect(
-      () => ({}),
-      dispatch => ({onBack: () => dispatch(RouteTreeGen.createNavigateUp())}),
-      (_, {onBack}, ownProps: OwnProps) => ({
-        onBack,
-        path: ownProps.route.params?.path ?? Constants.defaultPath,
-      })
-    )(BarePreview)
-  : () => null
+const ConnectedBarePreview = (ownProps: OwnProps) => {
+  const dispatch = Container.useDispatch()
+  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
+  const props = {
+    onBack,
+    path: ownProps.route.params?.path ?? Constants.defaultPath,
+  }
+  return <BarePreview {...props} />
+}
 
-export default ConnectedBarePreview
+export default Container.isMobile ? ConnectedBarePreview : () => null

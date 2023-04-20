@@ -46,13 +46,12 @@ type OwnProps = {
   path: Types.Path
 }
 
-const mapStateToProps = (state, {path}) => ({
-  syncConfig: Constants.getTlfFromPath(state.fs.tlfs, path).syncConfig,
-})
-
-const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
-  ...ownProps,
-  syncEnabled: !!stateProps.syncConfig && stateProps.syncConfig.mode === Types.TlfSyncMode.Enabled,
-})
-
-export default Container.connect(mapStateToProps, () => ({}), mergeProps)(OfflineFolder)
+export default (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const syncConfig = Container.useSelector(state => Constants.getTlfFromPath(state.fs.tlfs, path).syncConfig)
+  const props = {
+    ...ownProps,
+    syncEnabled: !!syncConfig && syncConfig.mode === Types.TlfSyncMode.Enabled,
+  }
+  return <OfflineFolder {...props} />
+}

@@ -32,21 +32,25 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  isTeam: Constants.isTeamPath(path),
-  onChat: Constants.canChat(path)
-    ? () =>
-        dispatch(
-          Chat2Gen.createPreviewConversation({
-            reason: 'files',
-            // tlfToParticipantsOrTeamname will route both public and private
-            // folders to a private chat, which is exactly what we want.
-            ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
-          })
-        )
-    : null,
-})
+export default (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const isTeam = Constants.isTeamPath(path)
+  const _onChat = () => {
+    dispatch(
+      Chat2Gen.createPreviewConversation({
+        reason: 'files',
+        // tlfToParticipantsOrTeamname will route both public and private
+        // folders to a private chat, which is exactly what we want.
+        ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
+      })
+    )
+  }
 
-const mergeProps = (_, d) => d
-
-export default Container.connect(() => ({}), mapDispatchToProps, mergeProps)(OpenChat)
+  const onChat = Constants.canChat(path) ? _onChat : null
+  const dispatch = Container.useDispatch()
+  const props = {
+    isTeam,
+    onChat,
+  }
+  return <OpenChat {...props} />
+}

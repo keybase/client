@@ -25,8 +25,11 @@ const ChooseView = (props: Props) => {
   }
 }
 
-export default Container.connect(
-  state => ({view: state.fs.pathItemActionMenu.view}),
-  () => ({}),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(ChooseView)
+export default (ownProps: OwnProps) => {
+  const view = Container.useSelector(state => state.fs.pathItemActionMenu.view)
+  const props = {
+    ...ownProps,
+    view,
+  }
+  return <ChooseView {...props} />
+}
