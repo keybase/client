@@ -12,102 +12,92 @@ import {anyErrors, anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<'profileEditAvatar'>
 
-const cancelledImage = {canceled: true as const}
+export default (ownProps: OwnProps) => {
+  const {params} = ownProps.route
+  const teamID = params?.teamID
+  const createdTeam = params?.createdTeam ?? false
+  const sperror = Container.useSelector(state => anyErrors(state, Constants.uploadAvatarWaitingKey))
+  const image = params?.image
+  const sendChatNotification = params?.sendChatNotification ?? false
+  const submitting = Container.useSelector(state => anyWaiting(state, Constants.uploadAvatarWaitingKey))
+  const teamname =
+    Container.useSelector(state => (teamID ? TeamsConstants.getTeamNameFromID(state, teamID) : undefined)) ??
+    ''
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const {params} = ownProps.route
-    const teamID = params?.teamID
-    return {
-      createdTeam: params?.createdTeam ?? false,
-      error: anyErrors(state, Constants.uploadAvatarWaitingKey),
-      image: params?.image ?? cancelledImage,
-      sendChatNotification: params?.sendChatNotification ?? false,
-      submitting: anyWaiting(state, Constants.uploadAvatarWaitingKey),
-      teamID,
-      teamname: teamID ? TeamsConstants.getTeamNameFromID(state, teamID) : undefined,
-    }
-  },
-  dispatch => ({
-    onBack: () => {
-      dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onClose: () => {
-      dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
-      dispatch(RouteTreeGen.createClearModals())
-    },
-    onSaveTeamAvatar: (
-      filename: string,
-      teamname: string,
-      sendChatNotification: boolean,
-      crop?: RPCTypes.ImageCropRect
-    ) => dispatch(TeamsGen.createUploadTeamAvatar({crop, filename, sendChatNotification, teamname})),
-    onSaveUserAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) =>
-      dispatch(ProfileGen.createUploadAvatar({crop, filename})),
-    onSaveWizardAvatar: (filename: string, crop?: Types.AvatarCrop) =>
-      dispatch(TeamsGen.createSetTeamWizardAvatar({crop, filename})),
-    onSkip: () => {
-      dispatch(TeamsGen.createSetTeamWizardAvatar({}))
-    },
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {params} = ownProps.route
-    let error = ''
-    if (stateProps.error) {
-      error =
-        stateProps.error.code === RPCTypes.StatusCode.scgeneric
-          ? stateProps.error.desc
-          : Container.isNetworkErr(stateProps.error.code)
-          ? 'Connection lost. Please check your network and try again.'
-          : 'This image format is not supported.'
-    }
-    const wizard = params?.wizard ?? false
-    const bothProps = {
-      error,
-      image: stateProps.image?.canceled ? undefined : stateProps.image,
-      onBack: dispatchProps.onBack,
-      onClose: dispatchProps.onClose,
-      sendChatNotification: stateProps.sendChatNotification,
-      submitting: stateProps.submitting,
-      waitingKey: Constants.uploadAvatarWaitingKey,
-    }
-    return stateProps.teamID
-      ? {
-          ...bothProps,
-          createdTeam: stateProps.createdTeam,
-          onSave: (
-            filename: string,
-            crop?: RPCTypes.ImageCropRect,
-            scaledWidth?: number,
-            offsetLeft?: number,
-            offsetTop?: number
-          ) => {
-            if (wizard) {
-              dispatchProps.onSaveWizardAvatar(
-                filename,
-                crop ? {crop, offsetLeft, offsetTop, scaledWidth} : undefined
-              )
-            } else {
-              dispatchProps.onSaveTeamAvatar(
-                filename,
-                stateProps.teamname!,
-                stateProps.sendChatNotification,
-                crop
-              )
-            }
-          },
-          onSkip: dispatchProps.onSkip,
-          showBack: params?.showBack ?? false,
-          teamID: stateProps.teamID,
-          teamname: stateProps.teamname!,
-          type: 'team' as const,
-          wizard,
-        }
-      : {
-          ...bothProps,
-          onSave: dispatchProps.onSaveUserAvatar,
-          type: 'profile' as const,
-        }
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
+    dispatch(RouteTreeGen.createNavigateUp())
   }
-)(EditAvatar as any)
+  const onClose = () => {
+    dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
+    dispatch(RouteTreeGen.createClearModals())
+  }
+  const onSaveTeamAvatar = (
+    filename: string,
+    teamname: string,
+    sendChatNotification: boolean,
+    crop?: RPCTypes.ImageCropRect
+  ) => {
+    dispatch(TeamsGen.createUploadTeamAvatar({crop, filename, sendChatNotification, teamname}))
+  }
+  const onSaveUserAvatar = (filename: string, crop?: RPCTypes.ImageCropRect) => {
+    dispatch(ProfileGen.createUploadAvatar({crop, filename}))
+  }
+  const onSaveWizardAvatar = (filename: string, crop?: Types.AvatarCrop) => {
+    dispatch(TeamsGen.createSetTeamWizardAvatar({crop, filename}))
+  }
+  const onSkip = () => {
+    dispatch(TeamsGen.createSetTeamWizardAvatar({}))
+  }
+
+  let error = ''
+  if (sperror) {
+    error =
+      sperror.code === RPCTypes.StatusCode.scgeneric
+        ? sperror.desc
+        : Container.isNetworkErr(sperror.code)
+        ? 'Connection lost. Please check your network and try again.'
+        : 'This image format is not supported.'
+  }
+  const wizard = params?.wizard ?? false
+  const bothProps = {
+    error,
+    image,
+    onBack,
+    onClose,
+    sendChatNotification,
+    submitting,
+    waitingKey: Constants.uploadAvatarWaitingKey,
+  }
+  const props = teamID
+    ? {
+        ...bothProps,
+        createdTeam,
+        onSave: (
+          filename: string,
+          crop?: RPCTypes.ImageCropRect,
+          scaledWidth?: number,
+          offsetLeft?: number,
+          offsetTop?: number
+        ) => {
+          if (wizard) {
+            onSaveWizardAvatar(filename, crop ? {crop, offsetLeft, offsetTop, scaledWidth} : undefined)
+          } else {
+            onSaveTeamAvatar(filename, teamname, sendChatNotification, crop)
+          }
+        },
+        onSkip,
+        showBack: params?.showBack ?? false,
+        teamID,
+        teamname,
+        type: 'team' as const,
+        wizard,
+      }
+    : {
+        ...bothProps,
+        onSave: onSaveUserAvatar,
+        type: 'profile' as const,
+      }
+  return <EditAvatar {...props} />
+}

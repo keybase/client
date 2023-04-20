@@ -4,10 +4,8 @@ import {ProofStatus} from '../../constants/types/rpc-gen'
 import {globalColors} from '../../styles'
 import * as Container from '../../util/container'
 
-type OwnProps = {}
-
-const mapStateToProps = (state: Container.TypedState) => {
-  const profile = state.profile
+export default () => {
+  const profile = Container.useSelector(state => state.profile)
   const isGood = profile.proofFound && profile.proofStatus === ProofStatus.ok
   const isPending =
     !isGood &&
@@ -19,18 +17,14 @@ const mapStateToProps = (state: Container.TypedState) => {
     throw new Error('No platform passed to confirm or pending container')
   }
 
-  return {
-    isPending,
-    platform: profile.platform,
-    platformIconOverlayColor: isGood ? globalColors.green : globalColors.greyDark,
-    username: profile.username,
-  }
-}
+  const platform = profile.platform
+  const platformIconOverlayColor = isGood ? globalColors.green : globalColors.greyDark
+  const username = profile.username
 
-export default Container.connect(
-  mapStateToProps,
-  dispatch => ({
-    onCancel: () => dispatch(ProfileGen.createBackToProfile()),
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(ConfirmOrPending)
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(ProfileGen.createBackToProfile())
+  }
+  const props = {isPending, onCancel, platform, platformIconOverlayColor, username}
+  return <ConfirmOrPending {...props} />
+}

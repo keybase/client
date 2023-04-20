@@ -19,12 +19,11 @@ type OwnProps = {
   url: string | null
 }
 
-const mapStateToProps = () => ({})
+export default (ownProps: OwnProps) => {
+  const {appLink, badged, confirmLabel, iconUrl, id, text, url, dismissable} = ownProps
+  const dispatch = Container.useDispatch()
 
-// Really the saga should handle all of this and we shouldn't have any of these ownProps passed in but this
-// is how the other types work in this list. TODO change this to be more modern
-const mapDispatchToProps = dispatch => ({
-  _onConfirm: (id, appLink, url) => {
+  const onConfirm = () => {
     if (url) {
       openURL(url)
     }
@@ -68,21 +67,19 @@ const mapDispatchToProps = dispatch => ({
     }
     dispatch(PeopleGen.createDismissAnnouncement({id}))
     dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
-  },
-  _onDismiss: id => {
+  }
+  const _onDismiss = () => {
     dispatch(PeopleGen.createDismissAnnouncement({id}))
     dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
-  },
-})
-
-const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
-  badged: ownProps.badged,
-  confirmLabel: ownProps.confirmLabel,
-  iconUrl: ownProps.iconUrl,
-  onConfirm: () => dispatchProps._onConfirm(ownProps.id, ownProps.appLink, ownProps.url),
-  onDismiss: ownProps.dismissable ? () => dispatchProps._onDismiss(ownProps.id) : null,
-  text: ownProps.text,
-  url: ownProps.url,
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Announcement)
+  }
+  const props = {
+    badged,
+    confirmLabel,
+    iconUrl,
+    onConfirm,
+    onDismiss: dismissable ? _onDismiss : null,
+    text,
+    url,
+  }
+  return <Announcement {...props} />
+}
