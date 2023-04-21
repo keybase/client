@@ -32,9 +32,30 @@ export type Props = {
 }
 
 const FloatingMenu = (props: Props) => {
-  if (!props.visible) {
+  const isModal = React.useContext(FloatingModalContext)
+
+  if (!props.visible && !isModal) {
     return null
   }
+
+  const contents = (
+    <MenuLayout
+      header={props.header}
+      onHidden={props.onHidden}
+      items={props.items}
+      closeOnClick={props.closeOnSelect}
+      closeText={props.closeText}
+      listStyle={props.listStyle}
+      textColor={props.textColor}
+      backgroundColor={props.backgroundColor}
+      safeProviderStyle={props.safeProviderStyle}
+    />
+  )
+
+  if (isModal) {
+    return contents
+  }
+
   return (
     <Overlay
       position={props.position}
@@ -46,18 +67,11 @@ const FloatingMenu = (props: Props) => {
       style={Styles.collapseStyles([props.containerStyle])}
       propagateOutsideClicks={props.propagateOutsideClicks}
     >
-      <MenuLayout
-        header={props.header}
-        onHidden={props.onHidden}
-        items={props.items}
-        closeOnClick={props.closeOnSelect}
-        closeText={props.closeText}
-        listStyle={props.listStyle}
-        textColor={props.textColor}
-        backgroundColor={props.backgroundColor}
-        safeProviderStyle={props.safeProviderStyle}
-      />
+      {contents}
     </Overlay>
   )
 }
 export default FloatingMenu
+
+// escape hatch to make a floating to a modal
+export const FloatingModalContext = React.createContext(false)

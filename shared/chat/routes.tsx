@@ -23,6 +23,7 @@ import type ChatRoot from './inbox/container'
 import type ChatSearchBot from './conversation/bot/search'
 import type ChatShowNewTeamDialog from './new-team-dialog-container'
 import type ChatUnfurlMapPopup from './conversation/messages/text/unfurl/unfurl-list/map-popup'
+import type {MessagePopupModal} from './conversation/messages/message-popup'
 import type PunycodeLinkWarning from './punycode-link-warning'
 import type SendToChat from './send-to-chat'
 import type {RenderableEmoji} from '../util/emoji'
@@ -92,6 +93,10 @@ export const newModalRoutes = {
   chatLocationPreview: {
     getScreen: (): typeof ChatLocationPopup =>
       require('./conversation/input-area/normal/location-popup').default,
+  },
+  chatMessagePopup: {
+    getScreen: (): typeof MessagePopupModal =>
+      require('./conversation/messages/message-popup').MessagePopupModal,
   },
   chatNewChat: {getScreen: (): typeof ChatNewChat => require('../team-building/container').default},
   chatPDF: {getScreen: (): typeof ChatPDF => require('./pdf').default},
@@ -210,4 +215,8 @@ export type RootParamListChat = {
   }
   chatEnterPaperkey: undefined
   chatPaymentsConfirm: undefined
+  chatMessagePopup: {
+    conversationIDKey: Types.ConversationIDKey
+    ordinal: Types.Ordinal
+  }
 }

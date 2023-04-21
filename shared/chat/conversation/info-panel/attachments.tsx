@@ -8,7 +8,7 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {formatAudioRecordDuration, formatTimeForMessages} from '../../../util/timestamp'
-import MessagePopup from '../messages/message-popup'
+import {useMessagePopup} from '../messages/message-popup'
 import chunk from 'lodash/chunk'
 import {infoPanelWidth} from './common'
 import type {Section} from '../../../common-adapters/section-list'
@@ -172,18 +172,11 @@ type DocViewRowProps = {item: Doc}
 
 const DocViewRow = (props: DocViewRowProps) => {
   const {item} = props
-  const {toggleShowingPopup, showingPopup, popup} = Kb.usePopup(attachTo =>
-    item.message ? (
-      <MessagePopup
-        attachTo={attachTo}
-        conversationIDKey={item.message.conversationIDKey}
-        ordinal={item.message.id}
-        onHidden={toggleShowingPopup}
-        position="top right"
-        visible={showingPopup}
-      />
-    ) : null
-  )
+  const {toggleShowingPopup, showingPopup, popup} = useMessagePopup({
+    conversationIDKey: item.message?.conversationIDKey ?? '',
+    ordinal: item.message?.id ?? 0,
+    shouldShow: () => !!item.message,
+  })
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.ClickableBox onClick={item.onDownload} onLongPress={toggleShowingPopup}>
