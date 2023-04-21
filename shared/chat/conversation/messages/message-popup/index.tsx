@@ -189,15 +189,15 @@ export const useMessagePopup = (p: {
 
   const mobilePopup: {
     popup: React.ReactNode
-    popupAnchor: React.MutableRefObject<React.Component<any, {}, any> | null>
+    popupAnchor: React.MutableRefObject<React.Component | null>
     setShowingPopup: React.Dispatch<React.SetStateAction<boolean>>
     showingPopup: boolean
     toggleShowingPopup: () => void
   } = {
     popup: null,
     popupAnchor: React.useRef<React.Component>(null),
-    showingPopup: true,
     setShowingPopup: () => {},
+    showingPopup: true,
     toggleShowingPopup: Container.useEvent(() => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
