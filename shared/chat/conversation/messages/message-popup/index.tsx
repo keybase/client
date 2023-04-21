@@ -187,14 +187,21 @@ export const useMessagePopup = (p: {
 
   const dispatch = Container.useDispatch()
 
-  const mobilePopup = {
+  const mobilePopup: {
+    popup: React.ReactNode
+    popupAnchor: React.MutableRefObject<React.Component<any, {}, any> | null>
+    setShowingPopup: React.Dispatch<React.SetStateAction<boolean>>
+    showingPopup: boolean
+    toggleShowingPopup: () => void
+  } = {
     popup: null,
-    popupAnchor: () => {},
-    showingPopup: false,
+    popupAnchor: React.useRef<React.Component>(null),
+    showingPopup: true,
+    setShowingPopup: () => {},
     toggleShowingPopup: Container.useEvent(() => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{selected: 'chatMessagePopup', props: {conversationIDKey, ordinal}}],
+          path: [{props: {conversationIDKey, ordinal}, selected: 'chatMessagePopup'}],
         })
       )
     }),
