@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/chat2'
-import MessagePopup from '../messages/message-popup'
+import {useMessagePopup} from '../messages/message-popup'
 import {Video, ResizeMode} from 'expo-av'
 import logger from '../../../logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
@@ -52,16 +52,10 @@ const Fullscreen = (p: Props) => {
   const {path, previewHeight, message, onAllMedia, onClose, isVideo} = p
   const [loaded, setLoaded] = React.useState(false)
 
-  const {toggleShowingPopup, showingPopup, popup} = Kb.usePopup(attachTo => (
-    <MessagePopup
-      attachTo={attachTo}
-      conversationIDKey={message.conversationIDKey}
-      ordinal={message.id}
-      onHidden={toggleShowingPopup}
-      position="bottom left"
-      visible={showingPopup}
-    />
-  ))
+  const {toggleShowingPopup, popup} = useMessagePopup({
+    conversationIDKey: message.conversationIDKey,
+    ordinal: message.id,
+  })
 
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null

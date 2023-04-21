@@ -115,6 +115,9 @@ module.exports = {
   get FloatingBox() {
     return require('./floating-box').default
   },
+  get FloatingModalContext() {
+    return require('./floating-menu').FloatingModalContext
+  },
   get FloatingMenu() {
     return require('./floating-menu').default
   },
