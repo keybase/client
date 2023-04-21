@@ -7,6 +7,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import AccountPayment from '.'
+import shallowEqual from 'shallowequal'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -29,6 +30,11 @@ const loadingProps = {
   sourceAmount: '',
 } as const
 
+const failedProps = {
+  ...loadingProps,
+  loading: false,
+}
+
 // Get action phrase for sendPayment msg
 const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender: boolean) => {
   switch (status) {
@@ -48,8 +54,11 @@ type OwnProps = {
   message: Types.MessageSendPayment | Types.MessageRequestPayment
 }
 
-const ConnectedAccountPayment = Container.connect(
-  (state, ownProps: OwnProps) => {
+const ConnectedAccountPayment = (ownProps: OwnProps) => {
+  const {message} = ownProps
+  const {conversationIDKey, ordinal} = message
+  // TODO not huge selector
+  const stateProps = Container.useSelector(state => {
     const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
     const you = state.config.username
     const youAreSender = ownProps.message.author === you
@@ -136,20 +145,24 @@ const ConnectedAccountPayment = Container.connect(
         }
       }
       default:
-        // @ts-ignore message is type `never` correctly
-        throw new Error(`AccountPayment: impossible case encountered: '${ownProps.message.type}'`)
+        return failedProps
     }
-  },
-  (dispatch, {message: {conversationIDKey, ordinal}}) => ({
-    _onCancel: (paymentID: WalletTypes.PaymentID | null) => {
-      if (paymentID) {
-        dispatch(WalletsGen.createCancelPayment({paymentID}))
-      }
-    },
-    onClaim: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
-    onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
+  }, shallowEqual)
+
+  const dispatch = Container.useDispatch()
+
+  const _onCancel = (paymentID: WalletTypes.PaymentID | null) => {
+    if (paymentID) {
+      dispatch(WalletsGen.createCancelPayment({paymentID}))
+    }
+  }
+  const onClaim = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
+  }
+  const onSend = () => {
+    dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal}))
+  }
+  const props = {
     action: stateProps.action,
     amount: stateProps.amount,
     approxWorth: stateProps.approxWorth,
@@ -162,13 +175,21 @@ const ConnectedAccountPayment = Container.connect(
     icon: stateProps.icon,
     loading: stateProps.loading,
     memo: stateProps.memo,
-    onCancel: () => dispatchProps._onCancel(stateProps._paymentID),
-    onClaim: dispatchProps.onClaim,
-    onSend: dispatchProps.onSend,
+    onCancel: () => _onCancel(stateProps._paymentID),
+    onClaim: onClaim,
+    onSend: onSend,
     pending: stateProps.pending,
     sendButtonLabel: stateProps.sendButtonLabel || '',
     showCoinsIcon: stateProps.showCoinsIcon,
     sourceAmount: stateProps.sourceAmount,
-  })
-)(AccountPayment)
+  }
+  if (
+    !stateProps.loading &&
+    ownProps.message.type !== 'sendPayment' &&
+    ownProps.message.type !== 'requestPayment'
+  ) {
+    return null
+  }
+  return <AccountPayment {...props} />
+}
 export default ConnectedAccountPayment

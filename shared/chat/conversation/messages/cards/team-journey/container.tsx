@@ -134,86 +134,60 @@ const TeamJourneyContainer = (props: Props) => {
 
 const emptyJourney = makeMessageJourneycard({})
 
-const TeamJourneyConnected = Container.connect(
-  (state, ownProps: OwnProps) => {
-    const {conversationIDKey, ordinal} = ownProps
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    const message = m?.type === 'journeycard' ? m : emptyJourney
-    const conv = Constants.getMeta(state, conversationIDKey)
-    const {cannotWrite, channelname, teamname, teamID} = conv
-    const welcomeMessage = {display: '', raw: '', set: false}
-    return {
-      _teamID: teamID,
-      canShowcase: TeamConstants.canShowcase(state, teamID),
-      cannotWrite: cannotWrite,
-      channelname,
-      conversationIDKey,
-      isBigTeam: TeamConstants.isBigTeam(state, teamID),
-      message,
-      teamname,
-      welcomeMessage,
-    }
-  },
-  dispatch => ({
-    _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) =>
-      dispatch(TeamsGen.createStartAddMembersWizard({teamID})),
-    _onAuthorClick: (teamID: TeamTypes.TeamID) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [teamsTab, {props: {teamID}, selected: 'team'}],
-        })
-      ),
-    _onCreateChannel: (teamID: string) =>
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatCreateChannel'}]})),
-    _onDismiss: (
-      conversationIDKey: ChatTypes.ConversationIDKey,
-      cardType: RPCChatTypes.JourneycardType,
-      ordinal: ChatTypes.Ordinal
-    ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal})),
-    _onGoToChannel: (channelname: string, teamname: string) =>
-      dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
-    _onManageChannels: (teamID: string) => dispatch(TeamsGen.createManageChatChannels({teamID})),
-    _onPublishTeam: (teamID: string) => {
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']}))
-      dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
-    },
-    _onShowTeam: (teamID: TeamTypes.TeamID) =>
-      dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
-  }),
-  (stateProps, dispatchProps) => {
-    const {
-      canShowcase,
-      cannotWrite,
-      channelname,
-      conversationIDKey,
-      teamname,
-      isBigTeam,
-      welcomeMessage,
-      message,
-    } = stateProps
+const TeamJourneyConnected = (ownProps: OwnProps) => {
+  const {conversationIDKey, ordinal} = ownProps
+  const m = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
+  const message = m?.type === 'journeycard' ? m : emptyJourney
+  const conv = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {cannotWrite, channelname, teamname, teamID} = conv
+  const welcomeMessage = {display: '', raw: '', set: false}
+  const _teamID = teamID
+  const canShowcase = Container.useSelector(state => TeamConstants.canShowcase(state, teamID))
+  const isBigTeam = Container.useSelector(state => TeamConstants.isBigTeam(state, teamID))
 
-    return {
-      canShowcase,
-      cannotWrite,
-      channelname,
-      conversationIDKey,
-      isBigTeam,
-      message,
-      onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
-      onAuthorClick: () => dispatchProps._onAuthorClick(stateProps._teamID),
-      onBrowseChannels: () => dispatchProps._onManageChannels(stateProps._teamID),
-      onCreateChatChannels: () => dispatchProps._onCreateChannel(stateProps._teamID),
-      onDismiss: () =>
-        dispatchProps._onDismiss(stateProps.conversationIDKey, message.cardType, message.ordinal),
-      onGoToChannel: (channelName: string) => dispatchProps._onGoToChannel(channelName, stateProps.teamname),
-      onPublishTeam: () => dispatchProps._onPublishTeam(stateProps._teamID),
-      onScrollBack: () => console.log('onScrollBack'),
-      onShowTeam: () => dispatchProps._onShowTeam(stateProps._teamID),
-      teamID: stateProps._teamID,
-      teamname,
-      welcomeMessage,
-    }
+  const dispatch = Container.useDispatch()
+
+  const _onAddPeopleToTeam = (teamID: TeamTypes.TeamID) =>
+    dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
+  const _onAuthorClick = (teamID: TeamTypes.TeamID) =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))
+  const _onCreateChannel = (teamID: string) =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
+  const _onDismiss = (
+    conversationIDKey: ChatTypes.ConversationIDKey,
+    cardType: RPCChatTypes.JourneycardType,
+    ordinal: ChatTypes.Ordinal
+  ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal}))
+  const _onGoToChannel = (channelname: string, teamname: string) =>
+    dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname}))
+  const _onManageChannels = (teamID: string) => dispatch(TeamsGen.createManageChatChannels({teamID}))
+  const _onPublishTeam = (teamID: string) => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']}))
+    dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
   }
-)(TeamJourneyContainer)
+  const _onShowTeam = (teamID: TeamTypes.TeamID) =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))
+  const props = {
+    canShowcase,
+    cannotWrite,
+    channelname,
+    conversationIDKey,
+    isBigTeam,
+    message,
+    onAddPeopleToTeam: () => _onAddPeopleToTeam(_teamID),
+    onAuthorClick: () => _onAuthorClick(_teamID),
+    onBrowseChannels: () => _onManageChannels(_teamID),
+    onCreateChatChannels: () => _onCreateChannel(_teamID),
+    onDismiss: () => _onDismiss(conversationIDKey, message.cardType, message.ordinal),
+    onGoToChannel: (channelName: string) => _onGoToChannel(channelName, teamname),
+    onPublishTeam: () => _onPublishTeam(_teamID),
+    onScrollBack: () => console.log('onScrollBack'),
+    onShowTeam: () => _onShowTeam(_teamID),
+    teamID: _teamID,
+    teamname,
+    welcomeMessage,
+  }
+  return <TeamJourneyContainer {...props} />
+}
 
 export default TeamJourneyConnected

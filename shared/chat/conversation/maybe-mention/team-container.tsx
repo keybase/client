@@ -17,52 +17,50 @@ type OwnProps = {
 
 const noAdmins: Array<string> = []
 
-export default Container.connect(
-  (state, {allowFontScaling, name, channel, style}: OwnProps) => {
-    const maybeMentionInfo = state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
-    const mentionInfo =
-      maybeMentionInfo && maybeMentionInfo.status === RPCChatTypes.UIMaybeMentionStatus.team
-        ? maybeMentionInfo.team
-        : null
-    return {
-      _convID: mentionInfo ? mentionInfo.convID : undefined,
-      allowFontScaling: !!allowFontScaling,
-      channel,
-      description: (mentionInfo && mentionInfo.description) || '',
-      inTeam: !!mentionInfo && mentionInfo.inTeam,
-      isOpen: !!mentionInfo && mentionInfo.open,
-      name,
-      numMembers: (mentionInfo && mentionInfo.numMembers) || 0,
-      publicAdmins: (mentionInfo && mentionInfo.publicAdmins) || noAdmins,
-      resolved: !!mentionInfo,
-      style,
-    }
-  },
-  dispatch => ({
-    _onChat: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'teamMention'})),
-    _onViewTeam: (teamname: string) => {
-      dispatch(RouteTreeGen.createClearModals())
-      dispatch(TeamsGen.createShowTeamByName({teamname}))
-    },
-    onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const convID = stateProps._convID ? Types.stringToConversationIDKey(stateProps._convID) : undefined
-    return {
-      allowFontScaling: stateProps.allowFontScaling,
-      channel: stateProps.channel,
-      description: stateProps.description,
-      inTeam: stateProps.inTeam,
-      isOpen: stateProps.isOpen,
-      name: stateProps.name,
-      numMembers: stateProps.numMembers,
-      onChat: convID ? () => dispatchProps._onChat(convID) : undefined,
-      onJoinTeam: dispatchProps.onJoinTeam,
-      onViewTeam: () => dispatchProps._onViewTeam(stateProps.name),
-      publicAdmins: stateProps.publicAdmins,
-      resolved: stateProps.resolved,
-      style: stateProps.style,
-    }
+export default (ownProps: OwnProps) => {
+  const {allowFontScaling, name, channel, style} = ownProps
+  const maybeMentionInfo = Container.useSelector(state =>
+    state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
+  )
+  const mentionInfo =
+    maybeMentionInfo && maybeMentionInfo.status === RPCChatTypes.UIMaybeMentionStatus.team
+      ? maybeMentionInfo.team
+      : null
+  const _convID = mentionInfo ? mentionInfo.convID : undefined
+  const description = mentionInfo?.description || ''
+  const inTeam = !!mentionInfo && mentionInfo.inTeam
+  const isOpen = !!mentionInfo && mentionInfo.open
+  const numMembers = mentionInfo?.numMembers || 0
+  const publicAdmins = mentionInfo?.publicAdmins || noAdmins
+  const resolved = !!mentionInfo
+
+  const dispatch = Container.useDispatch()
+  const _onChat = (conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'teamMention'}))
   }
-)(TeamMention)
+  const _onViewTeam = (teamname: string) => {
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(TeamsGen.createShowTeamByName({teamname}))
+  }
+  const onJoinTeam = (teamname: string) => {
+    dispatch(TeamsGen.createJoinTeam({teamname}))
+  }
+
+  const convID = _convID ? Types.stringToConversationIDKey(_convID) : undefined
+  const props = {
+    allowFontScaling: !!allowFontScaling,
+    channel: channel,
+    description: description,
+    inTeam: inTeam,
+    isOpen: isOpen,
+    name: name,
+    numMembers: numMembers,
+    onChat: convID ? () => _onChat(convID) : undefined,
+    onJoinTeam: onJoinTeam,
+    onViewTeam: () => _onViewTeam(name),
+    publicAdmins: publicAdmins,
+    resolved: resolved,
+    style: style,
+  }
+  return <TeamMention {...props} />
+}
