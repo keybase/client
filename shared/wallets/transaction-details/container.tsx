@@ -64,11 +64,12 @@ export default (ownProps: OwnProps) => {
   }
   const tx = _transaction
   if (loading) {
-    return {
+    const props = {
       loading: true,
       onBack: navigateUp,
       onLoadPaymentDetail: onLoadPaymentDetail,
     } as any as NotLoadingProps // TODO actually split this container so it doesn't do this. makes it much harder to type
+    return <TransactionDetails {...props} />
   }
   const props = {
     ...yourInfoAndCounterparty,
