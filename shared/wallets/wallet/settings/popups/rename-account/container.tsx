@@ -9,41 +9,40 @@ import RenameAccount from '.'
 
 type OwnProps = Container.RouteProps<'renameAccount'>
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
-    const selectedAccount = Constants.getAccount(state, accountID)
-    return {
-      accountID,
-      error: state.wallets.accountNameError,
-      initialName: selectedAccount.name,
-      nameValidationState: state.wallets.accountNameValidationState,
-      renameAccountError: state.wallets.createNewAccountError,
-      waiting: anyWaiting(
-        state,
-        Constants.changeAccountNameWaitingKey,
-        Constants.validateAccountNameWaitingKey
-      ),
-    }
-  },
-  dispatch => ({
-    _onChangeAccountName: (accountID: Types.AccountID, name: string) =>
-      dispatch(WalletsGen.createChangeAccountName({accountID, name})),
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
-    onDone: (name: string) => {
-      dispatch(WalletsGen.createValidateAccountName({name}))
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    error: capitalize(stateProps.error),
-    initialName: stateProps.initialName,
-    nameValidationState: stateProps.nameValidationState,
-    onCancel: dispatchProps.onCancel,
-    onChangeAccountName: (name: string) => dispatchProps._onChangeAccountName(stateProps.accountID, name),
-    onClearErrors: dispatchProps.onClearErrors,
-    onDone: dispatchProps.onDone,
-    renameAccountError: stateProps.renameAccountError,
-    waiting: stateProps.waiting,
-  })
-)(RenameAccount)
+export default (ownProps: OwnProps) => {
+  const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+  const selectedAccount = Container.useSelector(state => Constants.getAccount(state, accountID))
+  const error = Container.useSelector(state => state.wallets.accountNameError)
+  const initialName = selectedAccount.name
+  const nameValidationState = Container.useSelector(state => state.wallets.accountNameValidationState)
+  const renameAccountError = Container.useSelector(state => state.wallets.createNewAccountError)
+  const waiting = Container.useSelector(state =>
+    anyWaiting(state, Constants.changeAccountNameWaitingKey, Constants.validateAccountNameWaitingKey)
+  )
+
+  const dispatch = Container.useDispatch()
+  const _onChangeAccountName = (accountID: Types.AccountID, name: string) => {
+    dispatch(WalletsGen.createChangeAccountName({accountID, name}))
+  }
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onClearErrors = () => {
+    dispatch(WalletsGen.createClearErrors())
+  }
+  const onDone = (name: string) => {
+    dispatch(WalletsGen.createValidateAccountName({name}))
+  }
+  const props = {
+    error: capitalize(error),
+    initialName: initialName,
+    nameValidationState: nameValidationState,
+    onCancel: onCancel,
+    onChangeAccountName: (name: string) => _onChangeAccountName(accountID, name),
+    onClearErrors: onClearErrors,
+    onDone: onDone,
+    renameAccountError: renameAccountError,
+    waiting: waiting,
+  }
+  return <RenameAccount {...props} />
+}

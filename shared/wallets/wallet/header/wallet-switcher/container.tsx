@@ -10,30 +10,30 @@ type OwnProps = {
   hideMenu: () => void
 }
 
-export default Container.connect(
-  state => ({
-    accounts: Constants.getAccountIDs(state),
-  }),
-  dispatch => ({
-    onAddNew: () => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {showOnCreation: true}, selected: 'createNewAccount'}],
-        })
-      )
-    },
-    onLinkExisting: () => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
-      )
-    },
-    onWhatIsStellar: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']})),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    accountIDs: stateProps.accounts,
-    onAddNew: dispatchProps.onAddNew,
-    onLinkExisting: dispatchProps.onLinkExisting,
-    onWhatIsStellar: dispatchProps.onWhatIsStellar,
+export default (ownProps: OwnProps) => {
+  const accounts = Container.useSelector(state => Constants.getAccountIDs(state))
+  const dispatch = Container.useDispatch()
+  const onAddNew = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {showOnCreation: true}, selected: 'createNewAccount'}],
+      })
+    )
+  }
+  const onLinkExisting = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
+    )
+  }
+  const onWhatIsStellar = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']}))
+  }
+  const props = {
+    accountIDs: accounts,
+    onAddNew: onAddNew,
+    onLinkExisting: onLinkExisting,
+    onWhatIsStellar: onWhatIsStellar,
     ...ownProps,
-  })
-)(WalletSwitcher)
+  }
+  return <WalletSwitcher {...props} />
+}

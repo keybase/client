@@ -5,19 +5,17 @@ import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 
-type OwnProps = {}
+const useConnect = () => {
+  const _accountMap = Container.useSelector(state => state.wallets.accountMap)
+  const _building = Container.useSelector(state => state.wallets.building)
+  const _failed = Container.useSelector(state => !!state.wallets.sentPaymentError)
+  const banners = Container.useSelector(state =>
+    state.wallets.building.isRequest
+      ? state.wallets.builtRequest.builtBanners
+      : state.wallets.builtPayment.builtBanners
+  )
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  _accountMap: state.wallets.accountMap,
-  _building: state.wallets.building,
-  _failed: !!state.wallets.sentPaymentError,
-  banners: state.wallets.building.isRequest
-    ? state.wallets.builtRequest.builtBanners
-    : state.wallets.builtPayment.builtBanners,
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onGoAdvanced: (recipient, recipientType, senderAccountID) => {
+  const _onGoAdvanced = (recipient, recipientType, senderAccountID) => {
     dispatch(WalletsGen.createClearBuildingAdvanced())
     dispatch(WalletsGen.createSetBuildingAdvancedRecipient({recipient}))
     dispatch(WalletsGen.createSetBuildingAdvancedRecipientType({recipientType}))
@@ -25,43 +23,43 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {isAdvanced: true}, selected: 'sendReceiveForm'}]})
     )
-  },
-  _onReviewPayments: () => dispatch(WalletsGen.createExitFailedPayment()),
-})
+  }
+  const _onReviewPayments = () => {
+    dispatch(WalletsGen.createExitFailedPayment())
+  }
 
-const mergeProps = (
-  stateProps: ReturnType<typeof mapStateToProps>,
-  dispatchProps: ReturnType<typeof mapDispatchToProps>,
-  _: OwnProps
-) => ({
-  banners: (stateProps.banners || []).map(
-    (banner): Types.Banner => ({
-      action: () =>
-        dispatchProps._onGoAdvanced(
-          stateProps._building.to,
-          stateProps._building.recipientType,
-          // This can happen when sending from chat. The normal payment path
-          // goes through buildPayment to get the sender AccountID so we don't
-          // have it here.
-          stateProps._building.from === Types.noAccountID
-            ? (
-                [...stateProps._accountMap.values()].find(account => account.isDefault) ??
-                Constants.unknownAccount
-              ).accountID
-            : stateProps._building.from
-        ),
-      bannerBackground: Constants.bannerLevelToBackground(banner.level),
-      bannerText: banner.message,
-      offerAdvancedSendForm: banner.offerAdvancedSendForm,
-    })
-  ),
-  onReviewPayments: stateProps._failed ? dispatchProps._onReviewPayments : null,
-})
+  const dispatch = Container.useDispatch()
+  const props = {
+    banners: (banners || []).map(
+      (banner): Types.Banner => ({
+        action: () =>
+          _onGoAdvanced(
+            _building.to,
+            _building.recipientType,
+            // This can happen when sending from chat. The normal payment path
+            // goes through buildPayment to get the sender AccountID so we don't
+            // have it here.
+            _building.from === Types.noAccountID
+              ? ([..._accountMap.values()].find(account => account.isDefault) ?? Constants.unknownAccount)
+                  .accountID
+              : _building.from
+          ),
+        bannerBackground: Constants.bannerLevelToBackground(banner.level),
+        bannerText: banner.message,
+        offerAdvancedSendForm: banner.offerAdvancedSendForm,
+      })
+    ),
+    onReviewPayments: _failed ? _onReviewPayments : null,
+  }
+  return props
+}
 
-export const SendBody = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(SendBodyComponent)
+export const SendBody = () => {
+  const props = useConnect()
+  return <SendBodyComponent {...props} />
+}
 
-export const RequestBody = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(RequestBodyComponent)
+export const RequestBody = () => {
+  const props = useConnect()
+  return <RequestBodyComponent {...props} />
+}

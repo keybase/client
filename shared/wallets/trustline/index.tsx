@@ -12,7 +12,6 @@ type _Props = {
   accountID: Types.AccountID
   balanceAvailableToSend: string
   canAddTrustline: boolean
-  clearTrustlineModal: () => void
   error: string
   loaded: boolean
   onSearchChange: (text: string) => void

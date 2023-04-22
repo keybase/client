@@ -12,101 +12,103 @@ import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<'transactionDetails'>
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const you = state.config.username
-    const {params} = ownProps.route
-    const accountID = params?.accountID ?? Types.noAccountID
-    const paymentID = params?.paymentID ?? Types.noPaymentID
-    const _transaction = Constants.getPayment(state, accountID, paymentID)
-    const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
-    // Transaction can briefly be empty when status changes
-    const loading =
+export default (ownProps: OwnProps) => {
+  const you = Container.useSelector(state => state.config.username)
+  const {params} = ownProps.route
+  const accountID = params?.accountID ?? Types.noAccountID
+  const paymentID = params?.paymentID ?? Types.noPaymentID
+  const _transaction = Container.useSelector(state => Constants.getPayment(state, accountID, paymentID))
+  const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
+  // Transaction can briefly be empty when status changes
+  const loading = Container.useSelector(
+    state =>
       anyWaiting(state, Constants.getRequestDetailsWaitingKey(paymentID)) ||
       _transaction.id === Types.noPaymentID
-    return {
-      _transaction,
-      counterpartyMeta:
-        yourInfoAndCounterparty.counterpartyType === 'keybaseUser'
-          ? getFullname(
-              state,
-              yourInfoAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
-            )
-          : null,
-      loading,
-      transactionURL: _transaction.externalTxURL,
-      you,
-      yourInfoAndCounterparty,
-    }
-  },
-  (dispatch, ownProps) => ({
-    navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onCancelPayment: () =>
-      dispatch(
-        WalletsGen.createCancelPayment({
-          paymentID: ownProps.route.params?.paymentID ?? Types.noPaymentID,
-          showAccount: true,
-        })
-      ),
-    onChat: (username: string) =>
-      dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'})),
-    onLoadPaymentDetail: () =>
-      dispatch(
-        WalletsGen.createLoadPaymentDetail({
-          accountID: ownProps.route.params?.accountID ?? Types.noAccountID,
-          paymentID: ownProps.route.params?.paymentID ?? Types.noPaymentID,
-        })
-      ),
-    onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const tx = stateProps._transaction
-    if (stateProps.loading) {
-      return {
-        loading: true,
-        onBack: dispatchProps.navigateUp,
-        onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
-      } as any as NotLoadingProps // TODO actually split this container so it doesn't do this. makes it much harder to type
-    }
-    return {
-      ...stateProps.yourInfoAndCounterparty,
-      amountUser: tx.worth,
-      amountXLM: tx.amountDescription,
-      approxWorth: tx.worthAtSendTime,
-      assetCode: tx.assetCode,
-      counterpartyMeta: stateProps.counterpartyMeta,
-      feeChargedDescription: tx.feeChargedDescription,
-      fromAirdrop: tx.fromAirdrop,
-      isAdvanced: tx.isAdvanced,
-      issuerAccountID: tx.issuerAccountID,
-      issuerDescription: tx.issuerDescription,
-      loading: false,
-      memo: tx.note.stringValue(),
-      onBack: dispatchProps.navigateUp,
-      onCancelPayment: tx.showCancel ? dispatchProps.onCancelPayment : null,
-      onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
-      onChat: dispatchProps.onChat,
-      onLoadPaymentDetail: dispatchProps.onLoadPaymentDetail,
-      onShowProfile: dispatchProps.onShowProfile,
-      onViewTransaction: stateProps.transactionURL ? () => openURL(stateProps.transactionURL) : undefined,
-      operations: tx.operations,
-      pathIntermediate: tx.pathIntermediate,
-      publicMemo: tx.publicMemo.stringValue(),
-      recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,
-      selectableText: true,
-      senderAccountID: Types.stringToAccountID(tx.sourceAccountID),
-      sourceAmount: tx.sourceAmount,
-      sourceAsset: tx.sourceAsset,
-      sourceConvRate: tx.sourceConvRate,
-      sourceIssuer: tx.sourceIssuer,
-      sourceIssuerAccountID: tx.sourceIssuerAccountID,
-      status: tx.statusSimplified,
-      statusDetail: tx.statusDetail,
-      summaryAdvanced: tx.summaryAdvanced,
-      timestamp: tx.time ? new Date(tx.time) : null,
-      transactionID: tx.txID,
-      trustline: tx.trustline,
-      you: stateProps.you,
-    }
+  )
+
+  const counterpartyMeta = Container.useSelector(state =>
+    yourInfoAndCounterparty.counterpartyType === 'keybaseUser'
+      ? getFullname(
+          state,
+          yourInfoAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
+        )
+      : null
+  )
+  const transactionURL = _transaction.externalTxURL
+
+  const dispatch = Container.useDispatch()
+  const navigateUp = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
   }
-)(TransactionDetails as any)
+  const onCancelPayment = () => {
+    dispatch(
+      WalletsGen.createCancelPayment({
+        paymentID: ownProps.route.params?.paymentID ?? Types.noPaymentID,
+        showAccount: true,
+      })
+    )
+  }
+  const onChat = (username: string) => {
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'}))
+  }
+  const onLoadPaymentDetail = () => {
+    dispatch(
+      WalletsGen.createLoadPaymentDetail({
+        accountID: ownProps.route.params?.accountID ?? Types.noAccountID,
+        paymentID: ownProps.route.params?.paymentID ?? Types.noPaymentID,
+      })
+    )
+  }
+  const onShowProfile = (username: string) => {
+    dispatch(ProfileGen.createShowUserProfile({username}))
+  }
+  const tx = _transaction
+  if (loading) {
+    return {
+      loading: true,
+      onBack: navigateUp,
+      onLoadPaymentDetail: onLoadPaymentDetail,
+    } as any as NotLoadingProps // TODO actually split this container so it doesn't do this. makes it much harder to type
+  }
+  const props = {
+    ...yourInfoAndCounterparty,
+    amountUser: tx.worth,
+    amountXLM: tx.amountDescription,
+    approxWorth: tx.worthAtSendTime,
+    assetCode: tx.assetCode,
+    counterpartyMeta: counterpartyMeta ?? null,
+    feeChargedDescription: tx.feeChargedDescription,
+    fromAirdrop: tx.fromAirdrop,
+    isAdvanced: tx.isAdvanced,
+    issuerAccountID: tx.issuerAccountID,
+    issuerDescription: tx.issuerDescription,
+    loading: false as const,
+    memo: tx.note.stringValue(),
+    onBack: navigateUp,
+    onCancelPayment: tx.showCancel ? onCancelPayment : null,
+    onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
+    onChat: onChat,
+    onLoadPaymentDetail: onLoadPaymentDetail,
+    onShowProfile: onShowProfile,
+    onViewTransaction: transactionURL ? () => openURL(transactionURL) : undefined,
+    operations: tx.operations ?? undefined,
+    pathIntermediate: tx.pathIntermediate,
+    publicMemo: tx.publicMemo.stringValue(),
+    recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,
+    selectableText: true,
+    senderAccountID: Types.stringToAccountID(tx.sourceAccountID),
+    sourceAmount: tx.sourceAmount,
+    sourceAsset: tx.sourceAsset,
+    sourceConvRate: tx.sourceConvRate,
+    sourceIssuer: tx.sourceIssuer,
+    sourceIssuerAccountID: tx.sourceIssuerAccountID,
+    status: tx.statusSimplified,
+    statusDetail: tx.statusDetail,
+    summaryAdvanced: tx.summaryAdvanced,
+    timestamp: tx.time ? new Date(tx.time) : null,
+    transactionID: tx.txID,
+    trustline: tx.trustline ?? undefined,
+    you: you,
+  }
+  return <TransactionDetails {...props} />
+}

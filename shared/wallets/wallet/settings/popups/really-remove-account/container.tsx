@@ -9,34 +9,30 @@ import ReallyRemoveAccountPopup from '.'
 
 type OwnProps = Container.RouteProps<'reallyRemoveAccount'>
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
-    const secretKey = Constants.getSecretKey(state, accountID).stringValue()
-    return {
-      accountID,
-      name: Constants.getAccount(state, accountID).name,
-      secretKey,
-      waiting: anyWaiting(state, Constants.deleteAccountWaitingKey),
-    }
-  },
-  dispatch => ({
-    _onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-    _onCopyKey: (secretKey: string) => dispatch(ConfigGen.createCopyToClipboard({text: secretKey})),
-    _onFinish: (accountID: Types.AccountID) =>
-      dispatch(
-        WalletsGen.createDeleteAccount({
-          accountID,
-        })
-      ),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    accountID: stateProps.accountID,
-    loading: !stateProps.secretKey,
-    name: stateProps.name,
-    onCancel: () => dispatchProps._onClose(),
-    onCopyKey: () => dispatchProps._onCopyKey(stateProps.secretKey),
-    onFinish: () => dispatchProps._onFinish(stateProps.accountID),
-    waiting: stateProps.waiting,
-  })
-)(ReallyRemoveAccountPopup)
+export default (ownProps: OwnProps) => {
+  const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+  const secretKey = Container.useSelector(state => Constants.getSecretKey(state, accountID).stringValue())
+  const name = Container.useSelector(state => Constants.getAccount(state, accountID).name)
+  const waiting = Container.useSelector(state => anyWaiting(state, Constants.deleteAccountWaitingKey))
+
+  const dispatch = Container.useDispatch()
+  const _onClose = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const _onCopyKey = (secretKey: string) => {
+    dispatch(ConfigGen.createCopyToClipboard({text: secretKey}))
+  }
+  const _onFinish = (accountID: Types.AccountID) => {
+    dispatch(WalletsGen.createDeleteAccount({accountID}))
+  }
+  const props = {
+    accountID: accountID,
+    loading: !secretKey,
+    name: name,
+    onCancel: () => _onClose(),
+    onCopyKey: () => _onCopyKey(secretKey),
+    onFinish: () => _onFinish(accountID),
+    waiting: waiting,
+  }
+  return <ReallyRemoveAccountPopup {...props} />
+}

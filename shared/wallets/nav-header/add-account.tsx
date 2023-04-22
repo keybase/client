@@ -55,23 +55,23 @@ const AddAccount = (props: AddAccountProps) => {
   )
 }
 
-const mapDispatchToProps = dispatch => ({
-  onAddNew: () => {
+export default () => {
+  const dispatch = Container.useDispatch()
+  const onAddNew = () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {showOnCreation: true}, selected: 'createNewAccount'}],
       })
     )
-  },
-  onLinkExisting: () => {
+  }
+  const onLinkExisting = () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
     )
-  },
-})
-
-export default Container.connect(
-  () => ({}),
-  mapDispatchToProps,
-  (_, d) => d
-)(AddAccount)
+  }
+  const props = {
+    onAddNew,
+    onLinkExisting,
+  }
+  return <AddAccount {...props} />
+}

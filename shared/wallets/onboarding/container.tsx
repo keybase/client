@@ -9,30 +9,31 @@ type OwnProps = {
   nextScreen: Types.NextScreenAfterAcceptance
 }
 
-const ConnectedOnboarding = Container.connect(
-  state => {
-    const error = anyErrors(state, Constants.acceptDisclaimerWaitingKey)
-    const {acceptingDisclaimerDelay} = state.wallets
-    return {
-      acceptDisclaimerError: error?.message ?? '',
-      acceptingDisclaimerDelay: acceptingDisclaimerDelay,
-    }
-  },
-  dispatch => ({
-    onAcceptDisclaimer: () => dispatch(WalletsGen.createAcceptDisclaimer()),
-    onCheckDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) =>
-      dispatch(WalletsGen.createCheckDisclaimer({nextScreen})),
-    onClose: () => dispatch(WalletsGen.createRejectDisclaimer()),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    acceptDisclaimerError: stateProps.acceptDisclaimerError,
-    acceptingDisclaimerDelay: stateProps.acceptingDisclaimerDelay,
+const ConnectedOnboarding = (ownProps: OwnProps) => {
+  const error = Container.useSelector(state => anyErrors(state, Constants.acceptDisclaimerWaitingKey))
+  const {acceptingDisclaimerDelay} = Container.useSelector(state => state.wallets)
+  const acceptDisclaimerError = error?.message ?? ''
+
+  const dispatch = Container.useDispatch()
+  const onAcceptDisclaimer = () => {
+    dispatch(WalletsGen.createAcceptDisclaimer())
+  }
+  const onCheckDisclaimer = (nextScreen: Types.NextScreenAfterAcceptance) => {
+    dispatch(WalletsGen.createCheckDisclaimer({nextScreen}))
+  }
+  const onClose = () => {
+    dispatch(WalletsGen.createRejectDisclaimer())
+  }
+  const props = {
+    acceptDisclaimerError: acceptDisclaimerError,
+    acceptingDisclaimerDelay: acceptingDisclaimerDelay,
     nextScreen: ownProps.nextScreen,
-    onAcceptDisclaimer: dispatchProps.onAcceptDisclaimer,
-    onCheckDisclaimer: dispatchProps.onCheckDisclaimer,
-    onClose: dispatchProps.onClose,
-  })
-)(Onboarding)
+    onAcceptDisclaimer: onAcceptDisclaimer,
+    onCheckDisclaimer: onCheckDisclaimer,
+    onClose: onClose,
+  }
+  return <Onboarding {...props} />
+}
 
 // A wrapper to harmonize the type of OwnProps between the
 // routed case and <Onboarding /> case.
