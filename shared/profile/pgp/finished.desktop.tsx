@@ -6,8 +6,6 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import Modal from '../modal'
 
-type OwnProps = {}
-
 type Props = {
   onDone: (shouldStoreKeyOnServer: boolean) => void
   promptShouldStoreKeyOnServer: boolean
@@ -87,16 +85,23 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Container.connect(
-  state => ({
-    pgpKeyString: state.profile.pgpPublicKey || 'Error getting public key...',
-    promptShouldStoreKeyOnServer: state.profile.promptShouldStoreKeyOnServer,
-  }),
-  dispatch => ({
-    onDone: shouldStoreKeyOnServer => {
-      dispatch(ProfileGen.createFinishedWithKeyGen({shouldStoreKeyOnServer}))
-      dispatch(RouteTreeGen.createClearModals())
-    },
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(Finished)
+export default () => {
+  const pgpKeyString = Container.useSelector(
+    state => state.profile.pgpPublicKey || 'Error getting public key...'
+  )
+  const promptShouldStoreKeyOnServer = Container.useSelector(
+    state => state.profile.promptShouldStoreKeyOnServer
+  )
+
+  const dispatch = Container.useDispatch()
+  const onDone = (shouldStoreKeyOnServer: boolean) => {
+    dispatch(ProfileGen.createFinishedWithKeyGen({shouldStoreKeyOnServer}))
+    dispatch(RouteTreeGen.createClearModals())
+  }
+  const props = {
+    onDone,
+    pgpKeyString,
+    promptShouldStoreKeyOnServer,
+  }
+  return <Finished {...props} />
+}

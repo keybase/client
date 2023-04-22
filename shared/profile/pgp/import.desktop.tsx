@@ -4,27 +4,31 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import Modal from '../modal'
 
-type OwnProps = {}
-
-const Import = ({onCancel}) => (
-  <Modal onCancel={onCancel}>
-    <Kb.Icon type="icon-pgp-key-import-48" />
-    <Kb.Text style={styleHeader} type="Header">
-      Import a PGP key
-    </Kb.Text>
-    <Kb.Text style={styleBody} type="Body">
-      To register your existing PGP public key on Keybase, please run the following command from your
-      terminal:
-    </Kb.Text>
-    <Kb.Box style={styleTerminal}>
-      <Kb.Text type="TerminalComment"># import a key from gpg's key chain</Kb.Text>
-      <Kb.Text type="Terminal">keybase pgp select</Kb.Text>
-      <Kb.Text type="TerminalEmpty" />
-      <Kb.Text type="TerminalComment"># for more options</Kb.Text>
-      <Kb.Text type="Terminal">keybase pgp help</Kb.Text>
-    </Kb.Box>
-  </Modal>
-)
+export default function Import() {
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  return (
+    <Modal onCancel={onCancel}>
+      <Kb.Icon type="icon-pgp-key-import-48" />
+      <Kb.Text style={styleHeader} type="Header">
+        Import a PGP key
+      </Kb.Text>
+      <Kb.Text style={styleBody} type="Body">
+        To register your existing PGP public key on Keybase, please run the following command from your
+        terminal:
+      </Kb.Text>
+      <Kb.Box style={styleTerminal}>
+        <Kb.Text type="TerminalComment"># import a key from gpg's key chain</Kb.Text>
+        <Kb.Text type="Terminal">keybase pgp select</Kb.Text>
+        <Kb.Text type="TerminalEmpty" />
+        <Kb.Text type="TerminalComment"># for more options</Kb.Text>
+        <Kb.Text type="Terminal">keybase pgp help</Kb.Text>
+      </Kb.Box>
+    </Modal>
+  )
+}
 
 const styleHeader = {
   marginTop: Styles.globalMargins.medium,
@@ -47,11 +51,3 @@ const styleTerminal = {
   padding: Styles.globalMargins.medium,
   textAlign: 'left',
 }
-
-export default Container.connect(
-  () => ({}),
-  dispatch => ({
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(Import)

@@ -8,24 +8,30 @@ import * as Container from '../../util/container'
 type OwnProps = Container.RouteProps<'profileRevoke'>
 const noIcon = []
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    errorMessage: state.profile.revokeError,
-    icon: ownProps.route.params?.icon ?? noIcon,
-    isWaiting: Waiting.anyWaiting(state, Constants.waitingKey),
-    platform: ownProps.route.params?.platform ?? 'http',
-    platformHandle: ownProps.route.params?.platformHandle ?? '',
-  }),
-  (dispatch, ownProps: OwnProps) => ({
-    onCancel: () => {
-      dispatch(ProfileGen.createFinishRevoking())
-      dispatch(RouteTreeGen.createClearModals())
-    },
-    onRevoke: () => {
-      const proofId = ownProps.route.params?.proofId ?? ''
-      proofId && dispatch(ProfileGen.createSubmitRevokeProof({proofId}))
-      dispatch(RouteTreeGen.createClearModals())
-    },
-  }),
-  (s, d, _: OwnProps) => ({...s, ...d})
-)(Revoke)
+export default (ownProps: OwnProps) => {
+  const errorMessage = Container.useSelector(state => state.profile.revokeError)
+  const icon = ownProps.route.params?.icon ?? noIcon
+  const isWaiting = Container.useSelector(state => Waiting.anyWaiting(state, Constants.waitingKey))
+  const platform = ownProps.route.params?.platform ?? 'http'
+  const platformHandle = ownProps.route.params?.platformHandle ?? ''
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(ProfileGen.createFinishRevoking())
+    dispatch(RouteTreeGen.createClearModals())
+  }
+  const onRevoke = () => {
+    const proofId = ownProps.route.params?.proofId ?? ''
+    proofId && dispatch(ProfileGen.createSubmitRevokeProof({proofId}))
+    dispatch(RouteTreeGen.createClearModals())
+  }
+  const props = {
+    errorMessage,
+    icon,
+    isWaiting,
+    onCancel,
+    onRevoke,
+    platform,
+    platformHandle,
+  }
+  return <Revoke {...props} />
+}

@@ -13,90 +13,80 @@ type OwnProps = {
   username: string
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const username = ownProps.username
-    const d = Constants.getDetails(state, username)
-    const followThem = Constants.followThem(state, username)
-    const followsYou = Constants.followsYou(state, username)
-    const isBot = state.chat2.featuredBotsMap.has(username)
+export default (ownProps: OwnProps) => {
+  const username = ownProps.username
+  const d = Container.useSelector(state => Constants.getDetails(state, username))
+  const followThem = Container.useSelector(state => Constants.followThem(state, username))
+  const followsYou = Container.useSelector(state => Constants.followsYou(state, username))
+  const isBot = Container.useSelector(state => state.chat2.featuredBotsMap.has(username))
 
-    return {
-      _guiID: d.guiID,
-      _you: state.config.username,
-      blocked: d.blocked,
-      followThem,
-      followsYou,
-      hidFromFollowers: d.hidFromFollowers,
-      isBot,
-      state: d.state,
-      username,
-    }
-  },
-  dispatch => ({
-    _onAddToTeam: (username: string) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileAddToTeam'}]})
-      ),
-    _onBrowsePublicFolder: (username: string) =>
-      dispatch(
-        FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`))
-      ),
-    _onClose: (guiID: string) => dispatch(Tracker2Gen.createCloseTracker({guiID})),
-    _onEditProfile: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileEdit']})),
-    _onFollow: (guiID: string, follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID})),
-    _onIgnoreFor24Hours: (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID})),
-    _onInstallBot: (username: string) => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {botUsername: username}, selected: 'chatInstallBotPick'}],
-        })
+  const _guiID = d.guiID
+  const _you = Container.useSelector(state => state.config.username)
+  const blocked = d.blocked
+  const hidFromFollowers = d.hidFromFollowers
+  const state = d.state
+
+  const dispatch = Container.useDispatch()
+  const _onAddToTeam = (username: string) =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileAddToTeam'}]}))
+  const _onBrowsePublicFolder = (username: string) =>
+    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`)))
+  const _onEditProfile = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileEdit']}))
+  const _onFollow = (guiID: string, follow: boolean) =>
+    dispatch(Tracker2Gen.createChangeFollow({follow, guiID}))
+  const _onIgnoreFor24Hours = (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID}))
+  const _onInstallBot = (username: string) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {botUsername: username}, selected: 'chatInstallBotPick'}],
+      })
+    )
+  }
+  const _onManageBlocking = (username: string) =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'chatBlockingModal'}]}))
+  const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
+    dispatch(
+      FsConstants.makeActionForOpenPathInFilesTab(
+        FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`)
       )
-    },
-    _onManageBlocking: (username: string) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {username}, selected: 'chatBlockingModal'}],
-        })
-      ),
-    _onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>
-      dispatch(
-        FsConstants.makeActionForOpenPathInFilesTab(
-          FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`)
-        )
-      ),
-    _onReload: (username: string) => {
-      dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
-    },
-    _onSendOrRequestLumens: (to: string, isRequest: boolean, recipientType: WalletsType.CounterpartyType) => {
-      dispatch(
-        WalletsGen.createOpenSendRequestForm({from: WalletsType.noAccountID, isRequest, recipientType, to})
-      )
-    },
-    _onUnblock: (username: string, guiID: string) =>
-      dispatch(ProfileGen.createSubmitUnblockUser({guiID, username})),
-  }),
-  (stateProps, dispatchProps, {username}: OwnProps) => ({
-    blocked: stateProps.blocked,
-    followThem: stateProps.followThem,
-    followsYou: stateProps.followsYou,
-    hidFromFollowers: stateProps.hidFromFollowers,
-    isBot: stateProps.isBot,
-    onAccept: () => dispatchProps._onFollow(stateProps._guiID, true),
-    onAddToTeam: () => dispatchProps._onAddToTeam(stateProps.username),
-    onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(stateProps.username),
-    onEditProfile: stateProps._you === stateProps.username ? dispatchProps._onEditProfile : undefined,
-    onFollow: () => dispatchProps._onFollow(stateProps._guiID, true),
-    onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(stateProps._guiID),
-    onInstallBot: () => dispatchProps._onInstallBot(stateProps.username),
-    onManageBlocking: () => dispatchProps._onManageBlocking(stateProps.username),
-    onOpenPrivateFolder: () => dispatchProps._onOpenPrivateFolder(stateProps._you, stateProps.username),
-    onReload: () => dispatchProps._onReload(stateProps.username),
-    onRequestLumens: () => dispatchProps._onSendOrRequestLumens(stateProps.username, true, 'keybaseUser'),
-    onSendLumens: () => dispatchProps._onSendOrRequestLumens(stateProps.username, false, 'keybaseUser'),
-    onUnblock: () => dispatchProps._onUnblock(stateProps.username, stateProps._guiID),
-    onUnfollow: () => dispatchProps._onFollow(stateProps._guiID, false),
-    state: stateProps.state,
+    )
+  const _onReload = (username: string) => {
+    dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
+  }
+  const _onSendOrRequestLumens = (
+    to: string,
+    isRequest: boolean,
+    recipientType: WalletsType.CounterpartyType
+  ) => {
+    dispatch(
+      WalletsGen.createOpenSendRequestForm({from: WalletsType.noAccountID, isRequest, recipientType, to})
+    )
+  }
+  const _onUnblock = (username: string, guiID: string) => {
+    dispatch(ProfileGen.createSubmitUnblockUser({guiID, username}))
+  }
+  const props = {
+    blocked: blocked,
+    followThem: followThem,
+    followsYou: followsYou,
+    hidFromFollowers: hidFromFollowers,
+    isBot: isBot,
+    onAccept: () => _onFollow(_guiID, true),
+    onAddToTeam: () => _onAddToTeam(username),
+    onBrowsePublicFolder: () => _onBrowsePublicFolder(username),
+    onEditProfile: _you === username ? _onEditProfile : undefined,
+    onFollow: () => _onFollow(_guiID, true),
+    onIgnoreFor24Hours: () => _onIgnoreFor24Hours(_guiID),
+    onInstallBot: () => _onInstallBot(username),
+    onManageBlocking: () => _onManageBlocking(username),
+    onOpenPrivateFolder: () => _onOpenPrivateFolder(_you, username),
+    onReload: () => _onReload(username),
+    onRequestLumens: () => _onSendOrRequestLumens(username, true, 'keybaseUser'),
+    onSendLumens: () => _onSendOrRequestLumens(username, false, 'keybaseUser'),
+    onUnblock: () => _onUnblock(username, _guiID),
+    onUnfollow: () => _onFollow(_guiID, false),
+    state: state,
     username,
-  })
-)(Actions)
+  }
+  return <Actions {...props} />
+}
