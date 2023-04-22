@@ -78,36 +78,29 @@ ChooseComponent.navigationOptions = (ownProps: OwnProps) => {
 
 type OwnProps = Container.RouteProps<'fsRoot'>
 
-const Connected = Container.connect(
-  (state, ownProps: OwnProps) => {
+const Connected = (ownProps: OwnProps) => {
+  const path = ownProps.route.params?.path ?? Constants.defaultPath
+  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+
+  const dispatch = Container.useDispatch()
+  const emitBarePreview = () => {
     const path = ownProps.route.params?.path ?? Constants.defaultPath
-    return {
-      _pathItem: Constants.getPathItem(state.fs.pathItems, path),
-      kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-    }
-  },
-  (dispatch, ownProps) => ({
-    emitBarePreview: () => {
-      const path = ownProps.route.params?.path ?? Constants.defaultPath
-      dispatch(RouteTreeGen.createNavigateUp())
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {path}, selected: 'barePreview'}],
-        })
-      )
-    },
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const path = ownProps.route.params?.path ?? Constants.defaultPath
-    const isDefinitelyFolder =
-      Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
-    return {
-      emitBarePreview: dispatchProps.emitBarePreview,
-      kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
-      path,
-      pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,
-    }
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {path}, selected: 'barePreview'}],
+      })
+    )
   }
-)(ChooseComponent)
+  const isDefinitelyFolder = Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
+  const props = {
+    emitBarePreview: emitBarePreview,
+    kbfsDaemonStatus: kbfsDaemonStatus,
+    path,
+    pathType: isDefinitelyFolder ? Types.PathType.Folder : _pathItem.type,
+  }
+  return <ChooseComponent {...props} />
+}
 
 export default Connected

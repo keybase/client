@@ -15,30 +15,36 @@ type OwnProps = {
   showSearch: boolean
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    filter: ownProps.query,
-    isSearching: !!state.chat2.inboxSearch,
-  }),
-  dispatch => ({
-    appendNewChatBuilder: () => dispatch(appendNewChatBuilder()),
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onStartSearch: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: true})),
-    onStopSearch: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    appendNewChatBuilder: () => dispatchProps.appendNewChatBuilder(),
-    filter: stateProps.filter,
-    isSearching: stateProps.isSearching,
-    onBack: dispatchProps.onBack,
+export default (ownProps: OwnProps) => {
+  const filter = ownProps.query
+  const isSearching = Container.useSelector(state => !!state.chat2.inboxSearch)
+  const dispatch = Container.useDispatch()
+  const _appendNewChatBuilder = () => {
+    dispatch(appendNewChatBuilder())
+  }
+  const onBack = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onStartSearch = () => {
+    dispatch(Chat2Gen.createToggleInboxSearch({enabled: true}))
+  }
+  const onStopSearch = () => {
+    dispatch(Chat2Gen.createToggleInboxSearch({enabled: false}))
+  }
+  const props = {
+    appendNewChatBuilder: _appendNewChatBuilder,
+    filter,
+    isSearching,
+    onBack: onBack,
     onEnsureSelection: ownProps.onEnsureSelection,
     onNewChat: ownProps.showNewChat ? ownProps.onNewChat : null,
     onSelectDown: ownProps.onSelectDown,
     onSelectUp: ownProps.onSelectUp,
     onSetFilter: ownProps.onQueryChanged,
-    onStartSearch: dispatchProps.onStartSearch,
-    onStopSearch: dispatchProps.onStopSearch,
+    onStartSearch: onStartSearch,
+    onStopSearch: onStopSearch,
     showNewChat: ownProps.showNewChat,
     showSearch: ownProps.showSearch,
-  })
-)(ConversationFilterInput)
+  }
+  return <ConversationFilterInput {...props} />
+}

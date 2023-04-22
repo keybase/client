@@ -3,16 +3,23 @@ import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import InviteCode from '.'
 
-type OwnProps = {}
-
-export default Container.connect(
-  state => ({
-    error: state.signup.inviteCodeError,
-  }),
-  dispatch => ({
-    onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
-    onRequestInvite: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupRequestInvite']})),
-    onSubmit: (inviteCode: string) => dispatch(SignupGen.createCheckInviteCode({inviteCode})),
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(InviteCode)
+export default () => {
+  const error = Container.useSelector(state => state.signup.inviteCodeError)
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(SignupGen.createGoBackAndClearErrors())
+  }
+  const onRequestInvite = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['signupRequestInvite']}))
+  }
+  const onSubmit = (inviteCode: string) => {
+    dispatch(SignupGen.createCheckInviteCode({inviteCode}))
+  }
+  const props = {
+    error,
+    onBack,
+    onRequestInvite,
+    onSubmit,
+  }
+  return <InviteCode {...props} />
+}

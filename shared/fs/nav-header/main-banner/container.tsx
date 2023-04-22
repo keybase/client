@@ -4,23 +4,21 @@ import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 
-type OwnProps = {}
+const ConnectedBanner = () => {
+  const _kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+  const _name = Container.useSelector(state => state.config.username)
+  const _overallSyncStatus = Container.useSelector(state => state.fs.overallSyncStatus)
+  const dispatch = Container.useDispatch()
+  // This LoadPathMetadata triggers a sync retry.
+  const onRetry = () => {
+    dispatch(FsGen.createLoadPathMetadata({path: Types.stringToPath('/keybase/private' + _name)}))
+  }
 
-const ConnectedBanner = Container.connect(
-  state => ({
-    _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-    _name: state.config.username,
-    _overallSyncStatus: state.fs.overallSyncStatus,
-  }),
-  dispatch => ({
-    // This LoadPathMetadata triggers a sync retry.
-    _onRetry: (name: string) => () =>
-      dispatch(FsGen.createLoadPathMetadata({path: Types.stringToPath('/keybase/private' + name)})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    bannerType: Constants.getMainBannerType(stateProps._kbfsDaemonStatus, stateProps._overallSyncStatus),
-    onRetry: dispatchProps._onRetry(stateProps._name),
-  })
-)(Banner)
+  const props = {
+    bannerType: Constants.getMainBannerType(_kbfsDaemonStatus, _overallSyncStatus),
+    onRetry,
+  }
+  return <Banner {...props} />
+}
 
 export default ConnectedBanner

@@ -5,25 +5,24 @@ import * as Container from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import PaperKey from '.'
 
-type OwnProps = {}
+export default () => {
+  const error = Container.useSelector(state => state.provision.error.stringValue())
+  const hint = Container.useSelector(state => `${state.provision.codePageOtherDevice.name || ''}...`)
+  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
 
-export default Container.connect(
-  state => ({
-    _configuredAccounts: state.config.configuredAccounts,
-    error: state.provision.error.stringValue(),
-    hint: `${state.provision.codePageOtherDevice.name || ''}...`,
-    waiting: Container.anyWaiting(state, Constants.waitingKey),
-  }),
-  dispatch => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onSubmit: (paperkey: string) =>
-      dispatch(ProvisionGen.createSubmitPaperkey({paperkey: new HiddenString(paperkey)})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    error: stateProps.error,
-    hint: stateProps.hint,
-    onBack: dispatchProps.onBack,
-    onSubmit: (paperkey: string) => !stateProps.waiting && dispatchProps.onSubmit(paperkey),
-    waiting: stateProps.waiting,
-  })
-)(PaperKey)
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onSubmit = (paperkey: string) => {
+    dispatch(ProvisionGen.createSubmitPaperkey({paperkey: new HiddenString(paperkey)}))
+  }
+  const props = {
+    error: error,
+    hint: hint,
+    onBack: onBack,
+    onSubmit: (paperkey: string) => !waiting && onSubmit(paperkey),
+    waiting: waiting,
+  }
+  return <PaperKey {...props} />
+}

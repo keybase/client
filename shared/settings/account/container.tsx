@@ -7,62 +7,76 @@ import {anyWaiting} from '../../constants/waiting'
 import AccountSettings from '.'
 import {isMobile} from '../../styles'
 
-type OwnProps = {}
-
-export default Container.connect(
-  state => ({
-    _emails: state.settings.email.emails,
-    _phones: state.settings.phoneNumbers.phones,
-    addedEmail: state.settings.email.addedEmail,
-    addedPhone: state.settings.phoneNumbers.addedPhone,
-    bootstrapDone: state.settings.email.emails !== null && state.settings.phoneNumbers.phones !== null,
-    hasPassword: !state.settings.password.randomPW,
-    waiting: anyWaiting(state, Constants.loadSettingsWaitingKey),
-  }),
-  dispatch => ({
-    _onClearSupersededPhoneNumber: phone => dispatch(SettingsGen.createEditPhone({delete: true, phone})),
-    onAddEmail: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']})),
-    onAddPhone: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']})),
-    onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
-    onClearAddedEmail: () => dispatch(SettingsGen.createClearAddedEmail()),
-    onClearAddedPhone: () => dispatch(SettingsGen.createClearAddedPhone()),
-    onDeleteAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
-    onReload: () => {
-      dispatch(SettingsGen.createLoadSettings())
-      dispatch(SettingsGen.createLoadRememberPassword())
-      dispatch(SettingsGen.createLoadHasRandomPw())
-    },
-    onSetPassword: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.passwordTab]})),
-    onStartPhoneConversation: () => {
-      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [Constants.chatTab, {props: {namespace: 'chat2'}, selected: 'chatNewChat'}],
-        })
-      )
-      dispatch(SettingsGen.createClearAddedPhone())
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const supersededPhoneNumber =
-      stateProps._phones && [...stateProps._phones.values()].find(p => p.superseded)
-    const supersededKey = supersededPhoneNumber && supersededPhoneNumber.e164
-    return {
-      ...dispatchProps,
-      addedEmail: stateProps.addedEmail,
-      addedPhone: stateProps.addedPhone,
-      contactKeys: [
-        ...(stateProps._emails ? stateProps._emails.keys() : []),
-        ...(stateProps._phones ? stateProps._phones.keys() : []),
-      ],
-      hasPassword: stateProps.hasPassword,
-      moreThanOneEmail: stateProps._emails ? stateProps._emails.size > 1 : false,
-      onClearSupersededPhoneNumber: () =>
-        supersededKey && dispatchProps._onClearSupersededPhoneNumber(supersededKey),
-      supersededPhoneNumber: supersededPhoneNumber ? supersededPhoneNumber.displayNumber : undefined,
-      tooManyEmails: !!stateProps._emails && stateProps._emails.size >= 10, // If you change this, also change in keybase/config/prod/email.iced
-      tooManyPhones: !!stateProps._phones && stateProps._phones.size >= 10, // If you change this, also change in keybase/config/prod/phone_numbers.iced
-      waiting: stateProps.waiting,
-    }
+export default () => {
+  const _emails = Container.useSelector(state => state.settings.email.emails)
+  const _phones = Container.useSelector(state => state.settings.phoneNumbers.phones)
+  const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
+  const addedPhone = Container.useSelector(state => state.settings.phoneNumbers.addedPhone)
+  const hasPassword = Container.useSelector(state => !state.settings.password.randomPW)
+  const waiting = Container.useSelector(state => anyWaiting(state, Constants.loadSettingsWaitingKey))
+  const dispatch = Container.useDispatch()
+  const _onClearSupersededPhoneNumber = phone => {
+    dispatch(SettingsGen.createEditPhone({delete: true, phone}))
   }
-)(AccountSettings)
+  const onAddEmail = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']}))
+  }
+  const onAddPhone = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
+  }
+  const onBack = isMobile
+    ? () => {
+        dispatch(RouteTreeGen.createNavigateUp())
+      }
+    : undefined
+  const onClearAddedEmail = () => {
+    dispatch(SettingsGen.createClearAddedEmail())
+  }
+  const onClearAddedPhone = () => {
+    dispatch(SettingsGen.createClearAddedPhone())
+  }
+  const onDeleteAccount = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']}))
+  }
+  const onReload = () => {
+    dispatch(SettingsGen.createLoadSettings())
+    dispatch(SettingsGen.createLoadRememberPassword())
+    dispatch(SettingsGen.createLoadHasRandomPw())
+  }
+  const onSetPassword = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.passwordTab]}))
+  }
+  const onStartPhoneConversation = () => {
+    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [Constants.chatTab, {props: {namespace: 'chat2'}, selected: 'chatNewChat'}],
+      })
+    )
+    dispatch(SettingsGen.createClearAddedPhone())
+  }
+  const supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)
+  const supersededKey = supersededPhoneNumber && supersededPhoneNumber.e164
+  const props = {
+    addedEmail: addedEmail,
+    addedPhone: addedPhone,
+    contactKeys: [...(_emails ? _emails.keys() : []), ...(_phones ? _phones.keys() : [])],
+    hasPassword: hasPassword,
+    moreThanOneEmail: _emails ? _emails.size > 1 : false,
+    onAddEmail,
+    onAddPhone,
+    onBack,
+    onClearAddedEmail,
+    onClearAddedPhone,
+    onClearSupersededPhoneNumber: () => supersededKey && _onClearSupersededPhoneNumber(supersededKey),
+    onDeleteAccount,
+    onReload,
+    onSetPassword,
+    onStartPhoneConversation,
+    supersededPhoneNumber: supersededPhoneNumber ? supersededPhoneNumber.displayNumber : undefined,
+    tooManyEmails: !!_emails && _emails.size >= 10, // If you change this, also change in keybase/config/prod/email.iced
+    tooManyPhones: !!_phones && _phones.size >= 10, // If you change this, also change in keybase/config/prod/phone_numbers.iced
+    waiting: waiting,
+  }
+  return <AccountSettings {...props} />
+}

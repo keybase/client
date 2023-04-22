@@ -9,31 +9,33 @@ type OwnProps = {
   style: Styles.StylesCrossPlatform
 }
 
-export default Container.connect(
-  state => ({
-    accounts: Constants.getAccountIDs(state),
-    loading: anyWaiting(state, Constants.loadAccountsWaitingKey),
-  }),
-  dispatch => ({
-    onAddNew: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {showOnCreation: true}, selected: 'createNewAccount'}],
-        })
-      ),
-    onLinkExisting: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
-      ),
-    onWhatIsStellar: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']})),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    accountIDs: stateProps.accounts,
-    loading: stateProps.loading,
-    onAddNew: dispatchProps.onAddNew,
-    onLinkExisting: dispatchProps.onLinkExisting,
-    onWhatIsStellar: dispatchProps.onWhatIsStellar,
+export default (ownProps: OwnProps) => {
+  const accounts = Container.useSelector(state => Constants.getAccountIDs(state))
+  const loading = Container.useSelector(state => anyWaiting(state, Constants.loadAccountsWaitingKey))
+  const dispatch = Container.useDispatch()
+  const onAddNew = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {showOnCreation: true}, selected: 'createNewAccount'}],
+      })
+    )
+  }
+  const onLinkExisting = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
+    )
+  }
+  const onWhatIsStellar = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']}))
+  }
+  const props = {
+    accountIDs: accounts,
+    loading: loading,
+    onAddNew: onAddNew,
+    onLinkExisting: onLinkExisting,
+    onWhatIsStellar: onWhatIsStellar,
     style: ownProps.style,
     title: 'Wallets',
-  })
-)(WalletList)
+  }
+  return <WalletList {...props} />
+}

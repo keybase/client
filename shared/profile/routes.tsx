@@ -81,7 +81,7 @@ export type RootParamListProfile = {
   }
   profileEditAvatar: {
     // Mobile-only
-    image?: ImagePicker.ImagePickerResult
+    image?: ImagePicker.ImageInfo
     // Team-only
     sendChatNotification?: boolean
     showBack?: boolean

@@ -8,8 +8,6 @@ import Onboarding from '../onboarding/container'
 import partition from 'lodash/partition'
 import Wallet, {AssetSectionTitle, type Props} from '.'
 
-type OwnProps = {}
-
 const sortAndStripTimestamps = (
   p: Array<{
     paymentID: Types.PaymentID
@@ -32,89 +30,93 @@ WalletOrOnboarding.navigationOptions = {
   headerTitle: () => null,
 }
 
-export default Container.connect(
-  state => {
-    const accountID = Constants.getSelectedAccount(state)
-    return {
-      acceptedDisclaimer: state.wallets.acceptedDisclaimer,
-      accountID,
-      assets: Constants.getAssets(state, accountID),
-      loadError: state.wallets.loadPaymentsError,
-      loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID) ?? false,
-      payments: Constants.getPayments(state, accountID),
-      thisDeviceIsLockedOut: Constants.getAccount(state, accountID).deviceReadOnly,
-    }
-  },
-  dispatch => ({
-    _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
-    _onMarkAsRead: (accountID, mostRecentID) =>
-      dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onSetupTrustline: accountID =>
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const sections: Props['sections'] = []
-    // layout is
-    // 1. assets header and list of assets
-    // 2. transactions header and transactions
-    // Formatted in a SectionList
-    const assets =
-      stateProps.assets.length > 0 ? stateProps.assets.map((_, index) => index) : ['notLoadedYet']
-    sections.push({
-      data: assets,
-      kind: 'assets',
-      title: (
-        <AssetSectionTitle
-          onSetupTrustline={() => dispatchProps.onSetupTrustline(stateProps.accountID)}
-          thisDeviceIsLockedOut={stateProps.thisDeviceIsLockedOut}
-        />
-      ),
-    })
+export default () => {
+  const accountID = Container.useSelector(state => Constants.getSelectedAccount(state))
+  const acceptedDisclaimer = Container.useSelector(state => state.wallets.acceptedDisclaimer)
+  const _assets = Container.useSelector(state => Constants.getAssets(state, accountID))
+  const loadError = Container.useSelector(state => state.wallets.loadPaymentsError)
+  const loadingMore = Container.useSelector(
+    state => state.wallets.paymentLoadingMoreMap.get(accountID) ?? false
+  )
+  const payments = Container.useSelector(state => Constants.getPayments(state, accountID))
+  const thisDeviceIsLockedOut = Container.useSelector(
+    state => Constants.getAccount(state, accountID).deviceReadOnly
+  )
 
-    // split into pending & history
-    let mostRecentID
-    const paymentsList = stateProps.payments && [...stateProps.payments.values()]
-    const [_history, _pending] = partition(paymentsList, p => p.section === 'history')
-    const mapItem = p => ({paymentID: p.id, timestamp: p.time})
-    let history: any = _history.map(mapItem)
-    const pending = _pending.map(mapItem)
-
-    if (history.length) {
-      history = sortAndStripTimestamps(history)
-      mostRecentID = history[0].paymentID
-    } else {
-      history = [stateProps.payments ? 'noPayments' : 'notLoadedYet']
-    }
-
-    if (pending.length) {
-      sections.push({
-        data: sortAndStripTimestamps(pending),
-        kind: 'payments',
-        stripeHeader: true,
-        title: 'Pending',
-      })
-    }
-
-    sections.push({
-      data: history,
-      kind: 'payments',
-      title: 'History',
-    })
-
-    return {
-      acceptedDisclaimer: stateProps.acceptedDisclaimer,
-      accountID: stateProps.accountID,
-      loadError: stateProps.loadError,
-      loadingMore: stateProps.loadingMore,
-      onBack: dispatchProps.onBack,
-      onLoadMore: () => dispatchProps._onLoadMore(stateProps.accountID),
-      onMarkAsRead: () => {
-        if (mostRecentID) {
-          dispatchProps._onMarkAsRead(stateProps.accountID, mostRecentID)
-        }
-      },
-      sections,
-    }
+  const dispatch = Container.useDispatch()
+  const _onLoadMore = accountID => {
+    dispatch(WalletsGen.createLoadMorePayments({accountID}))
   }
-)(WalletOrOnboarding)
+  const _onMarkAsRead = (accountID, mostRecentID) => {
+    dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID}))
+  }
+  const onBack = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onSetupTrustline = accountID => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]}))
+  }
+
+  const sections: Props['sections'] = []
+  // layout is
+  // 1. assets header and list of assets
+  // 2. transactions header and transactions
+  // Formatted in a SectionList
+  const assets = _assets.length > 0 ? _assets.map((_, index) => index) : ['notLoadedYet']
+  sections.push({
+    data: assets,
+    kind: 'assets',
+    title: (
+      <AssetSectionTitle
+        onSetupTrustline={() => onSetupTrustline(accountID)}
+        thisDeviceIsLockedOut={thisDeviceIsLockedOut}
+      />
+    ),
+  })
+
+  // split into pending & history
+  let mostRecentID
+  const paymentsList = payments && [...payments.values()]
+  const [_history, _pending] = partition(paymentsList, p => p.section === 'history')
+  const mapItem = p => ({paymentID: p.id, timestamp: p.time})
+  let history: any = _history.map(mapItem)
+  const pending = _pending.map(mapItem)
+
+  if (history.length) {
+    history = sortAndStripTimestamps(history)
+    mostRecentID = history[0].paymentID
+  } else {
+    history = [payments ? 'noPayments' : 'notLoadedYet']
+  }
+
+  if (pending.length) {
+    sections.push({
+      data: sortAndStripTimestamps(pending),
+      kind: 'payments',
+      stripeHeader: true,
+      title: 'Pending',
+    })
+  }
+
+  sections.push({
+    data: history,
+    kind: 'payments',
+    title: 'History',
+  })
+
+  const props = {
+    acceptedDisclaimer: acceptedDisclaimer,
+    accountID: accountID,
+    loadError: loadError,
+    loadingMore: loadingMore,
+    onBack: onBack,
+    onLoadMore: () => _onLoadMore(accountID),
+    onMarkAsRead: () => {
+      if (mostRecentID) {
+        _onMarkAsRead(accountID, mostRecentID)
+      }
+    },
+    sections,
+  }
+  return <WalletOrOnboarding {...props} />
+}

@@ -136,11 +136,10 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 const noArray = []
-export default Container.connect(
-  () => ({}),
-  () => ({}),
-  (_, __, ownProps: OwnProps) => ({
+export default (ownProps: OwnProps) => {
+  const props = {
     source: ownProps.route.params?.source ?? 'misc',
     usernames: ownProps.route.params?.usernames ?? noArray,
-  })
-)(ContactRestricted)
+  }
+  return <ContactRestricted {...props} />
+}

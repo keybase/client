@@ -6,30 +6,27 @@ import RemoveAccountPopup from '.'
 
 type OwnProps = Container.RouteProps<'removeAccount'>
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
-    const account = Constants.getAccount(state, accountID)
-    return {
-      accountID,
-      balance: account.balanceDescription,
-      name: account.name,
-    }
-  },
-  dispatch => ({
-    _onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-    _onDelete: (accountID: Types.AccountID) => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {accountID}, selected: 'reallyRemoveAccount'}],
-        })
-      )
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    balance: stateProps.balance,
-    name: stateProps.name,
-    onClose: () => dispatchProps._onClose(),
-    onDelete: () => dispatchProps._onDelete(stateProps.accountID),
-  })
-)(RemoveAccountPopup)
+export default (ownProps: OwnProps) => {
+  const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+  const account = Container.useSelector(state => Constants.getAccount(state, accountID))
+  const balance = account.balanceDescription
+  const name = account.name
+  const _onClose = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const _onDelete = (accountID: Types.AccountID) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {accountID}, selected: 'reallyRemoveAccount'}],
+      })
+    )
+  }
+  const dispatch = Container.useDispatch()
+  const props = {
+    balance: balance,
+    name: name,
+    onClose: () => _onClose(),
+    onDelete: () => _onDelete(accountID),
+  }
+  return <RemoveAccountPopup {...props} />
+}

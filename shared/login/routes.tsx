@@ -8,21 +8,21 @@ import type LoadingType from './loading/container'
 import type ReloginType from './relogin/container'
 import type JoinOrLoginType from './join-or-login/container'
 
-type OwnProps = {}
-type Props = {
-  isLoggedIn: boolean
-  showLoading: boolean
-  showRelogin: boolean
-}
-
-const _RootLogin = (p: Props) => {
+const RootLogin = () => {
+  const isLoggedIn = Container.useSelector(state => state.config.loggedIn)
+  const showLoading = Container.useSelector(
+    state => state.config.daemonHandshakeState !== 'done' || state.config.userSwitching
+  )
+  const showRelogin = Container.useSelector(
+    state => !showLoading && state.config.configuredAccounts.length > 0
+  )
   // routing should switch us away so lets not draw anything to speed things up
-  if (p.isLoggedIn) return null
-  if (p.showLoading) {
+  if (isLoggedIn) return null
+  if (showLoading) {
     const Loading = require('./loading/container').default as typeof LoadingType
     return <Loading />
   }
-  if (p.showRelogin) {
+  if (showRelogin) {
     const Relogin = require('./relogin/container').default as typeof ReloginType
     return <Relogin />
   }
@@ -31,21 +31,10 @@ const _RootLogin = (p: Props) => {
   return <JoinOrLogin />
 }
 
-_RootLogin.navigationOptions = {
+RootLogin.navigationOptions = {
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }
-
-const RootLogin = Container.connect(
-  state => {
-    const isLoggedIn = state.config.loggedIn
-    const showLoading = state.config.daemonHandshakeState !== 'done' || state.config.userSwitching
-    const showRelogin = !showLoading && state.config.configuredAccounts.length > 0
-    return {isLoggedIn, showLoading, showRelogin}
-  },
-  () => ({}),
-  (s, d, _: OwnProps) => ({...s, ...d})
-)(_RootLogin)
 
 export const newRoutes = {
   feedback: {getScreen: (): typeof Feedback => require('../signup/feedback/container').default},

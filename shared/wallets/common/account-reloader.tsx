@@ -26,18 +26,15 @@ const AccountReloader = (props: Props) => (
   </Reloadable>
 )
 
-const mapStateToProps = () => ({})
-
-const mapDispatchToProps = dispatch => ({
-  onReload: () => {
+export default (ownProps: OwnProps) => {
+  const dispatch = Container.useDispatch()
+  const onReload = () => {
     dispatch(WalletsGen.createLoadAccounts({reason: 'initial-load'}))
-  },
-})
-
-const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
-  children: ownProps.children,
-  onBack: ownProps.onBack,
-  onReload: dispatchProps.onReload,
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(AccountReloader)
+  }
+  const props = {
+    children: ownProps.children,
+    onBack: ownProps.onBack,
+    onReload,
+  }
+  return <AccountReloader {...props} />
+}

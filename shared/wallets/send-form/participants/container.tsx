@@ -9,68 +9,81 @@ import {anyWaiting} from '../../../constants/waiting'
 import * as Container from '../../../util/container'
 import {appendWalletPersonBuilder} from '../../../actions/typed-routes'
 
-type OwnProps = {}
+const ConnectedParticipantsKeybaseUser = () => {
+  const build = Container.useSelector(state => state.wallets.building)
+  const built = Container.useSelector(state =>
+    build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
+  )
 
-const ConnectedParticipantsKeybaseUser = Container.connect(
-  state => {
-    const build = state.wallets.building
-    const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
+  // If build.to is set, assume it's a valid username.
+  const errorMessage = built.toErrMsg
+  const isRequest = build.isRequest
+  const recipientUsername = build.to
 
-    // If build.to is set, assume it's a valid username.
-    return {
-      errorMessage: built.toErrMsg,
-      isRequest: build.isRequest,
-      recipientUsername: build.to,
-    }
-  },
-  dispatch => ({
-    onChangeRecipient: (to: string) => {
-      dispatch(WalletsGen.createSetBuildingTo({to}))
-    },
-    onOpenTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-    onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-    onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
-    onScanQRCode: Container.isMobile
-      ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']}))
-      : null,
-    onSearch: () => dispatch(appendWalletPersonBuilder()),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const onShowProfile = Container.isMobile ? dispatchProps.onOpenUserProfile : dispatchProps.onOpenTracker
-    return {
-      ...stateProps,
-      onChangeRecipient: dispatchProps.onChangeRecipient,
-      onRemoveProfile: dispatchProps.onRemoveProfile,
-      onScanQRCode: dispatchProps.onScanQRCode,
-      onSearch: dispatchProps.onSearch,
-      onShowProfile,
-    }
+  const dispatch = Container.useDispatch()
+  const onChangeRecipient = (to: string) => {
+    dispatch(WalletsGen.createSetBuildingTo({to}))
   }
-)(ParticipantsKeybaseUser)
+  const onOpenTracker = (username: string) => {
+    dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+  }
+  const onOpenUserProfile = (username: string) => {
+    dispatch(ProfileGen.createShowUserProfile({username}))
+  }
+  const onRemoveProfile = () => {
+    dispatch(WalletsGen.createSetBuildingTo({to: ''}))
+  }
+  const onScanQRCode = Container.isMobile
+    ? () => {
+        dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']}))
+      }
+    : null
+  const onSearch = () => {
+    dispatch(appendWalletPersonBuilder())
+  }
 
-const ConnectedParticipantsStellarPublicKey = Container.connect(
-  state => {
-    const build = state.wallets.building
-    const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
+  const onShowProfile = Container.isMobile ? onOpenUserProfile : onOpenTracker
+  const props = {
+    errorMessage,
+    isRequest,
+    onChangeRecipient: onChangeRecipient,
+    onRemoveProfile: onRemoveProfile,
+    onScanQRCode: onScanQRCode,
+    onSearch: onSearch,
+    onShowProfile,
+    recipientUsername,
+  }
+  return <ParticipantsKeybaseUser {...props} />
+}
 
-    return {
-      errorMessage: built.toErrMsg,
-      recipientPublicKey: build.to,
-    }
-  },
-  dispatch => ({
-    onChangeRecipient: (to: string) => {
-      dispatch(WalletsGen.createSetBuildingTo({to}))
-    },
-    onScanQRCode: Container.isMobile
-      ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']}))
-      : null,
-    setReadyToReview: (readyToReview: boolean) => {
-      dispatch(WalletsGen.createSetReadyToReview({readyToReview}))
-    },
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(ParticipantsStellarPublicKey)
+const ConnectedParticipantsStellarPublicKey = () => {
+  const build = Container.useSelector(state => state.wallets.building)
+  const built = Container.useSelector(state =>
+    build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
+  )
+
+  const errorMessage = built.toErrMsg
+  const recipientPublicKey = build.to
+
+  const dispatch = Container.useDispatch()
+  const onChangeRecipient = (to: string) => {
+    dispatch(WalletsGen.createSetBuildingTo({to}))
+  }
+  const onScanQRCode = Container.isMobile
+    ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']}))
+    : null
+  const setReadyToReview = (readyToReview: boolean) => {
+    dispatch(WalletsGen.createSetReadyToReview({readyToReview}))
+  }
+  const props = {
+    errorMessage,
+    onChangeRecipient,
+    onScanQRCode,
+    recipientPublicKey,
+    setReadyToReview,
+  }
+  return <ParticipantsStellarPublicKey {...props} />
+}
 
 const makeAccount = (stateAccount: Types.Account) => ({
   contents: stateAccount.balanceDescription,
@@ -80,52 +93,58 @@ const makeAccount = (stateAccount: Types.Account) => ({
   unknown: stateAccount === Constants.unknownAccount,
 })
 
-const ConnectedParticipantsOtherAccount = Container.connect(
-  state => {
-    const build = state.wallets.building
+const ConnectedParticipantsOtherAccount = () => {
+  const build = Container.useSelector(state => state.wallets.building)
 
-    const fromAccount = makeAccount(Constants.getAccount(state, build.from))
-    const toAccount = build.to
-      ? makeAccount(Constants.getAccount(state, Types.stringToAccountID(build.to)))
-      : undefined
-    const showSpinner = toAccount
+  const fromAccount = Container.useSelector(state => makeAccount(Constants.getAccount(state, build.from)))
+  const toAccount = Container.useSelector(state =>
+    build.to ? makeAccount(Constants.getAccount(state, Types.stringToAccountID(build.to))) : undefined
+  )
+  const showSpinner = Container.useSelector(state =>
+    toAccount
       ? toAccount.unknown
       : anyWaiting(state, Constants.linkExistingWaitingKey, Constants.createNewAccountWaitingKey)
+  )
 
-    const allAccounts = Constants.getAccounts(state).map(makeAccount)
+  const allAccounts = Container.useSelector(state => Constants.getAccounts(state).map(makeAccount))
+  const user = Container.useSelector(state => state.config.username)
 
-    return {
-      allAccounts,
-      fromAccount,
-      showSpinner,
-      toAccount,
-      user: state.config.username,
-    }
-  },
-  dispatch => ({
-    onChangeFromAccount: (from: Types.AccountID) => {
-      dispatch(WalletsGen.createSetBuildingFrom({from}))
-    },
-    onChangeRecipient: (to: string) => {
-      dispatch(WalletsGen.createSetBuildingTo({to}))
-    },
-    onCreateNewAccount: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {fromSendForm: true}, selected: 'createNewAccount'}],
-        })
-      ),
-    onLinkAccount: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {fromSendForm: true}, selected: 'linkExisting'}],
-        })
-      ),
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(ParticipantsOtherAccount)
+  const dispatch = Container.useDispatch()
+  const onChangeFromAccount = (from: Types.AccountID) => {
+    dispatch(WalletsGen.createSetBuildingFrom({from}))
+  }
+  const onChangeRecipient = (to: string) => {
+    dispatch(WalletsGen.createSetBuildingTo({to}))
+  }
+  const onCreateNewAccount = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {fromSendForm: true}, selected: 'createNewAccount'}],
+      })
+    )
+  }
+  const onLinkAccount = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {fromSendForm: true}, selected: 'linkExisting'}],
+      })
+    )
+  }
+  const props = {
+    allAccounts,
+    fromAccount,
+    onChangeFromAccount,
+    onChangeRecipient,
+    onCreateNewAccount,
+    onLinkAccount,
+    showSpinner,
+    toAccount,
+    user,
+  }
+  return <ParticipantsOtherAccount {...props} />
+}
 
-const ParticipantsChooser = props => {
+const ParticipantsChooser = (props: {recipientType: Types.CounterpartyType}) => {
   switch (props.recipientType) {
     case 'keybaseUser':
       return <ConnectedParticipantsKeybaseUser />
@@ -133,19 +152,14 @@ const ParticipantsChooser = props => {
       return <ConnectedParticipantsStellarPublicKey />
     case 'otherAccount':
       return <ConnectedParticipantsOtherAccount />
-
-    default:
-      throw new Error(`Unexpected recipientType ${props.recipientType}`)
   }
+  return null
 }
 
-const ConnectedParticipantsChooser = Container.connect(
-  state => {
-    const recipientType = state.wallets.building.recipientType
-    return {recipientType}
-  },
-  () => ({}),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(ParticipantsChooser)
+const ConnectedParticipantsChooser = () => {
+  const recipientType = Container.useSelector(state => state.wallets.building.recipientType)
+  const props = {recipientType}
+  return <ParticipantsChooser {...props} />
+}
 
 export default ConnectedParticipantsChooser

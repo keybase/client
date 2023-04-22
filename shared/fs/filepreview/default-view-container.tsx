@@ -6,24 +6,25 @@ import DefaultView from './default-view'
 
 type OwnProps = {path: Types.Path}
 
-export default Container.connect(
-  (state, {path}: OwnProps) => ({
-    pathItem: Constants.getPathItem(state.fs.pathItems, path),
-    sfmiEnabled: state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled,
-  }),
-  (dispatch, {path}: OwnProps) => ({
-    download: () => dispatch(FsGen.createDownload({path})),
-    showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
-  }),
-  (stateProps, dispatchProps, {path}: OwnProps) => {
-    const {sfmiEnabled, pathItem} = stateProps
-    const {download, showInSystemFileManager} = dispatchProps
-    return {
-      download,
-      path,
-      pathItem,
-      sfmiEnabled,
-      showInSystemFileManager,
-    }
+export default (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const sfmiEnabled = Container.useSelector(
+    state => state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
+  )
+  const dispatch = Container.useDispatch()
+  const download = () => {
+    dispatch(FsGen.createDownload({path}))
   }
-)(DefaultView)
+  const showInSystemFileManager = () => {
+    dispatch(FsGen.createOpenPathInSystemFileManager({path}))
+  }
+  const props = {
+    download,
+    path,
+    pathItem,
+    sfmiEnabled,
+    showInSystemFileManager,
+  }
+  return <DefaultView {...props} />
+}

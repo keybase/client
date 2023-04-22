@@ -61,29 +61,48 @@ GitReloadable.navigationOptions = Container.isMobile
     }
 
 const emptySet = new Set<string>()
-export default Container.connect(
-  (state: Container.TypedState, ownProps: OwnProps) => ({
-    error: Constants.getError(state),
-    initialExpandedSet: ownProps.route.params?.expandedSet ?? emptySet,
-    loading: anyWaiting(state, Constants.loadingWaitingKey),
-    ...getRepos(Constants.getIdToGit(state)),
-  }),
-  (dispatch: Container.TypedDispatch) => ({
-    _loadGit: () => dispatch(GitGen.createLoadGit()),
-    clearBadges: () => dispatch(GitGen.createClearBadges()),
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onNewPersonalRepo: () => {
-      dispatch(GitGen.createSetError({}))
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]}))
-    },
-    onNewTeamRepo: () => {
-      dispatch(GitGen.createSetError({}))
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
-    },
-    onShowDelete: (id: string) => {
-      dispatch(GitGen.createSetError({}))
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {id}, selected: 'gitDeleteRepo'}]}))
-    },
-  }),
-  (s, d, _: OwnProps) => ({...s, ...d})
-)(GitReloadable)
+
+export default (ownProps: OwnProps) => {
+  const error = Container.useSelector(state => Constants.getError(state))
+  const initialExpandedSet = ownProps.route.params?.expandedSet ?? emptySet
+  const loading = Container.useSelector(state => anyWaiting(state, Constants.loadingWaitingKey))
+  const repos = Container.useSelector(state => getRepos(Constants.getIdToGit(state)))
+
+  const dispatch = Container.useDispatch()
+
+  const _loadGit = () => {
+    dispatch(GitGen.createLoadGit())
+  }
+  const clearBadges = () => {
+    dispatch(GitGen.createClearBadges())
+  }
+  const onBack = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onNewPersonalRepo = () => {
+    dispatch(GitGen.createSetError({}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]}))
+  }
+  const onNewTeamRepo = () => {
+    dispatch(GitGen.createSetError({}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
+  }
+  const onShowDelete = (id: string) => {
+    dispatch(GitGen.createSetError({}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {id}, selected: 'gitDeleteRepo'}]}))
+  }
+  const props = {
+    ...repos,
+    _loadGit,
+    clearBadges,
+    error,
+    initialExpandedSet,
+    loading,
+    onBack,
+    onNewPersonalRepo,
+    onNewTeamRepo,
+    onShowDelete,
+    repos,
+  }
+  return <GitReloadable {...props} />
+}

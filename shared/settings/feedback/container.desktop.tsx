@@ -7,22 +7,27 @@ import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<'settingsTabs.feedbackTab'>
 
-export default Container.connect(
-  state => ({
-    loggedOut: !state.config.loggedIn,
-    sendError: state.settings.feedback.error,
-    sending: anyWaiting(state, Constants.sendFeedbackWaitingKey),
-  }),
-  dispatch => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) =>
-      dispatch(SettingsGen.createSendFeedback({feedback, sendLogs, sendMaxBytes})),
-  }),
-  (s, d, o: OwnProps) => ({
-    ...s,
-    ...d,
-    feedback: o.route.params?.feedback ?? '',
+export default (ownProps: OwnProps) => {
+  const loggedOut = Container.useSelector(state => !state.config.loggedIn)
+  const sendError = Container.useSelector(state => state.settings.feedback.error)
+  const sending = Container.useSelector(state => anyWaiting(state, Constants.sendFeedbackWaitingKey))
+
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onSendFeedback = (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
+    dispatch(SettingsGen.createSendFeedback({feedback, sendLogs, sendMaxBytes}))
+  }
+  const props = {
+    feedback: ownProps.route.params?.feedback ?? '',
+    loggedOut,
+    onBack,
     onFeedbackDone: () => null,
+    onSendFeedback,
+    sendError,
+    sending,
     showInternalSuccessBanner: true,
-  })
-)(Feedback)
+  }
+  return <Feedback {...props} />
+}

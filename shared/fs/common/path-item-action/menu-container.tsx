@@ -1,4 +1,5 @@
 import * as Types from '../../../constants/types/fs'
+import * as React from 'react'
 import * as Constants from '../../../constants/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
@@ -17,77 +18,6 @@ type OwnProps = {
   path: Types.Path
   mode: 'row' | 'screen'
 }
-
-const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
-  _downloadID: state.fs.pathItemActionMenu.downloadID,
-  _downloads: state.fs.downloads,
-  _fileContext: state.fs.fileContext.get(path) || Constants.emptyFileContext,
-  _ignoreNeedsToWait: anyWaiting(state, Constants.folderListWaitingKey, Constants.statWaitingKey),
-  _pathItem: Constants.getPathItem(state.fs.pathItems, path),
-  _pathItemActionMenu: state.fs.pathItemActionMenu,
-  _sfmiEnabled: state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled,
-  _username: state.config.username,
-  _view: state.fs.pathItemActionMenu.view,
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: OwnProps) => ({
-  _cancel: (downloadID: string) => dispatch(FsGen.createCancelDownload({downloadID})),
-  _confirmSaveMedia: () =>
-    dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSaveMedia})),
-  _confirmSendToOtherApp: () =>
-    dispatch(
-      FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSendToOtherApp})
-    ),
-  _delete: () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {mode, path}, selected: 'confirmDelete'}],
-      })
-    )
-  },
-  _download: () => dispatch(FsGen.createDownload({path})),
-  _ignoreTlf: () => dispatch(FsGen.createFavoriteIgnore({path})),
-  _moveOrCopy: () => {
-    dispatch(FsGen.createSetMoveOrCopySource({path}))
-    dispatch(
-      FsGen.createShowMoveOrCopy({
-        initialDestinationParentPath: Types.getPathParent(path),
-      })
-    )
-  },
-  _newFolder: () =>
-    dispatch(
-      FsGen.createNewFolderRow({
-        parentPath: path,
-      })
-    ),
-  _openChat: () =>
-    dispatch(
-      Chat2Gen.createPreviewConversation({
-        reason: 'files',
-        // tlfToParticipantsOrTeamname will route both public and private
-        // folders to a private chat, which is exactly what we want.
-        ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
-      })
-    ),
-  _rename: () => dispatch(FsGen.createStartRename({path})),
-  _saveMedia: () => {
-    dispatch(FsGen.createSaveMedia({path}))
-  },
-  _sendAttachmentToChat: () => {
-    path &&
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {sendPaths: [path]}, selected: 'sendToChat'}],
-        })
-      )
-  },
-  _sendToOtherApp: () => {
-    dispatch(FsGen.createShareNative({path}))
-  },
-  _share: () => dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.Share})),
-  _showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
-})
 
 const needConfirm = (pathItem: Types.PathItem) =>
   pathItem.type === Types.PathType.File && pathItem.size > 50 * 1024 * 1024
@@ -119,81 +49,131 @@ const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, t
       }
     : action
 
-const getSendToOtherApp = (stateProps, dispatchProps, c) => {
-  const {sharing} = getDownloadingState(
-    stateProps._downloads,
-    stateProps._downloadID,
-    stateProps._pathItemActionMenu
+export default (ownProps: OwnProps) => {
+  const {path, mode} = ownProps
+
+  const _downloadID = Container.useSelector(state => state.fs.pathItemActionMenu.downloadID)
+  const _downloads = Container.useSelector(state => state.fs.downloads)
+  const _fileContext = Container.useSelector(
+    state => state.fs.fileContext.get(path) || Constants.emptyFileContext
   )
-  if (sharing) {
-    return 'in-progress'
-  } else {
-    return needConfirm(stateProps._pathItem)
-      ? c(dispatchProps._confirmSendToOtherApp)
-      : c(dispatchProps._sendToOtherApp)
+  const _ignoreNeedsToWait = Container.useSelector(state =>
+    anyWaiting(state, Constants.folderListWaitingKey, Constants.statWaitingKey)
+  )
+  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const _pathItemActionMenu = Container.useSelector(state => state.fs.pathItemActionMenu)
+  const _sfmiEnabled = Container.useSelector(
+    state => state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
+  )
+  const _username = Container.useSelector(state => state.config.username)
+  const _view = Container.useSelector(state => state.fs.pathItemActionMenu.view)
+
+  const dispatch = Container.useDispatch()
+
+  const _cancel = React.useCallback(
+    (downloadID: string) => {
+      dispatch(FsGen.createCancelDownload({downloadID}))
+    },
+    [dispatch]
+  )
+  const _confirmSaveMedia = React.useCallback(() => {
+    dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSaveMedia}))
+  }, [dispatch])
+  const _confirmSendToOtherApp = React.useCallback(() => {
+    dispatch(
+      FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSendToOtherApp})
+    )
+  }, [dispatch])
+  const _delete = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {mode, path}, selected: 'confirmDelete'}],
+      })
+    )
   }
-}
-
-const getSaveMedia = (stateProps, dispatchProps, c) => {
-  const {saving} = getDownloadingState(
-    stateProps._downloads,
-    stateProps._downloadID,
-    stateProps._pathItemActionMenu
-  )
-  if (saving) {
-    return 'in-progress'
-  } else {
-    return needConfirm(stateProps._pathItem)
-      ? c(dispatchProps._confirmSaveMedia)
-      : c(dispatchProps._saveMedia)
+  const _download = React.useCallback(() => {
+    dispatch(FsGen.createDownload({path}))
+  }, [dispatch, path])
+  const _ignoreTlf = React.useCallback(() => {
+    dispatch(FsGen.createFavoriteIgnore({path}))
+  }, [dispatch, path])
+  const _newFolder = React.useCallback(() => {
+    dispatch(FsGen.createNewFolderRow({parentPath: path}))
+  }, [dispatch, path])
+  const _openChat = () => {
+    dispatch(
+      Chat2Gen.createPreviewConversation({
+        reason: 'files',
+        // tlfToParticipantsOrTeamname will route both public and private
+        // folders to a private chat, which is exactly what we want.
+        ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
+      })
+    )
   }
-}
+  const _rename = React.useCallback(() => {
+    dispatch(FsGen.createStartRename({path}))
+  }, [dispatch, path])
+  const _saveMedia = React.useCallback(() => {
+    dispatch(FsGen.createSaveMedia({path}))
+  }, [dispatch, path])
+  const _sendAttachmentToChat = () => {
+    path &&
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {sendPaths: [path]}, selected: 'sendToChat'}],
+        })
+      )
+  }
+  const _sendToOtherApp = React.useCallback(() => {
+    dispatch(FsGen.createShareNative({path}))
+  }, [dispatch, path])
+  const _share = React.useCallback(() => {
+    dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.Share}))
+  }, [dispatch])
+  const _showInSystemFileManager = React.useCallback(() => {
+    dispatch(FsGen.createOpenPathInSystemFileManager({path}))
+  }, [dispatch, path])
 
-const mergeProps = (
-  stateProps: ReturnType<typeof mapStateToProps>,
-  dispatchProps: ReturnType<typeof mapDispatchToProps>,
-  ownProps: OwnProps
-) => {
-  const getLayout = stateProps._view === 'share' ? getShareLayout : getRootLayout
-  const {mode, ...rest} = ownProps
-  const layout = getLayout(
-    mode,
-    ownProps.path,
-    stateProps._pathItem,
-    stateProps._fileContext,
-    stateProps._username
-  )
-  const c = action =>
-    isMobile ? addCancelIfNeeded(action, dispatchProps._cancel, stateProps._downloadID) : action
-  return {
-    ...rest,
-    // menu items
+  const getLayout = _view === 'share' ? getShareLayout : getRootLayout
+  const layout = getLayout(mode, ownProps.path, _pathItem, _fileContext, _username)
+  const c = action => (isMobile ? addCancelIfNeeded(action, _cancel, _downloadID) : action)
 
-    delete: layout.delete ? c(dispatchProps._delete) : null,
-    download: layout.download ? c(dispatchProps._download) : null,
-    ignoreTlf: layout.ignoreTlf
-      ? stateProps._ignoreNeedsToWait
-        ? 'disabled'
-        : c(dispatchProps._ignoreTlf)
-      : null,
-    me: stateProps._username,
+  const getSendToOtherApp = () => {
+    const {sharing} = getDownloadingState(_downloads, _downloadID, _pathItemActionMenu)
+    if (sharing) {
+      return 'in-progress'
+    } else {
+      return needConfirm(_pathItem) ? c(_confirmSendToOtherApp) : c(_sendToOtherApp)
+    }
+  }
+
+  const getSaveMedia = () => {
+    const {saving} = getDownloadingState(_downloads, _downloadID, _pathItemActionMenu)
+    if (saving) {
+      return 'in-progress'
+    } else {
+      return needConfirm(_pathItem) ? c(_confirmSaveMedia) : c(_saveMedia)
+    }
+  }
+
+  const props = {
+    ...ownProps,
+    delete: layout.delete ? c(_delete) : null,
+    download: layout.download ? c(_download) : null,
+    ignoreTlf: layout.ignoreTlf ? (_ignoreNeedsToWait ? 'disabled' : c(_ignoreTlf)) : null,
+    me: _username,
     moveOrCopy: null,
-    newFolder: layout.newFolder ? c(dispatchProps._newFolder) : null,
-    openChatNonTeam: layout.openChatNonTeam ? c(dispatchProps._openChat) : null,
-    openChatTeam: layout.openChatTeam ? c(dispatchProps._openChat) : null,
-    pathItemType: stateProps._pathItem.type,
-    rename: layout.rename ? c(dispatchProps._rename) : null,
-    saveMedia: layout.saveMedia ? getSaveMedia(stateProps, dispatchProps, c) : null,
+    newFolder: layout.newFolder ? c(_newFolder) : null,
+    openChatNonTeam: layout.openChatNonTeam ? c(_openChat) : null,
+    openChatTeam: layout.openChatTeam ? c(_openChat) : null,
+    pathItemType: _pathItem.type,
+    rename: layout.rename ? c(_rename) : null,
+    saveMedia: layout.saveMedia ? getSaveMedia() : null,
+    sendAttachmentToChat: layout.sendAttachmentToChat ? c(_sendAttachmentToChat) : null, // TODO
+    sendToOtherApp: layout.sendToOtherApp ? getSendToOtherApp() : null,
+    share: layout.share ? _share : null,
     showInSystemFileManager:
-      layout.showInSystemFileManager && stateProps._sfmiEnabled
-        ? c(dispatchProps._showInSystemFileManager)
-        : null,
-    // share items
-    // eslint-disable-next-line sort-keys
-    sendAttachmentToChat: layout.sendAttachmentToChat ? c(dispatchProps._sendAttachmentToChat) : null, // TODO
-    sendToOtherApp: layout.sendToOtherApp ? getSendToOtherApp(stateProps, dispatchProps, c) : null,
-    share: layout.share ? dispatchProps._share : null,
+      layout.showInSystemFileManager && _sfmiEnabled ? c(_showInSystemFileManager) : null,
   }
+  return <Menu {...props} />
 }
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Menu)

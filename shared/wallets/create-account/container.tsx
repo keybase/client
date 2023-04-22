@@ -8,36 +8,43 @@ import CreateAccount from '.'
 
 type OwnProps = Container.RouteProps<'createNewAccount'>
 
-export default Container.connect(
-  state => ({
-    createNewAccountError: state.wallets.createNewAccountError,
-    error: state.wallets.accountNameError,
-    nameValidationState: state.wallets.accountNameValidationState,
-    waiting: anyWaiting(state, Constants.createNewAccountWaitingKey, Constants.validateAccountNameWaitingKey),
-  }),
-  (dispatch, ownProps: OwnProps) => ({
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
-    onCreateAccount: (name: string) => {
-      dispatch(
-        WalletsGen.createCreateNewAccount({
-          name,
-          setBuildingTo: ownProps.route.params?.fromSendForm,
-          showOnCreation: ownProps.route.params?.showOnCreation,
-        })
-      )
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onDone: (name: string) => {
-      dispatch(WalletsGen.createValidateAccountName({name}))
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    ...stateProps,
-    error: capitalize(stateProps.error),
-    onCancel: dispatchProps.onCancel,
-    onClearErrors: dispatchProps.onClearErrors,
-    onCreateAccount: dispatchProps.onCreateAccount,
-    onDone: dispatchProps.onDone,
-  })
-)(CreateAccount)
+export default (ownProps: OwnProps) => {
+  const createNewAccountError = Container.useSelector(state => state.wallets.createNewAccountError)
+  const error = Container.useSelector(state => state.wallets.accountNameError)
+  const nameValidationState = Container.useSelector(state => state.wallets.accountNameValidationState)
+  const waiting = Container.useSelector(state =>
+    anyWaiting(state, Constants.createNewAccountWaitingKey, Constants.validateAccountNameWaitingKey)
+  )
+
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onClearErrors = () => {
+    dispatch(WalletsGen.createClearErrors())
+  }
+  const onCreateAccount = (name: string) => {
+    dispatch(
+      WalletsGen.createCreateNewAccount({
+        name,
+        setBuildingTo: ownProps.route.params?.fromSendForm,
+        showOnCreation: ownProps.route.params?.showOnCreation,
+      })
+    )
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onDone = (name: string) => {
+    dispatch(WalletsGen.createValidateAccountName({name}))
+  }
+  const props = {
+    createNewAccountError,
+    error: capitalize(error),
+    nameValidationState,
+    onCancel: onCancel,
+    onClearErrors: onClearErrors,
+    onCreateAccount: onCreateAccount,
+    onDone: onDone,
+    waiting,
+  }
+  return <CreateAccount {...props} />
+}

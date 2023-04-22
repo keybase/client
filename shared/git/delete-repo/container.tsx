@@ -8,33 +8,33 @@ type OwnProps = Container.RouteProps<'gitDeleteRepo'>
 
 const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : null)
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const gitMap = Constants.getIdToGit(state)
-    const id = ownProps.route.params?.id ?? ''
-    const git = gitMap.get(id) || Constants.makeGitInfo()
+export default (ownProps: OwnProps) => {
+  const gitMap = Container.useSelector(state => Constants.getIdToGit(state))
+  const id = ownProps.route.params?.id ?? ''
+  const git = gitMap.get(id) || Constants.makeGitInfo()
+  const error = Container.useSelector(state => Constants.getError(state))
+  const name = git.name || ''
+  const teamname = git.teamname || ''
+  const waitingKey = Constants.loadingWaitingKey
 
-    return {
-      error: Constants.getError(state),
-      name: git.name || '',
-      teamname: git.teamname || '',
-      waitingKey: Constants.loadingWaitingKey,
-    }
-  },
-  dispatch => ({
-    _onDelete: (teamname: string | null, name: string, notifyTeam: boolean) => {
-      const deleteAction = teamname
-        ? GitGen.createDeleteTeamRepo({name, notifyTeam, teamname})
-        : GitGen.createDeletePersonalRepo({name})
-      dispatch(deleteAction)
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    ...stateProps,
-    onClose: dispatchProps.onClose,
-    onDelete: (notifyTeam: boolean) =>
-      dispatchProps._onDelete(stateProps.teamname, stateProps.name, notifyTeam),
-  })
-)(NullWrapper)
+  const dispatch = Container.useDispatch()
+  const _onDelete = (teamname: string | null, name: string, notifyTeam: boolean) => {
+    const deleteAction = teamname
+      ? GitGen.createDeleteTeamRepo({name, notifyTeam, teamname})
+      : GitGen.createDeletePersonalRepo({name})
+    dispatch(deleteAction)
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onClose = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const props = {
+    error,
+    name,
+    onClose,
+    onDelete: (notifyTeam: boolean) => _onDelete(teamname, name, notifyTeam),
+    teamname,
+    waitingKey,
+  }
+  return <NullWrapper {...props} />
+}

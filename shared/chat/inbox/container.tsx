@@ -167,90 +167,81 @@ export const getOptions = () => ({
   ),
 })
 
-const Connected = Container.connect(
-  (state, ownProps: OwnProps) => {
-    const {inboxLayout, inboxHasLoaded} = state.chat2
-    const {conversationIDKey} = ownProps
-    const neverLoaded = !inboxHasLoaded
-    const inboxNumSmallRows = state.chat2.inboxNumSmallRows ?? 5
-    return {
-      _badgeMap: state.chat2.badgeMap,
-      _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
-      _inboxLayout: inboxLayout,
-      _selectedConversationIDKey: conversationIDKey ?? Constants.noConversationIDKey,
-      inboxNumSmallRows,
-      isSearching: !!state.chat2.inboxSearch,
-      neverLoaded,
-      smallTeamsExpanded: state.chat2.smallTeamsExpanded,
-    }
-  },
-  () => ({}),
-  (stateProps, _, ownProps: OwnProps) => {
-    const {navKey} = ownProps
-    const bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
-    const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
-    let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
-    const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > stateProps.inboxNumSmallRows
-    if (!showAllSmallRows) {
-      smallTeams = smallTeams.slice(0, stateProps.inboxNumSmallRows)
-    }
-    const smallRows = makeSmallRows(smallTeams, stateProps._selectedConversationIDKey)
-    const bigRows = makeBigRows(bigTeams, stateProps._selectedConversationIDKey)
-    const teamBuilder: Types.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
+const Connected = (ownProps: OwnProps) => {
+  const {inboxLayout, inboxHasLoaded} = Container.useSelector(state => state.chat2)
+  const {conversationIDKey} = ownProps
+  const neverLoaded = !inboxHasLoaded
+  const inboxNumSmallRows = Container.useSelector(state => state.chat2.inboxNumSmallRows ?? 5)
+  const _badgeMap = Container.useSelector(state => state.chat2.badgeMap)
+  const _inboxLayout = inboxLayout
+  const _selectedConversationIDKey = conversationIDKey ?? Constants.noConversationIDKey
+  const isSearching = Container.useSelector(state => !!state.chat2.inboxSearch)
+  const smallTeamsExpanded = Container.useSelector(state => state.chat2.smallTeamsExpanded)
+  const {navKey} = ownProps
+  const bigTeams = _inboxLayout ? _inboxLayout.bigTeams || [] : []
+  const showAllSmallRows = smallTeamsExpanded || !bigTeams.length
+  let smallTeams = _inboxLayout ? _inboxLayout.smallTeams || [] : []
+  const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > inboxNumSmallRows
+  if (!showAllSmallRows) {
+    smallTeams = smallTeams.slice(0, inboxNumSmallRows)
+  }
+  const smallRows = makeSmallRows(smallTeams, _selectedConversationIDKey)
+  const bigRows = makeBigRows(bigTeams, _selectedConversationIDKey)
+  const teamBuilder: Types.ChatInboxRowItemTeamBuilder = {type: 'teamBuilder'}
 
-    const hasAllSmallTeamConvs =
-      (stateProps._inboxLayout?.smallTeams?.length ?? 0) === (stateProps._inboxLayout?.totalSmallTeams ?? 0)
-    const divider: Array<Types.ChatInboxRowItemDivider | Types.ChatInboxRowItemTeamBuilder> =
-      bigRows.length !== 0 || !hasAllSmallTeamConvs
-        ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
-        : []
-    if (smallRows.length !== 0) {
-      if (bigRows.length === 0) {
-        if (divider.length !== 0) {
-          divider.push(teamBuilder)
-        } else {
-          smallRows.push(teamBuilder)
-        }
+  const hasAllSmallTeamConvs =
+    (_inboxLayout?.smallTeams?.length ?? 0) === (_inboxLayout?.totalSmallTeams ?? 0)
+  const divider: Array<Types.ChatInboxRowItemDivider | Types.ChatInboxRowItemTeamBuilder> =
+    bigRows.length !== 0 || !hasAllSmallTeamConvs
+      ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
+      : []
+  if (smallRows.length !== 0) {
+    if (bigRows.length === 0) {
+      if (divider.length !== 0) {
+        divider.push(teamBuilder)
       } else {
-        bigRows.push(teamBuilder)
+        smallRows.push(teamBuilder)
       }
-    }
-    const nextRows: Array<Types.ChatInboxRowItem> = [...smallRows, ...divider, ...bigRows]
-    let rows = nextRows
-    // TODO better fix later
-    if (isEqual(rows, cachedRows)) {
-      rows = cachedRows
-    }
-    cachedRows = rows
-
-    const unreadIndices: Map<number, number> = new Map()
-    let unreadTotal: number = 0
-    for (let i = rows.length - 1; i >= 0; i--) {
-      const row = rows[i]
-      if (row.type === 'big') {
-        if (
-          row.conversationIDKey &&
-          stateProps._badgeMap.get(row.conversationIDKey) &&
-          row.conversationIDKey !== stateProps._selectedConversationIDKey
-        ) {
-          // on mobile include all convos, on desktop only not currently selected convo
-          const unreadCount = stateProps._badgeMap.get(row.conversationIDKey) || 0
-          unreadIndices.set(i, unreadCount)
-          unreadTotal += unreadCount
-        }
-      }
-    }
-    return {
-      isSearching: stateProps.isSearching,
-      navKey,
-      neverLoaded: stateProps.neverLoaded,
-      rows,
-      smallTeamsExpanded: stateProps.smallTeamsExpanded || bigTeams.length === 0,
-      unreadIndices: unreadIndices.size ? unreadIndices : emptyMap,
-      unreadTotal,
+    } else {
+      bigRows.push(teamBuilder)
     }
   }
-)(InboxWrapper)
+  const nextRows: Array<Types.ChatInboxRowItem> = [...smallRows, ...divider, ...bigRows]
+  let rows = nextRows
+  // TODO better fix later
+  if (isEqual(rows, cachedRows)) {
+    rows = cachedRows
+  }
+  cachedRows = rows
+
+  const unreadIndices: Map<number, number> = new Map()
+  let unreadTotal: number = 0
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const row = rows[i]
+    if (row.type === 'big') {
+      if (
+        row.conversationIDKey &&
+        _badgeMap.get(row.conversationIDKey) &&
+        row.conversationIDKey !== _selectedConversationIDKey
+      ) {
+        // on mobile include all convos, on desktop only not currently selected convo
+        const unreadCount = _badgeMap.get(row.conversationIDKey) || 0
+        unreadIndices.set(i, unreadCount)
+        unreadTotal += unreadCount
+      }
+    }
+  }
+  const props = {
+    isSearching,
+    navKey,
+    neverLoaded,
+    rows,
+    smallTeamsExpanded: smallTeamsExpanded || bigTeams.length === 0,
+    unreadIndices: unreadIndices.size ? unreadIndices : emptyMap,
+    unreadTotal,
+  }
+  return <InboxWrapper {...props} />
+}
 
 let cachedRows: Array<Types.ChatInboxRowItem> = []
 const emptyMap = new Map()

@@ -5,20 +5,26 @@ import Text from './text'
 import {Box2} from './box'
 import Icon from './icon'
 
-type OwnProps = {}
 const Kb = {Box2, Icon, Text}
 
-const QRScanNotAuthorized = ({onOpenSettings}: {onOpenSettings: () => void}) => (
-  <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
-    <Kb.Icon type="iconfont-camera" color={Styles.globalColors.white_40} />
-    <Kb.Text center={true} type="BodyTiny" style={styles.text}>
-      You need to allow access to the camera.
-    </Kb.Text>
-    <Kb.Text center={true} type="BodyTiny" onClick={onOpenSettings} style={styles.text} underline={true}>
-      Open settings
-    </Kb.Text>
-  </Kb.Box2>
-)
+const QRScanNotAuthorized = () => {
+  const dispatch = Container.useDispatch()
+
+  const onOpenSettings = () => {
+    dispatch(ConfigGen.createOpenAppSettings())
+  }
+  return (
+    <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
+      <Kb.Icon type="iconfont-camera" color={Styles.globalColors.white_40} />
+      <Kb.Text center={true} type="BodyTiny" style={styles.text}>
+        You need to allow access to the camera.
+      </Kb.Text>
+      <Kb.Text center={true} type="BodyTiny" onClick={onOpenSettings} style={styles.text} underline={true}>
+        Open settings
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -33,8 +39,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Container.connect(
-  () => ({}),
-  dispatch => ({onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings())}),
-  (_, dispatchProps, __: OwnProps) => ({...dispatchProps})
-)(QRScanNotAuthorized)
+export default QRScanNotAuthorized

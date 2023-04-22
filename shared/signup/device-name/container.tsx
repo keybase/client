@@ -4,23 +4,25 @@ import * as Constants from '../../constants/signup'
 import {anyWaiting} from '../../constants/waiting'
 import EnterDevicename from '.'
 
-type OwnProps = {}
-
-const ConnectedEnterDevicename = Container.connect(
-  state => ({
-    error: state.signup.devicenameError,
-    initialDevicename: state.signup.devicename,
-    waiting: anyWaiting(state, Constants.waitingKey),
-  }),
-  dispatch => ({
-    onBack: () => dispatch(SignupGen.createGoBackAndClearErrors()),
-    onContinue: (devicename: string) => dispatch(SignupGen.createCheckDevicename({devicename})),
-  }),
-  (d, s, o: OwnProps) => ({
-    ...s,
-    ...d,
-    ...o,
-  })
-)(EnterDevicename)
+const ConnectedEnterDevicename = () => {
+  const error = Container.useSelector(state => state.signup.devicenameError)
+  const initialDevicename = Container.useSelector(state => state.signup.devicename)
+  const waiting = Container.useSelector(state => anyWaiting(state, Constants.waitingKey))
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(SignupGen.createGoBackAndClearErrors())
+  }
+  const onContinue = (devicename: string) => {
+    dispatch(SignupGen.createCheckDevicename({devicename}))
+  }
+  const props = {
+    error,
+    initialDevicename,
+    onBack,
+    onContinue,
+    waiting,
+  }
+  return <EnterDevicename {...props} />
+}
 
 export default ConnectedEnterDevicename

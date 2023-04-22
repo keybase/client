@@ -232,19 +232,29 @@ export type OwnProps = {
   contactKey: string
 }
 
-const ConnectedEmailPhoneRow = Container.connect(
-  (state, ownProps: OwnProps) => ({
-    _emailRow: (state.settings.email.emails && state.settings.email.emails.get(ownProps.contactKey)) || null,
-    _phoneRow:
+const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
+  const _emailRow = Container.useSelector(
+    state => (state.settings.email.emails && state.settings.email.emails.get(ownProps.contactKey)) || null
+  )
+  const _phoneRow = Container.useSelector(
+    state =>
       (state.settings.phoneNumbers.phones && state.settings.phoneNumbers.phones.get(ownProps.contactKey)) ||
-      null,
-    moreThanOneEmail: state.settings.email.emails && state.settings.email.emails.size > 1,
-  }),
-  (dispatch, ownProps: OwnProps) => ({
-    _onMakeNotSearchable: () =>
-      dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: false})),
-    _onMakeSearchable: () =>
-      dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true})),
+      null
+  )
+  const moreThanOneEmail = Container.useSelector(
+    state => state.settings.email.emails && state.settings.email.emails.size > 1
+  )
+
+  const dispatch = Container.useDispatch()
+
+  const _onMakeNotSearchable = () => {
+    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: false}))
+  }
+  const _onMakeSearchable = () => {
+    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true}))
+  }
+
+  const dispatchProps = {
     email: {
       _onDelete: (address: string, searchable: boolean, lastEmail: boolean) =>
         dispatch(
@@ -262,9 +272,12 @@ const ConnectedEmailPhoneRow = Container.connect(
             ],
           })
         ),
-      onMakePrimary: () =>
-        dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true})),
-      onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
+      onMakePrimary: () => {
+        dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true}))
+      },
+      onVerify: () => {
+        dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true}))
+      },
     },
     phone: {
       _onDelete: (address: string, searchable: boolean) =>
@@ -282,19 +295,19 @@ const ConnectedEmailPhoneRow = Container.connect(
             ],
           })
         ),
-      _onToggleSearchable: (setSearchable: boolean) =>
-        dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, setSearchable})),
+      _onToggleSearchable: (setSearchable: boolean) => {
+        dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, setSearchable}))
+      },
       _onVerify: phoneNumber => {
         dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
         dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
       },
       onMakePrimary: () => {}, // this is not a supported phone action
     },
-  }),
-
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    if (stateProps._phoneRow) {
-      const pr = stateProps._phoneRow
+  }
+  const props = (() => {
+    if (_phoneRow) {
+      const pr = _phoneRow
       return {
         address: pr.displayNumber,
         onDelete: () => dispatchProps.phone._onDelete(ownProps.contactKey, pr.searchable),
@@ -307,23 +320,22 @@ const ConnectedEmailPhoneRow = Container.connect(
         type: 'phone' as const,
         verified: pr.verified,
       }
-    } else if (stateProps._emailRow) {
-      const searchable = stateProps._emailRow.visibility === RPCTypes.IdentityVisibility.public
+    } else if (_emailRow) {
+      const searchable = _emailRow.visibility === RPCTypes.IdentityVisibility.public
       return {
         ...dispatchProps.email,
-        address: stateProps._emailRow.email,
-        lastVerifyEmailDate: stateProps._emailRow.lastVerifyEmailDate || undefined,
-        moreThanOneEmail: stateProps.moreThanOneEmail,
-        onDelete: () =>
-          dispatchProps.email._onDelete(ownProps.contactKey, searchable, !stateProps.moreThanOneEmail),
+        address: _emailRow.email,
+        lastVerifyEmailDate: _emailRow.lastVerifyEmailDate || undefined,
+        moreThanOneEmail: moreThanOneEmail,
+        onDelete: () => dispatchProps.email._onDelete(ownProps.contactKey, searchable, !moreThanOneEmail),
         onMakePrimary: dispatchProps.email.onMakePrimary,
-        onToggleSearchable: searchable ? dispatchProps._onMakeNotSearchable : dispatchProps._onMakeSearchable,
+        onToggleSearchable: searchable ? _onMakeNotSearchable : _onMakeSearchable,
         onVerify: dispatchProps.email.onVerify,
-        primary: stateProps._emailRow.isPrimary,
+        primary: _emailRow.isPrimary,
         searchable,
         superseded: false,
         type: 'email' as const,
-        verified: stateProps._emailRow.isVerified,
+        verified: _emailRow.isVerified,
       }
     } else
       return {
@@ -338,7 +350,8 @@ const ConnectedEmailPhoneRow = Container.connect(
         type: 'phone' as const,
         verified: false,
       }
-  }
-)(EmailPhoneRow)
+  })()
 
+  return <EmailPhoneRow {...props} />
+}
 export default ConnectedEmailPhoneRow

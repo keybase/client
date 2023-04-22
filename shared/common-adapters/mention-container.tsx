@@ -4,34 +4,39 @@ import Mention, {type OwnProps} from './mention'
 import {isSpecialMention} from '../constants/chat2'
 import * as Container from '../util/container'
 
-export default Container.connect(
-  (state, {username}: OwnProps) => {
-    username = username.toLowerCase()
+export default (ownProps: OwnProps) => {
+  let {username} = ownProps
+
+  username = username.toLowerCase()
+  const theme = Container.useSelector(state => {
     if (isSpecialMention(username)) {
-      return {theme: 'highlight' as const}
+      return 'highlight' as const
+    } else {
+      if (state.config.username === username) {
+        return 'highlight' as const
+      } else if (state.config.following.has(username)) {
+        return 'follow' as const
+      }
+      return 'nonFollow' as const
     }
+  })
 
-    if (state.config.username === username) {
-      return {theme: 'highlight' as const}
+  const dispatch = Container.useDispatch()
+
+  const _onClick = () => {
+    if (Container.isMobile) {
+      dispatch(ProfileGen.createShowUserProfile({username}))
+    } else {
+      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     }
+  }
+  const onClick = isSpecialMention(username) ? undefined : _onClick
 
-    if (state.config.following.has(username)) {
-      return {theme: 'follow' as const}
-    }
+  const props = {
+    onClick,
+    theme,
+    username,
+  }
 
-    return {theme: 'nonFollow' as const}
-  },
-  (dispatch, {username}: OwnProps) => ({
-    onClick: isSpecialMention(username)
-      ? undefined
-      : () => {
-          if (Container.isMobile) {
-            dispatch(ProfileGen.createShowUserProfile({username}))
-          } else {
-            dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
-          }
-        },
-  }),
-
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(Mention)
+  return <Mention {...props} />
+}

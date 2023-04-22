@@ -7,33 +7,36 @@ import {InviteByEmailDesktop} from '.'
 
 type OwnProps = Container.RouteProps<'teamInviteByEmail'>
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const teamID = ownProps.route.params?.teamID ?? ''
-    const {teamname} = Constants.getTeamMeta(state, teamID)
-    const inviteError = Constants.getEmailInviteError(state)
-    return {
-      errorMessage: inviteError.message,
-      malformedEmails: inviteError.malformed,
-      name: teamname,
-      waitingKey: Constants.addToTeamByEmailWaitingKey(teamname) || '',
-    }
-  },
-  dispatch => ({
-    _onInvite: (teamname: string, teamID: Types.TeamID, invitees: string, role: Types.TeamRoleType) => {
-      dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamID, teamname}))
-    },
-    onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})), // should only be called on unmount
-    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-  }),
-  (s, d, o: OwnProps) => ({
-    ...o,
-    ...s,
-    onClearInviteError: d.onClearInviteError,
-    onClose: d.onClose,
+export default (ownProps: OwnProps) => {
+  const teamID = ownProps.route.params?.teamID ?? ''
+  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const inviteError = Container.useSelector(state => Constants.getEmailInviteError(state))
+  const errorMessage = inviteError.message
+  const malformedEmails = inviteError.malformed
+  const name = teamname
+  const waitingKey = Constants.addToTeamByEmailWaitingKey(teamname) || ''
+  const dispatch = Container.useDispatch()
+  const _onInvite = (teamname: string, teamID: Types.TeamID, invitees: string, role: Types.TeamRoleType) => {
+    dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamID, teamname}))
+  }
+  const onClearInviteError = () => {
+    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
+  } // should only be called on unmount
+  const onClose = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const props = {
+    errorMessage,
+    malformedEmails,
+    name,
+    onClearInviteError: onClearInviteError,
+    onClose: onClose,
     onInvite: (invitees: string, role: Types.TeamRoleType) => {
-      const teamID = o.route.params?.teamID ?? ''
-      d._onInvite(s.name, teamID, invitees, role)
+      const teamID = ownProps.route.params?.teamID ?? ''
+      _onInvite(name, teamID, invitees, role)
     },
-  })
-)(InviteByEmailDesktop)
+    teamID,
+    waitingKey,
+  }
+  return <InviteByEmailDesktop {...props} />
+}

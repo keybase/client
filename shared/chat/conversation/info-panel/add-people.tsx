@@ -6,7 +6,7 @@ import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
 import type * as TeamTypes from '../../../constants/types/teams'
 import type * as Types from '../../../constants/types/chat2'
-import {connect} from '../../../util/container'
+import * as Container from '../../../util/container'
 
 type Props = {
   isAdmin: boolean
@@ -76,30 +76,30 @@ type OwnProps = {
   isGeneralChannel: boolean
 }
 
-const AddPeople = connect(
-  (state, ownProps: OwnProps) => {
-    const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-    return {teamID: meta.teamID}
-  },
-  dispatch => {
-    return {
-      _onAddPeople: (teamID: TeamTypes.TeamID) => dispatch(TeamsGen.createStartAddMembersWizard({teamID})),
-      _onAddToChannel: (conversationIDKey: Types.ConversationIDKey, teamID: TeamTypes.TeamID) => {
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
-          })
-        )
-      },
-    }
-  },
-  (s, d, o: OwnProps) => ({
-    isAdmin: o.isAdmin,
-    isGeneralChannel: o.isGeneralChannel,
-    onAddPeople: () => d._onAddPeople(s.teamID),
-    onAddToChannel: () => d._onAddToChannel(o.conversationIDKey, s.teamID),
-  })
-)(_AddPeople)
+const AddPeople = (ownProps: OwnProps) => {
+  const meta = Container.useSelector(state => Constants.getMeta(state, ownProps.conversationIDKey))
+  const teamID = meta.teamID
+
+  const dispatch = Container.useDispatch()
+
+  const _onAddPeople = (teamID: TeamTypes.TeamID) => {
+    dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
+  }
+  const _onAddToChannel = (conversationIDKey: Types.ConversationIDKey, teamID: TeamTypes.TeamID) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
+      })
+    )
+  }
+  const props = {
+    isAdmin: ownProps.isAdmin,
+    isGeneralChannel: ownProps.isGeneralChannel,
+    onAddPeople: () => _onAddPeople(teamID),
+    onAddToChannel: () => _onAddToChannel(ownProps.conversationIDKey, teamID),
+  }
+  return <_AddPeople {...props} />
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

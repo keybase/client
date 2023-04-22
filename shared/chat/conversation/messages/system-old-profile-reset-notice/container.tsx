@@ -8,29 +8,28 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-export default Container.connect(
-  (state, {conversationIDKey}: OwnProps) => {
-    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-    const meta = Constants.getMeta(state, conversationIDKey)
-    return {
-      _participants: participantInfo.all,
-      nextConversationIDKey: meta.supersededBy,
-      username: meta.wasFinalizedBy || '',
-    }
-  },
-  dispatch => ({
-    onOpenConversation: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'jumpFromReset'})),
-    startConversation: (participants: Array<string>) =>
-      dispatch(Chat2Gen.createPreviewConversation({participants, reason: 'fromAReset'})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const {nextConversationIDKey, _participants, username} = stateProps
-    return {
-      onOpenNewerConversation: nextConversationIDKey
-        ? () => dispatchProps.onOpenConversation(nextConversationIDKey)
-        : () => dispatchProps.startConversation(_participants),
-      username,
-    }
+export default (ownProps: OwnProps) => {
+  const {conversationIDKey} = ownProps
+  const participantInfo = Container.useSelector(state =>
+    Constants.getParticipantInfo(state, conversationIDKey)
+  )
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const _participants = participantInfo.all
+  const nextConversationIDKey = meta.supersededBy
+  const username = meta.wasFinalizedBy || ''
+
+  const dispatch = Container.useDispatch()
+  const onOpenConversation = (conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'jumpFromReset'}))
   }
-)(OldProfileResetNotice)
+  const startConversation = (participants: Array<string>) => {
+    dispatch(Chat2Gen.createPreviewConversation({participants, reason: 'fromAReset'}))
+  }
+  const props = {
+    onOpenNewerConversation: nextConversationIDKey
+      ? () => onOpenConversation(nextConversationIDKey)
+      : () => startConversation(_participants),
+    username,
+  }
+  return <OldProfileResetNotice {...props} />
+}

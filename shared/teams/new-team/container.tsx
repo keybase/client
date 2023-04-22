@@ -8,20 +8,27 @@ import * as Types from '../../constants/types/teams'
 
 type OwnProps = Container.RouteProps<'teamNewTeamDialog'>
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const subteamOf = ownProps.route.params?.subteamOf ?? Types.noTeamID
-    const baseTeam = Constants.getTeamMeta(state, subteamOf).teamname
-    return {
-      baseTeam,
-      errorText: upperFirst(state.teams.errorInTeamCreation),
-    }
-  },
-  dispatch => ({
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onClearError: () => dispatch(TeamsGen.createSetTeamCreationError({error: ''})),
-    onSubmit: (teamname: string, joinSubteam: boolean) =>
-      dispatch(TeamsGen.createCreateNewTeam({joinSubteam, teamname})),
-  }),
-  (s, d) => ({...s, ...d})
-)(NewTeamDialog)
+export default (ownProps: OwnProps) => {
+  const subteamOf = ownProps.route.params?.subteamOf ?? Types.noTeamID
+  const baseTeam = Container.useSelector(state => Constants.getTeamMeta(state, subteamOf).teamname)
+  const errorText = Container.useSelector(state => upperFirst(state.teams.errorInTeamCreation))
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onClearError = () => {
+    dispatch(TeamsGen.createSetTeamCreationError({error: ''}))
+  }
+  const onSubmit = (teamname: string, joinSubteam: boolean) => {
+    dispatch(TeamsGen.createCreateNewTeam({joinSubteam, teamname}))
+  }
+  const props = {
+    baseTeam,
+    errorText,
+    onCancel,
+    onClearError,
+    onSubmit,
+    subteamOf,
+  }
+  return <NewTeamDialog {...props} />
+}

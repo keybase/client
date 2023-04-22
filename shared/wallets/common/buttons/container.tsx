@@ -4,30 +4,25 @@ import type * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import {SendButton as _SendButton} from '.'
 
-type SendButtonOwnProps = {
+type OwnProps = {
   small?: boolean
 }
 
-export const SendButton = Container.connect(
-  state => {
-    const _account = Constants.getSelectedAccountData(state)
-    return {
-      _account,
-      thisDeviceIsLockedOut: _account.deviceReadOnly,
-    }
-  },
-  dispatch => ({
-    _onGoToSendReceive: (from: Types.AccountID, recipientType: Types.CounterpartyType) =>
-      dispatch(WalletsGen.createOpenSendRequestForm({from, recipientType})),
-  }),
-  (stateProps, dispatchProps, ownProps: SendButtonOwnProps) => ({
-    disabled: !stateProps._account.name || stateProps.thisDeviceIsLockedOut,
-    onSendToAnotherAccount: () =>
-      dispatchProps._onGoToSendReceive(stateProps._account.accountID, 'otherAccount'),
-    onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive(stateProps._account.accountID, 'keybaseUser'),
-    onSendToStellarAddress: () =>
-      dispatchProps._onGoToSendReceive(stateProps._account.accountID, 'stellarPublicKey'),
+export const SendButton = (ownProps: OwnProps) => {
+  const _account = Container.useSelector(state => Constants.getSelectedAccountData(state))
+  const thisDeviceIsLockedOut = _account.deviceReadOnly
+
+  const dispatch = Container.useDispatch()
+  const _onGoToSendReceive = (from: Types.AccountID, recipientType: Types.CounterpartyType) => {
+    dispatch(WalletsGen.createOpenSendRequestForm({from, recipientType}))
+  }
+  const props = {
+    disabled: !_account.name || thisDeviceIsLockedOut,
+    onSendToAnotherAccount: () => _onGoToSendReceive(_account.accountID, 'otherAccount'),
+    onSendToKeybaseUser: () => _onGoToSendReceive(_account.accountID, 'keybaseUser'),
+    onSendToStellarAddress: () => _onGoToSendReceive(_account.accountID, 'stellarPublicKey'),
     small: ownProps.small,
-    thisDeviceIsLockedOut: stateProps.thisDeviceIsLockedOut,
-  })
-)(_SendButton)
+    thisDeviceIsLockedOut: thisDeviceIsLockedOut,
+  }
+  return <_SendButton {...props} />
+}

@@ -6,8 +6,6 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import EnterPhoneNumber, {type Props} from '.'
 
-type OwnProps = {}
-
 type WatcherProps = Props & {
   onClear: () => void
   onGoToVerify: () => void
@@ -40,29 +38,44 @@ export class WatchForGoToVerify extends React.Component<WatcherProps> {
   }
 }
 
-const ConnectedEnterPhoneNumber = Container.connect(
-  state => ({
-    defaultCountry: state.settings.phoneNumbers.defaultCountry,
-    error: state.settings.phoneNumbers.error,
-    pendingVerification: state.settings.phoneNumbers.pendingVerification,
-    waiting: anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey),
-  }),
-  dispatch => ({
-    onClear: () => dispatch(SettingsGen.createClearPhoneNumberErrors()),
-    onContinue: (phoneNumber: string, searchable: boolean) =>
-      dispatch(SettingsGen.createAddPhoneNumber({phoneNumber, searchable})),
-    onGoToVerify: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupVerifyPhoneNumber']})),
-    onSkip: () => {
-      dispatch(SettingsGen.createClearPhoneNumberAdd())
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: ['signupEnterEmail'],
-          replace: true,
-        })
-      )
-    },
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(WatchForGoToVerify)
+const ConnectedEnterPhoneNumber = () => {
+  const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
+  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
+  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
+  const waiting = Container.useSelector(state =>
+    anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey)
+  )
+
+  const dispatch = Container.useDispatch()
+  const onClear = () => {
+    dispatch(SettingsGen.createClearPhoneNumberErrors())
+  }
+  const onContinue = (phoneNumber: string, searchable: boolean) => {
+    dispatch(SettingsGen.createAddPhoneNumber({phoneNumber, searchable}))
+  }
+  const onGoToVerify = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['signupVerifyPhoneNumber']}))
+  }
+  const onSkip = () => {
+    dispatch(SettingsGen.createClearPhoneNumberAdd())
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: ['signupEnterEmail'],
+        replace: true,
+      })
+    )
+  }
+  const props = {
+    defaultCountry,
+    error,
+    onClear,
+    onContinue,
+    onGoToVerify,
+    onSkip,
+    pendingVerification,
+    waiting,
+  }
+  return <WatchForGoToVerify {...props} />
+}
 
 export default ConnectedEnterPhoneNumber

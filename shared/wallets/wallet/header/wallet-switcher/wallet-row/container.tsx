@@ -9,38 +9,33 @@ type OwnProps = {
   hideMenu: () => void
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const account = getAccount(state, ownProps.accountID)
+export default (ownProps: OwnProps) => {
+  const account = Container.useSelector(state => getAccount(state, ownProps.accountID))
   const name = account.name
-  const me = state.config.username
+  const me = Container.useSelector(state => state.config.username)
   const keybaseUser = account.isDefault ? me : ''
-  const selectedAccount = getSelectedAccount(state)
-  return {
-    contents: account.balanceDescription,
-    isSelected: selectedAccount === ownProps.accountID,
-    keybaseUser,
-    name,
-    selectedAccount,
-    unreadPayments: state.wallets.unreadPaymentsMap.get(ownProps.accountID) ?? 0,
-  }
-}
+  const selectedAccount = Container.useSelector(state => getSelectedAccount(state))
+  const contents = account.balanceDescription
+  const isSelected = selectedAccount === ownProps.accountID
+  const unreadPayments = Container.useSelector(
+    state => state.wallets.unreadPaymentsMap.get(ownProps.accountID) ?? 0
+  )
 
-export default Container.connect(
-  mapStateToProps,
-  dispatch => ({
-    _onSelectAccount: (accountID: AccountID) =>
-      dispatch(WalletsGen.createSelectAccount({accountID, reason: 'user-selected', show: true})),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    contents: stateProps.contents,
-    isSelected: stateProps.isSelected,
-    keybaseUser: stateProps.keybaseUser,
-    name: stateProps.name,
+  const dispatch = Container.useDispatch()
+  const _onSelectAccount = (accountID: AccountID) => {
+    dispatch(WalletsGen.createSelectAccount({accountID, reason: 'user-selected', show: true}))
+  }
+  const props = {
+    contents: contents,
+    isSelected: isSelected,
+    keybaseUser: keybaseUser,
+    name: name,
     onSelect: () => {
       // First clear any new payments on the currently selected acct.
-      dispatchProps._onSelectAccount(ownProps.accountID)
+      _onSelectAccount(ownProps.accountID)
       ownProps.hideMenu()
     },
-    unreadPayments: stateProps.unreadPayments,
-  })
-)(WalletRow)
+    unreadPayments: unreadPayments,
+  }
+  return <WalletRow {...props} />
+}

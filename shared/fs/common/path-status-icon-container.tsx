@@ -8,51 +8,44 @@ type OwnPropsPathItem = {
   showTooltipOnPressMobile?: boolean
 }
 
-const PathStatusIconPathItem = Container.connect(
-  (state: Container.TypedState, ownProps: OwnPropsPathItem) => ({
-    _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-    _pathItem: Constants.getPathItem(state.fs.pathItems, ownProps.path),
-    _tlf: Constants.getTlfFromPath(state.fs.tlfs, ownProps.path),
-    _uploads: state.fs.uploads.syncingPaths,
-  }),
-  () => ({}),
-  (stateProps, _, ownProps: OwnPropsPathItem) => ({
-    isFolder: stateProps._pathItem.type === Types.PathType.Folder,
+const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
+  const _kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, ownProps.path))
+  const _tlf = Container.useSelector(state => Constants.getTlfFromPath(state.fs.tlfs, ownProps.path))
+  const _uploads = Container.useSelector(state => state.fs.uploads.syncingPaths)
+  const props = {
+    isFolder: _pathItem.type === Types.PathType.Folder,
     showTooltipOnPressMobile: ownProps.showTooltipOnPressMobile,
     statusIcon: Constants.getPathStatusIconInMergeProps(
-      stateProps._kbfsDaemonStatus,
-      stateProps._tlf,
-      stateProps._pathItem,
-      stateProps._uploads,
+      _kbfsDaemonStatus,
+      _tlf,
+      _pathItem,
+      _uploads,
       ownProps.path
     ),
-  })
-)(PathStatusIcon)
+  }
+  return <PathStatusIcon {...props} />
+}
 
 type OwnPropsTlfType = {
   tlfType?: Types.TlfType
 }
 
-const PathStatusIconTlfType = Container.connect(
-  (state: Container.TypedState, ownProps: OwnPropsTlfType) => ({
-    _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-    _tlfList: ownProps.tlfType ? Constants.getTlfListFromType(state.fs.tlfs, ownProps.tlfType) : new Map(),
-    _uploads: state.fs.uploads,
-  }),
-  () => ({}),
-  (stateProps, _, ownProps: OwnPropsTlfType) => ({
+const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
+  const _kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+  const _tlfList = Container.useSelector(state =>
+    ownProps.tlfType ? Constants.getTlfListFromType(state.fs.tlfs, ownProps.tlfType) : new Map()
+  )
+  const _uploads = Container.useSelector(state => state.fs.uploads)
+  const props = {
     isFolder: true,
     isTlfType: true,
     statusIcon:
       ownProps.tlfType &&
-      Constants.getUploadIconForTlfType(
-        stateProps._kbfsDaemonStatus,
-        stateProps._uploads,
-        stateProps._tlfList,
-        ownProps.tlfType
-      ),
-  })
-)(PathStatusIcon)
+      Constants.getUploadIconForTlfType(_kbfsDaemonStatus, _uploads, _tlfList, ownProps.tlfType),
+  }
+  return <PathStatusIcon {...props} />
+}
 
 type OwnProps = {
   path: Types.Path
