@@ -3,19 +3,18 @@ import ConfirmDisableCertPinningModal from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {createCertificatePinningToggled} from '../../actions/settings-gen'
 
-export default Container.connect(
-  () => ({}),
-  dispatch => ({
-    onCancel: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onConfirm: () => {
-      dispatch(createCertificatePinningToggled({toggled: true}))
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-  }),
-  (stateProps, dispatchProps) => ({
-    ...stateProps,
-    ...dispatchProps,
-  })
-)(ConfirmDisableCertPinningModal)
+export default () => {
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onConfirm = () => {
+    dispatch(createCertificatePinningToggled({toggled: true}))
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const props = {
+    onCancel,
+    onConfirm,
+  }
+  return <ConfirmDisableCertPinningModal {...props} />
+}

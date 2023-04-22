@@ -4,11 +4,17 @@ import InviteGenerated from '.'
 
 type OwnProps = Container.RouteProps<'inviteSent'>
 
-export default Container.connect(
-  (_, ownProps: OwnProps) => ({
-    email: ownProps.route.params?.email ?? '',
-    link: ownProps.route.params?.link ?? '',
-  }),
-  dispatch => ({onClose: () => dispatch(RouteTreeGen.createNavigateUp())}),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(InviteGenerated)
+export default (ownProps: OwnProps) => {
+  const email = ownProps.route.params?.email ?? ''
+  const link = ownProps.route.params?.link ?? ''
+  const dispatch = Container.useDispatch()
+  const onClose = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const props = {
+    email,
+    link,
+    onClose,
+  }
+  return <InviteGenerated {...props} />
+}

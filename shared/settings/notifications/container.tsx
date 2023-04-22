@@ -5,8 +5,6 @@ import Notifications, {type Props} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/settings'
 
-type OwnProps = {}
-
 const ReloadableNotifications = (props: Props) => {
   const dispatch = Container.useDispatch()
 
@@ -32,25 +30,38 @@ ReloadableNotifications.navigationOptions = {
   title: 'Notifications',
 }
 
-export default Container.connect(
-  state => ({
-    _groups: state.settings.notifications.groups,
-    allowEdit: state.settings.notifications.allowEdit,
-    showEmailSection: !!state.settings.email.emails && state.settings.email.emails.size > 0,
-    waitingForResponse: Container.anyWaiting(state, Constants.settingsWaitingKey),
-  }),
-  dispatch => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onClickYourAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.accountTab]})),
-    onToggle: (group: string, name?: string) =>
-      dispatch(SettingsGen.createNotificationsToggle({group, name})),
-    onToggleUnsubscribeAll: (group: string) => dispatch(SettingsGen.createNotificationsToggle({group})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    ...dispatchProps,
-    allowEdit: stateProps.allowEdit,
-    groups: stateProps._groups,
-    showEmailSection: stateProps.showEmailSection,
-    waitingForResponse: stateProps.waitingForResponse,
-  })
-)(ReloadableNotifications)
+export default () => {
+  const _groups = Container.useSelector(state => state.settings.notifications.groups)
+  const allowEdit = Container.useSelector(state => state.settings.notifications.allowEdit)
+  const showEmailSection = Container.useSelector(
+    state => !!state.settings.email.emails && state.settings.email.emails.size > 0
+  )
+  const waitingForResponse = Container.useSelector(state =>
+    Container.anyWaiting(state, Constants.settingsWaitingKey)
+  )
+
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onClickYourAccount = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.accountTab]}))
+  }
+  const onToggle = (group: string, name?: string) => {
+    dispatch(SettingsGen.createNotificationsToggle({group, name}))
+  }
+  const onToggleUnsubscribeAll = (group: string) => {
+    dispatch(SettingsGen.createNotificationsToggle({group}))
+  }
+  const props = {
+    allowEdit,
+    groups: _groups,
+    onBack,
+    onClickYourAccount,
+    onToggle,
+    onToggleUnsubscribeAll,
+    showEmailSection: showEmailSection,
+    waitingForResponse: waitingForResponse,
+  }
+  return <ReloadableNotifications {...props} />
+}
