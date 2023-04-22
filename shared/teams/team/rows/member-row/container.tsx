@@ -19,10 +19,10 @@ type OwnProps = {
 const blankInfo = Constants.initialMemberInfo
 
 export default (ownProps: OwnProps) => {
-  const {teamID, firstItem} = ownProps
+  const {teamID, firstItem, username} = ownProps
   const {members} = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
-  const info = members.get(ownProps.username) || blankInfo
+  const info = members.get(username) || blankInfo
 
   const following = Container.useSelector(state => state.config.following.has(username))
   const fullName = Container.useSelector(state =>
@@ -31,7 +31,6 @@ export default (ownProps: OwnProps) => {
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status
-  const username = info.username
   const waitingForAdd = Container.useSelector(state =>
     anyWaiting(state, Constants.addMemberWaitingKey(teamID, username))
   )
