@@ -6,29 +6,32 @@ import * as Container from '../../util/container'
 import {anyWaiting} from '../../constants/waiting'
 import EnterUsername from '.'
 
-type OwnProps = {}
-
-const ConnectedEnterUsername = Container.connect(
-  state => ({
-    _users: state.config.configuredAccounts,
-    error: state.signup.usernameError,
-    initialUsername: state.signup.username,
-    usernameTaken: state.signup.usernameTaken,
-    waiting: anyWaiting(state, Constants.waitingKey),
-  }),
-  dispatch => ({
-    onBack: () => {
-      dispatch(SignupGen.createRestartSignup())
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onContinue: (username: string) => dispatch(SignupGen.createCheckUsername({username})),
-    onLogin: (initUsername: string) => dispatch(ProvisionGen.createStartProvision({initUsername})),
-  }),
-  (s, d, o: OwnProps) => ({
-    ...s,
-    ...d,
-    ...o,
-  })
-)(EnterUsername)
+const ConnectedEnterUsername = () => {
+  const error = Container.useSelector(state => state.signup.usernameError)
+  const initialUsername = Container.useSelector(state => state.signup.username)
+  const usernameTaken = Container.useSelector(state => state.signup.usernameTaken)
+  const waiting = Container.useSelector(state => anyWaiting(state, Constants.waitingKey))
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(SignupGen.createRestartSignup())
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onContinue = (username: string) => {
+    dispatch(SignupGen.createCheckUsername({username}))
+  }
+  const onLogin = (initUsername: string) => {
+    dispatch(ProvisionGen.createStartProvision({initUsername}))
+  }
+  const props = {
+    error,
+    initialUsername,
+    onBack,
+    onContinue,
+    onLogin,
+    usernameTaken,
+    waiting,
+  }
+  return <EnterUsername {...props} />
+}
 
 export default ConnectedEnterUsername

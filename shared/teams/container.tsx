@@ -16,8 +16,6 @@ import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 
-type OwnProps = {}
-
 // share some between headerRightActions on desktop and component on mobile
 type HeaderActionProps = {
   onCreateTeam: () => void
@@ -127,49 +125,51 @@ Reloadable.navigationOptions = {
   title: 'Teams',
 }
 
-const Connected = Container.connect(
-  (state: Container.TypedState) => ({
-    _teams: state.teams.teamMeta,
-    activityLevels: state.teams.activityLevels,
-    deletedTeams: state.teams.deletedTeams,
-    filter: state.teams.teamListFilter,
-    loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
-    newTeamRequests: state.teams.newTeamRequests,
-    newTeams: state.teams.newTeams,
-    sawChatBanner: state.teams.sawChatBanner || false,
-    sortOrder: state.teams.teamListSort,
-    teamIDToResetUsers: state.teams.teamIDToResetUsers,
-  }),
-  (dispatch: Container.TypedDispatch) => ({
-    onHideChatBanner: () =>
-      dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
-    onOpenFolder: (teamname: Types.Teamname) =>
-      dispatch(
-        FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
-      ),
-    onReadMore: () => {
-      openURL('https://keybase.io/blog/introducing-keybase-teams')
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    deletedTeams: stateProps.deletedTeams,
-    loaded: stateProps.loaded,
-    newTeamRequests: stateProps.newTeamRequests,
-    newTeams: stateProps.newTeams,
-    sawChatBanner: stateProps.sawChatBanner,
-    teamresetusers: stateProps.teamIDToResetUsers, // TODO remove when teamsRedesign flag removed
+const Connected = () => {
+  const _teams = Container.useSelector(state => state.teams.teamMeta)
+  const activityLevels = Container.useSelector(state => state.teams.activityLevels)
+  const deletedTeams = Container.useSelector(state => state.teams.deletedTeams)
+  const filter = Container.useSelector(state => state.teams.teamListFilter)
+  const loaded = Container.useSelector(
+    state => !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey)
+  )
+  const newTeamRequests = Container.useSelector(state => state.teams.newTeamRequests)
+  const newTeams = Container.useSelector(state => state.teams.newTeams)
+  const sawChatBanner = Container.useSelector(state => state.teams.sawChatBanner || false)
+  const sortOrder = Container.useSelector(state => state.teams.teamListSort)
+  const teamIDToResetUsers = Container.useSelector(state => state.teams.teamIDToResetUsers)
+  const dispatch = Container.useDispatch()
+  const onHideChatBanner = () => {
+    dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'}))
+  }
+  const onOpenFolder = (teamname: Types.Teamname) => {
+    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`)))
+  }
+  const onReadMore = () => {
+    openURL('https://keybase.io/blog/introducing-keybase-teams')
+  }
+  const props = {
+    deletedTeams: deletedTeams,
+    loaded: loaded,
+    newTeamRequests: newTeamRequests,
+    newTeams: newTeams,
+    onHideChatBanner,
+    onOpenFolder,
+    onReadMore,
+    sawChatBanner: sawChatBanner,
+    teamresetusers: teamIDToResetUsers, // TODO remove when teamsRedesign flag removed
     teams: orderTeams(
-      stateProps._teams,
-      stateProps.newTeamRequests,
-      stateProps.teamIDToResetUsers,
-      stateProps.newTeams,
-      stateProps.sortOrder,
-      stateProps.activityLevels,
-      stateProps.filter
+      _teams,
+      newTeamRequests,
+      teamIDToResetUsers,
+      newTeams,
+      sortOrder,
+      activityLevels,
+      filter
     ),
-    ...dispatchProps,
-  })
-)(Reloadable)
+  }
+  return <Reloadable {...props} />
+}
 
 const ConnectedHeaderRightActions = (_: {}) => {
   const actions = useHeaderActions()

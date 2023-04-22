@@ -5,28 +5,26 @@ import RetentionWarning from '.'
 
 type OwnProps = Container.RouteProps<'retentionWarning'>
 
-export default Container.connect(
-  () => ({}),
-  (dispatch, ownProps: OwnProps) => ({
-    onBack: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-      const onCancel = ownProps.route.params?.onCancel ?? null
-      onCancel?.()
-    },
-    onConfirm: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-      const cb = ownProps.route.params?.onConfirm ?? null
-      cb?.()
-    },
-  }),
-  (_s, d, ownProps: OwnProps) => {
-    const policy = ownProps.route.params?.policy ?? Constants.retentionPolicies.policyInherit
-    return {
-      ...ownProps,
-      ...d,
-      entityType: ownProps.route.params?.entityType ?? 'adhoc',
-      exploding: policy.type === 'explode',
-      timePeriod: policy.title,
-    }
+export default (ownProps: OwnProps) => {
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    const onCancel = ownProps.route.params?.onCancel ?? null
+    onCancel?.()
   }
-)(RetentionWarning)
+  const onConfirm = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    const cb = ownProps.route.params?.onConfirm ?? null
+    cb?.()
+  }
+  const policy = ownProps.route.params?.policy ?? Constants.retentionPolicies.policyInherit
+  const props = {
+    ...ownProps,
+    entityType: ownProps.route.params?.entityType ?? 'adhoc',
+    exploding: policy.type === 'explode',
+    onBack,
+    onConfirm,
+    timePeriod: policy.title,
+  }
+  return <RetentionWarning {...props} />
+}

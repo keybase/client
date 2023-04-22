@@ -10,60 +10,72 @@ export type OwnProps = {
   teamID: Types.TeamID
 }
 
-export default Container.connect(
-  (state, {teamID}: OwnProps) => {
-    const teamMeta = Constants.getTeamMeta(state, teamID)
-    const teamDetails = Constants.getTeamDetails(state, teamID)
-    const publicityAnyMember = teamMeta.allowPromote
-    const publicityMember = teamMeta.showcasing
-    const publicityTeam = teamDetails.settings.teamShowcased
-    const settings = teamDetails.settings || Constants.initialTeamSettings
-    const welcomeMessage = Constants.getTeamWelcomeMessageByID(state, teamID)
-    return {
-      canShowcase: teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner',
-      error: state.teams.errorInSettings,
-      ignoreAccessRequests: teamDetails.settings.tarsDisabled,
-      isBigTeam: Constants.isBigTeam(state, teamID),
-      openTeam: settings.open,
-      // Cast to TeamRoleType
-      openTeamRole: teamDetails.settings.openJoinAs,
-      publicityAnyMember,
-      publicityMember,
-      publicityTeam,
-      teamID,
-      teamname: teamMeta.teamname,
-      waitingForWelcomeMessage: anyWaiting(state, Constants.loadWelcomeMessageWaitingKey(teamID)),
-      welcomeMessage: welcomeMessage || undefined,
-      yourOperations: Constants.getCanPerformByID(state, teamID),
-    }
-  },
-  (dispatch, {teamID}: OwnProps) => ({
-    clearError: () => dispatch(TeamsGen.createSettingsError({error: ''})),
-    loadWelcomeMessage: () => dispatch(TeamsGen.createLoadWelcomeMessage({teamID})),
-    onEditWelcomeMessage: () => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamEditWelcomeMessage'}]})
-      )
-    },
-    savePublicity: (settings: Types.PublicitySettings) =>
-      dispatch(TeamsGen.createSetPublicity({settings, teamID})),
-    showOpenTeamWarning: (isOpenTeam: boolean, onConfirm: () => void, teamname: string) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {isOpenTeam, onConfirm, teamname}, selected: 'openTeamWarning'}],
-        })
-      ),
-  }),
-  (stateProps, dispatchProps) => {
-    return {
-      ...stateProps,
-      loadWelcomeMessage: dispatchProps.loadWelcomeMessage,
-      onEditWelcomeMessage: dispatchProps.onEditWelcomeMessage,
-      savePublicity: (settings: Types.PublicitySettings) => {
-        dispatchProps.savePublicity(settings)
-        dispatchProps.clearError()
-      },
-      showOpenTeamWarning: dispatchProps.showOpenTeamWarning,
-    }
+export default (ownProps: OwnProps) => {
+  const {teamID} = ownProps
+  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const publicityAnyMember = teamMeta.allowPromote
+  const publicityMember = teamMeta.showcasing
+  const publicityTeam = teamDetails.settings.teamShowcased
+  const settings = teamDetails.settings || Constants.initialTeamSettings
+  const welcomeMessage =
+    Container.useSelector(state => Constants.getTeamWelcomeMessageByID(state, teamID)) ?? undefined
+  const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
+  const error = Container.useSelector(state => state.teams.errorInSettings)
+  const ignoreAccessRequests = teamDetails.settings.tarsDisabled
+  const isBigTeam = Container.useSelector(state => Constants.isBigTeam(state, teamID))
+  const openTeam = settings.open
+  const openTeamRole = teamDetails.settings.openJoinAs
+  const teamname = teamMeta.teamname
+  const waitingForWelcomeMessage = Container.useSelector(state =>
+    anyWaiting(state, Constants.loadWelcomeMessageWaitingKey(teamID))
+  )
+  const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
+  const dispatch = Container.useDispatch()
+  const clearError = () => {
+    dispatch(TeamsGen.createSettingsError({error: ''}))
   }
-)(Settings)
+  const loadWelcomeMessage = () => {
+    dispatch(TeamsGen.createLoadWelcomeMessage({teamID}))
+  }
+  const onEditWelcomeMessage = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamEditWelcomeMessage'}]})
+    )
+  }
+  const savePublicity = (settings: Types.PublicitySettings) => {
+    dispatch(TeamsGen.createSetPublicity({settings, teamID}))
+  }
+  const showOpenTeamWarning = (isOpenTeam: boolean, onConfirm: () => void, teamname: string) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {isOpenTeam, onConfirm, teamname}, selected: 'openTeamWarning'}],
+      })
+    )
+  }
+  const props = {
+    canShowcase,
+    clearError,
+    error,
+    ignoreAccessRequests,
+    isBigTeam,
+    loadWelcomeMessage,
+    onEditWelcomeMessage,
+    openTeam,
+    openTeamRole,
+    publicityAnyMember,
+    publicityMember,
+    publicityTeam,
+    savePublicity: (settings: Types.PublicitySettings) => {
+      savePublicity(settings)
+      clearError()
+    },
+    showOpenTeamWarning,
+    teamID,
+    teamname,
+    waitingForWelcomeMessage,
+    welcomeMessage,
+    yourOperations,
+  }
+  return <Settings {...props} />
+}

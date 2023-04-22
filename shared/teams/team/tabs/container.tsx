@@ -10,45 +10,39 @@ type OwnProps = {
   setSelectedTab: (tab: Types.TabKey) => void
 }
 
-export default Container.connect(
-  (state, {teamID, selectedTab, setSelectedTab}: OwnProps) => {
-    const teamMeta = Constants.getTeamMeta(state, teamID)
-    const teamDetails = Constants.getTeamDetails(state, teamID)
-    const yourOperations = Constants.getCanPerformByID(state, teamID)
+export default (ownProps: OwnProps) => {
+  const {selectedTab, setSelectedTab, teamID} = ownProps
+  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
-    return {
-      admin: yourOperations.manageMembers,
-      error: state.teams.errorInAddToTeam,
-      isBig: Constants.isBigTeam(state, teamID),
-      loading: anyWaiting(
-        state,
-        Constants.teamWaitingKey(teamID),
-        Constants.teamTarsWaitingKey(teamMeta.teamname)
-      ),
-      newTeamRequests: state.teams.newTeamRequests,
-      numInvites: teamDetails.invites?.size ?? 0,
-      numRequests: teamDetails.requests?.size ?? 0,
-      numSubteams: teamDetails.subteams?.size ?? 0,
-      resetUserCount: Constants.getTeamResetUsers(state, teamMeta.teamname).size,
-      selectedTab,
-      setSelectedTab,
-      showSubteams: yourOperations.manageSubteams,
-      teamname: teamMeta.teamname,
-    }
-  },
-  () => ({}),
-  (stateProps, _, ownProps: OwnProps) => ({
-    admin: stateProps.admin,
-    error: stateProps.error,
-    isBig: stateProps.isBig,
-    loading: stateProps.loading,
-    newRequests: stateProps.newTeamRequests.get(ownProps.teamID)?.size ?? 0,
-    numInvites: stateProps.numInvites,
-    numRequests: stateProps.numRequests,
-    numSubteams: stateProps.numSubteams,
-    resetUserCount: stateProps.resetUserCount,
-    selectedTab: stateProps.selectedTab,
-    setSelectedTab: stateProps.setSelectedTab,
-    showSubteams: stateProps.showSubteams,
-  })
-)(Tabs)
+  const admin = yourOperations.manageMembers
+  const error = Container.useSelector(state => state.teams.errorInAddToTeam)
+  const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
+  const loading = Container.useSelector(state =>
+    anyWaiting(state, Constants.teamWaitingKey(teamID), Constants.teamTarsWaitingKey(teamMeta.teamname))
+  )
+  const newTeamRequests = Container.useSelector(state => state.teams.newTeamRequests)
+  const numInvites = teamDetails.invites?.size ?? 0
+  const numRequests = teamDetails.requests?.size ?? 0
+  const numSubteams = teamDetails.subteams?.size ?? 0
+  const resetUserCount = Container.useSelector(
+    state => Constants.getTeamResetUsers(state, teamMeta.teamname).size
+  )
+  const showSubteams = yourOperations.manageSubteams
+  const props = {
+    admin: admin,
+    error: error,
+    isBig: isBig,
+    loading: loading,
+    newRequests: newTeamRequests.get(ownProps.teamID)?.size ?? 0,
+    numInvites: numInvites,
+    numRequests: numRequests,
+    numSubteams: numSubteams,
+    resetUserCount: resetUserCount,
+    selectedTab: selectedTab,
+    setSelectedTab: setSelectedTab,
+    showSubteams: showSubteams,
+  }
+  return <Tabs {...props} />
+}

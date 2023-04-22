@@ -24,12 +24,12 @@ export default (ownProps: OwnProps) => {
   const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
 
   const props = {
+    highlight: ownProps.route.params?.highlight ?? noHighlight,
     iconNumbers,
     onAddComputer,
     onAddPaperKey,
     onAddPhone,
     onCancel,
-    highlight: ownProps.route.params?.highlight ?? noHighlight,
   }
   return <AddDevice {...props} />
 }
