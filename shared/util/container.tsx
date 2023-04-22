@@ -8,7 +8,6 @@ import {anyWaiting, anyErrors} from '../constants/waiting'
 import {useDispatch as RRuseDispatch, type TypedUseSelectorHook} from 'react-redux'
 import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
-import typedConnect from './typed-connect'
 import type {Route} from '../constants/types/route-tree'
 import type {NavigationContainerRef} from '@react-navigation/core'
 import type {createListenerMiddleware} from '@reduxjs/toolkit'
@@ -128,8 +127,6 @@ export const timeoutPromise = async (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
-const connect = typedConnect
-export {connect}
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {useSafeSubmit} from './safe-submit'
