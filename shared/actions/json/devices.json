@@ -1,8 +1,5 @@
 {
-  "prelude": [
-    "import type * as Types from '../constants/types/devices'",
-    "import type HiddenString from '../util/hidden-string'"
-  ],
+  "prelude": ["import type * as Types from '../constants/types/devices'"],
   "actions": {
     "load": {},
     "clearBadges": {},
@@ -11,7 +8,6 @@
       "deviceID": "Types.DeviceID",
       "tlfs": "Array<string>"
     },
-    "paperKeyCreated": {"paperKey": "HiddenString"},
     "revoke": {"deviceID": "Types.DeviceID"},
     "revoked": {
       "deviceID": "Types.DeviceID",
@@ -22,7 +18,6 @@
       "ids": "Array<string>"
     },
     "showRevokePage": {"deviceID": "Types.DeviceID"},
-    "showDevicePage": {"deviceID": "Types.DeviceID"},
-    "showPaperKeyPage": {}
+    "showDevicePage": {"deviceID": "Types.DeviceID"}
   }
 }

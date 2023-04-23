@@ -1,18 +1,37 @@
-import * as Constants from '../../constants/devices'
-import * as Container from '../../util/container'
-import * as Kb from '../../common-adapters'
+import * as Constants from '../constants/devices'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
-import * as WaitingConstants from '../../constants/waiting'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '../styles'
+import * as RPCTypes from '../constants/types/rpc-gen'
 
 const PaperKey = () => {
-  const paperkey = Container.useSelector(state => state.devices.newPaperkey.stringValue())
-  const waiting = Container.useSelector(state => WaitingConstants.anyWaiting(state, Constants.waitingKey))
-
+  const [paperkey, setPaperkey] = React.useState('')
+  const [wroteItDown, setWroteItDown] = React.useState(false)
   const dispatch = Container.useDispatch()
 
-  const [wroteItDown, setWroteItDown] = React.useState(false)
+  Container.useOnMountOnce(() => {
+    RPCTypes.loginPaperKeyRpcListener(
+      {
+        customResponseIncomingCallMap: {
+          'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
+            response.result(false)
+          },
+        },
+        incomingCallMap: {
+          'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) => {
+            setPaperkey(phrase)
+          },
+        },
+        params: undefined,
+        waitingKey: Constants.waitingKey,
+      },
+      Container.dummyListenerApi
+    )
+      .then(() => {})
+      .catch(() => {})
+  })
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -47,7 +66,7 @@ const PaperKey = () => {
         <Kb.Checkbox
           label="Yes, I wrote this down."
           checked={wroteItDown}
-          disabled={waiting || !paperkey}
+          disabled={!paperkey}
           onCheck={setWroteItDown}
         />
         <Kb.WaitingButton

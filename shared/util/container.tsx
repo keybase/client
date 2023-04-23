@@ -162,6 +162,20 @@ export const useEvent = <Arr extends any[], R>(fn: Fn<Arr, R>): Fn<Arr, R> => {
   )
 }
 
+export const dummyListenerApi = {
+  delay: async () => Promise.resolve(),
+  dispatch: () => {},
+  fork: () => {
+    throw new Error('dummy')
+  },
+  getState: () => {
+    throw new Error('dummy')
+  },
+  take: () => {
+    throw new Error('dummy')
+  },
+}
+
 // BEGIN debugging connect
 // import isEqual from 'lodash/isEqual'
 // const debugMergeProps = __DEV__

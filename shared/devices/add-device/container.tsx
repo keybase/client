@@ -1,6 +1,5 @@
 import * as Container from '../../util/container'
 import * as React from 'react'
-import * as DevicesGen from '../../actions/devices-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as Constants from '../../constants/devices'
@@ -16,7 +15,10 @@ export default (ownProps: OwnProps) => {
     () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
     [dispatch]
   )
-  const onAddPaperKey = React.useCallback(() => dispatch(DevicesGen.createShowPaperKeyPage()), [dispatch])
+  const onAddPaperKey = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [...Constants.devicesTabLocation, 'devicePaperKey']}))
+  }, [dispatch])
+
   const onAddPhone = React.useCallback(
     () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
     [dispatch]
