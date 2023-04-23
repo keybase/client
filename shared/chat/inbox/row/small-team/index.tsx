@@ -8,6 +8,7 @@ import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
 import type * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
 import SwipeConvActions from './swipe-conv-actions'
 import shallowEqual from 'shallowequal'
 import './small-team.css'
@@ -35,22 +36,19 @@ export type Props = {
 const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime} = p
   const {conversationIDKey, isInWidget, swipeCloseRef} = p
+
+  const typingSnippet = Constants.useChatState(state => {
+    const typers = !isInWidget ? state.typingMap.get(conversationIDKey) : undefined
+    if (!typers) return undefined
+    return typers.size === 1
+      ? `${typers.values().next().value as string} is typing...`
+      : 'Multiple people typing...'
+  })
+
   const {isDecryptingSnippet, snippet, snippetDecoration} = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
-    let typingSnippet: undefined | string = undefined
-    if (!isInWidget) {
-      const typers = state.chat2.typingMap.get(conversationIDKey)
-      if (typers?.size) {
-        typingSnippet =
-          typers.size === 1
-            ? `${typers.values().next().value as string} is typing...`
-            : 'Multiple people typing...'
-      }
-    }
-
     // only use layout if we don't have the meta at all
     const maybeLayoutSnippet = meta === undefined ? layoutSnippet : undefined
-
     const snippet = typingSnippet ?? meta?.snippetDecorated ?? maybeLayoutSnippet ?? ''
     const trustedState = meta?.trustedState
     const isDecryptingSnippet =

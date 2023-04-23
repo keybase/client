@@ -18,6 +18,16 @@ import {memoize} from '../../util/memoize'
 import type * as TeamTypes from '../types/teams'
 import type * as UserTypes from '../types/users'
 import type {TypedState} from '../reducer'
+import * as Container from '../../util/container'
+
+type ZState = {
+  typingMap: Map<Types.ConversationIDKey, Set<string>>
+}
+export const useChatState = Container.createZustand(
+  Container.immerZustand<ZState>(_set => ({
+    typingMap: new Map(),
+  }))
+)
 
 export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
   switch (m.type) {
@@ -47,7 +57,6 @@ export const defaultTopReacjis = [
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
 const emptyArray: Array<unknown> = []
-const emptySet = new Set()
 export const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 // while we're debugging chat issues
@@ -119,7 +128,6 @@ export const makeState = (): Types.State => ({
   threadSearchInfoMap: new Map(),
   threadSearchQueryMap: new Map(),
   trustedInboxHasLoaded: false,
-  typingMap: new Map(), // who's typing currently,
   unfurlPromptMap: new Map(),
   unreadMap: new Map(),
   unsentTextMap: new Map(),
@@ -272,8 +280,6 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
   }
 }
 
-export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.typingMap.get(id) || (emptySet as Set<string>)
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
 export const isUserActivelyLookingAtThisThread = (
   state: TypedState,

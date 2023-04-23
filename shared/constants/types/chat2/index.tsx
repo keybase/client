@@ -278,7 +278,6 @@ export type State = {
   readonly threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
   readonly threadSearchQueryMap: Map<Common.ConversationIDKey, HiddenString>
   readonly trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
-  readonly typingMap: Map<Common.ConversationIDKey, Set<string>> // who's typing currently,
   readonly unfurlPromptMap: Map<Common.ConversationIDKey, Map<_Message.MessageID, Set<string>>>
   readonly unreadMap: ConversationCountMap // how many unread messages there are,
   readonly unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>

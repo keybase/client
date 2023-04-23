@@ -19,7 +19,6 @@ import sortedIndexOf from 'lodash/sortedIndexOf'
 import {findLast} from '../util/arrays'
 
 type EngineActions =
-  | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
   | EngineGen.Chat1NotifyChatChatParticipantsInfoPayload
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
   | EngineGen.Chat1ChatUiChatInboxLayoutPayload
@@ -1036,17 +1035,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       })
       botSettings.set(conversationIDKey, settingsMap)
     }
-  },
-  [EngineGen.chat1NotifyChatChatTypingUpdate]: (draftState, action) => {
-    const {typingUpdates} = action.payload.params
-    const typingMap = new Map<string, Set<string>>()
-    const updates = typingUpdates || []
-    updates.forEach(u => {
-      const key = Types.conversationIDToKey(u.convID)
-      const set = new Set((u.typers || []).map(t => t.username))
-      typingMap.set(key, set)
-    })
-    draftState.typingMap = typingMap
   },
   [Chat2Gen.toggleLocalReaction]: (draftState, action) => {
     const {conversationIDKey, decorated, emoji, targetOrdinal, username} = action.payload

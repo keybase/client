@@ -3,6 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Constants from '../../../../constants/chat2'
 import shallowEqual from 'shallowequal'
 import {ConversationIDKeyContext, SnippetContext, SnippetDecorationContext} from './contexts'
 
@@ -110,6 +111,11 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   const conversationIDKey = React.useContext(ConversationIDKeyContext)
   const {isSelected, backgroundColor, isInWidget, isDecryptingSnippet} = p
 
+  const isTypingSnippet = Constants.useChatState(state => {
+    const typers = !isInWidget ? state.typingMap.get(conversationIDKey) : undefined
+    return !!typers?.size
+  })
+
   const data = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
     const hasUnread = (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0
@@ -119,19 +125,10 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
     const hasResetUsers = (meta?.resetParticipants.size ?? 0) > 0
     const draft = (!isSelected && !hasUnread && state.chat2.draftMap.get(conversationIDKey)) || ''
 
-    let isTypingSnippet = false
-    if (!isInWidget) {
-      const typers = state.chat2.typingMap.get(conversationIDKey)
-      if (typers?.size) {
-        isTypingSnippet = true
-      }
-    }
-
     return {
       draft,
       hasResetUsers,
       hasUnread,
-      isTypingSnippet,
       participantNeedToRekey,
       youAreReset,
       youNeedToRekey,
@@ -143,6 +140,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
     backgroundColor,
     isDecryptingSnippet,
     isSelected,
+    isTypingSnippet,
   }
 
   return <BottomLineImpl {...props} />
