@@ -1,17 +1,20 @@
 import type * as TeamsTypes from '../constants/types/teams'
-import type GitRoot from './container'
-import type GitDeleteRepo from './delete-repo/container'
-import type GitNewRepo from './new-repo/container'
+import type GitRoot from '.'
+import type GitDeleteRepo from './delete-repo'
+import type GitNewRepo from './new-repo'
 import type GitSelectChannel from './select-channel'
 
-const gitRoot = {getScreen: (): typeof GitRoot => require('./container').default}
+const gitRoot = {
+  getOptions: () => require('.').options,
+  getScreen: (): typeof GitRoot => require('.').default,
+}
 
 export const newRoutes = {
   gitRoot,
 }
 export const newModalRoutes = {
-  gitDeleteRepo: {getScreen: (): typeof GitDeleteRepo => require('./delete-repo/container').default},
-  gitNewRepo: {getScreen: (): typeof GitNewRepo => require('./new-repo/container').default},
+  gitDeleteRepo: {getScreen: (): typeof GitDeleteRepo => require('./delete-repo').default},
+  gitNewRepo: {getScreen: (): typeof GitNewRepo => require('./new-repo').default},
   gitSelectChannel: {getScreen: (): typeof GitSelectChannel => require('./select-channel').default},
 }
 

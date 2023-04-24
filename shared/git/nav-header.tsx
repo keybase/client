@@ -1,9 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as GitGen from '../../actions/git-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
+import * as Container from '../util/container'
+import * as GitGen from '../actions/git-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 
 export const HeaderTitle = () => (
   <Kb.Box2

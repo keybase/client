@@ -10,7 +10,6 @@ import type DisableCertPinningModal from './disable-cert-pinning-modal/container
 import type DisplayTab from './display'
 import type FeedbackTab from './feedback/container'
 import type FsTab from './files/container'
-import type GitTab from '../git/container'
 import type InvitationsTab from './invites/container'
 import type InviteSent from './invite-generated/container'
 import type LogOutTab from './logout/container'
@@ -21,6 +20,7 @@ import type {DeleteModal} from './account/confirm-delete'
 import type {Email, Phone, VerifyPhone} from './account/add-modals'
 
 import {newRoutes as devicesRoutes} from '../devices/routes'
+import {newRoutes as gitRoutes} from '../git/routes'
 
 export const sharedNewRoutes = {
   [Constants.aboutTab]: {
@@ -41,7 +41,7 @@ export const sharedNewRoutes = {
   [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display').default},
   [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
-  [Constants.gitTab]: {getScreen: (): typeof GitTab => require('../git/container').default},
+  [Constants.gitTab]: {...gitRoutes.gitRoot},
   [Constants.invitationsTab]: {
     getScreen: (): typeof InvitationsTab => require('./invites/container').default,
   },
