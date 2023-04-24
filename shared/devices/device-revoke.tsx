@@ -1,16 +1,19 @@
+import * as Constants from '../constants/devices'
+import * as Container from '../util/container'
+import * as DevicesGen from '../actions/devices-gen'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Constants from '../../constants/devices'
-import type * as Types from '../../constants/types/devices'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '../styles'
+import * as WaitingConstants from '../constants/waiting'
+import type * as Types from '../constants/types/devices'
+import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 
-export type Props = {
-  device: Types.Device
-  endangeredTLFs: Array<string>
-  iconNumber: Types.IconNumber
-  onCancel: () => void
-  onSubmit: () => void
-  waiting: boolean
+type OwnProps = Container.RouteProps<'deviceRevoke'>
+
+export const options = {
+  headerLeft: p => <HeaderLeftCancel {...p} />,
+  title: '',
 }
 
 class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}> {
@@ -73,43 +76,65 @@ const getIcon = (deviceType: Types.DeviceType, iconNumber: Types.IconNumber) => 
   }
   return Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
 }
-const DeviceRevoke = (props: Props) => (
-  <Kb.Box2
-    direction="vertical"
-    fullHeight={true}
-    fullWidth={true}
-    gap="small"
-    gapEnd={true}
-    style={styles.container}
-  >
-    <Kb.NameWithIcon
-      icon={getIcon(props.device.type, props.iconNumber)}
-      title={props.device.name}
-      titleStyle={styles.headerName}
-      size="small"
-    />
-    <Kb.Text center={true} type="Header">
-      Are you sure you want to revoke{' '}
-      {props.device.currentDevice ? (
-        'your current device'
-      ) : (
-        <Kb.Text type="Header" style={styles.italicName}>
-          {props.device.name}
+const DeviceRevoke = (ownProps: OwnProps) => {
+  const selectedDeviceID = ownProps.route.params?.deviceID ?? ''
+  const _endangeredTLFs = Container.useSelector(state => Constants.getEndangeredTLFs(state, selectedDeviceID))
+  const device = Container.useSelector(state => Constants.getDevice(state, selectedDeviceID))
+  const iconNumber = Container.useSelector(state => Constants.getDeviceIconNumber(state, selectedDeviceID))
+  const waiting = Container.useSelector(state => WaitingConstants.anyWaiting(state, Constants.waitingKey))
+
+  const dispatch = Container.useDispatch()
+  const _onSubmit = React.useCallback(
+    (deviceID: Types.DeviceID) => dispatch(DevicesGen.createRevoke({deviceID})),
+    [dispatch]
+  )
+  const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const props = {
+    device,
+    endangeredTLFs: [..._endangeredTLFs],
+    iconNumber,
+    onCancel,
+    onSubmit: () => _onSubmit(device.deviceID),
+    waiting,
+  }
+  return (
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      gap="small"
+      gapEnd={true}
+      style={styles.container}
+    >
+      <Kb.NameWithIcon
+        icon={getIcon(props.device.type, props.iconNumber)}
+        title={props.device.name}
+        titleStyle={styles.headerName}
+        size="small"
+      />
+      <Kb.Text center={true} type="Header">
+        Are you sure you want to revoke{' '}
+        {props.device.currentDevice ? (
+          'your current device'
+        ) : (
+          <Kb.Text type="Header" style={styles.italicName}>
+            {props.device.name}
+          </Kb.Text>
+        )}
+        ?
+      </Kb.Text>
+      <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Styles.isMobile}>
+        {!props.waiting && <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />}
+      </Kb.Box2>
+      <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
+      {props.waiting && (
+        <Kb.Text center={true} type="BodySmallItalic">
+          Calculating any side effects...
         </Kb.Text>
       )}
-      ?
-    </Kb.Text>
-    <Kb.Box2 direction="vertical" style={styles.endangeredTLFContainer} fullWidth={Styles.isMobile}>
-      {!props.waiting && <EndangeredTLFList endangeredTLFs={props.endangeredTLFs} />}
     </Kb.Box2>
-    <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
-    {props.waiting && (
-      <Kb.Text center={true} type="BodySmallItalic">
-        Calculating any side effects...
-      </Kb.Text>
-    )}
-  </Kb.Box2>
-)
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

@@ -1,16 +1,16 @@
+import * as Constants from '../constants/devices'
+import * as Container from '../util/container'
+import * as DevicesGen from '../actions/devices-gen'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as DevicesGen from '../../actions/devices-gen'
-import type * as Types from '../../constants/types/devices'
-import * as Constants from '../../constants/devices'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../../util/timestamp'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '../styles'
+import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../util/timestamp'
 
-type Props = {
-  iconNumber: number
-  id: Types.DeviceID
-  onBack: () => void
+type OwnProps = Container.RouteProps<'devicePage'>
+
+export const options = {
+  title: '',
 }
 
 const TimelineMarker = ({first, last, closedCircle}) => (
@@ -85,10 +85,21 @@ const Timeline = ({device}) => {
   )
 }
 
-const DevicePage = (props: Props) => {
+const DevicePage = (ownProps: OwnProps) => {
+  const id = ownProps.route.params?.deviceID ?? ''
+  const iconNumber = Container.useSelector(state => Constants.getDeviceIconNumber(state, id))
+
+  const dispatch = Container.useDispatch()
+  const onBack = React.useCallback(() => {
+    Container.isMobile && dispatch(RouteTreeGen.createNavigateUp())
+  }, [dispatch])
+  const props = {
+    iconNumber,
+    id,
+    onBack,
+  }
   const device = Container.useSelector(state => Constants.getDevice(state, props.id))
   const canRevoke = Container.useSelector(state => Constants.getDeviceCounts(state).numActive > 1)
-  const dispatch = Container.useDispatch()
   const showRevokeDevicePage = React.useCallback(
     () => dispatch(DevicesGen.createShowRevokePage({deviceID: props.id})),
     [dispatch, props.id]
