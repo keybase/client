@@ -31,14 +31,15 @@ const RootLogin = () => {
   return <JoinOrLogin />
 }
 
-RootLogin.navigationOptions = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}
-
 export const newRoutes = {
   feedback: {getScreen: (): typeof Feedback => require('../signup/feedback/container').default},
-  login: {getScreen: () => RootLogin},
+  login: {
+    getOptions: () => ({
+      headerBottomStyle: {height: undefined},
+      headerLeft: null, // no back button
+    }),
+    getScreen: () => RootLogin,
+  },
   resetConfirm: {getScreen: (): typeof Confirm => require('./reset/confirm').default},
   resetEnterPassword: {getScreen: (): typeof EnterPassword => require('./reset/password').EnterPassword},
   resetKnowPassword: {getScreen: (): typeof KnowPassword => require('./reset/password').KnowPassword},
