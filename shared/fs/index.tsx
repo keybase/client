@@ -4,7 +4,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
-import Browser from './browser/container'
+import Browser from './browser'
 import {NormalPreview} from './filepreview'
 import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
@@ -61,7 +61,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
 }
 
-ChooseComponent.navigationOptions = (ownProps: OwnProps) => {
+export const getOptions = (ownProps: OwnProps) => {
   const path = ownProps.route.params?.path ?? Constants.defaultPath
   return Container.isMobile
     ? {
