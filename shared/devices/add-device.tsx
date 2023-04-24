@@ -1,22 +1,43 @@
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {isLargeScreen} from '../../constants/platform'
-import {useSafeCallback} from '../../util/container'
+import * as Container from '../util/container'
+import * as React from 'react'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as ProvisionGen from '../actions/provision-gen'
+import * as Constants from '../constants/devices'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
+import {isLargeScreen} from '../constants/platform'
+import {useSafeCallback} from '../util/container'
 
-type Props = {
-  highlight?: Array<'computer' | 'phone' | 'paper key'>
-  iconNumbers: {desktop: number; mobile: number}
-  onAddComputer: () => void
-  onAddPaperKey: () => void
-  onAddPhone: () => void
-  onCancel: () => void
-}
+type OwnProps = Container.RouteProps<'deviceAdd'>
+const noHighlight = []
 
-const AddDevice = (props: Props) => {
+export default function AddDevice(ownProps: OwnProps) {
+  const iconNumbers = Container.useSelector(state => Constants.getNextDeviceIconNumber(state))
+  const dispatch = Container.useDispatch()
+  const _onAddComputer = React.useCallback(
+    () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
+    [dispatch]
+  )
+  const _onAddPaperKey = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [...Constants.devicesTabLocation, 'devicePaperKey']}))
+  }, [dispatch])
+
+  const _onAddPhone = React.useCallback(
+    () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
+    [dispatch]
+  )
+  const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+
+  const props = {
+    highlight: ownProps.route.params?.highlight ?? noHighlight,
+    iconNumbers,
+    onCancel,
+  }
+
   const onlyOnce = true
-  const onAddComputer = useSafeCallback(props.onAddComputer, {onlyOnce})
-  const onAddPhone = useSafeCallback(props.onAddPhone, {onlyOnce})
-  const onAddPaperKey = useSafeCallback(props.onAddPaperKey, {onlyOnce})
+  const onAddComputer = useSafeCallback(_onAddComputer, {onlyOnce})
+  const onAddPhone = useSafeCallback(_onAddPhone, {onlyOnce})
+  const onAddPaperKey = useSafeCallback(_onAddPaperKey, {onlyOnce})
   return (
     <Kb.PopupWrapper onCancel={props.onCancel}>
       <Kb.ScrollView alwaysBounceVertical={false}>
@@ -128,5 +149,3 @@ const styles = Styles.styleSheetCreate(() => ({
     isMobile: {paddingTop: Styles.globalMargins.medium},
   }),
 }))
-
-export default AddDevice

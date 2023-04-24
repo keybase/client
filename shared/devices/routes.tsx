@@ -2,7 +2,7 @@ import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
 import type DevicePage from './device-page'
 import type DeviceRevoke from './device-revoke'
 import type DevicesRoot from './container'
-import type DeviceAdd from './add-device/container'
+import type DeviceAdd from './add-device'
 import type DevicePaperKey from './paper-key'
 
 export const newRoutes = {
@@ -23,7 +23,7 @@ export const newRoutes = {
 export const newModalRoutes = {
   // TODO likely should rename these
   ...provisionNewRoutes,
-  deviceAdd: {getScreen: (): typeof DeviceAdd => require('./add-device/container').default},
+  deviceAdd: {getScreen: (): typeof DeviceAdd => require('./add-device').default},
   devicePaperKey: {
     getOptions: () => require('./paper-key').options,
     getScreen: (): typeof DevicePaperKey => require('./paper-key').default,
