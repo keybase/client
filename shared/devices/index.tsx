@@ -8,7 +8,7 @@ import * as Styles from '../styles'
 import DeviceRow from './row'
 import partition from 'lodash/partition'
 import type * as Types from '../constants/types/devices'
-import {HeaderTitle, HeaderRightActions} from './nav-header/container'
+import {HeaderTitle, HeaderRightActions} from './nav-header'
 import {intersect} from '../util/set'
 
 const sortDevices = (a: Types.Device, b: Types.Device) => {
