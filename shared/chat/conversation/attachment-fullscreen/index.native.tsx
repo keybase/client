@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/chat2'
-import MessagePopup from '../messages/message-popup'
+import {useMessagePopup} from '../messages/message-popup'
 import {Video, ResizeMode} from 'expo-av'
 import logger from '../../../logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
@@ -55,23 +55,10 @@ const Fullscreen = (p: Props) => {
   const [loaded, setLoaded] = React.useState(false)
   const {conversationIDKey, id} = message
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <MessagePopup
-          attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
-          ordinal={id}
-          onHidden={toggleShowingPopup}
-          position="bottom left"
-          visible={true}
-        />
-      )
-    },
-    [conversationIDKey, id]
-  )
-  const {toggleShowingPopup, popup} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, popup} = useMessagePopup({
+    conversationIDKey,
+    ordinal: id,
+  })
 
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null

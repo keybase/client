@@ -11,7 +11,7 @@ import EmojiRow from '../emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
-import MessagePopup from '../message-popup'
+import {useMessagePopup} from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactionsRow from '../reactions-row'
 import SendIndicator from './send-indicator'
@@ -58,26 +58,13 @@ export const useCommon = (ordinal: Types.Ordinal) => {
     const shouldShowPopup = Constants.shouldShowPopup(state, m ?? undefined)
     return {shouldShowPopup, type}
   }, shallowEqual)
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return messageShowsPopup(type) && shouldShowPopup ? (
-        <MessagePopup
-          conversationIDKey={conversationIDKey}
-          ordinal={ordinal}
-          key="popup"
-          attachTo={attachTo}
-          onHidden={toggleShowingPopup}
-          position="top right"
-          style={styles.messagePopupContainer}
-          visible={true}
-        />
-      ) : null
-    },
-    [conversationIDKey, ordinal, shouldShowPopup, type]
-  )
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
+  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
+    conversationIDKey,
+    ordinal,
+    shouldShow: () => messageShowsPopup(type) && shouldShowPopup && showingPopup,
+    style: styles.messagePopupContainer,
+  })
   return {popup, popupAnchor, showCenteredHighlight, showingPopup, toggleShowingPopup, type}
 }
 

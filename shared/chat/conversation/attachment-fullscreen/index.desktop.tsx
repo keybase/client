@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import MessagePopup from '../messages/message-popup'
+import {useMessagePopup} from '../messages/message-popup'
 import * as Styles from '../../../styles'
 import type {Props} from '.'
 
@@ -47,23 +47,10 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const isDownloadError = !!message.transferErrMsg
   const {conversationIDKey, id} = message
 
-  const makePopup = React.useCallback(
-    (p: Kb.Popup2Parms) => {
-      const {attachTo, toggleShowingPopup} = p
-      return (
-        <MessagePopup
-          attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
-          ordinal={id}
-          onHidden={toggleShowingPopup}
-          position="bottom left"
-          visible={true}
-        />
-      )
-    },
-    [conversationIDKey, id]
-  )
-  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
+  const {toggleShowingPopup, popup, popupAnchor} = useMessagePopup({
+    conversationIDKey,
+    ordinal: id,
+  })
 
   return (
     <Kb.PopupDialog onClose={onClose} fill={true}>
@@ -74,7 +61,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
             {title}
           </Kb.Markdown>
           <Kb.Icon
-            ref={popupAnchor as any}
+            ref={popupAnchor}
             type="iconfont-ellipsis"
             style={Styles.platformStyles({
               common: {marginLeft: Styles.globalMargins.tiny},

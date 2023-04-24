@@ -1,5 +1,8 @@
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import * as React from 'react'
 import AttachmentMessage from './attachment/container'
 import ExplodingMessage from './exploding/container'
@@ -130,3 +133,79 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
 })
 
 export default MessagePopup
+
+// Mobile only
+type ModalProps = Container.RouteProps<'chatMessagePopup'>
+export const MessagePopupModal = (p: ModalProps) => {
+  const {conversationIDKey = '', ordinal = 0} = p.route.params ?? {}
+  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup(attachTo => (
+    <Kb.FloatingModalContext.Provider value={true}>
+      <MessagePopup
+        conversationIDKey={conversationIDKey}
+        ordinal={ordinal}
+        key="popup"
+        attachTo={attachTo}
+        onHidden={p.navigation.pop}
+        position="top right"
+        visible={true}
+      />
+    </Kb.FloatingModalContext.Provider>
+  ))
+
+  if (!showingPopup) {
+    setShowingPopup(true)
+  }
+
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} ref={popupAnchor}>
+      {popup}
+    </Kb.Box2>
+  )
+}
+
+export const useMessagePopup = (p: {
+  conversationIDKey: Types.ConversationIDKey
+  ordinal: Types.Ordinal
+  shouldShow?: () => boolean
+  style?: Styles.StylesCrossPlatform
+}) => {
+  const {conversationIDKey, ordinal, shouldShow, style} = p
+  const desktopPopup = Kb.usePopup(attachTo =>
+    shouldShow?.() ?? true ? (
+      <MessagePopup
+        conversationIDKey={conversationIDKey}
+        ordinal={ordinal}
+        key="popup"
+        attachTo={attachTo}
+        onHidden={desktopPopup.toggleShowingPopup}
+        position="top right"
+        style={style}
+        visible={desktopPopup.showingPopup}
+      />
+    ) : null
+  )
+
+  const dispatch = Container.useDispatch()
+
+  const mobilePopup: {
+    popup: React.ReactNode
+    popupAnchor: React.MutableRefObject<React.Component | null>
+    setShowingPopup: React.Dispatch<React.SetStateAction<boolean>>
+    showingPopup: boolean
+    toggleShowingPopup: () => void
+  } = {
+    popup: null,
+    popupAnchor: React.useRef<React.Component>(null),
+    setShowingPopup: () => {},
+    showingPopup: true,
+    toggleShowingPopup: Container.useEvent(() => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {conversationIDKey, ordinal}, selected: 'chatMessagePopup'}],
+        })
+      )
+    }),
+  }
+
+  return Styles.isMobile ? mobilePopup : desktopPopup
+}
