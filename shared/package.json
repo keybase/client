@@ -144,7 +144,8 @@
     "url-parse": "1.5.10",
     "use-debounce": "9.0.4",
     "use-memo-one": "1.1.3",
-    "util": "0.12.5"
+    "util": "0.12.5",
+    "zustand": "4.3.7"
   },
   "devDependencies": {
     "@babel/cli": "7.21.0",

@@ -5,7 +5,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
-import HiddenString from '../util/hidden-string'
 import {logError} from '../util/errors'
 
 const load = async (state: Container.TypedState) => {
@@ -19,25 +18,6 @@ const load = async (state: Container.TypedState) => {
   } catch (_) {
     return false
   }
-}
-
-const requestPaperKey = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
-  await RPCTypes.loginPaperKeyRpcListener(
-    {
-      customResponseIncomingCallMap: {
-        'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
-          response.result(false)
-        },
-      },
-      incomingCallMap: {
-        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
-          listenerApi.dispatch(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
-      },
-      params: undefined,
-      waitingKey: Constants.waitingKey,
-    },
-    listenerApi
-  )
 }
 
 const requestEndangeredTLFsLoad = async (
@@ -115,9 +95,6 @@ const showDevicePage = (_: unknown, action: DevicesGen.ShowDevicePagePayload) =>
     ],
   })
 
-const showPaperKeyPage = () =>
-  RouteTreeGen.createNavigateAppend({path: [...Constants.devicesTabLocation, 'devicePaperKey']})
-
 const clearNavBadges = async () => RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
 
 const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
@@ -130,23 +107,21 @@ const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeSt
 
 const initDevice = () => {
   // Load devices
-  Container.listenAction([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], load)
+  Container.listenAction([DevicesGen.load, DevicesGen.revoked], load)
   // Revoke device
   Container.listenAction(DevicesGen.revoke, revoke)
 
   // Navigation
   Container.listenAction(DevicesGen.showRevokePage, showRevokePage)
   Container.listenAction(DevicesGen.showDevicePage, showDevicePage)
-  Container.listenAction(DevicesGen.showPaperKeyPage, showPaperKeyPage)
   Container.listenAction(DevicesGen.revoked, navigateAfterRevoked)
 
   // Badges
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
-  Container.listenAction([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], clearNavBadges)
+  Container.listenAction([DevicesGen.load, DevicesGen.revoked], clearNavBadges)
 
   // Loading data
   Container.listenAction([DevicesGen.showRevokePage], requestEndangeredTLFsLoad)
-  Container.listenAction(DevicesGen.showPaperKeyPage, requestPaperKey)
 }
 
 export default initDevice

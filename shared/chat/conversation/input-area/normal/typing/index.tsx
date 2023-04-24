@@ -2,16 +2,15 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
 import type * as Types from '../../../../../constants/types/chat2'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-const Names = (props: {names: Set<string>}) => {
+const Names = (props: {names?: Set<string>}) => {
   const textType = 'BodyTinySemibold'
-  const names = [...props.names]
+  const names = [...(props.names ?? [])]
 
   switch (names.length) {
     case 0:
@@ -50,15 +49,15 @@ const Names = (props: {names: Set<string>}) => {
 
 const Typing = React.memo(function Typing(props: Props) {
   const {conversationIDKey} = props
-  const names = Container.useSelector(state => Constants.getTyping(state, conversationIDKey))
+  const names = Constants.useChatState(state => state.typingMap.get(conversationIDKey))
   return (
     <Kb.Box style={styles.isTypingContainer}>
-      {names.size > 0 && (
+      {(names?.size ?? 0) > 0 && (
         <Kb.Box style={styles.typingIconContainer}>
           <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
         </Kb.Box>
       )}
-      {names.size > 0 && (
+      {(names?.size ?? 0) > 0 && (
         <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
           <Names names={names} />
         </Kb.Text>

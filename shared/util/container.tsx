@@ -16,6 +16,8 @@ export {type RouteProps, getRouteParams, getRouteParamsFromRoute} from '../route
 export {listenAction, type ListenerApi, spawn} from './redux-toolkit'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 import USH from './use-selector'
+export {create as createZustand} from 'zustand'
+export {immer as immerZustand} from 'zustand/middleware/immer'
 
 const useSelector = USH.useSelector as TypedUseSelectorHook<RootState>
 
@@ -160,6 +162,20 @@ export const useEvent = <Arr extends any[], R>(fn: Fn<Arr, R>): Fn<Arr, R> => {
         ref.current(...args),
     []
   )
+}
+
+export const dummyListenerApi = {
+  delay: async () => Promise.resolve(),
+  dispatch: () => {},
+  fork: () => {
+    throw new Error('dummy')
+  },
+  getState: () => {
+    throw new Error('dummy')
+  },
+  take: () => {
+    throw new Error('dummy')
+  },
 }
 
 // BEGIN debugging connect

@@ -375,10 +375,11 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     }
   }
 
+  const isTyping = Constants.useChatState(state => !!state.typingMap.get(conversationIDKey)?.size)
+
   const data = Container.useSelector(state => {
     const isActiveForFocus = state.chat2.focus === null
-    const showTypingStatus =
-      Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown
+    const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
     const showWalletsIcon = Constants.shouldShowWalletsIcon(state, conversationIDKey)
     const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
     const cannotWrite = Constants.getMeta(state, conversationIDKey).cannotWrite
