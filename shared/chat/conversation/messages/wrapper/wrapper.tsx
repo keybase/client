@@ -59,10 +59,13 @@ export const useCommon = (ordinal: Types.Ordinal) => {
     return {shouldShowPopup, type}
   }, shallowEqual)
 
+  const shouldShow = React.useCallback(() => {
+    return messageShowsPopup(type) && shouldShowPopup
+  }, [shouldShowPopup, type])
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = useMessagePopup({
     conversationIDKey,
     ordinal,
-    shouldShow: () => messageShowsPopup(type) && shouldShowPopup && showingPopup,
+    shouldShow,
     style: styles.messagePopupContainer,
   })
   return {popup, popupAnchor, showCenteredHighlight, showingPopup, toggleShowingPopup, type}

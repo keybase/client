@@ -172,10 +172,13 @@ type DocViewRowProps = {item: Doc}
 
 const DocViewRow = (props: DocViewRowProps) => {
   const {item} = props
+  const shouldShow = React.useCallback(() => {
+    return !!item.message
+  }, [item])
   const {toggleShowingPopup, popup} = useMessagePopup({
     conversationIDKey: item.message?.conversationIDKey ?? '',
     ordinal: item.message?.id ?? 0,
-    shouldShow: () => !!item.message,
+    shouldShow,
   })
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
