@@ -329,7 +329,7 @@ const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) 
     playThroughEarpieceAndroid: false,
     playsInSilentModeIOS: true,
     shouldDuckAndroid: false,
-    staysActiveInBackground: false,
+    staysActiveInBackground: true,
   })
   const recording = new Audio.Recording()
   await recording.prepareToRecordAsync({
