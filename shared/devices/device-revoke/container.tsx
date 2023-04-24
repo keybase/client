@@ -5,9 +5,15 @@ import * as DevicesGen from '../../actions/devices-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WaitingConstants from '../../constants/waiting'
 import DeviceRevoke from '.'
+import {HeaderLeftCancel} from '../../common-adapters/header-hoc'
 import type * as Types from '../../constants/types/devices'
 
 type OwnProps = Container.RouteProps<'deviceRevoke'>
+
+export const options = {
+  headerLeft: p => <HeaderLeftCancel {...p} />,
+  title: '',
+}
 
 export default (ownProps: OwnProps) => {
   const selectedDeviceID = ownProps.route.params?.deviceID ?? ''

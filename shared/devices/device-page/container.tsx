@@ -6,6 +6,10 @@ import DevicePage from '.'
 
 type OwnProps = Container.RouteProps<'devicePage'>
 
+export const options = {
+  title: '',
+}
+
 export default (ownProps: OwnProps) => {
   const id = ownProps.route.params?.deviceID ?? ''
   const iconNumber = Container.useSelector(state => Constants.getDeviceIconNumber(state, id))

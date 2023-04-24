@@ -84,7 +84,7 @@ const ReloadableDevices = (props: Props) => {
   )
 }
 
-ReloadableDevices.navigationOptions = Container.isMobile
+export const options = Container.isMobile
   ? {title: 'Devices'}
   : {
       headerRightActions: HeaderRightActions,

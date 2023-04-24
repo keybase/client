@@ -145,10 +145,6 @@ const DevicePage = (props: Props) => {
     </Kb.Box2>
   )
 }
-DevicePage.navigationOptions = {
-  title: '',
-}
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({

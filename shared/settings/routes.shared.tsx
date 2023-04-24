@@ -6,7 +6,6 @@ import type AdvancedTab from './advanced'
 import type ChatTab from './chat/container'
 import type DbNukeConfirm from './db-nuke-confirm/container'
 import type DeleteConfirm from './delete-confirm/index'
-import type DevicesTab from '../devices/container'
 import type DisableCertPinningModal from './disable-cert-pinning-modal/container'
 import type DisplayTab from './display'
 import type FeedbackTab from './feedback/container'
@@ -17,10 +16,11 @@ import type InviteSent from './invite-generated/container'
 import type LogOutTab from './logout/container'
 import type NotificationsTab from './notifications/container'
 import type PasswordTab from './password/container'
-import type RemoveDevice from '../devices/device-revoke/container'
 import type WhatsNewTab from '../whats-new/container'
 import type {DeleteModal} from './account/confirm-delete'
 import type {Email, Phone, VerifyPhone} from './account/add-modals'
+
+import {newRoutes as devicesRoutes} from '../devices/routes'
 
 export const sharedNewRoutes = {
   [Constants.aboutTab]: {
@@ -37,7 +37,7 @@ export const sharedNewRoutes = {
     getOptions: () => ({title: 'Crypto'}),
     getScreen: (): typeof ChatTab => require('../crypto/sub-nav').default,
   },
-  [Constants.devicesTab]: {getScreen: (): typeof DevicesTab => require('../devices/container').default},
+  [Constants.devicesTab]: {...devicesRoutes.devicesRoot},
   [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display').default},
   [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
@@ -62,7 +62,7 @@ export const sharedNewRoutes = {
   addPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
   dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
   inviteSent: {getScreen: (): typeof InviteSent => require('./invite-generated/container').default},
-  removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
+  removeDevice: {...devicesRoutes.deviceRevoke},
 }
 
 export const sharedNewModalRoutes = {

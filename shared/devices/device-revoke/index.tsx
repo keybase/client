@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Constants from '../../constants/devices'
 import type * as Types from '../../constants/types/devices'
 import * as Kb from '../../common-adapters'
-import {HeaderLeftCancel} from '../../common-adapters/header-hoc'
 import * as Styles from '../../styles'
 
 export type Props = {
@@ -111,11 +110,6 @@ const DeviceRevoke = (props: Props) => (
     )}
   </Kb.Box2>
 )
-
-DeviceRevoke.navigationOptions = {
-  headerLeft: p => <HeaderLeftCancel {...p} />,
-  title: '',
-}
 
 const styles = Styles.styleSheetCreate(
   () =>
