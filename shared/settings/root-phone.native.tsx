@@ -64,7 +64,12 @@ function SettingsNav(props: Props) {
   const badgeNotifications = Container.useSelector(state => !state.push.hasPermissions)
   const statsShown = Container.useSelector(state => !!state.config.runtimeStats)
   const {navigation} = props
-  const onTabChange = React.useCallback(s => navigation.navigate(s), [navigation])
+  const onTabChange = React.useCallback(
+    s => {
+      navigation.navigate(s)
+    },
+    [navigation]
+  )
   const contactsLabel = Container.useSelector(state =>
     state.settings.contacts.importEnabled ? 'Phone contacts' : 'Import phone contacts'
   )

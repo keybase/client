@@ -79,7 +79,7 @@ const PaperKey = () => {
     </Kb.Box2>
   )
 }
-PaperKey.navigationOptions = {
+export const options = {
   gesturesEnabled: false,
   modal2: true,
   modal2NoClose: true,

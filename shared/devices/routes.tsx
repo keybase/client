@@ -1,21 +1,33 @@
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
-import type DevicePage from './device-page/container'
-import type DeviceRevoke from './device-revoke/container'
-import type DevicesRoot from './container'
-import type DeviceAdd from './add-device/container'
+import type DevicePage from './device-page'
+import type DeviceRevoke from './device-revoke'
+import type DevicesRoot from '.'
+import type DeviceAdd from './add-device'
 import type DevicePaperKey from './paper-key'
 
 export const newRoutes = {
-  devicePage: {getScreen: (): typeof DevicePage => require('./device-page/container').default},
-  deviceRevoke: {getScreen: (): typeof DeviceRevoke => require('./device-revoke/container').default},
-  devicesRoot: {getScreen: (): typeof DevicesRoot => require('./container').default},
+  devicePage: {
+    getOptions: () => require('./device-page').options,
+    getScreen: (): typeof DevicePage => require('./device-page').default,
+  },
+  deviceRevoke: {
+    getOptions: () => require('./device-revoke').options,
+    getScreen: (): typeof DeviceRevoke => require('./device-revoke').default,
+  },
+  devicesRoot: {
+    getOptions: () => require('.').options,
+    getScreen: (): typeof DevicesRoot => require('.').default,
+  },
 }
 
 export const newModalRoutes = {
   // TODO likely should rename these
   ...provisionNewRoutes,
-  deviceAdd: {getScreen: (): typeof DeviceAdd => require('./add-device/container').default},
-  devicePaperKey: {getScreen: (): typeof DevicePaperKey => require('./paper-key').default},
+  deviceAdd: {getScreen: (): typeof DeviceAdd => require('./add-device').default},
+  devicePaperKey: {
+    getOptions: () => require('./paper-key').options,
+    getScreen: (): typeof DevicePaperKey => require('./paper-key').default,
+  },
 }
 
 export type RootParamListDevices = {

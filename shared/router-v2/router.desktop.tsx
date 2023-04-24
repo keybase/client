@@ -69,7 +69,7 @@ const makeNavScreens = (rs, Screen, _isModal: boolean) => {
         name={name}
         getComponent={rs[name].getScreen}
         options={({route, navigation}) => {
-          const no = rs[name].getOptions ?? rs[name].getScreen().navigationOptions
+          const no = Shim.getOptions(rs[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}
