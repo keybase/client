@@ -1,7 +1,7 @@
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
 import type DevicePage from './device-page'
 import type DeviceRevoke from './device-revoke'
-import type DevicesRoot from './container'
+import type DevicesRoot from '.'
 import type DeviceAdd from './add-device'
 import type DevicePaperKey from './paper-key'
 
@@ -15,8 +15,8 @@ export const newRoutes = {
     getScreen: (): typeof DeviceRevoke => require('./device-revoke').default,
   },
   devicesRoot: {
-    getOptions: () => require('./container').options,
-    getScreen: (): typeof DevicesRoot => require('./container').default,
+    getOptions: () => require('.').options,
+    getScreen: (): typeof DevicesRoot => require('.').default,
   },
 }
 
