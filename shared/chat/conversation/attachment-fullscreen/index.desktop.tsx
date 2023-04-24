@@ -61,7 +61,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
             {title}
           </Kb.Markdown>
           <Kb.Icon
-            ref={popupAnchor}
+            ref={popupAnchor as any}
             type="iconfont-ellipsis"
             style={Styles.platformStyles({
               common: {marginLeft: Styles.globalMargins.tiny},

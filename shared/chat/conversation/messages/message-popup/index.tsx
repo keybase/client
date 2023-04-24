@@ -138,26 +138,33 @@ export default MessagePopup
 type ModalProps = Container.RouteProps<'chatMessagePopup'>
 export const MessagePopupModal = (p: ModalProps) => {
   const {conversationIDKey = '', ordinal = 0} = p.route.params ?? {}
-  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup(attachTo => (
-    <Kb.FloatingModalContext.Provider value={true}>
-      <MessagePopup
-        conversationIDKey={conversationIDKey}
-        ordinal={ordinal}
-        key="popup"
-        attachTo={attachTo}
-        onHidden={p.navigation.pop}
-        position="top right"
-        visible={true}
-      />
-    </Kb.FloatingModalContext.Provider>
-  ))
-
+  const pop = p.navigation.pop
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo} = p
+      return (
+        <Kb.FloatingModalContext.Provider value={true}>
+          <MessagePopup
+            conversationIDKey={conversationIDKey}
+            ordinal={ordinal}
+            key="popup"
+            attachTo={attachTo}
+            onHidden={pop}
+            position="top right"
+            visible={true}
+          />
+        </Kb.FloatingModalContext.Provider>
+      )
+    },
+    [conversationIDKey, ordinal, pop]
+  )
+  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup2(makePopup)
   if (!showingPopup) {
     setShowingPopup(true)
   }
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} ref={popupAnchor}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} ref={popupAnchor as any}>
       {popup}
     </Kb.Box2>
   )
@@ -170,21 +177,26 @@ export const useMessagePopup = (p: {
   style?: Styles.StylesCrossPlatform
 }) => {
   const {conversationIDKey, ordinal, shouldShow, style} = p
-  const desktopPopup = Kb.usePopup(attachTo =>
-    shouldShow?.() ?? true ? (
-      <MessagePopup
-        conversationIDKey={conversationIDKey}
-        ordinal={ordinal}
-        key="popup"
-        attachTo={attachTo}
-        onHidden={desktopPopup.toggleShowingPopup}
-        position="top right"
-        style={style}
-        visible={desktopPopup.showingPopup}
-      />
-    ) : null
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {toggleShowingPopup, attachTo} = p
+      return shouldShow?.() ?? true ? (
+        <MessagePopup
+          conversationIDKey={conversationIDKey}
+          ordinal={ordinal}
+          key="popup"
+          attachTo={attachTo}
+          onHidden={toggleShowingPopup}
+          position="top right"
+          style={style}
+          visible={true}
+        />
+      ) : null
+    },
+    [conversationIDKey, ordinal, shouldShow, style]
   )
 
+  const desktopPopup = Kb.usePopup2(makePopup)
   const dispatch = Container.useDispatch()
 
   const mobilePopup: {
