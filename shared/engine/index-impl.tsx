@@ -152,6 +152,14 @@ class Engine {
     }
   }
 
+  _callbackAndNotAction = new Map<string, (action: any) => void>()
+  registerRpcCallback = (rpcName: string, cb: (action: any) => void) => {
+    if (this._callbackAndNotAction.has(rpcName)) {
+      throw new Error(`Dupe in registerRpcCallback not allowed: ${rpcName}`)
+    }
+    this._callbackAndNotAction.set(rpcName, cb)
+  }
+
   // An incoming rpc call
   _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response: Object | null}) {
     const {method, param: incomingParam, response} = payload
@@ -183,8 +191,16 @@ class Engine {
           .split('.')
           .map((p, idx) => (idx ? capitalize(p) : p))
           .join('')
-        // @ts-ignore can't really type this easily
-        this._dispatch({payload: {params: param, ...extra}, type: `engine-gen:${type}`})
+
+        const act = {payload: {params: param, ...extra}, type: `engine-gen:${type}`}
+        // allow us to skip going through redux for these notifications
+        const maybeCB = this._callbackAndNotAction.get(act.type)
+        if (maybeCB) {
+          maybeCB(act)
+        } else {
+          // @ts-ignore can't really type this easily
+          this._dispatch(act)
+        }
       }
     }
   }

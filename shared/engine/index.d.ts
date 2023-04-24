@@ -9,6 +9,8 @@ export declare class Engine {
   rpc(): void
   listenersAreReady(): void
   registerCustomResponse(s: string): void
+  // instead of dispatching incoming as an action, just call me back
+  registerRpcCallback<AT>(rpcName: string, cb: (action: AT) => void): void
   createSession(arg0: {
     incomingCallMap?: IncomingCallMapType
     waitingKey?: WaitingKey
