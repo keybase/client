@@ -1,9 +1,45 @@
+import * as Constants from '../constants/signup'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
+import * as Platform from '../constants/platform'
+import * as ProvisionGen from '../actions/provision-gen'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Platform from '../../constants/platform'
-import {maxUsernameLength} from '../../constants/signup'
-import {InfoIcon, SignupScreen, errorBanner} from '../common'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as SignupGen from '../actions/signup-gen'
+import * as Styles from '../styles'
+import {InfoIcon, SignupScreen, errorBanner} from './common'
+import {anyWaiting} from '../constants/waiting'
+import {maxUsernameLength} from '../constants/signup'
+
+const ConnectedEnterUsername = () => {
+  const error = Container.useSelector(state => state.signup.usernameError)
+  const initialUsername = Container.useSelector(state => state.signup.username)
+  const usernameTaken = Container.useSelector(state => state.signup.usernameTaken)
+  const waiting = Container.useSelector(state => anyWaiting(state, Constants.waitingKey))
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(SignupGen.createRestartSignup())
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onContinue = (username: string) => {
+    dispatch(SignupGen.createCheckUsername({username}))
+  }
+  const onLogin = (initUsername: string) => {
+    dispatch(ProvisionGen.createStartProvision({initUsername}))
+  }
+  const props = {
+    error,
+    initialUsername,
+    onBack,
+    onContinue,
+    onLogin,
+    usernameTaken,
+    waiting,
+  }
+  return <EnterUsername {...props} />
+}
+
+export default ConnectedEnterUsername
 
 type Props = {
   error: string
@@ -85,7 +121,7 @@ const EnterUsername = (props: Props) => {
   )
 }
 
-EnterUsername.navigationOptions = {
+export const options = {
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
   headerRightActions: () => (
@@ -107,5 +143,3 @@ const styles = Styles.styleSheetCreate(() => ({
     isTablet: {width: 368},
   }),
 }))
-
-export default EnterUsername

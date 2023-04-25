@@ -1,10 +1,36 @@
+import * as Constants from '../constants/provision'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
+import * as Platform from '../constants/platform'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/provision'
-import * as Styles from '../../styles'
-import * as Platform from '../../constants/platform'
-import {SignupScreen, errorBanner, InfoIcon} from '../common'
+import * as SignupGen from '../actions/signup-gen'
+import * as Styles from '../styles'
 import debounce from 'lodash/debounce'
+import {SignupScreen, errorBanner, InfoIcon} from './common'
+import {anyWaiting} from '../constants/waiting'
+
+const ConnectedEnterDevicename = () => {
+  const error = Container.useSelector(state => state.signup.devicenameError)
+  const initialDevicename = Container.useSelector(state => state.signup.devicename)
+  const waiting = Container.useSelector(state => anyWaiting(state, Constants.waitingKey))
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(SignupGen.createGoBackAndClearErrors())
+  }
+  const onContinue = (devicename: string) => {
+    dispatch(SignupGen.createCheckDevicename({devicename}))
+  }
+  const props = {
+    error,
+    initialDevicename,
+    onBack,
+    onContinue,
+    waiting,
+  }
+  return <EnterDevicename {...props} />
+}
+
+export default ConnectedEnterDevicename
 
 type Props = {
   error: string
@@ -80,7 +106,7 @@ const EnterDevicename = (props: Props) => {
     </SignupScreen>
   )
 }
-EnterDevicename.navigationOptions = {
+export const options = {
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
   headerRightActions: () => (
@@ -103,5 +129,3 @@ const styles = Styles.styleSheetCreate(() => ({
     isTablet: {width: 368},
   }),
 }))
-
-export default EnterDevicename
