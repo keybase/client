@@ -92,8 +92,6 @@ const ResetModalImpl = () => {
   )
 }
 
-ResetModal.navigationOptions = {gesturesEnabled: false}
-
 const styles = Styles.styleSheetCreate(() => ({
   textContainer: Styles.platformStyles({
     common: {

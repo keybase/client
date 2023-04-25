@@ -1,7 +1,7 @@
 import type DeviceSelector from './device-selector/container'
 import type ExplainDevice from './explain-device'
-import {type ConnectedErrorModal} from './error/container'
-import type Error from './error/container'
+import {type ConnectedErrorModal} from './error'
+import type Error from './error'
 import type PaperKey from './paper-key'
 import type {PromptResetAccount, PromptResetPassword} from './prompt-reset'
 import type Password from './password'
@@ -11,7 +11,8 @@ export const newRoutes = {
     getScreen: (): typeof DeviceSelector => require('./device-selector/container').default,
   },
   recoverPasswordError: {
-    getScreen: (): typeof Error => require('./error/container').default,
+    getOptions: () => require('./error').options,
+    getScreen: (): typeof Error => require('./error').default,
   },
   recoverPasswordExplainDevice: {
     getOptions: () => require('./explain-device').options,
@@ -33,7 +34,8 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   recoverPasswordErrorModal: {
-    getScreen: (): typeof ConnectedErrorModal => require('./error/container').ConnectedErrorModal,
+    getOptions: () => require('./error').modalOptions,
+    getScreen: (): typeof ConnectedErrorModal => require('./error').ConnectedErrorModal,
   },
   recoverPasswordSetPassword: {
     getOptions: () => require('./password').options,

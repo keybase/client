@@ -1,7 +1,29 @@
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import {SignupScreen, InfoIcon} from '../../../signup/common'
-import type {ButtonType} from '../../../common-adapters/button'
+import * as Container from '../../util/container'
+import * as Kb from '../../common-adapters'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Styles from '../../styles'
+import type {ButtonType} from '../../common-adapters/button'
+import {SignupScreen, InfoIcon} from '../../signup/common'
+
+const useConn = () => {
+  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  const error = Container.useSelector(state => state.recoverPassword.error.stringValue())
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    loggedIn ? dispatch(RouteTreeGen.createNavigateUp()) : dispatch(RouteTreeGen.createPopStack())
+  }
+  return {error, onBack}
+}
+const ConnectedError = () => {
+  const props = useConn()
+  return <Error {...props} />
+}
+export const ConnectedErrorModal = () => {
+  const props = useConn()
+  return <ErrorModal {...props} />
+}
+
+export default ConnectedError
 
 type Props = {
   error: string
@@ -43,7 +65,7 @@ export const ErrorModal = (props: Props) => (
   </Kb.Modal>
 )
 
-Error.navigationOptions = {
+export const options = {
   gesturesEnabled: false,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
@@ -56,7 +78,8 @@ Error.navigationOptions = {
     </Kb.Box2>
   ),
 }
-ErrorModal.navigationOptions = {
+
+export const modalOptions = {
   gesturesEnabled: false,
 }
 
@@ -65,5 +88,3 @@ const styles = Styles.styleSheetCreate(() => ({
     padding: Styles.globalMargins.small,
   },
 }))
-
-export default Error

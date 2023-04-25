@@ -40,10 +40,22 @@ export const newRoutes = {
     }),
     getScreen: () => RootLogin,
   },
-  resetConfirm: {getScreen: (): typeof Confirm => require('./reset/confirm').default},
-  resetEnterPassword: {getScreen: (): typeof EnterPassword => require('./reset/password').EnterPassword},
-  resetKnowPassword: {getScreen: (): typeof KnowPassword => require('./reset/password').KnowPassword},
-  resetWaiting: {getScreen: (): typeof Waiting => require('./reset/waiting').default},
+  resetConfirm: {
+    getOptions: () => require('./reset/confirm').options,
+    getScreen: (): typeof Confirm => require('./reset/confirm').default,
+  },
+  resetEnterPassword: {
+    getOptions: () => require('./reset/password').options,
+    getScreen: (): typeof EnterPassword => require('./reset/password').EnterPassword,
+  },
+  resetKnowPassword: {
+    getOptions: () => require('./reset/password').options,
+    getScreen: (): typeof KnowPassword => require('./reset/password').KnowPassword,
+  },
+  resetWaiting: {
+    getOptions: () => require('./reset/waiting').options,
+    getScreen: (): typeof Waiting => require('./reset/waiting').default,
+  },
   ...require('../provision/routes-sub').newRoutes,
   ...require('./recover-password/routes-sub').newRoutes,
 }
