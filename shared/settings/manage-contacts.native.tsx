@@ -123,7 +123,7 @@ const ManageContactsBanner = () => {
   )
 }
 
-ManageContacts.navigationOptions = {
+export const options = {
   header: undefined,
   title: 'Contacts',
 }

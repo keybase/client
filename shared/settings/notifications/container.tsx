@@ -25,7 +25,7 @@ const ReloadableNotifications = (props: Props) => {
   )
 }
 
-ReloadableNotifications.navigationOptions = {
+export const options = {
   header: undefined,
   title: 'Notifications',
 }

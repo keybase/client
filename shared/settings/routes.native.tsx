@@ -13,7 +13,10 @@ import {sharedNewRoutes, sharedNewModalRoutes} from './routes.shared'
 
 export const newRoutes = {
   settingsRoot: Container.isPhone
-    ? {getScreen: (): typeof RootPhone => require('./root-phone.native').default}
+    ? {
+        getOptions: () => require('./root-phone.native').options,
+        getScreen: (): typeof RootPhone => require('./root-phone.native').default,
+      }
     : {getScreen: (): typeof RootTablet => require('./root-desktop-tablet').default, skipShim: true},
   ...sharedNewRoutes,
   ...(Container.isTablet
@@ -24,9 +27,11 @@ export const newRoutes = {
         },
       }),
   [Constants.screenprotectorTab]: {
+    getOptions: () => require('./screenprotector.native').options,
     getScreen: (): typeof ScreenprotectorTab => require('./screenprotector.native').default,
   },
   [Constants.contactsTab]: {
+    getOptions: () => require('./manage-contacts.native').options,
     getScreen: (): typeof ManageContactsTab => require('./manage-contacts.native').default,
   },
   webLinks: {

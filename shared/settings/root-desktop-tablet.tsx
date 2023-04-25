@@ -72,7 +72,7 @@ const SettingsSubNavigator = () => (
   </TabNavigator.Navigator>
 )
 
-SettingsSubNavigator.navigationOptions = {
+export const options = {
   title: 'Settings',
 }
 

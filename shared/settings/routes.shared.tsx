@@ -1,9 +1,9 @@
 import * as Constants from '../constants/settings'
 import {isMobile} from '../constants/platform'
 import type AboutTab from './about'
-import type AccountTab from './account/container'
+import type AccountTab from './account'
 import type AdvancedTab from './advanced'
-import type ChatTab from './chat/container'
+import type ChatTab from './chat'
 import type DbNukeConfirm from './db-nuke-confirm/container'
 import type DeleteConfirm from './delete-confirm/index'
 import type DisableCertPinningModal from './disable-cert-pinning-modal/container'
@@ -30,22 +30,41 @@ export const sharedNewRoutes = {
     },
     getScreen: (): typeof AboutTab => require('./about').default,
   },
-  [Constants.accountTab]: {getScreen: (): typeof AccountTab => require('./account/container').default},
-  [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced').default},
-  [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
+  [Constants.accountTab]: {
+    getOptions: () => require('./account').options,
+    getScreen: (): typeof AccountTab => require('./account').default,
+  },
+  [Constants.advancedTab]: {
+    getOptions: () => require('./advanced').options,
+    getScreen: (): typeof AdvancedTab => require('./advanced').default,
+  },
+  [Constants.chatTab]: {
+    getOptions: () => require('./chat').options,
+    getScreen: (): typeof ChatTab => require('./chat').default,
+  },
   [Constants.cryptoTab]: {
     getOptions: () => ({title: 'Crypto'}),
     getScreen: (): typeof ChatTab => require('../crypto/sub-nav').default,
   },
   [Constants.devicesTab]: {...devicesRoutes.devicesRoot},
-  [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display').default},
-  [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
-  [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
+  [Constants.displayTab]: {
+    getOptions: () => require('./display').options,
+    getScreen: (): typeof DisplayTab => require('./display').default,
+  },
+  [Constants.feedbackTab]: {
+    getOptions: () => require('./feedback/container').options,
+    getScreen: (): typeof FeedbackTab => require('./feedback/container').default,
+  },
+  [Constants.fsTab]: {
+    getOptions: () => require('./files/container').options,
+    getScreen: (): typeof FsTab => require('./files/container').default,
+  },
   [Constants.gitTab]: {...gitRoutes.gitRoot},
   [Constants.invitationsTab]: {
     getScreen: (): typeof InvitationsTab => require('./invites/container').default,
   },
   [Constants.notificationsTab]: {
+    getOptions: () => require('./notifications/container').options,
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
   },
   [Constants.whatsNewTab]: {

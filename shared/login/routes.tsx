@@ -1,5 +1,4 @@
 import * as Container from '../util/container'
-import type Feedback from '../settings/feedback/container'
 import type {ProxySettingsPopup} from '../settings/proxy'
 import type {KnowPassword, EnterPassword} from './reset/password'
 import type Waiting from './reset/waiting'
@@ -7,6 +6,8 @@ import type Confirm from './reset/confirm'
 import type LoadingType from './loading/container'
 import type ReloginType from './relogin/container'
 import type JoinOrLoginType from './join-or-login/container'
+import {sharedNewRoutes as settingsRoutes} from '../settings/routes.shared'
+import * as SettingsConstants from '../constants/settings'
 
 const RootLogin = () => {
   const isLoggedIn = Container.useSelector(state => state.config.loggedIn)
@@ -32,7 +33,9 @@ const RootLogin = () => {
 }
 
 export const newRoutes = {
-  feedback: {getScreen: (): typeof Feedback => require('../signup/feedback/container').default},
+  feedback: {
+    ...settingsRoutes[SettingsConstants.feedbackTab],
+  },
   login: {
     getOptions: () => ({
       headerBottomStyle: {height: undefined},

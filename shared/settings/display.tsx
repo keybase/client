@@ -63,7 +63,7 @@ const Display = () => {
   )
 }
 
-Display.navigationOptions = {
+export const options = {
   header: undefined,
   title: 'Display',
 }

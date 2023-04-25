@@ -29,7 +29,8 @@ export const newModalRoutes = {
     getScreen: (): typeof SignupEnterPhoneNumber => require('./phone-number/container').default,
   },
   signupSendFeedbackLoggedIn: {
-    getScreen: (): typeof SignupSendFeedback => require('./feedback/container').default,
+    getOptions: () => require('./feedback').options,
+    getScreen: (): typeof SignupSendFeedback => require('./feedback').default,
   },
   signupVerifyPhoneNumber: {
     getScreen: (): typeof SignupVerifyPhoneNumber => require('./phone-number/verify-container').default,
