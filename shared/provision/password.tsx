@@ -1,11 +1,43 @@
+import * as Constants from '../constants/provision'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
+import * as ProvisionGen from '../actions/provision-gen'
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as Styles from '../../styles'
-import * as Kb from '../../common-adapters'
-import * as RecoverPasswordGen from '../../actions/recover-password-gen'
-import {SignupScreen, errorBanner} from '../../signup/common'
-import {isMobile} from '../../constants/platform'
-import UserCard from '../../login/user-card'
+import * as RecoverPasswordGen from '../actions/recover-password-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '../styles'
+import HiddenString from '../util/hidden-string'
+import UserCard from '../login/user-card'
+import {SignupScreen, errorBanner} from '../signup/common'
+import {isMobile} from '../constants/platform'
+
+export default () => {
+  const error = Container.useSelector(state => state.provision.error.stringValue())
+  const resetEmailSent = Container.useSelector(state => state.recoverPassword.resetEmailSent)
+  const username = Container.useSelector(state => state.provision.username)
+  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
+
+  const dispatch = Container.useDispatch()
+  const _onForgotPassword = (username: string) => {
+    dispatch(RecoverPasswordGen.createStartRecoverPassword({abortProvisioning: true, username}))
+  }
+  const onBack = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onSubmit = (password: string) => {
+    dispatch(ProvisionGen.createSubmitPassword({password: new HiddenString(password)}))
+  }
+  const props = {
+    error,
+    onBack,
+    onForgotPassword: () => _onForgotPassword(username),
+    onSubmit: (password: string) => !waiting && onSubmit(password),
+    resetEmailSent,
+    username,
+    waiting,
+  }
+  return <Password {...props} />
+}
 
 export type Props = {
   onSubmit: (password: string) => void
@@ -95,11 +127,6 @@ const Password = (props: Props) => {
   )
 }
 
-Password.navigationOptions = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   card: Styles.platformStyles({
     common: {
@@ -142,4 +169,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default Password
+export const options = {
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+}

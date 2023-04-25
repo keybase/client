@@ -36,11 +36,6 @@ type State = {
 }
 
 class CodePage2 extends React.Component<Props, State> {
-  static navigationOptions = {
-    headerBottomStyle: {height: undefined},
-    headerLeft: null,
-    headerTransparent: true,
-  }
   constructor(props: Props) {
     super(props)
     this.state = {

@@ -1,12 +1,12 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/provision'
-import * as Container from '../../util/container'
-import * as ProvisionGen from '../../actions/provision-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
-import * as SettingsGen from '../../actions/settings-gen'
-import {SignupScreen, errorBanner} from '../../signup/common'
+import * as Kb from '../common-adapters'
+import * as Constants from '../constants/provision'
+import * as Container from '../util/container'
+import * as ProvisionGen from '../actions/provision-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '../styles'
+import * as SettingsGen from '../actions/settings-gen'
+import {SignupScreen, errorBanner} from '../signup/common'
 
 const ForgotUsername = () => {
   const dispatch = Container.useDispatch()
@@ -103,7 +103,7 @@ const ForgotUsername = () => {
   )
 }
 
-ForgotUsername.navigationOptions = {
+export const options = {
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }

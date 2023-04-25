@@ -139,7 +139,6 @@ const styles = Styles.styleSheetCreate(
         marginLeft: Styles.globalMargins.xtiny,
         marginTop: 2,
       },
-      modal2: {width: Styles.isMobile ? undefined : 500},
       teamRow: Styles.platformStyles({
         common: {
           alignItems: 'center',
@@ -166,12 +165,6 @@ const styles = Styles.styleSheetCreate(
 )
 
 class AddToTeam extends React.Component<Props> {
-  static navigationOptions = {
-    modal2: true,
-    modal2ClearCover: false,
-    modal2Style: styles.modal2,
-    modal2Type: 'DefaultFullHeight',
-  }
   componentDidUpdate(prevProps: Props) {
     if (prevProps.addUserToTeamsState !== 'succeeded' && this.props.addUserToTeamsState === 'succeeded') {
       // If we succeeded, close the modal

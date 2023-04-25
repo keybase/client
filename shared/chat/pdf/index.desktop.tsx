@@ -41,7 +41,7 @@ const ChatPDF = (props: Props) => {
   )
 }
 
-ChatPDF.navigationOptions = {
+export const options = {
   modal2: true,
   modal2Type: 'SuperWide',
 }

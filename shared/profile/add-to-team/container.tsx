@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/teams'
+import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -40,9 +41,21 @@ type State = {
   selectedTeams: SelectedTeamState
 }
 
-export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps, State> {
-  static navigationOptions = AddToTeam.navigationOptions
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      modal2: {width: Styles.isMobile ? undefined : 500},
+    } as const)
+)
 
+export const options = {
+  modal2: true,
+  modal2ClearCover: false,
+  modal2Style: styles.modal2,
+  modal2Type: 'DefaultFullHeight',
+}
+
+export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps, State> {
   state = {
     rolePickerOpen: false,
     selectedRole: 'writer' as const,

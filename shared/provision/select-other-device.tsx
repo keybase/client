@@ -1,9 +1,45 @@
+import * as AutoresetGen from '../actions/autoreset-gen'
+import * as Constants from '../constants/provision'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
+import * as ProvisionGen from '../actions/provision-gen'
 import * as React from 'react'
-import type * as Types from '../../constants/types/provision'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {SignupScreen} from '../../signup/common'
-import DeviceIcon from '../../devices/device-icon'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '../styles'
+import DeviceIcon from '../devices/device-icon'
+import type * as Types from '../constants/types/provision'
+import {SignupScreen} from '../signup/common'
+
+const SelectOtherDeviceContainer = () => {
+  const devices = Container.useSelector(state => state.provision.devices)
+  const username = Container.useSelector(state => state.provision.username)
+  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
+
+  const dispatch = Container.useDispatch()
+  const _onBack = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }, [dispatch])
+  const onBack = Container.useSafeSubmit(_onBack, false)
+  const onResetAccount = React.useCallback(() => {
+    dispatch(AutoresetGen.createStartAccountReset({skipPassword: false, username}))
+  }, [dispatch, username])
+  const _onSelect = React.useCallback(
+    (name: string) => {
+      !waiting && dispatch(ProvisionGen.createSubmitDeviceSelect({name}))
+    },
+    [dispatch, waiting]
+  )
+  const onSelect = Container.useSafeSubmit(_onSelect, false)
+  return (
+    <SelectOtherDevice
+      devices={devices}
+      onBack={onBack}
+      onSelect={onSelect}
+      onResetAccount={onResetAccount}
+    />
+  )
+}
+export default SelectOtherDeviceContainer
 
 type Props = {
   passwordRecovery?: boolean
@@ -13,14 +49,14 @@ type Props = {
   onResetAccount: () => void
 }
 
+export const options = {
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+}
+
 const resetSignal = 'reset'
 type DeviceOrReset = Types.Device | 'reset'
-class SelectOtherDevice extends React.Component<Props> {
-  static navigationOptions = {
-    headerBottomStyle: {height: undefined},
-    headerLeft: null, // no back button
-  }
-
+export class SelectOtherDevice extends React.Component<Props> {
   _renderItem = (index, item: DeviceOrReset) => {
     if (item === resetSignal) {
       return (
@@ -142,5 +178,3 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.padding(Styles.globalMargins.xsmall),
   },
 }))
-
-export default SelectOtherDevice

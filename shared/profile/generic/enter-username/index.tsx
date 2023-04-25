@@ -141,10 +141,6 @@ type Props = {
 }
 
 class EnterUsername extends React.Component<Props> {
-  static navigationOptions = {
-    gesturesEnabled: false,
-  }
-
   _waitingButtonKey = 0
   componentDidUpdate(prevProps: Props) {
     if (!this.props.waiting && prevProps.waiting) {

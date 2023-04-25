@@ -319,27 +319,20 @@ type ChunkType = Array<
   | {type: 'noFriends'; text: string}
   | {type: 'loading'; text: string}
 >
-class User extends React.Component<Props, State> {
-  static navigationOptions = {
-    headerLeft: ({
-      canGoBack,
-      onPress,
-      tintColor,
-    }: {
-      canGoBack: boolean
-      onPress: () => void
-      tintColor: string
-    }) => (
-      <Styles.CanFixOverdrawContext.Provider value={false}>
-        <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
-      </Styles.CanFixOverdrawContext.Provider>
-    ),
-    headerShown: true,
-    headerStyle: {backgroundColor: 'transparent'},
-    headerTitle: () => <ProfileSearch />,
-    headerTransparent: true,
-  }
 
+export const options = {
+  headerLeft: (p: {canGoBack: boolean; onPress: () => void; tintColor: string}) => (
+    <Styles.CanFixOverdrawContext.Provider value={false}>
+      <HeaderLeftArrow canGoBack={p.canGoBack} onPress={p.onPress} tintColor={p.tintColor} />
+    </Styles.CanFixOverdrawContext.Provider>
+  ),
+  headerShown: true,
+  headerStyle: {backgroundColor: 'transparent'},
+  headerTitle: () => <ProfileSearch />,
+  headerTransparent: true,
+}
+
+class User extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {

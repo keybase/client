@@ -31,7 +31,10 @@ import type {Routable as ChatChooseEmoji} from './emoji-picker/container'
 import type {BlockModalContext} from './blocking/block-modal'
 
 export const newRoutes = {
-  chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
+  chatConversation: {
+    getOptions: require('./conversation/container').getOptions,
+    getScreen: (): typeof ChatConversation => require('./conversation/container').default,
+  },
   chatEnterPaperkey: {
     getScreen: (): typeof ChatEnterPaperkey => require('./conversation/rekey/enter-paper-key').default,
   },
@@ -53,6 +56,7 @@ export const newModalRoutes = {
       require('./conversation/info-panel/add-to-channel/index.new').default,
   },
   chatAttachmentFullscreen: {
+    getOptions: () => require('./conversation/attachment-fullscreen/container').options,
     getScreen: (): typeof ChatAttachmentFullscreen =>
       require('./conversation/attachment-fullscreen/container').default,
   },
@@ -99,7 +103,10 @@ export const newModalRoutes = {
       require('./conversation/messages/message-popup').MessagePopupModal,
   },
   chatNewChat: {getScreen: (): typeof ChatNewChat => require('../team-building/container').default},
-  chatPDF: {getScreen: (): typeof ChatPDF => require('./pdf').default},
+  chatPDF: {
+    getOptions: () => require('./pdf').options,
+    getScreen: (): typeof ChatPDF => require('./pdf').default,
+  },
   chatPaymentsConfirm: {
     getScreen: (): typeof ChatPaymentsConfirm => require('./payments/confirm/container').default,
   },

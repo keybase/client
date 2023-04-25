@@ -62,11 +62,6 @@ const ManageContacts = () => {
   )
 }
 
-ManageContacts.navigationOptions = {
-  header: undefined,
-  title: 'Contacts',
-}
-
 const ManageContactsBanner = () => {
   const dispatch = Container.useDispatch()
 

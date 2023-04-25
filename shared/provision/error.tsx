@@ -1,12 +1,43 @@
-// TODO remove Container
-import Container from '../../login/forms/container'
-import * as Kb from '../../common-adapters'
+import * as AutoresetGen from '../actions/autoreset-gen'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as Styles from '../../styles'
-import type {RPCError} from '../../util/errors'
-import {StatusCode} from '../../constants/types/rpc-gen'
-import {Box2, Button, Icon, Text, Markdown} from '../../common-adapters'
-import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../../styles'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '../styles'
+import LoginContainer from '../login/forms/container'
+import openURL from '../util/open-url'
+import type {RPCError} from '../util/errors'
+import {Box2, Button, Icon, Text, Markdown} from '../common-adapters'
+import {StatusCode} from '../constants/types/rpc-gen'
+import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../styles'
+
+const ConnectedRenderError = () => {
+  const _username = Container.useSelector(state => state.provision.username)
+  const error = Container.useSelector(state => state.provision.finalError)
+  const dispatch = Container.useDispatch()
+  const _onAccountReset = (username: string) => {
+    dispatch(AutoresetGen.createStartAccountReset({skipPassword: false, username}))
+  }
+  const onBack = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onKBHome = () => {
+    openURL('https://keybase.io/')
+  }
+  const onPasswordReset = () => {
+    openURL('https://keybase.io/#password-reset')
+  }
+  const props = {
+    error,
+    onAccountReset: () => _onAccountReset(_username),
+    onBack,
+    onKBHome,
+    onPasswordReset,
+  }
+  return <RenderError {...props} />
+}
+
+export default ConnectedRenderError
 
 type Props = {
   error?: RPCError
@@ -23,7 +54,7 @@ const List = p => (
 )
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
-  <Container onBack={p.onBack}>
+  <LoginContainer onBack={p.onBack}>
     <Icon type="icon-illustration-zen-240-180" style={styles.icon} />
     <Text type="Header" style={styles.header}>
       Oops, something went wrong.
@@ -32,7 +63,7 @@ const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
       {p.children}
     </Box2>
     {Styles.isMobile && <Button label="Close" onClick={p.onBack} />}
-  </Container>
+  </LoginContainer>
 )
 
 const rewriteErrorDesc = {
@@ -41,7 +72,7 @@ const rewriteErrorDesc = {
 }
 
 // Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
-const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Props) => {
+const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Props) => {
   if (!error) {
     return (
       <Wrapper onBack={onBack}>
@@ -286,7 +317,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
   }
 }
 
-Render.navigationOptions = {
+export const options = {
   modal2: true,
 }
 
@@ -314,5 +345,3 @@ const styles = styleSheetCreate(
       },
     } as const)
 )
-
-export default Render

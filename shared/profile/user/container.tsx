@@ -1,4 +1,4 @@
-import Profile2, {type BackgroundColorType} from '.'
+import Profile2, {BackgroundColorType} from '.'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
@@ -206,3 +206,4 @@ const Connected = (ownProps: OwnProps) => {
 }
 
 export default Connected
+export {options} from '.'

@@ -3,3 +3,4 @@ import type * as Container from '../../util/container'
 
 type Props = Container.RouteProps<'chatPDF'>
 export default class ChatPDF extends React.Component<Props> {}
+export const options: any
