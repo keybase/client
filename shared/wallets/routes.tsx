@@ -70,6 +70,7 @@ export const newModalRoutes = {
     getScreen: (): typeof RoutedOnboarding => require('./onboarding/container').RoutedOnboarding,
   },
   walletTeamBuilder: {
+    getOptions: require('../team-building/container').getOptions,
     getScreen: (): typeof TeamBuilder => require('../team-building/container').default,
   },
   whatIsStellarModal: {

@@ -337,7 +337,7 @@ const TeamBuilding = () => {
   )
 }
 
-TeamBuilding.navigationOptions = ({route}) => {
+export const getOptions = ({route}) => {
   const namespace: unknown = route.params.namespace
   const common = {
     modal2: true,

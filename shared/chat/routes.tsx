@@ -102,7 +102,10 @@ export const newModalRoutes = {
     getScreen: (): typeof MessagePopupModal =>
       require('./conversation/messages/message-popup').MessagePopupModal,
   },
-  chatNewChat: {getScreen: (): typeof ChatNewChat => require('../team-building/container').default},
+  chatNewChat: {
+    getOptions: require('../team-building/container').getOptions,
+    getScreen: (): typeof ChatNewChat => require('../team-building/container').default,
+  },
   chatPDF: {
     getOptions: () => require('./pdf').options,
     getScreen: (): typeof ChatPDF => require('./pdf').default,

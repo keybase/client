@@ -13,7 +13,10 @@ export const newModalRoutes = {
   accountSwitcher: {
     getScreen: (): typeof AccountSwitcher => require('../router-v2/account-switcher/container').default,
   },
-  peopleTeamBuilder: {getScreen: (): typeof TeamBuilder => require('../team-building/container').default},
+  peopleTeamBuilder: {
+    getOptions: require('../team-building/container').getOptions,
+    getScreen: (): typeof TeamBuilder => require('../team-building/container').default,
+  },
 }
 
 export type RootParamListPeople = {

@@ -173,6 +173,7 @@ export const newModalRoutes = {
   },
   teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
   teamsTeamBuilder: {
+    getOptions: require('../team-building/container').getOptions,
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },
 }
