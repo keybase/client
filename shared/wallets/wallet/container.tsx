@@ -23,7 +23,7 @@ const sortAndStripTimestamps = (
 const WalletOrOnboarding = (props: Props) =>
   !props.acceptedDisclaimer ? <Onboarding nextScreen="openWallet" /> : <Wallet {...props} />
 
-WalletOrOnboarding.navigationOptions = {
+export const options = {
   header: () => <Header />,
   headerLeft: () => null,
   headerRight: () => null,

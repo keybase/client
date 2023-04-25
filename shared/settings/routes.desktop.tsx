@@ -11,6 +11,7 @@ import {sharedNewRoutes, sharedNewModalRoutes} from './routes.shared'
 
 export const newRoutes = {
   settingsRoot: {
+    getOptions: () => require('./root-desktop-tablet').options,
     getScreen: (): typeof Root => require('./root-desktop-tablet').default,
     skipShim: true,
   },
@@ -25,7 +26,10 @@ export const newModalRoutes = {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
   },
-  modalFeedback: {getScreen: (): typeof FeedbackTab => require('../signup/feedback/container').default},
+  modalFeedback: {
+    getOptions: () => require('./feedback/container').options,
+    getScreen: (): typeof FeedbackTab => require('./feedback/container').default,
+  },
   settingsAddEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
   settingsDeleteAddress: {

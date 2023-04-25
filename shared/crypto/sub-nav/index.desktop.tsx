@@ -9,6 +9,7 @@ import {type EncryptIO} from '../operations/encrypt'
 import {type DecryptIO} from '../operations/decrypt'
 import {type SignIO} from '../operations/sign'
 import {type VerifyIO} from '../operations/verify'
+import {getOptions} from '../../router-v2/shim.shared'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
@@ -70,7 +71,7 @@ const CryptoSubNavigator = () => (
         name={name}
         getComponent={cryptoSubRoutes[name].getScreen}
         options={({route, navigation}) => {
-          const no = cryptoSubRoutes[name].getScreen().navigationOptions
+          const no = getOptions(cryptoSubRoutes[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}

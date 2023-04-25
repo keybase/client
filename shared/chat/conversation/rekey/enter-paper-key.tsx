@@ -1,4 +1,4 @@
-import EnterPaperkey from '../../../provision/paper-key'
+import {PaperKey} from '../../../provision/paper-key'
 import {createCheckPaperKey} from '../../../actions/unlock-folders-gen'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -23,5 +23,5 @@ export default () => {
     onSubmit,
     waiting,
   }
-  return <EnterPaperkey {...props} />
+  return <PaperKey {...props} />
 }

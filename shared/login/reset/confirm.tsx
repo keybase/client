@@ -5,9 +5,8 @@ import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/autoreset'
 import * as RecoverPasswordGen from '../../actions/recover-password-gen'
-type Props = {}
 
-const ConfirmReset = (_: Props) => {
+const ConfirmReset = () => {
   const hasWallet = Container.useSelector(state => state.autoreset.hasWallet)
   const error = Container.useSelector(state => state.autoreset.error)
 
@@ -129,7 +128,8 @@ const ConfirmReset = (_: Props) => {
     </Kb.Modal>
   )
 }
-ConfirmReset.navigationOptions = {
+
+export const options = {
   gesturesEnabled: false,
 }
 

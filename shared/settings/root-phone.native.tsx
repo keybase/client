@@ -184,7 +184,8 @@ function SettingsNav(props: Props) {
     />
   )
 }
-SettingsNav.navigationOptions = {
+
+export const options = {
   title: 'More',
 }
 

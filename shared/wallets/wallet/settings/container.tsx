@@ -145,3 +145,4 @@ const SettingsContainer = () => {
   )
 }
 export default SettingsContainer
+export {options} from '.'

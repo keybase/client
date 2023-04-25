@@ -5,8 +5,8 @@ export const toggleRenderDebug = () => {
 export const getRenderDebug = () => _renderDebug
 
 // TODO better types
-export const getOptions = (route: any): any => {
-  const no = route?.getOptions ?? route?.getScreen().navigationOptions
+export const getOptions = (route: {getOptions?: (o: any) => any}): any => {
+  const no = route?.getOptions
   return no
 }
 

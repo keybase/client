@@ -24,13 +24,13 @@ export type Props = {
 
 const mobileOsVersion = Platform.Version
 
-class FeedbackContainer extends React.Component<Props, State> {
-  static navigationOptions = {
-    header: undefined,
-    title: 'Feedback',
-    useHeaderHeight: () => 60,
-  }
+export const options = {
+  header: undefined,
+  title: 'Feedback',
+  useHeaderHeight: () => 60,
+}
 
+class FeedbackContainer extends React.Component<Props, State> {
   private mounted = false
   private timeoutID?: ReturnType<typeof setTimeout>
 

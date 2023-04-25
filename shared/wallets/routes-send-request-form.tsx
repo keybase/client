@@ -3,7 +3,7 @@ import type ChooseAsset from './send-form/choose-asset/container'
 import type PickAsset from './send-form/pick-asset'
 import type ConfirmForm from './confirm-form/container'
 import type QRScan from './qr-scan/container'
-import type SendForm from './send-form/container'
+import type SendForm from './send-form'
 
 export const newModalRoutes = {
   [Constants.chooseAssetFormRouteKey]: {
@@ -16,5 +16,8 @@ export const newModalRoutes = {
     getScreen: (): typeof ConfirmForm => require('./confirm-form/container').default,
   },
   qrScan: {getScreen: (): typeof QRScan => require('./qr-scan/container').default},
-  sendReceiveForm: {getScreen: (): typeof SendForm => require('./send-form/container').default},
+  sendReceiveForm: {
+    getOptions: () => require('./send-form').options,
+    getScreen: (): typeof SendForm => require('./send-form').default,
+  },
 }

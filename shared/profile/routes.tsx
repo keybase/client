@@ -20,17 +20,24 @@ import type {PlatformsExpandedType} from '../constants/types/more'
 import type {SiteIconSet} from '../constants/types/tracker2'
 
 export const newRoutes = {
-  profile: {getScreen: (): typeof Profile => require('./user/container').default},
+  profile: {
+    getOptions: () => require('./user/container').options,
+    getScreen: (): typeof Profile => require('./user/container').default,
+  },
 }
 
 export const newModalRoutes = {
-  profileAddToTeam: {getScreen: (): typeof ProfileAddToTeam => require('./add-to-team/container').default},
+  profileAddToTeam: {
+    getOptions: () => require('./add-to-team/container').options,
+    getScreen: (): typeof ProfileAddToTeam => require('./add-to-team/container').default,
+  },
   profileConfirmOrPending: {
     getScreen: (): typeof ProfileConfirmOrPending => require('./confirm-or-pending/container').default,
   },
   profileEdit: {getScreen: (): typeof ProfileEdit => require('./edit-profile/container').default},
   profileEditAvatar: {getScreen: (): typeof ProfileEditAvatar => require('./edit-avatar/container').default},
   profileGenericEnterUsername: {
+    getOptions: () => require('./generic/enter-username/container').options,
     getScreen: (): typeof ProfileGenericEnterUsername =>
       require('./generic/enter-username/container').default,
   },

@@ -36,7 +36,10 @@ export const newRoutes = {
   },
 }
 export const newModalRoutes = {
-  cryptoTeamBuilder: {getScreen: (): typeof TeamBuilder => require('../team-building/container').default},
+  cryptoTeamBuilder: {
+    getOptions: require('../team-building/container').getOptions,
+    getScreen: (): typeof TeamBuilder => require('../team-building/container').default,
+  },
   [Constants.encryptOutput]: {
     getOptions: {...outputOptions, title: 'Encrypt'},
     getScreen: (): typeof EncryptOutput => require('./operations/encrypt').EncryptOutput,

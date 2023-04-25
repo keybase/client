@@ -49,17 +49,31 @@ import type {RetentionPolicy} from '../constants/types/retention-policy'
 import type {TabKey} from './channel/tabs'
 
 export const newRoutes = {
-  team: {getScreen: (): typeof Team => require('./team').default},
+  team: {
+    getOptions: (): typeof Team => require('./team').options,
+    getScreen: (): typeof Team => require('./team').default,
+  },
   teamChannel: {
+    getOptions: () => require('./channel').options,
     getScreen: (): typeof TeamChannel => require('./channel').default,
   },
-  teamExternalTeam: {getScreen: (): typeof ExternalTeam => require('./external-team').default},
-  teamMember: {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default},
-  teamsRoot: {getScreen: (): typeof TeamsRoot => require('./container').default},
+  teamExternalTeam: {
+    getOptions: () => require('./external-team').options,
+    getScreen: (): typeof ExternalTeam => require('./external-team').default,
+  },
+  teamMember: {
+    getOptions: () => require('./team/member/index.new').options,
+    getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default,
+  },
+  teamsRoot: {
+    getOptions: () => require('./container').options,
+    getScreen: (): typeof TeamsRoot => require('./container').default,
+  },
 }
 
 const addWizardRoutes = {
   teamAddToTeamConfirm: {
+    getOptions: () => require('./add-members-wizard/confirm').options,
     getScreen: (): typeof TeamAddToTeamConfirm => require('./add-members-wizard/confirm').default,
   },
   teamAddToTeamContacts: {
@@ -173,6 +187,7 @@ export const newModalRoutes = {
   },
   teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
   teamsTeamBuilder: {
+    getOptions: require('../team-building/container').getOptions,
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },
 }

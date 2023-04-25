@@ -19,7 +19,8 @@ const Password = () => {
   )
   return <_Password error={errErr} hasRandomPW={false} onSave={onSave} waitingForResponse={waiting} />
 }
-Password.navigationOptions = {
+
+export const options = {
   gesturesEnabled: false,
 }
 

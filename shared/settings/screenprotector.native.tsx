@@ -43,7 +43,7 @@ const Screenprotector = () => {
   )
 }
 
-Screenprotector.navigationOptions = {
+export const options = {
   header: undefined,
   title: 'Screen Protector',
 }

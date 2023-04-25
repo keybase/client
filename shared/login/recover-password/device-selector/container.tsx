@@ -1,6 +1,6 @@
 import * as Container from '../../../util/container'
 import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
-import DeviceSelector from '../../../provision/select-other-device'
+import {SelectOtherDevice} from '../../../provision/select-other-device'
 
 const ConnectedDeviceSelector = () => {
   const devices = Container.useSelector(state => state.recoverPassword.devices)
@@ -25,7 +25,7 @@ const ConnectedDeviceSelector = () => {
     },
     passwordRecovery: true,
   }
-  return <DeviceSelector {...props} />
+  return <SelectOtherDevice {...props} />
 }
 
 export default ConnectedDeviceSelector

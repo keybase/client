@@ -7,6 +7,8 @@ import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = Container.RouteProps<'settingsTabs.feedbackTab'>
 
+export const options = undefined
+
 export default (ownProps: OwnProps) => {
   const loggedOut = Container.useSelector(state => !state.config.loggedIn)
   const sendError = Container.useSelector(state => state.settings.feedback.error)

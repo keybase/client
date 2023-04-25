@@ -312,7 +312,7 @@ const AccountSettings = (props: SettingsProps) => {
     </Kb.Box2>
   )
 }
-AccountSettings.navigationOptions = {
+export const options = {
   headerTitle: () => <ConnectedHeader />,
 }
 

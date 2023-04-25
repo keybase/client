@@ -109,11 +109,6 @@ const Files = (props: Props) => {
   )
 }
 
-Files.navigationOptions = {
-  header: undefined,
-  title: 'Files',
-}
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({

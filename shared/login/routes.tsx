@@ -1,5 +1,4 @@
 import * as Container from '../util/container'
-import type Feedback from '../settings/feedback/container'
 import type {ProxySettingsPopup} from '../settings/proxy'
 import type {KnowPassword, EnterPassword} from './reset/password'
 import type Waiting from './reset/waiting'
@@ -7,6 +6,8 @@ import type Confirm from './reset/confirm'
 import type LoadingType from './loading/container'
 import type ReloginType from './relogin/container'
 import type JoinOrLoginType from './join-or-login/container'
+import {sharedNewRoutes as settingsRoutes} from '../settings/routes.shared'
+import * as SettingsConstants from '../constants/settings'
 
 const RootLogin = () => {
   const isLoggedIn = Container.useSelector(state => state.config.loggedIn)
@@ -31,18 +32,33 @@ const RootLogin = () => {
   return <JoinOrLogin />
 }
 
-RootLogin.navigationOptions = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}
-
 export const newRoutes = {
-  feedback: {getScreen: (): typeof Feedback => require('../signup/feedback/container').default},
-  login: {getScreen: () => RootLogin},
-  resetConfirm: {getScreen: (): typeof Confirm => require('./reset/confirm').default},
-  resetEnterPassword: {getScreen: (): typeof EnterPassword => require('./reset/password').EnterPassword},
-  resetKnowPassword: {getScreen: (): typeof KnowPassword => require('./reset/password').KnowPassword},
-  resetWaiting: {getScreen: (): typeof Waiting => require('./reset/waiting').default},
+  feedback: {
+    ...settingsRoutes[SettingsConstants.feedbackTab],
+  },
+  login: {
+    getOptions: () => ({
+      headerBottomStyle: {height: undefined},
+      headerLeft: null, // no back button
+    }),
+    getScreen: () => RootLogin,
+  },
+  resetConfirm: {
+    getOptions: () => require('./reset/confirm').options,
+    getScreen: (): typeof Confirm => require('./reset/confirm').default,
+  },
+  resetEnterPassword: {
+    getOptions: () => require('./reset/password').options,
+    getScreen: (): typeof EnterPassword => require('./reset/password').EnterPassword,
+  },
+  resetKnowPassword: {
+    getOptions: () => require('./reset/password').options,
+    getScreen: (): typeof KnowPassword => require('./reset/password').KnowPassword,
+  },
+  resetWaiting: {
+    getOptions: () => require('./reset/waiting').options,
+    getScreen: (): typeof Waiting => require('./reset/waiting').default,
+  },
   ...require('../provision/routes-sub').newRoutes,
   ...require('./recover-password/routes-sub').newRoutes,
 }

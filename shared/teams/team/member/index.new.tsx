@@ -272,7 +272,7 @@ const TeamMember = (props: OwnProps) => {
   )
 }
 
-TeamMember.navigationOptions = {
+export const options = {
   headerHideBorder: true,
   headerTitle: '',
 }
