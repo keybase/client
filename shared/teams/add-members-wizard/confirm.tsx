@@ -161,7 +161,7 @@ const AddMembersConfirm = () => {
     </Kb.Modal>
   )
 }
-AddMembersConfirm.navigationOptions = {
+export const options = {
   gesturesEnabled: false,
 }
 

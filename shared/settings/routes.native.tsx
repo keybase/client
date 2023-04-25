@@ -7,9 +7,9 @@ import type PushPrompt from './notifications/push-prompt.native'
 import type ScreenprotectorTab from './screenprotector.native'
 import type RootPhone from './root-phone.native'
 import type RootTablet from './root-desktop-tablet'
-import type WalletsTab from '../wallets/wallet/container'
 import type WebLink from './web-links.native'
 import {sharedNewRoutes, sharedNewModalRoutes} from './routes.shared'
+import {newRoutes as walletsRoutes} from '../wallets/routes'
 
 export const newRoutes = {
   settingsRoot: Container.isPhone
@@ -23,7 +23,7 @@ export const newRoutes = {
     ? {}
     : {
         [Constants.walletsTab]: {
-          getScreen: (): typeof WalletsTab => require('../wallets/wallet/container').default,
+          ...walletsRoutes.walletsRoot,
         },
       }),
   [Constants.screenprotectorTab]: {

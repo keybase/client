@@ -21,7 +21,10 @@ import type * as Types from '../constants/types/wallets'
 
 export const sharedRoutes = {
   // TODO connect broken
-  settings: {getScreen: (): typeof Settings => require('./wallet/settings/container').default},
+  settings: {
+    getOptions: () => require('./wallet/settings/container').options,
+    getScreen: (): typeof Settings => require('./wallet/settings/container').default,
+  },
   // TODO connect broken
   transactionDetails: {
     getOptions: {
@@ -34,8 +37,12 @@ export const sharedRoutes = {
 
 export const newRoutes = {
   walletsRoot: isPhone
-    ? {getScreen: () => require('./wallet/container').default}
+    ? {
+        getOptions: () => require('./wallet/container').options,
+        getScreen: () => require('./wallet/container').default,
+      }
     : {
+        getOptions: () => require('./wallets-sub-nav').options,
         getScreen: () => require('./wallets-sub-nav').default,
         skipShim: true,
       },

@@ -2,6 +2,7 @@ import * as Common from '../router-v2/common'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Shim from '../router-v2/shim'
+import {getOptions} from '../router-v2/shim.shared'
 import * as Styles from '../styles'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import type AccountReloaderType from './common/account-reloader'
@@ -86,7 +87,7 @@ const WalletSubNavigator = () => (
         name={name}
         getComponent={walletSubRoutes[name].getScreen}
         options={({route, navigation}) => {
-          const no = walletSubRoutes[name].getScreen().navigationOptions
+          const no = getOptions(walletSubRoutes[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}
@@ -141,7 +142,7 @@ const WalletsRootNav = () => {
   )
 }
 
-WalletsRootNav.navigationOptions = {
+export const options = {
   header: () => null,
   headerTitle: '',
 }
