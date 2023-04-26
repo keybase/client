@@ -8,6 +8,7 @@ import type * as TeamsTypes from '../../../../constants/types/teams'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
+import {useConfirm} from './use-confirm'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
@@ -64,21 +65,20 @@ const RetentionPicker = (p: Props) => {
   )
 
   const dispatch = Container.useDispatch()
-  const onShowWarning = React.useCallback(
-    (policy: RetentionPolicy, onConfirm: () => void) => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {entityType, onConfirm, policy},
-              selected: 'retentionWarning',
-            },
-          ],
-        })
-      )
-    },
-    [dispatch, entityType]
-  )
+
+  const modalConfirmed = useConfirm(state => state.confirmed)
+  const updateConfirm = useConfirm(state => state.updateConfirm)
+
+  const [lastConfirmed, setLastConfirmed] = React.useState<RetentionPolicy | undefined>(undefined)
+  if (lastConfirmed !== modalConfirmed) {
+    setTimeout(() => {
+      setLastConfirmed(modalConfirmed)
+      if (selected === modalConfirmed) {
+        selected && saveRetentionPolicy(selected)
+      }
+      updateConfirm(undefined)
+    }, 1)
+  }
 
   React.useEffect(() => {
     if (userSelectedRef.current) {
@@ -88,15 +88,28 @@ const RetentionPicker = (p: Props) => {
 
       // show dialog if decreased, set immediately if not
       if (changed) {
-        const onConfirm = () => {
-          selected && saveRetentionPolicy(selected)
-        }
         if (decreased) {
           // show warning
           showSaved.current = false
-          selected &&
-            onShowWarning(selected.type === 'inherit' && teamPolicy ? teamPolicy : selected, onConfirm)
+          if (selected) {
+            dispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [
+                  {
+                    props: {
+                      entityType,
+                      policy: selected.type === 'inherit' && teamPolicy ? teamPolicy : selected,
+                    },
+                    selected: 'retentionWarning',
+                  },
+                ],
+              })
+            )
+          }
         } else {
+          const onConfirm = () => {
+            selected && saveRetentionPolicy(selected)
+          }
           // set immediately
           onConfirm()
           showSaved.current = true
@@ -104,7 +117,7 @@ const RetentionPicker = (p: Props) => {
         }
       }
     }
-  }, [selected, policy, onShowWarning, saveRetentionPolicy, teamPolicy])
+  }, [selected, policy, saveRetentionPolicy, teamPolicy, dispatch, entityType])
 
   const lastPolicy = React.useRef(policy)
   const lastTeamPolicy = React.useRef(teamPolicy)

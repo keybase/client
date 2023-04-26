@@ -243,10 +243,8 @@ export type RootParamListTeams = {
   }
   teamInviteHistory: {teamID: Types.TeamID}
   retentionWarning: {
-    // TODO remove cbs
     policy: RetentionPolicy
     entityType: RetentionEntityType
-    onConfirm: (() => void) | null
   }
   teamEditTeamInfo: {teamID: Types.TeamID}
   team: {
