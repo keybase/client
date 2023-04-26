@@ -299,25 +299,23 @@ class SearchFilter extends React.PureComponent<Props, State> {
       </Kb.ClickableBox>
     )
     return Styles.isMobile ? (
-      <Kb.Box style={{alignSelf: 'stretch'}}>
-        <Kb.Box2
-          direction="horizontal"
-          style={Styles.collapseStyles([styles.containerMobile, this.props.style])}
-          alignItems="center"
-          gap="xsmall"
-        >
-          {!!this.props.mobileCancelButton && this.typing() && (
-            <Kb.Text
-              type={this.props.negative ? 'BodyBig' : 'BodyBigLink'}
-              onClick={this.cancel}
-              negative={!!this.props.negative}
-            >
-              Cancel
-            </Kb.Text>
-          )}
-          {content}
-        </Kb.Box2>
-      </Kb.Box>
+      <Kb.Box2
+        direction="horizontal"
+        style={Styles.collapseStyles([styles.containerMobile, this.props.style])}
+        alignItems="center"
+        gap="xsmall"
+      >
+        {!!this.props.mobileCancelButton && this.typing() && (
+          <Kb.Text
+            type={this.props.negative ? 'BodyBig' : 'BodyBigLink'}
+            onClick={this.cancel}
+            negative={!!this.props.negative}
+          >
+            Cancel
+          </Kb.Text>
+        )}
+        {content}
+      </Kb.Box2>
     ) : (
       content
     )
