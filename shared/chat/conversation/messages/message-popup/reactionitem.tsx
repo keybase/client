@@ -16,8 +16,11 @@ const ReactionItem = (props: Props) => {
     props.onHidden()
   }
   const showPicker = () => {
-    props.showPicker()
     props.onHidden()
+    // MUST come after, else we'll dismiss the modal we just showed
+    setTimeout(() => {
+      props.showPicker()
+    }, 100)
   }
   const topReacjis = _topReacjis.slice(0, 5)
   return (
