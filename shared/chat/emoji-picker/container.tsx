@@ -22,6 +22,7 @@ import {
 } from './../../util/emoji'
 import useRPC from './../../util/use-rpc'
 import * as RPCChatGen from './../../constants/types/rpc-chat-gen'
+import {usePickerState} from './use-picker'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -376,17 +377,21 @@ const styles = Styles.styleSheetCreate(
 export const Routable = (routableProps: RoutableProps) => {
   const {params} = routableProps.route
   const small = params?.small
-  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAction, onPickAddToMessageOrdinal} = params ?? {}
+  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageOrdinal, pickKey} = params ?? {}
+  const updatePickerMap = usePickerState(state => state.updatePickerMap)
+  const onPickAction = React.useCallback(
+    (emojiStr: string, renderableEmoji: RenderableEmoji) => {
+      if (!pickKey) {
+        throw new Error('Missing pickKey')
+      }
+      updatePickerMap(pickKey, {emojiStr, renderableEmoji})
+    },
+    [updatePickerMap, pickKey]
+  )
   const conversationIDKey = params?.conversationIDKey ?? Constants.noConversationIDKey
   const dispatch = Container.useDispatch()
   const navigateUp = () => dispatch(RouteTreeGen.createNavigateUp())
-  const _onDidPick = params?.onDidPick
-  const onDidPick = _onDidPick
-    ? () => {
-        _onDidPick()
-        navigateUp()
-      }
-    : navigateUp
+  const onDidPick = navigateUp
 
   Container.useOnMountOnce(() => {
     Kb.keyboardDismiss()

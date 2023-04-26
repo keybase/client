@@ -17,6 +17,7 @@ import {
 import {AliasInput, Modal} from './common'
 import useRPC from '../../util/use-rpc'
 import {useEmojiState} from './use-emoji'
+import {usePickerState} from '../../chat/emoji-picker/use-picker'
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
@@ -136,6 +137,22 @@ type ChooseEmojiProps = {
 const ChooseEmoji = Styles.isMobile
   ? (props: ChooseEmojiProps) => {
       const dispatch = Container.useDispatch()
+      const pickKey = 'addAlias'
+      const {emojiStr, renderableEmoji} = usePickerState(state => state.pickerMap.get(pickKey)) ?? {
+        emojiStr: '',
+        renderableEmoji: {},
+      }
+      const updatePickerMap = usePickerState(state => state.updatePickerMap)
+
+      const [lastEmoji, setLastEmoji] = React.useState('')
+      if (lastEmoji !== emojiStr) {
+        setTimeout(() => {
+          setLastEmoji(emojiStr)
+          emojiStr && props.onChoose(emojiStr, renderableEmoji)
+          updatePickerMap(pickKey, undefined)
+        }, 1)
+      }
+
       const openEmojiPicker = () =>
         dispatch(
           RouteTreeGen.createNavigateAppend({
@@ -144,8 +161,8 @@ const ChooseEmoji = Styles.isMobile
                 props: {
                   conversationIDKey: props.conversationIDKey,
                   hideFrequentEmoji: true,
-                  onPickAction: props.onChoose,
                   onlyTeamCustomEmoji: true,
+                  pickKey,
                   small: true,
                 },
                 selected: 'chatChooseEmoji',
