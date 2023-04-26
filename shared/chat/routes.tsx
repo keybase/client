@@ -134,6 +134,7 @@ export type RootParamListChat = {
   chatConversation: {conversationIDKey?: Types.ConversationIDKey}
   chatRoot: {conversationIDKey?: Types.ConversationIDKey}
   chatChooseEmoji: {
+    // TODO remove cbs
     conversationIDKey: Types.ConversationIDKey
     small: boolean
     hideFrequentEmoji: boolean

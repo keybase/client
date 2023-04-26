@@ -12,12 +12,12 @@ import {AliasInput, Modal} from './common'
 import useRPC from '../../util/use-rpc'
 import {pickImages} from '../../util/pick-files'
 import kebabCase from 'lodash/kebabCase'
+import {useEmojiState} from './use-emoji'
 
 const pickEmojisPromise = async () => pickImages('Select emoji images to upload')
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
-  onChange?: () => void
   teamID: TeamsTypes.TeamID // not supported yet
 }
 type RoutableProps = Container.RouteProps<'teamAddEmoji'>
@@ -43,6 +43,7 @@ const useDoAddEmojis = (
   const [waitingAddEmojis, setWaitingAddEmojis] = React.useState(false)
   const [bannerError, setBannerError] = React.useState('')
   const clearBannerError = React.useCallback(() => setBannerError(''), [setBannerError])
+
   const doAddEmojis =
     conversationIDKey !== ChatConstants.noConversationIDKey
       ? () => {
@@ -159,8 +160,10 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
 }
 
 export const AddEmojiModal = (props: Props) => {
+  const onChange = useEmojiState(state => state.triggerEmojiUpdated)
   const {addFiles, bannerError, clearErrors, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} =
-    useStuff(props.conversationIDKey, props.onChange)
+    useStuff(props.conversationIDKey, onChange)
+
   const pick = () => {
     pickEmojisPromise()
       .then(addFiles)
@@ -198,8 +201,7 @@ export const AddEmojiModal = (props: Props) => {
 const AddEmojiModalWrapper = (routableProps: RoutableProps) => {
   const conversationIDKey = routableProps.route.params?.conversationIDKey ?? ChatConstants.noConversationIDKey
   const teamID = routableProps.route.params?.teamID ?? TeamsTypes.noTeamID
-  const onChange = routableProps.route.params?.onChange ?? undefined
-  return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} onChange={onChange} />
+  return <AddEmojiModal conversationIDKey={conversationIDKey} teamID={teamID} />
 }
 export default AddEmojiModalWrapper
 

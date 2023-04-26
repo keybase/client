@@ -10,16 +10,16 @@ import type * as TeamTypes from '../../../../constants/types/teams'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
 import useRPC from '../../../../util/use-rpc'
 import EmojiMenu from './emoji-menu'
+import {useEmojiState} from '../../../emojis/use-emoji'
 
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
   emoji: RPCChatTypes.Emoji
   firstItem: boolean
-  reloadEmojis: () => void
   teamID: TeamTypes.TeamID
 }
 
-const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: OwnProps) => {
+const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -27,20 +27,22 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
   const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
-  const onAddAlias = () =>
+  const onAddAlias = Container.useEvent(() => {
     dispatch(
       nav.safeNavigateAppendPayload({
         path: [
           {
-            props: {conversationIDKey, defaultSelected: emojiData, onChange: reloadEmojis},
+            props: {conversationIDKey, defaultSelected: emojiData},
             selected: 'teamAddEmojiAlias',
           },
         ],
       })
     )
+  })
   const isStockAlias = emoji.remoteSource.typ === RPCChatTypes.EmojiRemoteSourceTyp.stockalias
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
+  const refreshEmoji = useEmojiState(state => state.triggerEmojiUpdated)
   const removeRpc = useRPC(RPCChatTypes.localRemoveEmojiRpcPromise)
   const doRemove = React.useMemo(
     () =>
@@ -53,14 +55,14 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
                   convID: ChatTypes.keyToConversationID(conversationIDKey),
                 },
               ],
-              () => reloadEmojis(),
+              () => refreshEmoji(),
               err => {
                 throw err
               }
             )
           }
         : undefined,
-    [canRemove, emojiData.short_name, conversationIDKey, removeRpc, reloadEmojis]
+    [canRemove, emojiData.short_name, conversationIDKey, removeRpc, refreshEmoji]
   )
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {

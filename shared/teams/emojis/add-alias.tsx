@@ -16,10 +16,10 @@ import {
 } from '../../util/emoji'
 import {AliasInput, Modal} from './common'
 import useRPC from '../../util/use-rpc'
+import {useEmojiState} from './use-emoji'
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
-  onChange?: () => void
   defaultSelected?: EmojiData
 }
 type RoutableProps = Container.RouteProps<'teamAddEmojiAlias'>
@@ -58,6 +58,9 @@ export const AddAliasModal = (props: Props) => {
   const dispatch = Container.useDispatch()
   const addAliasRpc = useRPC(RPCChatGen.localAddEmojiAliasRpcPromise)
   const [addAliasWaiting, setAddAliasWaiting] = React.useState(false)
+
+  const refreshEmoji = useEmojiState(state => state.triggerEmojiUpdated)
+
   const doAddAlias = emoji
     ? () => {
         setAddAliasWaiting(true)
@@ -76,7 +79,7 @@ export const AddAliasModal = (props: Props) => {
               return
             }
             dispatch(RouteTreeGen.createClearModals())
-            props.onChange?.()
+            refreshEmoji()
           },
           err => {
             throw err
@@ -168,7 +171,7 @@ const ChooseEmoji = Styles.isMobile
               <EmojiPickerDesktop
                 conversationIDKey={conversationIDKey}
                 hideFrequentEmoji={true}
-                small={true}
+                small={false}
                 onPickAction={onChoose}
                 onDidPick={toggleShowingPopup}
                 onlyTeamCustomEmoji={true}
@@ -236,13 +239,6 @@ const AddEmojiAliasWrapper = (routableProps: RoutableProps) => {
   const {params} = routableProps.route
   const conversationIDKey = params?.conversationIDKey ?? ChatConstants.noConversationIDKey
   const defaultSelected = params?.defaultSelected
-  const onChange = params?.onChange
-  return (
-    <AddAliasModal
-      conversationIDKey={conversationIDKey}
-      defaultSelected={defaultSelected}
-      onChange={onChange}
-    />
-  )
+  return <AddAliasModal conversationIDKey={conversationIDKey} defaultSelected={defaultSelected} />
 }
 export default AddEmojiAliasWrapper

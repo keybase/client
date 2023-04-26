@@ -151,6 +151,7 @@ export {useSelector}
 type Fn<ARGS extends any[], R> = (...args: ARGS) => R
 
 // a hacky version of https://github.com/reactjs/rfcs/blob/useevent/text/0000-useevent.md until its really added
+// its UNSAFE to call this in reaction immediately in a hook since it uses useLayoutEffect (aka the reduce useEffect changes)
 export const useEvent = <Arr extends any[], R>(fn: Fn<Arr, R>): Fn<Arr, R> => {
   const ref = React.useRef<Fn<Arr, R>>(fn)
   React.useLayoutEffect(() => {

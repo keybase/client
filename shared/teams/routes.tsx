@@ -208,7 +208,6 @@ export type RootParamListTeams = {
   }
   teamAddEmojiAlias: {
     conversationIDKey: ChatTypes.ConversationIDKey
-    onChange?: () => void
     defaultSelected?: EmojiData
   }
   teamInviteByEmail: {teamID: string}
@@ -217,7 +216,6 @@ export type RootParamListTeams = {
   teamJoinTeamDialog: {initialTeamname?: string}
   teamAddEmoji: {
     conversationIDKey: ChatTypes.ConversationIDKey
-    onChange?: () => void
     teamID: Types.TeamID // not supported yet
   }
   teamReallyRemoveMember: {
@@ -240,6 +238,7 @@ export type RootParamListTeams = {
   teamEditTeamDescription: {teamID: Types.TeamID}
   teamInviteLinksGenerate: {teamID: Types.TeamID}
   openTeamWarning: {
+    // TODO remove cbs
     isOpenTeam: boolean
     teamname: string
     onCancel: () => void
@@ -247,6 +246,7 @@ export type RootParamListTeams = {
   }
   teamInviteHistory: {teamID: Types.TeamID}
   retentionWarning: {
+    // TODO remove cbs
     policy: RetentionPolicy
     entityType: RetentionEntityType
     onCancel: (() => void) | null
@@ -258,6 +258,7 @@ export type RootParamListTeams = {
     initialTab?: Types.TabKey
   }
   teamEditChannel: {
+    // TODO remove cbs
     afterEdit?: () => void
     channelname: string
     description: string
