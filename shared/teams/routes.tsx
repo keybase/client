@@ -238,11 +238,8 @@ export type RootParamListTeams = {
   teamEditTeamDescription: {teamID: Types.TeamID}
   teamInviteLinksGenerate: {teamID: Types.TeamID}
   openTeamWarning: {
-    // TODO remove cbs
     isOpenTeam: boolean
     teamname: string
-    onCancel: () => void
-    onConfirm: () => void
   }
   teamInviteHistory: {teamID: Types.TeamID}
   retentionWarning: {
