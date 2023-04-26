@@ -15,6 +15,7 @@ import shallowEqual from 'shallowequal'
 
 type OwnProps = {
   isHighlighted?: boolean
+  toggleMessageMenu: () => void
 }
 
 const missingMessage = Constants.makeMessageAttachment({})
@@ -104,6 +105,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     onShowInFinder: !Container.isMobile && downloadPath ? onShowInFinder : undefined,
     progress: message.transferProgress,
     title: message.decoratedText?.stringValue() || message.title || message.fileName,
+    toggleMessageMenu: p.toggleMessageMenu,
     transferState: transferState ?? null,
   }
 
