@@ -1,6 +1,5 @@
 import * as Constants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import type * as TeamsTypes from '../../../../constants/types/teams'
 import RetentionPicker, {type RetentionEntityType} from '.'
@@ -53,18 +52,6 @@ export default (ownProps: OwnProps) => {
   const showInheritOption = entityType === 'channel'
   const showOverrideNotice = entityType === 'big team'
   const dispatch = Container.useDispatch()
-  const _onShowWarning = (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {entityType, onCancel, onConfirm, policy},
-            selected: 'retentionWarning',
-          },
-        ],
-      })
-    )
-  }
   const saveRetentionPolicy = (policy: RetentionPolicy) => {
     if (['small team', 'big team'].includes(entityType)) {
       dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamID}))
@@ -79,8 +66,6 @@ export default (ownProps: OwnProps) => {
     canSetPolicy,
     entityType,
     loading,
-    onShowWarning: (policy: any, onConfirm: any, onCancel: any) =>
-      _onShowWarning(policy, onConfirm, onCancel),
     policy,
     policyIsExploding,
     saveRetentionPolicy,

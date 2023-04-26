@@ -246,7 +246,6 @@ export type RootParamListTeams = {
     // TODO remove cbs
     policy: RetentionPolicy
     entityType: RetentionEntityType
-    onCancel: (() => void) | null
     onConfirm: (() => void) | null
   }
   teamEditTeamInfo: {teamID: Types.TeamID}

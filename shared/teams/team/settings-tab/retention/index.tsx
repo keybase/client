@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
 import type * as TeamsTypes from '../../../../constants/types/teams'
@@ -11,6 +12,7 @@ import SaveIndicator from '../../../../common-adapters/save-indicator'
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
 export type Props = {
+  entityType: RetentionEntityType
   canSetPolicy: boolean
   containerStyle?: Styles.StylesCrossPlatform
   dropdownStyle?: Styles.StylesCrossPlatform
@@ -25,11 +27,10 @@ export type Props = {
   teamID: TeamsTypes.TeamID
   saveRetentionPolicy: (policy: RetentionPolicy) => void
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void
-  onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => void
 }
 
 const RetentionPicker = (p: Props) => {
-  const {policy, showInheritOption, teamPolicy, saveRetentionPolicy, onShowWarning} = p
+  const {policy, showInheritOption, teamPolicy, saveRetentionPolicy, entityType} = p
   const {containerStyle, dropdownStyle, policyIsExploding, showOverrideNotice, showSaveIndicator} = p
   const [saving, setSaving] = React.useState(false)
   const [selected, _setSelected] = React.useState<RetentionPolicy | undefined>(undefined)
@@ -62,6 +63,23 @@ const RetentionPicker = (p: Props) => {
     [policy]
   )
 
+  const dispatch = Container.useDispatch()
+  const onShowWarning = React.useCallback(
+    (policy: RetentionPolicy, onConfirm: () => void) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {entityType, onConfirm, policy},
+              selected: 'retentionWarning',
+            },
+          ],
+        })
+      )
+    },
+    [dispatch, entityType]
+  )
+
   React.useEffect(() => {
     if (userSelectedRef.current) {
       userSelectedRef.current = false
@@ -73,16 +91,11 @@ const RetentionPicker = (p: Props) => {
         const onConfirm = () => {
           selected && saveRetentionPolicy(selected)
         }
-        const onCancel = () => {}
         if (decreased) {
           // show warning
           showSaved.current = false
           selected &&
-            onShowWarning(
-              selected.type === 'inherit' && teamPolicy ? teamPolicy : selected,
-              onConfirm,
-              onCancel
-            )
+            onShowWarning(selected.type === 'inherit' && teamPolicy ? teamPolicy : selected, onConfirm)
         } else {
           // set immediately
           onConfirm()
@@ -427,8 +440,7 @@ const RetentionSwitcher = (
   if (props.loading) {
     return <Kb.ProgressIndicator style={styles.progressIndicator} />
   }
-  const {entityType, ...pickerProps} = props
-  return props.canSetPolicy ? <RetentionPicker {...pickerProps} /> : <RetentionDisplay {...props} />
+  return props.canSetPolicy ? <RetentionPicker {...props} /> : <RetentionDisplay {...props} />
 }
 
 export default RetentionSwitcher

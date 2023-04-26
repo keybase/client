@@ -9,8 +9,6 @@ export default (ownProps: OwnProps) => {
   const dispatch = Container.useDispatch()
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
-    const onCancel = ownProps.route.params?.onCancel ?? null
-    onCancel?.()
   }
   const onConfirm = () => {
     dispatch(RouteTreeGen.createNavigateUp())
