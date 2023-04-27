@@ -7,6 +7,7 @@ import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Types from '../../../constants/types/teams'
 import {ModalTitle} from '../../common'
+import {useEditState} from './use-edit'
 
 type Props = Container.RouteProps<'teamEditChannel'>
 
@@ -18,7 +19,6 @@ const EditChannel = (props: Props) => {
   const conversationIDKey = props.route.params?.conversationIDKey ?? ''
   const oldName = props.route.params?.channelname ?? ''
   const oldDescription = props.route.params?.description ?? ''
-  const onFinish = props.route.params?.afterEdit ?? undefined
 
   const [name, _setName] = React.useState(oldName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_-]/, ''))
@@ -39,12 +39,15 @@ const EditChannel = (props: Props) => {
   const waiting = Container.useAnyWaiting(Constants.updateChannelNameWaitingKey(teamID))
   const wasWaiting = Container.usePrevious(waiting)
 
+  const triggerEditUpdated = useEditState(state => state.triggerEditUpdated)
+
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
       dispatch(nav.safeNavigateUpPayload())
-      onFinish?.()
+      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+      triggerEditUpdated()
     }
-  }, [dispatch, nav, waiting, wasWaiting, onFinish])
+  }, [dispatch, nav, waiting, wasWaiting, triggerEditUpdated, teamID])
 
   return (
     <Kb.Modal

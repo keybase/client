@@ -3,6 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import {useSettingsState} from '../use-settings'
 
 type Props = Container.RouteProps<'openTeamWarning'>
 
@@ -21,8 +22,7 @@ const OpenTeamWarning = (props: Props) => {
   const [enabled, setEnabled] = React.useState(false)
   const isOpenTeam = props.route.params?.isOpenTeam ?? false
   const teamname = props.route.params?.teamname ?? ''
-  const onConfirmCallback = props.route.params?.onConfirm ?? (() => undefined)
-
+  const onConfirmCallback = useSettingsState(state => state.triggerAllowOpen)
   const dispatch = Container.useDispatch()
 
   const onConfirm = () => {

@@ -31,6 +31,7 @@ import {
 } from '../../../../common-adapters/reanimated'
 import logger from '../../../../logger'
 import {AudioSendWrapper} from '../../../audio/audio-send.native'
+import {usePickerState} from '../../../emoji-picker/use-picker'
 
 const singleLineHeight = 36
 const threeLineHeight = 78
@@ -71,18 +72,32 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
 
   const dispatch = Container.useDispatch()
 
+  const pickKey = 'chatInput'
+
+  const {emojiStr} = usePickerState(state => state.pickerMap.get(pickKey)) ?? {emojiStr: ''}
+  const updatePickerMap = usePickerState(state => state.updatePickerMap)
+
+  const [lastEmoji, setLastEmoji] = React.useState('')
+  if (lastEmoji !== emojiStr) {
+    setTimeout(() => {
+      setLastEmoji(emojiStr)
+      emojiStr && insertText(emojiStr + ' ')
+      updatePickerMap(pickKey, undefined)
+    }, 1)
+  }
+
   const openEmojiPicker = React.useCallback(() => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey, onPickAction: (emoji: string) => insertText(emoji + ' ')},
+            props: {conversationIDKey, pickKey},
             selected: 'chatChooseEmoji',
           },
         ],
       })
     )
-  }, [conversationIDKey, dispatch, insertText])
+  }, [conversationIDKey, dispatch])
 
   const explodingIcon = !isEditing && !cannotWrite && (
     <Kb.ClickableBox style={styles.explodingWrapper} onClick={toggleShowingMenu}>

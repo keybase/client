@@ -13,6 +13,7 @@ import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
 import {useAllChannelMetas} from '../../common/channel-hooks'
+import {useEditState} from './use-edit'
 
 type Props = Container.RouteProps<'teamAddToChannels'>
 
@@ -290,16 +291,23 @@ const SelfChannelActions = ({
   const [waiting, setWaiting] = React.useState(false)
   const stopWaiting = React.useCallback(() => setWaiting(false), [])
 
+  const updatedTrigger = useEditState(state => state.editUpdatedTrigger)
+  const [lastUpdatedTrigger, setLastUpdatedTrigger] = React.useState(updatedTrigger)
+
+  if (lastUpdatedTrigger !== updatedTrigger) {
+    setTimeout(() => {
+      setLastUpdatedTrigger(updatedTrigger)
+      setWaiting(true)
+      reloadChannels().then(stopWaiting, stopWaiting)
+    }, 1)
+  }
+
   const onEditChannel = React.useCallback(() => {
     dispatch(
       nav.safeNavigateAppendPayload({
         path: [
           {
             props: {
-              afterEdit: () => {
-                setWaiting(true)
-                reloadChannels().then(stopWaiting, stopWaiting)
-              },
               channelname: meta.channelname,
               conversationIDKey: meta.conversationIDKey,
               description: meta.description,
@@ -310,7 +318,7 @@ const SelfChannelActions = ({
         ],
       })
     )
-  }, [dispatch, nav, meta, reloadChannels, stopWaiting])
+  }, [dispatch, nav, meta])
   const onChannelSettings = React.useCallback(() => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(

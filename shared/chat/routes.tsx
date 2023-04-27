@@ -26,9 +26,9 @@ import type ChatUnfurlMapPopup from './conversation/messages/text/unfurl/unfurl-
 import type {MessagePopupModal} from './conversation/messages/message-popup'
 import type PunycodeLinkWarning from './punycode-link-warning'
 import type SendToChat from './send-to-chat'
-import type {RenderableEmoji} from '../util/emoji'
 import type {Routable as ChatChooseEmoji} from './emoji-picker/container'
 import type {BlockModalContext} from './blocking/block-modal'
+import type {PickKey} from './emoji-picker/use-picker'
 
 export const newRoutes = {
   chatConversation: {
@@ -138,9 +138,8 @@ export type RootParamListChat = {
     small: boolean
     hideFrequentEmoji: boolean
     onlyTeamCustomEmoji: boolean
-    onPickAction: (emojiStr: string, renderableEmoji: RenderableEmoji) => void
+    pickKey: PickKey
     onPickAddToMessageOrdinal: Types.Ordinal
-    onDidPick: () => void
   }
   chatUnfurlMapPopup: {
     conversationIDKey: Types.ConversationIDKey

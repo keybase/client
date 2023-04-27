@@ -1,16 +1,19 @@
 import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
 import type * as TeamsTypes from '../../../../constants/types/teams'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
+import {useConfirm} from './use-confirm'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
 export type Props = {
+  entityType: RetentionEntityType
   canSetPolicy: boolean
   containerStyle?: Styles.StylesCrossPlatform
   dropdownStyle?: Styles.StylesCrossPlatform
@@ -25,11 +28,10 @@ export type Props = {
   teamID: TeamsTypes.TeamID
   saveRetentionPolicy: (policy: RetentionPolicy) => void
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void
-  onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => void
 }
 
 const RetentionPicker = (p: Props) => {
-  const {policy, showInheritOption, teamPolicy, saveRetentionPolicy, onShowWarning} = p
+  const {policy, showInheritOption, teamPolicy, saveRetentionPolicy, entityType} = p
   const {containerStyle, dropdownStyle, policyIsExploding, showOverrideNotice, showSaveIndicator} = p
   const [saving, setSaving] = React.useState(false)
   const [selected, _setSelected] = React.useState<RetentionPolicy | undefined>(undefined)
@@ -62,6 +64,22 @@ const RetentionPicker = (p: Props) => {
     [policy]
   )
 
+  const dispatch = Container.useDispatch()
+
+  const modalConfirmed = useConfirm(state => state.confirmed)
+  const updateConfirm = useConfirm(state => state.updateConfirm)
+
+  const [lastConfirmed, setLastConfirmed] = React.useState<RetentionPolicy | undefined>(undefined)
+  if (lastConfirmed !== modalConfirmed) {
+    setTimeout(() => {
+      setLastConfirmed(modalConfirmed)
+      if (selected === modalConfirmed) {
+        selected && saveRetentionPolicy(selected)
+      }
+      updateConfirm(undefined)
+    }, 1)
+  }
+
   React.useEffect(() => {
     if (userSelectedRef.current) {
       userSelectedRef.current = false
@@ -70,20 +88,28 @@ const RetentionPicker = (p: Props) => {
 
       // show dialog if decreased, set immediately if not
       if (changed) {
-        const onConfirm = () => {
-          selected && saveRetentionPolicy(selected)
-        }
-        const onCancel = () => {}
         if (decreased) {
           // show warning
           showSaved.current = false
-          selected &&
-            onShowWarning(
-              selected.type === 'inherit' && teamPolicy ? teamPolicy : selected,
-              onConfirm,
-              onCancel
+          if (selected) {
+            dispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [
+                  {
+                    props: {
+                      entityType,
+                      policy: selected.type === 'inherit' && teamPolicy ? teamPolicy : selected,
+                    },
+                    selected: 'retentionWarning',
+                  },
+                ],
+              })
             )
+          }
         } else {
+          const onConfirm = () => {
+            selected && saveRetentionPolicy(selected)
+          }
           // set immediately
           onConfirm()
           showSaved.current = true
@@ -91,7 +117,7 @@ const RetentionPicker = (p: Props) => {
         }
       }
     }
-  }, [selected, policy, onShowWarning, saveRetentionPolicy, teamPolicy])
+  }, [selected, policy, saveRetentionPolicy, teamPolicy, dispatch, entityType])
 
   const lastPolicy = React.useRef(policy)
   const lastTeamPolicy = React.useRef(teamPolicy)
@@ -427,8 +453,7 @@ const RetentionSwitcher = (
   if (props.loading) {
     return <Kb.ProgressIndicator style={styles.progressIndicator} />
   }
-  const {entityType, ...pickerProps} = props
-  return props.canSetPolicy ? <RetentionPicker {...pickerProps} /> : <RetentionDisplay {...props} />
+  return props.canSetPolicy ? <RetentionPicker {...props} /> : <RetentionDisplay {...props} />
 }
 
 export default RetentionSwitcher

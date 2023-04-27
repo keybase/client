@@ -12,6 +12,7 @@ import * as Styles from '../../../styles'
 import DefaultChannels from './default-channels'
 
 type Props = {
+  allowOpenTrigger: number
   canShowcase: boolean
   error?: string
   isBigTeam: boolean
@@ -23,7 +24,7 @@ type Props = {
   openTeam: boolean
   openTeamRole: Types.TeamRoleType
   savePublicity: (settings: Types.PublicitySettings) => void
-  showOpenTeamWarning: (isOpenTeam: boolean, onConfirm: () => void, teamname: string) => void
+  showOpenTeamWarning: (isOpenTeam: boolean, teamname: string) => void
   teamID: Types.TeamID
   yourOperations: Types.TeamOperations
   waitingForWelcomeMessage: boolean
@@ -260,6 +261,10 @@ export class Settings extends React.Component<Props, State> {
 
       return null
     })
+
+    if (this.props.allowOpenTrigger !== prevProps.allowOpenTrigger) {
+      this.setBoolSettings('newOpenTeam')(!this.state.newOpenTeam)
+    }
   }
 
   // TODO just use real keys/setState and not this abstraction
@@ -282,11 +287,7 @@ export class Settings extends React.Component<Props, State> {
   }
 
   _showOpenTeamWarning = () => {
-    this.props.showOpenTeamWarning(
-      !this.state.newOpenTeam,
-      () => this.setBoolSettings('newOpenTeam')(!this.state.newOpenTeam),
-      this.props.teamname
-    )
+    this.props.showOpenTeamWarning(!this.state.newOpenTeam, this.props.teamname)
   }
 
   render() {

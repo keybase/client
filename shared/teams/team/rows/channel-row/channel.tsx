@@ -45,9 +45,6 @@ const ChannelRow = (props: ChannelRowProps) => {
         path: [
           {
             props: {
-              afterEdit: () => {
-                dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
-              },
               channelname: channel.channelname,
               conversationIDKey: channel.conversationIDKey,
               description: channel.description,

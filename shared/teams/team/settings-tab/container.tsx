@@ -5,6 +5,7 @@ import * as Container from '../../../util/container'
 import {Settings} from '.'
 import {anyWaiting} from '../../../constants/waiting'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {useSettingsState} from './use-settings'
 
 export type OwnProps = {
   teamID: Types.TeamID
@@ -46,14 +47,17 @@ export default (ownProps: OwnProps) => {
   const savePublicity = (settings: Types.PublicitySettings) => {
     dispatch(TeamsGen.createSetPublicity({settings, teamID}))
   }
-  const showOpenTeamWarning = (isOpenTeam: boolean, onConfirm: () => void, teamname: string) => {
+  const showOpenTeamWarning = (isOpenTeam: boolean, teamname: string) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {isOpenTeam, onConfirm, teamname}, selected: 'openTeamWarning'}],
+        path: [{props: {isOpenTeam, teamname}, selected: 'openTeamWarning'}],
       })
     )
   }
+  const allowOpenTrigger = useSettingsState(state => state.allowOpenTrigger)
+
   const props = {
+    allowOpenTrigger,
     canShowcase,
     clearError,
     error,

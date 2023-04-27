@@ -9,10 +9,9 @@ type OwnProps = {
   teamID: Types.TeamID
   convID: ChatTypes.ConversationIDKey
   filter: string
-  reloadEmojis: () => void
   setFilter: (filter: string) => void
 }
-const AddEmoji = ({teamID, convID, filter, reloadEmojis, setFilter}: OwnProps) => {
+const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
   const nav = Container.useSafeNavigation()
   const dispatch = Container.useDispatch()
   const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
@@ -21,7 +20,7 @@ const AddEmoji = ({teamID, convID, filter, reloadEmojis, setFilter}: OwnProps) =
       nav.safeNavigateAppendPayload({
         path: [
           {
-            props: {conversationIDKey: convID, onChange: reloadEmojis, teamID},
+            props: {conversationIDKey: convID, teamID},
             selected: 'teamAddEmoji',
           },
         ],
@@ -32,7 +31,7 @@ const AddEmoji = ({teamID, convID, filter, reloadEmojis, setFilter}: OwnProps) =
       nav.safeNavigateAppendPayload({
         path: [
           {
-            props: {conversationIDKey: convID, onChange: reloadEmojis},
+            props: {conversationIDKey: convID},
             selected: 'teamAddEmojiAlias',
           },
         ],

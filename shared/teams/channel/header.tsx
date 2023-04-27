@@ -40,9 +40,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const canDelete = yourOperations.deleteChannel && channelname !== 'general'
 
   const editChannelProps = {
-    afterEdit: () => {
-      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
-    },
     channelname: channelname,
     conversationIDKey,
     description: description,
