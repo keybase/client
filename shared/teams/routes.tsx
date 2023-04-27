@@ -252,8 +252,6 @@ export type RootParamListTeams = {
     initialTab?: Types.TabKey
   }
   teamEditChannel: {
-    // TODO remove cbs
-    afterEdit?: () => void
     channelname: string
     description: string
     teamID: Types.TeamID

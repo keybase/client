@@ -49,6 +49,7 @@ export const useAllChannelMetas = (
   const reloadChannels = React.useCallback(
     async () =>
       new Promise<void>((resolve, reject) => {
+        console.log('aaaa reload vchannels called')
         setLoadingChannels(true)
         getConversations(
           [
