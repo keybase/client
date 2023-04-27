@@ -70,9 +70,15 @@ const handleSaltpackOpenFile = (_, action: CryptoGen.OnSaltpackOpenFilePayload) 
 
 // Mobile is split into two routes (input and output). This Saga handler
 // transitions to the output route on success
+const coutputRoute = new Map([
+  ['decrypt', Constants.decryptOutput],
+  ['encrypt', Constants.encryptOutput],
+  ['sign', Constants.signOutput],
+  ['verify', Constants.verifyOutput],
+] as const)
 const handleOperationSuccessNavigation = (_, action: CryptoGen.OnOperationSuccessPayload) => {
   const {operation} = action.payload
-  const outputRoute = Constants.outputRoute.get(operation) as Types.CryptoOutputRoute
+  const outputRoute = coutputRoute.get(operation) as Types.CryptoOutputRoute
   return RouteTreeGen.createNavigateAppend({
     path: [outputRoute],
   })
@@ -318,7 +324,7 @@ const saltpackEncrypt = async (state: Container.TypedState, action: CryptoGen.Sa
               signed: options.sign,
             },
           },
-          Constants.encryptFileWaitingKey
+          Constants.waitingKey
         )
 
         return CryptoGen.createOnOperationSuccess({
@@ -352,7 +358,7 @@ const saltpackEncrypt = async (state: Container.TypedState, action: CryptoGen.Sa
             },
             plaintext: input.stringValue(),
           },
-          Constants.encryptStringWaitingKey
+          Constants.waitingKey
         )
         const warningMessage = Constants.getWarningMessageForSBS(encryptRes.unresolvedSBSAssertion)
 
@@ -398,7 +404,7 @@ const saltpackDecrypt = async (_, action: CryptoGen.SaltpackDecryptPayload) => {
             destinationDir: destinationDir?.stringValue() ?? '',
             encryptedFilename: input.stringValue(),
           },
-          Constants.decryptFileWaitingKey
+          Constants.waitingKey
         )
         const {decryptedFilename, info, signed} = result
         const {sender} = info
@@ -432,7 +438,7 @@ const saltpackDecrypt = async (_, action: CryptoGen.SaltpackDecryptPayload) => {
       try {
         const result = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise(
           {ciphertext: input.stringValue()},
-          Constants.decryptStringWaitingKey
+          Constants.waitingKey
         )
         const {plaintext, info, signed} = result
         const {sender} = info
@@ -482,7 +488,7 @@ const saltpackSign = async (state: Container.TypedState, action: CryptoGen.Saltp
             destinationDir: destinationDir?.stringValue() ?? '',
             filename: input.stringValue(),
           },
-          Constants.signFileWaitingKey
+          Constants.waitingKey
         )
         return CryptoGen.createOnOperationSuccess({
           input: action,
@@ -508,7 +514,7 @@ const saltpackSign = async (state: Container.TypedState, action: CryptoGen.Saltp
       try {
         const ciphertext = await RPCTypes.saltpackSaltpackSignStringRpcPromise(
           {plaintext: input.stringValue()},
-          Constants.signStringWaitingKey
+          Constants.waitingKey
         )
         return CryptoGen.createOnOperationSuccess({
           input: action,
@@ -549,7 +555,7 @@ const saltpackVerify = async (_, action: CryptoGen.SaltpackVerifyPayload) => {
             destinationDir: destinationDir?.stringValue() ?? '',
             signedFilename: input.stringValue(),
           },
-          Constants.verifyFileWaitingKey
+          Constants.waitingKey
         )
         const {verifiedFilename, sender, verified} = result
         const {username, fullname} = sender
@@ -582,7 +588,7 @@ const saltpackVerify = async (_, action: CryptoGen.SaltpackVerifyPayload) => {
       try {
         const result = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise(
           {signedMsg: input.stringValue()},
-          Constants.verifyStringWaitingKey
+          Constants.waitingKey
         )
         const {plaintext, sender, verified} = result
         const {username, fullname} = sender

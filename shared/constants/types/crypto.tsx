@@ -1,6 +1,5 @@
 import type * as TeamBuildingTypes from './team-building'
 import type HiddenString from '../../util/hidden-string'
-import type {IconType} from '../../common-adapters/icon.constants-gen'
 
 export type StringWaitingKey =
   | 'crypto:encrypt:string'
@@ -13,28 +12,28 @@ export type FileWaitingKey =
   | 'crypto:sign:file'
   | 'crypto:verify:file'
 
-type EncryptTab = 'encryptTab'
-type DecryptTab = 'decryptTab'
-type SignTab = 'signTab'
-type VerifyTab = 'verifyTab'
+// type EncryptTab = 'encryptTab'
+// type DecryptTab = 'decryptTab'
+// type SignTab = 'signTab'
+// type VerifyTab = 'verifyTab'
 
 type EncryptOutput = 'encryptOutput'
 type DecryptOutput = 'decryptOutput'
 type SignOutput = 'signOutput'
 type VerifyOutput = 'verifyOutput'
 
-export type TabTitles = 'Encrypt' | 'Decrypt' | 'Sign' | 'Verify'
-export type CryptoSubTab = EncryptTab | DecryptTab | SignTab | VerifyTab
+// export type TabTitles = 'Encrypt' | 'Decrypt' | 'Sign' | 'Verify'
+// export type CryptoSubTab = EncryptTab | DecryptTab | SignTab | VerifyTab
 // Mobile only
 export type CryptoOutputRoute = EncryptOutput | DecryptOutput | SignOutput | VerifyOutput
 
-export type Tab = {
-  title: TabTitles
-  description: string
-  tab: CryptoSubTab
-  icon: IconType
-  illustration: IconType
-}
+// export type Tab = {
+//   title: TabTitles
+//   description: string
+//   tab: CryptoSubTab
+//   icon: IconType
+//   illustration: IconType
+// }
 
 export type TextType = 'cipher' | 'plain'
 
