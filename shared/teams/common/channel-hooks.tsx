@@ -44,12 +44,12 @@ export const useAllChannelMetas = (
   const [channelMetas, setChannelMetas] = React.useState(
     new Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>()
   )
+
   const [loadingChannels, setLoadingChannels] = React.useState(true)
 
   const reloadChannels = React.useCallback(
     async () =>
       new Promise<void>((resolve, reject) => {
-        console.log('aaaa reload vchannels called')
         setLoadingChannels(true)
         getConversations(
           [

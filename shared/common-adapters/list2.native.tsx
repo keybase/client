@@ -42,7 +42,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
     }
 
     const keyProp = this.props.keyProperty || 'key'
-    return item[keyProp]
+    return item[keyProp] ?? String(index)
   }
 
   render() {
