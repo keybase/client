@@ -1,4 +1,4 @@
-package com.kb;
+package com.reactnativekb;
 
 import androidx.annotation.Nullable;
 
@@ -27,6 +27,7 @@ public class KbPackage extends TurboReactPackage {
   public ReactModuleInfoProvider getReactModuleInfoProvider() {
     return () -> {
       final Map<String, ReactModuleInfo> moduleInfos = new HashMap<>();
+      boolean isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
       moduleInfos.put(
               KbModule.NAME,
               new ReactModuleInfo(
@@ -36,7 +37,7 @@ public class KbPackage extends TurboReactPackage {
                       false, // needsEagerInit
                       true, // hasConstants
                       false, // isCxxModule
-                      true // isTurboModule
+                      isTurboModule // isTurboModule
       ));
       return moduleInfos;
     };

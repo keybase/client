@@ -1,4 +1,4 @@
-package com.dropview;
+package com.reactnativedropview;
 
 import androidx.annotation.Nullable;
 

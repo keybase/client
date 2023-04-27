@@ -1,5 +1,4 @@
-
-package com.dropview;
+package com.reactnativedropview;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;

@@ -104,10 +104,13 @@ android {
   sourceSets {
     main {
       if (isNewArchitectureEnabled()) {
-          java.srcDirs += [
-            // This is needed to build Kotlin project with NewArch enabled
-            "${project.buildDir}/generated/source/codegen/java"
-          ]
+        java.srcDirs += [
+          "src/newarch",
+          // This is needed to build Kotlin project with NewArch enabled
+          "${project.buildDir}/generated/source/codegen/java"
+        ]
+      } else {
+        java.srcDirs += ["src/oldarch"]
       }
     }
   }
