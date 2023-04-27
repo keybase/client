@@ -85,7 +85,7 @@ const coutputRoute = new Map([
 ] as const)
 const handleOperationSuccessNavigation = (_, action: CryptoGen.OnOperationSuccessPayload) => {
   const {operation} = action.payload
-  const outputRoute = coutputRoute.get(operation) as Types.CryptoOutputRoute
+  const outputRoute = coutputRoute.get(operation)
   return RouteTreeGen.createNavigateAppend({
     path: [outputRoute],
   })
