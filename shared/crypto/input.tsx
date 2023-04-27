@@ -47,6 +47,25 @@ const operationToEmptyInputWidth = {
   [Constants.Operations.Verify]: 342,
 }
 
+const inputTextType = new Map([
+  ['decrypt', 'cipher'],
+  ['encrypt', 'plain'],
+  ['sign', 'plain'],
+  ['verify', 'cipher'],
+] as const)
+const inputPlaceholder = new Map([
+  [
+    'decrypt',
+    Platform.isMobile ? 'Enter text to decrypt' : 'Enter ciphertext, drop an encrypted file or folder, or',
+  ],
+  ['encrypt', Platform.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'],
+  ['sign', Platform.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'],
+  [
+    'verify',
+    Platform.isMobile ? 'Enter text to verify' : 'Enter a signed message, drop a signed file or folder, or',
+  ],
+] as const)
+
 /*
  * Before user enters text:
  *  - Single line input
@@ -58,8 +77,8 @@ const operationToEmptyInputWidth = {
  */
 export const TextInput = (props: TextProps) => {
   const {value, operation, onChangeText, onSetFile} = props
-  const textType = Constants.inputTextType.get(operation)
-  const placeholder = Constants.inputPlaceholder.get(operation)
+  const textType = inputTextType.get(operation)
+  const placeholder = inputPlaceholder.get(operation)
   const emptyWidth = operationToEmptyInputWidth[operation]
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
@@ -141,11 +160,17 @@ export const TextInput = (props: TextProps) => {
   )
 }
 
+const inputFileIcon = new Map([
+  ['decrypt', 'icon-file-saltpack-64'],
+  ['encrypt', 'icon-file-64'],
+  ['sign', 'icon-file-64'],
+  ['verify', 'icon-file-saltpack-64'],
+] as const)
+
 export const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
-  const fileIcon = Constants.inputFileIcon.get(operation) as IconType
-  const waitingKey = Constants.fileWaitingKey.get(operation) as Types.FileWaitingKey
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const fileIcon = inputFileIcon.get(operation) as IconType
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   return (
     <Kb.Box2
@@ -221,6 +246,13 @@ export const Input = (props: CommonProps) => {
   )
 }
 
+const allowInputFolders = new Map([
+  ['decrypt', false],
+  ['encrypt', true],
+  ['sign', true],
+  ['verify', false],
+] as const)
+
 export const DragAndDrop = (props: DragAndDropProps) => {
   const {prompt, children, operation} = props
   const dispatch = Container.useDispatch()
@@ -232,7 +264,7 @@ export const DragAndDrop = (props: DragAndDropProps) => {
     dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
   }
 
-  const allowFolders = Constants.allowInputFolders.get(operation) as boolean
+  const allowFolders = allowInputFolders.get(operation) as boolean
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -284,7 +316,7 @@ export const OperationBanner = (props: CommonProps) => {
 export const InputActionsBar = (props: RunOperationProps) => {
   const {operation, children} = props
   const dispatch = Container.useDispatch()
-  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
+  const waitingKey = Constants.waitingKey
 
   const operationTitle = capitalize(operation)
 

@@ -1,11 +1,10 @@
 import * as Kb from '../../common-adapters'
-import type * as Types from '../../constants/types/crypto'
 import * as Styles from '../../styles'
 import type {IconType} from '../../common-adapters/icon.constants-gen'
 
 type Props = {
   title: string
-  tab: Types.CryptoSubTab
+  tab: string
   // Desktop only
   icon?: IconType
   isSelected?: boolean

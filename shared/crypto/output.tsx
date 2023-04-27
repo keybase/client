@@ -10,7 +10,6 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
-import type {IconType} from '../common-adapters/icon.constants-gen'
 import {humanizeBytes} from '../constants/fs'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../common-adapters/text'
@@ -45,9 +44,7 @@ const largeOutputLimit = 120
 
 export const SignedSender = (props: SignedSenderProps) => {
   const {operation} = props
-
-  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   const signed = Container.useSelector(state => state.crypto[operation].outputSigned)
   const signedByUsername = Container.useSelector(state => state.crypto[operation].outputSenderUsername)
@@ -175,8 +172,7 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
   const canReplyInChat =
     operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
 
-  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
   const outputValid = Container.useSelector(state => state.crypto[operation].outputValid)
@@ -335,9 +331,23 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
 
 const MobileScroll = Styles.isMobile ? Kb.ScrollView : React.Fragment
 
+const outputTextType = new Map([
+  ['decrypt', 'plain'],
+  ['encrypt', 'cipher'],
+  ['sign', 'cipher'],
+  ['verify', 'plain'],
+] as const)
+
+const outputFileIcon = new Map([
+  ['decrypt', 'icon-file-64'],
+  ['encrypt', 'icon-file-saltpack-64'],
+  ['sign', 'icon-file-saltpack-64'],
+  ['verify', 'icon-file-64'],
+] as const)
+
 export const OperationOutput = (props: OutputProps) => {
   const {operation} = props
-  const textType = Constants.outputTextType.get(operation)
+  const textType = outputTextType.get(operation)
   const dispatch = Container.useDispatch()
 
   const inputType = Container.useSelector(state => state.crypto[operation].inputType)
@@ -352,8 +362,7 @@ export const OperationOutput = (props: OutputProps) => {
     dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
   }
 
-  const waitingKey = Constants.stringWaitingKey.get(operation) as Types.StringWaitingKey
-  const waiting = Container.useAnyWaiting(waitingKey)
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   // Output text can be 24 px when output is less that 120 characters
   const outputTextIsLarge =
@@ -365,7 +374,7 @@ export const OperationOutput = (props: OutputProps) => {
 
   const fileOutputTextColor =
     textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
-  const fileIcon = Constants.outputFileIcon.get(operation) as IconType
+  const fileIcon = outputFileIcon.get(operation)
   const actionsDisabled = waiting || !outputValid
 
   // Placeholder, progress, or encrypt file button
@@ -397,7 +406,7 @@ export const OperationOutput = (props: OutputProps) => {
           alignItems="center"
           style={styles.fileOutputContainer}
         >
-          <Kb.Icon type={fileIcon} sizeType="Huge" />
+          {fileIcon ? <Kb.Icon type={fileIcon} sizeType="Huge" /> : null}
           <Kb.Text
             type="BodyPrimaryLink"
             style={Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}

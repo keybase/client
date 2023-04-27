@@ -60,9 +60,16 @@ const onSetRecipients = (state: Container.TypedState) => {
   return actions
 }
 
+const CryptoSubTabs = {
+  decrypt: Constants.decryptTab,
+  encrypt: Constants.encryptTab,
+  sign: Constants.signTab,
+  verify: Constants.verifyTab,
+} as const
+
 const handleSaltpackOpenFile = (_, action: CryptoGen.OnSaltpackOpenFilePayload) => {
   const {operation} = action.payload
-  const tab = Constants.CryptoSubTabs[operation]
+  const tab = CryptoSubTabs[operation]
   return RouteTreeGen.createNavigateAppend({
     path: ['cryptoRoot', tab],
   })
@@ -70,9 +77,15 @@ const handleSaltpackOpenFile = (_, action: CryptoGen.OnSaltpackOpenFilePayload) 
 
 // Mobile is split into two routes (input and output). This Saga handler
 // transitions to the output route on success
+const coutputRoute = new Map([
+  ['decrypt', Constants.decryptOutput],
+  ['encrypt', Constants.encryptOutput],
+  ['sign', Constants.signOutput],
+  ['verify', Constants.verifyOutput],
+] as const)
 const handleOperationSuccessNavigation = (_, action: CryptoGen.OnOperationSuccessPayload) => {
   const {operation} = action.payload
-  const outputRoute = Constants.outputRoute.get(operation) as Types.CryptoOutputRoute
+  const outputRoute = coutputRoute.get(operation)
   return RouteTreeGen.createNavigateAppend({
     path: [outputRoute],
   })
@@ -302,6 +315,57 @@ const makeOperationAction = (p: OperationActionArgs) => {
   }
 }
 
+const getStatusCodeMessage = (
+  error: RPCError,
+  operation: Types.Operations,
+  type: Types.InputTypes
+): string => {
+  const inputType =
+    type === 'text' ? (operation === Constants.Operations.Verify ? 'signed message' : 'ciphertext') : 'file'
+  const action =
+    type === 'text' ? (operation === Constants.Operations.Verify ? 'enter a' : 'enter') : 'drop a'
+  const addInput =
+    type === 'text'
+      ? operation === Constants.Operations.Verify
+        ? 'signed message'
+        : 'ciphertext'
+      : 'encrypted file'
+
+  const offlineMessage = `You are offline.`
+  const genericMessage = `Failed to ${operation} ${type}.`
+
+  let wrongTypeHelpText = ``
+  if (operation === Constants.Operations.Verify) {
+    wrongTypeHelpText = ` Did you mean to decrypt it?` // just a guess. could get specific expected type from Cause with more effort.
+  } else if (operation === Constants.Operations.Decrypt) {
+    wrongTypeHelpText = ` Did you mean to verify it?` // just a guess.
+  }
+
+  const causeStatusCode =
+    error.fields && error.fields[1].key === 'Code' ? error.fields[1].value : RPCTypes.StatusCode.scgeneric
+  const causeStatusCodeToMessage: any = {
+    [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
+    [RPCTypes.StatusCode
+      .scdecryptionkeynotfound]: `This message was encrypted for someone else or for a key you don't have.`,
+    [RPCTypes.StatusCode
+      .scverificationkeynotfound]: `This message couldn't be verified, because the signing key wasn't recognized.`,
+    [RPCTypes.StatusCode.scwrongcryptomsgtype]: `This Saltpack format is unexpected.` + wrongTypeHelpText,
+  } as const
+
+  const statusCodeToMessage: any = {
+    [RPCTypes.StatusCode.scapinetworkerror]: offlineMessage,
+    [RPCTypes.StatusCode.scgeneric]: `${
+      error.message.includes('API network error') ? offlineMessage : genericMessage
+    }`,
+    [RPCTypes.StatusCode
+      .scstreamunknown]: `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`,
+    [RPCTypes.StatusCode.scsigcannotverify]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
+    [RPCTypes.StatusCode.scdecryptionerror]: causeStatusCodeToMessage[causeStatusCode] || genericMessage,
+  } as const
+
+  return statusCodeToMessage[error.code] || genericMessage
+}
+
 const saltpackEncrypt = async (state: Container.TypedState, action: CryptoGen.SaltpackEncryptPayload) => {
   const {username} = state.config
   const {destinationDir, input, recipients, type, options} = action.payload
@@ -318,7 +382,7 @@ const saltpackEncrypt = async (state: Container.TypedState, action: CryptoGen.Sa
               signed: options.sign,
             },
           },
-          Constants.encryptFileWaitingKey
+          Constants.waitingKey
         )
 
         return CryptoGen.createOnOperationSuccess({
@@ -334,7 +398,7 @@ const saltpackEncrypt = async (state: Container.TypedState, action: CryptoGen.Sa
           return
         }
         logger.error(error)
-        const message = Constants.getStatusCodeMessage(error, Constants.Operations.Encrypt, type)
+        const message = getStatusCodeMessage(error, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
@@ -352,9 +416,9 @@ const saltpackEncrypt = async (state: Container.TypedState, action: CryptoGen.Sa
             },
             plaintext: input.stringValue(),
           },
-          Constants.encryptStringWaitingKey
+          Constants.waitingKey
         )
-        const warningMessage = Constants.getWarningMessageForSBS(encryptRes.unresolvedSBSAssertion)
+        const warningMessage = `Note: Encrypted for "${encryptRes.unresolvedSBSAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
 
         return CryptoGen.createOnOperationSuccess({
           input: action,
@@ -371,7 +435,7 @@ const saltpackEncrypt = async (state: Container.TypedState, action: CryptoGen.Sa
           return
         }
         logger.error(error)
-        const message = Constants.getStatusCodeMessage(error, Constants.Operations.Encrypt, type)
+        const message = getStatusCodeMessage(error, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
@@ -398,7 +462,7 @@ const saltpackDecrypt = async (_, action: CryptoGen.SaltpackDecryptPayload) => {
             destinationDir: destinationDir?.stringValue() ?? '',
             encryptedFilename: input.stringValue(),
           },
-          Constants.decryptFileWaitingKey
+          Constants.waitingKey
         )
         const {decryptedFilename, info, signed} = result
         const {sender} = info
@@ -421,7 +485,7 @@ const saltpackDecrypt = async (_, action: CryptoGen.SaltpackDecryptPayload) => {
           return
         }
         logger.error(error)
-        const message = Constants.getStatusCodeMessage(error, Constants.Operations.Decrypt, type)
+        const message = getStatusCodeMessage(error, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Decrypt,
@@ -432,7 +496,7 @@ const saltpackDecrypt = async (_, action: CryptoGen.SaltpackDecryptPayload) => {
       try {
         const result = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise(
           {ciphertext: input.stringValue()},
-          Constants.decryptStringWaitingKey
+          Constants.waitingKey
         )
         const {plaintext, info, signed} = result
         const {sender} = info
@@ -455,7 +519,7 @@ const saltpackDecrypt = async (_, action: CryptoGen.SaltpackDecryptPayload) => {
           return
         }
         logger.error(error)
-        const message = Constants.getStatusCodeMessage(error, Constants.Operations.Decrypt, type)
+        const message = getStatusCodeMessage(error, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Decrypt,
@@ -482,7 +546,7 @@ const saltpackSign = async (state: Container.TypedState, action: CryptoGen.Saltp
             destinationDir: destinationDir?.stringValue() ?? '',
             filename: input.stringValue(),
           },
-          Constants.signFileWaitingKey
+          Constants.waitingKey
         )
         return CryptoGen.createOnOperationSuccess({
           input: action,
@@ -497,7 +561,7 @@ const saltpackSign = async (state: Container.TypedState, action: CryptoGen.Saltp
           return
         }
         logger.error(error)
-        const message = Constants.getStatusCodeMessage(error, Constants.Operations.Sign, type)
+        const message = getStatusCodeMessage(error, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Sign,
@@ -508,7 +572,7 @@ const saltpackSign = async (state: Container.TypedState, action: CryptoGen.Saltp
       try {
         const ciphertext = await RPCTypes.saltpackSaltpackSignStringRpcPromise(
           {plaintext: input.stringValue()},
-          Constants.signStringWaitingKey
+          Constants.waitingKey
         )
         return CryptoGen.createOnOperationSuccess({
           input: action,
@@ -523,7 +587,7 @@ const saltpackSign = async (state: Container.TypedState, action: CryptoGen.Saltp
           return
         }
         logger.error(error)
-        const message = Constants.getStatusCodeMessage(error, Constants.Operations.Sign, type)
+        const message = getStatusCodeMessage(error, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Sign,
@@ -549,7 +613,7 @@ const saltpackVerify = async (_, action: CryptoGen.SaltpackVerifyPayload) => {
             destinationDir: destinationDir?.stringValue() ?? '',
             signedFilename: input.stringValue(),
           },
-          Constants.verifyFileWaitingKey
+          Constants.waitingKey
         )
         const {verifiedFilename, sender, verified} = result
         const {username, fullname} = sender
@@ -571,7 +635,7 @@ const saltpackVerify = async (_, action: CryptoGen.SaltpackVerifyPayload) => {
           return
         }
         logger.error(error)
-        const message = Constants.getStatusCodeMessage(error, Constants.Operations.Verify, type)
+        const message = getStatusCodeMessage(error, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Verify,
@@ -582,7 +646,7 @@ const saltpackVerify = async (_, action: CryptoGen.SaltpackVerifyPayload) => {
       try {
         const result = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise(
           {signedMsg: input.stringValue()},
-          Constants.verifyStringWaitingKey
+          Constants.waitingKey
         )
         const {plaintext, sender, verified} = result
         const {username, fullname} = sender
@@ -604,7 +668,7 @@ const saltpackVerify = async (_, action: CryptoGen.SaltpackVerifyPayload) => {
           return
         }
         logger.error(error)
-        const message = Constants.getStatusCodeMessage(error, Constants.Operations.Verify, type)
+        const message = getStatusCodeMessage(error, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Verify,
