@@ -31,7 +31,7 @@
   "private": true,
   "devDependencies": {
     "@types/react": "18.0.35",
-    "react-native": "0.71.6",
+    "react-native": "0.71.7",
     "react-native-builder-bob": "^0.20.4",
     "typescript": "5.0.4"
   },

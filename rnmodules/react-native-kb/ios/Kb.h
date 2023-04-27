@@ -1,23 +1,29 @@
 #ifdef __cplusplus
 #import "react-native-kb.h"
 #endif
+
+#ifdef RCT_NEW_ARCH_ENABLED
+// #import "RNKbSpec.h"
+#import <RNKbSpec/RNKbSpec.h>
 #import <React/RCTEventEmitter.h>
-//@protocol KbProvider
-//- (NSDictionary *)fsPaths;
-//@end
-//
 #import <foundation/Foundation.h>
 
-// Singleton to get the paths
-@interface FsPathsHolder : NSObject {
-    NSDictionary *fsPaths;
-}
-@property (nonatomic, retain) NSDictionary *fsPaths;
-+ (id)sharedFsPathsHolder;
+@interface Kb : RCTEventEmitter <NativeKbSpec>
+#else
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
+#import <foundation/Foundation.h>
+
+@interface Kb : RCTEventEmitter <RCTBridgeModule>
+#endif
 
 @end
 
-#import <RNKbSpec/RNKbSpec.h>
+// Singleton to get the paths
+@interface FsPathsHolder : NSObject {
+  NSDictionary *fsPaths;
+}
+@property(nonatomic, retain) NSDictionary *fsPaths;
++ (id)sharedFsPathsHolder;
 
-@interface Kb : RCTEventEmitter <NativeKbSpec>
 @end

@@ -33,7 +33,7 @@
   "devDependencies": {
     "@welldone-software/why-did-you-render": "7.0.1",
     "@types/react": "18.0.35",
-    "react-native": "0.71.6",
+    "react-native": "0.71.7",
     "react-native-builder-bob": "^0.18.3",
     "patch-package": "6.5.1",
     "typescript": "5.0.4"
@@ -54,8 +54,8 @@
     ]
   },
   "codegenConfig": {
-    "name": "RNDropViewSpec",
-    "type": "all",
+    "name": "RNDropViewViewSpec",
+    "type": "components",
     "jsSrcsDir": "src"
   }
 }

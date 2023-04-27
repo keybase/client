@@ -1,3 +1,4 @@
+#import "DropView.h"
 #import "RCTBridge.h"
 #import <React/RCTUIManager.h>
 #import <React/RCTViewManager.h>
@@ -7,11 +8,10 @@
 
 @implementation DropViewViewManager
 
-RCT_EXPORT_MODULE(DropView)
+RCT_EXPORT_MODULE(DropViewView)
 
-// - (UIView *)view {
-//   DropView *dv = [[DropView alloc] init];
-//   return dv;
-// }
+- (UIView *)view {
+  return [[DropView alloc] init];
+}
 
 @end

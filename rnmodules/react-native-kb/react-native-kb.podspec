@@ -20,16 +20,26 @@ Pod::Spec.new do |s|
       "cpp/*.{h,cpp}"
   ]
 
+  s.dependency "React-Core"
+
+  # Don't install the dependencies when we run `pod install` in the old architecture.
+  if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
     s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
     s.pod_target_xcconfig    = {
         "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" $(PODS_ROOT)/../../node_modules/msgpack-cxx-4.1.1/include $(PODS_ROOT)/../keybase.xcframework/ios-arm64/Keybase.framework/Headers",
         "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1",
         "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
     }
-    s.dependency "React-Core"
     s.dependency "React-Codegen"
     s.dependency "RCT-Folly"
     s.dependency "RCTRequired"
     s.dependency "RCTTypeSafety"
     s.dependency "ReactCommon/turbomodule/core"
+  else
+    s.pod_target_xcconfig    = {
+        "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\" $(PODS_ROOT)/../../node_modules/msgpack-cxx-4.1.1/include $(PODS_ROOT)/../keybase.xcframework/ios-arm64/Keybase.framework/Headers",
+        "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DMSGPACK_NO_BOOST=1",
+        "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
+    }
+  end
 end
