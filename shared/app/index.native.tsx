@@ -13,9 +13,7 @@ import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-con
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import {enableFreeze} from 'react-native-screens'
-// enableFreeze(true)
-// // TEMP
-enableFreeze(false)
+enableFreeze(true)
 
 type ConfigureStore = ReturnType<typeof makeStore>
 let _store: ConfigureStore | undefined

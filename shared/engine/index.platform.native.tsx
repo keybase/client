@@ -65,16 +65,10 @@ function createClient(
     }
   }
 
-  // global.engineWasReset = () => {
-  //   console.log('aaa engineWasReset called!')
-  //   connectCallback()
-  // }
-
   engineStart()
 
   const RNEmitter = getNativeEmitter()
   RNEmitter.addListener('kb-meta-engine-event', (payload: string) => {
-    // console.log('aaaa >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got engine event', payload)
     try {
       switch (payload) {
         case 'kb-engine-reset':

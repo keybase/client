@@ -20,8 +20,6 @@ import type {Props} from '.'
 import {MaxInputAreaContext} from '../input-area/normal/max-input-area-context'
 import {Dimensions} from 'react-native'
 
-console.log('aaa dropview', require('react-native-drop-view'))
-
 const Offline = () => (
   <Kb.Banner color="grey" small={true} style={styles.offline}>
     Couldn't load all chat messages due to network connectivity. Retrying...
