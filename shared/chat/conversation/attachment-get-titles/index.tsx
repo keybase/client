@@ -117,7 +117,7 @@ class GetTitles extends React.Component<Props, State> {
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
               <Kb.PlainInput
                 style={styles.input}
-                autoFocus={false}
+                autoFocus={!Styles.isMobile}
                 autoCorrect={true}
                 placeholder={titleHint}
                 multiline={true}
