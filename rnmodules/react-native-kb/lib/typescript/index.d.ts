@@ -1,6 +1,6 @@
 import { NativeEventEmitter } from 'react-native';
-export declare const getDefaultCountryCode: () => string;
-export declare const logSend: (status: string, feedback: string, sendLogs: boolean, sendMaxBytes: boolean, traceDir: string, cpuProfileDir: string) => string;
+export declare const getDefaultCountryCode: () => Promise<string>;
+export declare const logSend: (status: string, feedback: string, sendLogs: boolean, sendMaxBytes: boolean, traceDir: string, cpuProfileDir: string) => Promise<string>;
 export declare const iosGetHasShownPushPrompt: () => Promise<boolean>;
 export declare const androidOpenSettings: () => void;
 export declare const androidSetSecureFlagSetting: (s: boolean) => Promise<boolean>;

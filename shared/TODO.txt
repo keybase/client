@@ -1,7 +1,7 @@
 patch package expo image, rn, mattermost
-promies <<<<<<<<<,,
 iosDynamicColors not working?
 paste input not fabric, disabled!
 setState races
-setfreeze off?
-header debug colors on
+
+hermes causes sig fail?
+try fabric and test on both, just to sanity check

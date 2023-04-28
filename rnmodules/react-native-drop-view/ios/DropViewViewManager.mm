@@ -9,6 +9,7 @@
 @implementation DropViewViewManager
 
 RCT_EXPORT_MODULE(DropViewView)
+RCT_EXPORT_VIEW_PROPERTY(onDropped, RCTBubblingEventBlock)
 
 - (UIView *)view {
   return [[DropView alloc] init];
