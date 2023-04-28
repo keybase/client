@@ -197,6 +197,7 @@ public class KbModule extends KbSpec {
     }
 
     // country code
+    @ReactMethod
     public void getDefaultCountryCode(Promise promise) {
         try {
             TelephonyManager tm = (TelephonyManager) this.reactContext.getSystemService(Context.TELEPHONY_SERVICE);
@@ -208,6 +209,7 @@ public class KbModule extends KbSpec {
     }
 
     // Logging
+    @ReactMethod
     public void logSend(String status, String feedback, boolean sendLogs, boolean sendMaxBytes, String traceDir, String cpuProfileDir, Promise promise) {
         if (misTestDevice) {
             return;
@@ -221,6 +223,7 @@ public class KbModule extends KbSpec {
     }
 
     // Settings
+    @ReactMethod
     public void androidOpenSettings() {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -231,6 +234,7 @@ public class KbModule extends KbSpec {
     }
 
     // Screen protector
+    @ReactMethod
     public void androidSetSecureFlagSetting(boolean setSecure, Promise promise) {
         final SharedPreferences prefs = reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE);
         final boolean success = prefs.edit().putBoolean("setSecure", setSecure).commit();
@@ -238,6 +242,7 @@ public class KbModule extends KbSpec {
         setSecureFlag();
     }
 
+    @ReactMethod
     public void androidGetSecureFlagSetting(Promise promise) {
         final SharedPreferences prefs = this.reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE);
         final boolean setSecure = prefs.getBoolean("setSecure", !misTestDevice);
@@ -264,6 +269,7 @@ public class KbModule extends KbSpec {
     }
 
     // Sharing
+    @ReactMethod
     public void androidShare(String uriPath, String mimeType, Promise promise) {
         File file = new File(uriPath);
         Intent intent = new Intent(Intent.ACTION_SEND).setType(mimeType);
@@ -305,6 +311,7 @@ public class KbModule extends KbSpec {
         }
     }
 
+    @ReactMethod
     public void androidShareText(String text, String mimeType, Promise promise) {
         Intent intent = new Intent(Intent.ACTION_SEND).setType(mimeType);
         intent.putExtra(Intent.EXTRA_TEXT, text);
@@ -322,11 +329,13 @@ public class KbModule extends KbSpec {
 
     // Push
 
+    @ReactMethod
     public void androidCheckPushPermissions(Promise promise) {
         NotificationManagerCompat managerCompat = NotificationManagerCompat.from(this.reactContext);
         promise.resolve(managerCompat.areNotificationsEnabled());
     }
 
+    @ReactMethod
     public void androidRequestPushPermissions(Promise promise) {
         this.ensureFirebase();
         FirebaseInstanceId.getInstance().getInstanceId()
@@ -351,6 +360,7 @@ public class KbModule extends KbSpec {
         }
     }
 
+    @ReactMethod
     public void androidGetRegistrationToken(Promise promise) {
         this.ensureFirebase();
         FirebaseInstanceId.getInstance().getInstanceId()
@@ -412,6 +422,7 @@ public class KbModule extends KbSpec {
             return PathResolver.getRealPathFromURI(this.reactContext, uri);
     }
 
+    @ReactMethod
     public void androidUnlink(String path, Promise promise) {
         try {
             String normalizedPath = this.normalizePath(path);
@@ -455,6 +466,7 @@ public class KbModule extends KbSpec {
         }
     }
 
+    @ReactMethod
     public void androidAddCompleteDownload(ReadableMap config, Promise promise) {
         DownloadManager dm = (DownloadManager) this.reactContext.getSystemService(this.reactContext.DOWNLOAD_SERVICE);
         if (config == null || !config.hasKey("path")) {
@@ -485,6 +497,7 @@ public class KbModule extends KbSpec {
 
     // Dark mode
     // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
+    @ReactMethod
     public void androidAppColorSchemeChanged(String prefString) {
         try {
             final Activity activity = this.reactContext.getCurrentActivity();
@@ -499,6 +512,7 @@ public class KbModule extends KbSpec {
 
     // Badging
 
+    @ReactMethod
     public void androidSetApplicationIconBadgeNumber(int badge) {
         ShortcutBadger.applyCount(this.reactContext, badge);
     }
@@ -508,6 +522,7 @@ public class KbModule extends KbSpec {
     // This isn't related to the Go Engine, but it's a small thing that wouldn't be worth putting in
     // its own react module. That's because starting up a react module is a bit expensive and we
     // wouldn't be able to lazy load this because we need it on startup.
+    @ReactMethod
     public void androidGetInitialBundleFromNotification(Promise promise) {
         try {
         final Activity activity = this.reactContext.getCurrentActivity();
@@ -525,6 +540,7 @@ public class KbModule extends KbSpec {
         promise.resolve(null);
     }
 
+    @ReactMethod
     public void androidGetInitialShareFileUrl(Promise promise) {
         try {
 
@@ -539,6 +555,7 @@ public class KbModule extends KbSpec {
         promise.resolve("");
     }
 
+    @ReactMethod
     public void androidGetInitialShareText(Promise promise) {
         try {
 
@@ -563,6 +580,8 @@ public class KbModule extends KbSpec {
                 .emit(RPC_META_EVENT_NAME, RPC_META_EVENT_ENGINE_RESET);
         }
     }
+
+    @ReactMethod
     public void engineReset() {
       try {
           Keybase.reset();
@@ -572,6 +591,7 @@ public class KbModule extends KbSpec {
       }
     }
 
+    @ReactMethod
     public void engineStart() {
         NativeLogger.info("KeybaseEngine started");
         try {
@@ -661,6 +681,7 @@ public class KbModule extends KbSpec {
         }
     }
 
+    @ReactMethod
     public void rpcOnGo(byte[] arr) {
         try {
             writeArr(arr);

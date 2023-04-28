@@ -135,7 +135,8 @@ ShareValues PrepRpcOnJS(Runtime &runtime, uint8_t *data, int size) {
     }
     return values;
   } catch (const std::exception &e) {
-    throw new std::runtime_error("Error in PrepRpcOnJS: " + std::string(e.what()));
+    throw new std::runtime_error("Error in PrepRpcOnJS: " +
+                                 std::string(e.what()));
   } catch (...) {
     throw new std::runtime_error("Unknown error in PrepRpcOnJS");
   }
@@ -167,18 +168,19 @@ void RpcOnJS(Runtime &runtime, ShareValues values,
   }
 }
 
-//void EngineWasReset(Runtime &runtime) {
-//  try {
-//    if (isTornDown.load()) {
-//      return;
-//    }
-//    Function engineWasReset = runtime.global().getPropertyAsFunction(runtime, "engineWasReset");
-//    engineWasReset.call(runtime);
-//  } catch (const std::exception &e) {
-//    throw new std::runtime_error("Error in EngineWasReset: " + std::string(e.what()));
-//  } catch (...) {
-//    throw new std::runtime_error("Unknown error in EngineWasReset");
-//  }
-//}
+// void EngineWasReset(Runtime &runtime) {
+//   try {
+//     if (isTornDown.load()) {
+//       return;
+//     }
+//     Function engineWasReset = runtime.global().getPropertyAsFunction(runtime,
+//     "engineWasReset"); engineWasReset.call(runtime);
+//   } catch (const std::exception &e) {
+//     throw new std::runtime_error("Error in EngineWasReset: " +
+//     std::string(e.what()));
+//   } catch (...) {
+//     throw new std::runtime_error("Unknown error in EngineWasReset");
+//   }
+// }
 
 } // namespace kb

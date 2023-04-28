@@ -17,7 +17,7 @@ ShareValues PrepRpcOnJS(facebook::jsi::Runtime &runtime, uint8_t *data,
                         int size);
 void RpcOnJS(facebook::jsi::Runtime &runtime, ShareValues values,
              void (*err_callback)(const std::string &err));
-//void EngineWasReset(facebook::jsi::Runtime &runtime);
+// void EngineWasReset(facebook::jsi::Runtime &runtime);
 void Teardown();
 void Tearup();
-}
+} // namespace kb
