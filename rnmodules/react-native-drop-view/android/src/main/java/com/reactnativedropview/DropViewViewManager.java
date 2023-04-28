@@ -22,10 +22,4 @@ public class DropViewViewManager extends DropViewViewManagerSpec<DropViewView> {
   public DropViewView createViewInstance(ThemedReactContext context) {
     return new DropViewView(context);
   }
-
-  @Override
-  @ReactProp(name = "color")
-  public void setColor(DropViewView view, @Nullable String color) {
-    view.setBackgroundColor(Color.parseColor(color));
-  }
 }
