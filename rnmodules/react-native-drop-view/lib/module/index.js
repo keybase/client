@@ -16,10 +16,8 @@ const DropViewWrapper = p => {
         }
         return arr;
       }, new Array());
-      console.log('aaa ondropped 1', cleanedUp);
       onDropped(cleanedUp);
     } catch (e) {
-      console.log('aaa ondropped 2', e);
       console.log('drop view error', e);
     }
   }, [onDropped]);
