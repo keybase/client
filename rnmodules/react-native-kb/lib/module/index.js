@@ -22,7 +22,7 @@ export const iosGetHasShownPushPrompt = () => {
   if (Platform.OS === 'ios') {
     return Kb.iosGetHasShownPushPrompt();
   }
-  return false;
+  return Promise.resolve(false);
 };
 export const androidOpenSettings = () => {
   if (Platform.OS === 'android') {
@@ -33,53 +33,55 @@ export const androidSetSecureFlagSetting = s => {
   if (Platform.OS === 'android') {
     return Kb.androidSetSecureFlagSetting(s);
   }
-  return false;
+  return Promise.resolve(false);
 };
 export const androidGetSecureFlagSetting = () => {
   if (Platform.OS === 'android') {
     return Kb.androidGetSecureFlagSetting();
   }
-  return false;
+  return Promise.resolve(false);
 };
 export const androidShareText = (text, mimeType) => {
   if (Platform.OS === 'android') {
     return Kb.androidShareText(text, mimeType);
   }
-  return false;
+  return Promise.resolve(false);
 };
 export const androidShare = (text, mimeType) => {
   if (Platform.OS === 'android') {
     return Kb.androidShare(text, mimeType);
   }
-  return false;
+  return Promise.resolve(false);
 };
 export const androidCheckPushPermissions = () => {
   if (Platform.OS === 'android') {
     return Kb.androidCheckPushPermissions();
   }
-  return false;
+  return Promise.resolve(false);
 };
 export const androidRequestPushPermissions = () => {
   if (Platform.OS === 'android') {
     return Kb.androidRequestPushPermissions();
   }
-  return false;
+  return Promise.resolve(false);
 };
 export const androidGetRegistrationToken = () => {
   if (Platform.OS === 'android') {
     return Kb.androidGetRegistrationToken();
   }
-  return '';
+  return Promise.resolve('');
 };
 export const androidUnlink = path => {
   if (Platform.OS === 'android') {
     return Kb.androidUnlink(path);
   }
+  return Promise.reject();
 };
 export const androidAddCompleteDownload = o => {
   if (Platform.OS === 'android') {
     return Kb.androidAddCompleteDownload(o);
   }
+  return Promise.reject();
 };
 export const androidAppColorSchemeChanged = mode => {
   if (Platform.OS === 'android') {
@@ -95,19 +97,19 @@ export const androidGetInitialBundleFromNotification = () => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialBundleFromNotification();
   }
-  return null;
+  return Promise.reject();
 };
 export const androidGetInitialShareFileUrl = () => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareFileUrl();
   }
-  return '';
+  return Promise.reject();
 };
 export const androidGetInitialShareText = () => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareText();
   }
-  return '';
+  return Promise.reject();
 };
 export const engineReset = () => {
   return Kb.engineReset();

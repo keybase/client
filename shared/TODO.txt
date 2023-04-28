@@ -1,8 +1,5 @@
 patch package expo image, rn, mattermost
-codegen changes, string / any
-event emitter working?
-android
-forced logged in!
+promies <<<<<<<<<,,
 iosDynamicColors not working?
 paste input not fabric, disabled!
 setState races

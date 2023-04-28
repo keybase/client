@@ -882,10 +882,10 @@ SPEC CHECKSUMS:
   React-jsiexecutor: eaa5f71eb8f6861cf0e57f1a0f52aeb020d9e18e
   React-jsinspector: 9885f6f94d231b95a739ef7bb50536fb87ce7539
   React-logger: 3f8ebad1be1bf3299d1ab6d7f971802d7395c7ef
-  react-native-drop-view: f4c53fea34d7744a9646653c4f0beb740a4ea5df
+  react-native-drop-view: 912001e1d68fc83ff8a1f9dc748e481cbc279f5d
   react-native-flipper-performance-plugin: 42ec5017abd26e7c5a1f527f2db92c14a90cabdb
   react-native-hw-keyboard-event: b517cefb8d5c659a38049c582de85ff43337dc53
-  react-native-kb: 6fceb44dd6ecb80fe913a434bd48b6c4b6230c7d
+  react-native-kb: 012aae36daea66781ffd175321b9510709094622
   react-native-netinfo: 22c082970cbd99071a4e5aa7a612ac20d66b08f0
   react-native-paste-input: 183ad7dc224e192719616f4258dde5b548627d08
   react-native-safe-area-context: f5549f36508b1b7497434baa0cd97d7e470920d4

@@ -1,2 +1,6 @@
-export { default as DropView } from './DropViewViewNativeComponent';
-export * from './DropViewViewNativeComponent';
+/// <reference types="react" />
+import { type Props } from './DropViewViewNativeComponent';
+import { View } from 'react-native';
+declare const _default: ((p: Props) => JSX.Element) | typeof View;
+export default _default;
+export type { DropItems } from './DropViewViewNativeComponent';

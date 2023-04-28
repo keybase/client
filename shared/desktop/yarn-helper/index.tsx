@@ -60,13 +60,14 @@ const patch = () => {
 const prepareSubmodules = () => {
   if (process.platform === 'darwin') {
     const root = path.resolve(__dirname, '..', '..', '..', 'rnmodules')
-    const tsOverride = path.resolve(__dirname, '..', '..', 'override-d.ts')
+    // const tsOverride = path.resolve(__dirname, '..', '..', 'override-d.ts')
     fs.readdirSync(root, {withFileTypes: true}).forEach(f => {
       if (f.isDirectory()) {
         const full = path.resolve(root, f.name)
         exec(`cd ${full} && yarn`)
         // need top bring our TS over, hacky but other things were more complex
-        exec(`cp ${full}/lib/typescript/index.d.ts ${tsOverride}/${f.name}`)
+        // exec(`cp ${full}/lib/typescript/* ${tsOverride}/${f.name}`)
+        // what it produces is slightly incorrect so we just have to sync this up periodically
       }
     })
   }

@@ -22,7 +22,7 @@ const Kb = KbModule
       }
     )
 
-export const getDefaultCountryCode = (): string => {
+export const getDefaultCountryCode = (): Promise<string> => {
   return Kb.getDefaultCountryCode()
 }
 
@@ -33,15 +33,15 @@ export const logSend = (
   sendMaxBytes: boolean,
   traceDir: string,
   cpuProfileDir: string
-): string => {
+): Promise<string> => {
   return Kb.logSend(status, feedback, sendLogs, sendMaxBytes, traceDir, cpuProfileDir)
 }
 
-export const iosGetHasShownPushPrompt = (): boolean => {
+export const iosGetHasShownPushPrompt = (): Promise<boolean> => {
   if (Platform.OS === 'ios') {
     return Kb.iosGetHasShownPushPrompt()
   }
-  return false
+  return Promise.resolve(false)
 }
 
 export const androidOpenSettings = () => {
@@ -50,57 +50,58 @@ export const androidOpenSettings = () => {
   }
 }
 
-export const androidSetSecureFlagSetting = (s: boolean): boolean => {
+export const androidSetSecureFlagSetting = (s: boolean): Promise<boolean> => {
   if (Platform.OS === 'android') {
     return Kb.androidSetSecureFlagSetting(s)
   }
-  return false
+  return Promise.resolve(false)
 }
 
-export const androidGetSecureFlagSetting = (): boolean => {
+export const androidGetSecureFlagSetting = (): Promise<boolean> => {
   if (Platform.OS === 'android') {
     return Kb.androidGetSecureFlagSetting()
   }
-  return false
+  return Promise.resolve(false)
 }
 
-export const androidShareText = (text: string, mimeType: string): boolean => {
+export const androidShareText = (text: string, mimeType: string): Promise<boolean> => {
   if (Platform.OS === 'android') {
     return Kb.androidShareText(text, mimeType)
   }
-  return false
+  return Promise.resolve(false)
 }
 
-export const androidShare = (text: string, mimeType: string): boolean => {
+export const androidShare = (text: string, mimeType: string): Promise<boolean> => {
   if (Platform.OS === 'android') {
     return Kb.androidShare(text, mimeType)
   }
-  return false
+  return Promise.resolve(false)
 }
 
-export const androidCheckPushPermissions = (): boolean => {
+export const androidCheckPushPermissions = (): Promise<boolean> => {
   if (Platform.OS === 'android') {
     return Kb.androidCheckPushPermissions()
   }
-  return false
+  return Promise.resolve(false)
 }
-export const androidRequestPushPermissions = (): boolean => {
+export const androidRequestPushPermissions = (): Promise<boolean> => {
   if (Platform.OS === 'android') {
     return Kb.androidRequestPushPermissions()
   }
-  return false
+  return Promise.resolve(false)
 }
-export const androidGetRegistrationToken = (): string => {
+export const androidGetRegistrationToken = (): Promise<string> => {
   if (Platform.OS === 'android') {
     return Kb.androidGetRegistrationToken()
   }
-  return ''
+  return Promise.resolve('')
 }
 
-export const androidUnlink = (path: string): void => {
+export const androidUnlink = (path: string): Promise<void> => {
   if (Platform.OS === 'android') {
     return Kb.androidUnlink(path)
   }
+  return Promise.reject()
 }
 
 export const androidAddCompleteDownload = (o: {
@@ -109,10 +110,11 @@ export const androidAddCompleteDownload = (o: {
   path: string
   showNotification: boolean
   title: string
-}): void => {
+}): Promise<void> => {
   if (Platform.OS === 'android') {
     return Kb.androidAddCompleteDownload(o)
   }
+  return Promise.reject()
 }
 
 export const androidAppColorSchemeChanged = (mode: 'system' | 'alwaysDark' | 'alwaysLight' | ''): void => {
@@ -127,23 +129,23 @@ export const androidSetApplicationIconBadgeNumber = (n: number): void => {
   }
 }
 
-export const androidGetInitialBundleFromNotification = (): any => {
+export const androidGetInitialBundleFromNotification = (): Promise<any> => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialBundleFromNotification()
   }
-  return null
+  return Promise.reject()
 }
-export const androidGetInitialShareFileUrl = (): string => {
+export const androidGetInitialShareFileUrl = (): Promise<string> => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareFileUrl()
   }
-  return ''
+  return Promise.reject()
 }
-export const androidGetInitialShareText = (): string => {
+export const androidGetInitialShareText = (): Promise<string> => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareText()
   }
-  return ''
+  return Promise.reject()
 }
 export const engineReset = (): void => {
   return Kb.engineReset()
