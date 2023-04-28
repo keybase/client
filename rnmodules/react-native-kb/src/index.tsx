@@ -11,8 +11,6 @@ const isTurboModuleEnabled = global.__turboModuleProxy != null
 
 const KbModule = isTurboModuleEnabled ? require('./NativeKb').default : NativeModules.Kb
 
-console.log('aaa', isTurboModuleEnabled, Object.keys(NativeModules.Kb), Object.keys(KbModule))
-
 const Kb = KbModule
   ? KbModule
   : new Proxy(

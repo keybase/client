@@ -34,21 +34,6 @@ set_target_properties(
         POSITION_INDEPENDENT_CODE ON
 )
 
-# target_include_directories(
-#     cpp
-#     PRIVATE
-#     ../cpp
-    # "${REACT_NATIVE_DIR}/React"
-    # "${REACT_NATIVE_DIR}/React/Base"
-    # "${REACT_NATIVE_DIR}/ReactAndroid/src/main/jni"
-    # "${REACT_NATIVE_DIR}/ReactAndroid/src/main/jni/react/turbomodule"
-    # "${REACT_NATIVE_DIR}/ReactAndroid/src/main/java/com/facebook/react/turbomodule/core/jni"
-    # "${REACT_NATIVE_DIR}/ReactCommon"
-    # "${REACT_NATIVE_DIR}/ReactCommon/callinvoker"
-    # "${REACT_NATIVE_DIR}/ReactCommon/jsi"
-    # ${libfbjni_include_DIRS}
-# )
-
 add_definitions(-DMSGPACK_NO_BOOST)
 
 file (GLOB LIBRN_DIR "${BUILD_DIR}/react-native-0*/jni/${ANDROID_ABI}")
@@ -77,9 +62,6 @@ find_library(
 target_link_libraries(
         cpp
         ${LOG_LIB}
-        # ${FBJNI_LIB}
-        # ${JSI_LIB}
-        # ${REACT_NATIVE_JNI_LIB}
         fbjni::fbjni
         ReactAndroid::jsi
         ReactAndroid::reactnativejni

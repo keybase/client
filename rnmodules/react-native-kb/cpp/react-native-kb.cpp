@@ -167,20 +167,4 @@ void RpcOnJS(Runtime &runtime, ShareValues values,
     throw new std::runtime_error("Unknown error in RpcOnJS");
   }
 }
-
-// void EngineWasReset(Runtime &runtime) {
-//   try {
-//     if (isTornDown.load()) {
-//       return;
-//     }
-//     Function engineWasReset = runtime.global().getPropertyAsFunction(runtime,
-//     "engineWasReset"); engineWasReset.call(runtime);
-//   } catch (const std::exception &e) {
-//     throw new std::runtime_error("Error in EngineWasReset: " +
-//     std::string(e.what()));
-//   } catch (...) {
-//     throw new std::runtime_error("Unknown error in EngineWasReset");
-//   }
-// }
-
 } // namespace kb

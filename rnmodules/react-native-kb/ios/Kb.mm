@@ -1,5 +1,4 @@
 #import "Kb.h"
-// #import "../cpp/react-native-kb.h"
 #import "Keybase.h"
 #import <CoreTelephony/CTCarrier.h>
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
@@ -49,7 +48,6 @@ using namespace kb;
 @end
 
 static const NSString *tagName = @"NativeLogger";
-// static NSString *const eventName = @"kb-engine-event";
 static NSString *const metaEventName = @"kb-meta-engine-event";
 static NSString *const metaEventEngineReset = @"kb-engine-reset";
 
@@ -68,8 +66,6 @@ static NSString *const metaEventEngineReset = @"kb-engine-reset";
 @end
 
 @implementation Kb
-//@synthesize bridge = _bridge;
-//@synthesize methodQueue = _methodQueue;
 
 // sanity check the runtime isn't out of sync due to reload etc
 void *currentRuntime = nil;
@@ -298,34 +294,6 @@ RCT_EXPORT_METHOD(engineReset) {
   NSError *error = nil;
   KeybaseReset(&error);
   [self sendEventWithName:metaEventName body:metaEventEngineReset];
-  //    dispatch_async(dispatch_get_main_queue(), ^{
-  //        [self sendEventWithName:metaEventName body:metaEventEngineReset];
-  //    });
-
-  //    __weak __typeof__(self) weakSelf = self;
-  //    auto invoker = self.bridge.jsCallInvoker;
-  //
-  //    if (!invoker) {
-  //        NSLog(@"Failed to find invoker in EngineWasReset!!!");
-  //        return;
-  //    }
-  //
-  //    invoker->invokeAsync([weakSelf]() {
-  //        __typeof__(self) strongSelf = weakSelf;
-  //        if (!strongSelf) {
-  //            NSLog(@"Failed to find self in EngineWasReset invokeAsync!!!");
-  //            return;
-  //        }
-  //        auto jsRuntimePtr = [strongSelf javaScriptRuntimePointer];
-  //        if (!jsRuntimePtr) {
-  //            NSLog(@"Failed to find jsi in EngineWasReset invokeAsync!!!");
-  //            return;
-  //        }
-  //
-  //        auto &jsiRuntime = *jsRuntimePtr;
-  //        EngineWasReset(jsiRuntime);
-  //    });
-
   if (error) {
     NSLog(@"Error in reset: %@", error);
   }
@@ -465,7 +433,6 @@ RCT_EXPORT_METHOD(engineStart) {
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-  //  return @[ eventName, metaEventName ];
   return @[ metaEventName ];
 }
 

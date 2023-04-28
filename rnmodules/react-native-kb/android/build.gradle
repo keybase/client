@@ -1,17 +1,3 @@
-// KB
-// def REACT_NATIVE_DIR = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).parent
-// def RN_BUILD_FROM_SOURCE = findProject(":ReactAndroid") != null
-// def RN_SO_DIR = RN_BUILD_FROM_SOURCE
-//     ? Paths.get(findProject(":ReactAndroid").getProjectDir().toString(), "build", "intermediates", "library_*", "*", "jni")
-//     : "${buildDir}/react-native-0*/jni"
-// def RN_AAR_DIR = "${REACT_NATIVE_DIR}/android"
-// def reactNativeArchitectures() {
-//     def value = project.getProperties().get("reactNativeArchitectures")
-//     return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
-// }
-// def prebuiltDir = "$buildDir/react-native-0*/jni"
-// end KB
-
 buildscript {
   repositories {
     google()
@@ -60,7 +46,6 @@ android {
   ndkVersion getExtOrDefault("ndkVersion")
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
-
   buildFeatures {
     prefab true
   }
@@ -74,8 +59,6 @@ android {
         cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all"
         arguments '-DANDROID_STL=c++_shared'
         abiFilters(*reactNativeArchitectures())
-// KB
-        // arguments "-DANDROID_STL=c++_shared", "-DREACT_NATIVE_DIR=${REACT_NATIVE_DIR}", "-DRN_SO_DIR=${RN_SO_DIR}"
       }
     }
   }
@@ -101,15 +84,6 @@ android {
                 "**/libv8executor.so",
         ]
     }
-// KB
-  // packagingOptions {
-  //   excludes = ["**/libc++_shared.so", "**/libfbjni.so", "**/libreactnativejni.so", "**/libjsi.so", "**/MANIFEST.MF"]
-  // }
-
-  // buildFeatures {
-  //   prefab true
-  // }
-// end KB
 
   externalNativeBuild {
     cmake {
@@ -150,78 +124,6 @@ android {
 repositories {
   mavenCentral()
   google()
-
-// KB
-  // def defaultDir = null
-  // def found = false
-  // def androidSourcesName = 'React Native sources'
-
-  // if (rootProject.ext.has('reactNativeAndroidRoot')) {
-  //   defaultDir = rootProject.ext.get('reactNativeAndroidRoot')
-  // } else {
-  //   defaultDir = new File(
-  //     projectDir,
-  //     '/../../../shared/node_modules/react-native/android'
-  //   )
-  // }
-
-  // if (defaultDir.exists()) {
-  //   maven {
-  //     url defaultDir.toString()
-  //     name androidSourcesName
-  //   }
-
-  //   logger.info(":${project.name}:reactNativeAndroidRoot ${defaultDir.canonicalPath}")
-  //   found = true
-  // } else {
-  //   def parentDir = rootProject.projectDir
-
-  //   1.upto(5, {
-  //     if (found) return true
-  //     parentDir = parentDir.parentFile
-
-  //     def androidSourcesDir = new File(
-  //       parentDir,
-  //       'node_modules/react-native'
-  //     )
-
-  //     def androidPrebuiltBinaryDir = new File(
-  //       parentDir,
-  //       'node_modules/react-native/android'
-  //     )
-
-  //     if (androidPrebuiltBinaryDir.exists()) {
-  //       maven {
-  //         url androidPrebuiltBinaryDir.toString()
-  //         name androidSourcesName
-  //       }
-
-  //       logger.info(":${project.name}:reactNativeAndroidRoot ${androidPrebuiltBinaryDir.canonicalPath}")
-  //       found = true
-  //     } else if (androidSourcesDir.exists()) {
-  //       maven {
-  //         url androidSourcesDir.toString()
-  //         name androidSourcesName
-  //       }
-
-  //       logger.info(":${project.name}:reactNativeAndroidRoot ${androidSourcesDir.canonicalPath}")
-  //       found = true
-  //     }
-  //   })
-  // }
-
-  // if (!found) {
-  //   throw new GradleException(
-  //     "${project.name}: unable to locate React Native android sources. " +
-  //     "Ensure you have you installed React Native as a dependency in your project and try again."
-  //   )
-  // }
-
-  //   configurations {
-  //       extractHeaders
-  //       extractJNI
-  //   }
-    // end KB
 }
 
 
@@ -229,17 +131,10 @@ dependencies {
   // For < 0.71, this will be from the local maven repo
   // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
   //noinspection GradleDynamicVersion
-  implementation "com.facebook.react:react-native:+"
-
-// KB
+    implementation "com.facebook.react:react-native:+"
     implementation "com.google.firebase:firebase-messaging:17.3.0"
     implementation "me.leolin:ShortcutBadger:1.1.22@aar"
     implementation project(':keybaselib')
-    // compileOnly 'com.facebook.fbjni:fbjni:0.2.2'
-    // extractHeaders 'com.facebook.fbjni:fbjni:0.2.2:headers'
-    // extractJNI 'com.facebook.fbjni:fbjni:0.2.2'
-// end KB
-
 }
 
 if (isNewArchitectureEnabled()) {
@@ -250,96 +145,16 @@ if (isNewArchitectureEnabled()) {
   }
 }
 
-// KB
-// def extractReactNativeAAR = { buildType ->
-//   def suffix = buildType == 'Debug' ? '-debug' : '-release'
-//   def rnAARs = fileTree(RN_AAR_DIR).matching { include "**/react-native/**/*${suffix}.aar" }
-//   if (rnAARs.isEmpty()) {
-//     rnAARs = fileTree(RN_AAR_DIR).matching { include "**/react-native/**/*.aar" }
-//   }
-//   if (rnAARs.any()) {
-//     // node_modules/react-native has a .aar, extract headers
-//     if (rnAARs.size() > 1) {
-//       logger.error("More than one React Native AAR file has been found:")
-//       rnAARs.each {println(it) }
-//       throw new GradleException("Multiple React Native AARs found:\n${rnAARs.join("\n")}" +
-//           "\nRemove the old ones and try again")
-//     }
-//   }
-//   def rnAAR = rnAARs.singleFile
-//   def file = rnAAR.absoluteFile
-//   def packageName = file.name.tokenize('-')[0]
-//   copy {
-//     from zipTree(file)
-//     into "$buildDir/$file.name"
-//     include "jni/**/*"
-//   }
-// }
-
-// task extractReactNativeAARRelease {
-//   doLast {
-//     extractReactNativeAAR('Release')
-//   }
-// }
-
-// task extractReactNativeAARDebug {
-//   doLast {
-//     extractReactNativeAAR('Debug')
-//   }
-// }
-
-// task extractAARHeaders {
-//   doLast {
-//     configurations.extractHeaders.files.each {
-//       def file = it.absoluteFile
-//       copy {
-//         from zipTree(file)
-//         into "$buildDir/$file.name"
-//         include "**/*.h"
-//       }
-//     }
-//   }
-// }
-
-// task extractJNIFiles {
-//   doLast {
-//     configurations.extractJNI.files.each {
-//       def file = it.absoluteFile
-//       copy {
-//         from zipTree(file)
-//         into "$buildDir/$file.name"
-//         include "jni/**/*"
-//       }
-//     }
-//   }
-// }
-
 // tasks.whenTaskAdded { task ->
-//   if (!task.name.contains("Clean") && (task.name.contains('externalNativeBuild') || task.name.startsWith('configureCMake'))) {
-//     def buildType = task.name.endsWith('Debug') ? 'Debug' : 'Release'
-//     task.dependsOn(extractAARHeaders)
-//     task.dependsOn(extractJNIFiles)
-//     if (RN_BUILD_FROM_SOURCE) {
-//       task.dependsOn(":ReactAndroid:copy${buildType}JniLibsProjectOnly")
-//     } else {
-//       task.dependsOn("extractReactNativeAAR${buildType}")
+//   if (task.name.contains('configureCMakeDebug')) {
+//     rootProject.getTasksByName('packageReactNdkDebugLibs', true).forEach {
+//       task.dependsOn(it)
 //     }
-//   } else if (task.name.startsWith('generateJsonModel') && RN_BUILD_FROM_SOURCE) {
-//     def buildType = task.name.endsWith('Debug') ? 'Debug' : 'Release'
-//     task.dependsOn(":ReactAndroid:copy${buildType}JniLibsProjectOnly")
+//   }
+//   // We want to add a dependency for both configureCMakeRelease and configureCMakeRelWithDebInfo
+//   if (task.name.contains('configureCMakeRel')) {
+//     rootProject.getTasksByName('packageReactNdkReleaseLibs', true).forEach {
+//       task.dependsOn(it)
+//     }
 //   }
 // }
-// // end KB
-tasks.whenTaskAdded { task ->
-  if (task.name.contains('configureCMakeDebug')) {
-    rootProject.getTasksByName('packageReactNdkDebugLibs', true).forEach {
-      task.dependsOn(it)
-    }
-  }
-  // We want to add a dependency for both configureCMakeRelease and configureCMakeRelWithDebInfo
-  if (task.name.contains('configureCMakeRel')) {
-    rootProject.getTasksByName('packageReactNdkReleaseLibs', true).forEach {
-      task.dependsOn(it)
-    }
-  }
-}

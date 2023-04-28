@@ -3,7 +3,6 @@
 #endif
 
 #ifdef RCT_NEW_ARCH_ENABLED
-// #import "RNKbSpec.h"
 #import <RNKbSpec/RNKbSpec.h>
 #import <React/RCTEventEmitter.h>
 #import <foundation/Foundation.h>
