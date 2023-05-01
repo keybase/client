@@ -23,7 +23,7 @@ abstract class KbSpec extends ReactContextBaseJavaModule {
     public abstract void androidUnlink(String path, Promise promise);
     public abstract void androidAddCompleteDownload(ReadableMap config, Promise promise);
     public abstract void androidAppColorSchemeChanged(String prefString);
-    public abstract void androidSetApplicationIconBadgeNumber(int badge);
+    public abstract void androidSetApplicationIconBadgeNumber(double badge);
     public abstract void androidGetInitialBundleFromNotification(Promise promise);
     public abstract void androidGetInitialShareFileUrl(Promise promise);
     public abstract void androidGetInitialShareText(Promise promise);

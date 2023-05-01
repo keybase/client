@@ -55,7 +55,7 @@
     "type": "all",
     "jsSrcsDir": "src",
     "android": {
-      "javaPackageName": "com.kb"
+      "javaPackageName": "com.reactnativekb"
     }
   }
 }

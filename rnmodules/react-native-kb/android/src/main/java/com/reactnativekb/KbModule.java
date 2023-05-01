@@ -102,6 +102,10 @@ public class KbModule extends KbSpec {
     return NAME;
   }
 
+
+  public void addListener(String eventType) {}
+  public void removeListeners(double count) {}
+
   static {
     System.loadLibrary("cpp");
   }
@@ -139,7 +143,8 @@ public class KbModule extends KbSpec {
         return GuiConfig.getInstance(this.reactContext.getFilesDir()).asString();
     }
 
-    public Map<String, Object> getConstants() {
+    // newarch @Override
+    protected Map<String, Object> getTypedExportedConstants() {
         try {
             jsiInstalled = true;
             this.nativeInstallJSI(this.reactContext.getJavaScriptContextHolder().get());
@@ -194,6 +199,11 @@ public class KbModule extends KbSpec {
         constants.put("uses24HourClock", DateFormat.is24HourFormat(this.reactContext));
         constants.put("version", version());
         return constants;
+    }
+
+    // comment out on new arch
+    public Map<String, Object> getConstants() {
+        return getTypedExportedConstants();
     }
 
     // country code
@@ -513,8 +523,8 @@ public class KbModule extends KbSpec {
     // Badging
 
     @ReactMethod
-    public void androidSetApplicationIconBadgeNumber(int badge) {
-        ShortcutBadger.applyCount(this.reactContext, badge);
+    public void androidSetApplicationIconBadgeNumber(double badge) {
+        ShortcutBadger.applyCount(this.reactContext, (int)badge);
     }
 
 
@@ -689,4 +699,10 @@ public class KbModule extends KbSpec {
             NativeLogger.error("Exception in GoJSIBridge.rpcOnGo", e);
         }
     }
+
+
+  @ReactMethod
+  public void iosGetHasShownPushPrompt(Promise promise) {
+      promise.reject(new Exception("wrong platform"));
+  }
 }

@@ -7,6 +7,7 @@ import android.widget.FrameLayout;
 import com.facebook.react.uimanager.ViewManagerDelegate;
 import com.facebook.react.viewmanagers.DropViewViewManagerDelegate;
 import com.facebook.react.viewmanagers.DropViewViewManagerInterface;
+import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.soloader.SoLoader;
 
 public abstract class DropViewViewManagerSpec<T extends FrameLayout > extends ViewGroupManager<T> implements DropViewViewManagerInterface<T> {
