@@ -1,7 +1,7 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
 import {isDarkMode, isDarkModePreference} from './dark-mode'
 import {partyMode} from '../local-debug'
-import {isIOS} from '../constants/platform'
+import {isIOS, isNewArch} from '../constants/platform'
 
 export const colors = {
   black: 'rgba(0, 0, 0, 0.85)',
@@ -502,7 +502,7 @@ type Names = keyof Color
 const names: Array<Names> = Object.keys(colors) as any
 
 let iosDynamicColors: {[P in keyof typeof colors]: (typeof colors)[P]}
-if (isIOS) {
+if (isIOS && !isNewArch /* not working? */) {
   iosDynamicColors = names.reduce<Color>((obj, name) => {
     const {DynamicColorIOS} = require('react-native')
     // @ts-ignore

@@ -1,6 +1,6 @@
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "DropViewView.h"
-#improt "DropView.h"
+#import "DropView.h"
 #import "../../../shared/ios/Keybase/ItemProviderHelper.h"
 #import <React/RCTUIManager.h>
 #import <React/RCTViewManager.h>
@@ -13,7 +13,7 @@
 
 using namespace facebook::react;
 
-@interface DropViewView () <RCTDropViewViewProtocol>
+@interface DropViewView () <RCTDropViewViewViewProtocol>
 @end
 
 @implementation DropViewView {

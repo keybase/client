@@ -43,7 +43,7 @@ export interface Spec extends TurboModule {
     showNotification: boolean
     title: string
   }): Promise<void>
-  androidAppColorSchemeChanged(mode: 'system' | 'alwaysDark' | 'alwaysLight' | ''): void
+  androidAppColorSchemeChanged(mode: string /*'system' | 'alwaysDark' | 'alwaysLight' | ''*/): void
   androidSetApplicationIconBadgeNumber(n: number): void
   androidGetInitialBundleFromNotification(): Promise<any>
   androidGetInitialShareFileUrl(): Promise<string>
