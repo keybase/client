@@ -63,8 +63,8 @@ export const defaultNavigationOptions: any = {
   headerLeftContainerStyle: {
     flexGrow: 0,
     flexShrink: 0,
-    minWidth: actionWidth,
     maxWidth: actionWidth,
+    minWidth: actionWidth,
     paddingLeft: 8,
     width: actionWidth,
     ...(DEBUGCOLORS ? {backgroundColor: 'yellow'} : {}),
@@ -72,8 +72,8 @@ export const defaultNavigationOptions: any = {
   headerRightContainerStyle: {
     flexGrow: 0,
     flexShrink: 0,
-    minWidth: actionWidth,
     maxWidth: actionWidth,
+    minWidth: actionWidth,
     paddingRight: 8,
     width: actionWidth,
     ...(DEBUGCOLORS ? {backgroundColor: 'orange'} : {}),
