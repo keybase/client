@@ -92,8 +92,8 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
     </Kb.Box2>
   )
 
-  const commitSrc = `data:image/png;base64, ${commitmentVis}`
-  const revealSrc = `data:image/png;base64, ${revealVis}`
+  const commitSrc = `data:image/png;base64,${commitmentVis}`
+  const revealSrc = `data:image/png;base64,${revealVis}`
   return (
     <Kb.Box2
       direction="vertical"
