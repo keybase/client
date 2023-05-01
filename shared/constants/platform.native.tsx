@@ -10,6 +10,8 @@ import {
 
 export {version, androidIsTestDevice, uses24HourClock, fsCacheDir} from 'react-native-kb'
 
+export const isNewArch = global.__turboModuleProxy != null
+
 export const setSecureFlagSetting = androidSetSecureFlagSetting
 export const getSecureFlagSetting = androidGetSecureFlagSetting
 // Currently this is given to us as a boolean, but no real documentation on this, so just in case it changes in the future.

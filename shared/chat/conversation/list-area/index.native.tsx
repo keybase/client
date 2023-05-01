@@ -322,7 +322,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     'listArea',
     Container.useEvent(() => {
       if (!listRef.current) return ''
-      const {props, state} = listRef.current
+      const {props, state} = listRef.current as any
       const {extraData, data} = props
 
       // @ts-ignore

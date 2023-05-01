@@ -4,10 +4,10 @@ const LINKING_ERROR =
   `The package 'react-native-kb' doesn't seem to be linked. Make sure: \n\n` +
   Platform.select({ios: "- You have run 'pod install'\n", default: ''}) +
   '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo managed workflow\n'
+  '- You are not using Expo Go\n'
 
-// @ts-ignore
-const isTurboModuleEnabled: boolean = global.__turboModuleProxy != null
+// @ts-expect-error
+const isTurboModuleEnabled = global.__turboModuleProxy != null
 
 const KbModule = isTurboModuleEnabled ? require('./NativeKb').default : NativeModules.Kb
 
@@ -101,7 +101,7 @@ export const androidUnlink = (path: string): Promise<void> => {
   if (Platform.OS === 'android') {
     return Kb.androidUnlink(path)
   }
-  return Promise.resolve()
+  return Promise.reject()
 }
 
 export const androidAddCompleteDownload = (o: {
@@ -114,7 +114,7 @@ export const androidAddCompleteDownload = (o: {
   if (Platform.OS === 'android') {
     return Kb.androidAddCompleteDownload(o)
   }
-  return Promise.resolve()
+  return Promise.reject()
 }
 
 export const androidAppColorSchemeChanged = (mode: 'system' | 'alwaysDark' | 'alwaysLight' | ''): void => {
@@ -133,19 +133,19 @@ export const androidGetInitialBundleFromNotification = (): Promise<any> => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialBundleFromNotification()
   }
-  return Promise.resolve(null)
+  return Promise.reject()
 }
 export const androidGetInitialShareFileUrl = (): Promise<string> => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareFileUrl()
   }
-  return Promise.resolve('')
+  return Promise.reject()
 }
 export const androidGetInitialShareText = (): Promise<string> => {
   if (Platform.OS === 'android') {
     return Kb.androidGetInitialShareText()
   }
-  return Promise.resolve('')
+  return Promise.reject()
 }
 export const engineReset = (): void => {
   return Kb.engineReset()

@@ -180,10 +180,17 @@ index be73123..1ce7f4d 100644
  
  NS_ASSUME_NONNULL_END
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
-index 4d3b464..e3f7b27 100644
+index 4d3b464..7a6468d 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
 +++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.m
-@@ -24,6 +24,7 @@
+@@ -19,11 +19,13 @@
+ {
+   if (self = [super initWithBridge:bridge]) {
+     // `blurOnSubmit` defaults to `false` for <TextInput multiline={true}> by design.
+-    self.blurOnSubmit = NO;
++//    self.blurOnSubmit = NO; // deprecated in 71
++      self.submitBehavior = @"newline";
+ 
      _backedTextInputView = [[PasteInputTextView alloc] initWithFrame:self.bounds];
      _backedTextInputView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
      _backedTextInputView.textInputDelegate = self;
@@ -191,7 +198,7 @@ index 4d3b464..e3f7b27 100644
  
      [self addSubview:_backedTextInputView];
    }
-@@ -31,6 +32,11 @@
+@@ -31,6 +33,11 @@
    return self;
  }
  
@@ -203,7 +210,7 @@ index 4d3b464..e3f7b27 100644
  - (id<RCTBackedTextInputViewProtocol>)backedTextInputView
  {
    return _backedTextInputView;
-@@ -44,6 +50,10 @@
+@@ -44,6 +51,10 @@
      _backedTextInputView.onPaste = onPaste;
  }
  

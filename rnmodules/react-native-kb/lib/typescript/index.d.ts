@@ -37,3 +37,4 @@ export declare const guiConfig: string;
 export declare const serverConfig: string;
 export declare const uses24HourClock: boolean;
 export declare const version: string;
+//# sourceMappingURL=index.d.ts.map
