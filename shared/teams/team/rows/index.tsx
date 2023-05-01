@@ -18,6 +18,7 @@ import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import {EmojiItemRow, EmojiAddRow, EmojiHeader} from './emoji-row'
 import LoadingRow from './loading'
 import EmptyRow from './empty-row'
+import {useEmojiState} from '../../emojis/use-emoji'
 
 type SectionExtras = {
   collapsed?: boolean
@@ -211,12 +212,13 @@ const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
 
 export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boolean): Array<Section> => {
   const convID = useGeneralConversationIDKey(teamID)
+  const [lastActuallyLoad, setLastActuallyLoad] = React.useState(false)
+  const [lastCID, setLastCID] = React.useState(convID)
   const getUserEmoji = Container.useRPC(RPCChatTypes.localUserEmojisRpcPromise)
   const [customEmoji, setCustomEmoji] = React.useState<RPCChatTypes.Emoji[]>([])
-
   const [filter, setFilter] = React.useState('')
 
-  const doGetUserEmoji = React.useCallback(() => {
+  const doGetUserEmoji = () => {
     if (!convID || convID === Chat2Constants.noConversationIDKey || !shouldActuallyLoad) {
       return
     }
@@ -240,11 +242,25 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
       },
       _ => setCustomEmoji([])
     )
-  }, [convID, getUserEmoji, shouldActuallyLoad])
+  }
 
-  React.useEffect(() => {
+  const updatedTrigger = useEmojiState(state => state.emojiUpdatedTrigger)
+  const [lastUpdatedTrigger, setLastUpdatedTrigger] = React.useState(updatedTrigger)
+
+  if (
+    shouldActuallyLoad !== lastActuallyLoad ||
+    convID !== lastCID ||
+    lastUpdatedTrigger !== updatedTrigger
+  ) {
+    setLastActuallyLoad(shouldActuallyLoad)
+    setLastCID(convID)
+    setLastUpdatedTrigger(updatedTrigger)
     doGetUserEmoji()
-  }, [doGetUserEmoji])
+  }
+
+  Container.useOnMountOnce(() => {
+    doGetUserEmoji()
+  })
 
   let filteredEmoji: RPCChatTypes.Emoji[] = customEmoji
   if (filter != '') {
@@ -261,7 +277,6 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
         convID={convID ?? Chat2Constants.noConversationIDKey}
         filter={filter}
         setFilter={setFilter}
-        reloadEmojis={doGetUserEmoji}
       />
     ),
   })
@@ -283,7 +298,6 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
           emoji={item}
           firstItem={index === 0}
           conversationIDKey={convID ?? Chat2Constants.noConversationIDKey}
-          reloadEmojis={doGetUserEmoji}
           teamID={teamID}
         />
       ),

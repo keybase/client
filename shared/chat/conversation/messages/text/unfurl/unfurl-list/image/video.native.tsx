@@ -8,10 +8,14 @@ import type {Props} from './video'
 export const Video = (props: Props) => {
   const {autoPlay, onClick, url, style, width, height} = props
   const [playing, setPlaying] = React.useState(autoPlay)
+  const [lastAutoPlay, setLastAutoPlay] = React.useState(autoPlay)
+  const [lastUrl, setLastUrl] = React.useState(url)
 
-  React.useEffect(() => {
+  if (lastAutoPlay !== autoPlay || lastUrl !== url) {
+    setLastAutoPlay(autoPlay)
+    setLastUrl(url)
     setPlaying(autoPlay)
-  }, [url, autoPlay])
+  }
 
   const vidRef = React.useRef<AVVideo>(null)
 

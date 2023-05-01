@@ -103,11 +103,7 @@ const EnterPassword = () => {
   )
 }
 
-KnowPassword.navigationOptions = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}
-EnterPassword.navigationOptions = {
+export const options = {
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
 }

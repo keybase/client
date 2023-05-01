@@ -185,7 +185,7 @@ const Team = (props: Props) => {
   )
 }
 
-Team.navigationOptions = {
+export const options = {
   headerHideBorder: true,
   headerTitle: '',
 }

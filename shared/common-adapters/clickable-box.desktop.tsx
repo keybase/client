@@ -116,7 +116,7 @@ const _containerStyle = {
 
 export default ClickableBox
 
-export const ClickableBox2 = (p: Props2) => {
+export const ClickableBox2 = React.forwardRef(function ClickableBox2(p: Props2, ref: any) {
   const {onClick, children, style, className, onMouseOver} = p
   const collapsed = Styles.useCollapseStyles(style, true)
   return (
@@ -124,9 +124,10 @@ export const ClickableBox2 = (p: Props2) => {
       onClick={onClick}
       onMouseOver={onMouseOver}
       style={collapsed}
+      ref={ref}
       className={Styles.classNames('clickable-box2', className)}
     >
       {children}
     </div>
   )
-}
+})

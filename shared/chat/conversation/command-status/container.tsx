@@ -15,40 +15,34 @@ const empty = {
   displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const info = state.chat2.commandStatusMap.get(ownProps.conversationIDKey)
-  return {
-    _info: info || empty,
+export default (ownProps: OwnProps) => {
+  const info = Container.useSelector(state => state.chat2.commandStatusMap.get(ownProps.conversationIDKey))
+  const _info = info || empty
+  const dispatch = Container.useDispatch()
+  const _onOpenAppSettings = () => {
+    dispatch(ConfigGen.createOpenAppSettings())
   }
+  const onCancel = () => {
+    dispatch(Chat2Gen.createClearCommandStatusInfo({conversationIDKey: ownProps.conversationIDKey}))
+  }
+  const props = {
+    actions: (_info.actions || []).map((a: RPCChatTypes.UICommandStatusActionTyp) => {
+      switch (a) {
+        case RPCChatTypes.UICommandStatusActionTyp.appsettings:
+          return {
+            displayText: 'View App Settings',
+            onClick: _onOpenAppSettings,
+          }
+        default:
+          return {
+            displayText: '???',
+            onClick: () => {},
+          }
+      }
+    }),
+    displayText: _info.displayText,
+    displayType: _info.displayType,
+    onCancel,
+  }
+  return <CommandStatus {...props} />
 }
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
-  _onOpenAppSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
-  onCancel: () =>
-    dispatch(Chat2Gen.createClearCommandStatusInfo({conversationIDKey: ownProps.conversationIDKey})),
-})
-
-const mergeProps = (
-  stateProps: ReturnType<typeof mapStateToProps>,
-  dispatchProps: ReturnType<typeof mapDispatchToProps>
-) => ({
-  actions: (stateProps._info.actions || []).map((a: RPCChatTypes.UICommandStatusActionTyp) => {
-    switch (a) {
-      case RPCChatTypes.UICommandStatusActionTyp.appsettings:
-        return {
-          displayText: 'View App Settings',
-          onClick: dispatchProps._onOpenAppSettings,
-        }
-      default:
-        return {
-          displayText: '???',
-          onClick: () => {},
-        }
-    }
-  }),
-  displayText: stateProps._info.displayText,
-  displayType: stateProps._info.displayType,
-  onCancel: dispatchProps.onCancel,
-})
-
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(CommandStatus)

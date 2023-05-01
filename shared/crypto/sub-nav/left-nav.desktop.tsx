@@ -2,16 +2,15 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/crypto'
-import type * as Types from '../../constants/types/crypto'
 import NavRow from './nav-row'
 
-type Row = Types.Tab & {
+type Row = (typeof Constants.Tabs)[number] & {
   isSelected: boolean
   key: string
 }
 
 type Props = {
-  onClick: (string) => void
+  onClick: (a: string) => void
   selected: string
   children?: React.ReactNode
 }
@@ -24,7 +23,7 @@ class SubNav extends React.PureComponent<Props> {
       key: t.tab,
     }))
 
-  private _onClick = (tab: Types.CryptoSubTab) => {
+  private _onClick = (tab: string) => {
     this.props.onClick(tab)
   }
 

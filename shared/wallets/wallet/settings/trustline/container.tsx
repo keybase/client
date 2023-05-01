@@ -9,26 +9,30 @@ type OwnProps = {
   accountID: Types.AccountID
 }
 
-export default Container.connect(
-  (state, {accountID}: OwnProps) => ({
-    acceptedAssets:
-      state.wallets.trustline.acceptedAssets.get(accountID) ?? Constants.emptyAccountAcceptedAssets,
-    assetMap: state.wallets.trustline.assetMap,
-    thisDeviceIsLockedOut: Constants.getAccount(state, accountID).deviceReadOnly,
-  }),
-  (dispatch, {accountID}: OwnProps) => ({
-    onSetupTrustline: () =>
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]})),
-    refresh: () =>
-      accountID !== Types.noAccountID &&
-      dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})),
-  }),
-  (s, d, _: OwnProps) => ({
-    assets: [...(s.acceptedAssets?.keys() ?? [])]
-      .map(assetID => s.assetMap.get(assetID) ?? Constants.emptyAssetDescription)
+export default (ownProps: OwnProps) => {
+  const {accountID} = ownProps
+  const acceptedAssets = Container.useSelector(
+    state => state.wallets.trustline.acceptedAssets.get(accountID) ?? Constants.emptyAccountAcceptedAssets
+  )
+  const assetMap = Container.useSelector(state => state.wallets.trustline.assetMap)
+  const thisDeviceIsLockedOut = Container.useSelector(
+    state => Constants.getAccount(state, accountID).deviceReadOnly
+  )
+
+  const dispatch = Container.useDispatch()
+  const onSetupTrustline = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]}))
+  }
+  const refresh = () => {
+    accountID !== Types.noAccountID && dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
+  }
+  const props = {
+    assets: [...(acceptedAssets?.keys() ?? [])]
+      .map(assetID => assetMap.get(assetID) ?? Constants.emptyAssetDescription)
       .map(asset => ({code: asset.code, desc: asset.issuerVerifiedDomain || asset.issuerAccountID})),
-    onSetupTrustline: d.onSetupTrustline,
-    refresh: d.refresh,
-    thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
-  })
-)(WalletSettingTrustline)
+    onSetupTrustline: onSetupTrustline,
+    refresh: refresh,
+    thisDeviceIsLockedOut: thisDeviceIsLockedOut,
+  }
+  return <WalletSettingTrustline {...props} />
+}

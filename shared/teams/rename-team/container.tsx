@@ -7,28 +7,28 @@ import RenameTeam from '.'
 
 type OwnProps = Container.RouteProps<'teamRename'>
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    error: Container.anyErrors(state, Constants.teamRenameWaitingKey),
-    teamname: ownProps.route.params?.teamname ?? '',
-    waiting: Container.anyWaiting(state, Constants.teamRenameWaitingKey),
-  }),
-  dispatch => ({
-    _onRename: (oldName, newName) => dispatch(TeamsGen.createRenameTeam({newName, oldName})),
-    onCancel: () => {
-      dispatch(WaitingGen.createClearWaiting({key: Constants.teamRenameWaitingKey}))
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onSuccess: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    error: (!stateProps.error ? undefined : stateProps.error.message) || '',
-    onCancel: dispatchProps.onCancel,
-    onRename: newName => dispatchProps._onRename(stateProps.teamname, newName),
-    onSuccess: dispatchProps.onSuccess,
-    teamname: stateProps.teamname,
-    waiting: stateProps.waiting,
-  })
-)(RenameTeam)
+export default (ownProps: OwnProps) => {
+  const error = Container.useSelector(state => Container.anyErrors(state, Constants.teamRenameWaitingKey))
+  const teamname = ownProps.route.params?.teamname ?? ''
+  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.teamRenameWaitingKey))
+  const dispatch = Container.useDispatch()
+  const _onRename = (oldName, newName) => {
+    dispatch(TeamsGen.createRenameTeam({newName, oldName}))
+  }
+  const onCancel = () => {
+    dispatch(WaitingGen.createClearWaiting({key: Constants.teamRenameWaitingKey}))
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onSuccess = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const props = {
+    error: (!error ? undefined : error.message) || '',
+    onCancel: onCancel,
+    onRename: newName => _onRename(teamname, newName),
+    onSuccess: onSuccess,
+    teamname: teamname,
+    waiting: waiting,
+  }
+  return <RenameTeam {...props} />
+}

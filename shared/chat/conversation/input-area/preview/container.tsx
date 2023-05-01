@@ -8,23 +8,21 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
 
-export default Container.connect(
-  (state, {conversationIDKey}: OwnProps) => {
-    const _meta = Constants.getMeta(state, conversationIDKey)
-    return {
-      _conversationIDKey: conversationIDKey,
-      _meta,
-    }
-  },
-  dispatch => ({
-    _onJoinChannel: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
-    _onLeaveChannel: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    channelname: stateProps._meta.channelname,
-    onJoinChannel: () => dispatchProps._onJoinChannel(stateProps._conversationIDKey),
-    onLeaveChannel: () => dispatchProps._onLeaveChannel(stateProps._conversationIDKey),
-  })
-)(ChannelPreview)
+export default (ownProps: OwnProps) => {
+  const {conversationIDKey} = ownProps
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {channelname} = meta
+  const dispatch = Container.useDispatch()
+  const onJoinChannel = () => {
+    dispatch(Chat2Gen.createJoinConversation({conversationIDKey}))
+  }
+  const onLeaveChannel = () => {
+    dispatch(Chat2Gen.createLeaveConversation({conversationIDKey}))
+  }
+  const props = {
+    channelname,
+    onJoinChannel,
+    onLeaveChannel,
+  }
+  return <ChannelPreview {...props} />
+}

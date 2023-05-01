@@ -2,22 +2,24 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/tracker2'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Bio from '.'
+import shallowEqual from 'shallowequal'
 
 type OwnProps = {
   inTracker: boolean
   username: string
 }
 
-export default Container.connect(
-  (state: Container.TypedState, ownProps: OwnProps) => {
-    const d = Constants.getDetails(state, ownProps.username)
+export default (ownProps: OwnProps) => {
+  const {inTracker, username} = ownProps
+  const stateProps = Container.useSelector(state => {
+    const d = Constants.getDetails(state, username)
     const common = {
       blocked: d.blocked,
       hidFromFollowers: d.hidFromFollowers,
-      username: ownProps.username,
     }
+
     if (d.state === 'notAUserYet') {
-      const nonUser = Constants.getNonUserDetails(state, ownProps.username)
+      const nonUser = Constants.getNonUserDetails(state, username)
       return {
         ...common,
         bio: nonUser.bio,
@@ -30,21 +32,25 @@ export default Container.connect(
       return {
         ...common,
         bio: d.bio,
-        followThem: Constants.followThem(state, ownProps.username),
+        followThem: Constants.followThem(state, username),
         followersCount: d.followersCount,
         followingCount: d.followingCount,
-        followsYou: Constants.followsYou(state, ownProps.username),
+        followsYou: Constants.followsYou(state, username),
         fullname: d.fullname,
         location: d.location,
       }
     }
-  },
-  (dispatch: Container.TypedDispatch) => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  }, shallowEqual)
+
+  const dispatch = Container.useDispatch()
+  const onBack = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const props = {
+    inTracker,
+    onBack,
+    username,
     ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
-  })
-)(Bio)
+  }
+  return <Bio {...props} />
+}

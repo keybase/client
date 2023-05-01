@@ -92,7 +92,7 @@ const Reloadable = (props: Props) => {
     }, [reloadOnMount])
   )
   if (!props.needsReload) {
-    return props.children
+    return <>{props.children}</>
   }
   return (
     <Reload
@@ -153,45 +153,50 @@ export type OwnProps = {
   errorFilter?: (rPCError: RPCError) => boolean
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    let error = Constants.anyErrors(state, ownProps.waitingKeys)
+export default (ownProps: OwnProps) => {
+  let error = Container.useSelector(state => Constants.anyErrors(state, ownProps.waitingKeys))
 
-    // make sure reloadable only responds to network-related errors
-    error = error && Container.isNetworkErr(error.code) ? error : undefined
+  // make sure reloadable only responds to network-related errors
+  error = error && Container.isNetworkErr(error.code) ? error : undefined
 
-    if (error && ownProps.errorFilter) {
-      error = ownProps.errorFilter(error) ? error : undefined
+  if (error && ownProps.errorFilter) {
+    error = ownProps.errorFilter(error) ? error : undefined
+  }
+
+  const _loggedIn = Container.useSelector(state => state.config.loggedIn)
+
+  const stateProps = {
+    _loggedIn,
+    needsReload: !!error,
+    reason: (error && error.message) || '',
+  }
+
+  const dispatch = Container.useDispatch()
+
+  const _onFeedback = (loggedIn: boolean) => {
+    if (loggedIn) {
+      dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {heading: 'Oh no, a bug!'}, selected: feedbackTab}],
+        })
+      )
+    } else {
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
     }
-    return {
-      _loggedIn: state.config.loggedIn,
-      needsReload: !!error,
-      reason: (error && error.message) || '',
-    }
-  },
-  dispatch => ({
-    _onFeedback: (loggedIn: boolean) => {
-      if (loggedIn) {
-        dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {heading: 'Oh no, a bug!'}, selected: feedbackTab}],
-          })
-        )
-      } else {
-        dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
-      }
-    },
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  }
+
+  const props = {
     children: ownProps.children,
     needsReload: stateProps.needsReload,
     onBack: ownProps.onBack,
-    onFeedback: () => dispatchProps._onFeedback(stateProps._loggedIn),
+    onFeedback: () => _onFeedback(_loggedIn),
     onReload: ownProps.onReload,
     reason: stateProps.reason,
     reloadOnMount: ownProps.reloadOnMount,
     style: ownProps.style,
     title: ownProps.title,
-  })
-)(Reloadable as any)
+  }
+
+  return <Reloadable {...props} />
+}

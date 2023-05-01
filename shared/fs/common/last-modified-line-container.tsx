@@ -8,16 +8,14 @@ export type OwnProps = {
   mode: 'row' | 'default' | 'menu'
 }
 
-export default Container.connect(
-  (state, {path}: OwnProps) => ({_pathItem: Constants.getPathItem(state.fs.pathItems, path)}),
-  () => ({}),
-  (stateProps, _, {mode}: OwnProps) => ({
+export default (ownProps: OwnProps) => {
+  const {path, mode} = ownProps
+  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const props = {
     lastModifiedTimestamp:
-      stateProps._pathItem === Constants.unknownPathItem
-        ? undefined
-        : stateProps._pathItem.lastModifiedTimestamp,
-    lastWriter:
-      stateProps._pathItem === Constants.unknownPathItem ? undefined : stateProps._pathItem.lastWriter,
+      _pathItem === Constants.unknownPathItem ? undefined : _pathItem.lastModifiedTimestamp,
+    lastWriter: _pathItem === Constants.unknownPathItem ? undefined : _pathItem.lastWriter,
     mode,
-  })
-)(LastModifiedLine)
+  }
+  return <LastModifiedLine {...props} />
+}

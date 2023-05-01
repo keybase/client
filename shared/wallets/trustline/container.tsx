@@ -11,41 +11,40 @@ type OwnProps = Container.RouteProps<'trustline'>
 
 const emptyAccountAsset = Constants.makeAssets()
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
-    return {
-      accountAssets: Constants.getAssets(state, accountID),
-      canAddTrustline: Constants.getAccount(state, accountID).canAddTrustline,
-      error: state.wallets.changeTrustlineError,
-      trustline: state.wallets.trustline,
-      waitingSearch: Waiting.anyWaiting(state, Constants.searchTrustlineAssetsWaitingKey),
-    }
-  },
-  dispatch => ({
-    onDone: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onSearchChange: debounce(
-      (text: string) => dispatch(WalletsGen.createSetTrustlineSearchText({text})),
-      500
-    ),
-  }),
-  (s, d, o: OwnProps) => {
-    const accountID = o.route.params?.accountID ?? Types.noAccountID
-    const acceptedAssets = s.trustline.acceptedAssets.get(accountID) ?? Constants.emptyAccountAcceptedAssets
-    return {
-      acceptedAssets: [...acceptedAssets.keys()],
-      accountID,
-      balanceAvailableToSend: (
-        s.accountAssets.find(({assetCode}) => assetCode === 'XLM') ?? emptyAccountAsset
-      ).balanceAvailableToSend,
-      canAddTrustline: s.canAddTrustline,
-      error: s.error,
-      loaded: s.trustline.loaded,
-      popularAssets: s.trustline.popularAssets.filter(assetID => !acceptedAssets.has(assetID)),
-      searchingAssets: s.trustline.searchingAssets && s.trustline.searchingAssets,
-      totalAssetsCount: s.trustline.totalAssetsCount,
-      waitingSearch: s.waitingSearch,
-      ...d,
-    }
+export default (ownProps: OwnProps) => {
+  const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+  const accountAssets = Container.useSelector(state => Constants.getAssets(state, accountID))
+  const canAddTrustline = Container.useSelector(
+    state => Constants.getAccount(state, accountID).canAddTrustline
+  )
+  const error = Container.useSelector(state => state.wallets.changeTrustlineError)
+  const trustline = Container.useSelector(state => state.wallets.trustline)
+  const waitingSearch = Container.useSelector(state =>
+    Waiting.anyWaiting(state, Constants.searchTrustlineAssetsWaitingKey)
+  )
+  const dispatch = Container.useDispatch()
+  const onDone = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
   }
-)(Trustline)
+  const onSearchChange = debounce(
+    (text: string) => dispatch(WalletsGen.createSetTrustlineSearchText({text})),
+    500
+  )
+  const acceptedAssets = trustline.acceptedAssets.get(accountID) ?? Constants.emptyAccountAcceptedAssets
+  const props = {
+    acceptedAssets: [...acceptedAssets.keys()],
+    accountID,
+    balanceAvailableToSend: (accountAssets.find(({assetCode}) => assetCode === 'XLM') ?? emptyAccountAsset)
+      .balanceAvailableToSend,
+    canAddTrustline: canAddTrustline,
+    error: error,
+    loaded: trustline.loaded,
+    onDone,
+    onSearchChange,
+    popularAssets: trustline.popularAssets.filter(assetID => !acceptedAssets.has(assetID)),
+    searchingAssets: trustline.searchingAssets && trustline.searchingAssets,
+    totalAssetsCount: trustline.totalAssetsCount,
+    waitingSearch: waitingSearch,
+  }
+  return <Trustline {...props} />
+}

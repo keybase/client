@@ -7,10 +7,10 @@ import {AssetPathIntermediate} from '../send-form/asset-input/asset-input-advanc
 import AssetInput from './asset-input-container'
 
 type Summary = {
-  fee: string
+  fee: number
   memo: string
   memoType: string
-  operations: Array<string>
+  operations?: Array<string> | null | undefined
   source: string
 }
 
@@ -220,14 +220,14 @@ const PaymentInfo = (props: PaymentInfoProps) => (
 )
 
 type TxInfoProps = {
-  operations: Array<string>
-  fee: string
+  operations?: Array<string> | null | undefined
+  fee: number
   memo: string | null
   source: string
 }
 const TxInfo = (props: TxInfoProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {props.operations.map((op, idx) => (
+    {props.operations?.map((op, idx) => (
       <InfoRow key={idx + 1} headerText={`Operation ${idx + 1}`} bodyText={op} />
     ))}
     {!!props.fee && <InfoRow headerText="Fee" bodyText={props.fee + ' stroops'} />}

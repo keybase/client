@@ -49,17 +49,31 @@ import type {RetentionPolicy} from '../constants/types/retention-policy'
 import type {TabKey} from './channel/tabs'
 
 export const newRoutes = {
-  team: {getScreen: (): typeof Team => require('./team').default},
+  team: {
+    getOptions: (): typeof Team => require('./team').options,
+    getScreen: (): typeof Team => require('./team').default,
+  },
   teamChannel: {
+    getOptions: () => require('./channel').options,
     getScreen: (): typeof TeamChannel => require('./channel').default,
   },
-  teamExternalTeam: {getScreen: (): typeof ExternalTeam => require('./external-team').default},
-  teamMember: {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default},
-  teamsRoot: {getScreen: (): typeof TeamsRoot => require('./container').default},
+  teamExternalTeam: {
+    getOptions: () => require('./external-team').options,
+    getScreen: (): typeof ExternalTeam => require('./external-team').default,
+  },
+  teamMember: {
+    getOptions: () => require('./team/member/index.new').options,
+    getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default,
+  },
+  teamsRoot: {
+    getOptions: () => require('./container').options,
+    getScreen: (): typeof TeamsRoot => require('./container').default,
+  },
 }
 
 const addWizardRoutes = {
   teamAddToTeamConfirm: {
+    getOptions: () => require('./add-members-wizard/confirm').options,
     getScreen: (): typeof TeamAddToTeamConfirm => require('./add-members-wizard/confirm').default,
   },
   teamAddToTeamContacts: {
@@ -173,6 +187,7 @@ export const newModalRoutes = {
   },
   teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
   teamsTeamBuilder: {
+    getOptions: require('../team-building/container').getOptions,
     getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
   },
 }
@@ -193,7 +208,6 @@ export type RootParamListTeams = {
   }
   teamAddEmojiAlias: {
     conversationIDKey: ChatTypes.ConversationIDKey
-    onChange?: () => void
     defaultSelected?: EmojiData
   }
   teamInviteByEmail: {teamID: string}
@@ -202,7 +216,6 @@ export type RootParamListTeams = {
   teamJoinTeamDialog: {initialTeamname?: string}
   teamAddEmoji: {
     conversationIDKey: ChatTypes.ConversationIDKey
-    onChange?: () => void
     teamID: Types.TeamID // not supported yet
   }
   teamReallyRemoveMember: {
@@ -227,15 +240,11 @@ export type RootParamListTeams = {
   openTeamWarning: {
     isOpenTeam: boolean
     teamname: string
-    onCancel: () => void
-    onConfirm: () => void
   }
   teamInviteHistory: {teamID: Types.TeamID}
   retentionWarning: {
     policy: RetentionPolicy
     entityType: RetentionEntityType
-    onCancel: (() => void) | null
-    onConfirm: (() => void) | null
   }
   teamEditTeamInfo: {teamID: Types.TeamID}
   team: {
@@ -243,7 +252,6 @@ export type RootParamListTeams = {
     initialTab?: Types.TabKey
   }
   teamEditChannel: {
-    afterEdit?: () => void
     channelname: string
     description: string
     teamID: Types.TeamID

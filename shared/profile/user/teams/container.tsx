@@ -11,37 +11,38 @@ type OwnProps = {
 
 const noTeams = []
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const d = Constants.getDetails(state, ownProps.username)
-    return {
-      _isYou: state.config.username === ownProps.username,
-      _roles: state.teams.teamRoleMap.roles,
-      _teamNameToID: state.teams.teamNameToID,
-      _youAreInTeams: state.teams.teamnames.size > 0,
-      teamShowcase: d.teamShowcase || noTeams,
-    }
-  },
-  dispatch => ({
-    onEdit: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
-    onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
-    onViewTeam: (teamname: string) => {
-      dispatch(RouteTreeGen.createClearModals())
-      dispatch(TeamsGen.createShowTeamByName({teamname}))
-    },
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    onEdit: stateProps._isYou && stateProps._youAreInTeams ? dispatchProps.onEdit : undefined,
-    onJoinTeam: dispatchProps.onJoinTeam,
-    onViewTeam: dispatchProps.onViewTeam,
-    teamMeta: stateProps.teamShowcase.reduce<Props['teamMeta']>((map, t) => {
-      const teamID = stateProps._teamNameToID.get(t.name) || noTeamID
+export default (ownProps: OwnProps) => {
+  const d = Container.useSelector(state => Constants.getDetails(state, ownProps.username))
+  const _isYou = Container.useSelector(state => state.config.username === ownProps.username)
+  const _roles = Container.useSelector(state => state.teams.teamRoleMap.roles)
+  const _teamNameToID = Container.useSelector(state => state.teams.teamNameToID)
+  const _youAreInTeams = Container.useSelector(state => state.teams.teamnames.size > 0)
+  const teamShowcase = d.teamShowcase || noTeams
+
+  const dispatch = Container.useDispatch()
+  const onEdit = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']}))
+  }
+  const onJoinTeam = (teamname: string) => {
+    dispatch(TeamsGen.createJoinTeam({teamname}))
+  }
+  const onViewTeam = (teamname: string) => {
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(TeamsGen.createShowTeamByName({teamname}))
+  }
+  const props = {
+    onEdit: _isYou && _youAreInTeams ? onEdit : undefined,
+    onJoinTeam: onJoinTeam,
+    onViewTeam: onViewTeam,
+    teamMeta: teamShowcase.reduce<Props['teamMeta']>((map, t) => {
+      const teamID = _teamNameToID.get(t.name) || noTeamID
       map[t.name] = {
-        inTeam: !!((stateProps._roles.get(teamID)?.role || 'none') !== 'none'),
+        inTeam: !!((_roles.get(teamID)?.role || 'none') !== 'none'),
         teamID,
       }
       return map
     }, {}),
-    teamShowcase: stateProps.teamShowcase,
-  })
-)(Teams)
+    teamShowcase: teamShowcase,
+  }
+  return <Teams {...props} />
+}

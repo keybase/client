@@ -16,10 +16,11 @@ import {
 } from '../../util/emoji'
 import {AliasInput, Modal} from './common'
 import useRPC from '../../util/use-rpc'
+import {useEmojiState} from './use-emoji'
+import {usePickerState} from '../../chat/emoji-picker/use-picker'
 
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
-  onChange?: () => void
   defaultSelected?: EmojiData
 }
 type RoutableProps = Container.RouteProps<'teamAddEmojiAlias'>
@@ -58,6 +59,9 @@ export const AddAliasModal = (props: Props) => {
   const dispatch = Container.useDispatch()
   const addAliasRpc = useRPC(RPCChatGen.localAddEmojiAliasRpcPromise)
   const [addAliasWaiting, setAddAliasWaiting] = React.useState(false)
+
+  const refreshEmoji = useEmojiState(state => state.triggerEmojiUpdated)
+
   const doAddAlias = emoji
     ? () => {
         setAddAliasWaiting(true)
@@ -76,7 +80,7 @@ export const AddAliasModal = (props: Props) => {
               return
             }
             dispatch(RouteTreeGen.createClearModals())
-            props.onChange?.()
+            refreshEmoji()
           },
           err => {
             throw err
@@ -133,6 +137,22 @@ type ChooseEmojiProps = {
 const ChooseEmoji = Styles.isMobile
   ? (props: ChooseEmojiProps) => {
       const dispatch = Container.useDispatch()
+      const pickKey = 'addAlias'
+      const {emojiStr, renderableEmoji} = usePickerState(state => state.pickerMap.get(pickKey)) ?? {
+        emojiStr: '',
+        renderableEmoji: {},
+      }
+      const updatePickerMap = usePickerState(state => state.updatePickerMap)
+
+      const [lastEmoji, setLastEmoji] = React.useState('')
+      if (lastEmoji !== emojiStr) {
+        setTimeout(() => {
+          setLastEmoji(emojiStr)
+          emojiStr && props.onChoose(emojiStr, renderableEmoji)
+          updatePickerMap(pickKey, undefined)
+        }, 1)
+      }
+
       const openEmojiPicker = () =>
         dispatch(
           RouteTreeGen.createNavigateAppend({
@@ -141,8 +161,8 @@ const ChooseEmoji = Styles.isMobile
                 props: {
                   conversationIDKey: props.conversationIDKey,
                   hideFrequentEmoji: true,
-                  onPickAction: props.onChoose,
                   onlyTeamCustomEmoji: true,
+                  pickKey,
                   small: true,
                 },
                 selected: 'chatChooseEmoji',
@@ -153,24 +173,32 @@ const ChooseEmoji = Styles.isMobile
       return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
     }
   : (props: ChooseEmojiProps) => {
-      const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup(attachTo => (
-        <Kb.FloatingBox
-          attachTo={attachTo}
-          containerStyle={{paddingTop: Styles.globalMargins.tiny}}
-          position="bottom left"
-          onHidden={toggleShowingPopup}
-          propagateOutsideClicks={false}
-        >
-          <EmojiPickerDesktop
-            conversationIDKey={props.conversationIDKey}
-            hideFrequentEmoji={true}
-            small={true}
-            onPickAction={props.onChoose}
-            onDidPick={toggleShowingPopup}
-            onlyTeamCustomEmoji={true}
-          />
-        </Kb.FloatingBox>
-      ))
+      const {onChoose, conversationIDKey} = props
+      const makePopup = React.useCallback(
+        (p: Kb.Popup2Parms) => {
+          const {attachTo, toggleShowingPopup} = p
+          return (
+            <Kb.FloatingBox
+              attachTo={attachTo}
+              containerStyle={{paddingTop: Styles.globalMargins.tiny}}
+              position="bottom left"
+              onHidden={toggleShowingPopup}
+              propagateOutsideClicks={false}
+            >
+              <EmojiPickerDesktop
+                conversationIDKey={conversationIDKey}
+                hideFrequentEmoji={true}
+                small={false}
+                onPickAction={onChoose}
+                onDidPick={toggleShowingPopup}
+                onlyTeamCustomEmoji={true}
+              />
+            </Kb.FloatingBox>
+          )
+        },
+        [onChoose, conversationIDKey]
+      )
+      const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
       return (
         <>
           <Kb.Button mode="Secondary" label="Choose emoji" ref={popupAnchor} onClick={toggleShowingPopup} />
@@ -228,13 +256,6 @@ const AddEmojiAliasWrapper = (routableProps: RoutableProps) => {
   const {params} = routableProps.route
   const conversationIDKey = params?.conversationIDKey ?? ChatConstants.noConversationIDKey
   const defaultSelected = params?.defaultSelected
-  const onChange = params?.onChange
-  return (
-    <AddAliasModal
-      conversationIDKey={conversationIDKey}
-      defaultSelected={defaultSelected}
-      onChange={onChange}
-    />
-  )
+  return <AddAliasModal conversationIDKey={conversationIDKey} defaultSelected={defaultSelected} />
 }
 export default AddEmojiAliasWrapper

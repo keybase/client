@@ -67,7 +67,7 @@ const ExternalTeam = (props: Props) => {
     </Kb.Box2>
   )
 }
-ExternalTeam.navigationOptions = {
+export const options = {
   header: undefined,
   headerBottomStyle: {height: undefined},
   headerHideBorder: true,

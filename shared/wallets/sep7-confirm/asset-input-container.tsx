@@ -7,34 +7,31 @@ type OwnProps = {
   onChangeAmount: (amount: string) => void
 }
 
-const mapStateToProps = (state: Container.TypedState) => {
+export default (ownProps: OwnProps) => {
   const currency = 'XLM'
-  return {
-    bottomLabel: `Your primary account has ${
-      state.wallets.sep7ConfirmInfo ? state.wallets.sep7ConfirmInfo.availableToSendNative : '(unknown)' // TODO is this ok
-    } available to send.`,
-    currencyLoading: false,
-    displayUnit: Constants.getCurrencyAndSymbol(state, currency) || currency,
-    numDecimalsAllowed: Constants.numDecimalsAllowedForCurrency(currency),
-    topLabel: '',
-  }
-}
+  const bottomLabel = Container.useSelector(
+    state =>
+      `Your primary account has ${
+        state.wallets.sep7ConfirmInfo ? state.wallets.sep7ConfirmInfo.availableToSendNative : '(unknown)'
+      } available to send.`
+  )
+  const currencyLoading = false
+  const displayUnit = Container.useSelector(
+    state => Constants.getCurrencyAndSymbol(state, currency) || currency
+  )
+  const numDecimalsAllowed = Constants.numDecimalsAllowedForCurrency(currency)
+  const topLabel = ''
 
-const mapDispatchToProps = (_: Container.TypedDispatch) => ({
-  onChangeDisplayUnit: undefined, // Add when non-native assets are supported
-})
-
-export default Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    bottomLabel: stateProps.bottomLabel,
-    currencyLoading: stateProps.currencyLoading,
-    displayUnit: stateProps.displayUnit,
-    numDecimalsAllowed: stateProps.numDecimalsAllowed,
+  const onChangeDisplayUnit = undefined // Add when non-native assets are supported
+  const props = {
+    bottomLabel: bottomLabel,
+    currencyLoading: currencyLoading,
+    displayUnit: displayUnit,
+    numDecimalsAllowed: numDecimalsAllowed,
     onChangeAmount: ownProps.onChangeAmount,
-    onChangeDisplayUnit: dispatchProps.onChangeDisplayUnit,
-    topLabel: stateProps.topLabel,
+    onChangeDisplayUnit: onChangeDisplayUnit,
+    topLabel: topLabel,
     value: ownProps.amount,
-  })
-)(AssetInput)
+  }
+  return <AssetInput {...props} />
+}

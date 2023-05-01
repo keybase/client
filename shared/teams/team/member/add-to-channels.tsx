@@ -13,6 +13,7 @@ import * as Common from '../../common'
 import {pluralize} from '../../../util/string'
 import {memoize} from '../../../util/memoize'
 import {useAllChannelMetas} from '../../common/channel-hooks'
+import {useEditState} from './use-edit'
 
 type Props = Container.RouteProps<'teamAddToChannels'>
 
@@ -288,33 +289,65 @@ const SelfChannelActions = ({
   const inChannel = meta.membershipType === 'active'
 
   const [waiting, setWaiting] = React.useState(false)
-  const stopWaiting = () => setWaiting(false)
+  const stopWaiting = React.useCallback(() => setWaiting(false), [])
 
-  const actionProps = {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID}
-  const editChannelProps = {
-    ...actionProps,
-    afterEdit: () => {
+  const updatedTrigger = useEditState(state => state.editUpdatedTrigger)
+  const [lastUpdatedTrigger, setLastUpdatedTrigger] = React.useState(updatedTrigger)
+
+  if (lastUpdatedTrigger !== updatedTrigger) {
+    setTimeout(() => {
+      setLastUpdatedTrigger(updatedTrigger)
       setWaiting(true)
       reloadChannels().then(stopWaiting, stopWaiting)
-    },
-    channelname: meta.channelname,
-    description: meta.description,
+    }, 1)
   }
-  const onEditChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: editChannelProps, selected: 'teamEditChannel'}]}))
-  const onChannelSettings = () => {
+
+  const onEditChannel = React.useCallback(() => {
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [
+          {
+            props: {
+              channelname: meta.channelname,
+              conversationIDKey: meta.conversationIDKey,
+              description: meta.description,
+              teamID: meta.teamID,
+            },
+            selected: 'teamEditChannel',
+          },
+        ],
+      })
+    )
+  }, [dispatch, nav, meta])
+  const onChannelSettings = React.useCallback(() => {
     dispatch(RouteTreeGen.createClearModals())
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: actionProps, selected: 'teamChannel'}]}))
-  }
-  const onDelete = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID}, selected: 'teamChannel'},
+        ],
+      })
+    )
+  }, [dispatch, meta])
+  const onDelete = React.useCallback(() => {
     // TODO: consider not using the confirm modal
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: actionProps, selected: 'teamDeleteChannel'}]}))
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [
+          {
+            props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
+            selected: 'teamDeleteChannel',
+          },
+        ],
+      })
+    )
+  }, [dispatch, nav, meta])
 
   const joinRPC = Container.useRPC(RPCChatGen.localJoinConversationByIDLocalRpcPromise)
   const leaveRPC = Container.useRPC(RPCChatGen.localLeaveConversationLocalRpcPromise)
 
   const convID = ChatTypes.keyToConversationID(meta.conversationIDKey)
-  const onLeave = () => {
+  const onLeave = React.useCallback(() => {
     setWaiting(true)
     leaveRPC(
       [{convID}],
@@ -323,8 +356,8 @@ const SelfChannelActions = ({
       },
       stopWaiting
     )
-  }
-  const onJoin = () => {
+  }, [convID, leaveRPC, reloadChannels, stopWaiting])
+  const onJoin = React.useCallback(() => {
     setWaiting(true)
     joinRPC(
       [{convID}],
@@ -333,26 +366,37 @@ const SelfChannelActions = ({
       },
       stopWaiting
     )
-  }
+  }, [convID, joinRPC, reloadChannels, stopWaiting])
 
-  const menuItems = [
-    {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
-    ...(isAdmin
-      ? [
-          {icon: 'iconfont-nav-2-settings' as const, onClick: onChannelSettings, title: 'Channel settings'},
-          {danger: true, icon: 'iconfont-remove' as const, onClick: onDelete, title: 'Delete'},
-        ]
-      : []),
-  ]
-  const {popupAnchor, showingPopup, toggleShowingPopup, popup} = Kb.usePopup(getAttachmentRef => (
-    <Kb.FloatingMenu
-      attachTo={getAttachmentRef}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      closeOnSelect={true}
-      items={menuItems}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      const menuItems = [
+        {icon: 'iconfont-edit' as const, onClick: onEditChannel, title: 'Edit channel'},
+        ...(isAdmin
+          ? [
+              {
+                icon: 'iconfont-nav-2-settings' as const,
+                onClick: onChannelSettings,
+                title: 'Channel settings',
+              },
+              {danger: true, icon: 'iconfont-remove' as const, onClick: onDelete, title: 'Delete'},
+            ]
+          : []),
+      ]
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          closeOnSelect={true}
+          items={menuItems}
+        />
+      )
+    },
+    [onEditChannel, onChannelSettings, onDelete, isAdmin]
+  )
+  const {popupAnchor, toggleShowingPopup, popup} = Kb.usePopup2(makePopup)
   const [buttonMousedOver, setMouseover] = React.useState(false)
   return (
     <Kb.Box2

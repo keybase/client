@@ -173,46 +173,54 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter: string | nul
       )
     : rows
 
-export default Container.connect(
-  (state, {path}: OwnProps) => ({
-    _edits: state.fs.edits,
-    _filter: state.fs.folderViewFilter,
-    _pathItems: state.fs.pathItems,
-    _sortSetting: Constants.getPathUserSetting(state.fs.pathUserSettings, path).sort,
-    _tlfs: state.fs.tlfs,
-    _username: state.config.username,
-  }),
-  () => ({}),
-  (s, _, o: OwnProps) => {
-    const normalRowItems = getNormalRowItemsFromStateProps(s, o.path, o.destinationPickerIndex)
-    const filteredRowItems = filterRowItems(normalRowItems, s._filter)
-    return {
-      destinationPickerIndex: o.destinationPickerIndex,
-      emptyMode: !normalRowItems.length
-        ? 'empty'
-        : !filteredRowItems.length
-        ? 'not-empty-but-no-match'
-        : ('not-empty' as Props['emptyMode']),
-      items: [
-        ...(o.headerRows || []),
-        // don't show top bar in destinationPicker.
-        ...(typeof o.destinationPickerIndex === 'number' ? [] : topBarAsRow(o.path)),
-        ...filteredRowItems,
-        ...// If we are in the destination picker, inject two empty rows so when
-        // user scrolls to the bottom nothing is blocked by the
-        // semi-transparent footer.
-        //
-        // TODO: add `footerRows` and inject these from destination-picker, so that
-        // Rows componenet don't need to worry about whether it's in
-        // destinationPicker mode or not.
-        (!isMobile && typeof o.destinationPickerIndex === 'number'
-          ? [
-              {key: 'empty:0', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,
-              {key: 'empty:1', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,
-            ]
-          : []),
-      ],
-      path: o.path,
-    }
+export default (o: OwnProps) => {
+  const _edits = Container.useSelector(state => state.fs.edits)
+  const _filter = Container.useSelector(state => state.fs.folderViewFilter)
+  const _pathItems = Container.useSelector(state => state.fs.pathItems)
+  const _sortSetting = Container.useSelector(
+    state => Constants.getPathUserSetting(state.fs.pathUserSettings, o.path).sort
+  )
+  const _tlfs = Container.useSelector(state => state.fs.tlfs)
+  const _username = Container.useSelector(state => state.config.username)
+
+  const s = {
+    _edits,
+    _filter,
+    _pathItems,
+    _sortSetting,
+    _tlfs,
+    _username,
   }
-)(Rows)
+
+  const normalRowItems = getNormalRowItemsFromStateProps(s, o.path, o.destinationPickerIndex)
+  const filteredRowItems = filterRowItems(normalRowItems, _filter)
+  const props = {
+    destinationPickerIndex: o.destinationPickerIndex,
+    emptyMode: !normalRowItems.length
+      ? 'empty'
+      : !filteredRowItems.length
+      ? 'not-empty-but-no-match'
+      : ('not-empty' as Props['emptyMode']),
+    items: [
+      ...(o.headerRows || []),
+      // don't show top bar in destinationPicker.
+      ...(typeof o.destinationPickerIndex === 'number' ? [] : topBarAsRow(o.path)),
+      ...filteredRowItems,
+      ...// If we are in the destination picker, inject two empty rows so when
+      // user scrolls to the bottom nothing is blocked by the
+      // semi-transparent footer.
+      //
+      // TODO: add `footerRows` and inject these from destination-picker, so that
+      // Rows componenet don't need to worry about whether it's in
+      // destinationPicker mode or not.
+      (!isMobile && typeof o.destinationPickerIndex === 'number'
+        ? [
+            {key: 'empty:0', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,
+            {key: 'empty:1', rowType: RowTypes.RowType.Empty} as RowTypes.EmptyRowItem,
+          ]
+        : []),
+    ],
+    path: o.path,
+  }
+  return <Rows {...props} />
+}

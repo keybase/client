@@ -17,30 +17,30 @@ type OwnProps = {
   visible: boolean
 }
 
-export default Container.connect(
-  (state: Container.TypedState, ownProps: OwnProps) => {
-    const {conversationIDKey, ordinal} = ownProps
-    const cardType =
+export default (ownProps: OwnProps) => {
+  const {conversationIDKey, ordinal} = ownProps
+  const cardType = Container.useSelector(
+    state =>
       Constants.getMessage(state, conversationIDKey, ordinal)?.cardType ?? RPCChatTypes.JourneycardType.unused
-    return {cardType}
-  },
-  (dispatch: Container.TypedDispatch) => ({
-    _onDismiss: (
-      conversationIDKey: ChatTypes.ConversationIDKey,
-      cardType: RPCChatTypes.JourneycardType,
-      ordinal: ChatTypes.Ordinal
-    ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal})),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    return {
-      attachTo: ownProps.attachTo,
-      onDismiss: () => {
-        dispatchProps._onDismiss(ownProps.conversationIDKey, stateProps.cardType, ownProps.ordinal)
-      },
-      onHidden: () => ownProps.onHidden(),
-      position: ownProps.position,
-      style: ownProps.style,
-      visible: ownProps.visible,
-    }
+  )
+
+  const dispatch = Container.useDispatch()
+  const _onDismiss = (
+    conversationIDKey: ChatTypes.ConversationIDKey,
+    cardType: RPCChatTypes.JourneycardType,
+    ordinal: ChatTypes.Ordinal
+  ) => {
+    dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal}))
   }
-)(Journeycard)
+  const props = {
+    attachTo: ownProps.attachTo,
+    onDismiss: () => {
+      _onDismiss(ownProps.conversationIDKey, cardType, ownProps.ordinal)
+    },
+    onHidden: () => ownProps.onHidden(),
+    position: ownProps.position,
+    style: ownProps.style,
+    visible: ownProps.visible,
+  }
+  return <Journeycard {...props} />
+}

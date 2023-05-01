@@ -6,18 +6,19 @@ import DeleteHistoryWarning from '.'
 
 type OwnProps = Container.RouteProps<'chatDeleteHistoryWarning'>
 
-export default Container.connect(
-  () => ({}),
-  (dispatch, ownProps: OwnProps) => ({
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onDeleteHistory: () => {
-      const conversationIDKey = ownProps.route.params?.conversationIDKey ?? Constants.noConversationIDKey
-      dispatch(RouteTreeGen.createClearModals())
-      dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
-    },
-  }),
-  (_, dispatchProps, __: OwnProps) => ({
-    onCancel: dispatchProps.onCancel,
-    onDeleteHistory: dispatchProps.onDeleteHistory,
-  })
-)(DeleteHistoryWarning)
+export default (ownProps: OwnProps) => {
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onDeleteHistory = () => {
+    const conversationIDKey = ownProps.route.params?.conversationIDKey ?? Constants.noConversationIDKey
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
+  }
+  const props = {
+    onCancel,
+    onDeleteHistory,
+  }
+  return <DeleteHistoryWarning {...props} />
+}

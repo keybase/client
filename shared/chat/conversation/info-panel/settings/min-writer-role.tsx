@@ -37,16 +37,19 @@ const MinWriterRole = (props: Props) => {
     }
   }
 
-  const lastMinWriterRole = Container.usePrevious(minWriterRole)
+  const [lastMinWriterRole, setLastMinWriterRole] = React.useState(minWriterRole)
+  const [lastSelected, setLastSelected] = React.useState(selected)
 
-  React.useEffect(() => {
+  if (lastSelected !== selected || lastMinWriterRole !== minWriterRole) {
+    setLastSelected(selected)
+    setLastMinWriterRole(minWriterRole)
     if (minWriterRole !== lastMinWriterRole) {
       setSelected(minWriterRole)
     }
     if (selected === minWriterRole) {
       setSaving(false)
     }
-  }, [lastMinWriterRole, minWriterRole, selected])
+  }
 
   const items = TeamConstants.teamRoleTypes.map(role => ({
     isSelected: role === minWriterRole,
@@ -76,17 +79,24 @@ type DropdownProps = {
 
 const Dropdown = (p: DropdownProps) => {
   const {items, minWriterRole, saving} = p
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      visible={showingPopup}
-      items={items}
-      onHidden={toggleShowingPopup}
-      position="top center"
-      positionFallbacks={['bottom center']}
-    />
-  ))
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          visible={true}
+          items={items}
+          onHidden={toggleShowingPopup}
+          position="top center"
+          positionFallbacks={['bottom center']}
+        />
+      )
+    },
+    [items]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
   return (
     <>
       <Kb.ClickableBox

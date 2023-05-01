@@ -1,19 +1,41 @@
-import * as React from 'react'
-import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
+import * as Container from '../../util/container'
+import * as FsGen from '../../actions/fs-gen'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
+import * as React from 'react'
 import * as Styles from '../../styles'
-import * as FsGen from '../../actions/fs-gen'
-import * as Container from '../../util/container'
-import Footer from '../footer/footer'
-import {isMobile} from '../../constants/platform'
-import Rows from './rows/rows-container'
-import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
+import * as Types from '../../constants/types/fs'
 import ConflictBanner from '../banner/conflict-banner-container'
+import Footer from '../footer/footer'
 import OfflineFolder from './offline'
 import PublicReminder from '../banner/public-reminder'
 import Root from './root'
+import Rows from './rows/rows-container'
+import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
+import {isMobile} from '../../constants/platform'
+
+type OwnProps = {path: Types.Path}
+
+export default (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const _kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const resetBannerType = Container.useSelector(state => Constants.resetBannerType(state, path))
+  const props = {
+    offlineUnsynced: Constants.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
+    path,
+    resetBannerType,
+    writable: _pathItem.writable,
+  }
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kbfs.Errs />
+      <BrowserContent {...props} />
+      <Footer path={props.path} />
+    </Kb.Box2>
+  )
+}
 
 type Props = {
   offlineUnsynced: boolean
@@ -115,13 +137,3 @@ const BrowserContent = (props: Props) => {
     </DragAndDrop>
   )
 }
-
-const Browser = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-    <Kbfs.Errs />
-    <BrowserContent {...props} />
-    <Footer path={props.path} />
-  </Kb.Box2>
-)
-
-export default Browser

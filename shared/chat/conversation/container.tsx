@@ -58,8 +58,7 @@ const Conversation = (p: SwitchProps) => {
   }
 }
 
-// @ts-ignore
-Conversation.navigationOptions = ({route}) => ({
+export const getOptions = ({route}) => ({
   ...headerNavigationOptions(route),
   presentation: undefined,
 })

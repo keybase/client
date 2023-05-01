@@ -9,32 +9,31 @@ import upperFirst from 'lodash/upperFirst'
 
 type OwnProps = Container.RouteProps<'chatCreateChannel'>
 
-type Props = {
-  _onCreateChannel: (o: {channelname: string; description: string; teamID: TeamsTypes.TeamID}) => void
-  _onSetChannelCreationError: (error: string) => void
-  errorText: string
-  onBack: () => void
-  onClose: () => void
-  teamID: TeamsTypes.TeamID
-  teamname: string
-}
-
-const Wrapped = (p: Props) => {
+const Wrapped = (p: OwnProps) => {
+  const teamID = p.route.params?.teamID ?? TeamsTypes.noTeamID
+  const navToChatOnSuccess = p.route.params?.navToChatOnSuccess ?? true
+  const errorText = Container.useSelector(state => upperFirst(state.teams.errorInChannelCreation))
+  const teamname = Container.useSelector(state => TeamsConstants.getTeamNameFromID(state, teamID) ?? '')
+  const dispatch = Container.useDispatch()
+  const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const [channelname, onChannelnameChange] = React.useState<string>('')
   const [description, onDescriptionChange] = React.useState<string>('')
-
-  const {_onCreateChannel, _onSetChannelCreationError, teamID, ...rest} = p
   const onSubmit = React.useCallback(() => {
-    channelname && _onCreateChannel({channelname, description, teamID})
-  }, [channelname, _onCreateChannel, description, teamID])
+    if (channelname) {
+      dispatch(TeamsGen.createCreateChannel({channelname, description, navToChatOnSuccess, teamID}))
+    }
+  }, [navToChatOnSuccess, channelname, description, teamID, dispatch])
 
-  React.useEffect(() => {
-    _onSetChannelCreationError('')
-  }, [_onSetChannelCreationError])
+  Container.useOnMountOnce(() => {
+    dispatch(TeamsGen.createSetChannelCreationError({error: ''}))
+  })
 
   return (
     <CreateChannel
-      {...rest}
+      errorText={errorText}
+      teamname={teamname}
+      onBack={onBack}
+      onClose={onBack}
       teamID={teamID}
       channelname={channelname}
       onChannelnameChange={onChannelnameChange}
@@ -45,36 +44,4 @@ const Wrapped = (p: Props) => {
   )
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const teamID = ownProps.route.params?.teamID ?? TeamsTypes.noTeamID
-    return {
-      errorText: upperFirst(state.teams.errorInChannelCreation),
-      teamID,
-      teamname: TeamsConstants.getTeamNameFromID(state, teamID) ?? '',
-    }
-  },
-  (dispatch, ownProps: OwnProps) => ({
-    _onCreateChannel: ({
-      channelname,
-      description,
-      teamID,
-    }: {
-      channelname: string
-      description: string
-      teamID: TeamsTypes.TeamID
-    }) =>
-      dispatch(
-        TeamsGen.createCreateChannel({
-          channelname,
-          description,
-          navToChatOnSuccess: ownProps.route.params?.navToChatOnSuccess ?? true,
-          teamID,
-        })
-      ),
-    _onSetChannelCreationError: (error: string) => dispatch(TeamsGen.createSetChannelCreationError({error})),
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-  }),
-  (s, d, _: OwnProps) => ({...s, ...d})
-)(Wrapped)
+export default Wrapped

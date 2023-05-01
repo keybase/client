@@ -250,7 +250,7 @@ const Channel = (props: OwnProps) => {
     </Kb.Box>
   )
 }
-Channel.navigationOptions = {
+export const options = {
   headerHideBorder: true,
   headerTitle: '',
   underNotch: true,

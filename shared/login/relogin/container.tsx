@@ -12,8 +12,6 @@ import type * as ConfigTypes from '../../constants/types/config'
 
 const needPasswordError = 'passphrase cannot be empty'
 
-type OwnProps = {}
-
 type Props = {
   error: string
   loggedInMap: Map<string, boolean>
@@ -97,32 +95,36 @@ const LoginWrapper = (props: Props) => {
   )
 }
 
-export default Container.connect(
-  (state: Container.TypedState) => ({
-    _users: state.config.configuredAccounts,
-    error: state.login.error,
-    selectedUser: state.config.defaultUsername,
-  }),
-  dispatch => ({
-    _onForgotPassword: (username: string) =>
-      dispatch(RecoverPasswordGen.createStartRecoverPassword({username})),
-    onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
-    onLogin: (username: string, password: string) =>
-      dispatch(LoginGen.createLogin({password: new HiddenString(password), username})),
-    onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
-    onSomeoneElse: () => dispatch(ProvisionGen.createStartProvision()),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    error: (stateProps.error && stateProps.error.desc) || '',
-    loggedInMap: new Map<string, boolean>(
-      stateProps._users.map(account => [account.username, account.hasStoredSecret])
-    ),
-    onFeedback: dispatchProps.onFeedback,
-    onForgotPassword: dispatchProps._onForgotPassword,
-    onLogin: dispatchProps.onLogin,
-    onSignup: dispatchProps.onSignup,
-    onSomeoneElse: dispatchProps.onSomeoneElse,
-    selectedUser: stateProps.selectedUser,
-    users: sortBy(stateProps._users, 'username'),
-  })
-)(LoginWrapper)
+export default () => {
+  const _users = Container.useSelector(state => state.config.configuredAccounts)
+  const error = Container.useSelector(state => state.login.error)
+  const selectedUser = Container.useSelector(state => state.config.defaultUsername)
+  const dispatch = Container.useDispatch()
+  const onForgotPassword = (username: string) => {
+    dispatch(RecoverPasswordGen.createStartRecoverPassword({username}))
+  }
+  const onFeedback = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+  }
+  const onLogin = (username: string, password: string) => {
+    dispatch(LoginGen.createLogin({password: new HiddenString(password), username}))
+  }
+  const onSignup = () => {
+    dispatch(SignupGen.createRequestAutoInvite())
+  }
+  const onSomeoneElse = () => {
+    dispatch(ProvisionGen.createStartProvision())
+  }
+  const props = {
+    error: (error && error.desc) || '',
+    loggedInMap: new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret])),
+    onFeedback,
+    onForgotPassword,
+    onLogin,
+    onSignup,
+    onSomeoneElse,
+    selectedUser,
+    users: sortBy(_users, 'username'),
+  }
+  return <LoginWrapper {...props} />
+}

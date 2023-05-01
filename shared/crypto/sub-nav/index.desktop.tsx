@@ -5,21 +5,22 @@ import * as Common from '../../router-v2/common.desktop'
 import * as Shim from '../../router-v2/shim'
 import LeftNav from './left-nav.desktop'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
-import type Encrypt from '../operations/encrypt'
-import type Decrypt from '../operations/decrypt'
-import type Sign from '../operations/sign'
-import type Verify from '../operations/verify'
+import {type EncryptIO} from '../operations/encrypt'
+import {type DecryptIO} from '../operations/decrypt'
+import {type SignIO} from '../operations/sign'
+import {type VerifyIO} from '../operations/verify'
+import {getOptions} from '../../router-v2/shim.shared'
 
 /* Desktop SubNav */
 const cryptoSubRoutes = {
   [Constants.decryptTab]: {
-    getScreen: (): typeof Decrypt => require('../operations/decrypt/index').default,
+    getScreen: (): typeof DecryptIO => require('../operations/decrypt').DecryptIO,
   },
   [Constants.encryptTab]: {
-    getScreen: (): typeof Encrypt => require('../operations/encrypt/index').default,
+    getScreen: (): typeof EncryptIO => require('../operations/encrypt').EncryptIO,
   },
-  [Constants.signTab]: {getScreen: (): typeof Sign => require('../operations/sign/index').default},
-  [Constants.verifyTab]: {getScreen: (): typeof Verify => require('../operations/verify/index').default},
+  [Constants.signTab]: {getScreen: (): typeof SignIO => require('../operations/sign').SignIO},
+  [Constants.verifyTab]: {getScreen: (): typeof VerifyIO => require('../operations/verify').VerifyIO},
 }
 function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}) {
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
@@ -70,7 +71,7 @@ const CryptoSubNavigator = () => (
         name={name}
         getComponent={cryptoSubRoutes[name].getScreen}
         options={({route, navigation}) => {
-          const no = cryptoSubRoutes[name].getScreen().navigationOptions
+          const no = getOptions(cryptoSubRoutes[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}

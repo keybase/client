@@ -3,18 +3,15 @@ import DBNukeConfirm from '.'
 import {createDbNuke} from '../../actions/settings-gen'
 import * as Container from '../../util/container'
 
-type OwnProps = {}
-
-export default Container.connect(
-  () => ({}),
-  dispatch => ({
-    onCancel: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-    },
-    onDBNuke: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
-      dispatch(createDbNuke())
-    },
-  }),
-  (_, d, __: OwnProps) => d
-)(DBNukeConfirm)
+export default () => {
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onDBNuke = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(createDbNuke())
+  }
+  const props = {onCancel, onDBNuke}
+  return <DBNukeConfirm {...props} />
+}

@@ -12,6 +12,7 @@ const TEMP_SKIP_BUILD: boolean = false
 
 // To get the hashes download the SHASUMS.txt file and run ./extract-electron-shasums.sh
 
+// prettier-ignore
 const electronChecksums = {
   ['electron-v24.1.1-darwin-arm64.zip']: '6e508ec2b744ffa65b695fede3fa4a1b219450197de572b8438473602cabdc6e',
   ['electron-v24.1.1-darwin-x64.zip']: '4942638d63dcad945aa2e320a39547da36f696d4ba787225201648af4616c4c8',

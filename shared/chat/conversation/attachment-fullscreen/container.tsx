@@ -133,7 +133,7 @@ const Connected = (props: OwnProps) => {
   )
 }
 
-Connected.navigationOptions = {
+export const options = {
   safeAreaStyle: {
     backgroundColor: 'black', // true black
   },

@@ -4,17 +4,19 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
 import * as Styles from '../../../styles'
 
-type OwnProps = {}
-export default Container.connect(
-  state => ({_proofSuggestions: state.tracker2.proofSuggestions}),
-  dispatch => ({
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    providerClicked: (key: string) => dispatch(ProfileGen.createAddProof({platform: key, reason: 'profile'})),
-  }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    onCancel: dispatchProps.onCancel,
-    providerClicked: dispatchProps.providerClicked,
-    providers: stateProps._proofSuggestions.map(s => ({
+export default () => {
+  const _proofSuggestions = Container.useSelector(state => state.tracker2.proofSuggestions)
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const providerClicked = (key: string) => {
+    dispatch(ProfileGen.createAddProof({platform: key, reason: 'profile'}))
+  }
+  const props = {
+    onCancel: onCancel,
+    providerClicked: providerClicked,
+    providers: _proofSuggestions.map(s => ({
       desc: s.pickerSubtext,
       icon: Styles.isDarkMode() ? s.siteIconFullDarkmode : s.siteIconFull,
       key: s.assertionKey,
@@ -22,5 +24,6 @@ export default Container.connect(
       new: s.metas.some(({label}) => label === 'new'),
     })),
     title: 'Prove your...',
-  })
-)(ProofsList)
+  }
+  return <ProofsList {...props} />
+}

@@ -5,31 +5,54 @@ import UpdatePassword from '.'
 import * as Container from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 
-type OwnProps = {}
-
-export default Container.connect(
-  state => ({
-    error: state.settings.password.error,
-    hasPGPKeyOnServer: !!state.settings.password.hasPGPKeyOnServer,
-    hasRandomPW: !!state.settings.password.randomPW,
-    newPasswordConfirmError: state.settings.password.newPasswordConfirmError
+export default () => {
+  const error = Container.useSelector(state => state.settings.password.error)
+  const hasPGPKeyOnServer = Container.useSelector(state => !!state.settings.password.hasPGPKeyOnServer)
+  const hasRandomPW = Container.useSelector(state => !!state.settings.password.randomPW)
+  const newPasswordConfirmError = Container.useSelector(state =>
+    state.settings.password.newPasswordConfirmError
       ? state.settings.password.newPasswordConfirmError.stringValue()
-      : undefined,
-    newPasswordError: state.settings.password.newPasswordError
+      : undefined
+  )
+  const newPasswordError = Container.useSelector(state =>
+    state.settings.password.newPasswordError
       ? state.settings.password.newPasswordError.stringValue()
-      : undefined,
-    saveLabel: state.settings.password.randomPW ? 'Create password' : 'Save',
-    waitingForResponse: Container.anyWaiting(state, Constants.settingsWaitingKey),
-  }),
-  dispatch => ({
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onChangeShowPassword: () => dispatch(SettingsGen.createOnChangeShowPassword()),
-    onSave: (password: string) => {
-      dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))
-      dispatch(SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(password)}))
-      dispatch(SettingsGen.createOnSubmitNewPassword({thenSignOut: false}))
-    },
-    onUpdatePGPSettings: () => dispatch(SettingsGen.createOnUpdatePGPSettings()),
-  }),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(UpdatePassword)
+      : undefined
+  )
+  const saveLabel = Container.useSelector(state =>
+    state.settings.password.randomPW ? 'Create password' : 'Save'
+  )
+  const waitingForResponse = Container.useSelector(state =>
+    Container.anyWaiting(state, Constants.settingsWaitingKey)
+  )
+
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onChangeShowPassword = () => {
+    dispatch(SettingsGen.createOnChangeShowPassword())
+  }
+  const onSave = (password: string) => {
+    dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))
+    dispatch(SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(password)}))
+    dispatch(SettingsGen.createOnSubmitNewPassword({thenSignOut: false}))
+  }
+  const onUpdatePGPSettings = () => {
+    dispatch(SettingsGen.createOnUpdatePGPSettings())
+  }
+  const props = {
+    error,
+    hasPGPKeyOnServer,
+    hasRandomPW,
+    newPasswordConfirmError,
+    newPasswordError,
+    onCancel,
+    onChangeShowPassword,
+    onSave,
+    onUpdatePGPSettings,
+    saveLabel,
+    waitingForResponse,
+  }
+  return <UpdatePassword {...props} />
+}

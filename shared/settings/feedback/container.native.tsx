@@ -24,13 +24,13 @@ export type Props = {
 
 const mobileOsVersion = Platform.Version
 
-class FeedbackContainer extends React.Component<Props, State> {
-  static navigationOptions = {
-    header: undefined,
-    title: 'Feedback',
-    useHeaderHeight: () => 60,
-  }
+export const options = {
+  header: undefined,
+  title: 'Feedback',
+  useHeaderHeight: () => 60,
+}
 
+class FeedbackContainer extends React.Component<Props, State> {
   private mounted = false
   private timeoutID?: ReturnType<typeof setTimeout>
 
@@ -109,28 +109,33 @@ class FeedbackContainer extends React.Component<Props, State> {
 
 // TODO really shouldn't be doing this in connect, should do this with an action
 
-const connected = Container.connect(
-  state => ({
-    chat: getExtraChatLogsForLogSend(state),
-    loggedOut: !state.config.loggedIn,
-    push: getPushTokenForLogSend(state),
-    status: {
-      appVersionCode,
-      appVersionName,
-      deviceID: state.config.deviceID,
-      mobileOsVersion,
-      platform: isAndroid ? 'android' : 'ios',
-      uid: state.config.uid,
-      username: state.config.username,
-      version,
-    },
-  }),
-  () => ({}),
-  (s, d, o: OwnProps) => ({
-    ...s,
-    ...d,
-    feedback: o.route.params?.feedback ?? '',
-  })
-)(FeedbackContainer)
+const Connected = (ownProps: OwnProps) => {
+  const chat = Container.useSelector(state => getExtraChatLogsForLogSend(state))
+  const loggedOut = Container.useSelector(state => !state.config.loggedIn)
+  const push = Container.useSelector(state => getPushTokenForLogSend(state))
 
-export default connected
+  const deviceID = Container.useSelector(state => state.config.deviceID)
+  const uid = Container.useSelector(state => state.config.uid)
+  const username = Container.useSelector(state => state.config.username)
+  const status = {
+    appVersionCode,
+    appVersionName,
+    deviceID,
+    mobileOsVersion,
+    platform: isAndroid ? 'android' : 'ios',
+    uid,
+    username,
+    version,
+  }
+
+  const props = {
+    chat,
+    feedback: ownProps.route.params?.feedback ?? '',
+    loggedOut,
+    push,
+    status,
+  }
+  return <FeedbackContainer {...props} />
+}
+
+export default Connected

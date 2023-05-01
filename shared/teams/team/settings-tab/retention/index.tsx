@@ -1,16 +1,19 @@
 import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as TeamsGen from '../../../../actions/teams-gen'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
 import type * as TeamsTypes from '../../../../constants/types/teams'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
+import {useConfirm} from './use-confirm'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
 export type Props = {
+  entityType: RetentionEntityType
   canSetPolicy: boolean
   containerStyle?: Styles.StylesCrossPlatform
   dropdownStyle?: Styles.StylesCrossPlatform
@@ -25,11 +28,10 @@ export type Props = {
   teamID: TeamsTypes.TeamID
   saveRetentionPolicy: (policy: RetentionPolicy) => void
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void
-  onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => void
 }
 
 const RetentionPicker = (p: Props) => {
-  const {policy, showInheritOption, teamPolicy, saveRetentionPolicy, onShowWarning} = p
+  const {policy, showInheritOption, teamPolicy, saveRetentionPolicy, entityType} = p
   const {containerStyle, dropdownStyle, policyIsExploding, showOverrideNotice, showSaveIndicator} = p
   const [saving, setSaving] = React.useState(false)
   const [selected, _setSelected] = React.useState<RetentionPolicy | undefined>(undefined)
@@ -62,61 +64,20 @@ const RetentionPicker = (p: Props) => {
     [policy]
   )
 
-  const makeItems = () => {
-    const policies = baseRetentionPolicies.slice()
-    if (showInheritOption) {
-      policies.unshift(retentionPolicies.policyInherit)
-    }
-    return policies.reduce<Kb.MenuItems>((arr, policy) => {
-      switch (policy.type) {
-        case 'retain':
-        case 'expire':
-          return [
-            ...arr,
-            {
-              isSelected: isSelected(policy),
-              onClick: () => setSelected(policy, true),
-              title: policy.title,
-            } as const,
-          ]
-        case 'inherit':
-          if (teamPolicy) {
-            let title = ''
-            switch (teamPolicy.type) {
-              case 'retain':
-                title = 'Team default (Never)'
-                break
-              case 'expire':
-              case 'explode':
-                title = `Team default (${teamPolicy.title})`
-                break
-            }
-            return [
-              {
-                isSelected: isSelected(policy),
-                onClick: () => setSelected(policy, true),
-                title,
-              } as const,
-              'Divider' as const,
-              ...arr,
-            ]
-          } else {
-            throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
-          }
-        case 'explode':
-          return [
-            ...arr,
-            {
-              icon: 'iconfont-timer',
-              iconIsVisible: true,
-              isSelected: isSelected(policy),
-              onClick: () => setSelected(policy, true),
-              title: policy.title,
-            } as const,
-          ]
+  const dispatch = Container.useDispatch()
+
+  const modalConfirmed = useConfirm(state => state.confirmed)
+  const updateConfirm = useConfirm(state => state.updateConfirm)
+
+  const [lastConfirmed, setLastConfirmed] = React.useState<RetentionPolicy | undefined>(undefined)
+  if (lastConfirmed !== modalConfirmed) {
+    setTimeout(() => {
+      setLastConfirmed(modalConfirmed)
+      if (selected === modalConfirmed) {
+        selected && saveRetentionPolicy(selected)
       }
-      return arr
-    }, new Array<Kb.MenuItems[0]>())
+      updateConfirm(undefined)
+    }, 1)
   }
 
   React.useEffect(() => {
@@ -127,20 +88,28 @@ const RetentionPicker = (p: Props) => {
 
       // show dialog if decreased, set immediately if not
       if (changed) {
-        const onConfirm = () => {
-          selected && saveRetentionPolicy(selected)
-        }
-        const onCancel = () => {}
         if (decreased) {
           // show warning
           showSaved.current = false
-          selected &&
-            onShowWarning(
-              selected.type === 'inherit' && teamPolicy ? teamPolicy : selected,
-              onConfirm,
-              onCancel
+          if (selected) {
+            dispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [
+                  {
+                    props: {
+                      entityType,
+                      policy: selected.type === 'inherit' && teamPolicy ? teamPolicy : selected,
+                    },
+                    selected: 'retentionWarning',
+                  },
+                ],
+              })
             )
+          }
         } else {
+          const onConfirm = () => {
+            selected && saveRetentionPolicy(selected)
+          }
           // set immediately
           onConfirm()
           showSaved.current = true
@@ -148,7 +117,7 @@ const RetentionPicker = (p: Props) => {
         }
       }
     }
-  }, [selected, policy, onShowWarning, saveRetentionPolicy, teamPolicy])
+  }, [selected, policy, saveRetentionPolicy, teamPolicy, dispatch, entityType])
 
   const lastPolicy = React.useRef(policy)
   const lastTeamPolicy = React.useRef(teamPolicy)
@@ -163,18 +132,81 @@ const RetentionPicker = (p: Props) => {
   lastPolicy.current = policy
   lastTeamPolicy.current = teamPolicy
 
-  const items = makeItems()
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <Kb.FloatingMenu
-      attachTo={attachTo}
-      closeOnSelect={true}
-      visible={showingPopup}
-      onHidden={toggleShowingPopup}
-      items={items}
-      position="top center"
-    />
-  ))
+      const makeItems = () => {
+        const policies = baseRetentionPolicies.slice()
+        if (showInheritOption) {
+          policies.unshift(retentionPolicies.policyInherit)
+        }
+        return policies.reduce<Kb.MenuItems>((arr, policy) => {
+          switch (policy.type) {
+            case 'retain':
+            case 'expire':
+              return [
+                ...arr,
+                {
+                  isSelected: isSelected(policy),
+                  onClick: () => setSelected(policy, true),
+                  title: policy.title,
+                } as const,
+              ]
+            case 'inherit':
+              if (teamPolicy) {
+                let title = ''
+                switch (teamPolicy.type) {
+                  case 'retain':
+                    title = 'Team default (Never)'
+                    break
+                  case 'expire':
+                  case 'explode':
+                    title = `Team default (${teamPolicy.title})`
+                    break
+                }
+                return [
+                  {
+                    isSelected: isSelected(policy),
+                    onClick: () => setSelected(policy, true),
+                    title,
+                  } as const,
+                  'Divider' as const,
+                  ...arr,
+                ]
+              } else {
+                throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
+              }
+            case 'explode':
+              return [
+                ...arr,
+                {
+                  icon: 'iconfont-timer',
+                  iconIsVisible: true,
+                  isSelected: isSelected(policy),
+                  onClick: () => setSelected(policy, true),
+                  title: policy.title,
+                } as const,
+              ]
+          }
+          return arr
+        }, new Array<Kb.MenuItems[0]>())
+      }
+      const items = makeItems()
+      return (
+        <Kb.FloatingMenu
+          attachTo={attachTo}
+          closeOnSelect={true}
+          visible={true}
+          onHidden={toggleShowingPopup}
+          items={items}
+          position="top center"
+        />
+      )
+    },
+    [isSelected, setSelected, showInheritOption, teamPolicy]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, containerStyle])}>
@@ -421,8 +453,7 @@ const RetentionSwitcher = (
   if (props.loading) {
     return <Kb.ProgressIndicator style={styles.progressIndicator} />
   }
-  const {entityType, ...pickerProps} = props
-  return props.canSetPolicy ? <RetentionPicker {...pickerProps} /> : <RetentionDisplay {...props} />
+  return props.canSetPolicy ? <RetentionPicker {...props} /> : <RetentionDisplay {...props} />
 }
 
 export default RetentionSwitcher

@@ -35,8 +35,9 @@ class GiphySearch extends React.Component<Props, State> {
     }
     return (
       <Kb.Box style={styles.outerContainer}>
-        <Kb.Box
-          forwardedRef={(el: HTMLDivElement | null) => (this.container = el)}
+        <Kb.Box2
+          direction="vertical"
+          ref={el => (this.container = el)}
           style={Styles.collapseStyles([
             styles.scrollContainer,
             {overflowY: this.state.width ? 'auto' : 'scroll'} as any,
@@ -87,7 +88,7 @@ class GiphySearch extends React.Component<Props, State> {
                 <Kb.ProgressIndicator />
               </Kb.Box2>
             ))}
-        </Kb.Box>
+        </Kb.Box2>
         <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
       </Kb.Box>
     )

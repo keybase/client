@@ -116,7 +116,9 @@ let store
 
 const DarkCSSInjector = () => {
   const isDark = useSelector(state => isDarkMode(state.config))
-  React.useEffect(() => {
+  const [lastIsDark, setLastIsDark] = React.useState<boolean | undefined>()
+  if (lastIsDark !== isDark) {
+    setLastIsDark(isDark)
     // inject it in body so modals get darkMode also
     if (isDark) {
       document.body.classList.add('darkMode')
@@ -125,7 +127,7 @@ const DarkCSSInjector = () => {
       document.body.classList.remove('darkMode')
       document.body.classList.add('lightMode')
     }
-  }, [isDark])
+  }
   return null
 }
 
@@ -135,6 +137,11 @@ const render = (Component = Main) => {
     throw new Error('No root element?')
   }
 
+  // Wrap Root here if you want the app to be strict, it currently doesn't work with react-native-web
+  // until 0.19.1+ lands. I tried this when it just did but there's other issues so we have to keep it off
+  // else all nav stuff is broken
+  // <React.StrictMode>
+  // </React.StrictMode>
   ReactDOM.createRoot(root).render(
     <Root store={store}>
       <DarkCSSInjector />

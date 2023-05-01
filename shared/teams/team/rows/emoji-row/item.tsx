@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../../../constants/types/chat2'
@@ -9,16 +10,16 @@ import type * as TeamTypes from '../../../../constants/types/teams'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
 import useRPC from '../../../../util/use-rpc'
 import EmojiMenu from './emoji-menu'
+import {useEmojiState} from '../../../emojis/use-emoji'
 
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
   emoji: RPCChatTypes.Emoji
   firstItem: boolean
-  reloadEmojis: () => void
   teamID: TeamTypes.TeamID
 }
 
-const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: OwnProps) => {
+const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -26,47 +27,60 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, reloadEmojis, teamID}: Ow
   const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
-  const onAddAlias = () =>
+  const onAddAlias = Container.useEvent(() => {
     dispatch(
       nav.safeNavigateAppendPayload({
         path: [
           {
-            props: {conversationIDKey, defaultSelected: emojiData, onChange: reloadEmojis},
+            props: {conversationIDKey, defaultSelected: emojiData},
             selected: 'teamAddEmojiAlias',
           },
         ],
       })
     )
+  })
   const isStockAlias = emoji.remoteSource.typ === RPCChatTypes.EmojiRemoteSourceTyp.stockalias
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
+  const refreshEmoji = useEmojiState(state => state.triggerEmojiUpdated)
   const removeRpc = useRPC(RPCChatTypes.localRemoveEmojiRpcPromise)
-  const doRemove = canRemove
-    ? () => {
-        removeRpc(
-          [
-            {
-              alias: emojiData.short_name,
-              convID: ChatTypes.keyToConversationID(conversationIDKey),
-            },
-          ],
-          () => reloadEmojis(),
-          err => {
-            throw err
+  const doRemove = React.useMemo(
+    () =>
+      canRemove
+        ? () => {
+            removeRpc(
+              [
+                {
+                  alias: emojiData.short_name,
+                  convID: ChatTypes.keyToConversationID(conversationIDKey),
+                },
+              ],
+              () => refreshEmoji(),
+              err => {
+                throw err
+              }
+            )
           }
-        )
-      }
-    : undefined
-  const {showingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
-    <EmojiMenu
-      attachTo={attachTo}
-      visible={showingPopup}
-      onAddAlias={doAddAlias}
-      onRemove={doRemove}
-      onHidden={toggleShowingPopup}
-      isAlias={emoji.isAlias}
-    />
-  ))
+        : undefined,
+    [canRemove, emojiData.short_name, conversationIDKey, removeRpc, refreshEmoji]
+  )
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <EmojiMenu
+          attachTo={attachTo}
+          visible={true}
+          onAddAlias={doAddAlias}
+          onRemove={doRemove}
+          onHidden={toggleShowingPopup}
+          isAlias={emoji.isAlias}
+        />
+      )
+    },
+    [doAddAlias, doRemove, emoji.isAlias]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box style={styles.outerContainer}>

@@ -1,4 +1,5 @@
 import type * as Types from '../constants/types/chat2'
+import * as React from 'react'
 import * as Chat2Gen from '../actions/chat2-gen'
 import {Channel} from './channel'
 import * as Container from '../util/container'
@@ -11,10 +12,11 @@ type OwnProps = {
   allowFontScaling?: boolean | null
 }
 
-export default Container.connect(
-  () => ({}),
-  dispatch => ({
-    _onClick: (name: string, convID: Types.ConversationIDKey) =>
+export default (ownProps: OwnProps) => {
+  const dispatch = Container.useDispatch()
+
+  const _onClick = React.useCallback(
+    (name: string, convID: Types.ConversationIDKey) =>
       dispatch(
         Chat2Gen.createPreviewConversation({
           channelname: name,
@@ -22,12 +24,16 @@ export default Container.connect(
           reason: 'messageLink',
         })
       ),
-  }),
-  (_, dispatchProps, ownProps: OwnProps) => ({
+    [dispatch]
+  )
+
+  const props = {
     allowFontScaling: ownProps.allowFontScaling,
     convID: ownProps.convID,
     name: ownProps.name,
-    onClick: () => dispatchProps._onClick(ownProps.name, ownProps.convID),
+    onClick: () => _onClick(ownProps.name, ownProps.convID),
     style: ownProps.style,
-  })
-)(Channel)
+  }
+
+  return <Channel {...props} />
+}

@@ -8,7 +8,6 @@ import {anyWaiting, anyErrors} from '../constants/waiting'
 import {useDispatch as RRuseDispatch, type TypedUseSelectorHook} from 'react-redux'
 import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
-import typedConnect from './typed-connect'
 import type {Route} from '../constants/types/route-tree'
 import type {NavigationContainerRef} from '@react-navigation/core'
 import type {createListenerMiddleware} from '@reduxjs/toolkit'
@@ -17,6 +16,8 @@ export {type RouteProps, getRouteParams, getRouteParamsFromRoute} from '../route
 export {listenAction, type ListenerApi, spawn} from './redux-toolkit'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 import USH from './use-selector'
+export {create as createZustand} from 'zustand'
+export {immer as immerZustand} from 'zustand/middleware/immer'
 
 const useSelector = USH.useSelector as TypedUseSelectorHook<RootState>
 
@@ -58,6 +59,7 @@ export function useRemoteStore<S>(): S {
 }
 /**
       like useEffect but doesn't call on initial mount, only when deps change
+TODO deprecate
  */
 export function useDepChangeEffect(f: () => void, deps: Array<unknown>) {
   const mounted = React.useRef(false)
@@ -127,8 +129,6 @@ export const timeoutPromise = async (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
-const connect = typedConnect
-export {connect}
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {useSafeSubmit} from './safe-submit'
@@ -151,6 +151,7 @@ export {useSelector}
 type Fn<ARGS extends any[], R> = (...args: ARGS) => R
 
 // a hacky version of https://github.com/reactjs/rfcs/blob/useevent/text/0000-useevent.md until its really added
+// its UNSAFE to call this in reaction immediately in a hook since it uses useLayoutEffect (aka the reduce useEffect changes)
 export const useEvent = <Arr extends any[], R>(fn: Fn<Arr, R>): Fn<Arr, R> => {
   const ref = React.useRef<Fn<Arr, R>>(fn)
   React.useLayoutEffect(() => {
@@ -162,6 +163,20 @@ export const useEvent = <Arr extends any[], R>(fn: Fn<Arr, R>): Fn<Arr, R> => {
         ref.current(...args),
     []
   )
+}
+
+export const dummyListenerApi = {
+  delay: async () => Promise.resolve(),
+  dispatch: () => {},
+  fork: () => {
+    throw new Error('dummy')
+  },
+  getState: () => {
+    throw new Error('dummy')
+  },
+  take: () => {
+    throw new Error('dummy')
+  },
 }
 
 // BEGIN debugging connect

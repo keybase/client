@@ -7,16 +7,18 @@ type OwnProps = {
   width: number
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    fullname: (state.users.infoMap.get(ownProps.username) || {fullname: ''}).fullname,
-    username: ownProps.username,
-  }),
-  dispatch => ({_onClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))}),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    fullname: stateProps.fullname || '',
-    onClick: () => dispatchProps._onClick(stateProps.username),
-    username: stateProps.username,
+export default (ownProps: OwnProps) => {
+  const fullname = Container.useSelector(state => state.users.infoMap.get(ownProps.username)?.fullname ?? '')
+  const username = ownProps.username
+  const dispatch = Container.useDispatch()
+  const _onClick = (username: string) => {
+    dispatch(ProfileGen.createShowUserProfile({username}))
+  }
+  const props = {
+    fullname: fullname || '',
+    onClick: () => _onClick(username),
+    username: username,
     width: ownProps.width,
-  })
-)(Friend)
+  }
+  return <Friend {...props} />
+}

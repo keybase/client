@@ -33,12 +33,13 @@ const notAUserAssertion = {
   timestamp: 0,
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    let a = Constants.noAssertion
-    let notAUser = false
-    let stellarHidden = false
-    const isYours = ownProps.username === state.config.username
+export default (ownProps: OwnProps) => {
+  let a = Constants.noAssertion
+  let notAUser = false
+  let stellarHidden = false
+  const isYours = Container.useSelector(state => ownProps.username === state.config.username)
+
+  a = Container.useSelector(state => {
     if (ownProps.isSuggestion) {
       a =
         state.tracker2.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) ||
@@ -65,79 +66,71 @@ export default Container.connect(
         a = d.assertions.get(ownProps.assertionKey) || Constants.noAssertion
       }
     }
-    return {
-      _metas: a.metas,
-      _sigID: a.sigID,
-      color: a.color,
-      isYours,
-      notAUser,
-      proofURL: a.proofURL,
-      siteIcon: a.siteIcon,
-      siteIconDarkmode: a.siteIconDarkmode,
-      siteIconFull: a.siteIconFull,
-      siteIconFullDarkmode: a.siteIconFullDarkmode,
-      siteURL: a.siteURL,
-      state: a.state,
-      stellarHidden,
-      timestamp: a.timestamp,
-      type: a.type,
-      value: a.value,
-    }
-  },
-  dispatch => ({
-    _onCreateProof: (type: string) =>
-      dispatch(ProfileGen.createAddProof({platform: type, reason: 'profile'})),
-    _onHideStellar: (hidden: boolean) => dispatch(ProfileGen.createHideStellar({hidden})),
-    _onRecheck: (sigID: string) => dispatch(ProfileGen.createRecheckProof({sigID})),
-    _onRevokeProof: (type: PlatformsExpandedType, value: string, id: string, icon: Types.SiteIconSet) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {icon, platform: type, platformHandle: value, proofId: id},
-              selected: 'profileRevoke',
-            },
-          ],
-        })
-      ),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    return {
-      color: stateProps.color,
-      isSuggestion: !!ownProps.isSuggestion,
-      isYours: stateProps.isYours,
-      metas: stateProps._metas.map(({color, label}) => ({color, label})),
-      notAUser: stateProps.notAUser,
-      onCreateProof: stateProps.notAUser
-        ? undefined
-        : ownProps.isSuggestion
-        ? () => dispatchProps._onCreateProof(stateProps.type)
-        : undefined,
-      onHideStellar: (hidden: boolean) => dispatchProps._onHideStellar(hidden),
-      onRecheck: () => dispatchProps._onRecheck(stateProps._sigID),
-      onRevoke: () => {
-        if (stateProps.siteIconFull)
-          dispatchProps._onRevokeProof(
-            stateProps.type as PlatformsExpandedType,
-            stateProps.value,
-            stateProps._sigID,
-            stateProps.siteIconFull
-          )
-      },
-      onShowProof:
-        stateProps.notAUser || !stateProps.proofURL ? undefined : () => openUrl(stateProps.proofURL),
-      onShowSite: stateProps.notAUser || !stateProps.siteURL ? undefined : () => openUrl(stateProps.siteURL),
-      proofURL: stateProps.proofURL,
-      siteIcon: stateProps.siteIcon,
-      siteIconDarkmode: stateProps.siteIconDarkmode,
-      siteIconFull: stateProps.siteIconFull,
-      siteIconFullDarkmode: stateProps.siteIconFullDarkmode,
-      siteURL: stateProps.siteURL,
-      state: stateProps.state,
-      stellarHidden: stateProps.stellarHidden,
-      timestamp: stateProps.timestamp,
-      type: stateProps.type,
-      value: stateProps.value,
-    }
+    return a
+  })
+  const _metas = a.metas
+  const _sigID = a.sigID
+  const color = a.color
+  const proofURL = a.proofURL
+  const siteIcon = a.siteIcon
+  const siteIconDarkmode = a.siteIconDarkmode
+  const siteIconFull = a.siteIconFull
+  const siteIconFullDarkmode = a.siteIconFullDarkmode
+  const siteURL = a.siteURL
+  const state = a.state
+  const timestamp = a.timestamp
+  const type = a.type
+  const value = a.value
+
+  const dispatch = Container.useDispatch()
+  const _onCreateProof = (type: string) => {
+    dispatch(ProfileGen.createAddProof({platform: type, reason: 'profile'}))
   }
-)(Assertion)
+  const _onHideStellar = (hidden: boolean) => {
+    dispatch(ProfileGen.createHideStellar({hidden}))
+  }
+  const _onRecheck = (sigID: string) => {
+    dispatch(ProfileGen.createRecheckProof({sigID}))
+  }
+  const _onRevokeProof = (
+    type: PlatformsExpandedType,
+    value: string,
+    id: string,
+    icon: Types.SiteIconSet
+  ) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {props: {icon, platform: type, platformHandle: value, proofId: id}, selected: 'profileRevoke'},
+        ],
+      })
+    )
+  }
+  const props = {
+    color: color,
+    isSuggestion: !!ownProps.isSuggestion,
+    isYours: isYours,
+    metas: _metas.map(({color, label}) => ({color, label})),
+    notAUser: notAUser,
+    onCreateProof: notAUser ? undefined : ownProps.isSuggestion ? () => _onCreateProof(type) : undefined,
+    onHideStellar: (hidden: boolean) => _onHideStellar(hidden),
+    onRecheck: () => _onRecheck(_sigID),
+    onRevoke: () => {
+      if (siteIconFull) _onRevokeProof(type as PlatformsExpandedType, value, _sigID, siteIconFull)
+    },
+    onShowProof: notAUser || !proofURL ? undefined : () => openUrl(proofURL),
+    onShowSite: notAUser || !siteURL ? undefined : () => openUrl(siteURL),
+    proofURL: proofURL,
+    siteIcon: siteIcon,
+    siteIconDarkmode: siteIconDarkmode,
+    siteIconFull: siteIconFull,
+    siteIconFullDarkmode: siteIconFullDarkmode,
+    siteURL: siteURL,
+    state: state,
+    stellarHidden: stellarHidden,
+    timestamp: timestamp,
+    type: type,
+    value: value,
+  }
+  return <Assertion {...props} />
+}

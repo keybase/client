@@ -18,13 +18,12 @@ export const FolderViewFilterIcon = (props: Props) =>
 
 type OwnProps = Omit<Props, 'pathItem'>
 
-export default Container.connect(
-  (state, {path}: OwnProps) => ({
-    pathItem: Constants.getPathItem(state.fs.pathItems, path),
-  }),
-  () => ({}),
-  (s, _, o: OwnProps) => ({
-    ...o,
-    pathItem: s.pathItem,
-  })
-)(FolderViewFilterIcon)
+export default (ownProps: OwnProps) => {
+  const {path} = ownProps
+  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const props = {
+    ...ownProps,
+    pathItem,
+  }
+  return <FolderViewFilterIcon {...props} />
+}

@@ -6,6 +6,7 @@ import * as Shim from '../router-v2/shim'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
 import {sharedNewRoutes} from './routes.shared'
+import {getOptions} from '../router-v2/shim.shared'
 
 const settingsSubRoutes = {
   ...sharedNewRoutes,
@@ -63,7 +64,7 @@ const SettingsSubNavigator = () => (
         name={name}
         getComponent={settingsSubRoutes[name].getScreen}
         options={({route, navigation}) => {
-          const no = settingsSubRoutes[name].getScreen().navigationOptions
+          const no = getOptions(settingsSubRoutes[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}
@@ -72,7 +73,7 @@ const SettingsSubNavigator = () => (
   </TabNavigator.Navigator>
 )
 
-SettingsSubNavigator.navigationOptions = {
+export const options = {
   title: 'Settings',
 }
 

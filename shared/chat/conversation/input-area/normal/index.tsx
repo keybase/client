@@ -128,10 +128,12 @@ const useUnsentText = (
 ) => {
   // only look at the draft once per mount
   const considerDraftRef = React.useRef(true)
+  const [lastCID, setLastCID] = React.useState(conversationIDKey)
   // reset on convo change
-  React.useEffect(() => {
+  if (lastCID !== conversationIDKey) {
+    setLastCID(conversationIDKey)
     considerDraftRef.current = true
-  }, [conversationIDKey])
+  }
   const {draft, storeUnsentText} = Container.useSelector(state => {
     const draft = considerDraftRef.current ? Constants.getDraft(state, conversationIDKey) : undefined
     // we use the hiddenstring since external actions can try and affect the input state (especially clearing it) and that can fail if it doesn't change
@@ -364,17 +366,20 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     [sendTyping, sendTypingThrottled, setUnsentText, unsentTextChanged, unsentTextChangedThrottled]
   )
 
-  React.useEffect(() => {
+  const [lastUnsentText, setLastUnsentText] = React.useState<string | undefined>('init')
+  if (lastUnsentText !== unsentText) {
+    setLastUnsentText(unsentText)
     if (unsentText !== undefined) {
       lastTextRef.current = unsentText
       setTextInput(unsentText)
     }
-  }, [unsentText, setTextInput])
+  }
+
+  const isTyping = Constants.useChatState(state => !!state.typingMap.get(conversationIDKey)?.size)
 
   const data = Container.useSelector(state => {
     const isActiveForFocus = state.chat2.focus === null
-    const showTypingStatus =
-      Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown
+    const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
     const showWalletsIcon = Constants.shouldShowWalletsIcon(state, conversationIDKey)
     const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
     const cannotWrite = Constants.getMeta(state, conversationIDKey).cannotWrite
@@ -406,11 +411,16 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     setText('')
   }, [dispatch, conversationIDKey, setText])
 
-  React.useEffect(() => {
+  const [lastIsEditing, setLastIsEditing] = React.useState(isEditing)
+  const [lastIsEditExploded, setLastIsEditExploded] = React.useState(isEditExploded)
+
+  if (lastIsEditing !== isEditing || lastIsEditExploded !== isEditExploded) {
+    setLastIsEditing(isEditing)
+    setLastIsEditExploded(isEditExploded)
     if (isEditing && isEditExploded) {
       onCancelEditing()
     }
-  }, [isEditing, isEditExploded, onCancelEditing])
+  }
 
   const isExploding = explodingModeSeconds !== 0
   const hintText = useHintText({cannotWrite, conversationIDKey, isEditing, isExploding, minWriterRole})

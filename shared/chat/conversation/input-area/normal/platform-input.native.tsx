@@ -31,6 +31,7 @@ import {
 } from '../../../../common-adapters/reanimated'
 import logger from '../../../../logger'
 import {AudioSendWrapper} from '../../../audio/audio-send.native'
+import {usePickerState} from '../../../emoji-picker/use-picker'
 
 const singleLineHeight = 36
 const threeLineHeight = 78
@@ -71,18 +72,32 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
 
   const dispatch = Container.useDispatch()
 
+  const pickKey = 'chatInput'
+
+  const {emojiStr} = usePickerState(state => state.pickerMap.get(pickKey)) ?? {emojiStr: ''}
+  const updatePickerMap = usePickerState(state => state.updatePickerMap)
+
+  const [lastEmoji, setLastEmoji] = React.useState('')
+  if (lastEmoji !== emojiStr) {
+    setTimeout(() => {
+      setLastEmoji(emojiStr)
+      emojiStr && insertText(emojiStr + ' ')
+      updatePickerMap(pickKey, undefined)
+    }, 1)
+  }
+
   const openEmojiPicker = React.useCallback(() => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey, onPickAction: (emoji: string) => insertText(emoji + ' ')},
+            props: {conversationIDKey, pickKey},
             selected: 'chatChooseEmoji',
           },
         ],
       })
     )
-  }, [conversationIDKey, dispatch, insertText])
+  }, [conversationIDKey, dispatch])
 
   const explodingIcon = !isEditing && !cannotWrite && (
     <Kb.ClickableBox style={styles.explodingWrapper} onClick={toggleShowingMenu}>
@@ -165,9 +180,11 @@ const AnimatedExpand = (() => {
           {scaleY: -0.6},
         ],
       }))
-      React.useEffect(() => {
+      const [lastExpanded, setLastExpanded] = React.useState(expanded)
+      if (lastExpanded !== expanded) {
+        setLastExpanded(expanded)
         offset.value = expanded ? 1 : 0
-      }, [expanded, offset])
+      }
 
       return (
         <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
@@ -333,8 +350,7 @@ const PlatformInput = (p: Props) => {
     // Enter should send a message like on desktop, when a hardware keyboard's
     // attached.  On Android we get "hardware" keypresses from soft keyboards,
     // so check whether a soft keyboard's up.
-    // @ts-ignore
-    HWKeyboardEvent.onHWKeyPressed((hwKeyEvent: any) => {
+    const cb = (hwKeyEvent: {pressedKey: string}) => {
       switch (hwKeyEvent.pressedKey) {
         case 'enter':
           Styles.isIOS || !isOpen() ? onQueueSubmit() : insertText('\n')
@@ -342,7 +358,8 @@ const PlatformInput = (p: Props) => {
         case 'shift-enter':
           insertText('\n')
       }
-    })
+    }
+    HWKeyboardEvent.onHWKeyPressed(cb as any)
     return () => {
       HWKeyboardEvent.removeOnHWKeyPressed()
     }
@@ -528,15 +545,17 @@ const AnimatedInput = (() => {
       React.forwardRef<any, any>(function AnimatedInput(p: any, ref) {
         const maxInputArea = React.useContext(MaxInputAreaContext)
         const {expanded, ...rest} = p
+        const [lastExpanded, setLastExpanded] = React.useState(expanded)
         const offset = useSharedValue(expanded ? 1 : 0)
         const maxHeight = maxInputArea - inputAreaHeight - 15
         const as = useAnimatedStyle(() => ({
           maxHeight: withTiming(offset.value ? maxHeight : threeLineHeight),
           minHeight: withTiming(offset.value ? maxHeight : singleLineHeight),
         }))
-        React.useEffect(() => {
+        if (expanded !== lastExpanded) {
+          setLastExpanded(expanded)
           offset.value = expanded ? 1 : 0
-        }, [expanded, offset])
+        }
         return <AnimatedPlainInput {...rest} ref={ref} style={[rest.style, as]} />
       })
     )

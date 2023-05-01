@@ -34,6 +34,7 @@ import {commonListenActions, filterForNs} from '../team-building'
 import {isIOS} from '../../constants/platform'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
+import {getEngine} from '../../engine'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -3853,6 +3854,15 @@ const updateDraftState = (_: unknown, action: Chat2Gen.DeselectedConversationPay
     reason: 'refreshPreviousSelected',
   })
 
+const updateTyping = (action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) => {
+  const {typingUpdates} = action.payload.params
+  const typingMap = new Map<Types.ConversationIDKey, Set<string>>()
+  typingUpdates?.forEach(u => {
+    typingMap.set(Types.conversationIDToKey(u.convID), new Set(u.typers?.map(t => t.username)))
+  })
+  Constants.useChatState.setState({typingMap})
+}
+
 const initChat = () => {
   // Platform specific actions
   if (Container.isMobile) {
@@ -4081,6 +4091,10 @@ const initChat = () => {
   Container.listenAction(RouteTreeGen.onNavChanged, maybeChangeChatSelection)
   Container.listenAction(RouteTreeGen.onNavChanged, maybeChatTabSelected)
   Container.listenAction(Chat2Gen.deselectedConversation, updateDraftState)
+  getEngine().registerRpcCallback<EngineGen.Chat1NotifyChatChatTypingUpdatePayload>(
+    EngineGen.chat1NotifyChatChatTypingUpdate,
+    updateTyping
+  )
 }
 
 export default initChat

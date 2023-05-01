@@ -9,25 +9,20 @@ export type OwnProps = {
   mode: 'row' | 'default'
 }
 
-export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    _tlf: Constants.getTlfFromPath(state.fs.tlfs, ownProps.path),
-    _username: state.config.username,
-  }),
-  () => ({}),
-  (stateProps, _, ownProps: OwnProps) => {
-    const resetParticipants =
-      stateProps._tlf === Constants.unknownTlf ? undefined : stateProps._tlf.resetParticipants
-    return {
-      isNew: stateProps._tlf.isNew,
-      mixedMode: ownProps.mixedMode,
-      mode: ownProps.mode,
-      reset:
-        !!resetParticipants &&
-        !!resetParticipants.length &&
-        (resetParticipants.includes(stateProps._username) || resetParticipants),
-      tlfMtime: stateProps._tlf.tlfMtime,
-      tlfType: Types.getPathVisibility(ownProps.path),
-    }
+export default (ownProps: OwnProps) => {
+  const _tlf = Container.useSelector(state => Constants.getTlfFromPath(state.fs.tlfs, ownProps.path))
+  const _username = Container.useSelector(state => state.config.username)
+  const resetParticipants = _tlf === Constants.unknownTlf ? undefined : _tlf.resetParticipants
+  const props = {
+    isNew: _tlf.isNew,
+    mixedMode: ownProps.mixedMode,
+    mode: ownProps.mode,
+    reset:
+      !!resetParticipants &&
+      !!resetParticipants.length &&
+      (resetParticipants.includes(_username) || resetParticipants),
+    tlfMtime: _tlf.tlfMtime,
+    tlfType: Types.getPathVisibility(ownProps.path),
   }
-)(TlfInfoLine)
+  return <TlfInfoLine {...props} />
+}

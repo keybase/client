@@ -1,3 +1,4 @@
+import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -5,7 +6,7 @@ import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
 import type * as TeamTypes from '../../../constants/types/teams'
 import type * as Types from '../../../constants/types/chat2'
-import {connect} from '../../../util/container'
+import * as Container from '../../../util/container'
 
 type Props = {
   isAdmin: boolean
@@ -26,26 +27,32 @@ const _AddPeople = (props: Props) => {
     directAction = props.onAddToChannel
     directLabel = 'Add members to channel'
   }
+  const {isGeneralChannel, onAddToChannel, onAddPeople} = props
 
-  const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => {
-    if (!props.isGeneralChannel) {
-      // general channel & small teams don't need a menu
-      const items: Kb.MenuItems = [
-        {icon: 'iconfont-people', onClick: props.onAddPeople, title: 'To team'},
-        {icon: 'iconfont-hash', onClick: props.onAddToChannel, title: 'To channel'},
-      ]
-      return (
-        <Kb.FloatingMenu
-          attachTo={attachTo}
-          visible={showingPopup}
-          items={items}
-          onHidden={toggleShowingPopup}
-          position="bottom left"
-          closeOnSelect={true}
-        />
-      )
-    } else return null
-  })
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      if (!isGeneralChannel) {
+        // general channel & small teams don't need a menu
+        const items: Kb.MenuItems = [
+          {icon: 'iconfont-people', onClick: onAddPeople, title: 'To team'},
+          {icon: 'iconfont-hash', onClick: onAddToChannel, title: 'To channel'},
+        ]
+        return (
+          <Kb.FloatingMenu
+            attachTo={attachTo}
+            visible={true}
+            items={items}
+            onHidden={toggleShowingPopup}
+            position="bottom left"
+            closeOnSelect={true}
+          />
+        )
+      } else return null
+    },
+    [isGeneralChannel, onAddPeople, onAddToChannel]
+  )
+  const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -69,30 +76,30 @@ type OwnProps = {
   isGeneralChannel: boolean
 }
 
-const AddPeople = connect(
-  (state, ownProps: OwnProps) => {
-    const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-    return {teamID: meta.teamID}
-  },
-  dispatch => {
-    return {
-      _onAddPeople: (teamID: TeamTypes.TeamID) => dispatch(TeamsGen.createStartAddMembersWizard({teamID})),
-      _onAddToChannel: (conversationIDKey: Types.ConversationIDKey, teamID: TeamTypes.TeamID) => {
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
-          })
-        )
-      },
-    }
-  },
-  (s, d, o: OwnProps) => ({
-    isAdmin: o.isAdmin,
-    isGeneralChannel: o.isGeneralChannel,
-    onAddPeople: () => d._onAddPeople(s.teamID),
-    onAddToChannel: () => d._onAddToChannel(o.conversationIDKey, s.teamID),
-  })
-)(_AddPeople)
+const AddPeople = (ownProps: OwnProps) => {
+  const meta = Container.useSelector(state => Constants.getMeta(state, ownProps.conversationIDKey))
+  const teamID = meta.teamID
+
+  const dispatch = Container.useDispatch()
+
+  const _onAddPeople = (teamID: TeamTypes.TeamID) => {
+    dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
+  }
+  const _onAddToChannel = (conversationIDKey: Types.ConversationIDKey, teamID: TeamTypes.TeamID) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
+      })
+    )
+  }
+  const props = {
+    isAdmin: ownProps.isAdmin,
+    isGeneralChannel: ownProps.isGeneralChannel,
+    onAddPeople: () => _onAddPeople(teamID),
+    onAddToChannel: () => _onAddToChannel(ownProps.conversationIDKey, teamID),
+  }
+  return <_AddPeople {...props} />
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

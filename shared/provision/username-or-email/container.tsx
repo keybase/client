@@ -83,3 +83,8 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   )
 }
 export default UsernameOrEmailContainer
+
+export const options = {
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+}

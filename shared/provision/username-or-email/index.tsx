@@ -148,9 +148,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-Username.navigationOptions = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}
-
 export default Username

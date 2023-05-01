@@ -172,10 +172,13 @@ type DocViewRowProps = {item: Doc}
 
 const DocViewRow = (props: DocViewRowProps) => {
   const {item} = props
-  const {toggleShowingPopup, showingPopup, popup} = useMessagePopup({
+  const shouldShow = React.useCallback(() => {
+    return !!item.message
+  }, [item])
+  const {toggleShowingPopup, popup} = useMessagePopup({
     conversationIDKey: item.message?.conversationIDKey ?? '',
     ordinal: item.message?.id ?? 0,
-    shouldShow: () => !!item.message,
+    shouldShow,
   })
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -204,7 +207,7 @@ const DocViewRow = (props: DocViewRowProps) => {
           </Kb.Text>
         </Kb.Box2>
       )}
-      {Styles.isMobile && showingPopup && item.message && popup}
+      {Styles.isMobile && item.message && popup}
     </Kb.Box2>
   )
 }
@@ -405,12 +408,19 @@ export const useAttachmentSections = (
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
     RPCChatTypes.GalleryItemTyp.media
   )
+  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
 
-  React.useEffect(() => {
+  Container.useOnMountOnce(() => {
+    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
+  })
+  if (lastCID !== conversationIDKey || lastSAV !== selectedAttachmentView) {
+    setLastCID(conversationIDKey)
+    setLastSAV(selectedAttachmentView)
     if (loadImmediately) {
       dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
     }
-  }, [loadImmediately, selectedAttachmentView, conversationIDKey, dispatch])
+  }
 
   const attachmentView = Container.useSelector(state => state.chat2.attachmentViewMap.get(conversationIDKey))
   const attachmentInfo = attachmentView?.get(selectedAttachmentView) || noAttachmentView

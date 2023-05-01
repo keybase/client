@@ -41,10 +41,10 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
   const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box
+    <Kb.ClickableBox2
       className={Styles.classNames({expanded: showingPopup}, 'timer-icon-container')}
       onClick={toggleShowingPopup}
-      forwardedRef={popupAnchor}
+      ref={popupAnchor as any}
       style={Styles.collapseStyles([
         styles.explodingIconContainer,
         styles.explodingIconContainerClickable,
@@ -69,7 +69,7 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
           />
         </Kb.WithTooltip>
       )}
-    </Kb.Box>
+    </Kb.ClickableBox2>
   )
 }
 
@@ -92,22 +92,23 @@ const EmojiButton = (p: EmojiButtonProps) => {
     [inputRef]
   )
 
-  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup(attachTo => {
-    return (
-      <Kb.Overlay
-        attachTo={attachTo}
-        visible={showingPopup}
-        onHidden={toggleShowingPopup}
-        position="top right"
-      >
-        <EmojiPickerDesktop
-          conversationIDKey={conversationIDKey}
-          onPickAction={insertEmoji}
-          onDidPick={toggleShowingPopup}
-        />
-      </Kb.Overlay>
-    )
-  })
+  const makePopup = React.useCallback(
+    (p: Kb.Popup2Parms) => {
+      const {attachTo, toggleShowingPopup} = p
+      return (
+        <Kb.Overlay attachTo={attachTo} visible={true} onHidden={toggleShowingPopup} position="top right">
+          <EmojiPickerDesktop
+            conversationIDKey={conversationIDKey}
+            onPickAction={insertEmoji}
+            onDidPick={toggleShowingPopup}
+          />
+        </Kb.Overlay>
+      )
+    },
+    [conversationIDKey, insertEmoji]
+  )
+
+  const {popup, popupAnchor, showingPopup, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   return (
     <>
@@ -317,7 +318,7 @@ type SideButtonsProps = Pick<Props, 'conversationIDKey' | 'showWalletsIcon' | 'c
 const SideButtons = (p: SideButtonsProps) => {
   const {htmlInputRef, conversationIDKey, cannotWrite, showWalletsIcon, inputRef} = p
   return (
-    <>
+    <Kb.Box2 direction="horizontal">
       {!cannotWrite && showWalletsIcon && (
         <Kb.WithTooltip tooltip="Lumens">
           <WalletsIcon size={16} style={styles.walletsIcon} conversationIDKey={conversationIDKey} />
@@ -330,7 +331,7 @@ const SideButtons = (p: SideButtonsProps) => {
           <FileButton conversationIDKey={conversationIDKey} htmlInputRef={htmlInputRef} />
         </>
       )}
-    </>
+    </Kb.Box2>
   )
 }
 
@@ -426,7 +427,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
                 type="Dim"
               />
             )}
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
+            <Kb.Box2 direction="horizontal" style={styles.inputBox}>
               <Kb.PlainInput
                 allowKeyboardEvents={true}
                 disabled={cannotWrite ?? false}
@@ -529,7 +530,8 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       inputBox: {
-        flex: 1,
+        flexGrow: 1,
+        flexShrink: 0,
         paddingBottom: Styles.globalMargins.xtiny,
         paddingLeft: 6,
         paddingRight: 6,
