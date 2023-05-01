@@ -8,8 +8,8 @@ const Box = View
 type Margins = keyof typeof Styles.globalMargins
 const marginKeys: Array<Margins> = Object.keys(Styles.globalMargins) as any
 
-const hgapStyles = new Map(marginKeys.map(gap => [gap, {rowGap: Styles.globalMargins[gap]}]))
-const vgapStyles = new Map(marginKeys.map(gap => [gap, {columnGap: Styles.globalMargins[gap]}]))
+const hgapStyles = new Map(marginKeys.map(gap => [gap, {columnGap: Styles.globalMargins[gap]}]))
+const vgapStyles = new Map(marginKeys.map(gap => [gap, {rowGap: Styles.globalMargins[gap]}]))
 const hgapStartStyles = new Map(marginKeys.map(gap => [gap, {paddingLeft: Styles.globalMargins[gap]}]))
 const vgapStartStyles = new Map(marginKeys.map(gap => [gap, {paddingTop: Styles.globalMargins[gap]}]))
 const hgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingRight: Styles.globalMargins[gap]}]))
@@ -79,12 +79,12 @@ const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Re
         alignSelfStyle,
         alignItemsStyle,
         noShrink && styles.noShrink,
-        gap && horizontal && vgapStyles.get(gap),
-        gap && !horizontal && hgapStyles.get(gap),
-        gap && gapStart && horizontal && vgapStartStyles.get(gap),
-        gap && gapStart && !horizontal && hgapStartStyles.get(gap),
-        gap && gapEnd && horizontal && vgapEndStyles.get(gap),
-        gap && gapEnd && !horizontal && hgapEndStyles.get(gap),
+        gap && horizontal && hgapStyles.get(gap),
+        gap && !horizontal && vgapStyles.get(gap),
+        gap && gapStart && horizontal && hgapStartStyles.get(gap),
+        gap && gapStart && !horizontal && vgapStartStyles.get(gap),
+        gap && gapEnd && horizontal && hgapEndStyles.get(gap),
+        gap && gapEnd && !horizontal && vgapEndStyles.get(gap),
         // uncomment this to get debugging colors
         // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
         style,
