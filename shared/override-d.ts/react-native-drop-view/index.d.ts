@@ -1,13 +1,6 @@
-import * as React from 'react';
-import { View, ViewStyle } from 'react-native';
-export declare type DropItems = Array<{
-    originalPath?: string;
-    content?: string;
-}>;
-export declare type Props = {
-    children?: React.ReactNode;
-    onDropped: (items: DropItems) => void;
-    style?: ViewStyle;
-};
-declare const _default: ((p: Props) => JSX.Element) | typeof View;
-export default _default;
+// copied over from rnmodules and edited
+import {type Props} from './DropViewViewNativeComponent'
+import {View} from 'react-native'
+declare const _default: ((p: Props) => JSX.Element) | typeof View
+export default _default
+export type {DropItems} from './DropViewViewNativeComponent'

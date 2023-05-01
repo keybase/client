@@ -6,18 +6,16 @@
 //  Copyright © 2016 Keybase. All rights reserved.
 //
 
-#import <React/RCTBridgeDelegate.h>
+#import <RCTAppDelegate.h>
 #import <UserNotifications/UNUserNotificationCenter.h>
 #import "ItemProviderHelper.h"
 #import <UIKit/UIKit.h>
 #import <Expo/Expo.h>
-#import <Kb.h>
 
 @class Engine;
 
-@interface AppDelegate : EXAppDelegateWrapper <UIApplicationDelegate, RCTBridgeDelegate>
+@interface AppDelegate : EXAppDelegateWrapper
 
-@property (nonatomic, strong) UIWindow *window;
 @property UIImageView *resignImageView;
 @property(nonatomic, strong) NSDictionary *fsPaths;
 @property UIBackgroundTaskIdentifier backgroundTask;

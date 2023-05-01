@@ -253,6 +253,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   render() {
     const props = this._getProps()
+    // TODO not fabric
     const Clazz: typeof NativeTextInput = this.props.allowImagePaste ? (PasteInput as any) : NativeTextInput
 
     if (props.value) {

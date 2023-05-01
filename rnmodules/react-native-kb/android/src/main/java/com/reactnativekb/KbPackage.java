@@ -1,6 +1,7 @@
 package com.reactnativekb;
 
 import androidx.annotation.Nullable;
+
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.module.model.ReactModuleInfo;
@@ -16,9 +17,9 @@ public class KbPackage extends TurboReactPackage {
   @Override
   public NativeModule getModule(String name, ReactApplicationContext reactContext) {
     if (name.equals(KbModule.NAME)) {
-        return new KbModule(reactContext);
+      return new KbModule(reactContext);
     } else {
-        return null;
+      return null;
     }
   }
 

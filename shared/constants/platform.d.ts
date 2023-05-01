@@ -1,5 +1,6 @@
 export const runMode: string
 
+export const isNewArch: boolean // RN new arch
 export const isMobile: boolean
 export const isAndroid: boolean
 export const isIOS: boolean
