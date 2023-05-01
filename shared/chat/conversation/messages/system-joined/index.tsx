@@ -28,7 +28,7 @@ const Joined = (props: Props) => (
 const MultiUserJoinedNotice = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start">
     <UserNotice>
-      <Kb.Text type="BodySmall" style={{paddingBottom: Styles.globalMargins.xxtiny}} lineClamp={1}>
+      <Kb.Text type="BodySmall" style={{paddingBottom: Styles.globalMargins.xxtiny}} lineClamp={2}>
         {props.joiners.length > 0 ? getAddedUsernames(props.joiners) : getAddedUsernames(props.leavers)}
         {` ${props.leavers.length > props.joiners.length ? 'left' : 'joined'} ${
           props.isBigTeam ? `#${props.channelname}.` : `${props.teamname}.`

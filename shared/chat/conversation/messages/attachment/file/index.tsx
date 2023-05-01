@@ -9,6 +9,7 @@ import {getEditStyle, ShowToastAfterSaving} from '../shared'
 import {isPathSaltpackEncrypted, isPathSaltpackSigned, Operations} from '../../../../../constants/crypto'
 
 type Props = {
+  toggleMessageMenu: () => void
   arrowColor: string
   onDownload?: () => void
   onShowInFinder?: () => void
@@ -27,7 +28,7 @@ type Props = {
 
 const FileAttachment = React.memo(function FileAttachment(props: Props) {
   const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(props.transferState)
-  const {isSaltpackFile, isEditing, isHighlighted} = props
+  const {isSaltpackFile, isEditing, isHighlighted, toggleMessageMenu} = props
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
   const operation = isPathSaltpackEncrypted(props.fileName)
     ? Operations.Decrypt
@@ -36,17 +37,16 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
     : undefined
   const operationTitle = captialize(operation)
   return (
-    <>
+    <Kb.ClickableBox2 onLongPress={toggleMessageMenu} onClick={props.onDownload}>
       <ShowToastAfterSaving transferState={props.transferState} />
       <Kb.Box style={Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing, isHighlighted)])}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
-          <Kb.Icon fixOverdraw={true} type={iconType} style={styles.iconStyle} onClick={props.onDownload} />
+          <Kb.Icon fixOverdraw={true} type={iconType} style={styles.iconStyle} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
             {props.fileName === props.title ? (
               // if the title is the filename, don't try to parse it as markdown
               <Kb.Text
                 type="BodySemibold"
-                onClick={props.onDownload}
                 style={Styles.collapseStyles([
                   isSaltpackFile && styles.saltpackFileName,
                   getEditStyle(isEditing, isHighlighted),
@@ -121,7 +121,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
           </Kb.Text>
         )}
       </Kb.Box>
-    </>
+    </Kb.ClickableBox2>
   )
 })
 

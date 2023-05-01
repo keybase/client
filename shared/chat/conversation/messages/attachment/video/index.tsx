@@ -33,7 +33,7 @@ const Video = React.memo(function Video(p: Props) {
           direction="vertical"
           style={styles.contentContainer}
           alignSelf="flex-start"
-          alignItems="flex-start"
+          alignItems="center"
           gap="xxtiny"
         >
           <VideoImpl

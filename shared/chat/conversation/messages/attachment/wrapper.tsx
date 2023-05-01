@@ -18,13 +18,13 @@ export const WrapperAttachmentAudio = React.memo(function WrapperAttachmentAudio
 export const WrapperAttachmentFile = React.memo(function WrapperAttachmentFile(p: Props) {
   const {ordinal} = p
   const common = useCommon(ordinal)
-  const {showCenteredHighlight} = common
+  const {showCenteredHighlight, toggleShowingPopup} = common
 
   const FileAttachment = require('./file/container').default as typeof FileAttachmentType
 
   return (
     <WrapperMessage {...p} {...common}>
-      <FileAttachment isHighlighted={showCenteredHighlight} />
+      <FileAttachment toggleMessageMenu={toggleShowingPopup} isHighlighted={showCenteredHighlight} />
     </WrapperMessage>
   )
 })

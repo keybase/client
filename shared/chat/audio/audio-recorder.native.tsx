@@ -17,7 +17,7 @@ import {
 } from 'react-native-gesture-handler'
 import {View} from 'react-native'
 import {formatAudioRecordDuration} from '../../util/timestamp'
-import {Audio, InterruptionModeIOS, InterruptionModeAndroid} from 'expo-av'
+import {Audio} from 'expo-av'
 import logger from '../../logger'
 import * as Haptics from 'expo-haptics'
 import * as FileSystem from 'expo-file-system'
@@ -322,15 +322,6 @@ const vibrate = (short: boolean) => {
 const makeRecorder = async (onRecordingStatusUpdate: (s: Audio.RecordingStatus) => void) => {
   vibrate(true)
 
-  await Audio.setAudioModeAsync({
-    allowsRecordingIOS: true,
-    interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-    interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-    playThroughEarpieceAndroid: false,
-    playsInSilentModeIOS: true,
-    shouldDuckAndroid: false,
-    staysActiveInBackground: false,
-  })
   const recording = new Audio.Recording()
   await recording.prepareToRecordAsync({
     android: {
