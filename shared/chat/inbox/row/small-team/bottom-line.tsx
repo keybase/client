@@ -301,10 +301,7 @@ const styles = Styles.styleSheetCreate(
       outerBox: {
         ...Styles.globalStyles.flexBoxRow,
       },
-      snippetDecoration: Styles.platformStyles({
-        common: {alignSelf: 'flex-start'},
-        isMobile: {marginRight: 4},
-      }),
+      snippetDecoration: {alignSelf: 'flex-start'},
       typingSnippet: {},
       youAreResetText: Styles.platformStyles({
         isElectron: {

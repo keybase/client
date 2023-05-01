@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import {View} from 'react-native'
-import {intersperseFn} from '../util/arrays'
 import type {Box2Props} from './box'
 
 const Box = View
@@ -9,22 +8,12 @@ const Box = View
 type Margins = keyof typeof Styles.globalMargins
 const marginKeys: Array<Margins> = Object.keys(Styles.globalMargins) as any
 
-const hgapStyles = new Map(marginKeys.map(gap => [gap, {flexShrink: 0, width: Styles.globalMargins[gap]}]))
-const vgapStyles = new Map(marginKeys.map(gap => [gap, {flexShrink: 0, height: Styles.globalMargins[gap]}]))
-
-// premake the gaps and cache them forever so we can take advantage of react optimizing them if they're the same
-const vgaps = new Map(
-  marginKeys.map(gap => [
-    gap,
-    new Array(100).fill('').map((_, idx) => <View key={'vgap-' + idx} style={vgapStyles.get(gap)} />),
-  ])
-)
-const hgaps = new Map(
-  marginKeys.map(gap => [
-    gap,
-    new Array(100).fill('').map((_, idx) => <View key={'hgap-' + idx} style={hgapStyles.get(gap)} />),
-  ])
-)
+const hgapStyles = new Map(marginKeys.map(gap => [gap, {columnGap: Styles.globalMargins[gap]}]))
+const vgapStyles = new Map(marginKeys.map(gap => [gap, {rowGap: Styles.globalMargins[gap]}]))
+const hgapStartStyles = new Map(marginKeys.map(gap => [gap, {paddingLeft: Styles.globalMargins[gap]}]))
+const vgapStartStyles = new Map(marginKeys.map(gap => [gap, {paddingTop: Styles.globalMargins[gap]}]))
+const hgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingRight: Styles.globalMargins[gap]}]))
+const vgapEndStyles = new Map(marginKeys.map(gap => [gap, {paddingBottom: Styles.globalMargins[gap]}]))
 
 const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Ref<View>) {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = props
@@ -77,19 +66,6 @@ const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Re
       break
   }
 
-  let gappedChildren: Array<React.ReactNode> = children as any
-  if (gap && (gapStart || gapEnd || React.Children.count(children) > 1)) {
-    let gapIdx = 1
-    const gapList = horizontal ? hgaps.get(gap)! : vgaps.get(gap)!
-    gappedChildren = intersperseFn(() => gapList[gapIdx++], React.Children.toArray(gappedChildren))
-    if (gapStart) {
-      gappedChildren.unshift(gapList[0])
-    }
-    if (gapEnd) {
-      gappedChildren.push(gapList[gapIdx])
-    }
-  }
-
   return (
     <View
       ref={ref}
@@ -103,6 +79,12 @@ const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Re
         alignSelfStyle,
         alignItemsStyle,
         noShrink && styles.noShrink,
+        gap && horizontal && hgapStyles.get(gap),
+        gap && !horizontal && vgapStyles.get(gap),
+        gap && gapStart && horizontal && hgapStartStyles.get(gap),
+        gap && gapStart && !horizontal && vgapStartStyles.get(gap),
+        gap && gapEnd && horizontal && hgapEndStyles.get(gap),
+        gap && gapEnd && !horizontal && vgapEndStyles.get(gap),
         // uncomment this to get debugging colors
         // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
         style,
@@ -110,7 +92,7 @@ const Box2 = React.forwardRef(function Box2Inner(props: Box2Props, ref: React.Re
       onLayout={onLayout}
       pointerEvents={pointerEvents}
     >
-      {gappedChildren}
+      {children}
     </View>
   )
 })
