@@ -1,18 +1,20 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-import {Image, type ImageProps} from 'react-native'
-import RNFI, {type OnProgressEvent} from 'react-native-fast-image'
+import {Image as RNImage, type ImageProps} from 'react-native'
+import {Image, type ImageProgressEventData} from 'expo-image'
 import isArray from 'lodash/isArray'
 import LoadingStateView from './loading-state-view'
 import {memoize} from '../util/memoize'
 import isEqual from 'lodash/isEqual'
 
-export class NativeImage extends React.Component<ImageProps> {
-  static getSize = Image.getSize
-  render() {
-    return <Image {...this.props} fadeDuration={0} />
-  }
-}
+// export class NativeImage extends React.Component<ImageProps> {
+//   static getSize = Image.getSize
+//   render() {
+//     return <Image {...this.props} fadeDuration={0} />
+//   }
+// }
+//
+//
 
 type FastImageImplState = {
   loading: boolean
@@ -23,8 +25,8 @@ class FastImageImpl extends React.PureComponent<
   ImageProps & {showLoadingStateUntilLoaded?: boolean},
   FastImageImplState
 > {
-  static resizeMode = RNFI.resizeMode
-  static getSize = Image.getSize
+  // static resizeMode = RNFI.resizeMode
+  static getSize = RNImage.getSize
   state = {
     loading: true,
     progress: 0,
@@ -43,8 +45,8 @@ class FastImageImpl extends React.PureComponent<
     this._mounted && this.setState({loading: false})
     this.props.onLoadEnd?.()
   }
-  private onProgress = (evt: OnProgressEvent) => {
-    this._mounted && this.setState({progress: evt.nativeEvent?.loaded / evt.nativeEvent?.total || 0})
+  private onProgress = (evt: ImageProgressEventData) => {
+    this._mounted && this.setState({progress: evt.loaded / evt.total || 0})
     this.props.onProgress?.(evt as any)
   }
 
@@ -69,10 +71,9 @@ class FastImageImpl extends React.PureComponent<
       return null
     }
 
-    // TODO maybe use reanimated2
     return (
       <>
-        <RNFI
+        <Image
           {...(this.props as any)}
           style={this.getStyle(
             this.props.style,
@@ -90,6 +91,8 @@ class FastImageImpl extends React.PureComponent<
     )
   }
 }
+
+export const NativeImage = FastImageImpl
 
 const styles = Styles.styleSheetCreate(() => ({
   loaded: {opacity: 1},
