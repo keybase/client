@@ -15,6 +15,8 @@ import './edit-avatar.css'
 
 const {isDirectory} = KB2.functions
 
+// TODO use zoomableimage here instead
+
 type State = {
   dragStartX: number
   dragStartY: number

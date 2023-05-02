@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {isIOS, isTablet} from '../../constants/platform'
 import {type Props} from '.'
@@ -150,19 +150,13 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
       )
     }
     const uri = this.props.image ? parseUri(this.props.image, true) : null
-    return (
-      <Kb.ZoomableBox
-        bounces={false}
-        contentContainerStyle={this._imageDimensions()}
-        maxZoom={10}
-        onZoom={this._onZoom}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
+    return uri ? (
+      <Kb.ZoomableImage
+        src={uri}
+        onChanged={this._onZoom}
         style={isIOS ? Styles.collapseStyles([styles.zoomContainer, this.getImageStyle()]) : null}
-      >
-        {uri && <Kb.NativeFastImage resizeMode="cover" source={{uri}} style={this._imageDimensions()} />}
-      </Kb.ZoomableBox>
-    )
+      />
+    ) : null
   }
 
   render() {

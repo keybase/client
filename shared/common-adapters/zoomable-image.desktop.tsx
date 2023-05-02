@@ -3,20 +3,15 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import Toast from './toast.desktop'
 import Text from './text.desktop'
+import type {Props} from './zoomable-image'
 
 const Kb = {
   Text,
   Toast,
 }
 
-type Props = {
-  src: string
-  onZoomed?: (z: boolean) => void
-  style?: Styles.StylesCrossPlatform
-}
-
 const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
-  const {src, onZoomed, style} = p
+  const {src, onIsZoomed, style} = p
   const [isZoomed, setIsZoomed] = React.useState(false)
   const [imgSize, setImgSize] = React.useState({height: 0, width: 0})
   const isMounted = Container.useIsMounted()
@@ -42,9 +37,9 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
 
   const toggleZoom = React.useCallback(() => {
     setIsZoomed(s => !s)
-    onZoomed?.(!isZoomed)
+    onIsZoomed?.(!isZoomed)
     setZoomRatio(initialZoomRatio)
-  }, [isZoomed, onZoomed])
+  }, [isZoomed, onIsZoomed])
 
   const [lastIsZoomed, setLastIsZoomed] = React.useState(isZoomed)
   if (lastIsZoomed !== isZoomed) {

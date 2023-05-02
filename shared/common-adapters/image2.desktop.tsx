@@ -17,9 +17,6 @@ const Image2 = (p: Props) => {
     opacity: showLoadingStateUntilLoaded && loading ? 0 : 1,
   }
 
-  // onDragStart={props.onDragStart}
-  // draggable={props.draggable}
-  // onError={props.onError}
   return (
     <>
       <img src={src} style={style} onLoad={onLoad} />

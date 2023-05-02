@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import LoadingStateView from './loading-state-view'
 import type {Props} from './image'
-import {Image /*, type ImageProgressEventData*/} from 'expo-image'
+import {Image} from 'expo-image'
 
 const Image2 = (p: Props) => {
   const {showLoadingStateUntilLoaded, src} = p
@@ -18,9 +18,6 @@ const Image2 = (p: Props) => {
     opacity: showLoadingStateUntilLoaded && loading ? 0 : 1,
   }
 
-  // onDragStart={props.onDragStart}
-  // draggable={props.draggable}
-  // onError={props.onError}
   return (
     <>
       <Image source={src} style={style} onLoad={onLoad} cachePolicy="memory" contentFit="contain" />

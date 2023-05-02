@@ -408,9 +408,6 @@ module.exports = {
   get WithTooltip() {
     return Index.WithTooltip
   },
-  get ZoomableBox() {
-    return require('./zoomable-box').ZoomableBox
-  },
   get isValidIconType() {
     return Index.isValidIconType
   },
