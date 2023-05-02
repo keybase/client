@@ -23,14 +23,7 @@ const Image2 = (p: Props) => {
   // onError={props.onError}
   return (
     <>
-      <Image
-        source={src}
-        style={style}
-        onLoad={onLoad}
-        cachePolicy="memory"
-        contentFit="contain"
-        enableLiveTextInteraction={true}
-      />
+      <Image source={src} style={style} onLoad={onLoad} cachePolicy="memory" contentFit="contain" />
       {showLoadingStateUntilLoaded ? <LoadingStateView loading={loading} /> : null}
     </>
   )

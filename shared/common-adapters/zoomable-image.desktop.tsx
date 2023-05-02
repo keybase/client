@@ -20,7 +20,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   const [isZoomed, setIsZoomed] = React.useState(false)
   const [imgSize, setImgSize] = React.useState({height: 0, width: 0})
   const isMounted = Container.useIsMounted()
-  const [lastSrc, setLastSrc] = React.useState(src)
+  const [lastSrc, setLastSrc] = React.useState('')
 
   if (lastSrc !== src) {
     setLastSrc(src)
