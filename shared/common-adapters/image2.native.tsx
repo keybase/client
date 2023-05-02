@@ -18,7 +18,10 @@ const Image2 = (p: Props) => {
     <>
       <Image
         source={src}
-        style={style as any}
+        style={
+          // eslint-disable-next-line
+          style as any
+        }
         onLoad={_onLoad}
         cachePolicy="memory"
         contentFit="contain"

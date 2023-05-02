@@ -27,8 +27,11 @@ const Image2 = React.forwardRef<Props, any>(function Image2(p: Props, ref: any) 
     <>
       <img
         ref={ref}
-        src={src as any}
-        style={style as any}
+        src={
+          // eslint-disable-next-line
+          src as any
+        }
+        style={style}
         onLoad={_onLoad}
         onError={onError}
         onDragStart={onDragStart}
