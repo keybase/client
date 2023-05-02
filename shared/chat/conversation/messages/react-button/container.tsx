@@ -48,7 +48,12 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const onOpenEmojiPicker = React.useCallback(() => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal}, selected: 'chatChooseEmoji'}],
+        path: [
+          {
+            props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
+            selected: 'chatChooseEmoji',
+          },
+        ],
       })
     )
   }, [dispatch, ordinal, conversationIDKey])

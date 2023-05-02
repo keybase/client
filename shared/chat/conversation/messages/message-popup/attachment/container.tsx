@@ -57,6 +57,7 @@ export default (ownProps: OwnProps) => {
             props: {
               conversationIDKey: message.conversationIDKey,
               onPickAddToMessageOrdinal: message.ordinal,
+              pickKey: 'reaction',
             },
             selected: 'chatChooseEmoji',
           },
