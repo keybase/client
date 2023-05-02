@@ -12,11 +12,11 @@ const Image2 = (p: Props) => {
   const onLoad = React.useCallback(() => {
     isMounted() && setLoading(false)
   }, [isMounted])
-  const style = {
-    ...p.style,
-    ...(showLoadingStateUntilLoaded && loading ? styles.absolute : {}),
-    opacity: showLoadingStateUntilLoaded && loading ? 0 : 1,
-  }
+  const style = [
+    p.style,
+    showLoadingStateUntilLoaded && loading ? styles.absolute : {},
+    {opacity: showLoadingStateUntilLoaded && loading ? 0 : 1},
+  ]
 
   return (
     <>

@@ -5,8 +5,6 @@ export type Props = {
   src: string
   style?: StylesCrossPlatform
   showLoadingStateUntilLoaded?: boolean
-  // onLoad?: (e: React.BaseSyntheticEvent) => void
-  // onError?: () => void
 }
 
 export default class Image2 extends React.Component<Props> {}

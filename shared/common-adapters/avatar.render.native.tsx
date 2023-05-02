@@ -2,15 +2,15 @@ import Icon from './icon'
 import * as React from 'react'
 import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
+import Image2 from './image2'
 import Box from './box'
-import {NativeImage} from './native-image.native'
 import type {Props, AvatarSize} from './avatar.render'
 
 const Kb = {
   Box,
   ClickableBox,
   Icon,
-  NativeImage,
+  Image2,
 }
 
 const sizeToTeamBorderRadius = new Map<AvatarSize, number>([
@@ -44,15 +44,16 @@ const Avatar = React.memo(function Avatar(props: Props) {
           </Kb.Box>
         )}
         {!!props.url && (
-          <Kb.NativeImage
-            source={props.url}
-            style={[
+          <Kb.Image2
+            showLoadingStateUntilLoaded={false}
+            src={props.url}
+            style={Styles.collapseStyles([
               imageStyles[props.size],
               {
                 borderRadius,
                 opacity: props.opacity ? props.opacity : props.blocked ? 0.1 : 1,
               },
-            ]}
+            ])}
           />
         )}
         {(!!props.borderColor || props.isTeam) &&
