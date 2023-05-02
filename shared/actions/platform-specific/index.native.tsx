@@ -29,7 +29,7 @@ import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine/require'
 import {isIOS, isAndroid} from '../../constants/platform'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
-import {setupAudioMode} from '../../util/audio'
+import {setupAudioMode} from '../../util/audio.native'
 import {
   getDefaultCountryCode,
   androidOpenSettings,
