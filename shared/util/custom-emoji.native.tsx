@@ -9,7 +9,6 @@ const CustomEmoji = (props: Props) => {
     ...props.style,
   }
 
-  // contain?
   return <Kb.Image2 key={size} src={src} style={dimensions} />
 }
 
