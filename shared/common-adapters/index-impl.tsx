@@ -145,6 +145,9 @@ module.exports = {
   get Image() {
     return require('./image').default
   },
+  get Image2() {
+    return require('./image2').default
+  },
   get InfoNote() {
     return require('./info-note').default
   },

@@ -1,3 +1,4 @@
-ios
-android
-release
+remove zoomable-box
+remove image / native image / etc
+make image2
+make zoomableimage2

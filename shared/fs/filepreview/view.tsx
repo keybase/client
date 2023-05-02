@@ -5,7 +5,6 @@ import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import DefaultView from './default-view-container'
-import ImageView from './image-view'
 import TextView from './text-view'
 import AVView from './av-view'
 import PdfView from './pdf-view'
@@ -81,7 +80,7 @@ const FilePreviewView = ({path, onUrlError}: Props) => {
       return (
         <>
           {reloadBanner}
-          <ImageView url={url} onUrlError={onUrlError} />
+          <Kb.ZoomableImage src={url} />
         </>
       )
     case RPCTypes.GUIViewType.audio:

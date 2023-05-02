@@ -1,17 +1,18 @@
 import * as Styles from '../styles'
 import {ZoomableBox} from './zoomable-box'
-import Image from './image.native'
+import Image2 from './image2.native'
+import type {Props} from './zoomable-image'
 
 const Kb = {
-  Image,
+  Image2,
   ZoomableBox,
 }
 
-const ZoomableImage = (p: {src: string; style?: Styles.StylesCrossPlatform}) => {
+const ZoomableImage = (p: Props) => {
   const {src, style} = p
   return (
     <Kb.ZoomableBox style={style} contentContainerStyle={styles.zoomableBoxContainer}>
-      <Kb.Image src={src} style={styles.image} />
+      <Kb.Image2 src={src} style={styles.image} />
     </Kb.ZoomableBox>
   )
 }
