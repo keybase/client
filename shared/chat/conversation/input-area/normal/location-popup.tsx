@@ -24,6 +24,7 @@ const LocationPopup = (props: Props) => {
       RPCChatTypes.UICommandStatusDisplayTyp.error
     return {httpSrvAddress, httpSrvToken, location, locationDenied, username}
   }, shallowEqual)
+  const [mapLoaded, setMapLoaded] = React.useState(false)
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
@@ -108,7 +109,7 @@ const LocationPopup = (props: Props) => {
               onClick={() => onLocationShare('')}
               type="Default"
               style={{height: 53}}
-              subLabel={location ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined}
+              subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined}
               subLabelStyle={styles.accuracy}
             />
           </Kb.Box2>
@@ -126,7 +127,7 @@ const LocationPopup = (props: Props) => {
           <Kb.Button label="Open settings" onClick={onSettings} />
         </Kb.Box2>
       ) : (
-        <LocationMap mapSrc={mapSrc} height={height} width={width} />
+        <LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
       )}
     </Kb.Modal>
   )

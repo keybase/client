@@ -132,8 +132,8 @@ module.exports = {
   get Icon() {
     return Index.Icon
   },
-  get Image() {
-    return Index.Image
+  get Image2() {
+    return Index.Image2
   },
   get InfoNote() {
     return Index.InfoNote

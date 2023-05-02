@@ -95,7 +95,7 @@ const styles = Styles.styleSheetCreate(
       },
       poster: {
         backgroundColor: Styles.globalColors.black_05_on_white,
-        opacity: 0,
+        opacity: 1,
       },
       posterContainer: {
         position: 'relative',
