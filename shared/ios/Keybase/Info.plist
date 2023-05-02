@@ -54,7 +54,7 @@
         <key>NSCalendarsUsageDescription</key>
         <string>Keybase does not use this data! Please send feedback if you see this message.</string>
         <key>NSCameraUsageDescription</key>
-        <string>Scanning codes</string>
+        <string>Scanning QR codes and recording video chat attachments</string>
         <key>NSContactsUsageDescription</key>
         <string>Inviting contacts to Keybase</string>
         <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
