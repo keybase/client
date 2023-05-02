@@ -139,9 +139,6 @@ module.exports = {
   get Icon() {
     return require('./icon').default
   },
-  get Image() {
-    return require('./image').default
-  },
   get Image2() {
     return require('./image2').default
   },
@@ -243,9 +240,6 @@ module.exports = {
   },
   get Reloadable() {
     return require('./reload').default
-  },
-  get RequireImage() {
-    return require('./image').RequireImage
   },
   get RichButton() {
     return require('./rich-button').default

@@ -18,7 +18,7 @@ const CustomEmoji = (props: Props) => {
       ])}
     >
       <Kb.WithTooltip tooltip={alias ?? null} containerStyle={styles.tooltipContainer}>
-        <Kb.Image
+        <Kb.Image2
           src={src}
           style={Styles.collapseStyles([
             {

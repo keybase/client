@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters/mobile.native'
+import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {useRedux} from './use-redux'
 import {ShowToastAfterSaving} from '../shared'
@@ -35,8 +35,6 @@ const VideoImpl = (p: Props) => {
     }
   }, [])
 
-  const fiSrc = React.useMemo(() => ({uri: previewURL}), [previewURL])
-
   return (
     <>
       <ShowToastAfterSaving transferState={transferState} />
@@ -46,10 +44,7 @@ const VideoImpl = (p: Props) => {
             direction="vertical"
             style={Styles.collapseStyles([styles.posterContainer, {height, width}])}
           >
-            <Kb.NativeFastImage
-              source={fiSrc}
-              style={Styles.collapseStyles([styles.poster, {height, width}])}
-            />
+            <Kb.Image2 src={previewURL} style={Styles.collapseStyles([styles.poster, {height, width}])} />
             {allowPlay ? <Kb.Icon type="icon-play-64" style={styles.playButton} /> : null}
             <Kb.Box2 direction="vertical" style={styles.durationContainer}>
               <Kb.Text type="BodyTinyBold" style={styles.durationText}>

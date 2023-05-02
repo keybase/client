@@ -1,6 +1,10 @@
 import * as React from 'react'
-import {Image} from '../../common-adapters'
+import {Image2} from '../../common-adapters'
 import QRCodeGen from 'qrcode-generator'
+
+const Kb = {
+  Image2,
+}
 
 type Props = {
   code: string
@@ -17,7 +21,7 @@ class QrImage extends React.PureComponent<Props> {
     // Keybase blue
     const url = qr.createDataURL(this.props.cellSize, 0, [0x4c, 0x8e, 0xff])
 
-    return <Image src={url} style={{height: size, width: size}} />
+    return <Kb.Image2 src={url} style={{height: size, width: size}} />
   }
 }
 

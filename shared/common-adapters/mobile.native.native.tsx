@@ -345,9 +345,6 @@ module.exports = {
   get Reloadable() {
     return Index.Reloadable
   },
-  get RequireImage() {
-    return Index.RequireImage
-  },
   get RoundedBox() {
     return Index.RoundedBox
   },

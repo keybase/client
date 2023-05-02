@@ -42,7 +42,7 @@ const UnfurlImage = (p: Props) => {
     />
   ) : (
     <Kb.ClickableBox onClick={onClick || onOpenURL}>
-      <Kb.Image
+      <Kb.Image2
         src={url}
         style={Styles.collapseStyles([
           styles.video,

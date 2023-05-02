@@ -42,7 +42,7 @@ type State = {
 
 class EditAvatar extends React.Component<Props, State> {
   private file: HTMLInputElement | null = null
-  private imageRef = React.createRef<Kb.Image>()
+  private imageRef = React.createRef<Kb.Image2>()
   private timerID?: ReturnType<typeof setTimeout>
 
   constructor(props: Props) {
@@ -417,7 +417,7 @@ class EditAvatar extends React.Component<Props, State> {
                 <Kb.ProgressIndicator type="Large" style={styles.spinner} />
               </Kb.Box2>
             )}
-            <Kb.Image
+            <Kb.Image2
               ref={this.imageRef}
               src={this.state.imageSource}
               style={Styles.platformStyles({
@@ -428,10 +428,10 @@ class EditAvatar extends React.Component<Props, State> {
                   position: 'absolute',
                   top: this.state.offsetTop,
                   transition: 'opacity 0.25s ease-in',
+                  userSelect: 'none',
                   width: this.state.scaledImageWidth,
                 },
               } as const)}
-              onDragStart={e => e.preventDefault()}
               onLoad={this.onImageLoad}
               onError={this.onImageError}
             />

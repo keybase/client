@@ -53,7 +53,7 @@ const ReplyImage = () => {
   return (
     <Kb.Box2 direction="vertical" style={styles.replyImageContainer}>
       <Kb.Box style={sizing?.margins}>
-        <Kb.Image src={imageURL} style={sizing?.dims} />
+        <Kb.Image2 src={imageURL} style={sizing?.dims} />
       </Kb.Box>
     </Kb.Box2>
   )

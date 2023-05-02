@@ -1,16 +1,22 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import type {Props} from './image'
+import type {Props} from './image2'
 import LoadingStateView from './loading-state-view'
 
-const Image2 = (p: Props) => {
-  const {showLoadingStateUntilLoaded, src} = p
+const onDragStart = e => e.preventDefault()
+// TODO only reason this is a ref is for edit profile, which shouldn't likely use it at all
+const Image2 = React.forwardRef<Props, any>(function Image2(p: Props, ref: any) {
+  const {showLoadingStateUntilLoaded, src, onLoad, onError} = p
   const [loading, setLoading] = React.useState(true)
   const isMounted = Container.useIsMounted()
-  const onLoad = React.useCallback(() => {
-    isMounted() && setLoading(false)
-  }, [isMounted])
+  const _onLoad = React.useCallback(
+    (e: React.BaseSyntheticEvent) => {
+      isMounted() && setLoading(false)
+      onLoad?.(e)
+    },
+    [isMounted, onLoad]
+  )
   const style = {
     ...p.style,
     ...(showLoadingStateUntilLoaded && loading ? styles.absolute : {}),
@@ -19,11 +25,18 @@ const Image2 = (p: Props) => {
 
   return (
     <>
-      <img src={src} style={style} onLoad={onLoad} />
+      <img
+        ref={ref}
+        src={src as any}
+        style={style as any}
+        onLoad={_onLoad}
+        onError={onError}
+        onDragStart={onDragStart}
+      />
       {showLoadingStateUntilLoaded ? <LoadingStateView loading={loading} /> : null}
     </>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(() => ({
   absolute: {

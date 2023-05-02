@@ -18,7 +18,7 @@ const Announcement = (props: Props) => {
       badged={props.badged}
       icon={
         props.iconUrl ? (
-          <Kb.Image src={props.iconUrl} style={styles.icon} />
+          <Kb.Image2 src={props.iconUrl} style={styles.icon} />
         ) : (
           <Kb.Icon type="icon-keybase-logo-80" style={styles.icon} />
         )

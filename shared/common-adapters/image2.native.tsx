@@ -1,35 +1,32 @@
-import * as Container from '../util/container'
 import * as React from 'react'
-import * as Styles from '../styles'
 import LoadingStateView from './loading-state-view'
-import type {Props} from './image'
+import type {Props} from './image2'
 import {Image} from 'expo-image'
 
 const Image2 = (p: Props) => {
-  const {showLoadingStateUntilLoaded, src} = p
+  const {showLoadingStateUntilLoaded = true, src, onLoad, onError, style} = p
   const [loading, setLoading] = React.useState(true)
-  const isMounted = Container.useIsMounted()
-  const onLoad = React.useCallback(() => {
-    isMounted() && setLoading(false)
-  }, [isMounted])
-  const style = [
-    p.style,
-    showLoadingStateUntilLoaded && loading ? styles.absolute : {},
-    {opacity: showLoadingStateUntilLoaded && loading ? 0 : 1},
-  ]
+  const _onLoad = React.useCallback(
+    (e: any) => {
+      setLoading(false)
+      onLoad?.(e)
+    },
+    [onLoad]
+  )
 
   return (
     <>
-      <Image source={src} style={style} onLoad={onLoad} cachePolicy="memory" contentFit="contain" />
-      {showLoadingStateUntilLoaded ? <LoadingStateView loading={loading} /> : null}
+      <Image
+        source={src}
+        style={style as any}
+        onLoad={_onLoad}
+        cachePolicy="memory"
+        contentFit="contain"
+        onError={onError}
+      />
+      {showLoadingStateUntilLoaded && loading ? <LoadingStateView loading={loading} /> : null}
     </>
   )
 }
 
 export default Image2
-
-const styles = Styles.styleSheetCreate(() => ({
-  absolute: {
-    position: 'absolute',
-  },
-}))

@@ -107,7 +107,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             <Kb.Box2 direction="vertical">
               {(commitmentVis?.length ?? 0) > 0 ? (
-                <Kb.Image src={commitSrc} style={styles.progressVis} />
+                <Kb.Image2 src={commitSrc} style={styles.progressVis} />
               ) : (
                 <Kb.Box2
                   direction="vertical"
@@ -117,7 +117,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
             </Kb.Box2>
             <Kb.Box2 direction="vertical">
               {(revealVis?.length ?? 0) > 0 && phase !== RPCChatTypes.UICoinFlipPhase.commitment ? (
-                <Kb.Image src={revealSrc} style={styles.progressVis} />
+                <Kb.Image2 src={revealSrc} style={styles.progressVis} />
               ) : (
                 <Kb.Box2
                   direction="vertical"

@@ -6,28 +6,14 @@ import openURL from '../util/open-url'
 type Props = {
   height: number
   mapSrc: string
-  onLoad?: () => void
   width: number
 }
 
 const LocationMap = (props: Props) => {
   const {height, mapSrc, width} = props
-  const [mapLoaded, setMapLoaded] = React.useState(false)
-  const onLoad = () => {
-    setMapLoaded(true)
-    !!props.onLoad && props.onLoad()
-  }
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-      {!!mapSrc && (
-        <Kb.NativeFastImage
-          source={{uri: mapSrc}}
-          style={{height, width}}
-          onLoad={onLoad}
-          resizeMode="cover"
-        />
-      )}
-      {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
+      {!!mapSrc && <Kb.Image2 src={mapSrc} style={{height, width}} />}
       <Kb.Banner color="white" style={styles.banner}>
         <Kb.BannerParagraph
           bannerColor="white"

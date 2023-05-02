@@ -40,7 +40,6 @@ export {HeaderHocHeader, HeaderHocWrapper, HeaderLeftBlank, HeaderLeftCancel} fr
 export {PopupWrapper} from './header-or-popup'
 export {HotKey, useHotKey} from './hot-key'
 export {default as Icon, urlsToImgSet, type IconStyle} from './icon'
-export {default as Image, RequireImage} from './image'
 export {default as Image2} from './image2'
 export {default as InfoNote} from './info-note'
 export {default as Input} from './input'
