@@ -40,7 +40,150 @@ type State = {
   viewingCenterY: number
 }
 
-class EditAvatar extends React.Component<Props, State> {
+const EditAvatar = (p: Props) => {
+  const {onClose, wizard, showBack, onBack, onSkip, type, error, teamID, createdTeam, teamname} = p
+
+  const [hasPreview, setHasPreview] = React.useState(false)
+  const [serror, setSerror] = React.useState('TODO')
+  const [dropping, setDropping] = React.useState(false)
+  const [loading, setLoading] = React.useState(false)
+  const [scale, setScale] = React.useState(1)
+  const [imageSource, setImageSource] = React.useState('')
+
+  const filePickerSetRef = React.useRef(null)
+
+  const onSave = () => {}
+  const onChanged = () => {}
+  const onImageLoad = () => {}
+  const onRangeChange = () => {}
+  const onDrop = () => {}
+  const filePickerOpen = () => {}
+  const pickFile = () => {}
+
+  return (
+    <Kb.Modal
+      mode="DefaultFullHeight"
+      onClose={onClose}
+      header={{
+        leftButton: wizard || showBack ? <Kb.Icon type="iconfont-arrow-left" onClick={onBack} /> : null,
+        rightButton: wizard ? (
+          <Kb.Button
+            label="Skip"
+            mode="Secondary"
+            onClick={onSkip}
+            style={styles.skipButton}
+            type="Default"
+          />
+        ) : null,
+        title: type === 'team' ? <ModalTitle teamID={teamID} title="Upload an avatar" /> : 'Upload an avatar',
+      }}
+      allowOverflow={true}
+      footer={{
+        content: (
+          <Kb.WaitingButton
+            fullWidth={true}
+            label={wizard ? 'Continue' : 'Save'}
+            onClick={onSave}
+            disabled={!hasPreview}
+            waitingKey={null}
+          />
+        ),
+      }}
+      banners={
+        <>
+          {error ? (
+            <Kb.Banner color="red" key="propsError">
+              {error}
+            </Kb.Banner>
+          ) : null}
+          {serror ? (
+            <Kb.Banner color="red" key="stateError">
+              The image you uploaded could not be read. Try again with a valid PNG, JPG or GIF.
+            </Kb.Banner>
+          ) : null}
+        </>
+      }
+    >
+      <Kb.Box
+        className={Styles.classNames({dropping: dropping})}
+        // onDragLeave={this.onDragLeave}
+        // onDragOver={this.onDragOver}
+        onDrop={onDrop}
+        style={Styles.collapseStyles([styles.container, createdTeam && styles.paddingTopForCreatedTeam])}
+        // onMouseUp={this.onMouseUp}
+        // onMouseDown={this.onMouseDown}
+        // onMouseMove={this.onMouseMove}
+      >
+        {type === 'team' && createdTeam && !wizard && (
+          <Kb.Box style={styles.createdBanner}>
+            <Kb.Text type="BodySmallSemibold" negative={true}>
+              Hoorah! Your team {teamname} was created.
+            </Kb.Text>
+          </Kb.Box>
+        )}
+        <Kb.Text center={true} type="Body" style={styles.instructions}>
+          Drag and drop a {type} avatar or{' '}
+          <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={filePickerOpen}>
+            browse your computer
+          </Kb.Text>{' '}
+          for one.
+        </Kb.Text>
+        <Kb.Box
+          className={Styles.classNames('hoverbox', {filled: hasPreview})}
+          onClick={hasPreview ? null : filePickerOpen}
+          style={{
+            borderRadius: type === 'team' ? 32 : AVATAR_CONTAINER_SIZE,
+            ...hoverStyles.hoverContainer,
+          }}
+        >
+          <input
+            accept="image/gif,image/jpeg,image/png"
+            multiple={false}
+            onChange={pickFile}
+            ref={filePickerSetRef}
+            style={styles.hidden}
+            type="file"
+          />
+          {loading && (
+            <Kb.Box2 direction="vertical" fullHeight={true} style={styles.spinnerContainer}>
+              <Kb.ProgressIndicator type="Large" style={styles.spinner} />
+            </Kb.Box2>
+          )}
+          <Kb.ZoomableImage
+            zoomRatio={scale}
+            dragPan={true}
+            src={imageSource}
+            onChanged={onChanged}
+            onLoaded={onImageLoad}
+          />
+          {!loading && !hasPreview && (
+            <Kb.Icon
+              className="icon"
+              color={Styles.globalColors.greyDark}
+              fontSize={48}
+              style={styles.icon}
+              type="iconfont-camera"
+            />
+          )}
+        </Kb.Box>
+        {hasPreview && (
+          <input
+            disabled={false /*!hasPreview || submitting*/}
+            min={1}
+            max={10}
+            onChange={onRangeChange}
+            // onMouseMove={e => e.stopPropagation()}
+            step="any"
+            type="range"
+            // value={this.state.scale}
+          />
+        )}
+      </Kb.Box>
+    </Kb.Modal>
+  )
+}
+
+class EditAvatar2 extends React.Component<Props, State> {
   private file: HTMLInputElement | null = null
   private imageRef = React.createRef<Kb.Image2>()
   private timerID?: ReturnType<typeof setTimeout>
@@ -161,39 +304,42 @@ class EditAvatar extends React.Component<Props, State> {
     this.setState({error: true, hasPreview: false, loading: false})
   }
 
-  private onImageLoad = (e: React.BaseSyntheticEvent) => {
+  private onImageLoad = (/*e: React.BaseSyntheticEvent*/) => {
     // TODO: Make RPC to check file size and warn them before they try submitting.
 
-    let height = AVATAR_SIZE
-    let width = (AVATAR_SIZE * e.currentTarget.naturalWidth) / e.currentTarget.naturalHeight
+    // let height = AVATAR_SIZE
+    // let width = (AVATAR_SIZE * e.currentTarget.naturalWidth) / e.currentTarget.naturalHeight
 
-    if (width < AVATAR_SIZE) {
-      height = (AVATAR_SIZE * e.currentTarget.naturalHeight) / e.currentTarget.naturalWidth
-      width = AVATAR_SIZE
-    }
+    // if (width < AVATAR_SIZE) {
+    //   height = (AVATAR_SIZE * e.currentTarget.naturalHeight) / e.currentTarget.naturalWidth
+    //   width = AVATAR_SIZE
+    // }
 
     this.setState({
-      naturalImageWidth: e.currentTarget.naturalWidth,
-      offsetLeft: width / -2 + VIEWPORT_CENTER,
-      offsetTop: height / -2 + VIEWPORT_CENTER,
-      scaledImageHeight: height,
-      scaledImageWidth: width,
-      startingImageHeight: height,
-      startingImageWidth: width,
-      viewingCenterX: e.currentTarget.naturalWidth / 2,
-      viewingCenterY: e.currentTarget.naturalHeight / 2,
+      // naturalImageWidth: e.currentTarget.naturalWidth,
+      // offsetLeft: width / -2 + VIEWPORT_CENTER,
+      // offsetTop: height / -2 + VIEWPORT_CENTER,
+      // scaledImageHeight: height,
+      // scaledImageWidth: width,
+      // startingImageHeight: height,
+      // startingImageWidth: width,
+      // viewingCenterX: e.currentTarget.naturalWidth / 2,
+      // viewingCenterY: e.currentTarget.naturalHeight / 2,
+      hasPreview: true,
+      loading: false,
     })
 
-    this.timerID = setTimeout(() => {
-      this.setState({
-        hasPreview: true,
-        loading: false,
-      })
-    }, 1500)
+    // this.timerID = setTimeout(() => {
+    //   this.setState({
+    //     hasPreview: true,
+    //     loading: false,
+    //   })
+    // }, 1500)
   }
 
   private onRangeChange = (e: React.FormEvent<any>) => {
     const scale = parseFloat(e.currentTarget.value)
+    console.log('aaa range', scale)
     // likely unsafe to ref this.state but afraid to change this now
     // eslint-disable-next-line
     const scaledImageHeight = this.state.startingImageHeight * scale
@@ -316,7 +462,12 @@ class EditAvatar extends React.Component<Props, State> {
     this.props.onSave(this.state.imageSource, crop)
   }
 
+  private onChanged = e => {
+    console.log('aaa', e)
+  }
+
   render() {
+    console.log('aaa rendering', this.state.scale)
     return (
       <Kb.Modal
         mode="DefaultFullHeight"
@@ -417,23 +568,12 @@ class EditAvatar extends React.Component<Props, State> {
                 <Kb.ProgressIndicator type="Large" style={styles.spinner} />
               </Kb.Box2>
             )}
-            <Kb.Image2
-              ref={this.imageRef}
+            <Kb.ZoomableImage
+              zoomRatio={this.state.scale}
+              dragPan={true}
               src={this.state.imageSource}
-              style={Styles.platformStyles({
-                isElectron: {
-                  height: this.state.scaledImageHeight,
-                  left: this.state.offsetLeft,
-                  opacity: this.state.loading ? 0 : 1,
-                  position: 'absolute',
-                  top: this.state.offsetTop,
-                  transition: 'opacity 0.25s ease-in',
-                  userSelect: 'none',
-                  width: this.state.scaledImageWidth,
-                },
-              } as const)}
-              onLoad={this.onImageLoad}
-              onError={this.onImageError}
+              onChanged={this.onChanged}
+              onLoaded={this.onImageLoad}
             />
             {!this.state.loading && !this.state.hasPreview && (
               <Kb.Icon

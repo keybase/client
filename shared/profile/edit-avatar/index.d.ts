@@ -15,6 +15,8 @@ type TeamProps = {
 type ProfileProps = {
   createdTeam?: false
   onSkip?: undefined
+  teamname?: string
+  teamID?: Types.TeamID
   type: 'profile'
   showBack?: false
   wizard?: false
