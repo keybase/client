@@ -29,7 +29,7 @@ import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine/require'
 import {isIOS, isAndroid} from '../../constants/platform'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
-import {Audio, InterruptionModeIOS, InterruptionModeAndroid} from 'expo-av'
+import {setupAudioMode} from '../../util/audio.native'
 import {
   getDefaultCountryCode,
   androidOpenSettings,
@@ -702,16 +702,8 @@ const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
   }
 }
 
-const setupAudioModes = () => {
-  Audio.setAudioModeAsync({
-    allowsRecordingIOS: true,
-    interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-    interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-    playThroughEarpieceAndroid: false,
-    playsInSilentModeIOS: true,
-    shouldDuckAndroid: false,
-    staysActiveInBackground: true,
-  })
+const initAudioModes = () => {
+  setupAudioMode(false)
     .then(() => {})
     .catch(() => {})
 }
@@ -764,5 +756,5 @@ export const initPlatformListener = () => {
   Container.spawn(loadStartupDetails, 'loadStartupDetails')
   initPushListener()
   Container.spawn(setupNetInfoWatcher, 'setupNetInfoWatcher')
-  Container.spawn(setupAudioModes, 'setupAudioModes')
+  Container.spawn(initAudioModes, 'initAudioModes')
 }

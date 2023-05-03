@@ -18,6 +18,7 @@ import {
 import {View} from 'react-native'
 import {formatAudioRecordDuration} from '../../util/timestamp'
 import {Audio} from 'expo-av'
+import {setupAudioMode} from '../../util/audio.native'
 import logger from '../../logger'
 import * as Haptics from 'expo-haptics'
 import * as FileSystem from 'expo-file-system'
@@ -369,13 +370,17 @@ const useRecorder = (p: {
   const recordingRef = React.useRef<Audio.Recording | undefined>()
   const recordStartRef = React.useRef(0)
   const recordEndRef = React.useRef(0)
+  const hasSetupRecording = React.useRef(false)
   const pathRef = React.useRef('')
   const dispatch = Container.useDispatch()
   const ampTracker = React.useRef(new AmpTracker()).current
   const [staged, setStaged] = React.useState(false)
 
   const stopRecording = React.useCallback(async () => {
+    hasSetupRecording.current && (await setupAudioMode(false))
+    hasSetupRecording.current = false
     recordEndRef.current = Date.now()
+
     const recording = recordingRef.current
     if (recording) {
       recording.setOnRecordingStatusUpdate(null)
@@ -442,6 +447,8 @@ const useRecorder = (p: {
         throw new Error("Couldn't get audio permissions")
       }
 
+      await setupAudioMode(true)
+      hasSetupRecording.current = true
       const onRecordingStatusUpdate = (status: Audio.RecordingStatus) => {
         const inamp = status.metering
         if (inamp === undefined) {
