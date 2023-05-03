@@ -261,7 +261,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
 
   return (
     <LongPressable {...pressableProps}>
-      <Kb.Box2 direction="vertical" style={styles.middle} fullWidth={true}>
+      <Kb.Box2 direction="vertical" style={styles.middle} fullWidth={!Styles.isMobile}>
         <Background style={styles.background}>
           {content}
           <BottomSide
@@ -471,6 +471,7 @@ const RightSide = React.memo(function RightSide(p: RProps) {
       </Kb.Box2>
     ) : null
 
+  console.log('aaa visible', visibleItems, hasVisibleItems)
   return (
     <>
       {visibleItems}
@@ -606,6 +607,8 @@ const styles = Styles.styleSheetCreate(
       }),
       messagePopupContainer: {marginRight: Styles.globalMargins.small},
       middle: {
+        flexGrow: 1,
+        flexShrink: 1,
         paddingLeft: Styles.isMobile ? 48 : 56,
         paddingRight: 4,
         position: 'relative',
