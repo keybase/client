@@ -471,7 +471,6 @@ const RightSide = React.memo(function RightSide(p: RProps) {
       </Kb.Box2>
     ) : null
 
-  console.log('aaa visible', visibleItems, hasVisibleItems)
   return (
     <>
       {visibleItems}
