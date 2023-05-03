@@ -32,7 +32,6 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
     pending,
   }
 
-  console.log('bbb', props)
   return <ExplodingMeta {...props} />
 })
 export default ExplodingMetaContainer

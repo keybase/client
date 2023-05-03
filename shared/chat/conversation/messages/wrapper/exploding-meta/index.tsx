@@ -40,12 +40,7 @@ type Props2 = {
 const ExplodingMeta = (p: Props) => {
   const {exploded, explodesAt, isParentHighlighted, messageKey, onClick, pending} = p
 
-  const [mode, _setMode] = React.useState<Mode>('none')
-  const setMode = m => {
-    console.log('ccc seting mode', m)
-    _setMode(m)
-  }
-  console.log('aaa render mode', mode)
+  const [mode, setMode] = React.useState<Mode>('none')
   Container.useDepChangeEffect(() => {
     setMode('none')
   }, [messageKey])
@@ -79,7 +74,7 @@ class ExplodingMeta2 extends React.Component<Props2> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.pending !== prevProps.pending) {
+    if (!this.props.pending && prevProps.pending) {
       this.hideOrStart()
     }
 
@@ -96,9 +91,12 @@ class ExplodingMeta2 extends React.Component<Props2> {
   }
 
   private hideOrStart = () => {
-    if (!this.props.pending && (Date.now() >= this.props.explodesAt || this.props.exploded)) {
+    if (
+      this.props.mode === 'none' &&
+      !this.props.pending &&
+      (Date.now() >= this.props.explodesAt || this.props.exploded)
+    ) {
       this._setHidden()
-      console.log('aaa hide or start set hiddden')
       return
     }
     !this.props.pending && this._setCountdown()
@@ -112,21 +110,17 @@ class ExplodingMeta2 extends React.Component<Props2> {
   }
 
   private updateLoop = () => {
-    console.log('aaa updateloop')
     if (this.props.pending) {
       return
     }
 
     const difference = this.props.explodesAt - Date.now()
-    console.log('aaa diff', difference)
-
     if (difference <= 0 || this.props.exploded) {
       this.props.setMode('boom')
       return
     }
     // we don't need a timer longer than 60000 (android complains also)
     const interval = Math.min(getLoopInterval(difference), 60000)
-    console.log('aaa inter', interval)
     if (interval < 1000) {
       this.props.tickerIDRef.current && removeTicker(this.props.tickerIDRef.current)
       // switch to 'seconds' mode
@@ -152,15 +146,12 @@ class ExplodingMeta2 extends React.Component<Props2> {
 
   _setHidden = () => this.props.mode !== 'hidden' && this.props.setMode('hidden')
   _setCountdown = () => {
-    console.log('aaa setcountdown was', this.props.mode)
     if (this.props.mode === 'countdown') return
     this.props.setMode('countdown')
-    console.log('aaa setcoutndown mode making countdown')
     this.updateLoop()
   }
 
   render() {
-    console.log('aaa', this.props)
     const backgroundColor = this.props.pending
       ? Styles.globalColors.black
       : this.props.explodesAt - Date.now() < oneMinuteInMs
@@ -210,8 +201,6 @@ class ExplodingMeta2 extends React.Component<Props2> {
           />
         )
     }
-
-    console.log('bbb', m)
 
     return (
       <Kb.ClickableBox onClick={this.props.onClick} style={styles.container}>
