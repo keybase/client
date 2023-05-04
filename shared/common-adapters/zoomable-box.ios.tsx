@@ -20,6 +20,8 @@ export const ZoomableBox = (props: Props) => (
         // @ts-ignore misses rn types
         height: e.nativeEvent.contentSize.height,
         // @ts-ignore misses rn types
+        scale: e.nativeEvent.zoomScale,
+        // @ts-ignore misses rn types
         width: e.nativeEvent.contentSize.width,
         // @ts-ignore misses rn types
         x: e.nativeEvent.contentOffset.x,

@@ -4,20 +4,22 @@ import * as Container from '../util/container'
 import Toast from './toast.desktop'
 import Text from './text.desktop'
 import type {Props} from './zoomable-image'
+import clamp from 'lodash/clamp'
 
 const Kb = {
   Text,
   Toast,
 }
+
 const onDragStart = (e: React.BaseSyntheticEvent) => e.preventDefault()
 const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
-  console.log('aaa zoomable render', p)
-  const {src, onIsZoomed, style, onLoaded, dragPan} = p
+  const {src, onIsZoomed, style, onLoaded, dragPan, onChanged} = p
   const [isZoomed, setIsZoomed] = React.useState(false)
+  const [allowPan, setAllowPan] = React.useState(true)
   const [imgSize, setImgSize] = React.useState({height: 0, width: 0})
   const isMounted = Container.useIsMounted()
   const [lastSrc, setLastSrc] = React.useState('')
-  const isDragging = React.useRef(false)
+  // const isDragging = React.useRef(false)
 
   if (lastSrc !== src) {
     setLastSrc(src)
@@ -36,12 +38,16 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
 
   const initialZoomRatio = 1.2
   const [zoomRatio, setZoomRatio] = React.useState(p.zoomRatio ?? initialZoomRatio)
-  const [lastIncomingZoom, setLastIncomingZoom] = React.useState(p.zoomRatio)
-  if (lastIncomingZoom !== p.zoomRatio) {
-    setLastIncomingZoom(p.zoomRatio)
-    if (p.zoomRatio) {
-      setZoomRatio(p.zoomRatio)
-    }
+  // const [lastIncomingZoom, setLastIncomingZoom] = React.useState(p.zoomRatio)
+  // if (lastIncomingZoom !== p.zoomRatio) {
+  //   setLastIncomingZoom(p.zoomRatio)
+  //   if (p.zoomRatio) {
+  //     setZoomRatio(p.zoomRatio)
+  //   }
+  // }
+
+  const toggleAllowPan = () => {
+    setAllowPan(s => !s)
   }
 
   const toggleZoom = React.useCallback(() => {
@@ -84,24 +90,37 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   const lastEvent = React.useRef<React.MouseEvent<HTMLDivElement> | undefined>()
 
   const adjustImageStyle = React.useCallback(() => {
+    const zoomRatio = 7 // TEMP
+    // const zoomRatio = 1 / 0.3669724770642202 // TEMP
     const e = lastEvent.current
     const parent = document.getElementById('scrollAttach')
     const img = document.getElementById('imgAttach')
-    if (!e || !parent || !img) {
+    if (!parent || !img) {
       return
     }
-    if (!isZoomed) {
+    if (!isZoomed && !dragPan) {
       img.style.transform = ''
       return
     }
 
+    if (!e) return
+
     const rect = parent.getBoundingClientRect()
     // position in parent
-    const x = Math.max(0, e.clientX - rect.left)
-    const y = Math.max(0, e.clientY - rect.top)
+    const x = clamp(Math.round(e.clientX - rect.left), 0, rect.width - 1) //rect.width / 2
+    const y = clamp(Math.round(e.clientY - rect.top), 0, rect.height - 1) //rect.height / 2
+
+    console.log('bbb', x, e?.clientX, rect.left)
+
     // ratio in parent
-    const xr = x / rect.width
-    const yr = y / rect.height
+    let xr = x / (rect.width - 1)
+    let yr = y / (rect.height - 1)
+
+    // xr = 1 // TEMP
+    // yr = 1 // TEMP
+
+    console.log('eee', xr, x, rect.width)
+
     // image size
     const iw = imgSize.width
     const ih = imgSize.height
@@ -113,6 +132,8 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     // moving the mouse should translate you to the edges of the image
     const mouseX = centerX + (1 - xr) * 2 * -centerX
     const mouseY = centerY + (1 - yr) * 2 * -centerY
+
+    console.log('ddd', mouseX, mouseY)
 
     const temp = [
       // move to middle
@@ -129,7 +150,32 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       .reverse() // applied right to left
       .join(' ')
     img.style.transform = temp
-  }, [zoomRatio, imgSize, isZoomed])
+
+    if (onChanged) {
+      const width = iw * zoomRatio
+      const height = ih * zoomRatio
+      // const xr = 1 // TEMP
+      // const yr = 0 // TEMP
+      // const _x = xr * (iw * zoomRatio - rect.width * zoomRatio)
+      // const _y = yr * (ih * zoomRatio - rect.height * zoomRatio)
+      // const _x = xr * iw * zoomRatio - rect.width * zoomRatio
+      // const _y = yr * ih * zoomRatio - rect.height * zoomRatio
+      // x0pixels should be: 2400 (pixels) - 300 (zoomed pixels) = 2100
+      // x1pixels should be: 2100 (x0pixels) + 300 (zoomed pixels) = 2400
+
+      //zoom * imagew - rect.width/zoom
+      // const _x = xr * width - (xr * rect.width) / zoomRatio
+      // x1pixels = x0pixels +rect.width/zoom
+      // const _y = yr * height - (yr * rect.height) / zoomRatio
+
+      let _x = xr * (width - rect.width / zoomRatio)
+      let _y = yr * (height - rect.height / zoomRatio)
+
+      const temp = {height, scale: zoomRatio, width, x: _x, y: _y}
+      console.log('aaa2', {x: temp.x, x1: _x + rect.width / zoomRatio})
+      onChanged(temp)
+    }
+  }, [zoomRatio, imgSize, isZoomed, dragPan, onChanged])
 
   const [lastZoomRatio, setLastZoomRatio] = React.useState(0)
   if (lastZoomRatio !== zoomRatio || isZoomed !== lastIsZoomed) {
@@ -140,32 +186,32 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
 
   const onImageMouseMove = React.useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (dragPan && !isDragging.current) {
+      if (dragPan && !allowPan) {
         return
       }
       lastEvent.current = e
       adjustImageStyle()
     },
-    [adjustImageStyle, dragPan]
+    [adjustImageStyle, dragPan, allowPan]
   )
 
   const attachTo = React.useCallback(() => {
     return toastAnchorRef.current
   }, [toastAnchorRef])
 
-  const onMouseDown = React.useCallback(() => {
-    isDragging.current = true
-  }, [])
-  const onMouseUp = React.useCallback(() => {
-    isDragging.current = false
-  }, [])
+  // const onMouseDown = React.useCallback(() => {
+  //   isDragging.current = true
+  // }, [])
+  // const onMouseUp = React.useCallback(() => {
+  //   isDragging.current = false
+  // }, [])
 
   return (
     <div
       id="scrollAttach"
-      onClick={dragPan ? undefined : toggleZoom}
-      onMouseDown={dragPan ? onMouseDown : undefined}
-      onMouseUp={dragPan ? onMouseUp : undefined}
+      onClick={dragPan ? toggleAllowPan : toggleZoom}
+      // onMouseDown={dragPan ? onMouseDown : undefined}
+      // onMouseUp={dragPan ? onMouseUp : undefined}
       ref={toastAnchorRef}
       style={Styles.collapseStyles([
         isZoomed ? styles.scrollAttachZoomed : (styles.scrollAttachOrig as any),
@@ -173,12 +219,12 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       ])}
       onMouseMove={onImageMouseMove}
       onMouseLeave={isZoomed ? onImageMouseLeave : undefined}
-      onWheel={isZoomed ? onImageWheel : undefined}
+      onWheel={isZoomed || dragPan ? onImageWheel : undefined}
     >
       <img
         id="imgAttach"
         src={src}
-        style={isZoomed ? styles.imgZoomed : (styles.imgOrig as any)}
+        style={isZoomed || dragPan ? styles.imgZoomed : (styles.imgOrig as any)}
         onLoad={onLoaded}
         onDragStart={onDragStart}
       />
@@ -205,7 +251,9 @@ const styles = Styles.styleSheetCreate(
       }),
       imgZoomed: Styles.platformStyles({
         isElectron: {
+          left: 0,
           position: 'absolute',
+          top: 0,
           transformOrigin: 'top left',
         },
       }),

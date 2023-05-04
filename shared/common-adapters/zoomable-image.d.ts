@@ -8,8 +8,7 @@ export type Props = {
   onLoaded?: () => void
   onIsZoomed?: (z: boolean) => void // desktop only
   dragPan?: boolean // desktop only, pan on drag only
-  // mobile only but TODO desktop also
-  onChanged?: (e: {height: number; width: number; x: number; y: number}) => void
+  onChanged?: (e: {height: number; width: number; x: number; y: number; scale: number}) => void
 }
 
 export default class ZoomableImage extends React.Component<Props> {}

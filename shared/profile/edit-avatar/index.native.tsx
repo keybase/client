@@ -98,6 +98,16 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     const rW = this._w !== 0 && width ? width / this._w : 1
     const x0 = rW * x
     const y0 = rH * y
+    // console.log('aaaa', {
+    //   width,
+    //   height,
+    //   x,
+    //   y,
+    //   rH,
+    //   rW,
+    //   x0,
+    //   y0,
+    // })
     return {
       x0: Math.round(x0),
       x1: Math.round((x + this.avatar_size()) * rW),
@@ -112,6 +122,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     this._x = x
     this._y = y
     this._z = true
+    console.log('aaa on zoomnative', {height, width, x, y})
   }
 
   _imageDimensions = () => {
