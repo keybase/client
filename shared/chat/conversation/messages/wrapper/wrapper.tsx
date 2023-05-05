@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import shallowEqual from 'shallowequal'
-import {ConvoIDContext, OrdinalContext, GetIdsContext} from '../ids-context'
+import {ConvoIDContext, OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
 import EmojiRow from '../emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta/container'
@@ -134,6 +134,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const isPendingPayment = Constants.isPendingPaymentMessage(state, m)
     const decorate = !exploded && !m.errorReason
     const type = m.type
+    const isEditing = state.chat2.editingMap.get(conversationIDKey) === ordinal
     const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
     const showSendIndicator =
       !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
@@ -151,6 +152,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
       ecrType,
       exploding,
       hasReactions,
+      isEditing,
       isPendingPayment,
       reactionsPopupPosition,
       showCoinsIcon,
@@ -172,10 +174,10 @@ type TSProps = {
   exploding: boolean
   hasReactions: boolean
   isPendingPayment: boolean
+  isHighlighted: boolean
   popupAnchor: React.MutableRefObject<React.Component | null>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   setShowingPicker: (s: boolean) => void
-  showCenteredHighlight: boolean
   showCoinsIcon: boolean
   showExplodingCountdown: boolean
   showRevoked: boolean
@@ -187,24 +189,6 @@ type TSProps = {
   you: string
 }
 
-const HighlightWrapper = ({
-  children,
-  style,
-}: {
-  children: React.ReactNode
-  style: Styles.StylesCrossPlatform
-}) => {
-  return (
-    <Kb.Box2
-      direction="vertical"
-      style={Styles.collapseStyles([style, styles.highlighted])}
-      fullWidth={!Styles.isMobile}
-    >
-      {children}
-    </Kb.Box2>
-  )
-}
-
 const NormalWrapper = ({children, style}: {children: React.ReactNode; style: Styles.StylesCrossPlatform}) => {
   return (
     <Kb.Box2 direction="vertical" style={style} fullWidth={!Styles.isMobile}>
@@ -214,18 +198,21 @@ const NormalWrapper = ({children, style}: {children: React.ReactNode; style: Sty
 }
 
 const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
-  const {botname, bottomChildren, children, decorate} = p
+  const {botname, bottomChildren, children, decorate, isHighlighted} = p
   const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
-  const {type, reactionsPopupPosition, setShowingPicker, showCenteredHighlight, showCoinsIcon} = p
+  const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon} = p
   const {toggleShowingPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
   const pressableProps = Styles.isMobile
     ? {
         onLongPress: decorate ? toggleShowingPopup : undefined,
+        style: isHighlighted ? {backgroundColor: Styles.globalColors.yellowOrYellowAlt} : undefined,
       }
     : {
         className: Styles.classNames({
-          'WrapperMessage-noOverflow': isPendingPayment,
-          'WrapperMessage-systemMessage': type?.startsWith('system'),
+          TextAndSiblings: true,
+          noOverflow: isPendingPayment,
+          systemMessage: type?.startsWith('system'),
+          // eslint-disable-next-line
           active: showingPopup || showingPicker,
         }),
         onContextMenu: toggleShowingPopup,
@@ -233,11 +220,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         ref: popupAnchor as any,
       }
 
-  const Background = isPendingPayment
-    ? PendingPaymentBackground
-    : showCenteredHighlight
-    ? HighlightWrapper
-    : NormalWrapper
+  const Background = isPendingPayment ? PendingPaymentBackground : NormalWrapper
 
   let content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -272,7 +255,6 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
             reactionsPopupPosition={reactionsPopupPosition}
             hasReactions={hasReactions}
             bottomChildren={bottomChildren}
-            showCenteredHighlight={showCenteredHighlight}
             toggleShowingPopup={toggleShowingPopup}
             setShowingPicker={setShowingPicker}
             showingPopup={showingPopup}
@@ -285,7 +267,6 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         showExplodingCountdown={showExplodingCountdown}
         showRevoked={showRevoked}
         showCoinsIcon={showCoinsIcon}
-        showCenteredHighlight={showCenteredHighlight}
         toggleShowingPopup={toggleShowingPopup}
       />
     </LongPressable>
@@ -365,7 +346,6 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
 })
 
 type BProps = {
-  showCenteredHighlight: boolean
   toggleShowingPopup: () => void
   showingPopup: boolean
   setShowingPicker: (s: boolean) => void
@@ -403,7 +383,6 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
 
 // Exploding, ... , sending, tombstone
 type RProps = {
-  showCenteredHighlight: boolean
   toggleShowingPopup: () => void
   showSendIndicator: boolean
   showExplodingCountdown: boolean
@@ -412,13 +391,11 @@ type RProps = {
   botname: string
 }
 const RightSide = React.memo(function RightSide(p: RProps) {
-  const {showCenteredHighlight, toggleShowingPopup, showSendIndicator, showCoinsIcon} = p
+  const {toggleShowingPopup, showSendIndicator, showCoinsIcon} = p
   const {showExplodingCountdown, showRevoked, botname} = p
   const sendIndicator = showSendIndicator ? <SendIndicator /> : null
 
-  const explodingCountdown = showExplodingCountdown ? (
-    <ExplodingMeta isParentHighlighted={showCenteredHighlight} onClick={toggleShowingPopup} />
-  ) : null
+  const explodingCountdown = showExplodingCountdown ? <ExplodingMeta onClick={toggleShowingPopup} /> : null
 
   const revokedIcon = showRevoked ? (
     <Kb.WithTooltip tooltip="Revoked device">
@@ -501,11 +478,11 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const mdata = useRedux(conversationIDKey, ordinal)
 
-  const {isPendingPayment, decorate, type, hasReactions} = mdata
+  const {isPendingPayment, decorate, type, hasReactions, isEditing} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
   const {reactionsPopupPosition, showCoinsIcon, botname, you} = mdata
 
-  const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
+  const canFixOverdraw = !isPendingPayment && !showCenteredHighlight && !isEditing
 
   const tsprops = {
     botname,
@@ -515,11 +492,11 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     ecrType,
     exploding,
     hasReactions,
+    isHighlighted: showCenteredHighlight || isEditing,
     isPendingPayment,
     popupAnchor,
     reactionsPopupPosition,
     setShowingPicker,
-    showCenteredHighlight,
     showCoinsIcon,
     showExplodingCountdown,
     showRevoked,
@@ -534,10 +511,12 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   return (
     <GetIdsContext.Provider value={getIds}>
       <OrdinalContext.Provider value={ordinal}>
-        <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
-          <TextAndSiblings {...tsprops} />
-          {popup}
-        </Styles.CanFixOverdrawContext.Provider>
+        <HighlightedContext.Provider value={showCenteredHighlight}>
+          <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
+            <TextAndSiblings {...tsprops} />
+            {popup}
+          </Styles.CanFixOverdrawContext.Provider>
+        </HighlightedContext.Provider>
       </OrdinalContext.Provider>
     </GetIdsContext.Provider>
   )

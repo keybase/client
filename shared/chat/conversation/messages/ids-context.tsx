@@ -12,3 +12,4 @@ export const GetIdsContext = React.createContext<
 }))
 
 export const SeparatorMapContext = React.createContext(new Map<Types.Ordinal, Types.Ordinal>())
+export const HighlightedContext = React.createContext(false)

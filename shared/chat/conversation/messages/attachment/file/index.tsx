@@ -20,7 +20,6 @@ type Props = {
   transferState: Types.MessageAttachmentTransferState
   hasProgress: boolean
   errorMsg: string
-  isHighlighted?: boolean
   isEditing: boolean
   isSaltpackFile: boolean
   onSaltpackFileOpen: (path: string, operation: CryptoTypes.Operations) => void
@@ -28,7 +27,7 @@ type Props = {
 
 const FileAttachment = React.memo(function FileAttachment(props: Props) {
   const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(props.transferState)
-  const {isSaltpackFile, isEditing, isHighlighted, toggleMessageMenu} = props
+  const {isSaltpackFile, isEditing, toggleMessageMenu} = props
   const iconType = isSaltpackFile ? 'icon-file-saltpack-32' : 'icon-file-32'
   const operation = isPathSaltpackEncrypted(props.fileName)
     ? Operations.Decrypt
@@ -39,7 +38,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
   return (
     <Kb.ClickableBox2 onLongPress={toggleMessageMenu} onClick={props.onDownload}>
       <ShowToastAfterSaving transferState={props.transferState} />
-      <Kb.Box style={Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing, isHighlighted)])}>
+      <Kb.Box style={Styles.collapseStyles([styles.containerStyle, getEditStyle(isEditing)])}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
           <Kb.Icon fixOverdraw={true} type={iconType} style={styles.iconStyle} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
@@ -49,7 +48,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
                 type="BodySemibold"
                 style={Styles.collapseStyles([
                   isSaltpackFile && styles.saltpackFileName,
-                  getEditStyle(isEditing, isHighlighted),
+                  getEditStyle(isEditing),
                 ])}
               >
                 {props.fileName}
@@ -58,10 +57,8 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
               <Kb.Markdown
                 messageType="attachment"
                 selectable={true}
-                style={getEditStyle(isEditing, isHighlighted)}
-                styleOverride={
-                  Styles.isMobile ? {paragraph: getEditStyle(isEditing, isHighlighted)} : undefined
-                }
+                style={getEditStyle(isEditing)}
+                styleOverride={Styles.isMobile ? ({paragraph: getEditStyle(isEditing)} as any) : undefined}
                 allowFontScaling={true}
               >
                 {props.title}
@@ -73,7 +70,7 @@ const FileAttachment = React.memo(function FileAttachment(props: Props) {
                 onClick={props.onDownload}
                 style={Styles.collapseStyles([
                   isSaltpackFile && styles.saltpackFileName,
-                  getEditStyle(isEditing, isHighlighted),
+                  getEditStyle(isEditing),
                 ])}
               >
                 {props.fileName}
