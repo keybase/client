@@ -59,9 +59,8 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const {ordinal} = p
   const common = useCommon(ordinal)
-  const {toggleShowingPopup, type} = common
+  const {toggleShowingPopup, type, showCenteredHighlight} = common
 
-  const showCenteredHighlight = React.useContext(HighlightedContext)
   const bottomChildren = useBottom(ordinal, toggleShowingPopup)
   const reply = useReply(ordinal)
   const claim = useClaim(ordinal)

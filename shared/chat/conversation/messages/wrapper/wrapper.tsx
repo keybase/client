@@ -131,6 +131,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const isPendingPayment = Constants.isPendingPaymentMessage(state, m)
     const decorate = !exploded && !m.errorReason
     const type = m.type
+    const isEditing = state.chat2.editingMap.get(conversationIDKey) === ordinal
     const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
     const showSendIndicator =
       !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
@@ -148,6 +149,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
       ecrType,
       exploding,
       hasReactions,
+      isEditing,
       isPendingPayment,
       reactionsPopupPosition,
       showCoinsIcon,
@@ -169,6 +171,7 @@ type TSProps = {
   exploding: boolean
   hasReactions: boolean
   isPendingPayment: boolean
+  isHighlighted: boolean
   popupAnchor: React.MutableRefObject<React.Component | null>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   setShowingPicker: (s: boolean) => void
@@ -192,19 +195,21 @@ const NormalWrapper = ({children, style}: {children: React.ReactNode; style: Sty
 }
 
 const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
-  const {botname, bottomChildren, children, decorate} = p
+  const {botname, bottomChildren, children, decorate, isHighlighted} = p
   const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
   const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon} = p
   const {toggleShowingPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
   const pressableProps = Styles.isMobile
     ? {
         onLongPress: decorate ? toggleShowingPopup : undefined,
+        style: isHighlighted ? {backgroundColor: Styles.globalColors.yellowOrYellowAlt} : undefined,
       }
     : {
         className: Styles.classNames({
           TextAndSiblings: true,
           noOverflow: isPendingPayment,
           systemMessage: type?.startsWith('system'),
+          // eslint-disable-next-line
           active: showingPopup || showingPicker,
         }),
         onContextMenu: toggleShowingPopup,
@@ -472,11 +477,11 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const mdata = useRedux(conversationIDKey, ordinal)
 
-  const {isPendingPayment, decorate, type, hasReactions} = mdata
+  const {isPendingPayment, decorate, type, hasReactions, isEditing} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
   const {reactionsPopupPosition, showCoinsIcon, botname, you} = mdata
 
-  const canFixOverdraw = !isPendingPayment && !showCenteredHighlight
+  const canFixOverdraw = !isPendingPayment && !showCenteredHighlight && !isEditing
 
   const tsprops = {
     botname,
@@ -486,6 +491,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     ecrType,
     exploding,
     hasReactions,
+    isHighlighted: showCenteredHighlight || isEditing,
     isPendingPayment,
     popupAnchor,
     reactionsPopupPosition,
