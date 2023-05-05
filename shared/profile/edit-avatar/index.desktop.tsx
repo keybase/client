@@ -8,7 +8,7 @@ import {AVATAR_SIZE} from '../../common-adapters/avatar'
 import KB2 from '../../util/electron.desktop'
 import './edit-avatar.css'
 
-const AVATAR_CONTAINER_SIZE = 300
+const AVATAR_CONTAINER_SIZE = 167 // 300
 const AVATAR_BORDER_SIZE = 4
 const VIEWPORT_CENTER = AVATAR_CONTAINER_SIZE / 2
 

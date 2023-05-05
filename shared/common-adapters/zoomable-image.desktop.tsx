@@ -11,6 +11,174 @@ const Kb = {
   Toast,
 }
 
+type PannerProps = {
+  src: string
+  onLoaded?: () => void
+  onPanned: (x: number, y: number, width: number, height: number, scale: number) => void
+}
+
+const Panner: React.FC<PannerProps> = ({src, onPanned, onLoaded}) => {
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const imgRef = React.useRef<HTMLImageElement>(null)
+
+  const [allowPan, setAllowPan] = React.useState(true)
+  // const [scale, setScale] = React.useState(1)
+  const scaleRef = React.useRef(1)
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current || !imgRef.current) return
+
+    if (!allowPan) return
+
+    const containerRect = containerRef.current.getBoundingClientRect()
+    const imgRect = imgRef.current.getBoundingClientRect()
+
+    const xPercent = (e.clientX - containerRect.left) / containerRect.width
+    const yPercent = (e.clientY - containerRect.top) / containerRect.height
+
+    const x = Math.min(
+      0,
+      Math.max(
+        -(imgRect.width - containerRect.width),
+        containerRect.width * xPercent - imgRect.width * xPercent
+      )
+    )
+    const y = Math.min(
+      0,
+      Math.max(
+        -(imgRect.height - containerRect.height),
+        containerRect.height * yPercent - imgRect.height * yPercent
+      )
+    )
+
+    imgRef.current.style.transform = `translate(${x}px, ${y}px) scale(${scaleRef.current})`
+    onPanned(-x, -y, imgRect.width, imgRect.height, scaleRef.current)
+  }
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+    if (!allowPan) return
+    const delta = e.deltaY > 0 ? 1.1 : 0.9
+    scaleRef.current = Math.max(1, scaleRef.current * delta)
+
+    // setScale(newScale)
+
+    // Apply the new scale to the image
+    // if (imgRef.current) {
+    //   imgRef.current.style.transform = `translate(${imgRef.current.offsetLeft}px, ${imgRef.current.offsetTop}px) scale(${scaleRef.current})`
+    // }
+
+    // Update image position after scaling
+    handleMouseMove(e)
+  }
+
+  const handleClick = () => {
+    setAllowPan(p => !p)
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        cursor: allowPan ? 'move' : 'zoom-in',
+        height: '100%',
+        overflow: 'hidden',
+        position: 'relative',
+        width: '100%',
+      }}
+      onMouseMove={handleMouseMove}
+      onWheel={handleWheel}
+      onClick={handleClick}
+    >
+      <img
+        onLoad={onLoaded}
+        ref={imgRef}
+        src={src}
+        style={{position: 'absolute', transformOrigin: '0 0', opacity: src ? 1 : 0}}
+      />
+    </div>
+  )
+}
+
+// type CropperProps = {
+//   src: string
+//   onPanned: (x: number, y: number, width: number, height: number) => void
+// }
+// const Cropper: React.FC<CropperProps> = ({src, onPanned}) => {
+//   const [scale, setScale] = React.useState(1)
+//   const [position, setPosition] = React.useState({x: 0, y: 0})
+//   const imgRef = React.useRef<HTMLImageElement>(null)
+
+//   React.useEffect(() => {
+//     const handleMouseWheel = (e: WheelEvent) => {
+//       e.preventDefault()
+//       const newScale = scale + (e.deltaY > 0 ? -0.1 : 0.1)
+//       setScale(Math.max(1, newScale))
+//     }
+
+//     const handleMouseMove = (e: MouseEvent) => {
+//       e.preventDefault()
+//       console.log('aaa2', e.offsetX)
+//       // setPosition({x: position.x + e.movementX, y: position.y + e.movementY})
+//       setPosition({x: e.offsetX, y: e.offsetY})
+//     }
+
+//     const handleMouseUp = () => {
+//       document.removeEventListener('mousemove', handleMouseMove)
+//       document.removeEventListener('mouseup', handleMouseUp)
+//     }
+
+//     const handleMouseDown = () => {
+//       document.addEventListener('mousemove', handleMouseMove)
+//       document.addEventListener('mouseup', handleMouseUp)
+//     }
+
+//     if (imgRef.current) {
+//       imgRef.current.addEventListener('wheel', handleMouseWheel)
+//       imgRef.current.addEventListener('mousedown', handleMouseDown)
+//     }
+
+//     return () => {
+//       if (imgRef.current) {
+//         imgRef.current.removeEventListener('wheel', handleMouseWheel)
+//         imgRef.current.removeEventListener('mousedown', handleMouseDown)
+//       }
+//       document.removeEventListener('mousemove', handleMouseMove)
+//       document.removeEventListener('mouseup', handleMouseUp)
+//     }
+//   }, [])
+
+//   React.useEffect(() => {
+//     if (imgRef.current) {
+//       const {width, height} = imgRef.current.getBoundingClientRect()
+//       onPanned(position.x, position.y, width / scale, height / scale)
+//     }
+//   }, [position, scale, onPanned])
+
+//   return (
+//     <div
+//       ref={imgRef}
+//       style={{
+//         overflow: 'hidden',
+//         position: 'relative',
+//         width: '100%',
+//         height: '100%',
+//       }}
+//     >
+//       <img
+//         src={src}
+//         alt="cropper"
+//         style={{
+//           cursor: 'move',
+//           position: 'absolute',
+//           transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+//           transformOrigin: 'top left',
+//           pointerEvents: 'none',
+//         }}
+//       />
+//     </div>
+//   )
+// }
 const onDragStart = (e: React.BaseSyntheticEvent) => e.preventDefault()
 const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   const {src, onIsZoomed, style, onLoaded, dragPan, onChanged} = p
@@ -90,7 +258,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   const lastEvent = React.useRef<React.MouseEvent<HTMLDivElement> | undefined>()
 
   const adjustImageStyle = React.useCallback(() => {
-    const zoomRatio = 7 // TEMP
+    const zoomRatio = 1.2 // TEMP
     // const zoomRatio = 1 / 0.3669724770642202 // TEMP
     const e = lastEvent.current
     const parent = document.getElementById('scrollAttach')
@@ -173,7 +341,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
 
       const temp = {height, scale: zoomRatio, width, x: _x, y: _y}
       console.log('aaa2', {x: temp.x, x1: _x + rect.width / zoomRatio})
-      onChanged(temp)
+      // onChanged(temp)
     }
   }, [zoomRatio, imgSize, isZoomed, dragPan, onChanged])
 
@@ -205,6 +373,11 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
   // const onMouseUp = React.useCallback(() => {
   //   isDragging.current = false
   // }, [])
+  const onPanned = (x: number, y: number, width: number, height: number, scale: number) => {
+    console.log('aaa', {x, y, width, height})
+    onChanged?.({x, y, width, height, scale})
+  }
+  return <Panner src={src} onPanned={onPanned} onLoaded={onLoaded} />
 
   return (
     <div
