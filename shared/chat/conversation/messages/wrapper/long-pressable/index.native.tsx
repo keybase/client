@@ -10,7 +10,7 @@ import {dismiss} from '../../../../../util/keyboard'
 // import {useDebugLayout} from '../../../../../util/debug'
 
 const LongPressable = React.memo(function LongPressable(props: Props) {
-  const {children, onLongPress} = props
+  const {children, onLongPress, style} = props
   const onPress = React.useCallback(() => dismiss(), [])
   const getIds = React.useContext(GetIdsContext)
 
@@ -24,7 +24,7 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
 
   const inner = (
     <Kb.NativePressable
-      style={styles.pressable}
+      style={[styles.pressable, style]}
       onLongPress={onLongPress}
       onPress={onPress}
       // uncomment to debug measuring issues w/ items

@@ -1,12 +1,14 @@
 import * as React from 'react'
+import * as Styles from '../../../../../styles'
 import type * as Types from '../../../../../constants/types/chat2'
 
 export type Props = {
   children: React.ReactNode
   // mobile
-  highlighted?: boolean
   onLongPress?: () => void
   onSwipeLeft?: () => void
+  style?: Styles.StylesCrossPlatform
+
   // desktop
   className?: string
   onContextMenu?: () => void

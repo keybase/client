@@ -64,10 +64,7 @@ export const Transferring = (p: {ratio: number; transferState: Types.MessageAtta
   )
 }
 
-export const getEditStyle = (isEditing: boolean, isHighlighted?: boolean) => {
-  if (isHighlighted) {
-    return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
-  }
+export const getEditStyle = (isEditing: boolean) => {
   return isEditing ? sharedStyles.sentEditing : sharedStyles.sent
 }
 
