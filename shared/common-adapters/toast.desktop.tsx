@@ -40,5 +40,7 @@ const styles = Styles.styleSheetCreate(() => ({
       pointerEvents: 'none',
     },
   }),
-  float: {pointerEvents: 'none'},
+  float: Styles.platformStyles({
+    isElectron: {pointerEvents: 'none'},
+  }),
 }))

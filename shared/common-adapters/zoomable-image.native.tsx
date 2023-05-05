@@ -12,7 +12,7 @@ const ZoomableImage = (p: Props) => {
   const {src, style, onChanged, onLoaded} = p
   return (
     <Kb.ZoomableBox style={style} contentContainerStyle={styles.zoomableBoxContainer} onZoom={onChanged}>
-      <Kb.Image2 src={src} style={styles.image} onLoaded={onLoaded} />
+      <Kb.Image2 src={src} style={styles.image} onLoad={onLoaded} />
     </Kb.ZoomableBox>
   )
 }
