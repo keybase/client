@@ -71,7 +71,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     )
 
     imgRef.current.style.transform = `translate(${x}px, ${y}px) scale(${scaleRef.current})`
-    onChanged?.({x: -x, y: -y, width: imgRect.width, height: imgRect.height, scale: scaleRef.current})
+    onChanged?.({height: imgRect.height, scale: scaleRef.current, width: imgRect.width, x: -x, y: -y})
   }
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -85,7 +85,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     handleMouseMove(e)
   }
 
-  const handleClick = e => {
+  const handleClick = (e: React.MouseEvent) => {
     if (dragPan) {
       setAllowPan(p => !p)
     } else {
@@ -94,13 +94,18 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     }
   }
 
-  let style: any = {
+  let style: React.CSSProperties = {
     height: '100%',
     overflow: 'hidden',
     position: 'relative',
     width: '100%',
   }
-  let imgStyle: any = {display: 'flex', position: 'absolute', transformOrigin: '0 0', opacity: src ? 1 : 0}
+  let imgStyle: React.CSSProperties = {
+    display: 'flex',
+    opacity: src ? 1 : 0,
+    position: 'absolute',
+    transformOrigin: '0 0',
+  }
   if (dragPan) {
     style = {...style, cursor: allowPan ? 'move' : 'pointer'}
   } else {
@@ -109,7 +114,7 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
       cursor: isZoomed ? 'zoom-out' : 'zoom-in',
       ...(isZoomed ? {} : {display: 'flex'}),
     }
-    imgStyle = isZoomed ? undefined : {maxWidth: '100%', maxHeight: '100%', margin: 'auto'}
+    imgStyle = isZoomed ? {} : {margin: 'auto', maxHeight: '100%', maxWidth: '100%'}
   }
 
   return (
