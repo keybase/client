@@ -1,2 +1,3 @@
+TODO: editing
 • Various bug fixes and performance enhancements
 • Mark threads as unread

@@ -6,6 +6,7 @@ import {formatDurationShort} from '../../../../../util/timestamp'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
 import * as Container from '../../../../../util/container'
 import {animationDuration} from '../exploding-height-retainer'
+import {HighlightedContext} from '../../ids-context'
 
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
@@ -16,7 +17,6 @@ type Mode = 'none' | 'countdown' | 'boom' | 'hidden'
 type Props = {
   exploded: boolean
   explodesAt: number
-  isParentHighlighted: boolean
   messageKey: string
   onClick?: () => void
   pending: boolean
@@ -38,7 +38,7 @@ type Props2 = {
 }
 
 const ExplodingMeta = (p: Props) => {
-  const {exploded, explodesAt, isParentHighlighted, messageKey, onClick, pending} = p
+  const {exploded, explodesAt, messageKey, onClick, pending} = p
 
   const [mode, setMode] = React.useState<Mode>('none')
   Container.useDepChangeEffect(() => {
@@ -49,6 +49,7 @@ const ExplodingMeta = (p: Props) => {
   const sharedTimerIDRef = React.useRef<SharedTimerID>(0)
   const forceUpdateIDRef = React.useRef<ReturnType<typeof setTimeout> | undefined>()
   const sharedTimerKeyRef = React.useRef('')
+  const isParentHighlighted = React.useContext(HighlightedContext)
 
   const props2 = {
     exploded,

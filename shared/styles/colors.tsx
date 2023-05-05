@@ -216,11 +216,10 @@ export const colors = {
   white_90: 'rgba(255, 255, 255, 0.90)',
   white_90_on_white: '#FFFFFF',
   yellow: '#FFF75A',
-  yellowAlt: '#e0d733',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
   get yellowOrYellowAlt() {
-    return this.yellow
+    return '#fffa9e'
   },
 } as const
 
@@ -437,11 +436,10 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   white_90: 'rgba(25, 25, 25, 0.90)',
   white_90_on_white: '#191919',
   yellow: '#FFF75A',
-  yellowAlt: '#e0d733',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
   get yellowOrYellowAlt() {
-    return colors.yellowAlt
+    return '#3d3b15'
   },
 }
 

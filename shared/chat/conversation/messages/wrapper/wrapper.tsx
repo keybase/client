@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import shallowEqual from 'shallowequal'
-import {ConvoIDContext, OrdinalContext, GetIdsContext} from '../ids-context'
+import {ConvoIDContext, OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
 import EmojiRow from '../emoji-row/container'
 import ExplodingHeightRetainer from './exploding-height-retainer/container'
 import ExplodingMeta from './exploding-meta/container'
@@ -172,7 +172,6 @@ type TSProps = {
   popupAnchor: React.MutableRefObject<React.Component | null>
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   setShowingPicker: (s: boolean) => void
-  showCenteredHighlight: boolean
   showCoinsIcon: boolean
   showExplodingCountdown: boolean
   showRevoked: boolean
@@ -182,24 +181,6 @@ type TSProps = {
   toggleShowingPopup: () => void
   type: Types.MessageType
   you: string
-}
-
-const HighlightWrapper = ({
-  children,
-  style,
-}: {
-  children: React.ReactNode
-  style: Styles.StylesCrossPlatform
-}) => {
-  return (
-    <Kb.Box2
-      direction="vertical"
-      style={Styles.collapseStyles([style, styles.highlighted])}
-      fullWidth={!Styles.isMobile}
-    >
-      {children}
-    </Kb.Box2>
-  )
 }
 
 const NormalWrapper = ({children, style}: {children: React.ReactNode; style: Styles.StylesCrossPlatform}) => {
@@ -213,7 +194,7 @@ const NormalWrapper = ({children, style}: {children: React.ReactNode; style: Sty
 const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   const {botname, bottomChildren, children, decorate} = p
   const {showingPopup, ecrType, exploding, hasReactions, isPendingPayment, popupAnchor} = p
-  const {type, reactionsPopupPosition, setShowingPicker, showCenteredHighlight, showCoinsIcon} = p
+  const {type, reactionsPopupPosition, setShowingPicker, showCoinsIcon} = p
   const {toggleShowingPopup, showExplodingCountdown, showRevoked, showSendIndicator, showingPicker} = p
   const pressableProps = Styles.isMobile
     ? {
@@ -221,8 +202,9 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
       }
     : {
         className: Styles.classNames({
-          'WrapperMessage-noOverflow': isPendingPayment,
-          'WrapperMessage-systemMessage': type?.startsWith('system'),
+          TextAndSiblings: true,
+          noOverflow: isPendingPayment,
+          systemMessage: type?.startsWith('system'),
           active: showingPopup || showingPicker,
         }),
         onContextMenu: toggleShowingPopup,
@@ -230,11 +212,7 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         ref: popupAnchor as any,
       }
 
-  const Background = isPendingPayment
-    ? PendingPaymentBackground
-    : showCenteredHighlight
-    ? HighlightWrapper
-    : NormalWrapper
+  const Background = isPendingPayment ? PendingPaymentBackground : NormalWrapper
 
   let content = exploding ? (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -269,7 +247,6 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
             reactionsPopupPosition={reactionsPopupPosition}
             hasReactions={hasReactions}
             bottomChildren={bottomChildren}
-            showCenteredHighlight={showCenteredHighlight}
             toggleShowingPopup={toggleShowingPopup}
             setShowingPicker={setShowingPicker}
             showingPopup={showingPopup}
@@ -282,7 +259,6 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
         showExplodingCountdown={showExplodingCountdown}
         showRevoked={showRevoked}
         showCoinsIcon={showCoinsIcon}
-        showCenteredHighlight={showCenteredHighlight}
         toggleShowingPopup={toggleShowingPopup}
       />
     </LongPressable>
@@ -362,7 +338,6 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
 })
 
 type BProps = {
-  showCenteredHighlight: boolean
   toggleShowingPopup: () => void
   showingPopup: boolean
   setShowingPicker: (s: boolean) => void
@@ -400,7 +375,6 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
 
 // Exploding, ... , sending, tombstone
 type RProps = {
-  showCenteredHighlight: boolean
   toggleShowingPopup: () => void
   showSendIndicator: boolean
   showExplodingCountdown: boolean
@@ -409,13 +383,11 @@ type RProps = {
   botname: string
 }
 const RightSide = React.memo(function RightSide(p: RProps) {
-  const {showCenteredHighlight, toggleShowingPopup, showSendIndicator, showCoinsIcon} = p
+  const {toggleShowingPopup, showSendIndicator, showCoinsIcon} = p
   const {showExplodingCountdown, showRevoked, botname} = p
   const sendIndicator = showSendIndicator ? <SendIndicator /> : null
 
-  const explodingCountdown = showExplodingCountdown ? (
-    <ExplodingMeta isParentHighlighted={showCenteredHighlight} onClick={toggleShowingPopup} />
-  ) : null
+  const explodingCountdown = showExplodingCountdown ? <ExplodingMeta onClick={toggleShowingPopup} /> : null
 
   const revokedIcon = showRevoked ? (
     <Kb.WithTooltip tooltip="Revoked device">
@@ -518,7 +490,6 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
     popupAnchor,
     reactionsPopupPosition,
     setShowingPicker,
-    showCenteredHighlight,
     showCoinsIcon,
     showExplodingCountdown,
     showRevoked,
@@ -533,10 +504,12 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   return (
     <GetIdsContext.Provider value={getIds}>
       <OrdinalContext.Provider value={ordinal}>
-        <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
-          <TextAndSiblings {...tsprops} />
-          {popup}
-        </Styles.CanFixOverdrawContext.Provider>
+        <HighlightedContext.Provider value={showCenteredHighlight}>
+          <Styles.CanFixOverdrawContext.Provider value={canFixOverdraw}>
+            <TextAndSiblings {...tsprops} />
+            {popup}
+          </Styles.CanFixOverdrawContext.Provider>
+        </HighlightedContext.Provider>
       </OrdinalContext.Provider>
     </GetIdsContext.Provider>
   )

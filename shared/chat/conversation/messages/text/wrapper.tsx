@@ -6,7 +6,7 @@ import * as Styles from '../../../../styles'
 import {useClaim} from './claim'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
+import {ConvoIDContext, HighlightedContext, OrdinalContext} from '../ids-context'
 import {SetRecycleTypeContext} from '../../recycle-type-context'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import {sharedStyles} from '../shared-styles'
@@ -59,10 +59,11 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const {ordinal} = p
   const common = useCommon(ordinal)
-  const {showCenteredHighlight, toggleShowingPopup, type} = common
+  const {toggleShowingPopup, type} = common
 
-  const bottomChildren = useBottom(ordinal, showCenteredHighlight, toggleShowingPopup)
-  const reply = useReply(ordinal, showCenteredHighlight)
+  const showCenteredHighlight = React.useContext(HighlightedContext)
+  const bottomChildren = useBottom(ordinal, toggleShowingPopup)
+  const reply = useReply(ordinal)
   const claim = useClaim(ordinal)
 
   const {isEditing, textType, hasReactions} = Container.useSelector(state => {

@@ -442,9 +442,11 @@ const useItems = (p: {
           key={String(ordinal)}
           className={Styles.classNames(
             'hover-container',
+            'WrapperMessage',
             'WrapperMessage-hoverBox',
             'WrapperMessage-decorated',
-            'WrapperMessage-hoverColor'
+            'WrapperMessage-hoverColor',
+            {highlighted: centeredOrdinal === ordinal}
           )}
         >
           {previous ? <Separator trailingItem={ordinal} leadingItem={previous} /> : null}
@@ -452,7 +454,7 @@ const useItems = (p: {
         </div>
       )
     },
-    [messageTypeMap]
+    [messageTypeMap, centeredOrdinal]
   )
 
   const items = useMemo(() => {
