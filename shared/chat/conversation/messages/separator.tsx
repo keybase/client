@@ -357,7 +357,6 @@ const styles = Styles.styleSheetCreate(
           right: -16,
         },
       }),
-      timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
       usernameCrown: Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',

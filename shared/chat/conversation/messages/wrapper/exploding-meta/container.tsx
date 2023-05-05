@@ -5,12 +5,11 @@ import * as Container from '../../../../../util/container'
 import ExplodingMeta from '.'
 
 export type OwnProps = {
-  isParentHighlighted: boolean
   onClick?: () => void
 }
 
 const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: OwnProps) {
-  const {isParentHighlighted, onClick} = p
+  const {onClick} = p
 
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
@@ -26,7 +25,6 @@ const ExplodingMetaContainer = React.memo(function ExplodingMetaContainer(p: Own
   const props = {
     exploded,
     explodesAt,
-    isParentHighlighted,
     messageKey,
     onClick,
     pending,
