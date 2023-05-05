@@ -112,7 +112,6 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     this._x = x
     this._y = y
     this._z = true
-    console.log('aaa on zoomnative', {height, width, x, y})
   }
 
   _imageDimensions = () => {
