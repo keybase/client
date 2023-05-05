@@ -2,7 +2,7 @@
 }
 .WrapperMessage.highlighted {
   animation-name: highlightAnimation;
-  animation-duration: 0.5s;
+  animation-duration: 0.3s;
   animation-timing-function: ease-in;
   animation-play-state: running;
   animation-fill-mode: forwards;
@@ -12,10 +12,12 @@
   from {
     background-color: var(--color-transparent);
     border-radius: 0px;
+    box-shadow: 0px 0px 0px 0px rgb(0 0 0 / 38%);
   }
   to {
     background-color: var(--color-yellowOrYellowAlt);
     border-radius: 4px;
+    box-shadow: 4px 4px 5px 1px rgb(0 0 0 / 38%);
   }
 }
 
