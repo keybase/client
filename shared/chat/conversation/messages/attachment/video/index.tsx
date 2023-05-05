@@ -6,14 +6,13 @@ import {Title, useAttachmentRedux, Collapsed, useCollapseIcon, Transferring} fro
 
 type Props = {
   toggleMessageMenu: () => void
-  isHighlighted?: boolean
 }
 
 const Video = React.memo(function Video(p: Props) {
-  const {isHighlighted, toggleMessageMenu} = p
+  const {toggleMessageMenu} = p
   const {fileName, isCollapsed, showTitle, openFullscreen, transferState, transferProgress} =
     useAttachmentRedux()
-  const containerStyle = isHighlighted ? styles.containerHighlighted : styles.container
+  const containerStyle = styles.container
   const collapseIcon = useCollapseIcon(false)
 
   const filename = React.useMemo(() => {
@@ -59,11 +58,6 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       container: {alignSelf: 'center', paddingRight: Styles.globalMargins.tiny, position: 'relative'},
-      containerHighlighted: {
-        alignSelf: 'center',
-        backgroundColor: Styles.globalColors.yellowLight,
-        paddingRight: Styles.globalMargins.tiny,
-      },
       contentContainer: {
         backgroundColor: Styles.globalColors.black_05_on_white,
         borderRadius: Styles.borderRadius,

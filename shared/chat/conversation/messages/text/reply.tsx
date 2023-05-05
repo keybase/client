@@ -4,35 +4,32 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import {ConvoIDContext, OrdinalContext, GetIdsContext} from '../ids-context'
+import {ConvoIDContext, OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
 import type * as Types from '../../../../constants/types/chat2'
 
-export const useReply = (ordinal: Types.Ordinal, showCenteredHighlight: boolean) => {
+export const useReply = (ordinal: Types.Ordinal) => {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const showReplyTo = Container.useSelector(
     state => !!state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.replyTo
   )
-  return showReplyTo ? <Reply isParentHighlighted={showCenteredHighlight} /> : null
+  return showReplyTo ? <Reply /> : null
 }
 
 const emptyMessage = Constants.makeMessageText()
 
 const ReplyToContext = React.createContext<Types.Message>(emptyMessage)
 
-const AvatarHolder = (p: {isParentHighlighted: boolean}) => {
+const AvatarHolder = () => {
   const {author} = React.useContext(ReplyToContext)
-  const {isParentHighlighted} = p
+  const showCenteredHighlight = React.useContext(HighlightedContext)
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
       <Kb.Avatar username={author} size={16} />
       <Kb.Text
         type="BodySmallBold"
         style={
-          isParentHighlighted
-            ? Styles.collapseStyles([
-                styles.replyUsername,
-                isParentHighlighted && styles.replyUsernameHighlighted,
-              ])
+          showCenteredHighlight
+            ? Styles.collapseStyles([styles.replyUsername, styles.replyUsernameHighlighted])
             : styles.replyUsername
         }
       >
@@ -59,9 +56,9 @@ const ReplyImage = () => {
   )
 }
 
-const ReplyText = (p: {isParentHighlighted: boolean}) => {
-  const {isParentHighlighted} = p
+const ReplyText = () => {
   const replyTo = React.useContext(ReplyToContext)
+  const showCenteredHighlight = React.useContext(HighlightedContext)
 
   const text =
     replyTo.type === 'attachment'
@@ -71,14 +68,17 @@ const ReplyText = (p: {isParentHighlighted: boolean}) => {
       : ''
 
   return text ? (
-    <Kb.Text type="BodySmall" style={isParentHighlighted ? styles.textHighlighted : undefined} lineClamp={3}>
+    <Kb.Text
+      type="BodySmall"
+      style={showCenteredHighlight ? styles.textHighlighted : undefined}
+      lineClamp={3}
+    >
       {text}
     </Kb.Text>
   ) : null
 }
 
 type RS = {
-  isParentHighlighted: boolean
   showImage: boolean
   showEdited: boolean
   isDeleted: boolean
@@ -86,7 +86,7 @@ type RS = {
 }
 
 const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
-  const {isParentHighlighted, showImage, showEdited, isDeleted, onClick} = p
+  const {showImage, showEdited, isDeleted, onClick} = p
 
   return (
     <Kb.ClickableBox2 onClick={onClick}>
@@ -100,7 +100,7 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
         <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />
         <Kb.Box2 direction="vertical" gap="xtiny" style={styles.replyContentContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <AvatarHolder isParentHighlighted={isParentHighlighted} />
+            <AvatarHolder />
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             {showImage && <ReplyImage />}
@@ -110,7 +110,7 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
                   The original message was deleted.
                 </Kb.Text>
               ) : (
-                <ReplyText isParentHighlighted={isParentHighlighted} />
+                <ReplyText />
               )}
             </Kb.Box2>
           </Kb.Box2>
@@ -125,8 +125,7 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
   )
 })
 
-const Reply = React.memo(function Repy(p: {isParentHighlighted: boolean}) {
-  const {isParentHighlighted} = p
+const Reply = React.memo(function Repy() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const replyTo = Container.useSelector(state => {
@@ -150,13 +149,7 @@ const Reply = React.memo(function Repy(p: {isParentHighlighted: boolean}) {
 
   return (
     <ReplyToContext.Provider value={replyTo}>
-      <ReplyStructure
-        isParentHighlighted={isParentHighlighted}
-        isDeleted={isDeleted}
-        showImage={showImage}
-        showEdited={showEdited}
-        onClick={onClick}
-      />
+      <ReplyStructure isDeleted={isDeleted} showImage={showImage} showEdited={showEdited} onClick={onClick} />
     </ReplyToContext.Provider>
   )
 })
