@@ -1058,10 +1058,10 @@ export const createToggleMessageCollapse = (payload: {
 /**
  * Toggle the display of the thread search window
  */
-export const createToggleThreadSearch = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: toggleThreadSearch as typeof toggleThreadSearch,
-})
+export const createToggleThreadSearch = (payload: {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly hide?: boolean
+}) => ({payload, type: toggleThreadSearch as typeof toggleThreadSearch})
 /**
  * Unpin a message
  */

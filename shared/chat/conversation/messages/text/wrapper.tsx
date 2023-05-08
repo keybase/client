@@ -18,14 +18,14 @@ const getStyle = (
   isEditing: boolean,
   isHighlighted?: boolean
 ): Styles.StylesCrossPlatform => {
-  if (isHighlighted && Styles.isMobile) {
+  if (isHighlighted) {
     return Styles.collapseStyles([sharedStyles.sent, sharedStyles.highlighted])
   } else if (type === 'sent') {
-    return isEditing && Styles.isMobile
+    return isEditing
       ? sharedStyles.sentEditing
       : Styles.collapseStyles([sharedStyles.sent, Styles.globalStyles.fastBackground])
   } else {
-    return isEditing && Styles.isMobile
+    return isEditing
       ? sharedStyles.pendingFailEditing
       : Styles.collapseStyles([sharedStyles.pendingFail, Styles.globalStyles.fastBackground])
   }

@@ -585,7 +585,7 @@ const styles = Styles.styleSheetCreate(
       editingTabStyle: {
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'flex-start',
-        backgroundColor: Styles.globalColors.yellowLight,
+        backgroundColor: Styles.globalColors.yellowOrYellowAlt,
         flexShrink: 0,
         height: '100%',
         minWidth: 32,

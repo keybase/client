@@ -128,7 +128,10 @@ const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
 const styles = Styles.styleSheetCreate(() => ({
   collapseLabel: {backgroundColor: Styles.globalColors.fastBlank},
   collapseLabelWhite: {color: Styles.globalColors.white_75},
-  titleContainer: {paddingTop: Styles.globalMargins.xxtiny},
+  titleContainer: {
+    alignSelf: 'flex-start',
+    paddingTop: Styles.globalMargins.xxtiny,
+  },
   transferring: {
     backgroundColor: Styles.globalColors.black_50,
     borderRadius: 2,
