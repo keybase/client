@@ -440,7 +440,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
   get yellowOrYellowAlt() {
-    return '#393939'
+    return '#616161'
   },
 }
 
