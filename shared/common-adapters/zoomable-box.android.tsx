@@ -194,13 +194,13 @@ export function ZoomableBox(props: Props) {
     translationY,
   ])
 
-  useDerivedValue(() => {
-    if (scale.value > 1 && !isZoomed.value) {
-      isZoomed.value = true
-    } else if (scale.value === 1 && isZoomed.value) {
-      isZoomed.value = false
-    }
-  }, [])
+  // useDerivedValue(() => {
+  //   if (scale.value > 1 && !isZoomed.value) {
+  //     isZoomed.value = true
+  //   } else if (scale.value === 1 && isZoomed.value) {
+  //     isZoomed.value = false
+  //   }
+  // }, [])
 
   const updateOnZoom = React.useCallback(
     (scale: number, px: number, py: number) => {
@@ -213,9 +213,9 @@ export function ZoomableBox(props: Props) {
     [onZoom, viewHeight, viewWidth, containerHeight, containerWidth]
   )
 
-  useDerivedValue(() => {
-    runOnJS(updateOnZoom)(scale.value, translationX.value, translationY.value)
-  }, [])
+  // useDerivedValue(() => {
+  //   runOnJS(updateOnZoom)(scale.value, translationX.value, translationY.value)
+  // }, [])
 
   const as = useAnimatedStyle(() => {
     return {

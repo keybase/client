@@ -4,15 +4,21 @@ import type {Props} from './image2'
 import {Image} from 'expo-image'
 
 const Image2 = (p: Props) => {
-  const {showLoadingStateUntilLoaded = true, src, onLoad, onError, style} = p
+  console.log('aaa image2', p)
+  const {showLoadingStateUntilLoaded = true, src, onLoad, /*onError, */ style} = p
   const [loading, setLoading] = React.useState(true)
   const _onLoad = React.useCallback(
     (e: any) => {
+      console.log('aaa onloaded', e)
       setLoading(false)
       onLoad?.(e)
     },
     [onLoad]
   )
+
+  const onError = e => {
+    console.log('aaa onerror', e)
+  }
 
   return (
     <>
@@ -21,9 +27,10 @@ const Image2 = (p: Props) => {
         style={
           // eslint-disable-next-line
           style as any
+          // {width: 200, height: 200, backgroundColor: 'red'}
         }
         onLoad={_onLoad}
-        cachePolicy="memory"
+        cachePolicy="none"
         contentFit="contain"
         onError={onError}
       />
