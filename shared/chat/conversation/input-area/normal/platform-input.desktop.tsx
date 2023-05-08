@@ -549,7 +549,7 @@ const styles = Styles.styleSheetCreate(
         marginRight: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.xtiny,
       },
-      inputWrapperEditing: {backgroundColor: Styles.globalColors.yellowLight},
+      inputWrapperEditing: {backgroundColor: Styles.globalColors.yellowOrYellowAlt},
       inputWrapperExplodingMode: {borderColor: Styles.globalColors.black},
       suggestionSpinnerStyle: {
         bottom: Styles.globalMargins.tiny,
