@@ -28,7 +28,6 @@ export const useJumpToRecent = (
   const jumpToRecent = React.useCallback(() => {
     scrollToBottom()
     dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
   }, [dispatch, conversationIDKey, scrollToBottom])
 
   return !containsLatestMessage && numOrdinals > 0 && <JumpToRecent onClick={jumpToRecent} />

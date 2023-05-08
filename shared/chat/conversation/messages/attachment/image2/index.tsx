@@ -40,6 +40,7 @@ const Image2 = React.memo(function Image2(p: Props) {
           style={styles.contentContainer}
           alignSelf="flex-start"
           alignItems="flex-start"
+          gap="xxtiny"
         >
           <ShowToastAfterSaving transferState={transferState} />
           <Kb.ClickableBox
