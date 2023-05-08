@@ -46,6 +46,7 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
   const onSwipeLeft = React.useCallback(() => {
     const {conversationIDKey, ordinal} = getIds()
     dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
+    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey, hide: true}))
   }, [dispatch, getIds])
 
   // Only swipeable if there is an onSwipeLeft handler
