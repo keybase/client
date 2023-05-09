@@ -119,7 +119,6 @@
     "qrcode-generator": "keybase/qrcode-generator#keybase-changes-off-140",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-is": "18.2.0",
     "react-list": "0.8.17",
     "react-measure": "2.5.2",
     "react-native": "0.71.7",

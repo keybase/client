@@ -178,7 +178,7 @@ export const collapseStyles = (
 export const transition = () => ({})
 export const backgroundURL = () => ({})
 
-export {isMobile, isPhone, isTablet, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
+export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '../constants/platform'
 export {
   globalMargins,
   backgroundModeToColor,

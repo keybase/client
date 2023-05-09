@@ -1,7 +1,4 @@
-import memoizeOne from 'memoize-one'
-
-const memoize = memoizeOne
-export {memoize}
+export {default as memoize} from 'memoize-one'
 
 // BEGIN debugging memo
 // import deepEqual from 'lodash/isEqual'

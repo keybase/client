@@ -2,8 +2,9 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {isIPhoneX} from '../constants/platform'
+// import {isIPhoneX} from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
+const isIPhoneX = false
 // import lagRadar from 'lag-radar'
 
 type Props = {
