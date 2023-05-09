@@ -89,6 +89,7 @@ class GetTitles extends React.Component<Props, State> {
         preview = (
           <Kb.Video
             allowFile={true}
+            muted={true}
             url={Styles.isAndroid ? `${path.substring(2)}` : `file://${encodeURI(path)}`}
           />
         )

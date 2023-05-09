@@ -62,7 +62,7 @@ export default class extends React.PureComponent<Props, State> {
                 controls={!this.props.hideControls}
                 src={this.props.url}
                 style={Styles.collapseStyles([styles.container, getVideoSize(this.state)])}
-                muted={true}
+                muted={this.props.muted ?? true}
                 autoPlay={true}
                 preload="metadata"
                 onLoadedMetadata={this._onVideoLoadedmetadata}
