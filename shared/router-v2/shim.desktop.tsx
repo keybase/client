@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Shared from './shim.shared'
-import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import {EscapeHandler} from '../util/key-event-handler.desktop'
