@@ -107,7 +107,6 @@
     "expo-task-manager": "11.1.1",
     "framed-msgpack-rpc": "1.1.23",
     "google-libphonenumber": "3.2.32",
-    "hoist-non-react-statics": "3.3.2",
     "iced-runtime": "1.0.4",
     "lodash": "4.17.21",
     "lottie-ios": "3.5.0",

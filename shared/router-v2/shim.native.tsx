@@ -14,7 +14,7 @@ export const getOptions = Shared.getOptions
 
 const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, getOptions: any) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
-  const ShimmedNew = React.memo(function ShimmedNew(props: any) {
+  return React.memo(function ShimmedNew(props: any) {
     const navigationOptions =
       typeof getOptions === 'function'
         ? getOptions({navigation: props.navigation, route: props.route})
@@ -41,8 +41,6 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
     }
     return wrap
   })
-  Container.hoistNonReactStatic(ShimmedNew, Original)
-  return ShimmedNew
 }
 
 const useSafeHeaderHeight = () => {

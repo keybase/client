@@ -220,7 +220,7 @@ const styles = Styles.styleSheetCreate(() => {
 })
 
 const shimNewRoute = (Original: any, isModal: boolean, _isLoggedOut: boolean, getOptions: any) => {
-  const ShimmedNew = React.memo(function ShimmedNew(props: any) {
+  return React.memo(function ShimmedNew(props: any) {
     const navigationOptions =
       typeof getOptions === 'function'
         ? getOptions({navigation: props.navigation, route: props.route})
@@ -238,6 +238,4 @@ const shimNewRoute = (Original: any, isModal: boolean, _isLoggedOut: boolean, ge
 
     return body
   })
-  Container.hoistNonReactStatic(ShimmedNew, Original)
-  return ShimmedNew
 }
