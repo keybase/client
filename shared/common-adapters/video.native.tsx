@@ -37,6 +37,7 @@ const Video = (props: Props) => {
           }}
         >
           <AVVideo
+            isMuted={props.muted}
             source={{uri: props.url}}
             onError={e => {
               props.onUrlError && props.onUrlError(JSON.stringify(e))

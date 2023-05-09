@@ -7,6 +7,7 @@ export type Props = {
   style?: Styles.StylesCrossPlatform | null
   url: string
   allowFile?: boolean
+  muted?: boolean
 }
 
 export type State = {
