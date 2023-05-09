@@ -12,7 +12,6 @@ import {NavigationContainer} from '@react-navigation/native'
 import {createLeftTabNavigator} from './left-tab-navigator.desktop'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
-import {useMemo} from '../util/memoize'
 
 export const headerDefaultStyle = Common.headerDefaultStyle
 const Tab = createLeftTabNavigator()
@@ -80,7 +79,7 @@ const makeNavScreens = (rs, Screen, _isModal: boolean) => {
 
 const AppTabsInner = () => {
   // so we have a stack per tab
-  const tabStacks = useMemo(
+  const tabStacks = React.useMemo(
     () => Tabs.desktopTabs.map(tab => <Tab.Screen key={tab} name={tab} component={makeTabStack(tab)} />),
     []
   )

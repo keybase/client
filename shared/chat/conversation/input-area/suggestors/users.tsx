@@ -6,7 +6,6 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import type * as Types from '../../../../constants/types/chat2'
-import {useMemo} from '../../../../util/memoize'
 
 export const transformer = (
   input: {
@@ -163,8 +162,8 @@ const useDataUsers = (conversationIDKey: Types.ConversationIDKey) => {
 
 const useDataTeams = () => {
   const inboxLayout = Container.useSelector(state => state.chat2.inboxLayout)
-  const teams = useMemo(() => getTeams(inboxLayout), [inboxLayout])
-  const allChannels = useMemo(
+  const teams = React.useMemo(() => getTeams(inboxLayout), [inboxLayout])
+  const allChannels = React.useMemo(
     () =>
       inboxLayout?.bigTeams?.reduce<Array<TeamListItem>>((arr, t) => {
         if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {

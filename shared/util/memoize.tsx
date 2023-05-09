@@ -1,7 +1,5 @@
 import memoizeOne from 'memoize-one'
-import {useMemoOne} from 'use-memo-one'
 
-export const useMemo = useMemoOne
 const memoize = memoizeOne
 export {memoize}
 
