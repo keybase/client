@@ -16,7 +16,6 @@ import WithTooltip from '../with-tooltip'
 import type * as Types from '../../constants/types/chat2'
 import type {StyleOverride} from '.'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../util/emoji'
-import {toByteArray} from 'base64-js'
 
 const linkStyle = Styles.platformStyles({
   isElectron: {fontWeight: 'inherit'},
@@ -116,7 +115,7 @@ const ServiceDecoration = (p: Props) => {
   // Parse JSON to get the type of the decoration
   let parsed: RPCChatTypes.UITextDecoration
   try {
-    const jsonString = Buffer.from(toByteArray(json)).toString()
+    const jsonString = Buffer.from(json, 'base64').toString()
     parsed = JSON.parse(jsonString)
   } catch (e) {
     return null
