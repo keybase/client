@@ -167,7 +167,7 @@ const ChooseEmoji = Styles.isMobile
                 },
                 selected: 'chatChooseEmoji',
               },
-            ],
+            ] as const,
           })
         )
       return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />

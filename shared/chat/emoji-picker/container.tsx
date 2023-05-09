@@ -96,7 +96,7 @@ const useCustomReacji = (
   const waiting = Container.useSelector(s => Container.anyWaiting(s, Constants.waitingKeyLoadingEmoji))
   const dispatch = Container.useDispatch()
 
-  const [lastCID, setLastCID] = React.useState(conversationIDKey)
+  const [lastCID, setLastCID] = React.useState('')
   const [lastOnlyInTeam, setLastOnlyInTeam] = React.useState(onlyInTeam)
   const [lastDisabled, setLastDisabled] = React.useState(disabled)
 

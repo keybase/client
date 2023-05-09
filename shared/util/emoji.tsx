@@ -5,6 +5,7 @@ import groupBy from 'lodash/groupBy'
 import type * as Styles from '../styles'
 import type * as Chat2Types from '../constants/types/chat2'
 import type * as RPCTypes from '../constants/types/rpc-gen'
+import CustomEmoji from './custom-emoji'
 
 const categorized = groupBy(emojidata, 'category')
 const sorted: typeof categorized = {}
@@ -125,7 +126,7 @@ export const renderEmoji = (opts: {
   const {emoji, size, showTooltip, customEmojiSize, virtualText, customStyle, style} = opts
   if (emoji.renderUrl) {
     return (
-      <Kb.CustomEmoji
+      <CustomEmoji
         size={customEmojiSize ?? size}
         src={emoji.renderUrl}
         alias={showTooltip ? emoji.aliasForCustom : undefined}

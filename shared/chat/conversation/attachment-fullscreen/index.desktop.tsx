@@ -34,7 +34,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
   const {onNextAttachment, onPreviousAttachment, onClose, onDownloadAttachment, onShowInFinder, isVideo} = p
 
   const [isZoomed, setIsZoomed] = React.useState(false)
-  const onZoomed = React.useCallback((zoomed: boolean) => {
+  const onIsZoomed = React.useCallback((zoomed: boolean) => {
     setIsZoomed(zoomed)
   }, [])
 
@@ -95,7 +95,7 @@ const Fullscreen = React.memo(function Fullscreen(p: Props) {
                     <style>{showPlayButton}</style>
                   </video>
                 ) : (
-                  <Kb.ZoomableImage src={path} onZoomed={onZoomed} />
+                  <Kb.ZoomableImage src={path} onIsZoomed={onIsZoomed} />
                 )}
               </Kb.Box2>
               {!isZoomed && <Arrow left={false} onClick={onNextAttachment} />}

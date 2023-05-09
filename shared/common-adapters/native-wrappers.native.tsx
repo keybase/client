@@ -30,7 +30,6 @@ import {
   VirtualizedList as NativeVirtualizedList,
 } from 'react-native'
 import NativeScrollView from './scroll-view.native'
-import {NativeImage, FastImage as NativeFastImage} from './native-image.native'
 import {WebView as NativeWebView} from 'react-native-webview'
 import {Picker as NativePicker} from '@react-native-picker/picker'
 
@@ -44,9 +43,7 @@ export {
   NativeDimensions,
   NativeDrawerLayoutAndroid,
   NativeEasing,
-  NativeFastImage,
   NativeFlatList,
-  NativeImage,
   NativeInteractionManager,
   NativeKeyboard,
   NativeKeyboardAvoidingView,

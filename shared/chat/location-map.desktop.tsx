@@ -19,7 +19,7 @@ const LocationMap = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-      {!!mapSrc && <Kb.Image src={mapSrc} style={{height, width}} onLoad={onLoad} />}
+      {!!mapSrc && <Kb.Image2 src={mapSrc} style={{height, width}} onLoad={onLoad} />}
       {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
       <Kb.Banner color="white" style={styles.banner}>
         <Kb.BannerParagraph

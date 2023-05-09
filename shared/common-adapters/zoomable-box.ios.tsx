@@ -13,12 +13,14 @@ export const ZoomableBox = (props: Props) => (
     children={props.children}
     contentContainerStyle={props.contentContainerStyle}
     indicatorStyle="white"
-    maximumZoomScale={props.maxZoom || 3}
+    maximumZoomScale={props.maxZoom || 10}
     minimumZoomScale={props.minZoom || 1}
     onScroll={e =>
       props.onZoom?.({
         // @ts-ignore misses rn types
         height: e.nativeEvent.contentSize.height,
+        // @ts-ignore misses rn types
+        scale: e.nativeEvent.zoomScale,
         // @ts-ignore misses rn types
         width: e.nativeEvent.contentSize.width,
         // @ts-ignore misses rn types

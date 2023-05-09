@@ -29,7 +29,7 @@ const VideoImpl = (p: Props) => {
 
   return showPoster ? (
     <div onClick={onPress} style={styles.posterContainer}>
-      <Kb.Image src={previewURL} style={{height, width}} />
+      <Kb.Image2 src={previewURL} style={{height, width}} />
       {allowPlay ? <Kb.Icon type="icon-play-64" style={styles.playButton} /> : null}
       <Kb.Box2 direction="vertical" style={styles.durationContainer}>
         <Kb.Text type="BodyTinyBold" style={styles.durationText}>

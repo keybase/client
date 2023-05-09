@@ -3,14 +3,8 @@ import * as Shared from './icon.shared'
 import * as Styles from '../styles'
 import logger from '../logger'
 import type {IconType, Props, SizeType} from './icon'
-import {NativeImage, NativeText, NativeTouchableOpacity} from './native-wrappers.native'
+import {Image as RNImage, Text as RNText, TouchableOpacity} from 'react-native'
 import {iconMeta} from './icon.constants-gen'
-
-const Kb = {
-  NativeImage,
-  NativeText,
-  NativeTouchableOpacity,
-}
 
 type TextProps = {
   children: React.ReactNode
@@ -25,7 +19,7 @@ type TextProps = {
   type: IconType
 }
 type Writeable<T> = {-readonly [P in keyof T]: T[P]}
-const Text = React.forwardRef<NativeText, TextProps>(function Text(p, ref) {
+const Text = React.forwardRef<RNText, TextProps>(function Text(p, ref) {
   const style: Writeable<Styles.StylesCrossPlatform> = {}
 
   // we really should disallow reaching into style like this but this is what the old code does.
@@ -71,7 +65,7 @@ const Text = React.forwardRef<NativeText, TextProps>(function Text(p, ref) {
   const fontSizeStyle = {fontSize: p.fontSize || Shared.typeToFontSize(p.sizeType)}
 
   return (
-    <Kb.NativeText
+    <RNText
       style={[styles.text, style, p.fixOverdraw && styles.fixOverdraw, fontSizeStyle, p.style]}
       allowFontScaling={false}
       ref={ref}
@@ -80,7 +74,7 @@ const Text = React.forwardRef<NativeText, TextProps>(function Text(p, ref) {
       suppressHighlighting={true}
     >
       {p.children}
-    </Kb.NativeText>
+    </RNText>
   )
 })
 Text.displayName = 'IconText'
@@ -90,7 +84,7 @@ type ImageProps = {
   source: any
 }
 
-const Image = React.forwardRef<NativeImage, ImageProps>((p, ref) => {
+const Image = React.forwardRef<RNImage, ImageProps>((p, ref) => {
   let style: any
 
   // we really should disallow reaching into style like this but this is what the old code does.
@@ -110,7 +104,7 @@ const Image = React.forwardRef<NativeImage, ImageProps>((p, ref) => {
     }
   }
 
-  return <Kb.NativeImage ref={ref} style={[style, pStyle]} source={p.source} />
+  return <RNImage ref={ref} style={[style, pStyle]} source={p.source} />
 })
 Image.displayName = 'IconImage'
 
@@ -170,14 +164,14 @@ const Icon = React.memo<Props>(
     }
 
     return wrap ? (
-      <Kb.NativeTouchableOpacity
+      <TouchableOpacity
         onPress={p.onClick || undefined}
         activeOpacity={0.8}
         ref={ref}
         style={Styles.collapseStyles([p.style, p.padding && Shared.paddingStyles[p.padding]])}
       >
         {icon}
-      </Kb.NativeTouchableOpacity>
+      </TouchableOpacity>
     ) : (
       icon
     )

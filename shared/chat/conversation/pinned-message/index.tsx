@@ -36,7 +36,7 @@ const PinnedMessage = (props: Props) => {
         {!!props.imageURL && (
           <Kb.Box2 direction="vertical" style={styles.imageContainer}>
             <Kb.Box style={{...(sizing ? sizing.margins : {})}}>
-              <Kb.Image src={props.imageURL} style={{...(sizing ? sizing.dims : {})}} />
+              <Kb.Image2 src={props.imageURL} style={{...(sizing ? sizing.dims : {})}} />
             </Kb.Box>
           </Kb.Box2>
         )}

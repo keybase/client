@@ -136,7 +136,6 @@ type MediaThumbProps = {
 
 const MediaThumb = (props: MediaThumbProps) => {
   const {sizing, thumb} = props
-  const [loading, setLoading] = React.useState(thumb.typ !== ThumbTyp.AUDIO)
   return (
     <Kb.Box2 direction="vertical" style={styles.thumbContainer}>
       <Kb.ClickableBox onClick={thumb.onClick} style={{...sizing.margins}}>
@@ -155,7 +154,7 @@ const MediaThumb = (props: MediaThumbProps) => {
             )}
           </Kb.Box2>
         ) : (
-          <Kb.Image src={thumb.previewURL} style={{...sizing.dims}} onLoad={() => setLoading(false)} />
+          <Kb.Image2 src={thumb.previewURL} style={{...sizing.dims}} />
         )}
       </Kb.ClickableBox>
       {thumb.typ === ThumbTyp.VIDEO && (
@@ -163,7 +162,6 @@ const MediaThumb = (props: MediaThumbProps) => {
           <Kb.Icon type="icon-film-64" style={styles.filmIcon} />
         </Kb.Box2>
       )}
-      {loading && <Kb.ProgressIndicator style={styles.loading} />}
     </Kb.Box2>
   )
 }

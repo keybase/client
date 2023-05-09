@@ -1,5 +1,5 @@
-import {FastImage} from './native-image.native'
 import type {Props} from './custom-emoji'
+import * as Kb from '../common-adapters'
 
 const CustomEmoji = (props: Props) => {
   const {size, src} = props
@@ -9,9 +9,7 @@ const CustomEmoji = (props: Props) => {
     ...props.style,
   }
 
-  return (
-    <FastImage key={size} source={{uri: src}} style={dimensions} resizeMode={FastImage.resizeMode.contain} />
-  )
+  return <Kb.Image2 key={size} src={src} style={dimensions} />
 }
 
 export default CustomEmoji

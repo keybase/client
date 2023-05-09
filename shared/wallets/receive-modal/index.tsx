@@ -99,7 +99,7 @@ const QrImage = ({address}) => {
   const size = qr.getModuleCount() * (6 / 2) // retina
   // Purple2
   const url = qr.createDataURL(8, 0, [0x84, 0x5c, 0xdb])
-  return <Kb.Image src={url} style={{height: size, width: size}} />
+  return <Kb.Image2 src={url} style={{height: size, width: size}} />
 }
 
 const styles = Styles.styleSheetCreate(

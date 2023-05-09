@@ -3,7 +3,7 @@ import * as React from 'react'
 export type Props = {
   maxZoom?: number
   minZoom?: number
-  onZoom?: ((arg0: {height: number; width: number; x: number; y: number}) => void) | null
+  onZoom?: ((e: {height: number; width: number; x: number; y: number; scale: number}) => void) | null
   style?: any
   bounces?: boolean
   children?: React.ReactNode

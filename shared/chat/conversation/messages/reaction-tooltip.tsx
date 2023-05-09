@@ -63,10 +63,10 @@ const ReactionTooltip = (p: OwnProps) => {
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal},
+            props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
             selected: 'chatChooseEmoji',
           },
-        ],
+        ] as const,
       })
     )
   }, [dispatch, onHidden, conversationIDKey, ordinal])

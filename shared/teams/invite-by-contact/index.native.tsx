@@ -15,13 +15,14 @@ export type ContactRowProps = Contact & {
 
 const contactRow = (_: number, props: ContactRowProps) => {
   const hasThumbnail = !!props.pictureUri
-  const source = props.pictureUri ? {uri: props.pictureUri} : null
 
   return (
     <Kb.Box style={styles.contactRowBox}>
       <Kb.Box style={styles.contactRowInnerBox}>
         <Kb.Box style={styles.contactRowInnerBox}>
-          {!!hasThumbnail && !!source && <Kb.NativeImage style={styles.thumbnail} source={source} />}
+          {!!hasThumbnail && !!props.pictureUri && (
+            <Kb.Image2 style={styles.thumbnail} src={props.pictureUri} />
+          )}
           {!hasThumbnail && <Kb.Avatar size={48} style={styles.placeHolderAvatar} />}
           <Kb.Box>
             <Kb.Box style={Styles.globalStyles.flexBoxRow}>

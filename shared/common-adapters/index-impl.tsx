@@ -82,9 +82,6 @@ module.exports = {
   get CopyableText() {
     return require('./copyable-text').default
   },
-  get CustomEmoji() {
-    return require('./custom-emoji').default
-  },
   get DelayedMounting() {
     return require('./delayed-mounting').default
   },
@@ -142,8 +139,8 @@ module.exports = {
   get Icon() {
     return require('./icon').default
   },
-  get Image() {
-    return require('./image').default
+  get Image2() {
+    return require('./image2').default
   },
   get InfoNote() {
     return require('./info-note').default
@@ -243,9 +240,6 @@ module.exports = {
   },
   get Reloadable() {
     return require('./reload').default
-  },
-  get RequireImage() {
-    return require('./image').RequireImage
   },
   get RichButton() {
     return require('./rich-button').default

@@ -132,8 +132,8 @@ module.exports = {
   get Icon() {
     return Index.Icon
   },
-  get Image() {
-    return Index.Image
+  get Image2() {
+    return Index.Image2
   },
   get InfoNote() {
     return Index.InfoNote
@@ -345,9 +345,6 @@ module.exports = {
   get Reloadable() {
     return Index.Reloadable
   },
-  get RequireImage() {
-    return Index.RequireImage
-  },
   get RoundedBox() {
     return Index.RoundedBox
   },
@@ -407,9 +404,6 @@ module.exports = {
   },
   get WithTooltip() {
     return Index.WithTooltip
-  },
-  get ZoomableBox() {
-    return require('./zoomable-box').ZoomableBox
   },
   get isValidIconType() {
     return Index.isValidIconType

@@ -1,7 +1,7 @@
 import * as Container from '../../util/container'
 import type {RenderableEmoji} from '../../util/emoji'
 
-export type PickKey = 'addAlias' | 'chatInput'
+export type PickKey = 'addAlias' | 'chatInput' | 'reaction'
 type PickerValue = {
   emojiStr: string
   renderableEmoji: RenderableEmoji

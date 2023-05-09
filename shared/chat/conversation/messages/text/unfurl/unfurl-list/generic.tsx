@@ -68,7 +68,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
 
   const publisher = (
     <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
-      {favicon ? <Kb.Image src={favicon} style={styles.favicon} /> : null}
+      {favicon ? <Kb.Image2 src={favicon} style={styles.favicon} /> : null}
       <Kb.BoxGrow style={styles.fastStyle}>
         <Kb.Text type="BodySmall" lineClamp={1} style={styles.fastStyle}>
           {siteName}
@@ -127,7 +127,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const rightImage =
     imageLocation === 'side' && mediaUrl ? (
       <Kb.Box2 direction="vertical">
-        <Kb.Image src={mediaUrl} style={styles.sideImage} />
+        <Kb.Image2 src={mediaUrl} style={styles.sideImage} />
       </Kb.Box2>
     ) : null
 

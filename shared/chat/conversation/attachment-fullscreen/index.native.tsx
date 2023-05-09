@@ -1,54 +1,11 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters/mobile.native'
+import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Constants from '../../../constants/chat2'
 import {useMessagePopup} from '../messages/message-popup'
 import {Video, ResizeMode} from 'expo-av'
 import logger from '../../../logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
-
-const AutoMaxSizeImage = (p: {source: {uri: string}; onLoad: () => void; opacity: number}) => {
-  const {source, onLoad, opacity} = p
-  const {uri} = source
-  const [width, setWidth] = React.useState(0)
-  const [height, setHeight] = React.useState(0)
-  const [lastUri, setLastUri] = React.useState('')
-
-  if (lastUri !== uri) {
-    setLastUri(uri)
-    Kb.NativeImage.getSize(uri, (width, height) => {
-      const clamped = Constants.clampImageSize(
-        width,
-        height,
-        Styles.dimensionWidth,
-        Styles.dimensionHeight - (Styles.isIOS ? 40 : 0)
-      )
-      setWidth(clamped.width)
-      setHeight(clamped.height)
-    })
-  }
-
-  return (
-    <Kb.ZoomableBox
-      contentContainerStyle={[
-        styles.zoomableBoxContainer,
-        {height, maxHeight: height, maxWidth: width, width},
-      ]}
-      maxZoom={10}
-      style={styles.zoomableBox}
-      showsHorizontalScrollIndicator={false}
-      showsVerticalScrollIndicator={false}
-    >
-      <Kb.NativeFastImage
-        onLoad={onLoad}
-        source={source}
-        resizeMode={ResizeMode.CONTAIN}
-        style={[styles.fastImage, {height, opacity, width}]}
-      />
-    </Kb.ZoomableBox>
-  )
-}
 
 const Fullscreen = (p: Props) => {
   const {path, previewHeight, message, onAllMedia, onClose, isVideo} = p
@@ -62,6 +19,7 @@ const Fullscreen = (p: Props) => {
 
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null
+
   if (path) {
     if (isVideo) {
       content = (
@@ -89,12 +47,10 @@ const Fullscreen = (p: Props) => {
         </Kb.Box2>
       )
     } else {
-      content = (
-        <AutoMaxSizeImage source={{uri: `${path}`}} onLoad={() => setLoaded(true)} opacity={loaded ? 1 : 0} />
-      )
+      content = <Kb.ZoomableImage src={path} style={styles.zoomableBox} />
     }
   }
-  if (!loaded) {
+  if (!loaded && isVideo) {
     spinner = (
       <Kb.Box2
         direction="vertical"

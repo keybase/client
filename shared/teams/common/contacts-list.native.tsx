@@ -100,7 +100,7 @@ const ContactRow = React.memo(
         }
         icon={
           item.pictureUri ? (
-            <Kb.NativeImage style={styles.thumbnail} source={{uri: item.pictureUri}} />
+            <Kb.Image2 style={styles.thumbnail} src={item.pictureUri} />
           ) : (
             <Kb.Avatar size={32} username="" />
           )

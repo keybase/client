@@ -25,10 +25,7 @@ type SiteIconProps = {
 export const SiteIcon = (props: SiteIconProps) => {
   const style = props.full ? siteIconStyles.siteIconFull : siteIconStyles.siteIcon
   return Styles.isMobile ? (
-    <Kb.RequireImage
-      src={siteIconToNativeSrcSet(props.set)}
-      style={Styles.collapseStyles([style, props.style])}
-    />
+    <Kb.Image2 src={siteIconToNativeSrcSet(props.set)} style={Styles.collapseStyles([style, props.style])} />
   ) : (
     <Kb.Box
       style={Styles.collapseStyles([

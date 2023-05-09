@@ -209,9 +209,9 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
   const children: Array<React.ReactNode> = []
   for (let i = 0; i < props.numImages; i++) {
     children.push(
-      <Kb.NativeImage
+      <Kb.Image2
         key={i}
-        source={Styles.isDarkMode() ? explodedIllustrationDarkURL : explodedIllustrationURL}
+        src={Styles.isDarkMode() ? explodedIllustrationDarkURL : explodedIllustrationURL}
         style={styles.ashes}
       />
     )
