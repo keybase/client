@@ -2,10 +2,8 @@ import * as Styles from '../styles'
 import {ZoomableBox} from './zoomable-box'
 import Image2 from './image2.native'
 import type {Props} from './zoomable-image'
-import {Box2} from './box'
 
 const Kb = {
-  Box2,
   Image2,
   ZoomableBox,
 }
