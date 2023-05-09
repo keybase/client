@@ -219,6 +219,8 @@ dependencies {
     implementation project(':keybaselib')
     implementation 'com.android.installreferrer:installreferrer:2.2'
     implementation "me.leolin:ShortcutBadger:1.1.22@aar"
+    implementation "androidx.lifecycle:lifecycle-common-java8:2.6.1"
+    implementation "androidx.lifecycle:lifecycle-process:2.6.1"
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
