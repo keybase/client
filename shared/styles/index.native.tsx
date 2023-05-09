@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Shared from './shared'
-import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import {colors as lightColors, darkColors, themed} from './colors'
 import styleSheetCreateProxy from './style-sheet-proxy'
 import {StyleSheet, Dimensions} from 'react-native'
@@ -81,7 +80,6 @@ if (isIOS) {
   })
 }
 
-export const statusBarHeight = isIOS ? iPhoneXHelper.getStatusBarHeight(true) : 0
 export const hairlineWidth = StyleSheet.hairlineWidth
 export const styleSheetCreate = (obj: any) => styleSheetCreateProxy(obj, o => StyleSheet.create(o as any))
 // used to find specific styles to help debug perf

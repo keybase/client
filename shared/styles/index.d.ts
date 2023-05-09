@@ -88,7 +88,6 @@ export declare const desktopStyles: {
 
 export declare const mobileStyles: {}
 export declare const fileUIName: string
-export declare const statusBarHeight: number
 export declare const borderRadius: number
 export declare const hairlineWidth: number
 export declare function backgroundURL(...path: Array<string>): string

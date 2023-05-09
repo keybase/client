@@ -8997,11 +8997,6 @@ react-native-hw-keyboard-event@0.0.4:
   resolved "https://registry.yarnpkg.com/react-native-hw-keyboard-event/-/react-native-hw-keyboard-event-0.0.4.tgz#e8e7d3be78cf61bac0144066f734cdd48df88d2f"
   integrity sha512-G8qp0nm17PHigLb/axgdF9xg51BKCG2p1AGeq//J/luLp5zNczIcQJh+nm02R1MeEUE3e53wqO4LMe0MV3raZg==
 
-react-native-iphone-x-helper@1.3.1:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.3.1.tgz#20c603e9a0e765fd6f97396638bdeb0e5a60b010"
-  integrity sha512-HOf0jzRnq2/aFUcdCJ9w9JGzN3gdEg0zFE4FyYlp4jtidqU03D5X7ZegGKfT1EWteR0gPBGp9ye5T5FvSWi9Yg==
-
 react-native-reanimated@3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.1.0.tgz#6fe757dadf06a59b365c1c0339e992751ab03792"
