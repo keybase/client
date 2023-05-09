@@ -4,7 +4,7 @@ import type {Props} from './image2'
 import {Image} from 'expo-image'
 
 const Image2 = (p: Props) => {
-  const {showLoadingStateUntilLoaded = true, src, onLoad, /*onError, */ style} = p
+  const {showLoadingStateUntilLoaded, src, onLoad, onError, style} = p
   const [loading, setLoading] = React.useState(true)
   const _onLoad = React.useCallback(
     (e: any) => {
@@ -14,8 +14,10 @@ const Image2 = (p: Props) => {
     [onLoad]
   )
 
-  const onError = e => {
+  const _onError = (e: unknown) => {
+    setLoading(false)
     console.log('Image2 load error', e)
+    onError?.()
   }
 
   return (
@@ -28,7 +30,7 @@ const Image2 = (p: Props) => {
         }
         onLoad={_onLoad}
         contentFit="contain"
-        onError={onError}
+        onError={_onError}
       />
       {showLoadingStateUntilLoaded && loading ? <LoadingStateView loading={loading} /> : null}
     </>
