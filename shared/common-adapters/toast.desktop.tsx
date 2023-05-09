@@ -8,7 +8,12 @@ const Kb = {
 }
 
 const Toast = (props: Props) => (
-  <Kb.FloatingBox attachTo={props.attachTo} propagateOutsideClicks={true} position={props.position}>
+  <Kb.FloatingBox
+    attachTo={props.attachTo}
+    propagateOutsideClicks={true}
+    position={props.position}
+    containerStyle={styles.float}
+  >
     <div
       className={Styles.classNames({visible: props.visible}, props.className, 'fadeBox')}
       style={Styles.collapseStyles([styles.container, props.containerStyle])}
@@ -34,5 +39,8 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingTop: Styles.globalMargins.xtiny,
       pointerEvents: 'none',
     },
+  }),
+  float: Styles.platformStyles({
+    isElectron: {pointerEvents: 'none'},
   }),
 }))

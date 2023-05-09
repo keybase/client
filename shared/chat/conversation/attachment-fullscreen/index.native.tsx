@@ -19,6 +19,7 @@ const Fullscreen = (p: Props) => {
 
   let content: React.ReactNode = null
   let spinner: React.ReactNode = null
+
   if (path) {
     if (isVideo) {
       content = (
@@ -46,7 +47,7 @@ const Fullscreen = (p: Props) => {
         </Kb.Box2>
       )
     } else {
-      content = <Kb.ZoomableImage src={path} />
+      content = <Kb.ZoomableImage src={path} style={styles.zoomableBox} />
     }
   }
   if (!loaded && isVideo) {

@@ -1,6 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../styles'
-import * as Container from '../util/container'
 import Toast from './toast.desktop'
 import Text from './text.desktop'
 import type {Props} from './zoomable-image'
@@ -11,46 +9,21 @@ const Kb = {
 }
 
 const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
-  const {src, onIsZoomed, style} = p
+  const {src, onIsZoomed, onLoaded, dragPan, onChanged} = p
   const [isZoomed, setIsZoomed] = React.useState(false)
-  const [imgSize, setImgSize] = React.useState({height: 0, width: 0})
-  const isMounted = Container.useIsMounted()
-  const [lastSrc, setLastSrc] = React.useState('')
-
-  if (lastSrc !== src) {
-    setLastSrc(src)
-    const img = new Image()
-    img.src = src
-    img.onload = () => {
-      isMounted() && setImgSize({height: img.naturalHeight, width: img.naturalWidth})
-    }
-  }
-
-  const onImageMouseLeave = React.useCallback(() => {
-    const target = document.getElementById('imgAttach')
-    if (!target) return
-    target.style.transform = ''
-  }, [])
-
-  const initialZoomRatio = 1.2
-  const [zoomRatio, setZoomRatio] = React.useState(initialZoomRatio)
+  const [allowPan, setAllowPan] = React.useState(true)
+  const [showToast, setShowToast] = React.useState(false)
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const imgRef = React.useRef<HTMLImageElement>(null)
+  const scaleRef = React.useRef(1)
+  const isZoomedRef = React.useRef(isZoomed)
 
   const toggleZoom = React.useCallback(() => {
+    isZoomedRef.current = !isZoomed
     setIsZoomed(s => !s)
     onIsZoomed?.(!isZoomed)
-    setZoomRatio(initialZoomRatio)
   }, [isZoomed, onIsZoomed])
 
-  const [lastIsZoomed, setLastIsZoomed] = React.useState(isZoomed)
-  if (lastIsZoomed !== isZoomed) {
-    setLastIsZoomed(isZoomed)
-    if (!isZoomed) {
-      onImageMouseLeave()
-    }
-  }
-
-  const toastAnchorRef = React.useRef(null)
-  const [showToast, setShowToast] = React.useState(false)
   React.useEffect(() => {
     if (isZoomed) {
       setShowToast(true)
@@ -64,97 +37,95 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     } else return undefined
   }, [isZoomed])
 
-  const onImageWheel = React.useCallback(e => {
-    setZoomRatio(z => {
-      const diff = e.deltaY > 0 ? 0.07 : -0.07
-      const next = Math.max(0.1, Math.min(z + diff, 20))
-      return next
-    })
-  }, [])
+  const attachTo = React.useCallback(() => {
+    return containerRef.current
+  }, [containerRef])
 
-  const lastEvent = React.useRef<React.MouseEvent<HTMLDivElement> | undefined>()
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current || !imgRef.current) return
 
-  const adjustImageStyle = React.useCallback(() => {
-    const e = lastEvent.current
-    const parent = document.getElementById('scrollAttach')
-    const img = document.getElementById('imgAttach')
-    if (!e || !parent || !img) {
-      return
-    }
-    if (!isZoomed) {
-      img.style.transform = ''
+    if (dragPan && !allowPan) return
+    if (!dragPan && !isZoomedRef.current) {
+      imgRef.current.style.transform = ''
       return
     }
 
-    const rect = parent.getBoundingClientRect()
-    // position in parent
-    const x = Math.max(0, e.clientX - rect.left)
-    const y = Math.max(0, e.clientY - rect.top)
-    // ratio in parent
-    const xr = x / rect.width
-    const yr = y / rect.height
-    // image size
-    const iw = imgSize.width
-    const ih = imgSize.height
+    const containerRect = containerRef.current.getBoundingClientRect()
+    const imgRect = imgRef.current.getBoundingClientRect()
+    const xPercent = (e.clientX - containerRect.left) / containerRect.width
+    const yPercent = (e.clientY - containerRect.top) / containerRect.height
 
-    // offset to center ourselves in parent after scaling
-    const centerX = rect.width / 2 - (iw * zoomRatio) / 2
-    const centerY = rect.height / 2 - (ih * zoomRatio) / 2
+    const x = Math.min(
+      0,
+      Math.max(
+        -(imgRect.width - containerRect.width),
+        containerRect.width * xPercent - imgRect.width * xPercent
+      )
+    )
+    const y = Math.min(
+      0,
+      Math.max(
+        -(imgRect.height - containerRect.height),
+        containerRect.height * yPercent - imgRect.height * yPercent
+      )
+    )
 
-    // moving the mouse should translate you to the edges of the image
-    const mouseX = centerX + (1 - xr) * 2 * -centerX
-    const mouseY = centerY + (1 - yr) * 2 * -centerY
-
-    const temp = [
-      // move to middle
-      `translate(${-0.5 * iw}px, ${-0.5 * ih}px)`,
-      // scale up
-      `scale(${zoomRatio})`,
-      // move to top left
-      `translate(${0.5 * iw * zoomRatio}px, ${0.5 * ih * zoomRatio}px)`,
-      // center in parent. you go half the parent rect (img top in center, then go back so your center is center)
-      `translate(${centerX}px, ${centerY}px)`,
-      // move based on mouse
-      `translate(${mouseX}px, ${mouseY}px)`,
-    ]
-      .reverse() // applied right to left
-      .join(' ')
-    img.style.transform = temp
-  }, [zoomRatio, imgSize, isZoomed])
-
-  const [lastZoomRatio, setLastZoomRatio] = React.useState(0)
-  if (lastZoomRatio !== zoomRatio || isZoomed !== lastIsZoomed) {
-    setLastZoomRatio(zoomRatio)
-    setLastIsZoomed(isZoomed)
-    adjustImageStyle()
+    imgRef.current.style.transform = `translate(${x}px, ${y}px) scale(${scaleRef.current})`
+    onChanged?.({height: imgRect.height, scale: scaleRef.current, width: imgRect.width, x: -x, y: -y})
   }
 
-  const onImageMouseMove = React.useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      lastEvent.current = e
-      adjustImageStyle()
-    },
-    [adjustImageStyle]
-  )
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
 
-  const attachTo = React.useCallback(() => {
-    return toastAnchorRef.current
-  }, [toastAnchorRef])
+    if (dragPan && !allowPan) return
+    if (!dragPan && !isZoomedRef.current) return
+
+    const delta = e.deltaY > 0 ? 1.1 : 0.9
+    scaleRef.current = Math.max(1, scaleRef.current * delta)
+    handleMouseMove(e)
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (dragPan) {
+      setAllowPan(p => !p)
+    } else {
+      toggleZoom()
+      handleMouseMove(e)
+    }
+  }
+
+  let style: React.CSSProperties = {
+    height: '100%',
+    overflow: 'hidden',
+    position: 'relative',
+    width: '100%',
+  }
+  let imgStyle: React.CSSProperties = {
+    display: 'flex',
+    opacity: src ? 1 : 0,
+    position: 'absolute',
+    transformOrigin: '0 0',
+  }
+  if (dragPan) {
+    style = {...style, cursor: allowPan ? 'move' : 'pointer'}
+  } else {
+    style = {
+      ...style,
+      cursor: isZoomed ? 'zoom-out' : 'zoom-in',
+      ...(isZoomed ? {} : {display: 'flex'}),
+    }
+    imgStyle = isZoomed ? {} : {margin: 'auto', maxHeight: '100%', maxWidth: '100%'}
+  }
 
   return (
     <div
-      id="scrollAttach"
-      onClick={toggleZoom}
-      ref={toastAnchorRef}
-      style={Styles.collapseStyles([
-        isZoomed ? styles.scrollAttachZoomed : (styles.scrollAttachOrig as any),
-        style,
-      ])}
-      onMouseMove={onImageMouseMove}
-      onMouseLeave={isZoomed ? onImageMouseLeave : undefined}
-      onWheel={isZoomed ? onImageWheel : undefined}
+      ref={containerRef}
+      style={style}
+      onMouseMove={handleMouseMove}
+      onWheel={handleWheel}
+      onClick={handleClick}
     >
-      <img id="imgAttach" src={src} style={isZoomed ? styles.imgZoomed : (styles.imgOrig as any)} />
+      <img onLoad={onLoaded} ref={imgRef} src={src} style={imgStyle} />
       <Kb.Toast visible={showToast} attachTo={attachTo}>
         <Kb.Text type="Body" negative={true}>
           Scroll to zoom. Move to pan
@@ -163,47 +134,5 @@ const ZoomableImage = React.memo(function ZoomableImage(p: Props) {
     </div>
   )
 })
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      imgOrig: Styles.platformStyles({
-        isElectron: {
-          display: 'flex',
-          margin: 'auto',
-          maxHeight: '100%',
-          maxWidth: '100%',
-          transform: '',
-        },
-      }),
-      imgZoomed: Styles.platformStyles({
-        isElectron: {
-          position: 'absolute',
-          transformOrigin: 'top left',
-        },
-      }),
-      scrollAttachOrig: Styles.platformStyles({
-        isElectron: {
-          alignItems: 'center',
-          cursor: 'zoom-in',
-          display: 'flex',
-          height: '100%',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          position: 'relative',
-          width: '100%',
-        },
-      }),
-      scrollAttachZoomed: Styles.platformStyles({
-        isElectron: {
-          cursor: 'zoom-out',
-          height: '100%',
-          overflow: 'hidden',
-          position: 'relative',
-          width: '100%',
-        },
-      }),
-    } as const)
-)
 
 export default ZoomableImage

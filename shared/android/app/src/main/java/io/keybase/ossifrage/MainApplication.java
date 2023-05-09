@@ -10,6 +10,7 @@ import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
@@ -27,8 +28,29 @@ import java.util.concurrent.TimeUnit;
 import io.keybase.ossifrage.modules.BackgroundSyncWorker;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.modules.StorybookConstants;
+import androidx.lifecycle.ProcessLifecycleOwner;
+import androidx.lifecycle.DefaultLifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.annotation.NonNull;
+import com.bumptech.glide.Glide;
 
 import static keybase.Keybase.forceGC;
+
+class AppLifecycleListener implements DefaultLifecycleObserver {
+    private final Context context;
+    public AppLifecycleListener (Context c) {
+        this.context = c;
+    }
+    @Override
+    public void onStop(LifecycleOwner owner) { // app moved to background
+        new Thread(new Runnable() {
+              @Override
+              public void run() {
+                 Glide.get(context).clearDiskCache();
+              }
+         }).start();
+    }
+}
 
 public class MainApplication extends Application implements ReactApplication {
     private final ReactNativeHost mReactNativeHost = new DefaultReactNativeHost(this) {
@@ -90,6 +112,13 @@ public class MainApplication extends Application implements ReactApplication {
 
         // KB
         ApplicationLifecycleDispatcher.onApplicationCreate(this);
+
+        ReactInstanceManager instanceManager = getReactNativeHost().getReactInstanceManager();
+        if (instanceManager != null) {
+            ProcessLifecycleOwner.get().getLifecycle().addObserver(
+                    new AppLifecycleListener(instanceManager.getCurrentReactContext())
+                    );
+        }
 
         WorkRequest backgroundSyncRequest =
             new PeriodicWorkRequest.Builder(BackgroundSyncWorker.class,

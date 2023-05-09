@@ -21,3 +21,7 @@ buildscript {
         classpath("com.github.triplet.gradle:play-publisher:3.7.0") // To publish from gradle
     }
 }
+
+plugins {
+    id 'org.jetbrains.kotlin.android' version '1.8.10' apply false
+}

@@ -208,7 +208,7 @@ export function ZoomableBox(props: Props) {
       const width = scale * viewWidth.value
       const x = width / 2 - px - containerWidth.value / 2
       const y = height / 2 - py - containerHeight.value / 2
-      onZoom?.({height, width, x, y})
+      onZoom?.({height, scale, width, x, y})
     },
     [onZoom, viewHeight, viewWidth, containerHeight, containerWidth]
   )

@@ -154,7 +154,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
       <Kb.ZoomableImage
         src={uri}
         onChanged={this._onZoom}
-        style={isIOS ? Styles.collapseStyles([styles.zoomContainer, this.getImageStyle()]) : null}
+        style={Styles.collapseStyles([styles.zoomContainer, this.getImageStyle()])}
       />
     ) : null
   }
