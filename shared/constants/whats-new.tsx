@@ -7,7 +7,6 @@ import type {
   WhatsNewVersions,
 } from './types/whats-new'
 import {memoize} from '../util/memoize'
-import {parseInt} from 'lodash'
 
 /*
  * IMPORTANT:
