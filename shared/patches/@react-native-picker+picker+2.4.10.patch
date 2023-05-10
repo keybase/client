@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-native-picker/picker/typings/Picker.d.ts b/node_modules/@react-native-picker/picker/typings/Picker.d.ts
+index 5ebb2d3..868e45c 100644
+--- a/node_modules/@react-native-picker/picker/typings/Picker.d.ts
++++ b/node_modules/@react-native-picker/picker/typings/Picker.d.ts
+@@ -130,7 +130,7 @@ declare class Picker<T> extends React.Component<PickerProps<T>, {}> {
+    */
+   static readonly MODE_DROPDOWN: 'dropdown';
+ 
+-  static Item: React.ComponentType<PickerItemProps<T>>;
++  static Item: React.ComponentType<PickerItemProps<any>>;
+ 
+   /**
+    * @platform android
