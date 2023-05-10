@@ -15,14 +15,14 @@ import shallowEqual from 'shallowequal'
 import type * as T from './index.d'
 import type * as Types from '../../constants/types/chat2'
 import {type ViewToken, FlatList} from 'react-native'
-import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
+// import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {anyWaiting} from '../../constants/waiting'
 import {makeRow} from './row'
 
 type RowItem = Types.ChatInboxRowItem
 
 const usingFlashList = false
-const List = usingFlashList ? FlashList : FlatList
+const List = /*usingFlashList ? FlashList :*/ FlatList
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <>
@@ -58,7 +58,7 @@ type State = {
 class Inbox extends React.PureComponent<T.Props, State> {
   // used to close other rows
   private swipeCloseRef = React.createRef<() => void>()
-  private listRef = React.createRef<FlashList<RowItem> | FlatList<RowItem>>()
+  private listRef = React.createRef</*FlashList<RowItem> | */ FlatList<RowItem>>()
   // stash first offscreen index for callback
   private firstOffscreenIdx: number = -1
   private lastVisibleIdx: number = -1
@@ -84,7 +84,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
-  private renderItem = ({item}: ListRenderItemInfo<RowItem>): React.ReactElement | null => {
+  private renderItem = ({item}: any /*ListRenderItemInfo<RowItem>*/): React.ReactElement | null => {
     const row = item
     let element: React.ReactElement | null
     if (row.type === 'divider') {
@@ -260,6 +260,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
             </Kb.Box2>
           ) : (
             <List
+              // @ts-ignore
               disableAutoLayout={true}
               ListHeaderComponent={HeadComponent}
               data={this.props.rows}
