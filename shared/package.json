@@ -133,7 +133,6 @@
     "react-spring": "9.7.1",
     "react-virtualized-auto-sizer": "1.0.15",
     "react-window": "1.8.9",
-    "semver": "7.5.0",
     "shallowequal": "1.1.0",
     "simple-markdown": "0.7.3",
     "typedarray-to-buffer": "4.0.0",
