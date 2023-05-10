@@ -2,7 +2,6 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
-import * as Container from '../util/container'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {useHeaderHeight} from '@react-navigation/elements'
 import {View} from 'react-native'
@@ -14,7 +13,7 @@ export const getOptions = Shared.getOptions
 
 const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, getOptions: any) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
-  const ShimmedNew = React.memo(function ShimmedNew(props: any) {
+  return React.memo(function ShimmedNew(props: any) {
     const navigationOptions =
       typeof getOptions === 'function'
         ? getOptions({navigation: props.navigation, route: props.route})
@@ -41,8 +40,6 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
     }
     return wrap
   })
-  Container.hoistNonReactStatic(ShimmedNew, Original)
-  return ShimmedNew
 }
 
 const useSafeHeaderHeight = () => {

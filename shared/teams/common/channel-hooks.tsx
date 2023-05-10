@@ -7,12 +7,6 @@ import * as Constants from '../../constants/teams'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
-const emptyArrForUseSelector = []
-
-function filterNull<A>(arr: Array<A | null>): Array<A> {
-  return arr.filter(a => a !== null) as Array<A>
-}
-
 // Filter bots out using team role info, isolate to only when related state changes
 export const useChannelParticipants = (
   teamID: Types.TeamID,
@@ -65,10 +59,14 @@ export const useAllChannelMetas = (
             if (convs) {
               setChannelMetas(
                 new Map(
-                  filterNull(
-                    convs?.map(conv => ChatConstants.inboxUIItemToConversationMeta(undefined, conv)) ??
-                      emptyArrForUseSelector
-                  ).map(a => [a.conversationIDKey, a])
+                  convs
+                    ?.map(conv => ChatConstants.inboxUIItemToConversationMeta(undefined, conv))
+                    .reduce((arr, a) => {
+                      if (a) {
+                        arr.push([a.conversationIDKey, a])
+                      }
+                      return arr
+                    }, new Array<[string, ChatTypes.ConversationMeta]>())
                 )
               )
             }

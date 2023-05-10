@@ -3,9 +3,6 @@ import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import {TabActions} from '@react-navigation/core'
 import {HeaderLeftArrow} from '../common-adapters/header-hoc'
-import {initialWindowMetrics} from 'react-native-safe-area-context'
-
-const initialSafeHeight = Styles.isIOS ? Math.max(0, initialWindowMetrics?.insets?.top ?? 0) : 0
 
 export const TabletWrapper = (p: {children: React.ReactNode}) => {
   const {children} = p
@@ -33,7 +30,7 @@ export const headerDefaultStyle = {
   },
   borderBottomColor: Styles.globalColors.black_10,
   borderBottomWidth: Styles.hairlineWidth,
-  height: initialSafeHeight + 44,
+  height: 44,
 }
 
 export const tabBarStyle = {

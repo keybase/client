@@ -11,7 +11,6 @@ import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isMobile, isPhone} from '../platform'
-import {toByteArray} from 'base64-js'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 import type {AllowedColors} from '../../common-adapters/text'
 import shallowEqual from 'shallowequal'
@@ -31,8 +30,9 @@ const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMe
 }
 
 // This one call handles us getting a string or a buffer
-const supersededConversationIDToKey = (id: string | Buffer): string =>
-  typeof id === 'string' ? Buffer.from(toByteArray(id)).toString('hex') : id.toString('hex')
+const supersededConversationIDToKey = (id: string | Buffer): string => {
+  return typeof id === 'string' ? Buffer.from(id, 'base64').toString('hex') : id.toString('hex')
+}
 
 export const unverifiedInboxUIItemToConversationMeta = (
   i: RPCChatTypes.UnverifiedInboxUIItem
@@ -308,6 +308,7 @@ export const inboxUIItemToConversationMeta = (
       }
     }
   }
+
   return {
     ...makeConversationMeta(),
     botAliases: i.botAliases,

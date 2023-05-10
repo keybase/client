@@ -1,12 +1,11 @@
 import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
-import klawSync from 'klaw-sync'
-import minimist from 'minimist'
 import os from 'os'
 import packager, {type Options} from 'electron-packager'
 import path from 'path'
 import webpack from 'webpack'
 import rootConfig from './webpack.config.babel'
+import {readdir} from 'node:fs/promises'
 
 const TEMP_SKIP_BUILD: boolean = false
 
@@ -25,17 +24,28 @@ const electronChecksums = {
 // absolute path relative to this script
 const desktopPath = (...args: Array<string>) => path.join(__dirname, ...args)
 
+async function walk(dir: string, onlyExts: Array<string>): Promise<Array<string>> {
+  const dirents = await readdir(dir, {withFileTypes: true})
+  const files = await Promise.all(
+    dirents.map(async dirent => {
+      const res = path.resolve(dir, dirent.name)
+      return dirent.isDirectory() ? [res, ...(await walk(res, onlyExts))] : res
+    })
+  )
+
+  return files.flat().filter(i => {
+    const ext = path.extname(i)
+    return !ext || onlyExts.includes(ext)
+  })
+}
+
 // recursively copy a folder over and allow only files with the extensions passed as onlyExts
-const copySyncFolder = (src: string, target: string, onlyExts: Array<string>) => {
+const copySyncFolder = async (src: string, target: string, onlyExts: Array<string>) => {
   const srcRoot = desktopPath(src)
   const dstRoot = desktopPath(target)
-  const files: Array<{path: string}> = klawSync(srcRoot, {
-    filter: (item: {path: string}) => {
-      const ext = path.extname(item.path)
-      return !ext || onlyExts.includes(ext)
-    },
-  })
-  const relSrcs = files.map(f => f.path.substring(srcRoot.length))
+  const files = await walk(srcRoot, onlyExts)
+
+  const relSrcs = files.map(f => f.substring(srcRoot.length))
   const dsts = relSrcs.map(f => path.join(dstRoot, f))
 
   relSrcs.forEach((s, idx) => fs.copySync(path.join(srcRoot, s), dsts[idx]))
@@ -45,15 +55,48 @@ const copySync = (src: string, target: string, options?: object) => {
   fs.copySync(desktopPath(src), desktopPath(target), {...options, dereference: true})
 }
 
-const argv = minimist(process.argv.slice(2), {string: ['appVersion']}) as {[key: string]: string | undefined}
+const getArgs = () => {
+  const args = process.argv.slice(2)
+  const ret = {
+    appVersion: '',
+    arch: '',
+    comment: '',
+    icon: '',
+    outDir: '',
+    platform: '',
+    saltpackIcon: '',
+  }
+
+  args.forEach(a => {
+    const [l, r] = a.split('=')
+    if (r === undefined) {
+      // single param?
+    } else {
+      if (l.startsWith('--')) {
+        const k = l.substring(2)
+
+        if (Object.prototype.hasOwnProperty.call(ret, k)) {
+          ret[k] = r
+        }
+      } else {
+        console.error('Weird argv key', a)
+      }
+    }
+  })
+  return ret
+}
+
+const argv = getArgs()
 
 const appName = 'Keybase'
 const shouldUseAsar = false
-const arch: string = typeof argv.arch === 'string' ? argv.arch.toString() : os.arch()
-const platform: string = typeof argv.platform === 'string' ? argv.platform.toString() : os.platform()
-const appVersion: string = (typeof argv.appVersion === 'string' && argv.appVersion) || '0.0.0'
-const comment: string = (typeof argv.comment === 'string' && argv.comment) || ''
-const outDir: string = (typeof argv.outDir === 'string' && argv.outDir) || ''
+const arch = argv.arch || os.arch()
+const platform = argv.platform || os.platform()
+const appVersion = argv.appVersion || '0.0.0'
+const comment = argv.comment
+const outDir = argv.outDir
+const icon = argv.icon
+const saltpackIcon = argv.saltpackIcon
 const appCopyright = 'Copyright (c) 2022, Keybase'
 const companyName = 'Keybase, Inc.'
 
@@ -118,7 +161,7 @@ async function main() {
 
   copySync('Icon.png', 'build/desktop/Icon.png')
   copySync('Icon@2x.png', 'build/desktop/Icon@2x.png')
-  copySyncFolder('../images', 'build/images', ['.gif', '.png'])
+  await copySyncFolder('../images', 'build/images', ['.gif', '.png'])
   if (TEMP_SKIP_BUILD) {
   } else {
     fs.removeSync(desktopPath('build/images/folders'))
@@ -132,9 +175,6 @@ async function main() {
     name: appName,
     version: appVersion,
   })
-
-  const icon: string = argv.icon ?? ''
-  const saltpackIcon: string = argv.saltpackIcon ?? ''
 
   if (icon) {
     packagerOpts.icon = icon
@@ -189,8 +229,8 @@ async function startPack() {
       }
     }
 
-    copySyncFolder('./dist', 'build/desktop/sourcemaps', ['.map'])
-    copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png', '.html'])
+    await copySyncFolder('./dist', 'build/desktop/sourcemaps', ['.map'])
+    await copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png', '.html'])
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
 
     rimrafSync(desktopPath('release'))

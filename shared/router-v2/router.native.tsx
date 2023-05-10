@@ -10,7 +10,6 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
 import * as ConfigConstants from '../constants/config'
-import {useMemo} from '../util/memoize'
 import {StatusBar} from 'react-native'
 import {HeaderLeftCancel2} from '../common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
@@ -170,7 +169,7 @@ const AppTabs = React.memo(
     const dispatch = Container.useDispatch()
 
     // so we have a stack per tab
-    const tabStacks = useMemo(
+    const tabStacks = React.useMemo(
       () =>
         tabs.map(tab => (
           <Tab.Screen

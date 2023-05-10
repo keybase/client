@@ -12,7 +12,7 @@ import type * as Types from '../../../constants/types/chat2'
 import type {ItemType} from '.'
 import {Animated, FlatList} from 'react-native'
 import {ConvoIDContext, SeparatorMapContext} from '../messages/ids-context'
-import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
+// import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
@@ -21,7 +21,8 @@ import shallowEqual from 'shallowequal'
 import {useChatDebugDump} from '../../../constants/chat2/debug'
 import {usingFlashList} from './flashlist-config'
 
-const List = usingFlashList ? FlashList : FlatList
+// TODO if we bring flashlist back bring back the patch
+const List = /*usingFlashList ? FlashList :*/ FlatList
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
 const animatingMap = new Map<string, null | React.ReactElement>()
@@ -132,7 +133,7 @@ const useScrolling = (p: {
   messageOrdinals: Array<Types.Ordinal>
   cidChanged: boolean
   conversationIDKey: Types.ConversationIDKey
-  listRef: React.MutableRefObject<FlashList<ItemType> | FlatList<ItemType> | null>
+  listRef: React.MutableRefObject</*FlashList<ItemType> |*/ FlatList<ItemType> | null>
   requestScrollToBottomRef: React.MutableRefObject<(() => void) | undefined>
 }) => {
   const {messageOrdinals, conversationIDKey, requestScrollToBottomRef} = p
@@ -237,14 +238,14 @@ const ConversationList = React.memo(function ConversationList(p: {
     return sm
   }, [_messageOrdinals])
 
-  const listRef = React.useRef<FlashList<ItemType> | FlatList<ItemType> | null>(null)
+  const listRef = React.useRef</*FlashList<ItemType> |*/ FlatList<ItemType> | null>(null)
   const {markInitiallyLoadedThreadAsRead} = Hooks.useActions({conversationIDKey})
   const keyExtractor = React.useCallback((ordinal: ItemType) => {
     return String(ordinal)
   }, [])
 
   const renderItem = React.useCallback(
-    (info: ListRenderItemInfo<ItemType> | null | undefined) => {
+    (info: /*ListRenderItemInfo<ItemType>*/ any | null | undefined) => {
       const index = info?.index ?? 0
       const ordinal = messageOrdinals[index]
       if (!ordinal) {
@@ -369,6 +370,7 @@ const ConversationList = React.memo(function ConversationList(p: {
                 <List
                   extraData={extraData}
                   removeClippedSubviews={Styles.isAndroid}
+                  // @ts-ignore
                   drawDistance={100}
                   estimatedItemSize={100}
                   ListHeaderComponent={SpecialBottomMessage}

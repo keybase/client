@@ -11,7 +11,7 @@ import type {RouteProps} from '../../router-v2/route-params'
 
 type SwitchProps = RouteProps<'chatConversation'>
 
-const Conversation = (p: SwitchProps) => {
+const Conversation = React.memo(function Conversation(p: SwitchProps) {
   const conversationIDKey = p.route.params?.conversationIDKey ?? Constants.noConversationIDKey
   const type = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
@@ -56,14 +56,11 @@ const Conversation = (p: SwitchProps) => {
     default:
       return <NoConversation />
   }
-}
+})
 
 export const getOptions = ({route}) => ({
   ...headerNavigationOptions(route),
   presentation: undefined,
 })
 
-const ConversationMemoed = React.memo(Conversation)
-Container.hoistNonReactStatic(ConversationMemoed, Conversation)
-
-export default ConversationMemoed
+export default Conversation

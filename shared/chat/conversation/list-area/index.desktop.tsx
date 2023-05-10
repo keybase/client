@@ -18,7 +18,6 @@ import {ErrorBoundary} from '../../../common-adapters'
 import {findLast} from '../../../util/arrays'
 import {getMessageRender} from '../messages/wrapper'
 import {globalMargins} from '../../../styles/shared'
-import {useMemo} from '../../../util/memoize'
 
 // Infinite scrolling list.
 // We group messages into a series of Waypoints. When the waypoint exits the screen we replace it with a single div instead
@@ -452,7 +451,7 @@ const useItems = (p: {
     [messageTypeMap, centeredOrdinal, editingOrdinal]
   )
 
-  const items = useMemo(() => {
+  const items = React.useMemo(() => {
     const items: Array<React.ReactNode> = [<SpecialTopMessage key="specialTop" />]
 
     const numOrdinals = messageOrdinals.length

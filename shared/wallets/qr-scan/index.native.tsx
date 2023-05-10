@@ -59,7 +59,7 @@ const styles = Styles.styleSheetCreate(
       cancel: {
         alignSelf: 'flex-start',
         color: Styles.globalColors.white,
-        minHeight: Styles.globalMargins.xlarge - Styles.statusBarHeight,
+        minHeight: Styles.globalMargins.xlarge,
         paddingBottom: 8,
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,

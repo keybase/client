@@ -14,7 +14,7 @@ import InfoPanel from './conversation/info-panel/container'
 
 type Props = Container.RouteProps<'chatRoot'>
 
-const InboxAndConversation = (props: Props) => {
+const InboxAndConversation = React.memo(function InboxAndConversation(props: Props) {
   const dispatch = Container.useDispatch()
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
@@ -62,7 +62,7 @@ const InboxAndConversation = (props: Props) => {
       </Kb.Box2>
     </Kb.KeyboardAvoidingView2>
   )
-}
+})
 
 export const getOptions = ({navigation, route}) => {
   if (Styles.isTablet) {
@@ -100,6 +100,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const Memoed = React.memo(InboxAndConversation)
-Container.hoistNonReactStatic(Memoed, InboxAndConversation)
-export default Memoed
+export default InboxAndConversation

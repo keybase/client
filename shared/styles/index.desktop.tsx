@@ -260,7 +260,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   }
   return Object.keys(s).length ? s : undefined
 }
-export {isMobile, isPhone, isTablet, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
+export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '../constants/platform'
 export {
   globalMargins,
   backgroundModeToColor,
@@ -270,7 +270,6 @@ export {
 } from './shared'
 
 export {themed as globalColors} from './colors'
-export const statusBarHeight = 0
 export const borderRadius = 4
 export {default as classNames} from 'classnames'
 export type StylesCrossPlatform = CSS.StylesCrossPlatform

@@ -1,4 +1,3 @@
-import semver from 'semver'
 import type {
   NoVersion,
   CurrentVersion,
@@ -22,6 +21,21 @@ import {memoize} from '../util/memoize'
  *    4. Update string-literal types in shared/constants/types/whats-new
  *    5. Add as many NewFeatureRows as needed
  */
+
+const semver = {
+  gte: (a: string, b: string) => {
+    const [a1, a2, a3] = a.split('.').map(i => parseInt(i))
+    const [b1, b2, b3] = b.split('.').map(i => parseInt(i))
+    return a1 >= b1 && a2 >= b2 && a3 >= b3
+  },
+  valid: (v: string) =>
+    v.split('.').reduce((cnt, i) => {
+      if (parseInt(i) >= 0) {
+        return cnt + 1
+      }
+      return cnt
+    }, 0) === 3,
+}
 
 export const noVersion: NoVersion = '0.0.0'
 export const currentVersion: CurrentVersion = '5.5.0'

@@ -8,7 +8,7 @@ import Browser from './browser'
 import {NormalPreview} from './filepreview'
 import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
-import {Actions, MainBanner, MobileHeader, useMobileHeaderHeight, Title} from './nav-header'
+import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
@@ -66,7 +66,6 @@ export const getOptions = (ownProps: OwnProps) => {
   return Container.isMobile
     ? {
         header: () => <MobileHeader path={path} onBack={ownProps.navigation.pop} />,
-        useHeaderHeight: () => useMobileHeaderHeight(path),
       }
     : {
         headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
