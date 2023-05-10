@@ -1,6 +1,5 @@
 import {rimrafSync} from 'rimraf'
 import fs from 'fs-extra'
-import minimist from 'minimist'
 import os from 'os'
 import packager, {type Options} from 'electron-packager'
 import path from 'path'
@@ -56,15 +55,48 @@ const copySync = (src: string, target: string, options?: object) => {
   fs.copySync(desktopPath(src), desktopPath(target), {...options, dereference: true})
 }
 
-const argv = minimist(process.argv.slice(2), {string: ['appVersion']}) as {[key: string]: string | undefined}
+const getArgs = () => {
+  const args = process.argv.slice(2)
+  const ret = {
+    appVersion: '',
+    arch: '',
+    comment: '',
+    icon: '',
+    outDir: '',
+    platform: '',
+    saltpackIcon: '',
+  }
+
+  args.forEach(a => {
+    const [l, r] = a.split('=')
+    if (r === undefined) {
+      // single param?
+    } else {
+      if (l.startsWith('--')) {
+        const k = l.substring(2)
+
+        if (Object.prototype.hasOwnProperty.call(ret, k)) {
+          ret[k] = r
+        }
+      } else {
+        console.error('Weird argv key', a)
+      }
+    }
+  })
+  return ret
+}
+
+const argv = getArgs()
 
 const appName = 'Keybase'
 const shouldUseAsar = false
-const arch: string = typeof argv.arch === 'string' ? argv.arch.toString() : os.arch()
-const platform: string = typeof argv.platform === 'string' ? argv.platform.toString() : os.platform()
-const appVersion: string = (typeof argv.appVersion === 'string' && argv.appVersion) || '0.0.0'
-const comment: string = (typeof argv.comment === 'string' && argv.comment) || ''
-const outDir: string = (typeof argv.outDir === 'string' && argv.outDir) || ''
+const arch = argv.arch || os.arch()
+const platform = argv.platform || os.platform()
+const appVersion = argv.appVersion || '0.0.0'
+const comment = argv.comment
+const outDir = argv.outDir
+const icon = argv.icon
+const saltpackIcon = argv.saltpackIcon
 const appCopyright = 'Copyright (c) 2022, Keybase'
 const companyName = 'Keybase, Inc.'
 
@@ -143,9 +175,6 @@ async function main() {
     name: appName,
     version: appVersion,
   })
-
-  const icon: string = argv.icon ?? ''
-  const saltpackIcon: string = argv.saltpackIcon ?? ''
 
   if (icon) {
     packagerOpts.icon = icon

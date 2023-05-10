@@ -194,7 +194,6 @@
     "html-webpack-plugin": "5.5.1",
     "json5": "2.2.3",
     "metro-react-native-babel-preset": "0.76.3",
-    "minimist": "1.2.8",
     "msgpack": "keybase/nullModule",
     "net": "keybase/nullModule",
     "null-loader": "4.0.1",
