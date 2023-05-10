@@ -10,7 +10,8 @@ import {NativeTextInput} from './native-wrappers.native'
 import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
 import {isIOS} from '../constants/platform'
-import PasteInput from '@mattermost/react-native-paste-input'
+import PasteInputOld from '@mattermost/react-native-paste-input'
+import PasteInputNew from 'react-native-paste-input'
 import noop from 'lodash/noop'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
@@ -254,7 +255,9 @@ class PlainInput extends React.PureComponent<InternalProps> {
   render() {
     const props = this._getProps()
     // TODO not fabric
-    const Clazz: typeof NativeTextInput = this.props.allowImagePaste ? (PasteInput as any) : NativeTextInput
+    const Clazz: typeof NativeTextInput = this.props.allowImagePaste
+      ? PasteInputNew // ? (PasteInputOld as any)
+      : NativeTextInput
 
     if (props.value) {
       this._lastNativeText = props.value
