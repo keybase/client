@@ -1,5 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters'
+import * as KbMobile from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
 import type {RPCError} from '../../util/errors'
 import type {Props} from './index'
@@ -101,13 +102,13 @@ class GlobalError extends React.Component<Props, State> {
           </Kb.Box>
         </Kb.Box>
         {size === 'Big' && (
-          <Kb.NativeScrollView>
+          <KbMobile.NativeScrollView>
             <Kb.Text type="BodySmall" selectable={true} style={styles.details}>
               {error?.message}
               {'\n\n'}
               {cachedDetails}
             </Kb.Text>
-          </Kb.NativeScrollView>
+          </KbMobile.NativeScrollView>
         )}
       </Kb.Box2>
     )

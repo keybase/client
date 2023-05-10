@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type {Section as _Section} from '../../common-adapters/section-list'
 import useContacts, {type Contact as _Contact} from './use-contacts.native'

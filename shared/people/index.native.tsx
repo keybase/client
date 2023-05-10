@@ -1,8 +1,9 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters/mobile.native'
+import * as Kb from '../common-adapters'
 import {PeoplePageList} from './index.shared'
 import type {WrapProps} from '.'
-import {globalStyles, styleSheetCreate} from '../styles'
+import * as Styles from '../styles'
+import {RefreshControl} from 'react-native'
 
 const People = React.memo(function People(props: WrapProps) {
   const {waiting, ...rest} = props
@@ -10,9 +11,7 @@ const People = React.memo(function People(props: WrapProps) {
     <>
       <Kb.ScrollView
         style={styles.scrollView}
-        refreshControl={
-          <Kb.NativeRefreshControl refreshing={waiting} onRefresh={() => props.getData(false, true)} />
-        }
+        refreshControl={<RefreshControl refreshing={waiting} onRefresh={() => props.getData(false, true)} />}
       >
         <PeoplePageList {...rest} />
       </Kb.ScrollView>
@@ -20,8 +19,8 @@ const People = React.memo(function People(props: WrapProps) {
   )
 })
 
-const styles = styleSheetCreate(() => ({
-  scrollView: {...globalStyles.fullHeight},
+const styles = Styles.styleSheetCreate(() => ({
+  scrollView: {...Styles.globalStyles.fullHeight},
 }))
 
 export default People

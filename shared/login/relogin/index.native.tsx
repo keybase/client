@@ -1,5 +1,6 @@
 import * as Constants from '../../constants/login'
-import * as Kb from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters'
+import * as KbMobile from '../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import Dropdown from './dropdown.native'
@@ -36,7 +37,7 @@ class LoginRender extends React.Component<Props, State> {
         onLayout={evt => this.setState({scrollViewHeight: evt.nativeEvent.layout.height})}
         style={Styles.globalStyles.flexOne}
       >
-        <Kb.NativeScrollView
+        <KbMobile.NativeScrollView
           style={styles.scrollView}
           contentContainerStyle={{minHeight: this.state.scrollViewHeight}}
         >
@@ -99,7 +100,7 @@ class LoginRender extends React.Component<Props, State> {
               />
             </Kb.Box2>
           </Kb.Box>
-        </Kb.NativeScrollView>
+        </KbMobile.NativeScrollView>
       </Kb.Box>
     )
   }

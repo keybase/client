@@ -1,4 +1,4 @@
-import * as Kb from '../../../../common-adapters/mobile.native'
+import * as Kb from '../../../../common-adapters'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'

@@ -3,10 +3,9 @@
 import * as React from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.native'
-import {NativeTextInput} from './native-wrappers.native'
 import * as Styles from '../styles'
 import {isIOS, isAndroid} from '../constants/platform'
-import type {TextInput} from 'react-native'
+import {TextInput} from 'react-native'
 import type {KeyboardType, Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
 
@@ -355,7 +354,7 @@ class Input extends React.Component<Props, State> {
               : [styles.inputContainer, {borderBottomColor: underlineColor}]
           }
         >
-          <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
+          <TextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
         {!!this.props.errorTextComponent && this.props.errorTextComponent}
         {!this.props.small && (

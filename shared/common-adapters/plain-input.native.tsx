@@ -4,9 +4,8 @@ import ClickableBox from './clickable-box'
 import logger from '../logger'
 import pick from 'lodash/pick'
 import type {InternalProps, TextInfo, Selection} from './plain-input'
-import type {TextInput} from 'react-native'
+import {TextInput as NativeTextInput} from 'react-native'
 import {Box2} from './box'
-import {NativeTextInput} from './native-wrappers.native'
 import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
 import {isIOS} from '../constants/platform'
@@ -22,7 +21,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   _mounted = true
-  _input = React.createRef<TextInput>()
+  _input = React.createRef<NativeTextInput>()
   _lastNativeText: string | null = null
   _lastNativeSelection: Selection | null = null
 

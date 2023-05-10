@@ -1,5 +1,5 @@
 import * as Constants from '../constants/router2'
-import * as Kb from '../common-adapters/mobile.native'
+import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Shim from './shim.native'
@@ -10,7 +10,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
 import * as ConfigConstants from '../constants/config'
-import {StatusBar} from 'react-native'
+import {StatusBar, View} from 'react-native'
 import {HeaderLeftCancel2} from '../common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
@@ -70,7 +70,7 @@ const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; ro
   })
 
   return tabToData[routeName] ? (
-    <Kb.NativeView style={styles.container}>
+    <View style={styles.container}>
       <Kb.Icon
         type={tabToData[routeName].icon}
         fontSize={32}
@@ -79,7 +79,7 @@ const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; ro
       />
       {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={styles.badge} />}
       {routeName === Tabs.fsTab && <Shared.FilesTabBadge />}
-    </Kb.NativeView>
+    </View>
   ) : null
 })
 
@@ -340,7 +340,7 @@ const RNApp = React.memo(function RNApp() {
     <Kb.Box2 direction="vertical" pointerEvents="box-none" fullWidth={true} fullHeight={true}>
       <StatusBar barStyle={barStyle} />
       <NavigationContainer
-        fallback={<Kb.NativeView style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
+        fallback={<View style={{backgroundColor: Styles.globalColors.white, flex: 1}} />}
         linking={goodLinking}
         ref={Constants.navigationRef_ as any}
         key={String(navKey)}

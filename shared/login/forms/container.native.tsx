@@ -1,6 +1,7 @@
 import * as Styles from '../../styles'
 import type {Props} from './container'
-import {Box, NativeScrollView} from '../../common-adapters/mobile.native'
+import {Box} from '../../common-adapters'
+import {NativeScrollView} from '../../common-adapters/mobile.native'
 
 const Container = ({children, style, outerStyle}: Props) => {
   return (

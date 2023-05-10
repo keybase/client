@@ -3,7 +3,8 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as WaitingConstants from '../../../constants/waiting'
 import * as Container from '../../../util/container'
-import * as Kb from '../../../common-adapters/mobile.native'
+import * as Kb from '../../../common-adapters'
+import * as KbMobile from '../../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
@@ -136,7 +137,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
           {props.threadLoadedOffline && <Offline />}
           {innerComponent}
         </Kb.Box2>
-        <Kb.PortalHost name="convOverlay" />
+        <KbMobile.PortalHost name="convOverlay" />
       </DropView>
     </Kb.Box2>
   )

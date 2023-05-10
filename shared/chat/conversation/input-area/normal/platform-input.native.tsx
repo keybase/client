@@ -14,7 +14,7 @@ import type * as ImagePicker from 'expo-image-picker'
 import type * as Types from '../../../../constants/types/chat2'
 import type {LayoutEvent} from '../../../../common-adapters/box'
 import type {Props} from './platform-input'
-import {NativeKeyboard} from '../../../../common-adapters/mobile.native'
+import {Keyboard} from 'react-native'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {isOpen} from '../../../../util/keyboard'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker.native'
@@ -405,7 +405,7 @@ const PlatformInput = (p: Props) => {
   const ourShowMenu = React.useCallback(
     (menu: MenuType) => {
       // Hide the keyboard on mobile when showing the menu.
-      NativeKeyboard.dismiss()
+      Keyboard.dismiss()
       whichMenu.current = menu
       toggleShowingPopup()
     },

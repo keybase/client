@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as TabConstants from '../constants/tabs'
-import * as Kb from '../common-adapters/mobile.native'
+import * as Kb from '../common-adapters'
 import * as Constants from '../constants/settings'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
@@ -10,6 +10,7 @@ import {isAndroid} from '../constants/platform'
 import SettingsItem from './sub-nav/settings-item'
 import WhatsNewIcon from '../whats-new/icon/container'
 import noop from 'lodash/noop'
+import {SectionList} from 'react-native' // TODO use common one
 
 type Props = {navigation: any}
 
@@ -75,7 +76,7 @@ function SettingsNav(props: Props) {
   )
 
   return (
-    <Kb.NativeSectionList
+    <SectionList
       overScrollMode="never"
       onScrollToIndexFailed={noop}
       keyboardShouldPersistTaps="handled"

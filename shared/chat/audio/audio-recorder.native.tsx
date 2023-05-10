@@ -1,7 +1,8 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Container from '../../util/container'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as Kb from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters'
+import * as KbMobile from '../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../styles'
 // we need to use the raw colors to animate
@@ -74,7 +75,7 @@ const useTooltip = () => {
   }, [])
 
   const tooltip = showTooltip ? (
-    <Kb.Portal hostName="convOverlay" useFullScreenOverlay={false}>
+    <KbMobile.Portal hostName="convOverlay" useFullScreenOverlay={false}>
       <Animated.View style={animatedStyles}>
         <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>
           <Kb.Text type="BodySmall" negative={true}>
@@ -82,7 +83,7 @@ const useTooltip = () => {
           </Kb.Text>
         </Kb.Box2>
       </Animated.View>
-    </Kb.Portal>
+    </KbMobile.Portal>
   ) : null
 
   const flashTip = React.useCallback(() => {
@@ -291,7 +292,7 @@ const useIconAndOverlay = (p: {
 
   const overlay =
     visible === Visible.HIDDEN ? null : (
-      <Kb.Portal hostName="convOverlay" useFullScreenOverlay={false}>
+      <KbMobile.Portal hostName="convOverlay" useFullScreenOverlay={false}>
         <Animated.View style={styles.container} pointerEvents="box-none">
           <BigBackground fadeSV={fadeSV} />
           <AmpCircle fadeSV={fadeSV} ampSV={ampSV} dragXSV={dragXSV} dragYSV={dragYSV} lockedSV={lockedSV} />
@@ -309,7 +310,7 @@ const useIconAndOverlay = (p: {
             <AudioCounter />
           </Animated.View>
         </Animated.View>
-      </Kb.Portal>
+      </KbMobile.Portal>
     )
 
   return {icon, overlay}

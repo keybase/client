@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type {Props} from './progress-indicator'
-import {NativeActivityIndicator} from './native-wrappers.native'
+import {ActivityIndicator} from 'react-native'
 import {globalColors, collapseStyles} from '../styles'
 
 class ProgressIndicator extends React.Component<Props> {
@@ -8,7 +8,7 @@ class ProgressIndicator extends React.Component<Props> {
     const size = this.props.type === 'Large' ? 'large' : 'small'
 
     return (
-      <NativeActivityIndicator
+      <ActivityIndicator
         color={this.props.white ? globalColors.whiteOrWhite : globalColors.black}
         size={size}
         style={collapseStyles([style, this.props.style])}

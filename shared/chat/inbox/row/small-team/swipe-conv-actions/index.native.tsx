@@ -1,6 +1,6 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Container from '../../../../../util/container'
-import * as Kb from '../../../../../common-adapters/mobile.native'
+import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
 import * as RowSizes from '../../sizes'
@@ -9,6 +9,7 @@ import type {Props} from '.'
 import {RectButton} from 'react-native-gesture-handler'
 import {Swipeable} from '../../../../../common-adapters/swipeable.native'
 import {ConversationIDKeyContext} from '../contexts'
+import {View} from 'react-native'
 
 const actionWidth = 64
 
@@ -84,7 +85,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     (_p: Reanimated.SharedValue<number>) => null
   )
   makeActionsRef.current = (progress: Reanimated.SharedValue<number>) => (
-    <Kb.NativeView style={styles.container}>
+    <View style={styles.container}>
       <Action
         text="Unread"
         color={Styles.globalColors.blue}
@@ -109,7 +110,7 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
         mult={2 / 3}
         progress={progress}
       />
-    </Kb.NativeView>
+    </View>
   )
 
   const props = {
