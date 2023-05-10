@@ -63,8 +63,6 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
     <Box2
       direction="vertical"
       gap="xsmall"
-      gapStart={false}
-      gapEnd={false}
       style={Styles.collapseStyles([
         styles.container,
         {height: !multiline ? computedContainerSize : undefined, minHeight: computedContainerSize},
@@ -73,26 +71,6 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
         containerStyle,
       ])}
     >
-      <Box2
-        direction="vertical"
-        alignItems="flex-start"
-        style={styles.labelWrapper}
-        fullWidth={true}
-        fullHeight={true}
-        centerChildren={true}
-      >
-        <Text
-          type={collapsed ? 'BodyTinySemibold' : isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
-          style={Styles.collapseStyles([
-            styles.label,
-            props.placeholderColor && {color: props.placeholderColor},
-            collapsed ? styles.labelSmall : styles.labelLarge,
-            focused && styles.labelFocused,
-          ])}
-        >
-          {placeholder}
-        </Text>
-      </Box2>
       <PlainInput
         {...plainInputProps}
         onChangeText={_onChangeText}
@@ -108,6 +86,17 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
           multiline && styles.inputMultiline,
         ])}
       />
+      <Text
+        type={collapsed ? 'BodyTinySemibold' : isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
+        style={Styles.collapseStyles([
+          styles.label,
+          props.placeholderColor && {color: props.placeholderColor},
+          collapsed ? styles.labelSmall : styles.labelLarge,
+          focused && styles.labelFocused,
+        ])}
+      >
+        {placeholder}
+      </Text>
     </Box2>
   )
 }
@@ -132,6 +121,7 @@ const styles = Styles.styleSheetCreate(
           borderRadius: 4,
           borderStyle: 'solid',
           borderWidth: 1,
+          justifyContent: 'center',
           margin: 0,
           position: 'relative',
           width: '100%',
@@ -157,52 +147,40 @@ const styles = Styles.styleSheetCreate(
         common: {
           backgroundColor: Styles.globalColors.transparent,
           flexGrow: 1,
-          marginTop: 14,
-          paddingBottom: 3,
           paddingLeft: Styles.globalMargins.xsmall,
           paddingRight: Styles.globalMargins.xsmall,
           width: '100%',
         },
-        isElectron: {
-          marginTop: 14 + Styles.globalMargins.xsmall,
-          zIndex: 0,
-        },
+        isElectron: {},
+        isMobile: {},
       }),
       inputMultiline: Styles.platformStyles({
         isMobile: {
           textAlignVertical: 'top',
         } as const,
       }), // not sure why this fails
-      inputSmall: {
-        paddingTop: 0,
-      },
-      label: {
-        alignSelf: 'flex-start',
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-        zIndex: 0,
-      },
-      labelFocused: {
-        color: Styles.globalColors.blueDark,
-      },
-      labelLarge: {
-        color: Styles.globalColors.black_50,
-      },
-      labelSmall: Styles.platformStyles({
+      inputSmall: {paddingTop: 0},
+      label: Styles.platformStyles({
         common: {
-          color: Styles.globalColors.black,
-          height: '100%',
+          alignSelf: 'flex-start',
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+          position: 'absolute',
         },
         isElectron: {
-          paddingTop: 6,
-        },
-        isMobile: {
-          paddingTop: Styles.globalMargins.tiny,
+          pointerEvents: 'none',
         },
       }),
-      labelWrapper: {
-        position: 'absolute',
-      },
+      labelFocused: {color: Styles.globalColors.blueDark},
+      labelLarge: {color: Styles.globalColors.black_50},
+      labelSmall: Styles.platformStyles({
+        common: {color: Styles.globalColors.black},
+        isElectron: {top: 2},
+        isMobile: {
+          height: '100%',
+          paddingTop: Styles.globalMargins.xtiny,
+        },
+      }),
     } as const)
 )
 
