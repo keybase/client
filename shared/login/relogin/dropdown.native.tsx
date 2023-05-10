@@ -1,8 +1,10 @@
 import logger from '../../logger'
-import * as Kb from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import type {ConfiguredAccount} from '../../constants/types/config'
+import {Picker} from '@react-native-picker/picker'
+import {TouchableWithoutFeedback, Modal} from 'react-native'
 
 type Props = {
   type: 'Username'
@@ -135,16 +137,16 @@ class Dropdown extends React.Component<Props, State> {
     }
 
     return (
-      <Kb.NativePicker
+      <Picker
         style={style}
         selectedValue={this.state.value}
         onValueChange={onValueChange}
         itemStyle={styles.item}
       >
         {items.map(i => (
-          <Kb.NativePicker.Item {...i} key={i.label} />
+          <Picker.Item {...i} key={i.label} />
         ))}
-      </Kb.NativePicker>
+      </Picker>
     )
   }
 
@@ -163,24 +165,24 @@ class Dropdown extends React.Component<Props, State> {
 
   _renderIOS() {
     return (
-      <Kb.NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
+      <TouchableWithoutFeedback onPress={() => this._showModal(true)}>
         <Kb.Box style={{...styles.container, ...this.props.style}}>
-          <Kb.NativeModal
+          <Modal
             animationType="slide"
             transparent={true}
             visible={this.state.modalVisible}
             onRequestClose={() => this._showModal(false)}
           >
             <Kb.Box style={styles.pickerContainer}>
-              <Kb.NativeTouchableWithoutFeedback onPress={() => this._showModal(false)}>
+              <TouchableWithoutFeedback onPress={() => this._showModal(false)}>
                 <Kb.Box style={{flex: 1}} />
-              </Kb.NativeTouchableWithoutFeedback>
+              </TouchableWithoutFeedback>
               {this._renderPicker(styles.pickerIOS, false)}
             </Kb.Box>
-          </Kb.NativeModal>
+          </Modal>
           {this._renderLabelAndCaret()}
         </Kb.Box>
-      </Kb.NativeTouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
     )
   }
 

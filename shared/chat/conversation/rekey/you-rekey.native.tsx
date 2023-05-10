@@ -1,4 +1,4 @@
-import * as Kb from '../../../common-adapters/mobile.native'
+import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import type {Props} from './you-rekey'
 

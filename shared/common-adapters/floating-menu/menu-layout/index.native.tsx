@@ -1,5 +1,5 @@
 import * as Styles from '../../../styles'
-import {NativeTouchableOpacity} from '../../native-wrappers.native'
+import {TouchableOpacity} from 'react-native'
 import Badge from '../../badge'
 import Box, {Box2} from '../../box'
 import Icon from '../../icon'
@@ -27,7 +27,7 @@ const itemContainerHeight = 48
 const itemContainerHeightWithSubTitle = itemContainerHeight + 18 // lineHeight of subTitle
 
 const MenuRow = (props: MenuRowProps) => (
-  <NativeTouchableOpacity
+  <TouchableOpacity
     disabled={props.disabled}
     onPress={() => {
       props.onHidden && !props.unWrapped && props.onHidden() // auto hide after a selection
@@ -93,7 +93,7 @@ const MenuRow = (props: MenuRowProps) => (
       </Box2>
     )}
     {!!props.progressIndicator && <ProgressIndicator style={styles.progressIndicator} />}
-  </NativeTouchableOpacity>
+  </TouchableOpacity>
 )
 
 const MenuLayout = (props: MenuLayoutProps) => {

@@ -2,12 +2,12 @@ import * as ChatConstants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as DeeplinksConstants from '../constants/deeplinks'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
-import * as Kb from '../common-adapters/mobile.native'
 import * as Shared from './router.shared'
 import * as Tabs from '../constants/tabs'
 import type * as ConfigTypes from '../constants/types/config'
 import {getStateFromPath} from '@react-navigation/native'
 import {tabRoots} from './routes'
+import {Linking} from 'react-native'
 
 const tabs: ReadonlyArray<Tabs.Tab> = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
 
@@ -57,7 +57,7 @@ const makeLinking = (options: OptionsType) => {
       // First, you may want to do the default deep link handling
       // Check if app was opened from a deep link
       // NOTE: This can FAIL debugging in chrome
-      let url = await Kb.NativeLinking.getInitialURL()
+      let url = await Linking.getInitialURL()
       if (url != null && !DeeplinksConstants.isValidLink(url)) {
         url = null
       }

@@ -1,4 +1,4 @@
-import * as Kb from '../../../common-adapters/mobile.native'
+import * as Kb from '../../../common-adapters'
 import * as QR from '../../../common-adapters/qr.native'
 import * as Styles from '../../../styles'
 import type {Props} from '.'

@@ -1,5 +1,5 @@
 import * as Container from '../../util/container'
-import * as Kb from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters'
 import * as PushGen from '../../actions/push-gen'
 import * as Styles from '../../styles'
 import Notifications from './render'

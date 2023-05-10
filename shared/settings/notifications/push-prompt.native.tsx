@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/push'
 import * as PushGen from '../../actions/push-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Kb from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 

@@ -1,20 +1,14 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import Box from './box'
-import {
-  NativeTouchableOpacity,
-  NativeTouchableWithoutFeedback,
-  NativePressable,
-} from './native-wrappers.native'
+import {Pressable, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import type {Props, Props2} from './clickable-box'
 
 const Kb = {
   Box,
-  NativeTouchableOpacity,
-  NativeTouchableWithoutFeedback,
 }
 
-const ClickableBox = React.forwardRef<NativeTouchableWithoutFeedback | NativeTouchableOpacity | Box, Props>(
+const ClickableBox = React.forwardRef<TouchableWithoutFeedback | TouchableOpacity | Box, Props>(
   function ClickableBoxInner(props: Props, ref: any) {
     const {feedback = true, onClick, onPressIn, onPressOut, onLongPress} = props
     const {style, activeOpacity, children, pointerEvents} = props
@@ -22,7 +16,7 @@ const ClickableBox = React.forwardRef<NativeTouchableWithoutFeedback | NativeTou
       const clickStyle = Styles.collapseStyles([styles.box, style])
       if (feedback) {
         return (
-          <Kb.NativeTouchableOpacity
+          <TouchableOpacity
             // @ts-ignore
             ref={ref}
             // @ts-ignore
@@ -36,11 +30,11 @@ const ClickableBox = React.forwardRef<NativeTouchableWithoutFeedback | NativeTou
             activeOpacity={activeOpacity ?? 0.7}
           >
             {children}
-          </Kb.NativeTouchableOpacity>
+          </TouchableOpacity>
         )
       } else {
         return (
-          <Kb.NativeTouchableWithoutFeedback
+          <TouchableWithoutFeedback
             // @ts-ignore
             ref={ref}
             // @ts-ignore
@@ -52,7 +46,7 @@ const ClickableBox = React.forwardRef<NativeTouchableWithoutFeedback | NativeTou
             onLongPress={onLongPress}
           >
             {children}
-          </Kb.NativeTouchableWithoutFeedback>
+          </TouchableWithoutFeedback>
         )
       }
     } else {
@@ -79,8 +73,8 @@ export default ClickableBox
 export const ClickableBox2 = (p: Props2) => {
   const {onLongPress, onClick, children, style} = p
   return (
-    <NativePressable onLongPress={onLongPress} onPress={onClick} style={style}>
+    <Pressable onLongPress={onLongPress} onPress={onClick} style={style}>
       {children}
-    </NativePressable>
+    </Pressable>
   )
 }

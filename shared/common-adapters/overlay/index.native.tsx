@@ -1,4 +1,4 @@
-import {NativeTouchableWithoutFeedback} from '../native-wrappers.native'
+import {TouchableWithoutFeedback} from 'react-native'
 import {Box, Box2} from '../box'
 import FloatingBox from '../floating-box'
 import type {Props} from '.'
@@ -8,7 +8,6 @@ const Kb = {
   Box,
   Box2,
   FloatingBox,
-  NativeTouchableWithoutFeedback,
 }
 
 const Overlay = (props: Props) => {
@@ -21,10 +20,10 @@ const Overlay = (props: Props) => {
         direction="vertical"
         style={Styles.collapseStyles([styles.container, !!props.color && {color: props.color}])}
       >
-        <Kb.NativeTouchableWithoutFeedback onPress={props.onHidden}>
+        <TouchableWithoutFeedback onPress={props.onHidden}>
           {/* This has to be a `Box` so `TouchableWithoutFeedback`'s touch responders get piped through to the `View` */}
           <Kb.Box style={styles.touchArea} />
-        </Kb.NativeTouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
         {props.children}
       </Kb.Box2>
     </Kb.FloatingBox>

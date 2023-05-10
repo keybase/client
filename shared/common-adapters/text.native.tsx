@@ -2,9 +2,10 @@ import * as React from 'react'
 import openURL from '../util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import shallowEqual from 'shallowequal'
-import {NativeClipboard, NativeText, NativeAlert} from './native-wrappers.native'
 import type {Props, TextType} from './text'
 import * as Styles from '../styles'
+import {Text as NativeText, Alert} from 'react-native'
+import * as Clipboard from 'expo-clipboard'
 
 const modes = ['positive', 'negative']
 
@@ -52,13 +53,15 @@ class Text extends React.Component<Props> {
 
   _urlCopy = (url: string | null) => {
     if (!url) return
-    NativeClipboard.setString(url)
+    Clipboard.setStringAsync(url)
+      .then(() => {})
+      .catch(() => {})
   }
 
   _urlChooseOption = () => {
     const url = this.props.onLongPressURL
     if (!url) return
-    NativeAlert.alert('', url, [
+    Alert.alert('', url, [
       {style: 'cancel', text: 'Cancel'},
       {onPress: () => openURL(url), text: 'Open Link'},
       {onPress: () => this._urlCopy(url), text: 'Copy Link'},

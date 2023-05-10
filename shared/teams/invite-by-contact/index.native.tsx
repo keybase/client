@@ -1,4 +1,4 @@
-import * as Kb from '../../common-adapters/mobile.native'
+import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import {FloatingRolePicker} from '../role-picker'

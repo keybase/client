@@ -299,7 +299,9 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
   const aboveDivider = Container.isMobile ? addingMembers.slice(0, 4) : addingMembers
   const belowDivider = Container.isMobile && expanded ? addingMembers.slice(4) : []
   const toggleExpanded = () => {
-    Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
+    if (Styles.isMobile) {
+      Kb.LayoutAnimation.configureNext(Kb.LayoutAnimation.Presets.easeInEaseOut)
+    }
     setExpanded(!expanded)
   }
   const content = (

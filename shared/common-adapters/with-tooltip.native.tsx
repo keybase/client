@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Container from '../util/container'
-import {NativeDimensions, NativeView} from './native-wrappers.native'
 import {Portal} from './portal.native'
 import {useTimeout} from './use-timers'
 import Box from './box'
@@ -9,6 +8,7 @@ import Text from './text'
 import {animated} from 'react-spring'
 import * as Styles from '../styles'
 import type {Props} from './with-tooltip'
+import {View, Dimensions} from 'react-native'
 
 // This uses a similar mechanism to relative-popup-hoc.desktop.js. It's only
 // ever used for tooltips on mobile for now. If we end up needing relative
@@ -19,8 +19,6 @@ import type {Props} from './with-tooltip'
 const Kb = {
   Box,
   ClickableBox,
-  NativeDimensions,
-  NativeView,
   Portal,
   Text,
 }
@@ -52,8 +50,8 @@ const WithTooltip = (props: Props) => {
   const [top, setTop] = React.useState(0)
   const [visible, setVisible] = React.useState(false)
   const animatedStyle = {opacity: visible ? 1 : 0}
-  const clickableRef = React.useRef<NativeView>(null)
-  const tooltipRef = React.useRef<NativeView>(null)
+  const clickableRef = React.useRef<View>(null)
+  const tooltipRef = React.useRef<View>(null)
   const setVisibleFalseLater = useTimeout(() => {
     setVisible(false)
   }, 3000)
@@ -63,8 +61,8 @@ const WithTooltip = (props: Props) => {
       return
     }
 
-    const screenWidth = Kb.NativeDimensions.get('window').width
-    const screenHeight = Kb.NativeDimensions.get('window').height
+    const screenWidth = Dimensions.get('window').width
+    const screenHeight = Dimensions.get('window').height
 
     Promise.all([
       new Promise(resolve => clickableRef.current?.measure(measureCb(resolve))),
@@ -94,20 +92,17 @@ const WithTooltip = (props: Props) => {
   }
 
   if (!props.showOnPressMobile || props.disabled) {
-    return <Kb.NativeView style={props.containerStyle as any}>{props.children}</Kb.NativeView>
+    return <View style={props.containerStyle as any}>{props.children}</View>
   }
 
   return (
     <>
-      <Kb.NativeView style={props.containerStyle as any} ref={clickableRef} collapsable={false}>
+      <View style={props.containerStyle as any} ref={clickableRef} collapsable={false}>
         <Kb.ClickableBox onClick={_onClick}>{props.children}</Kb.ClickableBox>
-      </Kb.NativeView>
+      </View>
       <AnimatedFloatingBox style={animatedStyle}>
-        <Kb.NativeView
-          pointerEvents="none"
-          style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top}])}
-        >
-          <Kb.NativeView
+        <View pointerEvents="none" style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top}])}>
+          <View
             style={Styles.collapseStyles([
               styles.container,
               {left},
@@ -124,8 +119,8 @@ const WithTooltip = (props: Props) => {
             >
               {props.tooltip}
             </Kb.Text>
-          </Kb.NativeView>
-        </Kb.NativeView>
+          </View>
+        </View>
       </AnimatedFloatingBox>
     </>
   )

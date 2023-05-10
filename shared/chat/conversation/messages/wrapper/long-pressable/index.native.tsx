@@ -1,12 +1,13 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Container from '../../../../../util/container'
-import * as Kb from '../../../../../common-adapters/mobile.native'
+import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
 import type {Props} from '.'
 import {GetIdsContext} from '../../ids-context'
 import {SwipeTrigger} from '../../../../../common-adapters/swipeable.native'
 import {dismiss} from '../../../../../util/keyboard'
+import {Pressable} from 'react-native'
 // import {useDebugLayout} from '../../../../../util/debug'
 
 const LongPressable = React.memo(function LongPressable(props: Props) {
@@ -23,7 +24,7 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
   )*/
 
   const inner = (
-    <Kb.NativePressable
+    <Pressable
       style={[styles.pressable, style]}
       onLongPress={onLongPress}
       onPress={onPress}
@@ -31,7 +32,7 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
       onLayout={onLayout}
     >
       {children}
-    </Kb.NativePressable>
+    </Pressable>
   )
 
   const makeAction = React.useCallback(() => {

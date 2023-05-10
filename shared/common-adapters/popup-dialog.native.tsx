@@ -1,34 +1,34 @@
 import Box from './box'
-import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
-import {globalColors, globalMargins, globalStyles} from '../styles'
+import {TouchableWithoutFeedback} from 'react-native'
+import * as Styles from '../styles'
 
 import type {Props} from './popup-dialog'
 
 export function PopupDialog({children, onClose, styleCover, styleContainer}: Props) {
   return (
-    <NativeTouchableWithoutFeedback onPress={onClose || undefined}>
+    <TouchableWithoutFeedback onPress={onClose || undefined}>
       <Box style={{...coverStyle, ...styleCover}}>
-        <NativeTouchableWithoutFeedback>
+        <TouchableWithoutFeedback>
           <Box style={{...containerStyle, ...styleContainer}}>{children}</Box>
-        </NativeTouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
       </Box>
-    </NativeTouchableWithoutFeedback>
+    </TouchableWithoutFeedback>
   )
 }
 
 const coverStyle = {
-  ...globalStyles.flexBoxCenter,
-  ...globalStyles.fillAbsolute,
-  backgroundColor: globalColors.black,
-  paddingBottom: globalMargins.small,
-  paddingLeft: globalMargins.large,
-  paddingRight: globalMargins.large,
-  paddingTop: globalMargins.small,
+  ...Styles.globalStyles.flexBoxCenter,
+  ...Styles.globalStyles.fillAbsolute,
+  backgroundColor: Styles.globalColors.black,
+  paddingBottom: Styles.globalMargins.small,
+  paddingLeft: Styles.globalMargins.large,
+  paddingRight: Styles.globalMargins.large,
+  paddingTop: Styles.globalMargins.small,
 }
 
 const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
+  ...Styles.globalStyles.flexBoxColumn,
+  backgroundColor: Styles.globalColors.white,
   borderRadius: 4,
   flexGrow: 1,
   position: 'relative',

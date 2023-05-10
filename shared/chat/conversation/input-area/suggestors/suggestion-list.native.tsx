@@ -4,7 +4,7 @@ import * as Styles from '../../../../styles'
 import noop from 'lodash/noop'
 import type {Props} from './suggestion-list'
 import {BotCommandUpdateStatus} from '../normal/shared'
-import {NativeFlatList} from '../../../../common-adapters/native-wrappers.native'
+import {FlatList} from 'react-native'
 
 const SuggestionList = (props: Props) => (
   <Kb.Box2
@@ -12,7 +12,7 @@ const SuggestionList = (props: Props) => (
     fullWidth={true}
     style={Styles.collapseStyles([styles.listContainer, props.style])}
   >
-    <NativeFlatList
+    <FlatList
       alwaysBounceVertical={false}
       renderItem={({index, item}) => props.renderItem(index, item)}
       style={styles.noGrow}
