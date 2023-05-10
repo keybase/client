@@ -73,7 +73,6 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@chardskarth/react-gateway": "3.1.1",
     "@gorhom/portal": "1.0.14",
     "@mattermost/react-native-paste-input": "0.5.1",
     "@msgpack/msgpack": "2.8.0",
@@ -165,7 +164,6 @@
     "@types/mousetrap": "1.6.11",
     "@types/react": "18.2.0",
     "@types/react-dom": "18.2.1",
-    "@types/react-gateway": "2.8.5",
     "@types/react-is": "18.2.0",
     "@types/react-list": "0.8.7",
     "@types/react-measure": "2.0.8",

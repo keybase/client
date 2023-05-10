@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {Provider} from 'react-redux'
 import {GlobalKeyEventHandler} from '../../util/key-event-handler.desktop'
-import {GatewayProvider} from '@chardskarth/react-gateway'
 import {CanFixOverdrawContext} from '../../styles'
 import * as Container from '../../util/container'
 import './style.css'
@@ -12,11 +11,9 @@ const deferLoadingApp = __DEV__ && false
 const Root = ({store, children}: any) => {
   return (
     <GlobalKeyEventHandler>
-      <GatewayProvider>
-        <CanFixOverdrawContext.Provider value={true}>
-          <Provider store={store}>{children}</Provider>
-        </CanFixOverdrawContext.Provider>
-      </GatewayProvider>
+      <CanFixOverdrawContext.Provider value={true}>
+        <Provider store={store}>{children}</Provider>
+      </CanFixOverdrawContext.Provider>
     </GlobalKeyEventHandler>
   )
 }

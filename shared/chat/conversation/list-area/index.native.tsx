@@ -21,6 +21,7 @@ import shallowEqual from 'shallowequal'
 import {useChatDebugDump} from '../../../constants/chat2/debug'
 import {usingFlashList} from './flashlist-config'
 
+// TODO if we bring flashlist back bring back the patch
 const List = /*usingFlashList ? FlashList :*/ FlatList
 
 // Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
