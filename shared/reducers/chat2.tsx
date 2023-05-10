@@ -145,12 +145,16 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
     info.status = status
   },
   [Chat2Gen.toggleThreadSearch]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
+    const {conversationIDKey, hide} = action.payload
     const {threadSearchInfoMap, messageCenterOrdinals} = draftState
     const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
     info.hits = []
     info.status = 'initial'
-    info.visible = !info.visible
+    if (hide !== undefined) {
+      info.visible = !hide
+    } else {
+      info.visible = !info.visible
+    }
 
     messageCenterOrdinals.delete(conversationIDKey)
   },
