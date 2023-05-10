@@ -1801,11 +1801,6 @@
     schema-utils "^3.0.0"
     source-map "^0.7.3"
 
-"@react-native-clipboard/clipboard@1.11.2":
-  version "1.11.2"
-  resolved "https://registry.yarnpkg.com/@react-native-clipboard/clipboard/-/clipboard-1.11.2.tgz#e826d0336b34e67294aaffa6878308900bc7d197"
-  integrity sha512-bHyZVW62TuleiZsXNHS1Pv16fWc0fh8O9WvBzl4h2fykqZRW9a+Pv/RGTH56E3X2PqzHP38K5go8zmCZUoIsoQ==
-
 "@react-native-community/cli-clean@^10.1.1":
   version "10.1.1"
   resolved "https://registry.yarnpkg.com/@react-native-community/cli-clean/-/cli-clean-10.1.1.tgz#4c73ce93a63a24d70c0089d4025daac8184ff504"
@@ -4960,6 +4955,11 @@ expo-barcode-scanner@12.3.2:
   integrity sha512-6s8r7/H2pP1sscCm4gwIaVaqOTPBn3qDbh0d27Q79Ix5/p+yPVd/hkD0GGooDLHHcdOWTweQzrlRCxOdSVh8ZQ==
   dependencies:
     expo-image-loader "~4.1.0"
+
+expo-clipboard@4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/expo-clipboard/-/expo-clipboard-4.2.0.tgz#0f7a53a80f01934988df80f4973f9538416053f6"
+  integrity sha512-pb0zhWAAq7/DfoUybG4J/1XtvlfMjFTHxZe0JltgCOxeE2FB1D57w7Fv7nTJYDvEqax2GDSMyhuZdOkZVwKkHQ==
 
 expo-constants@~14.2.0, expo-constants@~14.2.1:
   version "14.2.1"

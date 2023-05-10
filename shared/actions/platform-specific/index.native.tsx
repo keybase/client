@@ -18,7 +18,7 @@ import * as SettingsGen from '../settings-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Types from '../../constants/types/chat2'
 import * as WaitingGen from '../waiting-gen'
-import Clipboard from '@react-native-clipboard/clipboard'
+import * as Clipboard from 'expo-clipboard'
 import NetInfo from '@react-native-community/netinfo'
 import NotifyPopup from '../../util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -373,7 +373,9 @@ const waitForStartupDetails = async (
 }
 
 const copyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) => {
-  Clipboard.setString(action.payload.text)
+  Clipboard.setStringAsync(action.payload.text)
+    .then(() => {})
+    .catch(() => {})
 }
 
 const handleFilePickerError = (_: unknown, action: ConfigGen.FilePickerErrorPayload) => {
