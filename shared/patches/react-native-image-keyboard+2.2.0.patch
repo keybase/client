@@ -1,0 +1,25 @@
+diff --git a/node_modules/react-native-image-keyboard/ios/RCTBaseTextInputView+MediaInput.m b/node_modules/react-native-image-keyboard/ios/RCTBaseTextInputView+MediaInput.m
+index 90b89d9..1c39529 100644
+--- a/node_modules/react-native-image-keyboard/ios/RCTBaseTextInputView+MediaInput.m
++++ b/node_modules/react-native-image-keyboard/ios/RCTBaseTextInputView+MediaInput.m
+@@ -73,7 +73,7 @@ static NSArray *acceptedTypes;
+                                                                           withString:@""];
+ 
+             NSString *base64 = [image base64EncodedStringWithOptions:0];
+-
++/*
+             NSArray<NSString*> *paths = NSSearchPathForDirectoriesInDomains(
+                                                                             NSDocumentDirectory,
+                                                                             NSUserDomainMask,
+@@ -84,6 +84,11 @@ static NSArray *acceptedTypes;
+                               paths[0],
+                               uniqueFileName,
+                               fileExtension];
++            */
++            NSString * kbroot = [NSHomeDirectory() stringByAppendingString:@"/Library/Caches/AV"];
++            NSError * error = nil;
++            [[NSFileManager defaultManager] createDirectoryAtPath:kbroot withIntermediateDirectories:YES attributes:nil error:&error];
++            NSString *path = [NSURL fileURLWithPath:[kbroot stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@", [[NSProcessInfo processInfo] globallyUniqueString], fileExtension]]].path;
+ 
+             [image writeToFile:path atomically:YES];
+ 

@@ -25,6 +25,7 @@ import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as WalletsGen from '../wallets-gen'
+import * as Styles from '../../styles'
 import {findLast} from '../../util/arrays'
 import KB2 from '../../util/electron'
 import NotifyPopup from '../../util/notify-popup'
@@ -2245,7 +2246,7 @@ const attachmentsUpload = async (state: Container.TypedState, action: Chat2Gen.A
         arg: {
           ...ephemeralData,
           conversationID: Types.keyToConversationID(conversationIDKey),
-          filename: p.path,
+          filename: Styles.unnormalizePath(p.path),
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
           metadata: Buffer.from([]),
           outboxID: outboxIDs[i],

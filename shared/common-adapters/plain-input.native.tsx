@@ -9,8 +9,6 @@ import {Box2} from './box'
 import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
 import {isIOS} from '../constants/platform'
-import PasteInput from '@mattermost/react-native-paste-input'
-import noop from 'lodash/noop'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
@@ -199,6 +197,13 @@ class PlainInput extends React.PureComponent<InternalProps> {
     ])
   }
 
+  onImageChange = (e: {nativeEvent: {uri; linkUri; mime; data}}) => {
+    if (this.props.onPasteImage) {
+      const {uri, linkUri} = e.nativeEvent
+      uri && this.props.onPasteImage(linkUri || uri)
+    }
+  }
+
   _getProps = () => {
     let common = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
@@ -217,8 +222,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
       onChangeText: this._onChangeText,
       onEndEditing: this.props.onEndEditing,
       onFocus: this._onFocus,
+      onImageChange: this.onImageChange,
       onKeyPress: this.props.onKeyPress,
-      onPaste: this.props.onPasteImage,
       onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.placeholder,
@@ -232,14 +237,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
       underlineColorAndroid: 'transparent',
     } as const
 
-    if (this.props.allowImagePaste) {
-      common = {
-        ...common,
-        // @ts-ignore, we let this just bubble up
-        onDropped: noop,
-      }
-    }
-
     if (this.props.multiline) {
       return {
         ...common,
@@ -252,8 +249,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   render() {
     const props = this._getProps()
-    // TODO not fabric
-    const Clazz: typeof NativeTextInput = this.props.allowImagePaste ? (PasteInput as any) : NativeTextInput
 
     if (props.value) {
       this._lastNativeText = props.value
@@ -268,12 +263,12 @@ class PlainInput extends React.PureComponent<InternalProps> {
       return (
         <ClickableBox style={{flexGrow: 1}} onClick={props.onFocus}>
           <Box2 direction="horizontal" pointerEvents="none">
-            <Clazz {...props} editable={false} />
+            <NativeTextInput {...props} editable={false} />
           </Box2>
         </ClickableBox>
       )
     }
-    return <Clazz {...props} />
+    return <NativeTextInput {...props} />
   }
 }
 

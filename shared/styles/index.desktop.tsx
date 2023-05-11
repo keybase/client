@@ -281,3 +281,6 @@ export const CanFixOverdrawContext = React.createContext(false)
 export const dontFixOverdraw = {canFixOverdraw: false}
 export const yesFixOverdraw = {canFixOverdraw: true}
 export const undynamicColor = (col: any) => col
+// nothing on desktop, it all works
+export const normalizePath = (p: string) => p
+export const unnormalizePath = (p: string) => p

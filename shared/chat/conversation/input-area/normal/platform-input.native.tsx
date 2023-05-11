@@ -17,10 +17,9 @@ import type {Props} from './platform-input'
 import {Keyboard} from 'react-native'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {isOpen} from '../../../../util/keyboard'
-import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker.native'
+import {launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker.native'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
-import {type PastedFile} from '@mattermost/react-native-paste-input'
 import {MaxInputAreaContext} from '../../input-area/normal/max-input-area-context'
 import {
   createAnimatedComponent,
@@ -228,7 +227,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
           return
         }
 
-        const pathAndOutboxIDs = result.assets.map(p => ({outboxID: null, path: parseUri(p)}))
+        const pathAndOutboxIDs = result.assets.map(a => ({outboxID: null, path: a.uri}))
         const props = {conversationIDKey, pathAndOutboxIDs}
         dispatch(
           RouteTreeGen.createNavigateAppend({
@@ -418,27 +417,14 @@ const PlatformInput = (p: Props) => {
 
   const dispatch = Container.useDispatch()
   const onPasteImage = React.useCallback(
-    (error: string | null | undefined, files: Array<PastedFile>) => {
+    (uri: string) => {
       try {
-        if (error) return
-        const pathAndOutboxIDs = files.reduce<Array<Types.PathAndOutboxID>>((arr, f) => {
-          // @ts-ignore actually exists!
-          if (!f.error) {
-            const filePrefixLen = 'file://'.length
-            const uriLen = f.uri?.length ?? 0
-            if (uriLen > filePrefixLen) {
-              arr.push({outboxID: null, path: f.uri.substring(filePrefixLen)})
-            }
-          }
-          return arr
-        }, [])
-        if (pathAndOutboxIDs.length) {
-          dispatch(
-            RouteTreeGen.createNavigateAppend({
-              path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-            })
-          )
-        }
+        const pathAndOutboxIDs = [{outboxID: null, path: uri}]
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+          })
+        )
       } catch (e) {
         logger.info('onPasteImage error', e)
       }
@@ -484,7 +470,6 @@ const PlatformInput = (p: Props) => {
             {/* in order to get auto correct submit working we move focus to this and then back so we can 'blur' without losing keyboard */}
             <Kb.PlainInput key="silent" ref={silentInput} style={styles.hidden} />
             <AnimatedInput
-              allowImagePaste={true}
               onPasteImage={onPasteImage}
               autoCorrect={true}
               autoCapitalize="sentences"

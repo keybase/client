@@ -1,12 +1,4 @@
-import {isIOS} from '../constants/platform'
 import * as ImagePicker from 'expo-image-picker'
-
-export const parseUri = (result: {uri: string}, withPrefix: boolean = false): string => {
-  if (withPrefix) {
-    return result.uri
-  }
-  return isIOS ? result.uri.replace('file://', '') : result.uri.replace('file:', '')
-}
 
 const retyAfterAskingPerm =
   (

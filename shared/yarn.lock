@@ -1725,13 +1725,6 @@
   dependencies:
     cross-spawn "^7.0.1"
 
-"@mattermost/react-native-paste-input@0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@mattermost/react-native-paste-input/-/react-native-paste-input-0.5.1.tgz#2d24b2d4a9fdb0aaefda6df8d9c64380ac731dc1"
-  integrity sha512-2ZXohoSJbLyItzvdT3dyjlC7tvDBEXqvzxhKUHs4OnIslYZzHso9gfqjIZNfet8ryhYAJ3CgB+xCmP5u7ouFtQ==
-  dependencies:
-    deprecated-react-native-prop-types "^2.3.0"
-
 "@msgpack/msgpack@1.9.3":
   version "1.9.3"
   resolved "https://registry.yarnpkg.com/@msgpack/msgpack/-/msgpack-1.9.3.tgz#2196023f65a1d77261f950c356e3a4491faf1601"
@@ -4358,15 +4351,6 @@ depd@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/depd/-/depd-1.1.2.tgz#9bcd52e14c097763e749b274c4346ed2e560b5a9"
   integrity sha512-7emPTl6Dpo6JRXOXjLRxck+FlLRX5847cLKEn00PLAgc3g2hTZZgr+e4c2v6QpSmLeFP3n5yUo7ft6avBK/5jQ==
-
-deprecated-react-native-prop-types@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/deprecated-react-native-prop-types/-/deprecated-react-native-prop-types-2.3.0.tgz#c10c6ee75ff2b6de94bb127f142b814e6e08d9ab"
-  integrity sha512-pWD0voFtNYxrVqvBMYf5gq3NA2GCpfodS1yNynTPc93AYA/KEMGeWDqqeUB6R2Z9ZofVhks2aeJXiuQqKNpesA==
-  dependencies:
-    "@react-native/normalize-color" "*"
-    invariant "*"
-    prop-types "*"
 
 deprecated-react-native-prop-types@^3.0.1:
   version "3.0.1"
@@ -8932,6 +8916,11 @@ react-native-hw-keyboard-event@0.0.4:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/react-native-hw-keyboard-event/-/react-native-hw-keyboard-event-0.0.4.tgz#e8e7d3be78cf61bac0144066f734cdd48df88d2f"
   integrity sha512-G8qp0nm17PHigLb/axgdF9xg51BKCG2p1AGeq//J/luLp5zNczIcQJh+nm02R1MeEUE3e53wqO4LMe0MV3raZg==
+
+react-native-image-keyboard@2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-image-keyboard/-/react-native-image-keyboard-2.2.0.tgz#dc3f90aaaac20a79315015a330e62e85547e0674"
+  integrity sha512-2JzKCXMBYiIUR6OtGV7F/lEWqwIU/6HS1CGOBulxwYNxoa7m1nZk45hNEZPP8SA5yE2pLNXEQePjc3WGAtXo3w==
 
 react-native-reanimated@3.0.2:
   version "3.0.2"
