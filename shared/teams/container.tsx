@@ -26,7 +26,8 @@ const useHeaderActions = (): HeaderActionProps => {
   const nav = Container.useSafeNavigation()
   return {
     onCreateTeam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal()),
-    onJoinTeam: () => dispatch(nav.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']})),
+    onJoinTeam: () =>
+      dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamJoinTeamDialog'}]})),
   }
 }
 

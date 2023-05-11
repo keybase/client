@@ -48,8 +48,14 @@ export type RootParamList = DeepPartial<
 >
 
 type RouteKeys = keyof RootParamList
-type Distribute<U> = U extends RouteKeys ? {selected: U; props: RootParamList[U]} : never
-export type NavigateAppendType = ReadonlyArray<RouteKeys | Distribute<RouteKeys>>
+// type Distribute<U> = U extends RouteKeys ? {selected: U; props: RootParamList[U]} : never
+type Distribute<U> = U extends RouteKeys
+  ? RootParamList[U] extends undefined
+    ? U
+    : {selected: U; props: RootParamList[U]}
+  : never
+// export type NavigateAppendType = ReadonlyArray<RouteKeys | Distribute<RouteKeys>>
+export type NavigateAppendType = ReadonlyArray<Distribute<RouteKeys>>
 
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
 

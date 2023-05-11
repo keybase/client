@@ -108,7 +108,7 @@ const openSendRequestForm = (state: Container.TypedState) => {
   const accountsLoaded = Constants.getAccounts(state).length > 0
   return [
     !accountsLoaded && WalletsGen.createLoadAccounts({reason: 'open-send-req-form'}),
-    RouteTreeGen.createNavigateAppend({path: [Constants.sendRequestFormRouteKey]}),
+    RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: Constants.sendRequestFormRouteKey}]}),
   ]
 }
 

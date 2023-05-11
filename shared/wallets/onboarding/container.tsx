@@ -37,9 +37,6 @@ const ConnectedOnboarding = (ownProps: OwnProps) => {
 
 // A wrapper to harmonize the type of OwnProps between the
 // routed case and <Onboarding /> case.
-type RoutedOnboardingProps = Container.RouteProps<'walletOnboarding'>
-export const RoutedOnboarding = (ownProps: RoutedOnboardingProps) => (
-  <ConnectedOnboarding nextScreen={ownProps.route.params?.nextScreen ?? 'openWallet'} />
-)
+export const RoutedOnboarding = () => <ConnectedOnboarding nextScreen={'openWallet'} />
 
 export default ConnectedOnboarding

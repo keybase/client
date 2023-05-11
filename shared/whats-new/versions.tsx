@@ -92,7 +92,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-5.2.0-crypto"
         noSeparator={true}
         onPrimaryButtonClick={() => {
-          onNavigate({path: [Platform.isMobile ? cryptoTab : encryptTab]})
+          onNavigate({path: [Platform.isMobile ? cryptoTab : encryptTab]} as const)
         }}
         primaryButtonClassName="buttonNyctographicHover"
         primaryButtonText="Try it"
