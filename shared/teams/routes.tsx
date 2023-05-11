@@ -230,7 +230,7 @@ export type RootParamListTeams = {
   teamDeleteChannel: {
     teamID: Types.TeamID
     // undefined means use the currently selected channels in the store (under the channel tab of the team page)
-    conversationIDKey: ChatTypes.ConversationIDKey | undefined
+    conversationIDKey?: ChatTypes.ConversationIDKey
   }
   teamReallyLeaveTeam: {teamID: Types.TeamID}
   teamRename: {teamname: string}

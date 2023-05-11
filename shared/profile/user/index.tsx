@@ -35,7 +35,7 @@ export type Props = {
   onBack: () => void
   onReload: () => void
   onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
-  onIKnowThem?: () => void
+  // onIKnowThem?: () => void
   reason: string
   sbsAvatarUrl?: string
   state: Types.DetailsState

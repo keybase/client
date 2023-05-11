@@ -118,11 +118,11 @@ const Connected = (ownProps: OwnProps) => {
   const _onEditAvatar = () => {
     dispatch(ProfileGen.createEditAvatar())
   }
-  const _onIKnowThem = (username: string, guiID: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
-    )
-  }
+  // const _onIKnowThem = (username: string, guiID: string) => {
+  //   dispatch(
+  //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
+  //   )
+  // }
   const _onReload = (username: string, isYou: boolean, state: Types.DetailsState) => {
     if (state !== 'valid') {
       // Might be a Keybase user or not, launch non-user profile fetch.
@@ -182,10 +182,10 @@ const Connected = (ownProps: OwnProps) => {
     onAddIdentity: allowOnAddIdentity ? onAddIdentity : undefined,
     onBack: onBack,
     onEditAvatar: stateProps.userIsYou ? _onEditAvatar : undefined,
-    onIKnowThem:
-      stateProps.vouchShowButton && !stateProps.vouchDisableButton
-        ? () => _onIKnowThem(stateProps.username, stateProps.guiID)
-        : undefined,
+    // onIKnowThem:
+    //   stateProps.vouchShowButton && !stateProps.vouchDisableButton
+    //     ? () => _onIKnowThem(stateProps.username, stateProps.guiID)
+    //     : undefined,
     onReload: () => _onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
     reason: stateProps.reason,
     sbsAvatarUrl: stateProps.sbsAvatarUrl,

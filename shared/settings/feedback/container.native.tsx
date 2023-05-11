@@ -16,7 +16,7 @@ export type State = {
 }
 export type Props = {
   chat: Object
-  feedback: string
+  feedback?: string
   loggedOut: boolean
   push: Object
   status: Object
@@ -130,7 +130,7 @@ const Connected = (ownProps: OwnProps) => {
 
   const props = {
     chat,
-    feedback: ownProps.route.params?.feedback ?? '',
+    feedback: ownProps.route.params.feedback,
     loggedOut,
     push,
     status,

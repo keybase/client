@@ -1,7 +1,7 @@
 import {Component} from 'react'
 
 export type Props = {
-  email: string | null
+  email?: string
   link: string
   onClose: () => void
 }

@@ -178,7 +178,7 @@ export default (ownProps: OwnProps) => {
       dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {heading: 'Oh no, a bug!'}, selected: feedbackTab}],
+          path: [{props: {}, selected: feedbackTab}],
         })
       )
     } else {

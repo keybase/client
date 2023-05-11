@@ -86,7 +86,7 @@ const Timeline = ({device}) => {
 }
 
 const DevicePage = (ownProps: OwnProps) => {
-  const id = ownProps.route.params?.deviceID ?? ''
+  const id = ownProps.route.params.deviceID
   const iconNumber = Container.useSelector(state => Constants.getDeviceIconNumber(state, id))
 
   const dispatch = Container.useDispatch()

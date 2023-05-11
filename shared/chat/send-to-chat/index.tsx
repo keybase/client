@@ -23,10 +23,10 @@ type RoutableProps = Container.RouteProps<'sendToChat'>
 
 const MobileSendToChatRoutable = (props: RoutableProps) => {
   const {params} = props.route
-  const canBack = params?.canBack ?? false
-  const isFromShareExtension = params?.isFromShareExtension ?? undefined
-  const sendPaths = params?.sendPaths ?? undefined
-  const text = params?.text ?? undefined
+  const canBack = params.canBack
+  const isFromShareExtension = params.isFromShareExtension
+  const sendPaths = params.sendPaths
+  const text = params.text
 
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createClearModals())

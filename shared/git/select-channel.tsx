@@ -10,9 +10,9 @@ type OwnProps = Container.RouteProps<'gitSelectChannel'>
 
 const SelectChannel = (ownProps: OwnProps) => {
   const {params} = ownProps.route
-  const teamID = params?.teamID ?? ''
-  const _selected = params?.selected ?? ''
-  const repoID = params?.repoID ?? ''
+  const teamID = params.teamID
+  const _selected = params.selected
+  const repoID = params.repoID
   const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
 
   const {channelMetas} = useAllChannelMetas(teamID)

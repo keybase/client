@@ -35,16 +35,17 @@ const ConnectedRow = (ownProps: OwnProps) => {
   }
 
   const _onOpenChannelSelection = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {repoID: git.repoID, selected: git.channelName || 'general', teamID},
-            selected: 'gitSelectChannel',
-          },
-        ],
-      })
-    )
+    teamID &&
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {repoID: git.repoID, selected: git.channelName || 'general', teamID},
+              selected: 'gitSelectChannel',
+            },
+          ],
+        })
+      )
   }
   const _setDisableChat = (disabled: boolean, repoID: string, teamname: string) => {
     dispatch(

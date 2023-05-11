@@ -376,8 +376,8 @@ const styles = Styles.styleSheetCreate(
 
 export const Routable = (routableProps: RoutableProps) => {
   const {params} = routableProps.route
-  const small = params?.small
-  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageOrdinal, pickKey} = params ?? {}
+  const small = params.small
+  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageOrdinal, pickKey} = params
   const updatePickerMap = usePickerState(state => state.updatePickerMap)
   const onPickAction = React.useCallback(
     (emojiStr: string, renderableEmoji: RenderableEmoji) => {
