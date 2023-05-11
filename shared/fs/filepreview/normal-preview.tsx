@@ -13,13 +13,7 @@ type NormalPreviewProps = {
 const NormalPreview = (props: NormalPreviewProps) => (
   <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
     <Kbfs.Errs />
-    <Kb.Box2
-      direction="vertical"
-      centerChildren={true}
-      fullWidth={true}
-      fullHeight={true}
-      style={styles.greyContainer}
-    >
+    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.greyContainer}>
       <View path={props.path} onUrlError={props.onUrlError} />
     </Kb.Box2>
     <Footer path={props.path} />
@@ -45,8 +39,9 @@ const styles = Styles.styleSheetCreate(
       }),
       greyContainer: {
         backgroundColor: Styles.globalColors.blueLighter3,
-        flex: 1,
+        flexGrow: 1,
         flexShrink: 1,
+        width: '100%',
       },
     } as const)
 )

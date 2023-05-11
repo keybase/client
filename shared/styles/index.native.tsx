@@ -199,3 +199,16 @@ export const undynamicColor = (col: any) => {
   }
   return col
 }
+export const normalizePath = (p: string) => {
+  if (p.startsWith('/')) {
+    return `file://${p}`
+  }
+  return p
+}
+
+export const unnormalizePath = (p: string) => {
+  if (p.startsWith('file://')) {
+    return p.slice('file://'.length)
+  }
+  return p
+}

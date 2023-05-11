@@ -9,7 +9,6 @@ import {Box2} from './box'
 import {checkTextInfo} from './input.shared'
 import {getStyle as getTextStyle} from './text'
 import {isIOS} from '../constants/platform'
-import noop from 'lodash/noop'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
@@ -200,8 +199,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   onImageChange = (e: {nativeEvent: {uri; linkUri; mime; data}}) => {
     if (this.props.onPasteImage) {
-      const {uri} = e.nativeEvent
-      uri && this.props.onPasteImage(uri)
+      const {uri, linkUri} = e.nativeEvent
+      uri && this.props.onPasteImage(linkUri || uri)
     }
   }
 

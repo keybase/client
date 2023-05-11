@@ -17,10 +17,9 @@ import type {Props} from './platform-input'
 import {Keyboard} from 'react-native'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {isOpen} from '../../../../util/keyboard'
-import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker.native'
+import {launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker.native'
 import {standardTransformer} from '../suggestors/common'
 import {useSuggestors} from '../suggestors'
-import {type PastedFile} from '@mattermost/react-native-paste-input'
 import {MaxInputAreaContext} from '../../input-area/normal/max-input-area-context'
 import {
   createAnimatedComponent,
@@ -228,7 +227,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
           return
         }
 
-        const pathAndOutboxIDs = result.assets.map(p => ({outboxID: null, path: parseUri(p)}))
+        const pathAndOutboxIDs = result.assets.map(a => ({outboxID: null, path: a.uri}))
         const props = {conversationIDKey, pathAndOutboxIDs}
         dispatch(
           RouteTreeGen.createNavigateAppend({

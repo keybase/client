@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {StylesCrossPlatform, globalMargins, CustomStyles} from '../styles'
-import {type PastedFile} from '@mattermost/react-native-paste-input'
 import {TextType} from './text'
 
 export type KeyboardType =

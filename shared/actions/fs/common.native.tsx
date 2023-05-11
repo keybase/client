@@ -1,9 +1,10 @@
 import logger from '../../logger'
 import * as FsGen from '../fs-gen'
 import * as Types from '../../constants/types/fs'
+import * as Styles from '../../styles'
 import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
-import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker.native'
+import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {errorToActionOrThrow} from './shared'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 
@@ -12,9 +13,9 @@ const pickAndUploadToPromise = async (_: Container.TypedState, action: FsGen.Pic
     const result = await launchImageLibraryAsync(action.payload.type, true, true)
     return result.canceled || (result.assets?.length ?? 0) === 0
       ? null
-      : result.assets.map(uri =>
+      : result.assets.map(r =>
           FsGen.createUpload({
-            localPath: parseUri(uri),
+            localPath: Styles.unnormalizePath(r.uri),
             parentPath: action.payload.parentPath,
           })
         )

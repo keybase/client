@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {isIOS, isTablet} from '../../constants/platform'
 import {type Props} from '.'
-import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker.native'
+import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {ModalTitle} from '../../teams/common'
 import * as Container from '../../util/container'
 
@@ -81,7 +81,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
     if (this._z) {
       crop = this._getCropCoordinates()
     }
-    this.props.onSave(parseUri(this.props.image), crop)
+    this.props.onSave(this.props.image.uri, crop)
   }
 
   _getCropCoordinates = () => {
@@ -149,7 +149,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
         </Kb.ClickableBox>
       )
     }
-    const uri = this.props.image ? parseUri(this.props.image, true) : null
+    const uri = this.props.image?.uri || null
     return uri ? (
       <Kb.ZoomableImage
         src={uri}

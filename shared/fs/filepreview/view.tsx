@@ -18,7 +18,15 @@ type Props = {
 
 const textViewUpperLimit = 10 * 1024 * 1024 // 10MB
 
-const FilePreviewView = ({path, onUrlError}: Props) => {
+const FilePreviewView = (p: Props) => {
+  return (
+    <Kb.BoxGrow style={styles.container}>
+      <FilePreviewViewContent {...p} />
+    </Kb.BoxGrow>
+  )
+}
+
+const FilePreviewViewContent = ({path, onUrlError}: Props) => {
   const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
     pathItem.lastModifiedTimestamp
@@ -80,7 +88,7 @@ const FilePreviewView = ({path, onUrlError}: Props) => {
       return (
         <>
           {reloadBanner}
-          <Kb.ZoomableImage src={url} />
+          <Kb.ZoomableImage src={url} style={styles.zoomableBox} />
         </>
       )
     case RPCTypes.GUIViewType.audio:
@@ -120,6 +128,15 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         width: '100%',
         zIndex: 200, // needed for mobile
+      },
+      container: {
+        width: '100%',
+      },
+      zoomableBox: {
+        backgroundColor: Styles.globalColors.blackOrBlack,
+        height: '100%',
+        position: 'relative',
+        width: '100%',
       },
     } as const)
 )
