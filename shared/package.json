@@ -74,7 +74,6 @@
   "private": true,
   "dependencies": {
     "@gorhom/portal": "1.0.14",
-    "@mattermost/react-native-paste-input": "0.5.1",
     "@msgpack/msgpack": "2.8.0",
     "@react-native-community/netinfo": "9.3.10",
     "@react-native-community/push-notification-ios": "1.11.0",
@@ -122,6 +121,7 @@
     "react-native": "0.71.7",
     "react-native-gesture-handler": "2.9.0",
     "react-native-hw-keyboard-event": "0.0.4",
+    "react-native-image-keyboard": "2.2.0",
     "react-native-reanimated": "3.0.2",
     "react-native-safe-area-context": "4.5.2",
     "react-native-screens": "3.20.0",

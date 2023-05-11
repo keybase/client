@@ -418,27 +418,14 @@ const PlatformInput = (p: Props) => {
 
   const dispatch = Container.useDispatch()
   const onPasteImage = React.useCallback(
-    (error: string | null | undefined, files: Array<PastedFile>) => {
+    (uri: string) => {
       try {
-        if (error) return
-        const pathAndOutboxIDs = files.reduce<Array<Types.PathAndOutboxID>>((arr, f) => {
-          // @ts-ignore actually exists!
-          if (!f.error) {
-            const filePrefixLen = 'file://'.length
-            const uriLen = f.uri?.length ?? 0
-            if (uriLen > filePrefixLen) {
-              arr.push({outboxID: null, path: f.uri.substring(filePrefixLen)})
-            }
-          }
-          return arr
-        }, [])
-        if (pathAndOutboxIDs.length) {
-          dispatch(
-            RouteTreeGen.createNavigateAppend({
-              path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-            })
-          )
-        }
+        const pathAndOutboxIDs = [{outboxID: null, path: uri}]
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
+          })
+        )
       } catch (e) {
         logger.info('onPasteImage error', e)
       }
@@ -484,7 +471,6 @@ const PlatformInput = (p: Props) => {
             {/* in order to get auto correct submit working we move focus to this and then back so we can 'blur' without losing keyboard */}
             <Kb.PlainInput key="silent" ref={silentInput} style={styles.hidden} />
             <AnimatedInput
-              allowImagePaste={true}
               onPasteImage={onPasteImage}
               autoCorrect={true}
               autoCapitalize="sentences"
