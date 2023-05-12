@@ -9,7 +9,7 @@ import * as Container from '../util/container'
 import ChatInboxHeader from './inbox/header/container'
 import shallowEqual from 'shallowequal'
 
-type Props = Container.RouteProps<'chatRoot'>
+type Props = Container.RouteProps2<'chatRoot'>
 
 const Header = (props: Props) => {
   const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey

@@ -22,7 +22,7 @@ import isEqual from 'lodash/isEqual'
 import {createAnimatedComponent} from '../../common-adapters/reanimated'
 import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
 
-export type OwnProps = Container.RouteProps<'teamChannel'>
+export type OwnProps = Container.RouteProps2<'teamChannel'>
 
 const useLoadDataForChannelPage = (
   teamID: Types.TeamID,
@@ -106,9 +106,9 @@ const SectionList = createAnimatedComponent<SectionListProps<SectionType<string,
 
 const emptyMapForUseSelector = new Map<string, Types.MemberInfo>()
 const Channel = (props: OwnProps) => {
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
-  const conversationIDKey = props.route.params?.conversationIDKey ?? ''
-  const providedTab = props.route.params?.selectedTab ?? undefined
+  const teamID = props.route.params.teamID ?? Types.noTeamID
+  const conversationIDKey = props.route.params.conversationIDKey
+  const providedTab = props.route.params.selectedTab
 
   const {bots, participants: _participants} = Container.useSelector(
     state => ChatConstants.getBotsAndParticipants(state, conversationIDKey, true /* sort */),

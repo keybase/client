@@ -7,14 +7,14 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import {computeWelcomeMessageTextRaw} from '../../chat/conversation/messages/cards/team-journey/util'
 
-type Props = Container.RouteProps<'teamEditWelcomeMessage'>
+type Props = Container.RouteProps2<'teamEditWelcomeMessage'>
 
 // welcomeMessageMaxLen is duplicated at
 // go/chat/server.go:welcomeMessageMaxLen; keep the values in sync!
 const welcomeMessageMaxLen = 400
 
 const EditTeamWelcomeMessage = (props: Props) => {
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
+  const teamID = props.route.params.teamID ?? Types.noTeamID
 
   if (teamID === Types.noTeamID) {
     throw new Error(`There was a problem loading the welcome message page, please report this error.`)

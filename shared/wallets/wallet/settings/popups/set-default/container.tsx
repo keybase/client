@@ -6,10 +6,10 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {anyWaiting} from '../../../../../constants/waiting'
 import SetDefaultAccountPopup from '.'
 
-type OwnProps = Container.RouteProps<'setDefaultAccount'>
+type OwnProps = Container.RouteProps2<'setDefaultAccount'>
 
 export default (ownProps: OwnProps) => {
-  const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+  const accountID = ownProps.route.params.accountID ?? Types.noAccountID
   const accountName = Container.useSelector(state => Constants.getAccount(state, accountID).name)
   const username = Container.useSelector(state => state.config.username)
   const waiting = Container.useSelector(state => anyWaiting(state, Constants.setAccountAsDefaultWaitingKey))

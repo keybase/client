@@ -5,19 +5,16 @@ import * as FsTypes from '../../../constants/types/fs'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import GetTitles, {type Info} from '.'
 import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import type * as Types from '../../../constants/types/chat2'
 
-type OwnProps = Container.RouteProps<'chatAttachmentGetTitles'>
-
-const noOutboxIds: Array<Types.PathAndOutboxID> = []
+type OwnProps = Container.RouteProps2<'chatAttachmentGetTitles'>
 
 export default (ownProps: OwnProps) => {
   const dispatch = Container.useDispatch()
-  const conversationIDKey = ownProps.route.params?.conversationIDKey ?? Constants.noConversationIDKey
-  const tlfName = ownProps.route.params?.tlfName ?? undefined
-  const noDragDrop = ownProps.route.params?.noDragDrop ?? false
-  const pathAndOutboxIDs = ownProps.route.params?.pathAndOutboxIDs ?? noOutboxIds
-  const selectConversationWithReason = ownProps.route.params?.selectConversationWithReason ?? undefined
+  const conversationIDKey = ownProps.route.params.conversationIDKey ?? Constants.noConversationIDKey
+  const tlfName = ownProps.route.params.tlfName
+  const noDragDrop = ownProps.route.params.noDragDrop ?? false
+  const pathAndOutboxIDs = ownProps.route.params.pathAndOutboxIDs
+  const selectConversationWithReason = ownProps.route.params.selectConversationWithReason
   const onCancel = () => {
     dispatch(
       Chat2Gen.createAttachmentUploadCanceled({

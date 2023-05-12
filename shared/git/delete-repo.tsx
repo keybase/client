@@ -6,13 +6,13 @@ import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 
-type OwnProps = Container.RouteProps<'gitDeleteRepo'>
+type OwnProps = Container.RouteProps2<'gitDeleteRepo'>
 
 const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : null)
 
 export default (ownProps: OwnProps) => {
+  const id = ownProps.route.params.id
   const gitMap = Container.useSelector(state => Constants.getIdToGit(state))
-  const id = ownProps.route.params?.id ?? ''
   const git = gitMap.get(id) || Constants.makeGitInfo()
   const error = Container.useSelector(state => Constants.getError(state))
   const name = git.name || ''

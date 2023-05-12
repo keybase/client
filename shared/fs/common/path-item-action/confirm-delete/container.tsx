@@ -5,13 +5,13 @@ import * as FsGen from '../../../../actions/fs-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import ReallyDelete from '.'
 
-type OwnProps = Container.RouteProps<'confirmDelete'>
+type OwnProps = Container.RouteProps2<'confirmDelete'>
 
 export default (ownProps: OwnProps) => {
-  const dispatch = Container.useDispatch()
   const {params} = ownProps.route
-  const path = params?.path ?? null
-  const mode = params?.mode ?? 'row'
+  const path = params.path
+  const mode = params.mode
+  const dispatch = Container.useDispatch()
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onDelete = React.useCallback(() => {
     if (path !== Constants.defaultPath) {
@@ -29,7 +29,7 @@ export default (ownProps: OwnProps) => {
   const props = {
     onBack,
     onDelete,
-    path: ownProps.route.params?.path ?? null,
+    path,
     title: 'Confirmation',
   }
   return <ReallyDelete {...props} />

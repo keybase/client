@@ -10,15 +10,15 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type * as Types from '../../constants/types/teams'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<'profileEditAvatar'>
+type OwnProps = Container.RouteProps2<'profileEditAvatar'>
 
 export default (ownProps: OwnProps) => {
   const {params} = ownProps.route
-  const teamID = params?.teamID
-  const createdTeam = params?.createdTeam ?? false
+  const teamID = params.teamID
+  const createdTeam = params.createdTeam ?? false
+  const image = params.image
   const sperror = Container.useSelector(state => anyErrors(state, Constants.uploadAvatarWaitingKey))
-  const image = params?.image
-  const sendChatNotification = params?.sendChatNotification ?? false
+  const sendChatNotification = params.sendChatNotification ?? false
   const submitting = Container.useSelector(state => anyWaiting(state, Constants.uploadAvatarWaitingKey))
   const teamname =
     Container.useSelector(state => (teamID ? TeamsConstants.getTeamNameFromID(state, teamID) : undefined)) ??

@@ -34,7 +34,7 @@ export const stringToAccountID = __DEV__
 export const accountIDToString = (accountID: AccountID): string => accountID
 
 // No account
-export const noAccountID = stringToAccountID('NOACCOUNTID')
+export const noAccountID = 'NOACCOUNTID' as const
 
 export const isValidAccountID = (accountID: AccountID) => !!accountID && accountID !== noAccountID
 

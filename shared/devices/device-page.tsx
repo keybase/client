@@ -7,7 +7,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../util/timestamp'
 
-type OwnProps = Container.RouteProps<'devicePage'>
+type OwnProps = Container.RouteProps2<'devicePage'>
 
 export const options = {
   title: '',

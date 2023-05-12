@@ -1,10 +1,9 @@
 import * as Container from '../../../../../util/container'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import * as Constants from '../../../../../constants/teams'
 import RetentionWarning from '.'
 import {useConfirm} from '../use-confirm'
 
-type OwnProps = Container.RouteProps<'retentionWarning'>
+type OwnProps = Container.RouteProps2<'retentionWarning'>
 
 export default (ownProps: OwnProps) => {
   const dispatch = Container.useDispatch()
@@ -12,8 +11,8 @@ export default (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
 
-  const entityType = ownProps.route.params?.entityType ?? 'adhoc'
-  const policy = ownProps.route.params?.policy ?? Constants.retentionPolicies.policyInherit
+  const entityType = ownProps.route.params.entityType
+  const policy = ownProps.route.params.policy
 
   const updateConfirm = useConfirm(state => state.updateConfirm)
   const onConfirm = () => {

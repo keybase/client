@@ -7,11 +7,11 @@ import * as TeamsTypes from '../../constants/types/teams'
 import CreateChannel from '.'
 import upperFirst from 'lodash/upperFirst'
 
-type OwnProps = Container.RouteProps<'chatCreateChannel'>
+type OwnProps = Container.RouteProps2<'chatCreateChannel'>
 
 const Wrapped = (p: OwnProps) => {
-  const teamID = p.route.params?.teamID ?? TeamsTypes.noTeamID
-  const navToChatOnSuccess = p.route.params?.navToChatOnSuccess ?? true
+  const teamID = p.route.params.teamID ?? TeamsTypes.noTeamID
+  const navToChatOnSuccess = p.route.params.navToChatOnSuccess ?? true
   const errorText = Container.useSelector(state => upperFirst(state.teams.errorInChannelCreation))
   const teamname = Container.useSelector(state => TeamsConstants.getTeamNameFromID(state, teamID) ?? '')
   const dispatch = Container.useDispatch()

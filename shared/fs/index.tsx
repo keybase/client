@@ -75,7 +75,7 @@ export const getOptions = (ownProps: OwnProps) => {
       }
 }
 
-type OwnProps = Container.RouteProps<'fsRoot'>
+type OwnProps = Container.RouteProps2<'fsRoot'>
 
 const Connected = (ownProps: OwnProps) => {
   const path = ownProps.route.params?.path ?? Constants.defaultPath
@@ -84,7 +84,6 @@ const Connected = (ownProps: OwnProps) => {
 
   const dispatch = Container.useDispatch()
   const emitBarePreview = () => {
-    const path = ownProps.route.params?.path ?? Constants.defaultPath
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
       RouteTreeGen.createNavigateAppend({

@@ -13,6 +13,32 @@ import type {RootParamListSettings} from '../settings/routes'
 import type {RootParamListSignup} from '../signup/routes'
 import type {RootParamListIncomingShare} from '../incoming-share/routes'
 
+type Tabs = {
+  'tabs.chatTab': undefined
+  'tabs.cryptoTab': undefined
+  'tabs.devicesTab': undefined
+  'tabs.folderTab': undefined
+  'tabs.loginTab': undefined
+  'tabs.peopleTab': undefined
+  'tabs.searchTab': undefined
+  'tabs.settingsTab': undefined
+  'tabs.teamsTab': undefined
+  'tabs.gitTab': undefined
+  'tabs.fsTab': undefined
+  'tabs.walletsTab': undefined
+}
+
+type TabRoots =
+  | 'peopleRoot'
+  | 'chatRoot'
+  | 'cryptoRoot'
+  | 'fsRoot'
+  | 'teamsRoot'
+  | 'walletsRoot'
+  | 'gitRoot'
+  | 'devicesRoot'
+  | 'settingsRoot'
+
 export type RootParamList = RootParamListIncomingShare &
   RootParamListSignup &
   RootParamListLogin &
@@ -25,20 +51,8 @@ export type RootParamList = RootParamListIncomingShare &
   RootParamListCrypto &
   RootParamListDevices &
   RootParamListSettings &
-  RootParamListGit & {
-    'tabs.chatTab': undefined
-    'tabs.cryptoTab': undefined
-    'tabs.devicesTab': undefined
-    'tabs.folderTab': undefined
-    'tabs.loginTab': undefined
-    'tabs.peopleTab': undefined
-    'tabs.searchTab': undefined
-    'tabs.settingsTab': undefined
-    'tabs.teamsTab': undefined
-    'tabs.gitTab': undefined
-    'tabs.fsTab': undefined
-    'tabs.walletsTab': undefined
-  }
+  RootParamListGit &
+  Tabs
 
 type RouteKeys = keyof RootParamList
 type Distribute<U> = U extends RouteKeys
@@ -50,8 +64,11 @@ export type NavigateAppendType = ReadonlyArray<Distribute<RouteKeys>>
 
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
 
-export type RouteProps<RouteName extends keyof RootParamList> = {
-  route: RouteProp<RootParamList, RouteName>
+// most roots have no params but chat can get it set after the fact in some flows
+export type RouteProps2<RouteName extends keyof RootParamList> = {
+  route: RouteName extends TabRoots
+    ? Partial<RouteProp<RootParamList, RouteName>>
+    : RouteProp<RootParamList, RouteName>
   navigation: {
     pop: () => void
   }

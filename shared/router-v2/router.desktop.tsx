@@ -23,7 +23,7 @@ const tabRootsVals = Object.values(tabRoots).filter(root => root != tabRoots[Tab
 const routesMinusRoots = (tab: DesktopTabs) => {
   const keepVal = tabRoots[tab]
   return Object.keys(routes).reduce<RouteMap>((m, k) => {
-    if (k === keepVal || !tabRootsVals.includes(k)) {
+    if (k === keepVal || !tabRootsVals.includes(k as any)) {
       m[k] = routes[k]
     }
     return m

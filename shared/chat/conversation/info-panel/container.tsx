@@ -9,7 +9,7 @@ import {InfoPanel, type Panel} from '.'
 type Props = {
   conversationIDKey?: Types.ConversationIDKey
   navigation?: any
-} & Partial<Container.RouteProps<'chatInfoPanel'>>
+} & Partial<Container.RouteProps2<'chatInfoPanel'>>
 
 const InfoPanelConnector = (props: Props) => {
   const storeSelectedTab = Container.useSelector(state => state.chat2.infoPanelSelectedTab)

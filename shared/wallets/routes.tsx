@@ -28,7 +28,6 @@ export const sharedRoutes = {
   // TODO connect broken
   transactionDetails: {
     getOptions: {
-      header: undefined,
       title: 'Transaction details',
     },
     getScreen: (): typeof TransactionDetails => require('./transaction-details/container').default,

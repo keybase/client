@@ -8,9 +8,9 @@ import {OriginalOrCompressedButton} from '../../../incoming-share'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
 
-type OwnProps = Container.RouteProps<'destinationPicker'>
+type OwnProps = Container.RouteProps2<'destinationPicker'>
 
-const getIndex = (ownProps: OwnProps) => ownProps.route.params?.index ?? 0
+const getIndex = (ownProps: OwnProps) => ownProps.route.params.index
 const getDestinationParentPath = (dp: Types.DestinationPicker, ownProps: OwnProps): Types.Path =>
   dp.destinationParentPath[getIndex(ownProps)] ||
   (dp.source.type === Types.DestinationPickerSource.MoveOrCopy

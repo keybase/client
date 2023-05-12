@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import {useAllChannelMetas} from '../teams/common/channel-hooks'
 
-type OwnProps = Container.RouteProps<'gitSelectChannel'>
+type OwnProps = Container.RouteProps2<'gitSelectChannel'>
 
 const SelectChannel = (ownProps: OwnProps) => {
   const {params} = ownProps.route

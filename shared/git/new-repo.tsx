@@ -9,11 +9,11 @@ import * as TeamsGen from '../actions/teams-gen'
 import {getSortedTeamnames} from '../constants/teams'
 import {teamsTab} from '../constants/tabs'
 
-type OwnProps = Container.RouteProps<'gitNewRepo'>
+type OwnProps = Container.RouteProps2<'gitNewRepo'>
 
 export default (ownProps: OwnProps) => {
+  const isTeam = ownProps.route.params.isTeam
   const error = Container.useSelector(state => Constants.getError(state))
-  const isTeam = !!ownProps.route.params?.isTeam ?? false
   const teams = Container.useSelector(state => getSortedTeamnames(state))
   const waitingKey = Constants.loadingWaitingKey
 
@@ -25,7 +25,6 @@ export default (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
   const onCreate = (name: string, teamname: string | null, notifyTeam: boolean) => {
-    const isTeam = !!ownProps.route.params?.isTeam ?? false
     const createAction =
       isTeam && teamname
         ? GitGen.createCreateTeamRepo({name, notifyTeam, teamname})

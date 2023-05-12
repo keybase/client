@@ -8,7 +8,7 @@ import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/tracker2'
 import {memoize} from '../../util/memoize'
 
-export type OwnProps = Container.RouteProps<'profile'>
+export type OwnProps = Container.RouteProps2<'profile'>
 
 const headerBackgroundColorType = (state: Types.DetailsState, followThem: boolean): BackgroundColorType => {
   if (['broken', 'error'].includes(state)) {
@@ -26,7 +26,7 @@ const filterWebOfTrustEntries = memoize(
 )
 
 const Connected = (ownProps: OwnProps) => {
-  const username = ownProps.route.params?.username ?? ''
+  const username = ownProps.route.params.username
   const d = Container.useSelector(state => Constants.getDetails(state, username))
   const myName = Container.useSelector(state => state.config.username)
   const notAUser = d.state === 'notAUserYet'

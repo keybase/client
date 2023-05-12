@@ -10,7 +10,7 @@ import {Bot} from '../info-panel/bot'
 import debounce from 'lodash/debounce'
 import shallowEqual from 'shallowequal'
 
-type Props = Container.RouteProps<'chatSearchBots'>
+type Props = Container.RouteProps2<'chatSearchBots'>
 
 const renderSectionHeader = ({section}: any) => {
   return <Kb.SectionDivider label={section.title} />
@@ -24,8 +24,8 @@ const getResults = (state: Container.TypedState) => {
   return {botSearchResults, featuredBotsMap}
 }
 const SearchBotPopup = (props: Props) => {
-  const conversationIDKey = props.route.params?.conversationIDKey ?? undefined
-  const teamID = props.route.params?.teamID ?? undefined
+  const conversationIDKey = props.route.params.conversationIDKey
+  const teamID = props.route.params.teamID
   const [lastQuery, setLastQuery] = React.useState('')
   const {featuredBotsMap, botSearchResults} = Container.useSelector(getResults, shallowEqual)
   const waiting = Container.useAnyWaiting(

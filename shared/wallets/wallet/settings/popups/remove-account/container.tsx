@@ -4,10 +4,10 @@ import * as Types from '../../../../../constants/types/wallets'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import RemoveAccountPopup from '.'
 
-type OwnProps = Container.RouteProps<'removeAccount'>
+type OwnProps = Container.RouteProps2<'removeAccount'>
 
 export default (ownProps: OwnProps) => {
-  const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+  const accountID = ownProps.route.params.accountID ?? Types.noAccountID
   const account = Container.useSelector(state => Constants.getAccount(state, accountID))
   const balance = account.balanceDescription
   const name = account.name

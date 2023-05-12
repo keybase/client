@@ -7,12 +7,12 @@ import Root from './root'
 import SendBodyAdvanced from './body/advanced'
 import {SendBody, RequestBody} from './body/container'
 
-type OwnProps = Container.RouteProps<'sendReceiveForm'>
+type OwnProps = Container.RouteProps2<'sendReceiveForm'>
 
 export default (ownProps: OwnProps) => {
+  const isAdvanced = ownProps.route.params.isAdvanced ?? false
   const isRequest = Container.useSelector(state => state.wallets.building.isRequest)
   const dispatch = Container.useDispatch()
-  const isAdvanced = ownProps.route.params?.isAdvanced ?? false
   const onBack = isAdvanced
     ? () => dispatch(RouteTreeGen.createNavigateUp())
     : Container.isMobile
@@ -22,7 +22,7 @@ export default (ownProps: OwnProps) => {
     dispatch(WalletsGen.createAbandonPayment())
   }
   const props = {
-    isAdvanced: ownProps.route.params?.isAdvanced ?? false,
+    isAdvanced,
     isRequest,
     onBack,
     onClose,

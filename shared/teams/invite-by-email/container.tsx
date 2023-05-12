@@ -5,10 +5,10 @@ import * as TeamsGen from '../../actions/teams-gen'
 import type * as Types from '../../constants/types/teams'
 import {InviteByEmailDesktop} from '.'
 
-type OwnProps = Container.RouteProps<'teamInviteByEmail'>
+type OwnProps = Container.RouteProps2<'teamInviteByEmail'>
 
 export default (ownProps: OwnProps) => {
-  const teamID = ownProps.route.params?.teamID ?? ''
+  const teamID = ownProps.route.params.teamID
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const inviteError = Container.useSelector(state => Constants.getEmailInviteError(state))
   const errorMessage = inviteError.message
@@ -32,7 +32,6 @@ export default (ownProps: OwnProps) => {
     onClearInviteError: onClearInviteError,
     onClose: onClose,
     onInvite: (invitees: string, role: Types.TeamRoleType) => {
-      const teamID = ownProps.route.params?.teamID ?? ''
       _onInvite(name, teamID, invitees, role)
     },
     teamID,

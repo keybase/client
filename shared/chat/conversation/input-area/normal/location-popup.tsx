@@ -12,10 +12,10 @@ import HiddenString from '../../../../util/hidden-string'
 import {watchPositionForMap} from '../../../../actions/platform-specific'
 import shallowEqual from 'shallowequal'
 
-type Props = Container.RouteProps<'chatLocationPreview'>
+type Props = Container.RouteProps2<'chatLocationPreview'>
 
 const LocationPopup = (props: Props) => {
-  const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = props.route.params.conversationIDKey ?? Constants.noConversationIDKey
   const {httpSrvAddress, httpSrvToken, location, locationDenied, username} = Container.useSelector(state => {
     const {httpSrvAddress, httpSrvToken, username} = state.config
     const location = state.chat2.lastCoord
