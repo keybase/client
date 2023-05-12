@@ -161,9 +161,9 @@ class Engine {
   }
 
   // An incoming rpc call
-  _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response: Object | null}) {
+  _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response?: Object}) {
     const {method, param: incomingParam, response} = payload
-    const param = incomingParam && incomingParam.length ? incomingParam[0] || {} : {}
+    const param = incomingParam?.length ? incomingParam[0] || {} : {}
     // @ts-ignore codemode issue
     const {seqid, cancelled} = response || {cancelled: false, seqid: 0}
     // @ts-ignore codemode issue
@@ -173,7 +173,7 @@ class Engine {
       this._handleCancel(seqid)
     } else {
       const session = this._sessionsMap[String(sessionID)]
-      if (session && session.incomingCall(method, param, response)) {
+      if (session?.incomingCall(method, param, response)) {
         // Part of a session?
       } else {
         // Dispatch as an action
@@ -226,8 +226,8 @@ class Engine {
 
   // Make a new session. If the session hangs around forever set dangling to true
   createSession(p: {
-    incomingCallMap?: IncomingCallMapType | null
-    customResponseIncomingCallMap?: CustomResponseIncomingCallMapType | null
+    incomingCallMap?: IncomingCallMapType
+    customResponseIncomingCallMap?: CustomResponseIncomingCallMapType
     cancelHandler?: CancelHandlerType
     dangling?: boolean
     waitingKey?: WaitingKey
@@ -317,18 +317,18 @@ export class FakeEngine {
   setFailOnError() {}
   setIncomingActionCreator(
     _: MethodKey,
-    __: (arg0: {param: Object; response: Object | null; state: any}) => any | null
+    __: (arg0: {param: Object; response: Object | undefined; state: any}) => any
   ) {}
   createSession(
-    _: IncomingCallMapType | null,
-    __: WaitingHandlerType | null,
-    ___: CancelHandlerType | null,
+    _: IncomingCallMapType | undefined,
+    __: WaitingHandlerType | undefined,
+    ___: CancelHandlerType | undefined,
     ____: boolean = false
   ) {
     return new Session({
       dispatch: () => {},
       endHandler: () => {},
-      incomingCallMap: null,
+      incomingCallMap: undefined,
       invoke: () => {},
       sessionID: 0,
     })
@@ -338,10 +338,12 @@ export class FakeEngine {
   }
   _rpcOutgoing(
     _: string,
-    __: {
-      incomingCallMap?: any
-      waitingHandler?: WaitingHandlerType
-    } | null,
+    __:
+      | {
+          incomingCallMap?: any
+          waitingHandler?: WaitingHandlerType
+        }
+      | undefined,
     ___: (...args: Array<any>) => void
   ) {}
 }
