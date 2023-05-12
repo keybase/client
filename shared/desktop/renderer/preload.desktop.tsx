@@ -195,7 +195,7 @@ if (isRenderer) {
             .then(() => {})
             .catch(() => {})
         },
-        selectFilesToUploadDialog: async (type: 'file' | 'directory' | 'both', parent: string | null) => {
+        selectFilesToUploadDialog: async (type: 'file' | 'directory' | 'both', parent?: string) => {
           return invoke({
             payload: {parent, type},
             type: 'selectFilesToUploadDialog',
@@ -288,11 +288,11 @@ if (isRenderer) {
     })
 } else {
   const kb2consts = require('../app/kb2-impl.desktop').default
-  const getMainWindow = (): Electron.BrowserWindow | null => {
+  const getMainWindow = (): Electron.BrowserWindow | undefined => {
     const w = require('electron')
       .BrowserWindow.getAllWindows()
       .find(w => w.webContents.getURL().includes('/main.'))
-    return w || null
+    return w
   }
 
   const kb2 = {

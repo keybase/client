@@ -1407,7 +1407,7 @@ export const specialMentions = ['here', 'channel', 'everyone']
 
 // TODO maybe its better to avoid merging at all and just deal with it at the component level. we pay for merging
 // on non visible items so the cost might be higher
-export const mergeMessage = (old: Types.Message | null, m: Types.Message): Types.Message => {
+export const mergeMessage = (old: Types.Message | undefined, m: Types.Message): Types.Message => {
   if (!old) {
     return m
   }

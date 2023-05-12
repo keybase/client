@@ -24,11 +24,11 @@ class Session {
   // Let the outside know we're waiting
   _waitingKey: WaitingKey
   // Tell engine we're done
-  _endHandler: EndHandlerType | null
+  _endHandler: EndHandlerType | undefined
   // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
   _seqIDResponded: {[K in string]: boolean} = {}
   // If you want to know about being cancelled
-  _cancelHandler: CancelHandlerType | null
+  _cancelHandler: CancelHandlerType | undefined
   // If true this session exists forever
   _dangling: boolean
   // Name of the start method, just to help debug
@@ -48,12 +48,12 @@ class Session {
   constructor(p: {
     dispatch: TypedDispatch
     sessionID: SessionID
-    incomingCallMap: IncomingCallMapType | null
-    customResponseIncomingCallMap: CustomResponseIncomingCallMap | null
+    incomingCallMap?: IncomingCallMapType
+    customResponseIncomingCallMap?: CustomResponseIncomingCallMap
     waitingKey?: WaitingKey
     invoke: invokeType
     endHandler: EndHandlerType
-    cancelHandler?: CancelHandlerType | null
+    cancelHandler?: CancelHandlerType
     dangling?: boolean
   }) {
     this._id = p.sessionID
@@ -62,7 +62,7 @@ class Session {
     this._waitingKey = p.waitingKey || ''
     this._invoke = p.invoke
     this._endHandler = p.endHandler
-    this._cancelHandler = p.cancelHandler || null
+    this._cancelHandler = p.cancelHandler
     this._dangling = p.dangling || false
     this._dispatch = p.dispatch
   }
@@ -79,7 +79,7 @@ class Session {
 
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
   // and do internal bookkeeping if the request is done
-  _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid?: number | null) {
+  _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid?: number) {
     return (waiting: boolean, err: any) => {
       rpcLog({
         extra: {

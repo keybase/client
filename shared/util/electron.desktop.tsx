@@ -119,7 +119,7 @@ export type KB2 = {
     uninstallDokanDialog?: () => Promise<void>
     selectFilesToUploadDialog?: (
       type: 'file' | 'directory' | 'both',
-      parent: string | null
+      parent?: string
     ) => Promise<Array<string>>
   }
 }

@@ -22,7 +22,7 @@ const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: W
     response.error = (...args: Array<unknown>) => {
       // Waiting on the server again
       if (waitingKey) {
-        getEngine().dispatchWaitingAction(waitingKey, true, null)
+        getEngine().dispatchWaitingAction(waitingKey, true)
       }
       // @ts-ignore
       r.error?.(...args)
@@ -33,7 +33,7 @@ const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: W
     response.result = (...args: Array<unknown>) => {
       // Waiting on the server again
       if (waitingKey) {
-        getEngine().dispatchWaitingAction(waitingKey, true, null)
+        getEngine().dispatchWaitingAction(waitingKey, true)
       }
       r.result?.(...args)
     }
@@ -46,7 +46,7 @@ const makeWaitingResponse = (_r?: Partial<CommonResponseHandler>, waitingKey?: W
 async function listener(
   p: {
     method: string
-    params: Object | null
+    params?: Object
     incomingCallMap?: {[K in string]: any}
     customResponseIncomingCallMap?: {[K in string]: any}
     waitingKey?: WaitingKey
@@ -66,14 +66,14 @@ async function listener(
 
     // Waiting on the server
     if (waitingKey) {
-      getEngine().dispatchWaitingAction(waitingKey, true, null)
+      getEngine().dispatchWaitingAction(waitingKey, true)
     }
 
     const callMap = bothCallMaps.reduce((map, {method, custom}) => {
       map[method] = (params: any, _response: CommonResponseHandler) => {
         // No longer waiting on the server
         if (waitingKey) {
-          getEngine().dispatchWaitingAction(waitingKey, false, null)
+          getEngine().dispatchWaitingAction(waitingKey, false)
         }
 
         let response = makeWaitingResponse(_response, waitingKey)
@@ -137,7 +137,7 @@ async function listener(
 
         if (waitingKey) {
           // No longer waiting
-          getEngine().dispatchWaitingAction(waitingKey, false, error instanceof RPCError ? error : null)
+          getEngine().dispatchWaitingAction(waitingKey, false, error instanceof RPCError ? error : undefined)
         }
 
         if (error) {

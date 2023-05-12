@@ -332,8 +332,8 @@ const MainWindow = () => {
   return win
 }
 
-export const getMainWindow = (): Electron.BrowserWindow | null => {
+export const getMainWindow = (): Electron.BrowserWindow | undefined => {
   const w = Electron.BrowserWindow.getAllWindows().find(w => w.webContents.getURL().includes('/main.'))
-  return w || null
+  return w
 }
 export default MainWindow

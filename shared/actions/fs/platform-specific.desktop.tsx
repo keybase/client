@@ -212,8 +212,10 @@ const onInstallCachedDokan = async () => {
 }
 
 const openAndUpload = async (_: unknown, action: FsGen.OpenAndUploadPayload) => {
-  const localPaths = await (selectFilesToUploadDialog?.(action.payload.type, action.payload.parentPath) ??
-    Promise.resolve([]))
+  const localPaths = await (selectFilesToUploadDialog?.(
+    action.payload.type,
+    action.payload.parentPath ?? undefined
+  ) ?? Promise.resolve([]))
   return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 }
 

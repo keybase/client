@@ -22,7 +22,9 @@ type ValidCallback =
 
 type CustomResp<T extends ValidCallback> = {
   error: RPCTypes.IncomingErrorCallback
-  result: (res: RPCTypes.MessageTypes[T]['outParam']) => void
+  result: RPCTypes.MessageTypes[T]['outParam'] extends undefined
+    ? () => void
+    : (res: RPCTypes.MessageTypes[T]['outParam']) => void
 }
 
 const checkProof = async (state: Container.TypedState) => {

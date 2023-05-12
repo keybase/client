@@ -55,7 +55,6 @@ const ReloadableDevices = (props: Props) => {
   }, [deviceMap, newlyChangedItemIds])
 
   const np = {
-    _stateOverride: null,
     hasNewlyRevoked,
     items,
     loadDevices,
@@ -105,7 +104,7 @@ type State = {
 }
 
 export type Props = {
-  _stateOverride: State | null
+  _stateOverride?: State
   items: Array<Item>
   loadDevices: () => void
   onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => void
@@ -119,7 +118,7 @@ export type Props = {
 
 class Devices extends React.PureComponent<Props, State> {
   static defaultProps = {_stateOverride: null}
-  state = {revokedExpanded: this.props._stateOverride ? this.props._stateOverride.revokedExpanded : false}
+  state = {revokedExpanded: this.props._stateOverride?.revokedExpanded ?? false}
 
   componentDidMount() {
     this.props.loadDevices()

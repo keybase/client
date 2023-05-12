@@ -851,7 +851,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         logger.info(`messagesAdd: upgrade message: ordinal: ${message.ordinal} id: ${message.id}`)
       } else {
         const map = previousMessageMap.get(conversationIDKey)
-        toSet = Constants.mergeMessage((map && map.get(message.ordinal)) || null, message)
+        toSet = Constants.mergeMessage(map?.get(message.ordinal), message)
       }
       const map = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
       messageMap.set(conversationIDKey, map)
