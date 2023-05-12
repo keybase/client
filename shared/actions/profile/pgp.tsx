@@ -16,9 +16,16 @@ const generatePgp = async (state: Container.TypedState, _a: unknown, listenerApi
       username: state.profile.pgpFullName || '',
     }))
 
+  const username = state.config.username
   listenerApi.dispatch(
     RouteTreeGen.createNavigateAppend({
-      path: [peopleTab, 'profile', 'profilePgp', 'profileProvideInfo', 'profileGenerate'],
+      path: [
+        peopleTab,
+        {props: {username}, selected: 'profile'},
+        'profilePgp',
+        'profileProvideInfo',
+        'profileGenerate',
+      ],
     })
   )
   // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
@@ -45,7 +52,7 @@ const generatePgp = async (state: Container.TypedState, _a: unknown, listenerApi
               RouteTreeGen.createNavigateAppend({
                 path: [
                   peopleTab,
-                  'profile',
+                  {props: {username}, selected: 'profile'},
                   'profilePgp',
                   'profileProvideInfo',
                   'profileGenerate',

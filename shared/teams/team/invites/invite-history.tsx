@@ -9,7 +9,7 @@ import {ModalTitle} from '../../common'
 import {InviteItem} from './invite-item'
 import type {Section} from '../../../common-adapters/section-list'
 
-type Props = Container.RouteProps<'teamInviteHistory'>
+type Props = Container.RouteProps2<'teamInviteHistory'>
 
 const splitInviteLinks = memoize(
   (
@@ -24,7 +24,7 @@ const splitInviteLinks = memoize(
 )
 
 const InviteHistory = (props: Props) => {
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
+  const teamID = props.route.params.teamID ?? Types.noTeamID
   useTeamDetailsSubscribe(teamID)
   const teamDetails = Container.useSelector(s => s.teams.teamDetails.get(teamID))
   const loading = !teamDetails

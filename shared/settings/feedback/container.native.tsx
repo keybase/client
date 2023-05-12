@@ -8,7 +8,7 @@ import {Platform} from 'react-native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
 import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
 
-type OwnProps = Container.RouteProps<'settingsTabs.feedbackTab'>
+type OwnProps = Container.RouteProps2<'settingsTabs.feedbackTab'>
 
 export type State = {
   sending: boolean
@@ -16,7 +16,7 @@ export type State = {
 }
 export type Props = {
   chat: Object
-  feedback: string
+  feedback?: string
   loggedOut: boolean
   push: Object
   status: Object
@@ -110,6 +110,7 @@ class FeedbackContainer extends React.Component<Props, State> {
 // TODO really shouldn't be doing this in connect, should do this with an action
 
 const Connected = (ownProps: OwnProps) => {
+  const feedback = ownProps.route.params.feedback
   const chat = Container.useSelector(state => getExtraChatLogsForLogSend(state))
   const loggedOut = Container.useSelector(state => !state.config.loggedIn)
   const push = Container.useSelector(state => getPushTokenForLogSend(state))
@@ -130,7 +131,7 @@ const Connected = (ownProps: OwnProps) => {
 
   const props = {
     chat,
-    feedback: ownProps.route.params?.feedback ?? '',
+    feedback,
     loggedOut,
     push,
     status,

@@ -76,11 +76,12 @@ const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on ke
 
 const TeamBuilding = () => {
   const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
+  const namespace = params.namespace ?? 'chat2'
+  const teamID = params.teamID
+  const filterServices = params.filterServices
+  const goButtonLabel = params.goButtonLabel ?? 'Start'
+
   const dispatch = Container.useDispatch()
-  const namespace = params?.namespace ?? 'chat2'
-  const teamID = params?.teamID
-  const filterServices = params?.filterServices
-  const goButtonLabel = params?.goButtonLabel ?? 'Start'
 
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
   const [enterInputCounter, setEnterInputCounter] = React.useState(0)
@@ -201,7 +202,7 @@ const TeamBuilding = () => {
 
   const route = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
   const title = Container.useSelector(state =>
-    namespace === 'teams' ? `Add to ${getTeamMeta(state, teamID ?? '').teamname}` : route.params?.title ?? ''
+    namespace === 'teams' ? `Add to ${getTeamMeta(state, teamID ?? '').teamname}` : route.params.title ?? ''
   )
 
   const waitingForCreate = Container.useSelector(state =>

@@ -35,7 +35,7 @@ type Props = {
   onPickAction?: (emoji: string, renderableEmoji: RenderableEmoji) => void
 }
 
-type RoutableProps = Container.RouteProps<'chatChooseEmoji'>
+type RoutableProps = Container.RouteProps2<'chatChooseEmoji'>
 
 const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
   const topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
@@ -376,8 +376,8 @@ const styles = Styles.styleSheetCreate(
 
 export const Routable = (routableProps: RoutableProps) => {
   const {params} = routableProps.route
-  const small = params?.small
-  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageOrdinal, pickKey} = params ?? {}
+  const small = params.small
+  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageOrdinal, pickKey} = params
   const updatePickerMap = usePickerState(state => state.updatePickerMap)
   const onPickAction = React.useCallback(
     (emojiStr: string, renderableEmoji: RenderableEmoji) => {
@@ -388,7 +388,7 @@ export const Routable = (routableProps: RoutableProps) => {
     },
     [updatePickerMap, pickKey]
   )
-  const conversationIDKey = params?.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = params.conversationIDKey ?? Constants.noConversationIDKey
   const dispatch = Container.useDispatch()
   const navigateUp = () => dispatch(RouteTreeGen.createNavigateUp())
   const onDidPick = navigateUp

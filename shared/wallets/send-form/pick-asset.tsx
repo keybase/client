@@ -8,7 +8,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import Header from './header'
 
-type Props = Container.RouteProps<'pickAssetForm'>
+type Props = Container.RouteProps2<'pickAssetForm'>
 
 const AssetList = ({accountID, isSender, username}) => {
   const acceptedAssets = Container.useSelector(state =>
@@ -94,9 +94,9 @@ const AssetList = ({accountID, isSender, username}) => {
 }
 
 const PickAsset = (props: Props) => {
-  const accountID = props.route.params?.accountID ?? Types.noAccountID
-  const isSender = props.route.params?.isSender ?? false
-  const username = props.route.params?.username ?? ''
+  const accountID = props.route.params.accountID
+  const isSender = props.route.params.isSender
+  const username = props.route.params.username
 
   const dispatch = Container.useDispatch()
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])

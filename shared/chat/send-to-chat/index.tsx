@@ -19,14 +19,10 @@ type Props = {
   text?: string // incoming share (text)
   sendPaths?: Array<string> // KBFS or incoming share (files)
 }
-type RoutableProps = Container.RouteProps<'sendToChat'>
+type RoutableProps = Container.RouteProps2<'sendToChat'>
 
 const MobileSendToChatRoutable = (props: RoutableProps) => {
-  const {params} = props.route
-  const canBack = params?.canBack ?? false
-  const isFromShareExtension = params?.isFromShareExtension ?? undefined
-  const sendPaths = params?.sendPaths ?? undefined
-  const text = params?.text ?? undefined
+  const {canBack, isFromShareExtension, sendPaths, text} = props.route.params
 
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createClearModals())
@@ -97,8 +93,9 @@ export const MobileSendToChat = (props: Props) => {
   return <ConversationList {...props} onSelect={onSelect} />
 }
 
+const noPaths = new Array<string>()
 const DesktopSendToChat = (props: RoutableProps) => {
-  const sendPaths = props.route.params?.sendPaths ?? []
+  const sendPaths = props.route.params.sendPaths ?? noPaths
   const [title, setTitle] = React.useState('')
   const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
   const [convName, setConvName] = React.useState('')

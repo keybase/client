@@ -135,11 +135,11 @@ export type RootParamListChat = {
   chatRoot: {conversationIDKey?: Types.ConversationIDKey}
   chatChooseEmoji: {
     conversationIDKey: Types.ConversationIDKey
-    small: boolean
-    hideFrequentEmoji: boolean
-    onlyTeamCustomEmoji: boolean
+    small?: boolean
+    hideFrequentEmoji?: boolean
+    onlyTeamCustomEmoji?: boolean
     pickKey: PickKey
-    onPickAddToMessageOrdinal: Types.Ordinal
+    onPickAddToMessageOrdinal?: Types.Ordinal
   }
   chatUnfurlMapPopup: {
     conversationIDKey: Types.ConversationIDKey
@@ -165,10 +165,10 @@ export type RootParamListChat = {
     url: string
   }
   sendToChat: {
-    canBack: boolean
-    isFromShareExtension: boolean
-    text: string // incoming share (text)
-    sendPaths: Array<string> // KBFS or incoming share (files)
+    canBack?: boolean
+    isFromShareExtension?: boolean
+    text?: string // incoming share (text)
+    sendPaths?: Array<string> // KBFS or incoming share (files)
   }
   chatLocationPreview: {conversationIDKey: Types.ConversationIDKey}
   chatBlockingModal: {

@@ -20,7 +20,7 @@ export const HeaderTitle = () => {
 export const HeaderRightActions = () => {
   const dispatch = Container.useDispatch()
   const onAdd = React.useCallback(
-    () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deviceAdd']})),
+    () => dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'deviceAdd'}]})),
     [dispatch]
   )
   return (

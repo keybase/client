@@ -5,9 +5,10 @@ import * as Container from '../util/container'
 import NewTeamDialog from '../teams/new-team'
 import upperFirst from 'lodash/upperFirst'
 
-type OwnProps = Container.RouteProps<'chatShowNewTeamDialog'>
+type OwnProps = Container.RouteProps2<'chatShowNewTeamDialog'>
 
 export default (ownProps: OwnProps) => {
+  const conversationIDKey = ownProps.route.params.conversationIDKey ?? ChatConstants.noConversationIDKey
   const baseTeam = ''
   const errorText = Container.useSelector(state => upperFirst(state.teams.errorInTeamCreation))
   const dispatch = Container.useDispatch()
@@ -18,12 +19,7 @@ export default (ownProps: OwnProps) => {
     dispatch(TeamsGen.createSetTeamCreationError({error: ''}))
   }
   const onSubmit = (teamname: string) => {
-    dispatch(
-      TeamsGen.createCreateNewTeamFromConversation({
-        conversationIDKey: ownProps.route.params?.conversationIDKey ?? ChatConstants.noConversationIDKey,
-        teamname,
-      })
-    )
+    dispatch(TeamsGen.createCreateNewTeamFromConversation({conversationIDKey, teamname}))
   }
   const props = {
     baseTeam,

@@ -6,9 +6,11 @@ import {anyWaiting} from '../../constants/waiting'
 import HiddenString from '../../util/hidden-string'
 import {Wrapper as LinkExisting} from '.'
 
-type OwnProps = Container.RouteProps<'linkExisting'>
+type OwnProps = Container.RouteProps2<'linkExisting'>
 
 export default (ownProps: OwnProps) => {
+  const setBuildingTo = ownProps.route.params.fromSendForm
+  const showOnCreation = ownProps.route.params.showOnCreation
   const keyError = Container.useSelector(state => state.wallets.secretKeyError)
   const linkExistingAccountError = Container.useSelector(state => state.wallets.linkExistingAccountError)
   const nameError = Container.useSelector(state => state.wallets.accountNameError)
@@ -45,8 +47,8 @@ export default (ownProps: OwnProps) => {
       WalletsGen.createLinkExistingAccount({
         name,
         secretKey: new HiddenString(sk),
-        setBuildingTo: ownProps.route.params?.fromSendForm ?? undefined,
-        showOnCreation: ownProps.route.params?.showOnCreation ?? undefined,
+        setBuildingTo,
+        showOnCreation,
       })
     )
     dispatch(RouteTreeGen.createNavigateUp())

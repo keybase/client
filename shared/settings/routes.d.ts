@@ -10,17 +10,14 @@ export type RootParamListSettings = {
     lastEmail?: boolean
   }
   inviteSent: {
-    email: string
+    email?: string
     link: string
   }
   webLinks: {
     url: string
     title: string
   }
-  'settingsTabs.feedbackTab': {
-    heading: string
-    feedback: string
-  }
+  'settingsTabs.feedbackTab': {feedback?: string}
   'settingsTabs.aboutTab': undefined
   'settingsTabs.advancedTab': undefined
   'settingsTabs.chatTab': undefined

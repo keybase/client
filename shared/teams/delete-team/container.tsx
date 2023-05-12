@@ -7,10 +7,10 @@ import * as Types from '../../constants/types/teams'
 import ReallyDeleteTeam from '.'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<'teamDeleteTeam'>
+type OwnProps = Container.RouteProps2<'teamDeleteTeam'>
 
 const DeleteTeamContainer = (op: OwnProps) => {
-  const teamID = op.route.params?.teamID ?? Types.noTeamID
+  const teamID = op.route.params.teamID ?? Types.noTeamID
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const deleteWaiting = Container.useSelector(state =>

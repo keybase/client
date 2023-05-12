@@ -6,7 +6,7 @@
   "actions": {
     "navigateAppend": {
       "fromKey?": "string",
-      "path": "any",
+      "path": "Types.PathParam",
       "replace?": "boolean"
     },
     "navigateUp": {

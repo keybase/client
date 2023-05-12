@@ -13,9 +13,7 @@ import {anyWaiting} from '../constants/waiting'
 import {memoize} from '../util/memoize'
 import {union} from '../util/set'
 
-type TabsStateOwnProps = Container.RouteProps<'gitRoot'>
-
-type OwnProps = TabsStateOwnProps
+type OwnProps = Container.RouteProps2<'gitRoot'>
 
 const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
@@ -64,10 +62,9 @@ export const options = Container.isMobile
     }
 
 const emptySet = new Set<string>()
-
 export default (ownProps: OwnProps) => {
-  const error = Container.useSelector(state => Constants.getError(state))
   const initialExpandedSet = ownProps.route.params?.expandedSet ?? emptySet
+  const error = Container.useSelector(state => Constants.getError(state))
   const loading = Container.useSelector(state => anyWaiting(state, Constants.loadingWaitingKey))
   const repos = Container.useSelector(state => getRepos(Constants.getIdToGit(state)))
 

@@ -16,8 +16,10 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
   const teamID = Container.useSelector(state => state.teams.teamNameToID.get(teamname ?? ''))
   const dispatch = Container.useDispatch()
   const onOpenTeamProfile = React.useCallback(() => {
-    dispatch(RouteTreeGen.createClearModals())
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+    if (teamID) {
+      dispatch(RouteTreeGen.createClearModals())
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+    }
   }, [dispatch, teamID])
   const onOpenTracker = React.useCallback(() => {
     username && dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))

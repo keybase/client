@@ -31,7 +31,7 @@ export const newModalRoutes = {
 }
 
 export type RootParamListDevices = {
-  deviceAdd: {highlight: Array<'computer' | 'phone' | 'paper key'>}
+  deviceAdd: {highlight?: Array<'computer' | 'phone' | 'paper key'>}
   devicePage: {deviceID: string}
   deviceRevoke: {deviceID: string}
   devicePaperKey: undefined

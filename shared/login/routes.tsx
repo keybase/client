@@ -93,5 +93,5 @@ export type RootParamListLogin = {
   resetWaiting: {pipelineStarted: boolean}
   selectOtherDevice: undefined
   setPublicName: undefined
-  username: {fromReset: boolean}
+  username: {fromReset?: boolean}
 }

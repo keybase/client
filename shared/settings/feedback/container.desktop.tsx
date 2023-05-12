@@ -5,11 +5,12 @@ import * as SettingsGen from '../../actions/settings-gen'
 import Feedback from './index'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<'settingsTabs.feedbackTab'>
+type OwnProps = Container.RouteProps2<'settingsTabs.feedbackTab'>
 
 export const options = undefined
 
 export default (ownProps: OwnProps) => {
+  const feedback = ownProps.route.params.feedback ?? ''
   const loggedOut = Container.useSelector(state => !state.config.loggedIn)
   const sendError = Container.useSelector(state => state.settings.feedback.error)
   const sending = Container.useSelector(state => anyWaiting(state, Constants.sendFeedbackWaitingKey))
@@ -22,7 +23,7 @@ export default (ownProps: OwnProps) => {
     dispatch(SettingsGen.createSendFeedback({feedback, sendLogs, sendMaxBytes}))
   }
   const props = {
-    feedback: ownProps.route.params?.feedback ?? '',
+    feedback,
     loggedOut,
     onBack,
     onFeedbackDone: () => null,

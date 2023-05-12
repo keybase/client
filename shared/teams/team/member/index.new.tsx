@@ -23,7 +23,7 @@ type Props = {
   teamID: Types.TeamID
   username: string
 }
-type OwnProps = Container.RouteProps<'teamMember'>
+type OwnProps = Container.RouteProps2<'teamMember'>
 
 type TeamTreeRowNotIn = {
   teamID: Types.TeamID
@@ -140,9 +140,9 @@ type Section = SectionType<TeamTreeRowIn | TeamTreeRowNotIn, Extra>
 const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.SectionList as any)
 
 const TeamMember = (props: OwnProps) => {
+  const username = props.route.params.username
+  const teamID = props.route.params.teamID ?? Types.noTeamID
   const dispatch = Container.useDispatch()
-  const username = props.route.params?.username ?? ''
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
 
   const isMe = username == Container.useSelector(state => state.config.username)
   const loading = Container.useSelector(state => {

@@ -8,7 +8,7 @@ import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/tracker2'
 import {memoize} from '../../util/memoize'
 
-export type OwnProps = Container.RouteProps<'profile'>
+export type OwnProps = Container.RouteProps2<'profile'>
 
 const headerBackgroundColorType = (state: Types.DetailsState, followThem: boolean): BackgroundColorType => {
   if (['broken', 'error'].includes(state)) {
@@ -26,7 +26,7 @@ const filterWebOfTrustEntries = memoize(
 )
 
 const Connected = (ownProps: OwnProps) => {
-  const username = ownProps.route.params?.username ?? ''
+  const username = ownProps.route.params.username
   const d = Container.useSelector(state => Constants.getDetails(state, username))
   const myName = Container.useSelector(state => state.config.username)
   const notAUser = d.state === 'notAUserYet'
@@ -118,11 +118,11 @@ const Connected = (ownProps: OwnProps) => {
   const _onEditAvatar = () => {
     dispatch(ProfileGen.createEditAvatar())
   }
-  const _onIKnowThem = (username: string, guiID: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
-    )
-  }
+  // const _onIKnowThem = (username: string, guiID: string) => {
+  //   dispatch(
+  //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
+  //   )
+  // }
   const _onReload = (username: string, isYou: boolean, state: Types.DetailsState) => {
     if (state !== 'valid') {
       // Might be a Keybase user or not, launch non-user profile fetch.
@@ -182,10 +182,10 @@ const Connected = (ownProps: OwnProps) => {
     onAddIdentity: allowOnAddIdentity ? onAddIdentity : undefined,
     onBack: onBack,
     onEditAvatar: stateProps.userIsYou ? _onEditAvatar : undefined,
-    onIKnowThem:
-      stateProps.vouchShowButton && !stateProps.vouchDisableButton
-        ? () => _onIKnowThem(stateProps.username, stateProps.guiID)
-        : undefined,
+    // onIKnowThem:
+    //   stateProps.vouchShowButton && !stateProps.vouchDisableButton
+    //     ? () => _onIKnowThem(stateProps.username, stateProps.guiID)
+    //     : undefined,
     onReload: () => _onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
     reason: stateProps.reason,
     sbsAvatarUrl: stateProps.sbsAvatarUrl,

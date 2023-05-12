@@ -8,10 +8,11 @@ import * as Styles from '../styles'
 import {isLargeScreen} from '../constants/platform'
 import {useSafeCallback} from '../util/container'
 
-type OwnProps = Container.RouteProps<'deviceAdd'>
+type OwnProps = Container.RouteProps2<'deviceAdd'>
 const noHighlight = []
 
 export default function AddDevice(ownProps: OwnProps) {
+  const highlight = ownProps.route.params.highlight ?? noHighlight
   const iconNumbers = Container.useSelector(state => Constants.getNextDeviceIconNumber(state))
   const dispatch = Container.useDispatch()
   const _onAddComputer = React.useCallback(
@@ -29,7 +30,7 @@ export default function AddDevice(ownProps: OwnProps) {
   const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
 
   const props = {
-    highlight: ownProps.route.params?.highlight ?? noHighlight,
+    highlight,
     iconNumbers,
     onCancel,
   }

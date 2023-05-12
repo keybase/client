@@ -82,7 +82,7 @@ const showRevokePage = (_: unknown, action: DevicesGen.ShowRevokePagePayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [
       ...Constants.devicesTabLocation,
-      'devicePage',
+      {props: {deviceID: action.payload.deviceID}, selected: 'devicePage'},
       {props: {deviceID: action.payload.deviceID}, selected: 'deviceRevoke'},
     ],
   })

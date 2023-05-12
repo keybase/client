@@ -22,7 +22,7 @@ const Connected = () => {
           RouteTreeGen.createNavigateAppend({
             path: [
               {
-                props: {heading: 'Oh no, a bug!'},
+                props: {},
                 selected: require('../../constants/settings').feedbackTab,
               },
             ],

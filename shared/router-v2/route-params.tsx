@@ -13,55 +13,69 @@ import type {RootParamListSettings} from '../settings/routes'
 import type {RootParamListSignup} from '../signup/routes'
 import type {RootParamListIncomingShare} from '../incoming-share/routes'
 
-// TODO partial could go away when we enforce these params are pushed correctly
-type DeepPartial<Type> = {
-  [Property in keyof Type]?: Partial<Type[Property]>
+type Tabs = {
+  'tabs.chatTab': undefined
+  'tabs.cryptoTab': undefined
+  'tabs.devicesTab': undefined
+  'tabs.folderTab': undefined
+  'tabs.loginTab': undefined
+  'tabs.peopleTab': undefined
+  'tabs.searchTab': undefined
+  'tabs.settingsTab': undefined
+  'tabs.teamsTab': undefined
+  'tabs.gitTab': undefined
+  'tabs.fsTab': undefined
+  'tabs.walletsTab': undefined
 }
 
-export type RootParamList = DeepPartial<
-  RootParamListIncomingShare &
-    RootParamListSignup &
-    RootParamListLogin &
-    RootParamListWallets &
-    RootParamListChat &
-    RootParamListTeams &
-    RootParamListFS &
-    RootParamListPeople &
-    RootParamListProfile &
-    RootParamListCrypto &
-    RootParamListDevices &
-    RootParamListSettings &
-    RootParamListGit & {
-      'tabs.chatTab': undefined
-      'tabs.cryptoTab': undefined
-      'tabs.devicesTab': undefined
-      'tabs.folderTab': undefined
-      'tabs.loginTab': undefined
-      'tabs.peopleTab': undefined
-      'tabs.searchTab': undefined
-      'tabs.settingsTab': undefined
-      'tabs.teamsTab': undefined
-      'tabs.gitTab': undefined
-      'tabs.fsTab': undefined
-      'tabs.walletsTab': undefined
-    }
->
+type TabRoots =
+  | 'peopleRoot'
+  | 'chatRoot'
+  | 'cryptoRoot'
+  | 'fsRoot'
+  | 'teamsRoot'
+  | 'walletsRoot'
+  | 'gitRoot'
+  | 'devicesRoot'
+  | 'settingsRoot'
+
+export type RootParamList = RootParamListIncomingShare &
+  RootParamListSignup &
+  RootParamListLogin &
+  RootParamListWallets &
+  RootParamListChat &
+  RootParamListTeams &
+  RootParamListFS &
+  RootParamListPeople &
+  RootParamListProfile &
+  RootParamListCrypto &
+  RootParamListDevices &
+  RootParamListSettings &
+  RootParamListGit &
+  Tabs
 
 type RouteKeys = keyof RootParamList
-type Distribute<U> = U extends RouteKeys ? {selected: U; props: RootParamList[U]} : never
-export type NavigateAppendType = ReadonlyArray<RouteKeys | Distribute<RouteKeys>>
+type Distribute<U> = U extends RouteKeys
+  ? RootParamList[U] extends undefined
+    ? U
+    : {selected: U; props: RootParamList[U]}
+  : never
+export type NavigateAppendType = ReadonlyArray<Distribute<RouteKeys>>
 
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
 
-export type RouteProps<RouteName extends keyof RootParamList> = {
-  route: RouteProp<RootParamList, RouteName>
+// most roots have no params but chat can get it set after the fact in some flows
+export type RouteProps2<RouteName extends keyof RootParamList> = {
+  route: RouteName extends TabRoots
+    ? Partial<RouteProp<RootParamList, RouteName>>
+    : RouteProp<RootParamList, RouteName>
   navigation: {
     pop: () => void
   }
 }
 
-export function getRouteParams<T extends keyof RootParamList>(ownProps: any): RootParamList[T] | undefined {
-  return ownProps?.route?.params as RootParamList[T]
+export function getRouteParams<T extends keyof RootParamList>(ownProps: any): RootParamList[T] {
+  return ownProps.route.params as RootParamList[T]
 }
 
 export function getRouteParamsFromRoute<T extends keyof RootParamList>(

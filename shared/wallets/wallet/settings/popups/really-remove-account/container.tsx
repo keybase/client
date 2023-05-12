@@ -7,10 +7,10 @@ import * as Types from '../../../../../constants/types/wallets'
 import {anyWaiting} from '../../../../../constants/waiting'
 import ReallyRemoveAccountPopup from '.'
 
-type OwnProps = Container.RouteProps<'reallyRemoveAccount'>
+type OwnProps = Container.RouteProps2<'reallyRemoveAccount'>
 
 export default (ownProps: OwnProps) => {
-  const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+  const accountID = ownProps.route.params.accountID ?? Types.noAccountID
   const secretKey = Container.useSelector(state => Constants.getSecretKey(state, accountID).stringValue())
   const name = Container.useSelector(state => Constants.getAccount(state, accountID).name)
   const waiting = Container.useSelector(state => anyWaiting(state, Constants.deleteAccountWaitingKey))

@@ -10,7 +10,7 @@ import {anyWaiting} from '../../constants/waiting'
 import {usernameHint} from '../../constants/signup'
 import type {RPCError} from '../../util/errors'
 
-type OwnProps = Container.RouteProps<'username'>
+type OwnProps = Container.RouteProps2<'username'>
 
 const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
   let inlineError = ''
@@ -33,11 +33,12 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
 }
 
 const UsernameOrEmailContainer = (op: OwnProps) => {
+  const _resetBannerUser = Container.useSelector(state => state.autoreset.username)
+  const resetBannerUser = op.route.params.fromReset ? _resetBannerUser : null
   const _error = Container.useSelector(state => state.provision.error.stringValue())
   const {inlineError, inlineSignUpLink} = Container.useSelector(state =>
     decodeInlineError(state.provision.inlineError)
   )
-  const _resetBannerUser = Container.useSelector(state => state.autoreset.username)
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
   const initialUsername = Container.useSelector(state => state.provision.initialUsername)
   // So we can clear the error if the name is changed
@@ -63,8 +64,6 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
     [dispatch, waiting]
   )
   const onSubmit = Container.useSafeSubmit(_onSubmit, hasError)
-
-  const resetBannerUser = op.route.params?.fromReset ? _resetBannerUser : null
 
   return (
     <Username

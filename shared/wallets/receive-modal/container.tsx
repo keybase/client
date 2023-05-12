@@ -5,10 +5,10 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Receive from '.'
 
-export type OwnProps = Container.RouteProps<'receive'>
+export type OwnProps = Container.RouteProps2<'receive'>
 
 export default (ownProps: OwnProps) => {
-  const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+  const accountID = ownProps.route.params.accountID ?? Types.noAccountID
   const account = Container.useSelector(state => Constants.getAccount(state, accountID))
   const accountName = account.name
   const federatedAddress = Container.useSelector(state => Constants.getFederatedAddress(state, accountID))
@@ -20,14 +20,8 @@ export default (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
   const onRequest = () => {
-    const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
     dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: accountID,
-        isRequest: true,
-      })
-    )
+    dispatch(WalletsGen.createOpenSendRequestForm({from: accountID, isRequest: true}))
   }
   const props = {
     accountName,

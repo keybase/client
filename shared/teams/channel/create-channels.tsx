@@ -1,14 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as TeamsTypes from '../../constants/types/teams'
+import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
 import CreateChannelsModal from '../new-team/wizard/create-channels'
 
-type Props = Container.RouteProps<'teamCreateChannels'>
+type Props = Container.RouteProps2<'teamCreateChannels'>
 
 const CreateChannels = (props: Props) => {
-  const teamID = props.route.params?.teamID ?? TeamsTypes.noTeamID
+  const teamID = props.route.params.teamID ?? Types.noTeamID
   const dispatch = Container.useDispatch()
   React.useEffect(
     () => () => {

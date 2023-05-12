@@ -9,16 +9,16 @@ import * as Types from '../../../constants/types/teams'
 import {ModalTitle} from '../../common'
 import {useEditState} from './use-edit'
 
-type Props = Container.RouteProps<'teamEditChannel'>
+type Props = Container.RouteProps2<'teamEditChannel'>
 
 const EditChannel = (props: Props) => {
+  const teamID = props.route.params.teamID ?? Types.noTeamID
+  const conversationIDKey = props.route.params.conversationIDKey
+  const oldName = props.route.params.channelname
+  const oldDescription = props.route.params.description
+
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
-  const conversationIDKey = props.route.params?.conversationIDKey ?? ''
-  const oldName = props.route.params?.channelname ?? ''
-  const oldDescription = props.route.params?.description ?? ''
 
   const [name, _setName] = React.useState(oldName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_-]/, ''))

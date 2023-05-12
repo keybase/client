@@ -7,10 +7,10 @@ import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {anyWaiting} from '../../../../../constants/waiting'
 import RenameAccount from '.'
 
-type OwnProps = Container.RouteProps<'renameAccount'>
+type OwnProps = Container.RouteProps2<'renameAccount'>
 
 export default (ownProps: OwnProps) => {
-  const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+  const accountID = ownProps.route.params.accountID ?? Types.noAccountID
   const selectedAccount = Container.useSelector(state => Constants.getAccount(state, accountID))
   const error = Container.useSelector(state => state.wallets.accountNameError)
   const initialName = selectedAccount.name

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as ChatConstants from '../../../../constants/chat2'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamConstants from '../../../../constants/teams'
 import * as TeamTypes from '../../../../constants/types/teams'
@@ -13,7 +12,7 @@ import {pluralize} from '../../../../util/string'
 import {memoize} from '../../../../util/memoize'
 import {ModalTitle, useChannelParticipants} from '../../../../teams/common'
 
-type Props = Container.RouteProps<'chatAddToChannel'>
+type Props = Container.RouteProps2<'chatAddToChannel'>
 
 const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
   [...members.values()]
@@ -22,8 +21,8 @@ const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
 )
 
 const AddToChannel = (props: Props) => {
-  const conversationIDKey = props.route.params?.conversationIDKey ?? ChatConstants.noConversationIDKey
-  const teamID = props.route.params?.teamID ?? TeamTypes.noTeamID
+  const conversationIDKey = props.route.params.conversationIDKey
+  const teamID = props.route.params.teamID
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 

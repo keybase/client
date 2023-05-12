@@ -6,9 +6,11 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import CreateAccount from '.'
 
-type OwnProps = Container.RouteProps<'createNewAccount'>
+type OwnProps = Container.RouteProps2<'createNewAccount'>
 
 export default (ownProps: OwnProps) => {
+  const setBuildingTo = ownProps.route.params.fromSendForm
+  const showOnCreation = ownProps.route.params.showOnCreation
   const createNewAccountError = Container.useSelector(state => state.wallets.createNewAccountError)
   const error = Container.useSelector(state => state.wallets.accountNameError)
   const nameValidationState = Container.useSelector(state => state.wallets.accountNameValidationState)
@@ -27,8 +29,8 @@ export default (ownProps: OwnProps) => {
     dispatch(
       WalletsGen.createCreateNewAccount({
         name,
-        setBuildingTo: ownProps.route.params?.fromSendForm,
-        showOnCreation: ownProps.route.params?.showOnCreation,
+        setBuildingTo,
+        showOnCreation,
       })
     )
     dispatch(RouteTreeGen.createNavigateUp())

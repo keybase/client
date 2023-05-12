@@ -7,12 +7,11 @@ import Error from './error'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 import {headerNavigationOptions} from './header-area/container'
-import type {RouteProps} from '../../router-v2/route-params'
 
-type SwitchProps = RouteProps<'chatConversation'>
+type SwitchProps = Partial<Container.RouteProps2<'chatConversation'>>
 
 const Conversation = React.memo(function Conversation(p: SwitchProps) {
-  const conversationIDKey = p.route.params?.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = p.route?.params?.conversationIDKey ?? Constants.noConversationIDKey
   const type = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     switch (conversationIDKey) {

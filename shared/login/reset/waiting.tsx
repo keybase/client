@@ -7,10 +7,10 @@ import * as Constants from '../../constants/autoreset'
 import * as Container from '../../util/container'
 import * as AutoresetGen from '../../actions/autoreset-gen'
 
-type Props = Container.RouteProps<'resetWaiting'>
+type Props = Container.RouteProps2<'resetWaiting'>
 
 const Waiting = (props: Props) => {
-  const pipelineStarted = props.route.params?.pipelineStarted ?? false
+  const pipelineStarted = props.route.params.pipelineStarted
   const endTime = Container.useSelector(state => state.autoreset.endTime)
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)

@@ -10,13 +10,13 @@ import openURL from '../../util/open-url'
 import TransactionDetails, {type NotLoadingProps} from '.'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps<'transactionDetails'>
+type OwnProps = Container.RouteProps2<'transactionDetails'>
 
 export default (ownProps: OwnProps) => {
   const you = Container.useSelector(state => state.config.username)
   const {params} = ownProps.route
-  const accountID = params?.accountID ?? Types.noAccountID
-  const paymentID = params?.paymentID ?? Types.noPaymentID
+  const accountID = params.accountID ?? Types.noAccountID
+  const paymentID = params.paymentID ?? Types.noPaymentID
   const _transaction = Container.useSelector(state => Constants.getPayment(state, accountID, paymentID))
   const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
   // Transaction can briefly be empty when status changes
@@ -41,23 +41,13 @@ export default (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
   const onCancelPayment = () => {
-    dispatch(
-      WalletsGen.createCancelPayment({
-        paymentID: ownProps.route.params?.paymentID ?? Types.noPaymentID,
-        showAccount: true,
-      })
-    )
+    dispatch(WalletsGen.createCancelPayment({paymentID, showAccount: true}))
   }
   const onChat = (username: string) => {
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'transaction'}))
   }
   const onLoadPaymentDetail = () => {
-    dispatch(
-      WalletsGen.createLoadPaymentDetail({
-        accountID: ownProps.route.params?.accountID ?? Types.noAccountID,
-        paymentID: ownProps.route.params?.paymentID ?? Types.noPaymentID,
-      })
-    )
+    dispatch(WalletsGen.createLoadPaymentDetail({accountID, paymentID}))
   }
   const onShowProfile = (username: string) => {
     dispatch(ProfileGen.createShowUserProfile({username}))

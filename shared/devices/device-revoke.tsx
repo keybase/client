@@ -9,7 +9,7 @@ import * as WaitingConstants from '../constants/waiting'
 import type * as Types from '../constants/types/devices'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 
-type OwnProps = Container.RouteProps<'deviceRevoke'>
+type OwnProps = Container.RouteProps2<'deviceRevoke'>
 
 export const options = {
   headerLeft: p => <HeaderLeftCancel {...p} />,
@@ -77,7 +77,7 @@ const getIcon = (deviceType: Types.DeviceType, iconNumber: Types.IconNumber) => 
   return Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
 }
 const DeviceRevoke = (ownProps: OwnProps) => {
-  const selectedDeviceID = ownProps.route.params?.deviceID ?? ''
+  const selectedDeviceID = ownProps.route.params.deviceID
   const _endangeredTLFs = Container.useSelector(state => Constants.getEndangeredTLFs(state, selectedDeviceID))
   const device = Container.useSelector(state => Constants.getDevice(state, selectedDeviceID))
   const iconNumber = Container.useSelector(state => Constants.getDeviceIconNumber(state, selectedDeviceID))

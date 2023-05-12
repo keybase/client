@@ -12,13 +12,14 @@ import Inbox from './inbox/container'
 import InboxSearch from './inbox-search/container'
 import InfoPanel from './conversation/info-panel/container'
 
-type Props = Container.RouteProps<'chatRoot'>
+type Props = Container.RouteProps2<'chatRoot'>
 
 const InboxAndConversation = React.memo(function InboxAndConversation(props: Props) {
+  const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
+  const navKey = props.route.key ?? ''
   const dispatch = Container.useDispatch()
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
-  const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
   const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
   const needSelectConvoID = Container.useSelector(state => {
     if (validConvoID) {
@@ -27,7 +28,6 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props: Pro
     const first = state.chat2.inboxLayout?.smallTeams?.[0]
     return first?.convID
   })
-  const navKey: string = props.route.key
 
   Container.useOnMountOnce(() => {
     if (needSelectConvoID) {

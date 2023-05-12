@@ -26,7 +26,7 @@ import isEqual from 'lodash/isEqual'
 import {createAnimatedComponent} from '../../common-adapters/reanimated'
 import type {Props as SectionListProps, Section as SectionType} from '../../common-adapters/section-list'
 
-type Props = Container.RouteProps<'team'>
+type Props = Container.RouteProps2<'team'>
 
 // keep track during session
 const lastSelectedTabs = {}
@@ -84,8 +84,8 @@ const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean
 const SectionList = createAnimatedComponent<SectionListProps<SectionType<Section>>>(Kb.SectionList as any)
 
 const Team = (props: Props) => {
-  const teamID = props.route.params?.teamID ?? Types.noTeamID
-  const initialTab = props.route.params?.initialTab ?? undefined
+  const teamID = props.route.params.teamID ?? Types.noTeamID
+  const initialTab = props.route.params.initialTab
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))

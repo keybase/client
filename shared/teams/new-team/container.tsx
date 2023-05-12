@@ -6,10 +6,10 @@ import upperFirst from 'lodash/upperFirst'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 
-type OwnProps = Container.RouteProps<'teamNewTeamDialog'>
+type OwnProps = Container.RouteProps2<'teamNewTeamDialog'>
 
 export default (ownProps: OwnProps) => {
-  const subteamOf = ownProps.route.params?.subteamOf ?? Types.noTeamID
+  const subteamOf = ownProps.route.params.subteamOf ?? Types.noTeamID
   const baseTeam = Container.useSelector(state => Constants.getTeamMeta(state, subteamOf).teamname)
   const errorText = Container.useSelector(state => upperFirst(state.teams.errorInTeamCreation))
   const dispatch = Container.useDispatch()

@@ -53,8 +53,10 @@ export default () => {
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const onSetupTrustline = accountID => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'}]}))
+  const onSetupTrustline = (accountID: string) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'trustline'} as const]})
+    )
   }
 
   const sections: Props['sections'] = []

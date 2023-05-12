@@ -58,7 +58,7 @@ export const tabRoots = {
   [Tabs.gitTab]: 'gitRoot',
   [Tabs.devicesTab]: 'devicesRoot',
   [Tabs.settingsTab]: 'settingsRoot',
-}
+} as const
 
 export const modalRoutes: RouteMap = {
   ...(chatNewModalRoutes as RouteMap),

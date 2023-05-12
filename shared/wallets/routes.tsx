@@ -28,7 +28,6 @@ export const sharedRoutes = {
   // TODO connect broken
   transactionDetails: {
     getOptions: {
-      header: undefined,
       title: 'Transaction details',
     },
     getScreen: (): typeof TransactionDetails => require('./transaction-details/container').default,
@@ -93,14 +92,12 @@ export type RootParamListWallets = {
     errorSource: 'app' | 'sep6' | 'sep7'
   }
   setDefaultAccount: {accountID: Types.AccountID}
-  walletOnboarding: {
-    nextScreen: Types.NextScreenAfterAcceptance
-  }
+  walletOnboarding: undefined
   transactionDetails: {
     accountID: Types.AccountID
     paymentID: Types.PaymentID
   }
-  sendReceiveForm: {isAdvanced: boolean}
+  sendReceiveForm: {isAdvanced?: boolean}
   pickAssetForm: {
     // ignored if username is set or isSender===true
     accountID: string

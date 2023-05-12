@@ -71,7 +71,7 @@ export const createSetParams = (payload: {readonly params: Object; readonly key:
 })
 export const createNavigateAppend = (payload: {
   readonly fromKey?: string
-  readonly path: any
+  readonly path: Types.PathParam
   readonly replace?: boolean
 }) => ({payload, type: navigateAppend as typeof navigateAppend})
 export const createNavigateUp = (payload: {readonly fromKey?: string} = {}) => ({

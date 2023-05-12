@@ -8,10 +8,15 @@ import * as React from 'react'
 import BlockModal, {type BlockType, type NewBlocksMap, type ReportSettings} from '.'
 import {leaveTeamWaitingKey} from '../../../constants/teams'
 
-type OwnProps = Container.RouteProps<'chatBlockingModal'>
+type OwnProps = Container.RouteProps2<'chatBlockingModal'>
 
 export default (ownProps: OwnProps) => {
-  const teamname = ownProps.route.params?.team ?? undefined
+  const {params} = ownProps.route
+  const {context, convID} = params
+  const teamname = params.team
+  const blockUserByDefault = params.blockUserByDefault ?? false
+  let others = params.others
+  let adderUsername = params.username
   const waitingForLeave = Container.useSelector(state =>
     teamname ? Container.anyWaiting(state, leaveTeamWaitingKey(teamname)) : false
   )
@@ -21,8 +26,6 @@ export default (ownProps: OwnProps) => {
   const waitingForReport = Container.useSelector(state =>
     Container.anyWaiting(state, Constants.reportUserWaitingKey)
   )
-  let others = ownProps.route.params?.others ?? undefined
-  let adderUsername = ownProps.route.params?.username ?? undefined
   if (others?.length === 1 && !adderUsername) {
     adderUsername = others[0]
     others = undefined
@@ -35,9 +38,9 @@ export default (ownProps: OwnProps) => {
   const stateProps = {
     _allKnownBlocks,
     adderUsername,
-    blockUserByDefault: ownProps.route.params?.blockUserByDefault ?? false,
-    context: ownProps.route.params?.context ?? undefined,
-    convID: ownProps.route.params?.convID ?? undefined,
+    blockUserByDefault,
+    context,
+    convID,
     finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
     loadingWaiting,
     otherUsernames: others && others.length > 0 ? others : undefined,

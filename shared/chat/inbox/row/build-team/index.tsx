@@ -15,7 +15,7 @@ const BuildTeam = React.memo(function BuildTeam() {
     dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
   }
   const onJoinTeam = () => {
-    dispatch(nav.safeNavigateAppendPayload({path: ['teamJoinTeamDialog']}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamJoinTeamDialog'}]}))
   }
 
   return (

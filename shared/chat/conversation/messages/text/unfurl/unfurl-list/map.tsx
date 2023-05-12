@@ -24,7 +24,7 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
     const {generic} = unfurl
     const {mapInfo, media, url} = generic
     const {coord, isLiveLocationDone, liveLocationEndTime, time} = mapInfo || {
-      coord: 0,
+      coord: {accuracy: 0, lat: 0, lon: 0},
       isLiveLocationDone: false,
       liveLocationEndTime: 0,
       time: 0,
