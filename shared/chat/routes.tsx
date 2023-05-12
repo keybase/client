@@ -136,8 +136,8 @@ export type RootParamListChat = {
   chatChooseEmoji: {
     conversationIDKey: Types.ConversationIDKey
     small?: boolean
-    hideFrequentEmoji: boolean
-    onlyTeamCustomEmoji: boolean
+    hideFrequentEmoji?: boolean
+    onlyTeamCustomEmoji?: boolean
     pickKey: PickKey
     onPickAddToMessageOrdinal?: Types.Ordinal
   }

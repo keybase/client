@@ -81,7 +81,7 @@ const joinTeam = async (
                                 In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
                                 alternative flow, but we're not concerned with that here). In that case,
                                 we can fully manage the UX from inside of this handler.
-                              
+
                                 In the "Join team" flow, user pastes their link into the input box, which
                                 then calls `joinTeam` on its own. Since we need to switch to another modal,
                                 we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
@@ -423,7 +423,7 @@ const addToTeam = async (_: unknown, action: TeamsGen.AddToTeamPayload) => {
       const users = (error.fields as Array<{key?: string; value?: string} | undefined> | undefined)
         ?.filter(elem => elem?.key === 'usernames')
         .map(elem => elem?.value)
-      const usernames = users?.[0]?.split(',')
+      const usernames = users?.[0]?.split(',') ?? []
       return [
         TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
         RouteTreeGen.createNavigateAppend({
@@ -1311,7 +1311,7 @@ const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
   const items = action.payload.state
   let sawChatBanner = false
   let sawSubteamsBanner = false
-  let chosenChannels: undefined | typeof items[0]
+  let chosenChannels: undefined | (typeof items)[0]
   const newTeamRequests = new Map<Types.TeamID, Set<string>>()
   items.forEach(i => {
     if (i.item.category === 'sawChatBanner') {

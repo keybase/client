@@ -259,7 +259,7 @@ export type RootParamListTeams = {
   }
   teamAddToChannels: {
     teamID: Types.TeamID
-    usernames: Array<string> | undefined // undefined means the user themself
+    usernames?: Array<string> // undefined means the user themself
   }
   teamMember: {
     teamID: Types.TeamID
