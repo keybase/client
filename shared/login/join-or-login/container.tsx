@@ -7,7 +7,7 @@ import * as Container from '../../util/container'
 
 export default () => {
   const bannerMessage = Container.useSelector(state => {
-    let bannerMessage: string | null = null
+    let bannerMessage: string | undefined
 
     if (state.config.justDeletedSelf) {
       bannerMessage = `Your Keybase account ${state.config.justDeletedSelf} has been deleted. Au revoir!`
@@ -39,7 +39,7 @@ export default () => {
     bannerMessage,
     checkIsOnline,
     isOnline,
-    onFeedback: Container.isMobile ? _onFeedback : null,
+    onFeedback: Container.isMobile ? _onFeedback : undefined,
     onLogin,
     onSignup,
     showProxySettings,

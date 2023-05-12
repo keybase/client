@@ -4,8 +4,8 @@ import type {Props} from './container'
 
 const Container = ({children, style, outerStyle}: Props) => {
   return (
-    <div style={{...styles.container, ...outerStyle}}>
-      <div style={{...styles.innerContainer, ...style}}>{children}</div>
+    <div style={{...styles.container, ...outerStyle} as any}>
+      <div style={{...styles.innerContainer, ...style} as any}>{children}</div>
     </div>
   )
 }
