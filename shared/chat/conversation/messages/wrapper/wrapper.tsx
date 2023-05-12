@@ -17,6 +17,7 @@ import ReactionsRow from '../reactions-row'
 import SendIndicator from './send-indicator'
 import type * as Types from '../../../../constants/types/chat2'
 import capitalize from 'lodash/capitalize'
+import {useEdited} from './edited'
 // import {useDebugLayout} from '../../../../util/debug'
 
 export type Props = {
@@ -354,7 +355,7 @@ type BProps = {
   reactionsPopupPosition: 'none' | 'last' | 'middle'
   ecrType: EditCancelRetryType
 }
-// Edited, reactions
+// reactions
 const BottomSide = React.memo(function BottomSide(p: BProps) {
   const {showingPopup, setShowingPicker, bottomChildren, ecrType} = p
   const {hasReactions, reactionsPopupPosition} = p
@@ -371,8 +372,11 @@ const BottomSide = React.memo(function BottomSide(p: BProps) {
       />
     ) : null
 
+  const edited = useEdited()
+
   return (
     <>
+      {edited}
       {bottomChildren ?? null}
       {ecrType !== EditCancelRetryType.NONE ? <EditCancelRetry ecrType={ecrType} /> : null}
       {reactionsRow}
@@ -531,8 +535,6 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 1,
         position: 'relative',
       },
-      edited: {color: Styles.globalColors.black_20},
-      editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
       ellipsis: Styles.platformStyles({
         isElectron: {height: 4, paddingTop: 0},
         isMobile: {paddingTop: 4},

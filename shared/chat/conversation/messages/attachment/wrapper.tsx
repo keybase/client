@@ -1,9 +1,9 @@
 import * as React from 'react'
-import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
+import type AudioAttachmentType from './audio'
 import type FileAttachmentType from './file/container'
 import type ImageAttachmentType from './image2'
 import type VideoAttachmentType from './video'
-import type AudioAttachmentType from './audio'
+import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 
 export const WrapperAttachmentAudio = React.memo(function WrapperAttachmentAudio(p: Props) {
   const {ordinal} = p
