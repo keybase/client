@@ -29,8 +29,8 @@ const SplashContainer = () => {
   return (
     <Splash
       failed={failed}
-      onFeedback={Container.isMobile ? onFeedback : null}
-      onRetry={retriesLeft === 0 ? onRetry : null}
+      onFeedback={Container.isMobile ? onFeedback : undefined}
+      onRetry={retriesLeft === 0 ? onRetry : undefined}
       status={status}
     />
   )

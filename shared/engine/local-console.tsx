@@ -2,7 +2,7 @@ const localLog = console.log.bind(console)
 
 const _base =
   (messageObject: boolean, colors: Array<string>) =>
-  (shortLabel: string, longerMessage?: string | null, optionalSuffix?: string | null, ...rest: Array<any>) =>
+  (shortLabel: string, longerMessage?: string, optionalSuffix?: string, ...rest: Array<any>) =>
     localLog(
       `%c%s%c${messageObject ? '%O' : '%s'}%c%s%c`,
       `background-color: ${colors[0]}; color: #fff; padding: 2px 4px; font-weight: bold;`,

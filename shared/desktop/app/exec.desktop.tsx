@@ -12,10 +12,10 @@ import {runMode} from '../../constants/platform.desktop'
 // Callback is optional and accepts (error, boolean), where boolean is if we
 // attempted to execute.
 export default function (
-  path: string | null,
+  path: string | undefined,
   args: any,
   platformOnly: any,
-  runModeOnly: string | null,
+  runModeOnly: string | undefined,
   killOnExit: boolean,
   callback: (err: any, attempted: boolean, stdout: string, stderr: string) => void
 ): void {

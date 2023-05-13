@@ -133,8 +133,9 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
 )
 
 export const ServiceTabBar = (props: Props) => {
-  const [lastSelectedUnlockedService, setLastSelectedUnlockedService] =
-    React.useState<ServiceIdWithContact | null>(null)
+  const [lastSelectedUnlockedService, setLastSelectedUnlockedService] = React.useState<
+    ServiceIdWithContact | undefined
+  >()
   const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
   const onChangeService = React.useCallback(
     (service: ServiceIdWithContact) => {
@@ -149,7 +150,7 @@ export const ServiceTabBar = (props: Props) => {
   let frontServices = lockedServices
   if (services.indexOf(props.selectedService) < nLocked) {
     // Selected service is locked
-    if (lastSelectedUnlockedService === null) {
+    if (lastSelectedUnlockedService === undefined) {
       frontServices = services.slice(0, nLocked + 1)
     } else {
       frontServices = lockedServices.concat([lastSelectedUnlockedService])

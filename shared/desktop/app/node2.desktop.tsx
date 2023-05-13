@@ -37,8 +37,8 @@ const {mainWindowDispatch} = KB2.functions
 
 let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
-let startupURL: string | null = null
-let saltpackFilePath: string | null = null
+let startupURL: string | undefined
+let saltpackFilePath: string | undefined
 
 Electron.app.commandLine.appendSwitch('disk-cache-size', '1')
 
@@ -738,10 +738,10 @@ const plumbEvents = () => {
           // Mac calls open-url for a launch URL before redux is up, so we
           // stash a startupURL to be dispatched when we're ready for it.
           mainWindowDispatch(DeeplinksGen.createLink({link: startupURL}))
-          startupURL = null
+          startupURL = undefined
         } else if (saltpackFilePath) {
           mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: saltpackFilePath}))
-          saltpackFilePath = null
+          saltpackFilePath = undefined
         } else if (!isDarwin) {
           getStartupProcessArgs()
         }

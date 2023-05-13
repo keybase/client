@@ -34,18 +34,14 @@ export default () => {
   const props = (() => {
     if (loading || !sep7ConfirmInfo) {
       return {
-        amount: null,
+        amount: undefined,
         assetCode: '',
         availableToSendNative: '',
         builtPaymentAdvancedWaitingKey: builtPaymentAdvancedWaitingKey,
-        callbackURL: null,
         displayAmountFiat: '',
         findPathError: sep7ConfirmPath.findPathError,
         fromQRCode: false,
         loading: true,
-        memo: null,
-        memoType: null,
-        message: null,
         onAcceptPath: () => null,
         onAcceptPay: () => null,
         onAcceptTx: () => null,
@@ -54,10 +50,8 @@ export default () => {
         operation: 'pay' as const,
         originDomain: '',
         path: sep7ConfirmPath,
-        recipient: null,
         sendError: sep7SendError,
         sep7WaitingKey: sep7WaitingKey,
-        signed: null,
         summary: {
           fee: 0,
           memo: '',
