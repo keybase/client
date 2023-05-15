@@ -2946,17 +2946,23 @@ const toggleMessageCollapse = async (
 ) => {
   const {conversationIDKey, messageID, ordinal} = action.payload
   const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-  const unfurlInfos = [...(m?.unfurls?.values() ?? [])]
-  const ui = unfurlInfos.find(u => u.unfurlMessageID === messageID)
+  let isCollapsed = false
 
-  if (ui) {
-    const collapse = !ui.isCollapsed
-    await RPCChatTypes.localToggleMessageCollapseRpcPromise({
-      collapse,
-      convID: Types.keyToConversationID(conversationIDKey),
-      msgID: messageID,
-    })
+  if (messageID !== ordinal) {
+    const unfurlInfos = [...(m?.unfurls?.values() ?? [])]
+    const ui = unfurlInfos.find(u => u.unfurlMessageID === messageID)
+
+    if (ui) {
+      isCollapsed = ui.isCollapsed
+    }
+  } else {
+    isCollapsed = m?.isCollapsed ?? false
   }
+  await RPCChatTypes.localToggleMessageCollapseRpcPromise({
+    collapse: !isCollapsed,
+    convID: Types.keyToConversationID(conversationIDKey),
+    msgID: messageID,
+  })
 }
 
 // TODO This will break if you try to make 2 new conversations at the same time because there is
