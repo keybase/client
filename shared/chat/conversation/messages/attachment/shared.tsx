@@ -141,7 +141,7 @@ const useCollapseAction = () => {
     (e: React.BaseSyntheticEvent) => {
       e.stopPropagation()
       const {conversationIDKey, ordinal} = getIds()
-      dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID: ordinal}))
+      dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID: ordinal, ordinal}))
     },
     [dispatch, getIds]
   )
