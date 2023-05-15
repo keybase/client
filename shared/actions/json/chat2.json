@@ -617,7 +617,8 @@
     "toggleMessageCollapse": {
       "_description": "Toggle the collapse status of a message",
       "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID"
+      "messageID": "Types.MessageID",
+      "ordinal": "Types.Ordinal"
     },
     "updateCoinFlipStatus": {
       "_description": "Update status of a coin flip game",

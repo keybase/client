@@ -6,17 +6,18 @@ import type * as Types from '../../../../../../constants/types/chat2'
 export const useActions = (
   conversationIDKey: Types.ConversationIDKey,
   youAreAuthor: boolean,
-  messageID: Types.MessageID
+  messageID: Types.MessageID,
+  ordinal: Types.Ordinal
 ) => {
   const dispatch = Container.useDispatch()
   const onClose = React.useCallback(() => {
     dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID}))
   }, [dispatch, conversationIDKey, messageID])
-  const onCollapse = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID}))
-  }, [dispatch, conversationIDKey, messageID])
+  const onToggleCollapse = React.useCallback(() => {
+    dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID, ordinal}))
+  }, [dispatch, conversationIDKey, messageID, ordinal])
 
-  return {onClose: youAreAuthor ? onClose : undefined, onCollapse}
+  return {onClose: youAreAuthor ? onClose : undefined, onToggleCollapse}
 }
 
 export const getUnfurlInfo = (

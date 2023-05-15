@@ -2944,10 +2944,22 @@ const toggleMessageCollapse = async (
   state: Container.TypedState,
   action: Chat2Gen.ToggleMessageCollapsePayload
 ) => {
-  const {conversationIDKey, messageID} = action.payload
-  const collapse = !state.chat2.messageMap.get(conversationIDKey)?.get(messageID)?.isCollapsed
+  const {conversationIDKey, messageID, ordinal} = action.payload
+  const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  let isCollapsed = false
+
+  if (messageID !== ordinal) {
+    const unfurlInfos = [...(m?.unfurls?.values() ?? [])]
+    const ui = unfurlInfos.find(u => u.unfurlMessageID === messageID)
+
+    if (ui) {
+      isCollapsed = ui.isCollapsed
+    }
+  } else {
+    isCollapsed = m?.isCollapsed ?? false
+  }
   await RPCChatTypes.localToggleMessageCollapseRpcPromise({
-    collapse,
+    collapse: !isCollapsed,
     convID: Types.keyToConversationID(conversationIDKey),
     msgID: messageID,
   })
