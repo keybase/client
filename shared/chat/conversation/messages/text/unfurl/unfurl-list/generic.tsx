@@ -30,7 +30,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
     const showImageOnSide =
       !Styles.isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
     const imageLocation = isCollapsed
-      ? 'none'
+      ? 'collapsed'
       : showImageOnSide
       ? 'side'
       : width > 0 && height > 0
@@ -94,7 +94,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const snippet = description ? (
     <Kb.Text type="Body" lineClamp={5} selectable={true} style={styles.fastStyle}>
       {description}
-      {imageLocation === 'bottom' && (
+      {(imageLocation === 'collapsed' || imageLocation === 'bottom') && (
         <>
           {' '}
           <Kb.Icon
