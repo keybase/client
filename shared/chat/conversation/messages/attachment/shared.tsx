@@ -14,7 +14,7 @@ type Props = {
 }
 
 // this is a function of how much space is taken up by the rest of the elements
-export const maxWidth = Styles.isMobile ? Math.min(320, Styles.dimensionWidth - 60) : 320
+export const maxWidth = Styles.isMobile ? 301 : 320
 export const maxHeight = 320
 
 export const missingMessage = Constants.makeMessageAttachment()
@@ -149,7 +149,7 @@ const useCollapseAction = () => {
     (e: React.BaseSyntheticEvent) => {
       e.stopPropagation()
       const {conversationIDKey, ordinal} = getIds()
-      dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID: ordinal}))
+      dispatch(Chat2Gen.createToggleMessageCollapse({conversationIDKey, messageID: ordinal, ordinal}))
     },
     [dispatch, getIds]
   )

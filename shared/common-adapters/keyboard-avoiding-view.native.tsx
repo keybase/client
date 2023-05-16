@@ -16,6 +16,7 @@ import {
 import {useHeaderHeight} from '@react-navigation/elements'
 import type {Props as KAVProps} from './keyboard-avoiding-view'
 import * as React from 'react'
+import {getKeyboardUp} from '../styles/keyboard-state'
 
 type Props = React.ComponentProps<typeof OldKeyboardAvoidingViewType> & {extraPadding?: number}
 
@@ -125,8 +126,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
       this._bottom = 0
       this.setState({bottom: 0})
 
-      // @ts-ignore actually exists but not in the api until 71
-      if (Keyboard.isVisible()) {
+      if (getKeyboardUp()) {
         // @ts-ignore actually exists but not in the api until 71
         const h = Keyboard.metrics()?.height ?? 0
         this._bottom = h
