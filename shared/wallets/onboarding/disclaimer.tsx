@@ -21,8 +21,8 @@ type DisclaimerState = {
 
 class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   state = {secondsLeftAfterAccept: 6, secondsLeftBeforeAccept: 6, tryAgain: false}
-  afterTimer: TickerID | null = null
-  beforeTimer: TickerID | null = null
+  afterTimer: TickerID | undefined
+  beforeTimer: TickerID | undefined
 
   afterTick = () => {
     this.setState(
@@ -30,7 +30,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
       () => {
         if (this.state.secondsLeftAfterAccept === 0 && this.afterTimer) {
           removeTicker(this.afterTimer)
-          this.afterTimer = null
+          this.afterTimer = undefined
           this.props.onCheckDisclaimer()
         }
       }
@@ -52,8 +52,8 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
     if (!__STORYBOOK__) {
       this.afterTimer && removeTicker(this.afterTimer)
       this.beforeTimer && removeTicker(this.beforeTimer)
-      this.afterTimer = null
-      this.beforeTimer = null
+      this.afterTimer = undefined
+      this.beforeTimer = undefined
     }
   }
 

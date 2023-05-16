@@ -85,8 +85,8 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
   }
 
   _getCropCoordinates = () => {
-    let height: number | null = null
-    let width: number | null = null
+    let height: number | undefined
+    let width: number | undefined
     if (this.props.image) {
       height = this.props.image.height
       width = this.props.image.width
@@ -149,7 +149,7 @@ class AvatarUpload extends React.Component<Props & WrappedProps> {
         </Kb.ClickableBox>
       )
     }
-    const uri = this.props.image?.uri || null
+    const uri = this.props.image?.uri
     return uri ? (
       <Kb.ZoomableImage
         src={uri}

@@ -18,19 +18,19 @@ export type NotLoadingProps = {
   assetCode: string
   counterparty: string
   // counterpartyMeta is used only when counterpartyType === 'keybaseUser'.
-  counterpartyMeta: string | null
+  counterpartyMeta?: string
   counterpartyType: Types.CounterpartyType
   feeChargedDescription: string
   fromAirdrop: boolean
   // issuer, for non-xlm assets
   issuerDescription: string
-  issuerAccountID: Types.AccountID | null
+  issuerAccountID?: Types.AccountID
   loading: false
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string
   onBack: () => void
-  onCancelPayment: (() => void) | null
+  onCancelPayment?: () => void
   onCancelPaymentWaitingKey: string
   // onChat is used only when counterpartyType === 'keybaseUser'.
   onChat: (username: string) => void
@@ -40,7 +40,7 @@ export type NotLoadingProps = {
   operations?: Array<string>
   pathIntermediate: Asset[]
   publicMemo?: string
-  recipientAccountID: Types.AccountID | null
+  recipientAccountID?: Types.AccountID
   selectableText: boolean
   senderAccountID: Types.AccountID
   sourceAmount: string
@@ -50,8 +50,8 @@ export type NotLoadingProps = {
   sourceIssuerAccountID: string
   status: Types.StatusSimplified
   statusDetail: string
-  // A null timestamp means the transaction is still pending.
-  timestamp: Date | null
+  // A undefined timestamp means the transaction is still pending.
+  timestamp?: Date
   transactionID?: string
   you: string
   yourRole: Types.Role
@@ -70,7 +70,7 @@ export type Props =
     }
 
 type PartyAccountProps = {
-  accountID: Types.AccountID | null
+  accountID?: Types.AccountID
   accountName: string
 }
 
@@ -93,10 +93,10 @@ const PartyAccount = (props: PartyAccountProps) => {
 }
 
 type CounterpartyProps = {
-  accountID: Types.AccountID | null
+  accountID?: Types.AccountID
   counterparty: string
   // counterpartyMeta is used only when counterpartyType ===  'keybaseUser'.
-  counterpartyMeta: string | null
+  counterpartyMeta?: string
   counterpartyType: Types.CounterpartyType
   // onChat and onShowProfile are used only when counterpartyType ===
   // 'keybaseUser'.
@@ -163,8 +163,8 @@ const AccountMeta = ({counterpartyMeta, accountID}) => (
 )
 
 type YourAccountProps = {
-  accountID: Types.AccountID | null
-  accountName: string | null
+  accountID?: Types.AccountID
+  accountName?: string
   you: string
   onShowProfile: (username: string) => void
 }
@@ -229,7 +229,7 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
 
 const propsToParties = (props: NotLoadingProps) => {
   const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
-  const yourAccountName = props.counterpartyType === 'otherAccount' ? props.yourAccountName : null
+  const yourAccountName = props.counterpartyType === 'otherAccount' ? props.yourAccountName : undefined
   const you = (
     <YourAccount
       accountID={yourAccountID}
@@ -243,7 +243,7 @@ const propsToParties = (props: NotLoadingProps) => {
     props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
   if (props.status === 'canceled') {
     // Canceled relay, recipient might not have accountID. Don't show.
-    counterpartyAccountID = null
+    counterpartyAccountID = undefined
   }
 
   const counterparty = props.counterparty ? (
@@ -277,7 +277,7 @@ const propsToParties = (props: NotLoadingProps) => {
 
 type TimestampLineProps = {
   error: string
-  timestamp: Date | null
+  timestamp?: Date
   selectableText: boolean
 }
 

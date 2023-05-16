@@ -6,7 +6,7 @@ import type {Props} from '.'
 const QRScan = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
     <Kb.SafeAreaViewTop style={styles.safeAreaViewTop} />
-    <Kb.Text type="BodyBigLink" style={styles.cancel} onClick={() => props.onSubmitCode(null)}>
+    <Kb.Text type="BodyBigLink" style={styles.cancel} onClick={() => props.onSubmitCode()}>
       Cancel
     </Kb.Text>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.topContainer} gap="small">

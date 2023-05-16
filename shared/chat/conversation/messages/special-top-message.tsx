@@ -96,19 +96,13 @@ const ErrorMessage = () => {
       </Kb.Text>
       <Kb.ButtonBar direction={Styles.isMobile ? 'column' : 'row'} fullWidth={true} style={styles.buttonBar}>
         {onCreateWithoutThem && (
-          <Kb.WaitingButton
-            type="Default"
-            label="Create without them"
-            onClick={onCreateWithoutThem}
-            waitingKey={null}
-          />
+          <Kb.WaitingButton type="Default" label="Create without them" onClick={onCreateWithoutThem} />
         )}
         {onBack && (
           <Kb.WaitingButton
             type={onCreateWithoutThem ? 'Dim' : 'Default'}
             label={onCreateWithoutThem ? 'Cancel' : 'Okay'}
             onClick={onBack}
-            waitingKey={null}
           />
         )}
       </Kb.ButtonBar>

@@ -131,7 +131,7 @@ type ButtonMeta = {
   onClick: () => void
   type?: ButtonProps['type']
   waiting?: boolean
-  waitingKey?: string | null // makes this a WaitingButton
+  waitingKey?: string // makes this a WaitingButton
 }
 
 type SignupScreenProps = {

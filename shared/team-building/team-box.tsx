@@ -18,7 +18,7 @@ type Props = {
   onFinishTeamBuilding: () => void
   searchString: string
   goButtonLabel?: GoButtonLabel
-  waitingKey: string | null
+  waitingKey?: string
 }
 
 const formatNameForUserBubble = (u: SelectedUser) => {

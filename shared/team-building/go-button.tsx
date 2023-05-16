@@ -5,7 +5,7 @@ import type {GoButtonLabel} from '../constants/types/team-building'
 export type Props = {
   onClick: () => void
   label: GoButtonLabel
-  waitingKey: string | null
+  waitingKey?: string
 }
 
 const GoButton = (props: Props) => (

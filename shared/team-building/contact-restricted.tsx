@@ -60,13 +60,7 @@ export const ContactRestricted = (props: Props) => {
       footer={{
         content: (
           <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton
-              type="Default"
-              label="Okay"
-              onClick={onBack}
-              style={styles.button}
-              waitingKey={null}
-            />
+            <Kb.WaitingButton type="Default" label="Okay" onClick={onBack} style={styles.button} />
           </Kb.ButtonBar>
         ),
         hideBorder: true,

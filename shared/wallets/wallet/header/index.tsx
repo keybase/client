@@ -15,7 +15,7 @@ type Props = {
   onSettings: () => void
   thisDeviceIsLockedOut: boolean
   unreadPayments: boolean
-  walletName: string | null
+  walletName?: string
 }
 
 const Header = (props: Props) => {

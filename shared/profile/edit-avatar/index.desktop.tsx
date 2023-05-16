@@ -127,7 +127,6 @@ const EditAvatar = (p: Props) => {
             label={wizard ? 'Continue' : 'Save'}
             onClick={onSave}
             disabled={loading !== 'loaded'}
-            waitingKey={null}
           />
         ),
       }}

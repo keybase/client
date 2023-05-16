@@ -79,7 +79,7 @@ class NewRepo extends React.Component<Props, State> {
     return (this.props.teams || []).concat(NewTeamSentry).map(this._makeDropdownItem)
   }
 
-  _makeDropdownItem = (item: string | null) => {
+  _makeDropdownItem = (item?: string) => {
     if (!item) {
       return (
         <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem}>

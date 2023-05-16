@@ -360,13 +360,7 @@ class BlockModal extends React.PureComponent<Props, State> {
               {!Styles.isMobile && (
                 <Kb.Button fullWidth={true} label="Cancel" onClick={this.props.onClose} type="Dim" />
               )}
-              <Kb.WaitingButton
-                label="Finish"
-                onClick={this.onFinish}
-                fullWidth={true}
-                type="Danger"
-                waitingKey={null}
-              />
+              <Kb.WaitingButton label="Finish" onClick={this.onFinish} fullWidth={true} type="Danger" />
             </Kb.ButtonBar>
           ),
         }}

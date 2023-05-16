@@ -57,7 +57,7 @@ const ConfirmModal = (props: Props) => (
               label="Cancel"
               onClick={props.onCancel}
               style={styles.button}
-              waitingKey={props.waitingKey || null}
+              waitingKey={props.waitingKey}
             />
           )}
           <WaitingButton
@@ -67,7 +67,7 @@ const ConfirmModal = (props: Props) => (
             label={props.confirmText || 'Confirm'}
             onClick={props.onConfirm}
             style={styles.button}
-            waitingKey={props.waitingKey || null}
+            waitingKey={props.waitingKey}
             waiting={props.waiting}
           />
         </ButtonBar>

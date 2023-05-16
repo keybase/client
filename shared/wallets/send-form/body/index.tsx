@@ -12,7 +12,7 @@ import {sharedStyles} from './shared'
 
 type SendBodyProps = {
   banners: Array<BannerType>
-  onReviewPayments: (() => void) | null
+  onReviewPayments?: () => void
   isProcessing?: boolean
 }
 

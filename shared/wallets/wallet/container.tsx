@@ -11,7 +11,7 @@ import Wallet, {AssetSectionTitle, type Props} from '.'
 const sortAndStripTimestamps = (
   p: Array<{
     paymentID: Types.PaymentID
-    timestamp: number | null
+    timestamp: number
   }>
 ) =>
   p

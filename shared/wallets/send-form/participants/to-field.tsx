@@ -16,7 +16,7 @@ export type ToKeybaseUserProps = {
   onShowProfile: (username: string) => void
   onRemoveProfile: () => void
   onChangeRecipient: (recipient: string) => void
-  onScanQRCode: (() => void) | null
+  onScanQRCode?: () => void
   onSearch: () => void
 }
 
@@ -77,7 +77,7 @@ export type ToStellarPublicKeyProps = {
   recipientPublicKey: string
   errorMessage?: string
   onChangeRecipient: (recipient: string) => void
-  onScanQRCode: (() => void) | null
+  onScanQRCode?: () => void
   setReadyToReview: (ready: boolean) => void
 }
 

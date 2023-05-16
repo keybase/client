@@ -355,11 +355,11 @@ export const TimestampPending = () => (
 )
 
 type TimestampLineProps = {
-  detailView: boolean | null
+  detailView?: boolean
   error: string
   reverseColor?: boolean
   status: Types.StatusSimplified
-  timestamp: Date | null
+  timestamp?: Date
   selectableText: boolean
 }
 
@@ -370,11 +370,11 @@ const TimestampLine = (props: TimestampLineProps) => {
   }
   const human = formatTimeForMessages(timestamp.getTime())
   const tooltip = formatTimeForStellarTooltip(timestamp)
-  let status: string | null = capitalize(props.status)
+  let status: string | undefined = capitalize(props.status)
   // 'claimable' -> show 'pending' and completed -> show nothing
   switch (status) {
     case 'Completed':
-      status = null
+      status = undefined
       break
     case 'Claimable':
       status = 'Pending'
@@ -446,8 +446,8 @@ export type Props = {
   sourceAsset: string
   status: Types.StatusSimplified
   statusDetail: string
-  // A null timestamp means the transaction is still pending.
-  timestamp: Date | null
+  // A undefined timestamp means the transaction is still pending.
+  timestamp?: Date
   unread: boolean
   yourRole: Types.Role
   trustline?: RPCTypes.PaymentTrustlineLocal

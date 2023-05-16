@@ -19,25 +19,23 @@ export type Props = {
   url: string
 }
 
-const actionMap: {[K in string]: string | null} = {
-  github: 'Create gist now',
-  hackernews: 'Go to Hacker News',
-  reddit: 'Reddit form',
-  twitter: 'Tweet it now',
-}
+const actionMap = new Map([
+  ['github', 'Create gist now'],
+  ['hackernews', 'Go to Hacker News'],
+  ['reddit', 'Reddit form'],
+  ['twitter', 'Tweet it now'],
+])
 
-const checkMap: {[K in string]: string | null} = {
-  twitter: 'OK tweeted! Check for it!',
-}
+const checkMap = new Map([['twitter', 'OK tweeted! Check for it!']])
 
 const webNote = 'Note: If someone already verified this domain, just append to the existing keybase.txt file.'
 
-const noteMap: {[K in string]: string | null} = {
-  http: webNote,
-  https: webNote,
-  reddit: "Make sure you're signed in to Reddit, and don't edit the text or title before submitting.",
-  web: webNote,
-}
+const noteMap = new Map([
+  ['http', webNote],
+  ['https', webNote],
+  ['reddit', "Make sure you're signed in to Reddit, and don't edit the text or title before submitting."],
+  ['web', webNote],
+])
 
 const WebDescription = ({platformUserName}) => {
   const root = `${platformUserName}/keybase.txt`
@@ -68,47 +66,62 @@ const WebDescription = ({platformUserName}) => {
   )
 }
 
-const descriptionMap: {[K in string]: React.ComponentType<any>} = {
-  dns: () => (
-    <Kb.Text center={true} type="BodySemibold">
-      Enter the following as a TXT entry in your DNS zone,{' '}
-      <Kb.Text type="BodySemibold">exactly as it appears</Kb.Text>. If you need a "name" for your entry, give
-      it "@".
-    </Kb.Text>
-  ),
-  github: () => (
-    <Kb.Text center={true} type="BodySemibold">
-      Login to GitHub and paste the text below into a <Kb.Text type="BodySemiboldItalic">public</Kb.Text> gist
-      called <Kb.Text type="BodySemiboldItalic">keybase.md.</Kb.Text>
-    </Kb.Text>
-  ),
-  hackernews: () => (
-    <Kb.Text center={true} type="BodySemibold">
-      Please add the below text{' '}
-      <Kb.Text type="BodySemibold" style={{...Styles.globalStyles.italic}}>
-        exactly as it appears
-      </Kb.Text>{' '}
-      to your profile.
-    </Kb.Text>
-  ),
-  http: WebDescription,
-  https: WebDescription,
-  reddit: () => (
-    <Kb.Text center={true} type="BodySemibold">
-      Click the button below and post the form in the subreddit{' '}
-      <Kb.Text type="BodySemiboldItalic">KeybaseProofs</Kb.Text>.
-    </Kb.Text>
-  ),
-  twitter: () => (
-    <Kb.Text center={true} type="BodySemibold">
-      Please tweet the text below{' '}
-      <Kb.Text type="BodySemiboldItalic" style={{...Styles.globalStyles.italic}}>
-        exactly as it appears.
+const descriptionMap = new Map([
+  [
+    'dns',
+    () => (
+      <Kb.Text center={true} type="BodySemibold">
+        Enter the following as a TXT entry in your DNS zone,{' '}
+        <Kb.Text type="BodySemibold">exactly as it appears</Kb.Text>. If you need a "name" for your entry,
+        give it "@".
       </Kb.Text>
-    </Kb.Text>
-  ),
-  web: WebDescription,
-}
+    ),
+  ],
+  [
+    'github',
+    () => (
+      <Kb.Text center={true} type="BodySemibold">
+        Login to GitHub and paste the text below into a <Kb.Text type="BodySemiboldItalic">public</Kb.Text>{' '}
+        gist called <Kb.Text type="BodySemiboldItalic">keybase.md.</Kb.Text>
+      </Kb.Text>
+    ),
+  ],
+  [
+    'hackernews',
+    () => (
+      <Kb.Text center={true} type="BodySemibold">
+        Please add the below text{' '}
+        <Kb.Text type="BodySemibold" style={{...Styles.globalStyles.italic}}>
+          exactly as it appears
+        </Kb.Text>{' '}
+        to your profile.
+      </Kb.Text>
+    ),
+  ],
+  ['http', WebDescription],
+  ['https', WebDescription],
+  [
+    'reddit',
+    () => (
+      <Kb.Text center={true} type="BodySemibold">
+        Click the button below and post the form in the subreddit{' '}
+        <Kb.Text type="BodySemiboldItalic">KeybaseProofs</Kb.Text>.
+      </Kb.Text>
+    ),
+  ],
+  [
+    'twitter',
+    () => (
+      <Kb.Text center={true} type="BodySemibold">
+        Please tweet the text below{' '}
+        <Kb.Text type="BodySemiboldItalic" style={{...Styles.globalStyles.italic}}>
+          exactly as it appears.
+        </Kb.Text>
+      </Kb.Text>
+    ),
+  ],
+  ['web', WebDescription],
+])
 
 type State = {
   showSubmit: boolean
@@ -121,10 +134,10 @@ class PostProof extends React.Component<Props, State> {
   render() {
     const props = this.props
     const platformSubtitle = subtitle(props.platform)
-    const proofActionText = actionMap[props.platform] || ''
-    const onCompleteText = checkMap[props.platform] || 'OK posted! Check for it!'
-    const noteText = noteMap[props.platform] || ''
-    const DescriptionView = descriptionMap[props.platform]
+    const proofActionText = actionMap.get(props.platform) ?? ''
+    const onCompleteText = checkMap.get(props.platform) ?? 'OK posted! Check for it!'
+    const noteText = noteMap.get(props.platform) ?? ''
+    const DescriptionView = descriptionMap.get(props.platform) ?? null
     const {proofText} = props
 
     return (
@@ -168,7 +181,7 @@ class PostProof extends React.Component<Props, State> {
                 </Kb.Text>
               )}
             </>
-            <DescriptionView platformUserName={props.platformUserName} />
+            {DescriptionView && <DescriptionView platformUserName={props.platformUserName} />}
             {!!proofText && <Kb.CopyableText style={styles.proof} value={proofText} />}
             {!!noteText && (
               <Kb.Text center={true} type="Body">
