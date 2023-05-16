@@ -318,7 +318,7 @@ export type State = {
   readonly linkExistingAccountError: string
   readonly loadPaymentsError: string
   readonly mobileOnlyMap: Map<AccountID, boolean>
-  readonly paymentCursorMap: Map<AccountID, StellarRPCTypes.PageCursor | null>
+  readonly paymentCursorMap: Map<AccountID, StellarRPCTypes.PageCursor | undefined>
   readonly paymentLoadingMoreMap: Map<AccountID, boolean>
   readonly paymentOldestUnreadMap: Map<AccountID, PaymentID>
   readonly paymentsMap: Map<AccountID, Map<PaymentID, Payment>>

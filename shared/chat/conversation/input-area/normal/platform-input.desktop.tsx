@@ -380,7 +380,6 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
       Chat2Gen.createMessageSetEditing({
         conversationIDKey,
         editLastUser: you,
-        ordinal: null,
       })
     )
   }, [dispatch, conversationIDKey, you])

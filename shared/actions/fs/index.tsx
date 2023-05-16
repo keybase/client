@@ -505,7 +505,7 @@ const pollJournalFlushStatusUntilDone = async (
         })
       listenerApi.dispatch(
         FsGen.createJournalUpdate({
-          endEstimate,
+          endEstimate: endEstimate ?? undefined,
           syncingPaths: (syncingPaths || []).map(Types.stringToPath),
           totalSyncingBytes,
         })

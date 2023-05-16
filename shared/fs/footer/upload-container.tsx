@@ -17,7 +17,7 @@ const getDebugToggleShow = dispatch => {
   return () => {
     dispatch(
       FsGen.createJournalUpdate({
-        endEstimate: showing ? null : Date.now() + 1000 * 60 * 60,
+        endEstimate: showing ? undefined : Date.now() + 1000 * 60 * 60,
         syncingPaths: showing ? [] : [Types.stringToPath('/keybase')],
         totalSyncingBytes: showing ? 0 : 1,
       })

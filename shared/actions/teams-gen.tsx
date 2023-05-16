@@ -453,7 +453,7 @@ export const createClearNavBadges = (payload?: undefined) => ({
 export const createCreateChannel = (payload: {
   readonly teamID: Types.TeamID
   readonly channelname: string
-  readonly description: string | null
+  readonly description?: string
   readonly navToChatOnSuccess: boolean
 }) => ({payload, type: createChannel as typeof createChannel})
 export const createCreateChannels = (payload: {

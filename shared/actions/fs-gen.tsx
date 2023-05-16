@@ -157,7 +157,7 @@ export const createDriverDisabling = (payload?: undefined) => ({
   payload,
   type: driverDisabling as typeof driverDisabling,
 })
-export const createDriverEnable = (payload: {readonly isRetry?: boolean | null} = {}) => ({
+export const createDriverEnable = (payload: {readonly isRetry?: boolean} = {}) => ({
   payload,
   type: driverEnable as typeof driverEnable,
 })
@@ -218,7 +218,7 @@ export const createGetOnlineStatus = (payload?: undefined) => ({
 export const createJournalUpdate = (payload: {
   readonly syncingPaths: Array<Types.Path>
   readonly totalSyncingBytes: number
-  readonly endEstimate?: number | null
+  readonly endEstimate?: number
 }) => ({payload, type: journalUpdate as typeof journalUpdate})
 export const createKbfsDaemonOnlineStatusChanged = (payload: {
   readonly onlineStatus: RPCTypes.KbfsOnlineStatus
@@ -383,7 +383,7 @@ export const createSetEditName = (payload: {readonly editID: Types.EditID; reado
   payload,
   type: setEditName as typeof setEditName,
 })
-export const createSetFolderViewFilter = (payload: {readonly filter: string | null}) => ({
+export const createSetFolderViewFilter = (payload: {readonly filter?: string} = {}) => ({
   payload,
   type: setFolderViewFilter as typeof setFolderViewFilter,
 })
@@ -398,17 +398,16 @@ export const createSetMoveOrCopySource = (payload: {readonly path: Types.Path}) 
   payload,
   type: setMoveOrCopySource as typeof setMoveOrCopySource,
 })
-export const createSetPathItemActionMenuDownload = (payload: {
-  readonly downloadID: string | null
-  readonly intent: Types.DownloadIntent | null
-}) => ({payload, type: setPathItemActionMenuDownload as typeof setPathItemActionMenuDownload})
+export const createSetPathItemActionMenuDownload = (
+  payload: {readonly downloadID?: string; readonly intent?: Types.DownloadIntent} = {}
+) => ({payload, type: setPathItemActionMenuDownload as typeof setPathItemActionMenuDownload})
 export const createSetPathItemActionMenuView = (payload: {readonly view: Types.PathItemActionMenuView}) => ({
   payload,
   type: setPathItemActionMenuView as typeof setPathItemActionMenuView,
 })
 export const createSetPathSoftError = (payload: {
   readonly path: Types.Path
-  readonly softError: Types.SoftError | null
+  readonly softError?: Types.SoftError
 }) => ({payload, type: setPathSoftError as typeof setPathSoftError})
 export const createSetPreferredMountDirs = (payload: {readonly preferredMountDirs: Array<string>}) => ({
   payload,
@@ -426,7 +425,7 @@ export const createSetSpaceAvailableNotificationThreshold = (payload: {
 })
 export const createSetTlfSoftError = (payload: {
   readonly path: Types.Path
-  readonly softError: Types.SoftError | null
+  readonly softError?: Types.SoftError
 }) => ({payload, type: setTlfSoftError as typeof setTlfSoftError})
 export const createSetTlfSyncConfig = (payload: {
   readonly enabled: boolean

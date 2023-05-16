@@ -302,7 +302,7 @@ export const createLoadOnLoginStartup = (payload?: undefined) => ({
   payload,
   type: loadOnLoginStartup as typeof loadOnLoginStartup,
 })
-export const createLoadedOnLoginStartup = (payload: {readonly status: boolean | null}) => ({
+export const createLoadedOnLoginStartup = (payload: {readonly status?: boolean} = {}) => ({
   payload,
   type: loadedOnLoginStartup as typeof loadedOnLoginStartup,
 })

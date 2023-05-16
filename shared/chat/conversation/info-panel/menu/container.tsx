@@ -150,7 +150,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   }, [dispatch, teamID])
   const onMarkAsUnread = React.useCallback(() => {
     dispatch(RouteTreeGen.createClearModals())
-    dispatch(ChatGen.createMarkAsUnread({conversationIDKey, readMsgID: null}))
+    dispatch(ChatGen.createMarkAsUnread({conversationIDKey}))
   }, [dispatch, conversationIDKey])
   const onViewTeam = React.useCallback(() => {
     dispatch(RouteTreeGen.createClearModals())

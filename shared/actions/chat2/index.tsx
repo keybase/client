@@ -1383,7 +1383,6 @@ const messageDelete = async (state: Container.TypedState, action: Chat2Gen.Messa
 const clearMessageSetEditing = (_: unknown, action: Chat2Gen.MessageEditPayload) =>
   Chat2Gen.createMessageSetEditing({
     conversationIDKey: action.payload.conversationIDKey,
-    ordinal: null,
   })
 
 const messageEdit = async (
@@ -1401,10 +1400,10 @@ const messageEdit = async (
   if (message.type === 'text' || message.type === 'attachment') {
     // Skip if the content is the same
     if (message.type === 'text' && message.text.stringValue() === text.stringValue()) {
-      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey}))
       return
     } else if (message.type === 'attachment' && message.title === text.stringValue()) {
-      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey}))
       return
     }
     const meta = Constants.getMeta(state, conversationIDKey)
@@ -1413,7 +1412,7 @@ const messageEdit = async (
     const outboxID = Constants.generateOutboxID()
     const target = {
       messageID: message.id,
-      outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
+      outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : undefined,
     }
     await RPCChatTypes.localPostEditNonblockRpcPromise(
       {
@@ -1848,7 +1847,7 @@ const messageSend = async (
           clientPrev,
           conversationID: Types.keyToConversationID(conversationIDKey),
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          outboxID: null,
+          outboxID: undefined,
           replyTo,
           tlfName,
           tlfPublic: false,
@@ -1904,15 +1903,15 @@ const messageSendByUsernames = async (
 }
 
 type StellarConfirmWindowResponse = {result: (b: boolean) => void}
-let _stellarConfirmWindowResponse: StellarConfirmWindowResponse | null = null
+let _stellarConfirmWindowResponse: StellarConfirmWindowResponse | undefined
 
-function storeStellarConfirmWindowResponse(accept: boolean, response: StellarConfirmWindowResponse | null) {
+function storeStellarConfirmWindowResponse(accept: boolean, response?: StellarConfirmWindowResponse) {
   _stellarConfirmWindowResponse?.result(accept)
   _stellarConfirmWindowResponse = response
 }
 
 const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenResponsePayload) => {
-  storeStellarConfirmWindowResponse(action.payload.accept, null)
+  storeStellarConfirmWindowResponse(action.payload.accept)
 }
 
 // We always make adhoc convos and never preview it
@@ -2375,7 +2374,7 @@ const markThreadAsRead = async (
     message = ordinal ? mmap.get(ordinal) : undefined
   }
 
-  let readMsgID: number | null = null
+  let readMsgID: number | undefined
   if (meta) {
     readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
   }
@@ -3355,7 +3354,7 @@ const onChatCommandMarkdown = (_: unknown, action: EngineGen.Chat1ChatUiChatComm
   const {convID, md} = action.payload.params
   return Chat2Gen.createSetCommandMarkdown({
     conversationIDKey: Types.stringToConversationIDKey(convID),
-    md: md || null,
+    md: md || undefined,
   })
 }
 
@@ -3653,7 +3652,7 @@ const refreshBotRoleInConv = async (_: unknown, action: Chat2Gen.RefreshBotRoleI
   const trole = TeamsConstants.teamRoleByEnum[role]
   return Chat2Gen.createSetBotRoleInConv({
     conversationIDKey,
-    role: !trole || trole === 'none' ? null : trole,
+    role: !trole || trole === 'none' ? undefined : trole,
     username,
   })
 }

@@ -360,10 +360,9 @@ export const createLinkExistingAccount = (payload: {
 /**
  * Load display currency for an account
  */
-export const createLoadDisplayCurrency = (payload: {
-  readonly accountID: Types.AccountID | null
-  readonly setBuildingCurrency?: boolean
-}) => ({payload, type: loadDisplayCurrency as typeof loadDisplayCurrency})
+export const createLoadDisplayCurrency = (
+  payload: {readonly accountID?: Types.AccountID; readonly setBuildingCurrency?: boolean} = {}
+) => ({payload, type: loadDisplayCurrency as typeof loadDisplayCurrency})
 /**
  * Load extra detail for one given payment
  */
@@ -430,7 +429,7 @@ export const createSetSEP7Tx = (payload: {
  */
 export const createRecentPaymentsReceived = (payload: {
   readonly accountID: Types.AccountID
-  readonly paymentCursor: StellarRPCTypes.PageCursor | null
+  readonly paymentCursor?: StellarRPCTypes.PageCursor
   readonly oldestUnread: Types.PaymentID
   readonly payments: Array<Types.PaymentResult>
 }) => ({payload, type: recentPaymentsReceived as typeof recentPaymentsReceived})
@@ -699,7 +698,7 @@ export const createBadgesUpdated = (payload: {readonly accounts: Array<RPCTypes.
  * Update display currency for a certain account
  */
 export const createDisplayCurrencyReceived = (payload: {
-  readonly accountID: Types.AccountID | null
+  readonly accountID?: Types.AccountID
   readonly currency: Types.Currency
   readonly setBuildingCurrency?: boolean
 }) => ({payload, type: displayCurrencyReceived as typeof displayCurrencyReceived})
@@ -730,7 +729,7 @@ export const createPaymentsReceived = (payload: {
   readonly accountID: Types.AccountID
   readonly error: string
   readonly allowClearOldestUnread: boolean
-  readonly paymentCursor: StellarRPCTypes.PageCursor | null
+  readonly paymentCursor?: StellarRPCTypes.PageCursor
   readonly oldestUnread: Types.PaymentID
   readonly payments: Array<Types.PaymentResult>
   readonly pending: Array<Types.PaymentResult>
@@ -771,7 +770,7 @@ export const createReviewedPaymentReceived = (payload: {
   readonly reviewID: number
   readonly seqno: number
   readonly nextButton: string
-  readonly banners?: Array<StellarRPCTypes.SendBannerLocal> | null
+  readonly banners?: Array<StellarRPCTypes.SendBannerLocal>
 }) => ({payload, type: reviewedPaymentReceived as typeof reviewedPaymentReceived})
 /**
  * Update valid display currencies to choose from

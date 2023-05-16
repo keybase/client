@@ -22,7 +22,7 @@ const initialState: Types.State = {
   edits: new Map(),
   errors: [],
   fileContext: new Map(),
-  folderViewFilter: null,
+  folderViewFilter: undefined,
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   lastPublicBannerClosedTlf: '',
   overallSyncStatus: Constants.emptyOverallSyncStatus,

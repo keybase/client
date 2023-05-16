@@ -165,7 +165,7 @@ export const useFsFileContext = (path: Types.Path) => {
 }
 
 export const useFsWatchDownloadForMobile = isMobile
-  ? (downloadID: string, downloadIntent: Types.DownloadIntent | null): boolean => {
+  ? (downloadID: string, downloadIntent?: Types.DownloadIntent): boolean => {
       const dlState = Container.useSelector(
         state => state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
       )

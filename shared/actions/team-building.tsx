@@ -68,7 +68,7 @@ const apiSearchOne = async (
 
 // If the query is a well-formatted phone number or email, do additional search
 // and if the result is not already in the list, insert at the beginning.
-async function specialContactSearch(users: TeamBuildingTypes.User[], query: string, region: string | null) {
+async function specialContactSearch(users: TeamBuildingTypes.User[], query: string, region?: string) {
   const {validateNumber} = require('../util/phone-numbers')
   let result: TeamBuildingTypes.User | undefined
   const phoneNumber = validateNumber(query, region)
@@ -107,7 +107,7 @@ const search = async (
   if (selectedService === 'keybase') {
     // If we are on Keybase tab, do additional search if query is phone/email.
     const userRegion = state.settings.contacts.userCountryCode
-    users = await specialContactSearch(users, searchQuery, userRegion ?? null)
+    users = await specialContactSearch(users, searchQuery, userRegion)
   }
   return TeamBuildingGen.createSearchResultsLoaded({
     namespace,

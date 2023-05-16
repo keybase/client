@@ -5,7 +5,7 @@ import {memoize} from '../../util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
 // import {type Actions} from '../../actions/fs-gen'
 
-export type Path = string | null
+export type Path = string | undefined
 
 export enum PathType {
   Folder = 'folder',
@@ -420,8 +420,8 @@ export enum PathItemActionMenuView {
   ConfirmSendToOtherApp = 'confirm-send-to-other-app',
 }
 export type PathItemActionMenu = {
-  readonly downloadID: string | null
-  readonly downloadIntent: DownloadIntent | null
+  readonly downloadID: string | undefined
+  readonly downloadIntent: DownloadIntent | undefined
   readonly previousView: PathItemActionMenuView
   readonly view: PathItemActionMenuView
 }
@@ -447,7 +447,7 @@ export type DriverStatusEnabled = {
   readonly isDisabling: boolean
   // windows only
   readonly dokanOutdated: boolean
-  readonly dokanUninstallExecPath?: string | null
+  readonly dokanUninstallExecPath?: string
 }
 
 export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverStatusEnabled
@@ -531,7 +531,7 @@ export type State = {
   readonly edits: Edits
   readonly errors: Array<string>
   readonly fileContext: Map<Path, FileContext>
-  readonly folderViewFilter: string | null // on mobile, '' is exapnded empty, null is unexpanded
+  readonly folderViewFilter: string | undefined // on mobile, '' is expanded empty, null is unexpanded
   readonly kbfsDaemonStatus: KbfsDaemonStatus
   readonly lastPublicBannerClosedTlf: string
   readonly overallSyncStatus: OverallSyncStatus
@@ -547,7 +547,7 @@ export type State = {
   readonly uploads: Uploads
 }
 
-export type Visibility = TlfType | null
+export type Visibility = TlfType | undefined
 
 export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
   switch (d.direntType) {
@@ -567,7 +567,7 @@ export const getPathFromRelative = (tlfName: string, tlfType: TlfType, inTlfPath
 export const stringToEditID = (s: string): EditID => s
 export const editIDToString = (s: EditID): string => s
 export const stringToPath = (s: string): Path =>
-  s.startsWith('/') ? s.replace(/\/+/g, '/').replace(/\/$/, '') : null
+  s.startsWith('/') ? s.replace(/\/+/g, '/').replace(/\/$/, '') : undefined
 export const pathToString = (p: Path): string => (!p ? '' : p)
 export const stringToLocalPath = (s: string): LocalPath => s
 export const localPathToString = (p: LocalPath): string => p
@@ -581,7 +581,7 @@ export const getPathParent = (p: Path): Path => (!p ? '' : p.split('/').slice(0,
 export const getPathElements = memoize((p: Path): Array<string> => (!p ? [] : p.split('/').slice(1)))
 export const getPathFromElements = (elems: Array<string>): Path => [''].concat(elems).join('/')
 export const getVisibilityFromElems = (elems: Array<string>) => {
-  if (elems.length < 2 || !elems[1]) return null
+  if (elems.length < 2 || !elems[1]) return undefined
   const visibility = elems[1]
   switch (visibility) {
     case 'private':
@@ -593,13 +593,13 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
     default:
       // We don't do a flow check here because by now flow knows that we can't
       // be an empty string, so asserting empty will always fail.
-      return null
+      return undefined
   }
 }
 export const pathsAreInSameTlf = (path1: Path, path2: Path) =>
   getPathElements(path1).slice(0, 3).join('/') === getPathElements(path2).slice(0, 3).join('/')
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
-  if (v === null) return RPCTypes.FolderType.unknown
+  if (v === undefined) return RPCTypes.FolderType.unknown
   return RPCTypes.FolderType[v]
 }
 export const getVisibilityFromRPCFolderType = (folderType: RPCTypes.FolderType): Visibility => {
@@ -611,7 +611,7 @@ export const getVisibilityFromRPCFolderType = (folderType: RPCTypes.FolderType):
     case RPCTypes.FolderType.team:
       return TlfType.Team
     default:
-      return null
+      return undefined
   }
 }
 export const getPathVisibility = (p: Path): Visibility => {

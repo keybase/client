@@ -45,7 +45,7 @@
       "reason": "string",
       "comment": "string",
       "includeTranscript": "boolean",
-      "convID": "string | null"
+      "convID?": "string"
     }
   }
 }

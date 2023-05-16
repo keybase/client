@@ -18,7 +18,7 @@ const FsNavHeaderRightActions = (props: Props) => {
 
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    !Styles.isMobile && dispatch(FsGen.createSetFolderViewFilter({filter: null})) // mobile is handled in mobile-header.tsx
+    !Styles.isMobile && dispatch(FsGen.createSetFolderViewFilter({})) // mobile is handled in mobile-header.tsx
   }, [dispatch, props.path]) // clear if path changes or it's a new layer of mount
 
   return !hasSoftError ? (

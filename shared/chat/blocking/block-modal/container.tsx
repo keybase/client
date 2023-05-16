@@ -75,10 +75,10 @@ export default (ownProps: OwnProps) => {
       dispatch(
         UsersGen.createReportUser({
           comment: report.extraNotes,
-          convID: convID || null,
+          convID,
           includeTranscript: report.includeTranscript && !!convID,
           reason: report.reason,
-          username: username,
+          username,
         })
       )
     },

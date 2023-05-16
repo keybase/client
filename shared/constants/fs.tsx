@@ -176,8 +176,8 @@ export const emptyDownloadInfo: Types.DownloadInfo = {
 }
 
 export const emptyPathItemActionMenu: Types.PathItemActionMenu = {
-  downloadID: null,
-  downloadIntent: null,
+  downloadID: undefined,
+  downloadIntent: undefined,
   previousView: Types.PathItemActionMenuView.Root,
   view: Types.PathItemActionMenuView.Root,
 }
@@ -188,7 +188,7 @@ export const driverStatusUnknown: Types.DriverStatusUnknown = {
 
 export const emptyDriverStatusEnabled: Types.DriverStatusEnabled = {
   dokanOutdated: false,
-  dokanUninstallExecPath: null,
+  dokanUninstallExecPath: undefined,
   isDisabling: false,
   type: Types.DriverStatusType.Enabled,
 } as const
@@ -299,15 +299,15 @@ export const getDownloadIntent = (
   path: Types.Path,
   downloads: Types.Downloads,
   pathItemActionMenu: Types.PathItemActionMenu
-): Types.DownloadIntent | null => {
+): Types.DownloadIntent | undefined => {
   const found = [...downloads.info].find(([_, info]) => info.path === path)
   if (!found) {
-    return null
+    return undefined
   }
   const [downloadID] = found
   const dlState = downloads.state.get(downloadID) || emptyDownloadState
   if (!downloadIsOngoing(dlState)) {
-    return null
+    return undefined
   }
   if (pathItemActionMenu.downloadID === downloadID) {
     return pathItemActionMenu.downloadIntent
@@ -438,9 +438,9 @@ export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
     .map(tlfType => computeBadgeNumberForTlfList(getTlfListFromType(tlfs, tlfType)))
     .reduce((sum, count) => sum + count, 0)
 
-export const getTlfPath = (path: Types.Path): Types.Path | null => {
+export const getTlfPath = (path: Types.Path): Types.Path => {
   const elems = Types.getPathElements(path)
-  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
+  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : undefined
 }
 
 export const getTlfListAndTypeFromPath = (

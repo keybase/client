@@ -23,7 +23,11 @@ const needConfirm = (pathItem: Types.PathItem) =>
   pathItem.type === Types.PathType.File && pathItem.size > 50 * 1024 * 1024
 
 const getDownloadingState = memoize(
-  (downloads: Types.Downloads, downloadID: string | null, pathItemActionMenu: Types.PathItemActionMenu) => {
+  (
+    downloads: Types.Downloads,
+    downloadID: string | undefined,
+    pathItemActionMenu: Types.PathItemActionMenu
+  ) => {
     if (!downloadID) {
       return {done: true, saving: false, sharing: false}
     }
@@ -41,7 +45,7 @@ const getDownloadingState = memoize(
   }
 )
 
-const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, toCancel: string | null) =>
+const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, toCancel?: string) =>
   toCancel
     ? () => {
         action()
@@ -158,22 +162,22 @@ export default (ownProps: OwnProps) => {
 
   const props = {
     ...ownProps,
-    delete: layout.delete ? c(_delete) : null,
-    download: layout.download ? c(_download) : null,
-    ignoreTlf: layout.ignoreTlf ? (_ignoreNeedsToWait ? 'disabled' : c(_ignoreTlf)) : null,
+    delete: layout.delete ? c(_delete) : undefined,
+    download: layout.download ? c(_download) : undefined,
+    ignoreTlf: layout.ignoreTlf ? (_ignoreNeedsToWait ? 'disabled' : c(_ignoreTlf)) : undefined,
     me: _username,
-    moveOrCopy: null,
-    newFolder: layout.newFolder ? c(_newFolder) : null,
-    openChatNonTeam: layout.openChatNonTeam ? c(_openChat) : null,
-    openChatTeam: layout.openChatTeam ? c(_openChat) : null,
+    moveOrCopy: undefined,
+    newFolder: layout.newFolder ? c(_newFolder) : undefined,
+    openChatNonTeam: layout.openChatNonTeam ? c(_openChat) : undefined,
+    openChatTeam: layout.openChatTeam ? c(_openChat) : undefined,
     pathItemType: _pathItem.type,
-    rename: layout.rename ? c(_rename) : null,
-    saveMedia: layout.saveMedia ? getSaveMedia() : null,
-    sendAttachmentToChat: layout.sendAttachmentToChat ? c(_sendAttachmentToChat) : null, // TODO
-    sendToOtherApp: layout.sendToOtherApp ? getSendToOtherApp() : null,
-    share: layout.share ? _share : null,
+    rename: layout.rename ? c(_rename) : undefined,
+    saveMedia: layout.saveMedia ? getSaveMedia() : undefined,
+    sendAttachmentToChat: layout.sendAttachmentToChat ? c(_sendAttachmentToChat) : undefined, // TODO
+    sendToOtherApp: layout.sendToOtherApp ? getSendToOtherApp() : undefined,
+    share: layout.share ? _share : undefined,
     showInSystemFileManager:
-      layout.showInSystemFileManager && _sfmiEnabled ? c(_showInSystemFileManager) : null,
+      layout.showInSystemFileManager && _sfmiEnabled ? c(_showInSystemFileManager) : undefined,
   }
   return <Menu {...props} />
 }

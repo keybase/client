@@ -29,7 +29,7 @@ const NavMobileHeader = (props: Props) => {
   const expanded = null !== Container.useSelector(state => state.fs.folderViewFilter)
 
   const dispatch = Container.useDispatch()
-  const filterDone = () => dispatch(FsGen.createSetFolderViewFilter({filter: null}))
+  const filterDone = () => dispatch(FsGen.createSetFolderViewFilter({}))
   const triggerFilterMobile = () => dispatch(FsGen.createSetFolderViewFilter({filter: ''}))
 
   // Clear if path changes; or it's a new layer of mount (important on Android
@@ -40,7 +40,7 @@ const NavMobileHeader = (props: Props) => {
   // anything for me at this point. So just use the fact that a new such thing
   // has been mounted as a proxy.
   React.useEffect(() => {
-    dispatch(FsGen.createSetFolderViewFilter({filter: null}))
+    dispatch(FsGen.createSetFolderViewFilter({}))
   }, [dispatch, props.path])
 
   return props.path === Constants.defaultPath ? (

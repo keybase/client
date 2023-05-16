@@ -661,16 +661,15 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (!ordinal && editLastUser) {
       // Editing your last message
       const ordinals = messageOrdinals.get(conversationIDKey) ?? []
-      ordinal =
-        findLast(ordinals, o => {
-          const message = messageMap?.get(o)
-          return !!(
-            (message?.type === 'text' || message?.type === 'attachment') &&
-            message.author === editLastUser &&
-            !message.exploded &&
-            message.isEditable
-          )
-        }) ?? null
+      ordinal = findLast(ordinals, o => {
+        const message = messageMap?.get(o)
+        return !!(
+          (message?.type === 'text' || message?.type === 'attachment') &&
+          message.author === editLastUser &&
+          !message.exploded &&
+          message.isEditable
+        )
+      })
     }
 
     if (ordinal) {

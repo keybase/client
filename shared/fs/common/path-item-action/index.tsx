@@ -23,7 +23,7 @@ type ClickableComponent = {
 
 type ClickableIcon = {
   actionIconWhite?: boolean
-  sizeType?: SizeType | null
+  sizeType?: SizeType
   type: 'icon'
 }
 
@@ -61,7 +61,7 @@ const PathItemAction = (props: Props) => {
 
       const hide = () => {
         toggleShowingPopup()
-        dispatch(FsGen.createSetPathItemActionMenuDownload({downloadID: null, intent: null}))
+        dispatch(FsGen.createSetPathItemActionMenuDownload({}))
       }
 
       return (

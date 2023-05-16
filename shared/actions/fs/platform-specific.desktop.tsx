@@ -84,10 +84,10 @@ const fuseStatusToUninstallExecPath = isWindows
       const field = status?.status?.fields?.find(({key}) => key === 'uninstallString')
       return field?.value
     }
-  : () => null
+  : () => undefined
 
 const fuseStatusToActions =
-  (previousStatusType: Types.DriverStatusType) => (status: RPCTypes.FuseStatus | null) => {
+  (previousStatusType: Types.DriverStatusType) => (status: RPCTypes.FuseStatus | undefined) => {
     if (!status) {
       return FsGen.createSetDriverStatus({
         driverStatus: Constants.defaultDriverStatus,
