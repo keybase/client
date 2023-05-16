@@ -64,7 +64,7 @@ const VideoImpl = (p: Props) => {
             shouldPlay={true}
             usePoster={false}
             style={Styles.collapseStyles([styles.video, {height, width}])}
-            resizeMode={ResizeMode.CONTAIN}
+            resizeMode={ResizeMode.COVER}
           />
         )}
       </Pressable>
@@ -103,11 +103,11 @@ const styles = Styles.styleSheetCreate(
       posterContainer: {
         position: 'relative',
       },
-      pressable: {position: 'relative'},
-      video: {
-        maxHeight: 320,
-        maxWidth: '100%',
+      pressable: {
+        position: 'relative',
+        width: '100%',
       },
+      video: {},
     } as const)
 )
 
