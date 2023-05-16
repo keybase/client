@@ -97,7 +97,11 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         top: '50%',
       },
-      posterContainer: {position: 'relative'},
+      posterContainer: {
+        display: 'flex',
+        flexShrink: 1,
+        position: 'relative',
+      },
       tipText: {color: Styles.globalColors.white_75},
       video: Styles.platformStyles({
         isElectron: {
