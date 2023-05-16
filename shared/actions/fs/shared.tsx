@@ -13,7 +13,7 @@ export const errorToActionOrThrow = (
   error: any,
   path?: Types.Path
 ):
-  | null
+  | undefined
   | FsGen.RedbarPayload
   | FsGen.CheckKbfsDaemonRpcStatusPayload
   | FsGen.SetPathSoftErrorPayload
@@ -32,7 +32,7 @@ export const errorToActionOrThrow = (
     // TODO: TRIAGE-2379 this should probably be ignored on Go side. We
     // already use fsGui identifyBehavior and there's no reason we should get
     // an identify error here.
-    return null
+    return undefined
   }
   if (path && error?.code === RPCTypes.StatusCode.scsimplefsnotexist) {
     return FsGen.createSetPathSoftError({path, softError: Types.SoftError.Nonexistent})

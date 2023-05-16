@@ -932,16 +932,16 @@ export const showSortSetting = (
   (Types.getPathLevel(path) === 2 || (pathItem.type === Types.PathType.Folder && !!pathItem.children.size)) &&
   !isOfflineUnsynced(kbfsDaemonStatus, pathItem, path)
 
-export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Types.SoftError | null => {
+export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Types.SoftError | undefined => {
   const pathError = softErrors.pathErrors.get(path)
   if (pathError) {
     return pathError
   }
   if (!softErrors.tlfErrors.size) {
-    return null
+    return undefined
   }
   const tlfPath = getTlfPath(path)
-  return (tlfPath && softErrors.tlfErrors.get(tlfPath)) || null
+  return (tlfPath && softErrors.tlfErrors.get(tlfPath)) || undefined
 }
 
 export const hasSpecialFileElement = (path: Types.Path): boolean =>

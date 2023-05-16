@@ -19,11 +19,9 @@ import logger from '../../logger'
 type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
 const disabledRolesForNonKeybasePlural = {
   admin: 'Some invitees cannot be added as admins. Only Keybase users can be added as admins.',
-  owner: null,
 }
 const disabledRolesForPhoneEmailIndividual = {
   admin: 'Only Keybase users can be added as admins.',
-  owner: null,
 }
 const disabledRolesSubteam = {
   owner: 'Subteams cannot have owners.',

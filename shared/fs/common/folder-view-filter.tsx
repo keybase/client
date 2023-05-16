@@ -8,9 +8,9 @@ import * as FsGen from '../../actions/fs-gen'
 import debounce from 'lodash/debounce'
 
 type Props = {
-  onCancel?: (() => void) | null
+  onCancel?: () => void
   path: Types.Path
-  style?: Styles.StylesCrossPlatform | null
+  style?: Styles.StylesCrossPlatform
 }
 
 const FolderViewFilter = (props: Props) => {

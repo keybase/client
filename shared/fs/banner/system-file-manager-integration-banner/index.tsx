@@ -9,7 +9,7 @@ import * as FsGen from '../../../actions/fs-gen'
 import * as Kbfs from '../../common'
 
 type Props = {
-  alwaysShow?: boolean | null
+  alwaysShow?: boolean
   driverStatus: Types.DriverStatus
   settings: Types.Settings
   onDisable: () => void
@@ -34,9 +34,9 @@ type BannerButtonProps = {
 type BannerProps = {
   background: Background
   okIcon: boolean
-  onDismiss?: (() => void) | null
+  onDismiss?: () => void
   title: string
-  body?: string | null
+  body?: string
   bodyExtraComponent?: React.ReactNode
   button?: BannerButtonProps
   buttonSecondary?: BannerButtonProps
@@ -166,7 +166,7 @@ const DokanOutdated = (props: Props) => {
   )
 }
 
-type JustEnabledProps = {onDismiss: null | (() => void)}
+type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const preferredMountDirs = Container.useSelector(state => state.fs.sfmi.preferredMountDirs)
   const displayingMountDir = preferredMountDirs[0] || ''
@@ -210,7 +210,7 @@ const Enabled = (props: Props) => {
     )
   }
   if (props.alwaysShow || !props.settings.sfmiBannerDismissed) {
-    return <JustEnabled onDismiss={props.alwaysShow ? null : props.onDismiss} />
+    return <JustEnabled onDismiss={props.alwaysShow ? undefined : props.onDismiss} />
   }
   return null
 }
@@ -238,7 +238,7 @@ const Disabled = (props: Props) => {
         disabled: !canContinue,
         inProgress: props.driverStatus.isEnabling,
       }}
-      onDismiss={props.alwaysShow ? null : props.onDismiss}
+      onDismiss={props.alwaysShow ? undefined : props.onDismiss}
     />
   )
 }

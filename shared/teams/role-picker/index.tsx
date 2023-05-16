@@ -18,17 +18,18 @@ type Role<IncludeSetIndividually> = IncludeSetIndividually extends true
 
 type MaybeRole<IncludeSetIndividually> =
   | TeamRoleType
-  | null
   | undefined
   | (IncludeSetIndividually extends true ? 'setIndividually' : undefined)
 
 function filterRole<IncludeSetIndividually extends boolean>(
   r: MaybeRole<IncludeSetIndividually>
-): Role<IncludeSetIndividually> | null {
-  return r === 'bot' || r === 'restrictedbot' || !r ? null : (r as Role<IncludeSetIndividually> | null)
+): Role<IncludeSetIndividually> | undefined {
+  return r === 'bot' || r === 'restrictedbot' || !r
+    ? undefined
+    : (r as Role<IncludeSetIndividually> | undefined)
 }
 
-type DisabledReason = string | null // null means don't show it at all
+type DisabledReason = string | undefined // undefined means don't show it at all
 
 export type Props<IncludeSetIndividually extends boolean> = {
   disabledRoles?: {[K in Role<IncludeSetIndividually>]?: DisabledReason}
@@ -44,7 +45,7 @@ export type Props<IncludeSetIndividually extends boolean> = {
 type RoleRowProps = {
   body: React.ReactNode
   disabledReason?: string
-  icon: React.ReactNode | null
+  icon: React.ReactNode
   selected: boolean
   title: string
   onSelect?: () => void
@@ -144,7 +145,7 @@ type RolesMetaInfo = {
   cans: Array<string>
   cants: Array<string>
   extra?: Array<string>
-  icon: React.ReactNode | null
+  icon: React.ReactNode
 }
 const rolesMetaInfo = (infoForRole: Role<true>): RolesMetaInfo => {
   switch (infoForRole) {

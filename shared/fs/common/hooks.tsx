@@ -119,7 +119,7 @@ export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): 
   return alreadyKnown ? knownPathInfo : pathInfo
 }
 
-export const useFsSoftError = (path: Types.Path): Types.SoftError | null => {
+export const useFsSoftError = (path: Types.Path): Types.SoftError | undefined => {
   const softErrors = Container.useSelector(state => state.fs.softErrors)
   return Constants.getSoftError(softErrors, path)
 }

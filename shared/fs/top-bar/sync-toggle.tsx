@@ -7,7 +7,7 @@ export type Props = {
   disableSync: () => void
   enableSync: () => void
   hideSyncToggle: boolean
-  syncConfig?: Types.TlfSyncConfig | null
+  syncConfig?: Types.TlfSyncConfig
   waiting: boolean
 }
 

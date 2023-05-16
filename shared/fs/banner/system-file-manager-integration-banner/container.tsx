@@ -4,7 +4,7 @@ import * as FsGen from '../../../actions/fs-gen'
 import * as Container from '../../../util/container'
 
 type OwnProps = {
-  alwaysShow?: boolean | null
+  alwaysShow?: boolean
 }
 
 const SFMIContainer = (op: OwnProps) => {

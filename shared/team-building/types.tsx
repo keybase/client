@@ -60,12 +60,12 @@ export type Props = {
   onRemove: (userId: string) => void
   onSearchForMore: (len: number) => void
   onUpArrowKeyDown: () => void
-  recommendations: Array<SearchRecSection> | null
+  recommendations?: Array<SearchRecSection>
   search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | undefined
   searchString: string
   selectedService: ServiceIdWithContact
-  serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
+  serviceResultCount: {[K in ServiceIdWithContact]?: number | undefined}
   showServiceResultCount: boolean
   teamBuildingSearchResults: SearchResults
   teamID: TeamID | undefined

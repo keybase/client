@@ -11,7 +11,7 @@ import {memoize} from '../../../util/memoize'
 type OwnProps = {
   path: Types.Path // path to the parent folder containering the rows,
   destinationPickerIndex?: number
-  headerRows?: Array<RowTypes.HeaderRowItem> | null
+  headerRows?: Array<RowTypes.HeaderRowItem>
 }
 
 const getStillRows = memoize(

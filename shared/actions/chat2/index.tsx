@@ -675,11 +675,9 @@ const onChatInboxSynced = (
         }
         return arr
       }, [])
-      const removals = (
-        (syncRes.incremental === null || syncRes.incremental === undefined
-          ? undefined
-          : syncRes.incremental.removals) || []
-      ).map(Types.stringToConversationIDKey)
+      const removals = ((!syncRes.incremental ? undefined : syncRes.incremental.removals) || []).map(
+        Types.stringToConversationIDKey
+      )
       // Update new untrusted
       if (metas.length || removals.length) {
         actions.push(Chat2Gen.createMetasReceived({metas, removals}))
@@ -759,7 +757,7 @@ const onChatSetConvSettings = (_: unknown, action: EngineGen.Chat1NotifyChatChat
   const conversationIDKey = Types.conversationIDToKey(convID)
   const newRole =
     (conv?.convSettings && conv.convSettings.minWriterRoleInfo && conv.convSettings.minWriterRoleInfo.role) ||
-    null
+    undefined
   const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
   const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite || false
   logger.info(
@@ -1020,10 +1018,10 @@ const loadMoreMessages = async (
   listenerApi: Container.ListenerApi
 ) => {
   // Get the conversationIDKey
-  let key: Types.ConversationIDKey | null = null
+  let key: Types.ConversationIDKey | undefined
   let reason: string = ''
   let sd: ScrollDirection = 'none'
-  let messageIDControl: RPCChatTypes.MessageIDControl | null = null
+  let messageIDControl: RPCChatTypes.MessageIDControl | undefined
   let forceClear = false
   let forceContainsLatestCalc = false
   const knownRemotes: Array<string> = []
@@ -1156,7 +1154,7 @@ const loadMoreMessages = async (
     const messages = (uiMessages.messages ?? []).reduce<Array<Types.Message>>((arr, m) => {
       const message = conversationIDKey
         ? Constants.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
-        : null
+        : undefined
       if (message) {
         arr.push(message)
       }
@@ -1241,7 +1239,7 @@ const getUnreadline = async (
   listenerApi: Container.ListenerApi
 ) => {
   // Get the conversationIDKey
-  let key: Types.ConversationIDKey | null = null
+  let key: Types.ConversationIDKey | undefined
   switch (action.type) {
     case Chat2Gen.selectedConversation:
       key = action.payload.conversationIDKey
@@ -2417,7 +2415,7 @@ const markAsUnread = async (
         const message = messageMap.get(o)
         return !!(message && message.id < unreadLineID)
       })
-    const message = ord ? messageMap?.get(ord) : null
+    const message = ord ? messageMap?.get(ord) : undefined
     if (message) {
       msgID = message.id
     }
@@ -2924,7 +2922,7 @@ const unhideConversation = async (_: Container.TypedState, action: Chat2Gen.Unhi
 const setConvRetentionPolicy = async (_: unknown, action: Chat2Gen.SetConvRetentionPolicyPayload) => {
   const {conversationIDKey} = action.payload
   const convID = Types.keyToConversationID(conversationIDKey)
-  let policy: RPCChatTypes.RetentionPolicy | null
+  let policy: RPCChatTypes.RetentionPolicy | undefined
   try {
     policy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(action.payload.policy)
     if (policy) {

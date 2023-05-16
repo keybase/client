@@ -3,7 +3,7 @@ import * as React from 'react'
 export type UploadProps = {
   showing: boolean
   files: number
-  fileName: string | null
+  fileName?: string
   totalSyncingBytes: number
   timeLeft: string
   debugToggleShow?: () => void

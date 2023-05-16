@@ -7,7 +7,7 @@ import {LastModifiedLine, Filename} from '../../common'
 
 type StillProps = StillCommonProps & {
   dismissUploadError?: () => void
-  intentIfDownloading?: Types.DownloadIntent | null
+  intentIfDownloading?: Types.DownloadIntent
   isEmpty: boolean
   type: Types.PathType
   uploading: boolean

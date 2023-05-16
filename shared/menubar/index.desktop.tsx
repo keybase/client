@@ -41,7 +41,7 @@ export type Props = {
   // UploadCountdownHOCProps
   endEstimate?: number
   files: number
-  fileName: string | null
+  fileName?: string
   totalSyncingBytes: number
 }
 
@@ -49,7 +49,7 @@ const ArrowTick = () => <Kb.Box style={styles.arrowTick} />
 type UWCDProps = {
   endEstimate?: number
   files: number
-  fileName: string | null
+  fileName?: string
   totalSyncingBytes: number
   isOnline: boolean
   smallMode: boolean
