@@ -30,7 +30,7 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
     const showImageOnSide =
       !Styles.isMobile && height >= width && !isVideo && (title.length > 0 || !!description)
     const imageLocation = isCollapsed
-      ? 'none'
+      ? 'collapsed'
       : showImageOnSide
       ? 'side'
       : width > 0 && height > 0
@@ -55,10 +55,11 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
     }
   }, shallowEqual)
 
-  const {onClose, onCollapse} = useActions(
+  const {onClose, onToggleCollapse} = useActions(
     conversationIDKey,
     data?.youAreAuthor ?? false,
-    data?.unfurlMessageID ?? 0
+    data?.unfurlMessageID ?? 0,
+    ordinal
   )
 
   if (!data) return null
@@ -93,13 +94,13 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const snippet = description ? (
     <Kb.Text type="Body" lineClamp={5} selectable={true} style={styles.fastStyle}>
       {description}
-      {imageLocation === 'bottom' && (
+      {(imageLocation === 'collapsed' || imageLocation === 'bottom') && (
         <>
           {' '}
           <Kb.Icon
             boxStyle={styles.collapseBox}
             noContainer={Styles.isMobile}
-            onClick={onCollapse}
+            onClick={onToggleCollapse}
             sizeType="Tiny"
             type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
           />

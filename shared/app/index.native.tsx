@@ -6,13 +6,14 @@ import * as Container from '../util/container'
 import {chatDebugEnabled} from '../constants/chat2/debug'
 import Main from './main.native'
 import makeStore from '../store/configure-store'
-import {AppRegistry, AppState, Appearance, Linking} from 'react-native'
+import {AppRegistry, AppState, Appearance, Linking, Keyboard} from 'react-native'
 import {PortalProvider} from '../common-adapters/portal.native'
 import {Provider, useDispatch} from 'react-redux'
 import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-context'
 import {makeEngine} from '../engine'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import {enableFreeze} from 'react-native-screens'
+import {setKeyboardUp} from '../styles/keyboard-state'
 enableFreeze(true)
 
 type ConfigureStore = ReturnType<typeof makeStore>
@@ -56,10 +57,27 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
       dispatch(DeeplinksGen.createLink({link: url}))
     })
 
+    const kbSubWS = Keyboard.addListener('keyboardWillShow', () => {
+      setKeyboardUp(true)
+    })
+    const kbSubDS = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardUp(true)
+    })
+    const kbSubWH = Keyboard.addListener('keyboardWillHide', () => {
+      setKeyboardUp(false)
+    })
+    const kbSubDH = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardUp(false)
+    })
+
     return () => {
       appStateChangeSub.remove()
       darkSub.remove()
       linkingSub.remove()
+      kbSubWS.remove()
+      kbSubDS.remove()
+      kbSubWH.remove()
+      kbSubDH.remove()
     }
   }, [dispatch])
 
