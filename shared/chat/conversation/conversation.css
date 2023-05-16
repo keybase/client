@@ -1,6 +1,10 @@
 .WrapperMessage {
 }
-.WrapperMessage.highlighted {
+
+.WrapperMessage.highlighted,
+.WrapperMessage.highlighted:hover,
+.WrapperMessage.highlighted.WrapperMessage-hoverColor,
+.WrapperMessage.highlighted.WrapperMessage-hoverColor:hover {
   animation-name: highlightAnimation;
   animation-duration: 0.3s;
   animation-timing-function: ease-in;
@@ -44,7 +48,10 @@
   margin-left: 0;
 }
 .WrapperMessage-hoverColor:hover {
-  background-color: var(--color-blueLighter2) !important;
+  background-color: var(--color-blueLighter2);
+}
+.darkMode .WrapperMessage-hoverColor:hover {
+  background-color: var(--color-blueLighter3);
 }
 
 .TextAndSiblings {
@@ -63,9 +70,6 @@
   background-color: var(--color-blueLighter2);
 }
 .darkMode .WrapperMessage-decorated.active {
-  background-color: var(--color-blueLighter3);
-}
-.darkMode .WrapperMessage-hoverColor:hover {
   background-color: var(--color-blueLighter3);
 }
 .WrapperMessage-author {
