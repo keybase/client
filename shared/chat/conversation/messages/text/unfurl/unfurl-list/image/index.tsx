@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as Kb from '../../../../../../../common-adapters/index'
 import * as Constants from '../../../../../../../constants/chat2'
 import * as Styles from '../../../../../../../styles'
-import {maxWidth} from '../../../../../messages/attachment/shared'
 import {Video} from './video'
 import openURL from '../../../../../../../util/open-url'
+import {useSizing} from '../../../../../use-sizing'
 
 export type Props = {
   autoplayVideo: boolean
@@ -24,11 +24,11 @@ const UnfurlImage = (p: Props) => {
   const onOpenURL = React.useCallback(() => {
     linkURL && openURL(linkURL)
   }, [linkURL])
-  const maxSize = Math.min(maxWidth, 320) - (widthPadding || 0)
-  const {height, width} = Constants.clampImageSize(p.width, p.height, maxSize, 320)
+  const {width, height, onLayout} = useSizing('unfurlImage', p.width, p.height, 320)
 
   return isVideo ? (
     <Video
+      onLayout={onLayout}
       autoPlay={autoplayVideo}
       height={height}
       onClick={onClick}
@@ -41,7 +41,7 @@ const UnfurlImage = (p: Props) => {
       width={width}
     />
   ) : (
-    <Kb.ClickableBox onClick={onClick || onOpenURL}>
+    <Kb.ClickableBox onClick={onClick || onOpenURL} onLayout={onLayout}>
       <Kb.Image
         src={url}
         style={Styles.collapseStyles([

@@ -14,7 +14,10 @@ type Props = {
 }
 
 // this is a function of how much space is taken up by the rest of the elements
-export const maxWidth = Styles.isMobile ? Math.min(320, Styles.dimensionWidth - 60) : 320
+// const padding = Styles.isMobile ? 6 : 0
+// const rightPadding = Styles.isMobile ? 8 : 0
+// const avatarPadding = Styles.isMobile ? 48 : 0
+// export const maxWidth = Styles.isMobile ? Math.min(320, Styles.dimensionWidth - rightPadding) - padding : 320
 export const maxHeight = 320
 
 export const missingMessage = Constants.makeMessageAttachment()

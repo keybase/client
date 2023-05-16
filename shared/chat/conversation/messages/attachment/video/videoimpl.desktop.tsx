@@ -25,6 +25,8 @@ const VideoImpl = (p: Props) => {
 
   const ref = React.useRef<HTMLVideoElement | null>(null)
 
+  console.log('aaa video ren', {width, height})
+
   return showPoster ? (
     <div onClick={onPress} style={styles.posterContainer}>
       <Kb.Image src={previewURL} style={{height, width}} />
@@ -47,7 +49,7 @@ const VideoImpl = (p: Props) => {
       controls={true}
       playsInline={true}
       controlsList="nodownload nofullscreen noremoteplayback"
-      style={styles.video as any}
+      style={Styles.collapseStyles([styles.video, {width, height}])}
     >
       <source src={url} />
     </video>
@@ -97,7 +99,11 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         top: '50%',
       },
-      posterContainer: {position: 'relative'},
+      posterContainer: {
+        display: 'flex',
+        flexShrink: 1,
+        position: 'relative',
+      },
       tipText: {color: Styles.globalColors.white_75},
       video: Styles.platformStyles({
         isElectron: {

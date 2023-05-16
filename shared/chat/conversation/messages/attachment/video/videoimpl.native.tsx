@@ -9,7 +9,7 @@ import type {Props} from './videoimpl'
 
 const VideoImpl = (p: Props) => {
   const {allowPlay, toggleMessageMenu} = p
-  const {previewURL, height, width, url, transferState, videoDuration} = useRedux()
+  const {previewURL, height, width, url, transferState, videoDuration, onLayout} = useRedux()
   const source = React.useMemo(() => ({uri: `${url}&contentforce=true`}), [url])
 
   const ref = React.useRef<Video | null>(null)
@@ -38,7 +38,12 @@ const VideoImpl = (p: Props) => {
   return (
     <>
       <ShowToastAfterSaving transferState={transferState} />
-      <Pressable onPress={onPress} style={styles.pressable} onLongPress={toggleMessageMenu}>
+      <Pressable
+        onPress={onPress}
+        style={styles.pressable}
+        onLongPress={toggleMessageMenu}
+        onLayout={onLayout}
+      >
         {showPoster ? (
           <Kb.Box2
             direction="vertical"
@@ -64,7 +69,7 @@ const VideoImpl = (p: Props) => {
             shouldPlay={true}
             usePoster={false}
             style={Styles.collapseStyles([styles.video, {height, width}])}
-            resizeMode={ResizeMode.CONTAIN}
+            resizeMode={ResizeMode.COVER}
           />
         )}
       </Pressable>
@@ -103,11 +108,11 @@ const styles = Styles.styleSheetCreate(
       posterContainer: {
         position: 'relative',
       },
-      pressable: {position: 'relative'},
-      video: {
-        maxHeight: 320,
-        maxWidth: '100%',
+      pressable: {
+        position: 'relative',
+        width: '100%',
       },
+      video: {},
     } as const)
 )
 

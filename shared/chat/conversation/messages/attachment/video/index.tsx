@@ -62,6 +62,7 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.black_05_on_white,
         borderRadius: Styles.borderRadius,
         maxWidth: Styles.isMobile ? '100%' : 330,
+        width: Styles.isMobile ? '100%' : undefined,
         padding: 3,
         position: 'relative',
       },
