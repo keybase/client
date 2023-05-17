@@ -2,7 +2,6 @@ import * as Container from '../util/container'
 import trim from 'lodash/trim'
 import type {RootRouteProps} from '../router-v2/route-params'
 import {getTeamDetails} from '../constants/teams'
-import * as Constants from '../constants/team-building'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import type * as TeamBuildingTypes from '../constants/types/team-building'
 import type * as TeamTypes from '../constants/types/teams'
@@ -61,6 +60,26 @@ const Suggestions = (props: Pick<Types.Props, 'namespace' | 'selectedService'>) 
   )
 }
 
+function isKeybaseUserId(userId: string) {
+  // Only keybase user id's do not have
+  return !userId.includes('@')
+}
+
+function followStateHelperWithId(
+  me: string,
+  followingState: Set<string>,
+  userId: string = ''
+): TeamBuildingTypes.FollowingState {
+  if (isKeybaseUserId(userId)) {
+    if (userId === me) {
+      return 'You'
+    } else {
+      return followingState.has(userId) ? 'Following' : 'NotFollowing'
+    }
+  }
+  return 'NoState'
+}
+
 const expensiveDeriveResults = (
   searchResults: Array<TeamBuildingTypes.User> | undefined,
   teamSoFar: Set<TeamBuildingTypes.User>,
@@ -74,7 +93,7 @@ const expensiveDeriveResults = (
     return {
       contact: !!info.contact,
       displayLabel: formatAnyPhoneNumbers(label),
-      followingState: Constants.followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
+      followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
       inTeam: [...teamSoFar].some(u => u.id === info.id),
       isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
       isYou: info.username === myUsername,
