@@ -52,7 +52,3 @@ const ConnectedEnterUsername = () => {
   return <EnterUsername {...props} />
 }
 export default ConnectedEnterUsername
-
-export const options = {
-  gesturesEnabled: false,
-}

@@ -1,8 +1,5 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type * as Container from '../../util/container'
-
-export const options = {}
 
 const getOptions = () => ({
   modal2: true,
@@ -18,13 +15,16 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const ProfileLazy = React.lazy(async () => import('./container'))
+const AddToTeam = React.lazy(async () => import('./container'))
 
-const Screen = (p: Container.RouteProps2<'profileAddToTeam'>) => (
+type OwnProps = {route: {params: {username: string}}}
+
+const Screen = (p: OwnProps) => (
   <React.Suspense>
-    <ProfileLazy username={p.route.params.username} />
+    <AddToTeam {...p.route.params} />
   </React.Suspense>
 )
 const getScreen = () => Screen
 
 export default {profileAddToTeam: {getOptions, getScreen}}
+export type RouteProps = {profileAddToTeam: OwnProps['route']['params']}

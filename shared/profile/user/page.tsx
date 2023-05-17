@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type * as Container from '../../util/container'
 import {HeaderLeftArrow} from '../../common-adapters/header-hoc'
 
 const LazyTitle = React.lazy(async () => import('../search/bar'))
@@ -22,11 +21,13 @@ const getOptions = () => ({
 })
 
 const ProfileLazy = React.lazy(async () => import('./container'))
-const Screen = (p: Container.RouteProps2<'profile'>) => (
+type OwnProps = {route: {params: {username: string}}}
+const Screen = (p: OwnProps) => (
   <React.Suspense>
-    <ProfileLazy username={p.route.params.username} />
+    <ProfileLazy {...p.route.params} />
   </React.Suspense>
 )
 const getScreen = () => Screen
 
 export default {profile: {getOptions, getScreen}}
+export type RouteProps = {profile: OwnProps['route']['params']}

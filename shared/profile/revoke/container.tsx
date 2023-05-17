@@ -1,16 +1,23 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as ProfileGen from '../../actions/profile-gen'
-import Revoke from '.'
 import * as Constants from '../../constants/profile'
-import * as Waiting from '../../constants/waiting'
 import * as Container from '../../util/container'
+import * as ProfileGen from '../../actions/profile-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Waiting from '../../constants/waiting'
+import Revoke from '.'
+import type {PlatformsExpandedType} from '../../constants/types/more'
+import type {SiteIconSet} from '../../constants/types/tracker2'
 
-type OwnProps = Container.RouteProps2<'profileRevoke'>
+type OwnProps = {
+  icon: SiteIconSet
+  platform: PlatformsExpandedType
+  platformHandle: string
+  proofId: string
+}
 const noIcon = []
 
 export default (ownProps: OwnProps) => {
-  const {platformHandle, platform, proofId} = ownProps.route.params
-  const icon = ownProps.route.params.icon ?? noIcon
+  const {platformHandle, platform, proofId} = ownProps
+  const icon = ownProps.icon ?? noIcon
   const errorMessage = Container.useSelector(state => state.profile.revokeError)
   const isWaiting = Container.useSelector(state => Waiting.anyWaiting(state, Constants.waitingKey))
   const dispatch = Container.useDispatch()
