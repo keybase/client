@@ -13,7 +13,7 @@ type OwnProps = Container.RouteProps2<'gitNewRepo'>
 
 export default (ownProps: OwnProps) => {
   const isTeam = ownProps.route.params.isTeam
-  const error = Container.useSelector(state => Constants.getError(state))
+  const error = Container.useSelector(state => state.git.error)
   const teams = Container.useSelector(state => getSortedTeamnames(state))
   const waitingKey = Constants.loadingWaitingKey
 

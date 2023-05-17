@@ -1,6 +1,5 @@
 import * as ChatConstants from '../constants/chat2'
 import * as Container from '../util/container'
-import * as DeeplinksConstants from '../constants/deeplinks'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as Shared from './router.shared'
 import * as Tabs from '../constants/tabs'
@@ -10,6 +9,47 @@ import {tabRoots} from './routes'
 import {Linking} from 'react-native'
 
 const tabs: ReadonlyArray<Tabs.Tab> = Container.isTablet ? Tabs.tabletTabs : Tabs.phoneTabs
+
+const argArrayGood = (arr: Array<string>, len: number) => {
+  return arr.length === len && arr.every(p => !!p.length)
+}
+export const isValidLink = (link: string) => {
+  const prefix = 'keybase://'
+  if (!link.startsWith(prefix)) {
+    return false
+  }
+  const path = link.substring(prefix.length)
+  const [root, ...parts] = path.split('/')
+
+  switch (root) {
+    case 'profile':
+      switch (parts[0]) {
+        case 'new-proof':
+          return argArrayGood(parts, 2) || argArrayGood(parts, 3)
+        case 'show':
+          return argArrayGood(parts, 2)
+      }
+      return false
+    case 'private':
+      return true
+    case 'public':
+      return true
+    case 'team':
+      return true
+    case 'convid':
+      return argArrayGood(parts, 1)
+    case 'chat':
+      return argArrayGood(parts, 1) || argArrayGood(parts, 2)
+    case 'team-page':
+      return argArrayGood(parts, 3)
+    case 'incoming-share':
+      return true
+    case 'team-invite-link':
+      return argArrayGood(parts, 1)
+  }
+
+  return false
+}
 
 type OptionsType = {
   androidShare?: ConfigTypes.State['androidShare']
@@ -58,7 +98,7 @@ const makeLinking = (options: OptionsType) => {
       // Check if app was opened from a deep link
       // NOTE: This can FAIL debugging in chrome
       let url = await Linking.getInitialURL()
-      if (url != null && !DeeplinksConstants.isValidLink(url)) {
+      if (url != null && !isValidLink(url)) {
         url = null
       }
 
@@ -78,7 +118,7 @@ const makeLinking = (options: OptionsType) => {
         }
       }
       // allow deep links sagas access to the first link
-      if (DeeplinksConstants.isValidLink(url)) {
+      if (isValidLink(url)) {
         setTimeout(() => url && dispatch(DeeplinksGen.createLink({link: url})), 1)
       }
       return url

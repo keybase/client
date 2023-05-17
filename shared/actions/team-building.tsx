@@ -7,6 +7,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
 import {validateEmailAddress} from '../util/email-address'
+import {serviceIdFromString} from '../util/platforms'
 import {RPCError} from '../util/errors'
 
 const closeTeamBuilding = (_: Container.TypedState) => {
@@ -19,6 +20,85 @@ const closeTeamBuilding = (_: Container.TypedState) => {
 
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
 type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace; includeContacts: boolean}}
+
+const parseRawResultToUser = (
+  result: RPCTypes.APIUserSearchResult,
+  service: TeamBuildingTypes.ServiceIdWithContact
+): TeamBuildingTypes.User | undefined => {
+  const serviceMap = Object.keys(result.servicesSummary || {}).reduce<{[key: string]: string}>(
+    (acc, service_name) => {
+      acc[service_name] = result.servicesSummary[service_name].username
+      return acc
+    },
+    {}
+  )
+
+  // Add the keybase service to the service map since it isn't there by default
+  if (result.keybase) {
+    serviceMap['keybase'] = result.keybase.username
+  }
+
+  if (service === 'keybase' && result.keybase) {
+    return {
+      id: result.keybase.username,
+      prettyName: result.keybase.fullName || result.keybase.username,
+      serviceId: 'keybase' as const,
+      serviceMap,
+      username: result.keybase.username,
+    }
+  } else if (service === 'keybase' && result.contact) {
+    const serviceId = result.contact.component.phoneNumber ? 'phone' : 'email'
+    return {
+      contact: true,
+      id: result.contact.assertion,
+      label: result.contact.displayLabel,
+      prettyName: result.contact.displayName,
+      serviceId,
+      serviceMap: {...result.contact.serviceMap, keybase: result.contact.username},
+      username: result.contact.component.email || result.contact.component.phoneNumber || '',
+    }
+  } else if (result.imptofu) {
+    const serviceId = result.imptofu.assertionKey === 'phone' ? 'phone' : 'email'
+    return {
+      id: result.imptofu.assertion,
+      label: result.imptofu.label,
+      prettyName: result.imptofu.prettyName,
+      serviceId,
+      serviceMap: {...serviceMap, keybase: result.imptofu.keybaseUsername},
+      username: result.imptofu.assertionValue,
+    }
+  } else if (result.service) {
+    if (result.service.serviceName !== service) {
+      // This shouldn't happen
+      logger.error(
+        `Search result's service_name is different than given service name. Expected: ${service} received ${result.service.serviceName}`
+      )
+      return
+    }
+
+    const kbPrettyName = result.keybase && (result.keybase.fullName || result.keybase.username)
+
+    const prettyName = result.service.fullName || kbPrettyName || ''
+
+    const pictureUrl = result.keybase?.pictureUrl || result.service?.pictureUrl
+
+    let id = `${result.service.username}@${result.service.serviceName}`
+    if (result.keybase) {
+      // If it's also a keybase user, make a compound assertion.
+      id += `+${result.keybase.username}`
+    }
+
+    return {
+      id,
+      pictureUrl,
+      prettyName,
+      serviceId: service,
+      serviceMap,
+      username: result.service.username,
+    }
+  }
+  return
+}
 
 const apiSearch = async (
   query: string,
@@ -39,7 +119,7 @@ const apiSearch = async (
       Constants.searchWaitingKey
     )
     return (results || []).reduce<Array<TeamBuildingTypes.User>>((arr, r) => {
-      const u = Constants.parseRawResultToUser(r, service)
+      const u = parseRawResultToUser(r, service)
       u && arr.push(u)
       return arr
     }, [])
@@ -117,6 +197,43 @@ const search = async (
   })
 }
 
+type HasServiceMap = {
+  username: string
+  serviceMap: {[key: string]: string}
+}
+
+const pluckServiceMap = (contact: HasServiceMap) =>
+  Object.entries(contact.serviceMap || {})
+    .concat([['keybase', contact.username]])
+    .reduce<TeamBuildingTypes.ServiceMap>((acc, [service, username]) => {
+      if (serviceIdFromString(service) === service) {
+        // Service can also give us proof values like "https" or "dns" that
+        // we don't want here.
+        acc[service] = username
+      }
+      return acc
+    }, {})
+
+const contactToUser = (contact: RPCTypes.ProcessedContact): TeamBuildingTypes.User => ({
+  contact: true,
+  id: contact.assertion,
+  label: contact.displayLabel,
+  prettyName: contact.displayName,
+  serviceId: contact.component.phoneNumber ? 'phone' : 'email',
+  serviceMap: pluckServiceMap(contact),
+  username: contact.component.email || contact.component.phoneNumber || '',
+})
+
+const interestingPersonToUser = (person: RPCTypes.InterestingPerson): TeamBuildingTypes.User => {
+  const {username, fullname} = person
+  return {
+    id: username,
+    prettyName: fullname,
+    serviceId: 'keybase' as const,
+    serviceMap: pluckServiceMap(person),
+    username: username,
+  }
+}
 const fetchUserRecs = async (
   state: Container.TypedState,
   {payload: {namespace, includeContacts}}: SearchOrRecAction
@@ -130,8 +247,8 @@ const fetchUserRecs = async (
     ])
     const suggestionRes = _suggestionRes || []
     const contactRes = _contactRes || []
-    const contacts = contactRes.map(Constants.contactToUser)
-    let suggestions = suggestionRes.map(Constants.interestingPersonToUser)
+    const contacts = contactRes.map(contactToUser)
+    let suggestions = suggestionRes.map(interestingPersonToUser)
     const expectingContacts = state.settings.contacts.importEnabled && includeContacts
     if (expectingContacts) {
       suggestions = suggestions.slice(0, 10)

@@ -22,7 +22,7 @@ export type Props = {
   onSearch: (toFind: string) => void
   onToggleThreadSearch: () => void
   selfHide: () => void
-  status: Types.ThreadSearchStatus
+  status?: Types.ThreadSearchStatus
   style?: Styles.StylesCrossPlatform
 }
 

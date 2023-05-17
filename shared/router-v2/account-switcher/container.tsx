@@ -1,15 +1,19 @@
+import * as ConfigGen from '../../actions/config-gen'
+import * as Container from '../../util/container'
+import * as LoginConstants from '../../constants/login'
 import * as LoginGen from '../../actions/login-gen'
 import * as ProfileGen from '../../actions/profile-gen'
+import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import AccountSwitcher from './index'
-import * as Container from '../../util/container'
-import * as ConfigGen from '../../actions/config-gen'
-import * as ProvisionGen from '../../actions/provision-gen'
-import * as Constants from '../../constants/config'
 import HiddenString from '../../util/hidden-string'
-import * as LoginConstants from '../../constants/login'
+
+const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
+  accountRows: Array<T>,
+  myUsername: string
+): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
 export default () => {
   const _fullnames = Container.useSelector(state => state.users.infoMap)
@@ -40,7 +44,7 @@ export default () => {
   const onSignOut = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]}))
   }
-  const accountRows = Constants.prepareAccountRows(_accountRows, username)
+  const accountRows = prepareAccountRows(_accountRows, username)
   const props = {
     accountRows: accountRows.map(account => ({
       account: account,

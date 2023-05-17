@@ -1,22 +1,34 @@
-import * as Tracker2Gen from './tracker2-gen'
+import * as Constants from '../constants/tracker2'
+import * as Container from '../util/container'
+import * as DeeplinksGen from './deeplinks-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as ProfileGen from './profile-gen'
-import * as UsersGen from './users-gen'
-import * as DeeplinksGen from './deeplinks-gen'
-import * as RouteTreeGen from './route-tree-gen'
-import * as Container from '../util/container'
-import {RPCError} from '../util/errors'
-import * as Constants from '../constants/tracker2'
-import * as ProfileConstants from '../constants/profile'
-import type {WebOfTrustVerificationType} from '../constants/types/more'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RouteTreeGen from './route-tree-gen'
+import * as Tracker2Gen from './tracker2-gen'
+import * as UsersGen from './users-gen'
 import logger from '../logger'
+import type {WebOfTrustVerificationType} from '../constants/types/more'
 import type {formatPhoneNumberInternational as formatPhoneNumberInternationalType} from '../util/phone-numbers'
+import {RPCError} from '../util/errors'
+
+const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
+  switch (result) {
+    case RPCTypes.Identify3ResultType.ok:
+      return 'valid'
+    case RPCTypes.Identify3ResultType.broken:
+      return 'broken'
+    case RPCTypes.Identify3ResultType.needsUpgrade:
+      return 'needsUpgrade'
+    case RPCTypes.Identify3ResultType.canceled:
+      return 'error'
+  }
+}
 
 const identify3Result = (_: unknown, action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) =>
   Tracker2Gen.createUpdateResult({
     guiID: action.payload.params.guiID,
-    result: Constants.rpcResultToStatus(action.payload.params.result),
+    result: rpcResultToStatus(action.payload.params.result),
   })
 
 const identify3ShowTracker = (_: unknown, action: EngineGen.Keybase1Identify3UiIdentify3ShowTrackerPayload) =>
@@ -145,6 +157,16 @@ const load = async (
   }
 }
 
+// In order of quality.
+const choosableWotVerificationTypes: WebOfTrustVerificationType[] = [
+  'in_person',
+  'video',
+  'audio',
+  'proofs',
+  'other_chat',
+  'familiar',
+  'other',
+]
 const loadWebOfTrustEntries = async (
   _: unknown,
   action: Tracker2Gen.LoadPayload | EngineGen.Keybase1NotifyUsersWebOfTrustChangedPayload
@@ -164,9 +186,7 @@ const loadWebOfTrustEntries = async (
         proofID: entry.vouchProof,
         proofs: entry.proofs ?? undefined,
         status: entry.status,
-        verificationType: (ProfileConstants.choosableWotVerificationTypes.find(
-          x => x === entry.confidence.usernameVerifiedVia
-        )
+        verificationType: (choosableWotVerificationTypes.find(x => x === entry.confidence.usernameVerifiedVia)
           ? entry.confidence.usernameVerifiedVia
           : 'none') as WebOfTrustVerificationType,
         vouchedAt: entry.vouchedAt,

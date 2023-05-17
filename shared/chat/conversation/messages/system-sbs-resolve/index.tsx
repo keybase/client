@@ -1,9 +1,20 @@
 import type * as Types from '../../../../constants/types/chat2'
+import type * as TBTypes from '../../../../constants/types/team-building'
 import type {ServiceIdWithContact} from '../../../../constants/types/team-building'
 import * as Kb from '../../../../common-adapters'
 import {e164ToDisplay} from '../../../../util/phone-numbers'
-import {serviceIdToPrettyName} from '../../../../constants/team-building'
 import UserNotice from '../user-notice'
+
+function serviceIdToPrettyName(serviceId: TBTypes.ServiceId): string {
+  return {
+    facebook: 'Facebook',
+    github: 'GitHub',
+    hackernews: 'Hacker News',
+    keybase: 'Keybase',
+    reddit: 'Reddit',
+    twitter: 'Twitter',
+  }[serviceId]
+}
 
 type Props = {
   message: Types.MessageSystemSBSResolved

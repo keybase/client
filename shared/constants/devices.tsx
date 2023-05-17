@@ -62,10 +62,6 @@ export const getDeviceCounts = (state: Container.TypedState) =>
     {numActive: 0, numRevoked: 0}
   )
 
-const emptySet = new Set<string>()
-export const getEndangeredTLFs = (state: Container.TypedState, id?: Types.DeviceID): Set<string> =>
-  (id && state.devices.endangeredTLFMap.get(id)) || emptySet
-
 // Utils for mapping a device to one of the icons
 
 // Icons are numbered 1-10, so this focuses on mapping
@@ -74,7 +70,7 @@ export const getEndangeredTLFs = (state: Container.TypedState, id?: Types.Device
 // as the background #
 export const numBackgrounds = 10
 
-export const getDeviceIconNumberInner = (
+const getDeviceIconNumberInner = (
   devices: Map<Types.DeviceID, Types.Device>,
   deviceID: Types.DeviceID
 ): Types.IconNumber =>

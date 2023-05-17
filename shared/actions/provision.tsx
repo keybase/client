@@ -609,6 +609,17 @@ const showUsernameEmailPage = async (
   })
 }
 
+const decodeForgotUsernameError = (error: RPCError) => {
+  switch (error.code) {
+    case RPCTypes.StatusCode.scnotfound:
+      return "We couldn't find an account with that email address. Try again?"
+    case RPCTypes.StatusCode.scinputerror:
+      return "That doesn't look like a valid email address. Try again?"
+    default:
+      return error.desc
+  }
+}
+
 const forgotUsername = async (_: unknown, action: ProvisionGen.ForgotUsernamePayload) => {
   if (action.payload.email) {
     try {
@@ -622,7 +633,7 @@ const forgotUsername = async (_: unknown, action: ProvisionGen.ForgotUsernamePay
         return
       }
       return ProvisionGen.createForgotUsernameResult({
-        result: Constants.decodeForgotUsernameError(error),
+        result: decodeForgotUsernameError(error),
       })
     }
   }
@@ -638,7 +649,7 @@ const forgotUsername = async (_: unknown, action: ProvisionGen.ForgotUsernamePay
         return
       }
       return ProvisionGen.createForgotUsernameResult({
-        result: Constants.decodeForgotUsernameError(error),
+        result: decodeForgotUsernameError(error),
       })
     }
   }

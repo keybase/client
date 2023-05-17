@@ -22,7 +22,7 @@ const InputAreaContainer = (p: OwnProps) => {
     state => {
       const meta = Constants.getMeta(state, conversationIDKey)
       const {membershipType, resetParticipants, wasFinalizedBy} = meta
-      const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
+      const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey)?.visible ?? false
       return {membershipType, resetParticipants, showThreadSearch, wasFinalizedBy}
     },
     shallowEqual

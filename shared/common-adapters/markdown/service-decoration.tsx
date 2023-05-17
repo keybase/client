@@ -1,5 +1,4 @@
 import * as Container from '../../util/container'
-import * as DeeplinksConstants from '../../constants/deeplinks'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as React from 'react'
@@ -16,6 +15,9 @@ import WithTooltip from '../with-tooltip'
 import type * as Types from '../../constants/types/chat2'
 import type {StyleOverride} from '.'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../util/emoji'
+
+const prefix = 'keybase://'
+export const linkIsKeybaseLink = (link: string) => link.startsWith(prefix)
 
 const linkStyle = Styles.platformStyles({
   isElectron: {fontWeight: 'inherit'},
@@ -167,7 +169,7 @@ const ServiceDecoration = (p: Props) => {
       link.toLowerCase().startsWith('http://') || link.toLowerCase().startsWith('https://')
         ? link
         : 'http://' + link
-    return DeeplinksConstants.linkIsKeybaseLink(link) ? (
+    return linkIsKeybaseLink(link) ? (
       <KeybaseLink link={link} linkStyle={styleOverride.link} wrapStyle={styles.wrapStyle} />
     ) : parsed.link.punycode ? (
       <WarningLink

@@ -1,5 +1,3 @@
-import {isMobile} from './platform'
-
 export const chatTab = 'tabs.chatTab'
 export const cryptoTab = 'tabs.cryptoTab'
 export const devicesTab = 'tabs.devicesTab'
@@ -52,8 +50,6 @@ export const desktopTabs = [
 ] as const
 export const phoneTabs = [peopleTab, chatTab, fsTab, teamsTab, settingsTab] as const
 export const tabletTabs = [peopleTab, chatTab, fsTab, teamsTab, walletsTab, settingsTab] as const
-export const settingsTabChildrenPhone = [gitTab, devicesTab, walletsTab, settingsTab] as const
-export const settingsTabChildrenTablet = [gitTab, devicesTab, settingsTab] as const
 
 export const desktopTabMeta = {
   [chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
@@ -66,17 +62,3 @@ export const desktopTabMeta = {
   [teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
   [walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
-
-export function isValidInitialTab(tab: Tab | undefined) {
-  return isValidInitialTabString(tab)
-}
-
-export function isValidInitialTabString(tab: string | undefined) {
-  // Keep this in left-to-right (for mobile) or top-to-bottom (for
-  // desktop) order in the app.
-  if (isMobile) {
-    return ([peopleTab, chatTab, teamsTab, settingsTab, fsTab] as Tab[]).includes(tab as Tab)
-  } else {
-    return [peopleTab, chatTab, folderTab, teamsTab, gitTab, devicesTab, settingsTab].includes(tab as Tab)
-  }
-}

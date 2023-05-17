@@ -1,5 +1,4 @@
 import uniq from 'lodash/uniq'
-import type URL from 'url-parse'
 import type * as Types from './types/config'
 import * as ChatConstants from './chat2'
 import HiddenString from '../util/hidden-string'
@@ -21,97 +20,6 @@ export const privateFolderWithUsers = (users: Array<string>) =>
 export const publicFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
-
-export const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
-  accountRows: Array<T>,
-  myUsername: string
-): Array<T> => accountRows.filter(account => account.username !== myUsername)
-
-function isKeybaseIoUrl(url: URL<string>) {
-  const {protocol} = url
-  if (protocol !== 'http:' && protocol !== 'https:') {
-    return false
-  }
-
-  if (url.username || url.password) {
-    return false
-  }
-
-  const {hostname} = url
-  if (hostname !== 'keybase.io' && hostname !== 'www.keybase.io') {
-    return false
-  }
-
-  const {port} = url
-  if (port) {
-    if (protocol === 'http:' && port !== '80') {
-      return false
-    }
-
-    if (protocol === 'https:' && port !== '443') {
-      return false
-    }
-  }
-
-  return true
-}
-
-export const urlToUsername = (url: URL<string>) => {
-  if (!isKeybaseIoUrl(url)) {
-    return null
-  }
-
-  const pathname = url.pathname
-  // Adapted username regexp (see libkb/checkers.go) with a leading /, an
-  // optional trailing / and a dash for custom links.
-  const match = pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_-]?)+)\/?$/)
-  if (!match) {
-    return null
-  }
-
-  const usernameMatch = match[1]
-  if (usernameMatch.length < 2 || usernameMatch.length > 16) {
-    return null
-  }
-
-  // Ignore query string and hash parameters.
-
-  const username = usernameMatch.toLowerCase()
-  return username
-}
-
-export const urlToTeamDeepLink = (url: URL<string>) => {
-  if (!isKeybaseIoUrl(url)) {
-    return null
-  }
-
-  // Similar regexp to username but allow `.` for subteams
-  const match = url.pathname.match(/^\/team\/((?:[a-zA-Z0-9][a-zA-Z0-9_.-]?)+)\/?$/)
-  if (!match) {
-    return null
-  }
-
-  const teamName = match[1]
-  if (teamName.length < 2 || teamName.length > 255) {
-    return null
-  }
-
-  // `url.query` has a wrong type in @types/url-parse. It's a `string` in the
-  // code, but @types claim it's a {[k: string]: string | undefined}.
-  const queryString = url.query as any as string
-
-  // URLSearchParams is not available in react-native. See if any of recognized
-  // query parameters is passed using regular expressions.
-  const action = (['add_or_invite', 'manage_settings'] as const).find(x =>
-    queryString.match(`[?&]applink=${x}([?&].+)?$`)
-  )
-  return {action, teamName}
-}
-
-export const getRemoteWindowPropsCount = (state: Types.State, component: string, params: string) => {
-  const m = state.remoteWindowNeedsProps.get(component)
-  return (m && m.get(params)) || 0
-}
 
 export const initialState: Types.State = {
   allowAnimatedEmojis: true,

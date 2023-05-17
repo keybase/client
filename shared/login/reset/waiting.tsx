@@ -6,8 +6,13 @@ import {addTicker, removeTicker} from '../../util/second-timer'
 import * as Constants from '../../constants/autoreset'
 import * as Container from '../../util/container'
 import * as AutoresetGen from '../../actions/autoreset-gen'
+import {formatDurationForAutoreset as formatDuration} from '../../util/timestamp'
 
 type Props = Container.RouteProps2<'resetWaiting'>
+
+const formatTimeLeft = (endTime: number) => {
+  return formatDuration(endTime - Date.now())
+}
 
 const Waiting = (props: Props) => {
   const pipelineStarted = props.route.params.pipelineStarted
@@ -43,7 +48,7 @@ const Waiting = (props: Props) => {
       return
     }
     function tick() {
-      const newFormattedTime = Constants.formatTimeLeft(endTime)
+      const newFormattedTime = formatTimeLeft(endTime)
       if (formattedTime !== newFormattedTime) {
         setFormattedTime(newFormattedTime)
       }

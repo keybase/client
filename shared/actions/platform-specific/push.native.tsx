@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../chat2-gen'
+import * as ChatTypes from '../../constants/types/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
 import * as Container from '../../util/container'
@@ -12,7 +13,6 @@ import * as Tabs from '../../constants/tabs'
 import * as WaitingGen from '../waiting-gen'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
-import type * as ChatTypes from '../../constants/types/chat2'
 import type * as Types from '../../constants/types/push'
 import {isIOS, isAndroid} from '../../constants/platform'
 import {
@@ -26,6 +26,7 @@ import {
   androidGetInitialShareText,
   getNativeEmitter,
 } from 'react-native-kb'
+import {isDevApplePushToken} from '../../local-debug'
 
 const setApplicationIconBadgeNumber = (n: number) => {
   if (isIOS) {
@@ -44,6 +45,132 @@ const updateAppBadge = (_: unknown, action: NotificationsGen.ReceivedBadgeStateP
     PushNotificationIOS.removeAllPendingNotificationRequests()
   }
   lastCount = count
+}
+
+type DataCommon = {
+  userInteraction: boolean
+}
+type DataReadMessage = DataCommon & {
+  type: 'chat.readmessage'
+  b: string | number
+}
+type DataNewMessage = DataCommon & {
+  type: 'chat.newmessage'
+  convID?: string
+  t: string | number
+  m: string
+}
+type DataNewMessageSilent2 = DataCommon & {
+  type: 'chat.newmessageSilent_2'
+  t: string | number
+  c?: string
+  m: string
+}
+type DataFollow = DataCommon & {
+  type: 'follow'
+  username?: string
+}
+type DataChatExtension = DataCommon & {
+  type: 'chat.extension'
+  convID?: string
+}
+type Data = DataReadMessage | DataNewMessage | DataNewMessageSilent2 | DataFollow | DataChatExtension
+
+type PushN = {
+  data?: Data
+  _data?: Data
+  message: string
+} & Data
+
+const anyToConversationMembersType = (
+  a: string | number
+): RPCChatTypes.ConversationMembersType | undefined => {
+  const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
+  switch (membersTypeNumber) {
+    case RPCChatTypes.ConversationMembersType.kbfs:
+      return RPCChatTypes.ConversationMembersType.kbfs
+    case RPCChatTypes.ConversationMembersType.team:
+      return RPCChatTypes.ConversationMembersType.team
+    case RPCChatTypes.ConversationMembersType.impteamnative:
+      return RPCChatTypes.ConversationMembersType.impteamnative
+    case RPCChatTypes.ConversationMembersType.impteamupgrade:
+      return RPCChatTypes.ConversationMembersType.impteamupgrade
+    default:
+      return undefined
+  }
+}
+const normalizePush = (_n?: Object): Types.PushNotification | undefined => {
+  try {
+    if (!_n) {
+      return undefined
+    }
+
+    const n = _n as PushN
+    const data = isIOS ? n.data || n._data : n
+    if (!data) {
+      return undefined
+    }
+    const userInteraction = !!data.userInteraction
+
+    switch (data.type) {
+      case 'chat.readmessage': {
+        const badges = typeof data.b === 'string' ? parseInt(data.b) : data.b
+        return {
+          badges,
+          type: 'chat.readmessage',
+        } as const
+      }
+      case 'chat.newmessage':
+        return data.convID
+          ? {
+              conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
+              membersType: anyToConversationMembersType(data.t),
+              type: 'chat.newmessage',
+              unboxPayload: data.m || '',
+              userInteraction,
+            }
+          : undefined
+      case 'chat.newmessageSilent_2':
+        if (data.c) {
+          const membersType = anyToConversationMembersType(data.t)
+          if (membersType) {
+            return {
+              conversationIDKey: ChatTypes.stringToConversationIDKey(data.c),
+              membersType,
+              type: 'chat.newmessageSilent_2',
+              unboxPayload: data.m || '',
+            }
+          }
+        }
+        return undefined
+      case 'follow':
+        return data.username
+          ? {
+              type: 'follow',
+              userInteraction,
+              username: data.username,
+            }
+          : undefined
+      case 'chat.extension':
+        return data.convID
+          ? {
+              conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
+              type: 'chat.extension',
+            }
+          : undefined
+      default:
+        if (typeof n.message === 'string' && n.message.startsWith('Your contact') && userInteraction) {
+          return {
+            type: 'settings.contacts',
+          }
+        }
+
+        return undefined
+    }
+  } catch (e) {
+    logger.error('Error handling push', e)
+    return undefined
+  }
 }
 
 // Push notifications on android are simple.
@@ -72,7 +199,7 @@ const listenForNativeAndroidIntentNotifications = async (listenerApi: Container.
 
   const RNEmitter = getNativeEmitter()
   RNEmitter.addListener('initialIntentFromNotification', evt => {
-    const notification = evt && Constants.normalizePush(evt)
+    const notification = evt && normalizePush(evt)
     notification && listenerApi.dispatch(PushGen.createNotification({notification}))
   })
 
@@ -95,7 +222,7 @@ const iosListenForPushNotificationsFromJS = (listenerApi: Container.ListenerApi)
 
   const onNotification = (n: Object) => {
     logger.debug('[onNotification]: ', n)
-    const notification = Constants.normalizePush(n)
+    const notification = normalizePush(n)
     if (!notification) {
       return
     }
@@ -204,6 +331,8 @@ const handlePush = async (
   }
 }
 
+const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
+
 const uploadPushToken = async (state: Container.TypedState) => {
   const {config, push} = state
   const {deviceID} = config
@@ -219,7 +348,7 @@ const uploadPushToken = async (state: Container.TypedState) => {
       args: [
         {key: 'push_token', value: token},
         {key: 'device_id', value: deviceID},
-        {key: 'token_type', value: Constants.tokenType},
+        {key: 'token_type', value: tokenType},
       ],
       endpoint: 'device/push_token',
     })
@@ -251,7 +380,7 @@ const deletePushToken = async (
     await RPCTypes.apiserverDeleteRpcPromise({
       args: [
         {key: 'device_id', value: deviceID},
-        {key: 'token_type', value: Constants.tokenType},
+        {key: 'token_type', value: tokenType},
       ],
       endpoint: 'device/push_token',
     })
@@ -450,7 +579,7 @@ const getStartupDetailsFromInitialPush = async () => {
 
 const getInitialPushAndroid = async () => {
   const n = await (androidGetInitialBundleFromNotification() ?? Promise.resolve({}))
-  const notification = n && Constants.normalizePush(n)
+  const notification = n && normalizePush(n)
   return notification && PushGen.createNotification({notification})
 }
 
@@ -459,7 +588,7 @@ const getInitialPushiOS = async () =>
     isIOS &&
       PushNotificationIOS.getInitialNotification()
         .then((n: any) => {
-          const notification = Constants.normalizePush(n)
+          const notification = normalizePush(n)
           if (notification) {
             resolve(PushGen.createNotification({notification}))
           }
