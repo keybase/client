@@ -1,7 +1,4 @@
 import {newRoutes as PGPRoutes} from './pgp/routes-sub'
-// import type {Question1Answer} from '../profile/wot-author'
-import type Profile from './user/container'
-import type ProfileAddToTeam from './add-to-team/container'
 import type ProfileConfirmOrPending from './confirm-or-pending/container'
 import type ProfileEdit from './edit-profile/container'
 import type ProfileEditAvatar from './edit-avatar/container'
@@ -13,24 +10,21 @@ import type ProfileProveEnterUsername from './prove-enter-username/container'
 import type ProfileProveWebsiteChoice from './prove-website-choice/container'
 import type ProfileRevoke from './revoke/container'
 import type ProfileShowcaseTeamOffer from './showcase-team-offer/container'
-// import type {Question1Wrapper, Question2Wrapper, ReviewWrapper} from './wot-author'
 import type * as ImagePicker from 'expo-image-picker'
 import type * as Types from '../constants/types/teams'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {SiteIconSet} from '../constants/types/tracker2'
+import profile from './user/page'
+import profileAddToTeam from './add-to-team/page'
+// import type {Question1Answer} from '../profile/wot-author'
+// import type {Question1Wrapper, Question2Wrapper, ReviewWrapper} from './wot-author'
 
 export const newRoutes = {
-  profile: {
-    getOptions: () => require('./user/container').options,
-    getScreen: (): typeof Profile => require('./user/container').default,
-  },
+  ...profile,
 }
 
 export const newModalRoutes = {
-  profileAddToTeam: {
-    getOptions: () => require('./add-to-team/container').options,
-    getScreen: (): typeof ProfileAddToTeam => require('./add-to-team/container').default,
-  },
+  ...profileAddToTeam,
   profileConfirmOrPending: {
     getScreen: (): typeof ProfileConfirmOrPending => require('./confirm-or-pending/container').default,
   },
