@@ -1,4 +1,3 @@
-import {newRoutes as PGPRoutes} from './pgp/routes-sub'
 import profile, {type RouteProps as ProfileProps} from './user/page'
 import profileAddToTeam, {type RouteProps as ProfileAddToTeamProps} from './add-to-team/page'
 import profileConfirmOrPending from './confirm-or-pending/page'
@@ -12,6 +11,11 @@ import profileProveEnterUsername from './prove-enter-username/page'
 import profileProveWebsiteChoice from './prove-website-choice/page'
 import profileRevoke, {type RouteProps as ProfileRevokeProps} from './revoke/page'
 import profileShowcaseTeamOffer from './showcase-team-offer/page'
+import profileFinished from './pgp/finished/page'
+import profileGenerate from './pgp/generate/page'
+import profileImport from './pgp/import/page'
+import profilePgp from './pgp/choice/page'
+import profileProvideInfo from './pgp/info/page'
 
 export const newRoutes = {
   ...profile,
@@ -30,7 +34,11 @@ export const newModalRoutes = {
   ...profileProveWebsiteChoice,
   ...profileRevoke,
   ...profileShowcaseTeamOffer,
-  ...PGPRoutes,
+  ...profileFinished,
+  ...profileGenerate,
+  ...profileImport,
+  ...profilePgp,
+  ...profileProvideInfo,
 }
 
 type NoParams = {

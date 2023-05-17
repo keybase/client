@@ -1,10 +1,10 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as ProfileGen from '../../actions/profile-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as ProfileGen from '../../../actions/profile-gen'
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import Modal from '../modal'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
+import Modal from '../../modal'
 
 type Props = {
   onDone: (shouldStoreKeyOnServer: boolean) => void
