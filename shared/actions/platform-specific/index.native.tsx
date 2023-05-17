@@ -8,7 +8,6 @@ import * as ExpoTaskManager from 'expo-task-manager'
 import * as LoginGen from '../login-gen'
 import * as MediaLibrary from 'expo-media-library'
 import * as ProfileGen from '../profile-gen'
-import * as PushConstants from '../../constants/push'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -45,6 +44,7 @@ import {
   getStartupDetailsFromInitialPush,
   getStartupDetailsFromInitialShare,
 } from './push.native'
+import {pluralize} from '../../util/string'
 
 const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
   const {params} = action.payload
@@ -433,6 +433,26 @@ const requestContactPermissions = async (
   listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
 }
 
+// When the notif is tapped we are only passed the message, use this as a marker
+// so we can handle it correctly.
+const contactNotifMarker = 'Your contact'
+const makeContactsResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
+  if (cts.length === 0) {
+    return ''
+  }
+  switch (cts.length) {
+    case 1:
+      return `${contactNotifMarker} ${cts[0].contactName} joined Keybase!`
+    case 2:
+      return `${contactNotifMarker}s ${cts[0].contactName} and ${cts[1].contactName} joined Keybase!`
+    default: {
+      const lenMinusTwo = cts.length - 2
+      return `${contactNotifMarker}s ${cts[0].contactName}, ${
+        cts[1].contactName
+      }, and ${lenMinusTwo} ${pluralize('other', lenMinusTwo)} joined Keybase!`
+    }
+  }
+}
 const manageContactsCache = async (
   state: Container.TypedState,
   _action: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload
@@ -497,7 +517,7 @@ const manageContactsCache = async (
     if (newlyResolved && newlyResolved.length) {
       isIOS &&
         PushNotificationIOS.addNotificationRequest({
-          body: PushConstants.makeContactsResolvedMessage(newlyResolved),
+          body: makeContactsResolvedMessage(newlyResolved),
           id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
         })
     }

@@ -9,12 +9,11 @@ import * as Styles from '../styles'
 type OwnProps = Container.RouteProps2<'gitDeleteRepo'>
 
 const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : null)
-
+const emptyGit = Constants.makeGitInfo()
 export default (ownProps: OwnProps) => {
   const id = ownProps.route.params.id
-  const gitMap = Container.useSelector(state => Constants.getIdToGit(state))
-  const git = gitMap.get(id) || Constants.makeGitInfo()
-  const error = Container.useSelector(state => Constants.getError(state))
+  const git = Container.useSelector(state => state.git.idToInfo.get(id) || emptyGit)
+  const error = Container.useSelector(state => state.git.error)
   const name = git.name || ''
   const teamname = git.teamname || ''
   const waitingKey = Constants.loadingWaitingKey

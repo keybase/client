@@ -76,9 +76,14 @@ const getIcon = (deviceType: Types.DeviceType, iconNumber: Types.IconNumber) => 
   }
   return Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
 }
+
+const emptySet = new Set<string>()
+export const getEndangeredTLFs = (state: Container.TypedState, id?: Types.DeviceID): Set<string> =>
+  (id && state.devices.endangeredTLFMap.get(id)) || emptySet
+
 const DeviceRevoke = (ownProps: OwnProps) => {
   const selectedDeviceID = ownProps.route.params.deviceID
-  const _endangeredTLFs = Container.useSelector(state => Constants.getEndangeredTLFs(state, selectedDeviceID))
+  const _endangeredTLFs = Container.useSelector(state => getEndangeredTLFs(state, selectedDeviceID))
   const device = Container.useSelector(state => Constants.getDevice(state, selectedDeviceID))
   const iconNumber = Container.useSelector(state => Constants.getDeviceIconNumber(state, selectedDeviceID))
   const waiting = Container.useSelector(state => WaitingConstants.anyWaiting(state, Constants.waitingKey))

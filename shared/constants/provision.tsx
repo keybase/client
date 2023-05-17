@@ -1,7 +1,7 @@
 import * as DeviceTypes from './types/devices'
-import type * as Types from './types/provision'
 import * as RPCTypes from './types/rpc-gen'
 import HiddenString from '../util/hidden-string'
+import type * as Types from './types/provision'
 import type {CommonResponseHandler, RPCError} from '../engine/types'
 
 export const waitingKey = 'provision:waiting'
@@ -48,17 +48,6 @@ export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
       }
     default:
       throw new Error('Invalid device type detected: ' + type)
-  }
-}
-
-export const decodeForgotUsernameError = (error: RPCError) => {
-  switch (error.code) {
-    case RPCTypes.StatusCode.scnotfound:
-      return "We couldn't find an account with that email address. Try again?"
-    case RPCTypes.StatusCode.scinputerror:
-      return "That doesn't look like a valid email address. Try again?"
-    default:
-      return error.desc
   }
 }
 

@@ -1,3 +1,5 @@
+import type * as Types from '../constants/types/git'
+import * as dateFns from 'date-fns'
 import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/git'
 import * as RouteTreeGen from './route-tree-gen'
@@ -8,6 +10,66 @@ import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
 import {logError, RPCError} from '../util/errors'
 
+const repoIDTeamnameToId = (state: Container.TypedState, repoID: string, teamname: string) => {
+  let repo: undefined | Types.GitInfo
+  for (const [, info] of state.git.idToInfo) {
+    if (info.repoID === repoID && info.teamname === teamname) {
+      repo = info
+      break
+    }
+  }
+  return repo ? repo.id : undefined
+}
+
+const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
+  const errors: Array<Error> = []
+  const repos = new Map<string, Types.GitInfo>()
+  results.forEach(result => {
+    if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
+      const parsedRepo = parseRepoResult(result)
+      if (parsedRepo) {
+        repos.set(parsedRepo.id, parsedRepo)
+      }
+    } else {
+      errors.push(parseRepoError(result))
+    }
+  })
+  return {errors, repos}
+}
+
+const parseRepoResult = (result: RPCTypes.GitRepoResult): Types.GitInfo | undefined => {
+  if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
+    const r: RPCTypes.GitRepoInfo = result.ok
+    if (r.folder.folderType === RPCTypes.FolderType.public) {
+      // Skip public repos
+      return undefined
+    }
+    const teamname = r.folder.folderType === RPCTypes.FolderType.team ? r.folder.name : undefined
+    return {
+      canDelete: r.canDelete,
+      channelName: (r.teamRepoSettings && r.teamRepoSettings.channelName) || undefined,
+      chatDisabled: !!r.teamRepoSettings && r.teamRepoSettings.chatDisabled,
+      devicename: r.serverMetadata.lastModifyingDeviceName,
+      id: r.globalUniqueID,
+      lastEditTime: dateFns.formatDistanceToNow(new Date(r.serverMetadata.mtime), {addSuffix: true}),
+      lastEditUser: r.serverMetadata.lastModifyingUsername,
+      name: r.localMetadata.repoName,
+      repoID: r.repoID,
+      teamname,
+      url: r.repoUrl,
+    }
+  }
+  return undefined
+}
+
+const parseRepoError = (result: RPCTypes.GitRepoResult): Error => {
+  let errStr: string = 'unknown'
+  if (result.state === RPCTypes.GitRepoResultState.err && result.err) {
+    errStr = result.err
+  }
+  return new Error(`Git repo error: ${errStr}`)
+}
+
 const load = async (state: Container.TypedState) => {
   if (!state.config.loggedIn) {
     return false
@@ -15,7 +77,7 @@ const load = async (state: Container.TypedState) => {
 
   try {
     const results = await RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, Constants.loadingWaitingKey)
-    const {errors, repos} = Constants.parseRepos(results || [])
+    const {errors, repos} = parseRepos(results || [])
     const errorActions = errors.map(globalError => ConfigGen.createGlobalError({globalError}))
     return [GitGen.createLoaded({repos}), ...errorActions]
   } catch (_) {
@@ -119,12 +181,12 @@ const navigateToTeamRepo = async (
   listenerApi: Container.ListenerApi
 ) => {
   const {teamname, repoID} = action.payload
-  let id = Constants.repoIDTeamnameToId(state, repoID, teamname)
+  let id = repoIDTeamnameToId(state, repoID, teamname)
   if (!id) {
     listenerApi.dispatch(GitGen.createLoadGit())
     await listenerApi.take(action => action.type === GitGen.loaded)
     const nextState = listenerApi.getState()
-    id = Constants.repoIDTeamnameToId(nextState, repoID, teamname)
+    id = repoIDTeamnameToId(nextState, repoID, teamname)
   }
 
   if (id) {

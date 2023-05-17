@@ -64,9 +64,10 @@ export const options = Container.isMobile
 const emptySet = new Set<string>()
 export default (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.route.params?.expandedSet ?? emptySet
-  const error = Container.useSelector(state => Constants.getError(state))
+  const error = Container.useSelector(state => state.git.error)
   const loading = Container.useSelector(state => anyWaiting(state, Constants.loadingWaitingKey))
-  const repos = Container.useSelector(state => getRepos(Constants.getIdToGit(state)))
+  const git = Container.useSelector(state => state.git.idToInfo)
+  const repos = getRepos(git)
 
   const dispatch = Container.useDispatch()
 
