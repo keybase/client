@@ -23,4 +23,4 @@ const Screen = (p: OwnProps) => (
 const getScreen = () => Screen
 
 export default {profileProveWebsiteChoice: {getScreen}}
-export type RouteProps = {profileAddToTeam: OwnProps['route']['params']}
+export type RouteProps = {profileRevoke: OwnProps['route']['params']}
