@@ -65,7 +65,7 @@ type PushN = {
   message: string
 } & Data
 
-export const normalizePush = (_n: Object | null): Types.PushNotification | undefined => {
+export const normalizePush = (_n?: Object): Types.PushNotification | undefined => {
   try {
     if (!_n) {
       return undefined

@@ -134,7 +134,7 @@ const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 const documentTitle = {
   formatter: () => {
-    const tabLabel = Tabs.desktopTabMeta[Constants.getTab(null) ?? '']?.label ?? ''
+    const tabLabel = Tabs.desktopTabMeta[Constants.getTab() ?? '']?.label ?? ''
     return `Keybase: ${tabLabel}`
   },
 }

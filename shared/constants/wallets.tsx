@@ -737,7 +737,7 @@ export const shortenAccountID = (id: Types.AccountID) => {
 export const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.has(accountID)
 
-export const isFederatedAddress = (address: string | null) => (address ? address.includes('*') : false)
+export const isFederatedAddress = (address?: string) => (address ? address.includes('*') : false)
 
 export const displayCurrenciesLoaded = (state: TypedState) => state.wallets.currencies.length > 0
 

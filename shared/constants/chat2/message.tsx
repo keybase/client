@@ -528,16 +528,16 @@ export const makeReaction = (m?: Partial<MessageTypes.Reaction>): MessageTypes.R
 })
 
 export const uiRequestInfoToChatRequestInfo = (
-  r: RPCChatTypes.UIRequestInfo | null
-): MessageTypes.ChatRequestInfo | null => {
+  r?: RPCChatTypes.UIRequestInfo
+): MessageTypes.ChatRequestInfo | undefined => {
   if (!r) {
-    return null
+    return
   }
   let asset: WalletTypes.Asset = 'native'
   let currencyCode = ''
   if (!(r.asset || r.currency)) {
     logger.error('Received UIRequestInfo with no asset or currency code')
-    return null
+    return
   } else if (r.asset && r.asset.type !== 'native') {
     const assetResult = r.asset
     asset = WalletConstants.makeAssetDescription({
@@ -562,10 +562,10 @@ export const uiRequestInfoToChatRequestInfo = (
 }
 
 export const uiPaymentInfoToChatPaymentInfo = (
-  ps: Array<RPCChatTypes.UIPaymentInfo> | null
-): MessageTypes.ChatPaymentInfo | null => {
+  ps?: Array<RPCChatTypes.UIPaymentInfo>
+): MessageTypes.ChatPaymentInfo | undefined => {
   if (!ps || ps.length !== 1) {
-    return null
+    return undefined
   }
   const p = ps[0]
   const serviceStatus = WalletConstants.statusSimplifiedToString[p.status]
@@ -654,7 +654,7 @@ const uiMessageToSystemMessage = (
   body: RPCChatTypes.MessageSystem,
   reactions: Map<string, MessageTypes.ReactionDesc>,
   m: RPCChatTypes.UIMessageValid
-): Types.Message | null => {
+): Types.Message | undefined => {
   switch (body.systemType) {
     case RPCChatTypes.MessageSystemType.addedtoteam: {
       const {adder = '', addee = '', team = ''} = body.addedtoteam || {}
@@ -775,11 +775,11 @@ const uiMessageToSystemMessage = (
             reactions,
             text: m.decoratedTextBody,
           })
-        : null
+        : undefined
     }
     case RPCChatTypes.MessageSystemType.changeretention: {
       if (!body.changeretention) {
-        return null
+        return undefined
       }
       return makeMessageSystemChangeRetention({
         ...minimum,
@@ -793,7 +793,7 @@ const uiMessageToSystemMessage = (
     }
     case RPCChatTypes.MessageSystemType.bulkaddtoconv: {
       if (!body.bulkaddtoconv || !body.bulkaddtoconv.usernames) {
-        return null
+        return undefined
       }
       return makeMessageSystemUsersAddedToConversation({
         ...minimum,
@@ -803,17 +803,14 @@ const uiMessageToSystemMessage = (
     }
 
     default:
-      return null
+      return
   }
 }
 
 export const isVideoAttachment = (message: Types.MessageAttachment) => message.fileType.startsWith('video')
 
 export const maxAmpsLength = 60
-export const previewSpecs = (
-  preview: RPCChatTypes.AssetMetadata | null,
-  full: RPCChatTypes.AssetMetadata | null
-) => {
+export const previewSpecs = (preview?: RPCChatTypes.AssetMetadata, full?: RPCChatTypes.AssetMetadata) => {
   const res: Types.PreviewSpec = {
     attachmentType: 'file' as Types.AttachmentType,
     audioAmps: [],
@@ -862,14 +859,14 @@ export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Me
   )
 }
 
-export const getMapUnfurl = (message: Types.Message): RPCChatTypes.UnfurlGenericDisplay | null => {
+export const getMapUnfurl = (message: Types.Message): RPCChatTypes.UnfurlGenericDisplay | undefined => {
   const unfurls = message.type === 'text' && message.unfurls.size ? [...message.unfurls.values()] : null
   const mapInfo = unfurls?.[0]?.unfurl
     ? unfurls[0].unfurl.unfurlType === RPCChatTypes.UnfurlType.generic &&
-      unfurls[0].unfurl.generic?.mapInfo &&
+      unfurls[0].unfurl.generic.mapInfo &&
       unfurls[0].unfurl.generic
-    : null
-  return mapInfo || null
+    : undefined
+  return mapInfo || undefined
 }
 
 const validUIMessagetoMessage = (
@@ -878,7 +875,7 @@ const validUIMessagetoMessage = (
   currentUsername: string,
   getLastOrdinal: () => Types.Ordinal,
   currentDeviceName: string
-) => {
+): MessageTypes.Message | undefined => {
   const minimum = {
     author: m.senderUsername,
     botUsername: m.botUsername || undefined,
@@ -915,7 +912,7 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.MessageType.flip:
     case RPCChatTypes.MessageType.text: {
       let rawText: string
-      let payments: Array<RPCChatTypes.TextPayment> | null = null
+      let payments: Array<RPCChatTypes.TextPayment> | undefined
       switch (m.messageBody.messageType) {
         case RPCChatTypes.MessageType.flip:
           rawText = m.messageBody.flip.text
@@ -924,7 +921,7 @@ const validUIMessagetoMessage = (
           {
             const messageText = m.messageBody.text
             rawText = messageText.body
-            payments = messageText.payments || null
+            payments = messageText.payments || undefined
           }
           break
         default:
@@ -974,43 +971,41 @@ const validUIMessagetoMessage = (
       // 2. On incoming we get attachment first (placeholder), then we get the full data (attachmentuploaded)
       // 3. When we send we place a pending attachment, then get the real attachment then attachmentuploaded
       // We treat all these like a pending text, so any data-less thing will have no message id and map to the same ordinal
-      let attachment: RPCChatTypes.MessageAttachment | RPCChatTypes.MessageAttachmentUploaded | null = null
-      let preview: RPCChatTypes.Asset | null = null
-      let full: RPCChatTypes.Asset | null = null
-      let transferState: 'remoteUploading' | null = null
+      let attachment: RPCChatTypes.MessageAttachment | RPCChatTypes.MessageAttachmentUploaded | undefined
+      let preview: RPCChatTypes.Asset | undefined = undefined
+      let full: RPCChatTypes.Asset | undefined = undefined
+      let transferState: 'remoteUploading' | undefined = undefined
 
       if (m.messageBody.messageType === RPCChatTypes.MessageType.attachment) {
         attachment = m.messageBody.attachment
-        preview =
-          attachment.preview ||
-          (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
+        preview = attachment.previews?.[0]
         full = attachment.object
         if (!attachment.uploaded) {
           transferState = 'remoteUploading' as const
         }
       } else if (m.messageBody.messageType === RPCChatTypes.MessageType.attachmentuploaded) {
         attachment = m.messageBody.attachmentuploaded
-        preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
+        preview = attachment.previews?.[0]
         full = attachment.object
-        transferState = null
+        transferState = undefined
       }
 
       const a = attachment || {object: {filename: undefined, size: undefined, title: undefined}}
       const {filename, title, size} = a.object
 
-      const pre = previewSpecs(preview && preview.metadata, full && full.metadata)
+      const pre = previewSpecs(preview?.metadata, full?.metadata)
       let previewURL = ''
       let fileURL = ''
       let fileType = ''
       let fileURLCached = false
-      let videoDuration: string | null = null
+      let videoDuration: string | undefined
       let inlineVideoPlayable = false
       if (m.assetUrlInfo) {
         previewURL = m.assetUrlInfo.previewUrl
         fileURL = m.assetUrlInfo.fullUrl
         fileType = m.assetUrlInfo.mimeType
         fileURLCached = m.assetUrlInfo.fullUrlCached
-        videoDuration = m.assetUrlInfo.videoDuration || null
+        videoDuration = m.assetUrlInfo.videoDuration ?? undefined
         inlineVideoPlayable = m.assetUrlInfo.inlineVideoPlayable
       }
 
@@ -1057,7 +1052,7 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
         ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions, m)
-        : null
+        : undefined
     case RPCChatTypes.MessageType.headline:
       return makeMessageSetDescription({
         ...common,
@@ -1079,23 +1074,20 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.MessageType.sendpayment:
       return makeMessageSendPayment({
         ...common,
-        paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfos || null),
+        paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfos ?? undefined),
       })
     case RPCChatTypes.MessageType.requestpayment:
       return makeMessageRequestPayment({
         ...common,
         note: new HiddenString(m.decoratedTextBody ?? ''),
         requestID: m.messageBody.requestpayment.requestID,
-        requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo || null),
+        requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo ?? undefined),
       })
-    case RPCChatTypes.MessageType.edit:
-      return null
-    case RPCChatTypes.MessageType.delete:
-      return null
-    case RPCChatTypes.MessageType.deletehistory:
-      return null
+    case RPCChatTypes.MessageType.edit: // fallthrough
+    case RPCChatTypes.MessageType.delete: // fallthrough
+    case RPCChatTypes.MessageType.deletehistory: // fallthrough
     default:
-      return null
+      return
   }
 }
 
@@ -1128,7 +1120,7 @@ const outboxUIMessagetoMessage = (
   currentUsername: string,
   getLastOrdinal: () => Types.Ordinal,
   currentDeviceName: string
-) => {
+): MessageTypes.Message | undefined => {
   const errorReason =
     o.state && o.state.state === RPCChatTypes.OutboxStateType.error
       ? rpcErrorToString(o.state.error)
@@ -1147,11 +1139,11 @@ const outboxUIMessagetoMessage = (
           o.preview.location && o.preview.location.ltyp === RPCChatTypes.PreviewLocationTyp.url
             ? o.preview.location.url
             : ''
-        const md = (o.preview && o.preview.metadata) || null
-        const baseMd = (o.preview && o.preview.baseMetadata) || null
+        const md = o.preview?.metadata ?? undefined
+        const baseMd = o.preview?.baseMetadata ?? undefined
         pre = previewSpecs(md, baseMd)
       } else {
-        pre = previewSpecs(null, null)
+        pre = previewSpecs()
       }
       return makePendingAttachmentMessage(
         conversationIDKey,
@@ -1187,7 +1179,7 @@ const outboxUIMessagetoMessage = (
         timestamp: o.ctime,
       })
   }
-  return null
+  return
 }
 
 const placeholderUIMessageToMessage = (
@@ -1250,7 +1242,7 @@ const journeycardUIMessageToMessage = (
     })
   }
 
-  return null
+  return
 }
 
 export const uiMessageToMessage = (
@@ -1259,7 +1251,7 @@ export const uiMessageToMessage = (
   currentUsername: string,
   getLastOrdinal: () => Types.Ordinal,
   currentDeviceName: string
-): Types.Message | null => {
+): Types.Message | undefined => {
   switch (uiMessage.state) {
     case RPCChatTypes.MessageUnboxedState.valid:
       return validUIMessagetoMessage(
@@ -1285,7 +1277,7 @@ export const uiMessageToMessage = (
       return journeycardUIMessageToMessage(conversationIDKey, uiMessage.journeycard)
     default: // A type error here means there is an unhandled message state
       assertNever(uiMessage)
-      return null
+      return
   }
 }
 

@@ -378,15 +378,15 @@ export const canSaveMedia = (pathItem: Types.PathItem, fileContext: Types.FileCo
   )
 }
 
-export const folderRPCFromPath = (path: Types.Path): RPCTypes.FolderHandle | null => {
+export const folderRPCFromPath = (path: Types.Path): RPCTypes.FolderHandle | undefined => {
   const pathElems = Types.getPathElements(path)
-  if (pathElems.length === 0) return null
+  if (pathElems.length === 0) return undefined
 
   const visibility = Types.getVisibilityFromElems(pathElems)
-  if (visibility === null) return null
+  if (visibility === undefined) return undefined
 
   const name = Types.getPathNameFromElems(pathElems)
-  if (name === '') return null
+  if (name === '') return undefined
 
   return {
     created: false,
@@ -409,8 +409,8 @@ export const showIgnoreFolder = (path: Types.Path, username?: string): boolean =
   return ['public', 'private'].includes(elems[1]) && elems[2] !== username
 }
 
-export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): ClientRect | null =>
-  isMobile ? null : evt ? (evt.target as HTMLElement).getBoundingClientRect() : null
+export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): ClientRect | undefined =>
+  isMobile ? undefined : evt ? (evt.target as HTMLElement).getBoundingClientRect() : undefined
 
 export const invalidTokenError = new Error('invalid token')
 export const notFoundError = new Error('not found')

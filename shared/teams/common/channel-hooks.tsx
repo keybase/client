@@ -96,9 +96,9 @@ export const useAllChannelMetas = (
 export const useChannelMeta = (
   teamID: Types.TeamID,
   conversationIDKey: ChatTypes.ConversationIDKey
-): ChatTypes.ConversationMeta | null => {
+): ChatTypes.ConversationMeta | undefined => {
   const getInboxItem = Container.useRPC(RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise)
-  const [conv, setConv] = React.useState<RPCChatTypes.InboxUIItem | null>(null)
+  const [conv, setConv] = React.useState<RPCChatTypes.InboxUIItem | undefined>()
 
   const waitingKey = Constants.teamWaitingKey(teamID)
 
@@ -120,9 +120,9 @@ export const useChannelMeta = (
     )
   }, [teamID, conversationIDKey, getInboxItem, waitingKey])
 
-  const meta: ChatTypes.ConversationMeta | null = Container.useSelector(state =>
-    conv ? ChatConstants.inboxUIItemToConversationMeta(state, conv) : null
+  const meta = Container.useSelector(state =>
+    conv ? ChatConstants.inboxUIItemToConversationMeta(state, conv) : undefined
   )
 
-  return meta
+  return meta ?? undefined
 }

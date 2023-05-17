@@ -221,7 +221,7 @@ const RetentionPicker = (p: Props) => {
         underlayColor={Styles.globalColors.white_40}
       >
         <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={styles.label}>
-          {policyToLabel(policy, teamPolicy || null)}
+          {policyToLabel(policy, teamPolicy)}
         </Kb.Box2>
         <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
       </Kb.ClickableBox>
@@ -319,7 +319,7 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 // Utilities for transforming retention policies <-> labels
-const policyToLabel = (p: RetentionPolicy | undefined, parent: RetentionPolicy | null) => {
+const policyToLabel = (p?: RetentionPolicy, parent?: RetentionPolicy) => {
   let text = ''
   let timer = false
   if (p) {

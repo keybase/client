@@ -36,9 +36,7 @@ const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   }
 }
 
-const rpcConflictStateToConflictState = (
-  rpcConflictState: RPCTypes.ConflictState | null
-): Types.ConflictState => {
+const rpcConflictStateToConflictState = (rpcConflictState?: RPCTypes.ConflictState): Types.ConflictState => {
   if (rpcConflictState) {
     if (rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview) {
       const nv = rpcConflictState.normalview
@@ -82,13 +80,13 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
       tlfType &&
       FsGen.createLoadedAdditionalTlf({
         tlf: Constants.makeTlf({
-          conflictState: rpcConflictStateToConflictState(folder.conflictState || null),
+          conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
           isFavorite,
           isIgnored,
           isNew,
           name: tlfName,
           resetParticipants: (folder.reset_members || []).map(({username}) => username),
-          syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || null),
+          syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
           teamId: folder.team_id || '',
           tlfMtime: folder.mtime || 0,
         }),
@@ -146,13 +144,13 @@ const loadFavorites = async (state: Container.TypedState) => {
           payload[tlfType].set(
             tlfName,
             Constants.makeTlf({
-              conflictState: rpcConflictStateToConflictState(folder.conflictState || null),
+              conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
               isFavorite,
               isIgnored,
               isNew,
               name: tlfName,
               resetParticipants: (folder.reset_members || []).map(({username}) => username),
-              syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || null),
+              syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
               teamId: folder.team_id || '',
               tlfMtime: folder.mtime || 0,
             })
@@ -168,7 +166,7 @@ const loadFavorites = async (state: Container.TypedState) => {
 const getSyncConfigFromRPC = (
   tlfName: string,
   tlfType: Types.TlfType,
-  config: RPCTypes.FolderSyncConfig | null
+  config?: RPCTypes.FolderSyncConfig
 ): Types.TlfSyncConfig => {
   if (!config) {
     return Constants.tlfSyncDisabled
@@ -476,7 +474,7 @@ const dismissUpload = async (_: Container.TypedState, action: FsGen.DismissUploa
   return false
 }
 
-const getWaitDuration = (endEstimate: number | null, lower: number, upper: number): number => {
+const getWaitDuration = (endEstimate: number | undefined, lower: number, upper: number): number => {
   if (!endEstimate) {
     return upper
   }
@@ -518,7 +516,7 @@ const pollJournalFlushStatusUntilDone = async (
       }
 
       listenerApi.dispatch(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
-      await listenerApi.delay(getWaitDuration(endEstimate || null, 100, 4000)) // 0.1s to 4s
+      await listenerApi.delay(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
     }
   } finally {
     polling = false

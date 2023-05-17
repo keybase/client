@@ -4,12 +4,12 @@ import PeopleItem from '../item'
 
 type Props = {
   badged: boolean
-  confirmLabel: string | null
-  iconUrl: string | null
+  confirmLabel?: string
+  iconUrl?: string
   onConfirm: () => void
-  onDismiss: (() => void) | null
+  onDismiss?: () => void
   text: string
-  url: string | null
+  url?: string
 }
 
 const Announcement = (props: Props) => {

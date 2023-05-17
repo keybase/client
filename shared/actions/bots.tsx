@@ -77,10 +77,10 @@ const searchFeaturedBots = async (_: Container.TypedState, action: BotsGen.Searc
 
 const searchFeaturedAndUsers = async (_: unknown, action: BotsGen.SearchFeaturedAndUsersPayload) => {
   const {query} = action.payload
-  let botRes: RPCTypes.SearchRes | null | undefined
-  let userRes: Array<RPCTypes.APIUserSearchResult> | null | undefined
+  let botRes: RPCTypes.SearchRes | undefined
+  let userRes: Array<RPCTypes.APIUserSearchResult> | undefined
   try {
-    ;[botRes, userRes] = await Promise.all([
+    const temp = await Promise.all([
       RPCTypes.featuredBotSearchRpcPromise(
         {
           limit: 10,
@@ -100,6 +100,8 @@ const searchFeaturedAndUsers = async (_: unknown, action: BotsGen.SearchFeatured
         Constants.waitingKeyBotSearchUsers
       ),
     ])
+    botRes = temp[0]
+    userRes = temp[1] ?? undefined
   } catch (error) {
     if (!(error instanceof RPCError)) {
       return

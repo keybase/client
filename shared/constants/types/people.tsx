@@ -46,15 +46,15 @@ export type FollowedNotificationItem = {
 }
 
 export type Announcement = {
-  appLink: RPCTypes.AppLinkType | null
+  appLink?: RPCTypes.AppLinkType
   badged: boolean
-  confirmLabel: string | null
+  confirmLabel?: string
   dismissable: boolean
   id: RPCTypes.HomeScreenAnnouncementID
-  iconUrl: string | null
+  iconUrl?: string
   text: string
   type: 'announcement'
-  url: string | null
+  url?: string
 }
 
 export type WotUpdate = {

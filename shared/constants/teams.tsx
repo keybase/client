@@ -443,7 +443,7 @@ const noRemoveLastOwner = {
 export const getDisabledReasonsForRolePicker = (
   state: TypedState,
   teamID: Types.TeamID,
-  membersToModify: string | string[] | null
+  membersToModify?: string | string[]
 ): Types.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
   const teamMeta = getTeamMeta(state, teamID)
@@ -522,19 +522,17 @@ const isMultiOwnerTeam = (state: TypedState, teamID: Types.TeamID): boolean => {
   return moreThanOneOwner
 }
 
-export const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
+export const getTeamID = (state: TypedState, teamname: Types.Teamname) =>
   state.teams.teamNameToID.get(teamname) || Types.noTeamID
 
-export const getTeamNameFromID = (state: TypedState, teamID: Types.TeamID): Types.Teamname | null =>
-  state.teams.teamMeta.get(teamID)?.teamname ?? null
+export const getTeamNameFromID = (state: TypedState, teamID: Types.TeamID) =>
+  state.teams.teamMeta.get(teamID)?.teamname
 
-export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.TeamID): RetentionPolicy | null =>
-  state.teams.teamIDToRetentionPolicy.get(teamID) ?? null
+export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.TeamID) =>
+  state.teams.teamIDToRetentionPolicy.get(teamID)
 
-export const getTeamWelcomeMessageByID = (
-  state: TypedState,
-  teamID: Types.TeamID
-): RPCChatTypes.WelcomeMessageDisplay | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
+export const getTeamWelcomeMessageByID = (state: TypedState, teamID: Types.TeamID) =>
+  state.teams.teamIDToWelcomeMessage.get(teamID)
 
 /**
  *  Gets the number of channels you're subscribed to on a team

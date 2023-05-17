@@ -210,11 +210,8 @@ export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKe
   state.chat2.messageOrdinals.get(id) || emptyOrdinals
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageCenterOrdinals.get(id)
-export const getMessage = (
-  state: TypedState,
-  id: Types.ConversationIDKey,
-  ordinal: Types.Ordinal
-): Types.Message | null => state.chat2.messageMap.get(id)?.get(ordinal) ?? null
+export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+  state.chat2.messageMap.get(id)?.get(ordinal)
 
 export const isTextOrAttachment = (
   message: Types.Message
@@ -251,13 +248,17 @@ export const getSelectedConversation = (): Types.ConversationIDKey => {
 }
 
 export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  return state.chat2.replyToMap.get(conversationIDKey) || null
+  return state.chat2.replyToMap.get(conversationIDKey)
 }
 export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const ordinal = getReplyToOrdinal(state, conversationIDKey)
-  if (!ordinal) return null
+  if (!ordinal) return
   const maybeMessage = getMessage(state, conversationIDKey, ordinal)
-  return ordinal ? (maybeMessage === null || maybeMessage === undefined ? undefined : maybeMessage.id) : null
+  return ordinal
+    ? maybeMessage === null || maybeMessage === undefined
+      ? undefined
+      : maybeMessage.id
+    : undefined
 }
 
 export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {

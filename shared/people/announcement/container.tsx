@@ -9,14 +9,14 @@ import openURL from '../../util/open-url'
 import * as Container from '../../util/container'
 
 type OwnProps = {
-  appLink: RPCTypes.AppLinkType | null
+  appLink?: RPCTypes.AppLinkType
   badged: boolean
-  confirmLabel: string | null
+  confirmLabel?: string
   dismissable: boolean
-  iconUrl: string | null
+  iconUrl?: string
   id: RPCTypes.HomeScreenAnnouncementID
   text: string
-  url: string | null
+  url?: string
 }
 
 export default (ownProps: OwnProps) => {
@@ -77,7 +77,7 @@ export default (ownProps: OwnProps) => {
     confirmLabel,
     iconUrl,
     onConfirm,
-    onDismiss: dismissable ? _onDismiss : null,
+    onDismiss: dismissable ? _onDismiss : undefined,
     text,
     url,
   }

@@ -869,7 +869,7 @@ const createChannel = async (
       {
         identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
         membersType: RPCChatTypes.ConversationMembersType.team,
-        tlfName: teamname,
+        tlfName: teamname ?? '',
         tlfVisibility: RPCTypes.TLFVisibility.private,
         topicName: channelname,
         topicType: RPCChatTypes.TopicType.chat,
@@ -892,7 +892,7 @@ const createChannel = async (
           conversationID: result.conv.info.id,
           headline: description,
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          tlfName: teamname,
+          tlfName: teamname ?? '',
           tlfPublic: false,
         },
         Constants.createChannelWaitingKey(teamID)
@@ -938,7 +938,7 @@ const createChannels = async (state: Container.TypedState, action: TeamsGen.Crea
       await RPCChatTypes.localNewConversationLocalRpcPromise({
         identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
         membersType: RPCChatTypes.ConversationMembersType.team,
-        tlfName: teamname,
+        tlfName: teamname ?? '',
         tlfVisibility: RPCTypes.TLFVisibility.private,
         topicName: c,
         topicType: RPCChatTypes.TopicType.chat,
@@ -1100,7 +1100,7 @@ const refreshTeamRoleMap = async (
 }
 
 const teamDeletedOrExit = () => {
-  if (Router2Constants.getTab(null) == Tabs.teamsTab) {
+  if (Router2Constants.getTab() == Tabs.teamsTab) {
     return RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
   }
   return false

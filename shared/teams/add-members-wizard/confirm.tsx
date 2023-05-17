@@ -47,7 +47,7 @@ const AddMembersConfirm = () => {
 
   const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
 
-  const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
+  const [emailMessage, setEmailMessage] = React.useState<string>('')
 
   const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
   const onBack = () => dispatch(RouteTreeGen.createNavUpToScreen({name: 'teamAddToTeamFromWhere'}))
@@ -134,7 +134,7 @@ const AddMembersConfirm = () => {
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
-            {emailMessage === null ? (
+            {emailMessage === '' ? (
               <Kb.Text type="BodySmallPrimaryLink" onClick={() => setEmailMessage('')}>
                 Include a note in your email
               </Kb.Text>

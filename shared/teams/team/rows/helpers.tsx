@@ -27,7 +27,7 @@ const getWeights = (manageMembers: boolean) => {
 
 export const getOrderedMemberArray = (
   memberInfo: Map<string, Types.MemberInfo> | undefined,
-  you: string | null,
+  you: string | undefined,
   yourOperations: Types.TeamOperations
 ): Array<Types.MemberInfo> =>
   memberInfo

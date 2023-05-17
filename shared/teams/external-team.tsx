@@ -17,7 +17,7 @@ const ExternalTeam = (props: Props) => {
   const teamname = props.route.params.teamname
 
   const getTeamInfo = Container.useRPC(RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
-  const [teamInfo, setTeamInfo] = React.useState<RPCGen.UntrustedTeamInfo | null>(null)
+  const [teamInfo, setTeamInfo] = React.useState<RPCGen.UntrustedTeamInfo | undefined>()
   const [waiting, setWaiting] = React.useState(false)
 
   React.useEffect(() => {
@@ -34,7 +34,7 @@ const ExternalTeam = (props: Props) => {
       },
       _ => {
         setWaiting(false)
-        setTeamInfo(null)
+        setTeamInfo(undefined)
       }
     )
   }, [getTeamInfo, teamname])
