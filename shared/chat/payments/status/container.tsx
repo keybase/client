@@ -5,8 +5,8 @@ import type * as WalletTypes from '../../../constants/types/wallets'
 import {ConvoIDContext, OrdinalContext} from '../../conversation/messages/ids-context'
 
 type OwnProps = {
-  allowFontScaling?: boolean | null
-  error?: string | null
+  allowFontScaling?: boolean
+  error?: string
   paymentID?: WalletTypes.PaymentID
   text: string
 }
@@ -35,7 +35,7 @@ const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: Own
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const paymentInfo = Container.useSelector(state =>
-    paymentID ? state.chat2.paymentStatusMap.get(paymentID) || null : null
+    paymentID ? state.chat2.paymentStatusMap.get(paymentID) : undefined
   )
   const status = error ? 'error' : paymentInfo?.status ?? 'pending'
 

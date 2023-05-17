@@ -25,7 +25,7 @@ const Kb = {
 }
 
 type Props = {
-  icon?: IconType | null
+  icon?: IconType
   iconColor?: AllowedColors
   focusOnMount?: boolean
   size: 'small' | 'full-width' // only affects desktop (https://zpl.io/aMW5AG3)
@@ -34,22 +34,22 @@ type Props = {
   placeholderText: string
   placeholderCentered?: boolean
   placeholderColor?: AllowedColors
-  style?: Styles.StylesCrossPlatform | null
+  style?: Styles.StylesCrossPlatform
   valueControlled?: boolean
   value?: string
   waiting?: boolean
   mobileCancelButton?: boolean // show "Cancel" on the left
-  showXOverride?: boolean | null
+  showXOverride?: boolean
   dummyInput?: boolean
-  onBlur?: (() => void) | null
-  onCancel?: (() => void) | null
+  onBlur?: () => void
+  onCancel?: () => void
   // If onClick is provided, this component won't focus on click. User is
   // expected to handle actual filter/search in a separate component, perhaps
   // in a popup.
-  onClick?: (() => void) | null
-  onFocus?: (() => void) | null
+  onClick?: () => void
+  onFocus?: () => void
   // following props are ignored when onClick is provided
-  hotkey?: 'f' | 'k' | null // desktop only,
+  hotkey?: 'f' | 'k' // desktop only,
   // Maps to onSubmitEditing on native
   onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
   onKeyDown?: (event: React.KeyboardEvent) => void

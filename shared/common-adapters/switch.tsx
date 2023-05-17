@@ -17,19 +17,19 @@ const Kb = {
 }
 
 type Props = {
-  align?: 'left' | 'right' | null // default to 'left',
+  align?: 'left' | 'right' // default to 'left',
   allowLabelClick?: boolean
   children?: React.ReactNode
-  color?: 'blue' | 'green' | 'red' | null // default to 'blue',
-  disabled?: boolean | null
-  gapInBetween?: boolean | null // inserts flex:1 gap between toggle and text,
-  gapSize?: number | null // inserts a gap of N pixels between toggle and text
+  color?: 'blue' | 'green' | 'red' // default to 'blue',
+  disabled?: boolean
+  gapInBetween?: boolean // inserts flex:1 gap between toggle and text,
+  gapSize?: number // inserts a gap of N pixels between toggle and text
   label: string | React.ReactNode
-  labelSubtitle?: string | null // only effective when label is a string,
-  labelTooltip?: string | null // only effective when label is a string,
+  labelSubtitle?: string // only effective when label is a string,
+  labelTooltip?: string // only effective when label is a string,
   on: boolean
   onClick: () => void
-  style?: Styles.StylesCrossPlatform | null
+  style?: Styles.StylesCrossPlatform
 }
 
 const LabelContainer = (props: Props) =>

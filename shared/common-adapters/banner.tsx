@@ -10,7 +10,7 @@ type _Segment = {
   onClick?: () => void
   text: string
 }
-type Segment = _Segment | string | null | false
+type Segment = _Segment | string | undefined
 
 type BannerParagraphProps = {
   bannerColor: Color

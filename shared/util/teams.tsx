@@ -7,7 +7,7 @@ type SortedAdmins = {
 }
 
 // Transforms an array of public admins for display on profile
-function parsePublicAdmins(publicAdmins: Array<string>, you: string | null): SortedAdmins {
+function parsePublicAdmins(publicAdmins: Array<string>, you?: string): SortedAdmins {
   const idx = you ? publicAdmins.indexOf(you) : -1
   if (idx !== -1) {
     const elem = publicAdmins.splice(idx, 1)
@@ -27,10 +27,10 @@ function makeRetentionNotice(
   policy: RetentionPolicy,
   teamPolicy: RetentionPolicy,
   teamType: 'adhoc' | 'big' | 'small'
-): string | null {
+): string | undefined {
   if (policy.type === 'retain' || (policy.type === 'inherit' && teamPolicy.type === 'retain')) {
     // Messages stick around forever; no explanation needed
-    return null
+    return
   }
 
   let convType = 'chat'

@@ -16,8 +16,8 @@ type Props = {
 }
 
 const _AddPeople = (props: Props) => {
-  let directAction: null | (() => void) = null
-  let directLabel: string | null = null
+  let directAction: undefined | (() => void)
+  let directLabel: string | undefined
   if (!props.isGeneralChannel) {
   } else {
     directAction = props.onAddPeople

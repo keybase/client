@@ -8,21 +8,21 @@ export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16 | 12
 export type StylesAvatarCrossPlatform = CustomStyles<'borderStyle', {}>
 
 export type Props = {
-  borderColor?: string | null
+  borderColor?: string
   children?: React.ReactNode
   clickToProfile?: 'tracker' | 'profile' // If set, go to profile on mobile and tracker/profile on desktop,,,
   editable?: boolean
   isTeam?: boolean
   loadingColor?: string
   onClick?: (e?: React.SyntheticEvent) => void
-  onEditAvatarClick?: ((e?: React.SyntheticEvent) => void) | null
+  onEditAvatarClick?: (e?: React.SyntheticEvent) => void
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
   skipBackgroundAfterLoaded?: boolean // if we're on a white background we don't need a white back cover,,,
   style?: StylesAvatarCrossPlatform
-  teamname?: string | null
-  username?: string | null
+  teamname?: string
+  username?: string
   showFollowingStatus?: boolean // show the green dots or not
 }
 

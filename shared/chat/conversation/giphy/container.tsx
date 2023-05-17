@@ -9,7 +9,7 @@ type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 const GiphySearchContainer = React.memo(function GiphySearchContainer(p: OwnProps) {
   const {conversationIDKey} = p
-  const giphy = Container.useSelector(state => state.chat2.giphyResultMap.get(conversationIDKey) ?? null)
+  const giphy = Container.useSelector(state => state.chat2.giphyResultMap.get(conversationIDKey))
   const dispatch = Container.useDispatch()
   const onClick = React.useCallback(
     (url: string) => {
@@ -20,7 +20,7 @@ const GiphySearchContainer = React.memo(function GiphySearchContainer(p: OwnProp
   const props = {
     galleryURL: giphy?.galleryUrl ?? '',
     onClick,
-    previews: giphy?.results ?? null,
+    previews: giphy?.results ?? undefined,
   }
   return <GiphySearch {...props} />
 })

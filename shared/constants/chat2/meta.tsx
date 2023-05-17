@@ -36,15 +36,15 @@ const supersededConversationIDToKey = (id: string | Buffer): string => {
 
 export const unverifiedInboxUIItemToConversationMeta = (
   i: RPCChatTypes.UnverifiedInboxUIItem
-): ConversationMeta | null => {
+): ConversationMeta | undefined => {
   // Private chats only
   if (i.visibility !== RPCTypes.TLFVisibility.private) {
-    return null
+    return undefined
   }
 
   // Should be impossible
   if (!i.convID) {
-    return null
+    return undefined
   }
 
   // We only treat implicit adhoc teams as having resetParticipants
@@ -60,13 +60,13 @@ export const unverifiedInboxUIItemToConversationMeta = (
   const isTeam = i.membersType === RPCChatTypes.ConversationMembersType.team
   const channelname = isTeam && i.localMetadata ? i.localMetadata.channelName : ''
 
-  const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
-  const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes)
+  const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy ?? undefined)
+  const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes ?? undefined)
   const teamname = isTeam ? i.name : ''
   const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
   const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
-    parseNotificationSettings(i.notifications)
+    parseNotificationSettings(i.notifications ?? undefined)
 
   return {
     ...makeConversationMeta(),
@@ -108,12 +108,10 @@ export const unverifiedInboxUIItemToConversationMeta = (
   }
 }
 
-const conversationMetadataToMetaSupersedeInfo = (metas?: Array<RPCChatTypes.ConversationMetadata> | null) => {
-  const meta = (metas || []).find(
-    m => m.idTriple.topicType === RPCChatTypes.TopicType.chat && !!m.finalizeInfo
-  )
+const conversationMetadataToMetaSupersedeInfo = (metas?: Array<RPCChatTypes.ConversationMetadata>) => {
+  const meta = metas?.find(m => m.idTriple.topicType === RPCChatTypes.TopicType.chat && !!m.finalizeInfo)
 
-  return meta ? supersededConversationIDToKey(meta.conversationID) : null
+  return meta ? supersededConversationIDToKey(meta.conversationID) : undefined
 }
 
 const getTeamType = (tt: {
@@ -180,7 +178,7 @@ type NotificationSettingsParsed = {
   notificationsMobile: Types.NotificationsType
 }
 const parseNotificationSettings = (
-  notifications?: RPCChatTypes.ConversationNotificationInfo | null
+  notifications?: RPCChatTypes.ConversationNotificationInfo
 ): NotificationSettingsParsed => {
   let notificationsDesktop = 'never' as Types.NotificationsType
   let notificationsGlobalIgnoreMentions = false
@@ -215,7 +213,7 @@ const parseNotificationSettings = (
 
 export const updateMetaWithNotificationSettings = (
   old: Types.ConversationMeta,
-  notifications: RPCChatTypes.ConversationNotificationInfo | null
+  notifications?: RPCChatTypes.ConversationNotificationInfo
 ) => {
   const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
     parseNotificationSettings(notifications)
@@ -252,14 +250,14 @@ const UIItemToRetentionPolicies = (
 export const inboxUIItemToConversationMeta = (
   state: TypedState | undefined,
   i: RPCChatTypes.InboxUIItem
-): ConversationMeta | null => {
+): ConversationMeta | undefined => {
   // Private chats only
   if (i.visibility !== RPCTypes.TLFVisibility.private) {
-    return null
+    return
   }
   // We don't support mixed reader/writers
   if (i.name.includes('#')) {
-    return null
+    return
   }
 
   // We only treat implied adhoc teams as having resetParticipants
@@ -271,12 +269,12 @@ export const inboxUIItemToConversationMeta = (
       : []
   )
 
-  const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
-  const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes)
+  const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy ?? undefined)
+  const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes ?? undefined)
 
   const isTeam = i.membersType === RPCChatTypes.ConversationMembersType.team
   const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
-    parseNotificationSettings(i.notifications)
+    parseNotificationSettings(i.notifications ?? undefined)
 
   const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 

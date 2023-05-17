@@ -1,7 +1,7 @@
 import * as Styles from '../styles'
 import type {MetaType, TextType, Background} from './text'
 
-export function defaultColor(backgroundMode: Background | null) {
+export function defaultColor(backgroundMode?: Background) {
   return {
     get Announcements() {
       return Styles.globalColors.white
@@ -35,7 +35,7 @@ export function lineClamp(lines: number | undefined, mode: string | undefined): 
   }
 }
 
-export function fontSizeToSizeStyle(fontSize: number): {fontSize: number; lineHeight: number} | null {
+export function fontSizeToSizeStyle(fontSize: number): {fontSize: number; lineHeight: number} {
   const lineHeight = {
     '13': 17,
     '15': 19,

@@ -1,7 +1,7 @@
 import type {CSSProperties} from 'react'
 import type {ViewStyle, TextStyle, ImageStyle} from 'react-native'
 
-export type Color = null | string
+export type Color = undefined | string
 type _StylesDesktopOverride = {
   backgroundImage?: string
   objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'

@@ -16,11 +16,11 @@ export type Props = {
   type: IconType
   hint?: string
   noContainer?: boolean
-  onClick?: ((event: React.BaseSyntheticEvent) => void) | null
+  onClick?: (event: React.BaseSyntheticEvent) => void
   onPress?: void // Use onClick, not onPress.,,
   onLongPress?: () => void // mobile only, rarely used just for debug currently
-  onMouseEnter?: (() => void) | null
-  onMouseLeave?: (() => void) | null
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
   fixOverdraw?: boolean // use fastblank
   style?: IconStyle
   opacity?: boolean
@@ -30,7 +30,7 @@ export type Props = {
   // Temporary hack that let's you override the color directly in the style instead of using css class names
   colorOverride?: Color
   color?: Color
-  hoverColor?: string | null
+  hoverColor?: string
   fontSize?: number
   // TODO cleanup how this container stuff works, this is to allow you to style the box that sometimes exists
   boxStyle?: StylesCrossPlatform

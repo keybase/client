@@ -10,7 +10,7 @@ const Kb = {
 }
 
 type Props = {
-  users: Array<string> | null
+  users?: Array<string>
 }
 
 type ProofBrokenBannerNonEmptyProps = {

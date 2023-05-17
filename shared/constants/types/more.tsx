@@ -60,8 +60,8 @@ export const PlatformsExpanded = [
 
 const isPlatformsExpandedType = (str: string): str is PlatformsExpandedType =>
   PlatformsExpanded.includes(str as any)
-export const asPlatformsExpandedType = (str: string): PlatformsExpandedType | null =>
-  isPlatformsExpandedType(str) ? str : null
+export const asPlatformsExpandedType = (str: string): PlatformsExpandedType | undefined =>
+  isPlatformsExpandedType(str) ? str : undefined
 
 export type WebOfTrustVerificationType =
   | 'in_person'

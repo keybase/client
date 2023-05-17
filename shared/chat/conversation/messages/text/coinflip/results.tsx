@@ -142,7 +142,7 @@ const CoinFlipResultDeck = (props: DeckType) => (
 )
 
 type CoinType = {
-  coin: boolean | null
+  coin?: boolean
 }
 
 const CoinFlipResultCoin = (props: CoinType) => (
@@ -159,7 +159,7 @@ const CoinFlipResultCoin = (props: CoinType) => (
 )
 
 type HandType = {
-  hands: Array<RPCChatTypes.UICoinFlipHand> | null
+  hands?: Array<RPCChatTypes.UICoinFlipHand>
 }
 
 const CoinFlipResultHands = (props: HandType) => {
@@ -203,7 +203,7 @@ const CoinFlipResultHands = (props: HandType) => {
 }
 
 type NumberType = {
-  number: string | null
+  number?: string
 }
 
 const CoinFlipResultNumber = (props: NumberType) => (
@@ -215,7 +215,7 @@ const CoinFlipResultNumber = (props: NumberType) => (
 )
 
 type ShuffleType = {
-  shuffle: Array<string> | null
+  shuffle?: Array<string>
 }
 
 const CoinFlipResultShuffle = (props: ShuffleType) => (

@@ -16,7 +16,7 @@ function hasAtSign(s: string): boolean {
   return s.includes('@')
 }
 
-function isEmptyOrBlank(thing: string | null): boolean {
+function isEmptyOrBlank(thing?: string): boolean {
   if (!thing || isBlank(thing)) {
     return true
   }
@@ -24,14 +24,14 @@ function isEmptyOrBlank(thing: string | null): boolean {
 }
 
 // Returns an error string if not valid
-function isValidCommon(thing: string | null): string {
+function isValidCommon(thing?: string): string {
   if (isEmptyOrBlank(thing)) return 'Cannot be blank'
   if (thing && hasSpaces(thing)) return 'No spaces allowed'
   return ''
 }
 
 // Returns an error string if not valid
-function isValidUsername(username: string | null): string {
+function isValidUsername(username?: string): string {
   if (!username) {
     return ''
   }
@@ -52,7 +52,7 @@ function isValidUsername(username: string | null): string {
 }
 
 // Returns an error if not valid
-function isValidEmail(email: string | null): string {
+function isValidEmail(email?: string): string {
   const commonError = isValidCommon(email)
   if (!commonError) {
     if (email && hasAtSign(email)) {
@@ -64,7 +64,7 @@ function isValidEmail(email: string | null): string {
 }
 
 // Returns an error string if not valid
-function isValidName(name: string | null): string {
+function isValidName(name?: string): string {
   if (isEmptyOrBlank(name)) return 'Please provide your name.'
   return ''
 }

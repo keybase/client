@@ -692,8 +692,8 @@ export type FolderRPCWithMeta = {
   needsRekey: boolean
   waitingForParticipantUnlock?: Array<ParticipantUnlock>
   youCanUnlock?: Array<Device>
-  team_id: string | null
-  reset_members: Array<ResetMember> | null
+  team_id?: string
+  reset_members?: Array<ResetMember>
 }
 
 export type FavoriteFolder = {
@@ -704,8 +704,8 @@ export type FavoriteFolder = {
     solution_kids: {[K in string]: Array<string>}
     can_self_help: boolean
   }
-  readonly team_id: string | null
-  readonly reset_members: Array<ResetMember> | null
+  readonly team_id?: string
+  readonly reset_members?: Array<ResetMember>
 }
 
 export enum FileViewType {

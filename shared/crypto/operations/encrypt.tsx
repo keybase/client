@@ -87,7 +87,7 @@ const EncryptOutputBanner = () => {
       <Kb.BannerParagraph
         key="whoCanRead"
         bannerColor="grey"
-        content={[hasRecipients ? ' Share it however you like.' : null, whoCanRead]}
+        content={[hasRecipients ? ' Share it however you like.' : undefined, whoCanRead]}
       />
     )
   }

@@ -93,7 +93,7 @@ const InstallBotPopup = (props: Props) => {
       ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
       : undefined
   )
-  let teamname: string | null | undefined
+  let teamname: string | undefined
   let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
   if (meta?.teamname) {
     teamID = meta.teamID

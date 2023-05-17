@@ -7,7 +7,7 @@ type UserList = Array<{
 }>
 
 // Parses the folder name and returns an array of usernames
-export function parseFolderNameToUsers(yourUsername: string | null, folderName: string): UserList {
+export function parseFolderNameToUsers(yourUsername: string | undefined, folderName: string): UserList {
   const [userList] = splitByFirstOccurrenceOf(folderName, ' ')
   const [writers, readers = ''] = userList.split('#')
 

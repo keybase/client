@@ -100,9 +100,9 @@ class Text extends React.Component<Props> {
 function externalGetStyle(
   type: TextType,
   negative?: boolean,
-  lineClampNum?: number | null,
-  clickable?: boolean | null,
-  selectable?: boolean | null
+  lineClampNum?: number,
+  clickable?: boolean,
+  selectable?: boolean
 ): _StylesTextCrossPlatform {
   const meta = metaData()[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)

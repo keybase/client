@@ -227,18 +227,13 @@ export const makeMessageDeleted = (
 export const makeMessageText = (m?: Partial<MessageTypes.MessageText>): MessageTypes.MessageText => ({
   ...makeMessageCommon,
   ...makeMessageExplodable,
-  decoratedText: null,
-  flipGameID: null,
-  inlinePaymentIDs: null,
   inlinePaymentSuccessful: false,
   isDeleteable: true,
   isEditable: true,
   mentionsAt: new Set(),
   mentionsChannel: 'none',
   mentionsChannelName: new Map(),
-  paymentInfo: null,
   reactions: new Map(),
-  replyTo: null,
   text: new HiddenString(''),
   type: 'text',
   unfurls: new Map(),
@@ -253,8 +248,6 @@ export const makeMessageAttachment = (
   attachmentType: 'file',
   audioAmps: [],
   audioDuration: 0,
-  decoratedText: null,
-  downloadPath: null,
   fileName: '',
   fileSize: 0,
   fileType: '',
@@ -268,17 +261,13 @@ export const makeMessageAttachment = (
   mentionsChannel: 'none',
   mentionsChannelName: new Map(),
   previewHeight: 0,
-  previewTransferState: null,
   previewURL: '',
   previewWidth: 0,
   reactions: new Map(),
   showPlayButton: false,
   title: '',
-  transferErrMsg: null,
   transferProgress: 0,
-  transferState: null,
   type: 'attachment',
-  videoDuration: null,
   ...m,
 })
 
@@ -303,7 +292,6 @@ export const makeMessageRequestPayment = (
   note: new HiddenString(''),
   reactions: new Map(),
   requestID: '',
-  requestInfo: null,
   type: 'requestPayment',
   ...m,
 })
@@ -335,7 +323,6 @@ export const makeMessageSendPayment = (
   m?: Partial<MessageTypes.MessageSendPayment>
 ): MessageTypes.MessageSendPayment => ({
   ...makeMessageCommon,
-  paymentInfo: null,
   reactions: new Map(),
   type: 'sendPayment',
   ...m,
@@ -393,7 +380,6 @@ export const makeMessageSystemSBSResolved = (
   m?: Partial<MessageTypes.MessageSystemSBSResolved>
 ): MessageTypes.MessageSystemSBSResolved => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  assertionService: null,
   assertionUsername: '',
   prover: '',
   reactions: new Map(),
@@ -482,7 +468,6 @@ const makeMessageSystemChangeRetention = (
   isInherit: false,
   isTeam: false,
   membersType: 0,
-  policy: null,
   reactions: new Map(),
   type: 'systemChangeRetention',
   user: '',
@@ -930,8 +915,8 @@ const validUIMessagetoMessage = (
       return makeMessageText({
         ...common,
         ...explodable,
-        decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : null,
-        flipGameID: m.flipGameID,
+        decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : undefined,
+        flipGameID: m.flipGameID ?? undefined,
         hasBeenEdited: m.superseded,
         inlinePaymentIDs: payments
           ? payments.reduce((arr: Array<string>, p) => {
@@ -941,7 +926,7 @@ const validUIMessagetoMessage = (
               }
               return arr
             }, [])
-          : null,
+          : undefined,
         inlinePaymentSuccessful: m.paymentInfos
           ? m.paymentInfos.some(pi => successfulInlinePaymentStatuses.includes(pi.statusDescription))
           : false,
@@ -959,7 +944,7 @@ const validUIMessagetoMessage = (
               getLastOrdinal,
               currentDeviceName
             )
-          : null,
+          : undefined,
         text: new HiddenString(rawText),
         unfurls: new Map((m.unfurls || []).map(u => [u.url, u])),
       })
@@ -1015,7 +1000,7 @@ const validUIMessagetoMessage = (
         attachmentType: pre.attachmentType,
         audioAmps: pre.audioAmps,
         audioDuration: pre.audioDuration,
-        decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : null,
+        decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : undefined,
         fileName: filename,
         fileSize: size,
         fileType,
@@ -1165,13 +1150,13 @@ const outboxUIMessagetoMessage = (
       return makeMessageText({
         author: currentUsername,
         conversationIDKey,
-        decoratedText: o.decoratedTextBody ? new HiddenString(o.decoratedTextBody) : null,
+        decoratedText: o.decoratedTextBody ? new HiddenString(o.decoratedTextBody) : undefined,
         deviceName: currentDeviceName,
         deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,
         errorTyp,
         exploding: o.isEphemeral,
-        flipGameID: o.flipGameID,
+        flipGameID: o.flipGameID ?? undefined,
         ordinal: Types.numberToOrdinal(o.ordinal),
         outboxID: Types.stringToOutboxID(o.outboxID),
         submitState: 'pending',
@@ -1502,7 +1487,7 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message): Types.Mess
       ordinal: old.ordinal,
       previewURL: old.previewURL && !m.previewURL ? old.previewURL : m.previewURL,
       transferProgress: old.transferProgress,
-      transferState: old.transferState === 'remoteUploading' ? null : old.transferState,
+      transferState: old.transferState === 'remoteUploading' ? undefined : old.transferState,
     }
   }
 

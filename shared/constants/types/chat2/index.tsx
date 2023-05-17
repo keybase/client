@@ -79,7 +79,7 @@ export type InboxSearchInfo = {
 // Null represents the default chat input.
 // This is very simple for now, but we can make
 // it fancier by using a stack and more types
-export type Focus = 'filter' | null
+export type Focus = 'filter' | undefined
 
 export type CenterOrdinalHighlightMode = 'none' | 'flash' | 'always'
 
@@ -228,11 +228,11 @@ export type State = {
   readonly botPublicCommands: Map<string, BotPublicCommands>
   readonly botSearchResults: Map<string, BotSearchResults | undefined> // Keyed so that we never show results that don't match the user's input (e.g. outdated results)
   readonly botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
-  readonly botTeamRoleInConvMap: Map<Common.ConversationIDKey, Map<string, Team.TeamRoleType | null>>
+  readonly botTeamRoleInConvMap: Map<Common.ConversationIDKey, Map<string, Team.TeamRoleType | undefined>>
   readonly commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   readonly commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   readonly containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
-  readonly createConversationError: CreateConversationError | null
+  readonly createConversationError?: CreateConversationError
   readonly dismissedInviteBannersMap: Map<Common.ConversationIDKey, boolean>
   readonly draftMap: Map<Common.ConversationIDKey, string>
   readonly editingMap: Map<Common.ConversationIDKey, _Message.Ordinal> // current message being edited,
@@ -249,10 +249,10 @@ export type State = {
   readonly shouldDeleteZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard> // messages scheduled for deletion
   readonly inboxNumSmallRows?: number
   readonly inboxHasLoaded: boolean // if we've ever loaded,
-  readonly inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
+  readonly inboxLayout?: RPCChatTypes.UIInboxLayout // layout of the inbox
   readonly inboxSearch?: InboxSearchInfo
   readonly infoPanelShowing: boolean
-  readonly infoPanelSelectedTab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
+  readonly infoPanelSelectedTab?: 'settings' | 'members' | 'attachments' | 'bots'
   readonly lastCoord?: Coordinate
   readonly maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   readonly messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
@@ -282,8 +282,8 @@ export type State = {
   readonly unreadMap: ConversationCountMap // how many unread messages there are,
   readonly unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>
   readonly userReacjis: UserReacjis
-  readonly userEmojis: RPCChatTypes.EmojiGroup[] | undefined
-  readonly userEmojisForAutocomplete: Array<RPCChatTypes.Emoji> | undefined
+  readonly userEmojis?: RPCChatTypes.EmojiGroup[]
+  readonly userEmojisForAutocomplete?: Array<RPCChatTypes.Emoji>
 }
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>

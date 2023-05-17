@@ -7,7 +7,7 @@ export type Info = {
   type: 'image' | 'file' | 'video'
   title: string
   filename: string
-  outboxID: RPCChatTypes.OutboxID | null
+  outboxID?: RPCChatTypes.OutboxID
 }
 
 type PathAndInfo = {

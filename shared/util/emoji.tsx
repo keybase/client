@@ -85,7 +85,7 @@ export const defaultHoverEmoji = emojiNameMap.potato || emojidata[0]
 
 export type EmojiData = {
   category: string
-  name: string | null
+  name?: string
   obsoleted_by?: string
   short_name: string
   short_names: Array<string>
@@ -154,7 +154,7 @@ export const RPCUserReacjiToRenderableEmoji = (
 export function RPCToEmojiData(emoji: RPCChatTypes.Emoji, noAnim: boolean, category?: string): EmojiData {
   return {
     category: category ?? '',
-    name: null,
+    name: undefined,
     sheet_x: -1,
     sheet_y: -1,
     short_name: emoji.alias,

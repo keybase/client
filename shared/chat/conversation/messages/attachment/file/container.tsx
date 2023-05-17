@@ -103,7 +103,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     progress: message.transferProgress,
     title: message.decoratedText?.stringValue() || message.title || message.fileName,
     toggleMessageMenu: p.toggleMessageMenu,
-    transferState: transferState ?? null,
+    transferState,
   }
 
   return <File {...props} />

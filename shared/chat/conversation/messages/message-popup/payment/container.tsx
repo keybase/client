@@ -34,19 +34,14 @@ const commonLoadingProps = {
   amountNominal: '',
   approxWorth: '',
   balanceChange: '',
-  balanceChangeColor: undefined,
   bottomLine: '',
   cancelButtonLabel: '',
   errorDetails: '',
   icon: 'sending' as const,
   loading: true,
-  onCancel: null,
-  onClaimLumens: null,
-  onSeeDetails: null,
   sender: '',
   senderDeviceName: '',
   status: '',
-  style: undefined,
   timestamp: '',
   topLine: '',
   txVerb: 'sent' as const,
@@ -67,7 +62,9 @@ const getTopLineUser = (paymentInfo: Types.ChatPaymentInfo, sender: string, you:
 
 export const SendPaymentPopup = (ownProps: SendOwnProps) => {
   const paymentInfo = Container.useSelector(state => {
-    let paymentInfo = ownProps.paymentID ? state.chat2.paymentStatusMap.get(ownProps.paymentID) || null : null
+    let paymentInfo = ownProps.paymentID
+      ? state.chat2.paymentStatusMap.get(ownProps.paymentID) || undefined
+      : undefined
     if (!paymentInfo && ownProps.message.type === 'sendPayment') {
       paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
     }
@@ -123,8 +120,8 @@ export const SendPaymentPopup = (ownProps: SendOwnProps) => {
           : '',
       icon: paymentInfo.delta === 'increase' ? ('receiving' as const) : ('sending' as const),
       loading: false,
-      onCancel: paymentInfo.showCancel ? () => onCancel(paymentInfo.paymentID) : null,
-      onClaimLumens: paymentInfo.status === 'claimable' && !youAreSender ? onClaimLumens : null,
+      onCancel: paymentInfo.showCancel ? () => onCancel(paymentInfo.paymentID) : undefined,
+      onClaimLumens: paymentInfo.status === 'claimable' && !youAreSender ? onClaimLumens : undefined,
       onHidden: ownProps.onHidden,
       onSeeDetails:
         (paymentInfo.status === 'completed' ||
@@ -134,7 +131,7 @@ export const SendPaymentPopup = (ownProps: SendOwnProps) => {
           paymentInfo.status === 'canceled') &&
         (youAreSender || youAreReceiver)
           ? () => onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID)
-          : null,
+          : undefined,
       position: ownProps.position,
       sender: ownProps.message.author,
       senderDeviceName: ownProps.message.deviceName,
@@ -209,17 +206,14 @@ const RequestPaymentPopup = (ownProps: RequestOwnProps) => {
       approxWorth: '',
       attachTo: ownProps.attachTo,
       balanceChange: '',
-      balanceChangeColor: undefined,
       bottomLine,
       cancelButtonLabel: 'Cancel request',
       errorDetails: '',
       icon: 'receiving' as const,
       loading: false,
       onCancel:
-        ownProps.message.author === you && !(requestInfo.done || requestInfo.canceled) ? onCancel : null,
-      onClaimLumens: null,
+        ownProps.message.author === you && !(requestInfo.done || requestInfo.canceled) ? onCancel : undefined,
       onHidden: ownProps.onHidden,
-      onSeeDetails: null,
       position: ownProps.position,
       sender: ownProps.message.author,
       senderDeviceName: ownProps.message.deviceName,

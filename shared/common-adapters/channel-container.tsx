@@ -9,7 +9,7 @@ type OwnProps = {
   name: string
   convID: Types.ConversationIDKey
   style: StylesTextCrossPlatform
-  allowFontScaling?: boolean | null
+  allowFontScaling?: boolean
 }
 
 export default (ownProps: OwnProps) => {

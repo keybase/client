@@ -13,7 +13,7 @@ type Props = {
 
 const InfoPanelConnector = (props: Props) => {
   const storeSelectedTab = Container.useSelector(state => state.chat2.infoPanelSelectedTab)
-  const initialTab = props.route?.params?.tab ?? storeSelectedTab ?? null
+  const initialTab = props.route?.params?.tab ?? storeSelectedTab
 
   const conversationIDKey: Types.ConversationIDKey =
     props.conversationIDKey ?? props.route?.params?.conversationIDKey ?? Constants.noConversationIDKey
@@ -26,7 +26,7 @@ const InfoPanelConnector = (props: Props) => {
   const smallTeam = meta.teamType !== 'big'
   const teamname = meta.teamname
 
-  const [selectedTab, onSelectTab] = React.useState<Panel | null>(initialTab)
+  const [selectedTab, onSelectTab] = React.useState<Panel | undefined>(initialTab)
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
   const dispatch = Container.useDispatch()

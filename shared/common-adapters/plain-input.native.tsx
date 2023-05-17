@@ -20,8 +20,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _mounted = true
   _input = React.createRef<NativeTextInput>()
-  _lastNativeText: string | null = null
-  _lastNativeSelection: Selection | null = null
+  _lastNativeText: string | undefined
+  _lastNativeSelection: Selection | undefined
 
   get value() {
     return this._lastNativeText ?? ''

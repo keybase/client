@@ -72,7 +72,7 @@ function _computePopupStyle(
   coords: ClientRect,
   popupCoords: ClientRect,
   matchDimension: boolean,
-  offset: number | null
+  offset?: number
 ): ComputedStyle {
   const style: ComputedStyle = {position: 'absolute'}
 
@@ -243,7 +243,7 @@ function computePopupStyle(
   coords: ClientRect,
   popupCoords: ClientRect,
   matchDimension: boolean,
-  offset: number | null,
+  offset?: number,
   // When specified, will only use the fallbacks regardless of visibility
   positionFallbacks?: Styles.Position[]
 ): ComputedStyle {
@@ -260,7 +260,7 @@ function computePopupStyle(
 }
 
 type ModalPositionRelativeProps = {
-  targetRect: ClientRect | null
+  targetRect?: ClientRect
   position: Styles.Position
   positionFallbacks?: Styles.Position[]
   matchDimension?: boolean
@@ -285,7 +285,7 @@ export class RelativeFloatingBox extends React.PureComponent<
     this.state = {style: {}}
   }
 
-  _computeStyle = (targetRect: ClientRect | null) => {
+  _computeStyle = (targetRect: ClientRect | undefined) => {
     if (!targetRect) return
     const popupNode = this.popupNode
     if (!(popupNode instanceof HTMLElement)) {
@@ -299,7 +299,7 @@ export class RelativeFloatingBox extends React.PureComponent<
         targetRect,
         popupNode.getBoundingClientRect(),
         !!this.props.matchDimension,
-        null,
+        undefined,
         this.props.positionFallbacks
       ),
       this.props.style,

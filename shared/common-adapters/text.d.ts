@@ -47,7 +47,7 @@ export type AllowedColors =
 export type _StylesTextCrossPlatform = _CustomStyles<'color', {color?: AllowedColors}>
 export type StylesTextCrossPlatform = CustomStyles<'color', {color?: AllowedColors}>
 
-export type LineClampType = 1 | 2 | 3 | 4 | 5 | null
+export type LineClampType = 1 | 2 | 3 | 4 | 5
 
 type Props = {
   allowFontScaling?: boolean
@@ -59,16 +59,16 @@ type Props = {
   lineClamp?: LineClampType
   negative?: boolean
   onClick?: ((e: React.BaseSyntheticEvent) => void) | null
-  onClickURL?: string | null
+  onClickURL?: string
   onLongPress?: () => void
-  onLongPressURL?: string | null
+  onLongPressURL?: string
   onPress?: void
   fixOverdraw?: boolean // use fastBlank to fix overdraw issues TODO support auto when this is a function
   plainText?: boolean
   selectable?: boolean
   style?: StylesCrossPlatform //StylesTextCrossPlatform ideally this but its more complex than its worth now
   textBreakStrategy?: 'simple' | 'highQuality' | 'balanced' // android only,,
-  title?: string | null
+  title?: string
   type: TextType
   underline?: boolean
   underlineNever?: boolean
@@ -82,7 +82,7 @@ type MetaType = {
     negative: string
   }
   isLink?: true
-  styleOverride?: Object | null
+  styleOverride?: Object
   isTerminal?: true
 }
 
@@ -105,9 +105,9 @@ type TextStyle = {
 
 declare function getStyle(
   type: TextType,
-  backgroundMode?: Background | null,
-  lineClamp?: number | null,
-  clickable?: boolean | null,
+  backgroundMode?: Background,
+  lineClamp?: number,
+  clickable?: boolean,
   selectable?: boolean
 ): TextStyle
 

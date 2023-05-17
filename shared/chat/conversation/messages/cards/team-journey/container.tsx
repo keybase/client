@@ -39,12 +39,12 @@ type Props = {
   teamID: TeamTypes.TeamID
   teamname: string
   isBigTeam: boolean
-  welcomeMessage: RPCChatTypes.WelcomeMessageDisplay | null
+  welcomeMessage?: RPCChatTypes.WelcomeMessageDisplay
 }
 
 const TeamJourneyContainer = (props: Props) => {
   let textComponent: React.ReactNode
-  let image: Kb.IconType | null = null
+  let image: Kb.IconType | undefined
   let actions: Array<Action> = []
 
   const dontCallRPC =

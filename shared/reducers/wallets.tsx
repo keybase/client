@@ -213,7 +213,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     }
 
     draftState.builtPayment.readyToSend = nextButton
-    draftState.builtPayment.reviewBanners = banners ?? null
+    draftState.builtPayment.reviewBanners = banners
     draftState.reviewLastSeqno = seqno
   },
   [WalletsGen.secretKeyReceived]: (draftState, action) => {

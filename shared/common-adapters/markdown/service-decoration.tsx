@@ -101,7 +101,7 @@ const WarningLink = (props: WarningLinkProps) => {
 
 export type Props = {
   json: string
-  allowFontScaling?: boolean | null
+  allowFontScaling?: boolean
   styleOverride: StyleOverride
   styles: {[K in string]: StylesTextCrossPlatform}
   disableBigEmojis: boolean

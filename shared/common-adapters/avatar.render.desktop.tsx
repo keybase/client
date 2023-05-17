@@ -3,7 +3,7 @@ import * as Styles from '../styles'
 import type {Props, AvatarSize} from './avatar.render'
 import {AVATAR_SIZE} from '../common-adapters/avatar'
 
-const avatarSizeToPoopIconType = (s: AvatarSize): IconType | null =>
+const avatarSizeToPoopIconType = (s: AvatarSize): IconType | undefined =>
   s === 128
     ? 'icon-poop-96'
     : s === 96
@@ -12,7 +12,7 @@ const avatarSizeToPoopIconType = (s: AvatarSize): IconType | null =>
     ? 'icon-poop-48'
     : s === 48 || s === 32
     ? 'icon-poop-32'
-    : null
+    : undefined
 
 const Avatar = (props: Props) => {
   const avatarSizeClasName = `avatar-${props.isTeam ? 'team' : 'user'}-size-${props.size}`

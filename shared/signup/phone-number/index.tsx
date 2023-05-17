@@ -94,7 +94,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
           <Kb.Checkbox
             label="Allow friends to find you by this phone number"
             checked={props.searchable}
-            onCheck={props.onChangeSearchable || null}
+            onCheck={props.onChangeSearchable}
             style={styles.checkbox}
           />
         ) : (

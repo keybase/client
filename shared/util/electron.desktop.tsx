@@ -96,7 +96,7 @@ export type KB2 = {
       windowPositionBottomRight?: boolean
     }) => void
     closeRenderer?: (options: {windowComponent?: string; windowParam?: string}) => void
-    readImageFromClipboard?: () => Promise<Buffer | null>
+    readImageFromClipboard?: () => Promise<Buffer | undefined>
     setOpenAtLogin?: (enabled: boolean) => Promise<void>
     showOpenDialog?: (options: OpenDialogOptions) => Promise<Array<string>>
     showSaveDialog?: (options: SaveDialogOptions) => Promise<string>

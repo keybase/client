@@ -3,7 +3,7 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 
 type Props = {
-  error?: Error | null
+  error?: Error
   hasPGPKeyOnServer?: boolean
   hasRandomPW: boolean
   newPasswordError?: string

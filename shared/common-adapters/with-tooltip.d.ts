@@ -13,7 +13,7 @@ export type Props = {
   toastClassName?: string
   toastStyle?: StylesCrossPlatform
   textStyle?: StylesCrossPlatform
-  showOnPressMobile?: boolean | null
+  showOnPressMobile?: boolean
 }
 
 declare class WithTooltip extends React.Component<Props> {}

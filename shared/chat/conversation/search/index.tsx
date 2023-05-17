@@ -222,12 +222,12 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
                   </Kb.Text>
                   <Kb.Icon
                     color={noResults ? Styles.globalColors.black_35 : Styles.globalColors.black_50}
-                    onClick={!noResults ? this.props.onUp : null}
+                    onClick={!noResults ? this.props.onUp : undefined}
                     type="iconfont-arrow-up"
                   />
                   <Kb.Icon
                     color={noResults ? Styles.globalColors.black_35 : Styles.globalColors.black_50}
-                    onClick={!noResults ? this.props.onDown : null}
+                    onClick={!noResults ? this.props.onDown : undefined}
                     type="iconfont-arrow-down"
                   />
                 </Kb.Box2>

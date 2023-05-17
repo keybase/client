@@ -58,7 +58,6 @@ export const makeBuilding = (b?: Partial<Types.Building>): Types.Building => ({
   publicMemo: new HiddenString(''),
   recipientType: 'keybaseUser',
   secretNote: new HiddenString(''),
-  sendAssetChoices: null,
   to: '',
   ...b,
 })
@@ -107,7 +106,6 @@ export const emptyBuiltPaymentAdvanced = makeBuiltPaymentAdvanced()
 export const makeBuiltPayment = (b?: Partial<Types.BuiltPayment>): Types.BuiltPayment => ({
   amountAvailable: '',
   amountErrMsg: '',
-  builtBanners: null,
   displayAmountFiat: '',
   displayAmountXLM: '',
   from: Types.noAccountID,
@@ -115,7 +113,6 @@ export const makeBuiltPayment = (b?: Partial<Types.BuiltPayment>): Types.BuiltPa
   publicMemoOverride: new HiddenString(''),
   readyToReview: false,
   readyToSend: 'spinning',
-  reviewBanners: null,
   secretNoteErrMsg: new HiddenString(''),
   sendingIntentionXLM: false,
   toErrMsg: '',
@@ -130,7 +127,7 @@ export const makeSEP7Summary = (s?: Partial<Types.SEP7Summary>): Types.SEP7Summa
   fee: -1,
   memo: '',
   memoType: '',
-  operations: null,
+  operations: undefined,
   source: '',
   ...s,
 })
@@ -157,7 +154,6 @@ export const makeSEP7ConfirmInfo = (s?: Partial<Types.SEP7ConfirmInfo>): Types.S
 
 export const makeBuiltRequest = (b?: Partial<Types.BuiltRequest>): Types.BuiltRequest => ({
   amountErrMsg: '',
-  builtBanners: null,
   displayAmountFiat: '',
   displayAmountXLM: '',
   readyToRequest: false,
@@ -235,8 +231,8 @@ export const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLoca
   makeBuiltPayment({
     amountAvailable: b.amountAvailable,
     amountErrMsg: b.amountErrMsg,
-    builtBanners: b.banners,
-    displayAmountFiat: b.displayAmountFiat,
+    builtBanners: b.banners ?? undefined,
+    displayAmountFiat: b.displayAmountFiat ?? undefined,
     displayAmountXLM: b.displayAmountXLM,
     from: b.from ? Types.stringToAccountID(b.from) : Types.noAccountID,
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
@@ -254,7 +250,7 @@ export const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLoca
 export const buildRequestResultToBuiltRequest = (b: RPCTypes.BuildRequestResLocal) =>
   makeBuiltRequest({
     amountErrMsg: b.amountErrMsg,
-    builtBanners: b.banners,
+    builtBanners: b.banners ?? undefined,
     displayAmountFiat: b.displayAmountFiat,
     displayAmountXLM: b.displayAmountXLM,
     readyToRequest: b.readyToRequest,
@@ -337,7 +333,7 @@ const _defaultPaymentCommon = {
   fromAirdrop: false,
   id: Types.noPaymentID,
   isAdvanced: false,
-  issuerAccountID: null,
+  issuerAccountID: '',
   issuerDescription: '',
   note: new HiddenString(''),
   noteErr: new HiddenString(''),
@@ -358,8 +354,8 @@ const _defaultPaymentCommon = {
   target: '',
   targetAccountID: '',
   targetType: '',
-  time: null,
-  trustline: null,
+  time: undefined,
+  trustline: undefined,
   unread: false,
   worth: '',
   worthAtSendTime: '',
@@ -448,7 +444,7 @@ export const rpcPaymentResultToPaymentResult = (
     return makePaymentResult({error: 'No payments returned'})
   }
   if (!w.payment) {
-    return makePaymentResult({error: w.err})
+    return makePaymentResult({error: w.err ?? undefined})
   }
   const unread = w.payment.unread
   return makePaymentResult({
@@ -505,11 +501,11 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     fromAirdrop: p.fromAirdrop,
     id: Types.rpcPaymentIDToPaymentID(p.id),
     isAdvanced: p.isAdvanced,
-    issuerAccountID: p.issuerAccountID ? Types.stringToAccountID(p.issuerAccountID) : null,
+    issuerAccountID: p.issuerAccountID ? Types.stringToAccountID(p.issuerAccountID) : '',
     issuerDescription: p.issuerDescription,
     note: new HiddenString(p.note),
     noteErr: new HiddenString(p.noteErr),
-    operations: p.operations,
+    operations: p.operations ?? undefined,
     showCancel: p.showCancel,
     source,
     sourceAccountID: p.fromAccountID,
@@ -524,10 +520,10 @@ const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal) => {
     statusSimplified: serviceStatusSimplfied,
     summaryAdvanced: p.summaryAdvanced,
     target,
-    targetAccountID: p.toAccountID,
+    targetAccountID: p.toAccountID ?? '',
     targetType,
     time: p.time,
-    trustline: p.trustline,
+    trustline: p.trustline ?? undefined,
     worth: p.worth,
     worthAtSendTime: p.worthAtSendTime,
   }

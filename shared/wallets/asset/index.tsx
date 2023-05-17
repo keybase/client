@@ -173,7 +173,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
               multiline={true}
             >
               <Kb.Icon
-                onClick={Styles.isMobile ? props.openStellarURL : null}
+                onClick={Styles.isMobile ? props.openStellarURL : undefined}
                 sizeType="Small"
                 style={styles.questionMark}
                 type="iconfont-question-mark"

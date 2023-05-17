@@ -25,7 +25,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
     // TODO: remove these after updates are fully integrated
     const onLeftAction = this.props.onLeftAction || this.props.onBack || this.props.onCancel
     const leftAction =
-      this.props.leftAction || (this.props.onCancel ? 'cancel' : this.props.onBack ? 'back' : null)
+      this.props.leftAction || (this.props.onCancel ? 'cancel' : this.props.onBack ? 'back' : undefined)
     const rightActions = this.props.rightActions
       ? this.props.rightActions.filter(Boolean)
       : this.props.onRightAction && this.props.rightActionLabel
@@ -83,7 +83,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
           hideBackLabel={this.props.hideBackLabel}
           leftAction={leftAction}
           leftActionText={this.props.leftActionText}
-          onLeftAction={onLeftAction || null}
+          onLeftAction={onLeftAction}
           theme={this.props.theme}
         />
         {this.props.titleComponent && (

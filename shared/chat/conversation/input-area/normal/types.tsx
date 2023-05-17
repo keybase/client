@@ -29,7 +29,7 @@ type CommonProps = {
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
   onSubmit: (text: string) => void
-  prependText: string | null
+  prependText?: string
   quoteCounter: number
   quoteText: string
   sendTyping: (typing: boolean) => void
@@ -40,7 +40,7 @@ type CommonProps = {
   showReplyPreview: boolean
   showTypingStatus: boolean
   showWalletsIcon: boolean
-  unsentText: string | null
+  unsentText?: string
   unsentTextChanged: (text: string) => void
 }
 

@@ -37,7 +37,7 @@ const ErrorMessage = () => {
   let createConversationDisallowedUsers: Array<string> = []
   let createConversationErrorDescription = ''
   let createConversationErrorHeader = ''
-  let onCreateWithoutThem: (() => void) | null = null
+  let onCreateWithoutThem: (() => void) | undefined
   if (createConversationError) {
     const {allowedUsers, code, disallowedUsers, message} = createConversationError
     if (code === RPCTypes.StatusCode.scteamcontactsettingsblock) {

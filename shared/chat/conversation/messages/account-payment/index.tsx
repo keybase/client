@@ -13,7 +13,7 @@ export type Props = {
   cancelButtonLabel: string
   canceled: boolean
   claimButtonLabel: string
-  icon: Kb.IconType | null
+  icon?: Kb.IconType
   loading: boolean
   memo: string
   onCancel: () => void

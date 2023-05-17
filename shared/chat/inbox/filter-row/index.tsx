@@ -76,7 +76,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           this.props.isSearching ? 'Search your chats...' : Styles.isMobile ? 'Search your chats' : 'Search'
         }
         hotkey="k"
-        showXOverride={this.props.isSearching ? true : null}
+        showXOverride={this.props.isSearching ? true : undefined}
         value={this.props.filter}
         valueControlled={true}
         // On mobile SearchFilter is re-mounted when toggling isSearching. (See chat/inbox/index.native.tsx:render's use of isSearching)

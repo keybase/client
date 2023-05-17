@@ -6,7 +6,7 @@ import * as Styles from '../styles'
 export type Props = {
   containerStyle?: Styles.StylesCrossPlatform
   children?: React.ReactNode
-  color?: string | null
+  color?: string
 }
 
 const InfoNote = (props: Props) => (

@@ -19,7 +19,7 @@ export type TodoMetaEmail = {
 }
 export type TodoMetaPhone = {type: 'phone'; phone: string}
 
-export type TodoMeta = TodoMetaEmail | TodoMetaPhone | null
+export type TodoMeta = TodoMetaEmail | TodoMetaPhone | undefined
 
 export type Todo = {
   type: 'todo'
@@ -67,7 +67,7 @@ export type PeopleScreenItem = Todo | FollowedNotificationItem | Announcement
 
 export type FollowSuggestion = {
   username: string
-  fullName: string | null
+  fullName?: string
   followsMe: boolean
   iFollow: boolean
 }
@@ -81,5 +81,5 @@ export type State = {
   readonly followSuggestions: Array<FollowSuggestion>
   readonly resentEmail: string
   readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-  readonly inviteCounts: RPCTypes.InviteCounts | null
+  readonly inviteCounts: RPCTypes.InviteCounts | undefined
 }

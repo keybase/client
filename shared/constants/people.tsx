@@ -137,7 +137,7 @@ export function extractMetaFromTodoItem(todo: RPCTypes.HomeScreenTodo, todoExt?:
     case T.verifyAllPhoneNumber:
       return makeTodoMetaPhone({phone: todo.verifyAllPhoneNumber})
     default:
-      return null
+      return
   }
 }
 
@@ -283,7 +283,7 @@ export const makeTodo = (t?: Partial<Types.Todo>): Types.Todo => ({
   dismissable: false,
   icon: 'iconfont-close',
   instructions: '',
-  metadata: null,
+  metadata: undefined,
   todoType: 'none',
   type: 'todo',
   ...t,
@@ -310,7 +310,7 @@ export const makeFollowedNotificationItem = (
 
 export const makeFollowSuggestion = (f?: Partial<Types.FollowSuggestion>): Types.FollowSuggestion => ({
   followsMe: false,
-  fullName: null,
+  fullName: undefined,
   iFollow: false,
   username: '',
   ...f,

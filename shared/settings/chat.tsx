@@ -141,10 +141,10 @@ export type Props = {
 }
 
 type State = {
-  contactSettingsEnabled?: boolean | null
-  contactSettingsIndirectFollowees?: boolean | null
+  contactSettingsEnabled?: boolean
+  contactSettingsIndirectFollowees?: boolean
   contactSettingsSelectedTeams: {[K in TeamID]: boolean}
-  contactSettingsTeamsEnabled?: boolean | null
+  contactSettingsTeamsEnabled?: boolean
   unfurlSelected?: RPCChatTypes.UnfurlMode
   unfurlWhitelistRemoved: {[K in string]: boolean}
 }
@@ -287,12 +287,7 @@ class Chat extends React.Component<Props, State> {
                       gapStart={Styles.isMobile}
                       style={styles.checkboxIndented}
                     >
-                      <Kb.Checkbox
-                        label="You follow them, or..."
-                        checked={true}
-                        disabled={true}
-                        onCheck={null}
-                      />
+                      <Kb.Checkbox label="You follow them, or..." checked={true} disabled={true} />
                       <Kb.Checkbox
                         label="You follow someone who follows them, or..."
                         onCheck={checked =>

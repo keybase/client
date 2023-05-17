@@ -9,7 +9,7 @@ type Props = {
   maxSearchHits?: number
   participants: Array<string>
   showBold: boolean
-  usernameColor: string | null
+  usernameColor?: string
 }
 
 class FilteredTopLine extends React.PureComponent<Props> {

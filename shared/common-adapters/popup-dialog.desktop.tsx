@@ -25,7 +25,7 @@ export function PopupDialog({
 }: Props) {
   const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
   return (
-    <EscapeHandler onESC={!immuneToEscape ? onClose || null : null}>
+    <EscapeHandler onESC={!immuneToEscape ? onClose || undefined : undefined}>
       <Box
         style={Styles.collapseStyles([styles.cover, styleCover])}
         onMouseUp={(e: React.MouseEvent) => {

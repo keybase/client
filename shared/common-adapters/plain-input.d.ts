@@ -152,7 +152,7 @@ declare class PlainInput extends React.Component<Props> {
   clear: () => void
   focus: () => void
   isFocused: () => boolean
-  getSelection: () => Selection | null
+  getSelection: () => Selection | undefined
   get value(): string
 
   /**

@@ -171,7 +171,7 @@ const OpenTeam = (props: SettingProps & RolePickerProps & {showWarning: () => vo
             </Kb.Box2>
           </Kb.Box2>
         }
-        onCheck={props.isRolePickerOpen ? null : props.showWarning}
+        onCheck={props.isRolePickerOpen ? undefined : props.showWarning}
       />
     </Kb.Box2>
   )

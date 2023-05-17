@@ -124,15 +124,15 @@ type Props = {
 }
 
 type State = {
-  info: AllErrorInfo | null
+  info: AllErrorInfo | undefined
 }
 
 class ErrorBoundary extends React.PureComponent<Props, State> {
-  state = {info: null}
+  state = {info: undefined}
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.children !== prevProps.children && this.state.info) {
-      this.setState(p => (p.info ? {info: null} : null))
+      this.setState(p => (p.info ? {info: undefined} : null))
     }
   }
 

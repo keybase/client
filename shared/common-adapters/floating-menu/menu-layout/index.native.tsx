@@ -15,10 +15,10 @@ import {SafeAreaProvider, initialWindowMetrics} from 'react-native-safe-area-con
 type MenuRowProps = {
   centered?: boolean
   isHeader?: boolean
-  newTag?: boolean | null
+  newTag?: boolean
   index: number
   numItems: number
-  onHidden?: (() => void) | null
+  onHidden?: () => void
   textColor?: Styles.Color
   backgroundColor?: Styles.Color
 } & MenuItem

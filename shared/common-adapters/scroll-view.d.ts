@@ -6,9 +6,9 @@ export type Props = {
   children?: React.ReactNode
   contentContainerStyle?: StylesCrossPlatform
   style?: StylesCrossPlatform
-  onScroll?: React.UIEventHandler<any> | null
-  className?: string | null
-  ref?: React.Ref<any> | null
+  onScroll?: React.UIEventHandler<any>
+  className?: string
+  ref?: React.Ref<any>
   showsVerticalScrollIndicator?: boolean
   showsHorizontalScrollIndicator?: boolean
   // mobile only

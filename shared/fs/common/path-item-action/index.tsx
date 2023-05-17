@@ -42,7 +42,7 @@ const IconClickable = props => (
       fixOverdraw={false}
       type="iconfont-ellipsis"
       color={props.actionIconWhite ? Styles.globalColors.whiteOrBlueDark : Styles.globalColors.black_50}
-      hoverColor={props.actionIconWhite ? null : Styles.globalColors.black}
+      hoverColor={props.actionIconWhite ? undefined : Styles.globalColors.black}
       padding="tiny"
       sizeType={props.sizeType || 'Default'}
       onClick={props.onClick}

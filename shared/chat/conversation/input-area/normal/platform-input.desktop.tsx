@@ -62,7 +62,6 @@ const ExplodingButton = (p: ExplodingButtonProps) => {
         <Kb.WithTooltip tooltip="Timer">
           <Kb.Icon
             className={Styles.classNames('timer-icon', 'hover_color_black')}
-            colorOverride={null}
             onClick={toggleShowingPopup}
             padding="xtiny"
             type="iconfont-timer"
@@ -115,7 +114,7 @@ const EmojiButton = (p: EmojiButtonProps) => {
       <Kb.WithTooltip tooltip="Emoji">
         <Kb.Box style={styles.icon} ref={popupAnchor}>
           <Kb.Icon
-            color={showingPopup ? Styles.globalColors.black : null}
+            color={showingPopup ? Styles.globalColors.black : undefined}
             onClick={toggleShowingPopup}
             type="iconfont-emoji"
           />
@@ -154,8 +153,8 @@ const FileButton = (p: {conversationIDKey: Types.ConversationIDKey; htmlInputRef
   const dispatch = Container.useDispatch()
   const pickFile = React.useCallback(() => {
     const paths = fileListToPaths(htmlInputRef.current?.files)
-    const pathAndOutboxIDs = paths.reduce<Array<{outboxID: null; path: string}>>((arr, path: string) => {
-      path && arr.push({outboxID: null, path})
+    const pathAndOutboxIDs = paths.reduce<Array<{path: string}>>((arr, path: string) => {
+      path && arr.push({path})
       return arr
     }, [])
     if (pathAndOutboxIDs.length) {
