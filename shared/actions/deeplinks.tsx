@@ -11,9 +11,21 @@ import * as TeamsGen from './teams-gen'
 import * as CryptoGen from '../actions/crypto-gen'
 import * as CrytoConstants from '../constants/crypto'
 import type * as CryptoTypes from '../constants/types/crypto'
-import {validTeamname, validTeamnamePart} from '../constants/teamname'
 import URL from 'url-parse'
 import logger from '../logger'
+
+// This logic is copied from go/protocol/keybase1/extras.go.
+const validTeamnamePart = (s: string): boolean => {
+  if (s.length < 2 || s.length > 16) {
+    return false
+  }
+
+  return /^([a-zA-Z0-9][a-zA-Z0-9_]?)+$/.test(s)
+}
+
+const validTeamname = (s: string): boolean => {
+  return s.split('.').every(validTeamnamePart)
+}
 
 const teamPageActions = ['add_or_invite', 'manage_settings', 'join'] as const
 type TeamPageAction = (typeof teamPageActions)[number]

@@ -46,7 +46,7 @@ export const keybaseFM = 'Keybase FM 87.7'
 
 type seenVersionsMap = {[key in WhatsNewVersion]: boolean}
 
-export const isVersionValid = (version: string) => {
+const isVersionValid = (version: string) => {
   return version ? semver.valid(version) : false
 }
 

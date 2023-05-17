@@ -12,10 +12,23 @@ import type {WebOfTrustVerificationType} from '../constants/types/more'
 import type {formatPhoneNumberInternational as formatPhoneNumberInternationalType} from '../util/phone-numbers'
 import {RPCError} from '../util/errors'
 
+const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
+  switch (result) {
+    case RPCTypes.Identify3ResultType.ok:
+      return 'valid'
+    case RPCTypes.Identify3ResultType.broken:
+      return 'broken'
+    case RPCTypes.Identify3ResultType.needsUpgrade:
+      return 'needsUpgrade'
+    case RPCTypes.Identify3ResultType.canceled:
+      return 'error'
+  }
+}
+
 const identify3Result = (_: unknown, action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) =>
   Tracker2Gen.createUpdateResult({
     guiID: action.payload.params.guiID,
-    result: Constants.rpcResultToStatus(action.payload.params.result),
+    result: rpcResultToStatus(action.payload.params.result),
   })
 
 const identify3ShowTracker = (_: unknown, action: EngineGen.Keybase1Identify3UiIdentify3ShowTrackerPayload) =>

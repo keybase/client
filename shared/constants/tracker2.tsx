@@ -2,18 +2,15 @@ import * as RPCTypes from './types/rpc-gen'
 import type * as Types from './types/tracker2'
 import type {TypedState} from './reducer'
 
-const emptyArray: any = []
-const emptyMap: any = new Map()
-
 export const makeState = (): Types.State => ({
-  proofSuggestions: emptyArray,
+  proofSuggestions: [],
   showTrackerSet: new Set(),
   usernameToDetails: new Map(),
   usernameToNonUserDetails: new Map(),
 })
 
 export const noDetails = Object.freeze<Types.Details>({
-  assertions: emptyMap,
+  assertions: new Map(),
   blocked: false,
   guiID: '',
   hidFromFollowers: false,
@@ -21,19 +18,19 @@ export const noDetails = Object.freeze<Types.Details>({
   resetBrokeTrack: false,
   state: 'unknown',
   stellarHidden: false,
-  teamShowcase: emptyArray,
+  teamShowcase: [],
   username: '',
-  webOfTrustEntries: emptyArray,
+  webOfTrustEntries: [],
 })
 
 export const noNonUserDetails = Object.freeze<Types.NonUserDetails>({
   assertionKey: '',
   assertionValue: '',
   description: '',
-  siteIcon: emptyArray,
-  siteIconDarkmode: emptyArray,
-  siteIconFull: emptyArray,
-  siteIconFullDarkmode: emptyArray,
+  siteIcon: [],
+  siteIconDarkmode: [],
+  siteIconFull: [],
+  siteIconFullDarkmode: [],
   siteURL: '',
 })
 
@@ -61,20 +58,7 @@ export const noAssertion = Object.freeze<Types.Assertion>({
   value: '',
 })
 
-export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
-  switch (result) {
-    case RPCTypes.Identify3ResultType.ok:
-      return 'valid'
-    case RPCTypes.Identify3ResultType.broken:
-      return 'broken'
-    case RPCTypes.Identify3ResultType.needsUpgrade:
-      return 'needsUpgrade'
-    case RPCTypes.Identify3ResultType.canceled:
-      return 'error'
-  }
-}
-
-export const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor): Types.AssertionColor => {
+const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor): Types.AssertionColor => {
   switch (color) {
     case RPCTypes.Identify3RowColor.blue:
       return 'blue'
@@ -93,7 +77,7 @@ export const rpcRowColorToColor = (color: RPCTypes.Identify3RowColor): Types.Ass
   }
 }
 
-export const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): Types.AssertionState => {
+const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): Types.AssertionState => {
   switch (state) {
     case RPCTypes.Identify3RowState.checking:
       return 'checking'
