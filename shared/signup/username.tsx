@@ -47,7 +47,7 @@ type Props = {
   onBack: () => void
   onContinue: (username: string) => void
   onLogin: (username: string) => void
-  usernameTaken: string | null
+  usernameTaken?: string
   waiting: boolean
 }
 

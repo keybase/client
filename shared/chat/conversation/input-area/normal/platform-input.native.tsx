@@ -108,7 +108,7 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
         </Kb.Box2>
       ) : (
         <Kb.Icon
-          color={isExploding ? Styles.globalColors.black : null}
+          color={isExploding ? Styles.globalColors.black : undefined}
           type="iconfont-timer"
           fixOverdraw={true}
         />
@@ -227,7 +227,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
           return
         }
 
-        const pathAndOutboxIDs = result.assets.map(a => ({outboxID: null, path: a.uri}))
+        const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
         const props = {conversationIDKey, pathAndOutboxIDs}
         dispatch(
           RouteTreeGen.createNavigateAppend({
@@ -419,7 +419,7 @@ const PlatformInput = (p: Props) => {
   const onPasteImage = React.useCallback(
     (uri: string) => {
       try {
-        const pathAndOutboxIDs = [{outboxID: null, path: uri}]
+        const pathAndOutboxIDs = [{path: uri}]
         dispatch(
           RouteTreeGen.createNavigateAppend({
             path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],

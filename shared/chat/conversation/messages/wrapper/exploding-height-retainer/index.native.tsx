@@ -21,7 +21,7 @@ const copyChildren = (children: React.ReactNode): React.ReactNode =>
 
 type State = {
   children: React.ReactNode
-  height: number | null
+  height: number | undefined
   numImages: number
 }
 

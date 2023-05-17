@@ -285,7 +285,7 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
 
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const roles = members.map(username => teamDetails.members.get(username)?.type)
-  const currentRole = allSameOrNull(roles)
+  const currentRole = allSameOrNull(roles) ?? undefined
 
   const [showingPicker, setShowingPicker] = React.useState(false)
 

@@ -57,7 +57,7 @@ export type MessageExplodeDescription = {
 
 export type PathAndOutboxID = {
   path: string
-  outboxID: RPCChatTypes.OutboxID | null
+  outboxID?: RPCChatTypes.OutboxID
 }
 
 // optional props here may never get set depending on the type
@@ -71,11 +71,11 @@ type _MessageCommon = {
   previewWidth?: number
   attachmentType?: AttachmentType
   fileName?: string
-  transferErrMsg?: string | null
+  transferErrMsg?: string
   transferState?: MessageAttachmentTransferState
   fileType?: string // MIME type,
   unfurls?: UnfurlMap
-  downloadPath?: string | null // string if downloaded,
+  downloadPath?: string // string if downloaded,
   author: string
   bodySummary: HiddenString
   botUsername?: string
@@ -103,7 +103,7 @@ type _MessageCommon = {
   ordinal: Ordinal
   outboxID?: OutboxID
   reactions?: Reactions
-  replyTo?: Message | null
+  replyTo?: Message
   submitState?: 'deleting' | 'editing' | 'pending' | 'failed'
   timestamp: number
 }
@@ -144,22 +144,22 @@ export type MessageDeleted = {
 
 export type MessageText = {
   botUsername?: string
-  decoratedText: HiddenString | null
+  decoratedText?: HiddenString
   exploded: boolean
   explodedBy: string // only if 'explode now' happened,
   exploding: boolean
   explodingTime: number
   explodingUnreadable: boolean // if we can't read this message bc we have no keys,
-  inlinePaymentIDs: Array<WalletTypes.PaymentID> | null
+  inlinePaymentIDs?: Array<WalletTypes.PaymentID>
   inlinePaymentSuccessful: boolean
-  flipGameID: string | null
+  flipGameID?: string
   mentionsAt: MentionsAt
   mentionsChannel: MentionsChannel
   mentionsChannelName: MentionsChannelName
 
-  replyTo: Message | null
+  replyTo?: Message
   text: HiddenString
-  paymentInfo: ChatPaymentInfo | null // If null, we are waiting on this from the service,
+  paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
   unfurls: UnfurlMap
   type: 'text'
 } & _MessageCommon &
@@ -183,19 +183,19 @@ export type MessageAttachmentTransferState =
   | 'downloading'
   | 'remoteUploading'
   | 'mobileSaving'
-  | null
+  | undefined
 
 export type MessageAttachment = {
   attachmentType: AttachmentType
   audioAmps: Array<number>
   audioDuration: number
-  decoratedText: HiddenString | null
+  decoratedText?: HiddenString
   showPlayButton: boolean
   fileURL: string
   fileURLCached: boolean
   previewURL: string
   fileType: string // MIME type,
-  downloadPath: string | null // string if downloaded,
+  downloadPath?: string // string if downloaded,
   exploded: boolean
   explodedBy: string // only if 'explode now' happened,
   exploding: boolean
@@ -211,13 +211,13 @@ export type MessageAttachment = {
   mentionsChannelName: MentionsChannelName
   previewHeight: number
   previewWidth: number
-  previewTransferState: 'downloading' | null // only for preview,
+  previewTransferState?: 'downloading' // only for preview,
   title: string
   transferProgress: number // 0-1 // only for the file,
-  transferState: MessageAttachmentTransferState
-  transferErrMsg: string | null
+  transferState?: MessageAttachmentTransferState
+  transferErrMsg?: string
   type: 'attachment'
-  videoDuration: string | null
+  videoDuration?: string
 } & _MessageCommon &
   _MessageWithDeviceInfo &
   _MessageWithReactions &
@@ -237,7 +237,7 @@ export type ChatRequestInfo = {
 export type MessageRequestPayment = {
   note: HiddenString
   requestID: RPCStellarTypes.KeybaseRequestID
-  requestInfo: ChatRequestInfo | null // If null, we are waiting on this from the service,
+  requestInfo?: ChatRequestInfo // If null, we are waiting on this from the service,
   type: 'requestPayment'
 } & _MessageCommon &
   _MessageWithDeviceInfo &
@@ -264,7 +264,7 @@ export type ChatPaymentInfo = {
 }
 
 export type MessageSendPayment = {
-  paymentInfo: ChatPaymentInfo | null // If null, we are waiting on this from the service,
+  paymentInfo?: ChatPaymentInfo // If null, we are waiting on this from the service,
   type: 'sendPayment'
 } & _MessageCommon &
   _MessageWithDeviceInfo &
@@ -290,7 +290,7 @@ export type MessageSystemInviteAccepted = {
 
 export type MessageSystemSBSResolved = {
   assertionUsername: string
-  assertionService: ServiceIdWithContact | null
+  assertionService?: ServiceIdWithContact
   prover: string
   type: 'systemSBSResolved'
 } & _MessageCommon &
@@ -408,7 +408,7 @@ export type MessageSystemChangeRetention = {
   isInherit: boolean
   isTeam: boolean
   membersType: RPCChatTypes.ConversationMembersType
-  policy: RPCChatTypes.RetentionPolicy | null
+  policy?: RPCChatTypes.RetentionPolicy
   type: 'systemChangeRetention'
   user: string
   you: string

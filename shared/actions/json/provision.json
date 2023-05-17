@@ -6,7 +6,7 @@
   ],
   "actions": {
     "startProvision": {"fromReset?": "boolean", "initUsername?": "string"},
-    "provisionError": {"error": "HiddenString | null"},
+    "provisionError": {"error?": "HiddenString "},
     "submitUsername": {"username": "string"},
     "submitPassword": {"password": "HiddenString"},
     "submitPaperkey": {"paperkey": "HiddenString"},
@@ -23,11 +23,11 @@
     "showNewDeviceNamePage": {
       "_description": "Ask the user for a new device name",
       "existingDevices": "Array<string>",
-      "error": "HiddenString | null"
+      "error?": "HiddenString"
     },
     "showCodePage": {
       "code": "HiddenString",
-      "error": "HiddenString | null"
+      "error?": "HiddenString"
     },
     "showFinalErrorPage": {
       "finalError": "RPCError",
@@ -38,10 +38,10 @@
       "inlineError": "RPCError"
     },
     "showPasswordPage": {
-      "error": "HiddenString | null"
+      "error?": "HiddenString"
     },
     "showPaperkeyPage": {
-      "error": "HiddenString | null"
+      "error?": "HiddenString"
     },
     "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]},
     "forgotUsername": {

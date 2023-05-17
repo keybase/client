@@ -88,7 +88,7 @@ export type Building = {
   publicMemo: HiddenString
   recipientType: CounterpartyType
   secretNote: HiddenString
-  sendAssetChoices: Array<StellarRPCTypes.SendAssetChoiceLocal> | null
+  sendAssetChoices?: Array<StellarRPCTypes.SendAssetChoiceLocal>
   to: string
 }
 
@@ -128,7 +128,7 @@ export type BuiltPaymentAdvanced = {
 export type BuiltPayment = {
   amountAvailable: string
   amountErrMsg: string
-  builtBanners: Array<StellarRPCTypes.SendBannerLocal> | null
+  builtBanners?: Array<StellarRPCTypes.SendBannerLocal>
   from: AccountID
   publicMemoErrMsg: HiddenString
   publicMemoOverride: HiddenString
@@ -142,13 +142,13 @@ export type BuiltPayment = {
   worthInfo: string
   displayAmountXLM: string
   displayAmountFiat: string
-  reviewBanners: Array<StellarRPCTypes.SendBannerLocal> | null
+  reviewBanners?: Array<StellarRPCTypes.SendBannerLocal>
   sendingIntentionXLM: boolean
 }
 
 export type BuiltRequest = {
   amountErrMsg: string
-  builtBanners?: Array<StellarRPCTypes.SendBannerLocal> | null
+  builtBanners?: Array<StellarRPCTypes.SendBannerLocal>
   readyToRequest: boolean
   secretNoteErrMsg: HiddenString
   toErrMsg: string
@@ -180,7 +180,7 @@ export type _PaymentCommon = {
   assetCode: string
   delta: PaymentDelta
   fromAirdrop: boolean
-  error: string | null
+  error?: string
   id: PaymentID
   note: HiddenString
   noteErr: HiddenString
@@ -197,19 +197,19 @@ export type _PaymentCommon = {
   statusDetail: string
   showCancel: boolean
   target: string
-  targetAccountID: string | null
+  targetAccountID?: string
   targetType: string
-  time: number | null
+  time?: number
   worth: string
   worthAtSendTime: string // for "(APPROXIMATELY $X.XX)" strings,
   // issuer, for non-xlm assets
   isAdvanced: boolean
-  operations: Array<string> | null
+  operations?: Array<string>
   summaryAdvanced: string
   issuerDescription: string
-  issuerAccountID: AccountID | null
+  issuerAccountID?: AccountID
   unread: boolean
-  trustline: StellarRPCTypes.PaymentTrustlineLocal | null
+  trustline?: StellarRPCTypes.PaymentTrustlineLocal
 }
 
 export type PaymentResult = {
@@ -318,7 +318,7 @@ export type State = {
   readonly linkExistingAccountError: string
   readonly loadPaymentsError: string
   readonly mobileOnlyMap: Map<AccountID, boolean>
-  readonly paymentCursorMap: Map<AccountID, StellarRPCTypes.PageCursor | null>
+  readonly paymentCursorMap: Map<AccountID, StellarRPCTypes.PageCursor | undefined>
   readonly paymentLoadingMoreMap: Map<AccountID, boolean>
   readonly paymentOldestUnreadMap: Map<AccountID, PaymentID>
   readonly paymentsMap: Map<AccountID, Map<PaymentID, Payment>>

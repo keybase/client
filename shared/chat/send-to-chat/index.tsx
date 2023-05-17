@@ -68,10 +68,7 @@ export const MobileSendToChat = (props: Props) => {
             {
               props: {
                 conversationIDKey,
-                pathAndOutboxIDs: sendPaths.map(p => ({
-                  outboxID: null,
-                  path: p,
-                })),
+                pathAndOutboxIDs: sendPaths.map(p => ({path: p})),
                 selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
                 tlfName,
               },
@@ -113,7 +110,7 @@ const DesktopSendToChat = (props: RoutableProps) => {
       dispatch(
         Chat2Gen.createAttachmentsUpload({
           conversationIDKey,
-          paths: [{outboxID: null, path: Types.pathToString(path)}],
+          paths: [{path: Types.pathToString(path)}],
           titles: [title],
           tlfName: `${username},${convName.split('#')[0]}`,
         })

@@ -1,7 +1,7 @@
 import * as Styles from '../styles'
 import type {MetaType, TextType, Background} from './text'
 
-export function defaultColor(backgroundMode: Background | null) {
+export function defaultColor(backgroundMode?: Background) {
   return {
     Announcements: Styles.globalColors.white,
     Documentation: Styles.globalColors.white,
@@ -22,7 +22,7 @@ export const lineClamp = (lines: number) => ({
   wordBreak: 'break-word',
 })
 
-export function fontSizeToSizeStyle(fontSize: number): Object | null {
+export function fontSizeToSizeStyle(fontSize: number): Object {
   const height = {
     '12': 16,
     '13': 17,

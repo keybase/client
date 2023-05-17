@@ -675,11 +675,9 @@ const onChatInboxSynced = (
         }
         return arr
       }, [])
-      const removals = (
-        (syncRes.incremental === null || syncRes.incremental === undefined
-          ? undefined
-          : syncRes.incremental.removals) || []
-      ).map(Types.stringToConversationIDKey)
+      const removals = ((!syncRes.incremental ? undefined : syncRes.incremental.removals) || []).map(
+        Types.stringToConversationIDKey
+      )
       // Update new untrusted
       if (metas.length || removals.length) {
         actions.push(Chat2Gen.createMetasReceived({metas, removals}))
@@ -759,7 +757,7 @@ const onChatSetConvSettings = (_: unknown, action: EngineGen.Chat1NotifyChatChat
   const conversationIDKey = Types.conversationIDToKey(convID)
   const newRole =
     (conv?.convSettings && conv.convSettings.minWriterRoleInfo && conv.convSettings.minWriterRoleInfo.role) ||
-    null
+    undefined
   const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
   const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite || false
   logger.info(
@@ -1020,10 +1018,10 @@ const loadMoreMessages = async (
   listenerApi: Container.ListenerApi
 ) => {
   // Get the conversationIDKey
-  let key: Types.ConversationIDKey | null = null
+  let key: Types.ConversationIDKey | undefined
   let reason: string = ''
   let sd: ScrollDirection = 'none'
-  let messageIDControl: RPCChatTypes.MessageIDControl | null = null
+  let messageIDControl: RPCChatTypes.MessageIDControl | undefined
   let forceClear = false
   let forceContainsLatestCalc = false
   const knownRemotes: Array<string> = []
@@ -1156,7 +1154,7 @@ const loadMoreMessages = async (
     const messages = (uiMessages.messages ?? []).reduce<Array<Types.Message>>((arr, m) => {
       const message = conversationIDKey
         ? Constants.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
-        : null
+        : undefined
       if (message) {
         arr.push(message)
       }
@@ -1241,7 +1239,7 @@ const getUnreadline = async (
   listenerApi: Container.ListenerApi
 ) => {
   // Get the conversationIDKey
-  let key: Types.ConversationIDKey | null = null
+  let key: Types.ConversationIDKey | undefined
   switch (action.type) {
     case Chat2Gen.selectedConversation:
       key = action.payload.conversationIDKey
@@ -1383,7 +1381,6 @@ const messageDelete = async (state: Container.TypedState, action: Chat2Gen.Messa
 const clearMessageSetEditing = (_: unknown, action: Chat2Gen.MessageEditPayload) =>
   Chat2Gen.createMessageSetEditing({
     conversationIDKey: action.payload.conversationIDKey,
-    ordinal: null,
   })
 
 const messageEdit = async (
@@ -1401,10 +1398,10 @@ const messageEdit = async (
   if (message.type === 'text' || message.type === 'attachment') {
     // Skip if the content is the same
     if (message.type === 'text' && message.text.stringValue() === text.stringValue()) {
-      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey}))
       return
     } else if (message.type === 'attachment' && message.title === text.stringValue()) {
-      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey}))
       return
     }
     const meta = Constants.getMeta(state, conversationIDKey)
@@ -1413,7 +1410,7 @@ const messageEdit = async (
     const outboxID = Constants.generateOutboxID()
     const target = {
       messageID: message.id,
-      outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
+      outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : undefined,
     }
     await RPCChatTypes.localPostEditNonblockRpcPromise(
       {
@@ -1848,7 +1845,7 @@ const messageSend = async (
           clientPrev,
           conversationID: Types.keyToConversationID(conversationIDKey),
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          outboxID: null,
+          outboxID: undefined,
           replyTo,
           tlfName,
           tlfPublic: false,
@@ -1904,15 +1901,15 @@ const messageSendByUsernames = async (
 }
 
 type StellarConfirmWindowResponse = {result: (b: boolean) => void}
-let _stellarConfirmWindowResponse: StellarConfirmWindowResponse | null = null
+let _stellarConfirmWindowResponse: StellarConfirmWindowResponse | undefined
 
-function storeStellarConfirmWindowResponse(accept: boolean, response: StellarConfirmWindowResponse | null) {
+function storeStellarConfirmWindowResponse(accept: boolean, response?: StellarConfirmWindowResponse) {
   _stellarConfirmWindowResponse?.result(accept)
   _stellarConfirmWindowResponse = response
 }
 
 const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenResponsePayload) => {
-  storeStellarConfirmWindowResponse(action.payload.accept, null)
+  storeStellarConfirmWindowResponse(action.payload.accept)
 }
 
 // We always make adhoc convos and never preview it
@@ -2375,7 +2372,7 @@ const markThreadAsRead = async (
     message = ordinal ? mmap.get(ordinal) : undefined
   }
 
-  let readMsgID: number | null = null
+  let readMsgID: number | undefined
   if (meta) {
     readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
   }
@@ -2418,7 +2415,7 @@ const markAsUnread = async (
         const message = messageMap.get(o)
         return !!(message && message.id < unreadLineID)
       })
-    const message = ord ? messageMap?.get(ord) : null
+    const message = ord ? messageMap?.get(ord) : undefined
     if (message) {
       msgID = message.id
     }
@@ -2925,7 +2922,7 @@ const unhideConversation = async (_: Container.TypedState, action: Chat2Gen.Unhi
 const setConvRetentionPolicy = async (_: unknown, action: Chat2Gen.SetConvRetentionPolicyPayload) => {
   const {conversationIDKey} = action.payload
   const convID = Types.keyToConversationID(conversationIDKey)
-  let policy: RPCChatTypes.RetentionPolicy | null
+  let policy: RPCChatTypes.RetentionPolicy | undefined
   try {
     policy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(action.payload.policy)
     if (policy) {
@@ -3355,7 +3352,7 @@ const onChatCommandMarkdown = (_: unknown, action: EngineGen.Chat1ChatUiChatComm
   const {convID, md} = action.payload.params
   return Chat2Gen.createSetCommandMarkdown({
     conversationIDKey: Types.stringToConversationIDKey(convID),
-    md: md || null,
+    md: md || undefined,
   })
 }
 
@@ -3653,7 +3650,7 @@ const refreshBotRoleInConv = async (_: unknown, action: Chat2Gen.RefreshBotRoleI
   const trole = TeamsConstants.teamRoleByEnum[role]
   return Chat2Gen.createSetBotRoleInConv({
     conversationIDKey,
-    role: !trole || trole === 'none' ? null : trole,
+    role: !trole || trole === 'none' ? undefined : trole,
     username,
   })
 }

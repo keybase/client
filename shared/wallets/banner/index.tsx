@@ -7,7 +7,7 @@ export type Props = {
   actionText?: string
   background: Background
   offerAdvancedSendForm?: AdvancedBanner
-  onAction?: (() => void) | null
+  onAction?: () => void
   reviewProofs?: boolean
   sendFailed?: boolean
   text: string

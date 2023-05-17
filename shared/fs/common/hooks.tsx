@@ -119,7 +119,7 @@ export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): 
   return alreadyKnown ? knownPathInfo : pathInfo
 }
 
-export const useFsSoftError = (path: Types.Path): Types.SoftError | null => {
+export const useFsSoftError = (path: Types.Path): Types.SoftError | undefined => {
   const softErrors = Container.useSelector(state => state.fs.softErrors)
   return Constants.getSoftError(softErrors, path)
 }
@@ -165,7 +165,7 @@ export const useFsFileContext = (path: Types.Path) => {
 }
 
 export const useFsWatchDownloadForMobile = isMobile
-  ? (downloadID: string, downloadIntent: Types.DownloadIntent | null): boolean => {
+  ? (downloadID: string, downloadIntent?: Types.DownloadIntent): boolean => {
       const dlState = Container.useSelector(
         state => state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
       )

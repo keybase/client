@@ -8,7 +8,7 @@ export type Props = {
   disabled?: boolean
   fullHeight?: boolean
   fullWidth?: boolean
-  onAttach: ((array: Array<string>) => void) | null
+  onAttach?: (array: Array<string>) => void
   prompt?: string
   rejectReason?: string
 }

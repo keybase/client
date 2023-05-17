@@ -11,7 +11,7 @@ type TextProps = {
   color?: Styles.Color
   fixOverdraw?: boolean
   fontSize?: number
-  onClick?: ((event: React.BaseSyntheticEvent) => void) | null
+  onClick?: (event: React.BaseSyntheticEvent) => void
   onLongPress?: (event: React.BaseSyntheticEvent) => void
   opacity?: boolean
   sizeType: SizeType
@@ -133,7 +133,7 @@ const Icon = React.memo<Props>(
 
     if (iconMeta[iconType].isFont) {
       const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
-      let color: undefined | string | null
+      let color: undefined | string
       if (p.colorOverride || p.color) {
         color = p.colorOverride || p.color
       }

@@ -380,7 +380,7 @@ export const createGiphyGotSearchResult = (payload: {
 export const createMessageErrored = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly reason: string
-  readonly errorTyp: number | null
+  readonly errorTyp?: number
   readonly outboxID: Types.OutboxID
 }) => ({payload, type: messageErrored as typeof messageErrored})
 /**
@@ -397,8 +397,8 @@ export const createConversationErrored = (payload: {
  */
 export const createMetaReceivedError = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly error: RPCChatTypes.InboxUIItemError | null
-  readonly username: string | null
+  readonly error?: RPCChatTypes.InboxUIItemError
+  readonly username?: string
 }) => ({payload, type: metaReceivedError as typeof metaReceivedError})
 /**
  * Got some new inbox rows
@@ -540,7 +540,7 @@ export const createMarkTeamAsRead = (payload: {readonly teamID: TeamsTypes.TeamI
  */
 export const createMarkAsUnread = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly readMsgID: RPCChatTypes.MessageID | null
+  readonly readMsgID?: RPCChatTypes.MessageID
 }) => ({payload, type: markAsUnread as typeof markAsUnread})
 /**
  * Navigation helper. Nav is slightly different on mobile / desktop.
@@ -828,14 +828,14 @@ export const createSetAttachmentViewStatus = (payload: {
 export const createSetBotRoleInConv = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
-  readonly role: TeamsTypes.TeamRoleType | null
+  readonly role?: TeamsTypes.TeamRoleType
 }) => ({payload, type: setBotRoleInConv as typeof setBotRoleInConv})
 /**
  * Set command markdown for a conversation
  */
 export const createSetCommandMarkdown = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly md: RPCChatTypes.UICommandMarkdown | null
+  readonly md?: RPCChatTypes.UICommandMarkdown
 }) => ({payload, type: setCommandMarkdown as typeof setCommandMarkdown})
 /**
  * Set command status info
@@ -963,7 +963,7 @@ export const createUpdateBlockButtons = (payload: {
  */
 export const createMessageSetEditing = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal | null
+  readonly ordinal?: Types.Ordinal
   readonly editLastUser?: string
 }) => ({payload, type: messageSetEditing as typeof messageSetEditing})
 /**

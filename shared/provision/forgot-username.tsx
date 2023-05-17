@@ -26,7 +26,7 @@ const ForgotUsername = () => {
   // PhoneInput's callback gets passed a (phoneNumber, valid) tuple.
   // If "valid" is false, phoneNumber gets set to null, therefore phoneNumber is only
   // truthy when it's valid. This is used in the form validation logic in the code.
-  const [phoneNumber, setPhoneNumber] = React.useState<string | null>(null)
+  const [phoneNumber, setPhoneNumber] = React.useState<string | undefined>()
   const onSubmit = React.useCallback(() => {
     if (!emailSelected && phoneNumber) {
       dispatch(ProvisionGen.createForgotUsername({phone: phoneNumber}))
@@ -88,7 +88,7 @@ const ForgotUsername = () => {
             defaultCountry={defaultCountry}
             onChangeNumber={(phoneNumber, valid) => {
               if (!valid) {
-                setPhoneNumber(null)
+                setPhoneNumber(undefined)
                 return
               }
 

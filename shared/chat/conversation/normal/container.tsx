@@ -82,7 +82,7 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
 
   const onAttach = React.useCallback(
     (paths: Array<string>) => {
-      const pathAndOutboxIDs = paths.map(p => ({outboxID: null, path: p}))
+      const pathAndOutboxIDs = paths.map(p => ({path: p}))
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
@@ -110,7 +110,7 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
       onPaste={onPaste}
       onToggleThreadSearch={onToggleThreadSearch}
       onShowTracker={onShowTracker}
-      onAttach={cannotWrite ? null : onAttach}
+      onAttach={cannotWrite ? undefined : onAttach}
     />
   )
 })

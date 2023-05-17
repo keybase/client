@@ -15,10 +15,10 @@ export type LayoutEvent = {
 
 export type Box2Props = {
   alignItems?: 'center' | 'flex-start' | 'flex-end' | 'stretch'
-  alignSelf?: null | 'center' | 'flex-start' | 'flex-end' | 'stretch'
+  alignSelf?: 'center' | 'flex-start' | 'flex-end' | 'stretch'
   children?: React.ReactNode
   centerChildren?: boolean
-  className?: string | null
+  className?: string
   collapsable?: boolean
   direction: 'horizontal' | 'vertical' | 'horizontalReverse' | 'verticalReverse'
   fullHeight?: boolean

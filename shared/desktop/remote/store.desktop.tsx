@@ -20,7 +20,7 @@ type UpdateStoreAction = {
 
 class RemoteStore {
   _store: Store<any, any>
-  _gotPropsCallback: (() => void) | null = null // let component know it loaded once so it can show itself. Set to null after calling once
+  _gotPropsCallback: (() => void) | undefined // let component know it loaded once so it can show itself. Set to null after calling once
   _deserialize: (arg0: any, arg1: any) => any
 
   getStore = () => this._store
@@ -36,7 +36,7 @@ class RemoteStore {
 
     if (this._gotPropsCallback) {
       this._gotPropsCallback()
-      this._gotPropsCallback = null
+      this._gotPropsCallback = undefined
     }
   }
 

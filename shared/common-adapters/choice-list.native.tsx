@@ -7,15 +7,15 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props} from './choice-list'
 
 type State = {
-  activeIndex: number | null
+  activeIndex?: number
 }
 
 class ChoiceList extends React.Component<Props, State> {
-  state: State = {activeIndex: null}
+  state: State = {activeIndex: undefined}
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps !== this.props) {
-      this.setState({activeIndex: null})
+      this.setState({activeIndex: undefined})
     }
   }
 
@@ -32,7 +32,7 @@ class ChoiceList extends React.Component<Props, State> {
               underlayColor={globalColors.blueLighter2}
               onClick={op.onClick}
               onPressIn={() => this.setState({activeIndex: idx})}
-              onPressOut={() => this.setState({activeIndex: null})}
+              onPressOut={() => this.setState({activeIndex: undefined})}
             >
               <Box style={styleEntry}>
                 <Box style={styleIconContainer(this.state.activeIndex === idx)}>

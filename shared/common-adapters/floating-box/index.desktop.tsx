@@ -5,7 +5,7 @@ import logger from '../../logger'
 import {RelativeFloatingBox} from './relative-floating-box.desktop'
 
 type State = {
-  targetRect: ClientRect | null
+  targetRect?: ClientRect
 }
 
 class FloatingBox extends React.PureComponent<Props, State> {
@@ -17,7 +17,7 @@ class FloatingBox extends React.PureComponent<Props, State> {
   }
 
   _getTargetRect = () => {
-    let targetRect: ClientRect | null = null
+    let targetRect: ClientRect | undefined
     if (this.props.attachTo) {
       const attachTo = this.props.attachTo()
       if (attachTo instanceof HTMLElement) {
@@ -31,7 +31,7 @@ class FloatingBox extends React.PureComponent<Props, State> {
         } catch (error_) {
           const error = error_ as any
           logger.error(`FloatingBox: unable to find rect to attach to. Error: ${error.message}`)
-          return null
+          return undefined
         }
         if (node instanceof HTMLElement) {
           targetRect = node.getBoundingClientRect()

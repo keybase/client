@@ -129,8 +129,8 @@ const Body = (props: BodyProps) => {
               mobileCancelButton={true}
               hotkey="f"
               onChange={props.onSearchChange}
-              onFocus={onFocusChange ? () => onFocusChange(true) : null}
-              onBlur={onFocusChange ? () => onFocusChange(false) : null}
+              onFocus={onFocusChange ? () => onFocusChange(true) : undefined}
+              onBlur={onFocusChange ? () => onFocusChange(false) : undefined}
               waiting={props.waitingSearch}
             />
           </Kb.Box2>

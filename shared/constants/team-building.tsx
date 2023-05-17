@@ -62,7 +62,7 @@ export const makeSubState = (): Types.TeamBuildingSubState => ({
 export const parseRawResultToUser = (
   result: RPCTypes.APIUserSearchResult,
   service: Types.ServiceIdWithContact
-): Types.User | null => {
+): Types.User | undefined => {
   const serviceMap = Object.keys(result.servicesSummary || {}).reduce<{[key: string]: string}>(
     (acc, service_name) => {
       acc[service_name] = result.servicesSummary[service_name].username
@@ -111,7 +111,7 @@ export const parseRawResultToUser = (
       logger.error(
         `Search result's service_name is different than given service name. Expected: ${service} received ${result.service.serviceName}`
       )
-      return null
+      return
     }
 
     const kbPrettyName = result.keybase && (result.keybase.fullName || result.keybase.username)
@@ -134,9 +134,8 @@ export const parseRawResultToUser = (
       serviceMap,
       username: result.service.username,
     }
-  } else {
-    return null
   }
+  return
 }
 
 export const selfToUser = (you: string): Types.User => ({

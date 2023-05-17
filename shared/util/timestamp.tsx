@@ -8,7 +8,7 @@ const hourMinuteSecondString = uses24HourClock ? 'HH:mm:ss' : 'h:mm:ss a'
 // getting this time is very slow on android so we cache it, it never grows large
 const chatTimeCache = new Map<number, string>()
 let cacheData = dateFns.startOfDay(new Date())
-export function formatTimeForChat(time: number): string | null {
+export function formatTimeForChat(time: number): string {
   // if the date changes, clear our cache as the 'yesterday' stuff is actually sensitive to this
   if (!dateFns.isToday(cacheData)) {
     chatTimeCache.clear()

@@ -29,17 +29,17 @@ declare class Session {
   end: () => void
   getDangling: () => boolean
   hasSeqID: (seqID: number) => boolean
-  _startMethod: string | null
+  _startMethod: string | undefined
   cancel: () => void
-  incomingCall: (method: string, param: Object, response: Object | null) => boolean
-  start: (method: string, param: Object | null, callback: null | (() => void)) => void
+  incomingCall: (method: string, param: Object, response?: Object) => boolean
+  start: (method: string, param?: Object, callback?: () => void) => void
   constructor(arg0: {
     dispatch: any
     sessionID: number
-    incomingCallMap?: IncomingCallMap | null
-    customResponseIncomingCallMap?: CustomResponseIncomingCallMap | null
+    incomingCallMap?: IncomingCallMap
+    customResponseIncomingCallMap?: CustomResponseIncomingCallMap
     waitingKey?: string | Array<string>
-    invoke: (method: string, param: [Object] | null, cb: (err?: any, data?: any) => void) => void
+    invoke: (method: string, param: [Object] | undefined, cb: (err?: any, data?: any) => void) => void
     endHandler: (session: Session) => void
     cancelHandler?: (session: Session) => void
     dangling?: boolean

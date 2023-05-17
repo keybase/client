@@ -433,7 +433,7 @@ const criticalOutOfDateCheck = async (listenerApi: Container.ListenerApi) => {
     try {
       const s = await RPCTypes.configGetUpdateInfo2RpcPromise({})
       let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
-      let message: string | null = null
+      let message = ''
       switch (s.status) {
         case RPCTypes.UpdateInfoStatus2.ok:
           break
@@ -447,7 +447,7 @@ const criticalOutOfDateCheck = async (listenerApi: Container.ListenerApi) => {
           break
         default:
       }
-      listenerApi.dispatch(ConfigGen.createUpdateCriticalCheckStatus({message: message || '', status}))
+      listenerApi.dispatch(ConfigGen.createUpdateCriticalCheckStatus({message, status}))
     } catch (e) {
       logger.warn("Can't call critical check", e)
     }

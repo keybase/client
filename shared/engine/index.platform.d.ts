@@ -1,7 +1,7 @@
-type payloadType = {
+type PayloadType = {
   method: string
   param: Array<Object>
-  response: Object | null
+  response?: Object
 }
 
 export type SendArg = [number, number, unknown, unknown]
@@ -18,7 +18,7 @@ export type createClientType = {
   invoke: invokeType
 }
 
-export type incomingRPCCallbackType = (payload: payloadType) => void
+export type incomingRPCCallbackType = (payload: PayloadType) => void
 export type rpcLogType = 'engineToServer' | 'serverToEngine' | 'engineInternal'
 export type connectDisconnectCB = () => void
 

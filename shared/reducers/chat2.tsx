@@ -326,7 +326,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const m = map?.get(ordinal)
     if (m?.type === 'attachment') {
       m.transferProgress = 0
-      m.transferState = null
+      m.transferState = undefined
     }
   },
   [Chat2Gen.attachmentMobileSave]: (draftState, action) => {
@@ -337,7 +337,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const m = map?.get(ordinal)
     if (m?.type === 'attachment') {
       m.transferState = 'mobileSaving'
-      m.transferErrMsg = null
+      m.transferErrMsg = undefined
     }
   },
   [Chat2Gen.attachmentMobileSaved]: (draftState, action) => {
@@ -346,8 +346,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const map = messageMap.get(conversationIDKey)
     const m = map?.get(ordinal)
     if (m?.type === 'attachment') {
-      m.transferState = null
-      m.transferErrMsg = null
+      m.transferState = undefined
+      m.transferErrMsg = undefined
     }
   },
   [Chat2Gen.attachmentDownload]: (draftState, action) => {
@@ -357,7 +357,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const m = map?.get(ordinal)
     if (m?.type === 'attachment') {
       m.transferState = 'downloading'
-      m.transferErrMsg = null
+      m.transferErrMsg = undefined
     }
   },
   [Chat2Gen.messageAttachmentUploaded]: (draftState, action) => {
@@ -401,7 +401,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       return
     }
     if (message?.type === 'attachment') {
-      message.transferState = null
+      message.transferState = undefined
       message.transferProgress = 0
     }
   },
@@ -447,7 +447,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     if (m?.type === 'attachment') {
       m.transferProgress = ratio
       m.transferState = 'downloading'
-      m.transferErrMsg = null
+      m.transferErrMsg = undefined
     }
   },
   [Chat2Gen.attachmentDownloaded]: (draftState, action) => {
@@ -464,10 +464,10 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     if (idx !== -1) {
       const m = messages[idx]
       if (m.type === 'attachment') {
-        m.downloadPath = path ?? null
+        m.downloadPath = path
         m.fileURLCached = true
         m.transferProgress = 0
-        m.transferState = null
+        m.transferState = undefined
       }
     }
 
@@ -476,8 +476,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     if (m?.type === 'attachment') {
       m.downloadPath = (!error && path) || ''
       m.transferProgress = 0
-      m.transferState = null
-      m.transferErrMsg = error ? error ?? 'Error downloading attachment' : null
+      m.transferState = undefined
+      m.transferErrMsg = error ? error ?? 'Error downloading attachment' : undefined
       m.fileURLCached = true // assume we have this on the service now
     }
   },
@@ -541,7 +541,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (Constants.isValidConversationIDKey(conversationIDKey)) {
       // If navigating away from error conversation to a valid conv - clear
       // error msg.
-      draftState.createConversationError = null
+      draftState.createConversationError = undefined
     }
   },
   [Chat2Gen.conversationErrored]: (draftState, action) => {
@@ -661,16 +661,15 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (!ordinal && editLastUser) {
       // Editing your last message
       const ordinals = messageOrdinals.get(conversationIDKey) ?? []
-      ordinal =
-        findLast(ordinals, o => {
-          const message = messageMap?.get(o)
-          return !!(
-            (message?.type === 'text' || message?.type === 'attachment') &&
-            message.author === editLastUser &&
-            !message.exploded &&
-            message.isEditable
-          )
-        }) ?? null
+      ordinal = findLast(ordinals, o => {
+        const message = messageMap?.get(o)
+        return !!(
+          (message?.type === 'text' || message?.type === 'attachment') &&
+          message.author === editLastUser &&
+          !message.exploded &&
+          message.isEditable
+        )
+      })
     }
 
     if (ordinal) {
@@ -851,7 +850,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         logger.info(`messagesAdd: upgrade message: ordinal: ${message.ordinal} id: ${message.id}`)
       } else {
         const map = previousMessageMap.get(conversationIDKey)
-        toSet = Constants.mergeMessage((map && map.get(message.ordinal)) || null, message)
+        toSet = Constants.mergeMessage(map?.get(message.ordinal), message)
       }
       const map = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
       messageMap.set(conversationIDKey, map)

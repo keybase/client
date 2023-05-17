@@ -13,22 +13,22 @@ type ActionOrInProgress = (() => void) | 'in-progress'
 type Props = {
   floatingMenuProps: FloatingMenuProps
   path: Types.Path
-  copyPath?: (() => void) | null
-  delete?: (() => void) | null
-  download?: (() => void) | null
-  ignoreTlf?: (() => void) | 'disabled' | null
-  moveOrCopy?: (() => void) | null
+  copyPath?: () => void
+  delete?: () => void
+  download?: () => void
+  ignoreTlf?: (() => void) | 'disabled'
+  moveOrCopy?: () => void
   me: string
-  newFolder?: (() => void) | null
-  openChatNonTeam?: (() => void) | null
-  openChatTeam?: (() => void) | null
+  newFolder?: () => void
+  openChatNonTeam?: () => void
+  openChatTeam?: () => void
   pathItemType: Types.PathType
-  rename?: (() => void) | null
-  saveMedia?: ActionOrInProgress | null
-  showInSystemFileManager?: (() => void) | null
-  share?: (() => void) | null
-  sendAttachmentToChat?: (() => void) | null
-  sendToOtherApp?: ActionOrInProgress | null
+  rename?: () => void
+  saveMedia?: ActionOrInProgress
+  showInSystemFileManager?: () => void
+  share?: () => void
+  sendAttachmentToChat?: () => void
+  sendToOtherApp?: ActionOrInProgress
 }
 
 const hideMenuOnClick =

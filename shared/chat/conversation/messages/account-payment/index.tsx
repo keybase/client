@@ -13,7 +13,7 @@ export type Props = {
   cancelButtonLabel: string
   canceled: boolean
   claimButtonLabel: string
-  icon: Kb.IconType | null
+  icon?: Kb.IconType
   loading: boolean
   memo: string
   onCancel: () => void
@@ -130,7 +130,6 @@ const AccountPayment = (props: Props) => {
         <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
           <Kb.Text type="BodySmall">{props.cancelButtonInfo}</Kb.Text>
           <Kb.WaitingButton
-            waitingKey={null}
             type="Danger"
             label={props.cancelButtonLabel}
             onClick={props.onCancel}

@@ -9,7 +9,7 @@ import {getEngine} from '../engine/require'
 // stash response while we show the pinentry. The old code kept a map of this but this likely never worked. it seems like
 // core sends 0 over and over so it just gets stomped anyways. I have a larger change that removes this kind of flow but
 // its not worth implementing now
-let _response: EngineGen.Keybase1SecretUiGetPassphrasePayload['payload']['response'] | null = null
+let _response: EngineGen.Keybase1SecretUiGetPassphrasePayload['payload']['response'] | undefined
 
 const onConnect = async () => {
   try {
@@ -48,7 +48,7 @@ const onSubmit = (_: unknown, action: PinentryGen.OnSubmitPayload) => {
   const {password} = action.payload
   if (_response) {
     _response.result({passphrase: password, storeSecret: false})
-    _response = null
+    _response = undefined
   }
 
   return PinentryGen.createClose()
@@ -57,7 +57,7 @@ const onSubmit = (_: unknown, action: PinentryGen.OnSubmitPayload) => {
 const onCancel = () => {
   if (_response) {
     _response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
-    _response = null
+    _response = undefined
   }
   return PinentryGen.createClose()
 }

@@ -15,7 +15,7 @@ export type Mode = 'chat' | 'team-settings'
 type Props = {
   actions: Array<Action>
   conversationIDKey: ChatTypes.ConversationIDKey
-  image: Kb.IconType | null
+  image?: Kb.IconType
   onAuthorClick: () => void
   onDismiss: () => void
   teamname: string

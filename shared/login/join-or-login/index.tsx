@@ -5,7 +5,7 @@ import {InfoIcon} from '../../signup/common'
 import {useFocusEffect} from '@react-navigation/core'
 
 type Props = {
-  bannerMessage: string | null
+  bannerMessage?: string
   checkIsOnline: () => void
   onLogin: () => void
   onSignup: () => void

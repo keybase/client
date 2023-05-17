@@ -176,8 +176,8 @@ export const emptyDownloadInfo: Types.DownloadInfo = {
 }
 
 export const emptyPathItemActionMenu: Types.PathItemActionMenu = {
-  downloadID: null,
-  downloadIntent: null,
+  downloadID: undefined,
+  downloadIntent: undefined,
   previousView: Types.PathItemActionMenuView.Root,
   view: Types.PathItemActionMenuView.Root,
 }
@@ -188,7 +188,7 @@ export const driverStatusUnknown: Types.DriverStatusUnknown = {
 
 export const emptyDriverStatusEnabled: Types.DriverStatusEnabled = {
   dokanOutdated: false,
-  dokanUninstallExecPath: null,
+  dokanUninstallExecPath: undefined,
   isDisabling: false,
   type: Types.DriverStatusType.Enabled,
 } as const
@@ -299,15 +299,15 @@ export const getDownloadIntent = (
   path: Types.Path,
   downloads: Types.Downloads,
   pathItemActionMenu: Types.PathItemActionMenu
-): Types.DownloadIntent | null => {
+): Types.DownloadIntent | undefined => {
   const found = [...downloads.info].find(([_, info]) => info.path === path)
   if (!found) {
-    return null
+    return undefined
   }
   const [downloadID] = found
   const dlState = downloads.state.get(downloadID) || emptyDownloadState
   if (!downloadIsOngoing(dlState)) {
-    return null
+    return undefined
   }
   if (pathItemActionMenu.downloadID === downloadID) {
     return pathItemActionMenu.downloadIntent
@@ -378,15 +378,15 @@ export const canSaveMedia = (pathItem: Types.PathItem, fileContext: Types.FileCo
   )
 }
 
-export const folderRPCFromPath = (path: Types.Path): RPCTypes.FolderHandle | null => {
+export const folderRPCFromPath = (path: Types.Path): RPCTypes.FolderHandle | undefined => {
   const pathElems = Types.getPathElements(path)
-  if (pathElems.length === 0) return null
+  if (pathElems.length === 0) return undefined
 
   const visibility = Types.getVisibilityFromElems(pathElems)
-  if (visibility === null) return null
+  if (visibility === undefined) return undefined
 
   const name = Types.getPathNameFromElems(pathElems)
-  if (name === '') return null
+  if (name === '') return undefined
 
   return {
     created: false,
@@ -409,8 +409,8 @@ export const showIgnoreFolder = (path: Types.Path, username?: string): boolean =
   return ['public', 'private'].includes(elems[1]) && elems[2] !== username
 }
 
-export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): ClientRect | null =>
-  isMobile ? null : evt ? (evt.target as HTMLElement).getBoundingClientRect() : null
+export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): ClientRect | undefined =>
+  isMobile ? undefined : evt ? (evt.target as HTMLElement).getBoundingClientRect() : undefined
 
 export const invalidTokenError = new Error('invalid token')
 export const notFoundError = new Error('not found')
@@ -438,9 +438,9 @@ export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
     .map(tlfType => computeBadgeNumberForTlfList(getTlfListFromType(tlfs, tlfType)))
     .reduce((sum, count) => sum + count, 0)
 
-export const getTlfPath = (path: Types.Path): Types.Path | null => {
+export const getTlfPath = (path: Types.Path): Types.Path => {
   const elems = Types.getPathElements(path)
-  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : null
+  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : undefined
 }
 
 export const getTlfListAndTypeFromPath = (
@@ -932,16 +932,16 @@ export const showSortSetting = (
   (Types.getPathLevel(path) === 2 || (pathItem.type === Types.PathType.Folder && !!pathItem.children.size)) &&
   !isOfflineUnsynced(kbfsDaemonStatus, pathItem, path)
 
-export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Types.SoftError | null => {
+export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Types.SoftError | undefined => {
   const pathError = softErrors.pathErrors.get(path)
   if (pathError) {
     return pathError
   }
   if (!softErrors.tlfErrors.size) {
-    return null
+    return undefined
   }
   const tlfPath = getTlfPath(path)
-  return (tlfPath && softErrors.tlfErrors.get(tlfPath)) || null
+  return (tlfPath && softErrors.tlfErrors.get(tlfPath)) || undefined
 }
 
 export const hasSpecialFileElement = (path: Types.Path): boolean =>

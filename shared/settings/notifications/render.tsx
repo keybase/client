@@ -10,7 +10,7 @@ type GroupProps = {
   label?: string
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll?: () => void
-  settings: Array<Types.NotificationsSettingsState> | null
+  settings?: Array<Types.NotificationsSettingsState>
   title?: string
   unsub?: string
   unsubscribedFromAll: boolean
@@ -48,7 +48,7 @@ export const Group = (props: GroupProps) => (
         <Kb.Text type="BodySmall">Or</Kb.Text>
         <Kb.Checkbox
           style={{marginTop: Styles.globalMargins.xtiny}}
-          onCheck={props.onToggleUnsubscribeAll || null}
+          onCheck={props.onToggleUnsubscribeAll}
           disabled={!props.allowEdit}
           checked={!!props.unsubscribedFromAll}
           label={`Unsubscribe from all ${props.unsub} notifications`}

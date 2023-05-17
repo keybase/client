@@ -1,8 +1,8 @@
 import * as Styles from '../styles'
 export type Props = {
-  onCancel?: (() => void) | null
-  onBack?: (() => void) | null
-  style?: Styles.StylesCrossPlatform | null
+  onCancel?: () => void
+  onBack?: () => void
+  style?: Styles.StylesCrossPlatform
 }
 
 export declare function HeaderOrPopupWithHeader<P>(WrappedComponent: P): P

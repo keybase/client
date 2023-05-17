@@ -31,9 +31,9 @@ export type Props = {
   className?: string
   editable?: boolean
   errorStyle?: StylesCrossPlatform
-  errorText?: string | null
+  errorText?: string
   errorTextComponent?: React.ReactNode
-  floatingHintTextOverride?: string | null // if undefined will use hintText. Use this to override hintText,
+  floatingHintTextOverride?: string // if undefined will use hintText. Use this to override hintText,
   hideUnderline?: boolean
   hintText?: string
   key?: string
@@ -53,7 +53,7 @@ export type Props = {
   smallLabelStyle?: StylesCrossPlatform
   style?: StylesCrossPlatform
   type?: 'password' | 'text' | 'passwordVisible'
-  value?: string | null
+  value?: string
   selectTextOnFocus?: boolean
   // Incrememnt this to clear the text (avoids having to deal with refs)
   clearTextCounter?: number

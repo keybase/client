@@ -61,7 +61,7 @@ export const InfoIcon = (props: InfoIconProps) => {
 }
 
 type HeaderProps = {
-  onBack?: (() => void) | null
+  onBack?: () => void
   title?: string
   titleComponent?: React.ReactNode
   showInfoIcon: boolean
@@ -70,7 +70,7 @@ type HeaderProps = {
   negative: boolean
   rightActionComponent?: React.ReactNode
   rightActionLabel?: string
-  onRightAction?: (() => void) | null
+  onRightAction?: () => void
 }
 
 // Only used on desktop
@@ -131,7 +131,7 @@ type ButtonMeta = {
   onClick: () => void
   type?: ButtonProps['type']
   waiting?: boolean
-  waitingKey?: string | null // makes this a WaitingButton
+  waitingKey?: string // makes this a WaitingButton
 }
 
 type SignupScreenProps = {
@@ -150,7 +150,7 @@ type SignupScreenProps = {
   header?: React.ReactNode
   rightActionComponent?: React.ReactNode
   rightActionLabel?: string
-  onRightAction?: (() => void) | null
+  onRightAction?: () => void
   leftAction?: 'back' | 'cancel'
   leftActionText?: string
   showHeaderInfoicon?: boolean

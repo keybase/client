@@ -17,7 +17,7 @@ import URL from 'url-parse'
 import logger from '../logger'
 
 const teamPageActions = ['add_or_invite', 'manage_settings', 'join'] as const
-type TeamPageAction = typeof teamPageActions[number]
+type TeamPageAction = (typeof teamPageActions)[number]
 const isTeamPageAction = (a: any): a is TeamPageAction => teamPageActions.includes(a)
 
 const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
@@ -211,7 +211,7 @@ const handleSaltpackOpenFile = (
       startupFile: new Container.HiddenString(path),
     })
   }
-  let operation: CryptoTypes.Operations | null = null
+  let operation: CryptoTypes.Operations | undefined
   if (CrytoConstants.isPathSaltpackEncrypted(path)) {
     operation = CrytoConstants.Operations.Decrypt
   } else if (CrytoConstants.isPathSaltpackSigned(path)) {

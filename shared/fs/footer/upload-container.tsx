@@ -17,7 +17,7 @@ const getDebugToggleShow = dispatch => {
   return () => {
     dispatch(
       FsGen.createJournalUpdate({
-        endEstimate: showing ? null : Date.now() + 1000 * 60 * 60,
+        endEstimate: showing ? undefined : Date.now() + 1000 * 60 * 60,
         syncingPaths: showing ? [] : [Types.stringToPath('/keybase')],
         totalSyncingBytes: showing ? 0 : 1,
       })
@@ -48,7 +48,7 @@ const UpoadContainer = () => {
     // flakes on our perception of overall upload status.
     debugToggleShow,
     endEstimate: enableDebugUploadBanner ? (uploads.endEstimate || 0) + 32000 : uploads.endEstimate || 0,
-    fileName: filePaths.length === 1 ? Types.getPathName(filePaths[1] || Types.stringToPath('')) : null,
+    fileName: filePaths.length === 1 ? Types.getPathName(filePaths[1] || Types.stringToPath('')) : undefined,
     files: filePaths.length,
     isOnline: kbfsDaemonStatus.onlineStatus !== Types.KbfsDaemonOnlineStatus.Offline,
     totalSyncingBytes: uploads.totalSyncingBytes,

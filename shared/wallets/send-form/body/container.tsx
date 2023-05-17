@@ -15,7 +15,11 @@ const useConnect = () => {
       : state.wallets.builtPayment.builtBanners
   )
 
-  const _onGoAdvanced = (recipient, recipientType, senderAccountID) => {
+  const _onGoAdvanced = (
+    recipient: string,
+    recipientType: Types.CounterpartyType,
+    senderAccountID: string
+  ) => {
     dispatch(WalletsGen.createClearBuildingAdvanced())
     dispatch(WalletsGen.createSetBuildingAdvancedRecipient({recipient}))
     dispatch(WalletsGen.createSetBuildingAdvancedRecipientType({recipientType}))
@@ -49,7 +53,7 @@ const useConnect = () => {
         offerAdvancedSendForm: banner.offerAdvancedSendForm,
       })
     ),
-    onReviewPayments: _failed ? _onReviewPayments : null,
+    onReviewPayments: _failed ? _onReviewPayments : undefined,
   }
   return props
 }

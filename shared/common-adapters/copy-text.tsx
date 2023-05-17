@@ -105,10 +105,10 @@ const CopyText = (props: Props) => {
   const lineClamp = props.multiline
     ? typeof props.multiline === 'number'
       ? (props.multiline as LineClampType)
-      : null
+      : undefined
     : isRevealed
     ? 1
-    : null
+    : undefined
 
   return (
     <Box2

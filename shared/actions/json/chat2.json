@@ -140,8 +140,8 @@
     "metaReceivedError": {
       "_description": "Got some inbox errors",
       "conversationIDKey": "Types.ConversationIDKey",
-      "error": "RPCChatTypes.InboxUIItemError | null",
-      "username": "string | null"
+      "error?": "RPCChatTypes.InboxUIItemError",
+      "username?": "string"
     },
     "metaDelete": {
       "_description": "We got a status update saying it was blocked or ignored",
@@ -178,13 +178,13 @@
       "_description": "Got an error sending a message",
       "conversationIDKey": "Types.ConversationIDKey",
       "reason": "string",
-      "errorTyp": "number | null",
+      "errorTyp?": "number",
       "outboxID": "Types.OutboxID"
     },
     "messageSetEditing": {
       "_description": "Start editing a message / or edit the last message / or clear editing",
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal | null",
+      "ordinal?": "Types.Ordinal",
       "editLastUser?": "string"
     },
     "messageReplyPrivately": {
@@ -398,7 +398,7 @@
     "markAsUnread": {
       "_description": "Mark the converstation as unread to the given message ID",
       "conversationIDKey": "Types.ConversationIDKey",
-      "readMsgID": "RPCChatTypes.MessageID | null"
+      "readMsgID?": "RPCChatTypes.MessageID"
     },
     "clearMarkAsUnread": {
       "_description": "When leaving a thread view, clear the force mark as unread bit",
@@ -627,7 +627,7 @@
     "setCommandMarkdown": {
       "_description": "Set command markdown for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
-      "md": "RPCChatTypes.UICommandMarkdown | null"
+      "md?": "RPCChatTypes.UICommandMarkdown"
     },
     "addUsersToChannel": {
       "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
@@ -901,7 +901,7 @@
       "_description": "Set bot role in conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string",
-      "role": "TeamsTypes.TeamRoleType | null"
+      "role?": "TeamsTypes.TeamRoleType"
     },
     "showInfoPanel": {
       "tab?": "'settings' | 'members' | 'attachments' | 'bots'",

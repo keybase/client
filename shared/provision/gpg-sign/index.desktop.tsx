@@ -2,7 +2,8 @@
 import Container from '../../login/forms/container'
 import * as React from 'react'
 import Row from './row.desktop'
-import {Text, Box2} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 import type {Props} from '.'
 
@@ -11,22 +12,22 @@ class GPGSign extends React.Component<Props> {
     return (
       <Container style={styles.container} onBack={() => this.props.onBack()}>
         {this.props.importError && (
-          <Box2 direction="vertical" centerChildren={true}>
-            <Text type="Header" style={styles.header}>
+          <Kb.Box2 direction="vertical" centerChildren={true}>
+            <Kb.Text type="Header" style={styles.header}>
               There was an error importing your pgp key:
               {'\n'}
-            </Text>
-            <Text type="BodySmallError">{this.props.importError}</Text>
-            <Text type="Body">You can try asking gpg to sign this install instead.</Text>
-          </Box2>
+            </Kb.Text>
+            <Kb.Text type="BodySmallError">{this.props.importError}</Kb.Text>
+            <Kb.Text type="Body">You can try asking gpg to sign this install instead.</Kb.Text>
+          </Kb.Box2>
         )}
-        <Text type="Header" style={styles.header}>
+        <Kb.Text type="Header" style={styles.header}>
           Let's sign your installation of keybase with GPG
-        </Text>
-        <Text type="Body" style={styles.subHeader}>
+        </Kb.Text>
+        <Kb.Text type="Body" style={styles.subHeader}>
           Allow Keybase to run PGP commands?
-        </Text>
-        <Box2 direction="vertical" centerChildren={true} style={{maxWidth: 750}}>
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" centerChildren={true} style={{maxWidth: 750}}>
           {!this.props.importError && (
             <Row
               onClick={() => this.props.onSubmit(true)}
@@ -34,13 +35,13 @@ class GPGSign extends React.Component<Props> {
               title="Export your secret key from GPG"
             >
               <p>
-                <Text type="BodySmall">
+                <Kb.Text type="BodySmall">
                   This copies your PGP pair into Keybase's local encrypted keyring. Later, you can{' '}
-                </Text>
-                <Text type="Terminal">keybase pgp sign</Text>
-                <Text type="BodySmall"> and </Text>
-                <Text type="Terminal">keybase pgp decrypt</Text>
-                <Text type="BodySmall"> messages and files.</Text>
+                </Kb.Text>
+                <Kb.Text type="Terminal">keybase pgp sign</Kb.Text>
+                <Kb.Text type="BodySmall"> and </Kb.Text>
+                <Kb.Text type="Terminal">keybase pgp decrypt</Kb.Text>
+                <Kb.Text type="BodySmall"> messages and files.</Kb.Text>
               </p>
             </Row>
           )}
@@ -50,30 +51,33 @@ class GPGSign extends React.Component<Props> {
             title="One-time shell to GPG"
           >
             <p>
-              <Text type="BodySmall">
+              <Kb.Text type="BodySmall">
                 Keybase can ask GPG to sign this install. You won't be able to use{' '}
-              </Text>
-              <Text type="Terminal">keybase pgp</Text>
-              <Text type="BodySmall"> commands on this computer.</Text>
+              </Kb.Text>
+              <Kb.Text type="Terminal">keybase pgp</Kb.Text>
+              <Kb.Text type="BodySmall"> commands on this computer.</Kb.Text>
             </p>
           </Row>
-        </Box2>
+        </Kb.Box2>
       </Container>
     )
   }
 }
 
-const styles = {
-  container: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  header: {
-    marginTop: 36,
-  },
-  subHeader: {
-    marginBottom: 30,
-  },
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        alignItems: 'center',
+        flex: 1,
+      },
+      header: {
+        marginTop: 36,
+      },
+      subHeader: {
+        marginBottom: 30,
+      },
+    } as const)
+)
 
 export default GPGSign

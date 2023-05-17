@@ -35,8 +35,8 @@ class SetExplodePopup extends React.Component<Props, State> {
     }
   }
 
-  setSelected = (value: number | null) => {
-    if (value !== null) {
+  setSelected = (value?: number) => {
+    if (value !== undefined) {
       this.setState({selected: value})
     }
   }

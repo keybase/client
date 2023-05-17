@@ -67,11 +67,11 @@ export const desktopTabMeta = {
   [walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
 
-export function isValidInitialTab(tab: Tab | null) {
+export function isValidInitialTab(tab: Tab | undefined) {
   return isValidInitialTabString(tab)
 }
 
-export function isValidInitialTabString(tab: string | null) {
+export function isValidInitialTabString(tab: string | undefined) {
   // Keep this in left-to-right (for mobile) or top-to-bottom (for
   // desktop) order in the app.
   if (isMobile) {

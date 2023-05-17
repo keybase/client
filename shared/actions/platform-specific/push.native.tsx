@@ -347,7 +347,7 @@ const requestPermissions = async (_s: unknown, _a: unknown, listenerApi: Contain
 }
 
 const initialPermissionsCheck = async (listenerApi: Container.ListenerApi) => {
-  const hasPermissions = await _checkPermissions(null, listenerApi)
+  const hasPermissions = await _checkPermissions(undefined, listenerApi)
   if (hasPermissions) {
     // Get the token
     await requestPermissionsFromNative()
@@ -381,9 +381,9 @@ const checkPermissions = async (
 ) => {
   await _checkPermissions(action, listenerApi)
 }
-// Call when we foreground and on app start, action is null on app start. Returns if you have permissions
+// Call when we foreground and on app start, action is undefined on app start. Returns if you have permissions
 const _checkPermissions = async (
-  action: ConfigGen.MobileAppStatePayload | null,
+  action: ConfigGen.MobileAppStatePayload | undefined,
   listenerApi: Container.ListenerApi
 ) => {
   // Only recheck on foreground, not background
@@ -427,7 +427,7 @@ const getStartupDetailsFromInitialPush = async () => {
     Container.timeoutPromise(10),
   ])
   if (!push) {
-    return null
+    return
   }
 
   // TODO push is any here
@@ -445,7 +445,7 @@ const getStartupDetailsFromInitialPush = async () => {
     }
   }
 
-  return null
+  return
 }
 
 const getInitialPushAndroid = async () => {
@@ -455,7 +455,7 @@ const getInitialPushAndroid = async () => {
 }
 
 const getInitialPushiOS = async () =>
-  new Promise<Container.TypedActions | null | false>(resolve => {
+  new Promise<Container.TypedActions | undefined>(resolve => {
     isIOS &&
       PushNotificationIOS.getInitialNotification()
         .then((n: any) => {
@@ -463,7 +463,7 @@ const getInitialPushiOS = async () =>
           if (notification) {
             resolve(PushGen.createNotification({notification}))
           }
-          resolve(null)
+          resolve(undefined)
         })
         .catch(() => {})
   })

@@ -34,7 +34,7 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
 
 const UsernameOrEmailContainer = (op: OwnProps) => {
   const _resetBannerUser = Container.useSelector(state => state.autoreset.username)
-  const resetBannerUser = op.route.params.fromReset ? _resetBannerUser : null
+  const resetBannerUser = op.route.params.fromReset ? _resetBannerUser : undefined
   const _error = Container.useSelector(state => state.provision.error.stringValue())
   const {inlineError, inlineSignUpLink} = Container.useSelector(state =>
     decodeInlineError(state.provision.inlineError)

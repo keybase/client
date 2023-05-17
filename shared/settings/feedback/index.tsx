@@ -16,7 +16,7 @@ export const getOtherErrorInfo = (err: Error) => {
 }
 
 type Props = {
-  feedback?: string | null
+  feedback?: string
   loggedOut: boolean
   onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
   sending: boolean
@@ -27,7 +27,7 @@ type Props = {
 
 type State = {
   clickCount: number
-  email: string | null
+  email?: string
   feedback: string
   sendLogs: boolean
   showSuccessBanner: boolean
@@ -38,7 +38,7 @@ const clickThreshold = 7
 class Feedback extends React.Component<Props, State> {
   state = {
     clickCount: 0,
-    email: null,
+    email: undefined,
     feedback: this.props.feedback || '',
     sendLogs: true,
     showSuccessBanner: false,

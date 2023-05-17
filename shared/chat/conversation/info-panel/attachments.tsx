@@ -386,12 +386,12 @@ type Props = {
   commonSections: Array<Section<{key: string}, {title?: string}>>
 }
 
-const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | null => {
+const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | undefined => {
   if (info.last || info.status !== 'success') {
-    return null
+    return undefined
   }
-  const lastMessage = info.messages.length > 0 ? info.messages[info.messages.length - 1] : null
-  return lastMessage ? lastMessage.id : null
+  const lastMessage = info.messages.length > 0 ? info.messages[info.messages.length - 1] : undefined
+  return lastMessage?.id
 }
 
 const noAttachmentView = Constants.makeAttachmentViewInfo()

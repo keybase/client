@@ -25,13 +25,13 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   _mounted = false
 
   _animations: {
-    in: NativeAnimated.CompositeAnimation | null
-    loop: NativeAnimated.CompositeAnimation | null
-    out: NativeAnimated.CompositeAnimation | null
+    in: NativeAnimated.CompositeAnimation | undefined
+    loop: NativeAnimated.CompositeAnimation | undefined
+    out: NativeAnimated.CompositeAnimation | undefined
   } = {
-    in: null,
-    loop: null,
-    out: null,
+    in: undefined,
+    loop: undefined,
+    out: undefined,
   }
 
   _startAnimationLoop() {
@@ -70,7 +70,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
       return
     }
     this._animations[animation].stop()
-    this._animations[animation] = null
+    this._animations[animation] = undefined
   }
   _stopAllAnimations() {
     this._stopAnimation('out')

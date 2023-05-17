@@ -55,7 +55,7 @@ export type InviteByContactProps = {
   onRoleChange: (newRole: TeamRoleType) => void
   teamName: string
   listItems: Array<ContactRowProps>
-  errorMessage: string | null
+  errorMessage?: string
 }
 
 export const InviteByContact = (props: InviteByContactProps) => {

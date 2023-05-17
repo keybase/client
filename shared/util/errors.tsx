@@ -31,7 +31,7 @@ type RPCErrorLike = {
   name?: string
 }
 
-export function convertToRPCError(err: RPCErrorLike, method?: string | null): RPCError {
+export function convertToRPCError(err: RPCErrorLike, method?: string): RPCError {
   return new RPCError(err.desc, err.code, err.fields, err.name, method)
 }
 

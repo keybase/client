@@ -293,7 +293,7 @@ const TeamBuilding = () => {
       teamSoFar={teamSoFar}
       searchString={searchString}
       goButtonLabel={goButtonLabel}
-      waitingKey={teamID ? TeamConstants.teamWaitingKey(teamID) : null}
+      waitingKey={teamID ? TeamConstants.teamWaitingKey(teamID) : undefined}
     />
   )
 

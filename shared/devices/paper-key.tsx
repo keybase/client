@@ -17,6 +17,7 @@ const PaperKey = () => {
         customResponseIncomingCallMap: {
           'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
             response.result(false)
+            return false
           },
         },
         incomingCallMap: {

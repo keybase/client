@@ -22,7 +22,7 @@ type State = {
 }
 
 export type Props = {
-  allowFontScaling?: boolean | null
+  allowFontScaling?: boolean
   allowPopup: boolean
   errorDetail?: string
   isSendError: boolean

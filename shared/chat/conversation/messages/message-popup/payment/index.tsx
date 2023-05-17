@@ -55,10 +55,10 @@ type HeaderProps = {
 export type Props = {
   attachTo?: () => React.Component<any> | null
   cancelButtonLabel: string
-  onCancel: (() => void) | null
-  onClaimLumens: (() => void) | null
+  onCancel?: () => void
+  onClaimLumens?: () => void
   onHidden: () => void
-  onSeeDetails: (() => void) | null
+  onSeeDetails?: () => void
   position: Styles.Position
   style?: Styles.StylesCrossPlatform
   visible: boolean

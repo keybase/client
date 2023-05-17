@@ -73,7 +73,7 @@ export default (ownProps: OwnProps) => {
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
     summaryAdvanced: tx.summaryAdvanced,
-    timestamp: tx.time ? new Date(tx.time) : null,
+    timestamp: tx.time ? new Date(tx.time) : undefined,
     trustline: tx.trustline || undefined,
     unread: tx.unread,
     yourRole,

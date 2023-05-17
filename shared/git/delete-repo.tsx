@@ -20,7 +20,7 @@ export default (ownProps: OwnProps) => {
   const waitingKey = Constants.loadingWaitingKey
 
   const dispatch = Container.useDispatch()
-  const _onDelete = (teamname: string | null, name: string, notifyTeam: boolean) => {
+  const _onDelete = (teamname: string | undefined, name: string, notifyTeam: boolean) => {
     const deleteAction = teamname
       ? GitGen.createDeleteTeamRepo({name, notifyTeam, teamname})
       : GitGen.createDeletePersonalRepo({name})

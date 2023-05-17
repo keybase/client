@@ -4,7 +4,7 @@ import type {Props} from './audio-video'
 
 const AudioVideo = (props: Props) => {
   const {url, seekRef, paused, onPositionUpdated, onEnded} = props
-  const [sound, setSound] = React.useState<Audio.Sound | null>(null)
+  const [sound, setSound] = React.useState<Audio.Sound | undefined>()
 
   React.useEffect(() => {
     return () => {

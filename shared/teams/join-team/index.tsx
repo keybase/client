@@ -10,7 +10,7 @@ export type Props = {
   initialTeamname?: string
   open: boolean
   success: boolean
-  successTeamName: string | null
+  successTeamName?: string
   onBack: () => void
   onJoinTeam: (name: string) => void
 }

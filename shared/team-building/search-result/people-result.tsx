@@ -19,7 +19,7 @@ import CommonResult, {type ResultProps} from './common-result'
  */
 
 const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
-  const keybaseUsername: string | null = props.services['keybase'] || null
+  const keybaseUsername: string | undefined = props.services['keybase']
   const serviceUsername = props.services[props.resultForService]
 
   // action button specific definitions

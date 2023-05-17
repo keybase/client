@@ -96,9 +96,11 @@ const deriveSearchResults = memoize(expensiveDeriveResults)
 //
 // Resulting list may have nulls in place of fake rows.
 const flattenRecommendations = (recommendations: Array<Types.SearchRecSection>) => {
-  const result: Array<Types.SearchResult | null> = []
+  const result: Array<Types.SearchResult | undefined> = []
   for (const section of recommendations) {
-    result.push(...section.data.map(rec => ('isImportButton' in rec || 'isSearchHint' in rec ? null : rec)))
+    result.push(
+      ...section.data.map(rec => ('isImportButton' in rec || 'isSearchHint' in rec ? undefined : rec))
+    )
   }
   return result
 }
@@ -119,8 +121,8 @@ const sortAndSplitRecommendations = memoize(
   (
     results: Unpacked<typeof deriveSearchResults>,
     showingContactsButton: boolean
-  ): Array<Types.SearchRecSection> | null => {
-    if (!results) return null
+  ): Array<Types.SearchRecSection> | undefined => {
+    if (!results) return undefined
 
     const sections: Array<Types.SearchRecSection> = [
       ...(showingContactsButton
@@ -260,7 +262,7 @@ export const ListBody = (
     Container.isMobile && contactsPermissionStatus !== 'denied' && !contactsImported
   const recommendations = showRecs
     ? sortAndSplitRecommendations(_recommendations, showingContactsButton)
-    : null
+    : undefined
   const showRecPending = !searchString && !recommendations && selectedService === 'keybase'
 
   Container.useDepChangeEffect(() => {

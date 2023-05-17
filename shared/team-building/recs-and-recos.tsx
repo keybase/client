@@ -103,10 +103,10 @@ export const RecsAndRecos = (
 
   const _listIndexToSectionAndLocalIndex = memoize(
     (
-      highlightedIndex: number | null,
-      sections: Types.SearchRecSection[] | null
-    ): {index: number; section: Types.SearchRecSection} | null => {
-      if (highlightedIndex !== null && sections !== null) {
+      highlightedIndex?: number,
+      sections?: Types.SearchRecSection[]
+    ): {index: number; section: Types.SearchRecSection} | undefined => {
+      if (highlightedIndex !== undefined && sections !== undefined) {
         let index = highlightedIndex
         for (const section of sections) {
           if (index >= section.data.length) {
@@ -116,7 +116,7 @@ export const RecsAndRecos = (
           }
         }
       }
-      return null
+      return
     }
   )
 

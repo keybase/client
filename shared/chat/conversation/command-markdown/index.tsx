@@ -3,7 +3,7 @@ import * as Styles from '../../../styles'
 
 type Props = {
   body: string
-  title: string | null
+  title?: string
 }
 
 const CommandMarkdown = (props: Props) => {

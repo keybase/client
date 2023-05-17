@@ -7,14 +7,14 @@ export type MenuItem = {
   danger?: boolean
   decoration?: React.ReactNode // on the right side. unused if `view` is given,
   disabled?: boolean
-  icon?: IconType | null
+  icon?: IconType
   iconIsVisible?: boolean
   iconStyle?: IconStyle
   isBadged?: boolean
   isSelected?: boolean
   inProgress?: boolean
-  newTag?: boolean | null
-  onClick?: ((evt?: React.SyntheticEvent) => void) | null
+  newTag?: boolean
+  onClick?: (evt?: React.SyntheticEvent) => void
   onPress?: void
   progressIndicator?: boolean
   style?: Object
@@ -24,7 +24,7 @@ export type MenuItem = {
   view?: React.ReactNode
 }
 
-type _InnerMenuItem = MenuItem | 'Divider' | null
+type _InnerMenuItem = MenuItem | 'Divider' | undefined
 export type MenuItems = Array<_InnerMenuItem>
 
 export type MenuLayoutProps = {
@@ -36,7 +36,7 @@ export type MenuLayoutProps = {
   style?: Object
   listStyle?: Object
   hoverColor?: string
-  closeText?: string | null // mobile only; default to "Close"
+  closeText?: string // mobile only; default to "Close"
   textColor?: Styles.Color
   safeProviderStyle?: Styles.StylesCrossPlatform
 }

@@ -11,17 +11,19 @@ import {checkTextInfo} from './input.shared'
 
 type State = {
   focused: boolean
-  height: number | null
+  height?: number
 }
 
 class Input extends React.Component<Props, State> {
   state: State
   private input = React.createRef<TextInput>()
-  private lastNativeText: string | null = null
-  private lastNativeSelection: {
-    start: number | null
-    end: number | null
-  } | null = null
+  private lastNativeText: string | undefined
+  private lastNativeSelection:
+    | {
+        start: number | null
+        end: number | null
+      }
+    | undefined
 
   private timeoutIds: Array<ReturnType<typeof setTimeout>>
 
@@ -36,7 +38,7 @@ class Input extends React.Component<Props, State> {
 
     this.state = {
       focused: false,
-      height: null,
+      height: undefined,
     }
 
     this.timeoutIds = []
@@ -275,7 +277,7 @@ class Input extends React.Component<Props, State> {
         ? this.props.floatingHintTextOverride
         : this.props.hintText || ' ')
 
-    let keyboardType: KeyboardType | null = this.props.keyboardType || null
+    let keyboardType: KeyboardType | undefined = this.props.keyboardType
     if (!keyboardType) {
       if (isAndroid && this.props.type === 'passwordVisible') {
         keyboardType = 'visible-password'

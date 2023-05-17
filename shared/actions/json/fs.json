@@ -30,7 +30,7 @@
       "team": "Types.TlfList"
     },
     "setFolderViewFilter": {
-      "filter": "string|null"
+      "filter?": "string"
     },
     "tlfSyncConfigLoaded": {
       "tlfType": "Types.TlfType",
@@ -79,7 +79,7 @@
     "journalUpdate": {
       "syncingPaths": "Array<Types.Path>",
       "totalSyncingBytes": "number",
-      "endEstimate?": "number | null"
+      "endEstimate?": "number"
     },
     "openLocalPathInSystemFileManager": {
       "localPath": "string"
@@ -95,7 +95,7 @@
     },
     "setSfmiBannerDismissed": {"dismissed": "boolean"},
     "driverEnable": {
-      "isRetry?": "boolean | null"
+      "isRetry?": "boolean"
     },
     "driverDisable": {},
     "driverDisabling": {},
@@ -205,11 +205,11 @@
     },
     "setPathSoftError": {
       "path": "Types.Path",
-      "softError": "Types.SoftError | null"
+      "softError?": "Types.SoftError"
     },
     "setTlfSoftError": {
       "path": "Types.Path",
-      "softError": "Types.SoftError | null"
+      "softError?": "Types.SoftError"
     },
     "loadSettings": {},
     "settingsLoaded": {
@@ -236,8 +236,8 @@
     "cancelDownload": {"downloadID": "string"},
     "dismissDownload": {"downloadID": "string"},
     "setPathItemActionMenuDownload": {
-      "downloadID": "string | null",
-      "intent": "Types.DownloadIntent | null"
+      "downloadID?": "string",
+      "intent?": "Types.DownloadIntent"
     },
     "finishedDownloadWithIntent": {
       "downloadID": "string",

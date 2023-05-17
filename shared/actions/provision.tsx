@@ -156,7 +156,7 @@ class ProvisioningManager {
     this.checkNoStashedResponses()
     this.stashedResponse['keybase.1.provisionUi.PromptNewDeviceName'] = response
     return ProvisionGen.createShowNewDeviceNamePage({
-      error: params.errorMessage ? new HiddenString(params.errorMessage) : null,
+      error: params.errorMessage ? new HiddenString(params.errorMessage) : undefined,
       existingDevices: params.existingDevices ?? [],
     })
   }
@@ -199,7 +199,7 @@ class ProvisioningManager {
     this.stashedResponse['keybase.1.provisionUi.DisplayAndPromptSecret'] = response
     return ProvisionGen.createShowCodePage({
       code: new HiddenString(params.phrase),
-      error: params.previousErr ? new HiddenString(params.previousErr) : null,
+      error: params.previousErr ? new HiddenString(params.previousErr) : undefined,
     })
   }
 
@@ -311,9 +311,9 @@ class ProvisioningManager {
 
     switch (params.pinentry.type) {
       case RPCTypes.PassphraseType.passPhrase:
-        return ProvisionGen.createShowPasswordPage({error: error ? new HiddenString(error) : null})
+        return ProvisionGen.createShowPasswordPage({error: error ? new HiddenString(error) : undefined})
       case RPCTypes.PassphraseType.paperKey:
-        return ProvisionGen.createShowPaperkeyPage({error: error ? new HiddenString(error) : null})
+        return ProvisionGen.createShowPaperkeyPage({error: error ? new HiddenString(error) : undefined})
       default:
         throw new Error('Got confused about password entry. Please send a log to us!')
     }

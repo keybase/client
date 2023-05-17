@@ -39,7 +39,7 @@ export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
  */
 export const createShowNewDeviceNamePage = (payload: {
   readonly existingDevices: Array<string>
-  readonly error: HiddenString | null
+  readonly error?: HiddenString
 }) => ({payload, type: showNewDeviceNamePage as typeof showNewDeviceNamePage})
 /**
  * Show the list of devices the user can use to provision a device
@@ -75,13 +75,13 @@ export const createForgotUsernameResult = (payload: {readonly result: string}) =
   payload,
   type: forgotUsernameResult as typeof forgotUsernameResult,
 })
-export const createProvisionError = (payload: {readonly error: HiddenString | null}) => ({
+export const createProvisionError = (payload: {readonly error?: HiddenString} = {}) => ({
   payload,
   type: provisionError as typeof provisionError,
 })
 export const createShowCodePage = (payload: {
   readonly code: HiddenString
-  readonly error: HiddenString | null
+  readonly error?: HiddenString
 }) => ({payload, type: showCodePage as typeof showCodePage})
 export const createShowFinalErrorPage = (payload: {
   readonly finalError: RPCError
@@ -92,11 +92,11 @@ export const createShowInlineError = (payload: {readonly inlineError: RPCError})
   payload,
   type: showInlineError as typeof showInlineError,
 })
-export const createShowPaperkeyPage = (payload: {readonly error: HiddenString | null}) => ({
+export const createShowPaperkeyPage = (payload: {readonly error?: HiddenString} = {}) => ({
   payload,
   type: showPaperkeyPage as typeof showPaperkeyPage,
 })
-export const createShowPasswordPage = (payload: {readonly error: HiddenString | null}) => ({
+export const createShowPasswordPage = (payload: {readonly error?: HiddenString} = {}) => ({
   payload,
   type: showPasswordPage as typeof showPasswordPage,
 })

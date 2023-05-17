@@ -120,7 +120,7 @@ const checkErrors = (
   })
 }
 
-type CB = (err: Error | null) => void
+type CB = (err?: Error) => void
 const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) => {
   logger.info('[Installer]: Installer check starting now')
   const keybaseBin = keybaseBinPath()
@@ -192,7 +192,7 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
             if (response === 1) {
               ctlQuit()
             } else {
-              callback(null)
+              callback()
             }
           })
         )
@@ -219,7 +219,7 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
       }
     }
 
-    callback(null)
+    callback()
   }
   exec(
     keybaseBin,
@@ -231,5 +231,5 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
   )
 }
 
-const install = isDarwin ? darwinInstall : (_: unknown, callback: CB) => callback(null) // nothing on other platforms
+const install = isDarwin ? darwinInstall : (_: unknown, callback: CB) => callback() // nothing on other platforms
 export default install

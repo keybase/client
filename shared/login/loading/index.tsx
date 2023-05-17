@@ -6,8 +6,8 @@ type Props = {
   allowFeedback?: boolean
   failed: string
   status: string
-  onRetry: (() => void) | null
-  onFeedback: (() => void) | null
+  onRetry?: () => void
+  onFeedback?: () => void
 }
 
 const Feedback = ({onFeedback}) =>

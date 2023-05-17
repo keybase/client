@@ -15,7 +15,7 @@ export const useDefaultChannels = (teamID: Types.TeamID) => {
   const getDefaultChannelsRPC = Container.useRPC(RPCChatGen.localGetDefaultTeamChannelsLocalRpcPromise)
   const [defaultChannels, setDefaultChannels] = React.useState<Array<Types.ChannelNameID>>([])
   const [defaultChannelsWaiting, setWaiting] = React.useState(false)
-  const [error, setError] = React.useState<RPCError | null>(null)
+  const [error, setError] = React.useState<RPCError | undefined>()
 
   const reloadDefaultChannels = React.useCallback(() => {
     setWaiting(true)

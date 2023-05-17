@@ -6,7 +6,7 @@ import {WalletBackButton} from '../common'
 type Props = {
   isRequest: boolean
   children?: React.ReactNode
-  onBack?: (() => void) | null
+  onBack?: () => void
   showCancelInsteadOfBackOnMobile: boolean
   whiteBackground?: boolean
 }

@@ -7,7 +7,7 @@ export type Props<Item> = {
   items: Array<Item>
   style?: StylesCrossPlatform
   contentContainerStyle?: StylesCrossPlatform
-  fixedHeight?: number | null
+  fixedHeight?: number
   renderItem: (index: number, item: Item) => React.ReactElement
   keyProperty?: string // if passed uses item[keyProperty] for the item keys
   selectedIndex?: number // TODO work on mobile

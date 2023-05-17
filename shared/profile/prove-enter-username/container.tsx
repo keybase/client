@@ -15,7 +15,7 @@ export default () => {
   const username = profile.username
 
   const dispatch = Container.useDispatch()
-  const _onSubmit = (username: string, platform: string | null) => {
+  const _onSubmit = (username: string, platform?: string) => {
     dispatch(ProfileGen.createUpdateUsername({username}))
 
     if (platform === 'btc') {

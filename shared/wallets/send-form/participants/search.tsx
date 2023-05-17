@@ -6,7 +6,7 @@ export type SearchProps = {
   heading: 'To' | 'From'
   onClickResult: (username: string) => void
   onShowTracker: (username: string) => void
-  onScanQRCode: (() => void) | null
+  onScanQRCode?: () => void
   onSearch: () => void
 }
 

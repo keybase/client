@@ -7,7 +7,7 @@ type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 export default (ownProps: OwnProps) => {
   const md = Container.useSelector(state => state.chat2.commandMarkdownMap.get(ownProps.conversationIDKey))
   const body = md?.body ?? ''
-  const title = md?.title ?? null
+  const title = md?.title ?? undefined
   const props = {body, title}
   return <CommandMarkdown {...props} />
 }

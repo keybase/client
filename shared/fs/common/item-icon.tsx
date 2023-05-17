@@ -138,7 +138,7 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
   const downloadIntent = Constants.getDownloadIntent(props.path, downloads, pathItemActionMenu)
   const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, props.path))
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
-  const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading') || null
+  const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading')
   return (
     <Kb.Box style={props.style}>
       {pathItem.type === Types.PathType.Folder ? (
@@ -150,7 +150,7 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
       ) : (
         <Kb.Icon type={icons.file[getIconSizeString(props.size)]} />
       )}
-      {badgeIcon && (
+      {badgeIcon ? (
         <Kb.Box style={styles.badgeContainer}>
           <Kb.Icon
             type={badgeIcon}
@@ -158,7 +158,7 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
             color={Styles.globalColors.greyDarker}
           />
         </Kb.Box>
-      )}
+      ) : null}
     </Kb.Box>
   )
 }

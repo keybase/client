@@ -4,7 +4,7 @@ import type {IncomingCallMapType, CustomResponseIncomingCallMapType} from '../co
 
 export type WaitingKey = string | Array<string>
 export declare class Engine {
-  dispatchWaitingAction: (key: WaitingKey, waiting: boolean, err: RPCError | null) => void
+  dispatchWaitingAction: (key: WaitingKey, waiting: boolean, err?: RPCError) => void
   reset(): void
   rpc(): void
   listenersAreReady(): void
@@ -17,9 +17,9 @@ export declare class Engine {
     cancelHandler?: any
     dangling?: boolean
   }): Session
-  _rpcOutgoing(arg0: {
+  _rpcOutgoing(p: {
     method: string
-    params?: Object | null | undefined | void
+    params?: Object | void
     callback: (...args: Array<any>) => void
     waitingKey?: WaitingKey
   }): void

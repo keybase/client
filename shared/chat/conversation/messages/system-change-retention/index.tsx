@@ -10,7 +10,7 @@ type Props = {
   membersType: RPCChatTypes.ConversationMembersType
   onClickUserAvatar: () => void
   onManageRetention: () => void
-  policy: RPCChatTypes.RetentionPolicy | null
+  policy?: RPCChatTypes.RetentionPolicy
   user: string
   you: string
   timestamp: number

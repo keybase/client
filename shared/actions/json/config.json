@@ -172,7 +172,7 @@
     "toggleRuntimeStats": {},
     "loadOnLoginStartup": {},
     "loadedOnLoginStartup": {
-      "status": "boolean | null"
+      "status?": "boolean"
     },
     "loadOnStart": {
       "_description": [
@@ -195,12 +195,11 @@
       "useOriginal": "boolean"
     },
     "initListenerLoops": {
-        "_description": "Internal action just to start saga-like spawn processes"
+      "_description": "Internal action just to start saga-like spawn processes"
     },
     "powerMonitorEvent": {
-        "_description": "Plumb power monitor events from node",
-        "event": "string"
-    },
-
+      "_description": "Plumb power monitor events from node",
+      "event": "string"
+    }
   }
 }

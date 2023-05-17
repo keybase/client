@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as Styles from '../styles'
 
 export type Props = {
-  hideControls?: boolean | null
+  hideControls?: boolean
   onUrlError?: (err: string) => void
-  style?: Styles.StylesCrossPlatform | null
+  style?: Styles.StylesCrossPlatform
   url: string
   allowFile?: boolean
   muted?: boolean

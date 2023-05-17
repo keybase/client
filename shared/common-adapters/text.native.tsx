@@ -51,7 +51,7 @@ class Text extends React.Component<Props> {
     this.props.onClickURL && openURL(this.props.onClickURL)
   }
 
-  _urlCopy = (url: string | null) => {
+  _urlCopy = (url?: string) => {
     if (!url) return
     Clipboard.setStringAsync(url)
       .then(() => {})
@@ -140,8 +140,8 @@ class Text extends React.Component<Props> {
 function _getStyle(
   type: TextType,
   negative?: boolean,
-  _?: number | null,
-  __?: boolean | null,
+  _?: number,
+  __?: boolean,
   // @ts-ignore the order of these parameters because this is used in a lot
   // of places
   forceUnderline: boolean
@@ -159,7 +159,7 @@ function _getStyle(
     ...textDecoration,
   }
 }
-function getStyle(type: TextType, negative?: boolean, _?: number | null, __?: boolean | null) {
+function getStyle(type: TextType, negative?: boolean, _?: number, __?: boolean) {
   const meta = metaData()[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}

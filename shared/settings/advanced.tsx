@@ -47,7 +47,7 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
     dispatch(SettingsGen.createOnChangeLockdownMode({enabled}))
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
   const checked = hasRandomPW || !!lockdownModeEnabled
-  const disabled = lockdownModeEnabled === null || hasRandomPW || settingLockdownMode
+  const disabled = hasRandomPW || settingLockdownMode
   return (
     <Kb.Checkbox
       checked={checked}

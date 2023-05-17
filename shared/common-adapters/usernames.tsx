@@ -35,12 +35,12 @@ export type Props = {
   lineClamp?: LineClampType
   notFollowingColorOverride?: AllowedColors
   onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile'
-  prefix?: string | null
+  prefix?: string
   selectable?: boolean
   showAnd?: boolean
   skipSelf?: boolean
   style?: StylesTextCrossPlatform
-  suffix?: string | null
+  suffix?: string
   suffixType?: TextType
   title?: string
   underline?: boolean
@@ -148,7 +148,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
   // Make sure onClick is undefined when _onUsernameClicked is, so
   // as to not override any existing onClick handler from containers
   // on native. (See DESKTOP-3963.)
-  const isNegative = backgroundModeIsNegative(backgroundMode || null)
+  const isNegative = backgroundModeIsNegative(backgroundMode)
   const renderText = (onLongPress?: () => void) => (
     // type is set to Body here to prevent unwanted hover behaviors
     // line height is unset to prevent some text clipping issues
@@ -263,7 +263,7 @@ const Usernames = React.memo(
     const containerStyle2: Styles.StylesCrossPlatform = inline
       ? (styles.inlineStyle as any)
       : (styles.nonInlineStyle as any)
-    const bgMode = backgroundMode || null
+    const bgMode = backgroundMode
     const isNegative = backgroundModeIsNegative(bgMode)
 
     const names = React.useMemo(() => {

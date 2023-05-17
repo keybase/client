@@ -8,7 +8,7 @@ export const waitingKey = 'provision:waiting'
 export const forgotUsernameWaitingKey = 'provision:forgotUsername'
 
 // Do NOT change this. These values are used by the daemon also so this way we can ignore it when they do it / when we do
-export const errorCausedByUsCanceling = (e: RPCError | null) =>
+export const errorCausedByUsCanceling = (e?: RPCError) =>
   (e ? e.desc : undefined) === 'Input canceled' || (e ? e.desc : undefined) === 'kex canceled by caller'
 export const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
   response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})

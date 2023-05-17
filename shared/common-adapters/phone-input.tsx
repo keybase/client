@@ -156,7 +156,7 @@ type CountrySelectorProps = {
 }
 
 type CountrySelectorState = {
-  selected: string | undefined | null
+  selected?: string
   filter: string
 }
 
@@ -176,8 +176,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     }
   }
 
-  private onSelect = (selected: string | null | undefined) =>
-    this.setState(s => (s.selected === selected ? null : {selected}))
+  private onSelect = (selected?: string) => this.setState(s => (s.selected === selected ? null : {selected}))
 
   private onSelectFirst = () => {
     if (Styles.isMobile && this.mobileItems && this.mobileItems[0]) {

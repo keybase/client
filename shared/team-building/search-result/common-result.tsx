@@ -57,7 +57,7 @@ const CommonResult = (props: CommonResultProps) => {
    * username, other services, and full name.
    */
   const isKeybaseResult = props.resultForService === 'keybase'
-  const keybaseUsername: string | null = props.services['keybase'] || null
+  const keybaseUsername: string | undefined = props.services['keybase']
   const serviceUsername = props.services[props.resultForService]
   const onAdd = !props.isPreExistingTeamMember ? () => props.onAdd(props.userId) : undefined
   const onRemove = !props.isPreExistingTeamMember ? () => props.onRemove(props.userId) : undefined
@@ -72,7 +72,7 @@ const CommonResult = (props: CommonResultProps) => {
         style={Styles.collapseStyles([
           styles.rowContainer,
           props.rowStyle,
-          props.highlight ? styles.highlighted : null,
+          props.highlight ? styles.highlighted : undefined,
         ])}
       >
         <Avatar
@@ -144,7 +144,7 @@ const Avatar = ({
   keybaseUsername,
   pictureUrl,
 }: {
-  keybaseUsername: string | null
+  keybaseUsername?: string
   resultForService: Types.ServiceIdWithContact
   pictureUrl?: string
 }) => {
@@ -171,7 +171,7 @@ const ServicesIcons = (props: {
   prettyName: string
   displayLabel: string
   isKeybaseResult: boolean
-  keybaseUsername: string | null
+  keybaseUsername?: string
 }) => {
   const serviceIds = serviceMapToArray(props.services)
   // When the result is from a non-keybase service, we could have:
@@ -218,7 +218,7 @@ const FormatPrettyName = (props: {
   prettyName: string
   username: string
   services: Array<Types.ServiceIdWithContact>
-  keybaseUsername: string | null
+  keybaseUsername?: string
   showServicesIcons: boolean
 }) =>
   props.prettyName &&
@@ -256,7 +256,7 @@ const BottomRow = (props: {
   isKeybaseResult: boolean
   username: string
   isPreExistingTeamMember: boolean
-  keybaseUsername: string | null
+  keybaseUsername?: string
   followingState: Types.FollowingState
   displayLabel: string
   prettyName: string
@@ -319,7 +319,7 @@ const BottomRow = (props: {
 const Username = (props: {
   followingState: Types.FollowingState
   isKeybaseResult: boolean
-  keybaseUsername: string | null
+  keybaseUsername?: string
   username: string
 }) => (
   <Kb.Text

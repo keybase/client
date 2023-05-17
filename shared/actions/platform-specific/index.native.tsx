@@ -209,7 +209,7 @@ const persistRoute = async (_state: Container.TypedState, action: ConfigGen.Pers
   let routeName = Tabs.peopleTab
 
   if (path) {
-    const cur = RouterConstants.getTab(null)
+    const cur = RouterConstants.getTab()
     if (cur) {
       routeName = cur
     }

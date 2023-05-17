@@ -5,18 +5,18 @@ const rateLimit: {[K in string]: () => void} = {}
 const rateLimitPayloads: {
   [K in string]: {
     title: string
-    opts: Object | null
-    onClick: (() => void) | null
+    opts?: Object
+    onClick?: () => void
   }
 } = {}
 
 function NotifyPopup(
   title: string,
-  opts: any | null,
+  opts: any,
   rateLimitSeconds: number = -1,
   rateLimitKey?: string,
-  onClick?: (() => void) | null,
-  onClose?: (() => void) | null
+  onClick?: () => void,
+  onClose?: () => void
 ): void {
   const sound = opts && opts.sound
   if (rateLimitSeconds > 0) {
@@ -24,7 +24,7 @@ function NotifyPopup(
 
     // Exists? just call it to push the time back
     if (rateLimit[key]) {
-      rateLimitPayloads[key] = {onClick: onClick || null, opts, title}
+      rateLimitPayloads[key] = {onClick: onClick, opts, title}
       rateLimit[key]()
       return
     } else {
@@ -34,8 +34,8 @@ function NotifyPopup(
           const {title, opts, onClick} = rateLimitPayloads[key]
           delete rateLimitPayloads[key]
           const notification = new Notification(title, {...opts, silent: !sound})
-          notification.onclick = onClick || null
-          notification.onclose = onClose || null
+          notification.onclick = onClick ?? null
+          notification.onclose = onClose ?? null
         }
       }, rateLimitSeconds * 1000)
     }
@@ -43,8 +43,8 @@ function NotifyPopup(
 
   logger.info('NotifyPopup: creating notification')
   const notification = new Notification(title, {...opts, silent: !sound})
-  notification.onclick = onClick || null
-  notification.onclose = onClose || null
+  notification.onclick = onClick ?? null
+  notification.onclose = onClose ?? null
 }
 
 export default NotifyPopup

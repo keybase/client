@@ -84,11 +84,11 @@ const Conversation = React.memo(function Conversation(props: Props) {
           if (i.content) {
             texts.push(i.content)
           } else if (i.originalPath) {
-            attach.push({outboxID: null, path: i.originalPath})
+            attach.push({path: i.originalPath})
           }
           return obj
         },
-        {attach: new Array<{outboxID: null; path: string}>(), texts: new Array<string>()}
+        {attach: new Array<{path: string}>(), texts: new Array<string>()}
       )
 
       if (texts.length) {

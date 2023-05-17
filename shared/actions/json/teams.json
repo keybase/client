@@ -37,7 +37,7 @@
     "createChannel": {
       "teamID": "Types.TeamID",
       "channelname": "string",
-      "description": "string | null",
+      "description?": "string",
       "navToChatOnSuccess": "boolean"
     },
     "createChannels": {

@@ -11,7 +11,7 @@ import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 
 const initialState: Types.State = {
   followSuggestions: [],
-  inviteCounts: null,
+  inviteCounts: undefined,
   lastViewed: new Date(),
   newItems: [],
   oldItems: [],

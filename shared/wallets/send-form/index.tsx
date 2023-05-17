@@ -17,7 +17,7 @@ export default (ownProps: OwnProps) => {
     ? () => dispatch(RouteTreeGen.createNavigateUp())
     : Container.isMobile
     ? () => dispatch(WalletsGen.createAbandonPayment())
-    : null
+    : undefined
   const onClose = () => {
     dispatch(WalletsGen.createAbandonPayment())
   }
@@ -33,7 +33,7 @@ export default (ownProps: OwnProps) => {
 type Props = {
   isRequest: boolean
   isAdvanced: boolean
-  onBack: (() => void) | null
+  onBack?: () => void
   onClose: () => void
 }
 

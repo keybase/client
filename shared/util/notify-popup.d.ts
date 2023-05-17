@@ -1,10 +1,10 @@
 declare function NotifyPopup(
   title: string,
-  opts: any | null,
+  opts?: any,
   rateLimitSeconds?: number,
   rateLimitKey?: string,
-  onClick?: (() => void) | null,
-  onClose?: (() => void) | null
+  onClick?: () => void,
+  onClose?: () => void
 ): void
 
 export default NotifyPopup

@@ -19,11 +19,9 @@ import logger from '../../logger'
 type DisabledRoles = React.ComponentProps<typeof FloatingRolePicker>['disabledRoles']
 const disabledRolesForNonKeybasePlural = {
   admin: 'Some invitees cannot be added as admins. Only Keybase users can be added as admins.',
-  owner: null,
 }
 const disabledRolesForPhoneEmailIndividual = {
   admin: 'Only Keybase users can be added as admins.',
-  owner: null,
 }
 const disabledRolesSubteam = {
   owner: 'Subteams cannot have owners.',
@@ -49,7 +47,7 @@ const AddMembersConfirm = () => {
 
   const disabledRoles = isSubteam ? disabledRolesSubteam : undefined
 
-  const [emailMessage, setEmailMessage] = React.useState<string | null>(null)
+  const [emailMessage, setEmailMessage] = React.useState<string>('')
 
   const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
   const onBack = () => dispatch(RouteTreeGen.createNavUpToScreen({name: 'teamAddToTeamFromWhere'}))
@@ -136,7 +134,7 @@ const AddMembersConfirm = () => {
         {onlyEmails && (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmallSemibold">Custom note</Kb.Text>
-            {emailMessage === null ? (
+            {emailMessage === '' ? (
               <Kb.Text type="BodySmallPrimaryLink" onClick={() => setEmailMessage('')}>
                 Include a note in your email
               </Kb.Text>

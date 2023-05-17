@@ -234,7 +234,6 @@ class EnterUsername extends React.Component<Props> {
                   onClick={props.onSubmit}
                   label={props.submitButtonLabel}
                   style={styles.buttonBig}
-                  waitingKey={null}
                   key={this._waitingButtonKey}
                 />
               )}

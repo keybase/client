@@ -570,7 +570,7 @@ const createPaymentsReceived = (
     oldestUnread: payments?.oldestUnread
       ? Types.rpcPaymentIDToPaymentID(payments.oldestUnread)
       : Types.noPaymentID,
-    paymentCursor: payments?.cursor ?? null,
+    paymentCursor: payments?.cursor ?? undefined,
     payments: (payments?.payments || [])
       .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'history'))
       .filter(Boolean),
@@ -660,7 +660,7 @@ const loadSendAssetChoices = async (_: unknown, action: WalletsGen.LoadSendAsset
 const loadDisplayCurrency = async (_: unknown, action: WalletsGen.LoadDisplayCurrencyPayload) => {
   let accountID = action.payload.accountID
   if (accountID && !Types.isValidAccountID(accountID)) {
-    accountID = null
+    accountID = undefined
   }
   const res = await RPCStellarTypes.localGetDisplayCurrencyLocalRpcPromise(
     {accountID: accountID},
@@ -1044,7 +1044,7 @@ const recentPaymentsUpdate = (_: unknown, action: EngineGen.Stellar1NotifyRecent
   return WalletsGen.createRecentPaymentsReceived({
     accountID: Types.stringToAccountID(accountID),
     oldestUnread: oldestUnread ? Types.rpcPaymentIDToPaymentID(oldestUnread) : Types.noPaymentID,
-    paymentCursor: cursor || null,
+    paymentCursor: cursor || undefined,
     payments: (payments || [])
       .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'history'))
       .filter(Boolean),
@@ -1055,7 +1055,13 @@ const paymentReviewed = (_: unknown, action: EngineGen.Stellar1UiPaymentReviewed
   const {
     msg: {bid, reviewID, seqno, banners, nextButton},
   } = action.payload.params
-  return WalletsGen.createReviewedPaymentReceived({banners, bid, nextButton, reviewID, seqno})
+  return WalletsGen.createReviewedPaymentReceived({
+    banners: banners ?? undefined,
+    bid,
+    nextButton,
+    reviewID,
+    seqno,
+  })
 }
 
 // maybe just clear always?

@@ -23,7 +23,7 @@ type ClickableComponent = {
 
 type ClickableIcon = {
   actionIconWhite?: boolean
-  sizeType?: SizeType | null
+  sizeType?: SizeType
   type: 'icon'
 }
 
@@ -42,7 +42,7 @@ const IconClickable = props => (
       fixOverdraw={false}
       type="iconfont-ellipsis"
       color={props.actionIconWhite ? Styles.globalColors.whiteOrBlueDark : Styles.globalColors.black_50}
-      hoverColor={props.actionIconWhite ? null : Styles.globalColors.black}
+      hoverColor={props.actionIconWhite ? undefined : Styles.globalColors.black}
       padding="tiny"
       sizeType={props.sizeType || 'Default'}
       onClick={props.onClick}
@@ -61,7 +61,7 @@ const PathItemAction = (props: Props) => {
 
       const hide = () => {
         toggleShowingPopup()
-        dispatch(FsGen.createSetPathItemActionMenuDownload({downloadID: null, intent: null}))
+        dispatch(FsGen.createSetPathItemActionMenuDownload({}))
       }
 
       return (

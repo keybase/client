@@ -133,21 +133,21 @@ const NameWithIcon = (props: NameWithIconProps) => {
   const metaOne = (
     <TextOrComponent
       textType={props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
-      val={props.metaOne || null}
+      val={props.metaOne}
       style={props.horizontal ? undefined : (styles.fullWidthText as any)}
     />
   )
   const metaTwo = (
     <TextOrComponent
       textType="BodySmall"
-      val={props.metaTwo || null}
+      val={props.metaTwo}
       style={props.horizontal ? undefined : (styles.fullWidthText as any)}
     />
   )
   const botAlias = (
     <TextOrComponent
       textType="Header"
-      val={props.botAlias || null}
+      val={props.botAlias}
       style={props.horizontal ? styles.botAlias : (styles.fullWidthText as any)}
     />
   )

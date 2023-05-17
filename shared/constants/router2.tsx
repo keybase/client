@@ -96,7 +96,7 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
       if (!p) {
         return
       }
-      let routeName: string | null = null
+      let routeName: string | undefined
       let params: any | undefined
 
       if (typeof p === 'string') {
@@ -258,7 +258,7 @@ export const dispatchOldAction = (action: RTGActions) => {
   }
 }
 
-export const getTab = (navState: NavState | null) => {
+export const getTab = (navState?: NavState) => {
   const s = navState || getRootState()
   const loggedInRoute = s?.routes[0]
   if (loggedInRoute?.name === 'loggedIn') {

@@ -78,11 +78,7 @@ class Input extends React.PureComponent<Props, State> {
     this._onChangeTextDone(text)
   }
 
-  _onChange = (event: {
-    target: {
-      value: string | null
-    }
-  }) => {
+  _onChange = (event: {target: {value?: string}}) => {
     this._onChangeText(event.target.value || '')
   }
 

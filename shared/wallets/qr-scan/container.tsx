@@ -8,7 +8,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 const QRContainer = () => {
   const dispatch = Container.useDispatch()
   const _onSubmitCode = React.useCallback(
-    (to: string | null) => {
+    (to?: string) => {
       if (to) {
         if (to.startsWith('web+stellar:')) {
           // Switch from the send form to the SEP7 handler.

@@ -24,7 +24,7 @@ export default (ownProps: OwnProps) => {
   const onClose = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const onCreate = (name: string, teamname: string | null, notifyTeam: boolean) => {
+  const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
     const createAction =
       isTeam && teamname
         ? GitGen.createCreateTeamRepo({name, notifyTeam, teamname})
@@ -53,7 +53,7 @@ type Props = {
   error?: Error
   isTeam: boolean
   onClose: () => void
-  onCreate: (name: string, teamname: string | null, notifyTeam: boolean) => void
+  onCreate: (name: string, teamname: string, notifyTeam: boolean) => void
   onNewTeam: () => void
   teams?: Array<string>
   waitingKey: string
@@ -63,7 +63,7 @@ type Props = {
 type State = {
   name: string
   notifyTeam: boolean
-  selectedTeam: string | null
+  selectedTeam: string
 }
 
 const NewTeamSentry = '---NewTeam---'
@@ -72,14 +72,14 @@ class NewRepo extends React.Component<Props, State> {
   state = {
     name: '',
     notifyTeam: true,
-    selectedTeam: null,
+    selectedTeam: '',
   }
 
   _makeDropdownItems = () => {
     return (this.props.teams || []).concat(NewTeamSentry).map(this._makeDropdownItem)
   }
 
-  _makeDropdownItem = (item: string | null) => {
+  _makeDropdownItem = (item?: string) => {
     if (!item) {
       return (
         <Kb.Box2 alignItems="center" direction="horizontal" fullWidth={true} style={styles.dropdownItem}>

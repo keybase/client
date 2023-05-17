@@ -3,7 +3,7 @@ import * as Kb from '../common-adapters'
 import type {Device} from '../constants/types/unlock-folders'
 
 export type Props = {
-  devices: Array<Device> | null
+  devices?: Array<Device>
   toPaperKeyInput: () => void
 }
 

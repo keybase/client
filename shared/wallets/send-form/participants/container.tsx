@@ -37,7 +37,7 @@ const ConnectedParticipantsKeybaseUser = () => {
     ? () => {
         dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']}))
       }
-    : null
+    : undefined
   const onSearch = () => {
     dispatch(appendWalletPersonBuilder())
   }
@@ -46,10 +46,10 @@ const ConnectedParticipantsKeybaseUser = () => {
   const props = {
     errorMessage,
     isRequest,
-    onChangeRecipient: onChangeRecipient,
-    onRemoveProfile: onRemoveProfile,
-    onScanQRCode: onScanQRCode,
-    onSearch: onSearch,
+    onChangeRecipient,
+    onRemoveProfile,
+    onScanQRCode,
+    onSearch,
     onShowProfile,
     recipientUsername,
   }
@@ -71,7 +71,7 @@ const ConnectedParticipantsStellarPublicKey = () => {
   }
   const onScanQRCode = Container.isMobile
     ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']}))
-    : null
+    : undefined
   const setReadyToReview = (readyToReview: boolean) => {
     dispatch(WalletsGen.createSetReadyToReview({readyToReview}))
   }

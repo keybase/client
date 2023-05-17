@@ -109,7 +109,7 @@ export default class Asset extends React.Component<Props, State> {
                       onClick={this.props.onDeposit}
                       small={true}
                       type="Wallet"
-                      waitingKey={this.props.depositButtonWaitingKey || null}
+                      waitingKey={this.props.depositButtonWaitingKey}
                     />
                   )}
 
@@ -120,7 +120,7 @@ export default class Asset extends React.Component<Props, State> {
                       onClick={this.props.onWithdraw}
                       small={true}
                       type="Wallet"
-                      waitingKey={this.props.withdrawButtonWaitingKey || null}
+                      waitingKey={this.props.withdrawButtonWaitingKey}
                     />
                   )}
                   {!!this.props.infoUrlText && (
@@ -173,7 +173,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
               multiline={true}
             >
               <Kb.Icon
-                onClick={Styles.isMobile ? props.openStellarURL : null}
+                onClick={Styles.isMobile ? props.openStellarURL : undefined}
                 sizeType="Small"
                 style={styles.questionMark}
                 type="iconfont-question-mark"

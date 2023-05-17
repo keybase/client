@@ -38,7 +38,7 @@ export const createReportUser = (payload: {
   readonly reason: string
   readonly comment: string
   readonly includeTranscript: boolean
-  readonly convID: string | null
+  readonly convID?: string
 }) => ({payload, type: reportUser as typeof reportUser})
 /**
  * Sets the block state for multiple users

@@ -278,7 +278,7 @@ const useInitialStateChangeAfterLinking = (
   const lastLoggedInTab = React.useRef<string | undefined>(undefined)
   const lastLoggedIn = Container.usePrevious(loggedIn)
   if (!loggedIn && lastLoggedIn) {
-    lastLoggedInTab.current = Constants.getTab(null)
+    lastLoggedInTab.current = Constants.getTab()
   }
 
   React.useEffect(() => {

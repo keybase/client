@@ -84,10 +84,10 @@ const fuseStatusToUninstallExecPath = isWindows
       const field = status?.status?.fields?.find(({key}) => key === 'uninstallString')
       return field?.value
     }
-  : () => null
+  : () => undefined
 
 const fuseStatusToActions =
-  (previousStatusType: Types.DriverStatusType) => (status: RPCTypes.FuseStatus | null) => {
+  (previousStatusType: Types.DriverStatusType) => (status: RPCTypes.FuseStatus | undefined) => {
     if (!status) {
       return FsGen.createSetDriverStatus({
         driverStatus: Constants.defaultDriverStatus,
@@ -212,8 +212,10 @@ const onInstallCachedDokan = async () => {
 }
 
 const openAndUpload = async (_: unknown, action: FsGen.OpenAndUploadPayload) => {
-  const localPaths = await (selectFilesToUploadDialog?.(action.payload.type, action.payload.parentPath) ??
-    Promise.resolve([]))
+  const localPaths = await (selectFilesToUploadDialog?.(
+    action.payload.type,
+    action.payload.parentPath ?? undefined
+  ) ?? Promise.resolve([]))
   return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 }
 

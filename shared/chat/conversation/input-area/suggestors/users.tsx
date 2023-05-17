@@ -125,7 +125,7 @@ const filterAndJoin = (
   return teamNames ? teamNames : filterUsersAndTeams(users, teams, allChannels, filter)
 }
 
-const getTeams = (layout: RPCChatTypes.UIInboxLayout | null) => {
+const getTeams = (layout?: RPCChatTypes.UIInboxLayout) => {
   const bigTeams =
     layout?.bigTeams?.reduce<Array<string>>((arr, l) => {
       l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label && arr.push(l.label.name)

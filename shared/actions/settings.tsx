@@ -151,7 +151,7 @@ const refreshInvites = async () => {
   )
   const results: {
     invitations: Array<{
-      assertion: string | null
+      assertion: string | undefined
       ctime: number
       email: string
       invitation_id: string

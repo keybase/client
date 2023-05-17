@@ -407,7 +407,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   }, [inputRef, focusInputCounter, isActiveForFocus, isEditing])
 
   const onCancelEditing = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal: null}))
+    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey}))
     setText('')
   }, [dispatch, conversationIDKey, setText])
 

@@ -24,7 +24,7 @@ export type MarkdownCreateComponent = (
     convID?: string
     bigEmoji?: boolean
   }
-) => React.ReactNode | null
+) => React.ReactNode
 
 export type MarkdownMeta = {
   message: MessageText | MessageAttachment

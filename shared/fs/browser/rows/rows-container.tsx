@@ -11,7 +11,7 @@ import {memoize} from '../../../util/memoize'
 type OwnProps = {
   path: Types.Path // path to the parent folder containering the rows,
   destinationPickerIndex?: number
-  headerRows?: Array<RowTypes.HeaderRowItem> | null
+  headerRows?: Array<RowTypes.HeaderRowItem>
 }
 
 const getStillRows = memoize(
@@ -121,7 +121,7 @@ const getTlfRowsFromTlfs = memoize(
 
 type StateProps = {
   _edits: Types.Edits
-  _filter: string | null
+  _filter: string | undefined
   _pathItems: Types.PathItems
   _sortSetting: Types.SortSetting
   _tlfs: Types.Tlfs
@@ -166,7 +166,7 @@ const getNormalRowItemsFromStateProps = (
 }
 
 const filterable = new Set([RowTypes.RowType.TlfType, RowTypes.RowType.Tlf, RowTypes.RowType.Still])
-const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter: string | null) =>
+const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
   filter
     ? rows.filter(
         row => !filterable.has(row.rowType) || row.name.toLowerCase().includes(filter.toLowerCase())

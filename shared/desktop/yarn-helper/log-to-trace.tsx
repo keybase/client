@@ -197,7 +197,7 @@ const lines = fs.readFileSync(logfile, 'utf8').split('\n')
 // lines = [
 // 'Line to debug',
 // ]
-let lastGuiLine: Info | null = null
+let lastGuiLine: Info | undefined
 const knownIDs = {}
 lines.forEach(line => {
   const info = convertLine(line)

@@ -11,7 +11,7 @@ import shallowEqual from 'shallowequal'
 
 // Props for rendering the loading indicator
 const loadingProps = {
-  _paymentID: null,
+  _paymentID: undefined,
   action: '',
   amount: '',
   approxWorth: '',
@@ -105,7 +105,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
             !youAreSender && cancelable && !acceptedDisclaimer
               ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''}`
               : '',
-          icon: pending ? ('iconfont-clock' as const) : null,
+          icon: pending ? ('iconfont-clock' as const) : undefined,
           loading: false,
           memo: paymentInfo.note.stringValue(),
           pending: pending || canceled,
@@ -123,7 +123,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
         }
         const {amountDescription, asset, canceled, done} = requestInfo
         return {
-          _paymentID: null,
+          _paymentID: undefined,
           action: asset === 'currency' ? 'requested Lumens worth' : 'requested',
           amount: amountDescription,
           approxWorth: requestInfo.worthAtRequestTime,
@@ -151,7 +151,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
 
   const dispatch = Container.useDispatch()
 
-  const _onCancel = (paymentID: WalletTypes.PaymentID | null) => {
+  const _onCancel = (paymentID?: WalletTypes.PaymentID) => {
     if (paymentID) {
       dispatch(WalletsGen.createCancelPayment({paymentID}))
     }

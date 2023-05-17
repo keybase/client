@@ -68,7 +68,7 @@ const getTlfInfoLineOrLastModifiedLine = (path: Types.Path) => {
 const SoftErrorBanner = ({path}: {path: Types.Path}) => {
   const softError = useFsSoftError(path)
   switch (softError) {
-    case null:
+    case undefined:
       return null
     case Types.SoftError.NoAccess:
       return <Kb.Banner color="blue">You don't have access to this folder or file.</Kb.Banner>

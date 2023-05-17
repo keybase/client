@@ -26,7 +26,7 @@ type Props = {
   name: RemoteComponents
   params: string
   showOnProps: boolean
-  style: Styles.StylesDesktop | null
+  style?: Styles.StylesDesktop
 }
 
 class RemoteComponentLoader extends React.Component<Props> {
@@ -94,7 +94,7 @@ export default function (options: {
       <RemoteComponentLoader
         name={options.name}
         params={options.params || ''}
-        style={options.style || null}
+        style={options.style}
         showOnProps={options.showOnProps ?? true}
         deserialize={options.deserialize}
       >

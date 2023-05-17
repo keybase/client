@@ -67,12 +67,14 @@ const styles = Styles.styleSheetCreate(() => ({
   grey: {color: Styles.globalColors.black_20},
 }))
 
-const messageMap: {[K in string]: string | null} = {
-  btc: 'Your Bitcoin address has now been signed onto your profile.',
-  dns: 'DNS proofs can take a few hours to recognize. Check back later.',
-  hackernews:
+const messageMap = new Map([
+  ['btc', 'Your Bitcoin address has now been signed onto your profile.'],
+  ['dns', 'DNS proofs can take a few hours to recognize. Check back later.'],
+  [
+    'hackernews',
     'Hacker News caches its bios, so it might be a few hours before you can verify your proof. Check back later.',
-  zcash: 'Your Zcash address has now been signed onto your profile.',
-}
+  ],
+  ['zcash', 'Your Zcash address has now been signed onto your profile.'],
+])
 
 export default ConfirmOrPending

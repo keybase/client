@@ -5,7 +5,7 @@ export type Props = {
   name: string
   convID: ConversationIDKey
   style: StylesTextCrossPlatform
-  allowFontScaling?: boolean | null
+  allowFontScaling?: boolean
   onClick: () => void
 }
 

@@ -10,7 +10,7 @@ const Kb = {
 
 export type Props = {
   onlyDisable?: boolean
-  waitingKey: Array<string> | string | null
+  waitingKey?: Array<string> | string
 } & ButtonProps
 
 /* Waiting button is a <Kb.Button /> with handling of waiting states.

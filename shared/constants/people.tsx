@@ -123,10 +123,7 @@ export function makeDescriptionForTodoItem(todo: RPCTypes.HomeScreenTodo) {
   }
 }
 
-export function extractMetaFromTodoItem(
-  todo: RPCTypes.HomeScreenTodo,
-  todoExt: RPCTypes.HomeScreenTodoExt | null
-) {
+export function extractMetaFromTodoItem(todo: RPCTypes.HomeScreenTodo, todoExt?: RPCTypes.HomeScreenTodoExt) {
   const T = RPCTypes.HomeScreenTodoType
   switch (todo.t) {
     case T.legacyEmailVisibility:
@@ -140,7 +137,7 @@ export function extractMetaFromTodoItem(
     case T.verifyAllPhoneNumber:
       return makeTodoMetaPhone({phone: todo.verifyAllPhoneNumber})
     default:
-      return null
+      return
   }
 }
 
@@ -151,8 +148,8 @@ export const reduceRPCItemToPeopleItem = (
   const badged = item.badged
   if (item.data.t === RPCTypes.HomeScreenItemType.todo) {
     const todo = item.data.todo
-    const todoExt: RPCTypes.HomeScreenTodoExt | null =
-      item.dataExt.t === RPCTypes.HomeScreenItemType.todo ? item.dataExt.todo : null
+    const todoExt: RPCTypes.HomeScreenTodoExt | undefined =
+      item.dataExt.t === RPCTypes.HomeScreenItemType.todo ? item.dataExt.todo : undefined
 
     const todoType = todoTypeEnumToType[todo.t || 0]
     const metadata: Types.TodoMeta = extractMetaFromTodoItem(todo, todoExt)
@@ -271,15 +268,12 @@ export const reduceRPCItemToPeopleItem = (
 }
 
 export const makeAnnouncement = (a?: Partial<Types.Announcement>): Types.Announcement => ({
-  appLink: null,
   badged: false,
-  confirmLabel: null,
   dismissable: false,
   iconUrl: '',
   id: 0,
   text: '',
   type: 'announcement',
-  url: null,
   ...a,
 })
 
@@ -289,7 +283,7 @@ export const makeTodo = (t?: Partial<Types.Todo>): Types.Todo => ({
   dismissable: false,
   icon: 'iconfont-close',
   instructions: '',
-  metadata: null,
+  metadata: undefined,
   todoType: 'none',
   type: 'todo',
   ...t,
@@ -316,7 +310,7 @@ export const makeFollowedNotificationItem = (
 
 export const makeFollowSuggestion = (f?: Partial<Types.FollowSuggestion>): Types.FollowSuggestion => ({
   followsMe: false,
-  fullName: null,
+  fullName: undefined,
   iFollow: false,
   username: '',
   ...f,

@@ -8,9 +8,9 @@ export type Props = {
   disabled?: boolean
   onPress?: void
   iconColor?: Color
-  textStyle?: StylesCrossPlatform | null
-  style?: StylesCrossPlatform | null
-  title?: string | null
+  textStyle?: StylesCrossPlatform
+  style?: StylesCrossPlatform
+  title?: string
 }
 
 declare class BackButton extends React.Component<Props> {}

@@ -405,7 +405,7 @@ class Assertion extends React.PureComponent<Props, State> {
 
     return (
       <Kb.Box2
-        className={p.notAUser ? null : 'hover-container'}
+        className={p.notAUser ? undefined : 'hover-container'}
         ref={this._ref}
         direction="vertical"
         style={styles.container}

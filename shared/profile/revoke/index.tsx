@@ -12,7 +12,7 @@ type Props = {
   icon: SiteIconSet
   platform: PlatformsExpandedType
   platformHandle: string
-  errorMessage?: string | null
+  errorMessage?: string
   onCancel: () => void
   onRevoke: () => void
   isWaiting: boolean

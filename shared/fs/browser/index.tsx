@@ -80,7 +80,7 @@ const DragAndDrop = ({
       allowFolders={true}
       fullWidth={true}
       containerStyle={Styles.globalStyles.flexOne}
-      onAttach={!rejectReason ? onAttach : null}
+      onAttach={!rejectReason ? onAttach : undefined}
       rejectReason={rejectReason}
     >
       {children}

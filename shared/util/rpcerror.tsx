@@ -10,13 +10,7 @@ class RPCError {
   desc: string
   details: string // Details w/ error code & method if it's present
 
-  constructor(
-    message: string,
-    code: number,
-    fields: any = null,
-    name: string | null = null,
-    method: string | null = null
-  ) {
+  constructor(message: string, code: number, fields: any = null, name?: string, method?: string) {
     const err = new Error(paramsToErrorMsg(message, code, name, method))
     this.message = err.message
     this.name = 'RPCError'
@@ -30,7 +24,7 @@ class RPCError {
   }
 }
 
-const paramsToErrorDetails = (code: number, name: string | null, method: string | null) => {
+const paramsToErrorDetails = (code: number, name?: string, method?: string) => {
   let res = `Error code ${code}`
   if (name) {
     res += `: ${name}`
@@ -41,12 +35,7 @@ const paramsToErrorDetails = (code: number, name: string | null, method: string 
   return res
 }
 
-const paramsToErrorMsg = (
-  message: string,
-  code: number,
-  name: string | null,
-  method: string | null
-): string => {
+const paramsToErrorMsg = (message: string, code: number, name?: string, method?: string): string => {
   let msg = ''
   if (code) {
     msg += `ERROR CODE ${code} - `

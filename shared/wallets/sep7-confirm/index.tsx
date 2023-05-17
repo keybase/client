@@ -10,23 +10,23 @@ type Summary = {
   fee: number
   memo: string
   memoType: string
-  operations?: Array<string> | null | undefined
+  operations?: null | Array<string>
   source: string
 }
 
 type Props = {
-  amount: string | null
+  amount?: string
   assetCode: string
   availableToSendNative: string
   builtPaymentAdvancedWaitingKey: string
-  callbackURL: string | null
+  callbackURL?: string
   displayAmountFiat: string
   findPathError: string
   fromQRCode: boolean
   loading: boolean
-  memo: string | null
-  memoType: string | null
-  message: string | null
+  memo?: string
+  memoType?: string
+  message?: string
   onAcceptPath: () => void
   onAcceptPay: (amount: string) => void
   onAcceptTx: () => void
@@ -37,12 +37,12 @@ type Props = {
   originDomain: string
   path: Types.BuiltPaymentAdvanced
   readyToSend: boolean
-  recipient: string | null
+  recipient?: string
   sendError: string
   sep7WaitingKey: string
-  signed: boolean | null
+  signed?: boolean
   summary: Summary
-  userAmount: string | null
+  userAmount?: string
 }
 
 type CallbackURLBannerProps = {
@@ -101,9 +101,9 @@ type HeaderProps = {
   findPathError: string
   fromQRCode: boolean
   isPayment: boolean
-  requester: string | null
+  requester?: string
   sendError: string
-  signed: boolean | null
+  signed?: boolean
 }
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
@@ -163,8 +163,8 @@ type PaymentInfoProps = {
   availableToSendNative: string
   displayAmountFiat: string
   exchangeRate: string
-  memo: string | null
-  message: string | null
+  memo?: string
+  message?: string
   onChangeAmount: (amount: string) => void
   recipient: string
   userAmount: string
@@ -220,9 +220,9 @@ const PaymentInfo = (props: PaymentInfoProps) => (
 )
 
 type TxInfoProps = {
-  operations?: Array<string> | null | undefined
+  operations?: Array<string> | null
   fee: number
-  memo: string | null
+  memo?: string
   source: string
 }
 const TxInfo = (props: TxInfoProps) => (
@@ -238,8 +238,8 @@ const TxInfo = (props: TxInfoProps) => (
 
 // Trim the given string to the first 20 characters if necessary. Note that we are doing it this way rather than
 // using shortenAccountID since it doesn't feel right to chop out the middle of `reallylongnameonanotherservice@example.com`
-const TrimString = (s: string | null) => {
-  if (s === null) {
+const TrimString = (s?: string) => {
+  if (s === undefined) {
     return s
   }
   if (s.length < 20) {

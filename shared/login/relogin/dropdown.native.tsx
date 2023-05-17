@@ -12,7 +12,7 @@ type Props = {
   onClick: (option: string, index: number) => void
   onPress?: void
   onOther?: () => void
-  value?: string | null
+  value?: string
   style?: Object
 }
 
@@ -29,7 +29,7 @@ const pickItemValue = 'pickItemValue'
 
 type State = {
   modalVisible: boolean
-  value: string | null
+  value: string
 }
 
 class Dropdown extends React.Component<Props, State> {
@@ -83,7 +83,7 @@ class Dropdown extends React.Component<Props, State> {
     }
   }
 
-  _label(value: string | null): string {
+  _label(value: string): string {
     if (!value) {
       return ''
     }

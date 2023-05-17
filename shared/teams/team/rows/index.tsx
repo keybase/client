@@ -193,7 +193,7 @@ export const useSubteamsSections = (
 }
 
 const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
-  const [conversationIDKey, setConversationIDKey] = React.useState<Chat2Types.ConversationIDKey | null>(null)
+  const [conversationIDKey, setConversationIDKey] = React.useState<Chat2Types.ConversationIDKey | undefined>()
   const generalConvID = Container.useSelector(
     (state: Container.TypedState) => teamID && state.chat2.teamIDToGeneralConvID.get(teamID)
   )

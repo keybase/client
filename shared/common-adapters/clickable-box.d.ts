@@ -17,7 +17,7 @@ export type Props = {
   activeOpacity?: number
   pointerEvents?: 'auto' | 'none' | 'box-none' | 'box-only'
   // desktop only
-  hoverColor?: string | null
+  hoverColor?: string
   onMouseOver?: (event: React.MouseEvent) => void
   onMouseEnter?: (event: React.MouseEvent) => void
   onMouseLeave?: (event: React.MouseEvent) => void

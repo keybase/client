@@ -8,12 +8,12 @@ import type {Props} from '.'
 const gridHeight = 100
 
 type State = {
-  width: number | null
+  width: number | undefined
 }
 
 class GiphySearch extends React.Component<Props, State> {
   container: HTMLDivElement | null = null
-  state: State = {width: null}
+  state: State = {width: undefined}
 
   componentDidMount() {
     const c = this.container

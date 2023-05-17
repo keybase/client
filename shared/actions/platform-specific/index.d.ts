@@ -5,8 +5,8 @@ import type * as Types from '../../constants/types/chat2'
 type NextURI = string
 
 export declare function showShareActionSheet(options: {
-  filePath?: any | null
-  message?: any | null
+  filePath?: any
+  message?: any
   mimeType: string
 }): Promise<{
   completed: boolean
@@ -22,10 +22,10 @@ export declare function watchPositionForMap(
 
 export declare function displayNewMessageNotification(
   text: string,
-  convID: string | null,
-  badgeCount: number | null,
-  myMsgID: number | null,
-  soundName: string | null
+  convID?: string,
+  badgeCount?: number,
+  myMsgID?: number,
+  soundName?: string
 ): void
 
 export declare function clearAllNotifications(): void

@@ -8,7 +8,7 @@ type Props = {
   onClick: () => void
   path: Types.Path
   pathItem: Types.PathItem
-  style?: Styles.StylesCrossPlatform | null
+  style?: Styles.StylesCrossPlatform
 }
 
 export const FolderViewFilterIcon = (props: Props) =>

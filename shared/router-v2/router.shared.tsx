@@ -143,7 +143,7 @@ export const SimpleLoading = React.memo(function SimpleLoading() {
         // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
       }}
     >
-      <Loading allowFeedback={false} failed="" status="" onRetry={null} onFeedback={null} />
+      <Loading allowFeedback={false} failed="" status="" />
     </Kb.Box2>
   )
 })

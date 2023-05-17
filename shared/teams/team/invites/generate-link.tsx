@@ -21,7 +21,7 @@ type RolePickerProps = {
   onConfirmRolePicker: (role: Types.TeamRoleType) => void
   onOpenRolePicker: () => void
   teamRole: Types.TeamRoleType
-  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string | null}
+  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string | undefined}
 }
 
 const capitalize = (str: string) => {
@@ -125,7 +125,7 @@ const GenerateLinkModal = (props: Props) => {
   const rolePickerProps = {
     disabledReasonsForRolePicker: {
       admin: `You can't invite admins via invte link.`,
-      owner: null, //don't even show
+      owner: undefined, //don't even show
     },
     isRolePickerOpen: isRolePickerOpen,
     onCancelRolePicker: () => setRolePickerOpen(false),

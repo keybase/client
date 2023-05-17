@@ -1,11 +1,11 @@
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 
-export function subtitle(platform: PlatformsExpandedType): string | null {
+export function subtitle(platform: PlatformsExpandedType): string {
   switch (platform) {
     case 'zcash':
     case 'btc':
-      return null
+      return ''
     case 'dns':
     case 'http':
     case 'https':

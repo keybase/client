@@ -86,7 +86,7 @@ const useContacts = () => {
   const dispatch = Container.useDispatch()
   const [contacts, setContacts] = React.useState<Array<Contact>>([])
   const [region, setRegion] = React.useState('')
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = React.useState<string | undefined>()
   const [noAccessPermanent, setNoAccessPermanent] = React.useState(false)
   const [loading, setLoading] = React.useState(true)
 
@@ -100,7 +100,7 @@ const useContacts = () => {
         ([contacts, region]) => {
           setContacts(contacts)
           setRegion(region)
-          setErrorMessage(null)
+          setErrorMessage(undefined)
           setLoading(false)
         },
         err => {
