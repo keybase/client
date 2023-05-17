@@ -14,9 +14,6 @@ import {
 } from '../types/chat2/common'
 import HiddenString from '../../util/hidden-string'
 import {getEffectiveRetentionPolicy, getMeta} from './meta'
-import {memoize} from '../../util/memoize'
-import type * as TeamTypes from '../types/teams'
-import type * as UserTypes from '../types/users'
 import type {TypedState} from '../reducer'
 import * as Container from '../../util/container'
 
@@ -203,11 +200,11 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
 }
 
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
-  state.chat2.threadSearchInfoMap.get(conversationIDKey) || makeThreadSearchInfo()
+  state.chat2.threadSearchInfoMap.get(conversationIDKey)
 
 const emptyOrdinals = new Array<Types.Ordinal>()
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id) || emptyOrdinals
+  state.chat2.messageOrdinals.get(id) ?? emptyOrdinals
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
@@ -264,12 +261,12 @@ export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.
 export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
   const ordinal = state.chat2.editingMap.get(id)
   if (!ordinal) {
-    return null
+    return
   }
 
   const message = getMessage(state, id, ordinal)
   if (!message) {
-    return null
+    return
   }
   switch (message.type) {
     case 'text':
@@ -277,7 +274,7 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
     case 'attachment':
       return {exploded: message.exploded, ordinal, text: message.title}
     default:
-      return null
+      return
   }
 }
 
@@ -516,35 +513,6 @@ export const getParticipantInfo = (
 ): Types.ParticipantInfo => {
   const participantInfo = state.chat2.participantMap.get(conversationIDKey)
   return participantInfo ? participantInfo : noParticipantInfo
-}
-
-const _getParticipantSuggestionsMemoized = memoize(
-  (
-    teamMembers: Map<string, TeamTypes.MemberInfo> | undefined,
-    participantInfo: Types.ParticipantInfo,
-    infoMap: Map<string, UserTypes.UserInfo>,
-    teamType: Types.TeamType
-  ) => {
-    const usernames = teamMembers
-      ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
-      : participantInfo.all
-    const suggestions = usernames.map(username => ({
-      fullName: infoMap.get(username)?.fullname || '',
-      username,
-    }))
-    if (teamType !== 'adhoc') {
-      const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
-      suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
-    }
-    return suggestions
-  }
-)
-
-export const getParticipantSuggestions = (state: TypedState, id: Types.ConversationIDKey) => {
-  const {teamID, teamType} = getMeta(state, id)
-  const teamMembers = state.teams.teamIDToMembers.get(teamID)
-  const participantInfo = getParticipantInfo(state, id)
-  return _getParticipantSuggestionsMemoized(teamMembers, participantInfo, state.users.infoMap, teamType)
 }
 
 export const messageAuthorIsBot = (

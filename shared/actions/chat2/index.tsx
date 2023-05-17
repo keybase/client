@@ -1499,7 +1499,7 @@ const onToggleThreadSearch = async (
   state: Container.TypedState,
   action: Chat2Gen.ToggleThreadSearchPayload
 ) => {
-  const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey).visible
+  const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey)?.visible
   if (!visible) {
     await RPCChatTypes.localCancelActiveSearchRpcPromise()
   }
@@ -2365,10 +2365,12 @@ const markThreadAsRead = async (
   const mmap = state.chat2.messageMap.get(conversationIDKey)
   if (mmap) {
     const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const ordinal = findLast([...ordinals], (o: Types.Ordinal) => {
-      const m = mmap.get(o)
-      return m ? !!m.id : false
-    })
+    const ordinal =
+      ordinals &&
+      findLast([...ordinals], (o: Types.Ordinal) => {
+        const m = mmap.get(o)
+        return m ? !!m.id : false
+      })
     message = ordinal ? mmap.get(ordinal) : undefined
   }
 

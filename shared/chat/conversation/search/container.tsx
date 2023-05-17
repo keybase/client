@@ -14,9 +14,9 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const {conversationIDKey, style} = ownProps
   const info = Container.useSelector(state => Constants.getThreadSearchInfo(state, conversationIDKey))
-  const _hits = info.hits
+  const _hits = info?.hits
   const initialText = Container.useSelector(state => state.chat2.threadSearchQueryMap.get(conversationIDKey))
-  const status = info.status
+  const status = info?.status
 
   const dispatch = Container.useDispatch()
   const _loadSearchHit = (messageID: Types.MessageID) => {
@@ -40,14 +40,15 @@ export default (ownProps: OwnProps) => {
   const props = {
     clearInitialText,
     conversationIDKey,
-    hits: _hits.map(h => ({
-      author: h.author,
-      summary: h.bodySummary.stringValue(),
-      timestamp: h.timestamp,
-    })),
+    hits:
+      _hits?.map(h => ({
+        author: h.author,
+        summary: h.bodySummary.stringValue(),
+        timestamp: h.timestamp,
+      })) ?? [],
     initialText: initialText ? initialText.stringValue() : undefined,
     loadSearchHit: (index: number) => {
-      const message = _hits[index] || Constants.makeMessageText()
+      const message = _hits?.[index] || Constants.makeMessageText()
       if (message.id > 0) {
         _loadSearchHit(message.id)
       }

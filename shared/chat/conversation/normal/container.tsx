@@ -38,7 +38,7 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
       const meta = Constants.getMeta(state, conversationIDKey)
       const {cannotWrite, offline, minWriterRole} = meta
       const threadLoadedOffline = offline
-      const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
+      const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey)?.visible ?? false
       const minWriterReason = `You must be at least ${indefiniteArticle(
         minWriterRole
       )} ${minWriterRole} to post.`
