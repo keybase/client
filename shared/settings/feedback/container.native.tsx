@@ -1,11 +1,11 @@
-import logger from '../../logger'
-import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import Feedback from '.'
 import * as Container from '../../util/container'
-import {isAndroid, version, pprofDir} from '../../constants/platform'
+import * as Kb from '../../common-adapters'
+import * as React from 'react'
+import Feedback from '.'
+import logger from '../../logger'
 import {Platform} from 'react-native'
-import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
+import {getExtraChatLogsForLogSend} from '../../constants/settings'
+import {isAndroid, version, pprofDir} from '../../constants/platform'
 import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
 
 type OwnProps = Container.RouteProps2<'settingsTabs.feedbackTab'>
@@ -108,6 +108,8 @@ class FeedbackContainer extends React.Component<Props, State> {
 }
 
 // TODO really shouldn't be doing this in connect, should do this with an action
+
+const getPushTokenForLogSend = (state: Container.TypedState) => ({pushToken: state.push.token})
 
 const Connected = (ownProps: OwnProps) => {
   const feedback = ownProps.route.params.feedback

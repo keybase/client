@@ -4,8 +4,6 @@ import * as RPCTypes from './types/rpc-gen'
 import * as WaitingConstants from './waiting'
 import HiddenString from '../util/hidden-string'
 import type * as Types from './types/settings'
-import type {ContactResponse} from 'expo-contacts'
-import type {RPCError} from '../util/errors'
 import type {TypedState} from './reducer'
 import {getMeta} from './chat2/meta'
 import type {
@@ -50,9 +48,7 @@ export const makeState = (): Types.State => ({
       error: '',
       settings: undefined,
     },
-    unfurl: {
-      unfurlWhitelist: [],
-    },
+    unfurl: {unfurlWhitelist: []},
   },
   contacts: {
     alreadyOnKeybase: [],
@@ -85,8 +81,6 @@ export const makeState = (): Types.State => ({
     pendingVerification: '',
   },
 })
-
-export const getPushTokenForLogSend = (state: TypedState) => ({pushToken: state.push.token})
 
 export const getExtraChatLogsForLogSend = (state: TypedState) => {
   const chat = state.chat2
@@ -139,23 +133,6 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
   return {}
 }
 
-export const makePhoneError = (e: RPCError) => {
-  switch (e.code) {
-    case RPCTypes.StatusCode.scphonenumberwrongverificationcode:
-      return 'Incorrect code, please try again.'
-    case RPCTypes.StatusCode.scphonenumberunknown:
-      return e.desc
-    case RPCTypes.StatusCode.scphonenumberalreadyverified:
-      return 'This phone number is already verified.'
-    case RPCTypes.StatusCode.scphonenumberverificationcodeexpired:
-      return 'Verification code expired, resend and try again.'
-    case RPCTypes.StatusCode.scratelimit:
-      return 'Sorry, tried too many guesses in a short period of time. Please try again later.'
-    default:
-      return e.message
-  }
-}
-
 // Get phone number in e.164, or null if we can't parse it.
 export const getE164 = (phoneNumber: string, countryCode?: string) => {
   const {phoneUtil, ValidationResult, PhoneNumberFormat} = require('../util/phone-numbers') as {
@@ -175,42 +152,6 @@ export const getE164 = (phoneNumber: string, countryCode?: string) => {
   }
 }
 
-export const nativeContactsToContacts = (contacts: ContactResponse, countryCode: string) => {
-  return contacts.data.reduce<Array<RPCTypes.Contact>>((ret, contact) => {
-    const {name, phoneNumbers = [], emails = []} = contact
-
-    const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
-      const formatted = getE164(pn.number || '', pn.countryCode || countryCode)
-      if (formatted) {
-        res.push({
-          label: pn.label,
-          phoneNumber: formatted,
-        })
-      }
-      return res
-    }, [])
-    components.push(...emails.map(e => ({email: e.email, label: e.label})))
-    if (components.length) {
-      ret.push({components, name})
-    }
-
-    return ret
-  }, [])
-}
-
-export const makeAddEmailError = (err: RPCError): string => {
-  switch (err.code) {
-    case RPCTypes.StatusCode.scratelimit:
-      return "Sorry, you've added too many email addresses lately. Please try again later."
-    case RPCTypes.StatusCode.scemailtaken:
-      return 'This email is already claimed by another user.'
-    case RPCTypes.StatusCode.scemaillimitexceeded:
-      return 'You have too many emails, delete one and try again.'
-    case RPCTypes.StatusCode.scinputerror:
-      return 'Invalid email.'
-  }
-  return err.message
-}
 export const securityGroup = 'security'
 export const soundGroup = 'sound'
 export const traceInProgressKey = 'settings:traceInProgress'

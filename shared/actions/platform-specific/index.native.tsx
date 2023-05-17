@@ -453,6 +453,30 @@ const makeContactsResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
     }
   }
 }
+
+const nativeContactsToContacts = (contacts: Contacts.ContactResponse, countryCode: string) => {
+  return contacts.data.reduce<Array<RPCTypes.Contact>>((ret, contact) => {
+    const {name, phoneNumbers = [], emails = []} = contact
+
+    const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
+      const formatted = SettingsConstants.getE164(pn.number || '', pn.countryCode || countryCode)
+      if (formatted) {
+        res.push({
+          label: pn.label,
+          phoneNumber: formatted,
+        })
+      }
+      return res
+    }, [])
+    components.push(...emails.map(e => ({email: e.email, label: e.label})))
+    if (components.length) {
+      ret.push({components, name})
+    }
+
+    return ret
+  }, [])
+}
+
 const manageContactsCache = async (
   state: Container.TypedState,
   _action: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload
@@ -504,7 +528,7 @@ const manageContactsCache = async (
     logger.warn(`Error loading default country code: ${error.message}`)
   }
 
-  const mapped = SettingsConstants.nativeContactsToContacts(contacts, defaultCountryCode)
+  const mapped = nativeContactsToContacts(contacts, defaultCountryCode)
   logger.info(`Importing ${mapped.length} contacts.`)
   const actions: Array<Container.TypedActions> = []
   try {

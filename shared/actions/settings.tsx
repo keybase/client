@@ -691,6 +691,23 @@ const stop = async (_: unknown, action: SettingsGen.StopPayload) => {
   return false as const
 }
 
+const makePhoneError = (e: RPCError) => {
+  switch (e.code) {
+    case RPCTypes.StatusCode.scphonenumberwrongverificationcode:
+      return 'Incorrect code, please try again.'
+    case RPCTypes.StatusCode.scphonenumberunknown:
+      return e.desc
+    case RPCTypes.StatusCode.scphonenumberalreadyverified:
+      return 'This phone number is already verified.'
+    case RPCTypes.StatusCode.scphonenumberverificationcodeexpired:
+      return 'Verification code expired, resend and try again.'
+    case RPCTypes.StatusCode.scratelimit:
+      return 'Sorry, tried too many guesses in a short period of time. Please try again later.'
+    default:
+      return e.message
+  }
+}
+
 const addPhoneNumber = async (_: unknown, action: SettingsGen.AddPhoneNumberPayload) => {
   logger.info('adding phone number')
   const {phoneNumber, searchable} = action.payload
@@ -707,7 +724,7 @@ const addPhoneNumber = async (_: unknown, action: SettingsGen.AddPhoneNumberPayl
       return
     }
     logger.warn('error ', error.message)
-    const message = Constants.makePhoneError(error)
+    const message = makePhoneError(error)
     return SettingsGen.createAddedPhoneNumber({error: message, phoneNumber, searchable})
   }
 }
@@ -728,7 +745,7 @@ const resendVerificationForPhoneNumber = async (
     if (!(error instanceof RPCError)) {
       return
     }
-    const message = Constants.makePhoneError(error)
+    const message = makePhoneError(error)
     logger.warn('error ', message)
     return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
   }
@@ -748,7 +765,7 @@ const verifyPhoneNumber = async (_: unknown, action: SettingsGen.VerifyPhoneNumb
     if (!(error instanceof RPCError)) {
       return
     }
-    const message = Constants.makePhoneError(error)
+    const message = makePhoneError(error)
     logger.warn('error ', message)
     return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
   }
@@ -804,6 +821,19 @@ const editContactImportEnabled = async (
   return SettingsGen.createLoadContactImportEnabled()
 }
 
+const makeAddEmailError = (err: RPCError): string => {
+  switch (err.code) {
+    case RPCTypes.StatusCode.scratelimit:
+      return "Sorry, you've added too many email addresses lately. Please try again later."
+    case RPCTypes.StatusCode.scemailtaken:
+      return 'This email is already claimed by another user.'
+    case RPCTypes.StatusCode.scemaillimitexceeded:
+      return 'You have too many emails, delete one and try again.'
+    case RPCTypes.StatusCode.scinputerror:
+      return 'Invalid email.'
+  }
+  return err.message
+}
 const addEmail = async (state: Container.TypedState, action: SettingsGen.AddEmailPayload) => {
   if (state.settings.email.error) {
     logger.info('email error; bailing')
@@ -825,7 +855,7 @@ const addEmail = async (state: Container.TypedState, action: SettingsGen.AddEmai
       return
     }
     logger.warn(`error: ${error.message}`)
-    return SettingsGen.createAddedEmail({email, error: Constants.makeAddEmailError(error)})
+    return SettingsGen.createAddedEmail({email, error: makeAddEmailError(error)})
   }
 }
 
