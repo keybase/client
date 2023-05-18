@@ -34,14 +34,19 @@ export const useNav = () => {
   }
 }
 
-// extracts the payload from a page used in routing
-export type PageToParam<
-  M, // {thepage: getScreen: () => (p: {route: {params: {username: string}}}) => any}
-  K extends keyof M, // 'thepage'
-  RawParam = M[K] extends {getScreen: () => (a: any) => any}
-    ? Parameters<ReturnType<M[K]['getScreen']>>[0] // {route: {params: {username: string}}
+// extracts the payload from pages used in routing
+export type PagesToParams<T> = {
+  [K in keyof T]: T[K] extends {getScreen: infer U}
+    ? U extends () => (args: infer V) => any
+      ? V extends {route: {params: infer W}}
+        ? W
+        : undefined
+      : undefined
     : undefined
-> = RawParam extends {route: {params: any}} ? {[k in K]: RawParam['route']['params']} : undefined // {thepage: {username: string}}
+}
+
+// get the views params and wrap them as the page would see it
+export type ViewPropsToPageProps<T> = T extends (p: infer P) => any ? {route: {params: P}} : never
 
 const useSelector = USH.useSelector as TypedUseSelectorHook<RootState>
 

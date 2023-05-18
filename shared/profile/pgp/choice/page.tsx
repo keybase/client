@@ -6,6 +6,4 @@ const Screen = () => (
     <Choice />
   </React.Suspense>
 )
-const getScreen = () => Screen
-
-export default {profilePgp: {getScreen}}
+export default {getScreen: () => Screen}

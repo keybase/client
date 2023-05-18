@@ -6,6 +6,4 @@ const Screen = () => (
     <PostProof />
   </React.Suspense>
 )
-const getScreen = () => Screen
-
-export default {profilePostProof: {getScreen}}
+export default {getScreen: () => Screen}

@@ -6,6 +6,5 @@ const Screen = () => (
     <ConfirmOrPending />
   </React.Suspense>
 )
-const getScreen = () => Screen
 
-export default {profileConfirmOrPending: {getScreen}}
+export default {getScreen: () => Screen}

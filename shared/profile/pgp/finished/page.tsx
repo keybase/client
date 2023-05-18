@@ -6,6 +6,4 @@ const Screen = () => (
     <Finished />
   </React.Suspense>
 )
-const getScreen = () => Screen
-
-export default {profileFinished: {getScreen}}
+export default {getScreen: () => Screen}

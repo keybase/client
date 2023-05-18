@@ -4,14 +4,13 @@ import * as Constants from '../constants/fs'
 import * as Container from '../util/container'
 import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 
-type OwnProps = {route: {params: {path: Types.Path}}}
+const Index = React.lazy(async () => import('.'))
+type OwnProps = Container.ViewPropsToPageProps<typeof Index>
 
 const getOptions = (ownProps: OwnProps) => {
-  const path = ownProps.route.params?.path ?? Constants.defaultPath
+  const path = ownProps.route.params.path ?? Constants.defaultPath
   return Container.isMobile
-    ? {
-        header: () => <MobileHeader path={path} />,
-      }
+    ? {header: () => <MobileHeader path={path} />}
     : {
         headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
         headerTitle: () => <Title path={path} />,
@@ -20,13 +19,10 @@ const getOptions = (ownProps: OwnProps) => {
       }
 }
 
-const Index = React.lazy(async () => import('.'))
 const Screen = (p: OwnProps) => (
   <React.Suspense>
     <Index {...p.route.params} />
   </React.Suspense>
 )
-const getScreen = () => Screen
 
-export default {fsRoot: {getOptions, getScreen}}
-export type RouteProps = {fsRoot: OwnProps['route']['params']}
+export default {getOptions, getScreen: () => Screen}

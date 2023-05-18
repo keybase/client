@@ -6,6 +6,4 @@ const Screen = () => (
     <Import />
   </React.Suspense>
 )
-const getScreen = () => Screen
-
-export default {profileImport: {getScreen}}
+export default {getScreen: () => Screen}

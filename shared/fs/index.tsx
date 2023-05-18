@@ -60,7 +60,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
 }
 
-type OwnProps = {path: Types.Path}
+type OwnProps = {path?: Types.Path}
 
 const Connected = (ownProps: OwnProps) => {
   const path = ownProps.path ?? Constants.defaultPath

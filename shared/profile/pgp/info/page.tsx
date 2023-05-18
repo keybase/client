@@ -6,6 +6,4 @@ const Screen = () => (
     <Info />
   </React.Suspense>
 )
-const getScreen = () => Screen
-
-export default {profileProvideInfo: {getScreen}}
+export default {getScreen: () => Screen}

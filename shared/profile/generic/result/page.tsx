@@ -6,6 +6,4 @@ const Screen = () => (
     <EnterUsername />
   </React.Suspense>
 )
-const getScreen = () => Screen
-
-export default {profileGenericProofResult: {getScreen}}
+export default {getScreen: () => Screen}

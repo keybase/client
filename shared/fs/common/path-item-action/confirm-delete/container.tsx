@@ -3,14 +3,16 @@ import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as FsGen from '../../../../actions/fs-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import type * as Types from '../../../../constants/types/fs'
 import ReallyDelete from '.'
 
-type OwnProps = Container.RouteProps2<'confirmDelete'>
+type OwnProps = {
+  path: Types.Path
+  mode: 'row' | 'screen'
+}
 
 export default (ownProps: OwnProps) => {
-  const {params} = ownProps.route
-  const path = params.path
-  const mode = params.mode
+  const {path, mode} = ownProps
   const dispatch = Container.useDispatch()
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onDelete = React.useCallback(() => {

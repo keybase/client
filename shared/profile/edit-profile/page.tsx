@@ -6,6 +6,5 @@ const Screen = () => (
     <EditProfile />
   </React.Suspense>
 )
-const getScreen = () => Screen
 
-export default {profileEdit: {getScreen}}
+export default {getScreen: () => Screen}

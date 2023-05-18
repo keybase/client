@@ -1,9 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import type * as ImagePicker from 'expo-image-picker'
-import type * as Types from '../../constants/types/teams'
-
-export const options = {}
+import type * as Container from '../../util/container'
 
 const getOptions = () => ({
   modal2: true,
@@ -20,28 +17,11 @@ const styles = Styles.styleSheetCreate(
 )
 
 const EditAvatar = React.lazy(async () => import('./container'))
-
-type OwnProps = {
-  route: {
-    params: {
-      // Mobile-only
-      image?: ImagePicker.ImageInfo
-      // Team-only
-      sendChatNotification?: boolean
-      showBack?: boolean
-      teamID?: Types.TeamID
-      createdTeam?: boolean
-      wizard?: boolean
-    }
-  }
-}
+type OwnProps = Container.ViewPropsToPageProps<typeof EditAvatar>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>
     <EditAvatar {...p.route.params} />
   </React.Suspense>
 )
-const getScreen = () => Screen
-
-export default {profileEditAvatar: {getOptions, getScreen}}
-export type RouteProps = {profileEditAvatar: OwnProps['route']['params']}
+export default {getOptions, getScreen: () => Screen}

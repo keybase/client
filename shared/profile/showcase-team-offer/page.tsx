@@ -6,6 +6,4 @@ const Screen = () => (
     <ShowCase />
   </React.Suspense>
 )
-const getScreen = () => Screen
-
-export default {profileShowcaseTeamOffer: {getScreen}}
+export default {getScreen: () => Screen}

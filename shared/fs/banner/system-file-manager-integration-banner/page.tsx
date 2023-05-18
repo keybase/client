@@ -1,9 +1,11 @@
 import * as React from 'react'
 
-const Generate = React.lazy(async () => import('.'))
+const Perms = React.lazy(async () => import('./kext-permission-popup-container'))
+
 const Screen = () => (
   <React.Suspense>
-    <Generate />
+    <Perms />
   </React.Suspense>
 )
+
 export default {getScreen: () => Screen}

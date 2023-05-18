@@ -1,43 +1,19 @@
-import type * as FSTypes from '../constants/types/fs'
-import type ConfirmDelete from './common/path-item-action/confirm-delete/container'
-import type KextPermission from './banner/system-file-manager-integration-banner/kext-permission-popup-container'
-import type DestinationPicker from './browser/destination-picker/container'
 import type * as Container from '../util/container'
-
-import fsRoot, {type RouteProps as FSRootProps} from './page'
+import fsRoot from './page'
 import barePreview from './filepreview/page'
+import confirmDelete from './common/path-item-action/confirm-delete/page'
+import destinationPicker from './browser/destination-picker/page'
+import kextPermission from './banner/system-file-manager-integration-banner/page'
 
 export const newRoutes = {
-  ...fsRoot,
+  fsRoot,
 }
 
 export const newModalRoutes = {
-  ...barePreview,
-  confirmDelete: {
-    getScreen: () =>
-      require('./common/path-item-action/confirm-delete/container').default as typeof ConfirmDelete,
-  },
-  destinationPicker: {
-    getScreen: () => require('./browser/destination-picker/container').default as typeof DestinationPicker,
-  },
-  kextPermission: {
-    getScreen: () =>
-      require('./banner/system-file-manager-integration-banner/kext-permission-popup-container')
-        .default as typeof KextPermission,
-  },
+  barePreview,
+  confirmDelete,
+  destinationPicker,
+  kextPermission,
 }
 
-type NoParams = {
-  kextPermission: undefined
-}
-
-export type RootParamListFS = NoParams & {
-  destinationPicker: {
-    index: number
-  }
-  confirmDelete: {
-    path: FSTypes.Path
-    mode: 'row' | 'screen'
-  }
-} & FSRootProps &
-  Container.PageToParam<typeof barePreview, 'barePreview'>
+export type RootParamListFS = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>

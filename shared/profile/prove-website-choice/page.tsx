@@ -6,6 +6,4 @@ const Screen = () => (
     <Website />
   </React.Suspense>
 )
-const getScreen = () => Screen
-
-export default {profileProveWebsiteChoice: {getScreen}}
+export default {getScreen: () => Screen}
