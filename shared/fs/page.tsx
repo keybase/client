@@ -7,8 +7,8 @@ import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 const Index = React.lazy(async () => import('.'))
 type OwnProps = Container.ViewPropsToPageProps<typeof Index>
 
-const getOptions = (ownProps: OwnProps) => {
-  const path = ownProps.route.params.path ?? Constants.defaultPath
+const getOptions = (ownProps?: OwnProps) => {
+  const path = ownProps?.route.params?.path ?? Constants.defaultPath
   return Container.isMobile
     ? {header: () => <MobileHeader path={path} />}
     : {
