@@ -1,35 +1,14 @@
-import type * as TeamsTypes from '../constants/types/teams'
-import type GitRoot from '.'
-import type GitDeleteRepo from './delete-repo'
-import type GitNewRepo from './new-repo'
-import type GitSelectChannel from './select-channel'
+import type * as Container from '../util/container'
+import gitRoot from './page'
+import gitDeleteRepo from './delete-repo.page'
+import gitNewRepo from './new-repo.page'
+import gitSelectChannel from './select-channel.page'
 
-const gitRoot = {
-  getOptions: () => require('.').options,
-  getScreen: (): typeof GitRoot => require('.').default,
-}
-
-export const newRoutes = {
-  gitRoot,
-}
+export const newRoutes = {gitRoot}
 export const newModalRoutes = {
-  gitDeleteRepo: {getScreen: (): typeof GitDeleteRepo => require('./delete-repo').default},
-  gitNewRepo: {getScreen: (): typeof GitNewRepo => require('./new-repo').default},
-  gitSelectChannel: {getScreen: (): typeof GitSelectChannel => require('./select-channel').default},
+  gitDeleteRepo,
+  gitNewRepo,
+  gitSelectChannel,
 }
 
-// TODO figure out how to enforce this, this works in playground
-// type RouteKeys = keyof typeof newRoutes | keyof typeof newModalRoutes
-
-export type RootParamListGit = {
-  gitRoot: {expandedSet: Set<string>}
-  gitDeleteRepo: {id: string}
-  gitNewRepo: {isTeam: boolean}
-  gitSelectChannel: {
-    teamID: TeamsTypes.TeamID
-    repoID: string
-    selected: string
-  }
-}
-// type ParamKeys = keyof RootParamList
-// export type RootParamListGit = ParamKeys extends RouteKeys ? RootParamList : never
+export type RootParamListGit = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>

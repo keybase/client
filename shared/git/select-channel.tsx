@@ -4,15 +4,18 @@ import * as GitGen from '../actions/git-gen'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
+import type * as TeamsTypes from '../constants/types/teams'
 import {useAllChannelMetas} from '../teams/common/channel-hooks'
 
-type OwnProps = Container.RouteProps2<'gitSelectChannel'>
+type OwnProps = {
+  teamID: TeamsTypes.TeamID
+  repoID: string
+  selected: string
+}
 
 const SelectChannel = (ownProps: OwnProps) => {
-  const {params} = ownProps.route
-  const teamID = params.teamID
-  const _selected = params.selected
-  const repoID = params.repoID
+  const {teamID, repoID} = ownProps
+  const _selected = ownProps.selected
   const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
 
   const {channelMetas} = useAllChannelMetas(teamID)
