@@ -1,123 +1,45 @@
-import {newRoutes as PGPRoutes} from './pgp/routes-sub'
-// import type {Question1Answer} from '../profile/wot-author'
-import type Profile from './user/container'
-import type ProfileAddToTeam from './add-to-team/container'
-import type ProfileConfirmOrPending from './confirm-or-pending/container'
-import type ProfileEdit from './edit-profile/container'
-import type ProfileEditAvatar from './edit-avatar/container'
-import type ProfileGenericEnterUsername from './generic/enter-username/container'
-import type ProfileGenericProofResult from './generic/result/container'
-import type ProfilePostProof from './post-proof/container'
-import type ProfileProofsList from './generic/proofs-list/container'
-import type ProfileProveEnterUsername from './prove-enter-username/container'
-import type ProfileProveWebsiteChoice from './prove-website-choice/container'
-import type ProfileRevoke from './revoke/container'
-import type ProfileShowcaseTeamOffer from './showcase-team-offer/container'
-// import type {Question1Wrapper, Question2Wrapper, ReviewWrapper} from './wot-author'
-import type * as ImagePicker from 'expo-image-picker'
-import type * as Types from '../constants/types/teams'
-import type {PlatformsExpandedType} from '../constants/types/more'
-import type {SiteIconSet} from '../constants/types/tracker2'
+import type * as Container from '../util/container'
+import profile from './user/page'
+import profileAddToTeam from './add-to-team/page'
+import profileConfirmOrPending from './confirm-or-pending/page'
+import profileEdit from './edit-profile/page'
+import profileEditAvatar from './edit-avatar/page'
+import profileGenericEnterUsername from './generic/enter-username/page'
+import profileGenericProofResult from './generic/result/page'
+import profilePostProof from './post-proof/page'
+import profileProofsList from './generic/proofs-list/page'
+import profileProveEnterUsername from './prove-enter-username/page'
+import profileProveWebsiteChoice from './prove-website-choice/page'
+import profileRevoke from './revoke/page'
+import profileShowcaseTeamOffer from './showcase-team-offer/page'
+import profileFinished from './pgp/finished/page'
+import profileGenerate from './pgp/generate/page'
+import profileImport from './pgp/import/page'
+import profilePgp from './pgp/choice/page'
+import profileProvideInfo from './pgp/info/page'
 
 export const newRoutes = {
-  profile: {
-    getOptions: () => require('./user/container').options,
-    getScreen: (): typeof Profile => require('./user/container').default,
-  },
+  profile,
 }
 
 export const newModalRoutes = {
-  profileAddToTeam: {
-    getOptions: () => require('./add-to-team/container').options,
-    getScreen: (): typeof ProfileAddToTeam => require('./add-to-team/container').default,
-  },
-  profileConfirmOrPending: {
-    getScreen: (): typeof ProfileConfirmOrPending => require('./confirm-or-pending/container').default,
-  },
-  profileEdit: {getScreen: (): typeof ProfileEdit => require('./edit-profile/container').default},
-  profileEditAvatar: {getScreen: (): typeof ProfileEditAvatar => require('./edit-avatar/container').default},
-  profileGenericEnterUsername: {
-    getOptions: () => require('./generic/enter-username/container').options,
-    getScreen: (): typeof ProfileGenericEnterUsername =>
-      require('./generic/enter-username/container').default,
-  },
-  profileGenericProofResult: {
-    getScreen: (): typeof ProfileGenericProofResult => require('./generic/result/container').default,
-  },
-  profilePostProof: {getScreen: (): typeof ProfilePostProof => require('./post-proof/container').default},
-  profileProofsList: {
-    getScreen: (): typeof ProfileProofsList => require('./generic/proofs-list/container').default,
-  },
-  profileProveEnterUsername: {
-    getScreen: (): typeof ProfileProveEnterUsername => require('./prove-enter-username/container').default,
-  },
-  profileProveWebsiteChoice: {
-    getScreen: (): typeof ProfileProveWebsiteChoice => require('./prove-website-choice/container').default,
-  },
-  profileRevoke: {getScreen: (): typeof ProfileRevoke => require('./revoke/container').default},
-  profileShowcaseTeamOffer: {
-    getScreen: (): typeof ProfileShowcaseTeamOffer => require('./showcase-team-offer/container').default,
-  },
-  // profileWotAuthor: {
-  //   getScreen: (): typeof Question1Wrapper => require('./wot-author').Question1Wrapper,
-  // },
-  // profileWotAuthorQ2: {
-  //   getScreen: (): typeof Question2Wrapper => require('./wot-author').Question2Wrapper,
-  // },
-  // profileWotReview: {
-  //   getScreen: (): typeof ReviewWrapper => require('./wot-author').ReviewWrapper,
-  // },
-  ...PGPRoutes,
+  profileAddToTeam,
+  profileConfirmOrPending,
+  profileEdit,
+  profileEditAvatar,
+  profileFinished,
+  profileGenerate,
+  profileGenericEnterUsername,
+  profileGenericProofResult,
+  profileImport,
+  profilePgp,
+  profilePostProof,
+  profileProofsList,
+  profileProveEnterUsername,
+  profileProveWebsiteChoice,
+  profileProvideInfo,
+  profileRevoke,
+  profileShowcaseTeamOffer,
 }
 
-export type RootParamListProfile = {
-  // profileWotReview: {
-  //   sigID: string // sigID of the vouch.
-  // }
-  // profileWotAuthor: {
-  //   username: string
-  //   guiID: string
-  // }
-  // profileWotAuthorQ2: {
-  //   username: string
-  //   guiID: string
-  //   question1Answer: Question1Answer
-  // }
-  profileAddToTeam: {
-    username: string
-  }
-  profileEditAvatar: {
-    // Mobile-only
-    image?: ImagePicker.ImageInfo
-    // Team-only
-    sendChatNotification?: boolean
-    showBack?: boolean
-    teamID?: Types.TeamID
-    createdTeam?: boolean
-    wizard?: boolean
-  }
-  profileRevoke: {
-    icon: SiteIconSet
-    platform: PlatformsExpandedType
-    platformHandle: string
-    proofId: string
-  }
-  profile: {
-    username: string
-  }
-
-  profileConfirmOrPending: undefined
-  profileEdit: undefined
-  profileGenericEnterUsername: undefined
-  profileGenericProofResult: undefined
-  profilePostProof: undefined
-  profileProofsList: undefined
-  profileProveEnterUsername: undefined
-  profileProveWebsiteChoice: undefined
-  profileShowcaseTeamOffer: undefined
-  profileFinished: undefined
-  profileGenerate: undefined
-  profileImport: undefined
-  profilePgp: undefined
-  profileProvideInfo: undefined
-}
+export type RootParamListProfile = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>

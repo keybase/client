@@ -9,16 +9,23 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type * as Types from '../../constants/types/teams'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
+import type * as ImagePicker from 'expo-image-picker'
 
-type OwnProps = Container.RouteProps2<'profileEditAvatar'>
+type OwnProps = {
+  image?: ImagePicker.ImageInfo
+  sendChatNotification?: boolean
+  showBack?: boolean
+  teamID?: string
+  createdTeam?: boolean
+  wizard?: boolean
+}
 
 export default (ownProps: OwnProps) => {
-  const {params} = ownProps.route
-  const teamID = params.teamID
-  const createdTeam = params.createdTeam ?? false
-  const image = params.image
+  const teamID = ownProps.teamID
+  const createdTeam = ownProps.createdTeam ?? false
+  const image = ownProps.image
   const sperror = Container.useSelector(state => anyErrors(state, Constants.uploadAvatarWaitingKey))
-  const sendChatNotification = params.sendChatNotification ?? false
+  const sendChatNotification = ownProps.sendChatNotification ?? false
   const submitting = Container.useSelector(state => anyWaiting(state, Constants.uploadAvatarWaitingKey))
   const teamname =
     Container.useSelector(state => (teamID ? TeamsConstants.getTeamNameFromID(state, teamID) : undefined)) ??
@@ -60,7 +67,7 @@ export default (ownProps: OwnProps) => {
         ? 'Connection lost. Please check your network and try again.'
         : 'This image format is not supported.'
   }
-  const wizard = params?.wizard ?? false
+  const wizard = ownProps.wizard ?? false
   const bothProps = {
     error,
     image,
@@ -88,7 +95,7 @@ export default (ownProps: OwnProps) => {
           }
         },
         onSkip,
-        showBack: params?.showBack ?? false,
+        showBack: ownProps.showBack ?? false,
         teamID,
         teamname,
         type: 'team' as const,

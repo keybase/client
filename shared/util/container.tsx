@@ -11,6 +11,8 @@ import flowRight from 'lodash/flowRight'
 import type {Route} from '../constants/types/route-tree'
 import type {NavigationContainerRef} from '@react-navigation/core'
 import type {createListenerMiddleware} from '@reduxjs/toolkit'
+import {useNavigation} from '@react-navigation/core'
+import {type RouteKeys} from '../router-v2/route-params'
 export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
 export {type RouteProps2, getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
 export {listenAction, type ListenerApi, spawn} from './redux-toolkit'
@@ -18,6 +20,33 @@ export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedS
 import USH from './use-selector'
 export {create as createZustand} from 'zustand'
 export {immer as immerZustand} from 'zustand/middleware/immer'
+
+export const useNav = () => {
+  const n = useNavigation()
+  const na: {pop?: () => void; navigate: (n: RouteKeys) => void} = n as any
+  const {canGoBack} = n
+  const pop: undefined | (() => void) = canGoBack() ? na.pop : undefined
+  const navigate: (n: RouteKeys) => void = na.navigate
+  return {
+    canGoBack,
+    navigate,
+    pop,
+  }
+}
+
+// extracts the payload from pages used in routing
+export type PagesToParams<T> = {
+  [K in keyof T]: T[K] extends {getScreen: infer U}
+    ? U extends () => (args: infer V) => any
+      ? V extends {route: {params: infer W}}
+        ? W
+        : undefined
+      : undefined
+    : undefined
+}
+
+// get the views params and wrap them as the page would see it
+export type ViewPropsToPageProps<T> = T extends (p: infer P) => any ? {route: {params: P}} : never
 
 const useSelector = USH.useSelector as TypedUseSelectorHook<RootState>
 

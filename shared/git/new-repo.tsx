@@ -9,10 +9,10 @@ import * as TeamsGen from '../actions/teams-gen'
 import {getSortedTeamnames} from '../constants/teams'
 import {teamsTab} from '../constants/tabs'
 
-type OwnProps = Container.RouteProps2<'gitNewRepo'>
+type OwnProps = {isTeam: boolean}
 
 export default (ownProps: OwnProps) => {
-  const isTeam = ownProps.route.params.isTeam
+  const {isTeam} = ownProps
   const error = Container.useSelector(state => state.git.error)
   const teams = Container.useSelector(state => getSortedTeamnames(state))
   const waitingKey = Constants.loadingWaitingKey

@@ -1,8 +1,8 @@
-import * as Kb from '../../common-adapters'
-import * as ProfileGen from '../../actions/profile-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
-import Modal from '../modal'
+import * as Kb from '../../../common-adapters'
+import * as ProfileGen from '../../../actions/profile-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Container from '../../../util/container'
+import Modal from '../../modal'
 
 export default function Generate() {
   const dispatch = Container.useDispatch()

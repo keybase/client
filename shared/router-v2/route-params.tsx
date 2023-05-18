@@ -54,7 +54,7 @@ export type RootParamList = RootParamListIncomingShare &
   RootParamListGit &
   Tabs
 
-type RouteKeys = keyof RootParamList
+export type RouteKeys = keyof RootParamList
 type Distribute<U> = U extends RouteKeys
   ? RootParamList[U] extends undefined
     ? U

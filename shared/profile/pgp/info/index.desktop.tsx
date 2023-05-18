@@ -1,19 +1,28 @@
-import * as ProfileGen from '../../actions/profile-gen'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
-import Modal from '../modal'
+import * as ProfileGen from '../../../actions/profile-gen'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Container from '../../../util/container'
+import Modal from '../../modal'
+import shallowEqual from 'shallowequal'
 
 const Info = () => {
-  const email1 = Container.useSelector(state => state.profile.pgpEmail1)
-  const email2 = Container.useSelector(state => state.profile.pgpEmail2)
-  const email3 = Container.useSelector(state => state.profile.pgpEmail3)
-  const errorEmail1 = Container.useSelector(state => state.profile.pgpErrorEmail1)
-  const errorEmail2 = Container.useSelector(state => state.profile.pgpErrorEmail2)
-  const errorEmail3 = Container.useSelector(state => state.profile.pgpErrorEmail3)
-  const errorText = Container.useSelector(state => state.profile.pgpErrorText)
-  const fullName = Container.useSelector(state => state.profile.pgpFullName)
+  const data = Container.useSelector(state => {
+    const {pgpEmail1, pgpEmail2, pgpEmail3, pgpErrorEmail1, pgpErrorEmail2, pgpErrorEmail3} = state.profile
+    const {pgpErrorText, pgpFullName} = state.profile
+    return {
+      email1: pgpEmail1,
+      email2: pgpEmail2,
+      email3: pgpEmail3,
+      errorEmail1: pgpErrorEmail1,
+      errorEmail2: pgpErrorEmail2,
+      errorEmail3: pgpErrorEmail3,
+      errorText: pgpErrorText,
+      fullName: pgpFullName,
+    }
+  }, shallowEqual)
+
+  const {email1, email2, email3, errorEmail1, errorEmail2, errorEmail3, errorText, fullName} = data
   const dispatch = Container.useDispatch()
   const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
   const onChangeEmail1 = (pgpEmail1: string) => dispatch(ProfileGen.createUpdatePgpInfo({pgpEmail1}))

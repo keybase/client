@@ -8,7 +8,6 @@ import Browser from './browser'
 import {NormalPreview} from './filepreview'
 import * as Kbfs from './common'
 import * as SimpleScreens from './simple-screens'
-import {Actions, MainBanner, MobileHeader, Title} from './nav-header'
 
 type ChooseComponentProps = {
   emitBarePreview: () => void
@@ -61,24 +60,10 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }
 }
 
-export const getOptions = (ownProps: OwnProps) => {
-  const path = ownProps.route.params?.path ?? Constants.defaultPath
-  return Container.isMobile
-    ? {
-        header: () => <MobileHeader path={path} onBack={ownProps.navigation.pop} />,
-      }
-    : {
-        headerRightActions: () => <Actions path={path} onTriggerFilterMobile={() => {}} />,
-        headerTitle: () => <Title path={path} />,
-        subHeader: MainBanner,
-        title: path === Constants.defaultPath ? 'Files' : Types.getPathName(path),
-      }
-}
+type OwnProps = {path?: Types.Path}
 
-type OwnProps = Container.RouteProps2<'fsRoot'>
-
-const Connected = (ownProps: OwnProps) => {
-  const path = ownProps.route.params?.path ?? Constants.defaultPath
+const Connected = (ownProps?: OwnProps) => {
+  const path = ownProps?.path ?? Constants.defaultPath
   const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
   const kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
 

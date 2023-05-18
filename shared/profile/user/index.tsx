@@ -8,14 +8,12 @@ import Assertion from '../../tracker2/assertion/container'
 import Bio from '../../tracker2/bio/container'
 import Friend from './friend/container'
 import Measure from './measure'
-import ProfileSearch from '../search/bar'
 import Teams from './teams/container'
 import chunk from 'lodash/chunk'
 import shallowEqual from 'shallowequal'
 import type * as Types from '../../constants/types/tracker2'
 import type {RPCError} from '../../util/errors'
 import upperFirst from 'lodash/upperFirst'
-import {HeaderLeftArrow} from '../../common-adapters/header-hoc'
 import {SiteIcon} from '../generic/shared'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
@@ -319,18 +317,6 @@ type ChunkType = Array<
   | {type: 'noFriends'; text: string}
   | {type: 'loading'; text: string}
 >
-
-export const options = {
-  headerLeft: (p: {canGoBack: boolean; onPress: () => void; tintColor: string}) => (
-    <Styles.CanFixOverdrawContext.Provider value={false}>
-      <HeaderLeftArrow canGoBack={p.canGoBack} onPress={p.onPress} tintColor={p.tintColor} />
-    </Styles.CanFixOverdrawContext.Provider>
-  ),
-  headerShown: true,
-  headerStyle: {backgroundColor: 'transparent'},
-  headerTitle: () => <ProfileSearch />,
-  headerTransparent: true,
-}
 
 // TODO move container and get rid of this simple wrapper
 const UserWrap = (p: Props) => {

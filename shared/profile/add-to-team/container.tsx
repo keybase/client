@@ -1,5 +1,4 @@
 import * as Constants from '../../constants/teams'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -9,8 +8,6 @@ import AddToTeam, {type AddToTeamProps} from './index'
 import type * as Types from '../../constants/types/teams'
 import {memoize} from '../../util/memoize'
 import {sendNotificationFooter} from '../../teams/role-picker'
-
-type OwnProps = Container.RouteProps2<'profileAddToTeam'>
 
 const getOwnerDisabledReason = memoize((selected: Set<string>, teamNameToRole) => {
   return [...selected]
@@ -39,20 +36,6 @@ type State = {
   selectedRole: Types.TeamRoleType
   sendNotification: boolean
   selectedTeams: SelectedTeamState
-}
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      modal2: {width: Styles.isMobile ? undefined : 500},
-    } as const)
-)
-
-export const options = {
-  modal2: true,
-  modal2ClearCover: false,
-  modal2Style: styles.modal2,
-  modal2Type: 'DefaultFullHeight',
 }
 
 export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps, State> {
@@ -122,8 +105,9 @@ export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTea
   }
 }
 
+type OwnProps = {username: string}
 export default (ownProps: OwnProps) => {
-  const _them = ownProps.route.params.username
+  const _them = ownProps.username
   const _roles = Container.useSelector(state => state.teams.teamRoleMap.roles)
   const _teams = Container.useSelector(state => state.teams.teamMeta)
   const addUserToTeamsResults = Container.useSelector(state => state.teams.addUserToTeamsResults)

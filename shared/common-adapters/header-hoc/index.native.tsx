@@ -1,13 +1,15 @@
+import * as Container from '../../util/container'
 import * as React from 'react'
-import Text from '../text'
+import * as Styles from '../../styles'
 import BackButton from '../back-button'
 import Box from '../box'
 import FloatingMenu from '../floating-menu'
 import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
-import * as Styles from '../../styles'
+import Text from '../text'
 import type {Action, Props, LeftActionProps} from '.'
-import {useNavigation} from '@react-navigation/core'
+
+const Kb = {BackButton, Box, FloatingMenu, Icon, Text}
 
 const MAX_RIGHT_ACTIONS = 3
 
@@ -47,7 +49,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
     const hasTextTitle = !!this.props.title && !this.props.titleComponent
 
     const header = (
-      <Box
+      <Kb.Box
         style={Styles.collapseStyles([
           styles.header,
           this.props.borderless && styles.borderless,
@@ -56,7 +58,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
       >
         {this.props.customComponent}
         {hasTextTitle && (
-          <Box
+          <Kb.Box
             style={Styles.collapseStyles([
               styles.titleContainer,
               styles.titleTextContainer,
@@ -73,7 +75,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
             <Text type="BodyBig" style={styles.title} lineClamp={1}>
               {this.props.title}
             </Text>
-          </Box>
+          </Kb.Box>
         )}
         <LeftAction
           badgeNumber={this.props.badgeNumber}
@@ -87,7 +89,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
           theme={this.props.theme}
         />
         {this.props.titleComponent && (
-          <Box
+          <Kb.Box
             style={Styles.collapseStyles([
               styles.titleContainer,
               onLeftAction && styles.titleContainerRightPadding,
@@ -95,7 +97,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
             ] as const)}
           >
             {this.props.titleComponent}
-          </Box>
+          </Kb.Box>
         )}
         <RightActions
           floatingMenuVisible={this.state.floatingMenuVisible}
@@ -104,7 +106,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
           rightActions={rightActions}
           showFloatingMenu={this._showFloatingMenu}
         />
-      </Box>
+      </Kb.Box>
     )
 
     return header
@@ -124,14 +126,14 @@ export const LeftAction = ({
   customIconColor,
   style,
 }: LeftActionProps): React.ReactElement => (
-  <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow, style])}>
+  <Kb.Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow, style])}>
     {onLeftAction && leftAction === 'cancel' ? (
       <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
         {leftActionText || customCancelText || 'Cancel'}
       </Text>
     ) : (
       (onLeftAction || leftAction === 'back') && (
-        <BackButton
+        <Kb.BackButton
           badgeNumber={badgeNumber}
           hideBackLabel={hideBackLabel}
           iconColor={
@@ -147,7 +149,7 @@ export const LeftAction = ({
         />
       )
     )}
-  </Box>
+  </Kb.Box>
 )
 
 const RightActions = (p: {
@@ -159,8 +161,8 @@ const RightActions = (p: {
 }) => {
   const {floatingMenuVisible, hasTextTitle, hideFloatingMenu, rightActions, showFloatingMenu} = p
   return (
-    <Box style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
-      <Box style={styles.rightActionsWrapper}>
+    <Kb.Box style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
+      <Kb.Box style={styles.rightActionsWrapper}>
         {rightActions
           ?.slice(0, rightActions.length <= MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : MAX_RIGHT_ACTIONS - 1)
           .map((action, index) => (action ? renderAction(action, index) : null))}
@@ -170,8 +172,8 @@ const RightActions = (p: {
           rightActions={rightActions}
           showFloatingMenu={showFloatingMenu}
         />
-      </Box>
-    </Box>
+      </Kb.Box>
+    </Kb.Box>
   )
 }
 
@@ -184,8 +186,8 @@ const RightActionsOverflow = (p: {
   const {floatingMenuVisible, hideFloatingMenu, rightActions, showFloatingMenu} = p
   return rightActions && rightActions.length > MAX_RIGHT_ACTIONS ? (
     <>
-      <Icon onClick={showFloatingMenu} style={styles.action} type="iconfont-ellipsis" />
-      <FloatingMenu
+      <Kb.Icon onClick={showFloatingMenu} style={styles.action} type="iconfont-ellipsis" />
+      <Kb.FloatingMenu
         visible={floatingMenuVisible}
         items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map(action => ({
           onClick: action?.onPress,
@@ -201,11 +203,11 @@ const RightActionsOverflow = (p: {
 
 const renderAction = (action: Action, index: number): React.ReactNode =>
   action.custom ? (
-    <Box key={action.label || index} style={styles.action}>
+    <Kb.Box key={action.label || index} style={styles.action}>
       {action.custom}
-    </Box>
+    </Kb.Box>
   ) : action.icon ? (
-    <Icon
+    <Kb.Icon
       color={action.iconColor || undefined}
       key={action.label || index}
       onClick={action.onPress}
@@ -227,14 +229,14 @@ const renderAction = (action: Action, index: number): React.ReactNode =>
 export const HeaderHocWrapper = (props: Props & {children: React.ReactNode; skipHeader?: boolean}) => {
   const {customSafeAreaTopStyle, children, customSafeAreaBottomStyle, skipHeader} = props
   return (
-    <Box style={styles.container}>
+    <Kb.Box style={styles.container}>
       {!!customSafeAreaTopStyle && <SafeAreaViewTop style={customSafeAreaTopStyle} />}
       {!skipHeader && <HeaderHocHeader {...props} />}
-      <Box style={styles.grow}>
-        <Box style={styles.innerWrapper}>{children}</Box>
-      </Box>
+      <Kb.Box style={styles.grow}>
+        <Kb.Box style={styles.innerWrapper}>{children}</Kb.Box>
+      </Kb.Box>
       {!!customSafeAreaBottomStyle && <SafeAreaView style={customSafeAreaBottomStyle} />}
-    </Box>
+    </Kb.Box>
   )
 }
 
@@ -371,13 +373,8 @@ export const HeaderLeftCancel2 = React.memo(function HeaderLeftCancel(hp: {
   badgeNumber?: number
   tintColor: string
 }) {
-  const navigation = useNavigation()
-  const onBack = React.useCallback(() => {
-    // @ts-ignore
-    navigation.pop()
-  }, [navigation])
-
+  const {pop} = Container.useNav()
   return hp.canGoBack ?? true ? (
-    <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={onBack} />
+    <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={pop} />
   ) : null
 })

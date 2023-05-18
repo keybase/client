@@ -172,7 +172,9 @@ const hideStellar = async (_: Container.TypedState, action: ProfileGen.HideStell
 const editAvatar = () =>
   Container.isMobile
     ? undefined // handled in platform specific
-    : RouteTreeGen.createNavigateAppend({path: [{props: {image: undefined}, selected: 'profileEditAvatar'}]})
+    : RouteTreeGen.createNavigateAppend({
+        path: [{props: {image: undefined}, selected: 'profileEditAvatar'}],
+      })
 
 const backToProfile = (state: Container.TypedState) => [
   RouteTreeGen.createClearModals(),

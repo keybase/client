@@ -8,12 +8,11 @@ import * as Styles from '../styles'
 import Row from './row'
 import sortBy from 'lodash/sortBy'
 import type * as Types from '../constants/types/git'
-import {HeaderTitle, HeaderRightActions} from './nav-header'
 import {anyWaiting} from '../constants/waiting'
 import {memoize} from '../util/memoize'
 import {union} from '../util/set'
 
-type OwnProps = Container.RouteProps2<'gitRoot'>
+type OwnProps = {expandedSet: Set<string>}
 
 const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
@@ -51,19 +50,8 @@ const GitReloadable = (p: Omit<Props & ExtraProps, 'onToggleExpand'>) => {
   )
 }
 
-export const options = Container.isMobile
-  ? {
-      title: 'Git',
-    }
-  : {
-      headerRightActions: HeaderRightActions,
-      headerTitle: HeaderTitle,
-      title: 'Git',
-    }
-
-const emptySet = new Set<string>()
 export default (ownProps: OwnProps) => {
-  const initialExpandedSet = ownProps.route.params?.expandedSet ?? emptySet
+  const initialExpandedSet = ownProps.expandedSet
   const error = Container.useSelector(state => state.git.error)
   const loading = Container.useSelector(state => anyWaiting(state, Constants.loadingWaitingKey))
   const git = Container.useSelector(state => state.git.idToInfo)

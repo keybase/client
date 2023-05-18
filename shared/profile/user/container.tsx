@@ -1,4 +1,4 @@
-import Profile2, {BackgroundColorType} from '.'
+import Profile2, {type BackgroundColorType} from '.'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
@@ -8,7 +8,7 @@ import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/tracker2'
 import {memoize} from '../../util/memoize'
 
-export type OwnProps = Container.RouteProps2<'profile'>
+export type OwnProps = {username: string}
 
 const headerBackgroundColorType = (state: Types.DetailsState, followThem: boolean): BackgroundColorType => {
   if (['broken', 'error'].includes(state)) {
@@ -26,7 +26,7 @@ const filterWebOfTrustEntries = memoize(
 )
 
 const Connected = (ownProps: OwnProps) => {
-  const username = ownProps.route.params.username
+  const {username} = ownProps
   const d = Container.useSelector(state => Constants.getDetails(state, username))
   const myName = Container.useSelector(state => state.config.username)
   const notAUser = d.state === 'notAUserYet'
@@ -206,4 +206,3 @@ const Connected = (ownProps: OwnProps) => {
 }
 
 export default Connected
-export {options} from '.'
