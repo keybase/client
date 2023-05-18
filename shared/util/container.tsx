@@ -34,6 +34,15 @@ export const useNav = () => {
   }
 }
 
+// extracts the payload from a page used in routing
+export type PageToParam<
+  M, // {thepage: getScreen: () => (p: {route: {params: {username: string}}}) => any}
+  K extends keyof M, // 'thepage'
+  RawParam = M[K] extends {getScreen: () => (a: any) => any}
+    ? Parameters<ReturnType<M[K]['getScreen']>>[0] // {route: {params: {username: string}}
+    : undefined
+> = RawParam extends {route: {params: any}} ? {[k in K]: RawParam['route']['params']} : undefined // {thepage: {username: string}}
+
 const useSelector = USH.useSelector as TypedUseSelectorHook<RootState>
 
 export const networkErrorCodes = [
