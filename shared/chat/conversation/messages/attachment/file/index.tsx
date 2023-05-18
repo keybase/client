@@ -137,7 +137,6 @@ const styles = Styles.styleSheetCreate(
       downloadedIconWrapperStyle: {
         ...Styles.globalStyles.flexBoxCenter,
         ...Styles.padding(3, 0, 3, 3),
-        backgroundColor: Styles.globalColors.white,
         borderRadius: 20,
         bottom: 0,
         position: 'absolute',

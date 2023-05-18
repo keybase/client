@@ -71,7 +71,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
             dispatch(
               Chat2Gen.createAttachmentDownload({
                 conversationIDKey: message.conversationIDKey,
-                ordinal: message.id,
+                ordinal: message.ordinal,
               })
             )
         }

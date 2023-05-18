@@ -7,25 +7,27 @@ import {Video, ResizeMode} from 'expo-av'
 import logger from '../../../logger'
 import {ShowToastAfterSaving} from '../messages/attachment/shared'
 import type {Props} from '.'
+import {type LayoutEvent} from '../../../common-adapters/box'
 
-const AutoMaxSizeImage = (p: {source: {uri: string}; onLoad: () => void; opacity: number}) => {
+const AutoMaxSizeImage = (p: {
+  height: number
+  source: {uri: string}
+  onLoad: () => void
+  opacity: number
+}) => {
   const {source, onLoad, opacity} = p
+  const pheight = p.height
   const {uri} = source
   const [width, setWidth] = React.useState(0)
   const [height, setHeight] = React.useState(0)
 
   React.useEffect(() => {
     Kb.NativeImage.getSize(uri, (width, height) => {
-      const clamped = Constants.clampImageSize(
-        width,
-        height,
-        Styles.dimensionWidth,
-        Styles.dimensionHeight - (Styles.isIOS ? 40 : 0)
-      )
+      const clamped = Constants.clampImageSize(width, height, Styles.dimensionWidth, pheight)
       setWidth(clamped.width)
       setHeight(clamped.height)
     })
-  }, [uri])
+  }, [uri, pheight])
 
   return (
     <Kb.ZoomableBox
@@ -51,6 +53,12 @@ const AutoMaxSizeImage = (p: {source: {uri: string}; onLoad: () => void; opacity
 const Fullscreen = (p: Props) => {
   const {path, previewHeight, message, onAllMedia, onClose, isVideo} = p
   const [loaded, setLoaded] = React.useState(false)
+
+  const [height, setHeight] = React.useState(0)
+
+  const onLayout = React.useCallback((e: LayoutEvent) => {
+    setHeight(e.nativeEvent.layout.height)
+  }, [])
 
   const {toggleShowingPopup, popup} = useMessagePopup({
     conversationIDKey: message.conversationIDKey,
@@ -86,9 +94,14 @@ const Fullscreen = (p: Props) => {
         </Kb.Box2>
       )
     } else {
-      content = (
-        <AutoMaxSizeImage source={{uri: `${path}`}} onLoad={() => setLoaded(true)} opacity={loaded ? 1 : 0} />
-      )
+      content = height ? (
+        <AutoMaxSizeImage
+          source={{uri: `${path}`}}
+          onLoad={() => setLoaded(true)}
+          opacity={loaded ? 1 : 0}
+          height={height}
+        />
+      ) : null
     }
   }
   if (!loaded) {
@@ -122,7 +135,7 @@ const Fullscreen = (p: Props) => {
           All media
         </Kb.Text>
       </Kb.Box2>
-      <Kb.BoxGrow>{content}</Kb.BoxGrow>
+      <Kb.BoxGrow onLayout={onLayout}>{content}</Kb.BoxGrow>
       <Kb.Button icon="iconfont-ellipsis" style={styles.headerFooter} onClick={toggleShowingPopup} />
       {popup}
     </Kb.Box2>
