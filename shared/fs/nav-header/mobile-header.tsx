@@ -18,7 +18,6 @@ import MainBanner from './main-banner/container'
  */
 
 type Props = {
-  onBack?: () => void
   path: Types.Path
 }
 
@@ -26,8 +25,8 @@ const MaybePublicTag = ({path}) =>
   Constants.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} /> : null
 
 const NavMobileHeader = (props: Props) => {
-  const expanded = null !== Container.useSelector(state => state.fs.folderViewFilter)
-
+  const expanded = Container.useSelector(state => state.fs.folderViewFilter !== undefined)
+  const {pop} = Container.useNav()
   const dispatch = Container.useDispatch()
   const filterDone = () => dispatch(FsGen.createSetFolderViewFilter({}))
   const triggerFilterMobile = () => dispatch(FsGen.createSetFolderViewFilter({filter: ''}))
@@ -57,13 +56,9 @@ const NavMobileHeader = (props: Props) => {
           <Kbfs.FolderViewFilter path={props.path} onCancel={filterDone} />
         ) : (
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
-            {props.onBack && (
-              <Kb.BackButton
-                badgeNumber={0 /* TODO KBFS-4109 */}
-                onClick={props.onBack}
-                style={styles.backButton}
-              />
-            )}
+            {pop ? (
+              <Kb.BackButton badgeNumber={0 /* TODO KBFS-4109 */} onClick={pop} style={styles.backButton} />
+            ) : null}
             <Kb.Box style={styles.gap} />
             <Actions path={props.path} onTriggerFilterMobile={triggerFilterMobile} />
           </Kb.Box2>

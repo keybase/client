@@ -1,15 +1,13 @@
-import type FsRoot from '.'
 import type * as FSTypes from '../constants/types/fs'
 import type {BarePreview} from './filepreview'
 import type ConfirmDelete from './common/path-item-action/confirm-delete/container'
 import type KextPermission from './banner/system-file-manager-integration-banner/kext-permission-popup-container'
 import type DestinationPicker from './browser/destination-picker/container'
 
+import fsRoot, {type RouteProps as FSRootProps} from './page'
+
 export const newRoutes = {
-  fsRoot: {
-    getOptions: require('.').getOptions,
-    getScreen: () => require('.').default as typeof FsRoot,
-  },
+  ...fsRoot,
 }
 
 export const newModalRoutes = {
@@ -36,7 +34,6 @@ export type RootParamListFS = {
     path: FSTypes.Path
     mode: 'row' | 'screen'
   }
-  fsRoot: {path: FSTypes.Path}
   barePreview: {path: FSTypes.Path}
   kextPermission: undefined
-}
+} & FSRootProps
