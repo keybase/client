@@ -52,9 +52,3 @@ const CodePageContainer = () => {
   )
 }
 export default CodePageContainer
-
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null,
-  headerTransparent: true,
-}

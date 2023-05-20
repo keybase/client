@@ -1,4 +1,6 @@
 import {Component} from 'react'
-
-export default class FeedbackContainer extends Component<void> {}
-export const options: any
+export type Props = {
+  heading?: string
+  feedback?: string
+}
+export default class FeedbackContainer extends Component<Props> {}

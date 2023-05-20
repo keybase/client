@@ -25,11 +25,6 @@ const ReloadableNotifications = (props: Props) => {
   )
 }
 
-export const options = {
-  header: undefined,
-  title: 'Notifications',
-}
-
 export default () => {
   const _groups = Container.useSelector(state => state.settings.notifications.groups)
   const allowEdit = Container.useSelector(state => state.settings.notifications.allowEdit)

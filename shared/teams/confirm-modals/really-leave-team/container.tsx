@@ -9,10 +9,10 @@ import LastOwnerDialog from './last-owner'
 import {anyWaiting} from '../../../constants/waiting'
 import {useTeamDetailsSubscribeMountOnly} from '../../subscriber'
 
-type OwnProps = Container.RouteProps2<'teamReallyLeaveTeam'>
+type OwnProps = {teamID: Types.TeamID}
 
 const ReallyLeaveTeamContainer = (op: OwnProps) => {
-  const teamID = op.route.params.teamID ?? Types.noTeamID
+  const teamID = op.teamID ?? Types.noTeamID
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const {settings, members} = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const open = settings.open

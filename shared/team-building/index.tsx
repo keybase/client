@@ -14,14 +14,12 @@ import TeamBox from './team-box'
 import debounce from 'lodash/debounce'
 import logger from '../logger'
 import trim from 'lodash/trim'
-import type {RootRouteProps} from '../router-v2/route-params'
 import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
 import {getTeamMeta} from '../constants/teams'
 import {memoize} from '../util/memoize'
 import {requestIdleCallback} from '../util/idle-callback'
 import {serviceIdToSearchPlaceholder} from './shared'
-import {useRoute} from '@react-navigation/native'
 import {FilteredServiceTabBar} from './filtered-service-tab-bar'
 import {modalHeaderProps} from './modal-header-props'
 import {useSharedValue} from '../common-adapters/reanimated'
@@ -74,12 +72,20 @@ const makeDebouncedSearch = (time: number) =>
 const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
 const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
 
-const TeamBuilding = () => {
-  const {params} = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
-  const namespace = params.namespace ?? 'chat2'
-  const teamID = params.teamID
-  const filterServices = params.filterServices
-  const goButtonLabel = params.goButtonLabel ?? 'Start'
+type OwnProps = {
+  namespace: TeamBuildingTypes.AllowedNamespace
+  teamID: string
+  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
+  goButtonLabel: TeamBuildingTypes.GoButtonLabel
+  title: string
+  recommendedHideYourself?: boolean
+}
+
+const TeamBuilding = (p: OwnProps) => {
+  const namespace = p.namespace ?? 'chat2'
+  const teamID = p.teamID
+  const filterServices = p.filterServices
+  const goButtonLabel = p.goButtonLabel ?? 'Start'
 
   const dispatch = Container.useDispatch()
 
@@ -200,9 +206,8 @@ const TeamBuilding = () => {
     [search, incFocusInputCounter, setSelectedService, searchString]
   )
 
-  const route = useRoute<RootRouteProps<'peopleTeamBuilder'>>()
   const title = Container.useSelector(state =>
-    namespace === 'teams' ? `Add to ${getTeamMeta(state, teamID ?? '').teamname}` : route.params.title ?? ''
+    namespace === 'teams' ? `Add to ${getTeamMeta(state, teamID ?? '').teamname}` : p.title ?? ''
   )
 
   const waitingForCreate = Container.useSelector(state =>
@@ -336,32 +341,6 @@ const TeamBuilding = () => {
       </Kb.Box2>
     </Kb.Modal2>
   )
-}
-
-export const getOptions = ({route}) => {
-  const namespace: unknown = route.params.namespace
-  const common = {
-    modal2: true,
-    modal2AvoidTabs: false,
-    modal2ClearCover: false,
-    modal2Style: {alignSelf: 'center'},
-    modal2Type: 'DefaultFullHeight',
-  }
-
-  return namespace === 'people'
-    ? {
-        ...common,
-        modal2AvoidTabs: true,
-        modal2ClearCover: true,
-        modal2Style: {
-          alignSelf: 'flex-start',
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-          paddingTop: Styles.globalMargins.mediumLarge,
-        },
-        modal2Type: 'DefaultFullWidth',
-      }
-    : common
 }
 
 const styles = Styles.styleSheetCreate(

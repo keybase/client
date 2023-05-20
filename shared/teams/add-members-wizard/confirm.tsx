@@ -159,9 +159,6 @@ const AddMembersConfirm = () => {
     </Kb.Modal>
   )
 }
-export const options = {
-  gesturesEnabled: false,
-}
 
 // Show no more than 20 assertions in "already in team" section.
 const alreadyInTeamLimit = 20

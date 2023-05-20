@@ -1,9 +1,8 @@
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
 import type {ButtonType} from '../../common-adapters/button'
-import {SignupScreen, InfoIcon} from '../../signup/common'
+import {SignupScreen} from '../../signup/common'
 
 const useConn = () => {
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
@@ -17,10 +16,6 @@ const useConn = () => {
 const ConnectedError = () => {
   const props = useConn()
   return <Error {...props} />
-}
-export const ConnectedErrorModal = () => {
-  const props = useConn()
-  return <ErrorModal {...props} />
 }
 
 export default ConnectedError
@@ -50,41 +45,3 @@ const Error = (props: Props) => (
     </Kb.Text>
   </SignupScreen>
 )
-
-export const ErrorModal = (props: Props) => (
-  <Kb.Modal
-    header={{title: 'Error'}}
-    footer={{content: <Kb.Button label="Back" onClick={props.onBack} fullWidth={true} />}}
-    onClose={props.onBack}
-  >
-    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.padding}>
-      <Kb.Text type="Body" center={true}>
-        {props.error}
-      </Kb.Text>
-    </Kb.Box2>
-  </Kb.Modal>
-)
-
-export const options = {
-  gesturesEnabled: false,
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-  headerRightActions: () => (
-    <Kb.Box2
-      direction="horizontal"
-      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
-    >
-      <InfoIcon />
-    </Kb.Box2>
-  ),
-}
-
-export const modalOptions = {
-  gesturesEnabled: false,
-}
-
-const styles = Styles.styleSheetCreate(() => ({
-  padding: {
-    padding: Styles.globalMargins.small,
-  },
-}))

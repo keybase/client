@@ -192,13 +192,6 @@ const Advanced = () => {
   )
 }
 
-export const options = isMobile
-  ? {
-      header: undefined,
-      title: 'Advanced',
-    }
-  : undefined
-
 const clickThreshold = 7
 const traceDurationSeconds = 30
 const processorProfileDurationSeconds = 30

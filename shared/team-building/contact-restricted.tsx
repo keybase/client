@@ -3,8 +3,6 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 
-type OwnProps = Container.RouteProps2<'contactRestricted'>
-
 type Props = {
   source: 'newFolder' | 'teamAddSomeFailed' | 'teamAddAllFailed' | 'walletsRequest' | 'misc'
   usernames: Array<string>
@@ -129,10 +127,10 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default (ownProps: OwnProps) => {
+export default (ownProps: Props) => {
   const props = {
-    source: ownProps.route.params.source,
-    usernames: ownProps.route.params.usernames,
+    source: ownProps.source,
+    usernames: ownProps.usernames,
   }
   return <ContactRestricted {...props} />
 }

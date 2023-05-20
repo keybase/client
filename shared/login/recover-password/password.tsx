@@ -20,8 +20,4 @@ const Password = () => {
   return <_Password error={errErr} hasRandomPW={false} onSave={onSave} waitingForResponse={waiting} />
 }
 
-export const options = {
-  gesturesEnabled: false,
-}
-
 export default Password

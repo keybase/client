@@ -317,10 +317,6 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
   }
 }
 
-export const options = {
-  modal2: true,
-}
-
 const styles = styleSheetCreate(
   () =>
     ({

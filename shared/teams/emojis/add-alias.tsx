@@ -23,7 +23,10 @@ type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
   defaultSelected?: EmojiData
 }
-type RoutableProps = Container.RouteProps2<'teamAddEmojiAlias'>
+type RoutableProps = {
+  conversationIDKey: ChatTypes.ConversationIDKey
+  defaultSelected?: EmojiData
+}
 
 type ChosenEmoji = {
   emojiStr: string

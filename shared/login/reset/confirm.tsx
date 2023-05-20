@@ -129,10 +129,6 @@ const ConfirmReset = () => {
   )
 }
 
-export const options = {
-  gesturesEnabled: false,
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   buttonBar: {
     alignItems: 'center',

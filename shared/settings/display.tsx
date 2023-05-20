@@ -63,11 +63,6 @@ const Display = () => {
   )
 }
 
-export const options = {
-  header: undefined,
-  title: 'Display',
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,

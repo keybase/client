@@ -7,13 +7,13 @@ import {ModalTitle} from '../common'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 
-type Props = Container.RouteProps2<'teamEditTeamInfo'>
+type Props = {teamID: Types.TeamID}
 
 const TeamInfo = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const teamID = props.route.params.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? Types.noTeamID
   const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
 

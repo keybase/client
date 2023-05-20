@@ -49,11 +49,6 @@ type Props = {
   onResetAccount: () => void
 }
 
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}
-
 const resetSignal = 'reset'
 type DeviceOrReset = Types.Device | 'reset'
 export class SelectOtherDevice extends React.Component<Props> {

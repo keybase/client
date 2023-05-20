@@ -11,10 +11,10 @@ import {pluralize} from '../util/string'
 import {memoize} from '../util/memoize'
 import capitalize from 'lodash/capitalize'
 
-type Props = Container.RouteProps2<'teamExternalTeam'>
+type Props = {teamname: string}
 
 const ExternalTeam = (props: Props) => {
-  const teamname = props.route.params.teamname
+  const teamname = props.teamname
 
   const getTeamInfo = Container.useRPC(RPCGen.teamsGetUntrustedTeamInfoRpcPromise)
   const [teamInfo, setTeamInfo] = React.useState<RPCGen.UntrustedTeamInfo | undefined>()
@@ -66,12 +66,6 @@ const ExternalTeam = (props: Props) => {
       )}
     </Kb.Box2>
   )
-}
-export const options = {
-  header: undefined,
-  headerBottomStyle: {height: undefined},
-  headerHideBorder: true,
-  title: ' ', // hack: trick router shim so it doesn't add a safe area around us
 }
 
 type ExternalTeamProps = {

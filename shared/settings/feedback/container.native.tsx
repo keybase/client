@@ -7,8 +7,7 @@ import {Platform} from 'react-native'
 import {getExtraChatLogsForLogSend} from '../../constants/settings'
 import {isAndroid, version, pprofDir} from '../../constants/platform'
 import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
-
-type OwnProps = Container.RouteProps2<'settingsTabs.feedbackTab'>
+import type {Props as OwnProps} from './container'
 
 export type State = {
   sending: boolean
@@ -23,12 +22,6 @@ export type Props = {
 }
 
 const mobileOsVersion = Platform.Version
-
-export const options = {
-  header: undefined,
-  title: 'Feedback',
-  useHeaderHeight: () => 60,
-}
 
 class FeedbackContainer extends React.Component<Props, State> {
   private mounted = false
@@ -112,7 +105,7 @@ class FeedbackContainer extends React.Component<Props, State> {
 const getPushTokenForLogSend = (state: Container.TypedState) => ({pushToken: state.push.token})
 
 const Connected = (ownProps: OwnProps) => {
-  const feedback = ownProps.route.params.feedback
+  const feedback = ownProps.feedback ?? ''
   const chat = Container.useSelector(state => getExtraChatLogsForLogSend(state))
   const loggedOut = Container.useSelector(state => !state.config.loggedIn)
   const push = Container.useSelector(state => getPushTokenForLogSend(state))

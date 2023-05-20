@@ -5,9 +5,7 @@ import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
-import * as Styles from '../styles'
 import Teams, {type OwnProps as MainOwnProps} from './main'
-import {HeaderRightActions} from './main/header'
 import openURL from '../util/open-url'
 import * as Constants from '../constants/teams'
 import * as WaitingConstants from '../constants/waiting'
@@ -17,11 +15,7 @@ import {useTeamsSubscribe} from './subscriber'
 import {useActivityLevels} from './common'
 
 // share some between headerRightActions on desktop and component on mobile
-type HeaderActionProps = {
-  onCreateTeam: () => void
-  onJoinTeam: () => void
-}
-const useHeaderActions = (): HeaderActionProps => {
+const useHeaderActions = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   return {
@@ -95,37 +89,6 @@ const Reloadable = (props: ReloadableProps) => {
   )
 }
 
-const TeamsFilter = () => {
-  const dispatch = Container.useDispatch()
-  const filterValue = Container.useSelector(s => s.teams.teamListFilter)
-  const numTeams = Container.useSelector(s => s.teams.teamMeta.size)
-  const setFilter = (filter: string) => dispatch(TeamsGen.createSetTeamListFilterSort({filter}))
-  return numTeams >= 20 ? (
-    <Kb.SearchFilter
-      value={filterValue}
-      valueControlled={true}
-      onChange={setFilter}
-      size="small"
-      placeholderText="Filter"
-      hotkey="k"
-      icon="iconfont-filter"
-      style={filterStyles.filter}
-    />
-  ) : null
-}
-const filterStyles = Styles.styleSheetCreate(() => ({
-  filter: {
-    alignSelf: 'flex-end',
-    marginBottom: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xsmall,
-  },
-}))
-
-export const options = {
-  headerRightActions: !Styles.isMobile ? () => <TeamsFilter /> : () => <ConnectedHeaderRightActions />,
-  title: 'Teams',
-}
-
 const Connected = () => {
   const _teams = Container.useSelector(state => state.teams.teamMeta)
   const activityLevels = Container.useSelector(state => state.teams.activityLevels)
@@ -170,11 +133,6 @@ const Connected = () => {
     ),
   }
   return <Reloadable {...props} />
-}
-
-const ConnectedHeaderRightActions = (_: {}) => {
-  const actions = useHeaderActions()
-  return <HeaderRightActions {...actions} />
 }
 
 export default Connected

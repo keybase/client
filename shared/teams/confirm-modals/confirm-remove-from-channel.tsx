@@ -9,12 +9,16 @@ import * as ChatConstants from '../../constants/chat2'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 
-type Props = Container.RouteProps2<'teamReallyRemoveChannelMember'>
+type Props = {
+  members: string[]
+  conversationIDKey: ChatTypes.ConversationIDKey
+  teamID: Types.TeamID
+}
 
 const ConfirmRemoveFromChannel = (props: Props) => {
-  const members = props.route.params.members
-  const teamID = props.route.params.teamID ?? Types.noTeamID
-  const conversationIDKey = props.route.params.conversationIDKey ?? ChatConstants.noConversationIDKey
+  const members = props.members
+  const teamID = props.teamID ?? Types.noTeamID
+  const conversationIDKey = props.conversationIDKey ?? ChatConstants.noConversationIDKey
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')

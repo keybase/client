@@ -6,7 +6,7 @@ import * as AutoresetGen from '../../actions/autoreset-gen'
 import * as AutoresetConstants from '../../constants/autoreset'
 import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import {SignupScreen, InfoIcon} from '../../signup/common'
+import {SignupScreen} from '../../signup/common'
 import type {ButtonType} from '../../common-adapters/button'
 
 export type Props = {
@@ -97,16 +97,6 @@ const PromptReset = (props: Props) => {
   )
 }
 
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-  headerRightActions: () => (
-    <Kb.Box2 direction="horizontal" style={styles.questionBox}>
-      <InfoIcon />
-    </Kb.Box2>
-  ),
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   main: {
     ...Styles.padding(0, Styles.globalMargins.medium, Styles.globalMargins.small),
@@ -121,6 +111,4 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-const PromptResetAccount = () => <PromptReset />
-const PromptResetPassword = () => <PromptReset resetPassword={true} />
-export {PromptResetAccount, PromptResetPassword}
+export default PromptReset

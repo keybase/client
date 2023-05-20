@@ -149,11 +149,6 @@ type State = {
   unfurlWhitelistRemoved: {[K in string]: boolean}
 }
 
-export const options = {
-  header: undefined,
-  title: 'Chat',
-}
-
 class Chat extends React.Component<Props, State> {
   state = {
     contactSettingsEnabled: undefined,

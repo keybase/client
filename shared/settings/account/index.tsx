@@ -294,11 +294,6 @@ const AccountSettings = (props: Props) => (
   </Kb.Reloadable>
 )
 
-export const options = {
-  header: undefined,
-  title: 'Your account',
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   buttonBar: {
     minHeight: undefined,

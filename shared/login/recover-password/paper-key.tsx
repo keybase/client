@@ -6,7 +6,7 @@ import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import * as Styles from '../../styles'
 import HiddenString from '../../util/hidden-string'
 import type {ButtonType} from '../../common-adapters/button'
-import {SignupScreen, InfoIcon} from '../../signup/common'
+import {SignupScreen} from '../../signup/common'
 
 const PaperKey = () => {
   const error = Container.useSelector(state => state.recoverPassword.paperKeyError.stringValue())
@@ -84,18 +84,4 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
 }))
-
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-  headerRightActions: () => (
-    <Kb.Box2
-      direction="horizontal"
-      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
-    >
-      <InfoIcon />
-    </Kb.Box2>
-  ),
-}
-
 export default PaperKey

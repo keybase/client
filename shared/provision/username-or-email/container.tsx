@@ -10,7 +10,7 @@ import {anyWaiting} from '../../constants/waiting'
 import {usernameHint} from '../../constants/signup'
 import type {RPCError} from '../../util/errors'
 
-type OwnProps = Container.RouteProps2<'username'>
+type OwnProps = {fromReset?: boolean}
 
 const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
   let inlineError = ''
@@ -34,7 +34,7 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
 
 const UsernameOrEmailContainer = (op: OwnProps) => {
   const _resetBannerUser = Container.useSelector(state => state.autoreset.username)
-  const resetBannerUser = op.route.params.fromReset ? _resetBannerUser : undefined
+  const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
   const _error = Container.useSelector(state => state.provision.error.stringValue())
   const {inlineError, inlineSignUpLink} = Container.useSelector(state =>
     decodeInlineError(state.provision.inlineError)
@@ -82,8 +82,3 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   )
 }
 export default UsernameOrEmailContainer
-
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}

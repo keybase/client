@@ -1,9 +1,8 @@
-import type * as Container from '../../util/container'
 import TeamInviteByContact from './team-invite-by-contacts.native'
 
-type OwnProps = Container.RouteProps2<'teamInviteByContact'>
+type OwnProps = {teamID: string}
 const ConnectedTeamInviteByContact = (props: OwnProps) => {
-  const teamID = props.route.params.teamID
+  const teamID = props.teamID
   return <TeamInviteByContact teamID={teamID} />
 }
 
