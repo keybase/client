@@ -22,7 +22,7 @@ type Props = {
 }
 type RoutableProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
-  teamID: Types.TeamID // not supported yet
+  teamID: TeamsTypes.TeamID // not supported yet
 }
 
 // don't prefill on mobile since it's always a long random string.

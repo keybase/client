@@ -1,15 +1,45 @@
-import type * as Container from '../util/container'
+import contactRestricted from '../team-building/contact-restricted.page'
+import openTeamWarning from './team/settings-tab/open-team-warning/page'
+import retentionWarning from './team/settings-tab/retention/warning/page'
 import team from './team/page'
-import teamsRoot from './page'
-import teamChannel from './channel/page'
-import teamExternalTeam from './external-team.page'
-import teamMember from './team/member/index.new.page'
+import teamAddEmoji from './emojis/add-emoji.page'
+import teamAddEmojiAlias from './emojis/add-alias.page'
+import teamAddToChannels from './team/member/add-to-channels.page'
 import teamAddToTeamConfirm from './add-members-wizard/confirm.page'
-import teamsTeamBuilder from '../team-building/page'
 import teamAddToTeamContacts from './add-members-wizard/add-contacts.page'
 import teamAddToTeamEmail from './add-members-wizard/add-email.page'
 import teamAddToTeamFromWhere from './add-members-wizard/add-from-where.page'
 import teamAddToTeamPhone from './add-members-wizard/add-phone.page'
+import teamChannel from './channel/page'
+import teamCreateChannels from './channel/create-channels.page'
+import teamDeleteChannel from './confirm-modals/delete-channel/page'
+import teamDeleteTeam from './delete-team/page'
+import teamEditChannel from './team/member/edit-channel.page'
+import teamEditTeamDescription from './edit-team-description/page'
+import teamEditTeamInfo from './team/team-info.page'
+import teamEditWelcomeMessage from './edit-team-welcome-message/page'
+import teamExternalTeam from './external-team.page'
+import teamInviteByContact from './invite-by-contact/page'
+import teamInviteByEmail from './invite-by-email/page'
+import teamInviteHistory from './team/invites/invite-history.page'
+import teamInviteLinkJoin from './join-team/join-from-invite.page'
+import teamInviteLinksGenerate from './team/invites/generate-link.page'
+import teamJoinTeamDialog from './join-team/page'
+import teamMember from './team/member/index.new.page'
+import teamNewTeamDialog from './new-team/page'
+import teamReallyLeaveTeam from './confirm-modals/really-leave-team/page'
+import teamReallyRemoveChannelMember from './confirm-modals/confirm-remove-from-channel.page'
+import teamReallyRemoveMember from './confirm-modals/confirm-kick-out.page'
+import teamRename from './rename-team/page'
+import teamWizard1TeamPurpose from './new-team/wizard/team-purpose.page'
+import teamWizard2TeamInfo from './new-team/wizard/new-team-info.page'
+import teamWizard4TeamSize from './new-team/wizard/make-big-team.page'
+import teamWizard5Channels from './new-team/wizard/create-channels.page'
+import teamWizard6Subteams from './new-team/wizard/create-subteams.page'
+import teamWizardSubteamMembers from './new-team/wizard/add-subteam-members.page'
+import teamsRoot from './page'
+import teamsTeamBuilder from '../team-building/page'
+import type * as Container from '../util/container'
 
 export const newRoutes = {
   team,
@@ -19,106 +49,42 @@ export const newRoutes = {
   teamsRoot,
 }
 
-const addWizardRoutes = {
+export const newModalRoutes = {
+  contactRestricted,
+  openTeamWarning,
+  retentionWarning,
+  teamAddEmoji,
+  teamAddEmojiAlias,
+  teamAddToChannels,
   teamAddToTeamConfirm,
   teamAddToTeamContacts,
   teamAddToTeamEmail,
   teamAddToTeamFromWhere,
   teamAddToTeamPhone,
-}
-
-const newTeamWizardRoutes = {
-  teamWizard1TeamPurpose: {
-    getScreen: () => require('./new-team/wizard/team-purpose').default,
-  },
-  teamWizard2TeamInfo: {
-    getScreen: () => require('./new-team/wizard/new-team-info').default,
-  },
-  teamWizard4TeamSize: {
-    getScreen: () => require('./new-team/wizard/make-big-team').default,
-  },
-  teamWizard5Channels: {
-    getScreen: () => require('./new-team/wizard/create-channels').default,
-  },
-  teamWizard6Subteams: {
-    getScreen: () => require('./new-team/wizard/create-subteams').default,
-  },
-  teamWizardSubteamMembers: {
-    getScreen: () => require('./new-team/wizard/add-subteam-members').default,
-  },
-}
-
-export const newModalRoutes = {
-  ...addWizardRoutes,
-  ...newTeamWizardRoutes,
-  contactRestricted: {
-    getScreen: () => require('../team-building/contact-restricted').default,
-  },
-  openTeamWarning: {
-    getScreen: () => require('./team/settings-tab/open-team-warning').default,
-  },
-  retentionWarning: {
-    getScreen: () => require('./team/settings-tab/retention/warning/container').default,
-  },
-  teamAddEmoji: {
-    getScreen: () => require('./emojis/add-emoji').default,
-  },
-  teamAddEmojiAlias: {
-    getScreen: () => require('./emojis/add-alias').default,
-  },
-  teamAddToChannels: {
-    getScreen: () => require('./team/member/add-to-channels').default,
-  },
-  teamCreateChannels: {
-    getScreen: () => require('./channel/create-channels').default,
-  },
-  teamDeleteChannel: {
-    getScreen: () => require('./confirm-modals/delete-channel').default,
-  },
-  teamDeleteTeam: {getScreen: () => require('./delete-team/container').default},
-  teamEditChannel: {
-    getScreen: () => require('./team/member/edit-channel').default,
-  },
-  teamEditTeamDescription: {
-    getScreen: () => require('./edit-team-description').default,
-  },
-  teamEditTeamInfo: {
-    getScreen: () => require('./team/team-info').default,
-  },
-  teamEditWelcomeMessage: {
-    getScreen: () => require('./edit-team-welcome-message').default,
-  },
-  teamInviteByContact: {
-    getScreen: () => require('./invite-by-contact/container').default,
-  },
-  teamInviteByEmail: {
-    getScreen: () => require('./invite-by-email/container').default,
-  },
-  teamInviteHistory: {
-    getScreen: () => require('./team/invites/invite-history').default,
-  },
-  teamInviteLinkJoin: {
-    getScreen: () => require('./join-team/join-from-invite').default,
-  },
-  teamInviteLinksGenerate: {
-    getScreen: () => require('./team/invites/generate-link').default,
-  },
-  teamJoinTeamDialog: {
-    getScreen: () => require('./join-team/container').default,
-  },
-  teamNewTeamDialog: {
-    getScreen: () => require('./new-team/container').default,
-  },
-  teamReallyLeaveTeam: {
-    getScreen: () => require('./confirm-modals/really-leave-team/container').default,
-  },
-  teamReallyRemoveChannelMember: {
-    getScreen: () => require('./confirm-modals/confirm-remove-from-channel').default,
-  },
-  teamReallyRemoveMember: {
-    getScreen: () => require('./confirm-modals/confirm-kick-out').default,
-  },
-  teamRename: {getScreen: () => require('./rename-team/container').default},
+  teamCreateChannels,
+  teamDeleteChannel,
+  teamDeleteTeam,
+  teamEditChannel,
+  teamEditTeamDescription,
+  teamEditTeamInfo,
+  teamEditWelcomeMessage,
+  teamInviteByContact,
+  teamInviteByEmail,
+  teamInviteHistory,
+  teamInviteLinkJoin,
+  teamInviteLinksGenerate,
+  teamJoinTeamDialog,
+  teamNewTeamDialog,
+  teamReallyLeaveTeam,
+  teamReallyRemoveChannelMember,
+  teamReallyRemoveMember,
+  teamRename,
+  teamWizard1TeamPurpose,
+  teamWizard2TeamInfo,
+  teamWizard4TeamSize,
+  teamWizard5Channels,
+  teamWizard6Subteams,
+  teamWizardSubteamMembers,
   teamsTeamBuilder,
 }
 
