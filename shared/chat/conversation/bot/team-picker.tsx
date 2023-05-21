@@ -10,10 +10,12 @@ import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
 import logger from '../../../logger'
 
-type Props = Container.RouteProps2<'chatInstallBotPick'>
+type Props = {
+  botUsername: string
+}
 
 const BotTeamPicker = (props: Props) => {
-  const botUsername = props.route.params.botUsername
+  const botUsername = props.botUsername
   const [term, setTerm] = React.useState('')
   const [results, setResults] = React.useState<Array<RPCChatTypes.ConvSearchHit>>([])
   const [waiting, setWaiting] = React.useState(false)

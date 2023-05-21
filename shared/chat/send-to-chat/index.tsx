@@ -19,7 +19,12 @@ type Props = {
   text?: string // incoming share (text)
   sendPaths?: Array<string> // KBFS or incoming share (files)
 }
-type RoutableProps = Container.RouteProps2<'sendToChat'>
+type RoutableProps = {
+  canBack?: boolean
+  isFromShareExtension?: boolean
+  text?: string // incoming share (text)
+  sendPaths?: Array<string> // KBFS or incoming share (files)
+}
 
 const MobileSendToChatRoutable = (props: RoutableProps) => {
   const {canBack, isFromShareExtension, sendPaths, text} = props.route.params

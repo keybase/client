@@ -4,17 +4,27 @@ import * as Container from '../../../util/container'
 import * as FsTypes from '../../../constants/types/fs'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import GetTitles, {type Info} from '.'
+import type * as Types from '../../../constants/types/chat2'
 import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
-type OwnProps = Container.RouteProps2<'chatAttachmentGetTitles'>
+type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey
+  pathAndOutboxIDs: Array<Types.PathAndOutboxID>
+  selectConversationWithReason?: 'extension' | 'files'
+  // If tlfName is set, we'll use Chat2Gen.createAttachmentsUpload. Otherwise
+  // Chat2Gen.createAttachFromDragAndDrop is used.
+  tlfName?: string
+  // don't use the drag drop functionality, just upload the outbox IDs
+  noDragDrop?: Boolean
+}
 
 export default (ownProps: OwnProps) => {
   const dispatch = Container.useDispatch()
-  const conversationIDKey = ownProps.route.params.conversationIDKey ?? Constants.noConversationIDKey
-  const tlfName = ownProps.route.params.tlfName
-  const noDragDrop = ownProps.route.params.noDragDrop ?? false
-  const pathAndOutboxIDs = ownProps.route.params.pathAndOutboxIDs
-  const selectConversationWithReason = ownProps.route.params.selectConversationWithReason
+  const conversationIDKey = ownProps.conversationIDKey ?? Constants.noConversationIDKey
+  const tlfName = ownProps.tlfName
+  const noDragDrop = ownProps.noDragDrop ?? false
+  const pathAndOutboxIDs = ownProps.pathAndOutboxIDs
+  const selectConversationWithReason = ownProps.selectConversationWithReason
   const onCancel = () => {
     dispatch(
       Chat2Gen.createAttachmentUploadCanceled({

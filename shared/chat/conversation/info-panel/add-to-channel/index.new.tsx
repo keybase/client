@@ -12,7 +12,10 @@ import {pluralize} from '../../../../util/string'
 import {memoize} from '../../../../util/memoize'
 import {ModalTitle, useChannelParticipants} from '../../../../teams/common'
 
-type Props = Container.RouteProps2<'chatAddToChannel'>
+type Props = {
+  conversationIDKey: Types.ConversationIDKey
+  teamID: TeamsTypes.TeamID
+}
 
 const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
   [...members.values()]

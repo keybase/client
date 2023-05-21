@@ -1,17 +1,17 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
+import type * as Types from '../../constants/types/chat2'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
-import {headerNavigationOptions} from './header-area/container'
 
-type SwitchProps = Partial<Container.RouteProps2<'chatConversation'>>
+type SwitchProps = {conversationIDKey?: Types.ConversationIDKey}
 
 const Conversation = React.memo(function Conversation(p: SwitchProps) {
-  const conversationIDKey = p.route?.params?.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = p.conversationIDKey ?? Constants.noConversationIDKey
   const type = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     switch (conversationIDKey) {
@@ -55,11 +55,6 @@ const Conversation = React.memo(function Conversation(p: SwitchProps) {
     default:
       return <NoConversation />
   }
-})
-
-export const getOptions = ({route}) => ({
-  ...headerNavigationOptions(route),
-  presentation: undefined,
 })
 
 export default Conversation

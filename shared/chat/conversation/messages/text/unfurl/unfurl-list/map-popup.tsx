@@ -7,7 +7,14 @@ import openURL from '../../../../../../util/open-url'
 import LocationMap from '../../../../../location-map'
 import HiddenString from '../../../../../../util/hidden-string'
 
-type Props = Container.RouteProps2<'chatUnfurlMapPopup'>
+type Props = {
+  conversationIDKey: Types.ConversationIDKey
+  coord: Types.Coordinate
+  isAuthor: boolean
+  author?: string
+  isLiveLocation: boolean
+  url: string
+}
 
 const UnfurlMapPopup = (props: Props) => {
   const {params} = props.route

@@ -135,7 +135,10 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
 export default MessagePopup
 
 // Mobile only
-type ModalProps = Container.RouteProps2<'chatMessagePopup'>
+type ModalProps = {
+  conversationIDKey: Types.ConversationIDKey
+  ordinal: Types.Ordinal
+}
 export const MessagePopupModal = (p: ModalProps) => {
   const {conversationIDKey, ordinal} = p.route.params
   const pop = p.navigation.pop

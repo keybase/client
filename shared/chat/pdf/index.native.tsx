@@ -38,8 +38,6 @@ const ChatPDF = (props: Props) => {
   )
 }
 
-export const options = undefined
-
 const styles = Styles.styleSheetCreate(() => ({
   progressContainer: {
     justifyContent: 'center',

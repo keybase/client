@@ -5,18 +5,17 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as React from 'react'
-import * as Common from '../router-v2/common'
-import Header from './header'
+import type * as Types from '../constants/types/chat2'
 import Conversation from './conversation/container'
 import Inbox from './inbox/container'
 import InboxSearch from './inbox-search/container'
 import InfoPanel from './conversation/info-panel/container'
 
-type Props = Container.RouteProps2<'chatRoot'>
+type Props = {conversationIDKey?: Types.ConversationIDKey; navKey?: string}
 
 const InboxAndConversation = React.memo(function InboxAndConversation(props: Props) {
-  const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
-  const navKey = props.route.key ?? ''
+  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
+  const navKey = props.navKey ?? ''
   const dispatch = Container.useDispatch()
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
@@ -52,7 +51,7 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props: Pro
           <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
         )}
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.conversation}>
-          <Conversation navigation={props.navigation} route={props.route as any} />
+          <Conversation conversationIDKey={conversationIDKey} />
         </Kb.Box2>
         {infoPanelShowing ? (
           <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
@@ -63,26 +62,6 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props: Pro
     </Kb.KeyboardAvoidingView2>
   )
 })
-
-export const getOptions = ({navigation, route}) => {
-  if (Styles.isTablet) {
-    return {
-      headerLeft: null,
-      headerLeftContainerStyle: {maxWidth: 0},
-      headerRight: null,
-      headerRightContainerStyle: {maxWidth: 0},
-      headerStyle: {},
-      headerTitle: () => (
-        <Common.TabletWrapper>
-          <Header navigation={navigation} route={route} />
-        </Common.TabletWrapper>
-      ),
-      headerTitleContainerStyle: {},
-    }
-  } else {
-    return {headerTitle: () => <Header navigation={navigation} route={route} />}
-  }
-}
 
 const styles = Styles.styleSheetCreate(
   () =>

@@ -41,8 +41,4 @@ const ChatPDF = (props: Props) => {
   )
 }
 
-export const options = {
-  modal2: true,
-  modal2Type: 'SuperWide',
-}
 export default ChatPDF

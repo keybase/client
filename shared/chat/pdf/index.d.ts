@@ -1,6 +1,9 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
+import type * as Types from '../../constants/types/chat2'
 
-type Props = Container.RouteProps2<'chatPDF'>
+type Props = {
+  message: Types.MessageAttachment
+  url?: string
+}
 export default class ChatPDF extends React.Component<Props> {}
 export const options: any

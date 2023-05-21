@@ -22,7 +22,7 @@ import {
 } from './../../util/emoji'
 import useRPC from './../../util/use-rpc'
 import * as RPCChatGen from './../../constants/types/rpc-chat-gen'
-import {usePickerState} from './use-picker'
+import {usePickerState, type PickKey} from './use-picker'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -35,7 +35,14 @@ type Props = {
   onPickAction?: (emoji: string, renderableEmoji: RenderableEmoji) => void
 }
 
-type RoutableProps = Container.RouteProps2<'chatChooseEmoji'>
+type RoutableProps = {
+  conversationIDKey: Types.ConversationIDKey
+  small?: boolean
+  hideFrequentEmoji?: boolean
+  onlyTeamCustomEmoji?: boolean
+  pickKey: PickKey
+  onPickAddToMessageOrdinal?: Types.Ordinal
+}
 
 const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
   const topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
@@ -374,10 +381,9 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export const Routable = (routableProps: RoutableProps) => {
-  const {params} = routableProps.route
-  const small = params.small
-  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageOrdinal, pickKey} = params
+const Routable = (props: RoutableProps) => {
+  const small = props.small
+  const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageOrdinal, pickKey} = props
   const updatePickerMap = usePickerState(state => state.updatePickerMap)
   const onPickAction = React.useCallback(
     (emojiStr: string, renderableEmoji: RenderableEmoji) => {
@@ -388,7 +394,7 @@ export const Routable = (routableProps: RoutableProps) => {
     },
     [updatePickerMap, pickKey]
   )
-  const conversationIDKey = params.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const dispatch = Container.useDispatch()
   const navigateUp = () => dispatch(RouteTreeGen.createNavigateUp())
   const onDidPick = navigateUp
@@ -409,3 +415,4 @@ export const Routable = (routableProps: RoutableProps) => {
     />
   )
 }
+export default Routable
