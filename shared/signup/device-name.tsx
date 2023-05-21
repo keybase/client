@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as SignupGen from '../actions/signup-gen'
 import * as Styles from '../styles'
 import debounce from 'lodash/debounce'
-import {SignupScreen, errorBanner, InfoIcon} from './common'
+import {SignupScreen, errorBanner} from './common'
 import {anyWaiting} from '../constants/waiting'
 
 const ConnectedEnterDevicename = () => {
@@ -106,19 +106,6 @@ const EnterDevicename = (props: Props) => {
     </SignupScreen>
   )
 }
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-  headerRightActions: () => (
-    <Kb.Box2
-      direction="horizontal"
-      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
-    >
-      <InfoIcon />
-    </Kb.Box2>
-  ),
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   deviceNameError: {
     color: Styles.globalColors.redDark,

@@ -7,7 +7,7 @@ import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SignupGen from '../actions/signup-gen'
 import * as Styles from '../styles'
-import {InfoIcon, SignupScreen, errorBanner} from './common'
+import {SignupScreen, errorBanner} from './common'
 import {anyWaiting} from '../constants/waiting'
 import {maxUsernameLength} from '../constants/signup'
 
@@ -38,8 +38,6 @@ const ConnectedEnterUsername = () => {
   }
   return <EnterUsername {...props} />
 }
-
-export default ConnectedEnterUsername
 
 type Props = {
   error: string
@@ -121,19 +119,6 @@ const EnterUsername = (props: Props) => {
   )
 }
 
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-  headerRightActions: () => (
-    <Kb.Box2
-      direction="horizontal"
-      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
-    >
-      <InfoIcon />
-    </Kb.Box2>
-  ),
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   body: {
     flex: 1,
@@ -143,3 +128,5 @@ const styles = Styles.styleSheetCreate(() => ({
     isTablet: {width: 368},
   }),
 }))
+
+export default ConnectedEnterUsername
