@@ -1,23 +1,13 @@
-import * as Constants from '../constants/wallets'
-import type ChooseAsset from './send-form/choose-asset/container'
-import type PickAsset from './send-form/pick-asset'
-import type ConfirmForm from './confirm-form/container'
-import type QRScan from './qr-scan/container'
-import type SendForm from './send-form'
+import sendReceiveForm from './send-form/page'
+import qrScan from './qr-scan/page'
+import chooseAssetForm from './send-form/choose-asset/page'
+import pickAssetForm from './send-form/pick-asset.page'
+import confirmForm from './confirm-form/page'
 
 export const newModalRoutes = {
-  [Constants.chooseAssetFormRouteKey]: {
-    getScreen: (): typeof ChooseAsset => require('./send-form/choose-asset/container').default,
-  },
-  [Constants.pickAssetFormRouteKey]: {
-    getScreen: (): typeof PickAsset => require('./send-form/pick-asset').default,
-  },
-  [Constants.confirmFormRouteKey]: {
-    getScreen: (): typeof ConfirmForm => require('./confirm-form/container').default,
-  },
-  qrScan: {getScreen: (): typeof QRScan => require('./qr-scan/container').default},
-  sendReceiveForm: {
-    getOptions: () => require('./send-form').options,
-    getScreen: (): typeof SendForm => require('./send-form').default,
-  },
+  chooseAssetForm,
+  confirmForm,
+  pickAssetForm,
+  qrScan,
+  sendReceiveForm,
 }

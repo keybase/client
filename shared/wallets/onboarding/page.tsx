@@ -1,12 +1,13 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
 
-const Onboard = React.lazy(async () => import('./container'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Onboard>
+const Onboard = React.lazy(async () => {
+  const {RoutedOnboarding} = await import('./container')
+  return {default: RoutedOnboarding}
+})
 
-const Screen = (p: OwnProps) => (
+const Screen = () => (
   <React.Suspense>
-    <Onboard {...p.route.params} />
+    <Onboard />
   </React.Suspense>
 )
 

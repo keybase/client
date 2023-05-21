@@ -20,12 +20,6 @@ const ConnectedSignupError = () => {
   }
   return <Error {...props} />
 }
-export default ConnectedSignupError
-
-export const options = {
-  gesturesEnabled: false,
-  headerLeft: null,
-}
 
 type Props = {
   header: string
@@ -44,3 +38,5 @@ const Error = (props: Props) => (
     <ContinueButton label="Back" onClick={props.onBack} />
   </Wrapper>
 )
+
+export default ConnectedSignupError

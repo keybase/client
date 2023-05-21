@@ -7,7 +7,7 @@ import RemoveAccountPopup from '.'
 type OwnProps = {accountID: Types.AccountID}
 
 export default (ownProps: OwnProps) => {
-  const accountID = ownProps.route.params.accountID ?? Types.noAccountID
+  const accountID = ownProps.accountID ?? Types.noAccountID
   const account = Container.useSelector(state => Constants.getAccount(state, accountID))
   const balance = account.balanceDescription
   const name = account.name

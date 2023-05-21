@@ -1,7 +1,6 @@
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
 import * as WalletsGen from '../../actions/wallets-gen'
 import Root from './root'
 import SendBodyAdvanced from './body/advanced'
@@ -57,9 +56,3 @@ const SendRequestForm = (props: Props) => (
     )}
   </Root>
 )
-
-export const options = {
-  safeAreaStyle: {
-    backgroundColor: Styles.globalColors.purpleDark,
-  },
-}

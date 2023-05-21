@@ -16,6 +16,7 @@ import resetWaiting from './reset/waiting.page'
 import type * as Container from '../util/container'
 import {newRoutes as provisionRoutes} from '../provision/routes-sub'
 import {sharedNewRoutes as settingsRoutes} from '../settings/routes.shared'
+import {newRoutes as signupRoutes} from './signup/routes'
 
 export const newRoutes = {
   feedback: settingsRoutes[SettingsConstants.feedbackTab],
@@ -31,6 +32,7 @@ export const newRoutes = {
   resetKnowPassword,
   resetWaiting,
   ...provisionRoutes,
+  ...signupRoutes,
 }
 export const newModalRoutes = {
   proxySettingsModal,

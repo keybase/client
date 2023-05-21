@@ -18,7 +18,7 @@ export default () => {
   const hasPassword = Container.useSelector(state => !state.settings.password.randomPW)
   const waiting = Container.useSelector(state => anyWaiting(state, Constants.loadSettingsWaitingKey))
   const dispatch = Container.useDispatch()
-  const _onClearSupersededPhoneNumber = phone => {
+  const _onClearSupersededPhoneNumber = (phone: string) => {
     dispatch(SettingsGen.createEditPhone({delete: true, phone}))
   }
   const onAddEmail = () => {

@@ -14,8 +14,8 @@ import InfoPanel from './conversation/info-panel/container'
 type Props = {conversationIDKey?: Types.ConversationIDKey; navKey?: string}
 
 const InboxAndConversation = React.memo(function InboxAndConversation(props?: Props) {
-  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
-  const navKey = props.navKey ?? ''
+  const conversationIDKey = props?.conversationIDKey ?? Constants.noConversationIDKey
+  const navKey = props?.navKey ?? ''
   const dispatch = Container.useDispatch()
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)

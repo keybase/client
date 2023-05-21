@@ -9,7 +9,7 @@ import {isLargeScreen} from '../constants/platform'
 import {useSafeCallback} from '../util/container'
 
 type OwnProps = {
-  highlight: Array<'computer' | 'phone' | 'paper key'>
+  highlight?: Array<'computer' | 'phone' | 'paper key'>
 }
 const noHighlight = []
 

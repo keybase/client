@@ -141,7 +141,7 @@ export type RouteDef = {
   getOptions?: Object | ((p: {navigation: NavigationContainerRef<{}>; route: Route}) => Object)
   screen?: React.ComponentType
 }
-export type RouteMap = {[K in string]: RouteDef}
+export type RouteMap = {[K in string]?: RouteDef}
 
 export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
   try {

@@ -77,7 +77,7 @@ type OwnProps = {
   teamID?: string
   filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
   goButtonLabel?: TeamBuildingTypes.GoButtonLabel
-  title: string
+  title?: string
   recommendedHideYourself?: boolean
 }
 

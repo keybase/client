@@ -39,7 +39,8 @@ const AddFromWhere = () => {
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
   const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
   const onContinueContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))
-  const onContinueEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
+  const onContinueEmail = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamAddToTeamEmail'}]}))
   return (
     <Kb.Modal
       allowOverflow={true}

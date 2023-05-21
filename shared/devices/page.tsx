@@ -3,7 +3,6 @@ import * as Container from '../util/container'
 import {HeaderTitle, HeaderRightActions} from './nav-header'
 
 const Index = React.lazy(async () => import('.'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Index>
 
 const getOptions = () =>
   Container.isMobile
@@ -14,9 +13,9 @@ const getOptions = () =>
         title: 'Devices',
       }
 
-const Screen = (p: OwnProps) => (
+const Screen = () => (
   <React.Suspense>
-    <Index {...p.route.params} />
+    <Index />
   </React.Suspense>
 )
 

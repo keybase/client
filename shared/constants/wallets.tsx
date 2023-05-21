@@ -26,7 +26,7 @@ export const sendRequestFormRouteKey = 'sendReceiveForm'
 export const chooseAssetFormRouteKey = 'chooseAssetForm'
 export const pickAssetFormRouteKey = 'pickAssetForm'
 export const confirmFormRouteKey = 'confirmForm'
-export const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
+export const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey] as const
 
 export const makeReserve = (r?: Partial<Types.Reserve>): Types.Reserve => ({
   amount: '',
