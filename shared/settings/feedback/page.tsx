@@ -6,9 +6,8 @@ const Feedback = React.lazy(async () => import('./container'))
 const getOptions = () =>
   Container.isMobile
     ? {
-        header: undefined,
+        headerShown: true,
         title: 'Feedback',
-        useHeaderHeight: () => 60,
       }
     : {}
 

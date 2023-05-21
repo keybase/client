@@ -26,7 +26,7 @@ const RootLogin = () => {
   if (showRelogin) {
     return (
       <React.Suspense>
-        return <Relogin />
+        <Relogin />
       </React.Suspense>
     )
   }
