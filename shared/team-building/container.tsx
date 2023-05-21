@@ -4,9 +4,9 @@ export default TeamBuilding
 
 export type TeamBuilderProps = Partial<{
   namespace: TeamBuildingTypes.AllowedNamespace
-  teamID: string
-  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
-  goButtonLabel: TeamBuildingTypes.GoButtonLabel
+  teamID?: string
+  filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
+  goButtonLabel?: TeamBuildingTypes.GoButtonLabel
   title: string
   recommendedHideYourself?: boolean
 }>

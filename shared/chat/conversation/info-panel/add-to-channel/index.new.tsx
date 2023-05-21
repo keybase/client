@@ -3,10 +3,11 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamConstants from '../../../../constants/teams'
-import * as TeamTypes from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
 import * as RPCChatGen from '../../../../constants/types/rpc-chat-gen'
 import * as TeamsGen from '../../../../actions/teams-gen'
+import type * as TeamTypes from '../../../../constants/types/teams'
+import type * as Types from '../../../../constants/types/chat2'
 import {useTeamDetailsSubscribe} from '../../../../teams/subscriber'
 import {pluralize} from '../../../../util/string'
 import {memoize} from '../../../../util/memoize'
@@ -14,7 +15,7 @@ import {ModalTitle, useChannelParticipants} from '../../../../teams/common'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
-  teamID: TeamsTypes.TeamID
+  teamID: TeamTypes.TeamID
 }
 
 const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
@@ -24,8 +25,7 @@ const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
 )
 
 const AddToChannel = (props: Props) => {
-  const conversationIDKey = props.route.params.conversationIDKey
-  const teamID = props.route.params.teamID
+  const {conversationIDKey, teamID} = props
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 

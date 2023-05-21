@@ -7,7 +7,7 @@ import {downloadFolder} from '../../constants/platform'
 import type {Props} from '.'
 
 const ChatPDF = (props: Props) => {
-  const {message} = props.route.params || {}
+  const {message} = props
   const title = message?.title || message?.fileName || 'PDF'
   const url = message?.fileURL
   const dispatch = Container.useDispatch()

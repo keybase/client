@@ -7,7 +7,7 @@ import * as ConfigGen from '../../actions/config-gen'
 import type {Props} from '.'
 
 const ChatPDF = (props: Props) => {
-  const {message, url} = props.route.params ?? {}
+  const {message, url} = props
   const title = message?.title || message?.fileName || 'PDF'
   const [error, setError] = React.useState('')
   const dispatch = Container.useDispatch()

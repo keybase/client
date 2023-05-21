@@ -74,17 +74,18 @@ const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on ke
 
 type OwnProps = {
   namespace: TeamBuildingTypes.AllowedNamespace
-  teamID: string
-  filterServices: Array<TeamBuildingTypes.ServiceIdWithContact>
-  goButtonLabel: TeamBuildingTypes.GoButtonLabel
+  teamID?: string
+  filterServices?: Array<TeamBuildingTypes.ServiceIdWithContact>
+  goButtonLabel?: TeamBuildingTypes.GoButtonLabel
   title: string
   recommendedHideYourself?: boolean
 }
 
+const noServices = new Array<TeamBuildingTypes.ServiceIdWithContact>()
 const TeamBuilding = (p: OwnProps) => {
   const namespace = p.namespace ?? 'chat2'
   const teamID = p.teamID
-  const filterServices = p.filterServices
+  const filterServices = p.filterServices ?? noServices
   const goButtonLabel = p.goButtonLabel ?? 'Start'
 
   const dispatch = Container.useDispatch()

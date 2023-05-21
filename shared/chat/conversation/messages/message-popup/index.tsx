@@ -140,12 +140,12 @@ type ModalProps = {
   ordinal: Types.Ordinal
 }
 export const MessagePopupModal = (p: ModalProps) => {
-  const {conversationIDKey, ordinal} = p.route.params
-  const pop = p.navigation.pop
+  const {conversationIDKey, ordinal} = p
+  const {pop} = Container.useNav()
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo} = p
-      return (
+      return pop ? (
         <Kb.FloatingModalContext.Provider value={true}>
           <MessagePopup
             conversationIDKey={conversationIDKey}
@@ -157,7 +157,7 @@ export const MessagePopupModal = (p: ModalProps) => {
             visible={true}
           />
         </Kb.FloatingModalContext.Provider>
-      )
+      ) : null
     },
     [conversationIDKey, ordinal, pop]
   )

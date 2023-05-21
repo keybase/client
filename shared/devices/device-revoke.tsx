@@ -9,7 +9,7 @@ import * as WaitingConstants from '../constants/waiting'
 import type * as Types from '../constants/types/devices'
 import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 
-type OwnProps = Container.RouteProps2<'deviceRevoke'>
+type OwnProps = {deviceID: string}
 
 export const options = {
   headerLeft: p => <HeaderLeftCancel {...p} />,

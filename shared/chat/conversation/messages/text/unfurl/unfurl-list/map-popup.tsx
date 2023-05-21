@@ -3,6 +3,7 @@ import * as Container from '../../../../../../util/container'
 import * as RouteTreeGen from '../../../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../../../actions/chat2-gen'
 import * as Styles from '../../../../../../styles'
+import type * as Types from '../../../../../../constants/types/chat2'
 import openURL from '../../../../../../util/open-url'
 import LocationMap from '../../../../../location-map'
 import HiddenString from '../../../../../../util/hidden-string'
@@ -17,9 +18,8 @@ type Props = {
 }
 
 const UnfurlMapPopup = (props: Props) => {
-  const {params} = props.route
-  const {coord, isAuthor, isLiveLocation, url, conversationIDKey} = params
-  const author = params.author ?? ''
+  const {coord, isAuthor, isLiveLocation, url, conversationIDKey} = props
+  const author = props.author ?? ''
   const httpSrvAddress = Container.useSelector(state => state.config.httpSrvAddress)
   const httpSrvToken = Container.useSelector(state => state.config.httpSrvToken)
 

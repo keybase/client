@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type * as Container from '../../../util/container'
 
-const Full = React.lazy(async () => import('.'))
+const Full = React.lazy(async () => import('./container'))
 type OwnProps = Container.ViewPropsToPageProps<typeof Full>
 
 const getOptions = () => ({

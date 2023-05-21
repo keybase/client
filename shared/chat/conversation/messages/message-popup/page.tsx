@@ -1,12 +1,15 @@
 import * as React from 'react'
 import type * as Container from '../../../../util/container'
 
-const Popup = React.lazy(async () => import('.'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Popup>
+const PopupModal = React.lazy(async () => {
+  const {MessagePopupModal} = await import('.')
+  return {default: MessagePopupModal}
+})
+type OwnProps = Container.ViewPropsToPageProps<typeof PopupModal>
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>
-    <Popup {...p.route.params} />
+    <PopupModal {...p.route.params} />
   </React.Suspense>
 )
 

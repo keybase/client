@@ -17,13 +17,13 @@ const getOptions = ({route}: OwnProps) => {
       headerStyle: {},
       headerTitle: () => (
         <Common.TabletWrapper>
-          <Header route={route} />
+          <Header conversationID={route.params.conversationID} />
         </Common.TabletWrapper>
       ),
       headerTitleContainerStyle: {},
     }
   } else {
-    return {headerTitle: () => <Header route={route} />}
+    return {headerTitle: () => <Header conversationID={route.params.conversationID} />}
   }
 }
 

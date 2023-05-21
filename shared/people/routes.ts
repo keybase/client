@@ -10,4 +10,4 @@ export const newModalRoutes = {
   peopleTeamBuilder,
 }
 
-export type RootParamListPeopl = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>
+export type RootParamListPeople = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>
