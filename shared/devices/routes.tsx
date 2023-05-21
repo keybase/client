@@ -1,39 +1,22 @@
+import type * as Container from '../util/container'
 import {newRoutes as provisionNewRoutes} from '../provision/routes-sub'
-import type DevicePage from './device-page'
-import type DeviceRevoke from './device-revoke'
-import type DevicesRoot from '.'
-import type DeviceAdd from './add-device'
-import type DevicePaperKey from './paper-key'
+
+import devicePage from './device-page.page'
+import deviceRevoke from './device-revoke.page'
+import devicesRoot from './page'
+import deviceAdd from './add-device.page'
+import devicePaperKey from './paper-key.page'
 
 export const newRoutes = {
-  devicePage: {
-    getOptions: () => require('./device-page').options,
-    getScreen: (): typeof DevicePage => require('./device-page').default,
-  },
-  deviceRevoke: {
-    getOptions: () => require('./device-revoke').options,
-    getScreen: (): typeof DeviceRevoke => require('./device-revoke').default,
-  },
-  devicesRoot: {
-    getOptions: () => require('.').options,
-    getScreen: (): typeof DevicesRoot => require('.').default,
-  },
+  devicePage,
+  deviceRevoke,
+  devicesRoot,
 }
 
 export const newModalRoutes = {
-  // TODO likely should rename these
   ...provisionNewRoutes,
-  deviceAdd: {getScreen: (): typeof DeviceAdd => require('./add-device').default},
-  devicePaperKey: {
-    getOptions: () => require('./paper-key').options,
-    getScreen: (): typeof DevicePaperKey => require('./paper-key').default,
-  },
+  deviceAdd,
+  devicePaperKey,
 }
 
-export type RootParamListDevices = {
-  deviceAdd: {highlight?: Array<'computer' | 'phone' | 'paper key'>}
-  devicePage: {deviceID: string}
-  deviceRevoke: {deviceID: string}
-  devicePaperKey: undefined
-  devicesRoot: undefined
-}
+export type RootParamListDevices = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>

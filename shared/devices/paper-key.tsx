@@ -80,11 +80,6 @@ const PaperKey = () => {
     </Kb.Box2>
   )
 }
-export const options = {
-  gesturesEnabled: false,
-  modal2: true,
-  modal2NoClose: true,
-}
 
 const borderWidth = 3
 

@@ -8,7 +8,6 @@ import * as Styles from '../styles'
 import DeviceRow from './row'
 import partition from 'lodash/partition'
 import type * as Types from '../constants/types/devices'
-import {HeaderTitle, HeaderRightActions} from './nav-header'
 import {intersect} from '../util/set'
 
 const sortDevices = (a: Types.Device, b: Types.Device) => {
@@ -83,14 +82,6 @@ const ReloadableDevices = (props: Props) => {
     </Kb.Reloadable>
   )
 }
-
-export const options = Container.isMobile
-  ? {title: 'Devices'}
-  : {
-      headerRightActions: HeaderRightActions,
-      headerTitle: HeaderTitle,
-      title: 'Devices',
-    }
 
 export default ReloadableDevices
 

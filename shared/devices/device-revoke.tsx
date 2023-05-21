@@ -7,14 +7,8 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as WaitingConstants from '../constants/waiting'
 import type * as Types from '../constants/types/devices'
-import {HeaderLeftCancel} from '../common-adapters/header-hoc'
 
 type OwnProps = {deviceID: string}
-
-export const options = {
-  headerLeft: p => <HeaderLeftCancel {...p} />,
-  title: '',
-}
 
 class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}> {
   _renderTLFEntry = (index: number, tlf: string) => (
@@ -78,11 +72,11 @@ const getIcon = (deviceType: Types.DeviceType, iconNumber: Types.IconNumber) => 
 }
 
 const emptySet = new Set<string>()
-export const getEndangeredTLFs = (state: Container.TypedState, id?: Types.DeviceID): Set<string> =>
+const getEndangeredTLFs = (state: Container.TypedState, id?: Types.DeviceID): Set<string> =>
   (id && state.devices.endangeredTLFMap.get(id)) || emptySet
 
 const DeviceRevoke = (ownProps: OwnProps) => {
-  const selectedDeviceID = ownProps.route.params.deviceID
+  const selectedDeviceID = ownProps.deviceID
   const _endangeredTLFs = Container.useSelector(state => getEndangeredTLFs(state, selectedDeviceID))
   const device = Container.useSelector(state => Constants.getDevice(state, selectedDeviceID))
   const iconNumber = Container.useSelector(state => Constants.getDeviceIconNumber(state, selectedDeviceID))

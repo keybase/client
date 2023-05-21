@@ -9,10 +9,6 @@ import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../util/time
 
 type OwnProps = {deviceID: string}
 
-export const options = {
-  title: '',
-}
-
 const TimelineMarker = ({first, last, closedCircle}) => (
   <Kb.Box style={styles.marker}>
     <Kb.Box style={Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
@@ -86,7 +82,7 @@ const Timeline = ({device}) => {
 }
 
 const DevicePage = (ownProps: OwnProps) => {
-  const id = ownProps.route.params.deviceID
+  const id = ownProps.deviceID
   const iconNumber = Container.useSelector(state => Constants.getDeviceIconNumber(state, id))
 
   const dispatch = Container.useDispatch()
