@@ -104,7 +104,7 @@ const CopyText = (props: Props) => {
   const isRevealed = !props.withReveal || revealed
   const lineClamp = props.multiline
     ? typeof props.multiline === 'number'
-      ? (props.multiline as LineClampType)
+      ? props.multiline
       : undefined
     : isRevealed
     ? 1
