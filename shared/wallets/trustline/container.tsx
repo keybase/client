@@ -7,12 +7,12 @@ import * as Waiting from '../../constants/waiting'
 import debounce from 'lodash/debounce'
 import Trustline from '.'
 
-type OwnProps = Container.RouteProps2<'trustline'>
+type OwnProps = {accountID: Types.AccountID}
 
 const emptyAccountAsset = Constants.makeAssets()
 
 export default (ownProps: OwnProps) => {
-  const accountID = ownProps.route.params.accountID ?? Types.noAccountID
+  const accountID = ownProps.accountID ?? Types.noAccountID
   const accountAssets = Container.useSelector(state => Constants.getAssets(state, accountID))
   const canAddTrustline = Container.useSelector(
     state => Constants.getAccount(state, accountID).canAddTrustline

@@ -142,9 +142,4 @@ const WalletsRootNav = () => {
   )
 }
 
-export const options = {
-  header: () => null,
-  headerTitle: '',
-}
-
 export default WalletsRootNav

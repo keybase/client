@@ -6,11 +6,14 @@ import {anyWaiting} from '../../constants/waiting'
 import HiddenString from '../../util/hidden-string'
 import {Wrapper as LinkExisting} from '.'
 
-type OwnProps = Container.RouteProps2<'linkExisting'>
+type OwnProps = {
+  fromSendForm?: boolean
+  showOnCreation?: boolean
+}
 
 export default (ownProps: OwnProps) => {
-  const setBuildingTo = ownProps.route.params.fromSendForm
-  const showOnCreation = ownProps.route.params.showOnCreation
+  const setBuildingTo = ownProps.fromSendForm
+  const showOnCreation = ownProps.showOnCreation
   const keyError = Container.useSelector(state => state.wallets.secretKeyError)
   const linkExistingAccountError = Container.useSelector(state => state.wallets.linkExistingAccountError)
   const nameError = Container.useSelector(state => state.wallets.accountNameError)

@@ -1,126 +1,49 @@
-import type {TeamBuilderProps} from '../team-building/container'
+import createNewAccount from './create-account/page'
+import keybaseLinkError from '../deeplinks/page'
+import linkExisting from './link-existing/page'
+import reallyRemoveAccount from './wallet/settings/popups/really-remove-account/page'
+import receive from './receive-modal/page'
+import removeAccount from './wallet/settings/popups/remove-account/page'
+import renameAccount from './wallet/settings/popups/rename-account/page'
+import sep7Confirm from './sep7-confirm/page'
+import setDefaultAccount from './wallet/settings/popups/set-default/page'
+import settings from './wallet/settings/page'
+import transactionDetails from './transaction-details/page'
+import trustline from './trustline/page'
+import wallet from './wallet/page'
+import walletOnboarding from './onboarding/page'
+import walletTeamBuilder from '../team-building/page'
+import walletsSubNav from './wallets-sub-nav.page'
+import whatIsStellarModal from './what-is-stellar-modal/page'
+import type * as Container from '../util/container'
 import {isPhone} from '../constants/platform'
-import type CreateNewAccount from './create-account/container'
-import type LinkExisting from './link-existing/container'
-import type {
-  RenameAccountPopup,
-  ReallyRemoveAccountPopup,
-  RemoveAccountPopup,
-  SetDefaultAccountPopup,
-} from './wallet/settings/popups'
-import type Receive from './receive-modal/container'
-import type Sep7Confirm from './sep7-confirm/container'
-import type KeybaseLinkError from '../deeplinks/error'
-import type Trustline from './trustline/container'
-import type {RoutedOnboarding} from './onboarding/container'
-import type WhatIsStellarModal from './what-is-stellar-modal'
-import type Settings from './wallet/settings/container'
-import type TransactionDetails from './transaction-details/container'
-import type TeamBuilder from '../team-building/container'
-import type * as Types from '../constants/types/wallets'
+import {newModalRoutes as sendModalRoutes} from './routes-send-request-form'
 
 export const sharedRoutes = {
-  // TODO connect broken
-  settings: {
-    getOptions: () => require('./wallet/settings/container').options,
-    getScreen: (): typeof Settings => require('./wallet/settings/container').default,
-  },
-  // TODO connect broken
-  transactionDetails: {
-    getOptions: {
-      title: 'Transaction details',
-    },
-    getScreen: (): typeof TransactionDetails => require('./transaction-details/container').default,
-  },
+  settings,
+  transactionDetails,
 }
 
 export const newRoutes = {
-  walletsRoot: isPhone
-    ? {
-        getOptions: () => require('./wallet/container').options,
-        getScreen: () => require('./wallet/container').default,
-      }
-    : {
-        getOptions: () => require('./wallets-sub-nav').options,
-        getScreen: () => require('./wallets-sub-nav').default,
-        skipShim: true,
-      },
+  walletsRoot: isPhone ? wallet : walletsSubNav,
   ...sharedRoutes, // these are valid inside AND outside the subnav
 }
 
 export const newModalRoutes = {
-  ...require('./routes-send-request-form').newModalRoutes,
-  createNewAccount: {
-    getScreen: (): typeof CreateNewAccount => require('./create-account/container').default,
-  },
-  keybaseLinkError: {getScreen: (): typeof KeybaseLinkError => require('../deeplinks/error').default},
-  linkExisting: {getScreen: (): typeof LinkExisting => require('./link-existing/container').default},
-  reallyRemoveAccount: {
-    getScreen: (): typeof ReallyRemoveAccountPopup =>
-      require('./wallet/settings/popups').ReallyRemoveAccountPopup,
-  },
-  receive: {getScreen: (): typeof Receive => require('./receive-modal/container').default},
-  removeAccount: {
-    getScreen: (): typeof RemoveAccountPopup => require('./wallet/settings/popups').RemoveAccountPopup,
-  },
-  renameAccount: {
-    getScreen: (): typeof RenameAccountPopup => require('./wallet/settings/popups').RenameAccountPopup,
-  },
-  sep7Confirm: {getScreen: (): typeof Sep7Confirm => require('./sep7-confirm/container').default},
-  setDefaultAccount: {
-    getScreen: (): typeof SetDefaultAccountPopup =>
-      require('./wallet/settings/popups').SetDefaultAccountPopup,
-  },
-  trustline: {getScreen: (): typeof Trustline => require('./trustline/container').default},
-  walletOnboarding: {
-    getScreen: (): typeof RoutedOnboarding => require('./onboarding/container').RoutedOnboarding,
-  },
-  walletTeamBuilder: {
-    getOptions: require('../team-building/container').getOptions,
-    getScreen: (): typeof TeamBuilder => require('../team-building/container').default,
-  },
-  whatIsStellarModal: {
-    getScreen: (): typeof WhatIsStellarModal => require('./what-is-stellar-modal').default,
-  },
+  ...sendModalRoutes,
+  createNewAccount,
+  keybaseLinkError,
+  linkExisting,
+  reallyRemoveAccount,
+  receive,
+  removeAccount,
+  renameAccount,
+  sep7Confirm,
+  setDefaultAccount,
+  trustline,
+  walletOnboarding,
+  walletTeamBuilder,
+  whatIsStellarModal,
 }
 
-// TODO fix up the missing prefix on these routes
-export type RootParamListWallets = {
-  whatIsStellarModal: undefined
-  walletTeamBuilder: TeamBuilderProps
-  keybaseLinkError: {
-    errorSource: 'app' | 'sep6' | 'sep7'
-  }
-  setDefaultAccount: {accountID: Types.AccountID}
-  walletOnboarding: undefined
-  transactionDetails: {
-    accountID: Types.AccountID
-    paymentID: Types.PaymentID
-  }
-  sendReceiveForm: {isAdvanced?: boolean}
-  pickAssetForm: {
-    // ignored if username is set or isSender===true
-    accountID: string
-    // ignored if isSender===true; if empty, we assume this is for a non-keybaseUser account and just say "this account"
-    username: string
-    isSender: boolean
-  }
-  removeAccount: {accountID: Types.AccountID}
-  createNewAccount: {
-    fromSendForm?: boolean
-    showOnCreation?: boolean
-  }
-  trustline: {accountID: Types.AccountID}
-  receive: {accountID: Types.AccountID}
-  linkExisting: {
-    fromSendForm?: boolean
-    showOnCreation?: boolean
-  }
-  reallyRemoveAccount: {accountID: Types.AccountID}
-  renameAccount: {accountID: Types.AccountID}
-  settings: undefined
-  qrScan: undefined
-  confirmForm: undefined
-  chooseAssetForm: undefined
-  sep7Confirm: undefined
-}
+export type RootParamListWallets = Container.PagesToParams<typeof newRoutes & typeof newModalRoutes>

@@ -7,10 +7,10 @@ import Root from './root'
 import SendBodyAdvanced from './body/advanced'
 import {SendBody, RequestBody} from './body/container'
 
-type OwnProps = Container.RouteProps2<'sendReceiveForm'>
+type OwnProps = {isAdvanced?: boolean}
 
 export default (ownProps: OwnProps) => {
-  const isAdvanced = ownProps.route.params.isAdvanced ?? false
+  const isAdvanced = ownProps.isAdvanced ?? false
   const isRequest = Container.useSelector(state => state.wallets.building.isRequest)
   const dispatch = Container.useDispatch()
   const onBack = isAdvanced
