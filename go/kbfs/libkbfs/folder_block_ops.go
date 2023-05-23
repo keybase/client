@@ -338,6 +338,10 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizesLocked(ctx context.Context,
 		fbo.vlog.CLogf(
 			ctx, libkb.VLog1, "GetEncodedSizes ptrs=%v sizes=%d statuses=%s: "+
 				"%+v", ptrs, sizes, statuses, err)
+		if err != nil {
+			return
+		}
+
 		// In certain testing situations, a block might be represented
 		// with a 0 size in our journal or be missing from our local
 		// data stores, and we need to reconstruct the size using the
