@@ -49,7 +49,7 @@ export default (ownProps: OwnProps) => {
       case RPCTypes.AppLinkType.git:
         dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.gitTab}))
         if (Container.isMobile) {
-          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.gitTab]}))
+          dispatch(RouteTree.createNavigateAppend({path: [{props: {}, selected: SettingsTabs.gitTab}]}))
         }
         break
       case RPCTypes.AppLinkType.devices:

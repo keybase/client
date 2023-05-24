@@ -21,7 +21,7 @@ export default () => {
 
   const dispatch = Container.useDispatch()
   const _onFeedback = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
   }
   const checkIsOnline = () => {
     dispatch(LoginGen.createLoadIsOnline())

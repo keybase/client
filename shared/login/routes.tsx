@@ -15,7 +15,7 @@ import resetKnowPassword from './reset/password-known.page'
 import resetWaiting from './reset/waiting.page'
 import type * as Container from '../util/container'
 import {newRoutes as provisionRoutes} from '../provision/routes-sub'
-import {sharedNewRoutes as settingsRoutes} from '../settings/routes.shared'
+import {sharedNewRoutes as settingsRoutes} from '../settings/routes'
 import {newRoutes as signupRoutes} from './signup/routes'
 
 export const newRoutes = {

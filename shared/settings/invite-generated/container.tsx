@@ -3,7 +3,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import InviteGenerated from '.'
 
 type OwnProps = {
-  email: string
+  email?: string
   link: string
 }
 

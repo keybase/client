@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 
-type Props = {url: string}
+type Props = {url: string; title?: string}
 
 const WebLinks = (props: Props) => {
   const uri = props.url

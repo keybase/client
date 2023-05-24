@@ -186,10 +186,6 @@ function SettingsNav(props: Props) {
   )
 }
 
-export const options = {
-  title: 'More',
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   perfInput: {backgroundColor: Styles.globalColors.grey},
   perfRow: {height: 44},

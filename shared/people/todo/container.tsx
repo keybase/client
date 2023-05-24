@@ -169,7 +169,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
   const onConfirm = (isTeam: boolean) => {
     if (Container.isMobile) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.gitTab]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: SettingsTabs.gitTab}]}))
     } else {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.gitTab}))
     }

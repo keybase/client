@@ -43,11 +43,6 @@ const Screenprotector = () => {
   )
 }
 
-export const options = {
-  header: undefined,
-  title: 'Screen Protector',
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.padding(Styles.globalMargins.small),

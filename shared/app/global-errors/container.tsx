@@ -29,10 +29,10 @@ const Connected = () => {
           })
         )
       } else {
-        dispatch(RouteTreeGen.createNavigateAppend({path: ['modalFeedback']}))
+        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'modalFeedback'}]}))
       }
     } else {
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
     }
   }, [loggedIn, dispatch])
   const copyToClipboard = React.useCallback(

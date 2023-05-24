@@ -5,7 +5,7 @@ import * as Constants from '../constants/settings'
 import * as Shim from '../router-v2/shim'
 import LeftNav from './sub-nav/left-nav'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
-import {sharedNewRoutes} from './routes.shared'
+import {sharedNewRoutes} from './routes'
 import {getOptions} from '../router-v2/shim.shared'
 
 const settingsSubRoutes = {
@@ -72,9 +72,5 @@ const SettingsSubNavigator = () => (
     ))}
   </TabNavigator.Navigator>
 )
-
-export const options = {
-  title: 'Settings',
-}
 
 export default SettingsSubNavigator

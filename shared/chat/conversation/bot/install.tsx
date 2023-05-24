@@ -169,7 +169,7 @@ const InstallBotPopup = (props: Props) => {
     )
   }
   const onFeedback = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
   }
 
   // lifecycle

@@ -118,11 +118,6 @@ const ManageContactsBanner = () => {
   )
 }
 
-export const options = {
-  header: undefined,
-  title: 'Contacts',
-}
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({

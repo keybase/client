@@ -9,7 +9,8 @@ const SplashContainer = () => {
   const failedReason = Container.useSelector(state => state.config.daemonHandshakeFailedReason)
   const retriesLeft = Container.useSelector(state => state.config.daemonHandshakeRetriesLeft)
 
-  const onFeedback = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+  const onFeedback = () =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
   const onRetry = () => dispatch(ConfigGen.createStartHandshake())
 
   let status = ''
