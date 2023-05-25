@@ -177,19 +177,19 @@ export const useAttachmentRedux = () => {
     dispatch(Chat2Gen.createAttachmentPreviewSelect({conversationIDKey, ordinal}))
   }, [dispatch, getIds])
 
-  const {fileName, isCollapsed, isEditing, showTitle, transferProgress, transferState} =
+  const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
     Container.useSelector(state => {
       const m = Constants.getMessage(state, conversationIDKey, ordinal)
       const message = m?.type === 'attachment' ? m : missingMessage
       const {isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
-      const {deviceType, inlineVideoPlayable, transferState} = message
+      const {deviceType, inlineVideoPlayable, transferState, submitState} = message
       const editInfo = Constants.getEditInfo(state, conversationIDKey)
       const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
       const showTitle = !!title
       const fileName =
         deviceType === 'desktop' ? fileNameRaw : `${inlineVideoPlayable ? 'Video' : 'Image'} from mobile`
 
-      return {fileName, isCollapsed, isEditing, showTitle, transferProgress, transferState}
+      return {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState}
     }, shallowEqual)
 
   return {
@@ -198,6 +198,7 @@ export const useAttachmentRedux = () => {
     isEditing,
     openFullscreen,
     showTitle,
+    submitState,
     transferProgress,
     transferState,
   }
