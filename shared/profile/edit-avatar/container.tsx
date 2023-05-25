@@ -7,6 +7,7 @@ import * as Constants from '../../constants/profile'
 import * as TeamsConstants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Styles from '../../styles'
 import type * as Types from '../../constants/types/teams'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
 import type * as ImagePicker from 'expo-image-picker'
@@ -41,17 +42,27 @@ export default (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createClearModals())
   }
   const onSaveTeamAvatar = (
-    filename: string,
+    _filename: string,
     teamname: string,
     sendChatNotification: boolean,
     crop?: RPCTypes.ImageCropRect
   ) => {
-    dispatch(TeamsGen.createUploadTeamAvatar({crop, filename, sendChatNotification, teamname}))
+    const filename = Styles.unnormalizePath(_filename)
+    dispatch(
+      TeamsGen.createUploadTeamAvatar({
+        crop,
+        filename,
+        sendChatNotification,
+        teamname,
+      })
+    )
   }
-  const onSaveUserAvatar = (filename: string, crop?: RPCTypes.ImageCropRect) => {
+  const onSaveUserAvatar = (_filename: string, crop?: RPCTypes.ImageCropRect) => {
+    const filename = Styles.unnormalizePath(_filename)
     dispatch(ProfileGen.createUploadAvatar({crop, filename}))
   }
-  const onSaveWizardAvatar = (filename: string, crop?: Types.AvatarCrop) => {
+  const onSaveWizardAvatar = (_filename: string, crop?: Types.AvatarCrop) => {
+    const filename = Styles.unnormalizePath(_filename)
     dispatch(TeamsGen.createSetTeamWizardAvatar({crop, filename}))
   }
   const onSkip = () => {

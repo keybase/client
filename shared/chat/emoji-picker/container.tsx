@@ -355,6 +355,7 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.small,
         },
         isElectron: {
+          backgroundColor: Styles.globalColors.blueGrey,
           height: Styles.globalMargins.xlarge + Styles.globalMargins.xtiny,
         },
         isMobile: {

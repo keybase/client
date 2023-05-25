@@ -378,7 +378,7 @@ class EmojiPicker extends React.PureComponent<Props, State> {
           fullWidth={true}
           centerChildren={true}
           alignItems="flex-start"
-          style={Styles.globalStyles.flexGrow}
+          style={{...Styles.globalStyles.flexGrow, overflow: 'hidden'}}
         >
           <Kb.Box2
             direction="horizontal"
