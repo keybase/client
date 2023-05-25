@@ -173,6 +173,7 @@ class ExplodingMeta2 extends React.Component<Props2> {
                     styles.countdownContainer,
                     {backgroundColor},
                     this.props.isParentHighlighted && styles.countdownContainerHighlighted,
+                    this.props.pending && styles.hidden,
                   ])}
                 >
                   <Kb.Text
@@ -282,6 +283,7 @@ const styles = Styles.styleSheetCreate(
       explodingTooltip: {
         marginRight: -Styles.globalMargins.xxtiny,
       },
+      hidden: {opacity: 0},
       progressContainer: Styles.platformStyles({
         common: {
           alignItems: 'center',

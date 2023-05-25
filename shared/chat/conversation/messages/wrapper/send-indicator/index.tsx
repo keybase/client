@@ -12,22 +12,31 @@ type AnimationStatus =
   | 'sending'
   | 'sendingExploding'
   | 'sent'
-const statusToIcon: {[K in AnimationStatus]: Kb.AnimationType} = {
+const statusToIcon = {
   encrypting: 'messageStatusEncrypting',
   encryptingExploding: 'messageStatusEncryptingExploding',
   error: 'messageStatusError',
   sending: 'messageStatusSending',
   sendingExploding: 'messageStatusSendingExploding',
   sent: 'messageStatusSent',
-}
-const statusToIconDark: {[K in AnimationStatus]: Kb.AnimationType} = {
+} as const
+const statusToIconDark = {
   encrypting: 'darkMessageStatusEncrypting',
   encryptingExploding: 'darkMessageStatusEncryptingExploding',
   error: 'darkMessageStatusError',
   sending: 'darkMessageStatusSending',
   sendingExploding: 'darkMessageStatusSendingExploding',
   sent: 'darkMessageStatusSent',
-}
+} as const
+
+const statusToIconExploding = {
+  encrypting: 'messageStatusEncryptingExploding',
+  sending: 'messageStatusSendingExploding',
+} as const
+const statusToIconDarkExploding = {
+  encrypting: 'darkMessageStatusEncryptingExploding',
+  sending: 'darkMessageStatusSendingExploding',
+} as const
 
 const shownEncryptingSet = new Set()
 
@@ -66,11 +75,13 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
 
   const timeoutRef = React.useRef<ReturnType<typeof setInterval> | undefined>()
 
-  let animationType = Styles.isDarkMode() ? statusToIconDark[status] : statusToIcon[status]
-  // There is no exploding-error state
-  if (isExploding && status !== 'error') {
-    animationType = `${animationType}Exploding` as Kb.AnimationType
-  }
+  const animationType: Kb.AnimationType | undefined = isExploding
+    ? Styles.isDarkMode()
+      ? statusToIconDarkExploding[status]
+      : statusToIconExploding[status]
+    : Styles.isDarkMode()
+    ? statusToIconDark[status]
+    : statusToIcon[status]
 
   const lastFailedRef = React.useRef(failed)
   const lastSentRef = React.useRef(sent)
@@ -111,14 +122,14 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
   if (!visible || (isExploding && status === 'sent')) {
     return null
   }
-  return (
+  return animationType ? (
     <Kb.Animation
       animationType={animationType}
       className="sendingStatus"
       containerStyle={styles.send}
-      style={visible ? styles.animationVisible : styles.animationInvisible}
+      style={styles.animationVisible}
     />
-  )
+  ) : null
 })
 
 const styles = Styles.styleSheetCreate(
@@ -138,10 +149,13 @@ const styles = Styles.styleSheetCreate(
       send: Styles.platformStyles({
         common: {
           position: 'absolute',
-          right: 16,
-          top: 0,
+          top: 3,
         },
-        isElectron: {pointerEvents: 'none'},
+        isElectron: {
+          pointerEvents: 'none',
+          right: 16,
+        },
+        isMobile: {right: 8},
       }),
     } as const)
 )
