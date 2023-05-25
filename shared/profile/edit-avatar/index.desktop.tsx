@@ -415,24 +415,26 @@ class EditAvatar extends React.Component<Props, State> {
                 <Kb.ProgressIndicator type="Large" style={styles.spinner} />
               </Kb.Box2>
             )}
-            <Kb.Image
-              ref={this.imageRef}
-              src={this.state.imageSource}
-              style={Styles.platformStyles({
-                isElectron: {
-                  height: this.state.scaledImageHeight,
-                  left: this.state.offsetLeft,
-                  opacity: this.state.loading ? 0 : 1,
-                  position: 'absolute',
-                  top: this.state.offsetTop,
-                  transition: 'opacity 0.25s ease-in',
-                  width: this.state.scaledImageWidth,
-                },
-              } as const)}
-              onDragStart={e => e.preventDefault()}
-              onLoad={this.onImageLoad}
-              onError={this.onImageError}
-            />
+            {this.state.imageSource ? (
+              <Kb.Image
+                ref={this.imageRef}
+                src={this.state.imageSource}
+                style={Styles.platformStyles({
+                  isElectron: {
+                    height: this.state.scaledImageHeight,
+                    left: this.state.offsetLeft,
+                    opacity: this.state.loading ? 0 : 1,
+                    position: 'absolute',
+                    top: this.state.offsetTop,
+                    transition: 'opacity 0.25s ease-in',
+                    width: this.state.scaledImageWidth,
+                  },
+                } as const)}
+                onDragStart={e => e.preventDefault()}
+                onLoad={this.onImageLoad}
+                onError={this.onImageError}
+              />
+            ) : null}
             {!this.state.loading && !this.state.hasPreview && (
               <Kb.Icon
                 className="icon"
