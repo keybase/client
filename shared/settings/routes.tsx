@@ -25,13 +25,13 @@ import deleteConfirm from './delete-confirm/page'
 import disableCertPinningModal from './disable-cert-pinning-modal/page'
 import settingsDeleteAddress from './account/confirm-delete.modal.page'
 
-import settingsRootPhone from './root-phone.native.page'
+import settingsRootPhone from './root-phone.page'
 import settingsRootDesktop from './root-desktop-tablet.page'
-import screenprotectorTab from './screenprotector.native.page'
-import contactsTab from './manage-contacts.native.page'
-import webLinks from './web-links.native.page'
+import screenprotectorTab from './screenprotector.page'
+import contactsTab from './manage-contacts.page'
+import webLinks from './web-links.page'
 import settingsContactsJoined from './contacts-joined/page'
-import settingsPushPrompt from './notifications/push-prompt.native.page'
+import settingsPushPrompt from './notifications/push-prompt.page'
 
 export const sharedNewRoutes = {
   [Constants.aboutTab]: about,

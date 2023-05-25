@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 
-const Root = React.lazy(async () => import('./manage-contacts.native'))
+const Root = React.lazy(async () => import('./manage-contacts'))
 
 const getOptions = () => ({
   header: undefined,

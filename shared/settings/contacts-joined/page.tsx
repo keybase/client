@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-const Joined = React.lazy(async () => import('./index.native'))
+const Joined = React.lazy(async () => import('.'))
 
 const Screen = () => (
   <React.Suspense>
