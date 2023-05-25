@@ -3,9 +3,8 @@ import * as Kb from '../../common-adapters'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
 import type {ButtonType} from '../../common-adapters/button'
-import {SignupScreen, InfoIcon} from '../../signup/common'
+import {SignupScreen} from '../../signup/common'
 import {globalColors} from '../../styles'
 
 const ConnectedExplainDevice = () => {
@@ -74,17 +73,4 @@ const ExplainDevice = (props: Props) => {
       </Kb.Box2>
     </SignupScreen>
   )
-}
-
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-  headerRightActions: () => (
-    <Kb.Box2
-      direction="horizontal"
-      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
-    >
-      <InfoIcon />
-    </Kb.Box2>
-  ),
 }

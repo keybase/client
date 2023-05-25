@@ -4,11 +4,8 @@ import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as Common from '../../router-v2/common'
-import {appendNewChatBuilder} from '../../actions/typed-routes'
 import Inbox, {type Props} from '.'
-import * as Kb from '../../common-adapters'
-import {HeaderNewChatButton} from './new-chat-button'
+import {appendNewChatBuilder} from '../../actions/typed-routes'
 import {useIsFocused} from '@react-navigation/core'
 import isEqual from 'lodash/isEqual'
 
@@ -142,29 +139,6 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
       inboxNumSmallRows={inboxNumSmallRows}
     />
   )
-})
-
-const buttonWidth = 132
-export const getOptions = () => ({
-  freezeOnBlur: false, // let it render even if not visible
-  headerLeft: () => <Kb.HeaderLeftBlank />,
-  headerLeftContainerStyle: {
-    ...Common.defaultNavigationOptions.headerLeftContainerStyle,
-    minWidth: buttonWidth,
-    width: buttonWidth,
-  },
-  headerRight: () => <HeaderNewChatButton />,
-  headerRightContainerStyle: {
-    ...Common.defaultNavigationOptions.headerRightContainerStyle,
-    minWidth: buttonWidth,
-    paddingRight: 8,
-    width: buttonWidth,
-  },
-  headerTitle: () => (
-    <Kb.Text type="BodyBig" center={true}>
-      Chats
-    </Kb.Text>
-  ),
 })
 
 const Connected = (ownProps: OwnProps) => {

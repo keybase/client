@@ -3,7 +3,6 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/wallets'
 import type * as Types from '../../constants/types/wallets'
-import Header from './header/container'
 import Onboarding from '../onboarding/container'
 import partition from 'lodash/partition'
 import Wallet, {AssetSectionTitle, type Props} from '.'
@@ -22,13 +21,6 @@ const sortAndStripTimestamps = (
 // disclaimer (from the wallet list).
 const WalletOrOnboarding = (props: Props) =>
   !props.acceptedDisclaimer ? <Onboarding nextScreen="openWallet" /> : <Wallet {...props} />
-
-export const options = {
-  header: () => <Header />,
-  headerLeft: () => null,
-  headerRight: () => null,
-  headerTitle: () => null,
-}
 
 export default () => {
   const accountID = Container.useSelector(state => Constants.getSelectedAccount(state))

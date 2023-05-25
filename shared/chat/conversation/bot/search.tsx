@@ -1,16 +1,21 @@
-import * as React from 'react'
+import * as BotsGen from '../../../actions/bots-gen'
+import * as Constants from '../../../constants/bots'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
-import * as Constants from '../../../constants/bots'
-import * as BotsGen from '../../../actions/bots-gen'
+import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
-import type * as RPCTypes from '../../../constants/types/rpc-gen'
-import {Bot} from '../info-panel/bot'
 import debounce from 'lodash/debounce'
 import shallowEqual from 'shallowequal'
+import type * as RPCTypes from '../../../constants/types/rpc-gen'
+import type * as TeamsTypes from '../../../constants/types/teams'
+import type * as Types from '../../../constants/types/chat2'
+import {Bot} from '../info-panel/bot'
 
-type Props = Container.RouteProps2<'chatSearchBots'>
+type Props = {
+  conversationIDKey?: Types.ConversationIDKey
+  teamID?: TeamsTypes.TeamID
+}
 
 const renderSectionHeader = ({section}: any) => {
   return <Kb.SectionDivider label={section.title} />
@@ -24,8 +29,8 @@ const getResults = (state: Container.TypedState) => {
   return {botSearchResults, featuredBotsMap}
 }
 const SearchBotPopup = (props: Props) => {
-  const conversationIDKey = props.route.params.conversationIDKey
-  const teamID = props.route.params.teamID
+  const conversationIDKey = props.conversationIDKey
+  const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
   const {featuredBotsMap, botSearchResults} = Container.useSelector(getResults, shallowEqual)
   const waiting = Container.useAnyWaiting(

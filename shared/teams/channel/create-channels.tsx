@@ -5,10 +5,10 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
 import CreateChannelsModal from '../new-team/wizard/create-channels'
 
-type Props = Container.RouteProps2<'teamCreateChannels'>
+type Props = {teamID: Types.TeamID}
 
 const CreateChannels = (props: Props) => {
-  const teamID = props.route.params.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? Types.noTeamID
   const dispatch = Container.useDispatch()
   React.useEffect(
     () => () => {

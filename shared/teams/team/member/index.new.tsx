@@ -23,7 +23,10 @@ type Props = {
   teamID: Types.TeamID
   username: string
 }
-type OwnProps = Container.RouteProps2<'teamMember'>
+type OwnProps = {
+  teamID: Types.TeamID
+  username: string
+}
 
 type TeamTreeRowNotIn = {
   teamID: Types.TeamID
@@ -140,8 +143,8 @@ type Section = SectionType<TeamTreeRowIn | TeamTreeRowNotIn, Extra>
 const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.SectionList as any)
 
 const TeamMember = (props: OwnProps) => {
-  const username = props.route.params.username
-  const teamID = props.route.params.teamID ?? Types.noTeamID
+  const username = props.username
+  const teamID = props.teamID ?? Types.noTeamID
   const dispatch = Container.useDispatch()
 
   const isMe = username == Container.useSelector(state => state.config.username)
@@ -270,11 +273,6 @@ const TeamMember = (props: OwnProps) => {
       />
     </Kb.Box2>
   )
-}
-
-export const options = {
-  headerHideBorder: true,
-  headerTitle: '',
 }
 
 type NodeNotInRowProps = {

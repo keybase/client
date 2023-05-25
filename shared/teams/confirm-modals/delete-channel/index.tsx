@@ -10,7 +10,11 @@ import type * as ChatTypes from '../../../constants/types/chat2'
 import {pluralize} from '../../../util/string'
 import {useAllChannelMetas} from '../../common/channel-hooks'
 
-type Props = Container.RouteProps2<'teamDeleteChannel'>
+type Props = {
+  teamID: Types.TeamID
+  // undefined means use the currently selected channels in the store (under the channel tab of the team page)
+  conversationIDKey?: ChatTypes.ConversationIDKey
+}
 
 const Header = () => (
   <>
@@ -24,8 +28,8 @@ const getTeamSelectedCount = (state: Container.TypedState, teamID: Types.TeamID)
 }
 
 const DeleteChannel = (props: Props) => {
-  const teamID = props.route.params.teamID ?? Types.noTeamID
-  const routePropChannel = props.route.params.conversationIDKey
+  const teamID = props.teamID ?? Types.noTeamID
+  const routePropChannel = props.conversationIDKey
   const storeSelectedChannels = Container.useSelector(state => getTeamSelectedCount(state, teamID))
 
   // When the channels get deleted, the values in the store are gone but we should keep displaying the same thing.

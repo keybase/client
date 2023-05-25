@@ -182,7 +182,7 @@ export default (ownProps: OwnProps) => {
         })
       )
     } else {
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
     }
   }
 

@@ -12,13 +12,16 @@ import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
 import logger from '../../../logger'
 
-type Props = Container.RouteProps2<'chatForwardMsgPick'>
+type Props = {
+  srcConvID: Types.ConversationIDKey
+  ordinal: Types.Ordinal
+}
 
 type PickerState = 'picker' | 'title'
 
 const TeamPicker = (props: Props) => {
-  const srcConvID = props.route.params.srcConvID
-  const ordinal = props.route.params.ordinal
+  const srcConvID = props.srcConvID
+  const ordinal = props.ordinal
   const message = Container.useSelector(state => Constants.getMessage(state, srcConvID, ordinal))
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')

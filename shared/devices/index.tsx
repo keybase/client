@@ -8,7 +8,6 @@ import * as Styles from '../styles'
 import DeviceRow from './row'
 import partition from 'lodash/partition'
 import type * as Types from '../constants/types/devices'
-import {HeaderTitle, HeaderRightActions} from './nav-header'
 import {intersect} from '../util/set'
 
 const sortDevices = (a: Types.Device, b: Types.Device) => {
@@ -21,7 +20,7 @@ const deviceToItem = (d: Types.Device) => ({id: d.deviceID, key: d.deviceID, typ
 const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
   partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
 
-const ReloadableDevices = (props: Props) => {
+const ReloadableDevices = () => {
   const deviceMap = Container.useSelector(state => state.devices.deviceMap)
   const newlyChangedItemIds = Container.useSelector(state => state.devices.isNew)
   const waiting = Container.useSelector(state => Constants.isWaiting(state))
@@ -66,7 +65,6 @@ const ReloadableDevices = (props: Props) => {
     waiting,
   }
 
-  const {title} = props
   Container.useOnUnMountOnce(() => {
     dispatch(DevicesGen.createClearBadges())
   })
@@ -77,22 +75,12 @@ const ReloadableDevices = (props: Props) => {
       waitingKeys={Constants.waitingKey}
       onReload={loadDevices}
       reloadOnMount={true}
-      title={title}
+      title={''}
     >
       <Devices {...np} />
     </Kb.Reloadable>
   )
 }
-
-export const options = Container.isMobile
-  ? {title: 'Devices'}
-  : {
-      headerRightActions: HeaderRightActions,
-      headerTitle: HeaderTitle,
-      title: 'Devices',
-    }
-
-export default ReloadableDevices
 
 type Item =
   | {key: string; id: Types.DeviceID; type: 'device'}
@@ -268,3 +256,4 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate(
       flexOne: {flex: 1},
     } as const)
 )
+export default ReloadableDevices

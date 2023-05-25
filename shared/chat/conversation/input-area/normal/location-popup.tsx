@@ -7,15 +7,16 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import type * as Types from '../../../../constants/types/chat2'
 import LocationMap from '../../../location-map'
 import HiddenString from '../../../../util/hidden-string'
 import {watchPositionForMap} from '../../../../actions/platform-specific'
 import shallowEqual from 'shallowequal'
 
-type Props = Container.RouteProps2<'chatLocationPreview'>
+type Props = {conversationIDKey: Types.ConversationIDKey}
 
 const LocationPopup = (props: Props) => {
-  const conversationIDKey = props.route.params.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const {httpSrvAddress, httpSrvToken, location, locationDenied, username} = Container.useSelector(state => {
     const {httpSrvAddress, httpSrvToken, username} = state.config
     const location = state.chat2.lastCoord

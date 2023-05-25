@@ -1,3 +1,4 @@
+import type * as ChatTypes from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -9,13 +10,18 @@ import * as Types from '../../../constants/types/teams'
 import {ModalTitle} from '../../common'
 import {useEditState} from './use-edit'
 
-type Props = Container.RouteProps2<'teamEditChannel'>
+type Props = {
+  channelname: string
+  description: string
+  teamID: Types.TeamID
+  conversationIDKey: ChatTypes.ConversationIDKey
+}
 
 const EditChannel = (props: Props) => {
-  const teamID = props.route.params.teamID ?? Types.noTeamID
-  const conversationIDKey = props.route.params.conversationIDKey
-  const oldName = props.route.params.channelname
-  const oldDescription = props.route.params.description
+  const teamID = props.teamID ?? Types.noTeamID
+  const conversationIDKey = props.conversationIDKey
+  const oldName = props.channelname
+  const oldDescription = props.description
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()

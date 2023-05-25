@@ -1,5 +1,3 @@
 import * as React from 'react'
-import type * as Container from '../../util/container'
-
-export type OwnProps = Container.RouteProps2<'teamInviteByContact'>
+export type OwnProps = {teamID: string}
 export default class InviteByContact extends React.Component<OwnProps> {}

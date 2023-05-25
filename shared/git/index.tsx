@@ -12,7 +12,7 @@ import {anyWaiting} from '../constants/waiting'
 import {memoize} from '../util/memoize'
 import {union} from '../util/set'
 
-type OwnProps = {expandedSet: Set<string>}
+type OwnProps = {expandedSet?: Set<string>}
 
 const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(

@@ -1,11 +1,9 @@
 import * as React from 'react'
-import * as Constants from '../../../constants/wallets'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import type * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
 import type {IconType} from '../../../common-adapters/icon.constants-gen'
 import WalletSettingTrustline from './trustline/container'
@@ -73,15 +71,6 @@ const PartnerRow = (props: PartnerRowProps) => (
     <Kb.Box2 direction="vertical" style={styles.noShrink} />
   </Kb.Box2>
 )
-
-const ConnectedHeader = () => {
-  const name = Container.useSelector(state => {
-    const accountID = Constants.getSelectedAccount(state)
-    return Constants.getAccount(state, accountID).name
-  })
-
-  return <AccountPageHeader accountName={name} title="Settings" />
-}
 
 const AccountSettings = (props: SettingsProps) => {
   const {onSecretKeySeen, accountID} = props
@@ -312,10 +301,6 @@ const AccountSettings = (props: SettingsProps) => {
     </Kb.Box2>
   )
 }
-export const options = {
-  headerTitle: () => <ConnectedHeader />,
-}
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({

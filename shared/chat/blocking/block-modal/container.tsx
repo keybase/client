@@ -5,18 +5,24 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as UsersGen from '../../../actions/users-gen'
 import * as React from 'react'
-import BlockModal, {type BlockType, type NewBlocksMap, type ReportSettings} from '.'
+import BlockModal, {type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings} from '.'
 import {leaveTeamWaitingKey} from '../../../constants/teams'
 
-type OwnProps = Container.RouteProps2<'chatBlockingModal'>
+type OwnProps = {
+  blockUserByDefault?: boolean
+  context?: BlockModalContext
+  convID?: string
+  others?: Array<string>
+  team?: string
+  username?: string
+}
 
 export default (ownProps: OwnProps) => {
-  const {params} = ownProps.route
-  const {context, convID} = params
-  const teamname = params.team
-  const blockUserByDefault = params.blockUserByDefault ?? false
-  let others = params.others
-  let adderUsername = params.username
+  const {context, convID} = ownProps
+  const teamname = ownProps.team
+  const blockUserByDefault = ownProps.blockUserByDefault ?? false
+  let others = ownProps.others
+  let adderUsername = ownProps.username
   const waitingForLeave = Container.useSelector(state =>
     teamname ? Container.anyWaiting(state, leaveTeamWaitingKey(teamname)) : false
   )

@@ -1,16 +1,15 @@
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Styles from '../../styles'
 import * as WalletsGen from '../../actions/wallets-gen'
 import Root from './root'
 import SendBodyAdvanced from './body/advanced'
 import {SendBody, RequestBody} from './body/container'
 
-type OwnProps = Container.RouteProps2<'sendReceiveForm'>
+type OwnProps = {isAdvanced?: boolean}
 
 export default (ownProps: OwnProps) => {
-  const isAdvanced = ownProps.route.params.isAdvanced ?? false
+  const isAdvanced = ownProps.isAdvanced ?? false
   const isRequest = Container.useSelector(state => state.wallets.building.isRequest)
   const dispatch = Container.useDispatch()
   const onBack = isAdvanced
@@ -57,9 +56,3 @@ const SendRequestForm = (props: Props) => (
     )}
   </Root>
 )
-
-export const options = {
-  safeAreaStyle: {
-    backgroundColor: Styles.globalColors.purpleDark,
-  },
-}

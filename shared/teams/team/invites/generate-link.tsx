@@ -13,7 +13,7 @@ import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {pluralize} from '../../../util/string'
 import {InviteItem} from './invite-item'
 
-type Props = Container.RouteProps2<'teamInviteLinksGenerate'>
+type Props = {teamID: Types.TeamID}
 
 type RolePickerProps = {
   isRolePickerOpen: boolean
@@ -64,7 +64,7 @@ const validityValuesMap = {
 }
 
 const GenerateLinkModal = (props: Props) => {
-  const teamID = props.route.params.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? Types.noTeamID
   const [validity, setValidity] = React.useState(validityOneYear)
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [teamRole, setTeamRole] = React.useState<Types.TeamRoleType>('reader')

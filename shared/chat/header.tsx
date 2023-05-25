@@ -6,13 +6,16 @@ import * as Platforms from '../constants/platform'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
+import type * as Types from '../constants/types/chat2'
 import ChatInboxHeader from './inbox/header/container'
 import shallowEqual from 'shallowequal'
 
-type Props = Container.RouteProps2<'chatRoot'>
+type Props = {
+  conversationIDKey?: Types.ConversationIDKey
+}
 
 const Header = (props: Props) => {
-  const conversationIDKey = props.route.params?.conversationIDKey ?? Constants.noConversationIDKey
+  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const data = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta

@@ -23,7 +23,6 @@ type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
   defaultSelected?: EmojiData
 }
-type RoutableProps = Container.RouteProps2<'teamAddEmojiAlias'>
 
 type ChosenEmoji = {
   emojiStr: string
@@ -252,10 +251,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-const AddEmojiAliasWrapper = (routableProps: RoutableProps) => {
-  const {params} = routableProps.route
-  const conversationIDKey = params.conversationIDKey ?? ChatConstants.noConversationIDKey
-  const defaultSelected = params.defaultSelected
+const AddEmojiAliasWrapper = (p: Props) => {
+  const conversationIDKey = p.conversationIDKey ?? ChatConstants.noConversationIDKey
+  const defaultSelected = p.defaultSelected
   return <AddAliasModal conversationIDKey={conversationIDKey} defaultSelected={defaultSelected} />
 }
 export default AddEmojiAliasWrapper

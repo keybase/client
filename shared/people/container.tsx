@@ -3,27 +3,9 @@ import * as Constants from '../constants/people'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as PeopleGen from '../actions/people-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as WaitingConstants from '../constants/waiting'
 import {createShowUserProfile} from '../actions/profile-gen'
 import People from '.'
-import ProfileSearch from '../profile/search/bar'
-
-const HeaderAvatar = () => {
-  const myUsername = Container.useSelector(state => state.config.username)
-  const dispatch = Container.useDispatch()
-  const onClick = React.useCallback(
-    () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),
-    [dispatch]
-  )
-  return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
-}
-
-export const options = {
-  headerLeft: () => <Kb.HeaderLeftBlank />,
-  headerRight: () => <HeaderAvatar />,
-  headerTitle: () => <ProfileSearch />,
-}
 
 let lastRefresh: number = 0
 const waitToRefresh = 1000 * 60 * 5

@@ -128,8 +128,3 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
-
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}

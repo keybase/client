@@ -1,25 +1,26 @@
+import * as React from 'react'
 import * as Common from '../router-v2/common'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Shim from '../router-v2/shim'
-import {getOptions} from '../router-v2/shim.shared'
 import * as Styles from '../styles'
-import {createNativeStackNavigator} from '@react-navigation/native-stack'
-import type AccountReloaderType from './common/account-reloader'
-import type Wallet from './wallet/container'
-import type WalletListType from './wallet-list/container'
 import {RoutedOnboarding} from './onboarding/container'
+import {createNativeStackNavigator} from '@react-navigation/native-stack'
+import {getOptions} from '../router-v2/shim.shared'
 import {useNavigationBuilder, TabRouter, createNavigatorFactory} from '@react-navigation/core'
+import {sharedRoutes} from './routes'
+import wallet from './wallet/page'
 
 // walletsSubRoutes should only be used on desktop + tablet
 const walletSubRoutes = {
-  ...require('./routes').sharedRoutes,
-  wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default},
+  ...sharedRoutes,
+  wallet,
 }
 
+const AccountReloader = React.lazy(async () => import('./common/account-reloader'))
+const WalletList = React.lazy(async () => import('./wallet-list/container'))
+
 const WalletsAndDetails = () => {
-  const AccountReloader = require('./common/account-reloader').default as typeof AccountReloaderType
-  const WalletList = require('./wallet-list/container').default as typeof WalletListType
   return (
     <AccountReloader>
       <Kb.Box2
@@ -98,10 +99,17 @@ const WalletSubNavigator = () => (
 
 const RootStack = createNativeStackNavigator()
 
+const HeaderTitle = React.lazy(async () => {
+  const {HeaderTitle} = await import('./nav-header/container')
+  return {default: HeaderTitle}
+})
+const HeaderRightActions = React.lazy(async () => {
+  const {HeaderRightActions} = await import('./nav-header/container')
+  return {default: HeaderRightActions}
+})
+
 const WalletsRootNav = () => {
   const acceptedDisclaimer = Container.useSelector(state => state.wallets.acceptedDisclaimer)
-  const {HeaderTitle} = require('./nav-header/container')
-  const {HeaderRightActions} = require('./nav-header/container')
   return (
     <RootStack.Navigator>
       {acceptedDisclaimer ? (
@@ -140,11 +148,6 @@ const WalletsRootNav = () => {
       )}
     </RootStack.Navigator>
   )
-}
-
-export const options = {
-  header: () => null,
-  headerTitle: '',
 }
 
 export default WalletsRootNav

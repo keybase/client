@@ -60,20 +60,30 @@ export const tabRoots = {
   [Tabs.settingsTab]: 'settingsRoot',
 } as const
 
-export const modalRoutes: RouteMap = {
-  ...(chatNewModalRoutes as RouteMap),
-  ...(cryptoNewModalRoutes as RouteMap),
-  ...(deviceNewModalRoutes as RouteMap),
-  ...(fsNewModalRoutes as RouteMap),
-  ...(gitNewModalRoutes as RouteMap),
-  ...(loginNewModalRoutes as RouteMap),
-  ...(peopleNewModalRoutes as RouteMap),
-  ...(profileNewModalRoutes as RouteMap),
-  ...(settingsNewModalRoutes as RouteMap),
-  ...(signupNewModalRoutes as RouteMap),
-  ...(teamsNewModalRoutes as RouteMap),
-  ...(walletsNewModalRoutes as RouteMap),
-  ...(incomingShareNewModalRoutes as RouteMap),
-}
+const _modalRoutes = [
+  chatNewModalRoutes as RouteMap,
+  cryptoNewModalRoutes as RouteMap,
+  deviceNewModalRoutes as RouteMap,
+  fsNewModalRoutes as RouteMap,
+  gitNewModalRoutes as RouteMap,
+  loginNewModalRoutes as RouteMap,
+  peopleNewModalRoutes as RouteMap,
+  profileNewModalRoutes as RouteMap,
+  settingsNewModalRoutes as RouteMap,
+  signupNewModalRoutes as RouteMap,
+  teamsNewModalRoutes as RouteMap,
+  walletsNewModalRoutes as RouteMap,
+  incomingShareNewModalRoutes as RouteMap,
+]
+
+export const modalRoutes: RouteMap = _modalRoutes.reduce<RouteMap>((obj, modal) => {
+  for (const name of Object.keys(modal)) {
+    if (obj[name]) {
+      throw new Error('New modal route with dupe name, disallowed! ' + name)
+    }
+    obj[name] = modal[name]
+  }
+  return obj
+}, {})
 
 export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes}

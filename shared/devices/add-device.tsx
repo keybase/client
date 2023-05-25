@@ -8,11 +8,13 @@ import * as Styles from '../styles'
 import {isLargeScreen} from '../constants/platform'
 import {useSafeCallback} from '../util/container'
 
-type OwnProps = Container.RouteProps2<'deviceAdd'>
+type OwnProps = {
+  highlight?: Array<'computer' | 'phone' | 'paper key'>
+}
 const noHighlight = []
 
 export default function AddDevice(ownProps: OwnProps) {
-  const highlight = ownProps.route.params.highlight ?? noHighlight
+  const highlight = ownProps.highlight ?? noHighlight
   const iconNumbers = Container.useSelector(state => Constants.getNextDeviceIconNumber(state))
   const dispatch = Container.useDispatch()
   const _onAddComputer = React.useCallback(

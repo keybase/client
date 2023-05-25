@@ -68,8 +68,3 @@ const SignupFeedback = (props: Props) => {
     </SignupScreen>
   )
 }
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null,
-  headerRightActions: null,
-}

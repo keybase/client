@@ -7,10 +7,10 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import {ModalTitle} from '../common'
 
-type Props = Container.RouteProps2<'teamEditTeamDescription'>
+type Props = {teamID: Types.TeamID}
 
 const EditTeamDescription = (props: Props) => {
-  const teamID = props.route.params.teamID ?? Types.noTeamID
+  const teamID = props.teamID ?? Types.noTeamID
 
   const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID))
   const waitingKey = Constants.teamWaitingKey(teamID)

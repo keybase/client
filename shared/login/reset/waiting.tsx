@@ -8,14 +8,14 @@ import * as Container from '../../util/container'
 import * as AutoresetGen from '../../actions/autoreset-gen'
 import {formatDurationForAutoreset as formatDuration} from '../../util/timestamp'
 
-type Props = Container.RouteProps2<'resetWaiting'>
+type Props = {pipelineStarted: boolean}
 
 const formatTimeLeft = (endTime: number) => {
   return formatDuration(endTime - Date.now())
 }
 
 const Waiting = (props: Props) => {
-  const pipelineStarted = props.route.params.pipelineStarted
+  const {pipelineStarted} = props
   const endTime = Container.useSelector(state => state.autoreset.endTime)
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
@@ -121,11 +121,6 @@ const Waiting = (props: Props) => {
       </Kb.Box2>
     </SignupScreen>
   )
-}
-
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
 }
 
 export default Waiting

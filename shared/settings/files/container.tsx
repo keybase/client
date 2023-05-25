@@ -6,13 +6,6 @@ import * as Container from '../../util/container'
 import {isMobile} from '../../constants/platform'
 import type {PickerItem} from '../../common-adapters/floating-picker'
 
-export const options = Container.isMobile
-  ? {
-      header: undefined,
-      title: 'Files',
-    }
-  : undefined
-
 const SettingsFiles = () => {
   const areSettingsLoading = Container.useSelector(state => state.fs.settings.isLoading)
   const driverStatus = Container.useSelector(state => state.fs.sfmi.driverStatus)

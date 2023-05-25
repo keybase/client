@@ -9,14 +9,17 @@ import {InfoPanel, type Panel} from '.'
 type Props = {
   conversationIDKey?: Types.ConversationIDKey
   navigation?: any
-} & Partial<Container.RouteProps2<'chatInfoPanel'>>
+} & Partial<{
+  conversationIDKey?: Types.ConversationIDKey
+  tab?: 'settings' | 'members' | 'attachments' | 'bots'
+}>
 
 const InfoPanelConnector = (props: Props) => {
   const storeSelectedTab = Container.useSelector(state => state.chat2.infoPanelSelectedTab)
-  const initialTab = props.route?.params?.tab ?? storeSelectedTab
+  const initialTab = props.tab ?? storeSelectedTab
 
   const conversationIDKey: Types.ConversationIDKey =
-    props.conversationIDKey ?? props.route?.params?.conversationIDKey ?? Constants.noConversationIDKey
+    props.conversationIDKey ?? props.conversationIDKey ?? Constants.noConversationIDKey
 
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const shouldNavigateOut = meta.conversationIDKey === Constants.noConversationIDKey

@@ -104,7 +104,7 @@ export default () => {
     dispatch(RecoverPasswordGen.createStartRecoverPassword({username}))
   }
   const onFeedback = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
   }
   const onLogin = (username: string, password: string) => {
     dispatch(LoginGen.createLogin({password: new HiddenString(password), username}))

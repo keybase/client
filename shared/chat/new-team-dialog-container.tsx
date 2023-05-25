@@ -2,13 +2,14 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ChatConstants from '../constants/chat2'
 import * as Container from '../util/container'
+import type * as Types from '../constants/types/chat2'
 import NewTeamDialog from '../teams/new-team'
 import upperFirst from 'lodash/upperFirst'
 
-type OwnProps = Container.RouteProps2<'chatShowNewTeamDialog'>
+type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 export default (ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.route.params.conversationIDKey ?? ChatConstants.noConversationIDKey
+  const conversationIDKey = ownProps.conversationIDKey ?? ChatConstants.noConversationIDKey
   const baseTeam = ''
   const errorText = Container.useSelector(state => upperFirst(state.teams.errorInTeamCreation))
   const dispatch = Container.useDispatch()

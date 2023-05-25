@@ -14,4 +14,3 @@ const DeferedInner = () => {
 const Deferred = React.memo(DeferedInner, () => true)
 
 export default Deferred
-export {getOptions} from './container'

@@ -2,10 +2,13 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import InviteGenerated from '.'
 
-type OwnProps = Container.RouteProps2<'inviteSent'>
+type OwnProps = {
+  email?: string
+  link: string
+}
 
 export default (ownProps: OwnProps) => {
-  const {link, email} = ownProps.route.params
+  const {link, email} = ownProps
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createNavigateUp())

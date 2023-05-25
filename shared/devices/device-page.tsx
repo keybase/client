@@ -7,11 +7,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../util/timestamp'
 
-type OwnProps = Container.RouteProps2<'devicePage'>
-
-export const options = {
-  title: '',
-}
+type OwnProps = {deviceID: string}
 
 const TimelineMarker = ({first, last, closedCircle}) => (
   <Kb.Box style={styles.marker}>
@@ -86,7 +82,7 @@ const Timeline = ({device}) => {
 }
 
 const DevicePage = (ownProps: OwnProps) => {
-  const id = ownProps.route.params.deviceID
+  const id = ownProps.deviceID
   const iconNumber = Container.useSelector(state => Constants.getDeviceIconNumber(state, id))
 
   const dispatch = Container.useDispatch()

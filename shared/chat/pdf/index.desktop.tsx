@@ -7,7 +7,7 @@ import {downloadFolder} from '../../constants/platform'
 import type {Props} from '.'
 
 const ChatPDF = (props: Props) => {
-  const {message} = props.route.params || {}
+  const {message} = props
   const title = message?.title || message?.fileName || 'PDF'
   const url = message?.fileURL
   const dispatch = Container.useDispatch()
@@ -41,8 +41,4 @@ const ChatPDF = (props: Props) => {
   )
 }
 
-export const options = {
-  modal2: true,
-  modal2Type: 'SuperWide',
-}
 export default ChatPDF

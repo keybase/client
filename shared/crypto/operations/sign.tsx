@@ -47,7 +47,7 @@ export const SignInput = () => {
   )
 
   return Container.isMobile ? (
-    <Kb.KeyboardAvoidingView2> {content} </Kb.KeyboardAvoidingView2>
+    <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
     <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.inputDesktopMaxHeight}>
       {content}

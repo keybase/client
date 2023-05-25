@@ -1,18 +1,18 @@
-import * as React from 'react'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as WaitingGen from '../../../actions/waiting-gen'
-import {useAllChannelMetas} from '../../../teams/common/channel-hooks'
-import type * as Types from '../../../constants/types/chat2'
-import * as TeamTypes from '../../../constants/types/teams'
+import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
-import * as Constants from '../../../constants/chat2'
-import type * as RPCTypes from '../../../constants/types/rpc-gen'
-import openURL from '../../../util/open-url'
+import * as TeamTypes from '../../../constants/types/teams'
+import * as WaitingGen from '../../../actions/waiting-gen'
 import ChannelPicker from './channel-picker'
+import openURL from '../../../util/open-url'
+import type * as RPCTypes from '../../../constants/types/rpc-gen'
+import type * as Types from '../../../constants/types/chat2'
+import {useAllChannelMetas} from '../../../teams/common/channel-hooks'
 
 const RestrictedItem = '---RESTRICTED---'
 
@@ -34,12 +34,16 @@ export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, t
   return conversationIDKey
 }
 
-type LoaderProps = Container.RouteProps2<'chatInstallBot'>
+type LoaderProps = {
+  botUsername: string
+  conversationIDKey?: Types.ConversationIDKey
+  teamID?: TeamTypes.TeamID
+}
 
 const InstallBotPopupLoader = (props: LoaderProps) => {
-  const botUsername = props.route.params.botUsername
-  const inConvIDKey = props.route.params.conversationIDKey
-  const teamID = props.route.params.teamID
+  const botUsername = props.botUsername
+  const inConvIDKey = props.conversationIDKey
+  const teamID = props.teamID
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
 }
@@ -165,7 +169,7 @@ const InstallBotPopup = (props: Props) => {
     )
   }
   const onFeedback = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
   }
 
   // lifecycle

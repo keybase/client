@@ -13,11 +13,14 @@ import {maxWidth, maxHeight} from '../messages/attachment/shared'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
-type OwnProps = Container.RouteProps2<'chatAttachmentFullscreen'>
+type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey
+  ordinal: Types.Ordinal
+}
 
 const Connected = (props: OwnProps) => {
-  const conversationIDKey = props.route.params.conversationIDKey ?? Constants.noConversationIDKey
-  const inOrdinal = props.route.params.ordinal
+  const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
+  const inOrdinal = props.ordinal
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const dispatch = Container.useDispatch()
   const data = Container.useSelector(state => {
@@ -133,9 +136,4 @@ const Connected = (props: OwnProps) => {
   )
 }
 
-export const options = {
-  safeAreaStyle: {
-    backgroundColor: 'black', // true black
-  },
-}
 export default Connected

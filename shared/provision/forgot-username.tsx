@@ -103,11 +103,6 @@ const ForgotUsername = () => {
   )
 }
 
-export const options = {
-  headerBottomStyle: {height: undefined},
-  headerLeft: null, // no back button
-}
-
 const styles = Styles.styleSheetCreate(() => ({
   phoneInput: Styles.platformStyles({
     isElectron: {

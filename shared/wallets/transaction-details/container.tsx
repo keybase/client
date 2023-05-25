@@ -10,13 +10,15 @@ import openURL from '../../util/open-url'
 import TransactionDetails, {type NotLoadingProps} from '.'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = Container.RouteProps2<'transactionDetails'>
+type OwnProps = {
+  accountID: Types.AccountID
+  paymentID: Types.PaymentID
+}
 
 export default (ownProps: OwnProps) => {
   const you = Container.useSelector(state => state.config.username)
-  const {params} = ownProps.route
-  const accountID = params.accountID ?? Types.noAccountID
-  const paymentID = params.paymentID ?? Types.noPaymentID
+  const accountID = ownProps.accountID ?? Types.noAccountID
+  const paymentID = ownProps.paymentID ?? Types.noPaymentID
   const _transaction = Container.useSelector(state => Constants.getPayment(state, accountID, paymentID))
   const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
   // Transaction can briefly be empty when status changes

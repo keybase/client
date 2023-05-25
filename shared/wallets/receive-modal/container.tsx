@@ -5,10 +5,10 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Receive from '.'
 
-export type OwnProps = Container.RouteProps2<'receive'>
+export type OwnProps = {accountID: Types.AccountID}
 
 export default (ownProps: OwnProps) => {
-  const accountID = ownProps.route.params.accountID ?? Types.noAccountID
+  const accountID = ownProps.accountID ?? Types.noAccountID
   const account = Container.useSelector(state => Constants.getAccount(state, accountID))
   const accountName = account.name
   const federatedAddress = Container.useSelector(state => Constants.getFederatedAddress(state, accountID))

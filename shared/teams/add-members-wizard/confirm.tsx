@@ -159,9 +159,6 @@ const AddMembersConfirm = () => {
     </Kb.Modal>
   )
 }
-export const options = {
-  gesturesEnabled: false,
-}
 
 // Show no more than 20 assertions in "already in team" section.
 const alreadyInTeamLimit = 20
@@ -215,7 +212,8 @@ const AddMoreMembers = () => {
       const onAddKeybase = () => dispatch(appendNewTeamBuilder(teamID))
       const onAddContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))
       const onAddPhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
-      const onAddEmail = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamEmail']}))
+      const onAddEmail = () =>
+        dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamAddToTeamEmail'}]}))
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}

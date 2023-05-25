@@ -14,7 +14,7 @@ import type {createListenerMiddleware} from '@reduxjs/toolkit'
 import {useNavigation} from '@react-navigation/core'
 import {type RouteKeys} from '../router-v2/route-params'
 export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
-export {type RouteProps2, getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
+export {getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
 export {listenAction, type ListenerApi, spawn} from './redux-toolkit'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 import USH from './use-selector'
@@ -141,7 +141,7 @@ export type RouteDef = {
   getOptions?: Object | ((p: {navigation: NavigationContainerRef<{}>; route: Route}) => Object)
   screen?: React.ComponentType
 }
-export type RouteMap = {[K in string]: RouteDef}
+export type RouteMap = {[K in string]?: RouteDef}
 
 export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
   try {

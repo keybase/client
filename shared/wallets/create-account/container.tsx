@@ -6,11 +6,14 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import CreateAccount from '.'
 
-type OwnProps = Container.RouteProps2<'createNewAccount'>
+type OwnProps = {
+  fromSendForm?: boolean
+  showOnCreation?: boolean
+}
 
 export default (ownProps: OwnProps) => {
-  const setBuildingTo = ownProps.route.params.fromSendForm
-  const showOnCreation = ownProps.route.params.showOnCreation
+  const setBuildingTo = ownProps.fromSendForm
+  const showOnCreation = ownProps.showOnCreation
   const createNewAccountError = Container.useSelector(state => state.wallets.createNewAccountError)
   const error = Container.useSelector(state => state.wallets.accountNameError)
   const nameValidationState = Container.useSelector(state => state.wallets.accountNameValidationState)

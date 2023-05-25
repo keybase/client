@@ -1,2 +1,2 @@
 import * as React from 'react'
-export declare class SubNav extends React.Component<{}> {}
+export default class SubNav extends React.Component<{}> {}
