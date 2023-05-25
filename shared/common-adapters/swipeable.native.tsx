@@ -215,11 +215,16 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
   }, [])
 
   const threshold = 40
+  const running = React.useRef(false)
   const pan = React.useRef(new Animated.ValueXY()).current
   const panResponder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (_, gestureState) => -gestureState.dx > threshold,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        running.current = true
+        const val = -gestureState.dx > threshold
+        return val
+      },
       onPanResponderGrant: () => {
         pan.setOffset({x: 0, y: 0})
         pan.setValue({x: 0, y: 0})
@@ -229,6 +234,10 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
         pan.setValue({x: Math.min(gesture.dx, 0), y: 0})
       },
       onPanResponderRelease: () => {
+        if (!running.current) {
+          return
+        }
+        running.current = false
         pan.flattenOffset()
         // only swipe if its actually still over
         // @ts-ignore _value does exist
@@ -239,6 +248,15 @@ export const SwipeTrigger = React.memo(function SwipeTrigger(p: {
         resetPosition()
       },
       onPanResponderTerminate: () => {
+        if (!running.current) {
+          return
+        }
+        running.current = false
+        // @ts-ignore _value does exist
+        const val = -pan.x._value
+        if (val > threshold) {
+          onSwiped()
+        }
         resetPosition()
       },
     })
