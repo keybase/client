@@ -5,7 +5,6 @@ import * as Container from '../../util/container'
 import NavRow from './nav-row'
 
 const CryptoSubNav = () => {
-  console.log('aaa crypt sub nav render', Container.useNav())
   const {navigate} = Container.useNav()
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} gap="tiny" style={styles.container}>
