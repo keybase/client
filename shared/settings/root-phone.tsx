@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as TabConstants from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/settings'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import {logPerfLogPointRpcPromise} from '../constants/types/rpc-gen'
@@ -11,8 +12,6 @@ import SettingsItem from './sub-nav/settings-item'
 import WhatsNewIcon from '../whats-new/icon/container'
 import noop from 'lodash/noop'
 import {SectionList} from 'react-native' // TODO use common one
-
-type Props = {navigation: any}
 
 const PerfRow = () => {
   const [toSubmit, setToSubmit] = React.useState('')
@@ -60,16 +59,16 @@ const renderItem = ({item}) => {
   return item.text ? <SettingsItem {...item} /> : null
 }
 
-function SettingsNav(props: Props) {
+function SettingsNav() {
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
   const badgeNotifications = Container.useSelector(state => !state.push.hasPermissions)
   const statsShown = Container.useSelector(state => !!state.config.runtimeStats)
-  const {navigation} = props
+  const dispatch = Container.useDispatch()
   const onTabChange = React.useCallback(
-    s => {
-      navigation.navigate(s)
+    (s: any) => {
+      dispatch(RouteTreeGen.createNavigateAppend({path: [s]}))
     },
-    [navigation]
+    [dispatch]
   )
   const contactsLabel = Container.useSelector(state =>
     state.settings.contacts.importEnabled ? 'Phone contacts' : 'Import phone contacts'
