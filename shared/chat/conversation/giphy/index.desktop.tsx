@@ -18,7 +18,8 @@ class GiphySearch extends React.Component<Props, State> {
   componentDidMount() {
     const c = this.container
     if (c) {
-      this.setState({width: c.clientWidth})
+      const cs = getComputedStyle(c)
+      this.setState({width: c.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)})
     }
   }
 
