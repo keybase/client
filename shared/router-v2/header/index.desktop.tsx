@@ -113,13 +113,13 @@ const DesktopHeader = React.memo(
     let rightActions: React.ReactNode = null
     if (ReactIs.isValidElementType(opt.headerRightActions)) {
       const CustomActions = opt.headerRightActions
-      rightActions = <CustomActions />
+      rightActions = CustomActions ? <CustomActions /> : null
     }
 
     let subHeader: React.ReactNode = null
     if (ReactIs.isValidElementType(opt.subHeader)) {
       const CustomSubHeader = opt.subHeader
-      subHeader = <CustomSubHeader />
+      subHeader = CustomSubHeader ? <CustomSubHeader /> : null
     }
 
     let style: Styles.StylesCrossPlatform = null

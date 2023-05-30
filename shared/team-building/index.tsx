@@ -81,11 +81,10 @@ type OwnProps = {
   recommendedHideYourself?: boolean
 }
 
-const noServices = new Array<TeamBuildingTypes.ServiceIdWithContact>()
 const TeamBuilding = (p: OwnProps) => {
   const namespace = p.namespace ?? 'chat2'
   const teamID = p.teamID
-  const filterServices = p.filterServices ?? noServices
+  const filterServices = p.filterServices
   const goButtonLabel = p.goButtonLabel ?? 'Start'
 
   const dispatch = Container.useDispatch()
