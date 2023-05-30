@@ -57,15 +57,16 @@ const getLinuxPaths = () => {
     )
   }
 
-  const logDir = (useXDG && env.XDG_CACHE_HOME) || Path.join(homeEnv, '.cache', appName)
+  const logDir = (useXDG && Path.join(env.XDG_CACHE_HOME, appName)) || Path.join(homeEnv, '.cache', appName)
 
   return {
     cacheRoot: logDir,
-    dataRoot: (useXDG && env.XDG_DATA_HOME) || Path.join(homeEnv, '.local/share', appName),
+    dataRoot:
+      (useXDG && Path.join(env.XDG_DATA_HOME, appName)) || Path.join(homeEnv, '.local', 'share', appName),
     guiConfigFilename: Path.join(homeConfigDir, appName, 'gui_config.json'),
-    jsonDebugFileName: `${logDir}keybase.app.debug`,
+    jsonDebugFileName: Path.join(logDir, 'keybase.app.debug'),
     logDir,
-    serverConfigFileName: `${logDir}keybase.app.serverConfig`,
+    serverConfigFileName: Path.join(logDir, 'keybase.app.serverConfig'),
     socketPath: Path.join(socketDir, appName, socketName),
   }
 }
