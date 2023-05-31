@@ -38,7 +38,6 @@
 .text_BodyTinySemibold,
 .text_BodyTinySemiboldItalic,
 .text_BodySmallSemibold,
-.text_Nyctographic,
 .text_Terminal,
 .text_TerminalComment,
 .text_TerminalEmpty,
@@ -56,7 +55,6 @@
 .darkMode .text_HeaderExtrabold,
 .darkMode .text_BodyBig,
 .darkMode .text_BodyBigExtrabold,
-.darkMode .text_Nyctographic,
 .darkMode .text_BodyExtrabold,
 .darkMode .text_BodySemiboldItalic,
 .darkMode .text_BodyBold,
@@ -134,9 +132,6 @@
 .text_BodySmallWallet,
 .text_BodyTiny,
 .text_BodyTinyLink,
-.text_Nyctographic {
-  font-weight: 400;
-}
 .text_BodyBig,
 .text_BodyBigLink,
 .text_BodySemibold,
@@ -239,12 +234,6 @@
 .text_BodySmallSemibold {
   font-size: 13px;
   line-height: 17px;
-}
-
-.text_Nyctographic {
-  font-size: 14px;
-  line-height: 18px;
-  font-family: Nyctographic;
 }
 
 .text_Terminal,
