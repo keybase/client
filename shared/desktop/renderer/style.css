@@ -141,14 +141,6 @@ table {
   font-style: normal;
 }
 
-/* Nyctographic font */
-@font-face {
-  font-family: 'Nyctographic';
-  src: url('../../fonts/Nyctographic.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}
-
 /* Source Code Pro */
 @font-face {
   font-family: 'Source Code Pro';

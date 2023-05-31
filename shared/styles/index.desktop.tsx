@@ -30,11 +30,6 @@ const font = {
     fontFamily: 'Keybase',
     fontWeight: 800,
   },
-  fontNyctographic: {
-    ...fontCommon,
-    fontFamily: 'Nyctographic',
-    fontWeight: 400,
-  },
   fontRegular: {
     ...fontCommon,
     fontFamily: 'Keybase',

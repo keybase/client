@@ -39,7 +39,6 @@ export const allTextTypes = {
   HeaderBig: 'HeaderBig',
   HeaderBigExtrabold: 'HeaderBigExtrabold',
   HeaderLink: 'HeaderLink',
-  Nyctographic: 'Nyctographic',
   Terminal: 'Terminal',
   TerminalComment: 'TerminalComment',
   TerminalEmpty: 'TerminalEmpty',
