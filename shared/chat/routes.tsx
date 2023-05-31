@@ -18,7 +18,7 @@ import type ChatInstallBotPick from './conversation/bot/team-picker'
 import type ChatLocationPopup from './conversation/input-area/normal/location-popup'
 import type ChatNewChat from '../team-building/container'
 import type ChatPDF from './pdf'
-import type ChatPaymentsConfirm from './payments/confirm/container'
+// import type ChatPaymentsConfirm from './payments/confirm/container'
 import type ChatRoot from './inbox/container'
 import type ChatSearchBot from './conversation/bot/search'
 import type ChatShowNewTeamDialog from './new-team-dialog-container'
@@ -34,6 +34,10 @@ export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
   chatEnterPaperkey: {
     getScreen: (): typeof ChatEnterPaperkey => require('./conversation/rekey/enter-paper-key').default,
+  },
+  // was modal
+  chatPaymentsConfirm: {
+    getScreen: () => require('../wallets/keep').default,
   },
   chatRoot: {
     getOptions: ({navigation, route}) =>
@@ -100,9 +104,11 @@ export const newModalRoutes = {
   },
   chatNewChat: {getScreen: (): typeof ChatNewChat => require('../team-building/container').default},
   chatPDF: {getScreen: (): typeof ChatPDF => require('./pdf').default},
+  /*
   chatPaymentsConfirm: {
     getScreen: (): typeof ChatPaymentsConfirm => require('./payments/confirm/container').default,
   },
+*/
   chatSearchBots: {
     getScreen: (): typeof ChatSearchBot => require('./conversation/bot/search').default,
   },

@@ -1814,11 +1814,15 @@ const messageSend = async (
       {
         customResponseIncomingCallMap: {
           'chat.1.chatUi.chatStellarDataConfirm': ({summary}, response) => {
-            storeStellarConfirmWindowResponse(false, response)
+            // immediate fail
+            response.result(false)
+            //storeStellarConfirmWindowResponse(false, response)
             return Chat2Gen.createSetPaymentConfirmInfo({summary})
           },
           'chat.1.chatUi.chatStellarDataError': ({error}, response) => {
-            storeStellarConfirmWindowResponse(false, response)
+            // immediate fail
+            response.result(false)
+            //storeStellarConfirmWindowResponse(false, response)
             return Chat2Gen.createSetPaymentConfirmInfo({error})
           },
         },

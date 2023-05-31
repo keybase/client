@@ -1,3 +1,4 @@
+import type * as Types from '../constants/types/wallets'
 /*
 import type {TeamBuilderProps} from '../team-building/container'
 import {isPhone} from '../constants/platform'
@@ -138,9 +139,7 @@ export const newRoutes = {
   createNewAccount: Keep,
   keybaseLinkError: Keep,
   linkExisting: Keep,
-  reallyRemoveAccount: Keep,
   receive: Keep,
-  removeAccount: Keep,
   renameAccount: Keep,
   sep7Confirm: Keep,
   setDefaultAccount: Keep,
@@ -150,9 +149,18 @@ export const newRoutes = {
   whatIsStellarModal: Keep,
 }
 
-export const newModalRoutes = {}
+export const newModalRoutes = {
+  reallyRemoveAccount: {
+    getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup,
+  },
+  removeAccount: {
+    getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup,
+  },
+}
 
 export type RootParamListWallets = {
+  removeAccount: {accountID: Types.AccountID}
+  reallyRemoveAccount: {accountID: Types.AccountID}
   whatIsStellarModal: undefined
   walletTeamBuilder: undefined
   keybaseLinkError: undefined
@@ -161,12 +169,10 @@ export type RootParamListWallets = {
   transactionDetails: undefined
   sendReceiveForm: undefined
   pickAssetForm: undefined
-  removeAccount: undefined
   createNewAccount: undefined
   trustline: undefined
   receive: undefined
   linkExisting: undefined
-  reallyRemoveAccount: undefined
   renameAccount: undefined
   settings: undefined
   qrScan: undefined

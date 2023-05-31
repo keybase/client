@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as WalletsGen from '../actions/wallets-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
@@ -11,10 +12,14 @@ import shallowEqual from 'shallowequal'
 
 const Row = (p: {account: Types.Account}) => {
   const {account} = p
-  const {name, accountID, deviceReadOnly, balanceDescription} = account
+  const {name, accountID, deviceReadOnly, balanceDescription, isDefault} = account
   const [sk, setSK] = React.useState('')
   const [err, setErr] = React.useState('')
   const getSecretKey = Container.useRPC(RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise)
+  const dispatch = Container.useDispatch()
+  const onRemove = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'removeAccount'}]}))
+  }, [dispatch, accountID])
   const onCopied = React.useCallback(() => {
     setSK('')
     setErr('')
@@ -34,42 +39,61 @@ const Row = (p: {account: Types.Account}) => {
   }, [getSecretKey, accountID])
 
   return (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start" fullWidth={true}>
-      <Kb.Text type="BodyBold">{name}</Kb.Text>
-      <Kb.Text type="Body" title={accountID} lineClamp={1} style={styles.accountID}>
-        ID: {accountID}
-      </Kb.Text>
-      <Kb.Text type="Body" lineClamp={1}>
-        Balance: {balanceDescription}
+    <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start" style={styles.row}>
+      <Kb.Text type="BodyBold">
+        {name}
+        {isDefault ? ' (default)' : ''}
       </Kb.Text>
       <Kb.Box2
-        direction="horizontal"
-        gap="small"
-        alignSelf="flex-start"
-        alignItems="center"
-        style={styles.reveal}
+        direction="vertical"
+        gap="tiny"
         fullWidth={true}
+        style={styles.rowContents}
+        alignItems="flex-start"
       >
-        <Kb.Text type="BodySmallSemibold" style={styles.label}>
-          Secret key
+        <Kb.Text type="Body" title={accountID} lineClamp={1} style={styles.accountID}>
+          ID: {accountID}
         </Kb.Text>
-        {deviceReadOnly ? (
-          <Kb.Text type="Body">
-            You can only view your secret key on mobile devices because this is a mobile-only account.
+        <Kb.Text type="Body" lineClamp={1}>
+          Balance: {balanceDescription}
+        </Kb.Text>
+        <Kb.Box2
+          direction="horizontal"
+          gap="small"
+          alignSelf="flex-start"
+          alignItems="center"
+          style={styles.reveal}
+          fullWidth={true}
+        >
+          <Kb.Text type="BodySmallSemibold" style={styles.label}>
+            Secret key
           </Kb.Text>
-        ) : (
-          <Kb.CopyText
-            multiline={true}
-            withReveal={true}
-            loadText={onReveal}
-            hideOnCopy={true}
-            onCopy={onCopied}
-            text={sk}
-            placeholderText="fetching and decrypting secret key..."
-          />
-        )}
+          {deviceReadOnly ? (
+            <Kb.Text type="Body">
+              You can only view your secret key on mobile devices because this is a mobile-only account.
+            </Kb.Text>
+          ) : (
+            <Kb.CopyText
+              multiline={true}
+              withReveal={true}
+              loadText={onReveal}
+              hideOnCopy={true}
+              onCopy={onCopied}
+              text={sk}
+              placeholderText="fetching and decrypting secret key..."
+            />
+          )}
+        </Kb.Box2>
+        {err ? <Kb.Text type="Body">Error: {err}</Kb.Text> : null}
       </Kb.Box2>
-      {err ? <Kb.Text type="Body">Error: {err}</Kb.Text> : null}
+      <Kb.Button
+        type="Danger"
+        label={isDefault ? "Can't remove default" : 'Remove account'}
+        onClick={onRemove}
+        small={true}
+        style={styles.remove}
+        disabled={isDefault}
+      />
     </Kb.Box2>
   )
 }
@@ -118,11 +142,12 @@ export default () => {
           <>
             <Kb.Text type="Body">
               If you have created a Stellar wallet in Keybase you can access your private keys below. In the
-              near future transactions through the Keybase app will stop functioning
+              near future transactions through the Keybase app will stop functioning. Export your private keys
+              and import them in other Stellar wallets.
             </Kb.Text>
             <Kb.Banner color="yellow" inline={true}>
-              Only paste your secret key in 100% safe places. Anyone with this key could steal your
-              Stellar&nbsp;account.
+              Only paste your secret key in 100% safe places. Anyone with this key could steal your Stellar
+              account.
             </Kb.Banner>
             {rows}
           </>
@@ -140,12 +165,22 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       accountID: Styles.platformStyles({
-        common: {width: 430},
         isElectron: {wordBreak: 'break-all'},
       }),
       container: {padding: Styles.globalMargins.small},
       label: {flexShrink: 0},
+      remove: {alignSelf: 'flex-end'},
       reveal: {width: Styles.isMobile ? '100%' : '75%'},
+      row: {
+        backgroundColor: Styles.globalColors.blueGreyLight,
+        borderRadius: Styles.borderRadius,
+        flexShrink: 0,
+        padding: 8,
+        width: '75%',
+      },
+      rowContents: {
+        padding: 8,
+      },
       scroll: {flexGrow: 1},
     } as const)
 )
