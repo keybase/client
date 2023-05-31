@@ -4,6 +4,7 @@ import * as WalletsGen from '../actions/wallets-gen'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
+import * as Constants from '../constants/wallets'
 import type * as Types from '../constants/types/wallets'
 import {useFocusEffect} from '@react-navigation/native'
 import shallowEqual from 'shallowequal'
@@ -75,12 +76,23 @@ const Row = (p: {account: Types.Account}) => {
 
 export default () => {
   const dispatch = Container.useDispatch()
+  const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
+  const checkDisclaimer = Container.useRPC(RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise)
 
   useFocusEffect(
     React.useCallback(() => {
       dispatch(WalletsGen.createLoadAccounts({reason: 'initial-load'}))
+      checkDisclaimer(
+        [undefined, Constants.loadAccountsWaitingKey],
+        r => {
+          setAcceptedDisclaimer(r)
+        },
+        () => {
+          setAcceptedDisclaimer(false)
+        }
+      )
       return () => {}
-    }, [dispatch])
+    }, [dispatch, checkDisclaimer])
   )
 
   const accounts = Container.useSelector(state => {
@@ -91,21 +103,34 @@ export default () => {
     })
   }, shallowEqual)
 
+  const loading = Container.useSelector(state =>
+    Container.anyWaiting(state, Constants.loadAccountsWaitingKey)
+  )
+
   const rows = accounts.map((a, idx) => <Row account={a} key={String(idx)} />)
 
   return (
     <Kb.ScrollView style={styles.scroll}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
-        <Kb.Text type="Header">Stellar Wallets are no longer supported in Keybase</Kb.Text>
-        <Kb.Text type="Body">
-          If you have created a Stellar wallet in Keybase you can access your private keys below. In the near
-          future transactions through the Keybase app will stop functioning
-        </Kb.Text>
-        <Kb.Banner color="yellow" inline={true}>
-          Only paste your secret key in 100% safe places. Anyone with this key could steal your
-          Stellar&nbsp;account.
-        </Kb.Banner>
-        {rows}
+        {loading ? <Kb.ProgressIndicator /> : null}
+        <Kb.Text type="BodyBig">Stellar Wallets are no longer supported in Keybase</Kb.Text>
+        {acceptedDisclaimer ? (
+          <>
+            <Kb.Text type="Body">
+              If you have created a Stellar wallet in Keybase you can access your private keys below. In the
+              near future transactions through the Keybase app will stop functioning
+            </Kb.Text>
+            <Kb.Banner color="yellow" inline={true}>
+              Only paste your secret key in 100% safe places. Anyone with this key could steal your
+              Stellar&nbsp;account.
+            </Kb.Banner>
+            {rows}
+          </>
+        ) : (
+          <Kb.Text type="Body">
+            It looks like you never setup your Stellar wallet, enjoy this empty space for a little while
+          </Kb.Text>
+        )}
       </Kb.Box2>
     </Kb.ScrollView>
   )
