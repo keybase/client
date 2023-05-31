@@ -1,0 +1,126 @@
+import * as React from 'react'
+import * as Kb from '../common-adapters'
+import * as WalletsGen from '../actions/wallets-gen'
+import * as Styles from '../styles'
+import * as Container from '../util/container'
+import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
+import type * as Types from '../constants/types/wallets'
+import {useFocusEffect} from '@react-navigation/native'
+import shallowEqual from 'shallowequal'
+
+const Row = (p: {account: Types.Account}) => {
+  const {account} = p
+  const {name, accountID, deviceReadOnly, balanceDescription} = account
+  const [sk, setSK] = React.useState('')
+  const [err, setErr] = React.useState('')
+  const getSecretKey = Container.useRPC(RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise)
+  const onCopied = React.useCallback(() => {
+    setSK('')
+    setErr('')
+  }, [])
+  const onReveal = React.useCallback(() => {
+    setErr('')
+    setSK('')
+    getSecretKey(
+      [{accountID}],
+      r => {
+        setSK(r)
+      },
+      e => {
+        setErr(e?.desc)
+      }
+    )
+  }, [getSecretKey, accountID])
+
+  return (
+    <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start" fullWidth={true}>
+      <Kb.Text type="BodyBold">{name}</Kb.Text>
+      <Kb.Text type="Body" title={accountID} lineClamp={1} style={styles.accountID}>
+        ID: {accountID}
+      </Kb.Text>
+      <Kb.Text type="Body" lineClamp={1}>
+        Balance: {balanceDescription}
+      </Kb.Text>
+      <Kb.Box2
+        direction="horizontal"
+        gap="small"
+        alignSelf="flex-start"
+        alignItems="center"
+        style={styles.reveal}
+        fullWidth={true}
+      >
+        <Kb.Text type="BodySmallSemibold" style={styles.label}>
+          Secret key
+        </Kb.Text>
+        {deviceReadOnly ? (
+          <Kb.Text type="Body">
+            You can only view your secret key on mobile devices because this is a mobile-only account.
+          </Kb.Text>
+        ) : (
+          <Kb.CopyText
+            multiline={true}
+            withReveal={true}
+            loadText={onReveal}
+            hideOnCopy={true}
+            onCopy={onCopied}
+            text={sk}
+            placeholderText="fetching and decrypting secret key..."
+          />
+        )}
+      </Kb.Box2>
+      {err ? <Kb.Text type="Body">Error: {err}</Kb.Text> : null}
+    </Kb.Box2>
+  )
+}
+
+export default () => {
+  const dispatch = Container.useDispatch()
+
+  useFocusEffect(
+    React.useCallback(() => {
+      dispatch(WalletsGen.createLoadAccounts({reason: 'initial-load'}))
+      return () => {}
+    }, [dispatch])
+  )
+
+  const accounts = Container.useSelector(state => {
+    return [...state.wallets.accountMap.values()].sort((a, b) => {
+      if (a.isDefault) return -1
+      if (b.isDefault) return 1
+      return a.name < b.name ? -1 : 1
+    })
+  }, shallowEqual)
+
+  const rows = accounts.map((a, idx) => <Row account={a} key={String(idx)} />)
+
+  return (
+    <Kb.ScrollView style={styles.scroll}>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
+        <Kb.Text type="Header">Stellar Wallets are no longer supported in Keybase</Kb.Text>
+        <Kb.Text type="Body">
+          If you have created a Stellar wallet in Keybase you can access your private keys below. In the near
+          future transactions through the Keybase app will stop functioning
+        </Kb.Text>
+        <Kb.Banner color="yellow" inline={true}>
+          Only paste your secret key in 100% safe places. Anyone with this key could steal your
+          Stellar&nbsp;account.
+        </Kb.Banner>
+        {rows}
+      </Kb.Box2>
+    </Kb.ScrollView>
+  )
+}
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      accountID: Styles.platformStyles({
+        common: {width: 430},
+        isElectron: {wordBreak: 'break-all'},
+      }),
+      container: {padding: Styles.globalMargins.small},
+      label: {flexShrink: 0},
+      reveal: {width: Styles.isMobile ? '100%' : '75%'},
+      scroll: {flexGrow: 1},
+    } as const)
+)

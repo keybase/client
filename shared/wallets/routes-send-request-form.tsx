@@ -1,3 +1,4 @@
+/*
 import * as Constants from '../constants/wallets'
 import type ChooseAsset from './send-form/choose-asset/container'
 import type PickAsset from './send-form/pick-asset'
@@ -17,4 +18,17 @@ export const newModalRoutes = {
   },
   qrScan: {getScreen: (): typeof QRScan => require('./qr-scan/container').default},
   sendReceiveForm: {getScreen: (): typeof SendForm => require('./send-form/container').default},
+}
+
+*/
+
+import * as Constants from '../constants/wallets'
+const Keep = {getScreen: () => require('./keep').default}
+
+export const newModalRoutes = {
+  [Constants.chooseAssetFormRouteKey]: Keep,
+  [Constants.pickAssetFormRouteKey]: Keep,
+  [Constants.confirmFormRouteKey]: Keep,
+  qrScan: Keep,
+  sendReceiveForm: Keep,
 }
