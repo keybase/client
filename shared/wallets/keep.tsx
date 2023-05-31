@@ -39,7 +39,13 @@ const Row = (p: {account: Types.Account}) => {
   }, [getSecretKey, accountID])
 
   return (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" alignItems="flex-start" style={styles.row}>
+    <Kb.Box2
+      direction="vertical"
+      alignSelf="flex-start"
+      alignItems="flex-start"
+      style={styles.row}
+      fullWidth={Styles.isMobile}
+    >
       <Kb.Text type="BodyBold">
         {name}
         {isDefault ? ' (default)' : ''}
@@ -74,6 +80,7 @@ const Row = (p: {account: Types.Account}) => {
             </Kb.Text>
           ) : (
             <Kb.CopyText
+              containerStyle={styles.copyText}
               multiline={true}
               withReveal={true}
               loadText={onReveal}
@@ -135,7 +142,7 @@ export default () => {
 
   return (
     <Kb.ScrollView style={styles.scroll}>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         {loading ? <Kb.ProgressIndicator /> : null}
         <Kb.Text type="BodyBig">Stellar Wallets are no longer supported in Keybase</Kb.Text>
         {acceptedDisclaimer ? (
@@ -149,13 +156,13 @@ export default () => {
               Only paste your secret key in 100% safe places. Anyone with this key could steal your Stellar
               account.
             </Kb.Banner>
-            {rows}
           </>
         ) : (
           <Kb.Text type="Body">
             It looks like you never setup your Stellar wallet, enjoy this empty space for a little while
           </Kb.Text>
         )}
+        {acceptedDisclaimer ? rows : null}
       </Kb.Box2>
     </Kb.ScrollView>
   )
@@ -168,16 +175,29 @@ const styles = Styles.styleSheetCreate(
         isElectron: {wordBreak: 'break-all'},
       }),
       container: {padding: Styles.globalMargins.small},
+      copyText: Styles.platformStyles({
+        isMobile: {
+          flexShrink: 1,
+          width: '100%',
+        },
+      }),
       label: {flexShrink: 0},
       remove: {alignSelf: 'flex-end'},
-      reveal: {width: Styles.isMobile ? '100%' : '75%'},
-      row: {
-        backgroundColor: Styles.globalColors.blueGreyLight,
-        borderRadius: Styles.borderRadius,
-        flexShrink: 0,
-        padding: 8,
-        width: '75%',
-      },
+      reveal: {width: Styles.isMobile ? undefined : '75%'},
+      row: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGreyLight,
+          borderRadius: Styles.borderRadius,
+          flexShrink: 0,
+        },
+        isElectron: {
+          padding: 8,
+          width: '75%',
+        },
+        isMobile: {
+          padding: 3,
+        },
+      }),
       rowContents: {
         padding: 8,
       },

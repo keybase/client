@@ -123,7 +123,7 @@ export type RootParamListWallets = {
 }
 */
 
-const Keep = {getScreen: () => require('./keep').default}
+const Keep = {getOptions: () => ({title: 'Wallet'}), getScreen: () => require('./keep').default}
 
 export const sharedRoutes = {
   settings: Keep,
