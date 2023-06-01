@@ -76,6 +76,9 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
       ? ('sent' as const)
       : ('pending' as const)
     const hasReactions = (m?.reactions?.size ?? 0) > 0
+    // TEMP
+    // const TEMP = m.text.stringValue()
+    // console.log('aaa', ordinal, TEMP.substring(0, 10))
     return {hasReactions, isEditing, textType}
   }, shallowEqual)
 

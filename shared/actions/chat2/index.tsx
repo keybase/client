@@ -1407,10 +1407,10 @@ const messageEdit = async (
     }
     const meta = Constants.getMeta(state, conversationIDKey)
     const tlfName = meta.tlfname
-    const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+    const clientPrev = message.id ? Constants.getClientPrev(state, conversationIDKey) : 0
     const outboxID = Constants.generateOutboxID()
     const target = {
-      messageID: message.id,
+      ...(message.id ? {messageID: message.id} : {}),
       outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : null,
     }
     await RPCChatTypes.localPostEditNonblockRpcPromise(
