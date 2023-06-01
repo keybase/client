@@ -512,6 +512,7 @@ class User extends React.Component<Props2, State> {
     )
   }
 }
+UserWrap.navigationOptions = User.navigationOptions
 
 // don't bother to keep this in the store
 const usernameSelectedTab = {}
