@@ -44,49 +44,51 @@ const NavMobileHeader = (props: Props) => {
   }, [dispatch, props.path])
 
   return props.path === Constants.defaultPath ? (
-    <>
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        style={Styles.collapseStyles([styles.headerContainer, getHeightStyle(getBaseHeight(props.path))])}
-        centerChildren={true}
-      >
+    <Kb.SafeAreaViewTop>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer} centerChildren={true}>
         <Kb.Text type="BodyBig">Files</Kb.Text>
       </Kb.Box2>
       <MainBanner />
-    </>
+    </Kb.SafeAreaViewTop>
   ) : (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
-      {expanded ? (
-        <Kbfs.FolderViewFilter path={props.path} onCancel={filterDone} />
-      ) : (
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
-          {props.onBack && (
-            <Kb.BackButton
-              badgeNumber={0 /* TODO KBFS-4109 */}
-              onClick={props.onBack}
-              style={styles.backButton}
-            />
-          )}
-          <Kb.Box style={styles.gap} />
-          <Actions path={props.path} onTriggerFilterMobile={triggerFilterMobile} />
+    <Kb.SafeAreaViewTop>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer}>
+        {expanded ? (
+          <Kbfs.FolderViewFilter path={props.path} onCancel={filterDone} />
+        ) : (
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedTopContainer}>
+            {props.onBack && (
+              <Kb.BackButton
+                badgeNumber={0 /* TODO KBFS-4109 */}
+                onClick={props.onBack}
+                style={styles.backButton}
+              />
+            )}
+            <Kb.Box style={styles.gap} />
+            <Actions path={props.path} onTriggerFilterMobile={triggerFilterMobile} />
+          </Kb.Box2>
+        )}
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.expandedTitleContainer}>
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            alignItems="flex-start"
+            gap="xxtiny"
+            gapStart={true}
+          >
+            <Kbfs.PathStatusIcon path={props.path} showTooltipOnPressMobile={true} />
+            <Kbfs.Filename path={props.path} selectable={true} type="BodyBig" style={styles.filename} />
+          </Kb.Box2>
+          <MaybePublicTag path={props.path} />
         </Kb.Box2>
-      )}
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.expandedTitleContainer}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start" gap="xxtiny" gapStart={true}>
-          <Kbfs.PathStatusIcon path={props.path} showTooltipOnPressMobile={true} />
-          <Kbfs.Filename path={props.path} selectable={true} type="BodyBig" style={styles.filename} />
-        </Kb.Box2>
-        <MaybePublicTag path={props.path} />
+        <MainBanner />
       </Kb.Box2>
-      <MainBanner />
-    </Kb.Box2>
+    </Kb.SafeAreaViewTop>
   )
 }
 
 const getBaseHeight = (path: Types.Path) => {
   return (
-    Styles.statusBarHeight +
     44 +
     (path === Constants.defaultPath
       ? Styles.headerExtraHeight
@@ -109,8 +111,6 @@ export const useHeaderHeight = (path: Types.Path) => {
       return base + 73
   }
 }
-
-const getHeightStyle = (height: number) => ({height, maxHeight: height, minHeight: height})
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -155,7 +155,7 @@ const styles = Styles.styleSheetCreate(
         borderBottomColor: Styles.globalColors.black_10,
         borderBottomWidth: 1,
         borderStyle: 'solid',
-        paddingTop: Styles.isAndroid ? undefined : Styles.statusBarHeight,
+        minHeight: 44,
       },
     } as const)
 )
