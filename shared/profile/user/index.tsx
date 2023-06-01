@@ -319,7 +319,16 @@ type ChunkType = Array<
   | {type: 'noFriends'; text: string}
   | {type: 'loading'; text: string}
 >
-class User extends React.Component<Props, State> {
+
+// TODO move container and get rid of this simple wrapper
+const UserWrap = (p: Props) => {
+  const insets = Kb.useSafeAreaInsets()
+  return <User {...p} insetTop={insets.top} />
+}
+
+type Props2 = Props & {insetTop: number}
+
+class User extends React.Component<Props2, State> {
   static navigationOptions = {
     headerLeft: ({
       canGoBack,
@@ -340,7 +349,7 @@ class User extends React.Component<Props, State> {
     headerTransparent: true,
   }
 
-  constructor(props: Props) {
+  constructor(props: Props2) {
     super(props)
     this.state = {
       selectedTab: usernameSelectedTab[props.username] || 'followers',
@@ -455,6 +464,11 @@ class User extends React.Component<Props, State> {
       }
     }
 
+    const containerStyle = {
+      paddingTop:
+        (Styles.isAndroid ? 56 : Styles.isTablet ? 80 : Styles.isIOS ? 46 : 80) + this.props.insetTop,
+    }
+
     return (
       <Kb.Reloadable
         reloadOnMount={true}
@@ -467,7 +481,7 @@ class User extends React.Component<Props, State> {
           direction="vertical"
           fullWidth={true}
           fullHeight={true}
-          style={Styles.collapseStyles([styles.container, colorTypeToStyle(this.props.backgroundColorType)])}
+          style={Styles.collapseStyles([containerStyle, colorTypeToStyle(this.props.backgroundColorType)])}
         >
           <Kb.Box2 direction="vertical" style={styles.innerContainer}>
             {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
@@ -511,6 +525,8 @@ const headerHeight = Styles.isAndroid
   ? Styles.statusBarHeight + 46
   : 80
 
+console.log('aaa', headerHeight, Styles.statusBarHeight)
+
 export const styles = Styles.styleSheetCreate(() => ({
   addIdentityButton: {
     marginBottom: Styles.globalMargins.xsmall,
@@ -542,7 +558,6 @@ export const styles = Styles.styleSheetCreate(() => ({
     isElectron: {paddingTop: Styles.globalMargins.tiny},
     isMobile: {paddingBottom: Styles.globalMargins.small},
   }),
-  container: {paddingTop: headerHeight},
   followTab: Styles.platformStyles({
     common: {
       alignItems: 'center',
@@ -657,4 +672,4 @@ export const styles = Styles.styleSheetCreate(() => ({
   typedBackgroundRed: {backgroundColor: Styles.globalColors.red},
 }))
 
-export default User
+export default UserWrap
