@@ -253,6 +253,50 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
 
 const simpleMarkdownParser = SimpleMarkdown.parserFor(rules)
 
+const noRules: {[type: string]: SimpleMarkdown.ParserRule} = {
+  // we prevent matching against text if we're mobile and we aren't in a paragraph. This is because
+  // in Mobile you can't have text outside a text tag, and a paragraph is what adds the text tag.
+  // This is just a fallback (note the order) in case nothing else matches. It wraps the content in
+  // a paragraph and tries to match again. Won't fallback on itself. If it's already in a paragraph,
+  // it won't match.
+  fallbackParagraph: {
+    match: (source: string, state: SimpleMarkdown.State, _prevCapture: string) =>
+      Styles.isMobile && !state.inParagraph ? [source] : null,
+    order: 10000,
+    parse: (
+      capture: SimpleMarkdown.Capture,
+      nestedParse: SimpleMarkdown.Parser,
+      state: SimpleMarkdown.State
+    ) => wrapInParagraph(nestedParse, capture[0], state),
+  },
+  paragraph: {
+    ...SimpleMarkdown.defaultRules.paragraph,
+    // original:
+    // match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)(?:\n *)+\n/),
+    // ours: allow simple empty blocks, stop before a block quote or a code block (aka fence)
+    match: SimpleMarkdown.blockRegex(/^((?:[^\n`]|(?:`(?!``))|\n(?!(?: *\n| *>)))+)\n?/),
+    parse: (
+      capture: SimpleMarkdown.Capture,
+      nestedParse: SimpleMarkdown.Parser,
+      state: SimpleMarkdown.State
+    ) => {
+      // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
+      const content = Styles.isMobile ? capture[1].replace(/\n$/, '') : capture[1]
+      return {content: SimpleMarkdown.parseInline(nestedParse, content, {...state, inParagraph: true})}
+    },
+  },
+  text: {
+    ...SimpleMarkdown.defaultRules.text,
+    // original:
+    // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
+    // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
+    // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
+    match: (source: string, state: SimpleMarkdown.State, _prevCapture: string) =>
+      Styles.isMobile && !state.inParagraph ? null : [source],
+  },
+}
+const noMarkdownParser = SimpleMarkdown.parserFor(noRules)
+
 const isAllEmoji = ast => {
   const trimmed = ast.filter(n => n.type !== 'newline')
   // Only 1 paragraph
@@ -262,6 +306,8 @@ const isAllEmoji = ast => {
   }
   return false
 }
+
+const tooLong = 10000
 
 class SimpleMarkdownComponent extends React.PureComponent<MarkdownProps, {hasError: boolean}> {
   state = {hasError: false}
@@ -291,13 +337,19 @@ class SimpleMarkdownComponent extends React.PureComponent<MarkdownProps, {hasErr
     let parseTree: Array<SimpleMarkdown.SingleASTNode>
     let output: React.ReactNode
     try {
-      parseTree = simpleMarkdownParser((this.props.children || '').trim() + '\n', {
+      const options = {
         // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
         // So we add our own new line
         disableAutoBlockNewlines: true,
         inline: false,
         messageType: this.props.messageType,
-      })
+      }
+
+      const useNoParser = (this.props.children?.length ?? 0) > tooLong
+
+      parseTree = useNoParser
+        ? noMarkdownParser(this.props.children + '\n', options)
+        : simpleMarkdownParser((this.props.children || '').trim() + '\n', options)
 
       const state = {
         allowFontScaling,
