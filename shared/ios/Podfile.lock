@@ -28,7 +28,7 @@ PODS:
   - EXMediaLibrary (15.2.3):
     - ExpoModulesCore
     - React-Core
-  - Expo (48.0.17):
+  - Expo (48.0.19):
     - ExpoModulesCore
   - ExpoClipboard (4.2.0):
     - ExpoModulesCore
@@ -482,7 +482,7 @@ PODS:
     - React-Core
   - RNCPushNotificationIOS (1.11.0):
     - React-Core
-  - RNGestureHandler (2.10.1):
+  - RNGestureHandler (2.10.2):
     - React-Core
   - RNReanimated (3.2.0):
     - DoubleConversion
@@ -815,7 +815,7 @@ SPEC CHECKSUMS:
   EXImageLoader: fd053169a8ee932dd83bf1fe5487a50c26d27c2b
   EXLocation: 74a0ba446f54fd585ea6cfcd19a25644bf22c30d
   EXMediaLibrary: 587cd8aad27a6fc8d7c38b950bc75bc1845a7480
-  Expo: d351b4546895fb99ae4e5a1bc39df770ab9dc7d1
+  Expo: 8448e3a2aa1b295f029c81551e1ab6d986517fdb
   ExpoClipboard: 872ae8ea230649404705b7cc09a155531e74b7bb
   ExpoHaptics: 5156bc5160d8e04c170dd6e645a71154951a2ad9
   ExpoImage: 60f8d8182e8e13b5f5c2bb6bc860c933b2fe6c25
@@ -884,7 +884,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: 949696f25ec596bfc697fc88e6f95cf0c79669b6
   RNCPicker: 0bc2f0a29abcca7b7ed44a2d036aac9ab6d25700
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
-  RNGestureHandler: 42ec7c28dd02d540ed6c9159c57a98ff016492dc
+  RNGestureHandler: f75d81410b40aaa99e71ae8f8bb7a88620c95042
   RNReanimated: c931b356bda56c0196110bdc462e48e4c2668dc3
   RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
   SDWebImage: cb032eba469c54e0000e78bcb0a13cdde0a52798
