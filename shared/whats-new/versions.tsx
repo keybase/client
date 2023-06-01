@@ -94,7 +94,6 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         onPrimaryButtonClick={() => {
           onNavigate({path: [Platform.isMobile ? cryptoTab : encryptTab]})
         }}
-        primaryButtonClassName="buttonNyctographicHover"
         primaryButtonText="Try it"
         seen={seen}
       >

@@ -52,7 +52,6 @@ export declare const globalStyles: {
   }
   fontExtrabold: _fakeFontDefSeeCommentsOnThisStyle
   fontRegular: _fakeFontDefSeeCommentsOnThisStyle
-  fontNyctographic: _fakeFontDefSeeCommentsOnThisStyle
   fontSemibold: _fakeFontDefSeeCommentsOnThisStyle
   fontTerminal: _fakeFontDefSeeCommentsOnThisStyle
   fontTerminalSemibold: _fakeFontDefSeeCommentsOnThisStyle
