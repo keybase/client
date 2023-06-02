@@ -2,7 +2,6 @@ import type * as Types from './types/git'
 import * as dateFns from 'date-fns'
 import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Tabs from './tabs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
 import {logError} from '../util/errors'
@@ -120,7 +119,7 @@ export const useGitState = Container.createZustand(
           if (info.repoID === repoID && info.teamname === teamname) {
             reduxDispatch(
               RouteTreeGen.createNavigateAppend({
-                path: [Tabs.gitTab, {props: {expandedSet: new Set([info.id])}, selected: 'gitRoot'}],
+                path: [{props: {expanded: info.id}, selected: 'gitRoot'}],
               })
             )
             break

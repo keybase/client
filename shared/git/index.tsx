@@ -12,7 +12,7 @@ import {memoize} from '../util/memoize'
 import {union} from '../util/set'
 import {useFocusEffect} from '@react-navigation/core'
 
-type OwnProps = {expandedSet?: Set<string>}
+type OwnProps = {expanded?: string}
 
 // keep track in the module
 let moduleExpandedSet = new Set<string>()
@@ -29,7 +29,7 @@ const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
 )
 
 export default (ownProps: OwnProps) => {
-  const initialExpandedSet = ownProps.expandedSet
+  const initialExpandedSet = ownProps.expanded ? new Set(ownProps.expanded) : undefined
   const error = Constants.useGitState(state => state.error)
   const loading = Container.useSelector(state => anyWaiting(state, Constants.loadingWaitingKey))
   const git = Constants.useGitState(state => state.idToInfo)
