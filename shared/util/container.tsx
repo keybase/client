@@ -21,6 +21,8 @@ import USH from './use-selector'
 export {create as createZustand} from 'zustand'
 export {immer as immerZustand} from 'zustand/middleware/immer'
 
+export const getGlobalStore = () => require('../store/configure-store').getGlobalStore
+
 export const useNav = () => {
   const n = useNavigation()
   const na: {pop?: () => void; navigate: (n: RouteKeys) => void} = n as any

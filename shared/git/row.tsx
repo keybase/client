@@ -19,13 +19,14 @@ type OwnProps = {
   onToggleExpand: (id: string) => void
 }
 
+const noGit = Constants.makeGitInfo()
 const ConnectedRow = (ownProps: OwnProps) => {
   const {id, expanded} = ownProps
-  const git = Container.useSelector(state => state.git.idToInfo.get(id) || Constants.makeGitInfo())
+  const git = Constants.useGitState(state => state.idToInfo.get(id) || noGit)
   const teamID = Container.useSelector(state =>
     git.teamname ? TeamConstants.getTeamID(state, git.teamname) : undefined
   )
-  const isNew = Container.useSelector(state => state.git.isNew.has(id))
+  const isNew = Constants.useGitState(state => state.isNew.has(id))
   const lastEditUserFollowing = Container.useSelector(state => state.config.following.has(git.lastEditUser))
   const you = Container.useSelector(state => state.config.username)
 

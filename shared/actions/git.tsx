@@ -1,6 +1,5 @@
 import type * as Types from '../constants/types/git'
-import * as dateFns from 'date-fns'
-import * as ConfigGen from './config-gen'
+// import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/git'
 import * as RouteTreeGen from './route-tree-gen'
 import * as GitGen from './git-gen'
@@ -21,69 +20,20 @@ const repoIDTeamnameToId = (state: Container.TypedState, repoID: string, teamnam
   return repo ? repo.id : undefined
 }
 
-const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
-  const errors: Array<Error> = []
-  const repos = new Map<string, Types.GitInfo>()
-  results.forEach(result => {
-    if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
-      const parsedRepo = parseRepoResult(result)
-      if (parsedRepo) {
-        repos.set(parsedRepo.id, parsedRepo)
-      }
-    } else {
-      errors.push(parseRepoError(result))
-    }
-  })
-  return {errors, repos}
-}
+// const load = async (state: Container.TypedState) => {
+//   if (!state.config.loggedIn) {
+//     return false
+//   }
 
-const parseRepoResult = (result: RPCTypes.GitRepoResult): Types.GitInfo | undefined => {
-  if (result.state === RPCTypes.GitRepoResultState.ok && result.ok) {
-    const r: RPCTypes.GitRepoInfo = result.ok
-    if (r.folder.folderType === RPCTypes.FolderType.public) {
-      // Skip public repos
-      return undefined
-    }
-    const teamname = r.folder.folderType === RPCTypes.FolderType.team ? r.folder.name : undefined
-    return {
-      canDelete: r.canDelete,
-      channelName: (r.teamRepoSettings && r.teamRepoSettings.channelName) || undefined,
-      chatDisabled: !!r.teamRepoSettings && r.teamRepoSettings.chatDisabled,
-      devicename: r.serverMetadata.lastModifyingDeviceName,
-      id: r.globalUniqueID,
-      lastEditTime: dateFns.formatDistanceToNow(new Date(r.serverMetadata.mtime), {addSuffix: true}),
-      lastEditUser: r.serverMetadata.lastModifyingUsername,
-      name: r.localMetadata.repoName,
-      repoID: r.repoID,
-      teamname,
-      url: r.repoUrl,
-    }
-  }
-  return undefined
-}
-
-const parseRepoError = (result: RPCTypes.GitRepoResult): Error => {
-  let errStr: string = 'unknown'
-  if (result.state === RPCTypes.GitRepoResultState.err && result.err) {
-    errStr = result.err
-  }
-  return new Error(`Git repo error: ${errStr}`)
-}
-
-const load = async (state: Container.TypedState) => {
-  if (!state.config.loggedIn) {
-    return false
-  }
-
-  try {
-    const results = await RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, Constants.loadingWaitingKey)
-    const {errors, repos} = parseRepos(results || [])
-    const errorActions = errors.map(globalError => ConfigGen.createGlobalError({globalError}))
-    return [GitGen.createLoaded({repos}), ...errorActions]
-  } catch (_) {
-    return false
-  }
-}
+//   try {
+//     const results = await RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, Constants.loadingWaitingKey)
+//     const {errors, repos} = parseRepos(results || [])
+//     const errorActions = errors.map(globalError => ConfigGen.createGlobalError({globalError}))
+//     return [GitGen.createLoaded({repos}), ...errorActions]
+//   } catch (_) {
+//     return false
+//   }
+// }
 
 const createPersonalRepo = async (_: unknown, action: GitGen.CreatePersonalRepoPayload) => {
   try {
@@ -167,14 +117,6 @@ const setTeamRepoSettings = async (_: unknown, action: GitGen.SetTeamRepoSetting
   return GitGen.createLoadGit()
 }
 
-const clearNavBadges = async () => {
-  try {
-    await RPCTypes.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
-  } catch (e) {
-    return logError(e)
-  }
-}
-
 const navigateToTeamRepo = async (
   state: Container.TypedState,
   action: GitGen.NavigateToTeamRepoPayload,
@@ -207,7 +149,7 @@ const initGit = () => {
   Container.listenAction(GitGen.createTeamRepo, createTeamRepo)
   Container.listenAction(GitGen.deletePersonalRepo, deletePersonalRepo)
   Container.listenAction(GitGen.deleteTeamRepo, deleteTeamRepo)
-  Container.listenAction([GitGen.repoCreated, GitGen.repoDeleted, GitGen.loadGit], load)
+  //   Container.listenAction([GitGen.repoCreated, GitGen.repoDeleted, GitGen.loadGit], load)
 
   // Team Repos
   Container.listenAction(GitGen.setTeamRepoSettings, setTeamRepoSettings)
@@ -217,7 +159,7 @@ const initGit = () => {
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
 
   // clear on load
-  Container.listenAction(GitGen.loadGit, clearNavBadges)
+  //   Container.listenAction(GitGen.loadGit, clearNavBadges)
 }
 
 export default initGit

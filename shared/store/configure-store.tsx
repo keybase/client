@@ -14,6 +14,8 @@ import {initListeners} from './configure-listeners'
 
 let theStore: Store<any, any>
 
+export const getGlobalStore = () => theStore
+
 export const DEBUGDump = (conversationIDKey: string) => {
   if (!DEBUG_CHAT_DUMP) {
     return

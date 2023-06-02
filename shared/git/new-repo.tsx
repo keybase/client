@@ -13,8 +13,9 @@ type OwnProps = {isTeam: boolean}
 
 export default (ownProps: OwnProps) => {
   const {isTeam} = ownProps
-  const error = Container.useSelector(state => state.git.error)
+  const error = Constants.useGitState(state => state.error)
   const teams = Container.useSelector(state => getSortedTeamnames(state))
+
   const waitingKey = Constants.loadingWaitingKey
 
   const dispatch = Container.useDispatch()

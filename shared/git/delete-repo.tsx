@@ -12,8 +12,8 @@ const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : 
 const emptyGit = Constants.makeGitInfo()
 export default (ownProps: OwnProps) => {
   const {id} = ownProps
-  const git = Container.useSelector(state => state.git.idToInfo.get(id) || emptyGit)
-  const error = Container.useSelector(state => state.git.error)
+  const git = Constants.useGitState(state => state.idToInfo.get(id) || emptyGit)
+  const error = Constants.useGitState(state => state.error)
   const name = git.name || ''
   const teamname = git.teamname || ''
   const waitingKey = Constants.loadingWaitingKey

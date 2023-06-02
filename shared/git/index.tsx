@@ -52,9 +52,9 @@ const GitReloadable = (p: Omit<Props & ExtraProps, 'onToggleExpand'>) => {
 
 export default (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expandedSet
-  const error = Container.useSelector(state => state.git.error)
+  const error = Constants.useGitState(state => state.error)
   const loading = Container.useSelector(state => anyWaiting(state, Constants.loadingWaitingKey))
-  const git = Container.useSelector(state => state.git.idToInfo)
+  const git = Constants.useGitState(state => state.idToInfo)
   const repos = getRepos(git)
 
   const dispatch = Container.useDispatch()
