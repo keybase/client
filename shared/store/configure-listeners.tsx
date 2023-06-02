@@ -6,7 +6,7 @@ import initConfig from '../actions/config'
 import initDeeplinks from '../actions/deeplinks'
 import initDevice from '../actions/devices'
 import initFS from '../actions/fs'
-// import initGit from '../actions/git'
+import initGit from '../actions/git'
 import initGregor from '../actions/gregor'
 import initLogin from '../actions/login'
 import initProvision from '../actions/provision'
@@ -44,7 +44,7 @@ export const initListeners = () => {
   initTeams()
   initUnlockFolders()
   initUsers()
-  // initGit()
+  initGit()
   initPeople()
   initWallets()
   initSignup()

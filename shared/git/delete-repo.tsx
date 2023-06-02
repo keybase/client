@@ -1,6 +1,5 @@
 import * as Constants from '../constants/git'
 import * as Container from '../util/container'
-import * as GitGen from '../actions/git-gen'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -19,11 +18,16 @@ export default (ownProps: OwnProps) => {
   const waitingKey = Constants.loadingWaitingKey
 
   const dispatch = Container.useDispatch()
+
+  const dispatchDeletePersonalRepo = Constants.useGitState(state => state.dispatchDeletePersonalRepo)
+  const dispatchDeleteTeamRepo = Constants.useGitState(state => state.dispatchDeleteTeamRepo)
+
   const _onDelete = (teamname: string | undefined, name: string, notifyTeam: boolean) => {
-    const deleteAction = teamname
-      ? GitGen.createDeleteTeamRepo({name, notifyTeam, teamname})
-      : GitGen.createDeletePersonalRepo({name})
-    dispatch(deleteAction)
+    if (teamname) {
+      dispatchDeleteTeamRepo(name, teamname, notifyTeam)
+    } else {
+      dispatchDeletePersonalRepo(name)
+    }
     dispatch(RouteTreeGen.createNavigateUp())
   }
   const onClose = () => {

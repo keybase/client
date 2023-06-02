@@ -21,7 +21,13 @@ import USH from './use-selector'
 export {create as createZustand} from 'zustand'
 export {immer as immerZustand} from 'zustand/middleware/immer'
 
-export const getGlobalStore = () => require('../store/configure-store').getGlobalStore
+// just then and catch and ignore async functions
+export const ignorePromise = (f: Promise<void>) => {
+  f.then(() => {}).catch(() => {})
+}
+
+export const getReduxDispatch: () => TypedDispatch = () => (a: TypedActions) =>
+  require('../store/configure-store').getGlobalStore().dispatch(a)
 
 export const useNav = () => {
   const n = useNavigation()

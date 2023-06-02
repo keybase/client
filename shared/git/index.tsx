@@ -1,6 +1,5 @@
 import * as Constants from '../constants/git'
 import * as Container from '../util/container'
-import * as GitGen from '../actions/git-gen'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -11,8 +10,12 @@ import type * as Types from '../constants/types/git'
 import {anyWaiting} from '../constants/waiting'
 import {memoize} from '../util/memoize'
 import {union} from '../util/set'
+import {useFocusEffect} from '@react-navigation/core'
 
 type OwnProps = {expandedSet?: Set<string>}
+
+// keep track in the module
+let moduleExpandedSet = new Set<string>()
 
 const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
   sortBy([...git.values()], ['teamname', 'name']).reduce<{personals: Array<string>; teams: Array<string>}>(
@@ -25,94 +28,38 @@ const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
   )
 )
 
-type ExtraProps = {
-  _loadGit: () => void
-  clearBadges: () => void
-  onBack: () => void
-}
-
-const GitReloadable = (p: Omit<Props & ExtraProps, 'onToggleExpand'>) => {
-  const {clearBadges, _loadGit, ...rest} = p
-
-  Container.useOnUnMountOnce(() => {
-    clearBadges()
-  })
-
-  return (
-    <Kb.Reloadable
-      waitingKeys={Constants.loadingWaitingKey}
-      onBack={Container.isMobile ? p.onBack : undefined}
-      onReload={_loadGit}
-      reloadOnMount={true}
-    >
-      <Git {...rest} />
-    </Kb.Reloadable>
-  )
-}
-
 export default (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expandedSet
   const error = Constants.useGitState(state => state.error)
   const loading = Container.useSelector(state => anyWaiting(state, Constants.loadingWaitingKey))
   const git = Constants.useGitState(state => state.idToInfo)
-  const repos = getRepos(git)
+  const loadGit = Constants.useGitState(state => state.dispatchLoad)
+  const clearBadges = Constants.useGitState(state => state.dispatchClearBadges)
+
+  const dispatchSetError = Constants.useGitState(state => state.dispatchSetError)
+  const {personals, teams} = getRepos(git)
 
   const dispatch = Container.useDispatch()
 
-  const _loadGit = () => {
-    dispatch(GitGen.createLoadGit())
-  }
-  const clearBadges = () => {
-    dispatch(GitGen.createClearBadges())
-  }
-  const onBack = () => {
+  const onBack = React.useCallback(() => {
     dispatch(RouteTreeGen.createNavigateUp())
-  }
-  const onNewPersonalRepo = () => {
-    dispatch(GitGen.createSetError({}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]}))
-  }
-  const onNewTeamRepo = () => {
-    dispatch(GitGen.createSetError({}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
-  }
-  const onShowDelete = (id: string) => {
-    dispatch(GitGen.createSetError({}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {id}, selected: 'gitDeleteRepo'}]}))
-  }
-  const props = {
-    ...repos,
-    _loadGit,
-    clearBadges,
-    error,
-    initialExpandedSet,
-    loading,
-    onBack,
-    onNewPersonalRepo,
-    onNewTeamRepo,
-    onShowDelete,
-    repos,
-  }
-  return <GitReloadable {...props} />
-}
+  }, [dispatch])
+  const onShowDelete = React.useCallback(
+    (id: string) => {
+      dispatchSetError(undefined)
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {id}, selected: 'gitDeleteRepo'}]}))
+    },
+    [dispatch, dispatchSetError]
+  )
 
-type Props = {
-  error?: Error
-  loading: boolean
-  initialExpandedSet?: Set<string>
-  onShowDelete: (id: string) => void
-  onNewPersonalRepo: () => void
-  onNewTeamRepo: () => void
-  personals: Array<string>
-  teams: Array<string>
-}
-
-// keep track in the module
-let moduleExpandedSet = new Set<string>()
-
-const Git = (props: Props) => {
-  const {error, loading, personals, teams, initialExpandedSet} = props
-  const {onShowDelete, onNewPersonalRepo, onNewTeamRepo} = props
+  useFocusEffect(
+    React.useCallback(() => {
+      loadGit()
+    }, [loadGit])
+  )
+  Container.useOnUnMountOnce(() => {
+    clearBadges()
+  })
 
   const [expandedSet, setExpandedSet] = React.useState(
     new Set<string>(union(initialExpandedSet ?? new Set(), moduleExpandedSet))
@@ -129,6 +76,16 @@ const Git = (props: Props) => {
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
+      const onNewPersonalRepo = () => {
+        dispatchSetError(undefined)
+        dispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]})
+        )
+      }
+      const onNewTeamRepo = () => {
+        dispatchSetError(undefined)
+        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
+      }
       const {attachTo, toggleShowingPopup} = p
       const menuItems = [
         {icon: 'iconfont-person', onClick: onNewPersonalRepo, title: 'New personal repository'} as const,
@@ -146,47 +103,54 @@ const Git = (props: Props) => {
         />
       )
     },
-    [onNewPersonalRepo, onNewTeamRepo]
+    [dispatch]
   )
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
-      {Styles.isMobile && (
-        <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={toggleShowingPopup}>
-          <Kb.Icon
-            type="iconfont-new"
-            style={{marginRight: Styles.globalMargins.tiny}}
-            color={Styles.globalColors.blue}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
-          <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
-        </Kb.ClickableBox>
-      )}
-      <Kb.SectionList
-        keyExtractor={item => item}
-        sectionKeyExtractor={section => section.title}
-        extraData={expandedSet}
-        renderItem={({item}) => (
-          <Row
-            key={item}
-            expanded={expandedSet.has(item)}
-            id={item}
-            onShowDelete={onShowDelete}
-            onToggleExpand={toggleExpand}
-          />
+    <Kb.Reloadable
+      waitingKeys={Constants.loadingWaitingKey}
+      onBack={Container.isMobile ? onBack : undefined}
+      onReload={loadGit}
+      reloadOnMount={true}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+        {!!error && <Kb.Banner color="red">{error.message}</Kb.Banner>}
+        {Styles.isMobile && (
+          <Kb.ClickableBox ref={popupAnchor} style={styles.header} onClick={toggleShowingPopup}>
+            <Kb.Icon
+              type="iconfont-new"
+              style={{marginRight: Styles.globalMargins.tiny}}
+              color={Styles.globalColors.blue}
+              fontSize={Styles.isMobile ? 20 : 16}
+            />
+            <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
+          </Kb.ClickableBox>
         )}
-        renderSectionHeader={({section}) => (
-          <Kb.SectionDivider label={section.title} showSpinner={section.loading} />
-        )}
-        sections={[
-          {data: personals, loading: loading, title: 'Personal'},
-          {data: teams, loading: loading, title: 'Team'},
-        ]}
-      />
-      {popup}
-    </Kb.Box2>
+        <Kb.SectionList
+          keyExtractor={item => item}
+          sectionKeyExtractor={section => section.title}
+          extraData={expandedSet}
+          renderItem={({item}) => (
+            <Row
+              key={item}
+              expanded={expandedSet.has(item)}
+              id={item}
+              onShowDelete={onShowDelete}
+              onToggleExpand={toggleExpand}
+            />
+          )}
+          renderSectionHeader={({section}) => (
+            <Kb.SectionDivider label={section.title} showSpinner={section.loading} />
+          )}
+          sections={[
+            {data: personals, loading: loading, title: 'Personal'},
+            {data: teams, loading: loading, title: 'Team'},
+          ]}
+        />
+        {popup}
+      </Kb.Box2>
+    </Kb.Reloadable>
   )
 }
 

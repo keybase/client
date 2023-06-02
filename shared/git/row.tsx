@@ -3,7 +3,6 @@ import * as Constants from '../constants/git'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
-import * as GitGen from '../actions/git-gen'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -26,9 +25,11 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const teamID = Container.useSelector(state =>
     git.teamname ? TeamConstants.getTeamID(state, git.teamname) : undefined
   )
-  const isNew = Constants.useGitState(state => state.isNew.has(id))
+  const isNew = Constants.useGitState(state => !!state.isNew?.has(id))
   const lastEditUserFollowing = Container.useSelector(state => state.config.following.has(git.lastEditUser))
   const you = Container.useSelector(state => state.config.username)
+
+  const dispatchSetTeamRepoSettings = Constants.useGitState(state => state.dispatchSetTeamRepoSettings)
 
   const dispatch = Container.useDispatch()
   const _onBrowseGitRepo = (path: FsTypes.Path) => {
@@ -49,13 +50,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
       )
   }
   const _setDisableChat = (disabled: boolean, repoID: string, teamname: string) => {
-    dispatch(
-      GitGen.createSetTeamRepoSettings({
-        chatDisabled: disabled,
-        repoID,
-        teamname,
-      })
-    )
+    dispatchSetTeamRepoSettings('', teamname, repoID, disabled)
   }
   const copyToClipboard = (text: string) => {
     dispatch(ConfigGen.createCopyToClipboard({text}))
