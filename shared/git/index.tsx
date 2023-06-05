@@ -29,7 +29,7 @@ const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
 )
 
 export default (ownProps: OwnProps) => {
-  const initialExpandedSet = ownProps.expanded ? new Set(ownProps.expanded) : undefined
+  const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
   const error = Constants.useGitState(state => state.error)
   const loading = Container.useSelector(state => anyWaiting(state, Constants.loadingWaitingKey))
   const git = Constants.useGitState(state => state.idToInfo)
