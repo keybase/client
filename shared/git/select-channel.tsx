@@ -1,6 +1,6 @@
-import * as Constants from '../constants/teams'
+import * as TConstants from '../constants/teams'
+import * as Constants from '../constants/git'
 import * as Container from '../util/container'
-import * as GitGen from '../actions/git-gen'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -16,7 +16,7 @@ type OwnProps = {
 const SelectChannel = (ownProps: OwnProps) => {
   const {teamID, repoID} = ownProps
   const _selected = ownProps.selected
-  const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
+  const teamname = Container.useSelector(state => TConstants.getTeamNameFromID(state, teamID) ?? '')
 
   const {channelMetas} = useAllChannelMetas(teamID)
   const waiting = channelMetas === null
@@ -27,15 +27,10 @@ const SelectChannel = (ownProps: OwnProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const onSubmit = (channelName: string) =>
-    dispatch(
-      GitGen.createSetTeamRepoSettings({
-        channelName,
-        chatDisabled: false,
-        repoID: repoID,
-        teamname: teamname,
-      })
-    )
+  const dispatchSetTeamRepoSettings = Constants.useGitState(state => state.dispatchSetTeamRepoSettings)
+
+  const onSubmit = (channelName: string) => dispatchSetTeamRepoSettings(channelName, teamname, repoID, false)
+
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
 
   const submit = () => {

@@ -5,7 +5,6 @@ import crypto from './crypto'
 import deeplinks from './deeplinks'
 import devices from './devices'
 import fs from './fs'
-import git from './git'
 import login from './login'
 import notifications from './notifications'
 import people from './people'
@@ -31,7 +30,6 @@ export const reducers = {
   deeplinks,
   devices,
   fs,
-  git,
   login,
   notifications,
   people,
@@ -58,7 +56,6 @@ export type TypedState = {
   deeplinks: ReturnType<typeof deeplinks>
   devices: ReturnType<typeof devices>
   fs: ReturnType<typeof fs>
-  git: ReturnType<typeof git>
   login: ReturnType<typeof login>
   notifications: ReturnType<typeof notifications>
   people: ReturnType<typeof people>

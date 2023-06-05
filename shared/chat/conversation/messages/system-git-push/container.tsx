@@ -1,7 +1,7 @@
 import * as Container from '../../../../util/container'
 import * as FsConstants from '../../../../constants/fs'
 import * as FsTypes from '../../../../constants/types/fs'
-import * as GitGen from '../../../../actions/git-gen'
+import * as GitConstants from '../../../../constants/git'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as React from 'react'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
@@ -37,11 +37,12 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
     },
     [dispatch]
   )
+  const dispatchNavigateToTeamRepo = GitConstants.useGitState(state => state.dispatchNavigateToTeamRepo)
   const onViewGitRepo = React.useCallback(
     (repoID: string, teamname: string) => {
-      dispatch(GitGen.createNavigateToTeamRepo({repoID, teamname}))
+      dispatchNavigateToTeamRepo(teamname, repoID)
     },
-    [dispatch]
+    [dispatchNavigateToTeamRepo]
   )
   const props = {message, onClickCommit, onClickUserAvatar, onViewGitRepo}
   return <Git {...props} />

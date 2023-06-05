@@ -1,6 +1,5 @@
 import * as Constants from '../constants/git'
 import * as Container from '../util/container'
-import * as GitGen from '../actions/git-gen'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -13,8 +12,9 @@ type OwnProps = {isTeam: boolean}
 
 export default (ownProps: OwnProps) => {
   const {isTeam} = ownProps
-  const error = Container.useSelector(state => state.git.error)
+  const error = Constants.useGitState(state => state.error)
   const teams = Container.useSelector(state => getSortedTeamnames(state))
+
   const waitingKey = Constants.loadingWaitingKey
 
   const dispatch = Container.useDispatch()
@@ -24,12 +24,15 @@ export default (ownProps: OwnProps) => {
   const onClose = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
+
+  const dispatchCreatePersonalRepo = Constants.useGitState(state => state.dispatchCreatePersonalRepo)
+  const dispatchCreateTeamRepo = Constants.useGitState(state => state.dispatchCreateTeamRepo)
   const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
-    const createAction =
-      isTeam && teamname
-        ? GitGen.createCreateTeamRepo({name, notifyTeam, teamname})
-        : GitGen.createCreatePersonalRepo({name})
-    dispatch(createAction)
+    if (isTeam && teamname) {
+      dispatchCreateTeamRepo(name, teamname, notifyTeam)
+    } else {
+      dispatchCreatePersonalRepo(name)
+    }
     dispatch(RouteTreeGen.createNavigateUp())
   }
   const onNewTeam = () => {

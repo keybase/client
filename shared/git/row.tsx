@@ -3,7 +3,6 @@ import * as Constants from '../constants/git'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
-import * as GitGen from '../actions/git-gen'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -12,6 +11,8 @@ import * as TeamConstants from '../constants/teams'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import openURL from '../util/open-url'
 
+export const NewContext = React.createContext(new Set())
+
 type OwnProps = {
   id: string
   expanded: boolean
@@ -19,15 +20,19 @@ type OwnProps = {
   onToggleExpand: (id: string) => void
 }
 
+const noGit = Constants.makeGitInfo()
 const ConnectedRow = (ownProps: OwnProps) => {
   const {id, expanded} = ownProps
-  const git = Container.useSelector(state => state.git.idToInfo.get(id) || Constants.makeGitInfo())
+  const git = Constants.useGitState(state => state.idToInfo.get(id) || noGit)
   const teamID = Container.useSelector(state =>
     git.teamname ? TeamConstants.getTeamID(state, git.teamname) : undefined
   )
-  const isNew = Container.useSelector(state => state.git.isNew.has(id))
+
+  const isNew = React.useContext(NewContext).has(id)
   const lastEditUserFollowing = Container.useSelector(state => state.config.following.has(git.lastEditUser))
   const you = Container.useSelector(state => state.config.username)
+
+  const dispatchSetTeamRepoSettings = Constants.useGitState(state => state.dispatchSetTeamRepoSettings)
 
   const dispatch = Container.useDispatch()
   const _onBrowseGitRepo = (path: FsTypes.Path) => {
@@ -48,13 +53,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
       )
   }
   const _setDisableChat = (disabled: boolean, repoID: string, teamname: string) => {
-    dispatch(
-      GitGen.createSetTeamRepoSettings({
-        chatDisabled: disabled,
-        repoID,
-        teamname,
-      })
-    )
+    dispatchSetTeamRepoSettings('', teamname, repoID, disabled)
   }
   const copyToClipboard = (text: string) => {
     dispatch(ConfigGen.createCopyToClipboard({text}))
