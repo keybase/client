@@ -4,7 +4,6 @@ import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
-import {logError} from '../util/errors'
 
 const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
   const errors: Array<Error> = []
@@ -55,14 +54,6 @@ const parseRepoError = (result: RPCTypes.GitRepoResult): Error => {
   return new Error(`Git repo error: ${errStr}`)
 }
 
-const clearNavBadges = async () => {
-  try {
-    await RPCTypes.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
-  } catch (e) {
-    return logError(e)
-  }
-}
-
 const initialState: Types.State = {
   error: undefined,
   idToInfo: new Map(),
@@ -92,11 +83,13 @@ export const useGitState = Container.createZustand(
   Container.immerZustand<ZState>((set, get) => {
     const reduxDispatch = Container.getReduxDispatch()
 
-    const callAndHandleError = (f: () => Promise<void>) => {
+    const callAndHandleError = (f: () => Promise<void>, loadAfter = true) => {
       const wrapper = async () => {
         try {
           await f()
-          dispatchLoad()
+          if (loadAfter) {
+            dispatchLoad()
+          }
         } catch (error) {
           set(s => {
             s.error = error as Error
@@ -175,13 +168,12 @@ export const useGitState = Container.createZustand(
     }
 
     const dispatchClearBadges = () => {
-      set(s => {
-        s.isNew = undefined
-      })
+      callAndHandleError(async () => {
+        await RPCTypes.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
+      }, false)
     }
 
     const _dispatchLoad = async () => {
-      await clearNavBadges()
       const results = await RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, loadingWaitingKey)
       const {errors, repos} = parseRepos(results || [])
       errors.forEach(globalError => reduxDispatch(ConfigGen.createGlobalError({globalError})))

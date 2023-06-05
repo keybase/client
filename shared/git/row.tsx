@@ -11,6 +11,8 @@ import * as TeamConstants from '../constants/teams'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import openURL from '../util/open-url'
 
+export const NewContext = React.createContext(new Set())
+
 type OwnProps = {
   id: string
   expanded: boolean
@@ -25,7 +27,8 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const teamID = Container.useSelector(state =>
     git.teamname ? TeamConstants.getTeamID(state, git.teamname) : undefined
   )
-  const isNew = Constants.useGitState(state => !!state.isNew?.has(id))
+
+  const isNew = React.useContext(NewContext).has(id)
   const lastEditUserFollowing = Container.useSelector(state => state.config.following.has(git.lastEditUser))
   const you = Container.useSelector(state => state.config.username)
 

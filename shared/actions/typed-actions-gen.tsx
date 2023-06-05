@@ -9,7 +9,6 @@ import type * as dev from './dev-gen'
 import type * as devices from './devices-gen'
 import type * as enginegen from './engine-gen-gen'
 import type * as fs from './fs-gen'
-import type * as git from './git-gen'
 import type * as gregor from './gregor-gen'
 import type * as login from './login-gen'
 import type * as notifications from './notifications-gen'
@@ -41,7 +40,6 @@ export type TypedActions =
   | devices.Actions
   | enginegen.Actions
   | fs.Actions
-  | git.Actions
   | gregor.Actions
   | login.Actions
   | notifications.Actions

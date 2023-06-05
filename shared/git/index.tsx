@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
-import Row from './row'
+import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
 import type * as Types from '../constants/types/git'
 import {anyWaiting} from '../constants/waiting'
@@ -36,6 +36,28 @@ export default (ownProps: OwnProps) => {
   const loadGit = Constants.useGitState(state => state.dispatchLoad)
   const clearBadges = Constants.useGitState(state => state.dispatchClearBadges)
 
+  // On click we clear the badges in the backend (and nav) but we keep the 'new' badges on rows
+  // until we move away from the screen, so we keep a local cache of the badges and manage it ourselves
+  const stateNew = Constants.useGitState(state => state.isNew)
+  const [badged, setBadged] = React.useState(stateNew ?? new Set())
+
+  // keep adding if we got new ones
+  const toAdd = [...(stateNew ?? new Set<string>())].reduce((arr, n) => {
+    if (!badged.has(n)) {
+      arr.push(n)
+    }
+    return arr
+  }, new Array<string>())
+  if (toAdd.length) {
+    setBadged(s => {
+      const next = new Set(s)
+      toAdd.forEach(a => {
+        next.add(a)
+      })
+      return next
+    })
+  }
+
   const dispatchSetError = Constants.useGitState(state => state.dispatchSetError)
   const {personals, teams} = getRepos(git)
 
@@ -55,11 +77,12 @@ export default (ownProps: OwnProps) => {
   useFocusEffect(
     React.useCallback(() => {
       loadGit()
-    }, [loadGit])
+      clearBadges()
+      return () => {
+        setBadged(new Set())
+      }
+    }, [loadGit, clearBadges])
   )
-  Container.useOnUnMountOnce(() => {
-    clearBadges()
-  })
 
   const [expandedSet, setExpandedSet] = React.useState(
     new Set<string>(union(initialExpandedSet ?? new Set(), moduleExpandedSet))
@@ -103,7 +126,7 @@ export default (ownProps: OwnProps) => {
         />
       )
     },
-    [dispatch]
+    [dispatch, dispatchSetError]
   )
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
@@ -127,27 +150,29 @@ export default (ownProps: OwnProps) => {
             <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
           </Kb.ClickableBox>
         )}
-        <Kb.SectionList
-          keyExtractor={item => item}
-          sectionKeyExtractor={section => section.title}
-          extraData={expandedSet}
-          renderItem={({item}) => (
-            <Row
-              key={item}
-              expanded={expandedSet.has(item)}
-              id={item}
-              onShowDelete={onShowDelete}
-              onToggleExpand={toggleExpand}
-            />
-          )}
-          renderSectionHeader={({section}) => (
-            <Kb.SectionDivider label={section.title} showSpinner={section.loading} />
-          )}
-          sections={[
-            {data: personals, loading: loading, title: 'Personal'},
-            {data: teams, loading: loading, title: 'Team'},
-          ]}
-        />
+        <NewContext.Provider value={badged}>
+          <Kb.SectionList
+            keyExtractor={item => item}
+            sectionKeyExtractor={section => section.title}
+            extraData={expandedSet}
+            renderItem={({item}) => (
+              <Row
+                key={item}
+                expanded={expandedSet.has(item)}
+                id={item}
+                onShowDelete={onShowDelete}
+                onToggleExpand={toggleExpand}
+              />
+            )}
+            renderSectionHeader={({section}) => (
+              <Kb.SectionDivider label={section.title} showSpinner={section.loading} />
+            )}
+            sections={[
+              {data: personals, loading: loading, title: 'Personal'},
+              {data: teams, loading: loading, title: 'Team'},
+            ]}
+          />
+        </NewContext.Provider>
         {popup}
       </Kb.Box2>
     </Kb.Reloadable>
