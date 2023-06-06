@@ -17,7 +17,6 @@ export type Device = {
 
 export type State = {
   deviceMap: Map<DeviceID, Device>
-  endangeredTLFMap: Map<DeviceID, Set<string>>
   isNew: Set<string>
   justRevokedSelf: string
 }

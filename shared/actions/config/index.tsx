@@ -1,6 +1,5 @@
 import * as ConfigGen from '../config-gen'
 import * as Container from '../../util/container'
-import * as DevicesGen from '../devices-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as GregorGen from '../gregor-gen'
 import * as LoginConstants from '../../constants/login'
@@ -212,7 +211,7 @@ const getAccountsWaitKey = 'config.getAccounts'
 const loadDaemonAccounts = async (
   state: Container.TypedState,
   action:
-    | DevicesGen.RevokedPayload
+    | ConfigGen.RevokedPayload
     | ConfigGen.DaemonHandshakePayload
     | ConfigGen.LoggedOutPayload
     | ConfigGen.LoggedInPayload,
@@ -598,7 +597,7 @@ const initConfig = () => {
   )
   // Load the known accounts if you revoke / handshake / logout
   Container.listenAction(
-    [DevicesGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut, ConfigGen.loggedIn],
+    [ConfigGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut, ConfigGen.loggedIn],
     loadDaemonAccounts
   )
 

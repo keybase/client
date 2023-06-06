@@ -200,6 +200,11 @@
     "powerMonitorEvent": {
       "_description": "Plumb power monitor events from node",
       "event": "string"
+    },
+    "revoked": {
+      "deviceID": "string",
+      "wasCurrentDevice": "boolean",
+      "deviceName": "string"
     }
   }
 }

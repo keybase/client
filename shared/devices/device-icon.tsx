@@ -12,13 +12,13 @@ export type Props = {
 }
 const DeviceIcon = (props: Props) => {
   const defaultIcons = {
-    backup: `icon-paper-key-${props.size}` as Kb.IconType,
-    desktop: `icon-computer-${props.size}` as Kb.IconType,
-    mobile: `icon-phone-${props.size}` as Kb.IconType,
-  }
+    backup: `icon-paper-key-${props.size}`,
+    desktop: `icon-computer-${props.size}`,
+    mobile: `icon-phone-${props.size}`,
+  } as const
 
   const {type, deviceNumberOfType} = props.device
-  const iconNumber = (deviceNumberOfType % Constants.numBackgrounds) + 1
+  const iconNumber = ((deviceNumberOfType % Constants.numBackgrounds) + 1) as Types.IconNumber
   const badge = props.current ? 'success-' : ''
 
   const maybeIcon = (

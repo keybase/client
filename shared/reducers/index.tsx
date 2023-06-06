@@ -3,7 +3,7 @@ import chat2 from './chat2'
 import config from './config'
 import crypto from './crypto'
 import deeplinks from './deeplinks'
-import devices from './devices'
+//import devices from './devices'
 import fs from './fs'
 import login from './login'
 import notifications from './notifications'
@@ -28,7 +28,7 @@ export const reducers = {
   config,
   crypto,
   deeplinks,
-  devices,
+  // devices,
   fs,
   login,
   notifications,
@@ -54,7 +54,7 @@ export type TypedState = {
   config: ReturnType<typeof config>
   crypto: ReturnType<typeof crypto>
   deeplinks: ReturnType<typeof deeplinks>
-  devices: ReturnType<typeof devices>
+  // devices: ReturnType<typeof devices>
   fs: ReturnType<typeof fs>
   login: ReturnType<typeof login>
   notifications: ReturnType<typeof notifications>

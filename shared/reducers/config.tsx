@@ -1,7 +1,6 @@
 import logger from '../logger'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
-import * as DevicesGen from '../actions/devices-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as ConfigGen from '../actions/config-gen'
@@ -17,7 +16,6 @@ import isEqual from 'lodash/isEqual'
 
 type Actions =
   | ConfigGen.Actions
-  | DevicesGen.RevokedPayload
   | Tracker2Gen.UpdatedDetailsPayload
   | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
   | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
@@ -25,7 +23,7 @@ type Actions =
   | GregorGen.PushStatePayload
 
 export default Container.makeReducer<Actions, Types.State>(Constants.initialState, {
-  [DevicesGen.revoked]: (draftState, action) => {
+  [ConfigGen.revoked]: (draftState, action) => {
     const {wasCurrentDevice} = action.payload
     // if revoking self find another name if it exists
     if (wasCurrentDevice) {

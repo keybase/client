@@ -29,6 +29,9 @@ export const ignorePromise = (f: Promise<void>) => {
 export const getReduxDispatch: () => TypedDispatch = () => (a: TypedActions) =>
   require('../store/configure-store').getGlobalStore().dispatch(a)
 
+export const getReduxStore: () => () => TypedState = () => () =>
+  require('../store/configure-store').getGlobalStore().getState()
+
 export const useNav = () => {
   const n = useNavigation()
   const na: {pop?: () => void; navigate: (n: RouteKeys) => void} = n as any

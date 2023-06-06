@@ -1,12 +1,78 @@
-import * as SettingsConstants from './settings'
-import * as Tabs from './tabs'
-import * as Types from './types/devices'
-import * as WaitingConstants from './waiting'
-import type * as RPCTypes from './types/rpc-gen'
 import * as Container from '../util/container'
+// import * as DevicesGen from './devices-gen'
+import * as RPCTypes from './types/rpc-gen'
+// import * as SettingsConstants from './settings'
+// import * as Tabs from './tabs'
+import * as Types from './types/devices'
+// import * as WaitingConstants from './waiting'
 import {memoize} from '../util/memoize'
 
-export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
+// TODO
+//config reducer? [DevicesGen.revoked]: (draftState, action) => {
+
+const initialState: Types.State = {
+  deviceMap: new Map(),
+  isNew: new Set(),
+  justRevokedSelf: '',
+}
+
+type ZState = Types.State & {
+  dispatchLoad: () => void
+  dispatchSetRevokedSelf: (name: string) => void
+  dispatchClearBadges: () => void
+  dispatchReset: () => void
+  dispatchSetBadges: (set: Set<string>) => void
+}
+
+export const useDevicesState = Container.createZustand(
+  Container.immerZustand<ZState>(set => {
+    const dispatchLoad = () => {
+      const f = async () => {
+        const results = await RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, waitingKey)
+        set(s => {
+          s.deviceMap = new Map(
+            results?.map(r => {
+              const d = rpcDeviceToDevice(r)
+              return [d.deviceID, d]
+            })
+          )
+        })
+      }
+      Container.ignorePromise(f())
+    }
+
+    const dispatchReset = () => {
+      set(() => initialState)
+    }
+
+    const dispatchSetBadges = (b: Set<string>) => {
+      set(s => {
+        s.isNew = b
+      })
+    }
+
+    const dispatchClearBadges = () => {
+      Container.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
+    }
+
+    const dispatchSetRevokedSelf = (name: string) => {
+      set(s => {
+        s.justRevokedSelf = name
+      })
+    }
+
+    return {
+      ...initialState,
+      dispatchClearBadges,
+      dispatchLoad,
+      dispatchReset,
+      dispatchSetBadges,
+      dispatchSetRevokedSelf,
+    }
+  })
+)
+
+const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
   makeDevice({
     created: d.device.cTime,
     currentDevice: d.currentDevice,
@@ -31,36 +97,46 @@ const emptyDevice: Types.Device = {
   type: Types.stringToDeviceType('desktop'),
 }
 
-export const makeDevice = (d?: Partial<Types.Device>): Types.Device =>
+const makeDevice = (d?: Partial<Types.Device>): Types.Device =>
   d ? Object.assign({...emptyDevice}, d) : emptyDevice
 
-export const devicesTabLocation = Container.isMobile
-  ? Container.isTablet
-    ? ([Tabs.settingsTab] as const)
-    : ([Tabs.settingsTab, SettingsConstants.devicesTab] as const)
-  : ([Tabs.devicesTab] as const)
+// const devicesTabLocation = Container.isMobile
+//   ? Container.isTablet
+//     ? ([Tabs.settingsTab] as const)
+//     : ([Tabs.settingsTab, SettingsConstants.devicesTab] as const)
+//   : ([Tabs.devicesTab] as const)
 export const waitingKey = 'devices:devicesPage'
 
-export const isWaiting = (state: Container.TypedState) => WaitingConstants.anyWaiting(state, waitingKey)
-export const getDevice = (state: Container.TypedState, id?: Types.DeviceID) =>
-  (id && state.devices.deviceMap.get(id)) || emptyDevice
-
-type DeviceCounts = {
-  numActive: number
-  numRevoked: number
+// const isWaiting = (state: Container.TypedState) => WaitingConstants.anyWaiting(state, waitingKey)
+// const getDevice = (state: Container.TypedState, id?: Types.DeviceID) =>
+//   (id && state.devices.deviceMap.get(id)) || emptyDevice
+//
+export const useActiveDeviceCounts = () => {
+  const ds = useDevicesState(state => state.deviceMap)
+  return [...ds.values()].reduce((c, v) => {
+    if (!v.revokedAt) {
+      ++c
+    }
+    return c
+  }, 0)
 }
-export const getDeviceCounts = (state: Container.TypedState) =>
-  [...state.devices.deviceMap.values()].reduce<DeviceCounts>(
-    (c, v) => {
-      if (v.revokedAt) {
-        c.numRevoked++
-      } else {
-        c.numActive++
-      }
-      return c
-    },
-    {numActive: 0, numRevoked: 0}
-  )
+
+// type DeviceCounts = {
+//   numActive: number
+//   numRevoked: number
+// }
+// const getDeviceCounts = (state: Container.TypedState) =>
+//   [...state.devices.deviceMap.values()].reduce<DeviceCounts>(
+//     (c, v) => {
+//       if (v.revokedAt) {
+//         c.numRevoked++
+//       } else {
+//         c.numActive++
+//       }
+//       return c
+//     },
+//     {numActive: 0, numRevoked: 0}
+//   )
 
 // Utils for mapping a device to one of the icons
 
@@ -74,7 +150,7 @@ const getDeviceIconNumberInner = (
   devices: Map<Types.DeviceID, Types.Device>,
   deviceID: Types.DeviceID
 ): Types.IconNumber =>
-  (((devices.get(deviceID) || {deviceNumberOfType: 0}).deviceNumberOfType % numBackgrounds) + 1) as any
+  (((devices.get(deviceID)?.deviceNumberOfType ?? 0) % numBackgrounds) + 1) as Types.IconNumber
 
 const getNextDeviceIconNumberInner = memoize((devices: Map<Types.DeviceID, Types.Device>) => {
   // Find the max device number and add one (+ one more since these are 1-indexed)
@@ -87,7 +163,11 @@ const getNextDeviceIconNumberInner = memoize((devices: Map<Types.DeviceID, Types
   return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
 })
 
-export const getDeviceIconNumber = (state: Container.TypedState, deviceID: Types.DeviceID) =>
-  getDeviceIconNumberInner(state.devices.deviceMap, deviceID)
-export const getNextDeviceIconNumber = (state: Container.TypedState) =>
-  getNextDeviceIconNumberInner(state.devices.deviceMap)
+export const useDeviceIconNumber = (deviceID: Types.DeviceID) => {
+  const dm = useDevicesState(state => state.deviceMap)
+  return getDeviceIconNumberInner(dm, deviceID)
+}
+export const useNextDeviceIconNumber = () => {
+  const dm = useDevicesState(state => state.deviceMap)
+  return getNextDeviceIconNumberInner(dm)
+}

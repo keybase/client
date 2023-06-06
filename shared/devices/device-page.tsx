@@ -1,6 +1,5 @@
 import * as Constants from '../constants/devices'
 import * as Container from '../util/container'
-import * as DevicesGen from '../actions/devices-gen'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -83,50 +82,42 @@ const Timeline = ({device}) => {
 
 const DevicePage = (ownProps: OwnProps) => {
   const id = ownProps.deviceID
-  const iconNumber = Container.useSelector(state => Constants.getDeviceIconNumber(state, id))
-
+  const iconNumber = Constants.useDeviceIconNumber(id)
   const dispatch = Container.useDispatch()
-  const onBack = React.useCallback(() => {
-    Container.isMobile && dispatch(RouteTreeGen.createNavigateUp())
-  }, [dispatch])
-  const props = {
-    iconNumber,
-    id,
-    onBack,
-  }
-  const device = Container.useSelector(state => Constants.getDevice(state, props.id))
-  const canRevoke = Container.useSelector(state => Constants.getDeviceCounts(state).numActive > 1)
-  const showRevokeDevicePage = React.useCallback(
-    () => dispatch(DevicesGen.createShowRevokePage({deviceID: props.id})),
-    [dispatch, props.id]
-  )
+  const device = Constants.useDevicesState(state => state.deviceMap.get(id))
+  const canRevoke = Constants.useActiveDeviceCounts() > 1
+  const showRevokeDevicePage = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {deviceID: id}, selected: 'deviceRevoke'}]}))
+  }, [dispatch, id])
 
-  const metaOne = device.currentDevice ? (
+  const metaOne = device?.currentDevice ? (
     'Current device'
-  ) : device.revokedAt ? (
+  ) : device?.revokedAt ? (
     <Kb.Meta title="revoked" style={styles.meta} backgroundColor={Styles.globalColors.red} />
   ) : null
+
+  const deviceType = device?.type ?? 'desktop'
 
   const maybeIcon = (
     {
       backup: 'icon-paper-key-96',
-      desktop: `icon-computer-background-${props.iconNumber}-96`,
-      mobile: `icon-phone-background-${props.iconNumber}-96`,
+      desktop: `icon-computer-background-${iconNumber}-96`,
+      mobile: `icon-phone-background-${iconNumber}-96`,
     } as const
-  )[device.type]
+  )[deviceType]
   const icon = Kb.isValidIconType(maybeIcon) ? maybeIcon : 'icon-computer-96'
 
   const revokeName = {
     backup: 'paper key',
     desktop: 'computer',
     mobile: 'device',
-  }[device.type]
+  }[deviceType]
 
   const metaTwo = {
     backup: 'Paper key',
     desktop: 'Computer',
     mobile: 'Device',
-  }[device.type]
+  }[deviceType]
 
   return (
     <Kb.Box2
@@ -138,9 +129,9 @@ const DevicePage = (ownProps: OwnProps) => {
       fullWidth={true}
       fullHeight={true}
     >
-      <Kb.NameWithIcon icon={icon} title={device.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
+      <Kb.NameWithIcon icon={icon} title={device?.name} metaOne={metaOne} metaTwo={metaTwo} size="big" />
       <Timeline device={device} />
-      {!device.revokedAt && (
+      {device?.revokedAt ? null : (
         <Kb.Button
           disabled={!canRevoke}
           type="Danger"
@@ -148,7 +139,7 @@ const DevicePage = (ownProps: OwnProps) => {
           onClick={showRevokeDevicePage}
         />
       )}
-      {!canRevoke && <Kb.Text type="BodySmall">You can't revoke your last device.</Kb.Text>}
+      {canRevoke ? null : <Kb.Text type="BodySmall">You can't revoke your last device.</Kb.Text>}
     </Kb.Box2>
   )
 }
