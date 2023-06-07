@@ -1,11 +1,13 @@
+import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/devices'
 import * as Container from '../util/container'
-import * as DevicesGen from '../actions/devices-gen'
 import * as Kb from '../common-adapters'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as SettingsConstants from '../constants/settings'
 import * as Styles from '../styles'
-import * as WaitingConstants from '../constants/waiting'
+import * as Tabs from '../constants/tabs'
 import type * as Types from '../constants/types/devices'
 
 type OwnProps = {deviceID: string}
@@ -71,29 +73,89 @@ const getIcon = (deviceType: Types.DeviceType, iconNumber: Types.IconNumber) => 
   return Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
 }
 
-const emptySet = new Set<string>()
-const getEndangeredTLFs = (state: Container.TypedState, id?: Types.DeviceID): Set<string> =>
-  (id && state.devices.endangeredTLFMap.get(id)) || emptySet
+const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => {
+  if (!actingDevice || !targetDevice) {
+    return []
+  }
+  try {
+    const tlfs = await RPCTypes.rekeyGetRevokeWarningRpcPromise(
+      {actingDevice, targetDevice},
+      Constants.waitingKey
+    )
+    return tlfs.endangeredTLFs?.map(t => t.name) ?? []
+  } catch (e) {
+    console.error(e)
+  }
+  return []
+}
+
+const useRevoke = (deviceID = '') => {
+  const d = Constants.useDevicesState(state => state.deviceMap.get(deviceID))
+  const dispatchLoad = Constants.useDevicesState(state => state.dispatchLoad)
+  const username = Container.useSelector(state => state.config.username)
+  const wasCurrentDevice = d?.currentDevice ?? false
+  const dispatch = Container.useDispatch()
+  const deviceName = d?.name ?? ''
+  return React.useCallback(() => {
+    const f = async () => {
+      if (wasCurrentDevice) {
+        try {
+          await RPCTypes.loginDeprovisionRpcPromise({doRevoke: true, username}, Constants.waitingKey)
+          dispatchLoad()
+          dispatch(ConfigGen.createRevoked({deviceID, deviceName, wasCurrentDevice}))
+        } catch {}
+      } else {
+        try {
+          await RPCTypes.revokeRevokeDeviceRpcPromise(
+            {deviceID, forceLast: false, forceSelf: false},
+            Constants.waitingKey
+          )
+          dispatchLoad()
+          dispatch(ConfigGen.createRevoked({deviceID, deviceName, wasCurrentDevice}))
+          dispatch(
+            RouteTreeGen.createNavUpToScreen({
+              name: Container.isMobile
+                ? Container.isTablet
+                  ? Tabs.settingsTab
+                  : SettingsConstants.devicesTab
+                : Tabs.devicesTab,
+            })
+          )
+        } catch {}
+      }
+    }
+    Container.ignorePromise(f())
+  }, [dispatch, deviceID, deviceName, dispatchLoad, username, wasCurrentDevice])
+}
 
 const DeviceRevoke = (ownProps: OwnProps) => {
   const selectedDeviceID = ownProps.deviceID
-  const _endangeredTLFs = Container.useSelector(state => getEndangeredTLFs(state, selectedDeviceID))
-  const device = Container.useSelector(state => Constants.getDevice(state, selectedDeviceID))
-  const iconNumber = Container.useSelector(state => Constants.getDeviceIconNumber(state, selectedDeviceID))
-  const waiting = Container.useSelector(state => WaitingConstants.anyWaiting(state, Constants.waitingKey))
-
+  const [endangeredTLFs, setEndangeredTLFs] = React.useState(new Array<string>())
+  const device = Constants.useDevicesState(state => state.deviceMap.get(selectedDeviceID))
+  const deviceID = device?.deviceID
+  const deviceName = device?.name ?? ''
+  const type = device?.type ?? 'desktop'
+  const iconNumber = Constants.useDeviceIconNumber(selectedDeviceID)
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const dispatch = Container.useDispatch()
-  const _onSubmit = React.useCallback(
-    (deviceID: Types.DeviceID) => dispatch(DevicesGen.createRevoke({deviceID})),
-    [dispatch]
-  )
+  const onSubmit = useRevoke(deviceID)
   const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+
+  const actingDevice = Container.useSelector(state => state.config.deviceID)
+  Container.useOnMountOnce(() => {
+    const f = async () => {
+      const tlfs = await loadEndangeredTLF(actingDevice, selectedDeviceID)
+      setEndangeredTLFs(tlfs)
+    }
+    Container.ignorePromise(f())
+  })
+
   const props = {
     device,
-    endangeredTLFs: [..._endangeredTLFs],
+    endangeredTLFs,
     iconNumber,
     onCancel,
-    onSubmit: () => _onSubmit(device.deviceID),
+    onSubmit,
     waiting,
   }
   return (
@@ -106,18 +168,18 @@ const DeviceRevoke = (ownProps: OwnProps) => {
       style={styles.container}
     >
       <Kb.NameWithIcon
-        icon={getIcon(props.device.type, props.iconNumber)}
-        title={props.device.name}
+        icon={getIcon(type, props.iconNumber)}
+        title={deviceName}
         titleStyle={styles.headerName}
         size="small"
       />
       <Kb.Text center={true} type="Header">
         Are you sure you want to revoke{' '}
-        {props.device.currentDevice ? (
+        {device?.currentDevice ? (
           'your current device'
         ) : (
           <Kb.Text type="Header" style={styles.italicName}>
-            {props.device.name}
+            {deviceName}
           </Kb.Text>
         )}
         ?

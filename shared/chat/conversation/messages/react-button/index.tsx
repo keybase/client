@@ -39,7 +39,7 @@ const ReactButton = React.memo(function ReactButton(p: Props) {
       className={Styles.classNames('react-button', className, {noShadow: active})}
       onLongPress={onLongPress}
       onClick={onClick}
-      style={[styles.borderBase, styles.buttonBox, active && styles.active, style]}
+      style={Styles.collapseStyles([styles.borderBase, styles.buttonBox, active && styles.active, style])}
     >
       <Box2 centerChildren={true} fullHeight={true} direction="horizontal" style={styles.container}>
         <Box2 direction="horizontal" style={styles.containerInner} gap="xtiny">
@@ -147,12 +147,12 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         className={Styles.classNames('react-button', {border: this.props.showBorder})}
         onLongPress={this.props.onLongPress}
         onClick={this._onShowPicker}
-        style={[
+        style={Styles.collapseStyles([
           styles.borderBase,
           styles.newReactionButtonBox,
           this.props.showBorder && styles.buttonBox,
           this.props.style,
-        ]}
+        ])}
       >
         <Box2
           centerChildren={true}
@@ -204,14 +204,16 @@ const styles = Styles.styleSheetCreate(
         borderRadius: Styles.borderRadius,
         borderStyle: 'solid',
       },
-      buttonBox: {
-        alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
-        borderWidth: 1,
-        height: Styles.isMobile ? 30 : 24,
-        justifyContent: 'center',
-        ...Styles.transition('border-color', 'background-color', 'box-shadow'),
-      },
+      buttonBox: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.white,
+          borderWidth: 1,
+          height: Styles.isMobile ? 30 : 24,
+          justifyContent: 'center',
+        },
+        isElectron: {...Styles.transition('border-color', 'background-color', 'box-shadow')},
+      }),
       container: {
         height: Styles.isMobile ? 20 : undefined,
         minWidth: 40,
@@ -236,9 +238,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       emojiIconWrapper: Styles.platformStyles({
-        isElectron: {
-          position: 'absolute',
-        },
+        isElectron: {position: 'absolute'},
         isMobile: {marginTop: 2},
       }),
       newReactionButtonBox: Styles.platformStyles({

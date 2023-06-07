@@ -6,7 +6,6 @@ import type * as config from './config-gen'
 import type * as crypto from './crypto-gen'
 import type * as deeplinks from './deeplinks-gen'
 import type * as dev from './dev-gen'
-import type * as devices from './devices-gen'
 import type * as enginegen from './engine-gen-gen'
 import type * as fs from './fs-gen'
 import type * as gregor from './gregor-gen'
@@ -37,7 +36,6 @@ export type TypedActions =
   | crypto.Actions
   | deeplinks.Actions
   | dev.Actions
-  | devices.Actions
   | enginegen.Actions
   | fs.Actions
   | gregor.Actions

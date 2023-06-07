@@ -1,14 +1,15 @@
 import * as Constants from '../constants/devices'
 import * as Container from '../util/container'
-import * as DevicesGen from '../actions/devices-gen'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
-import DeviceRow from './row'
+import DeviceRow, {NewContext} from './row'
 import partition from 'lodash/partition'
 import type * as Types from '../constants/types/devices'
 import {intersect} from '../util/set'
+import {useFocusEffect} from '@react-navigation/core'
+import {useLocalBadging} from '../util/use-local-badging'
 
 const sortDevices = (a: Types.Device, b: Types.Device) => {
   if (a.currentDevice) return -1
@@ -21,15 +22,23 @@ const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
   partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
 
 const ReloadableDevices = () => {
-  const deviceMap = Container.useSelector(state => state.devices.deviceMap)
-  const newlyChangedItemIds = Container.useSelector(state => state.devices.isNew)
-  const waiting = Container.useSelector(state => Constants.isWaiting(state))
+  const deviceMap = Constants.useDevicesState(state => state.deviceMap)
+  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
+  const loadDevices = Constants.useDevicesState(state => state.dispatchLoad)
+  const dispatchClearBadges = Constants.useDevicesState(state => state.dispatchClearBadges)
+  const storeSet = Constants.useDevicesState(state => state.isNew)
+  const {badged} = useLocalBadging(storeSet, dispatchClearBadges)
+
+  const newlyChangedItemIds = badged
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadDevices()
+    }, [loadDevices])
+  )
 
   const dispatch = Container.useDispatch()
 
-  const loadDevices = () => {
-    dispatch(DevicesGen.createLoad())
-  }
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
     // We don't have navigateAppend in upgraded routes
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {highlight}, selected: 'deviceAdd'}]}))
@@ -65,10 +74,6 @@ const ReloadableDevices = () => {
     waiting,
   }
 
-  Container.useOnUnMountOnce(() => {
-    dispatch(DevicesGen.createClearBadges())
-  })
-
   return (
     <Kb.Reloadable
       onBack={Container.isMobile ? onBack : undefined}
@@ -77,7 +82,9 @@ const ReloadableDevices = () => {
       reloadOnMount={true}
       title={''}
     >
-      <Devices {...np} />
+      <NewContext.Provider value={badged}>
+        <Devices {...np} />
+      </NewContext.Provider>
     </Kb.Reloadable>
   )
 }

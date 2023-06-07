@@ -13,14 +13,12 @@ const CodePageContainer = () => {
   const currentDeviceName = Container.useSelector(
     state => (currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName) || ''
   )
-  const currentDevice = Container.useSelector(state =>
-    DevicesConstants.getDevice(state, state.config.deviceID)
-  )
+  const deviceID = Container.useSelector(state => state.config.deviceID)
+  const currentDevice = DevicesConstants.useDevicesState(state => state.deviceMap.get(deviceID))
   const error = Container.useSelector(state => state.provision.error.stringValue())
-  const iconNumber = Container.useSelector(state =>
-    DevicesConstants.getDeviceIconNumber(state, state.provision.codePageOtherDevice.id)
-  )
+
   const otherDevice = Container.useSelector(state => state.provision.codePageOtherDevice)
+  const iconNumber = DevicesConstants.useDeviceIconNumber(otherDevice.id)
   const textCode = Container.useSelector(state => state.provision.codePageIncomingTextCode.stringValue())
   const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
 
@@ -35,6 +33,7 @@ const CodePageContainer = () => {
   )
   const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
 
+  if (!currentDevice) return null // should be impossible
   return (
     <CodePage2
       error={error}

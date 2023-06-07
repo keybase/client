@@ -15,34 +15,35 @@ const noHighlight = []
 
 export default function AddDevice(ownProps: OwnProps) {
   const highlight = ownProps.highlight ?? noHighlight
-  const iconNumbers = Container.useSelector(state => Constants.getNextDeviceIconNumber(state))
+  const iconNumbers = Constants.useNextDeviceIconNumber()
   const dispatch = Container.useDispatch()
-  const _onAddComputer = React.useCallback(
-    () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
-    [dispatch]
-  )
-  const _onAddPaperKey = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [...Constants.devicesTabLocation, 'devicePaperKey']}))
-  }, [dispatch])
+  const safeOptions = {onlyOnce: true}
 
-  const _onAddPhone = React.useCallback(
-    () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
-    [dispatch]
+  const onAddComputer = useSafeCallback(
+    React.useCallback(
+      () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
+      [dispatch]
+    ),
+    safeOptions
+  )
+
+  const onAddPaperKey = useSafeCallback(
+    React.useCallback(() => {
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['devicePaperKey']}))
+    }, [dispatch]),
+    safeOptions
+  )
+
+  const onAddPhone = useSafeCallback(
+    React.useCallback(
+      () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
+      [dispatch]
+    ),
+    safeOptions
   )
   const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
-
-  const props = {
-    highlight,
-    iconNumbers,
-    onCancel,
-  }
-
-  const onlyOnce = true
-  const onAddComputer = useSafeCallback(_onAddComputer, {onlyOnce})
-  const onAddPhone = useSafeCallback(_onAddPhone, {onlyOnce})
-  const onAddPaperKey = useSafeCallback(_onAddPaperKey, {onlyOnce})
   return (
-    <Kb.PopupWrapper onCancel={props.onCancel}>
+    <Kb.PopupWrapper onCancel={onCancel}>
       <Kb.ScrollView alwaysBounceVertical={false}>
         <Kb.Box2
           direction="vertical"
@@ -65,21 +66,21 @@ export default function AddDevice(ownProps: OwnProps) {
             gapEnd={true}
           >
             <DeviceOption
-              iconNumber={props.iconNumbers.desktop}
+              iconNumber={iconNumbers.desktop}
               onClick={onAddComputer}
               type="computer"
-              highlight={props.highlight && props.highlight.includes('computer')}
+              highlight={highlight.includes('computer')}
             />
             <DeviceOption
-              iconNumber={props.iconNumbers.mobile}
+              iconNumber={iconNumbers.mobile}
               onClick={onAddPhone}
               type="phone"
-              highlight={props.highlight && props.highlight.includes('phone')}
+              highlight={highlight.includes('phone')}
             />
             <DeviceOption
               onClick={onAddPaperKey}
               type="paper key"
-              highlight={props.highlight && props.highlight.includes('paper key')}
+              highlight={highlight.includes('paper key')}
             />
           </Kb.Box2>
         </Kb.Box2>
@@ -96,7 +97,7 @@ type DeviceOptionProps = {
 }
 const bigIcon = isLargeScreen && Styles.isMobile
 const getIconType = (deviceType: DeviceOptionProps['type'], iconNumber?: number) => {
-  let iconType
+  let iconType: string
   const size = bigIcon ? 96 : 64
   switch (deviceType) {
     case 'computer':
@@ -137,15 +138,19 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {padding: Styles.globalMargins.small},
-  deviceOption: {
-    ...Styles.transition('background-color'),
-    borderColor: Styles.globalColors.black_05,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    padding: Styles.globalMargins.tiny,
-    width: Styles.isMobile ? 192 : 168,
-  },
+  deviceOption: Styles.platformStyles({
+    common: {
+      borderColor: Styles.globalColors.black_05,
+      borderRadius: Styles.borderRadius,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      padding: Styles.globalMargins.tiny,
+      width: Styles.isMobile ? 192 : 168,
+    },
+    isElectron: {
+      ...Styles.transition('background-color'),
+    },
+  }),
   deviceOptionHighlighted: {backgroundColor: Styles.globalColors.blueLighter2},
   deviceOptions: Styles.platformStyles({
     isElectron: {paddingLeft: Styles.globalMargins.large},

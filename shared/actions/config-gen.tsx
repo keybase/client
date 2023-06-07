@@ -44,6 +44,7 @@ export const powerMonitorEvent = 'config:powerMonitorEvent'
 export const pushLoaded = 'config:pushLoaded'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
+export const revoked = 'config:revoked'
 export const setAccounts = 'config:setAccounts'
 export const setDarkModePreference = 'config:setDarkModePreference'
 export const setDefaultUsername = 'config:setDefaultUsername'
@@ -323,6 +324,11 @@ export const createPushLoaded = (payload: {readonly pushLoaded: boolean}) => ({
   payload,
   type: pushLoaded as typeof pushLoaded,
 })
+export const createRevoked = (payload: {
+  readonly deviceID: string
+  readonly wasCurrentDevice: boolean
+  readonly deviceName: string
+}) => ({payload, type: revoked as typeof revoked})
 export const createSetAccounts = (payload: {
   readonly configuredAccounts: Array<RPCTypes.ConfiguredAccount>
 }) => ({payload, type: setAccounts as typeof setAccounts})
@@ -435,6 +441,7 @@ export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent
 export type PushLoadedPayload = ReturnType<typeof createPushLoaded>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
+export type RevokedPayload = ReturnType<typeof createRevoked>
 export type SetAccountsPayload = ReturnType<typeof createSetAccounts>
 export type SetDarkModePreferencePayload = ReturnType<typeof createSetDarkModePreference>
 export type SetDefaultUsernamePayload = ReturnType<typeof createSetDefaultUsername>
@@ -499,6 +506,7 @@ export type Actions =
   | PushLoadedPayload
   | RemoteWindowWantsPropsPayload
   | RestartHandshakePayload
+  | RevokedPayload
   | SetAccountsPayload
   | SetDarkModePreferencePayload
   | SetDefaultUsernamePayload

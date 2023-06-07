@@ -11,6 +11,7 @@ import {anyWaiting} from '../constants/waiting'
 import {memoize} from '../util/memoize'
 import {union} from '../util/set'
 import {useFocusEffect} from '@react-navigation/core'
+import {useLocalBadging} from '../util/use-local-badging'
 
 type OwnProps = {expanded?: string}
 
@@ -35,28 +36,8 @@ export default (ownProps: OwnProps) => {
   const git = Constants.useGitState(state => state.idToInfo)
   const loadGit = Constants.useGitState(state => state.dispatchLoad)
   const clearBadges = Constants.useGitState(state => state.dispatchClearBadges)
-
-  // On click we clear the badges in the backend (and nav) but we keep the 'new' badges on rows
-  // until we move away from the screen, so we keep a local cache of the badges and manage it ourselves
-  const stateNew = Constants.useGitState(state => state.isNew)
-  const [badged, setBadged] = React.useState(stateNew ?? new Set())
-
-  // keep adding if we got new ones
-  const toAdd = [...(stateNew ?? new Set<string>())].reduce((arr, n) => {
-    if (!badged.has(n)) {
-      arr.push(n)
-    }
-    return arr
-  }, new Array<string>())
-  if (toAdd.length) {
-    setBadged(s => {
-      const next = new Set(s)
-      toAdd.forEach(a => {
-        next.add(a)
-      })
-      return next
-    })
-  }
+  const storeSet = Constants.useGitState(state => state.isNew)
+  const {badged} = useLocalBadging(storeSet, clearBadges)
 
   const dispatchSetError = Constants.useGitState(state => state.dispatchSetError)
   const {personals, teams} = getRepos(git)
@@ -77,11 +58,7 @@ export default (ownProps: OwnProps) => {
   useFocusEffect(
     React.useCallback(() => {
       loadGit()
-      clearBadges()
-      return () => {
-        setBadged(new Set())
-      }
-    }, [loadGit, clearBadges])
+    }, [loadGit])
   )
 
   const [expandedSet, setExpandedSet] = React.useState(

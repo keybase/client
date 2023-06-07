@@ -3,7 +3,7 @@ import * as React from 'react'
 import type * as CSS from './css'
 export {default as globalColors} from './colors'
 
-export declare const transition: (...properties: Array<string>) => any
+export declare const transition: (...properties: Array<string>) => {transition: string}
 
 type _fakeFontDefSeeCommentsOnThisStyle = {
   fontFamily: 'Keybase'

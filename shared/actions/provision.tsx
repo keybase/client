@@ -2,7 +2,6 @@ import * as Constants from '../constants/provision'
 import * as LoginConstants from '../constants/login'
 import * as ConfigConstants from '../constants/config'
 import * as RouteTreeGen from './route-tree-gen'
-import * as DevicesGen from './devices-gen'
 import * as ProvisionGen from './provision-gen'
 import * as WaitingGen from './waiting-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -509,7 +508,6 @@ const addNewDevice = async (_s: unknown, _a: unknown, listenerApi: Container.Lis
     )
     ProvisioningManager.getSingleton().setDone('add device success')
     // Now refresh and nav back
-    listenerApi.dispatch(DevicesGen.createLoad())
     listenerApi.dispatch(RouteTreeGen.createNavigateAppend({path: devicesRoot}))
     listenerApi.dispatch(RouteTreeGen.createClearModals())
   } catch (finalError) {
