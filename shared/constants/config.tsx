@@ -4,6 +4,9 @@ import * as ChatConstants from './chat2'
 import HiddenString from '../util/hidden-string'
 import {defaultUseNativeFrame, runMode} from './platform'
 import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
+// normally util.container but it re-exports from us so break the cycle
+import {create as createZustand} from 'zustand'
+import {immer as immerZustand} from 'zustand/middleware/immer'
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
@@ -25,7 +28,6 @@ export const initialState: Types.State = {
   allowAnimatedEmojis: true,
   androidShare: undefined,
   appFocused: true,
-  appFocusedCount: 0,
   appOutOfDateMessage: '',
   appOutOfDateStatus: 'checking',
   avatarRefreshCounter: new Map(),
@@ -36,7 +38,6 @@ export const initialState: Types.State = {
   daemonHandshakeVersion: 1,
   daemonHandshakeWaiters: new Map(),
   darkModePreference: 'system',
-  debugDump: [],
   defaultUsername: '',
   deviceID: '',
   deviceName: '',
@@ -51,7 +52,6 @@ export const initialState: Types.State = {
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
   mainWindowMax: false,
-  menubarWindowID: 0,
   notifySound: false,
   openAtLogin: true,
   osNetworkOnline: false,
@@ -87,3 +87,23 @@ export const initialState: Types.State = {
 
 // we proxy the style helper to keep the logic in one place but act like a selector
 export const isDarkMode = (_: Types.State) => _isDarkMode()
+
+type ZStore = {}
+const initialZState: ZStore = {}
+
+type ZState = ZStore & {
+  dispatchReset: () => void
+}
+
+export const useConfigState = createZustand(
+  immerZustand<ZState>(set => {
+    const dispatchReset = () => {
+      set(() => initialState)
+    }
+
+    return {
+      ...initialZState,
+      dispatchReset,
+    }
+  })
+)

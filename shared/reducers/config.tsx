@@ -44,7 +44,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
     appFocused: draftState.appFocused,
-    appFocusedCount: draftState.appFocusedCount,
     configuredAccounts: draftState.configuredAccounts,
     daemonHandshakeState: draftState.daemonHandshakeState,
     daemonHandshakeVersion: draftState.daemonHandshakeVersion,
@@ -53,7 +52,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     defaultUsername: draftState.defaultUsername,
     logoutHandshakeVersion: draftState.logoutHandshakeVersion,
     logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,
-    menubarWindowID: draftState.menubarWindowID,
     pushLoaded: draftState.pushLoaded,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
     useNativeFrame: draftState.useNativeFrame,
@@ -228,7 +226,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.changedFocus]: (draftState, action) => {
     draftState.appFocused = action.payload.appFocused
-    draftState.appFocusedCount++
   },
   [ConfigGen.changedActive]: (draftState, action) => {
     draftState.userActive = action.payload.userActive
@@ -238,9 +235,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.setOpenAtLogin]: (draftState, action) => {
     draftState.openAtLogin = action.payload.openAtLogin
-  },
-  [ConfigGen.updateMenubarWindowID]: (draftState, action) => {
-    draftState.menubarWindowID = action.payload.id
   },
   [ConfigGen.setAccounts]: (draftState, action) => {
     // already have one?

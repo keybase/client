@@ -42,7 +42,6 @@ export type State = {
         text: string
       }
   appFocused: boolean
-  appFocusedCount: number
   appOutOfDateMessage: string
   appOutOfDateStatus: AppOutOfDateStatus
   avatarRefreshCounter: Map<string, number>
@@ -55,7 +54,6 @@ export type State = {
   // if we ever restart handshake up this so we can ignore any waiters for old things
   daemonHandshakeVersion: number
   darkModePreference: DarkModePreference
-  debugDump: Array<string>
   deviceID: RPCTypes.DeviceID
   deviceName?: string
   defaultUsername: string
@@ -71,7 +69,6 @@ export type State = {
   logoutHandshakeWaiters: Map<string, number>
   logoutHandshakeVersion: number
   mainWindowMax: boolean
-  menubarWindowID: number
   notifySound: boolean
   openAtLogin: boolean
   osNetworkOnline: boolean

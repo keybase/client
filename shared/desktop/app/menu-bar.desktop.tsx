@@ -30,7 +30,7 @@ type Bounds = {
   height: number
 }
 
-const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
+const MenuBar = () => {
   const icon = Electron.nativeImage.createFromPath(getAssetPath('images', 'menubarIcon', iconPath))
   if (useImageTemplate && !iconPathIsBadged) {
     icon.setTemplateImage(true)
@@ -125,8 +125,6 @@ const MenuBar = (menubarWindowIDCallback: (id: number) => void) => {
     )
 
     mb.tray.setIgnoreDoubleClickEvents(true)
-
-    mb.window && menubarWindowIDCallback(mb.window.id)
 
     if (showDevTools && !skipSecondaryDevtools) {
       mb.window?.webContents.openDevTools({mode: 'detach'})
