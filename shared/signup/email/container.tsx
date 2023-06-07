@@ -6,7 +6,6 @@ import * as SignupGen from '../../actions/signup-gen'
 import * as SignupConstants from '../../constants/signup'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Platform from '../../constants/platform'
-import {anyWaiting} from '../../constants/waiting'
 import EnterEmail, {type Props} from '.'
 
 type WatcherProps = Props & {
@@ -44,7 +43,7 @@ const ConnectedEnterEmail = () => {
   const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
   const error = Container.useSelector(state => state.settings.email.error || '')
   const initialEmail = Container.useSelector(state => state.signup.email)
-  const waiting = Container.useSelector(state => anyWaiting(state, SettingsConstants.addEmailWaitingKey))
+  const waiting = Container.useAnyWaiting(SettingsConstants.addEmailWaitingKey)
   const dispatch = Container.useDispatch()
   const _navClearModals = () => {
     dispatch(RouteTreeGen.createClearModals())

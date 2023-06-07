@@ -6,7 +6,6 @@ import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import Username from '.'
-import {anyWaiting} from '../../constants/waiting'
 import {usernameHint} from '../../constants/signup'
 import type {RPCError} from '../../util/errors'
 
@@ -43,7 +42,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const initialUsername = Container.useSelector(state => state.provision.initialUsername)
   // So we can clear the error if the name is changed
   const submittedUsername = Container.useSelector(state => state.provision.username)
-  const waiting = Container.useSelector(state => anyWaiting(state, Constants.waitingKey))
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
   const dispatch = Container.useDispatch()

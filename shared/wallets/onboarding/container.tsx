@@ -2,7 +2,6 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/wallets'
-import {anyErrors} from '../../constants/waiting'
 import Onboarding from '.'
 
 type OwnProps = {
@@ -10,7 +9,7 @@ type OwnProps = {
 }
 
 const ConnectedOnboarding = (ownProps: OwnProps) => {
-  const error = Container.useSelector(state => anyErrors(state, Constants.acceptDisclaimerWaitingKey))
+  const error = Container.useAnyErrors(Constants.acceptDisclaimerWaitingKey)
   const {acceptingDisclaimerDelay} = Container.useSelector(state => state.wallets)
   const acceptDisclaimerError = error?.message ?? ''
 

@@ -23,24 +23,16 @@ export default (ownProps: OwnProps) => {
   const blockUserByDefault = ownProps.blockUserByDefault ?? false
   let others = ownProps.others
   let adderUsername = ownProps.username
-  const waitingForLeave = Container.useSelector(state =>
-    teamname ? Container.anyWaiting(state, leaveTeamWaitingKey(teamname)) : false
-  )
-  const waitingForBlocking = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.setUserBlocksWaitingKey)
-  )
-  const waitingForReport = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.reportUserWaitingKey)
-  )
+  const waitingForLeave = Container.useAnyWaiting(teamname ? leaveTeamWaitingKey(teamname) : undefined)
+  const waitingForBlocking = Container.useAnyWaiting(Constants.setUserBlocksWaitingKey)
+  const waitingForReport = Container.useAnyWaiting(Constants.reportUserWaitingKey)
   if (others?.length === 1 && !adderUsername) {
     adderUsername = others[0]
     others = undefined
   }
 
   const _allKnownBlocks = Container.useSelector(state => state.users.blockMap)
-  const loadingWaiting = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.getUserBlocksWaitingKey)
-  )
+  const loadingWaiting = Container.useAnyWaiting(Constants.getUserBlocksWaitingKey)
   const stateProps = {
     _allKnownBlocks,
     adderUsername,

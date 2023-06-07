@@ -5,7 +5,6 @@ import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
-import {anyWaiting} from '../../../constants/waiting'
 import * as Container from '../../../util/container'
 import {appendWalletPersonBuilder} from '../../../actions/typed-routes'
 
@@ -100,11 +99,11 @@ const ConnectedParticipantsOtherAccount = () => {
   const toAccount = Container.useSelector(state =>
     build.to ? makeAccount(Constants.getAccount(state, Types.stringToAccountID(build.to))) : undefined
   )
-  const showSpinner = Container.useSelector(state =>
-    toAccount
-      ? toAccount.unknown
-      : anyWaiting(state, Constants.linkExistingWaitingKey, Constants.createNewAccountWaitingKey)
-  )
+  const waiting = Container.useAnyWaiting([
+    Constants.linkExistingWaitingKey,
+    Constants.createNewAccountWaitingKey,
+  ])
+  const showSpinner = toAccount ? toAccount.unknown : waiting
 
   const allAccounts = Container.useSelector(state => Constants.getAccounts(state).map(makeAccount))
   const user = Container.useSelector(state => state.config.username)

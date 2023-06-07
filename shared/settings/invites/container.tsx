@@ -13,9 +13,7 @@ export default () => {
   const inviteMessage = ''
   const pendingInvites = Container.useSelector(state => state.settings.invites.pendingInvites)
   const showMessageField = false
-  const waitingForResponse = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.settingsWaitingKey)
-  )
+  const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
   const dispatch = Container.useDispatch()
   const onClearError = () => {

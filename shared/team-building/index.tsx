@@ -6,7 +6,6 @@ import * as Styles from '../styles'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as TeamConstants from '../constants/teams'
 import * as TeamBuildingTypes from '../constants/types/team-building'
-import * as WaitingConstants from '../constants/waiting'
 import EmailSearch from './email-search'
 import Input from './input'
 import PhoneSearch from './phone-search'
@@ -210,9 +209,7 @@ const TeamBuilding = (p: OwnProps) => {
     namespace === 'teams' ? `Add to ${getTeamMeta(state, teamID ?? '').teamname}` : p.title ?? ''
   )
 
-  const waitingForCreate = Container.useSelector(state =>
-    WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating)
-  )
+  const waitingForCreate = Container.useAnyWaiting(ChatConstants.waitingKeyCreating)
 
   const offset = useSharedValue(0)
 

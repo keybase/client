@@ -31,9 +31,7 @@ export default () => {
   const showEmailSection = Container.useSelector(
     state => !!state.settings.email.emails && state.settings.email.emails.size > 0
   )
-  const waitingForResponse = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.settingsWaitingKey)
-  )
+  const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
   const dispatch = Container.useDispatch()
   const onBack = () => {

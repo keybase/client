@@ -5,7 +5,6 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import ReallyDeleteTeam from '.'
-import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {teamID: Types.TeamID}
 
@@ -13,9 +12,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID ?? Types.noTeamID
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const deleteWaiting = Container.useSelector(state =>
-    anyWaiting(state, Constants.deleteTeamWaitingKey(teamID))
-  )
+  const deleteWaiting = Container.useAnyWaiting(Constants.deleteTeamWaitingKey(teamID))
   const teamMetas = Container.useSelector(state => state.teams.teamMeta)
   const subteamNames = teamDetails.subteams.size
     ? [...teamDetails.subteams]

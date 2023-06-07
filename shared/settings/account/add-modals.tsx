@@ -232,10 +232,10 @@ export const VerifyPhone = () => {
   const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
   const verificationState = Container.useSelector(state => state.settings.phoneNumbers.verificationState)
-  const resendWaiting = Container.useAnyWaiting(
+  const resendWaiting = Container.useAnyWaiting([
     Constants.addPhoneNumberWaitingKey,
-    Constants.resendVerificationForPhoneWaitingKey
-  )
+    Constants.resendVerificationForPhoneWaitingKey,
+  ])
   const verifyWaiting = Container.useAnyWaiting(Constants.verifyPhoneNumberWaitingKey)
 
   // clean everything on unmount

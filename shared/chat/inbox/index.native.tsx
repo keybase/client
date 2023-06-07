@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/chat2'
+import * as WaitingConstants from '../../constants/waiting'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
@@ -16,7 +17,6 @@ import type * as T from './index.d'
 import type * as Types from '../../constants/types/chat2'
 import {type ViewToken, FlatList} from 'react-native'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
-import {anyWaiting} from '../../constants/waiting'
 import {makeRow} from './row'
 
 type RowItem = Types.ChatInboxRowItem
@@ -290,14 +290,17 @@ class Inbox extends React.PureComponent<T.Props, State> {
 }
 
 const NoRowsBuildTeam = () => {
-  const isLoading = Container.useSelector(state => Constants.anyChatWaitingKeys(state))
+  const isLoading = WaitingConstants.useWaitingState(state =>
+    [...state.counts.keys()].some(k => k.startsWith('chat:'))
+  )
   return isLoading ? null : <BuildTeam />
 }
 
 const LoadingLine = () => {
-  const isLoading = Container.useSelector(state =>
-    anyWaiting(state, Constants.waitingKeyInboxRefresh, Constants.waitingKeyInboxSyncStarted)
-  )
+  const isLoading = Container.useAnyWaiting([
+    Constants.waitingKeyInboxRefresh,
+    Constants.waitingKeyInboxSyncStarted,
+  ])
   return isLoading ? (
     <Kb.Box style={styles.loadingContainer}>
       <Kb.LoadingLine />

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as Waiting from '../../../../constants/waiting'
 import * as Constants from '../../../../constants/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
 import * as Common from './common'
@@ -92,18 +91,22 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
     dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey}))
   }
 
+  const teamID = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    return meta.teamID
+  })
+
+  const suggestChannelsLoading = Container.useAnyWaiting([
+    TeamsConstants.getChannelsWaitingKey(teamID),
+    Constants.waitingKeyMutualTeams(conversationIDKey),
+  ])
+
   return Container.useSelector(state => {
     const fil = filter.toLowerCase()
     const meta = Constants.getMeta(state, conversationIDKey)
     // don't include 'small' here to ditch the single #general suggestion
     const teamname = meta.teamType === 'big' ? meta.teamname : ''
     const suggestChannels = getChannelSuggestions(state, teamname, conversationIDKey)
-
-    const suggestChannelsLoading = Waiting.anyWaiting(
-      state,
-      TeamsConstants.getChannelsWaitingKey(meta.teamID),
-      Constants.waitingKeyMutualTeams(conversationIDKey)
-    )
 
     // TODO this will thrash always
     return {

@@ -3,7 +3,6 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
-import * as Waiting from '../../constants/waiting'
 import debounce from 'lodash/debounce'
 import Trustline from '.'
 
@@ -19,9 +18,7 @@ export default (ownProps: OwnProps) => {
   )
   const error = Container.useSelector(state => state.wallets.changeTrustlineError)
   const trustline = Container.useSelector(state => state.wallets.trustline)
-  const waitingSearch = Container.useSelector(state =>
-    Waiting.anyWaiting(state, Constants.searchTrustlineAssetsWaitingKey)
-  )
+  const waitingSearch = Container.useAnyWaiting(Constants.searchTrustlineAssetsWaitingKey)
   const dispatch = Container.useDispatch()
   const onDone = () => {
     dispatch(RouteTreeGen.createNavigateUp())

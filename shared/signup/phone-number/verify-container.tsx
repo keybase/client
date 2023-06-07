@@ -3,7 +3,6 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as SettingsConstants from '../../constants/settings'
-import {anyWaiting} from '../../constants/waiting'
 import VerifyPhoneNumber, {type Props} from './verify'
 
 type WatcherProps = Props & {
@@ -41,17 +40,12 @@ export default () => {
     state.settings.phoneNumbers.verificationState === 'error' ? state.settings.phoneNumbers.error : ''
   )
   const phoneNumber = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
-  const resendWaiting = Container.useSelector(state =>
-    anyWaiting(
-      state,
-      SettingsConstants.resendVerificationForPhoneWaitingKey,
-      SettingsConstants.addPhoneNumberWaitingKey
-    )
-  )
+  const resendWaiting = Container.useAnyWaiting([
+    SettingsConstants.resendVerificationForPhoneWaitingKey,
+    SettingsConstants.addPhoneNumberWaitingKey,
+  ])
   const verificationStatus = Container.useSelector(state => state.settings.phoneNumbers.verificationState)
-  const verifyWaiting = Container.useSelector(state =>
-    anyWaiting(state, SettingsConstants.verifyPhoneNumberWaitingKey)
-  )
+  const verifyWaiting = Container.useAnyWaiting(SettingsConstants.verifyPhoneNumberWaitingKey)
   const dispatch = Container.useDispatch()
   const _onContinue = (phoneNumber: string, code: string) => {
     dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber}))

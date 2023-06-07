@@ -3,7 +3,6 @@ import * as Constants from '../constants/people'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as PeopleGen from '../actions/people-gen'
-import * as WaitingConstants from '../constants/waiting'
 import {createShowUserProfile} from '../actions/profile-gen'
 import People from '.'
 
@@ -16,9 +15,7 @@ const PeopleReloadable = () => {
   const newItems = Container.useSelector(state => state.people.newItems)
   const oldItems = Container.useSelector(state => state.people.oldItems)
   const signupEmail = Container.useSelector(state => state.signup.justSignedUpEmail)
-  const waiting = Container.useSelector(state =>
-    WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey)
-  )
+  const waiting = Container.useAnyWaiting(Constants.getPeopleDataWaitingKey)
   const wotUpdates = Container.useSelector(state => state.people.wotUpdates)
 
   const dispatch = Container.useDispatch()

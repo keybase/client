@@ -8,14 +8,13 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SignupGen from '../actions/signup-gen'
 import * as Styles from '../styles'
 import {SignupScreen, errorBanner} from './common'
-import {anyWaiting} from '../constants/waiting'
 import {maxUsernameLength} from '../constants/signup'
 
 const ConnectedEnterUsername = () => {
   const error = Container.useSelector(state => state.signup.usernameError)
   const initialUsername = Container.useSelector(state => state.signup.username)
   const usernameTaken = Container.useSelector(state => state.signup.usernameTaken)
-  const waiting = Container.useSelector(state => anyWaiting(state, Constants.waitingKey))
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const dispatch = Container.useDispatch()
   const onBack = () => {
     dispatch(SignupGen.createRestartSignup())

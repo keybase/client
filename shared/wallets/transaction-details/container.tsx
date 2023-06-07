@@ -8,7 +8,6 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {getFullname} from '../../constants/users'
 import openURL from '../../util/open-url'
 import TransactionDetails, {type NotLoadingProps} from '.'
-import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {
   accountID: Types.AccountID
@@ -22,11 +21,8 @@ export default (ownProps: OwnProps) => {
   const _transaction = Container.useSelector(state => Constants.getPayment(state, accountID, paymentID))
   const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
   // Transaction can briefly be empty when status changes
-  const loading = Container.useSelector(
-    state =>
-      anyWaiting(state, Constants.getRequestDetailsWaitingKey(paymentID)) ||
-      _transaction.id === Types.noPaymentID
-  )
+  const waiting = Container.useAnyWaiting(Constants.getRequestDetailsWaitingKey(paymentID))
+  const loading = waiting || _transaction.id === Types.noPaymentID
 
   const counterpartyMeta = Container.useSelector(state =>
     yourInfoAndCounterparty.counterpartyType === 'keybaseUser'

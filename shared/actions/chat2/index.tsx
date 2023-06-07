@@ -2,6 +2,7 @@ import * as BotsGen from '../bots-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
+import * as WaitingConstants from '../../constants/waiting'
 import * as Container from '../../util/container'
 import * as DeeplinksGen from '../deeplinks-gen'
 import * as EngineGen from '../engine-gen-gen'
@@ -22,7 +23,6 @@ import * as TeamsGen from '../teams-gen'
 import * as TeamsTypes from '../../constants/types/teams'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
-import * as WaitingGen from '../waiting-gen'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as WalletsGen from '../wallets-gen'
 import * as Styles from '../../styles'
@@ -634,8 +634,10 @@ const onChatAttachmentUploadStart = (
   })
 }
 
-const onChatInboxSyncStarted = () =>
-  WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})
+const onChatInboxSyncStarted = () => {
+  const {dispatchIncrement} = WaitingConstants.useWaitingState.getState()
+  dispatchIncrement(Constants.waitingKeyInboxSyncStarted)
+}
 
 // Service tells us it's done syncing
 const onChatInboxSynced = (
@@ -643,9 +645,10 @@ const onChatInboxSynced = (
   action: EngineGen.Chat1NotifyChatChatInboxSyncedPayload
 ) => {
   const {syncRes} = action.payload.params
-  const actions: Array<Container.TypedActions> = [
-    WaitingGen.createClearWaiting({key: Constants.waitingKeyInboxSyncStarted}),
-  ]
+
+  const {dispatchClear} = WaitingConstants.useWaitingState.getState()
+  dispatchClear(Constants.waitingKeyInboxSyncStarted)
+  const actions: Array<Container.TypedActions> = []
 
   switch (syncRes.syncType) {
     // Just clear it all

@@ -15,7 +15,7 @@ export default () => {
   const error = Container.useSelector(state => state.provision.error.stringValue())
   const resetEmailSent = Container.useSelector(state => state.recoverPassword.resetEmailSent)
   const username = Container.useSelector(state => state.provision.username)
-  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   const dispatch = Container.useDispatch()
   const _onForgotPassword = (username: string) => {

@@ -10,9 +10,7 @@ import LogOut from '.'
 const LogoutContainer = () => {
   const checkPasswordIsCorrect = Container.useSelector(state => state.settings.checkPasswordIsCorrect)
   const hasRandomPW = Container.useSelector(state => state.settings.password.randomPW)
-  const waitingForResponse = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.settingsWaitingKey)
-  )
+  const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
   const dispatch = Container.useDispatch()
   const onBootstrap = React.useCallback(() => dispatch(SettingsGen.createLoadHasRandomPw()), [dispatch])

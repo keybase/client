@@ -3,7 +3,6 @@ import type * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
 import {Settings} from '.'
-import {anyWaiting} from '../../../constants/waiting'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {useSettingsState} from './use-settings'
 
@@ -28,9 +27,7 @@ export default (ownProps: OwnProps) => {
   const openTeam = settings.open
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname
-  const waitingForWelcomeMessage = Container.useSelector(state =>
-    anyWaiting(state, Constants.loadWelcomeMessageWaitingKey(teamID))
-  )
+  const waitingForWelcomeMessage = Container.useAnyWaiting(Constants.loadWelcomeMessageWaitingKey(teamID))
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
   const dispatch = Container.useDispatch()
   const clearError = () => {

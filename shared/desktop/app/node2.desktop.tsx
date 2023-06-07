@@ -437,7 +437,7 @@ const plumbEvents = () => {
   }
 
   // we use this engine to proxy calls to the service from the renderer
-  const nodeEngine = makeEngine(mainWindowDispatch)
+  const nodeEngine = makeEngine(mainWindowDispatch, () => {})
 
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {

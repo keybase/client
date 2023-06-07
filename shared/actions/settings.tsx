@@ -1,13 +1,13 @@
 import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/settings'
+import * as WaitingConstants from '../constants/waiting'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2Constants from '../constants/router2'
 import * as SettingsGen from './settings-gen'
 import * as Tabs from '../constants/tabs'
-import * as WaitingGen from './waiting-gen'
 import logger from '../logger'
 import openURL from '../util/open-url'
 import trim from 'lodash/trim'
@@ -445,9 +445,10 @@ const trace = async (
 ) => {
   const durationSeconds = action.payload.durationSeconds
   await RPCTypes.pprofLogTraceRpcPromise({logDirForMobile: pprofDir, traceDurationSeconds: durationSeconds})
-  listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: Constants.traceInProgressKey}))
+  const {dispatchDecrement, dispatchIncrement} = WaitingConstants.useWaitingState.getState()
+  dispatchIncrement(Constants.traceInProgressKey)
   await listenerApi.delay(durationSeconds * 1_000)
-  listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: Constants.traceInProgressKey}))
+  dispatchDecrement(Constants.traceInProgressKey)
 }
 
 const processorProfile = async (
@@ -460,9 +461,11 @@ const processorProfile = async (
     logDirForMobile: pprofDir,
     profileDurationSeconds: durationSeconds,
   })
-  listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: Constants.processorProfileInProgressKey}))
+
+  const {dispatchDecrement, dispatchIncrement} = WaitingConstants.useWaitingState.getState()
+  dispatchIncrement(Constants.processorProfileInProgressKey)
   await listenerApi.delay(durationSeconds * 1_000)
-  listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: Constants.processorProfileInProgressKey}))
+  dispatchDecrement(Constants.processorProfileInProgressKey)
 }
 
 const rememberPassword = async (_: unknown, action: SettingsGen.OnChangeRememberPasswordPayload) => {

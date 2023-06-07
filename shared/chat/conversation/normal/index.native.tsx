@@ -1,7 +1,6 @@
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as WaitingConstants from '../../../constants/waiting'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as KbMobile from '../../../common-adapters/mobile.native'
@@ -29,13 +28,10 @@ const Offline = () => (
 
 const LoadingLine = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   const {conversationIDKey} = p
-  const showLoader = Container.useSelector(state =>
-    WaitingConstants.anyWaiting(
-      state,
-      Constants.waitingKeyThreadLoad(conversationIDKey),
-      Constants.waitingKeyInboxSyncStarted
-    )
-  )
+  const showLoader = Container.useAnyWaiting([
+    Constants.waitingKeyThreadLoad(conversationIDKey),
+    Constants.waitingKeyInboxSyncStarted,
+  ])
   return showLoader ? <Kb.LoadingLine /> : null
 }
 

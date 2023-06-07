@@ -3,14 +3,13 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import Feedback from '.'
-import {anyWaiting} from '../../constants/waiting'
 import type {Props} from './container'
 
 export default (ownProps: Props) => {
   const feedback = ownProps.feedback ?? ''
   const loggedOut = Container.useSelector(state => !state.config.loggedIn)
   const sendError = Container.useSelector(state => state.settings.feedback.error)
-  const sending = Container.useSelector(state => anyWaiting(state, Constants.sendFeedbackWaitingKey))
+  const sending = Container.useAnyWaiting(Constants.sendFeedbackWaitingKey)
 
   const dispatch = Container.useDispatch()
   const onBack = () => {

@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../chat2-gen'
+import * as Clipboard from 'expo-clipboard'
 import * as ConfigGen from '../config-gen'
 import * as Contacts from 'expo-contacts'
 import * as Container from '../../util/container'
@@ -16,8 +17,7 @@ import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../settings-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Types from '../../constants/types/chat2'
-import * as WaitingGen from '../waiting-gen'
-import * as Clipboard from 'expo-clipboard'
+import * as WaitingConstants from '../../constants/waiting'
 import NetInfo from '@react-native-community/netinfo'
 import NotifyPopup from '../../util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -421,7 +421,8 @@ const requestContactPermissions = async (
   listenerApi: Container.ListenerApi
 ) => {
   const {thenToggleImportOn} = action.payload
-  listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
+  const {dispatchDecrement, dispatchIncrement} = WaitingConstants.useWaitingState.getState()
+  dispatchIncrement(SettingsConstants.importContactsWaitingKey)
   const {status} = await Contacts.requestPermissionsAsync()
 
   if (status === Contacts.PermissionStatus.GRANTED && thenToggleImportOn) {
@@ -430,7 +431,7 @@ const requestContactPermissions = async (
     )
   }
   listenerApi.dispatch(SettingsGen.createLoadedContactPermissions({status}))
-  listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: SettingsConstants.importContactsWaitingKey}))
+  dispatchDecrement(SettingsConstants.importContactsWaitingKey)
 }
 
 // When the notif is tapped we are only passed the message, use this as a marker

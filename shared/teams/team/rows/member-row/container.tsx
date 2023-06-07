@@ -8,7 +8,6 @@ import type * as Types from '../../../../constants/types/teams'
 import {TeamMemberRow} from '.'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
-import {anyWaiting} from '../../../../constants/waiting'
 
 type OwnProps = {
   teamID: Types.TeamID
@@ -31,12 +30,8 @@ export default (ownProps: OwnProps) => {
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status
-  const waitingForAdd = Container.useSelector(state =>
-    anyWaiting(state, Constants.addMemberWaitingKey(teamID, username))
-  )
-  const waitingForRemove = Container.useSelector(state =>
-    anyWaiting(state, Constants.removeMemberWaitingKey(teamID, username))
-  )
+  const waitingForAdd = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
+  const waitingForRemove = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
   const you = Container.useSelector(state => state.config.username)
   const youCanManageMembers = Container.useSelector(
     state => Constants.getCanPerform(state, teamname).manageMembers

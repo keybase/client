@@ -7,7 +7,6 @@ import * as Styles from '../styles'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
 import type * as Types from '../constants/types/git'
-import {anyWaiting} from '../constants/waiting'
 import {memoize} from '../util/memoize'
 import {union} from '../util/set'
 import {useFocusEffect} from '@react-navigation/core'
@@ -32,7 +31,7 @@ const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
 export default (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
   const error = Constants.useGitState(state => state.error)
-  const loading = Container.useSelector(state => anyWaiting(state, Constants.loadingWaitingKey))
+  const loading = Container.useAnyWaiting(Constants.loadingWaitingKey)
   const git = Constants.useGitState(state => state.idToInfo)
   const loadGit = Constants.useGitState(state => state.dispatchLoad)
   const clearBadges = Constants.useGitState(state => state.dispatchClearBadges)

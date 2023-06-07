@@ -67,9 +67,7 @@ const Files = (props: Props) => {
       .then(() => {})
       .catch(() => {})
   }
-  const waitingToggleSyncOnCellular = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.setSyncOnCellularWaitingKey)
-  )
+  const waitingToggleSyncOnCellular = Container.useAnyWaiting(Constants.setSyncOnCellularWaitingKey)
   return (
     <Kb.Box2
       direction="vertical"

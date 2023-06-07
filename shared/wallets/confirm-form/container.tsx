@@ -7,13 +7,12 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import ConfirmSend from '.'
 import Participants from './participants/container'
 import type * as Types from '../../constants/types/wallets'
-import {anyWaiting} from '../../constants/waiting'
 
 export default () => {
   const build = Container.useSelector(state => state.wallets.building)
   const _built = Container.useSelector(state => state.wallets.builtPayment)
   const waitingKey = Constants.sendPaymentWaitingKey
-  const _waiting = Container.useSelector(state => anyWaiting(state, waitingKey))
+  const _waiting = Container.useAnyWaiting(waitingKey)
   const _sentPaymentError = Container.useSelector(state => state.wallets.sentPaymentError)
   const displayAmountFiat = _built.displayAmountFiat
   const displayAmountXLM = _built.displayAmountXLM

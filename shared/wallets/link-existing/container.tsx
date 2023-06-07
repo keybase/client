@@ -2,7 +2,6 @@ import * as Container from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/wallets'
-import {anyWaiting} from '../../constants/waiting'
 import HiddenString from '../../util/hidden-string'
 import {Wrapper as LinkExisting} from '.'
 
@@ -19,14 +18,11 @@ export default (ownProps: OwnProps) => {
   const nameError = Container.useSelector(state => state.wallets.accountNameError)
   const nameValidationState = Container.useSelector(state => state.wallets.accountNameValidationState)
   const secretKeyValidationState = Container.useSelector(state => state.wallets.secretKeyValidationState)
-  const waiting = Container.useSelector(state =>
-    anyWaiting(
-      state,
-      Constants.linkExistingWaitingKey,
-      Constants.validateAccountNameWaitingKey,
-      Constants.validateSecretKeyWaitingKey
-    )
-  )
+  const waiting = Container.useAnyWaiting([
+    Constants.linkExistingWaitingKey,
+    Constants.validateAccountNameWaitingKey,
+    Constants.validateSecretKeyWaitingKey,
+  ])
   const dispatch = Container.useDispatch()
 
   const onCancel = () => {

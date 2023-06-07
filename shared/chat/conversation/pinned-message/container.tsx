@@ -18,9 +18,7 @@ const PinnedMessageContainer = React.memo(function PinnedMessageContainer(p: Own
   }, shallowEqual)
   const message = pinnedMsg?.message
   const yourOperations = Container.useSelector(state => getCanPerform(state, teamname))
-  const unpinning = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.waitingKeyUnpin(conversationIDKey))
-  )
+  const unpinning = Container.useAnyWaiting(Constants.waitingKeyUnpin(conversationIDKey))
   const messageID = message?.id
   const dispatch = Container.useDispatch()
   const onClick = React.useCallback(() => {

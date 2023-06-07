@@ -4,7 +4,6 @@ import type {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
 import type {ActionHandler as _ActionHandler} from './make-reducer'
 import type {TypedState as _TypedState} from '../constants/reducer'
 import {StatusCode} from '../constants/types/rpc-gen'
-import {anyWaiting, anyErrors} from '../constants/waiting'
 import {useDispatch as RRuseDispatch, type TypedUseSelectorHook} from 'react-redux'
 import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
@@ -20,6 +19,7 @@ export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedS
 import USH from './use-selector'
 export {create as createZustand} from 'zustand'
 export {immer as immerZustand} from 'zustand/middleware/immer'
+export {useAnyWaiting, useAnyErrors, useDispatchClearWaiting} from '../constants/waiting'
 
 // just then and catch and ignore async functions
 export const ignorePromise = (f: Promise<void>) => {
@@ -74,9 +74,6 @@ export type RemoteWindowSerializeProps<P> = {[K in keyof P]-?: (val: P[K], old?:
 export type TypedDispatch = (action: _TypedActions) => void
 export type Dispatch = TypedDispatch
 
-export const useAnyWaiting = (...waitingKeys: string[]) =>
-  useSelector(state => anyWaiting(state, ...waitingKeys))
-export const useAnyErrors = (...waitingKeys: string[]) => useSelector(state => anyErrors(state, waitingKeys))
 // Deprecated: use usePrevious2
 export function usePrevious<T>(value: T) {
   const ref = React.useRef<T>()
@@ -170,7 +167,6 @@ export const timeoutPromise = async (timeMs: number) =>
   })
 
 export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
-export {anyWaiting, anyErrors} from '../constants/waiting'
 export {useSafeSubmit} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'
 export type TypedActions = _TypedActions
@@ -253,3 +249,4 @@ export const dummyListenerApi = {
 // if (__DEV__) {
 //   console.log('\n\n\nDEBUG: debugConnect enabled')
 // }
+//

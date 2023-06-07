@@ -2,7 +2,6 @@
 import * as Container from '../util/container'
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as Constants from '../constants/waiting'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {Box2} from './box'
 import {HeaderHocHeader} from './header-hoc'
@@ -154,7 +153,7 @@ export type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  let error = Container.useSelector(state => Constants.anyErrors(state, ownProps.waitingKeys))
+  let error = Container.useAnyErrors(ownProps.waitingKeys)
 
   // make sure reloadable only responds to network-related errors
   error = error && Container.isNetworkErr(error.code) ? error : undefined

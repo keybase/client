@@ -4,7 +4,6 @@ import * as PushGen from '../actions/push-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as WaitingGen from '../actions/waiting-gen'
 import type {TypedDispatch, TypedActions} from '../util/container'
 import {debugFullLogs} from '../local-debug'
 import logger from '../logger'
@@ -43,10 +42,6 @@ const transformActionForLog = (action: TypedActions) => {
     case Chat2Gen.updateMoreToLoad: // fallthrough
     case Chat2Gen.setConversationOffline: // fallthrough
     case GregorGen.updateReachable: // fallthrough
-    case WaitingGen.incrementWaiting: // fallthrough
-    case WaitingGen.decrementWaiting: // fallthrough
-    case WaitingGen.batchChangeWaiting: // fallthrough
-    case WaitingGen.clearWaiting: // fallthrough
       return action
 
     // no output

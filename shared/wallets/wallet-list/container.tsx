@@ -3,7 +3,6 @@ import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type * as Styles from '../../styles'
-import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {
   style: Styles.StylesCrossPlatform
@@ -11,7 +10,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const accounts = Container.useSelector(state => Constants.getAccountIDs(state))
-  const loading = Container.useSelector(state => anyWaiting(state, Constants.loadAccountsWaitingKey))
+  const loading = Container.useAnyWaiting(Constants.loadAccountsWaitingKey)
   const dispatch = Container.useDispatch()
   const onAddNew = () => {
     dispatch(

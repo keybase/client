@@ -5,7 +5,6 @@ import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import * as Waiting from '../../../../constants/waiting'
 import type * as Types from '../../../../constants/types/chat2'
 import {
   emojiSearch,
@@ -14,7 +13,6 @@ import {
   type EmojiData,
   RPCToEmojiData,
 } from '../../../../util/emoji'
-import shallowEqual from 'shallowequal'
 
 export const transformer = (
   emoji: EmojiData,
@@ -57,11 +55,8 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
     dispatch(Chat2Gen.createFetchUserEmoji({conversationIDKey}))
   }
 
-  const {userEmojis, userEmojisLoading} = Container.useSelector(state => {
-    const userEmojis = state.chat2.userEmojisForAutocomplete
-    const userEmojisLoading = Waiting.anyWaiting(state, Constants.waitingKeyLoadingEmoji)
-    return {userEmojis, userEmojisLoading}
-  }, shallowEqual)
+  const userEmojisLoading = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
+  const userEmojis = Container.useSelector(state => state.chat2.userEmojisForAutocomplete)
 
   if (!emojiPrepass.test(filter)) {
     return {

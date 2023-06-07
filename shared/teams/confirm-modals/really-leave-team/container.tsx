@@ -6,7 +6,6 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import ReallyLeaveTeam from '.'
 import LastOwnerDialog from './last-owner'
-import {anyWaiting} from '../../../constants/waiting'
 import {useTeamDetailsSubscribeMountOnly} from '../../subscriber'
 
 type OwnProps = {teamID: Types.TeamID}
@@ -18,10 +17,8 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const open = settings.open
   const lastOwner = Container.useSelector(state => Constants.isLastOwner(state, teamID))
   const stillLoadingTeam = !members
-  const leaving = Container.useSelector(state => anyWaiting(state, Constants.leaveTeamWaitingKey(teamname)))
-  const error = Container.useSelector(state =>
-    Container.anyErrors(state, Constants.leaveTeamWaitingKey(teamname))
-  )
+  const leaving = Container.useAnyWaiting(Constants.leaveTeamWaitingKey(teamname))
+  const error = Container.useAnyErrors(Constants.leaveTeamWaitingKey(teamname))
 
   const dispatch = Container.useDispatch()
   const onDeleteTeam = React.useCallback(() => {

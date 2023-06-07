@@ -1,7 +1,9 @@
 // Entry point to the chrome part of the app
 import Main from '../../app/main.desktop'
 // order of the above 2 must NOT change. needed for patching / hot loading to be correct
+import {useSelector} from '../../util/container'
 import * as NotificationsGen from '../../actions/notifications-gen'
+import * as WaitingConstants from '../../constants/waiting'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import RemoteProxies from '../remote/proxies.desktop'
@@ -14,7 +16,6 @@ import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 import {_setDarkModePreference} from '../../styles/dark-mode'
 import {isWindows} from '../../constants/platform'
-import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
 import type {TypedActions} from '../../actions/typed-actions-gen'
 import KB2 from '../../util/electron.desktop'
@@ -61,7 +62,9 @@ const setupStore = () => {
 
 const setupApp = (store, initListeners) => {
   disableDragDrop()
-  const eng = makeEngine(store.dispatch)
+
+  const {dispatchBatch} = WaitingConstants.useWaitingState.getState()
+  const eng = makeEngine(store.dispatch, dispatchBatch)
   initListeners()
   eng.listenersAreReady()
 

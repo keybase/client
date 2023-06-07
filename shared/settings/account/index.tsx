@@ -7,7 +7,6 @@ import * as SettingsGen from '../../actions/settings-gen'
 import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import EmailPhoneRow from './email-phone-row'
-import {anyWaiting} from '../../constants/waiting'
 import {isMobile} from '../../styles'
 
 export default () => {
@@ -16,7 +15,7 @@ export default () => {
   const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
   const addedPhone = Container.useSelector(state => state.settings.phoneNumbers.addedPhone)
   const hasPassword = Container.useSelector(state => !state.settings.password.randomPW)
-  const waiting = Container.useSelector(state => anyWaiting(state, Constants.loadSettingsWaitingKey))
+  const waiting = Container.useAnyWaiting(Constants.loadSettingsWaitingKey)
   const dispatch = Container.useDispatch()
   const _onClearSupersededPhoneNumber = (phone: string) => {
     dispatch(SettingsGen.createEditPhone({delete: true, phone}))
