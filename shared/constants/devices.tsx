@@ -1,14 +1,7 @@
 import * as Container from '../util/container'
-// import * as DevicesGen from './devices-gen'
 import * as RPCTypes from './types/rpc-gen'
-// import * as SettingsConstants from './settings'
-// import * as Tabs from './tabs'
 import * as Types from './types/devices'
-// import * as WaitingConstants from './waiting'
 import {memoize} from '../util/memoize'
-
-// TODO
-//config reducer? [DevicesGen.revoked]: (draftState, action) => {
 
 const initialState: Types.State = {
   deviceMap: new Map(),
@@ -91,17 +84,8 @@ const emptyDevice: Types.Device = {
 const makeDevice = (d?: Partial<Types.Device>): Types.Device =>
   d ? Object.assign({...emptyDevice}, d) : emptyDevice
 
-// const devicesTabLocation = Container.isMobile
-//   ? Container.isTablet
-//     ? ([Tabs.settingsTab] as const)
-//     : ([Tabs.settingsTab, SettingsConstants.devicesTab] as const)
-//   : ([Tabs.devicesTab] as const)
 export const waitingKey = 'devices:devicesPage'
 
-// const isWaiting = (state: Container.TypedState) => WaitingConstants.anyWaiting(state, waitingKey)
-// const getDevice = (state: Container.TypedState, id?: Types.DeviceID) =>
-//   (id && state.devices.deviceMap.get(id)) || emptyDevice
-//
 export const useActiveDeviceCounts = () => {
   const ds = useDevicesState(state => state.deviceMap)
   return [...ds.values()].reduce((c, v) => {
@@ -122,36 +106,16 @@ export const useRevokedDeviceCounts = () => {
   }, 0)
 }
 
-// type DeviceCounts = {
-//   numActive: number
-//   numRevoked: number
-// }
-// const getDeviceCounts = (state: Container.TypedState) =>
-//   [...state.devices.deviceMap.values()].reduce<DeviceCounts>(
-//     (c, v) => {
-//       if (v.revokedAt) {
-//         c.numRevoked++
-//       } else {
-//         c.numActive++
-//       }
-//       return c
-//     },
-//     {numActive: 0, numRevoked: 0}
-//   )
-
-// Utils for mapping a device to one of the icons
-
 // Icons are numbered 1-10, so this focuses on mapping
 // Device -> [1, 10]
 // We split devices by type and order them by creation time. Then, we use (index mod 10)
 // as the background #
 export const numBackgrounds = 10
 
-const getDeviceIconNumberInner = (
-  devices: Map<Types.DeviceID, Types.Device>,
-  deviceID: Types.DeviceID
-): Types.IconNumber =>
-  (((devices.get(deviceID)?.deviceNumberOfType ?? 0) % numBackgrounds) + 1) as Types.IconNumber
+export const useDeviceIconNumber = (deviceID: Types.DeviceID) => {
+  const devices = useDevicesState(state => state.deviceMap)
+  return (((devices.get(deviceID)?.deviceNumberOfType ?? 0) % numBackgrounds) + 1) as Types.IconNumber
+}
 
 const getNextDeviceIconNumberInner = memoize((devices: Map<Types.DeviceID, Types.Device>) => {
   // Find the max device number and add one (+ one more since these are 1-indexed)
@@ -163,11 +127,6 @@ const getNextDeviceIconNumberInner = memoize((devices: Map<Types.DeviceID, Types
   })
   return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
 })
-
-export const useDeviceIconNumber = (deviceID: Types.DeviceID) => {
-  const dm = useDevicesState(state => state.deviceMap)
-  return getDeviceIconNumberInner(dm, deviceID)
-}
 export const useNextDeviceIconNumber = () => {
   const dm = useDevicesState(state => state.deviceMap)
   return getNextDeviceIconNumberInner(dm)
