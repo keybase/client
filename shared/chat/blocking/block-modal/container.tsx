@@ -24,7 +24,6 @@ export default (ownProps: OwnProps) => {
   let others = ownProps.others
   let adderUsername = ownProps.username
   const waitingForLeave = Container.useAnyWaiting(teamname ? leaveTeamWaitingKey(teamname) : undefined)
-
   const waitingForBlocking = Container.useAnyWaiting(Constants.setUserBlocksWaitingKey)
   const waitingForReport = Container.useAnyWaiting(Constants.reportUserWaitingKey)
   if (others?.length === 1 && !adderUsername) {
