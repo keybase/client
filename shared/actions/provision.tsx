@@ -489,7 +489,6 @@ const startProvisioning = async (
         break
     }
   } finally {
-    const {dispatchClear} = WaitingConstants.useWaitingState.getState()
     dispatchClear(Constants.waitingKey)
     listenerApi.dispatch(ProvisionGen.createProvisionDone())
   }
