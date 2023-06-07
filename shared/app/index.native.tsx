@@ -1,6 +1,7 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as Styles from '../styles'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
+import * as WaitingConstants from '../constants/waiting'
 import * as React from 'react'
 import * as Container from '../util/container'
 import {chatDebugEnabled} from '../constants/chat2/debug'
@@ -105,7 +106,8 @@ const ensureStore = () => {
     global.DEBUGStore = _store
   }
 
-  const eng = makeEngine(_store.store.dispatch)
+  const {dispatchBatch} = WaitingConstants.useWaitingState.getState()
+  const eng = makeEngine(_store.store.dispatch, dispatchBatch)
   _store.initListeners()
   eng.listenersAreReady()
 

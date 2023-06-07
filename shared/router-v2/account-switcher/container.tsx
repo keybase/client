@@ -22,7 +22,7 @@ export default () => {
     state => TrackerConstants.getDetails(state, state.config.username).fullname || ''
   )
   const username = Container.useSelector(state => state.config.username)
-  const waiting = Container.useSelector(state => Container.anyWaiting(state, LoginConstants.waitingKey))
+  const waiting = Container.useAnyWaiting(LoginConstants.waitingKey)
 
   const dispatch = Container.useDispatch()
   const _onProfileClick = (username: string) => {

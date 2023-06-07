@@ -1,7 +1,6 @@
 import * as ChatConstants from './chat2'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
-import * as WaitingConstants from './waiting'
 import HiddenString from '../util/hidden-string'
 import type * as Types from './types/settings'
 import type {TypedState} from './reducer'
@@ -155,10 +154,7 @@ export const getE164 = (phoneNumber: string, countryCode?: string) => {
 export const securityGroup = 'security'
 export const soundGroup = 'sound'
 export const traceInProgressKey = 'settings:traceInProgress'
-export const traceInProgress = (state: TypedState) => WaitingConstants.anyWaiting(state, traceInProgressKey)
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
-export const processorProfileInProgress = (state: TypedState) =>
-  WaitingConstants.anyWaiting(state, processorProfileInProgressKey)
 export const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'

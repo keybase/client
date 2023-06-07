@@ -9,7 +9,6 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Styles from '../styles'
 import * as TeamConstants from '../constants/teams'
-import * as WaitingGen from '../actions/waiting-gen'
 import type * as TeamTypes from '../constants/types/teams'
 import type * as Types from '../constants/types/settings'
 import type {TeamMeta, TeamID} from '../constants/types/teams'
@@ -61,9 +60,7 @@ export default () => {
     dispatch(SettingsGen.createNotificationsRefresh())
 
     // Security: contact settings
-    dispatch(WaitingGen.createIncrementWaiting({key: Constants.contactSettingsLoadWaitingKey}))
     dispatch(SettingsGen.createContactSettingsRefresh())
-    dispatch(WaitingGen.createDecrementWaiting({key: Constants.contactSettingsLoadWaitingKey}))
 
     // Link previews
     dispatch(SettingsGen.createUnfurlSettingsRefresh())

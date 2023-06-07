@@ -1,14 +1,15 @@
-import Render from '.'
-import * as Container from '../../util/container'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
-import type * as TeamsTypes from '../../constants/types/teams'
+import * as Container from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
+import * as WaitingConstants from '../../constants/waiting'
+import Render from '.'
+import type * as TeamsTypes from '../../constants/types/teams'
 
 export default () => {
-  const _waiting = Container.useSelector(state => state.waiting.counts)
+  const waiting = WaitingConstants.useWaitingState(state => state.counts)
   const _you = Container.useSelector(state => state.config.username)
   const teamMeta = Container.useSelector(state => state.teams.teamMeta)
   const dispatch = Container.useDispatch()
@@ -34,7 +35,7 @@ export default () => {
     onCancel: () => onCancel(_you),
     onPromote,
     teams: Constants.sortTeamsByName(teamMeta),
-    waiting: _waiting,
+    waiting,
   }
   return <Render {...props} />
 }

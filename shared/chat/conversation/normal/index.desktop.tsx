@@ -3,7 +3,6 @@ import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as WaitingConstants from '../../../constants/waiting'
 import Banner from '../bottom-banner/container'
 import InputArea from '../input-area/container'
 import InvitationToBlock from '../../blocking/invitation-to-block'
@@ -24,13 +23,10 @@ const Offline = () => (
 
 const LoadingLine = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   const {conversationIDKey} = p
-  const showLoader = Container.useSelector(state =>
-    WaitingConstants.anyWaiting(
-      state,
-      Constants.waitingKeyThreadLoad(conversationIDKey),
-      Constants.waitingKeyInboxSyncStarted
-    )
-  )
+  const showLoader = Container.useAnyWaiting([
+    Constants.waitingKeyThreadLoad(conversationIDKey),
+    Constants.waitingKeyInboxSyncStarted,
+  ])
   return showLoader ? <Kb.LoadingLine /> : null
 }
 

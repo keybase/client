@@ -9,7 +9,6 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Styles from '../styles'
 import {ProxySettings} from './proxy/container'
-import {anyErrors, anyWaiting} from '../constants/waiting'
 import {isMobile, isLinux, isWindows} from '../constants/platform'
 import {toggleRenderDebug} from '../router-v2/shim.shared'
 
@@ -79,14 +78,11 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
 const Advanced = () => {
   const dispatch = Container.useDispatch()
 
-  const settingLockdownMode = Container.useSelector(state =>
-    anyWaiting(state, Constants.setLockdownModeWaitingKey)
-  )
+  const settingLockdownMode = Container.useAnyWaiting(Constants.setLockdownModeWaitingKey)
   const hasRandomPW = Container.useSelector(state => !!state.settings.password.randomPW)
   const openAtLogin = Container.useSelector(state => state.config.openAtLogin)
   const rememberPassword = Container.useSelector(state => state.settings.password.rememberPassword)
-  const setLockdownModeError =
-    Container.useSelector(state => anyErrors(state, Constants.setLockdownModeWaitingKey))?.message || ''
+  const setLockdownModeError = Container.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
   const onChangeRememberPassword = (remember: boolean) =>
     dispatch(SettingsGen.createOnChangeRememberPassword({remember}))
   const onSetOpenAtLogin = (openAtLogin: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin}))
@@ -214,11 +210,9 @@ const Developer = () => {
     })
 
   const showPprofControls = clickCount >= clickThreshold
-  const traceInProgress = Container.useSelector(state => Constants.traceInProgress(state))
+  const traceInProgress = Container.useAnyWaiting(Constants.traceInProgressKey)
   const onTrace = (durationSeconds: number) => dispatch(SettingsGen.createTrace({durationSeconds}))
-  const processorProfileInProgress = Container.useSelector(state =>
-    Constants.processorProfileInProgress(state)
-  )
+  const processorProfileInProgress = Container.useAnyWaiting(Constants.processorProfileInProgressKey)
   const onProcessorProfile = (durationSeconds: number) =>
     dispatch(SettingsGen.createProcessorProfile({durationSeconds}))
   const onDBNuke = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']}))

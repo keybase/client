@@ -4,7 +4,6 @@ import * as ConfigGen from '../../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Types from '../../../../../constants/types/wallets'
-import {anyWaiting} from '../../../../../constants/waiting'
 import ReallyRemoveAccountPopup from '.'
 
 type OwnProps = {accountID: Types.AccountID}
@@ -13,7 +12,7 @@ export default (ownProps: OwnProps) => {
   const accountID = ownProps.accountID ?? Types.noAccountID
   const secretKey = Container.useSelector(state => Constants.getSecretKey(state, accountID).stringValue())
   const name = Container.useSelector(state => Constants.getAccount(state, accountID).name)
-  const waiting = Container.useSelector(state => anyWaiting(state, Constants.deleteAccountWaitingKey))
+  const waiting = Container.useAnyWaiting(Constants.deleteAccountWaitingKey)
 
   const dispatch = Container.useDispatch()
   const _onClose = () => {

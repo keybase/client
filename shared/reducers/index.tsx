@@ -18,7 +18,6 @@ import teams from './teams'
 import tracker2 from './tracker2'
 import unlockFolders from './unlock-folders'
 import users from './users'
-import waiting from './waiting'
 import wallets from './wallets'
 
 export const reducers = {
@@ -42,7 +41,6 @@ export const reducers = {
   tracker2,
   unlockFolders,
   users,
-  waiting,
   wallets,
 }
 
@@ -67,6 +65,5 @@ export type TypedState = {
   tracker2: ReturnType<typeof tracker2>
   unlockFolders: ReturnType<typeof unlockFolders>
   users: ReturnType<typeof users>
-  waiting: ReturnType<typeof waiting>
   wallets: ReturnType<typeof wallets>
 }

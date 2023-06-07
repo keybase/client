@@ -7,7 +7,6 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import Settings from '.'
 import type * as Types from '../../../constants/types/wallets'
 import type {IconType} from '../../../common-adapters/icon.constants-gen'
-import {anyWaiting} from '../../../constants/waiting'
 
 // Note: `props.user` is only the Keybase username if this is the primary
 // account. Non-primary accounts are not associated with usernames.
@@ -52,24 +51,17 @@ const SettingsContainer = () => {
   const user = account.isDefault ? me : ''
   const currencies = Container.useSelector(state => Constants.getDisplayCurrencies(state))
   const currency = Container.useSelector(state => Constants.getDisplayCurrency(state, accountID))
-  const currencyWaiting = Container.useSelector(state =>
-    anyWaiting(
-      state,
-      Constants.changeDisplayCurrencyWaitingKey,
-      Constants.getDisplayCurrencyWaitingKey(accountID)
-    )
-  )
-  const saveCurrencyWaiting = Container.useSelector(state =>
-    anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
-  )
+  const currencyWaiting = Container.useAnyWaiting([
+    Constants.changeDisplayCurrencyWaitingKey,
+    Constants.getDisplayCurrencyWaitingKey(accountID),
+  ])
+  const saveCurrencyWaiting = Container.useAnyWaiting(Constants.changeDisplayCurrencyWaitingKey)
   const thisDeviceIsLockedOut = account.deviceReadOnly
   const secretKey = Container.useSelector(state =>
     !thisDeviceIsLockedOut ? Constants.getSecretKey(state, accountID).stringValue() : ''
   )
   const mobileOnlyMode = Container.useSelector(state => state.wallets.mobileOnlyMap.get(accountID) ?? false)
-  const mobileOnlyWaiting = Container.useSelector(state =>
-    anyWaiting(state, Constants.setAccountMobileOnlyWaitingKey(accountID))
-  )
+  const mobileOnlyWaiting = Container.useAnyWaiting(Constants.setAccountMobileOnlyWaitingKey(accountID))
   const canSubmitTx = account.canSubmitTx
   const isDefault = account.isDefault
   const showExternalPartners = true

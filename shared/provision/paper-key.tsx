@@ -12,7 +12,7 @@ import {isMobile} from '../constants/platform'
 export default () => {
   const error = Container.useSelector(state => state.provision.error.stringValue())
   const hint = Container.useSelector(state => `${state.provision.codePageOtherDevice.name || ''}...`)
-  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   const dispatch = Container.useDispatch()
   const onBack = () => {

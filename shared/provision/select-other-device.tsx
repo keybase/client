@@ -13,7 +13,7 @@ import {SignupScreen} from '../signup/common'
 const SelectOtherDeviceContainer = () => {
   const devices = Container.useSelector(state => state.provision.devices)
   const username = Container.useSelector(state => state.provision.username)
-  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   const dispatch = Container.useDispatch()
   const _onBack = React.useCallback(() => {

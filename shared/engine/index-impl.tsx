@@ -1,17 +1,16 @@
 // Handles sending requests to the daemon
-import logger from '../logger'
 import Session, {type CancelHandlerType} from './session'
+import engineListener from './listener'
+import logger from '../logger'
+import throttle from 'lodash/throttle'
+import type {CustomResponseIncomingCallMapType, IncomingCallMapType, BatchParams} from '.'
+import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
+import type {TypedDispatch} from '../util/container'
 import {initEngine, initEngineListener} from './require'
-import {type RPCError, convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
-import {createBatchChangeWaiting} from '../actions/waiting-gen'
-import engineListener from './listener'
-import throttle from 'lodash/throttle'
-import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
-import type {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
-import type {TypedDispatch} from '../util/container'
+import {type RPCError, convertToError} from '../util/errors'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
@@ -43,6 +42,7 @@ class Engine {
   _listenersAreReady: boolean = false
 
   _dispatch: TypedDispatch
+  _dispatchBatch: (changes: BatchParams) => void
 
   _queuedChanges: Array<{error: RPCError; increment: boolean; key: WaitingKey}> = []
   dispatchWaitingAction = (key: WaitingKey, waiting: boolean, error: RPCError) => {
@@ -53,16 +53,19 @@ class Engine {
   _throttledDispatchWaitingAction = throttle(() => {
     const changes = this._queuedChanges
     this._queuedChanges = []
-    this._dispatch(createBatchChangeWaiting({changes}))
+    this._dispatchBatch(changes)
   }, 500)
 
-  constructor(dispatch: TypedDispatch) {
+  constructor(dispatch: TypedDispatch, dispatchBatch: (changes: BatchParams) => void) {
     // setup some static vars
     if (DEFER_INCOMING_DURING_DEBUG) {
       this._dispatch = a => setTimeout(() => dispatch(a), 1)
     } else {
       this._dispatch = dispatch
     }
+
+    this._dispatchBatch = dispatchBatch
+
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),
       () => this._onConnected(),
@@ -354,13 +357,13 @@ if (__DEV__) {
   engine = global.DEBUGEngine
 }
 
-const makeEngine = (dispatch: TypedDispatch) => {
+const makeEngine = (dispatch: TypedDispatch, dispatchBatch: (b: BatchParams) => void) => {
   if (__DEV__ && engine) {
     logger.warn('makeEngine called multiple times')
   }
 
   if (!engine) {
-    engine = isTesting ? (new FakeEngine() as unknown as Engine) : new Engine(dispatch)
+    engine = isTesting ? (new FakeEngine() as unknown as Engine) : new Engine(dispatch, dispatchBatch)
     if (__DEV__) {
       global.DEBUGEngine = engine
     }

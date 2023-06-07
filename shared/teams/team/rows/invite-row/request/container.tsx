@@ -69,9 +69,7 @@ export default (ownProps: OwnProps) => {
   const disabledReasonsForRolePicker = Container.useSelector(state =>
     Constants.getDisabledReasonsForRolePicker(state, teamID, username)
   )
-  const waiting = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.addMemberWaitingKey(teamID, username))
-  )
+  const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const dispatch = Container.useDispatch()
   const _onIgnoreRequest = (teamname: string) => {
     reset

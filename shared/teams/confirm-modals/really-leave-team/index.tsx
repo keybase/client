@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Constants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as WaitingGen from '../../../actions/waiting-gen'
 import * as Container from '../../../util/container'
 import {useTeamsSubscribe} from '../../subscriber'
 
@@ -40,12 +39,12 @@ const Header = (props: Props) => (
 
 const _ReallyLeaveTeam = (props: Props) => {
   const {name} = props
-  const dispatch = Container.useDispatch()
+  const dispatchClearWaiting = Container.useDispatchClearWaiting()
   React.useEffect(
     () => () => {
-      dispatch(WaitingGen.createClearWaiting({key: Constants.leaveTeamWaitingKey(name)}))
+      dispatchClearWaiting(Constants.leaveTeamWaitingKey(name))
     },
-    [name, dispatch]
+    [dispatchClearWaiting, name]
   )
   const [leavePermanently, setLeavePermanently] = React.useState(false)
   const onLeave = () => props.onLeave(leavePermanently)

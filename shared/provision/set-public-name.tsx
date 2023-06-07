@@ -14,7 +14,7 @@ import {defaultDevicename} from '../constants/signup'
 const PublicNameContainer = () => {
   const devices = Container.useSelector(state => state.provision.devices)
   const error = Container.useSelector(state => state.provision.error.stringValue())
-  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const dispatch = Container.useDispatch()
 
   const _onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])

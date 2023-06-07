@@ -23,7 +23,7 @@ const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
 
 const ReloadableDevices = () => {
   const deviceMap = Constants.useDevicesState(state => state.deviceMap)
-  const waiting = Container.useSelector(state => Container.anyWaiting(state, Constants.waitingKey))
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const loadDevices = Constants.useDevicesState(state => state.dispatchLoad)
   const dispatchClearBadges = Constants.useDevicesState(state => state.dispatchClearBadges)
   const storeSet = Constants.useDevicesState(state => state.isNew)

@@ -7,12 +7,11 @@ import * as SignupGen from '../actions/signup-gen'
 import * as Styles from '../styles'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from './common'
-import {anyWaiting} from '../constants/waiting'
 
 const ConnectedEnterDevicename = () => {
   const error = Container.useSelector(state => state.signup.devicenameError)
   const initialDevicename = Container.useSelector(state => state.signup.devicename)
-  const waiting = Container.useSelector(state => anyWaiting(state, Constants.waitingKey))
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const dispatch = Container.useDispatch()
   const onBack = () => {
     dispatch(SignupGen.createGoBackAndClearErrors())

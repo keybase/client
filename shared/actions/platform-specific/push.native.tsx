@@ -2,6 +2,7 @@ import * as Chat2Gen from '../chat2-gen'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
+import * as WaitingConstants from '../../constants/waiting'
 import * as Container from '../../util/container'
 import * as NotificationsGen from '../notifications-gen'
 import * as ProfileGen from '../profile-gen'
@@ -10,7 +11,6 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
-import * as WaitingGen from '../waiting-gen'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
 import type * as Types from '../../constants/types/push'
@@ -457,7 +457,8 @@ const requestPermissions = async (_s: unknown, _a: unknown, listenerApi: Contain
   }
   try {
     listenerApi.dispatch(ConfigGen.createOpenAppSettings())
-    listenerApi.dispatch(WaitingGen.createIncrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
+    const {dispatchIncrement} = WaitingConstants.useWaitingState.getState()
+    dispatchIncrement(Constants.permissionsRequestingWaitingKey)
     logger.info('[PushRequesting] asking native')
     await requestPermissionsFromNative()
     const permissions = await checkPermissionsFromNative()
@@ -470,7 +471,8 @@ const requestPermissions = async (_s: unknown, _a: unknown, listenerApi: Contain
       listenerApi.dispatch(PushGen.createUpdateHasPermissions({hasPermissions: false}))
     }
   } finally {
-    listenerApi.dispatch(WaitingGen.createDecrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
+    const {dispatchDecrement} = WaitingConstants.useWaitingState.getState()
+    dispatchDecrement(Constants.permissionsRequestingWaitingKey)
     listenerApi.dispatch(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
   }
 }

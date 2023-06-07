@@ -3,7 +3,6 @@ import SyncToggle from './sync-toggle'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
-import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {
   tlfPath: Types.Path
@@ -15,7 +14,7 @@ export default (ownProps: OwnProps) => {
     Constants.getPathItem(state.fs.pathItems, ownProps.tlfPath)
   )
   const _tlfs = Container.useSelector(state => state.fs.tlfs)
-  const waiting = Container.useSelector(state => anyWaiting(state, Constants.syncToggleWaitingKey))
+  const waiting = Container.useAnyWaiting(Constants.syncToggleWaitingKey)
 
   const dispatch = Container.useDispatch()
   const disableSync = () => {

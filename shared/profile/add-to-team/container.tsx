@@ -3,7 +3,6 @@ import * as Container from '../../util/container'
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as WaitingConstants from '../../constants/waiting'
 import AddToTeam, {type AddToTeamProps} from './index'
 import type * as Types from '../../constants/types/teams'
 import {memoize} from '../../util/memoize'
@@ -113,9 +112,7 @@ export default (ownProps: OwnProps) => {
   const addUserToTeamsResults = Container.useSelector(state => state.teams.addUserToTeamsResults)
   const addUserToTeamsState = Container.useSelector(state => state.teams.addUserToTeamsState)
   const teamProfileAddList = Container.useSelector(state => state.teams.teamProfileAddList)
-  const waiting = Container.useSelector(state =>
-    WaitingConstants.anyWaiting(state, Constants.teamProfileAddListWaitingKey)
-  )
+  const waiting = Container.useAnyWaiting(Constants.teamProfileAddListWaitingKey)
   const dispatch = Container.useDispatch()
   const _onAddToTeams = (role: Types.TeamRoleType, teams: Array<string>, user: string) => {
     dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))

@@ -4,7 +4,6 @@ import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {anyWaiting} from '../../../../../constants/waiting'
 import RenameAccount from '.'
 
 type OwnProps = {accountID: Types.AccountID}
@@ -16,9 +15,10 @@ export default (ownProps: OwnProps) => {
   const initialName = selectedAccount.name
   const nameValidationState = Container.useSelector(state => state.wallets.accountNameValidationState)
   const renameAccountError = Container.useSelector(state => state.wallets.createNewAccountError)
-  const waiting = Container.useSelector(state =>
-    anyWaiting(state, Constants.changeAccountNameWaitingKey, Constants.validateAccountNameWaitingKey)
-  )
+  const waiting = Container.useAnyWaiting([
+    Constants.changeAccountNameWaitingKey,
+    Constants.validateAccountNameWaitingKey,
+  ])
 
   const dispatch = Container.useDispatch()
   const _onChangeAccountName = (accountID: Types.AccountID, name: string) => {

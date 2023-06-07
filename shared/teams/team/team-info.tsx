@@ -29,7 +29,7 @@ const TeamInfo = (props: Props) => {
 
   const saveDisabled =
     (description === teamDetails.description && newName === _leafName) || newName.length < 3
-  const waiting = Container.useAnyWaiting(Constants.teamWaitingKey(teamID), Constants.teamRenameWaitingKey)
+  const waiting = Container.useAnyWaiting([Constants.teamWaitingKey(teamID), Constants.teamRenameWaitingKey])
 
   const errors = {
     desc: Container.useSelector(state => state.teams.errorInEditDescription),

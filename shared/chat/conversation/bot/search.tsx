@@ -33,10 +33,10 @@ const SearchBotPopup = (props: Props) => {
   const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
   const {featuredBotsMap, botSearchResults} = Container.useSelector(getResults, shallowEqual)
-  const waiting = Container.useAnyWaiting(
+  const waiting = Container.useAnyWaiting([
     Constants.waitingKeyBotSearchUsers,
-    Constants.waitingKeyBotSearchFeatured
-  )
+    Constants.waitingKeyBotSearchFeatured,
+  ])
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())

@@ -3,7 +3,6 @@ import * as Container from '../../util/container'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {anyWaiting} from '../../constants/waiting'
 import EnterPhoneNumber, {type Props} from '.'
 
 type WatcherProps = Props & {
@@ -42,9 +41,7 @@ const ConnectedEnterPhoneNumber = () => {
   const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
   const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
-  const waiting = Container.useSelector(state =>
-    anyWaiting(state, SettingsConstants.addPhoneNumberWaitingKey)
-  )
+  const waiting = Container.useAnyWaiting(SettingsConstants.addPhoneNumberWaitingKey)
 
   const dispatch = Container.useDispatch()
   const onClear = () => {

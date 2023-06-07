@@ -3,7 +3,6 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {anyWaiting} from '../../constants/waiting'
 import CreateAccount from '.'
 
 type OwnProps = {
@@ -17,9 +16,10 @@ export default (ownProps: OwnProps) => {
   const createNewAccountError = Container.useSelector(state => state.wallets.createNewAccountError)
   const error = Container.useSelector(state => state.wallets.accountNameError)
   const nameValidationState = Container.useSelector(state => state.wallets.accountNameValidationState)
-  const waiting = Container.useSelector(state =>
-    anyWaiting(state, Constants.createNewAccountWaitingKey, Constants.validateAccountNameWaitingKey)
-  )
+  const waiting = Container.useAnyWaiting([
+    Constants.createNewAccountWaitingKey,
+    Constants.validateAccountNameWaitingKey,
+  ])
 
   const dispatch = Container.useDispatch()
   const onCancel = () => {

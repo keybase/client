@@ -2,7 +2,6 @@ import * as Constants from '../../../constants/teams'
 import type * as Types from '../../../constants/types/teams'
 import Tabs from '.'
 import * as Container from '../../../util/container'
-import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
   teamID: Types.TeamID
@@ -19,9 +18,10 @@ export default (ownProps: OwnProps) => {
   const admin = yourOperations.manageMembers
   const error = Container.useSelector(state => state.teams.errorInAddToTeam)
   const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
-  const loading = Container.useSelector(state =>
-    anyWaiting(state, Constants.teamWaitingKey(teamID), Constants.teamTarsWaitingKey(teamMeta.teamname))
-  )
+  const loading = Container.useAnyWaiting([
+    Constants.teamWaitingKey(teamID),
+    Constants.teamTarsWaitingKey(teamMeta.teamname),
+  ])
   const newTeamRequests = Container.useSelector(state => state.teams.newTeamRequests)
   const numInvites = teamDetails.invites?.size ?? 0
   const numRequests = teamDetails.requests?.size ?? 0

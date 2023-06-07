@@ -7,7 +7,6 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
 import * as TeamTypes from '../../../constants/types/teams'
-import * as WaitingGen from '../../../actions/waiting-gen'
 import ChannelPicker from './channel-picker'
 import openURL from '../../../util/open-url'
 import type * as RPCTypes from '../../../constants/types/rpc-gen'
@@ -105,7 +104,7 @@ const InstallBotPopup = (props: Props) => {
   }
 
   const {channelMetas} = useAllChannelMetas(teamID)
-  const error = Container.useAnyErrors(Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove)
+  const error = Container.useAnyErrors([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
   // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
@@ -182,14 +181,14 @@ const InstallBotPopup = (props: Props) => {
     }
   }, [conversationIDKey, inTeam, dispatch, botUsername])
   const noCommands = !commands?.commands
+
+  const dispatchClearWaiting = Container.useDispatchClearWaiting()
   React.useEffect(() => {
-    dispatch(
-      WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
-    )
+    dispatchClearWaiting([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
     if (noCommands) {
       dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
     }
-  }, [dispatch, noCommands, botUsername])
+  }, [dispatchClearWaiting, dispatch, noCommands, botUsername])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>

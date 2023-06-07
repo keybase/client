@@ -22,9 +22,7 @@ export default () => {
   const saveLabel = Container.useSelector(state =>
     state.settings.password.randomPW ? 'Create password' : 'Save'
   )
-  const waitingForResponse = Container.useSelector(state =>
-    Container.anyWaiting(state, Constants.settingsWaitingKey)
-  )
+  const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
   const dispatch = Container.useDispatch()
   const onCancel = () => {

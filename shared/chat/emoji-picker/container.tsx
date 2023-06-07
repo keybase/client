@@ -100,7 +100,7 @@ const useCustomReacji = (
   disabled?: boolean
 ) => {
   const customEmojiGroups = Container.useSelector(s => s.chat2.userEmojis)
-  const waiting = Container.useSelector(s => Container.anyWaiting(s, Constants.waitingKeyLoadingEmoji))
+  const waiting = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
   const dispatch = Container.useDispatch()
 
   const [lastCID, setLastCID] = React.useState('')

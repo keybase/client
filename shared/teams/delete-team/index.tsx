@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import * as WaitingGen from '../../actions/waiting-gen'
 import * as Constants from '../../constants/teams'
 import type * as Types from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
@@ -72,12 +71,12 @@ const ReallyDeleteTeam = (props: Props) => {
     }
   }, [deleteWaiting, prevDeleteWaiting, onBack, error])
 
-  const dispatch = Container.useDispatch()
+  const dispatchClearWaiting = Container.useDispatchClearWaiting()
   React.useEffect(() => {
     return () => {
-      dispatch(WaitingGen.createClearWaiting({key: Constants.deleteTeamWaitingKey(teamID)}))
+      dispatchClearWaiting(Constants.deleteTeamWaitingKey(teamID))
     }
-  }, [dispatch, teamID])
+  }, [dispatchClearWaiting, teamID])
   useTeamDetailsSubscribe(teamID)
 
   if (props.subteamNames) {

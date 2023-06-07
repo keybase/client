@@ -25,7 +25,6 @@ import type * as teams from './teams-gen'
 import type * as tracker2 from './tracker2-gen'
 import type * as unlockfolders from './unlock-folders-gen'
 import type * as users from './users-gen'
-import type * as waiting from './waiting-gen'
 import type * as wallets from './wallets-gen'
 
 export type TypedActions =
@@ -55,7 +54,6 @@ export type TypedActions =
   | tracker2.Actions
   | unlockfolders.Actions
   | users.Actions
-  | waiting.Actions
   | wallets.Actions
 
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never

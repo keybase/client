@@ -1,7 +1,6 @@
 import EditAvatar from '.'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as WaitingGen from '../../actions/waiting-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
 import * as TeamsConstants from '../../constants/teams'
@@ -9,7 +8,6 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import type * as Types from '../../constants/types/teams'
-import {anyErrors, anyWaiting} from '../../constants/waiting'
 import type * as ImagePicker from 'expo-image-picker'
 
 type OwnProps = {
@@ -25,20 +23,21 @@ export default (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
   const createdTeam = ownProps.createdTeam ?? false
   const image = ownProps.image
-  const sperror = Container.useSelector(state => anyErrors(state, Constants.uploadAvatarWaitingKey))
+  const sperror = Container.useAnyErrors(Constants.uploadAvatarWaitingKey)
   const sendChatNotification = ownProps.sendChatNotification ?? false
-  const submitting = Container.useSelector(state => anyWaiting(state, Constants.uploadAvatarWaitingKey))
+  const submitting = Container.useAnyWaiting(Constants.uploadAvatarWaitingKey)
   const teamname =
     Container.useSelector(state => (teamID ? TeamsConstants.getTeamNameFromID(state, teamID) : undefined)) ??
     ''
 
+  const dispatchClearWaiting = Container.useDispatchClearWaiting()
   const dispatch = Container.useDispatch()
   const onBack = () => {
-    dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
+    dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
     dispatch(RouteTreeGen.createNavigateUp())
   }
   const onClose = () => {
-    dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
+    dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
     dispatch(RouteTreeGen.createClearModals())
   }
   const onSaveTeamAvatar = (

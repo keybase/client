@@ -1,9 +1,9 @@
 import * as Constants from '../constants/provision'
 import * as LoginConstants from '../constants/login'
 import * as ConfigConstants from '../constants/config'
+import * as WaitingConstants from '../constants/waiting'
 import * as RouteTreeGen from './route-tree-gen'
 import * as ProvisionGen from './provision-gen'
-import * as WaitingGen from './waiting-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
 import logger from '../logger'
@@ -346,7 +346,8 @@ class ProvisioningManager {
 
   displaySecretExchanged = () => {
     // special case, we actually aren't waiting when we get this so our count goes negative. This is very unusual and a one-off
-    return WaitingGen.createBatchChangeWaiting({changes: [{increment: true, key: Constants.waitingKey}]})
+    const {dispatchIncrement} = WaitingConstants.useWaitingState.getState()
+    dispatchIncrement(Constants.waitingKey)
   }
 
   getCustomResponseIncomingCallMap = (): RPCTypes.CustomResponseIncomingCallMap =>
@@ -428,7 +429,8 @@ const startProvisioning = async (
   _a: unknown,
   listenerApi: Container.ListenerApi
 ) => {
-  listenerApi.dispatch(WaitingGen.createClearWaiting({key: Constants.waitingKey}))
+  const {dispatchClear} = WaitingConstants.useWaitingState.getState()
+  dispatchClear(Constants.waitingKey)
   const manager = makeProvisioningManager(false, listenerApi)
   try {
     const username = state.provision.username
@@ -487,14 +489,16 @@ const startProvisioning = async (
         break
     }
   } finally {
-    listenerApi.dispatch(WaitingGen.createClearWaiting({key: Constants.waitingKey}))
+    const {dispatchClear} = WaitingConstants.useWaitingState.getState()
+    dispatchClear(Constants.waitingKey)
     listenerApi.dispatch(ProvisionGen.createProvisionDone())
   }
 }
 
 const addNewDevice = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
   // Make a new handler each time.
-  listenerApi.dispatch(WaitingGen.createClearWaiting({key: Constants.waitingKey}))
+  const {dispatchClear} = WaitingConstants.useWaitingState.getState()
+  dispatchClear(Constants.waitingKey)
   const manager = makeProvisioningManager(true, listenerApi)
   try {
     await RPCTypes.deviceDeviceAddRpcListener(
@@ -531,7 +535,8 @@ const addNewDevice = async (_s: unknown, _a: unknown, listenerApi: Container.Lis
     listenerApi.dispatch(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: true}))
     logger.error(`Provision -> Add device error: ${finalError.message}`)
   } finally {
-    listenerApi.dispatch(WaitingGen.createClearWaiting({key: Constants.waitingKey}))
+    const {dispatchClear} = WaitingConstants.useWaitingState.getState()
+    dispatchClear(Constants.waitingKey)
     listenerApi.dispatch(ProvisionGen.createProvisionDone())
   }
 }

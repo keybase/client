@@ -4,7 +4,6 @@ import * as Constants from '../../../constants/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
-import {anyWaiting} from '../../../constants/waiting'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
 import Menu from './menu'
@@ -61,9 +60,10 @@ export default (ownProps: OwnProps) => {
   const _fileContext = Container.useSelector(
     state => state.fs.fileContext.get(path) || Constants.emptyFileContext
   )
-  const _ignoreNeedsToWait = Container.useSelector(state =>
-    anyWaiting(state, Constants.folderListWaitingKey, Constants.statWaitingKey)
-  )
+  const _ignoreNeedsToWait = Container.useAnyWaiting([
+    Constants.folderListWaitingKey,
+    Constants.statWaitingKey,
+  ])
   const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
   const _pathItemActionMenu = Container.useSelector(state => state.fs.pathItemActionMenu)
   const _sfmiEnabled = Container.useSelector(

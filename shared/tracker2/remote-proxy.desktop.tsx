@@ -1,6 +1,7 @@
 // A mirror of the remote tracker windows.
 import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
+import * as WaitConstants from '../constants/waiting'
 import * as Styles from '../styles'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
@@ -20,10 +21,16 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const {avatarRefreshCounter, following, followers, httpSrvToken, httpSrvAddress, username} = config
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
-  const waiting = Container.useSelector(state => state.waiting)
-  const {counts, errors} = waiting
+  const counts = new Map([
+    [
+      Constants.waitingKey,
+      WaitConstants.useWaitingState(state => state.counts.get(Constants.waitingKey) ?? 0),
+    ],
+  ])
+  const errors = new Map([
+    [Constants.waitingKey, WaitConstants.useWaitingState(state => state.errors.get(Constants.waitingKey))],
+  ])
   const trackerUsernames = new Set([trackerUsername])
-  const waitingKeys = new Set([Constants.waitingKey])
   const blocked = blockMap.get(trackerUsername)?.chatBlocked || false
   const p: ProxyProps = {
     assertions,
@@ -31,9 +38,9 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
     bio,
     blockMap: mapFilterByKey(blockMap, trackerUsernames),
     blocked,
-    counts: mapFilterByKey(counts, waitingKeys),
+    counts,
     darkMode: Styles.isDarkMode(),
-    errors: mapFilterByKey(errors, waitingKeys),
+    errors,
     followers: intersect(followers, trackerUsernames),
     followersCount,
     following: intersect(following, trackerUsernames),

@@ -5,7 +5,6 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import Footer from '.'
-import {anyWaiting} from '../../../constants/waiting'
 
 const FooterContainer = () => {
   const accountID = Container.useSelector(state => state.wallets.building.from)
@@ -18,9 +17,7 @@ const FooterContainer = () => {
   const isReady = Container.useSelector(state =>
     isRequest ? state.wallets.builtRequest.readyToRequest : state.wallets.builtPayment.readyToReview
   )
-  const currencyWaiting = Container.useSelector(state =>
-    anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
-  )
+  const currencyWaiting = Container.useAnyWaiting(Constants.getDisplayCurrencyWaitingKey(accountID))
 
   const worthDescription = Container.useSelector(state =>
     isRequest ? state.wallets.builtRequest.worthDescription : state.wallets.builtPayment.worthDescription
@@ -28,12 +25,12 @@ const FooterContainer = () => {
 
   const waitingKey = isRequest ? Constants.requestPaymentWaitingKey : Constants.buildPaymentWaitingKey
 
-  const calculating = Container.useSelector(
-    state =>
-      !!state.wallets.building.amount &&
-      (anyWaiting(state, Constants.buildPaymentWaitingKey) ||
-        anyWaiting(state, Constants.requestPaymentWaitingKey))
-  )
+  const calcWaiting = Container.useAnyWaiting([
+    Constants.buildPaymentWaitingKey,
+    Constants.requestPaymentWaitingKey,
+  ])
+
+  const calculating = Container.useSelector(state => !!state.wallets.building.amount && calcWaiting)
 
   const disabled = !isReady || currencyWaiting || thisDeviceIsLockedOut
 

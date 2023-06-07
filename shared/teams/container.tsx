@@ -8,7 +8,6 @@ import * as TeamsGen from '../actions/teams-gen'
 import Teams, {type OwnProps as MainOwnProps} from './main'
 import openURL from '../util/open-url'
 import * as Constants from '../constants/teams'
-import * as WaitingConstants from '../constants/waiting'
 import type * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
@@ -94,9 +93,7 @@ const Connected = () => {
   const activityLevels = Container.useSelector(state => state.teams.activityLevels)
   const deletedTeams = Container.useSelector(state => state.teams.deletedTeams)
   const filter = Container.useSelector(state => state.teams.teamListFilter)
-  const loaded = Container.useSelector(
-    state => !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey)
-  )
+  const loaded = !Container.useAnyWaiting(Constants.teamsLoadedWaitingKey)
   const newTeamRequests = Container.useSelector(state => state.teams.newTeamRequests)
   const newTeams = Container.useSelector(state => state.teams.newTeams)
   const sawChatBanner = Container.useSelector(state => state.teams.sawChatBanner || false)

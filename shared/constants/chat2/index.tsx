@@ -388,9 +388,6 @@ export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
 export const waitingKeyMutualTeams = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
 
-export const anyChatWaitingKeys = (state: TypedState) =>
-  [...state.waiting.counts.keys()].some(k => k.startsWith('chat:'))
-
 /**
  * Gregor key for exploding conversations
  * Used as the `category` when setting the exploding mode on a conversation

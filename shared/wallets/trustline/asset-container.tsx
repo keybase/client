@@ -2,7 +2,6 @@ import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
-import * as Waiting from '../../constants/waiting'
 import openUrl from '../../util/open-url'
 import Asset from './asset'
 
@@ -25,8 +24,8 @@ export default (ownProps: OwnProps) => {
   const thisDeviceIsLockedOut = Container.useSelector(
     state => Constants.getAccount(state, ownProps.accountID).deviceReadOnly
   )
-  const waitingRefresh = Container.useSelector(state =>
-    Waiting.anyWaiting(state, Constants.refreshTrustlineAcceptedAssetsWaitingKey(ownProps.accountID))
+  const waitingRefresh = Container.useAnyWaiting(
+    Constants.refreshTrustlineAcceptedAssetsWaitingKey(ownProps.accountID)
   )
 
   const dispatch = Container.useDispatch()
