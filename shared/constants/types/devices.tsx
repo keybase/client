@@ -18,7 +18,6 @@ export type Device = {
 export type State = {
   deviceMap: Map<DeviceID, Device>
   isNew: Set<string>
-  justRevokedSelf: string
 }
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match

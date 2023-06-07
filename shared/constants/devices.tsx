@@ -13,12 +13,10 @@ import {memoize} from '../util/memoize'
 const initialState: Types.State = {
   deviceMap: new Map(),
   isNew: new Set(),
-  justRevokedSelf: '',
 }
 
 type ZState = Types.State & {
   dispatchLoad: () => void
-  dispatchSetRevokedSelf: (name: string) => void
   dispatchClearBadges: () => void
   dispatchReset: () => void
   dispatchSetBadges: (set: Set<string>) => void
@@ -55,19 +53,12 @@ export const useDevicesState = Container.createZustand(
       Container.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
     }
 
-    const dispatchSetRevokedSelf = (name: string) => {
-      set(s => {
-        s.justRevokedSelf = name
-      })
-    }
-
     return {
       ...initialState,
       dispatchClearBadges,
       dispatchLoad,
       dispatchReset,
       dispatchSetBadges,
-      dispatchSetRevokedSelf,
     }
   })
 )
@@ -115,6 +106,16 @@ export const useActiveDeviceCounts = () => {
   const ds = useDevicesState(state => state.deviceMap)
   return [...ds.values()].reduce((c, v) => {
     if (!v.revokedAt) {
+      ++c
+    }
+    return c
+  }, 0)
+}
+
+export const useRevokedDeviceCounts = () => {
+  const ds = useDevicesState(state => state.deviceMap)
+  return [...ds.values()].reduce((c, v) => {
+    if (v.revokedAt) {
       ++c
     }
     return c

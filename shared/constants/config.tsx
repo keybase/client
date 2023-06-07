@@ -46,6 +46,7 @@ export const initialState: Types.State = {
   httpSrvToken: '',
   incomingShareUseOriginal: undefined,
   justDeletedSelf: '',
+  justRevokedSelf: '',
   loggedIn: false,
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),

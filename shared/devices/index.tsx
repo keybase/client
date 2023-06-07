@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
-import DeviceRow from './row'
+import DeviceRow, {NewContext} from './row'
 import partition from 'lodash/partition'
 import type * as Types from '../constants/types/devices'
 import {intersect} from '../util/set'
@@ -82,7 +82,9 @@ const ReloadableDevices = () => {
       reloadOnMount={true}
       title={''}
     >
-      <Devices {...np} />
+      <NewContext.Provider value={badged}>
+        <Devices {...np} />
+      </NewContext.Provider>
     </Kb.Reloadable>
   )
 }

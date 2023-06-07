@@ -2,6 +2,7 @@ import logger from '../logger'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as EngineGen from '../actions/engine-gen-gen'
+import * as ProvisionGen from '../actions/provision-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
@@ -21,12 +22,17 @@ type Actions =
   | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
   | GregorGen.PushStatePayload
+  | ProvisionGen.StartProvisionPayload
 
 export default Container.makeReducer<Actions, Types.State>(Constants.initialState, {
+  [ProvisionGen.startProvision]: draftState => {
+    draftState.justRevokedSelf = ''
+  },
   [ConfigGen.revoked]: (draftState, action) => {
-    const {wasCurrentDevice} = action.payload
+    const {wasCurrentDevice, deviceName} = action.payload
     // if revoking self find another name if it exists
     if (wasCurrentDevice) {
+      draftState.justRevokedSelf = deviceName
       const {configuredAccounts, defaultUsername} = draftState
       draftState.defaultUsername = (
         configuredAccounts.find(n => n.username !== defaultUsername) || {

@@ -175,93 +175,96 @@ class GlobalError extends React.Component<Props, State> {
   }
 }
 
-const containerBase = {
-  ...Styles.globalStyles.flexBoxColumn,
-  left: 0,
-  overflow: 'hidden',
-  position: 'absolute',
-  right: 0,
-  top: 0,
-  zIndex: 1000,
-  ...Styles.transition('max-height'),
-}
+const styles = Styles.styleSheetCreate(() => {
+  const containerBase = {
+    ...Styles.globalStyles.flexBoxColumn,
+    left: 0,
+    overflow: 'hidden',
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 1000,
+    ...Styles.transition('max-height'),
+  } as const
 
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      closeIcon: Styles.platformStyles({
-        isElectron: {
-          position: 'absolute',
-          right: Styles.globalMargins.xsmall,
-          top: 10,
-        },
-      }),
-      containerBig: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Big')},
-      containerClosed: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Closed')},
-      containerOverlay: {
-        ...Styles.globalStyles.flexBoxColumn,
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        zIndex: 1000,
-      },
-      containerSmall: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Small')},
-      details: {
-        backgroundColor: Styles.globalColors.black,
-        color: Styles.globalColors.white_75,
-        padding: 8,
-        paddingLeft: Styles.globalMargins.xlarge,
-        paddingRight: Styles.globalMargins.xlarge,
-      },
-      feedbackButton: {
-        marginRight: Styles.globalMargins.large,
-      },
-      innerContainer: {
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        backgroundColor: Styles.globalColors.black,
-        flex: 1,
-        justifyContent: 'center',
-        minHeight: GlobalError.maxHeightForSize('Small'),
-        padding: Styles.globalMargins.xtiny,
-        position: 'relative',
-      },
-      message: {
-        color: Styles.globalColors.white,
-      },
-      overlayFill: {
-        ...Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
-        flex: 1,
-        justifyContent: 'center',
-      },
-      overlayRow: {
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        backgroundColor: Styles.globalColors.blue,
-        justifyContent: 'center',
-        padding: 8,
-      },
-      summary: {
-        color: Styles.globalColors.white,
-        flex: 1,
-      },
-      summaryRow: {
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        flex: 1,
-        justifyContent: 'center',
-        padding: Styles.globalMargins.xtiny,
-        position: 'relative',
-      },
-      summaryRowError: {
-        backgroundColor: Styles.globalColors.black,
-        minHeight: GlobalError.maxHeightForSize('Small'),
-      },
-    } as const)
-)
+  return {
+    closeIcon: {
+      position: 'absolute',
+      right: Styles.globalMargins.xsmall,
+      top: 10,
+    },
+    containerBig: Styles.platformStyles({
+      isElectron: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Big')},
+    }),
+    containerClosed: Styles.platformStyles({
+      isElectron: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Closed')},
+    }),
+    containerOverlay: {
+      ...Styles.globalStyles.flexBoxColumn,
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: 0,
+      zIndex: 1000,
+    },
+    containerSmall: Styles.platformStyles({
+      isElectron: {...containerBase, maxHeight: GlobalError.maxHeightForSize('Small')},
+    }),
+    details: {
+      backgroundColor: Styles.globalColors.black,
+      color: Styles.globalColors.white_75,
+      padding: 8,
+      paddingLeft: Styles.globalMargins.xlarge,
+      paddingRight: Styles.globalMargins.xlarge,
+    },
+    feedbackButton: {
+      marginRight: Styles.globalMargins.large,
+    },
+    innerContainer: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.black,
+      flex: 1,
+      justifyContent: 'center',
+      minHeight: GlobalError.maxHeightForSize('Small'),
+      padding: Styles.globalMargins.xtiny,
+      position: 'relative',
+    },
+    message: {
+      color: Styles.globalColors.white,
+    },
+    overlayFill: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.white,
+      flex: 1,
+      justifyContent: 'center',
+    },
+    overlayRow: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.blue,
+      justifyContent: 'center',
+      padding: 8,
+    },
+    summary: {
+      color: Styles.globalColors.white,
+      flex: 1,
+    },
+    summaryRow: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      padding: Styles.globalMargins.xtiny,
+      position: 'relative',
+    },
+    summaryRowError: {
+      backgroundColor: Styles.globalColors.black,
+      minHeight: GlobalError.maxHeightForSize('Small'),
+    },
+  } as const
+})
 
 export default GlobalError

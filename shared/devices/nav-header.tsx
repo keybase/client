@@ -6,7 +6,8 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 
 export const HeaderTitle = () => {
-  const {numActive, numRevoked} = Container.useSelector(state => Constants.getDeviceCounts(state))
+  const numActive = Constants.useActiveDeviceCounts()
+  const numRevoked = Constants.useRevokedDeviceCounts()
   return (
     <Kb.Box2 direction="vertical" style={styles.headerTitle}>
       <Kb.Text type="Header">Devices</Kb.Text>

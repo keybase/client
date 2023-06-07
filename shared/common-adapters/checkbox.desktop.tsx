@@ -59,22 +59,24 @@ const Checkbox = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  checkbox: {
-    ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.transition('background'),
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_20,
-    borderRadius: 2,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    flexShrink: 0,
-    height: CHECKBOX_SIZE,
-    justifyContent: 'center',
-    marginRight: CHECKBOX_MARGIN,
-    marginTop: 2,
-    position: 'relative',
-    width: CHECKBOX_SIZE,
-  },
+  checkbox: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxColumn,
+      ...Styles.transition('background'),
+      backgroundColor: Styles.globalColors.white,
+      borderColor: Styles.globalColors.black_20,
+      borderRadius: 2,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      flexShrink: 0,
+      height: CHECKBOX_SIZE,
+      justifyContent: 'center',
+      marginRight: CHECKBOX_MARGIN,
+      marginTop: 2,
+      position: 'relative',
+      width: CHECKBOX_SIZE,
+    },
+  }),
   checkboxChecked: {
     backgroundColor: Styles.globalColors.blue,
     borderColor: Styles.globalColors.blue,
@@ -91,10 +93,12 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingBottom: 2,
     paddingTop: 2,
   },
-  icon: {
-    ...Styles.transition('opacity'),
-    alignSelf: 'center',
-  },
+  icon: Styles.platformStyles({
+    isElectron: {
+      ...Styles.transition('opacity'),
+      alignSelf: 'center',
+    },
+  }),
   opaque: {
     opacity: 1,
   },
