@@ -1,4 +1,6 @@
 // A mirror of the remote tracker windows.
+import {useAvatarState} from '../common-adapters/avatar-zus'
+import * as React from 'react'
 import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
 import * as WaitConstants from '../constants/waiting'
@@ -18,7 +20,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const users = Container.useSelector(state => state.users)
   const {blockMap, infoMap} = users
   const config = Container.useSelector(state => state.config)
-  const {avatarRefreshCounter, following, followers, httpSrvToken, httpSrvAddress, username} = config
+  const {following, followers, httpSrvToken, httpSrvAddress, username} = config
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const counts = new Map([
@@ -32,6 +34,13 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   ])
   const trackerUsernames = new Set([trackerUsername])
   const blocked = blockMap.get(trackerUsername)?.chatBlocked || false
+
+  const avatarCount = useAvatarState(state => state.counts.get(trackerUsername) ?? 0)
+
+  const avatarRefreshCounter = React.useMemo(() => {
+    return new Map([[trackerUsername, avatarCount]])
+  }, [trackerUsername, avatarCount])
+
   const p: ProxyProps = {
     assertions,
     avatarRefreshCounter,

@@ -12,6 +12,7 @@ import * as Router2 from '../../constants/router2'
 import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../settings-gen'
 import * as Tabs from '../../constants/tabs'
+import {useAvatarState} from '../../common-adapters/avatar-zus'
 import logger from '../../logger'
 import {initPlatformListener} from '../platform-specific'
 import {noVersion} from '../../constants/whats-new'
@@ -632,6 +633,11 @@ const initConfig = () => {
 
   Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
   Container.listenAction(ConfigGen.powerMonitorEvent, onPowerMonitorEvent)
+
+  Container.listenAction(EngineGen.keybase1NotifyTeamAvatarUpdated, (_, action) => {
+    const {name} = action.payload.params
+    useAvatarState.getState().updated(name)
+  })
 }
 
 export default initConfig

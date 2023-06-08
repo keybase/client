@@ -17,7 +17,6 @@ export type RemoteTlfUpdates = {
 
 // for convenience we flatten the props we send over the wire
 type ConfigHoistedProps =
-  | 'avatarRefreshCounter'
   | 'daemonHandshakeState'
   | 'outOfDate'
   | 'followers'
@@ -49,6 +48,7 @@ type KbfsDaemonStatus = {
 }
 
 export type ProxyProps = {
+  avatarRefreshCounter: Map<string, number>
   conversationsToSend: Array<Conversation>
   darkMode?: boolean
   diskSpaceStatus: FSTypes.DiskSpaceStatus
@@ -80,6 +80,7 @@ type SerializeProps = Omit<
 type RemovedEmpties = 'darkMode' | 'fileName' | 'files' | 'totalSyncingBytes' | 'showingDiskSpaceBanner'
 
 export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps | RemovedEmpties> & {
+  avatarRefreshCounter: Map<string, number>
   darkMode: boolean
   files: number
   fileName: string
@@ -110,6 +111,7 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
 }
 
 const initialState: DeserializeProps = {
+  avatarRefreshCounter: new Map(),
   chat2: {
     badgeMap: new Map(),
     draftMap: new Map(),
@@ -119,7 +121,6 @@ const initialState: DeserializeProps = {
     unreadMap: new Map(),
   },
   config: {
-    avatarRefreshCounter: new Map(),
     daemonHandshakeState: 'starting',
     followers: new Set(),
     following: new Set(),
@@ -163,7 +164,7 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
 
 export const deserialize = (
   state: DeserializeProps = initialState,
-  props: Partial<SerializeProps>
+  props?: Partial<SerializeProps>
 ): DeserializeProps => {
   if (!props) return state
   const {avatarRefreshCounterArr, conversationsToSend, daemonHandshakeState, diskSpaceStatus} = props
@@ -173,7 +174,7 @@ export const deserialize = (
 
   return produce(state, s => {
     if (avatarRefreshCounterArr !== undefined) {
-      s.config.avatarRefreshCounter = new Map(avatarRefreshCounterArr)
+      s.avatarRefreshCounter = new Map(avatarRefreshCounterArr)
     }
     if (daemonHandshakeState !== undefined) {
       s.config.daemonHandshakeState = daemonHandshakeState
@@ -247,7 +248,7 @@ export const deserialize = (
       const {teamname, timestamp, channelname, snippetDecorated} = c
       s.chat2.badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
       if (participants) {
-        s.chat2.participantMap.set(conversationIDKey, {name: participants ?? []})
+        s.chat2.participantMap.set(conversationIDKey, {name: participants})
       }
       s.chat2.unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
       const meta = s.chat2.metaMap.get(conversationIDKey) ?? {

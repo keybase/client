@@ -288,11 +288,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.httpSrvAddress = action.payload.address
     draftState.httpSrvToken = action.payload.token
   },
-  [EngineGen.keybase1NotifyTeamAvatarUpdated]: (draftState, action) => {
-    const {name} = action.payload.params
-    const {avatarRefreshCounter} = draftState
-    avatarRefreshCounter.set(name, (avatarRefreshCounter.get(name) || 0) + 1)
-  },
   [ConfigGen.osNetworkStatusChanged]: (draftState, action) => {
     draftState.osNetworkOnline = action.payload.online
   },
