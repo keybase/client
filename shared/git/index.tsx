@@ -32,10 +32,10 @@ const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
 export default (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
   const loading = Container.useAnyWaiting(Constants.loadingWaitingKey)
-  const {error, dispatchLoad, idToInfo, dispatchClearBadges, isNew, dispatchSetError} = Constants.useGitState(
+  const {error, dispatchClearBadges, dispatchLoad, dispatchSetError, idToInfo, isNew} = Constants.useGitState(
     s => {
-      const {error, dispatchLoad, idToInfo, dispatchClearBadges, isNew, dispatchSetError} = s
-      return {error, dispatchLoad, idToInfo, dispatchClearBadges, isNew, dispatchSetError}
+      const {error, dispatchClearBadges, dispatchLoad, dispatchSetError, idToInfo, isNew} = s
+      return {error, dispatchClearBadges, dispatchLoad, dispatchSetError, idToInfo, isNew}
     },
     shallowEqual
   )
