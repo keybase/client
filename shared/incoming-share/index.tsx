@@ -11,6 +11,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Platform from '../constants/platform'
 import * as SettingsConstants from '../constants/settings'
+import * as ConfigConstants from '../constants/config'
 import {MobileSendToChat} from '../chat/send-to-chat'
 import useRPC from '../util/use-rpc'
 
@@ -284,7 +285,7 @@ const useIncomingShareItems = () => {
   React.useEffect(getIncomingShareItemsIOS, [getIncomingShareItemsIOS])
 
   // Android
-  const androidShare = Container.useSelector(state => state.config.androidShare)
+  const androidShare = ConfigConstants.useConfigState(s => s.androidShare)
   const getIncomingShareItemsAndroid = React.useCallback(() => {
     if (!Platform.isAndroid || !androidShare) {
       return

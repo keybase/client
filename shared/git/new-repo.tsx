@@ -12,7 +12,7 @@ type OwnProps = {isTeam: boolean}
 
 export default (ownProps: OwnProps) => {
   const {isTeam} = ownProps
-  const error = Constants.useGitState(state => state.error)
+  const error = Constants.useGitState(s => s.error)
   const teams = Container.useSelector(state => getSortedTeamnames(state))
 
   const waitingKey = Constants.loadingWaitingKey
@@ -25,8 +25,8 @@ export default (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
 
-  const dispatchCreatePersonalRepo = Constants.useGitState(state => state.dispatchCreatePersonalRepo)
-  const dispatchCreateTeamRepo = Constants.useGitState(state => state.dispatchCreateTeamRepo)
+  const dispatchCreatePersonalRepo = Constants.useGitState(s => s.dispatchCreatePersonalRepo)
+  const dispatchCreateTeamRepo = Constants.useGitState(s => s.dispatchCreateTeamRepo)
   const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
     if (isTeam && teamname) {
       dispatchCreateTeamRepo(name, teamname, notifyTeam)

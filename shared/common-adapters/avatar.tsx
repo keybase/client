@@ -5,6 +5,7 @@ import {iconTypeToImgSet, urlsToImgSet, type IconType, type IconStyle} from './i
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
+import * as AvatarZus from './avatar-zus'
 import type * as Types from '../constants/types/teams'
 import './avatar.css'
 
@@ -110,9 +111,7 @@ const followIconHelper = (
 const ConnectedAvatar = (ownProps: OwnProps) => {
   const {username, showFollowingStatus, teamname} = ownProps
   const isTeam = ownProps.isTeam || !!teamname
-  const counter = Container.useSelector(
-    state => state.config.avatarRefreshCounter.get(username || teamname || '') || 0
-  )
+  const counter = AvatarZus.useAvatarState(s => s.counts.get(username || teamname || '') ?? 0)
   const following = Container.useSelector(state =>
     showFollowingStatus ? state.config.following.has(username || '') : false
   )

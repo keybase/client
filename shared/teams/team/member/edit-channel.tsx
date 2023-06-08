@@ -45,7 +45,7 @@ const EditChannel = (props: Props) => {
   const waiting = Container.useAnyWaiting(Constants.updateChannelNameWaitingKey(teamID))
   const wasWaiting = Container.usePrevious(waiting)
 
-  const triggerEditUpdated = useEditState(state => state.triggerEditUpdated)
+  const triggerEditUpdated = useEditState(s => s.triggerEditUpdated)
 
   React.useEffect(() => {
     if (wasWaiting && !waiting) {

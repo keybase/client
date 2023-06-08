@@ -2,6 +2,7 @@ import * as Chat2Gen from '../chat2-gen'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
+import * as ConfigConstants from '../../constants/config'
 import * as WaitingConstants from '../../constants/waiting'
 import * as Container from '../../util/container'
 import * as NotificationsGen from '../notifications-gen'
@@ -205,12 +206,16 @@ const listenForNativeAndroidIntentNotifications = async (listenerApi: Container.
 
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    listenerApi.dispatch(
-      ConfigGen.createAndroidShare({
-        text: evt.text,
-        url: evt.localPath,
-      })
-    )
+    const {dispatchSetAndroidShare} = ConfigConstants.useConfigState.getState()
+
+    const text = evt.text
+    const url = evt.localPath
+
+    if (url) {
+      dispatchSetAndroidShare({type: RPCTypes.IncomingShareType.file, url})
+    } else if (text) {
+      dispatchSetAndroidShare({text, type: RPCTypes.IncomingShareType.text})
+    }
   })
 }
 

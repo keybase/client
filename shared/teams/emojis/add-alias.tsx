@@ -59,7 +59,7 @@ export const AddAliasModal = (props: Props) => {
   const addAliasRpc = useRPC(RPCChatGen.localAddEmojiAliasRpcPromise)
   const [addAliasWaiting, setAddAliasWaiting] = React.useState(false)
 
-  const refreshEmoji = useEmojiState(state => state.triggerEmojiUpdated)
+  const refreshEmoji = useEmojiState(s => s.triggerEmojiUpdated)
 
   const doAddAlias = emoji
     ? () => {
@@ -137,11 +137,11 @@ const ChooseEmoji = Styles.isMobile
   ? (props: ChooseEmojiProps) => {
       const dispatch = Container.useDispatch()
       const pickKey = 'addAlias'
-      const {emojiStr, renderableEmoji} = usePickerState(state => state.pickerMap.get(pickKey)) ?? {
+      const {emojiStr, renderableEmoji} = usePickerState(s => s.pickerMap.get(pickKey)) ?? {
         emojiStr: '',
         renderableEmoji: {},
       }
-      const updatePickerMap = usePickerState(state => state.updatePickerMap)
+      const updatePickerMap = usePickerState(s => s.updatePickerMap)
 
       const [lastEmoji, setLastEmoji] = React.useState('')
       if (lastEmoji !== emojiStr) {

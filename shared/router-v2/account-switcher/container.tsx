@@ -1,4 +1,5 @@
 import * as ConfigGen from '../../actions/config-gen'
+import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
 import * as LoginConstants from '../../constants/login'
 import * as LoginGen from '../../actions/login-gen'
@@ -17,7 +18,7 @@ const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolea
 
 export default () => {
   const _fullnames = Container.useSelector(state => state.users.infoMap)
-  const _accountRows = Container.useSelector(state => state.config.configuredAccounts)
+  const _accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
   const fullname = Container.useSelector(
     state => TrackerConstants.getDetails(state, state.config.username).fullname || ''
   )

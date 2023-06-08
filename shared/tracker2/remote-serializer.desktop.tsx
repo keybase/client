@@ -5,17 +5,12 @@ import type {State as WaitingState} from '../constants/types/waiting'
 import type {RPCError} from '../util/errors'
 
 // for convenience we flatten the props we send over the wire
-type ConfigHoistedProps =
-  | 'avatarRefreshCounter'
-  | 'following'
-  | 'followers'
-  | 'httpSrvAddress'
-  | 'httpSrvToken'
-  | 'username'
+type ConfigHoistedProps = 'following' | 'followers' | 'httpSrvAddress' | 'httpSrvToken' | 'username'
 type UsersHoistedProps = 'infoMap' | 'blockMap'
 type WaitingHoistedProps = 'counts' | 'errors'
 
 export type ProxyProps = {
+  avatarRefreshCounter: Map<string, number>
   darkMode: boolean
   trackerUsername: string
 } & Details &
@@ -35,7 +30,7 @@ type SerializeProps = Omit<
   | 'errors'
 > & {
   assertions: Array<[string, Assertion]>
-  avatarRefreshCounter: Array<[string, number]>
+  avatarRefreshCounterArr: Array<[string, number]>
   counts: Array<[string, number]>
   errors: Array<[string, RPCError | undefined]>
   followers: Array<string>
@@ -44,6 +39,7 @@ type SerializeProps = Omit<
   blockMap: Array<[string, BlockState]>
 }
 export type DeserializeProps = {
+  avatarRefreshCounter: Map<string, number>
   darkMode: boolean
   config: Pick<ConfigState, ConfigHoistedProps>
   users: Pick<UsersState, UsersHoistedProps>
@@ -54,8 +50,8 @@ export type DeserializeProps = {
 }
 
 const initialState: DeserializeProps = {
+  avatarRefreshCounter: new Map(),
   config: {
-    avatarRefreshCounter: new Map(),
     followers: new Set(),
     following: new Set(),
     httpSrvAddress: '',
@@ -89,7 +85,7 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
   return {
     ...toSend,
     assertions: [...(assertions?.entries() ?? [])],
-    avatarRefreshCounter: [...avatarRefreshCounter.entries()],
+    avatarRefreshCounterArr: [...avatarRefreshCounter.entries()],
     blockMap: blockMap.has(trackerUsername)
       ? [[trackerUsername, blockMap.get(trackerUsername) ?? {chatBlocked: false, followBlocked: false}]]
       : [],
@@ -104,13 +100,13 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
 
 export const deserialize = (
   state: DeserializeProps = initialState,
-  props: SerializeProps
+  props?: Partial<SerializeProps>
 ): DeserializeProps => {
   if (!props) return state
 
   const {
     assertions,
-    avatarRefreshCounter,
+    avatarRefreshCounterArr,
     bio,
     counts,
     errors,
@@ -146,12 +142,12 @@ export const deserialize = (
     followersCount: followersCount ?? oldDetails?.followersCount,
     followingCount: followingCount ?? oldDetails?.followingCount,
     fullname: fullname ?? oldDetails?.fullname,
-    guiID: guiID ?? oldDetails?.guiID,
-    hidFromFollowers: hidFromFollowers ?? oldDetails?.hidFromFollowers,
+    guiID: (guiID ?? oldDetails?.guiID) || '',
+    hidFromFollowers: (hidFromFollowers ?? oldDetails?.hidFromFollowers) || false,
     location: location ?? oldDetails?.location,
-    reason: reason ?? oldDetails?.reason,
+    reason: reason ?? oldDetails?.reason ?? '',
     resetBrokeTrack: false,
-    state: trackerState ?? oldDetails?.state,
+    state: (trackerState ?? oldDetails?.state) || 'unknown',
     stellarHidden: stellarHidden ?? oldDetails?.stellarHidden,
     teamShowcase: teamShowcase ?? oldDetails?.teamShowcase,
     username: trackerUsername,
@@ -160,11 +156,11 @@ export const deserialize = (
   return {
     ...state,
     ...rest,
+    avatarRefreshCounter: avatarRefreshCounterArr
+      ? new Map(avatarRefreshCounterArr)
+      : state.avatarRefreshCounter,
     config: {
       ...state.config,
-      avatarRefreshCounter: avatarRefreshCounter
-        ? new Map(avatarRefreshCounter)
-        : state.config.avatarRefreshCounter,
       followers: followers ? new Set(followers) : state.config.followers,
       following: following ? new Set(following) : state.config.following,
       httpSrvAddress: httpSrvAddress ?? state.config.httpSrvAddress,

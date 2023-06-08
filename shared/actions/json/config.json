@@ -3,7 +3,6 @@
     "import type * as Types from '../constants/types/config'",
     "import type * as Tabs from '../constants/tabs'",
     "import type * as ChatTypes from '../constants/types/chat2'",
-    "import type * as FsTypes from '../constants/types/fs'",
     "import type HiddenString from '../util/hidden-string'",
     "import type {RPCError} from '../util/errors'"
   ],
@@ -81,8 +80,6 @@
       "followees": "Array<string>"
     },
     "daemonError": {"daemonError?": "Error"},
-    "setAccounts": {"configuredAccounts": "Array<RPCTypes.ConfiguredAccount>"},
-    "setDefaultUsername": {"username": "string"},
     "globalError": {"globalError?": "Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
@@ -91,8 +88,6 @@
       "startupLink": "string",
       "startupTab?": "Tabs.Tab",
       "startupFollowUser": "string",
-      "startupSharePath?": "FsTypes.LocalPath",
-      "startupShareText?": "string",
       "startupPushPayload?": "string"
     },
     "setStartupFile": {

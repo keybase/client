@@ -45,12 +45,12 @@ export function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
-const handleWindowFocusEvents = (listenerApi: Container.ListenerApi) => {
+const handleWindowFocusEvents = () => {
   const handle = (appFocused: boolean) => {
     if (skipAppFocusActions) {
       console.log('Skipping app focus actions!')
     } else {
-      listenerApi.dispatch(ConfigGen.createChangedFocus({appFocused}))
+      ConfigConstants.useConfigState.getState().dispatchChangedFocus(appFocused)
     }
   }
   window.addEventListener('focus', () => handle(true))
@@ -358,8 +358,8 @@ const checkNav = async (
   }
 }
 
-const maybePauseVideos = (_: unknown, action: ConfigGen.ChangedFocusPayload) => {
-  const {appFocused} = action.payload
+const maybePauseVideos = () => {
+  const {appFocused} = ConfigConstants.useConfigState.getState()
   const videos = document.querySelectorAll('video')
   const allVideos = Array.from(videos)
 
@@ -402,7 +402,13 @@ export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
   Container.listenAction(ConfigGen.loggedIn, initOsNetworkStatus)
   Container.listenAction(ConfigGen.updateWindowState, saveWindowState)
-  Container.listenAction(ConfigGen.changedFocus, maybePauseVideos)
+
+  ConfigConstants.useConfigState.subscribe((s, prev) => {
+    if (s.appFocused !== prev.appFocused) {
+      maybePauseVideos()
+    }
+  })
+
   Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
 
   if (isWindows) {

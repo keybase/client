@@ -8,6 +8,7 @@ import type * as Types from '../constants/types/tracker2'
 import Tracker from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 import KB2 from '../util/electron.desktop'
+import {useAvatarState} from '../common-adapters/avatar-zus'
 
 const {closeWindow} = KB2.functions
 
@@ -24,11 +25,13 @@ const noDetails: Types.Details = {
 const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const dispatch = Container.useDispatch()
-  const {darkMode, trackerUsername, tracker2, config} = state
+  const {avatarRefreshCounter, darkMode, trackerUsername, tracker2, config} = state
   const {usernameToDetails} = tracker2
   const details = usernameToDetails.get(trackerUsername) ?? noDetails
   const {assertions, bio, followersCount, followingCount} = details
   const {guiID, location, reason, state: trackerState, teamShowcase} = details
+  const replace = useAvatarState(s => s.replace)
+  replace(avatarRefreshCounter)
   return (
     <Tracker
       assertionKeys={assertions ? [...assertions.keys()] : undefined}

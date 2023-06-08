@@ -23,7 +23,7 @@ type OwnProps = {
 const noGit = Constants.makeGitInfo()
 const ConnectedRow = (ownProps: OwnProps) => {
   const {id, expanded} = ownProps
-  const git = Constants.useGitState(state => state.idToInfo.get(id) || noGit)
+  const git = Constants.useGitState(s => s.idToInfo.get(id) || noGit)
   const teamID = Container.useSelector(state =>
     git.teamname ? TeamConstants.getTeamID(state, git.teamname) : undefined
   )
@@ -32,7 +32,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const lastEditUserFollowing = Container.useSelector(state => state.config.following.has(git.lastEditUser))
   const you = Container.useSelector(state => state.config.username)
 
-  const dispatchSetTeamRepoSettings = Constants.useGitState(state => state.dispatchSetTeamRepoSettings)
+  const dispatchSetTeamRepoSettings = Constants.useGitState(s => s.dispatchSetTeamRepoSettings)
 
   const dispatch = Container.useDispatch()
   const _onBrowseGitRepo = (path: FsTypes.Path) => {

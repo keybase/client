@@ -31,22 +31,6 @@ export type WindowState = {
 }
 
 export type State = {
-  allowAnimatedEmojis: boolean
-  androidShare?:
-    | {
-        type: RPCTypes.IncomingShareType.file
-        url: string
-      }
-    | {
-        type: RPCTypes.IncomingShareType.text
-        text: string
-      }
-  appFocused: boolean
-  appFocusedCount: number
-  appOutOfDateMessage: string
-  appOutOfDateStatus: AppOutOfDateStatus
-  avatarRefreshCounter: Map<string, number>
-  configuredAccounts: Array<ConfiguredAccount>
   daemonError?: Error
   daemonHandshakeState: DaemonHandshakeState
   daemonHandshakeFailedReason: string
@@ -55,10 +39,8 @@ export type State = {
   // if we ever restart handshake up this so we can ignore any waiters for old things
   daemonHandshakeVersion: number
   darkModePreference: DarkModePreference
-  debugDump: Array<string>
   deviceID: RPCTypes.DeviceID
   deviceName?: string
-  defaultUsername: string
   followers: Set<string>
   following: Set<string>
   globalError?: Error | RPCError
@@ -71,7 +53,6 @@ export type State = {
   logoutHandshakeWaiters: Map<string, number>
   logoutHandshakeVersion: number
   mainWindowMax: boolean
-  menubarWindowID: number
   notifySound: boolean
   openAtLogin: boolean
   osNetworkOnline: boolean

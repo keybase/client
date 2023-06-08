@@ -294,7 +294,7 @@ const SelfChannelActions = ({
   const [waiting, setWaiting] = React.useState(false)
   const stopWaiting = React.useCallback(() => setWaiting(false), [])
 
-  const updatedTrigger = useEditState(state => state.editUpdatedTrigger)
+  const updatedTrigger = useEditState(s => s.editUpdatedTrigger)
   const [lastUpdatedTrigger, setLastUpdatedTrigger] = React.useState(updatedTrigger)
 
   if (lastUpdatedTrigger !== updatedTrigger) {

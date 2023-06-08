@@ -87,7 +87,7 @@ const makeDevice = (d?: Partial<Types.Device>): Types.Device =>
 export const waitingKey = 'devices:devicesPage'
 
 export const useActiveDeviceCounts = () => {
-  const ds = useDevicesState(state => state.deviceMap)
+  const ds = useDevicesState(s => s.deviceMap)
   return [...ds.values()].reduce((c, v) => {
     if (!v.revokedAt) {
       ++c
@@ -97,7 +97,7 @@ export const useActiveDeviceCounts = () => {
 }
 
 export const useRevokedDeviceCounts = () => {
-  const ds = useDevicesState(state => state.deviceMap)
+  const ds = useDevicesState(s => s.deviceMap)
   return [...ds.values()].reduce((c, v) => {
     if (v.revokedAt) {
       ++c
@@ -113,7 +113,7 @@ export const useRevokedDeviceCounts = () => {
 export const numBackgrounds = 10
 
 export const useDeviceIconNumber = (deviceID: Types.DeviceID) => {
-  const devices = useDevicesState(state => state.deviceMap)
+  const devices = useDevicesState(s => s.deviceMap)
   return (((devices.get(deviceID)?.deviceNumberOfType ?? 0) % numBackgrounds) + 1) as Types.IconNumber
 }
 
@@ -128,6 +128,6 @@ const getNextDeviceIconNumberInner = memoize((devices: Map<Types.DeviceID, Types
   return {desktop: (result.desktop % numBackgrounds) + 1, mobile: (result.mobile % numBackgrounds) + 1}
 })
 export const useNextDeviceIconNumber = () => {
-  const dm = useDevicesState(state => state.deviceMap)
+  const dm = useDevicesState(s => s.deviceMap)
   return getNextDeviceIconNumberInner(dm)
 }

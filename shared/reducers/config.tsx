@@ -3,11 +3,10 @@ import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ProvisionGen from '../actions/provision-gen'
-import * as GregorGen from '../actions/gregor-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import * as Container from '../util/container'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as GregorGen from '../actions/gregor-gen'
 import type * as Types from '../constants/types/config'
 import type * as Tracker2Gen from '../actions/tracker2-gen'
 import {isEOFError, isErrorTransient} from '../util/errors'
@@ -33,27 +32,16 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     // if revoking self find another name if it exists
     if (wasCurrentDevice) {
       draftState.justRevokedSelf = deviceName
-      const {configuredAccounts, defaultUsername} = draftState
-      draftState.defaultUsername = (
-        configuredAccounts.find(n => n.username !== defaultUsername) || {
-          username: '',
-        }
-      ).username
     }
   },
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
-    appFocused: draftState.appFocused,
-    appFocusedCount: draftState.appFocusedCount,
-    configuredAccounts: draftState.configuredAccounts,
     daemonHandshakeState: draftState.daemonHandshakeState,
     daemonHandshakeVersion: draftState.daemonHandshakeVersion,
     daemonHandshakeWaiters: draftState.daemonHandshakeWaiters,
     darkModePreference: draftState.darkModePreference,
-    defaultUsername: draftState.defaultUsername,
     logoutHandshakeVersion: draftState.logoutHandshakeVersion,
     logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,
-    menubarWindowID: draftState.menubarWindowID,
     pushLoaded: draftState.pushLoaded,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
     useNativeFrame: draftState.useNativeFrame,
@@ -146,17 +134,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
       draftState.startupLink = action.payload.startupLink
       draftState.startupTab = action.payload.startupTab
       draftState.startupWasFromPush = action.payload.startupWasFromPush
-      if (action.payload.startupSharePath) {
-        draftState.androidShare = {
-          type: RPCTypes.IncomingShareType.file,
-          url: action.payload.startupSharePath,
-        }
-      } else if (action.payload.startupShareText) {
-        draftState.androidShare = {
-          text: action.payload.startupShareText,
-          type: RPCTypes.IncomingShareType.text,
-        }
-      }
     }
   },
   [ConfigGen.setStartupFile]: (draftState, action) => {
@@ -166,8 +143,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.pushLoaded = action.payload.pushLoaded
   },
   [ConfigGen.bootstrapStatusLoaded]: (draftState, action) => {
-    // keep it if we're logged out
-    draftState.defaultUsername = action.payload.username || draftState.defaultUsername
     draftState.deviceID = action.payload.deviceID
     draftState.deviceName = action.payload.deviceName
     draftState.loggedIn = action.payload.loggedIn
@@ -226,10 +201,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     }
     draftState.daemonError = daemonError
   },
-  [ConfigGen.changedFocus]: (draftState, action) => {
-    draftState.appFocused = action.payload.appFocused
-    draftState.appFocusedCount++
-  },
   [ConfigGen.changedActive]: (draftState, action) => {
     draftState.userActive = action.payload.userActive
   },
@@ -239,33 +210,8 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.setOpenAtLogin]: (draftState, action) => {
     draftState.openAtLogin = action.payload.openAtLogin
   },
-  [ConfigGen.updateMenubarWindowID]: (draftState, action) => {
-    draftState.menubarWindowID = action.payload.id
-  },
-  [ConfigGen.setAccounts]: (draftState, action) => {
-    // already have one?
-    const {configuredAccounts} = action.payload
-    let defaultUsername = draftState.defaultUsername
-    const currentFound = configuredAccounts.some(account => account.username === defaultUsername)
-
-    if (!currentFound) {
-      const defaultUsernames = configuredAccounts
-        .filter(account => account.isCurrent)
-        .map(account => account.username)
-      defaultUsername = defaultUsernames[0] || ''
-    }
-
-    draftState.configuredAccounts = configuredAccounts.map(account => ({
-      hasStoredSecret: account.hasStoredSecret,
-      username: account.username,
-    }))
-    draftState.defaultUsername = defaultUsername
-  },
   [ConfigGen.setUserSwitching]: (draftState, action) => {
     draftState.userSwitching = action.payload.userSwitching
-  },
-  [ConfigGen.setDefaultUsername]: (draftState, action) => {
-    draftState.defaultUsername = action.payload.username
   },
   [ConfigGen.setDeletedSelf]: (draftState, action) => {
     draftState.justDeletedSelf = action.payload.deletedUsername
@@ -293,10 +239,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
         }
       : undefined
   },
-  [ConfigGen.updateCriticalCheckStatus]: (draftState, action) => {
-    draftState.appOutOfDateMessage = action.payload.message
-    draftState.appOutOfDateStatus = action.payload.status
-  },
   [EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate]: (draftState, action) => {
     if (!action.payload.params.stats) {
       draftState.runtimeStats = undefined
@@ -313,11 +255,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     )
     draftState.httpSrvAddress = action.payload.address
     draftState.httpSrvToken = action.payload.token
-  },
-  [EngineGen.keybase1NotifyTeamAvatarUpdated]: (draftState, action) => {
-    const {name} = action.payload.params
-    const {avatarRefreshCounter} = draftState
-    avatarRefreshCounter.set(name, (avatarRefreshCounter.get(name) || 0) + 1)
   },
   [ConfigGen.osNetworkStatusChanged]: (draftState, action) => {
     draftState.osNetworkOnline = action.payload.online
@@ -349,24 +286,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.loadedOnLoginStartup]: (draftState, action) => {
     draftState.openAtLogin = action.payload.status === true
   },
-  [ConfigGen.androidShare]: (draftState, action) => {
-    if (action.payload.url) {
-      draftState.androidShare = {
-        type: RPCTypes.IncomingShareType.file,
-        url: action.payload.url,
-      }
-    } else if (action.payload.text) {
-      draftState.androidShare = {
-        text: action.payload.text,
-        type: RPCTypes.IncomingShareType.text,
-      }
-    }
-  },
   [ConfigGen.setIncomingShareUseOriginal]: (draftState, action) => {
     draftState.incomingShareUseOriginal = action.payload.useOriginal
-  },
-  [GregorGen.pushState]: (draftState, action) => {
-    const items = action.payload.state
-    draftState.allowAnimatedEmojis = !items.find(i => i.item && i.item.category === 'emojianimations')
   },
 })

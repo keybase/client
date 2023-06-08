@@ -1,9 +1,15 @@
 import uniq from 'lodash/uniq'
+import type * as RPCTypes from './types/rpc-gen'
 import type * as Types from './types/config'
-import * as ChatConstants from './chat2'
+import {noConversationIDKey} from './types/chat2/common'
+import * as ConfigGen from '../actions/config-gen'
 import HiddenString from '../util/hidden-string'
 import {defaultUseNativeFrame, runMode} from './platform'
 import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
+// normally util.container but it re-exports from us so break the cycle
+import {create as createZustand} from 'zustand'
+import {immer as immerZustand} from 'zustand/middleware/immer'
+import {getReduxDispatch} from '../util/zustand'
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
@@ -22,22 +28,12 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  allowAnimatedEmojis: true,
-  androidShare: undefined,
-  appFocused: true,
-  appFocusedCount: 0,
-  appOutOfDateMessage: '',
-  appOutOfDateStatus: 'checking',
-  avatarRefreshCounter: new Map(),
-  configuredAccounts: [],
   daemonHandshakeFailedReason: '',
   daemonHandshakeRetriesLeft: maxHandshakeTries,
   daemonHandshakeState: 'starting',
   daemonHandshakeVersion: 1,
   daemonHandshakeWaiters: new Map(),
   darkModePreference: 'system',
-  debugDump: [],
-  defaultUsername: '',
   deviceID: '',
   deviceName: '',
   followers: new Set(),
@@ -51,7 +47,6 @@ export const initialState: Types.State = {
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
   mainWindowMax: false,
-  menubarWindowID: 0,
   notifySound: false,
   openAtLogin: true,
   osNetworkOnline: false,
@@ -59,7 +54,7 @@ export const initialState: Types.State = {
   pushLoaded: false,
   registered: false,
   remoteWindowNeedsProps: new Map(),
-  startupConversation: ChatConstants.noConversationIDKey,
+  startupConversation: noConversationIDKey,
   startupDetailsLoaded: false,
   startupFile: new HiddenString(''),
   startupFollowUser: '',
@@ -87,3 +82,90 @@ export const initialState: Types.State = {
 
 // we proxy the style helper to keep the logic in one place but act like a selector
 export const isDarkMode = (_: Types.State) => _isDarkMode()
+
+export type ZStore = {
+  allowAnimatedEmojis: boolean
+  androidShare?:
+    | {
+        type: RPCTypes.IncomingShareType.file
+        url: string
+      }
+    | {
+        type: RPCTypes.IncomingShareType.text
+        text: string
+      }
+  appFocused: boolean
+  configuredAccounts: Array<Types.ConfiguredAccount>
+  defaultUsername: string
+}
+const initialZState: ZStore = {
+  allowAnimatedEmojis: true,
+  appFocused: true,
+  configuredAccounts: [],
+  defaultUsername: '',
+}
+
+type ZState = ZStore & {
+  dispatchReset: () => void
+  dispatchSetAllowAnimtedEmojis: (a: boolean) => void
+  dispatchSetAndroidShare: (s: ZStore['androidShare']) => void
+  dispatchChangedFocus: (f: boolean) => void
+  dispatchSetAccounts: (a: ZStore['configuredAccounts']) => void
+  dispatchSetDefaultUsername: (u: string) => void
+}
+
+export const useConfigState = createZustand(
+  immerZustand<ZState>(set => {
+    const reduxDispatch = getReduxDispatch()
+
+    const dispatchReset = () => {
+      set(s => ({
+        ...initialState,
+        appFocused: s.appFocused,
+        configuredAccounts: s.configuredAccounts,
+        defaultUsername: s.defaultUsername,
+      }))
+    }
+
+    const dispatchSetAllowAnimtedEmojis = (a: boolean) => {
+      set(s => {
+        s.allowAnimatedEmojis = a
+      })
+    }
+
+    const dispatchSetAndroidShare = (share: ZStore['androidShare']) => {
+      set(s => {
+        s.androidShare = share
+      })
+    }
+
+    const dispatchChangedFocus = (f: boolean) => {
+      set(s => {
+        s.appFocused = f
+      })
+      reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
+    }
+
+    const dispatchSetAccounts = (a: ZStore['configuredAccounts']) => {
+      set(s => {
+        s.configuredAccounts = a
+      })
+    }
+
+    const dispatchSetDefaultUsername = (u: string) => {
+      set(s => {
+        s.defaultUsername = u
+      })
+    }
+
+    return {
+      ...initialZState,
+      dispatchChangedFocus,
+      dispatchReset,
+      dispatchSetAccounts,
+      dispatchSetAllowAnimtedEmojis,
+      dispatchSetAndroidShare,
+      dispatchSetDefaultUsername,
+    }
+  })
+)

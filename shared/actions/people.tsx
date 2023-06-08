@@ -261,14 +261,7 @@ const reduceRPCItemToPeopleItem = (
 }
 const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetPeopleDataPayload) => {
   // more logging to understand why this fails so much
-  logger.info(
-    'getPeopleData: appFocused:',
-    state.config.appFocused,
-    'loggedIn',
-    state.config.loggedIn,
-    'action',
-    action
-  )
+  logger.info('getPeopleData: appFocused:', 'loggedIn', state.config.loggedIn, 'action', action)
   let markViewed = false
   let numFollowSuggestionsWanted = defaultNumFollowSuggestions
   if (action.type === PeopleGen.getPeopleData) {

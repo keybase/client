@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
+import * as SettingsConstants from '../constants/config'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
@@ -8,7 +9,7 @@ import {isDarkModeSystemSupported, type DarkModePreference} from '../styles/dark
 import logger from '../logger'
 
 const Display = () => {
-  const allowAnimatedEmojis = Container.useSelector(state => state.config.allowAnimatedEmojis)
+  const allowAnimatedEmojis = SettingsConstants.useConfigState(s => s.allowAnimatedEmojis)
   const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
   const toggleAnimatedEmoji = Container.useRPC(RPCChatTypes.localToggleEmojiAnimationsRpcPromise)
   const dispatch = Container.useDispatch()

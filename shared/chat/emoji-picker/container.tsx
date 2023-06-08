@@ -385,7 +385,7 @@ const styles = Styles.styleSheetCreate(
 const Routable = (props: RoutableProps) => {
   const small = props.small
   const {hideFrequentEmoji, onlyTeamCustomEmoji, onPickAddToMessageOrdinal, pickKey} = props
-  const updatePickerMap = usePickerState(state => state.updatePickerMap)
+  const updatePickerMap = usePickerState(s => s.updatePickerMap)
   const onPickAction = React.useCallback(
     (emojiStr: string, renderableEmoji: RenderableEmoji) => {
       if (!pickKey) {

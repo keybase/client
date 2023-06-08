@@ -5,6 +5,7 @@ import * as FSTypes from '../constants/types/fs'
 import * as Container from '../util/container'
 import * as React from 'react'
 import * as Styles from '../styles'
+import {useAvatarState} from '../common-adapters/avatar-zus'
 import {intersect} from '../util/set'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
@@ -68,14 +69,13 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     const {notifications, config, fs, chat2, users} = state
     const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
     const {httpSrvToken, httpSrvAddress, windowShownCount, username, following} = config
-    const {outOfDate, loggedIn, daemonHandshakeState, avatarRefreshCounter, followers} = config
+    const {outOfDate, loggedIn, daemonHandshakeState, followers} = config
     const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
     const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
     const widgetList = inboxLayout?.widgetList
     const {infoMap} = users
 
     return {
-      avatarRefreshCounter,
       badgeMap,
       daemonHandshakeState,
       desktopAppBadgeCount,
@@ -103,7 +103,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     }
   }, shallowEqual)
 
-  const {avatarRefreshCounter, badgeMap, daemonHandshakeState, desktopAppBadgeCount, followers, following} = s
+  const {badgeMap, daemonHandshakeState, desktopAppBadgeCount, followers, following} = s
   const {httpSrvAddress, httpSrvToken, infoMap, kbfsDaemonStatus, loggedIn, metaMap} = s
   const {navBadges, outOfDate, overallSyncStatus, participantMap, pathItems} = s
   const {sfmi, tlfUpdates, unreadMap, uploads, username} = s
@@ -144,10 +144,18 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   // filter some data based on visible users
   const usernamesArr: Array<string> = []
   tlfUpdates.forEach(update => usernamesArr.push(update.writer))
-  conversationsToSend.forEach(c => usernamesArr.push(...(c.participants ?? [])))
+  conversationsToSend.forEach(c => {
+    if (c.teamType === 'adhoc') {
+      c.participants && usernamesArr.push(...c.participants)
+    } else {
+      c.tlfname && usernamesArr.push(c.tlfname)
+    }
+  })
 
   // memoize so useMemos work below
   const usernames = getCachedUsernames(usernamesArr)
+
+  const avatarRefreshCounter = useAvatarState(s => s.counts)
 
   const avatarRefreshCounterFiltered = React.useMemo(
     () => mapFilterByKey(avatarRefreshCounter, usernames),

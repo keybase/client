@@ -244,7 +244,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     )
   }
 
-  const updatedTrigger = useEmojiState(state => state.emojiUpdatedTrigger)
+  const updatedTrigger = useEmojiState(s => s.emojiUpdatedTrigger)
   const [lastUpdatedTrigger, setLastUpdatedTrigger] = React.useState(updatedTrigger)
 
   if (

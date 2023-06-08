@@ -255,8 +255,6 @@ const willFinishLaunching = () => {
   })
 }
 
-let menubarWindowID = 0
-
 const remoteURL = (windowComponent: string, windowParam: string) =>
   `${htmlPrefix}${assetRoot}${windowComponent}${__FILE_SUFFIX__}.html?param=${windowParam}`
 
@@ -729,11 +727,6 @@ const plumbEvents = () => {
         // tell mainwindow we're connected
         nodeEngine.listenersAreReady()
 
-        if (menubarWindowID) {
-          mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id: menubarWindowID}))
-          // reset it
-          menubarWindowID = 0
-        }
         if (startupURL) {
           // Mac calls open-url for a launch URL before redux is up, so we
           // stash a startupURL to be dispatched when we're ready for it.
@@ -844,17 +837,7 @@ const start = () => {
 
   devTools()
 
-  // Load menubar and get its browser window id so we can tell the main window
-  menuBar(id => {
-    // its possible the app started up way before we get this id in rare cases
-    if (appStartedUp && id) {
-      mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id}))
-    } else {
-      // else stash it for later
-      menubarWindowID = id
-    }
-  })
-
+  menuBar()
   plumbEvents()
 
   Electron.app.once('will-finish-launching', willFinishLaunching)

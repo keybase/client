@@ -22,11 +22,11 @@ const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
   partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
 
 const ReloadableDevices = () => {
-  const deviceMap = Constants.useDevicesState(state => state.deviceMap)
+  const deviceMap = Constants.useDevicesState(s => s.deviceMap)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const loadDevices = Constants.useDevicesState(state => state.dispatchLoad)
-  const dispatchClearBadges = Constants.useDevicesState(state => state.dispatchClearBadges)
-  const storeSet = Constants.useDevicesState(state => state.isNew)
+  const loadDevices = Constants.useDevicesState(s => s.dispatchLoad)
+  const dispatchClearBadges = Constants.useDevicesState(s => s.dispatchClearBadges)
+  const storeSet = Constants.useDevicesState(s => s.isNew)
   const {badged} = useLocalBadging(storeSet, dispatchClearBadges)
 
   const newlyChangedItemIds = badged

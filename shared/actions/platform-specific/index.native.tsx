@@ -14,6 +14,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as RouterConstants from '../../constants/router2'
 import * as SettingsConstants from '../../constants/settings'
+import * as ConfigConstants from '../../constants/config'
 import * as SettingsGen from '../settings-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Types from '../../constants/types/chat2'
@@ -199,7 +200,7 @@ const updateChangedFocus = (_: unknown, action: ConfigGen.MobileAppStatePayload)
   }
 
   logger.info(`setting app state on service to: ${logState}`)
-  return ConfigGen.createChangedFocus({appFocused})
+  ConfigConstants.useConfigState.getState().dispatchChangedFocus(appFocused)
 }
 
 let _lastPersist = ''
@@ -331,14 +332,26 @@ const loadStartupDetails = async (listenerApi: Container.ListenerApi) => {
     startupTab = undefined
   }
 
+  const {dispatchSetAndroidShare} = ConfigConstants.useConfigState.getState()
+
+  if (startupSharePath) {
+    dispatchSetAndroidShare({
+      type: RPCTypes.IncomingShareType.file,
+      url: startupSharePath,
+    })
+  } else if (startupShareText) {
+    dispatchSetAndroidShare({
+      text: startupShareText,
+      type: RPCTypes.IncomingShareType.text,
+    })
+  }
+
   listenerApi.dispatch(
     ConfigGen.createSetStartupDetails({
       startupConversation,
       startupFollowUser,
       startupLink,
       startupPushPayload,
-      startupSharePath,
-      startupShareText,
       startupTab,
       startupWasFromPush,
     })
@@ -696,7 +709,7 @@ const configureFileAttachmentDownloadForAndroid = async () =>
 
 const onTabLongPress = (state: Container.TypedState, action: RouteTreeGen.TabLongPressPayload) => {
   if (action.payload.tab !== Tabs.peopleTab) return
-  const accountRows = state.config.configuredAccounts
+  const accountRows = ConfigConstants.useConfigState.getState().configuredAccounts
   const current = state.config.username
   const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
   if (row) {

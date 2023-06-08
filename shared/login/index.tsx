@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 
 const Loading = React.lazy(async () => import('./loading/container'))
@@ -10,9 +11,7 @@ const RootLogin = () => {
   const showLoading = Container.useSelector(
     state => state.config.daemonHandshakeState !== 'done' || state.config.userSwitching
   )
-  const showRelogin = Container.useSelector(
-    state => !showLoading && state.config.configuredAccounts.length > 0
-  )
+  const showRelogin = ConfigConstants.useConfigState(s => !showLoading && s.configuredAccounts.length > 0)
   // routing should switch us away so lets not draw anything to speed things up
   if (isLoggedIn) return null
 

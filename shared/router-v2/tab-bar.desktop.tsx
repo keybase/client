@@ -1,5 +1,6 @@
 import './tab-bar.css'
 import * as ConfigGen from '../actions/config-gen'
+import * as ConfigConstants from '../constants/config'
 import * as LoginGen from '../actions/login-gen'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
@@ -209,7 +210,7 @@ const Tab = React.memo(function Tab(props: TabProps) {
 
   const dispatch = Container.useDispatch()
 
-  const accountRows = Container.useSelector(state => state.config.configuredAccounts)
+  const accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
   const current = Container.useSelector(state => state.config.username)
   const onQuickSwitch = React.useMemo(
     () =>
