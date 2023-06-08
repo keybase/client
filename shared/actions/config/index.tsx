@@ -3,6 +3,7 @@ import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as GregorGen from '../gregor-gen'
 import * as LoginConstants from '../../constants/login'
+import * as Constants from '../../constants/config'
 import * as Platform from '../../constants/platform'
 import * as PushGen from '../push-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -500,7 +501,11 @@ const logoutAndTryToLogInAs = async (
 const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
   const actions: Array<Container.TypedActions> = []
   const items = action.payload.state
-  const lastSeenItem = items.find(i => i.item && i.item.category === 'whatsNewLastSeenVersion')
+
+  const allowAnimatedEmojis = !items.find(i => i.item.category === 'emojianimations')
+  Constants.useConfigState.getState().dispatchSetAllowAnimtedEmojis(allowAnimatedEmojis)
+
+  const lastSeenItem = items.find(i => i.item.category === 'whatsNewLastSeenVersion')
   if (lastSeenItem) {
     const {body} = lastSeenItem.item
     const pushStateLastSeenVersion = Buffer.from(body).toString()

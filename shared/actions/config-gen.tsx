@@ -3,7 +3,6 @@ import type * as RPCTypes from '../constants/types/rpc-gen'
 import type * as Types from '../constants/types/config'
 import type * as Tabs from '../constants/tabs'
 import type * as ChatTypes from '../constants/types/chat2'
-import type * as FsTypes from '../constants/types/fs'
 import type HiddenString from '../util/hidden-string'
 import type {RPCError} from '../util/errors'
 
@@ -365,8 +364,6 @@ export const createSetStartupDetails = (payload: {
   readonly startupLink: string
   readonly startupTab?: Tabs.Tab
   readonly startupFollowUser: string
-  readonly startupSharePath?: FsTypes.LocalPath
-  readonly startupShareText?: string
   readonly startupPushPayload?: string
 }) => ({payload, type: setStartupDetails as typeof setStartupDetails})
 export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({

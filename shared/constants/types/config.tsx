@@ -31,17 +31,6 @@ export type WindowState = {
 }
 
 export type State = {
-  allowAnimatedEmojis: boolean
-  androidShare?:
-    | {
-        type: RPCTypes.IncomingShareType.file
-        url: string
-      }
-    | {
-        type: RPCTypes.IncomingShareType.text
-        text: string
-      }
-  appFocused: boolean
   appOutOfDateMessage: string
   appOutOfDateStatus: AppOutOfDateStatus
   avatarRefreshCounter: Map<string, number>

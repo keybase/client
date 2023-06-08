@@ -32,6 +32,7 @@ const pushState = (_: unknown, action: EngineGen.Keybase1GregorUIPushStatePayloa
   if (goodState.length !== items.length) {
     logger.warn('Lost some messages in filtering out nonNull gregor items')
   }
+
   return GregorGen.createPushState({reason, state: goodState})
 }
 

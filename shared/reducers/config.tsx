@@ -3,11 +3,10 @@ import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ProvisionGen from '../actions/provision-gen'
-import * as GregorGen from '../actions/gregor-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import * as Container from '../util/container'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as GregorGen from '../actions/gregor-gen'
 import type * as Types from '../constants/types/config'
 import type * as Tracker2Gen from '../actions/tracker2-gen'
 import {isEOFError, isErrorTransient} from '../util/errors'
@@ -43,7 +42,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
-    appFocused: draftState.appFocused,
     configuredAccounts: draftState.configuredAccounts,
     daemonHandshakeState: draftState.daemonHandshakeState,
     daemonHandshakeVersion: draftState.daemonHandshakeVersion,
@@ -144,17 +142,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
       draftState.startupLink = action.payload.startupLink
       draftState.startupTab = action.payload.startupTab
       draftState.startupWasFromPush = action.payload.startupWasFromPush
-      if (action.payload.startupSharePath) {
-        draftState.androidShare = {
-          type: RPCTypes.IncomingShareType.file,
-          url: action.payload.startupSharePath,
-        }
-      } else if (action.payload.startupShareText) {
-        draftState.androidShare = {
-          text: action.payload.startupShareText,
-          type: RPCTypes.IncomingShareType.text,
-        }
-      }
     }
   },
   [ConfigGen.setStartupFile]: (draftState, action) => {
@@ -223,9 +210,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
       logger.error('Error (daemon):', daemonError)
     }
     draftState.daemonError = daemonError
-  },
-  [ConfigGen.changedFocus]: (draftState, action) => {
-    draftState.appFocused = action.payload.appFocused
   },
   [ConfigGen.changedActive]: (draftState, action) => {
     draftState.userActive = action.payload.userActive
@@ -343,24 +327,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.loadedOnLoginStartup]: (draftState, action) => {
     draftState.openAtLogin = action.payload.status === true
   },
-  [ConfigGen.androidShare]: (draftState, action) => {
-    if (action.payload.url) {
-      draftState.androidShare = {
-        type: RPCTypes.IncomingShareType.file,
-        url: action.payload.url,
-      }
-    } else if (action.payload.text) {
-      draftState.androidShare = {
-        text: action.payload.text,
-        type: RPCTypes.IncomingShareType.text,
-      }
-    }
-  },
   [ConfigGen.setIncomingShareUseOriginal]: (draftState, action) => {
     draftState.incomingShareUseOriginal = action.payload.useOriginal
-  },
-  [GregorGen.pushState]: (draftState, action) => {
-    const items = action.payload.state
-    draftState.allowAnimatedEmojis = !items.find(i => i.item && i.item.category === 'emojianimations')
   },
 })

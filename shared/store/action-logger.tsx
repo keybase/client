@@ -46,7 +46,6 @@ const transformActionForLog = (action: TypedActions) => {
 
     // no output
     case GregorGen.pushOOBM: // fallthrough
-    case ConfigGen.changedFocus: // fallthrough
     case EngineGen.chat1NotifyChatChatTypingUpdate: // fallthrough
       return null
 

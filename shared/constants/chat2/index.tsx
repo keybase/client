@@ -3,6 +3,7 @@ import * as RPCTypes from '../types/rpc-gen'
 import * as TeamBuildingConstants from '../team-building'
 import * as Types from '../types/chat2'
 import * as Router2 from '../router2'
+import * as ConfigConstants from '../config'
 import * as TeamConstants from '../teams'
 import {isMobile, isTablet} from '../platform'
 import {
@@ -296,8 +297,10 @@ export const isUserActivelyLookingAtThisThread = (
         : maybeVisibleScreen.name) === threadRouteName
   }
 
+  const {appFocused} = ConfigConstants.useConfigState.getState()
+
   return (
-    state.config.appFocused && // app focused?
+    appFocused && // app focused?
     state.config.userActive && // actually interacting w/ the app
     chatThreadSelected && // looking at the chat tab?
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?

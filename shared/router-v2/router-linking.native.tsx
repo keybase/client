@@ -1,9 +1,9 @@
 import * as ChatConstants from '../constants/chat2'
+import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as Shared from './router.shared'
 import * as Tabs from '../constants/tabs'
-import type * as ConfigTypes from '../constants/types/config'
 import {getStateFromPath} from '@react-navigation/native'
 import {tabRoots} from './routes'
 import {Linking} from 'react-native'
@@ -52,7 +52,7 @@ export const isValidLink = (link: string) => {
 }
 
 type OptionsType = {
-  androidShare?: ConfigTypes.State['androidShare']
+  androidShare?: ConfigConstants.ZStore['androidShare']
   dispatch: Container.TypedDispatch
   startupTab?: string
   showMonster: boolean
@@ -150,7 +150,7 @@ export const useReduxToLinking = (appState: Shared.AppState) => {
     return ChatConstants.isValidConversationIDKey(startupConversation) ? startupConversation : undefined
   })
   const showMonster = Container.useSelector(ShowMonsterSelector)
-  const androidShare = Container.useSelector(state => state.config.androidShare)
+  const androidShare = ConfigConstants.useConfigState(state => state.androidShare)
   const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
   const dispatch = Container.useDispatch()
 
