@@ -31,8 +31,6 @@ export type WindowState = {
 }
 
 export type State = {
-  appOutOfDateMessage: string
-  appOutOfDateStatus: AppOutOfDateStatus
   avatarRefreshCounter: Map<string, number>
   configuredAccounts: Array<ConfiguredAccount>
   daemonError?: Error

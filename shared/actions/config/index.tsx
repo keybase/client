@@ -425,40 +425,6 @@ const newNavigation = (
   Router2.dispatchOldAction(action)
 }
 
-const criticalOutOfDateCheck = async (listenerApi: Container.ListenerApi) => {
-  await listenerApi.delay(60_000) // don't bother checking during startup
-  // check every hour
-  // eslint-disable-next-line
-  while (true) {
-    try {
-      const s = await RPCTypes.configGetUpdateInfo2RpcPromise({})
-      let status: ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status'] = 'ok'
-      let message = ''
-      switch (s.status) {
-        case RPCTypes.UpdateInfoStatus2.ok:
-          break
-        case RPCTypes.UpdateInfoStatus2.suggested:
-          status = 'suggested'
-          message = s.suggested.message
-          break
-        case RPCTypes.UpdateInfoStatus2.critical:
-          status = 'critical'
-          message = s.critical.message
-          break
-        default:
-      }
-      listenerApi.dispatch(ConfigGen.createUpdateCriticalCheckStatus({message, status}))
-    } catch (e) {
-      logger.warn("Can't call critical check", e)
-    }
-    // We just need this once on mobile. Long timers don't work there.
-    if (Platform.isMobile) {
-      return
-    }
-    await listenerApi.delay(3_600_000) // 1 hr
-  }
-}
-
 const loadDarkPrefs = async () => {
   try {
     const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
@@ -664,7 +630,6 @@ const initConfig = () => {
   // Kick off platform specific stuff
   initPlatformListener()
 
-  Container.spawn(criticalOutOfDateCheck, 'criticalOutOfDateCheck')
   Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
   Container.listenAction(ConfigGen.powerMonitorEvent, onPowerMonitorEvent)
 }

@@ -271,10 +271,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
         }
       : undefined
   },
-  [ConfigGen.updateCriticalCheckStatus]: (draftState, action) => {
-    draftState.appOutOfDateMessage = action.payload.message
-    draftState.appOutOfDateStatus = action.payload.status
-  },
   [EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate]: (draftState, action) => {
     if (!action.payload.params.stats) {
       draftState.runtimeStats = undefined

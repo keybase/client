@@ -28,8 +28,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  appOutOfDateMessage: '',
-  appOutOfDateStatus: 'checking',
   avatarRefreshCounter: new Map(),
   configuredAccounts: [],
   daemonHandshakeFailedReason: '',
