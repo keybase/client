@@ -111,7 +111,7 @@ const followIconHelper = (
 const ConnectedAvatar = (ownProps: OwnProps) => {
   const {username, showFollowingStatus, teamname} = ownProps
   const isTeam = ownProps.isTeam || !!teamname
-  const counter = AvatarZus.useAvatarState(state => state.counts.get(username || teamname || '') ?? 0)
+  const counter = AvatarZus.useAvatarState(s => s.counts.get(username || teamname || '') ?? 0)
   const following = Container.useSelector(state =>
     showFollowingStatus ? state.config.following.has(username || '') : false
   )

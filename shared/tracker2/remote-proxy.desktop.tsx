@@ -24,18 +24,15 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const counts = new Map([
-    [
-      Constants.waitingKey,
-      WaitConstants.useWaitingState(state => state.counts.get(Constants.waitingKey) ?? 0),
-    ],
+    [Constants.waitingKey, WaitConstants.useWaitingState(s => s.counts.get(Constants.waitingKey) ?? 0)],
   ])
   const errors = new Map([
-    [Constants.waitingKey, WaitConstants.useWaitingState(state => state.errors.get(Constants.waitingKey))],
+    [Constants.waitingKey, WaitConstants.useWaitingState(s => s.errors.get(Constants.waitingKey))],
   ])
   const trackerUsernames = new Set([trackerUsername])
   const blocked = blockMap.get(trackerUsername)?.chatBlocked || false
 
-  const avatarCount = useAvatarState(state => state.counts.get(trackerUsername) ?? 0)
+  const avatarCount = useAvatarState(s => s.counts.get(trackerUsername) ?? 0)
 
   const avatarRefreshCounter = React.useMemo(() => {
     return new Map([[trackerUsername, avatarCount]])

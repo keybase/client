@@ -84,7 +84,7 @@ const DevicePage = (ownProps: OwnProps) => {
   const id = ownProps.deviceID
   const iconNumber = Constants.useDeviceIconNumber(id)
   const dispatch = Container.useDispatch()
-  const device = Constants.useDevicesState(state => state.deviceMap.get(id))
+  const device = Constants.useDevicesState(s => s.deviceMap.get(id))
   const canRevoke = Constants.useActiveDeviceCounts() > 1
   const showRevokeDevicePage = React.useCallback(() => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {deviceID: id}, selected: 'deviceRevoke'}]}))

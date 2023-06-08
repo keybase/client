@@ -9,6 +9,7 @@ import Login from '.'
 import sortBy from 'lodash/sortBy'
 import * as Container from '../../util/container'
 import type * as ConfigTypes from '../../constants/types/config'
+import * as ConfigConstants from '../../constants/config'
 
 const needPasswordError = 'passphrase cannot be empty'
 
@@ -96,9 +97,9 @@ const LoginWrapper = (props: Props) => {
 }
 
 export default () => {
-  const _users = Container.useSelector(state => state.config.configuredAccounts)
+  const _users = ConfigConstants.useConfigState(s => s.configuredAccounts)
   const error = Container.useSelector(state => state.login.error)
-  const selectedUser = Container.useSelector(state => state.config.defaultUsername)
+  const selectedUser = ConfigConstants.useConfigState(s => s.defaultUsername)
   const dispatch = Container.useDispatch()
   const onForgotPassword = (username: string) => {
     dispatch(RecoverPasswordGen.createStartRecoverPassword({username}))

@@ -709,7 +709,7 @@ const configureFileAttachmentDownloadForAndroid = async () =>
 
 const onTabLongPress = (state: Container.TypedState, action: RouteTreeGen.TabLongPressPayload) => {
   if (action.payload.tab !== Tabs.peopleTab) return
-  const accountRows = state.config.configuredAccounts
+  const accountRows = ConfigConstants.useConfigState.getState().configuredAccounts
   const current = state.config.username
   const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
   if (row) {

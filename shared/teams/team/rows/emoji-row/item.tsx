@@ -42,7 +42,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const isStockAlias = emoji.remoteSource.typ === RPCChatTypes.EmojiRemoteSourceTyp.stockalias
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
 
-  const refreshEmoji = useEmojiState(state => state.triggerEmojiUpdated)
+  const refreshEmoji = useEmojiState(s => s.triggerEmojiUpdated)
   const removeRpc = useRPC(RPCChatTypes.localRemoveEmojiRpcPromise)
   const doRemove = React.useMemo(
     () =>

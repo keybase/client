@@ -14,7 +14,7 @@ const CodePageContainer = () => {
     state => (currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName) || ''
   )
   const deviceID = Container.useSelector(state => state.config.deviceID)
-  const currentDevice = DevicesConstants.useDevicesState(state => state.deviceMap.get(deviceID))
+  const currentDevice = DevicesConstants.useDevicesState(s => s.deviceMap.get(deviceID))
   const error = Container.useSelector(state => state.provision.error.stringValue())
 
   const otherDevice = Container.useSelector(state => state.provision.codePageOtherDevice)

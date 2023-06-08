@@ -285,7 +285,7 @@ const useIncomingShareItems = () => {
   React.useEffect(getIncomingShareItemsIOS, [getIncomingShareItemsIOS])
 
   // Android
-  const androidShare = ConfigConstants.useConfigState(state => state.androidShare)
+  const androidShare = ConfigConstants.useConfigState(s => s.androidShare)
   const getIncomingShareItemsAndroid = React.useCallback(() => {
     if (!Platform.isAndroid || !androidShare) {
       return

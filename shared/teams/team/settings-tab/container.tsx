@@ -51,7 +51,7 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
-  const allowOpenTrigger = useSettingsState(state => state.allowOpenTrigger)
+  const allowOpenTrigger = useSettingsState(s => s.allowOpenTrigger)
 
   const props = {
     allowOpenTrigger,

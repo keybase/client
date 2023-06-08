@@ -44,9 +44,7 @@ export const pushLoaded = 'config:pushLoaded'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
 export const revoked = 'config:revoked'
-export const setAccounts = 'config:setAccounts'
 export const setDarkModePreference = 'config:setDarkModePreference'
-export const setDefaultUsername = 'config:setDefaultUsername'
 export const setDeletedSelf = 'config:setDeletedSelf'
 export const setIncomingShareUseOriginal = 'config:setIncomingShareUseOriginal'
 export const setNavigator = 'config:setNavigator'
@@ -328,16 +326,9 @@ export const createRevoked = (payload: {
   readonly wasCurrentDevice: boolean
   readonly deviceName: string
 }) => ({payload, type: revoked as typeof revoked})
-export const createSetAccounts = (payload: {
-  readonly configuredAccounts: Array<RPCTypes.ConfiguredAccount>
-}) => ({payload, type: setAccounts as typeof setAccounts})
 export const createSetDarkModePreference = (payload: {
   readonly preference: 'system' | 'alwaysDark' | 'alwaysLight'
 }) => ({payload, type: setDarkModePreference as typeof setDarkModePreference})
-export const createSetDefaultUsername = (payload: {readonly username: string}) => ({
-  payload,
-  type: setDefaultUsername as typeof setDefaultUsername,
-})
 export const createSetDeletedSelf = (payload: {readonly deletedUsername: string}) => ({
   payload,
   type: setDeletedSelf as typeof setDeletedSelf,
@@ -439,9 +430,7 @@ export type PushLoadedPayload = ReturnType<typeof createPushLoaded>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
 export type RevokedPayload = ReturnType<typeof createRevoked>
-export type SetAccountsPayload = ReturnType<typeof createSetAccounts>
 export type SetDarkModePreferencePayload = ReturnType<typeof createSetDarkModePreference>
-export type SetDefaultUsernamePayload = ReturnType<typeof createSetDefaultUsername>
 export type SetDeletedSelfPayload = ReturnType<typeof createSetDeletedSelf>
 export type SetIncomingShareUseOriginalPayload = ReturnType<typeof createSetIncomingShareUseOriginal>
 export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
@@ -504,9 +493,7 @@ export type Actions =
   | RemoteWindowWantsPropsPayload
   | RestartHandshakePayload
   | RevokedPayload
-  | SetAccountsPayload
   | SetDarkModePreferencePayload
-  | SetDefaultUsernamePayload
   | SetDeletedSelfPayload
   | SetIncomingShareUseOriginalPayload
   | SetNavigatorPayload

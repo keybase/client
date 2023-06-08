@@ -73,8 +73,8 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
 
   const pickKey = 'chatInput'
 
-  const {emojiStr} = usePickerState(state => state.pickerMap.get(pickKey)) ?? {emojiStr: ''}
-  const updatePickerMap = usePickerState(state => state.updatePickerMap)
+  const {emojiStr} = usePickerState(s => s.pickerMap.get(pickKey)) ?? {emojiStr: ''}
+  const updatePickerMap = usePickerState(s => s.updatePickerMap)
 
   const [lastEmoji, setLastEmoji] = React.useState('')
   if (lastEmoji !== emojiStr) {

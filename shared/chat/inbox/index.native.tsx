@@ -290,8 +290,8 @@ class Inbox extends React.PureComponent<T.Props, State> {
 }
 
 const NoRowsBuildTeam = () => {
-  const isLoading = WaitingConstants.useWaitingState(state =>
-    [...state.counts.keys()].some(k => k.startsWith('chat:'))
+  const isLoading = WaitingConstants.useWaitingState(s =>
+    [...s.counts.keys()].some(k => k.startsWith('chat:'))
   )
   return isLoading ? null : <BuildTeam />
 }

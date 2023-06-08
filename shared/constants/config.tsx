@@ -28,14 +28,12 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  configuredAccounts: [],
   daemonHandshakeFailedReason: '',
   daemonHandshakeRetriesLeft: maxHandshakeTries,
   daemonHandshakeState: 'starting',
   daemonHandshakeVersion: 1,
   daemonHandshakeWaiters: new Map(),
   darkModePreference: 'system',
-  defaultUsername: '',
   deviceID: '',
   deviceName: '',
   followers: new Set(),
@@ -97,10 +95,14 @@ export type ZStore = {
         text: string
       }
   appFocused: boolean
+  configuredAccounts: Array<Types.ConfiguredAccount>
+  defaultUsername: string
 }
 const initialZState: ZStore = {
   allowAnimatedEmojis: true,
   appFocused: true,
+  configuredAccounts: [],
+  defaultUsername: '',
 }
 
 type ZState = ZStore & {
@@ -108,6 +110,8 @@ type ZState = ZStore & {
   dispatchSetAllowAnimtedEmojis: (a: boolean) => void
   dispatchSetAndroidShare: (s: ZStore['androidShare']) => void
   dispatchChangedFocus: (f: boolean) => void
+  dispatchSetAccounts: (a: ZStore['configuredAccounts']) => void
+  dispatchSetDefaultUsername: (u: string) => void
 }
 
 export const useConfigState = createZustand(
@@ -118,6 +122,8 @@ export const useConfigState = createZustand(
       set(s => ({
         ...initialState,
         appFocused: s.appFocused,
+        configuredAccounts: s.configuredAccounts,
+        defaultUsername: s.defaultUsername,
       }))
     }
 
@@ -140,12 +146,26 @@ export const useConfigState = createZustand(
       reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
     }
 
+    const dispatchSetAccounts = (a: ZStore['configuredAccounts']) => {
+      set(s => {
+        s.configuredAccounts = a
+      })
+    }
+
+    const dispatchSetDefaultUsername = (u: string) => {
+      set(s => {
+        s.defaultUsername = u
+      })
+    }
+
     return {
       ...initialZState,
       dispatchChangedFocus,
       dispatchReset,
+      dispatchSetAccounts,
       dispatchSetAllowAnimtedEmojis,
       dispatchSetAndroidShare,
+      dispatchSetDefaultUsername,
     }
   })
 )

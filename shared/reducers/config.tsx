@@ -32,22 +32,14 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     // if revoking self find another name if it exists
     if (wasCurrentDevice) {
       draftState.justRevokedSelf = deviceName
-      const {configuredAccounts, defaultUsername} = draftState
-      draftState.defaultUsername = (
-        configuredAccounts.find(n => n.username !== defaultUsername) || {
-          username: '',
-        }
-      ).username
     }
   },
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
-    configuredAccounts: draftState.configuredAccounts,
     daemonHandshakeState: draftState.daemonHandshakeState,
     daemonHandshakeVersion: draftState.daemonHandshakeVersion,
     daemonHandshakeWaiters: draftState.daemonHandshakeWaiters,
     darkModePreference: draftState.darkModePreference,
-    defaultUsername: draftState.defaultUsername,
     logoutHandshakeVersion: draftState.logoutHandshakeVersion,
     logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,
     pushLoaded: draftState.pushLoaded,
@@ -151,8 +143,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.pushLoaded = action.payload.pushLoaded
   },
   [ConfigGen.bootstrapStatusLoaded]: (draftState, action) => {
-    // keep it if we're logged out
-    draftState.defaultUsername = action.payload.username || draftState.defaultUsername
     draftState.deviceID = action.payload.deviceID
     draftState.deviceName = action.payload.deviceName
     draftState.loggedIn = action.payload.loggedIn
@@ -220,30 +210,8 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.setOpenAtLogin]: (draftState, action) => {
     draftState.openAtLogin = action.payload.openAtLogin
   },
-  [ConfigGen.setAccounts]: (draftState, action) => {
-    // already have one?
-    const {configuredAccounts} = action.payload
-    let defaultUsername = draftState.defaultUsername
-    const currentFound = configuredAccounts.some(account => account.username === defaultUsername)
-
-    if (!currentFound) {
-      const defaultUsernames = configuredAccounts
-        .filter(account => account.isCurrent)
-        .map(account => account.username)
-      defaultUsername = defaultUsernames[0] || ''
-    }
-
-    draftState.configuredAccounts = configuredAccounts.map(account => ({
-      hasStoredSecret: account.hasStoredSecret,
-      username: account.username,
-    }))
-    draftState.defaultUsername = defaultUsername
-  },
   [ConfigGen.setUserSwitching]: (draftState, action) => {
     draftState.userSwitching = action.payload.userSwitching
-  },
-  [ConfigGen.setDefaultUsername]: (draftState, action) => {
-    draftState.defaultUsername = action.payload.username
   },
   [ConfigGen.setDeletedSelf]: (draftState, action) => {
     draftState.justDeletedSelf = action.payload.deletedUsername

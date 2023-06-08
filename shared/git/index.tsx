@@ -11,6 +11,7 @@ import {memoize} from '../util/memoize'
 import {union} from '../util/set'
 import {useFocusEffect} from '@react-navigation/core'
 import {useLocalBadging} from '../util/use-local-badging'
+import shallowEqual from 'shallowequal'
 
 type OwnProps = {expanded?: string}
 
@@ -30,16 +31,18 @@ const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
 
 export default (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
-  const error = Constants.useGitState(state => state.error)
   const loading = Container.useAnyWaiting(Constants.loadingWaitingKey)
-  const git = Constants.useGitState(state => state.idToInfo)
-  const loadGit = Constants.useGitState(state => state.dispatchLoad)
-  const clearBadges = Constants.useGitState(state => state.dispatchClearBadges)
-  const storeSet = Constants.useGitState(state => state.isNew)
-  const {badged} = useLocalBadging(storeSet, clearBadges)
+  const {error, dispatchLoad, idToInfo, dispatchClearBadges, isNew, dispatchSetError} = Constants.useGitState(
+    s => {
+      const {error, dispatchLoad, idToInfo, dispatchClearBadges, isNew, dispatchSetError} = s
+      return {error, dispatchLoad, idToInfo, dispatchClearBadges, isNew, dispatchSetError}
+    },
+    shallowEqual
+  )
 
-  const dispatchSetError = Constants.useGitState(state => state.dispatchSetError)
-  const {personals, teams} = getRepos(git)
+  const {badged} = useLocalBadging(isNew, dispatchClearBadges)
+
+  const {personals, teams} = getRepos(idToInfo)
 
   const dispatch = Container.useDispatch()
 
@@ -56,8 +59,8 @@ export default (ownProps: OwnProps) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      loadGit()
-    }, [loadGit])
+      dispatchLoad()
+    }, [dispatchLoad])
   )
 
   const [expandedSet, setExpandedSet] = React.useState(
@@ -110,7 +113,7 @@ export default (ownProps: OwnProps) => {
     <Kb.Reloadable
       waitingKeys={Constants.loadingWaitingKey}
       onBack={Container.isMobile ? onBack : undefined}
-      onReload={loadGit}
+      onReload={dispatchLoad}
       reloadOnMount={true}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>

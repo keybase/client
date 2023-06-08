@@ -27,7 +27,7 @@ const SelectChannel = (ownProps: OwnProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const dispatchSetTeamRepoSettings = Constants.useGitState(state => state.dispatchSetTeamRepoSettings)
+  const dispatchSetTeamRepoSettings = Constants.useGitState(s => s.dispatchSetTeamRepoSettings)
 
   const onSubmit = (channelName: string) => dispatchSetTeamRepoSettings(channelName, teamname, repoID, false)
 

@@ -17,7 +17,7 @@ export const NewContext = React.createContext(new Set())
 
 export default (ownProps: OwnProps) => {
   const {deviceID, firstItem} = ownProps
-  const device = Constants.useDevicesState(state => state.deviceMap.get(deviceID))
+  const device = Constants.useDevicesState(s => s.deviceMap.get(deviceID))
   if (!device) return null
 
   const isNew = React.useContext(NewContext).has(deviceID)

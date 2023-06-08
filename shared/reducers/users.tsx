@@ -1,4 +1,3 @@
-import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/users'
 import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
@@ -18,7 +17,6 @@ type Actions =
   | UsersGen.Actions
   | Tracker2Gen.UpdateFollowsPayload
   | Tracker2Gen.UpdatedDetailsPayload
-  | ConfigGen.SetAccountsPayload
   | TeamBuildingGen.SearchResultsLoadedPayload
   | TeamsGen.SetMembersPayload
 
@@ -69,11 +67,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const all = [...(followers || []), ...(following || [])]
     const {infoMap} = draftState
     all.forEach(({username, fullname}) => updateInfo(infoMap, username, {fullname}))
-  },
-  [ConfigGen.setAccounts]: (draftState, action) => {
-    const {configuredAccounts} = action.payload
-    const {infoMap} = draftState
-    configuredAccounts.forEach(({username, fullname}) => updateInfo(infoMap, username, {fullname}))
   },
   [TeamBuildingGen.searchResultsLoaded]: (draftState, action) => {
     const {users} = action.payload

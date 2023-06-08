@@ -2,6 +2,7 @@ import * as ConfigGen from '../config-gen'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as GregorGen from '../gregor-gen'
+import * as UsersGen from '../users-gen'
 import * as LoginConstants from '../../constants/login'
 import * as Constants from '../../constants/config'
 import * as Platform from '../../constants/platform'
@@ -247,7 +248,31 @@ const loadDaemonAccounts = async (
     }
 
     const configuredAccounts = (await RPCTypes.loginGetConfiguredAccountsRpcPromise()) ?? []
-    listenerApi.dispatch(ConfigGen.createSetAccounts({configuredAccounts}))
+    // already have one?
+    const {defaultUsername, dispatchSetAccounts, dispatchSetDefaultUsername} =
+      Constants.useConfigState.getState()
+
+    let existingDefaultFound = false
+    let currentName = ''
+    const nextConfiguredAccounts: Constants.ZStore['configuredAccounts'] = []
+    const usernameToFullname: {[username: string]: string} = {}
+
+    configuredAccounts.forEach(account => {
+      const {username, isCurrent, fullname, hasStoredSecret} = account
+      if (username === defaultUsername) {
+        existingDefaultFound = true
+      }
+      if (isCurrent) {
+        currentName = account.username
+      }
+      nextConfiguredAccounts.push({hasStoredSecret, username})
+      usernameToFullname[username] = fullname
+    })
+    if (!existingDefaultFound) {
+      dispatchSetDefaultUsername(currentName)
+    }
+    dispatchSetAccounts(nextConfiguredAccounts)
+    listenerApi.dispatch(UsersGen.createUpdateFullnames({usernameToFullname}))
 
     if (handshakeWait) {
       // someone dismissed this already?
@@ -462,7 +487,9 @@ const logoutAndTryToLogInAs = async (
   if (state.config.loggedIn) {
     await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true}, LoginConstants.waitingKey)
   }
-  return ConfigGen.createSetDefaultUsername({username: action.payload.username})
+
+  const {dispatchSetDefaultUsername} = Constants.useConfigState.getState()
+  dispatchSetDefaultUsername(action.payload.username)
 }
 
 const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
@@ -637,6 +664,21 @@ const initConfig = () => {
   Container.listenAction(EngineGen.keybase1NotifyTeamAvatarUpdated, (_, action) => {
     const {name} = action.payload.params
     useAvatarState.getState().updated(name)
+  })
+
+  Container.listenAction(ConfigGen.revoked, (_, action) => {
+    if (!action.payload.wasCurrentDevice) return
+    const {dispatchSetDefaultUsername, configuredAccounts} = Constants.useConfigState.getState()
+    const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername) ?? ''
+    dispatchSetDefaultUsername(defaultUsername)
+  })
+
+  Container.listenAction(ConfigGen.bootstrapStatusLoaded, (_, action) => {
+    const {username} = action.payload
+    // keep it if we're logged out
+    if (!username) return
+    const {dispatchSetDefaultUsername} = Constants.useConfigState.getState()
+    dispatchSetDefaultUsername(username)
   })
 }
 

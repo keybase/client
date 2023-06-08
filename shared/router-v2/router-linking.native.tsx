@@ -150,7 +150,7 @@ export const useReduxToLinking = (appState: Shared.AppState) => {
     return ChatConstants.isValidConversationIDKey(startupConversation) ? startupConversation : undefined
   })
   const showMonster = Container.useSelector(ShowMonsterSelector)
-  const androidShare = ConfigConstants.useConfigState(state => state.androidShare)
+  const androidShare = ConfigConstants.useConfigState(s => s.androidShare)
   const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
   const dispatch = Container.useDispatch()
 

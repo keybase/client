@@ -9,7 +9,7 @@ import Render from '.'
 import type * as TeamsTypes from '../../constants/types/teams'
 
 export default () => {
-  const waiting = WaitingConstants.useWaitingState(state => state.counts)
+  const waiting = WaitingConstants.useWaitingState(s => s.counts)
   const _you = Container.useSelector(state => state.config.username)
   const teamMeta = Container.useSelector(state => state.teams.teamMeta)
   const dispatch = Container.useDispatch()

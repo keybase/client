@@ -155,7 +155,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   // memoize so useMemos work below
   const usernames = getCachedUsernames(usernamesArr)
 
-  const avatarRefreshCounter = useAvatarState(state => state.counts)
+  const avatarRefreshCounter = useAvatarState(s => s.counts)
 
   const avatarRefreshCounterFiltered = React.useMemo(
     () => mapFilterByKey(avatarRefreshCounter, usernames),

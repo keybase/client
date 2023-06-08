@@ -80,8 +80,6 @@
       "followees": "Array<string>"
     },
     "daemonError": {"daemonError?": "Error"},
-    "setAccounts": {"configuredAccounts": "Array<RPCTypes.ConfiguredAccount>"},
-    "setDefaultUsername": {"username": "string"},
     "globalError": {"globalError?": "Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {

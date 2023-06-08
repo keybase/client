@@ -31,7 +31,6 @@ export type WindowState = {
 }
 
 export type State = {
-  configuredAccounts: Array<ConfiguredAccount>
   daemonError?: Error
   daemonHandshakeState: DaemonHandshakeState
   daemonHandshakeFailedReason: string
@@ -42,7 +41,6 @@ export type State = {
   darkModePreference: DarkModePreference
   deviceID: RPCTypes.DeviceID
   deviceName?: string
-  defaultUsername: string
   followers: Set<string>
   following: Set<string>
   globalError?: Error | RPCError

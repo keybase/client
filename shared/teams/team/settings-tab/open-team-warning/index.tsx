@@ -25,7 +25,7 @@ const OpenTeamWarning = (props: Props) => {
   const isOpenTeam = props.isOpenTeam
   const teamname = props.teamname
   const [enabled, setEnabled] = React.useState(false)
-  const onConfirmCallback = useSettingsState(state => state.triggerAllowOpen)
+  const onConfirmCallback = useSettingsState(s => s.triggerAllowOpen)
   const dispatch = Container.useDispatch()
 
   const onConfirm = () => {

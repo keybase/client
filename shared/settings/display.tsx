@@ -9,7 +9,7 @@ import {isDarkModeSystemSupported, type DarkModePreference} from '../styles/dark
 import logger from '../logger'
 
 const Display = () => {
-  const allowAnimatedEmojis = SettingsConstants.useConfigState(state => state.allowAnimatedEmojis)
+  const allowAnimatedEmojis = SettingsConstants.useConfigState(s => s.allowAnimatedEmojis)
   const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
   const toggleAnimatedEmoji = Container.useRPC(RPCChatTypes.localToggleEmojiAnimationsRpcPromise)
   const dispatch = Container.useDispatch()
