@@ -10,7 +10,7 @@ import SpecialBottomMessage from '../messages/special-bottom-message'
 import SpecialTopMessage from '../messages/special-top-message'
 import type * as Types from '../../../constants/types/chat2'
 import type {ItemType} from '.'
-import {Animated, FlatList} from 'react-native'
+import {FlatList} from 'react-native'
 import {ConvoIDContext, SeparatorMapContext} from '../messages/ids-context'
 // import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list'
 import {getMessageRender} from '../messages/wrapper'
@@ -23,98 +23,6 @@ import {usingFlashList} from './flashlist-config'
 
 // TODO if we bring flashlist back bring back the patch
 const List = /*usingFlashList ? FlashList :*/ FlatList
-
-// Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
-const animatingMap = new Map<string, null | React.ReactElement>()
-
-type AnimatedChildProps = {
-  animatingKey: string
-  children: React.ReactNode
-}
-const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}: AnimatedChildProps) {
-  const translateY = new Animated.Value(999)
-  const opacity = new Animated.Value(0)
-  const [lastAK, setLastAK] = React.useState(animatingKey)
-  React.useEffect(() => {
-    // on unmount, mark it null
-    return () => {
-      animatingMap.set(animatingKey, null)
-    }
-  }, [animatingKey])
-
-  // only animate up once
-  const onceRef = React.useRef(false)
-  if (lastAK !== animatingKey) {
-    onceRef.current = false
-    setLastAK(animatingKey)
-  }
-
-  return (
-    <Animated.View
-      style={{opacity, overflow: 'hidden', transform: [{translateY}], width: '100%'}}
-      onLayout={(e: any) => {
-        const {height} = e.nativeEvent.layout
-        if (onceRef.current) {
-          return
-        }
-        onceRef.current = true
-        translateY.setValue(height + 10)
-        Animated.parallel([
-          Animated.timing(opacity, {
-            duration: 200,
-            toValue: 1,
-            useNativeDriver: true,
-          }),
-          Animated.timing(translateY, {
-            duration: 200,
-            toValue: 0,
-            useNativeDriver: true,
-          }),
-        ]).start(() => {
-          animatingMap.set(animatingKey, null)
-        })
-      }}
-    >
-      {children}
-    </Animated.View>
-  )
-})
-
-type SentProps = {
-  children?: React.ReactElement
-  ordinal: Types.Ordinal
-}
-const Sent = React.memo(function Sent({ordinal}: SentProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const {subType, youSent} = Container.useSelector(state => {
-    const you = state.config.username
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-    const youSent = message && message.author === you && message.ordinal !== message.id
-    const subType = message ? Constants.getMessageRenderType(message) : undefined
-    return {subType, youSent}
-  }, shallowEqual)
-  const key = `${conversationIDKey}:${ordinal}`
-  const state = animatingMap.get(key)
-
-  if (!subType) return null
-
-  // if its animating always show it
-  if (state) {
-    return state
-  }
-
-  const Clazz = getMessageRender(subType)
-  if (!Clazz) return null
-  const children = <Clazz ordinal={ordinal} />
-  // if state is null we already animated it
-  if (youSent && state === undefined) {
-    const c = <AnimatedChild animatingKey={key}>{children}</AnimatedChild>
-    animatingMap.set(key, c)
-    return c
-  } else {
-    return children || null
-  }
-})
 
 // We load the first thread automatically so in order to mark it read
 // we send an action on the first mount once
@@ -251,11 +159,6 @@ const ConversationList = React.memo(function ConversationList(p: {
       if (!ordinal) {
         return null
       }
-
-      if (!index) {
-        return <Sent ordinal={ordinal} />
-      }
-
       const type = messageTypeMap?.get(ordinal) ?? 'text'
       if (!type) return null
       const Clazz = getMessageRender(type)
