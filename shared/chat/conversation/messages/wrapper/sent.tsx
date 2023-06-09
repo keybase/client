@@ -25,7 +25,6 @@ const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}
     onceRef.current = false
   }, [animatingKey])
 
-  console.log('aaa animating view', animatingKey, !done)
   return done ? (
     <>{children}</>
   ) : (
@@ -67,8 +66,6 @@ type SentProps = {
 export const Sent = function Sent(p: SentProps) {
   const {children, sentKey} = p
   const state = animatingMap.get(sentKey)
-
-  console.log('aaa', animatingMap, sentKey, state)
 
   // if its animating always show it
   if (state) {
