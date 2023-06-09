@@ -18,6 +18,7 @@ import SendIndicator from './send-indicator'
 import type * as Types from '../../../../constants/types/chat2'
 import capitalize from 'lodash/capitalize'
 import {useEdited} from './edited'
+import {Sent} from './sent'
 // import {useDebugLayout} from '../../../../util/debug'
 
 export type Props = {
@@ -128,6 +129,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const you = state.config.username
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const {exploded, submitState, author, id, botUsername} = m
+    const youSent = m.author === you && m.ordinal !== m.id
     const exploding = !!m.exploding
     const isPendingPayment = Constants.isPendingPaymentMessage(state, m)
     const decorate = !exploded && !m.errorReason
@@ -159,6 +161,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
       showSendIndicator,
       type,
       you,
+      youSent,
     }
   }, shallowEqual)
 }
@@ -483,14 +486,21 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const {isPendingPayment, decorate, type, hasReactions, isEditing} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata
-  const {reactionsPopupPosition, showCoinsIcon, botname, you} = mdata
+  const {reactionsPopupPosition, showCoinsIcon, botname, you, youSent} = mdata
 
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight && !isEditing
+
+  const maybeSentChildren =
+    Container.isMobile && youSent ? (
+      <Sent sentKey={`${conversationIDKey}:${ordinal}`}>{children}</Sent>
+    ) : (
+      children
+    )
 
   const tsprops = {
     botname,
     bottomChildren,
-    children,
+    children: maybeSentChildren,
     decorate,
     ecrType,
     exploding,
