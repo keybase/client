@@ -1,6 +1,6 @@
 import * as FSTypes from '../constants/types/fs'
 import type * as ChatTypes from '../constants/types/chat2'
-import type {State as ConfigState} from '../constants/types/config'
+import type {State as ConfigState, DaemonHandshakeState} from '../constants/types/config'
 import type {State as NotificationsState} from '../constants/types/notifications'
 import type {State as UsersState, UserInfo} from '../constants/types/users'
 import type {Tab} from '../constants/tabs'
@@ -17,7 +17,6 @@ export type RemoteTlfUpdates = {
 
 // for convenience we flatten the props we send over the wire
 type ConfigHoistedProps =
-  | 'daemonHandshakeState'
   | 'outOfDate'
   | 'followers'
   | 'following'
@@ -48,6 +47,7 @@ type KbfsDaemonStatus = {
 }
 
 export type ProxyProps = {
+  daemonHandshakeState: DaemonHandshakeState
   avatarRefreshCounter: Map<string, number>
   conversationsToSend: Array<Conversation>
   darkMode?: boolean
@@ -82,6 +82,7 @@ type RemovedEmpties = 'darkMode' | 'fileName' | 'files' | 'totalSyncingBytes' | 
 export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps | RemovedEmpties> & {
   avatarRefreshCounter: Map<string, number>
   darkMode: boolean
+  daemonHandshakeState: DaemonHandshakeState
   files: number
   fileName: string
   totalSyncingBytes: number
@@ -121,7 +122,6 @@ const initialState: DeserializeProps = {
     unreadMap: new Map(),
   },
   config: {
-    daemonHandshakeState: 'starting',
     followers: new Set(),
     following: new Set(),
     httpSrvAddress: '',
@@ -132,6 +132,7 @@ const initialState: DeserializeProps = {
     windowShownCount: new Map([['menu', 0]]),
   },
   conversationsToSend: [],
+  daemonHandshakeState: 'starting',
   darkMode: false,
   diskSpaceStatus: FSTypes.DiskSpaceStatus.Ok,
   endEstimate: 0,
@@ -177,7 +178,7 @@ export const deserialize = (
       s.avatarRefreshCounter = new Map(avatarRefreshCounterArr)
     }
     if (daemonHandshakeState !== undefined) {
-      s.config.daemonHandshakeState = daemonHandshakeState
+      s.daemonHandshakeState = daemonHandshakeState
     }
     if (followersArr !== undefined) {
       s.config.followers = new Set(followersArr)

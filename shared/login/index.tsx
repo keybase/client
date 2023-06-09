@@ -8,9 +8,8 @@ const JoinOrLogin = React.lazy(async () => import('./join-or-login/container'))
 
 const RootLogin = () => {
   const isLoggedIn = Container.useSelector(state => state.config.loggedIn)
-  const showLoading = Container.useSelector(
-    state => state.config.daemonHandshakeState !== 'done' || state.config.userSwitching
-  )
+  const userSwitching = Container.useSelector(state => state.config.userSwitching)
+  const showLoading = ConfigConstants.useConfigState(s => s.daemonHandshakeState !== 'done' || userSwitching)
   const showRelogin = ConfigConstants.useConfigState(s => !showLoading && s.configuredAccounts.length > 0)
   // routing should switch us away so lets not draw anything to speed things up
   if (isLoggedIn) return null

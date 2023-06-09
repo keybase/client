@@ -685,6 +685,31 @@ const initConfig = () => {
     const {dispatchSetDefaultUsername} = Constants.useConfigState.getState()
     dispatchSetDefaultUsername(username)
   })
+
+  Container.listenAction(
+    [
+      ConfigGen.restartHandshake,
+      ConfigGen.startHandshake,
+      ConfigGen.daemonHandshake,
+      ConfigGen.daemonHandshakeDone,
+    ],
+    (_, action) => {
+      const {dispatchSetDaemonHandshakeState} = Constants.useConfigState.getState()
+      console.log('aaa redux briding', action.type)
+      switch (action.type) {
+        case ConfigGen.restartHandshake:
+        case ConfigGen.startHandshake: // fallthrough
+          dispatchSetDaemonHandshakeState('starting')
+          break
+        case ConfigGen.daemonHandshake:
+          dispatchSetDaemonHandshakeState('waitingForWaiters')
+          break
+        case ConfigGen.daemonHandshakeDone:
+          dispatchSetDaemonHandshakeState('done')
+          break
+      }
+    }
+  )
 }
 
 export default initConfig

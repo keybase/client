@@ -31,7 +31,6 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export const initialState: Types.State = {
   daemonHandshakeFailedReason: '',
   daemonHandshakeRetriesLeft: maxHandshakeTries,
-  daemonHandshakeState: 'starting',
   daemonHandshakeVersion: 1,
   daemonHandshakeWaiters: new Map(),
   darkModePreference: 'system',
@@ -99,11 +98,13 @@ export type ZStore = {
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
   daemonError?: Error
+  daemonHandshakeState: Types.DaemonHandshakeState
 }
 const initialZState: ZStore = {
   allowAnimatedEmojis: true,
   appFocused: true,
   configuredAccounts: [],
+  daemonHandshakeState: 'starting',
   defaultUsername: '',
 }
 
@@ -115,6 +116,7 @@ type ZState = ZStore & {
   dispatchSetAccounts: (a: ZStore['configuredAccounts']) => void
   dispatchSetDefaultUsername: (u: string) => void
   dispatchSetDaemonError: (e?: Error) => void
+  dispatchSetDaemonHandshakeState: (s: Types.DaemonHandshakeState) => void
 }
 
 export const useConfigState = createZustand(
@@ -126,6 +128,7 @@ export const useConfigState = createZustand(
         ...initialState,
         appFocused: s.appFocused,
         configuredAccounts: s.configuredAccounts,
+        daemonHandshakeState: s.daemonHandshakeState,
         defaultUsername: s.defaultUsername,
       }))
     }
@@ -170,6 +173,12 @@ export const useConfigState = createZustand(
       })
     }
 
+    const dispatchSetDaemonHandshakeState = (ds: Types.DaemonHandshakeState) => {
+      console.log('aaa updatin shake', ds)
+      set(s => {
+        s.daemonHandshakeState = ds
+      })
+    }
     return {
       ...initialZState,
       dispatchChangedFocus,
@@ -178,6 +187,7 @@ export const useConfigState = createZustand(
       dispatchSetAllowAnimtedEmojis,
       dispatchSetAndroidShare,
       dispatchSetDaemonError,
+      dispatchSetDaemonHandshakeState,
       dispatchSetDefaultUsername,
     }
   })

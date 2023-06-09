@@ -36,7 +36,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
-    daemonHandshakeState: draftState.daemonHandshakeState,
     daemonHandshakeVersion: draftState.daemonHandshakeVersion,
     daemonHandshakeWaiters: draftState.daemonHandshakeWaiters,
     darkModePreference: draftState.darkModePreference,
@@ -50,12 +49,10 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.restartHandshake]: draftState => {
     draftState.daemonHandshakeFailedReason = ''
     draftState.daemonHandshakeRetriesLeft = Math.max(draftState.daemonHandshakeRetriesLeft - 1, 0)
-    draftState.daemonHandshakeState = 'starting'
   },
   [ConfigGen.startHandshake]: draftState => {
     draftState.daemonHandshakeFailedReason = ''
     draftState.daemonHandshakeRetriesLeft = Constants.maxHandshakeTries
-    draftState.daemonHandshakeState = 'starting'
   },
   [ConfigGen.updateWindowMaxState]: (draftState, action) => {
     draftState.mainWindowMax = action.payload.max
@@ -70,13 +67,13 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.logoutHandshakeWaiters = new Map()
   },
   [ConfigGen.daemonHandshake]: (draftState, action) => {
-    draftState.daemonHandshakeState = 'waitingForWaiters'
     draftState.daemonHandshakeVersion = action.payload.version
     draftState.daemonHandshakeWaiters = new Map()
   },
   [ConfigGen.daemonHandshakeWait]: (draftState, action) => {
-    const {daemonHandshakeState, daemonHandshakeVersion, daemonHandshakeFailedReason} = draftState
+    const {daemonHandshakeVersion, daemonHandshakeFailedReason} = draftState
     const {version} = action.payload
+    const {daemonHandshakeState} = Constants.useConfigState.getState()
     if (daemonHandshakeState !== 'waitingForWaiters') {
       throw new Error("Should only get a wait while we're waiting")
     }
@@ -208,7 +205,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.justDeletedSelf = action.payload.deletedUsername
   },
   [ConfigGen.daemonHandshakeDone]: draftState => {
-    draftState.daemonHandshakeState = 'done'
     draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
   },
   [ConfigGen.updateNow]: draftState => {

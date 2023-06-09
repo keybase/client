@@ -31,7 +31,6 @@ export type WindowState = {
 }
 
 export type State = {
-  daemonHandshakeState: DaemonHandshakeState
   daemonHandshakeFailedReason: string
   daemonHandshakeRetriesLeft: number
   daemonHandshakeWaiters: Map<string, number>
