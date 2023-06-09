@@ -10,6 +10,7 @@ import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
 import {create as createZustand} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 import {getReduxDispatch} from '../util/zustand'
+import logger from '../logger'
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
@@ -97,6 +98,7 @@ export type ZStore = {
   appFocused: boolean
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
+  daemonError?: Error
 }
 const initialZState: ZStore = {
   allowAnimatedEmojis: true,
@@ -112,6 +114,7 @@ type ZState = ZStore & {
   dispatchChangedFocus: (f: boolean) => void
   dispatchSetAccounts: (a: ZStore['configuredAccounts']) => void
   dispatchSetDefaultUsername: (u: string) => void
+  dispatchSetDaemonError: (e?: Error) => void
 }
 
 export const useConfigState = createZustand(
@@ -158,6 +161,15 @@ export const useConfigState = createZustand(
       })
     }
 
+    const dispatchSetDaemonError = (e?: Error) => {
+      if (e) {
+        logger.error('Error (daemon):', e)
+      }
+      set(s => {
+        s.daemonError = e
+      })
+    }
+
     return {
       ...initialZState,
       dispatchChangedFocus,
@@ -165,6 +177,7 @@ export const useConfigState = createZustand(
       dispatchSetAccounts,
       dispatchSetAllowAnimtedEmojis,
       dispatchSetAndroidShare,
+      dispatchSetDaemonError,
       dispatchSetDefaultUsername,
     }
   })

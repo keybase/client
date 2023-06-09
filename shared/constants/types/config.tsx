@@ -31,7 +31,6 @@ export type WindowState = {
 }
 
 export type State = {
-  daemonError?: Error
   daemonHandshakeState: DaemonHandshakeState
   daemonHandshakeFailedReason: string
   daemonHandshakeRetriesLeft: number

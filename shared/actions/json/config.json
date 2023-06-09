@@ -79,7 +79,6 @@
       "followers": "Array<string>",
       "followees": "Array<string>"
     },
-    "daemonError": {"daemonError?": "Error"},
     "globalError": {"globalError?": "Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {

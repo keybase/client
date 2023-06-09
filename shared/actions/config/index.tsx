@@ -36,13 +36,16 @@ const onLoggedOut = (state: Container.TypedState) => {
   return undefined
 }
 
-const onConnected = () => ConfigGen.createStartHandshake()
+const onConnected = () => {
+  Constants.useConfigState.getState().dispatchSetDaemonError(new Error('Disconnected'))
+  return ConfigGen.createStartHandshake()
+}
 const onDisconnected = () => {
   logger
     .dump()
     .then(() => {})
     .catch(() => {})
-  return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
+  Constants.useConfigState.getState().dispatchSetDaemonError(new Error('Disconnected'))
 }
 
 const onTrackingInfo = (_: unknown, action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
@@ -169,6 +172,8 @@ const loadDaemonBootstrapStatus = async (
 
 let _firstTimeConnecting = true
 const startHandshake = (state: Container.TypedState) => {
+  Constants.useConfigState.getState().dispatchSetDaemonError()
+
   const firstTimeConnecting = _firstTimeConnecting
   _firstTimeConnecting = false
   if (firstTimeConnecting) {

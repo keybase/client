@@ -48,13 +48,11 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     userSwitching: draftState.userSwitching,
   }),
   [ConfigGen.restartHandshake]: draftState => {
-    draftState.daemonError = undefined
     draftState.daemonHandshakeFailedReason = ''
     draftState.daemonHandshakeRetriesLeft = Math.max(draftState.daemonHandshakeRetriesLeft - 1, 0)
     draftState.daemonHandshakeState = 'starting'
   },
   [ConfigGen.startHandshake]: draftState => {
-    draftState.daemonError = undefined
     draftState.daemonHandshakeFailedReason = ''
     draftState.daemonHandshakeRetriesLeft = Constants.maxHandshakeTries
     draftState.daemonHandshakeState = 'starting'
@@ -193,13 +191,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
       }
     }
     draftState.globalError = globalError
-  },
-  [ConfigGen.daemonError]: (draftState, action) => {
-    const {daemonError} = action.payload
-    if (daemonError) {
-      logger.error('Error (daemon):', daemonError)
-    }
-    draftState.daemonError = daemonError
   },
   [ConfigGen.changedActive]: (draftState, action) => {
     draftState.userActive = action.payload.userActive
