@@ -91,7 +91,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
 
 const useRevoke = (deviceID = '') => {
   const d = Constants.useDevicesState(s => s.deviceMap.get(deviceID))
-  const dispatchLoad = Constants.useDevicesState(s => s.dispatchLoad)
+  const load = Constants.useDevicesState(s => s.dispatch.load)
   const username = Container.useSelector(state => state.config.username)
   const wasCurrentDevice = d?.currentDevice ?? false
   const dispatch = Container.useDispatch()
@@ -101,7 +101,7 @@ const useRevoke = (deviceID = '') => {
       if (wasCurrentDevice) {
         try {
           await RPCTypes.loginDeprovisionRpcPromise({doRevoke: true, username}, Constants.waitingKey)
-          dispatchLoad()
+          load()
           dispatch(ConfigGen.createRevoked({deviceID, deviceName, wasCurrentDevice}))
         } catch {}
       } else {
@@ -110,7 +110,7 @@ const useRevoke = (deviceID = '') => {
             {deviceID, forceLast: false, forceSelf: false},
             Constants.waitingKey
           )
-          dispatchLoad()
+          load()
           dispatch(ConfigGen.createRevoked({deviceID, deviceName, wasCurrentDevice}))
           dispatch(
             RouteTreeGen.createNavUpToScreen({
@@ -125,7 +125,7 @@ const useRevoke = (deviceID = '') => {
       }
     }
     Container.ignorePromise(f())
-  }, [dispatch, deviceID, deviceName, dispatchLoad, username, wasCurrentDevice])
+  }, [dispatch, deviceID, deviceName, load, username, wasCurrentDevice])
 }
 
 const DeviceRevoke = (ownProps: OwnProps) => {

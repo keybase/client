@@ -9,49 +9,47 @@ const initialState: Types.State = {
 }
 
 type ZState = Types.State & {
-  dispatchLoad: () => void
-  dispatchClearBadges: () => void
-  dispatchReset: () => void
-  dispatchSetBadges: (set: Set<string>) => void
+  dispatch: {
+    load: () => void
+    clearBadges: () => void
+    reset: () => void
+    setBadges: (set: Set<string>) => void
+  }
 }
 
 export const useDevicesState = Container.createZustand(
   Container.immerZustand<ZState>(set => {
-    const dispatchLoad = () => {
-      const f = async () => {
-        const results = await RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, waitingKey)
+    const dispatch = {
+      clearBadges: () => {
+        Container.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
+      },
+      load: () => {
+        const f = async () => {
+          const results = await RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, waitingKey)
+          set(s => {
+            s.deviceMap = new Map(
+              results?.map(r => {
+                const d = rpcDeviceToDevice(r)
+                return [d.deviceID, d]
+              })
+            )
+          })
+        }
+        Container.ignorePromise(f())
+      },
+      reset: () => {
+        set(() => initialState)
+      },
+      setBadges: (b: Set<string>) => {
         set(s => {
-          s.deviceMap = new Map(
-            results?.map(r => {
-              const d = rpcDeviceToDevice(r)
-              return [d.deviceID, d]
-            })
-          )
+          s.isNew = b
         })
-      }
-      Container.ignorePromise(f())
-    }
-
-    const dispatchReset = () => {
-      set(() => initialState)
-    }
-
-    const dispatchSetBadges = (b: Set<string>) => {
-      set(s => {
-        s.isNew = b
-      })
-    }
-
-    const dispatchClearBadges = () => {
-      Container.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
+      },
     }
 
     return {
       ...initialState,
-      dispatchClearBadges,
-      dispatchLoad,
-      dispatchReset,
-      dispatchSetBadges,
+      dispatch,
     }
   })
 )
