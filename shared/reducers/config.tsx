@@ -47,11 +47,9 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     userSwitching: draftState.userSwitching,
   }),
   [ConfigGen.restartHandshake]: draftState => {
-    draftState.daemonHandshakeFailedReason = ''
     draftState.daemonHandshakeRetriesLeft = Math.max(draftState.daemonHandshakeRetriesLeft - 1, 0)
   },
   [ConfigGen.startHandshake]: draftState => {
-    draftState.daemonHandshakeFailedReason = ''
     draftState.daemonHandshakeRetriesLeft = Constants.maxHandshakeTries
   },
   [ConfigGen.updateWindowMaxState]: (draftState, action) => {
@@ -71,9 +69,10 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.daemonHandshakeWaiters = new Map()
   },
   [ConfigGen.daemonHandshakeWait]: (draftState, action) => {
-    const {daemonHandshakeVersion, daemonHandshakeFailedReason} = draftState
+    const {daemonHandshakeVersion} = draftState
     const {version} = action.payload
-    const {daemonHandshakeState} = Constants.useConfigState.getState()
+    const {daemonHandshakeState, daemonHandshakeFailedReason, dispatchSetDaemonHandshakeFailed} =
+      Constants.useConfigState.getState()
     if (daemonHandshakeState !== 'waitingForWaiters') {
       throw new Error("Should only get a wait while we're waiting")
     }
@@ -94,12 +93,12 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     }
 
     if (failedFatal) {
-      draftState.daemonHandshakeFailedReason = failedReason || ''
+      dispatchSetDaemonHandshakeFailed(failedReason || '')
       draftState.daemonHandshakeRetriesLeft = 0
     } else {
       // Keep the first error
       if (!daemonHandshakeFailedReason) {
-        draftState.daemonHandshakeFailedReason = failedReason || ''
+        dispatchSetDaemonHandshakeFailed(failedReason || '')
       }
     }
   },

@@ -197,7 +197,7 @@ const maybeDoneWithDaemonHandshake = (
   if (state.config.daemonHandshakeWaiters.size > 0) {
     // still waiting for things to finish
   } else {
-    if (state.config.daemonHandshakeFailedReason) {
+    if (Constants.useConfigState.getState().daemonHandshakeFailedReason) {
       if (state.config.daemonHandshakeRetriesLeft) {
         return ConfigGen.createRestartHandshake()
       }
@@ -694,12 +694,13 @@ const initConfig = () => {
       ConfigGen.daemonHandshakeDone,
     ],
     (_, action) => {
-      const {dispatchSetDaemonHandshakeState} = Constants.useConfigState.getState()
-      console.log('aaa redux briding', action.type)
+      const {dispatchSetDaemonHandshakeState, dispatchSetDaemonHandshakeFailed} =
+        Constants.useConfigState.getState()
       switch (action.type) {
         case ConfigGen.restartHandshake:
         case ConfigGen.startHandshake: // fallthrough
           dispatchSetDaemonHandshakeState('starting')
+          dispatchSetDaemonHandshakeFailed('')
           break
         case ConfigGen.daemonHandshake:
           dispatchSetDaemonHandshakeState('waitingForWaiters')

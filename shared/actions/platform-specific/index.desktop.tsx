@@ -186,7 +186,7 @@ const sendWindowsKBServiceCheck = (
     isWindows &&
     action.payload.version === state.config.daemonHandshakeVersion &&
     state.config.daemonHandshakeWaiters.size === 0 &&
-    state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
+    ConfigConstants.useConfigState.getState().daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
     requestWindowsStartService?.()
   }

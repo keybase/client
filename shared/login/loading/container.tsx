@@ -6,8 +6,8 @@ import Splash from '.'
 
 const SplashContainer = () => {
   const dispatch = Container.useDispatch()
-  const failedReason = Container.useSelector(state => state.config.daemonHandshakeFailedReason)
-  const retriesLeft = Container.useSelector(state => state.config.daemonHandshakeRetriesLeft)
+  const failedReason = Constants.useConfigState(s => s.daemonHandshakeFailedReason)
+  const retriesLeft = Container.useSelector(s => s.config.daemonHandshakeRetriesLeft)
 
   const onFeedback = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))

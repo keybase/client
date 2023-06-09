@@ -31,7 +31,6 @@ export type WindowState = {
 }
 
 export type State = {
-  daemonHandshakeFailedReason: string
   daemonHandshakeRetriesLeft: number
   daemonHandshakeWaiters: Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things

@@ -185,7 +185,6 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   }
 
   const daemonHandshakeState = ConfigConstants.useConfigState(s => s.daemonHandshakeState)
-  console.log('aaaa', daemonHandshakeState)
 
   const p: ProxyProps & WidgetProps = {
     ...upDown,
