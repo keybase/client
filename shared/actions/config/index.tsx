@@ -37,7 +37,7 @@ const onLoggedOut = (state: Container.TypedState) => {
 }
 
 const onConnected = () => {
-  Constants.useConfigState.getState().dispatchSetDaemonError(new Error('Disconnected'))
+  Constants.useConfigState.getState().dispatch.daemon.setError(new Error('Disconnected'))
   return ConfigGen.createStartHandshake()
 }
 const onDisconnected = () => {
@@ -45,7 +45,7 @@ const onDisconnected = () => {
     .dump()
     .then(() => {})
     .catch(() => {})
-  Constants.useConfigState.getState().dispatchSetDaemonError(new Error('Disconnected'))
+  Constants.useConfigState.getState().dispatch.daemon.setError(new Error('Disconnected'))
 }
 
 const onTrackingInfo = (_: unknown, action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
@@ -172,7 +172,7 @@ const loadDaemonBootstrapStatus = async (
 
 let _firstTimeConnecting = true
 const startHandshake = (state: Container.TypedState) => {
-  Constants.useConfigState.getState().dispatchSetDaemonError()
+  Constants.useConfigState.getState().dispatch.daemon.setError()
 
   const firstTimeConnecting = _firstTimeConnecting
   _firstTimeConnecting = false
@@ -197,8 +197,9 @@ const maybeDoneWithDaemonHandshake = (
   if (state.config.daemonHandshakeWaiters.size > 0) {
     // still waiting for things to finish
   } else {
-    if (Constants.useConfigState.getState().daemonHandshakeFailedReason) {
-      if (state.config.daemonHandshakeRetriesLeft) {
+    const {daemonHandshakeFailedReason, daemonHandshakeRetriesLeft} = Constants.useConfigState.getState()
+    if (daemonHandshakeFailedReason) {
+      if (daemonHandshakeRetriesLeft) {
         return ConfigGen.createRestartHandshake()
       }
     } else {
@@ -694,19 +695,23 @@ const initConfig = () => {
       ConfigGen.daemonHandshakeDone,
     ],
     (_, action) => {
-      const {dispatchSetDaemonHandshakeState, dispatchSetDaemonHandshakeFailed} =
-        Constants.useConfigState.getState()
+      const {daemon} = Constants.useConfigState.getState().dispatch
       switch (action.type) {
         case ConfigGen.restartHandshake:
-        case ConfigGen.startHandshake: // fallthrough
-          dispatchSetDaemonHandshakeState('starting')
-          dispatchSetDaemonHandshakeFailed('')
+          daemon.setState('starting')
+          daemon.setFailed('')
+          daemon.retriesReset(false)
+          break
+        case ConfigGen.startHandshake:
+          daemon.setState('starting')
+          daemon.setFailed('')
+          daemon.retriesDecrement()
           break
         case ConfigGen.daemonHandshake:
-          dispatchSetDaemonHandshakeState('waitingForWaiters')
+          daemon.setState('waitingForWaiters')
           break
         case ConfigGen.daemonHandshakeDone:
-          dispatchSetDaemonHandshakeState('done')
+          daemon.setState('done')
           break
       }
     }

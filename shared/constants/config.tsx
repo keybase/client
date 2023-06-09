@@ -29,7 +29,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  daemonHandshakeRetriesLeft: maxHandshakeTries,
   daemonHandshakeVersion: 1,
   daemonHandshakeWaiters: new Map(),
   darkModePreference: 'system',
@@ -99,32 +98,39 @@ export type ZStore = {
   daemonError?: Error
   daemonHandshakeState: Types.DaemonHandshakeState
   daemonHandshakeFailedReason: string
+  daemonHandshakeRetriesLeft: number
 }
 const initialZState: ZStore = {
   allowAnimatedEmojis: true,
   appFocused: true,
   configuredAccounts: [],
   daemonHandshakeFailedReason: '',
+  daemonHandshakeRetriesLeft: maxHandshakeTries,
   daemonHandshakeState: 'starting',
   defaultUsername: '',
 }
 
 type ZState = ZStore & {
+  dispatch: {
+    daemon: {
+      setError: (e?: Error) => void
+      setState: (s: Types.DaemonHandshakeState) => void
+      setFailed: (r: string) => void
+      retriesDecrement: () => void
+      retriesReset: (failed: boolean) => void
+    }
+  }
   dispatchReset: () => void
   dispatchSetAllowAnimtedEmojis: (a: boolean) => void
   dispatchSetAndroidShare: (s: ZStore['androidShare']) => void
   dispatchChangedFocus: (f: boolean) => void
   dispatchSetAccounts: (a: ZStore['configuredAccounts']) => void
   dispatchSetDefaultUsername: (u: string) => void
-  dispatchSetDaemonError: (e?: Error) => void
-  dispatchSetDaemonHandshakeState: (s: Types.DaemonHandshakeState) => void
-  dispatchSetDaemonHandshakeFailed: (r: string) => void
 }
 
 export const useConfigState = createZustand(
   immerZustand<ZState>(set => {
     const reduxDispatch = getReduxDispatch()
-
     const dispatchReset = () => {
       set(s => ({
         ...initialState,
@@ -134,68 +140,74 @@ export const useConfigState = createZustand(
         defaultUsername: s.defaultUsername,
       }))
     }
-
     const dispatchSetAllowAnimtedEmojis = (a: boolean) => {
       set(s => {
         s.allowAnimatedEmojis = a
       })
     }
-
     const dispatchSetAndroidShare = (share: ZStore['androidShare']) => {
       set(s => {
         s.androidShare = share
       })
     }
-
     const dispatchChangedFocus = (f: boolean) => {
       set(s => {
         s.appFocused = f
       })
       reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
     }
-
     const dispatchSetAccounts = (a: ZStore['configuredAccounts']) => {
       set(s => {
         s.configuredAccounts = a
       })
     }
-
     const dispatchSetDefaultUsername = (u: string) => {
       set(s => {
         s.defaultUsername = u
       })
     }
 
-    const dispatchSetDaemonError = (e?: Error) => {
-      if (e) {
-        logger.error('Error (daemon):', e)
-      }
-      set(s => {
-        s.daemonError = e
-      })
+    const dispatch = {
+      daemon: {
+        retriesDecrement: () => {
+          set(s => {
+            s.daemonHandshakeRetriesLeft = Math.max(0, s.daemonHandshakeRetriesLeft - 1)
+          })
+        },
+        retriesReset: (failed: boolean) => {
+          set(s => {
+            s.daemonHandshakeRetriesLeft = failed ? 0 : maxHandshakeTries
+          })
+        },
+        setError: (e?: Error) => {
+          if (e) {
+            logger.error('Error (daemon):', e)
+          }
+          set(s => {
+            s.daemonError = e
+          })
+        },
+        setFailed: (r: string) => {
+          set(s => {
+            s.daemonHandshakeFailedReason = r
+          })
+        },
+        setState: (ds: Types.DaemonHandshakeState) => {
+          set(s => {
+            s.daemonHandshakeState = ds
+          })
+        },
+      },
     }
 
-    const dispatchSetDaemonHandshakeState = (ds: Types.DaemonHandshakeState) => {
-      set(s => {
-        s.daemonHandshakeState = ds
-      })
-    }
-
-    const dispatchSetDaemonHandshakeFailed = (r: string) => {
-      set(s => {
-        s.daemonHandshakeFailedReason = r
-      })
-    }
     return {
       ...initialZState,
+      dispatch,
       dispatchChangedFocus,
       dispatchReset,
       dispatchSetAccounts,
       dispatchSetAllowAnimtedEmojis,
       dispatchSetAndroidShare,
-      dispatchSetDaemonError,
-      dispatchSetDaemonHandshakeFailed,
-      dispatchSetDaemonHandshakeState,
       dispatchSetDefaultUsername,
     }
   })
