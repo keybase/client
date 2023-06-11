@@ -32,15 +32,13 @@ const getRepos = memoize((git: Map<string, Types.GitInfo>) =>
 export default (ownProps: OwnProps) => {
   const initialExpandedSet = ownProps.expanded ? new Set([ownProps.expanded]) : undefined
   const loading = Container.useAnyWaiting(Constants.loadingWaitingKey)
-  const {dispatchClearBadges, dispatchLoad, dispatchSetError, error, idToInfo, isNew} = Constants.useGitState(
-    s => {
-      const {dispatchClearBadges, dispatchLoad, dispatchSetError, error, idToInfo, isNew} = s
-      return {dispatchClearBadges, dispatchLoad, dispatchSetError, error, idToInfo, isNew}
-    },
-    shallowEqual
-  )
+  const {clearBadges, load, setError, error, idToInfo, isNew} = Constants.useGitState(s => {
+    const {dispatch, error, idToInfo, isNew} = s
+    const {clearBadges, load, setError} = dispatch
+    return {clearBadges, error, load, setError, idToInfo, isNew}
+  }, shallowEqual)
 
-  const {badged} = useLocalBadging(isNew, dispatchClearBadges)
+  const {badged} = useLocalBadging(isNew, clearBadges)
 
   const {personals, teams} = getRepos(idToInfo)
 
@@ -51,16 +49,16 @@ export default (ownProps: OwnProps) => {
   }, [dispatch])
   const onShowDelete = React.useCallback(
     (id: string) => {
-      dispatchSetError(undefined)
+      setError(undefined)
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {id}, selected: 'gitDeleteRepo'}]}))
     },
-    [dispatch, dispatchSetError]
+    [dispatch, setError]
   )
 
   useFocusEffect(
     React.useCallback(() => {
-      dispatchLoad()
-    }, [dispatchLoad])
+      load()
+    }, [load])
   )
 
   const [expandedSet, setExpandedSet] = React.useState(
@@ -79,13 +77,13 @@ export default (ownProps: OwnProps) => {
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const onNewPersonalRepo = () => {
-        dispatchSetError(undefined)
+        setError(undefined)
         dispatch(
           RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]})
         )
       }
       const onNewTeamRepo = () => {
-        dispatchSetError(undefined)
+        setError(undefined)
         dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
       }
       const {attachTo, toggleShowingPopup} = p
@@ -105,7 +103,7 @@ export default (ownProps: OwnProps) => {
         />
       )
     },
-    [dispatch, dispatchSetError]
+    [dispatch, setError]
   )
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
@@ -113,7 +111,7 @@ export default (ownProps: OwnProps) => {
     <Kb.Reloadable
       waitingKeys={Constants.loadingWaitingKey}
       onBack={Container.isMobile ? onBack : undefined}
-      onReload={dispatchLoad}
+      onReload={load}
       reloadOnMount={true}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>

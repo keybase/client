@@ -346,8 +346,8 @@ class ProvisioningManager {
 
   displaySecretExchanged = () => {
     // special case, we actually aren't waiting when we get this so our count goes negative. This is very unusual and a one-off
-    const {dispatchIncrement} = WaitingConstants.useWaitingState.getState()
-    dispatchIncrement(Constants.waitingKey)
+    const {increment} = WaitingConstants.useWaitingState.getState().dispatch
+    increment(Constants.waitingKey)
   }
 
   getCustomResponseIncomingCallMap = (): RPCTypes.CustomResponseIncomingCallMap =>
@@ -429,8 +429,8 @@ const startProvisioning = async (
   _a: unknown,
   listenerApi: Container.ListenerApi
 ) => {
-  const {dispatchClear} = WaitingConstants.useWaitingState.getState()
-  dispatchClear(Constants.waitingKey)
+  const {clear} = WaitingConstants.useWaitingState.getState().dispatch
+  clear(Constants.waitingKey)
   const manager = makeProvisioningManager(false, listenerApi)
   try {
     const username = state.provision.username
@@ -489,15 +489,15 @@ const startProvisioning = async (
         break
     }
   } finally {
-    dispatchClear(Constants.waitingKey)
+    clear(Constants.waitingKey)
     listenerApi.dispatch(ProvisionGen.createProvisionDone())
   }
 }
 
 const addNewDevice = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
   // Make a new handler each time.
-  const {dispatchClear} = WaitingConstants.useWaitingState.getState()
-  dispatchClear(Constants.waitingKey)
+  const {clear} = WaitingConstants.useWaitingState.getState().dispatch
+  clear(Constants.waitingKey)
   const manager = makeProvisioningManager(true, listenerApi)
   try {
     await RPCTypes.deviceDeviceAddRpcListener(
@@ -534,8 +534,8 @@ const addNewDevice = async (_s: unknown, _a: unknown, listenerApi: Container.Lis
     listenerApi.dispatch(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: true}))
     logger.error(`Provision -> Add device error: ${finalError.message}`)
   } finally {
-    const {dispatchClear} = WaitingConstants.useWaitingState.getState()
-    dispatchClear(Constants.waitingKey)
+    const {clear} = WaitingConstants.useWaitingState.getState().dispatch
+    clear(Constants.waitingKey)
     listenerApi.dispatch(ProvisionGen.createProvisionDone())
   }
 }

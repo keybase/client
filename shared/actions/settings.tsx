@@ -445,10 +445,10 @@ const trace = async (
 ) => {
   const durationSeconds = action.payload.durationSeconds
   await RPCTypes.pprofLogTraceRpcPromise({logDirForMobile: pprofDir, traceDurationSeconds: durationSeconds})
-  const {dispatchDecrement, dispatchIncrement} = WaitingConstants.useWaitingState.getState()
-  dispatchIncrement(Constants.traceInProgressKey)
+  const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+  increment(Constants.traceInProgressKey)
   await listenerApi.delay(durationSeconds * 1_000)
-  dispatchDecrement(Constants.traceInProgressKey)
+  decrement(Constants.traceInProgressKey)
 }
 
 const processorProfile = async (
@@ -462,10 +462,10 @@ const processorProfile = async (
     profileDurationSeconds: durationSeconds,
   })
 
-  const {dispatchDecrement, dispatchIncrement} = WaitingConstants.useWaitingState.getState()
-  dispatchIncrement(Constants.processorProfileInProgressKey)
+  const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+  increment(Constants.processorProfileInProgressKey)
   await listenerApi.delay(durationSeconds * 1_000)
-  dispatchDecrement(Constants.processorProfileInProgressKey)
+  decrement(Constants.processorProfileInProgressKey)
 }
 
 const rememberPassword = async (_: unknown, action: SettingsGen.OnChangeRememberPasswordPayload) => {

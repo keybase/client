@@ -10,11 +10,13 @@ const initialState: Types.State = {
 }
 
 type ZState = Types.State & {
-  dispatchReset: () => void
-  dispatchClear: (keys: string | Array<string>) => void
-  dispatchIncrement: (keys: string | Array<string>) => void
-  dispatchDecrement: (keys: string | Array<string>, error?: RPCError) => void
-  dispatchBatch: (changes: Array<{key: string | Array<string>; increment: boolean; error?: RPCError}>) => void
+  dispatch: {
+    reset: () => void
+    clear: (keys: string | Array<string>) => void
+    increment: (keys: string | Array<string>) => void
+    decrement: (keys: string | Array<string>, error?: RPCError) => void
+    batch: (changes: Array<{key: string | Array<string>; increment: boolean; error?: RPCError}>) => void
+  }
 }
 
 const getKeys = (k?: string | Array<string>) => {
@@ -25,10 +27,6 @@ const getKeys = (k?: string | Array<string>) => {
 
 export const useWaitingState = createZustand(
   immerZustand<ZState>(set => {
-    const dispatchReset = () => {
-      set(() => initialState)
-    }
-
     const changeHelper = (keys: string | Array<string>, diff: 1 | -1, error?: RPCError) => {
       set(s => {
         getKeys(keys).forEach(k => {
@@ -51,40 +49,40 @@ export const useWaitingState = createZustand(
       })
     }
 
-    const dispatchIncrement = (keys: string | Array<string>) => {
+    const increment = (keys: string | Array<string>) => {
       changeHelper(keys, 1)
     }
-    const dispatchDecrement = (keys: string | Array<string>, error?: RPCError) => {
+    const decrement = (keys: string | Array<string>, error?: RPCError) => {
       changeHelper(keys, -1, error)
     }
-    const dispatchBatch = (
-      changes: Array<{key: string | Array<string>; increment: boolean; error?: RPCError}>
-    ) => {
-      changes.forEach(c => {
-        if (c.increment) {
-          dispatchIncrement(c.key)
-        } else {
-          dispatchDecrement(c.key, c.error)
-        }
-      })
-    }
-
-    const dispatchClear = (keys: string | Array<string>) => {
-      set(s => {
-        getKeys(keys).forEach(k => {
-          s.counts.delete(k)
-          s.errors.delete(k)
+    const dispatch = {
+      batch: (changes: Array<{key: string | Array<string>; increment: boolean; error?: RPCError}>) => {
+        changes.forEach(c => {
+          if (c.increment) {
+            increment(c.key)
+          } else {
+            decrement(c.key, c.error)
+          }
         })
-      })
+      },
+      clear: (keys: string | Array<string>) => {
+        set(s => {
+          getKeys(keys).forEach(k => {
+            s.counts.delete(k)
+            s.errors.delete(k)
+          })
+        })
+      },
+      decrement,
+      increment,
+      reset: () => {
+        set(() => initialState)
+      },
     }
 
     return {
       ...initialState,
-      dispatchBatch,
-      dispatchClear,
-      dispatchDecrement,
-      dispatchIncrement,
-      dispatchReset,
+      dispatch,
     }
   })
 )
@@ -98,4 +96,4 @@ export const useAnyErrors = (k: string | Array<string>) =>
     return errorKey ? s.errors.get(errorKey) : undefined
   })
 
-export const useDispatchClearWaiting = () => useWaitingState(s => s.dispatchClear)
+export const useDispatchClearWaiting = () => useWaitingState(s => s.dispatch.clear)

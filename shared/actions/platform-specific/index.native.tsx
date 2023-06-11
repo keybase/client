@@ -434,8 +434,8 @@ const requestContactPermissions = async (
   listenerApi: Container.ListenerApi
 ) => {
   const {thenToggleImportOn} = action.payload
-  const {dispatchDecrement, dispatchIncrement} = WaitingConstants.useWaitingState.getState()
-  dispatchIncrement(SettingsConstants.importContactsWaitingKey)
+  const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+  increment(SettingsConstants.importContactsWaitingKey)
   const {status} = await Contacts.requestPermissionsAsync()
 
   if (status === Contacts.PermissionStatus.GRANTED && thenToggleImportOn) {
@@ -444,7 +444,7 @@ const requestContactPermissions = async (
     )
   }
   listenerApi.dispatch(SettingsGen.createLoadedContactPermissions({status}))
-  dispatchDecrement(SettingsConstants.importContactsWaitingKey)
+  decrement(SettingsConstants.importContactsWaitingKey)
 }
 
 // When the notif is tapped we are only passed the message, use this as a marker

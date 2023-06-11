@@ -106,8 +106,8 @@ const ensureStore = () => {
     global.DEBUGStore = _store
   }
 
-  const {dispatchBatch} = WaitingConstants.useWaitingState.getState()
-  const eng = makeEngine(_store.store.dispatch, dispatchBatch)
+  const {batch} = WaitingConstants.useWaitingState.getState().dispatch
+  const eng = makeEngine(_store.store.dispatch, batch)
   _store.initListeners()
   eng.listenersAreReady()
 

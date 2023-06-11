@@ -30,19 +30,19 @@ export const HeaderTitle = () => (
 export const HeaderRightActions = () => {
   const dispatch = Container.useDispatch()
 
-  const dispatchSetError = Constants.useGitState(state => state.dispatchSetError)
+  const setError = Constants.useGitState(state => state.dispatch.setError)
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       const onAddPersonal = () => {
-        dispatchSetError(undefined)
+        setError(undefined)
         dispatch(
           RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]})
         )
       }
       const onAddTeam = () => {
-        dispatchSetError(undefined)
+        setError(undefined)
         dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
       }
 
@@ -61,7 +61,7 @@ export const HeaderRightActions = () => {
         />
       )
     },
-    [dispatch, dispatchSetError]
+    [dispatch, setError]
   )
 
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)

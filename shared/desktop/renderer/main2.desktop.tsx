@@ -63,8 +63,8 @@ const setupStore = () => {
 const setupApp = (store, initListeners) => {
   disableDragDrop()
 
-  const {dispatchBatch} = WaitingConstants.useWaitingState.getState()
-  const eng = makeEngine(store.dispatch, dispatchBatch)
+  const {batch} = WaitingConstants.useWaitingState.getState().dispatch
+  const eng = makeEngine(store.dispatch, batch)
   initListeners()
   eng.listenersAreReady()
 

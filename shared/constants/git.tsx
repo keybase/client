@@ -61,22 +61,24 @@ const initialState: Types.State = {
 }
 
 type ZState = Types.State & {
-  dispatchSetError: (err?: Error) => void
-  dispatchClearBadges: () => void
-  dispatchLoad: () => void
-  dispatchSetBadges: (set: Set<string>) => void
-  dispatchReset: () => void
-  dispatchCreatePersonalRepo: (name: string) => void
-  dispatchCreateTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => void
-  dispatchDeletePersonalRepo: (repoName: string) => void
-  dispatchDeleteTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => void
-  dispatchNavigateToTeamRepo: (teamname: string, repoID: string) => void
-  dispatchSetTeamRepoSettings: (
-    channelName: string,
-    teamname: string,
-    repoID: string,
-    chatDisabled: boolean
-  ) => void
+  dispatch: {
+    setError: (err?: Error) => void
+    clearBadges: () => void
+    load: () => void
+    setBadges: (set: Set<string>) => void
+    reset: () => void
+    createPersonalRepo: (name: string) => void
+    createTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => void
+    deletePersonalRepo: (repoName: string) => void
+    deleteTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => void
+    navigateToTeamRepo: (teamname: string, repoID: string) => void
+    setTeamRepoSettings: (
+      channelName: string,
+      teamname: string,
+      repoID: string,
+      chatDisabled: boolean
+    ) => void
+  }
 }
 
 export const useGitState = Container.createZustand(
@@ -88,7 +90,7 @@ export const useGitState = Container.createZustand(
         try {
           await f()
           if (loadAfter) {
-            dispatchLoad()
+            load()
           }
         } catch (error) {
           set(s => {
@@ -99,81 +101,7 @@ export const useGitState = Container.createZustand(
       Container.ignorePromise(wrapper())
     }
 
-    const dispatchSetError = (err?: Error) => {
-      set(s => {
-        s.error = err
-      })
-    }
-
-    const dispatchNavigateToTeamRepo = (teamname: string, repoID: string) => {
-      const f = async () => {
-        await _dispatchLoad()
-        for (const [, info] of get().idToInfo) {
-          if (info.repoID === repoID && info.teamname === teamname) {
-            reduxDispatch(
-              RouteTreeGen.createNavigateAppend({
-                path: [{props: {expanded: info.id}, selected: 'gitRoot'}],
-              })
-            )
-            break
-          }
-        }
-      }
-      Container.ignorePromise(f())
-    }
-
-    const dispatchSetTeamRepoSettings = (
-      channelName: string,
-      teamname: string,
-      repoID: string,
-      chatDisabled: boolean
-    ) => {
-      callAndHandleError(async () => {
-        await RPCTypes.gitSetTeamRepoSettingsRpcPromise({
-          channelName,
-          chatDisabled,
-          folder: {
-            created: false,
-            folderType: RPCTypes.FolderType.team,
-            name: teamname,
-          },
-          repoID,
-        })
-      })
-    }
-
-    const dispatchDeletePersonalRepo = (repoName: string) => {
-      callAndHandleError(async () => {
-        await RPCTypes.gitDeletePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
-      })
-    }
-
-    const dispatchDeleteTeamRepo = (repoName: string, teamname: string, notifyTeam: boolean) => {
-      callAndHandleError(async () => {
-        const teamName = {parts: teamname.split('.')}
-        await RPCTypes.gitDeleteTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
-      })
-    }
-
-    const dispatchCreatePersonalRepo = (repoName: string) => {
-      callAndHandleError(async () => {
-        await RPCTypes.gitCreatePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
-      })
-    }
-    const dispatchCreateTeamRepo = (repoName: string, teamname: string, notifyTeam: boolean) => {
-      callAndHandleError(async () => {
-        const teamName = {parts: teamname.split('.')}
-        await RPCTypes.gitCreateTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
-      })
-    }
-
-    const dispatchClearBadges = () => {
-      callAndHandleError(async () => {
-        await RPCTypes.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
-      }, false)
-    }
-
-    const _dispatchLoad = async () => {
+    const _load = async () => {
       const results = await RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, loadingWaitingKey)
       const {errors, repos} = parseRepos(results || [])
       errors.forEach(globalError => reduxDispatch(ConfigGen.createGlobalError({globalError})))
@@ -181,32 +109,85 @@ export const useGitState = Container.createZustand(
         s.idToInfo = repos
       })
     }
-
-    const dispatchLoad = () => {
-      Container.ignorePromise(_dispatchLoad())
+    const load = () => {
+      Container.ignorePromise(_load())
     }
-
-    const dispatchReset = () => {
-      set(() => initialState)
-    }
-    const dispatchSetBadges = (b: Set<string>) => {
-      set(s => {
-        s.isNew = b
-      })
+    const dispatch = {
+      clearBadges: () => {
+        callAndHandleError(async () => {
+          await RPCTypes.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
+        }, false)
+      },
+      createPersonalRepo: (repoName: string) => {
+        callAndHandleError(async () => {
+          await RPCTypes.gitCreatePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
+        })
+      },
+      createTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => {
+        callAndHandleError(async () => {
+          const teamName = {parts: teamname.split('.')}
+          await RPCTypes.gitCreateTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
+        })
+      },
+      deletePersonalRepo: (repoName: string) => {
+        callAndHandleError(async () => {
+          await RPCTypes.gitDeletePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
+        })
+      },
+      deleteTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => {
+        callAndHandleError(async () => {
+          const teamName = {parts: teamname.split('.')}
+          await RPCTypes.gitDeleteTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
+        })
+      },
+      load,
+      navigateToTeamRepo: (teamname: string, repoID: string) => {
+        const f = async () => {
+          await _load()
+          for (const [, info] of get().idToInfo) {
+            if (info.repoID === repoID && info.teamname === teamname) {
+              reduxDispatch(
+                RouteTreeGen.createNavigateAppend({
+                  path: [{props: {expanded: info.id}, selected: 'gitRoot'}],
+                })
+              )
+              break
+            }
+          }
+        }
+        Container.ignorePromise(f())
+      },
+      reset: () => {
+        set(() => initialState)
+      },
+      setBadges: (b: Set<string>) => {
+        set(s => {
+          s.isNew = b
+        })
+      },
+      setError: (err?: Error) => {
+        set(s => {
+          s.error = err
+        })
+      },
+      setTeamRepoSettings: (channelName: string, teamname: string, repoID: string, chatDisabled: boolean) => {
+        callAndHandleError(async () => {
+          await RPCTypes.gitSetTeamRepoSettingsRpcPromise({
+            channelName,
+            chatDisabled,
+            folder: {
+              created: false,
+              folderType: RPCTypes.FolderType.team,
+              name: teamname,
+            },
+            repoID,
+          })
+        })
+      },
     }
     return {
       ...initialState,
-      dispatchClearBadges,
-      dispatchCreatePersonalRepo,
-      dispatchCreateTeamRepo,
-      dispatchDeletePersonalRepo,
-      dispatchDeleteTeamRepo,
-      dispatchLoad,
-      dispatchNavigateToTeamRepo,
-      dispatchReset,
-      dispatchSetBadges,
-      dispatchSetError,
-      dispatchSetTeamRepoSettings,
+      dispatch,
     }
   })
 )

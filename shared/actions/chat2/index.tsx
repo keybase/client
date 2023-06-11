@@ -635,8 +635,8 @@ const onChatAttachmentUploadStart = (
 }
 
 const onChatInboxSyncStarted = () => {
-  const {dispatchIncrement} = WaitingConstants.useWaitingState.getState()
-  dispatchIncrement(Constants.waitingKeyInboxSyncStarted)
+  const {increment} = WaitingConstants.useWaitingState.getState().dispatch
+  increment(Constants.waitingKeyInboxSyncStarted)
 }
 
 // Service tells us it's done syncing
@@ -646,8 +646,8 @@ const onChatInboxSynced = (
 ) => {
   const {syncRes} = action.payload.params
 
-  const {dispatchClear} = WaitingConstants.useWaitingState.getState()
-  dispatchClear(Constants.waitingKeyInboxSyncStarted)
+  const {clear} = WaitingConstants.useWaitingState.getState().dispatch
+  clear(Constants.waitingKeyInboxSyncStarted)
   const actions: Array<Container.TypedActions> = []
 
   switch (syncRes.syncType) {
