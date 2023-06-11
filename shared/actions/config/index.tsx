@@ -255,8 +255,8 @@ const loadDaemonAccounts = async (
 
     const configuredAccounts = (await RPCTypes.loginGetConfiguredAccountsRpcPromise()) ?? []
     // already have one?
-    const {defaultUsername, dispatchSetAccounts, dispatchSetDefaultUsername} =
-      Constants.useConfigState.getState()
+    const {defaultUsername} = Constants.useConfigState.getState()
+    const {setAccounts, setDefaultUsername} = Constants.useConfigState.getState().dispatch
 
     let existingDefaultFound = false
     let currentName = ''
@@ -275,9 +275,9 @@ const loadDaemonAccounts = async (
       usernameToFullname[username] = fullname
     })
     if (!existingDefaultFound) {
-      dispatchSetDefaultUsername(currentName)
+      setDefaultUsername(currentName)
     }
-    dispatchSetAccounts(nextConfiguredAccounts)
+    setAccounts(nextConfiguredAccounts)
     listenerApi.dispatch(UsersGen.createUpdateFullnames({usernameToFullname}))
 
     if (handshakeWait) {
@@ -494,8 +494,8 @@ const logoutAndTryToLogInAs = async (
     await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true}, LoginConstants.waitingKey)
   }
 
-  const {dispatchSetDefaultUsername} = Constants.useConfigState.getState()
-  dispatchSetDefaultUsername(action.payload.username)
+  const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
+  setDefaultUsername(action.payload.username)
 }
 
 const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
@@ -503,7 +503,7 @@ const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
   const items = action.payload.state
 
   const allowAnimatedEmojis = !items.find(i => i.item.category === 'emojianimations')
-  Constants.useConfigState.getState().dispatchSetAllowAnimtedEmojis(allowAnimatedEmojis)
+  Constants.useConfigState.getState().dispatch.setAllowAnimatedEmojis(allowAnimatedEmojis)
 
   const lastSeenItem = items.find(i => i.item.category === 'whatsNewLastSeenVersion')
   if (lastSeenItem) {
@@ -674,17 +674,18 @@ const initConfig = () => {
 
   Container.listenAction(ConfigGen.revoked, (_, action) => {
     if (!action.payload.wasCurrentDevice) return
-    const {dispatchSetDefaultUsername, configuredAccounts} = Constants.useConfigState.getState()
+    const {configuredAccounts} = Constants.useConfigState.getState()
+    const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
     const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername) ?? ''
-    dispatchSetDefaultUsername(defaultUsername)
+    setDefaultUsername(defaultUsername)
   })
 
   Container.listenAction(ConfigGen.bootstrapStatusLoaded, (_, action) => {
     const {username} = action.payload
     // keep it if we're logged out
     if (!username) return
-    const {dispatchSetDefaultUsername} = Constants.useConfigState.getState()
-    dispatchSetDefaultUsername(username)
+    const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
+    setDefaultUsername(username)
   })
 
   Container.listenAction(

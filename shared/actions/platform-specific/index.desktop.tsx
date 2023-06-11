@@ -50,7 +50,7 @@ const handleWindowFocusEvents = () => {
     if (skipAppFocusActions) {
       console.log('Skipping app focus actions!')
     } else {
-      ConfigConstants.useConfigState.getState().dispatchChangedFocus(appFocused)
+      ConfigConstants.useConfigState.getState().dispatch.changedFocus(appFocused)
     }
   }
   window.addEventListener('focus', () => handle(true))

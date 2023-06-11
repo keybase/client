@@ -119,55 +119,26 @@ type ZState = ZStore & {
       retriesDecrement: () => void
       retriesReset: (failed: boolean) => void
     }
+    reset: () => void
+    setAllowAnimatedEmojis: (a: boolean) => void
+    setAndroidShare: (s: ZStore['androidShare']) => void
+    changedFocus: (f: boolean) => void
+    setAccounts: (a: ZStore['configuredAccounts']) => void
+    setDefaultUsername: (u: string) => void
   }
-  dispatchReset: () => void
-  dispatchSetAllowAnimtedEmojis: (a: boolean) => void
-  dispatchSetAndroidShare: (s: ZStore['androidShare']) => void
-  dispatchChangedFocus: (f: boolean) => void
-  dispatchSetAccounts: (a: ZStore['configuredAccounts']) => void
-  dispatchSetDefaultUsername: (u: string) => void
 }
 
 export const useConfigState = createZustand(
   immerZustand<ZState>(set => {
     const reduxDispatch = getReduxDispatch()
-    const dispatchReset = () => {
-      set(s => ({
-        ...initialState,
-        appFocused: s.appFocused,
-        configuredAccounts: s.configuredAccounts,
-        daemonHandshakeState: s.daemonHandshakeState,
-        defaultUsername: s.defaultUsername,
-      }))
-    }
-    const dispatchSetAllowAnimtedEmojis = (a: boolean) => {
-      set(s => {
-        s.allowAnimatedEmojis = a
-      })
-    }
-    const dispatchSetAndroidShare = (share: ZStore['androidShare']) => {
-      set(s => {
-        s.androidShare = share
-      })
-    }
-    const dispatchChangedFocus = (f: boolean) => {
-      set(s => {
-        s.appFocused = f
-      })
-      reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
-    }
-    const dispatchSetAccounts = (a: ZStore['configuredAccounts']) => {
-      set(s => {
-        s.configuredAccounts = a
-      })
-    }
-    const dispatchSetDefaultUsername = (u: string) => {
-      set(s => {
-        s.defaultUsername = u
-      })
-    }
 
     const dispatch = {
+      changedFocus: (f: boolean) => {
+        set(s => {
+          s.appFocused = f
+        })
+        reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
+      },
       daemon: {
         retriesDecrement: () => {
           set(s => {
@@ -198,17 +169,40 @@ export const useConfigState = createZustand(
           })
         },
       },
+      reset: () => {
+        set(s => ({
+          ...initialState,
+          appFocused: s.appFocused,
+          configuredAccounts: s.configuredAccounts,
+          daemonHandshakeState: s.daemonHandshakeState,
+          defaultUsername: s.defaultUsername,
+        }))
+      },
+      setAccounts: (a: ZStore['configuredAccounts']) => {
+        set(s => {
+          s.configuredAccounts = a
+        })
+      },
+      setAllowAnimatedEmojis: (a: boolean) => {
+        set(s => {
+          s.allowAnimatedEmojis = a
+        })
+      },
+      setAndroidShare: (share: ZStore['androidShare']) => {
+        set(s => {
+          s.androidShare = share
+        })
+      },
+      setDefaultUsername: (u: string) => {
+        set(s => {
+          s.defaultUsername = u
+        })
+      },
     }
 
     return {
       ...initialZState,
       dispatch,
-      dispatchChangedFocus,
-      dispatchReset,
-      dispatchSetAccounts,
-      dispatchSetAllowAnimtedEmojis,
-      dispatchSetAndroidShare,
-      dispatchSetDefaultUsername,
     }
   })
 )

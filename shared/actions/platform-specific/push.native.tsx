@@ -206,15 +206,15 @@ const listenForNativeAndroidIntentNotifications = async (listenerApi: Container.
 
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    const {dispatchSetAndroidShare} = ConfigConstants.useConfigState.getState()
+    const {setAndroidShare} = ConfigConstants.useConfigState.getState().dispatch
 
     const text = evt.text
     const url = evt.localPath
 
     if (url) {
-      dispatchSetAndroidShare({type: RPCTypes.IncomingShareType.file, url})
+      setAndroidShare({type: RPCTypes.IncomingShareType.file, url})
     } else if (text) {
-      dispatchSetAndroidShare({text, type: RPCTypes.IncomingShareType.text})
+      setAndroidShare({text, type: RPCTypes.IncomingShareType.text})
     }
   })
 }

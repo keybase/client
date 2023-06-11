@@ -200,7 +200,7 @@ const updateChangedFocus = (_: unknown, action: ConfigGen.MobileAppStatePayload)
   }
 
   logger.info(`setting app state on service to: ${logState}`)
-  ConfigConstants.useConfigState.getState().dispatchChangedFocus(appFocused)
+  ConfigConstants.useConfigState.getState().dispatch.changedFocus(appFocused)
 }
 
 let _lastPersist = ''
@@ -332,18 +332,12 @@ const loadStartupDetails = async (listenerApi: Container.ListenerApi) => {
     startupTab = undefined
   }
 
-  const {dispatchSetAndroidShare} = ConfigConstants.useConfigState.getState()
+  const {setAndroidShare} = ConfigConstants.useConfigState.getState().dispatch
 
   if (startupSharePath) {
-    dispatchSetAndroidShare({
-      type: RPCTypes.IncomingShareType.file,
-      url: startupSharePath,
-    })
+    setAndroidShare({type: RPCTypes.IncomingShareType.file, url: startupSharePath})
   } else if (startupShareText) {
-    dispatchSetAndroidShare({
-      text: startupShareText,
-      type: RPCTypes.IncomingShareType.text,
-    })
+    setAndroidShare({text: startupShareText, type: RPCTypes.IncomingShareType.text})
   }
 
   listenerApi.dispatch(
