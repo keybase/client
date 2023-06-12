@@ -43,9 +43,9 @@ const useConnectNavToRedux = () => {
 // if dark mode changes we should redraw
 // on ios if dark mode changes and we're on system, ignore as it will thrash and we don't want that
 const useDarkNeedsRedraw = () => {
-  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
+  const isDarkMode = Container.useSelector(() => ConfigConstants.isDarkMode())
   const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
-  const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
+  const darkModePreference = ConfigConstants.useConfigState(s => s.darkModePreference)
   const darkModePreferenceChanged = Container.usePrevious(darkModePreference) !== darkModePreference
 
   if (Styles.isIOS) {
@@ -68,7 +68,7 @@ const useNavKey = (appState: AppState, key: React.MutableRefObject<number>) => {
 }
 
 const useIsDarkChanged = () => {
-  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
+  const isDarkMode = Container.useSelector(() => ConfigConstants.isDarkMode())
   const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
   return darkChanged
 }

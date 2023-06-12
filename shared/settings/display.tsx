@@ -1,22 +1,17 @@
 import * as React from 'react'
-import * as ConfigGen from '../actions/config-gen'
-import * as SettingsConstants from '../constants/config'
+import * as ConfigConstants from '../constants/config'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
-import {isDarkModeSystemSupported, type DarkModePreference} from '../styles/dark-mode'
+import {isDarkModeSystemSupported} from '../styles/dark-mode'
 import logger from '../logger'
 
 const Display = () => {
-  const allowAnimatedEmojis = SettingsConstants.useConfigState(s => s.allowAnimatedEmojis)
-  const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
+  const allowAnimatedEmojis = ConfigConstants.useConfigState(s => s.allowAnimatedEmojis)
+  const darkModePreference = ConfigConstants.useConfigState(s => s.darkModePreference)
   const toggleAnimatedEmoji = Container.useRPC(RPCChatTypes.localToggleEmojiAnimationsRpcPromise)
-  const dispatch = Container.useDispatch()
-  const onSetDarkModePreference = React.useCallback(
-    (preference: DarkModePreference) => dispatch(ConfigGen.createSetDarkModePreference({preference})),
-    [dispatch]
-  )
+  const onSetDarkModePreference = ConfigConstants.useConfigState(s => s.dispatch.setDarkModePreference)
   const doToggleAnimatedEmoji = (enabled: boolean) => {
     toggleAnimatedEmoji(
       [{enabled}],

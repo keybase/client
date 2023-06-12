@@ -1,15 +1,24 @@
-import uniq from 'lodash/uniq'
-import type * as RPCTypes from './types/rpc-gen'
-import type * as Types from './types/config'
-import {noConversationIDKey} from './types/chat2/common'
 import * as ConfigGen from '../actions/config-gen'
 import HiddenString from '../util/hidden-string'
+import * as RPCTypes from './types/rpc-gen'
+import type * as Types from './types/config'
+import uniq from 'lodash/uniq'
 import {defaultUseNativeFrame, runMode} from './platform'
-import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
+import {
+  type DarkModePreference,
+  _setSystemIsDarkMode,
+  _setDarkModePreference,
+  isDarkMode as _isDarkMode,
+} from '../styles/dark-mode'
+import {noConversationIDKey} from './types/chat2/common'
 // normally util.container but it re-exports from us so break the cycle
 import {create as createZustand} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 import {getReduxDispatch} from '../util/zustand'
+
+const ignorePromise = (f: Promise<void>) => {
+  f.then(() => {}).catch(() => {})
+}
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
@@ -27,7 +36,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  darkModePreference: 'system',
   deviceID: '',
   deviceName: '',
   followers: new Set(),
@@ -55,7 +63,6 @@ export const initialState: Types.State = {
   startupLink: '',
   startupPushPayload: undefined,
   startupWasFromPush: false,
-  systemDarkMode: false,
   uid: '',
   useNativeFrame: defaultUseNativeFrame,
   userActive: true,
@@ -75,7 +82,7 @@ export const initialState: Types.State = {
 }
 
 // we proxy the style helper to keep the logic in one place but act like a selector
-export const isDarkMode = (_: Types.State) => _isDarkMode()
+export const isDarkMode = () => _isDarkMode()
 
 export type ZStore = {
   allowAnimatedEmojis: boolean
@@ -91,13 +98,17 @@ export type ZStore = {
   appFocused: boolean
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
+  darkModePreference: DarkModePreference
+  systemDarkMode: boolean
 }
 
 const initialZState: ZStore = {
   allowAnimatedEmojis: true,
   appFocused: true,
   configuredAccounts: [],
+  darkModePreference: 'system',
   defaultUsername: '',
+  systemDarkMode: false,
 }
 
 type ZState = ZStore & {
@@ -108,6 +119,9 @@ type ZState = ZStore & {
     changedFocus: (f: boolean) => void
     setAccounts: (a: ZStore['configuredAccounts']) => void
     setDefaultUsername: (u: string) => void
+    loadDarkPrefs: () => void
+    setDarkModePreference: (p: DarkModePreference) => void
+    setSystemDarkMode: (dark: boolean) => void
   }
 }
 
@@ -122,11 +136,30 @@ export const useConfigState = createZustand(
         })
         reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
       },
+      loadDarkPrefs: () => {
+        const f = async () => {
+          const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
+          const preference = v.s
+          switch (preference) {
+            case 'system':
+            case 'alwaysDark': // fallthrough
+            case 'alwaysLight': // fallthrough
+              _setDarkModePreference(preference)
+              set(s => {
+                s.darkModePreference = preference
+              })
+              break
+            default:
+          }
+        }
+        ignorePromise(f())
+      },
       reset: () => {
         set(s => ({
           ...initialState,
           appFocused: s.appFocused,
           configuredAccounts: s.configuredAccounts,
+          darkModePreference: s.darkModePreference,
           defaultUsername: s.defaultUsername,
         }))
       },
@@ -145,9 +178,28 @@ export const useConfigState = createZustand(
           s.androidShare = share
         })
       },
+      setDarkModePreference: (p: DarkModePreference) => {
+        _setDarkModePreference(p)
+        set(s => {
+          s.darkModePreference = p
+        })
+        const f = async () => {
+          await RPCTypes.configGuiSetValueRpcPromise({
+            path: 'ui.darkMode',
+            value: {isNull: false, s: p},
+          })
+        }
+        ignorePromise(f())
+      },
       setDefaultUsername: (u: string) => {
         set(s => {
           s.defaultUsername = u
+        })
+      },
+      setSystemDarkMode: (dark: boolean) => {
+        _setSystemIsDarkMode(dark)
+        set(s => {
+          s.systemDarkMode = dark
         })
       },
     }

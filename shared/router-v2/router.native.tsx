@@ -303,8 +303,8 @@ const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 
 const useBarStyle = () => {
-  const isDarkMode = Container.useSelector(state => ConfigConstants.isDarkMode(state.config))
-  const darkModePreference = Container.useSelector(state => state.config.darkModePreference)
+  const isDarkMode = Container.useSelector(() => ConfigConstants.isDarkMode())
+  const darkModePreference = ConfigConstants.useConfigState(s => s.darkModePreference)
 
   if (!darkModePreference || darkModePreference === 'system') {
     return 'default'

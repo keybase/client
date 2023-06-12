@@ -2,7 +2,6 @@ import type * as NetInfo from '@react-native-community/netinfo'
 import type * as RPCTypes from './rpc-gen'
 import type HiddenString from '../../util/hidden-string'
 import type {ConversationIDKey} from './chat2'
-import type {DarkModePreference} from '../../styles/dark-mode'
 import type {RPCError} from '../../util/errors'
 import type {Tab} from '../tabs'
 
@@ -31,7 +30,6 @@ export type WindowState = {
 }
 
 export type State = {
-  darkModePreference: DarkModePreference
   deviceID: RPCTypes.DeviceID
   deviceName?: string
   followers: Set<string>
@@ -62,7 +60,6 @@ export type State = {
   startupFollowUser: string
   startupLink: string
   startupTab?: Tab
-  systemDarkMode: boolean
   windowShownCount: Map<string, number>
   windowState: WindowState
   uid: string

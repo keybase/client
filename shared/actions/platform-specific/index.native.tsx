@@ -741,12 +741,6 @@ const checkNav = async (
   }
 }
 
-const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
-  if (isAndroid) {
-    androidAppColorSchemeChanged?.(state.config.darkModePreference ?? '')
-  }
-}
-
 const initAudioModes = () => {
   setupAudioMode(false)
     .then(() => {})
@@ -791,7 +785,12 @@ export const initPlatformListener = () => {
   }
 
   Container.listenAction(ConfigGen.daemonHandshake, checkNav)
-  Container.listenAction(ConfigGen.setDarkModePreference, notifyNativeOfDarkModeChange)
+  Container.listenAction(ConfigGen.darkModePreferenceChanged, () => {
+    if (isAndroid) {
+      const {darkModePreference} = ConfigConstants.useConfigState.getState()
+      androidAppColorSchemeChanged?.(darkModePreference ?? '')
+    }
+  })
 
   Container.listenAction(RouteTreeGen.onNavChanged, onPersistRoute)
 

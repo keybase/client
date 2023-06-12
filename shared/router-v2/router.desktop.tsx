@@ -144,6 +144,8 @@ const ElectronApp = () => {
   const {loggedInLoaded, loggedIn, appState, onStateChange, navKey, initialState} = Shared.useShared()
   Shared.useSharedAfter(appState)
 
+  console.log('aaa electorn app render nav key', navKey)
+
   return (
     <NavigationContainer
       ref={Constants.navigationRef_ as any}

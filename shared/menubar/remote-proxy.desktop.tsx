@@ -30,9 +30,7 @@ type WidgetProps = {
 
 function useWidgetBrowserWindow(p: WidgetProps) {
   const {widgetBadge, desktopAppBadgeCount} = p
-
-  const systemDarkMode = Container.useSelector(state => state.config.systemDarkMode)
-
+  const systemDarkMode = ConfigConstants.useConfigState(s => s.systemDarkMode)
   React.useEffect(() => {
     const icon = getIcons(widgetBadge, desktopAppBadgeCount > 0)
     showTray?.(desktopAppBadgeCount, icon)

@@ -11,7 +11,6 @@ import type * as Types from '../constants/types/config'
 import type * as Tracker2Gen from '../actions/tracker2-gen'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
-import {_setSystemIsDarkMode, _setDarkModePreference} from '../styles/dark-mode'
 import isEqual from 'lodash/isEqual'
 
 type Actions =
@@ -36,7 +35,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
-    darkModePreference: draftState.darkModePreference,
     logoutHandshakeVersion: draftState.logoutHandshakeVersion,
     logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,
     pushLoaded: draftState.pushLoaded,
@@ -198,14 +196,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.osNetworkStatusChanged]: (draftState, action) => {
     draftState.osNetworkOnline = action.payload.online
-  },
-  [ConfigGen.setDarkModePreference]: (draftState, action) => {
-    _setDarkModePreference(action.payload.preference)
-    draftState.darkModePreference = action.payload.preference
-  },
-  [ConfigGen.setSystemDarkMode]: (draftState, action) => {
-    _setSystemIsDarkMode(action.payload.dark)
-    draftState.systemDarkMode = action.payload.dark
   },
   [ConfigGen.remoteWindowWantsProps]: (draftState, action) => {
     const {component, param} = action.payload

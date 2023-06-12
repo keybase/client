@@ -373,35 +373,6 @@ const newNavigation = (
   Router2.dispatchOldAction(action)
 }
 
-const loadDarkPrefs = async () => {
-  try {
-    const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
-    const preference = v.s || undefined
-
-    switch (preference) {
-      case 'system':
-        return ConfigGen.createSetDarkModePreference({preference})
-      case 'alwaysDark':
-        return ConfigGen.createSetDarkModePreference({preference})
-      case 'alwaysLight':
-        return ConfigGen.createSetDarkModePreference({preference})
-      default:
-        return false
-    }
-  } catch (_) {
-    return false
-  }
-}
-
-const saveDarkPrefs = async (state: Container.TypedState) => {
-  try {
-    await RPCTypes.configGuiSetValueRpcPromise({
-      path: 'ui.darkMode',
-      value: {isNull: false, s: state.config.darkModePreference},
-    })
-  } catch (_) {}
-}
-
 const logoutAndTryToLogInAs = async (
   state: Container.TypedState,
   action: ConfigGen.LogoutAndTryToLogInAsPayload
@@ -504,7 +475,9 @@ const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEv
 }
 
 const initConfig = () => {
-  Container.listenAction(ConfigGen.daemonHandshake, loadDarkPrefs)
+  Container.listenAction(ConfigGen.daemonHandshake, () => {
+    Constants.useConfigState.getState().dispatch.loadDarkPrefs()
+  })
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   Container.listenAction(
     [ConfigGen.loggedIn, ConfigGen.daemonHandshake, GregorGen.updateReachable],
@@ -574,7 +547,6 @@ const initConfig = () => {
 
   Container.listenAction(SettingsGen.loadedSettings, maybeLoadAppLink)
 
-  Container.listenAction(ConfigGen.setDarkModePreference, saveDarkPrefs)
   Container.listenAction(ConfigGen.loadOnStart, getFollowerInfo)
 
   Container.listenAction(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
@@ -612,6 +584,11 @@ const initConfig = () => {
     if (!username) return
     const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
     setDefaultUsername(username)
+  })
+
+  Container.listenAction(ConfigGen.setSystemDarkMode, (_, action) => {
+    const {setSystemDarkMode} = Constants.useConfigState.getState().dispatch
+    setSystemDarkMode(action.payload.dark)
   })
 }
 
