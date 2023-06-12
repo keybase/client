@@ -9,7 +9,7 @@ import {settingsTab} from '../../constants/tabs'
 
 const Connected = () => {
   const loggedIn = Container.useSelector(s => s.config.loggedIn)
-  const daemonError = Constants.useConfigState(s => s.daemonError)
+  const daemonError = Constants.useDaemonState(s => s.error)
   const error = Container.useSelector(s => s.config.globalError)
   const dispatch = Container.useDispatch()
 

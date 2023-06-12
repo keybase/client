@@ -31,9 +31,6 @@ export type WindowState = {
 }
 
 export type State = {
-  daemonHandshakeWaiters: Map<string, number>
-  // if we ever restart handshake up this so we can ignore any waiters for old things
-  daemonHandshakeVersion: number
   darkModePreference: DarkModePreference
   deviceID: RPCTypes.DeviceID
   deviceName?: string

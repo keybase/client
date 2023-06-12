@@ -1,5 +1,6 @@
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
+import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/wallets'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
@@ -1605,25 +1606,16 @@ const loadStaticConfig = async (
   if (state.wallets.staticConfig) {
     return false
   }
-  listenerApi.dispatch(
-    ConfigGen.createDaemonHandshakeWait({
-      increment: true,
-      name: 'wallets.loadStatic',
-      version: action.payload.version,
-    })
-  )
+  const {version} = action.payload
+  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+  const name = 'wallets.loadStatic'
+  wait(name, version, true)
 
   try {
     const res = await RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
     listenerApi.dispatch(WalletsGen.createStaticConfigLoaded({staticConfig: res}))
   } finally {
-    listenerApi.dispatch(
-      ConfigGen.createDaemonHandshakeWait({
-        increment: false,
-        name: 'wallets.loadStatic',
-        version: action.payload.version,
-      })
-    )
+    wait(name, version, false)
   }
   return false
 }

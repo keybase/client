@@ -36,8 +36,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
-    daemonHandshakeVersion: draftState.daemonHandshakeVersion,
-    daemonHandshakeWaiters: draftState.daemonHandshakeWaiters,
     darkModePreference: draftState.darkModePreference,
     logoutHandshakeVersion: draftState.logoutHandshakeVersion,
     logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,
@@ -57,44 +55,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.logoutHandshake]: (draftState, action) => {
     draftState.logoutHandshakeVersion = action.payload.version
     draftState.logoutHandshakeWaiters = new Map()
-  },
-  [ConfigGen.daemonHandshake]: (draftState, action) => {
-    draftState.daemonHandshakeVersion = action.payload.version
-    draftState.daemonHandshakeWaiters = new Map()
-  },
-  [ConfigGen.daemonHandshakeWait]: (draftState, action) => {
-    const {daemonHandshakeVersion} = draftState
-    const {version} = action.payload
-    const {daemonHandshakeState, daemonHandshakeFailedReason, dispatch} = Constants.useConfigState.getState()
-    const {setFailed, retriesReset} = dispatch.daemon
-    if (daemonHandshakeState !== 'waitingForWaiters') {
-      throw new Error("Should only get a wait while we're waiting")
-    }
-
-    if (version !== daemonHandshakeVersion) {
-      logger.info('Ignoring handshake wait due to version mismatch', version, daemonHandshakeVersion)
-      return
-    }
-
-    const {daemonHandshakeWaiters} = draftState
-    const {name, increment, failedFatal, failedReason} = action.payload
-    const oldCount = daemonHandshakeWaiters.get(name) || 0
-    const newCount = oldCount + (increment ? 1 : -1)
-    if (newCount === 0) {
-      daemonHandshakeWaiters.delete(name)
-    } else {
-      daemonHandshakeWaiters.set(name, newCount)
-    }
-
-    if (failedFatal) {
-      setFailed(failedReason || '')
-      retriesReset(true)
-    } else {
-      // Keep the first error
-      if (!daemonHandshakeFailedReason) {
-        setFailed(failedReason || '')
-      }
-    }
   },
   [ConfigGen.logoutHandshakeWait]: (draftState, action) => {
     const {version} = action.payload

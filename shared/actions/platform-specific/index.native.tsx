@@ -362,21 +362,12 @@ const waitForStartupDetails = async (
     return
   }
   // Else we have to wait for the loadStartupDetails to finish
-  listenerApi.dispatch(
-    ConfigGen.createDaemonHandshakeWait({
-      increment: true,
-      name: 'platform.native-waitStartupDetails',
-      version: action.payload.version,
-    })
-  )
+  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+  const {version} = action.payload
+  const name = 'platform.native-waitStartupDetails'
+  wait(name, version, true)
   await listenerApi.take(action => action.type === ConfigGen.setStartupDetails)
-  listenerApi.dispatch(
-    ConfigGen.createDaemonHandshakeWait({
-      increment: false,
-      name: 'platform.native-waitStartupDetails',
-      version: action.payload.version,
-    })
-  )
+  wait(name, version, false)
 }
 
 const copyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) => {
@@ -733,8 +724,8 @@ const checkNav = async (
 
   const name = 'mobileNav'
   const {version} = action.payload
-
-  listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
+  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+  wait(name, version, true)
   try {
     // eslint-disable-next-line
     while (true) {
@@ -746,7 +737,7 @@ const checkNav = async (
       logger.info('Waiting on nav, got setNavigator but nothing in constants?')
     }
   } finally {
-    listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
+    wait(name, version, false)
   }
 }
 

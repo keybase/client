@@ -184,7 +184,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     totalSyncingBytes: uploads.totalSyncingBytes,
   }
 
-  const daemonHandshakeState = ConfigConstants.useConfigState(s => s.daemonHandshakeState)
+  const daemonHandshakeState = ConfigConstants.useDaemonState(s => s.handshakeState)
 
   const p: ProxyProps & WidgetProps = {
     ...upDown,

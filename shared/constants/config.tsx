@@ -10,12 +10,10 @@ import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
 import {create as createZustand} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 import {getReduxDispatch} from '../util/zustand'
-import logger from '../logger'
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
 
-export const maxHandshakeTries = 3
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
@@ -29,8 +27,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  daemonHandshakeVersion: 1,
-  daemonHandshakeWaiters: new Map(),
   darkModePreference: 'system',
   deviceID: '',
   deviceName: '',
@@ -95,30 +91,17 @@ export type ZStore = {
   appFocused: boolean
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
-  daemonError?: Error
-  daemonHandshakeState: Types.DaemonHandshakeState
-  daemonHandshakeFailedReason: string
-  daemonHandshakeRetriesLeft: number
 }
+
 const initialZState: ZStore = {
   allowAnimatedEmojis: true,
   appFocused: true,
   configuredAccounts: [],
-  daemonHandshakeFailedReason: '',
-  daemonHandshakeRetriesLeft: maxHandshakeTries,
-  daemonHandshakeState: 'starting',
   defaultUsername: '',
 }
 
 type ZState = ZStore & {
   dispatch: {
-    daemon: {
-      setError: (e?: Error) => void
-      setState: (s: Types.DaemonHandshakeState) => void
-      setFailed: (r: string) => void
-      retriesDecrement: () => void
-      retriesReset: (failed: boolean) => void
-    }
     reset: () => void
     setAllowAnimatedEmojis: (a: boolean) => void
     setAndroidShare: (s: ZStore['androidShare']) => void
@@ -139,42 +122,11 @@ export const useConfigState = createZustand(
         })
         reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
       },
-      daemon: {
-        retriesDecrement: () => {
-          set(s => {
-            s.daemonHandshakeRetriesLeft = Math.max(0, s.daemonHandshakeRetriesLeft - 1)
-          })
-        },
-        retriesReset: (failed: boolean) => {
-          set(s => {
-            s.daemonHandshakeRetriesLeft = failed ? 0 : maxHandshakeTries
-          })
-        },
-        setError: (e?: Error) => {
-          if (e) {
-            logger.error('Error (daemon):', e)
-          }
-          set(s => {
-            s.daemonError = e
-          })
-        },
-        setFailed: (r: string) => {
-          set(s => {
-            s.daemonHandshakeFailedReason = r
-          })
-        },
-        setState: (ds: Types.DaemonHandshakeState) => {
-          set(s => {
-            s.daemonHandshakeState = ds
-          })
-        },
-      },
       reset: () => {
         set(s => ({
           ...initialState,
           appFocused: s.appFocused,
           configuredAccounts: s.configuredAccounts,
-          daemonHandshakeState: s.daemonHandshakeState,
           defaultUsername: s.defaultUsername,
         }))
       },
@@ -206,3 +158,5 @@ export const useConfigState = createZustand(
     }
   })
 )
+
+export {useDaemonState, maxHandshakeTries} from './daemon'

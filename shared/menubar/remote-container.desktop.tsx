@@ -10,7 +10,7 @@ const RemoteContainer = () => {
   const {windowShownCount} = config
   const replace = useAvatarState(s => s.replace)
   replace(avatarRefreshCounter)
-  const setState = ConfigConstants.useConfigState(s => s.dispatch.daemon.setState)
+  const setState = ConfigConstants.useDaemonState(s => s.dispatch.setState)
   setState(daemonHandshakeState)
   return (
     <Menubar

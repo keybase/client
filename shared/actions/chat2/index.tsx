@@ -1,8 +1,8 @@
 import * as BotsGen from '../bots-gen'
 import * as Chat2Gen from '../chat2-gen'
+import * as ConfigConstants from '../../constants/config'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
-import * as WaitingConstants from '../../constants/waiting'
 import * as Container from '../../util/container'
 import * as DeeplinksGen from '../deeplinks-gen'
 import * as EngineGen from '../engine-gen-gen'
@@ -16,6 +16,7 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Router2Constants from '../../constants/router2'
+import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as TeamsConstants from '../../constants/teams'
@@ -23,9 +24,9 @@ import * as TeamsGen from '../teams-gen'
 import * as TeamsTypes from '../../constants/types/teams'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
+import * as WaitingConstants from '../../constants/waiting'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as WalletsGen from '../wallets-gen'
-import * as Styles from '../../styles'
 import {findLast} from '../../util/arrays'
 import KB2 from '../../util/electron'
 import NotifyPopup from '../../util/notify-popup'
@@ -33,7 +34,6 @@ import logger from '../../logger'
 import {RPCError} from '../../util/errors'
 import {commonListenActions, filterForNs} from '../team-building'
 import {isIOS} from '../../constants/platform'
-import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 import {getEngine} from '../../engine'
 
@@ -2084,7 +2084,9 @@ const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayl
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
   const participantInfo = Constants.getParticipantInfo(state, action.payload.conversationIDKey)
   const path = FsTypes.stringToPath(
-    meta.teamType !== 'adhoc' ? teamFolder(meta.teamname) : privateFolderWithUsers(participantInfo.name)
+    meta.teamType !== 'adhoc'
+      ? ConfigConstants.teamFolder(meta.teamname)
+      : ConfigConstants.privateFolderWithUsers(participantInfo.name)
   )
   return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
@@ -3171,48 +3173,49 @@ const loadStaticConfig = async (
     return
   }
   const {version} = action.payload
-  listenerApi.dispatch(
-    ConfigGen.createDaemonHandshakeWait({increment: true, name: 'chat.loadStatic', version})
-  )
-  const res = await RPCChatTypes.localGetStaticConfigRpcPromise()
-  if (!res.deletableByDeleteHistory) {
-    logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
-    return
-  }
-  const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce<Array<Types.MessageType>>(
-    (res, type) => {
-      const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
-      if (ourTypes) {
-        res.push(...ourTypes)
-      }
-      return res
-    },
-    []
-  )
-  listenerApi.dispatch(
-    Chat2Gen.createStaticConfigLoaded({
-      staticConfig: {
-        builtinCommands: (res.builtinCommands || []).reduce<Types.StaticConfig['builtinCommands']>(
-          (map, c) => {
-            map[c.typ] = c.commands || []
-            return map
-          },
-          {
-            [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
-            [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
-            [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
-            [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
-            [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
-          }
-        ),
-        deletableByDeleteHistory: new Set(deletableByDeleteHistory),
-      },
-    })
-  )
+  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+  const name = 'chat.loadStatic'
+  wait(name, version, true)
+  try {
+    const res = await RPCChatTypes.localGetStaticConfigRpcPromise()
+    if (!res.deletableByDeleteHistory) {
+      logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+      return
+    }
 
-  listenerApi.dispatch(
-    ConfigGen.createDaemonHandshakeWait({increment: false, name: 'chat.loadStatic', version})
-  )
+    const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce<Array<Types.MessageType>>(
+      (res, type) => {
+        const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
+        if (ourTypes) {
+          res.push(...ourTypes)
+        }
+        return res
+      },
+      []
+    )
+    listenerApi.dispatch(
+      Chat2Gen.createStaticConfigLoaded({
+        staticConfig: {
+          builtinCommands: (res.builtinCommands || []).reduce<Types.StaticConfig['builtinCommands']>(
+            (map, c) => {
+              map[c.typ] = c.commands || []
+              return map
+            },
+            {
+              [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
+              [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
+              [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
+              [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
+              [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
+            }
+          ),
+          deletableByDeleteHistory: new Set(deletableByDeleteHistory),
+        },
+      })
+    )
+  } finally {
+    wait(name, version, false)
+  }
 }
 
 const toggleMessageReaction = async (
