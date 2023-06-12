@@ -36,15 +36,6 @@ const onLoggedOut = (state: Container.TypedState) => {
   return undefined
 }
 
-const onConnected = () => ConfigGen.createStartHandshake()
-const onDisconnected = () => {
-  logger
-    .dump()
-    .then(() => {})
-    .catch(() => {})
-  return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
-}
-
 const onTrackingInfo = (_: unknown, action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
   ConfigGen.createFollowerInfoUpdated({
     followees: action.payload.params.followees || [],
@@ -95,6 +86,8 @@ const loadDaemonBootstrapStatus = async (
     wasUnreachable = true
   }
 
+  const {wait} = Constants.useDaemonState.getState().dispatch
+
   const makeCall = async () => {
     const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
@@ -121,36 +114,23 @@ const loadDaemonBootstrapStatus = async (
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
-      const newState = listenerApi.getState()
-      if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-        listenerApi.dispatch(
-          ConfigGen.createDaemonHandshakeWait({
-            increment: false,
-            name: getAccountsWaitKey,
-            version: action.payload.version,
-          })
-        )
+      const {handshakeWaiters} = Constants.useDaemonState.getState()
+      const {version} = action.payload
+      if (handshakeWaiters.get(getAccountsWaitKey)) {
+        wait(getAccountsWaitKey, version, false)
       }
     }
   }
 
   switch (action.type) {
     case ConfigGen.daemonHandshake:
-      listenerApi.dispatch(
-        ConfigGen.createDaemonHandshakeWait({
-          increment: true,
-          name: 'config.getBootstrapStatus',
-          version: action.payload.version,
-        })
-      )
-      await makeCall()
-      listenerApi.dispatch(
-        ConfigGen.createDaemonHandshakeWait({
-          increment: false,
-          name: 'config.getBootstrapStatus',
-          version: action.payload.version,
-        })
-      )
+      {
+        const {version} = action.payload
+        const name = 'config.getBootstrapStatus'
+        wait(name, version, true)
+        await makeCall()
+        wait(name, version, false)
+      }
       break
     case GregorGen.updateReachable:
       if (action.payload.reachable === RPCTypes.Reachable.yes && wasUnreachable) {
@@ -165,46 +145,6 @@ const loadDaemonBootstrapStatus = async (
       await makeCall()
       break
   }
-}
-
-let _firstTimeConnecting = true
-const startHandshake = (state: Container.TypedState) => {
-  const firstTimeConnecting = _firstTimeConnecting
-  _firstTimeConnecting = false
-  if (firstTimeConnecting) {
-    logger.info('First bootstrap started')
-  }
-  return ConfigGen.createDaemonHandshake({
-    firstTimeConnecting,
-    version: state.config.daemonHandshakeVersion + 1,
-  })
-}
-
-let _firstTimeBootstrapDone = true
-const maybeDoneWithDaemonHandshake = (
-  state: Container.TypedState,
-  action: ConfigGen.DaemonHandshakeWaitPayload
-) => {
-  if (action.payload.version !== state.config.daemonHandshakeVersion) {
-    // ignore out of date actions
-    return
-  }
-  if (state.config.daemonHandshakeWaiters.size > 0) {
-    // still waiting for things to finish
-  } else {
-    if (state.config.daemonHandshakeFailedReason) {
-      if (state.config.daemonHandshakeRetriesLeft) {
-        return ConfigGen.createRestartHandshake()
-      }
-    } else {
-      if (_firstTimeBootstrapDone) {
-        _firstTimeBootstrapDone = false
-        logger.info('First bootstrap ended')
-      }
-      return ConfigGen.createDaemonHandshakeDone()
-    }
-  }
-  return undefined
 }
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
@@ -236,21 +176,16 @@ const loadDaemonAccounts = async (
     }
   }
 
+  const {wait} = Constants.useDaemonState.getState().dispatch
   try {
     if (handshakeWait) {
-      listenerApi.dispatch(
-        ConfigGen.createDaemonHandshakeWait({
-          increment: true,
-          name: getAccountsWaitKey,
-          version: handshakeVersion,
-        })
-      )
+      wait(getAccountsWaitKey, handshakeVersion, true)
     }
 
     const configuredAccounts = (await RPCTypes.loginGetConfiguredAccountsRpcPromise()) ?? []
     // already have one?
-    const {defaultUsername, dispatchSetAccounts, dispatchSetDefaultUsername} =
-      Constants.useConfigState.getState()
+    const {defaultUsername} = Constants.useConfigState.getState()
+    const {setAccounts, setDefaultUsername} = Constants.useConfigState.getState().dispatch
 
     let existingDefaultFound = false
     let currentName = ''
@@ -269,37 +204,24 @@ const loadDaemonAccounts = async (
       usernameToFullname[username] = fullname
     })
     if (!existingDefaultFound) {
-      dispatchSetDefaultUsername(currentName)
+      setDefaultUsername(currentName)
     }
-    dispatchSetAccounts(nextConfiguredAccounts)
+    setAccounts(nextConfiguredAccounts)
     listenerApi.dispatch(UsersGen.createUpdateFullnames({usernameToFullname}))
 
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState = listenerApi.getState()
-      if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-        listenerApi.dispatch(
-          ConfigGen.createDaemonHandshakeWait({
-            increment: false,
-            name: getAccountsWaitKey,
-            version: handshakeVersion,
-          })
-        )
+      const {handshakeWaiters} = Constants.useDaemonState.getState()
+      if (handshakeWaiters.get(getAccountsWaitKey)) {
+        wait(getAccountsWaitKey, handshakeVersion, false)
       }
     }
   } catch (error) {
     if (handshakeWait) {
       // someone dismissed this already?
-      const newState = listenerApi.getState()
-      if (newState.config.daemonHandshakeWaiters.get(getAccountsWaitKey)) {
-        listenerApi.dispatch(
-          ConfigGen.createDaemonHandshakeWait({
-            failedReason: "Can't get accounts",
-            increment: false,
-            name: getAccountsWaitKey,
-            version: handshakeVersion,
-          })
-        )
+      const {handshakeWaiters} = Constants.useDaemonState.getState()
+      if (handshakeWaiters.get(getAccountsWaitKey)) {
+        wait(getAccountsWaitKey, handshakeVersion, false, "Can't get accounts")
       }
     }
   }
@@ -488,8 +410,8 @@ const logoutAndTryToLogInAs = async (
     await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true}, LoginConstants.waitingKey)
   }
 
-  const {dispatchSetDefaultUsername} = Constants.useConfigState.getState()
-  dispatchSetDefaultUsername(action.payload.username)
+  const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
+  setDefaultUsername(action.payload.username)
 }
 
 const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
@@ -497,7 +419,7 @@ const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
   const items = action.payload.state
 
   const allowAnimatedEmojis = !items.find(i => i.item.category === 'emojianimations')
-  Constants.useConfigState.getState().dispatchSetAllowAnimtedEmojis(allowAnimatedEmojis)
+  Constants.useConfigState.getState().dispatch.setAllowAnimatedEmojis(allowAnimatedEmojis)
 
   const lastSeenItem = items.find(i => i.item.category === 'whatsNewLastSeenVersion')
   if (lastSeenItem) {
@@ -582,12 +504,6 @@ const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEv
 }
 
 const initConfig = () => {
-  // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
-  // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
-  Container.listenAction([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
-  // When there are no more waiters, we can show the actual app
-  Container.listenAction(ConfigGen.daemonHandshakeWait, maybeDoneWithDaemonHandshake)
-  // darkmode
   Container.listenAction(ConfigGen.daemonHandshake, loadDarkPrefs)
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   Container.listenAction(
@@ -637,8 +553,19 @@ const initConfig = () => {
 
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
-  Container.listenAction(EngineGen.connected, onConnected)
-  Container.listenAction(EngineGen.disconnected, onDisconnected)
+
+  Container.listenAction(EngineGen.connected, () => {
+    Constants.useDaemonState.getState().dispatch.startHandshake()
+  })
+
+  Container.listenAction(EngineGen.disconnected, () => {
+    logger
+      .dump()
+      .then(() => {})
+      .catch(() => {})
+    Constants.useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
+  })
+
   Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
   Container.listenAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
 
@@ -661,6 +588,11 @@ const initConfig = () => {
   Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
   Container.listenAction(ConfigGen.powerMonitorEvent, onPowerMonitorEvent)
 
+  Container.listenAction(ConfigGen.resetStore, () => {
+    Constants.useConfigState.getState().dispatch.reset()
+    Constants.useDaemonState.getState().dispatch.reset()
+  })
+
   Container.listenAction(EngineGen.keybase1NotifyTeamAvatarUpdated, (_, action) => {
     const {name} = action.payload.params
     useAvatarState.getState().updated(name)
@@ -668,17 +600,18 @@ const initConfig = () => {
 
   Container.listenAction(ConfigGen.revoked, (_, action) => {
     if (!action.payload.wasCurrentDevice) return
-    const {dispatchSetDefaultUsername, configuredAccounts} = Constants.useConfigState.getState()
+    const {configuredAccounts} = Constants.useConfigState.getState()
+    const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
     const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername) ?? ''
-    dispatchSetDefaultUsername(defaultUsername)
+    setDefaultUsername(defaultUsername)
   })
 
   Container.listenAction(ConfigGen.bootstrapStatusLoaded, (_, action) => {
     const {username} = action.payload
     // keep it if we're logged out
     if (!username) return
-    const {dispatchSetDefaultUsername} = Constants.useConfigState.getState()
-    dispatchSetDefaultUsername(username)
+    const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
+    setDefaultUsername(username)
   })
 }
 

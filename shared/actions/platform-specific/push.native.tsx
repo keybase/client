@@ -206,15 +206,15 @@ const listenForNativeAndroidIntentNotifications = async (listenerApi: Container.
 
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    const {dispatchSetAndroidShare} = ConfigConstants.useConfigState.getState()
+    const {setAndroidShare} = ConfigConstants.useConfigState.getState().dispatch
 
     const text = evt.text
     const url = evt.localPath
 
     if (url) {
-      dispatchSetAndroidShare({type: RPCTypes.IncomingShareType.file, url})
+      setAndroidShare({type: RPCTypes.IncomingShareType.file, url})
     } else if (text) {
-      dispatchSetAndroidShare({text, type: RPCTypes.IncomingShareType.text})
+      setAndroidShare({text, type: RPCTypes.IncomingShareType.text})
     }
   })
 }
@@ -462,8 +462,8 @@ const requestPermissions = async (_s: unknown, _a: unknown, listenerApi: Contain
   }
   try {
     listenerApi.dispatch(ConfigGen.createOpenAppSettings())
-    const {dispatchIncrement} = WaitingConstants.useWaitingState.getState()
-    dispatchIncrement(Constants.permissionsRequestingWaitingKey)
+    const {increment} = WaitingConstants.useWaitingState.getState().dispatch
+    increment(Constants.permissionsRequestingWaitingKey)
     logger.info('[PushRequesting] asking native')
     await requestPermissionsFromNative()
     const permissions = await checkPermissionsFromNative()
@@ -476,8 +476,8 @@ const requestPermissions = async (_s: unknown, _a: unknown, listenerApi: Contain
       listenerApi.dispatch(PushGen.createUpdateHasPermissions({hasPermissions: false}))
     }
   } finally {
-    const {dispatchDecrement} = WaitingConstants.useWaitingState.getState()
-    dispatchDecrement(Constants.permissionsRequestingWaitingKey)
+    const {decrement} = WaitingConstants.useWaitingState.getState().dispatch
+    decrement(Constants.permissionsRequestingWaitingKey)
     listenerApi.dispatch(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
   }
 }

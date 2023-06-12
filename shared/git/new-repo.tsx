@@ -25,13 +25,13 @@ export default (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
 
-  const dispatchCreatePersonalRepo = Constants.useGitState(s => s.dispatchCreatePersonalRepo)
-  const dispatchCreateTeamRepo = Constants.useGitState(s => s.dispatchCreateTeamRepo)
+  const createPersonalRepo = Constants.useGitState(s => s.dispatch.createPersonalRepo)
+  const createTeamRepo = Constants.useGitState(s => s.dispatch.createTeamRepo)
   const onCreate = (name: string, teamname: string, notifyTeam: boolean) => {
     if (isTeam && teamname) {
-      dispatchCreateTeamRepo(name, teamname, notifyTeam)
+      createTeamRepo(name, teamname, notifyTeam)
     } else {
-      dispatchCreatePersonalRepo(name)
+      createPersonalRepo(name)
     }
     dispatch(RouteTreeGen.createNavigateUp())
   }

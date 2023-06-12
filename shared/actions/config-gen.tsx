@@ -15,10 +15,8 @@ export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
 export const checkForUpdate = 'config:checkForUpdate'
 export const copyToClipboard = 'config:copyToClipboard'
-export const daemonError = 'config:daemonError'
 export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
-export const daemonHandshakeWait = 'config:daemonHandshakeWait'
 export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
@@ -58,7 +56,6 @@ export const setUserSwitching = 'config:setUserSwitching'
 export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
 export const showShareActionSheet = 'config:showShareActionSheet'
-export const startHandshake = 'config:startHandshake'
 export const toggleRuntimeStats = 'config:toggleRuntimeStats'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
 export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
@@ -176,13 +173,6 @@ export const createRestartHandshake = (payload?: undefined) => ({
   type: restartHandshake as typeof restartHandshake,
 })
 /**
- * internal to config. should start the handshake process
- */
-export const createStartHandshake = (payload?: undefined) => ({
-  payload,
-  type: startHandshake as typeof startHandshake,
-})
-/**
  * main electron window changed max/min
  */
 export const createUpdateWindowMaxState = (payload: {readonly max: boolean}) => ({
@@ -236,16 +226,6 @@ export const createLogoutHandshake = (payload: {readonly version: number}) => ({
   type: logoutHandshake as typeof logoutHandshake,
 })
 /**
- * subsystems that need to do things during boot need to call this to register that we should wait.
- */
-export const createDaemonHandshakeWait = (payload: {
-  readonly name: string
-  readonly version: number
-  readonly increment: boolean
-  readonly failedReason?: string
-  readonly failedFatal?: true
-}) => ({payload, type: daemonHandshakeWait as typeof daemonHandshakeWait})
-/**
  * subsystems that need to do things during logout need to call this to register that we should wait.
  */
 export const createLogoutHandshakeWait = (payload: {
@@ -278,10 +258,6 @@ export const createCheckForUpdate = (payload?: undefined) => ({
 export const createCopyToClipboard = (payload: {readonly text: string}) => ({
   payload,
   type: copyToClipboard as typeof copyToClipboard,
-})
-export const createDaemonError = (payload: {readonly daemonError?: Error} = {}) => ({
-  payload,
-  type: daemonError as typeof daemonError,
 })
 export const createDumpLogs = (payload: {readonly reason: 'quitting through menu'}) => ({
   payload,
@@ -401,10 +377,8 @@ export type ChangedActivePayload = ReturnType<typeof createChangedActive>
 export type ChangedFocusPayload = ReturnType<typeof createChangedFocus>
 export type CheckForUpdatePayload = ReturnType<typeof createCheckForUpdate>
 export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
-export type DaemonErrorPayload = ReturnType<typeof createDaemonError>
 export type DaemonHandshakeDonePayload = ReturnType<typeof createDaemonHandshakeDone>
 export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
-export type DaemonHandshakeWaitPayload = ReturnType<typeof createDaemonHandshakeWait>
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
 export type FollowerInfoUpdatedPayload = ReturnType<typeof createFollowerInfoUpdated>
@@ -444,7 +418,6 @@ export type SetUserSwitchingPayload = ReturnType<typeof createSetUserSwitching>
 export type SetWhatsNewLastSeenVersionPayload = ReturnType<typeof createSetWhatsNewLastSeenVersion>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
-export type StartHandshakePayload = ReturnType<typeof createStartHandshake>
 export type ToggleRuntimeStatsPayload = ReturnType<typeof createToggleRuntimeStats>
 export type UpdateCriticalCheckStatusPayload = ReturnType<typeof createUpdateCriticalCheckStatus>
 export type UpdateHTTPSrvInfoPayload = ReturnType<typeof createUpdateHTTPSrvInfo>
@@ -464,10 +437,8 @@ export type Actions =
   | ChangedFocusPayload
   | CheckForUpdatePayload
   | CopyToClipboardPayload
-  | DaemonErrorPayload
   | DaemonHandshakeDonePayload
   | DaemonHandshakePayload
-  | DaemonHandshakeWaitPayload
   | DumpLogsPayload
   | FilePickerErrorPayload
   | FollowerInfoUpdatedPayload
@@ -507,7 +478,6 @@ export type Actions =
   | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload
   | ShowShareActionSheetPayload
-  | StartHandshakePayload
   | ToggleRuntimeStatsPayload
   | UpdateCriticalCheckStatusPayload
   | UpdateHTTPSrvInfoPayload

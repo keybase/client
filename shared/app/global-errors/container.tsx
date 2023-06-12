@@ -1,4 +1,5 @@
 import * as ConfigGen from '../../actions/config-gen'
+import * as Constants from '../../constants/config'
 import * as Container from '../../util/container'
 import * as Platform from '../../constants/platform'
 import * as React from 'react'
@@ -7,9 +8,9 @@ import GlobalError from '.'
 import {settingsTab} from '../../constants/tabs'
 
 const Connected = () => {
-  const loggedIn = Container.useSelector(state => state.config.loggedIn)
-  const daemonError = Container.useSelector(state => state.config.daemonError)
-  const error = Container.useSelector(state => state.config.globalError)
+  const loggedIn = Container.useSelector(s => s.config.loggedIn)
+  const daemonError = Constants.useDaemonState(s => s.error)
+  const error = Container.useSelector(s => s.config.globalError)
   const dispatch = Container.useDispatch()
 
   const onFeedback = React.useCallback(() => {

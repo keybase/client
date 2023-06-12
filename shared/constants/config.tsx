@@ -14,7 +14,6 @@ import {getReduxDispatch} from '../util/zustand'
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
 
-export const maxHandshakeTries = 3
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
@@ -28,11 +27,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  daemonHandshakeFailedReason: '',
-  daemonHandshakeRetriesLeft: maxHandshakeTries,
-  daemonHandshakeState: 'starting',
-  daemonHandshakeVersion: 1,
-  daemonHandshakeWaiters: new Map(),
   darkModePreference: 'system',
   deviceID: '',
   deviceName: '',
@@ -98,6 +92,7 @@ export type ZStore = {
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
 }
+
 const initialZState: ZStore = {
   allowAnimatedEmojis: true,
   appFocused: true,
@@ -106,66 +101,62 @@ const initialZState: ZStore = {
 }
 
 type ZState = ZStore & {
-  dispatchReset: () => void
-  dispatchSetAllowAnimtedEmojis: (a: boolean) => void
-  dispatchSetAndroidShare: (s: ZStore['androidShare']) => void
-  dispatchChangedFocus: (f: boolean) => void
-  dispatchSetAccounts: (a: ZStore['configuredAccounts']) => void
-  dispatchSetDefaultUsername: (u: string) => void
+  dispatch: {
+    reset: () => void
+    setAllowAnimatedEmojis: (a: boolean) => void
+    setAndroidShare: (s: ZStore['androidShare']) => void
+    changedFocus: (f: boolean) => void
+    setAccounts: (a: ZStore['configuredAccounts']) => void
+    setDefaultUsername: (u: string) => void
+  }
 }
 
 export const useConfigState = createZustand(
   immerZustand<ZState>(set => {
     const reduxDispatch = getReduxDispatch()
 
-    const dispatchReset = () => {
-      set(s => ({
-        ...initialState,
-        appFocused: s.appFocused,
-        configuredAccounts: s.configuredAccounts,
-        defaultUsername: s.defaultUsername,
-      }))
-    }
-
-    const dispatchSetAllowAnimtedEmojis = (a: boolean) => {
-      set(s => {
-        s.allowAnimatedEmojis = a
-      })
-    }
-
-    const dispatchSetAndroidShare = (share: ZStore['androidShare']) => {
-      set(s => {
-        s.androidShare = share
-      })
-    }
-
-    const dispatchChangedFocus = (f: boolean) => {
-      set(s => {
-        s.appFocused = f
-      })
-      reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
-    }
-
-    const dispatchSetAccounts = (a: ZStore['configuredAccounts']) => {
-      set(s => {
-        s.configuredAccounts = a
-      })
-    }
-
-    const dispatchSetDefaultUsername = (u: string) => {
-      set(s => {
-        s.defaultUsername = u
-      })
+    const dispatch = {
+      changedFocus: (f: boolean) => {
+        set(s => {
+          s.appFocused = f
+        })
+        reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
+      },
+      reset: () => {
+        set(s => ({
+          ...initialState,
+          appFocused: s.appFocused,
+          configuredAccounts: s.configuredAccounts,
+          defaultUsername: s.defaultUsername,
+        }))
+      },
+      setAccounts: (a: ZStore['configuredAccounts']) => {
+        set(s => {
+          s.configuredAccounts = a
+        })
+      },
+      setAllowAnimatedEmojis: (a: boolean) => {
+        set(s => {
+          s.allowAnimatedEmojis = a
+        })
+      },
+      setAndroidShare: (share: ZStore['androidShare']) => {
+        set(s => {
+          s.androidShare = share
+        })
+      },
+      setDefaultUsername: (u: string) => {
+        set(s => {
+          s.defaultUsername = u
+        })
+      },
     }
 
     return {
       ...initialZState,
-      dispatchChangedFocus,
-      dispatchReset,
-      dispatchSetAccounts,
-      dispatchSetAllowAnimtedEmojis,
-      dispatchSetAndroidShare,
-      dispatchSetDefaultUsername,
+      dispatch,
     }
   })
 )
+
+export {useDaemonState, maxHandshakeTries} from './daemon'

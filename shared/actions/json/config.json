@@ -7,9 +7,6 @@
     "import type {RPCError} from '../util/errors'"
   ],
   "actions": {
-    "startHandshake": {
-      "_description": "internal to config. should start the handshake process"
-    },
     "restartHandshake": {
       "_description": "internal to config. should restart the handshake process"
     },
@@ -17,14 +14,6 @@
       "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
       "firstTimeConnecting": "boolean",
       "version": "number"
-    },
-    "daemonHandshakeWait": {
-      "_description": "subsystems that need to do things during boot need to call this to register that we should wait.",
-      "name": "string",
-      "version": "number",
-      "increment": "boolean",
-      "failedReason?": "string",
-      "failedFatal?": "true"
     },
     "daemonHandshakeDone": {
       "_description": "ready to show the app"
@@ -79,7 +68,6 @@
       "followers": "Array<string>",
       "followees": "Array<string>"
     },
-    "daemonError": {"daemonError?": "Error"},
     "globalError": {"globalError?": "Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {

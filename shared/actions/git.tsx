@@ -5,12 +5,12 @@ import * as ConfigGen from './config-gen'
 
 const initGit = () => {
   Container.listenAction(ConfigGen.resetStore, () => {
-    const {dispatchReset} = Constants.useGitState.getState()
-    dispatchReset()
+    const {reset} = Constants.useGitState.getState().dispatch
+    reset()
   })
   Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {
-    const {dispatchSetBadges} = Constants.useGitState.getState()
-    dispatchSetBadges(new Set(action.payload.badgeState.newGitRepoGlobalUniqueIDs))
+    const {setBadges} = Constants.useGitState.getState().dispatch
+    setBadges(new Set(action.payload.badgeState.newGitRepoGlobalUniqueIDs))
   })
 }
 

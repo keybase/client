@@ -27,9 +27,9 @@ const SelectChannel = (ownProps: OwnProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const dispatchSetTeamRepoSettings = Constants.useGitState(s => s.dispatchSetTeamRepoSettings)
+  const setTeamRepoSettings = Constants.useGitState(s => s.dispatch.setTeamRepoSettings)
 
-  const onSubmit = (channelName: string) => dispatchSetTeamRepoSettings(channelName, teamname, repoID, false)
+  const onSubmit = (channelName: string) => setTeamRepoSettings(channelName, teamname, repoID, false)
 
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
 

@@ -32,7 +32,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const lastEditUserFollowing = Container.useSelector(state => state.config.following.has(git.lastEditUser))
   const you = Container.useSelector(state => state.config.username)
 
-  const dispatchSetTeamRepoSettings = Constants.useGitState(s => s.dispatchSetTeamRepoSettings)
+  const setTeamRepoSettings = Constants.useGitState(s => s.dispatch.setTeamRepoSettings)
 
   const dispatch = Container.useDispatch()
   const _onBrowseGitRepo = (path: FsTypes.Path) => {
@@ -53,7 +53,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
       )
   }
   const _setDisableChat = (disabled: boolean, repoID: string, teamname: string) => {
-    dispatchSetTeamRepoSettings('', teamname, repoID, disabled)
+    setTeamRepoSettings('', teamname, repoID, disabled)
   }
   const copyToClipboard = (text: string) => {
     dispatch(ConfigGen.createCopyToClipboard({text}))

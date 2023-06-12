@@ -36,9 +36,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
-    daemonHandshakeState: draftState.daemonHandshakeState,
-    daemonHandshakeVersion: draftState.daemonHandshakeVersion,
-    daemonHandshakeWaiters: draftState.daemonHandshakeWaiters,
     darkModePreference: draftState.darkModePreference,
     logoutHandshakeVersion: draftState.logoutHandshakeVersion,
     logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,
@@ -47,18 +44,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     useNativeFrame: draftState.useNativeFrame,
     userSwitching: draftState.userSwitching,
   }),
-  [ConfigGen.restartHandshake]: draftState => {
-    draftState.daemonError = undefined
-    draftState.daemonHandshakeFailedReason = ''
-    draftState.daemonHandshakeRetriesLeft = Math.max(draftState.daemonHandshakeRetriesLeft - 1, 0)
-    draftState.daemonHandshakeState = 'starting'
-  },
-  [ConfigGen.startHandshake]: draftState => {
-    draftState.daemonError = undefined
-    draftState.daemonHandshakeFailedReason = ''
-    draftState.daemonHandshakeRetriesLeft = Constants.maxHandshakeTries
-    draftState.daemonHandshakeState = 'starting'
-  },
   [ConfigGen.updateWindowMaxState]: (draftState, action) => {
     draftState.mainWindowMax = action.payload.max
   },
@@ -70,43 +55,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.logoutHandshake]: (draftState, action) => {
     draftState.logoutHandshakeVersion = action.payload.version
     draftState.logoutHandshakeWaiters = new Map()
-  },
-  [ConfigGen.daemonHandshake]: (draftState, action) => {
-    draftState.daemonHandshakeState = 'waitingForWaiters'
-    draftState.daemonHandshakeVersion = action.payload.version
-    draftState.daemonHandshakeWaiters = new Map()
-  },
-  [ConfigGen.daemonHandshakeWait]: (draftState, action) => {
-    const {daemonHandshakeState, daemonHandshakeVersion, daemonHandshakeFailedReason} = draftState
-    const {version} = action.payload
-    if (daemonHandshakeState !== 'waitingForWaiters') {
-      throw new Error("Should only get a wait while we're waiting")
-    }
-
-    if (version !== daemonHandshakeVersion) {
-      logger.info('Ignoring handshake wait due to version mismatch', version, daemonHandshakeVersion)
-      return
-    }
-
-    const {daemonHandshakeWaiters} = draftState
-    const {name, increment, failedFatal, failedReason} = action.payload
-    const oldCount = daemonHandshakeWaiters.get(name) || 0
-    const newCount = oldCount + (increment ? 1 : -1)
-    if (newCount === 0) {
-      daemonHandshakeWaiters.delete(name)
-    } else {
-      daemonHandshakeWaiters.set(name, newCount)
-    }
-
-    if (failedFatal) {
-      draftState.daemonHandshakeFailedReason = failedReason || ''
-      draftState.daemonHandshakeRetriesLeft = 0
-    } else {
-      // Keep the first error
-      if (!daemonHandshakeFailedReason) {
-        draftState.daemonHandshakeFailedReason = failedReason || ''
-      }
-    }
   },
   [ConfigGen.logoutHandshakeWait]: (draftState, action) => {
     const {version} = action.payload
@@ -194,13 +142,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     }
     draftState.globalError = globalError
   },
-  [ConfigGen.daemonError]: (draftState, action) => {
-    const {daemonError} = action.payload
-    if (daemonError) {
-      logger.error('Error (daemon):', daemonError)
-    }
-    draftState.daemonError = daemonError
-  },
   [ConfigGen.changedActive]: (draftState, action) => {
     draftState.userActive = action.payload.userActive
   },
@@ -217,7 +158,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.justDeletedSelf = action.payload.deletedUsername
   },
   [ConfigGen.daemonHandshakeDone]: draftState => {
-    draftState.daemonHandshakeState = 'done'
     draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
   },
   [ConfigGen.updateNow]: draftState => {

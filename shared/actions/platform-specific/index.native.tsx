@@ -200,7 +200,7 @@ const updateChangedFocus = (_: unknown, action: ConfigGen.MobileAppStatePayload)
   }
 
   logger.info(`setting app state on service to: ${logState}`)
-  ConfigConstants.useConfigState.getState().dispatchChangedFocus(appFocused)
+  ConfigConstants.useConfigState.getState().dispatch.changedFocus(appFocused)
 }
 
 let _lastPersist = ''
@@ -332,18 +332,12 @@ const loadStartupDetails = async (listenerApi: Container.ListenerApi) => {
     startupTab = undefined
   }
 
-  const {dispatchSetAndroidShare} = ConfigConstants.useConfigState.getState()
+  const {setAndroidShare} = ConfigConstants.useConfigState.getState().dispatch
 
   if (startupSharePath) {
-    dispatchSetAndroidShare({
-      type: RPCTypes.IncomingShareType.file,
-      url: startupSharePath,
-    })
+    setAndroidShare({type: RPCTypes.IncomingShareType.file, url: startupSharePath})
   } else if (startupShareText) {
-    dispatchSetAndroidShare({
-      text: startupShareText,
-      type: RPCTypes.IncomingShareType.text,
-    })
+    setAndroidShare({text: startupShareText, type: RPCTypes.IncomingShareType.text})
   }
 
   listenerApi.dispatch(
@@ -368,21 +362,12 @@ const waitForStartupDetails = async (
     return
   }
   // Else we have to wait for the loadStartupDetails to finish
-  listenerApi.dispatch(
-    ConfigGen.createDaemonHandshakeWait({
-      increment: true,
-      name: 'platform.native-waitStartupDetails',
-      version: action.payload.version,
-    })
-  )
+  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+  const {version} = action.payload
+  const name = 'platform.native-waitStartupDetails'
+  wait(name, version, true)
   await listenerApi.take(action => action.type === ConfigGen.setStartupDetails)
-  listenerApi.dispatch(
-    ConfigGen.createDaemonHandshakeWait({
-      increment: false,
-      name: 'platform.native-waitStartupDetails',
-      version: action.payload.version,
-    })
-  )
+  wait(name, version, false)
 }
 
 const copyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) => {
@@ -434,8 +419,8 @@ const requestContactPermissions = async (
   listenerApi: Container.ListenerApi
 ) => {
   const {thenToggleImportOn} = action.payload
-  const {dispatchDecrement, dispatchIncrement} = WaitingConstants.useWaitingState.getState()
-  dispatchIncrement(SettingsConstants.importContactsWaitingKey)
+  const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+  increment(SettingsConstants.importContactsWaitingKey)
   const {status} = await Contacts.requestPermissionsAsync()
 
   if (status === Contacts.PermissionStatus.GRANTED && thenToggleImportOn) {
@@ -444,7 +429,7 @@ const requestContactPermissions = async (
     )
   }
   listenerApi.dispatch(SettingsGen.createLoadedContactPermissions({status}))
-  dispatchDecrement(SettingsConstants.importContactsWaitingKey)
+  decrement(SettingsConstants.importContactsWaitingKey)
 }
 
 // When the notif is tapped we are only passed the message, use this as a marker
@@ -739,8 +724,8 @@ const checkNav = async (
 
   const name = 'mobileNav'
   const {version} = action.payload
-
-  listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
+  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+  wait(name, version, true)
   try {
     // eslint-disable-next-line
     while (true) {
@@ -752,7 +737,7 @@ const checkNav = async (
       logger.info('Waiting on nav, got setNavigator but nothing in constants?')
     }
   } finally {
-    listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
+    wait(name, version, false)
   }
 }
 

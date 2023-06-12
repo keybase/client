@@ -24,17 +24,16 @@ const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
 const ReloadableDevices = () => {
   const deviceMap = Constants.useDevicesState(s => s.deviceMap)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const loadDevices = Constants.useDevicesState(s => s.dispatchLoad)
-  const dispatchClearBadges = Constants.useDevicesState(s => s.dispatchClearBadges)
+  const {load, clearBadges} = Constants.useDevicesState(s => s.dispatch)
   const storeSet = Constants.useDevicesState(s => s.isNew)
-  const {badged} = useLocalBadging(storeSet, dispatchClearBadges)
+  const {badged} = useLocalBadging(storeSet, clearBadges)
 
   const newlyChangedItemIds = badged
 
   useFocusEffect(
     React.useCallback(() => {
-      loadDevices()
-    }, [loadDevices])
+      load()
+    }, [load])
   )
 
   const dispatch = Container.useDispatch()
@@ -65,7 +64,7 @@ const ReloadableDevices = () => {
   const np = {
     hasNewlyRevoked,
     items,
-    loadDevices,
+    loadDevices: load,
     onAddDevice,
     onBack,
     revokedItems,
@@ -78,7 +77,7 @@ const ReloadableDevices = () => {
     <Kb.Reloadable
       onBack={Container.isMobile ? onBack : undefined}
       waitingKeys={Constants.waitingKey}
-      onReload={loadDevices}
+      onReload={load}
       reloadOnMount={true}
       title={''}
     >

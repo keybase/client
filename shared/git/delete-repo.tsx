@@ -19,14 +19,14 @@ export default (ownProps: OwnProps) => {
 
   const dispatch = Container.useDispatch()
 
-  const dispatchDeletePersonalRepo = Constants.useGitState(s => s.dispatchDeletePersonalRepo)
-  const dispatchDeleteTeamRepo = Constants.useGitState(s => s.dispatchDeleteTeamRepo)
+  const deletePersonalRepo = Constants.useGitState(s => s.dispatch.deletePersonalRepo)
+  const deleteTeamRepo = Constants.useGitState(s => s.dispatch.deleteTeamRepo)
 
   const _onDelete = (teamname: string | undefined, name: string, notifyTeam: boolean) => {
     if (teamname) {
-      dispatchDeleteTeamRepo(name, teamname, notifyTeam)
+      deleteTeamRepo(name, teamname, notifyTeam)
     } else {
-      dispatchDeletePersonalRepo(name)
+      deletePersonalRepo(name)
     }
     dispatch(RouteTreeGen.createNavigateUp())
   }

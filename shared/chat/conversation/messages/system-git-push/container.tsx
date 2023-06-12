@@ -37,12 +37,12 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
     },
     [dispatch]
   )
-  const dispatchNavigateToTeamRepo = GitConstants.useGitState(s => s.dispatchNavigateToTeamRepo)
+  const navigateToTeamRepo = GitConstants.useGitState(s => s.dispatch.navigateToTeamRepo)
   const onViewGitRepo = React.useCallback(
     (repoID: string, teamname: string) => {
-      dispatchNavigateToTeamRepo(teamname, repoID)
+      navigateToTeamRepo(teamname, repoID)
     },
-    [dispatchNavigateToTeamRepo]
+    [navigateToTeamRepo]
   )
   const props = {message, onClickCommit, onClickUserAvatar, onViewGitRepo}
   return <Git {...props} />

@@ -5,13 +5,13 @@ import * as NotificationsGen from './notifications-gen'
 
 const initDevice = () => {
   Container.listenAction(ConfigGen.resetStore, () => {
-    const {dispatchReset} = Constants.useDevicesState.getState()
-    dispatchReset()
+    const {reset} = Constants.useDevicesState.getState().dispatch
+    reset()
   })
   Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {
-    const {dispatchSetBadges} = Constants.useDevicesState.getState()
+    const {setBadges} = Constants.useDevicesState.getState().dispatch
     const {newDevices, revokedDevices} = action.payload.badgeState
-    dispatchSetBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
+    setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
   })
 }
 

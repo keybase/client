@@ -1,17 +1,21 @@
 import * as Constants from '../../constants/config'
-import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import Splash from '.'
 
 const SplashContainer = () => {
   const dispatch = Container.useDispatch()
-  const failedReason = Container.useSelector(state => state.config.daemonHandshakeFailedReason)
-  const retriesLeft = Container.useSelector(state => state.config.daemonHandshakeRetriesLeft)
+  const failedReason = Constants.useDaemonState(s => s.handshakeFailedReason)
+  const retriesLeft = Constants.useDaemonState(s => s.handshakeRetriesLeft)
+  const startHandshake = Constants.useDaemonState(s => s.dispatch.startHandshake)
 
-  const onFeedback = () =>
+  const onFeedback = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
-  const onRetry = () => dispatch(ConfigGen.createStartHandshake())
+  }
+
+  const onRetry = () => {
+    startHandshake()
+  }
 
   let status = ''
   let failed = ''

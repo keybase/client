@@ -35,7 +35,6 @@ const transformActionForLog = (action: TypedActions) => {
     // full output
     case RouteTreeGen.switchTab: // fallthrough
     case RouteTreeGen.switchLoggedIn: // fallthrough
-    case ConfigGen.daemonHandshakeWait: // fallthrough
     case Chat2Gen.selectedConversation: // fallthrough
     case Chat2Gen.navigateToThread: // fallthrough
     case Chat2Gen.metaNeedsUpdating: // fallthrough

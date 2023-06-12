@@ -50,7 +50,7 @@ const handleWindowFocusEvents = () => {
     if (skipAppFocusActions) {
       console.log('Skipping app focus actions!')
     } else {
-      ConfigConstants.useConfigState.getState().dispatchChangedFocus(appFocused)
+      ConfigConstants.useConfigState.getState().dispatch.changedFocus(appFocused)
     }
   }
   window.addEventListener('focus', () => handle(true))
@@ -79,41 +79,22 @@ export const dumpLogs = async (_?: unknown, action?: ConfigGen.DumpLogsPayload) 
   }
 }
 
-const checkRPCOwnership = async (
-  _: Container.TypedState,
-  action: ConfigGen.DaemonHandshakePayload,
-  listenerApi: Container.ListenerApi
-) => {
+const checkRPCOwnership = async (_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) => {
   const waitKey = 'pipeCheckFail'
-  listenerApi.dispatch(
-    ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
-  )
+  const {version} = action.payload
+  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+  wait(waitKey, version, true)
   try {
     logger.info('Checking RPC ownership')
-
     if (KB2.functions.winCheckRPCOwnership) {
       await KB2.functions.winCheckRPCOwnership()
     }
-    listenerApi.dispatch(
-      ConfigGen.createDaemonHandshakeWait({
-        increment: false,
-        name: waitKey,
-        version: action.payload.version,
-      })
-    )
+    wait(waitKey, version, false)
   } catch (error_) {
     // error will be logged in bootstrap check
     getEngine().reset()
     const error = error_ as RPCError
-    listenerApi.dispatch(
-      ConfigGen.createDaemonHandshakeWait({
-        failedFatal: true,
-        failedReason: error.message || 'windows pipe owner fail',
-        increment: false,
-        name: waitKey,
-        version: action.payload.version,
-      })
-    )
+    wait(waitKey, version, false, error.message || 'windows pipe owner fail', true)
   }
 }
 
@@ -178,16 +159,9 @@ const onCopyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload)
   copyToClipboard?.(action.payload.text)
 }
 
-const sendWindowsKBServiceCheck = (
-  state: Container.TypedState,
-  action: ConfigGen.DaemonHandshakeWaitPayload
-) => {
-  if (
-    isWindows &&
-    action.payload.version === state.config.daemonHandshakeVersion &&
-    state.config.daemonHandshakeWaiters.size === 0 &&
-    state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
-  ) {
+const sendWindowsKBServiceCheck = () => {
+  const {handshakeFailedReason} = ConfigConstants.useDaemonState.getState()
+  if (isWindows && handshakeFailedReason === ConfigConstants.noKBFSFailReason) {
     requestWindowsStartService?.()
   }
 }
@@ -342,8 +316,8 @@ const checkNav = async (
 
   const name = 'desktopNav'
   const {version} = action.payload
-
-  listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: true, name, version}))
+  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+  wait(name, version, true)
   try {
     // eslint-disable-next-line
     while (true) {
@@ -354,7 +328,7 @@ const checkNav = async (
       }
     }
   } finally {
-    listenerApi.dispatch(ConfigGen.createDaemonHandshakeWait({increment: false, name, version}))
+    wait(name, version, false)
   }
 }
 
@@ -398,7 +372,7 @@ export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.copyToClipboard, onCopyToClipboard)
   Container.listenAction(ConfigGen.updateNow, updateNow)
   Container.listenAction(ConfigGen.checkForUpdate, checkForUpdate)
-  Container.listenAction(ConfigGen.daemonHandshakeWait, sendWindowsKBServiceCheck)
+  Container.listenAction(ConfigGen.restartHandshake, sendWindowsKBServiceCheck)
   Container.listenAction(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
   Container.listenAction(ConfigGen.loggedIn, initOsNetworkStatus)
   Container.listenAction(ConfigGen.updateWindowState, saveWindowState)

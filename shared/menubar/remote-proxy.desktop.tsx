@@ -1,5 +1,6 @@
 // A mirror of the remote menubar windows.
 import * as FSConstants from '../constants/fs'
+import * as ConfigConstants from '../constants/config'
 import type * as NotificationTypes from '../constants/types/notifications'
 import * as FSTypes from '../constants/types/fs'
 import * as Container from '../util/container'
@@ -69,7 +70,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     const {notifications, config, fs, chat2, users} = state
     const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
     const {httpSrvToken, httpSrvAddress, windowShownCount, username, following} = config
-    const {outOfDate, loggedIn, daemonHandshakeState, followers} = config
+    const {outOfDate, loggedIn, followers} = config
     const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
     const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
     const widgetList = inboxLayout?.widgetList
@@ -77,7 +78,6 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
 
     return {
       badgeMap,
-      daemonHandshakeState,
       desktopAppBadgeCount,
       followers,
       following,
@@ -103,7 +103,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     }
   }, shallowEqual)
 
-  const {badgeMap, daemonHandshakeState, desktopAppBadgeCount, followers, following} = s
+  const {badgeMap, desktopAppBadgeCount, followers, following} = s
   const {httpSrvAddress, httpSrvToken, infoMap, kbfsDaemonStatus, loggedIn, metaMap} = s
   const {navBadges, outOfDate, overallSyncStatus, participantMap, pathItems} = s
   const {sfmi, tlfUpdates, unreadMap, uploads, username} = s
@@ -183,6 +183,8 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     files: filePaths.length,
     totalSyncingBytes: uploads.totalSyncingBytes,
   }
+
+  const daemonHandshakeState = ConfigConstants.useDaemonState(s => s.handshakeState)
 
   const p: ProxyProps & WidgetProps = {
     ...upDown,
