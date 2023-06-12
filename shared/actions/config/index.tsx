@@ -504,10 +504,6 @@ const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEv
 }
 
 const initConfig = () => {
-  // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
-  // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
-  // Container.listenAction([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)
-  // darkmode
   Container.listenAction(ConfigGen.daemonHandshake, loadDarkPrefs)
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   Container.listenAction(
