@@ -1,26 +1,26 @@
 // A mirror of the remote menubar windows.
-import * as FSConstants from '../constants/fs'
 import * as ConfigConstants from '../constants/config'
-import type * as NotificationTypes from '../constants/types/notifications'
-import * as FSTypes from '../constants/types/fs'
 import * as Container from '../util/container'
+import * as DarkMode from '../constants/darkmode'
+import * as FSConstants from '../constants/fs'
+import * as FSTypes from '../constants/types/fs'
 import * as React from 'react'
 import * as Styles from '../styles'
-import {useAvatarState} from '../common-adapters/avatar-zus'
-import {intersect} from '../util/set'
+import KB2 from '../util/electron.desktop'
+import _getIcons from './icons'
+import shallowEqual from 'shallowequal'
+import type * as NotificationTypes from '../constants/types/notifications'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
-import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
-import {isSystemDarkMode} from '../styles/dark-mode'
+import {intersect} from '../util/set'
 import {mapFilterByKey} from '../util/map'
 import {memoize} from '../util/memoize'
-import shallowEqual from 'shallowequal'
-import _getIcons from './icons'
-import KB2 from '../util/electron.desktop'
+import {serialize, type ProxyProps, type RemoteTlfUpdates} from './remote-serializer.desktop'
+import {useAvatarState} from '../common-adapters/avatar-zus'
 
 const {showTray} = KB2.functions
 
 const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
-  return _getIcons(iconType, isBadged, isSystemDarkMode())
+  return _getIcons(iconType, isBadged, DarkMode.useDarkModeState.getState().systemDarkMode)
 }
 
 type WidgetProps = {
@@ -30,7 +30,7 @@ type WidgetProps = {
 
 function useWidgetBrowserWindow(p: WidgetProps) {
   const {widgetBadge, desktopAppBadgeCount} = p
-  const systemDarkMode = ConfigConstants.useConfigState(s => s.systemDarkMode)
+  const systemDarkMode = DarkMode.useDarkModeState(s => s.systemDarkMode)
   React.useEffect(() => {
     const icon = getIcons(widgetBadge, desktopAppBadgeCount > 0)
     showTray?.(desktopAppBadgeCount, icon)

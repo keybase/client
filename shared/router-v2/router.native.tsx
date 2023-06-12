@@ -1,4 +1,5 @@
 import * as Constants from '../constants/router2'
+import * as DarkMode from '../constants/darkmode'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Shared from './router.shared'
@@ -9,7 +10,6 @@ import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
-import * as ConfigConstants from '../constants/config'
 import {StatusBar, View} from 'react-native'
 import {HeaderLeftCancel2} from '../common-adapters/header-hoc'
 import {NavigationContainer, getFocusedRouteNameFromRoute} from '@react-navigation/native'
@@ -303,8 +303,8 @@ const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 
 const useBarStyle = () => {
-  const isDarkMode = Container.useSelector(() => ConfigConstants.isDarkMode())
-  const darkModePreference = ConfigConstants.useConfigState(s => s.darkModePreference)
+  const darkModePreference = DarkMode.useDarkModeState(s => s.darkModePreference)
+  const isDarkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
 
   if (!darkModePreference || darkModePreference === 'system') {
     return 'default'

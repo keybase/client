@@ -1,18 +1,18 @@
-import * as Kbfs from '../fs/common'
-import * as FsConstants from '../constants/fs'
-import * as Styles from '../styles'
 import * as ConfigConstants from '../constants/config'
 import * as ConfigGen from '../actions/config-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
 import * as Container from '../util/container'
-import * as React from 'react'
+import * as DarkMode from '../constants/darkmode'
+import * as FsConstants from '../constants/fs'
 import * as Kb from '../common-adapters'
+import * as Kbfs from '../fs/common'
+import * as React from 'react'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '../styles'
 import Loading from '../login/loading'
-import type {Theme} from '@react-navigation/native'
-import {isDarkMode} from '../styles/dark-mode'
-import {colors, darkColors, themed} from '../styles/colors'
 import type {NavState} from '../constants/types/route-tree'
+import type {Theme} from '@react-navigation/native'
+import {colors, darkColors, themed} from '../styles/colors'
 
 export enum AppState {
   UNINIT, // haven't rendered the nav yet
@@ -43,9 +43,9 @@ const useConnectNavToRedux = () => {
 // if dark mode changes we should redraw
 // on ios if dark mode changes and we're on system, ignore as it will thrash and we don't want that
 const useDarkNeedsRedraw = () => {
-  const isDarkMode = Container.useSelector(() => ConfigConstants.isDarkMode())
+  const isDarkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
   const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
-  const darkModePreference = ConfigConstants.useConfigState(s => s.darkModePreference)
+  const darkModePreference = DarkMode.useDarkModeState(s => s.darkModePreference)
   const darkModePreferenceChanged = Container.usePrevious(darkModePreference) !== darkModePreference
 
   if (Styles.isIOS) {
@@ -68,7 +68,7 @@ const useNavKey = (appState: AppState, key: React.MutableRefObject<number>) => {
 }
 
 const useIsDarkChanged = () => {
-  const isDarkMode = Container.useSelector(() => ConfigConstants.isDarkMode())
+  const isDarkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
   const darkChanged = Container.usePrevious(isDarkMode) !== isDarkMode
   return darkChanged
 }
@@ -168,13 +168,15 @@ export const theme: Theme = {
   colors: {
     get background() {
       // return themed.fastBlank as string
-      return (isDarkMode() ? darkColors.white : colors.white) as string
+      return (DarkMode.useDarkModeState.getState().isDarkMode() ? darkColors.white : colors.white) as string
     },
     get border() {
       return themed.black_10 as string
     },
     get card() {
-      return (isDarkMode() ? darkColors.fastBlank : colors.fastBlank) as string
+      return (
+        DarkMode.useDarkModeState.getState().isDarkMode() ? darkColors.fastBlank : colors.fastBlank
+      ) as string
     },
     get notification() {
       return themed.black as string
@@ -183,7 +185,7 @@ export const theme: Theme = {
       return themed.black as string
     },
     get text() {
-      return (isDarkMode() ? darkColors.black : colors.black) as string
+      return (DarkMode.useDarkModeState.getState().isDarkMode() ? darkColors.black : colors.black) as string
     },
   },
   dark: false,

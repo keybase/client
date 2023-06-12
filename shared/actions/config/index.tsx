@@ -13,6 +13,7 @@ import * as Router2 from '../../constants/router2'
 import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../settings-gen'
 import * as Tabs from '../../constants/tabs'
+import * as DarkMode from '../../constants/darkmode'
 import {useAvatarState} from '../../common-adapters/avatar-zus'
 import logger from '../../logger'
 import {initPlatformListener} from '../platform-specific'
@@ -476,7 +477,7 @@ const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEv
 
 const initConfig = () => {
   Container.listenAction(ConfigGen.daemonHandshake, () => {
-    Constants.useConfigState.getState().dispatch.loadDarkPrefs()
+    DarkMode.useDarkModeState.getState().dispatch.loadDarkPrefs()
   })
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   Container.listenAction(
@@ -587,8 +588,11 @@ const initConfig = () => {
   })
 
   Container.listenAction(ConfigGen.setSystemDarkMode, (_, action) => {
-    const {setSystemDarkMode} = Constants.useConfigState.getState().dispatch
-    setSystemDarkMode(action.payload.dark)
+    // only to bridge electron bridge, todo remove this
+    if (!Container.isMobile) {
+      const {setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
+      setSystemDarkMode(action.payload.dark)
+    }
   })
 }
 

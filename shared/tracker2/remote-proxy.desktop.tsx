@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
 import * as WaitConstants from '../constants/waiting'
-import * as Styles from '../styles'
+import * as DarkMode from '../constants/darkmode'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import {serialize, type ProxyProps} from './remote-serializer.desktop'
@@ -38,6 +38,8 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
     return new Map([[trackerUsername, avatarCount]])
   }, [trackerUsername, avatarCount])
 
+  const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
+
   const p: ProxyProps = {
     assertions,
     avatarRefreshCounter,
@@ -45,7 +47,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
     blockMap: mapFilterByKey(blockMap, trackerUsernames),
     blocked,
     counts,
-    darkMode: Styles.isDarkMode(),
+    darkMode,
     errors,
     followers: intersect(followers, trackerUsernames),
     followersCount,

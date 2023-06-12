@@ -1,6 +1,7 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
+import * as DarkMode from '../constants/darkmode'
 import * as FsGen from '../actions/fs-gen'
 import * as FsTypes from '../constants/types/fs'
 import * as Kb from '../common-adapters'
@@ -17,7 +18,6 @@ import Upload from '../fs/footer/upload'
 import openUrl from '../util/open-url'
 import type * as ConfigTypes from '../constants/types/config'
 import {Loading} from '../fs/simple-screens'
-import {_setDarkModePreference} from '../styles/dark-mode'
 import {isLinux, isDarwin} from '../constants/platform'
 import {type _InnerMenuItem} from '../common-adapters/floating-menu/menu-layout'
 import {useUploadCountdown} from '../fs/footer/use-upload-countdown'
@@ -334,8 +334,18 @@ const LoggedOut = (p: {daemonHandshakeState: ConfigTypes.DaemonHandshakeState; l
 }
 
 const MenubarRender = (p: Props) => {
-  const {darkMode, loggedIn, daemonHandshakeState} = p
-  _setDarkModePreference(darkMode ? 'alwaysDark' : 'alwaysLight')
+  const {loggedIn, daemonHandshakeState} = p
+
+  const [lastDM, setLastDM] = React.useState(p.darkMode)
+  if (p.darkMode !== lastDM) {
+    setLastDM(p.darkMode)
+    DarkMode.useDarkModeState
+      .getState()
+      .dispatch.setDarkModePreference(p.darkMode ? 'alwaysDark' : 'alwaysLight')
+  }
+
+  const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
+
   let content: React.ReactNode = null
   if (daemonHandshakeState === 'done' && loggedIn) {
     content = <LoggedIn {...p} />
@@ -344,17 +354,19 @@ const MenubarRender = (p: Props) => {
   }
 
   return (
-    <Kb.Box2
-      direction="vertical"
-      style={styles.widgetContainer}
-      className={darkMode ? 'darkMode' : 'lightMode'}
-      key={darkMode ? 'darkMode' : 'light'}
-    >
-      {isDarwin && <style>{_realCSS}</style>}
-      {isDarwin && <ArrowTick />}
-      <IconBar {...p} showBadges={loggedIn} />
-      {content}
-    </Kb.Box2>
+    <Styles.DarkModeContext.Provider value={darkMode}>
+      <Kb.Box2
+        direction="vertical"
+        style={styles.widgetContainer}
+        className={darkMode ? 'darkMode' : 'lightMode'}
+        key={darkMode ? 'darkMode' : 'light'}
+      >
+        {isDarwin && <style>{_realCSS}</style>}
+        {isDarwin && <ArrowTick />}
+        <IconBar {...p} showBadges={loggedIn} />
+        {content}
+      </Kb.Box2>
+    </Styles.DarkModeContext.Provider>
   )
 }
 

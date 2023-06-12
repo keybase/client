@@ -1,8 +1,8 @@
+import * as DarkMode from '../constants/darkmode'
 import * as React from 'react'
 import * as Styles from '../styles'
-import DragHeader from '../desktop/remote/drag-header.desktop'
-import {_setDarkModePreference} from '../styles/dark-mode'
 import DeviceList from './device-list.desktop'
+import DragHeader from '../desktop/remote/drag-header.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
 import type {State, Device} from '../constants/types/unlock-folders'
@@ -21,7 +21,12 @@ export type Props = {
 }
 
 const UnlockFolders = (props: Props) => {
-  _setDarkModePreference(props.darkMode ? 'alwaysDark' : 'alwaysLight')
+  const {darkMode} = props
+  React.useEffect(() => {
+    DarkMode.useDarkModeState
+      .getState()
+      .dispatch.setDarkModePreference(darkMode ? 'alwaysDark' : 'alwaysLight')
+  }, [darkMode])
 
   let innerComponent: React.ReactNode
 

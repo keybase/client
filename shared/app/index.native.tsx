@@ -3,7 +3,7 @@ import * as Styles from '../styles'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as WaitingConstants from '../constants/waiting'
 import * as React from 'react'
-import * as Container from '../util/container'
+import * as DarkMode from '../constants/darkmode'
 import {chatDebugEnabled} from '../constants/chat2/debug'
 import Main from './main.native'
 import makeStore from '../store/configure-store'
@@ -26,16 +26,9 @@ module.hot?.accept(() => {
 
 const ReduxHelper = (p: {children: React.ReactNode}) => {
   const {children} = p
-  const [darkMode, setDarkMode] = React.useState(Styles.isDarkMode())
   const dispatch = useDispatch()
   const appStateRef = React.useRef('active')
-
-  // If redux changes this, we need to update
-  const dm = Container.useSelector(() => Styles.isDarkMode())
-  if (dm !== darkMode) {
-    setDarkMode(dm)
-  }
-
+  const {setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
       appStateRef.current = nextAppState
@@ -44,14 +37,14 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
         dispatch(ConfigGen.createMobileAppState({nextAppState}))
 
       if (nextAppState === 'active') {
-        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
+        setSystemDarkMode(Appearance.getColorScheme() === 'dark')
       }
     })
 
     // only watch dark changes if in foreground due to ios calling this to take snapshots
     const darkSub = Appearance.addChangeListener(() => {
       if (appStateRef.current === 'active') {
-        dispatch(ConfigGen.createSetSystemDarkMode({dark: Appearance.getColorScheme() === 'dark'}))
+        setSystemDarkMode(Appearance.getColorScheme() === 'dark')
       }
     })
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
@@ -82,6 +75,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
     }
   }, [dispatch])
 
+  const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
   return <Styles.DarkModeContext.Provider value={darkMode}>{children}</Styles.DarkModeContext.Provider>
 }
 
