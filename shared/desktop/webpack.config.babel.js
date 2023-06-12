@@ -253,7 +253,7 @@ const config = (_, {mode}) => {
     </head>
     <body>
         <div id="root">
-            <div title="loading..." style="flex: 1;background-color: #f5f5f5"></div>
+            <div title="loading..." style="flex: 1"></div>
         </div>
         <div id="modal-root"></div>
         ${htmlWebpackPlugin.files.js.map(js => `<script src="${js}"></script>`).join('\n')} </body>

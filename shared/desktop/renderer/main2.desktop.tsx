@@ -22,8 +22,9 @@ const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
 
 // node side plumbs through initial pref so we avoid flashes
 const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)
+const isDarkFromNode = window.location.search.match(/isDarkMode=(0|1)/)
 
-const {setDarkModePreference} = DarkMode.useDarkModeState.getState().dispatch
+const {setDarkModePreference, setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
 
 if (darkModeFromNode) {
   const dm = darkModeFromNode[1]
@@ -33,6 +34,10 @@ if (darkModeFromNode) {
     case 'system':
       setDarkModePreference(dm)
   }
+}
+
+if (isDarkFromNode) {
+  setSystemDarkMode(isDarkFromNode[1] === '1')
 }
 
 // Top level HMR accept
