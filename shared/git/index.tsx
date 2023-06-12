@@ -35,7 +35,7 @@ export default (ownProps: OwnProps) => {
   const {clearBadges, load, setError, error, idToInfo, isNew} = Constants.useGitState(s => {
     const {dispatch, error, idToInfo, isNew} = s
     const {clearBadges, load, setError} = dispatch
-    return {clearBadges, error, load, setError, idToInfo, isNew}
+    return {clearBadges, error, idToInfo, isNew, load, setError}
   }, shallowEqual)
 
   const {badged} = useLocalBadging(isNew, clearBadges)
