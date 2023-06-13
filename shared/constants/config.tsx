@@ -26,7 +26,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  deviceName: '',
   httpSrvAddress: '',
   httpSrvToken: '',
   incomingShareUseOriginal: undefined,
@@ -83,6 +82,7 @@ export type ZStore = {
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
   deviceID: RPCTypes.DeviceID
+  deviceName: string
 }
 
 const initialZState: ZStore = {
@@ -91,10 +91,12 @@ const initialZState: ZStore = {
   configuredAccounts: [],
   defaultUsername: '',
   deviceID: '',
+  deviceName: '',
 }
 
 type Bootstrap = {
   deviceID: string
+  deviceName: string
 }
 
 type ZState = ZStore & {
@@ -145,8 +147,9 @@ export const useConfigState = createZustand(
       },
       setBootstrap: (b: Bootstrap) => {
         set(s => {
-          const {deviceID} = b
+          const {deviceID, deviceName} = b
           s.deviceID = deviceID
+          s.deviceName = deviceName
         })
       },
       setDefaultUsername: (u: string) => {

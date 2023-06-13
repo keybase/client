@@ -3,6 +3,7 @@ import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
+import * as ConfigConstants from '../../../constants/config'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as FsGen from '../../../actions/fs-gen'
@@ -23,17 +24,16 @@ const Connected = (props: OwnProps) => {
   const inOrdinal = props.ordinal
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const dispatch = Container.useDispatch()
+  const currentDeviceName = ConfigConstants.useConfigState(s => s.deviceName)
   const data = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal)
     const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
     const lastOrdinal = ordinals?.[ordinals.length - 1] ?? 0
     const username = state.config.username
-    const currentDeviceName = state.config.deviceName ?? ''
     const message = m?.type === 'attachment' ? m : blankMessage
     const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message
     const {id} = message
     return {
-      currentDeviceName,
       downloadPath,
       fileURL,
       id,
@@ -48,7 +48,7 @@ const Connected = (props: OwnProps) => {
       username,
     }
   }, shallowEqual)
-  const {currentDeviceName, downloadPath, fileURL, id, lastOrdinal} = data
+  const {downloadPath, fileURL, id, lastOrdinal} = data
   const {message, previewHeight, previewURL, previewWidth, title, transferProgress, username} = data
   const getLastOrdinal = () => lastOrdinal
   const {height: clampedHeight, width: clampedWidth} = Constants.clampImageSize(

@@ -54,7 +54,6 @@
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
     "bootstrapStatusLoaded": {
-      "deviceName": "string",
       "fullname": "string",
       "loggedIn": "boolean",
       "registered": "boolean",

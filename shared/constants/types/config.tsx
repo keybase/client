@@ -30,7 +30,6 @@ export type WindowState = {
 }
 
 export type State = {
-  deviceName?: string
   globalError?: Error | RPCError
   httpSrvAddress: string
   httpSrvToken: string

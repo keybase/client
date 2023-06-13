@@ -9,11 +9,11 @@ import CodePage2 from '.'
 import HiddenString from '../../util/hidden-string'
 
 const CodePageContainer = () => {
-  const currentDeviceAlreadyProvisioned = Container.useSelector(state => !!state.config.deviceName)
+  const storeDeviceName = ConfigConstants.useConfigState(s => s.deviceName)
+  const currentDeviceAlreadyProvisioned = !!storeDeviceName
   // we either have a name for real or we asked on a previous screen
-  const currentDeviceName = Container.useSelector(
-    state => (currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName) || ''
-  )
+  const provisionDeviceName = Container.useSelector(state => state.provision.deviceName)
+  const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
   const deviceID = ConfigConstants.useConfigState(s => s.deviceID)
   const currentDevice = DevicesConstants.useDevicesState(s => s.deviceMap.get(deviceID))
   const error = Container.useSelector(state => state.provision.error.stringValue())

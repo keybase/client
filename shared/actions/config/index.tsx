@@ -87,9 +87,11 @@ const loadDaemonBootstrapStatus = async (
 
   const makeCall = async () => {
     const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
-    setBootstrap({deviceID: s.deviceID})
-    const loadedAction = ConfigGen.createBootstrapStatusLoaded({
+    setBootstrap({
+      deviceID: s.deviceID,
       deviceName: s.deviceName,
+    })
+    const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       fullname: s.fullname || '',
       loggedIn: s.loggedIn,
       registered: s.registered,
