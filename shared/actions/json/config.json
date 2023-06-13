@@ -56,7 +56,6 @@
     "bootstrapStatusLoaded": {
       "fullname": "string",
       "loggedIn": "boolean",
-      "uid": "string",
       "username": "string",
       "userReacjis": "RPCTypes.UserReacjis"
     },

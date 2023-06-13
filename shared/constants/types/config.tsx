@@ -57,7 +57,6 @@ export type State = {
   startupTab?: Tab
   windowShownCount: Map<string, number>
   windowState: WindowState
-  uid: string
   userActive: boolean
   username: string
   userSwitching: boolean

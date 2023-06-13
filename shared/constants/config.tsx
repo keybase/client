@@ -48,7 +48,6 @@ export const initialState: Types.State = {
   startupLink: '',
   startupPushPayload: undefined,
   startupWasFromPush: false,
-  uid: '',
   useNativeFrame: defaultUseNativeFrame,
   userActive: true,
   userSwitching: false,
@@ -82,6 +81,7 @@ export type ZStore = {
   defaultUsername: string
   deviceID: RPCTypes.DeviceID
   deviceName: string
+  uid: string
 }
 
 const initialZState: ZStore = {
@@ -91,11 +91,13 @@ const initialZState: ZStore = {
   defaultUsername: '',
   deviceID: '',
   deviceName: '',
+  uid: '',
 }
 
 type Bootstrap = {
   deviceID: string
   deviceName: string
+  uid: string
 }
 
 type ZState = ZStore & {
@@ -146,9 +148,10 @@ export const useConfigState = createZustand(
       },
       setBootstrap: (b: Bootstrap) => {
         set(s => {
-          const {deviceID, deviceName} = b
+          const {deviceID, deviceName, uid} = b
           s.deviceID = deviceID
           s.deviceName = deviceName
+          s.uid = uid
         })
       },
       setDefaultUsername: (u: string) => {
