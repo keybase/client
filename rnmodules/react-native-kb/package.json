@@ -30,17 +30,11 @@
   "homepage": "https://github.com/keybase/client",
   "private": true,
   "devDependencies": {
-    "@types/react": "18.2.7",
-    "react-native": "0.71.8",
+    "react": "file:../../shared/node_modules/react",
+    "react-native": "file:../../shared/node_modules/react-native",
+    "@types/react": "file:../../shared/node_modules/@types/react",
     "react-native-builder-bob": "^0.20.4",
-    "typescript": "5.1.1-rc"
-  },
-  "resolutions": {
-    "@types/react": "18.2.7"
-  },
-  "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "typescript": "file:../../shared/node_modules/typescript"
   },
   "react-native-builder-bob": {
     "source": "src",
