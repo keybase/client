@@ -87,7 +87,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.pushLoaded = action.payload.pushLoaded
   },
   [ConfigGen.bootstrapStatusLoaded]: (draftState, action) => {
-    draftState.deviceID = action.payload.deviceID
     draftState.deviceName = action.payload.deviceName
     draftState.loggedIn = action.payload.loggedIn
     draftState.registered = action.payload.registered

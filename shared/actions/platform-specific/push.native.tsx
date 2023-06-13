@@ -340,7 +340,7 @@ const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androi
 
 const uploadPushToken = async (state: Container.TypedState) => {
   const {config, push} = state
-  const {deviceID} = config
+  const deviceID = ConfigConstants.useConfigState.getState().deviceID
   if (!config.username || !deviceID) {
     return false as const
   }
@@ -366,7 +366,7 @@ const uploadPushToken = async (state: Container.TypedState) => {
 }
 
 const deletePushToken = async (
-  state: Container.TypedState,
+  _: Container.TypedState,
   action: ConfigGen.LogoutHandshakePayload,
   listenerApi: Container.ListenerApi
 ) => {
@@ -376,7 +376,7 @@ const deletePushToken = async (
   )
 
   try {
-    const deviceID = state.config.deviceID
+    const deviceID = ConfigConstants.useConfigState.getState().deviceID
     if (!deviceID) {
       logger.info('[PushToken] no device id')
       return

@@ -26,7 +26,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  deviceID: '',
   deviceName: '',
   httpSrvAddress: '',
   httpSrvToken: '',
@@ -83,6 +82,7 @@ export type ZStore = {
   appFocused: boolean
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
+  deviceID: RPCTypes.DeviceID
 }
 
 const initialZState: ZStore = {
@@ -90,6 +90,11 @@ const initialZState: ZStore = {
   appFocused: true,
   configuredAccounts: [],
   defaultUsername: '',
+  deviceID: '',
+}
+
+type Bootstrap = {
+  deviceID: string
 }
 
 type ZState = ZStore & {
@@ -100,6 +105,7 @@ type ZState = ZStore & {
     changedFocus: (f: boolean) => void
     setAccounts: (a: ZStore['configuredAccounts']) => void
     setDefaultUsername: (u: string) => void
+    setBootstrap: (b: Bootstrap) => void
   }
 }
 
@@ -135,6 +141,12 @@ export const useConfigState = createZustand(
       setAndroidShare: (share: ZStore['androidShare']) => {
         set(s => {
           s.androidShare = share
+        })
+      },
+      setBootstrap: (b: Bootstrap) => {
+        set(s => {
+          const {deviceID} = b
+          s.deviceID = deviceID
         })
       },
       setDefaultUsername: (u: string) => {

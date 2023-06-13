@@ -6,6 +6,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from '../constants/settings'
+import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import type * as Types from '../constants/types/devices'
@@ -141,7 +142,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const onSubmit = useRevoke(deviceID)
   const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
 
-  const actingDevice = Container.useSelector(state => state.config.deviceID)
+  const actingDevice = ConfigConstants.useConfigState(s => s.deviceID)
   Container.useOnMountOnce(() => {
     const f = async () => {
       const tlfs = await loadEndangeredTLF(actingDevice, selectedDeviceID)

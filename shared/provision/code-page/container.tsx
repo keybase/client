@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as DevicesConstants from '../../constants/devices'
+import * as ConfigConstants from '../../constants/config'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import CodePage2 from '.'
@@ -13,7 +14,7 @@ const CodePageContainer = () => {
   const currentDeviceName = Container.useSelector(
     state => (currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName) || ''
   )
-  const deviceID = Container.useSelector(state => state.config.deviceID)
+  const deviceID = ConfigConstants.useConfigState(s => s.deviceID)
   const currentDevice = DevicesConstants.useDevicesState(s => s.deviceMap.get(deviceID))
   const error = Container.useSelector(state => state.provision.error.stringValue())
 
