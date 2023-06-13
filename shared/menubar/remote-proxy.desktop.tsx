@@ -65,6 +65,8 @@ const getCachedUsernames = memoize(
 
 // TODO could make this render less
 const RemoteProxy = React.memo(function MenubarRemoteProxy() {
+  const following = Followers.useFollowerState(s => s.following)
+  const followers = Followers.useFollowerState(s => s.followers)
   const s = Container.useSelector(state => {
     const {notifications, config, fs, chat2, users} = state
     const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
@@ -75,14 +77,9 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     const widgetList = inboxLayout?.widgetList
     const {infoMap} = users
 
-    const following = Followers.useFollowerState(s => s.following)
-    const followers = Followers.useFollowerState(s => s.followers)
-
     return {
       badgeMap,
       desktopAppBadgeCount,
-      followers,
-      following,
       httpSrvAddress,
       httpSrvToken,
       infoMap,
@@ -105,7 +102,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     }
   }, shallowEqual)
 
-  const {badgeMap, desktopAppBadgeCount, followers, following} = s
+  const {badgeMap, desktopAppBadgeCount} = s
   const {httpSrvAddress, httpSrvToken, infoMap, kbfsDaemonStatus, loggedIn, metaMap} = s
   const {navBadges, outOfDate, overallSyncStatus, participantMap, pathItems} = s
   const {sfmi, tlfUpdates, unreadMap, uploads, username} = s
