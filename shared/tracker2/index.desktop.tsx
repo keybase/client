@@ -1,10 +1,11 @@
-import * as Kb from '../common-adapters'
+import * as React from 'react'
 import * as Constants from '../constants/tracker2'
-import type * as Types from '../constants/types/tracker2'
+import * as DarkMode from '../constants/darkmode'
+import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {_setDarkModePreference} from '../styles/dark-mode'
 import Assertion from './assertion/container'
 import Bio from './bio/container'
+import type * as Types from '../constants/types/tracker2'
 
 type Props = {
   assertionKeys?: ReadonlyArray<string>
@@ -110,7 +111,14 @@ const TeamShowcase = ({name}) => (
 )
 
 const Tracker = (props: Props) => {
-  _setDarkModePreference(props.darkMode ? 'alwaysDark' : 'alwaysLight')
+  const [lastDM, setLastDM] = React.useState(props.darkMode)
+  if (props.darkMode !== lastDM) {
+    setLastDM(props.darkMode)
+    DarkMode.useDarkModeState
+      .getState()
+      .dispatch.setDarkModePreference(props.darkMode ? 'alwaysDark' : 'alwaysLight')
+  }
+
   let assertions
   if (props.assertionKeys) {
     const unsorted = [...props.assertionKeys]

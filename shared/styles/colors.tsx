@@ -1,5 +1,5 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
-import {isDarkMode, isDarkModePreference} from './dark-mode'
+import * as DarkMode from '../constants/darkmode'
 import {partyMode} from '../local-debug'
 import {isIOS, isNewArch} from '../constants/platform'
 
@@ -513,14 +513,16 @@ if (isIOS && !isNewArch /* not working? */) {
 }
 
 export const themed: {[P in keyof typeof colors]: (typeof colors)[P]} = names.reduce<Color>((obj, name) => {
+  const {isDarkMode} = DarkMode.useDarkModeState.getState()
   if (isIOS) {
     // ios actually handles this nicely natively
     return Object.defineProperty(obj, name, {
       configurable: false,
       enumerable: true,
       get() {
+        const {darkModePreference} = DarkMode.useDarkModeState.getState()
         // if we're in auto mode, use ios native dynamic colors
-        if (isDarkModePreference() === 'system') {
+        if (darkModePreference === 'system') {
           return iosDynamicColors[name]
         }
         return isDarkMode() ? darkColors[name] : colors[name]

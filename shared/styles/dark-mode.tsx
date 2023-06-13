@@ -1,10 +1,6 @@
 import * as React from 'react'
-// The current darkMode story is complex and could be cleaned up.
-// Current state: In app/index.native we register for the system events which tell us if the mode changes.
-// You can also manually configure to override this. We also inject it on startup in the root index.ios.js files
-// This then dispatches to redux so it can be in there so we can drive the settings screens. We recently
-// added context which should likely be used instead of isDarkMode (see below)
-//
+import * as DarkMode from '../constants/darkmode'
+
 // Individual components can then call Styles.isDarkMode() to get the value. Problem is they need to know that
 // that value has changed.
 // To solve this at the router level we increment the navKey to cause an entire redraw. This is very
@@ -22,40 +18,6 @@ import * as React from 'react'
 // One additional note. The animation system does not work with the magic colors so that code will use
 // the explicit colors/darkColors and not this magic wrapper
 //
-// Future work:
-// Likely move this all out of redux and into context
-export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
 
-let darkModePreference: DarkModePreference = 'system'
-let systemDarkMode = false
-// supports system level changes
-let systemSupported = false
-
-// called ONLY from config sagas / mobile boot / remote windows
-export const _setDarkModePreference = (pref: DarkModePreference) => {
-  darkModePreference = pref
-}
-// ONLY from system hooks, never call this directly
-export const _setSystemIsDarkMode = (dm: boolean) => {
-  systemDarkMode = dm
-}
-export const _setSystemSupported = (supported: boolean) => {
-  systemSupported = supported
-}
-
-export const isDarkMode = () => {
-  switch (darkModePreference) {
-    case 'system':
-      return systemDarkMode
-    case 'alwaysDark':
-      return true
-    case 'alwaysLight':
-      return false
-  }
-}
-
-export const isDarkModeSystemSupported = () => systemSupported
-export const isSystemDarkMode = () => systemDarkMode
-export const isDarkModePreference = () => darkModePreference
-
+export const isDarkMode = () => DarkMode.useDarkModeState.getState().isDarkMode()
 export const DarkModeContext = React.createContext(isDarkMode())

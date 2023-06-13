@@ -1,9 +1,9 @@
 // Entry point to the chrome part of the app
 import Main from '../../app/main.desktop'
 // order of the above 2 must NOT change. needed for patching / hot loading to be correct
-import {useSelector} from '../../util/container'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as WaitingConstants from '../../constants/waiting'
+import * as DarkMode from '../../constants/darkmode'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import RemoteProxies from '../remote/proxies.desktop'
@@ -14,9 +14,7 @@ import {disableDragDrop} from '../../util/drag-drop.desktop'
 import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
-import {_setDarkModePreference} from '../../styles/dark-mode'
 import {isWindows} from '../../constants/platform'
-import {isDarkMode} from '../../constants/config'
 import type {TypedActions} from '../../actions/typed-actions-gen'
 import KB2 from '../../util/electron.desktop'
 
@@ -24,6 +22,9 @@ const {ipcRendererOn, requestWindowsStartService, appStartedUp} = KB2.functions
 
 // node side plumbs through initial pref so we avoid flashes
 const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)
+const isDarkFromNode = window.location.search.match(/isDarkMode=(0|1)/)
+
+const {setDarkModePreference, setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
 
 if (darkModeFromNode) {
   const dm = darkModeFromNode[1]
@@ -31,8 +32,12 @@ if (darkModeFromNode) {
     case 'alwaysLight':
     case 'alwaysDark':
     case 'system':
-      _setDarkModePreference(dm)
+      setDarkModePreference(dm)
   }
+}
+
+if (isDarkFromNode) {
+  setSystemDarkMode(isDarkFromNode[1] === '1')
 }
 
 // Top level HMR accept
@@ -118,7 +123,7 @@ const FontLoader = () => (
 let store
 
 const DarkCSSInjector = () => {
-  const isDark = useSelector(state => isDarkMode(state.config))
+  const isDark = DarkMode.useDarkModeState(s => s.isDarkMode())
   const [lastIsDark, setLastIsDark] = React.useState<boolean | undefined>()
   if (lastIsDark !== isDark) {
     setLastIsDark(isDark)

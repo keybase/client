@@ -13,6 +13,7 @@ import * as Router2 from '../../constants/router2'
 import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../settings-gen'
 import * as Tabs from '../../constants/tabs'
+import * as DarkMode from '../../constants/darkmode'
 import {useAvatarState} from '../../common-adapters/avatar-zus'
 import logger from '../../logger'
 import {initPlatformListener} from '../platform-specific'
@@ -373,35 +374,6 @@ const newNavigation = (
   Router2.dispatchOldAction(action)
 }
 
-const loadDarkPrefs = async () => {
-  try {
-    const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
-    const preference = v.s || undefined
-
-    switch (preference) {
-      case 'system':
-        return ConfigGen.createSetDarkModePreference({preference})
-      case 'alwaysDark':
-        return ConfigGen.createSetDarkModePreference({preference})
-      case 'alwaysLight':
-        return ConfigGen.createSetDarkModePreference({preference})
-      default:
-        return false
-    }
-  } catch (_) {
-    return false
-  }
-}
-
-const saveDarkPrefs = async (state: Container.TypedState) => {
-  try {
-    await RPCTypes.configGuiSetValueRpcPromise({
-      path: 'ui.darkMode',
-      value: {isNull: false, s: state.config.darkModePreference},
-    })
-  } catch (_) {}
-}
-
 const logoutAndTryToLogInAs = async (
   state: Container.TypedState,
   action: ConfigGen.LogoutAndTryToLogInAsPayload
@@ -504,7 +476,9 @@ const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEv
 }
 
 const initConfig = () => {
-  Container.listenAction(ConfigGen.daemonHandshake, loadDarkPrefs)
+  Container.listenAction(ConfigGen.daemonHandshake, () => {
+    DarkMode.useDarkModeState.getState().dispatch.loadDarkPrefs()
+  })
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   Container.listenAction(
     [ConfigGen.loggedIn, ConfigGen.daemonHandshake, GregorGen.updateReachable],
@@ -574,7 +548,6 @@ const initConfig = () => {
 
   Container.listenAction(SettingsGen.loadedSettings, maybeLoadAppLink)
 
-  Container.listenAction(ConfigGen.setDarkModePreference, saveDarkPrefs)
   Container.listenAction(ConfigGen.loadOnStart, getFollowerInfo)
 
   Container.listenAction(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
@@ -612,6 +585,14 @@ const initConfig = () => {
     if (!username) return
     const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
     setDefaultUsername(username)
+  })
+
+  Container.listenAction(ConfigGen.setSystemDarkMode, (_, action) => {
+    // only to bridge electron bridge, todo remove this
+    if (!Container.isMobile) {
+      const {setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
+      setSystemDarkMode(action.payload.dark)
+    }
   })
 }
 

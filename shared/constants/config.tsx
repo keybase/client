@@ -1,11 +1,10 @@
-import uniq from 'lodash/uniq'
-import type * as RPCTypes from './types/rpc-gen'
-import type * as Types from './types/config'
-import {noConversationIDKey} from './types/chat2/common'
 import * as ConfigGen from '../actions/config-gen'
 import HiddenString from '../util/hidden-string'
+import type * as RPCTypes from './types/rpc-gen'
+import type * as Types from './types/config'
+import uniq from 'lodash/uniq'
 import {defaultUseNativeFrame, runMode} from './platform'
-import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
+import {noConversationIDKey} from './types/chat2/common'
 // normally util.container but it re-exports from us so break the cycle
 import {create as createZustand} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
@@ -27,7 +26,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  darkModePreference: 'system',
   deviceID: '',
   deviceName: '',
   followers: new Set(),
@@ -55,7 +53,6 @@ export const initialState: Types.State = {
   startupLink: '',
   startupPushPayload: undefined,
   startupWasFromPush: false,
-  systemDarkMode: false,
   uid: '',
   useNativeFrame: defaultUseNativeFrame,
   userActive: true,
@@ -73,9 +70,6 @@ export const initialState: Types.State = {
     y: 0,
   },
 }
-
-// we proxy the style helper to keep the logic in one place but act like a selector
-export const isDarkMode = (_: Types.State) => _isDarkMode()
 
 export type ZStore = {
   allowAnimatedEmojis: boolean
@@ -124,7 +118,7 @@ export const useConfigState = createZustand(
       },
       reset: () => {
         set(s => ({
-          ...initialState,
+          ...initialZState,
           appFocused: s.appFocused,
           configuredAccounts: s.configuredAccounts,
           defaultUsername: s.defaultUsername,

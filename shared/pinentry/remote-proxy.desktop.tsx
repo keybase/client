@@ -2,7 +2,7 @@
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
-import * as Styles from '../styles'
+import * as DarkMode from '../constants/darkmode'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize, type ProxyProps} from './remote-serializer.desktop'
@@ -30,12 +30,13 @@ const PinentryProxy = () => {
   const pinentry = Container.useSelector(s => s.pinentry)
   const {showTyping, type} = pinentry
   const show = type !== RPCTypes.PassphraseType.none && !!showTyping
+  const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
   if (show) {
     const {cancelLabel, prompt, retryLabel, submitLabel, windowTitle} = pinentry
     return (
       <PinentryMemo
         cancelLabel={cancelLabel}
-        darkMode={Styles.isDarkMode()}
+        darkMode={darkMode}
         prompt={prompt}
         retryLabel={retryLabel}
         showTyping={showTyping}

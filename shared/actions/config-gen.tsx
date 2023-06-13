@@ -17,6 +17,7 @@ export const checkForUpdate = 'config:checkForUpdate'
 export const copyToClipboard = 'config:copyToClipboard'
 export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
+export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
@@ -42,7 +43,6 @@ export const pushLoaded = 'config:pushLoaded'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
 export const revoked = 'config:revoked'
-export const setDarkModePreference = 'config:setDarkModePreference'
 export const setDeletedSelf = 'config:setDeletedSelf'
 export const setIncomingShareUseOriginal = 'config:setIncomingShareUseOriginal'
 export const setNavigator = 'config:setNavigator'
@@ -259,6 +259,10 @@ export const createCopyToClipboard = (payload: {readonly text: string}) => ({
   payload,
   type: copyToClipboard as typeof copyToClipboard,
 })
+export const createDarkModePreferenceChanged = (payload?: undefined) => ({
+  payload,
+  type: darkModePreferenceChanged as typeof darkModePreferenceChanged,
+})
 export const createDumpLogs = (payload: {readonly reason: 'quitting through menu'}) => ({
   payload,
   type: dumpLogs as typeof dumpLogs,
@@ -302,9 +306,6 @@ export const createRevoked = (payload: {
   readonly wasCurrentDevice: boolean
   readonly deviceName: string
 }) => ({payload, type: revoked as typeof revoked})
-export const createSetDarkModePreference = (payload: {
-  readonly preference: 'system' | 'alwaysDark' | 'alwaysLight'
-}) => ({payload, type: setDarkModePreference as typeof setDarkModePreference})
 export const createSetDeletedSelf = (payload: {readonly deletedUsername: string}) => ({
   payload,
   type: setDeletedSelf as typeof setDeletedSelf,
@@ -379,6 +380,7 @@ export type CheckForUpdatePayload = ReturnType<typeof createCheckForUpdate>
 export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
 export type DaemonHandshakeDonePayload = ReturnType<typeof createDaemonHandshakeDone>
 export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
+export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
 export type FollowerInfoUpdatedPayload = ReturnType<typeof createFollowerInfoUpdated>
@@ -404,7 +406,6 @@ export type PushLoadedPayload = ReturnType<typeof createPushLoaded>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
 export type RevokedPayload = ReturnType<typeof createRevoked>
-export type SetDarkModePreferencePayload = ReturnType<typeof createSetDarkModePreference>
 export type SetDeletedSelfPayload = ReturnType<typeof createSetDeletedSelf>
 export type SetIncomingShareUseOriginalPayload = ReturnType<typeof createSetIncomingShareUseOriginal>
 export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
@@ -439,6 +440,7 @@ export type Actions =
   | CopyToClipboardPayload
   | DaemonHandshakeDonePayload
   | DaemonHandshakePayload
+  | DarkModePreferenceChangedPayload
   | DumpLogsPayload
   | FilePickerErrorPayload
   | FollowerInfoUpdatedPayload
@@ -464,7 +466,6 @@ export type Actions =
   | RemoteWindowWantsPropsPayload
   | RestartHandshakePayload
   | RevokedPayload
-  | SetDarkModePreferencePayload
   | SetDeletedSelfPayload
   | SetIncomingShareUseOriginalPayload
   | SetNavigatorPayload

@@ -1,9 +1,9 @@
-import * as React from 'react'
+import * as DarkMode from '../constants/darkmode'
 import * as Kb from '../common-adapters'
-import DragHeader from '../desktop/remote/drag-header.desktop'
-import * as Styles from '../styles'
-import {_setDarkModePreference} from '../styles/dark-mode'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as React from 'react'
+import * as Styles from '../styles'
+import DragHeader from '../desktop/remote/drag-header.desktop'
 
 export type Props = {
   darkMode: boolean
@@ -39,6 +39,12 @@ class Pinentry extends React.Component<Props, State> {
     }
   }
 
+  componentDidMount() {
+    DarkMode.useDarkModeState
+      .getState()
+      .dispatch.setDarkModePreference(this.props.darkMode ? 'alwaysDark' : 'alwaysLight')
+  }
+
   componentDidUpdate(prevProps: Props) {
     if (prevProps.showTyping !== this.props.showTyping) {
       this.setState({showTyping: this.props.showTyping?.defaultValue ?? false})
@@ -55,7 +61,6 @@ class Pinentry extends React.Component<Props, State> {
   }
 
   render() {
-    _setDarkModePreference(this.props.darkMode ? 'alwaysDark' : 'alwaysLight')
     const isPaperKey = this.props.type === RPCTypes.PassphraseType.paperKey
     return (
       <Kb.Box

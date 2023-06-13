@@ -5,7 +5,7 @@ import './why-did-you-render'
 import './app/globals.native'
 import {Appearance} from 'react-native'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
-import {_setSystemIsDarkMode, _setSystemSupported, _setDarkModePreference} from './styles/dark-mode'
+import * as DarkMode from './constants/darkmode'
 import {enableES5, enableMapSet} from 'immer'
 enableES5()
 enableMapSet()
@@ -13,20 +13,19 @@ enableMapSet()
 // Add scaleY back to work around its removal in React Native 0.70. needed for list perf issues, see list-area.native
 ViewReactNativeStyleAttributes.scaleY = true
 
-_setSystemIsDarkMode(Appearance.getColorScheme() === 'dark')
-
-_setSystemSupported(darkModeSupported === '1')
+const {setSystemSupported, setSystemDarkMode, setDarkModePreference} =
+  DarkMode.useDarkModeState.getState().dispatch
+setSystemDarkMode(Appearance.getColorScheme() === 'dark')
+setSystemSupported(darkModeSupported === '1')
 try {
   const obj = JSON.parse(guiConfig)
-  if (obj && obj.ui) {
-    const dm = obj.ui.darkMode
-    switch (dm) {
-      case 'system': // fallthrough
-      case 'alwaysDark': // fallthrough
-      case 'alwaysLight':
-        _setDarkModePreference(dm)
-        break
-    }
+  const dm = obj?.ui?.darkMode
+  switch (dm) {
+    case 'system': // fallthrough
+    case 'alwaysDark': // fallthrough
+    case 'alwaysLight':
+      setDarkModePreference(dm)
+      break
   }
 } catch (_) {}
 

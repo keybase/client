@@ -5,14 +5,15 @@ import 'react-native-gesture-handler' // MUST BE FIRST https://github.com/softwa
 import './app/globals.native'
 import {Appearance} from 'react-native'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
-import {_setSystemIsDarkMode, _setSystemSupported, _setDarkModePreference} from './styles/dark-mode'
+import * as DarkMode from './constants/darkmode'
 import {enableES5, enableMapSet} from 'immer'
 enableES5()
 enableMapSet()
 
-_setSystemIsDarkMode(Appearance.getColorScheme() === 'dark')
-
-_setSystemSupported(darkModeSupported === '1')
+const {setSystemSupported, setSystemDarkMode, setDarkModePreference} =
+  DarkMode.useDarkModeState.getState().dispatch
+setSystemDarkMode(Appearance.getColorScheme() === 'dark')
+setSystemSupported(darkModeSupported === '1')
 try {
   const obj = JSON.parse(guiConfig)
   const dm = obj?.ui?.darkMode
@@ -20,7 +21,7 @@ try {
     case 'system': // fallthrough
     case 'alwaysDark': // fallthrough
     case 'alwaysLight':
-      _setDarkModePreference(dm)
+      setDarkModePreference(dm)
       break
   }
 } catch (_) {}

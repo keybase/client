@@ -1,8 +1,10 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as Clipboard from 'expo-clipboard'
+import * as ConfigConstants from '../../constants/config'
 import * as ConfigGen from '../config-gen'
 import * as Contacts from 'expo-contacts'
 import * as Container from '../../util/container'
+import * as DarkMode from '../../constants/darkmode'
 import * as EngineGen from '../engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
@@ -14,7 +16,6 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as RouterConstants from '../../constants/router2'
 import * as SettingsConstants from '../../constants/settings'
-import * as ConfigConstants from '../../constants/config'
 import * as SettingsGen from '../settings-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Types from '../../constants/types/chat2'
@@ -741,12 +742,6 @@ const checkNav = async (
   }
 }
 
-const notifyNativeOfDarkModeChange = (state: Container.TypedState) => {
-  if (isAndroid) {
-    androidAppColorSchemeChanged?.(state.config.darkModePreference ?? '')
-  }
-}
-
 const initAudioModes = () => {
   setupAudioMode(false)
     .then(() => {})
@@ -791,7 +786,12 @@ export const initPlatformListener = () => {
   }
 
   Container.listenAction(ConfigGen.daemonHandshake, checkNav)
-  Container.listenAction(ConfigGen.setDarkModePreference, notifyNativeOfDarkModeChange)
+  Container.listenAction(ConfigGen.darkModePreferenceChanged, () => {
+    if (isAndroid) {
+      const {darkModePreference} = DarkMode.useDarkModeState.getState()
+      androidAppColorSchemeChanged?.(darkModePreference ?? '')
+    }
+  })
 
   Container.listenAction(RouteTreeGen.onNavChanged, onPersistRoute)
 
