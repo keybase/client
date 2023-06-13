@@ -131,7 +131,10 @@
 .text_BodySmallSuccess,
 .text_BodySmallWallet,
 .text_BodyTiny,
-.text_BodyTinyLink,
+.text_BodyTinyLink {
+  font-weight: 400;
+}
+
 .text_BodyBig,
 .text_BodyBigLink,
 .text_BodySemibold,
@@ -145,6 +148,7 @@
 .text_BodySmallSemibold {
   font-weight: 600;
 }
+
 .text_HeaderBig,
 .text_Header,
 .text_HeaderItalic,
@@ -154,6 +158,7 @@
 .text_BodyTinyBold {
   font-weight: 700;
 }
+
 .text_HeaderBigExtrabold,
 .text_HeaderExtrabold,
 .text_BodyExtrabold,
