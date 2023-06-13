@@ -1,0 +1,133 @@
+diff --git a/node_modules/react-native-reanimated/react-native-reanimated.d.ts b/node_modules/react-native-reanimated/react-native-reanimated.d.ts
+index a153973..ecdcc16 100644
+--- a/node_modules/react-native-reanimated/react-native-reanimated.d.ts
++++ b/node_modules/react-native-reanimated/react-native-reanimated.d.ts
+@@ -35,26 +35,15 @@ declare module 'react-native-reanimated' {
+     PanGestureHandlerGestureEvent,
+   } from 'react-native-gesture-handler';
+ 
+-  import('./lib/reanimated2/globals');
+-
+-  export type TimingAnimation =
+-    import('./lib/types/lib/reanimated2/animation/index').TimingAnimation;
+-  export type SpringAnimation =
+-    import('./lib/types/lib/reanimated2/animation/index').SpringAnimation;
+-  export type DecayAnimation =
+-    import('./lib/types/lib/reanimated2/animation/index').DecayAnimation;
+-  export type DelayAnimation =
+-    import('./lib/types/lib/reanimated2/animation/commonTypes').DelayAnimation;
+-  export type RepeatAnimation =
+-    import('./lib/types/lib/reanimated2/animation/index').RepeatAnimation;
+-  export type SequenceAnimation =
+-    import('./lib/types/lib/reanimated2/animation/index').SequenceAnimation;
+-  export type StyleLayoutAnimation =
+-    import('./lib/types/lib/reanimated2/animation/index').StyleLayoutAnimation;
+-  export type Animation<T> =
+-    import('./lib/types/lib/reanimated2/commonTypes').Animation<T>;
+-  export type MeasuredDimensions =
+-    import('./lib/types/lib/reanimated2/commonTypes').MeasuredDimensions;
++  export type TimingAnimation = any
++  export type SpringAnimation = any
++  export type DecayAnimation = any
++  export type DelayAnimation = any
++  export type RepeatAnimation = any
++  export type SequenceAnimation = any
++  export type StyleLayoutAnimation = any
++  export type Animation = any
++  export type MeasuredDimensions = any
+ 
+   namespace Animated {
+     type Value = string | number | boolean;
+@@ -93,7 +82,8 @@ declare module 'react-native-reanimated' {
+       ? T['style']
+       : Record<string, unknown>;
+ 
+-    export type AnimateProps<P extends object> = {
++    type AnimateProps<P extends object> = P
++    export type AnimateProps2<P extends object> = {
+       [K in keyof Omit<P, 'style'>]: P[K] | SharedValue<P[K]>;
+     } & {
+       style?: StyleProp<AnimateStyle<StylesOrDefault<P>>>;
+@@ -124,27 +114,27 @@ declare module 'react-native-reanimated' {
+       getNode(): ReactNativeView;
+     }
+     // eslint-disable-next-line @typescript-eslint/no-empty-interface
+-    export interface View extends ReactNativeView {}
++    // export interface View extends ReactNativeView {}
+     export class Text extends Component<AnimateProps<TextProps>> {
+       getNode(): ReactNativeText;
+     }
+     // eslint-disable-next-line @typescript-eslint/no-empty-interface
+-    export interface Text extends ReactNativeText {}
++    // export interface Text extends ReactNativeText {}
+     export class Image extends Component<AnimateProps<ImageProps>> {
+       getNode(): ReactNativeImage;
+     }
+     // eslint-disable-next-line @typescript-eslint/no-empty-interface
+-    export interface Image extends ReactNativeImage {}
++    // export interface Image extends ReactNativeImage {}
+     export interface AnimatedScrollViewProps extends ScrollViewProps {
+       scrollViewOffset?: SharedValue<number>;
+     }
+-    export class ScrollView extends Component<
+-      AnimateProps<AnimatedScrollViewProps<T>>
++     export class ScrollView extends Component<
++      AnimateProps<AnimatedScrollViewProps>
+     > {
+       getNode(): ReactNativeScrollView;
+     }
+     // eslint-disable-next-line @typescript-eslint/no-empty-interface
+-    export interface ScrollView extends ReactNativeScrollView {}
++    // export interface ScrollView extends ReactNativeScrollView {}
+     export interface FlatListPropsWithLayout<T> extends FlatListProps<T> {
+       itemLayoutAnimation?: ILayoutAnimationBuilder;
+     }
+@@ -154,7 +144,7 @@ declare module 'react-native-reanimated' {
+       getNode(): ReactNativeFlatList;
+     }
+     // eslint-disable-next-line @typescript-eslint/no-empty-interface
+-    export interface FlatList<T> extends ReactNativeView<T> {}
++    // export interface FlatList<T> extends ReactNativeView {}
+ 
+     type Options<P> = {
+       setNativeProps: (ref: any, props: P) => void;
+@@ -188,7 +178,7 @@ declare module 'react-native-reanimated' {
+ 
+   export type LayoutAnimation = {
+     initialValues: StyleProps;
+-    animations: AnimateStyle;
++    animations: AnimateStyle<any>;
+   };
+ 
+   export interface EntryAnimationsValues {
+@@ -592,7 +582,7 @@ declare module 'react-native-reanimated' {
+   };
+ 
+   export function scrollTo(
+-    animatedRef: RefObject<ReactNativeScrollView | ScrollView>,
++    animatedRef: RefObject<any>,
+     x: number,
+     y: number,
+     animated: boolean
+@@ -885,7 +875,7 @@ declare module 'react-native-reanimated' {
+   type AnimationFactoryType = (values: LayoutAnimationsValues) => StyleProps;
+ 
+   export class SharedTransition implements ILayoutAnimationBuilder {
+-    animationFactory: AnimationFactoryType | null = null;
++    animationFactory: AnimationFactoryType | null;
+     static createInstance(): SharedTransition;
+     static custom(animationFactory: AnimationFactoryType): SharedTransition;
+     custom(animationFactory: AnimationFactoryType): SharedTransition;
+diff --git a/node_modules/react-native-reanimated/src/reanimated2/globals.d.ts b/node_modules/react-native-reanimated/src/reanimated2/globals.d.ts
+index 948a010..8e6df5b 100644
+--- a/node_modules/react-native-reanimated/src/reanimated2/globals.d.ts
++++ b/node_modules/react-native-reanimated/src/reanimated2/globals.d.ts
+@@ -81,7 +81,7 @@ declare global {
+     reportFatalError: (error: Error) => void;
+   };
+   var _frameCallbackRegistry: FrameCallbackRegistryUI;
+-  var requestAnimationFrame: (callback: (time: number) => void) => number;
++  // var requestAnimationFrame: (callback: (time: number) => void) => number;
+   var console: Console;
+   var __frameTimestamp: number | undefined;
+   var __flushAnimationFrame: (timestamp: number) => void;

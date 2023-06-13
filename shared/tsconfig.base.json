@@ -13,9 +13,6 @@
     "lib": ["ESNext", "dom"],
     "module": "commonjs",
     "paths": {
-      "react-native-reanimated": [
-        "override-d.ts/react-native-reanimated/react-native-reanimated.d.ts"
-      ],
       "react-native-kb": ["override-d.ts/react-native-kb/index.d.ts"],
       "react-native-drop-view": ["override-d.ts/react-native-drop-view/index.d.ts"]
     },
@@ -35,18 +32,5 @@
     "typeRoots": ["./node_modules/@types/", "./custom-d.ts/"]
   },
   "include": ["globals.d.ts"],
-  "exclude": [
-    "./node_modules",
-    "./node_modules/typescript",
-    "node_modules/@types/node",
-    "node_modules/react-native-reanimated/react-native-reanimated.d.ts",
-    "./react-native",
-    "./ios",
-    "./android",
-    "./desktop/dist",
-    "./desktop/build",
-    "./common-adapters/swipeable.native.tsx",
-    "./common-adapters/index-impl.tsx",
-    "./common-adapters/mobile.native.native.tsx"
-  ]
+  "exclude": ["./node_modules", "./desktop/dist", "./desktop/build"]
 }

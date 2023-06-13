@@ -73,7 +73,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
       kbSubWH.remove()
       kbSubDH.remove()
     }
-  }, [dispatch])
+  }, [dispatch, setSystemDarkMode])
 
   const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
   return <Styles.DarkModeContext.Provider value={darkMode}>{children}</Styles.DarkModeContext.Provider>

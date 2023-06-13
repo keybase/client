@@ -24,22 +24,22 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(function ClickableB
   const onMouseEnter = needMouseEnterLeaveHandlers
     ? (e: React.MouseEvent): void => {
         setMouseIn(true)
-        props.onMouseEnter && props.onMouseEnter(e)
+        props.onMouseEnter?.(e)
       }
     : undefined
   const onMouseLeave = needMouseEnterLeaveHandlers
     ? (e: React.MouseEvent) => {
         setMouseIn(false)
-        props.onMouseLeave && props.onMouseLeave(e)
+        props.onMouseLeave?.(e)
       }
     : undefined
   const onMouseDown = (e: React.MouseEvent) => {
     setMouseDown(true)
-    props.onMouseDown && props.onMouseDown(e)
+    props.onMouseDown?.(e)
   }
   const onMouseUp = (e: React.MouseEvent) => {
     setMouseDown(false)
-    props.onMouseUp && props.onMouseUp(e)
+    props.onMouseUp?.(e)
   }
 
   const {style, children, underlayColor, hoverColor, onClick, onDoubleClick, ...otherProps} = props
@@ -123,7 +123,7 @@ export const ClickableBox2 = React.forwardRef(function ClickableBox2(p: Props2, 
     <div
       onClick={onClick}
       onMouseOver={onMouseOver}
-      style={collapsed}
+      style={collapsed as any}
       ref={ref}
       className={Styles.classNames('clickable-box2', className)}
     >
