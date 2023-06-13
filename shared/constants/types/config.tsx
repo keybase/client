@@ -45,7 +45,6 @@ export type State = {
   osNetworkOnline: boolean
   outOfDate?: OutOfDate
   pushLoaded: boolean
-  registered: boolean
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   runtimeStats?: RPCTypes.RuntimeStats
   startupDetailsLoaded: boolean

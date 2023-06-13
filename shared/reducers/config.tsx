@@ -88,7 +88,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.bootstrapStatusLoaded]: (draftState, action) => {
     draftState.loggedIn = action.payload.loggedIn
-    draftState.registered = action.payload.registered
     draftState.uid = action.payload.uid
     draftState.username = action.payload.username
     if (action.payload.loggedIn) {

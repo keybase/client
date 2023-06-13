@@ -40,7 +40,6 @@ export const initialState: Types.State = {
   osNetworkOnline: false,
   outOfDate: undefined,
   pushLoaded: false,
-  registered: false,
   remoteWindowNeedsProps: new Map(),
   startupConversation: noConversationIDKey,
   startupDetailsLoaded: false,

@@ -94,7 +94,6 @@ const loadDaemonBootstrapStatus = async (
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       fullname: s.fullname || '',
       loggedIn: s.loggedIn,
-      registered: s.registered,
       uid: s.uid,
       userReacjis: s.userReacjis,
       username: s.username,
