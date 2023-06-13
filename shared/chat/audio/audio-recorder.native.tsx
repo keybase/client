@@ -659,7 +659,10 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
         : fadeSV.value *
           interpolate(dragYSV.value, [dragDistanceX, 0], [0, 1], Extrapolation.CLAMP) *
           dragXOpacity,
-      transform: [{translateX: 10}, {translateY: deltaY - fadeSV.value * slideAmount}],
+      transform: [{translateX: 10}, {translateY: deltaY - fadeSV.value * slideAmount}] as [
+        {translateX: number},
+        {translateY: number}
+      ],
     }
   })
   const lockStyle = useAnimatedStyle(() => {
@@ -682,6 +685,7 @@ const LockHint = (props: {fadeSV: SVN; lockedSV: SVN; dragXSV: SVN; dragYSV: SVN
       ],
     }
   })
+
   return (
     <>
       <AnimatedIcon type="iconfont-arrow-up" sizeType="Tiny" style={[styles.lockHintStyle, arrowStyle]} />

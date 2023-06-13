@@ -97,8 +97,8 @@ type StyleKeys =
   | 'textDecorationStyle'
   | 'textTransform'
   | 'textOverflow'
-  | 'top'
   | 'transform'
+  | 'top'
   | 'transition'
   | 'visibility'
   | 'whiteSpace'
@@ -120,7 +120,7 @@ type _StylesMobileOverride = {
 }
 
 export type _StylesMobile = ViewStyle &
-  Omit<TextStyle, 'textAlignVertical' | 'textAlign'> &
+  Omit<TextStyle, 'textAlignVertical' | 'textAlign' | 'transform'> &
   ImageStyle &
   _StylesMobileOverride
 type _StylesMobileFalsy = _StylesMobile | undefined | null | false
@@ -131,6 +131,7 @@ type _StylesCrossPlatformOverride = {
   fontSize: _StylesMobile['fontSize']
   fontWeight: _StylesMobile['fontWeight']
   textAlign: _StylesMobile['textAlign']
+  transform?: Array<{translateX: number} | {translateY: number} | {scaleX: number} | {scaleY: number}>
 }
 
 export type _StylesCrossPlatform = {
