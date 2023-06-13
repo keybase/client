@@ -233,7 +233,6 @@ export const createLogoutHandshakeWait = (payload: {
   readonly increment: boolean
 }) => ({payload, type: logoutHandshakeWait as typeof logoutHandshakeWait})
 export const createBootstrapStatusLoaded = (payload: {
-  readonly fullname: string
   readonly loggedIn: boolean
   readonly username: string
   readonly userReacjis: RPCTypes.UserReacjis

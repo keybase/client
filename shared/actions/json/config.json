@@ -54,7 +54,6 @@
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
     "bootstrapStatusLoaded": {
-      "fullname": "string",
       "loggedIn": "boolean",
       "username": "string",
       "userReacjis": "RPCTypes.UserReacjis"
