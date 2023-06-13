@@ -45,8 +45,8 @@ const onHTTPSrvInfoUpdated = (_: unknown, action: EngineGen.Keybase1NotifyServic
     token: action.payload.params.info.token,
   })
 
-const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
-  const {uid} = state.config
+const getFollowerInfo = (_: unknown, action: ConfigGen.LoadOnStartPayload) => {
+  const {uid} = Constants.useConfigState.getState()
   logger.info(`getFollowerInfo: init; uid=${uid}`)
   if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     logger.info(
@@ -596,16 +596,16 @@ const initConfig = () => {
     Followers.useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
   })
 
-  Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, (state, action) => {
+  Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, (_, action) => {
     const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
-    if (state.config.uid !== uid) {
+    if (Constants.useConfigState.getState().uid !== uid) {
       return
     }
     const newFollowers = new Set(_newFollowers)
     const newFollowing = new Set(_newFollowing)
     const {following: oldFollowing, followers: oldFollowers, dispatch} = Followers.useFollowerState.getState()
-    let following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
-    let followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
+    const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
+    const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
     dispatch.replace(followers, following)
   })
 }

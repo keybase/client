@@ -112,7 +112,7 @@ const Connected = (ownProps: OwnProps) => {
   const push = Container.useSelector(state => getPushTokenForLogSend(state))
 
   const deviceID = ConfigConstants.useConfigState(s => s.deviceID)
-  const uid = Container.useSelector(state => state.config.uid)
+  const uid = ConfigConstants.useConfigState(s => s.uid)
   const username = Container.useSelector(state => state.config.username)
   const status = {
     appVersionCode,
