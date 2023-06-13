@@ -1,6 +1,7 @@
 import * as ConfigGen from '../config-gen'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
+import * as Followers from '../../constants/followers'
 import * as GregorGen from '../gregor-gen'
 import * as UsersGen from '../users-gen'
 import * as LoginConstants from '../../constants/login'
@@ -18,6 +19,7 @@ import {useAvatarState} from '../../common-adapters/avatar-zus'
 import logger from '../../logger'
 import {initPlatformListener} from '../platform-specific'
 import {noVersion} from '../../constants/whats-new'
+import isEqual from 'lodash/isEqual'
 
 const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
   logger.info('keybase.1.NotifySession.loggedIn')
@@ -36,13 +38,6 @@ const onLoggedOut = (state: Container.TypedState) => {
   }
   return undefined
 }
-
-const onTrackingInfo = (_: unknown, action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
-  ConfigGen.createFollowerInfoUpdated({
-    followees: action.payload.params.followees || [],
-    followers: action.payload.params.followers || [],
-    uid: action.payload.params.uid,
-  })
 
 const onHTTPSrvInfoUpdated = (_: unknown, action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload) =>
   ConfigGen.createUpdateHTTPSrvInfo({
@@ -540,7 +535,6 @@ const initConfig = () => {
     Constants.useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
   })
 
-  Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
   Container.listenAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
 
   // Listen for updates to `whatsNewLastSeenVersion`
@@ -593,6 +587,24 @@ const initConfig = () => {
       const {setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
       setSystemDarkMode(action.payload.dark)
     }
+  })
+
+  Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingChanged, (_, action) => {
+    const {isTracking, username} = action.payload.params
+    Followers.useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
+  })
+
+  Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, (state, action) => {
+    const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
+    if (state.config.uid !== uid) {
+      return
+    }
+    const newFollowers = new Set(_newFollowers)
+    const newFollowing = new Set(_newFollowing)
+    const {following: oldFollowing, followers: oldFollowers, dispatch} = Followers.useFollowerState.getState()
+    let following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
+    let followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
+    dispatch.replace(followers, following)
   })
 }
 

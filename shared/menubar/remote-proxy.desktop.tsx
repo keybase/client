@@ -4,6 +4,7 @@ import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
 import * as FSConstants from '../constants/fs'
 import * as FSTypes from '../constants/types/fs'
+import * as Followers from '../constants/followers'
 import * as React from 'react'
 import * as Styles from '../styles'
 import KB2 from '../util/electron.desktop'
@@ -67,12 +68,15 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const s = Container.useSelector(state => {
     const {notifications, config, fs, chat2, users} = state
     const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
-    const {httpSrvToken, httpSrvAddress, windowShownCount, username, following} = config
-    const {outOfDate, loggedIn, followers} = config
+    const {httpSrvToken, httpSrvAddress, windowShownCount, username} = config
+    const {outOfDate, loggedIn} = config
     const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
     const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
     const widgetList = inboxLayout?.widgetList
     const {infoMap} = users
+
+    const following = Followers.useFollowerState(s => s.following)
+    const followers = Followers.useFollowerState(s => s.followers)
 
     return {
       badgeMap,

@@ -18,8 +18,6 @@ export type RemoteTlfUpdates = {
 // for convenience we flatten the props we send over the wire
 type ConfigHoistedProps =
   | 'outOfDate'
-  | 'followers'
-  | 'following'
   | 'httpSrvAddress'
   | 'httpSrvToken'
   | 'loggedIn'
@@ -55,6 +53,8 @@ export type ProxyProps = {
   endEstimate?: number
   files?: number
   fileName?: string
+  followers: Set<string>
+  following: Set<string>
   kbfsDaemonStatus: KbfsDaemonStatus
   kbfsEnabled: boolean
   remoteTlfUpdates: Array<RemoteTlfUpdates>
@@ -85,6 +85,8 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
   daemonHandshakeState: DaemonHandshakeState
   files: number
   fileName: string
+  followers: Set<string>
+  following: Set<string>
   totalSyncingBytes: number
   showingDiskSpaceBanner: boolean
   chat2: {
@@ -122,8 +124,6 @@ const initialState: DeserializeProps = {
     unreadMap: new Map(),
   },
   config: {
-    followers: new Set(),
-    following: new Set(),
     httpSrvAddress: '',
     httpSrvToken: '',
     loggedIn: false,
@@ -138,6 +138,8 @@ const initialState: DeserializeProps = {
   endEstimate: 0,
   fileName: '',
   files: 0,
+  followers: new Set(),
+  following: new Set(),
   kbfsDaemonStatus: {
     onlineStatus: FSTypes.KbfsDaemonOnlineStatus.Unknown,
     rpcStatus: FSTypes.KbfsDaemonRpcStatus.Connected,
@@ -181,10 +183,10 @@ export const deserialize = (
       s.daemonHandshakeState = daemonHandshakeState
     }
     if (followersArr !== undefined) {
-      s.config.followers = new Set(followersArr)
+      s.followers = new Set(followersArr)
     }
     if (followingArr !== undefined) {
-      s.config.following = new Set(followingArr)
+      s.following = new Set(followingArr)
     }
     if (httpSrvAddress !== undefined) {
       s.config.httpSrvAddress = httpSrvAddress

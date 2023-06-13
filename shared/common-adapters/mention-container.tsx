@@ -1,4 +1,5 @@
 import * as ProfileGen from '../actions/profile-gen'
+import * as Followers from '../constants/followers'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import Mention, {type OwnProps} from './mention'
 import {isSpecialMention} from '../constants/chat2'
@@ -6,15 +7,15 @@ import * as Container from '../util/container'
 
 export default (ownProps: OwnProps) => {
   let {username} = ownProps
-
   username = username.toLowerCase()
+  const following = Followers.useFollowerState(s => s.following.has(username))
   const theme = Container.useSelector(state => {
     if (isSpecialMention(username)) {
       return 'highlight' as const
     } else {
       if (state.config.username === username) {
         return 'highlight' as const
-      } else if (state.config.following.has(username)) {
+      } else if (following) {
         return 'follow' as const
       }
       return 'nonFollow' as const

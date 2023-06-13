@@ -1,8 +1,9 @@
-import * as React from 'react'
 import * as Container from '../../util/container'
+import * as Followers from '../../constants/followers'
+import * as React from 'react'
+import * as Tracker2Constants from '../../constants/tracker2'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import UnconnectedFollowButton from '../../profile/user/actions/follow-button'
-import * as Tracker2Constants from '../../constants/tracker2'
 
 type FollowProps = {
   username: string
@@ -14,8 +15,8 @@ export const FollowButton = (props: FollowProps) => {
   const {username} = props
   const dispatch = Container.useDispatch()
   const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
-  const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, username))
-  const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, username))
+  const followThem = Followers.useFollowerState(s => s.following.has(username))
+  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
   const {guiID} = userDetails
 
   React.useEffect(() => {

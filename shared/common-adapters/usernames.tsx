@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Followers from '../constants/followers'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
@@ -85,7 +86,8 @@ const Username = React.memo(function Username(p: UsernameProps) {
   const {inline, style, lineClamp, selectable, type, backgroundMode, showAnd, underline} = p
   const {onUsernameClicked, joinerStyle, showComma, showSpace, virtualText, withProfileCardPopup} = p
   const you = p.you === username
-  const following = Container.useSelector(state => colorFollowing && state.config.following.has(username))
+
+  const following = Followers.useFollowerState(s => colorFollowing && s.following.has(username))
   const broken = Container.useSelector(
     state => (colorBroken && state.users.infoMap.get(username)?.broken) ?? false
   )

@@ -1,13 +1,14 @@
-import * as Constants from '../../../constants/chat2'
-import * as React from 'react'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import type * as Types from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
+import * as Followers from '../../../constants/followers'
 import * as Kb from '../../../common-adapters'
-import {InviteBanner} from '.'
+import * as React from 'react'
 import openSMS from '../../../util/sms'
-import {showShareActionSheet} from '../../../actions/platform-specific'
 import shallowEqual from 'shallowequal'
+import type * as Types from '../../../constants/types/chat2'
+import {InviteBanner} from '.'
+import {showShareActionSheet} from '../../../actions/platform-specific'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
@@ -55,8 +56,9 @@ const Invite = (p: {conversationIDKey: Types.ConversationIDKey}) => {
 
 const Broken = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   const {conversationIDKey} = p
+
+  const following = Followers.useFollowerState(s => s.following)
   const users = Container.useSelector(state => {
-    const {following} = state.config
     const {infoMap} = state.users
     const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
     return participantInfoAll.filter(p => following.has(p) && infoMap.get(p)?.broken)
@@ -66,12 +68,12 @@ const Broken = (p: {conversationIDKey: Types.ConversationIDKey}) => {
 
 const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKey: Types.ConversationIDKey}) {
   const {conversationIDKey} = p
+  const following = Followers.useFollowerState(s => s.following)
   const type = Container.useSelector(state => {
     const teamType = Constants.getMeta(state, conversationIDKey).teamType
     if (teamType !== 'adhoc') {
       return 'none'
     }
-    const {following} = state.config
     const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
     const {infoMap} = state.users
     const broken = participantInfoAll.some(p => following.has(p) && infoMap.get(p)?.broken)

@@ -28,8 +28,6 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export const initialState: Types.State = {
   deviceID: '',
   deviceName: '',
-  followers: new Set(),
-  following: new Set(),
   httpSrvAddress: '',
   httpSrvToken: '',
   incomingShareUseOriginal: undefined,
@@ -154,3 +152,4 @@ export const useConfigState = createZustand(
 )
 
 export {useDaemonState, maxHandshakeTries} from './daemon'
+export {useFollowerState} from './followers'

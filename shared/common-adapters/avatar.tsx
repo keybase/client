@@ -6,6 +6,7 @@ import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
 import * as AvatarZus from './avatar-zus'
+import * as Followers from '../constants/followers'
 import type * as Types from '../constants/types/teams'
 import './avatar.css'
 
@@ -112,11 +113,11 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
   const {username, showFollowingStatus, teamname} = ownProps
   const isTeam = ownProps.isTeam || !!teamname
   const counter = AvatarZus.useAvatarState(s => s.counts.get(username || teamname || '') ?? 0)
-  const following = Container.useSelector(state =>
-    showFollowingStatus ? state.config.following.has(username || '') : false
+  const following = Followers.useFollowerState(s =>
+    showFollowingStatus && username ? s.following.has(username) : false
   )
-  const followsYou = Container.useSelector(state =>
-    showFollowingStatus ? state.config.followers.has(username || '') : false
+  const followsYou = Followers.useFollowerState(s =>
+    showFollowingStatus && username ? s.followers.has(username) : false
   )
   const httpSrvAddress = Container.useSelector(state => state.config.httpSrvAddress)
   const httpSrvToken = Container.useSelector(state => state.config.httpSrvToken)

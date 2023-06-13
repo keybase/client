@@ -9,6 +9,7 @@ import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
+import * as Followers from '../constants/followers'
 import * as TeamBuildingGen from './team-building-gen'
 import {commonListenActions, filterForNs} from './team-building'
 import logger from '../logger'
@@ -274,8 +275,7 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
       {markViewed, numFollowSuggestionsWanted},
       Constants.getPeopleDataWaitingKey
     )
-    const following = state.config.following
-    const followers = state.config.followers
+    const {following, followers} = Followers.useFollowerState.getState()
     const oldItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
       .filter(item => !item.badged && item.data.t !== RPCTypes.HomeScreenItemType.todo)
       .reduce(reduceRPCItemToPeopleItem, [])

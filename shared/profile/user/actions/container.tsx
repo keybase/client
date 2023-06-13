@@ -1,11 +1,12 @@
-import * as WalletsGen from '../../../actions/wallets-gen'
-import * as FsConstants from '../../../constants/fs'
-import * as FsTypes from '../../../constants/types/fs'
 import * as Constants from '../../../constants/tracker2'
 import * as Container from '../../../util/container'
+import * as Followers from '../../../constants/followers'
+import * as FsConstants from '../../../constants/fs'
+import * as FsTypes from '../../../constants/types/fs'
+import * as ProfileGen from '../../../actions/profile-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
-import * as ProfileGen from '../../../actions/profile-gen'
+import * as WalletsGen from '../../../actions/wallets-gen'
 import * as WalletsType from '../../../constants/types/wallets'
 import Actions from '.'
 
@@ -16,8 +17,8 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const username = ownProps.username
   const d = Container.useSelector(state => Constants.getDetails(state, username))
-  const followThem = Container.useSelector(state => Constants.followThem(state, username))
-  const followsYou = Container.useSelector(state => Constants.followsYou(state, username))
+  const followThem = Followers.useFollowerState(s => s.following.has(username))
+  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
   const isBot = Container.useSelector(state => state.chat2.featuredBotsMap.has(username))
 
   const _guiID = d.guiID
@@ -67,8 +68,8 @@ export default (ownProps: OwnProps) => {
   }
   const props = {
     blocked: blocked,
-    followThem: followThem,
-    followsYou: followsYou,
+    followThem,
+    followsYou,
     hidFromFollowers: hidFromFollowers,
     isBot: isBot,
     onAccept: () => _onFollow(_guiID, true),
