@@ -32,8 +32,6 @@ export type WindowState = {
 export type State = {
   deviceID: RPCTypes.DeviceID
   deviceName?: string
-  followers: Set<string>
-  following: Set<string>
   globalError?: Error | RPCError
   httpSrvAddress: string
   httpSrvToken: string

@@ -63,11 +63,6 @@
       "username": "string",
       "userReacjis": "RPCTypes.UserReacjis"
     },
-    "followerInfoUpdated": {
-      "uid": "string",
-      "followers": "Array<string>",
-      "followees": "Array<string>"
-    },
     "globalError": {"globalError?": "Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {

@@ -186,8 +186,6 @@ export const waitingKey = 'tracker2:waitingKey'
 export const profileLoadWaitingKey = 'tracker2:profileLoad'
 export const nonUserProfileLoadWaitingKey = 'tracker2:nonUserProfileLoad'
 
-export const followThem = (state: TypedState, username: string) => state.config.following.has(username)
-export const followsYou = (state: TypedState, username: string) => state.config.followers.has(username)
 export const getDetails = (state: TypedState, username: string) =>
   state.tracker2.usernameToDetails.get(username) || noDetails
 export const getNonUserDetails = (state: TypedState, username: string) =>

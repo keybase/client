@@ -3,6 +3,7 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as Constants from '../../constants/tracker2'
+import * as Followers from '../../constants/followers'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/tracker2'
@@ -53,8 +54,9 @@ const Connected = (ownProps: OwnProps) => {
     username,
   }
 
-  const followThem = Container.useSelector(state => Constants.followThem(state, username))
-  const mutualFollow = Container.useSelector(state => followThem && Constants.followsYou(state, username))
+  const followThem = Followers.useFollowerState(s => s.following.has(username))
+  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
+  const mutualFollow = followThem && followsYou
   const _suggestionKeys = Container.useSelector(state =>
     userIsYou ? state.tracker2.proofSuggestions : undefined
   )

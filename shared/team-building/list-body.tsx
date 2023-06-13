@@ -1,19 +1,20 @@
 import * as Container from '../util/container'
-import trim from 'lodash/trim'
-import type {RootRouteProps} from '../router-v2/route-params'
-import {getTeamDetails} from '../constants/teams'
-import {formatAnyPhoneNumbers} from '../util/phone-numbers'
-import type * as TeamBuildingTypes from '../constants/types/team-building'
-import type * as TeamTypes from '../constants/types/teams'
-import {memoize} from '../util/memoize'
-import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
+import * as Followers from '../constants/followers'
 import * as Kb from '../common-adapters'
 import * as Shared from './shared'
 import * as Styles from '../styles'
 import PeopleResult from './search-result/people-result'
 import UserResult from './search-result/user-result'
 import throttle from 'lodash/throttle'
+import trim from 'lodash/trim'
+import type * as TeamBuildingTypes from '../constants/types/team-building'
+import type * as TeamTypes from '../constants/types/teams'
 import type * as Types from './types'
+import type {RootRouteProps} from '../router-v2/route-params'
+import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
+import {formatAnyPhoneNumbers} from '../util/phone-numbers'
+import {getTeamDetails} from '../constants/teams'
+import {memoize} from '../util/memoize'
 import {useRoute} from '@react-navigation/native'
 // import {useAnimatedScrollHandler} from '../common-adapters/reanimated'
 
@@ -239,7 +240,8 @@ export const ListBody = (
   const contactsPermissionStatus = Container.useSelector(state => state.settings.contacts.permissionStatus)
 
   const username = Container.useSelector(state => state.config.username)
-  const following = Container.useSelector(state => state.config.following)
+  const following = Followers.useFollowerState(s => s.following)
+
   const maybeTeamDetails = Container.useSelector(state =>
     teamID ? getTeamDetails(state, teamID) : undefined
   )

@@ -5,12 +5,14 @@ import type {State as WaitingState} from '../constants/types/waiting'
 import type {RPCError} from '../util/errors'
 
 // for convenience we flatten the props we send over the wire
-type ConfigHoistedProps = 'following' | 'followers' | 'httpSrvAddress' | 'httpSrvToken' | 'username'
+type ConfigHoistedProps = 'httpSrvAddress' | 'httpSrvToken' | 'username'
 type UsersHoistedProps = 'infoMap' | 'blockMap'
 type WaitingHoistedProps = 'counts' | 'errors'
 
 export type ProxyProps = {
   avatarRefreshCounter: Map<string, number>
+  followers: Set<string>
+  following: Set<string>
   darkMode: boolean
   trackerUsername: string
 } & Details &
@@ -33,8 +35,8 @@ type SerializeProps = Omit<
   avatarRefreshCounterArr: Array<[string, number]>
   counts: Array<[string, number]>
   errors: Array<[string, RPCError | undefined]>
-  followers: Array<string>
-  following: Array<string>
+  followersArr: Array<string>
+  followingArr: Array<string>
   infoMap: Array<[string, UserInfo]>
   blockMap: Array<[string, BlockState]>
 }
@@ -42,6 +44,8 @@ export type DeserializeProps = {
   avatarRefreshCounter: Map<string, number>
   darkMode: boolean
   config: Pick<ConfigState, ConfigHoistedProps>
+  followers: Set<string>
+  following: Set<string>
   users: Pick<UsersState, UsersHoistedProps>
   teams: {teamNameToID: Map<string, string>}
   tracker2: {usernameToDetails: Map<string, Details>}
@@ -52,13 +56,13 @@ export type DeserializeProps = {
 const initialState: DeserializeProps = {
   avatarRefreshCounter: new Map(),
   config: {
-    followers: new Set(),
-    following: new Set(),
     httpSrvAddress: '',
     httpSrvToken: '',
     username: '',
   },
   darkMode: false,
+  followers: new Set(),
+  following: new Set(),
   teams: {teamNameToID: new Map()},
   tracker2: {usernameToDetails: new Map()},
   trackerUsername: '',
@@ -91,8 +95,8 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
       : [],
     counts: [...counts.entries()],
     errors: [...errors.entries()],
-    followers: [...followers],
-    following: [...following],
+    followersArr: [...followers],
+    followingArr: [...following],
     infoMap: [...infoMap.entries()],
     trackerUsername,
   }
@@ -110,9 +114,9 @@ export const deserialize = (
     bio,
     counts,
     errors,
-    followers,
+    followersArr,
     followersCount,
-    following,
+    followingArr,
     followingCount,
     fullname,
     guiID,
@@ -161,12 +165,12 @@ export const deserialize = (
       : state.avatarRefreshCounter,
     config: {
       ...state.config,
-      followers: followers ? new Set(followers) : state.config.followers,
-      following: following ? new Set(following) : state.config.following,
       httpSrvAddress: httpSrvAddress ?? state.config.httpSrvAddress,
       httpSrvToken: httpSrvToken ?? state.config.httpSrvToken,
       username: username ?? state.config.username,
     },
+    followers: followersArr ? new Set(followersArr) : state.followers,
+    following: followingArr ? new Set(followingArr) : state.following,
     tracker2: {usernameToDetails: new Map([[trackerUsername, details]])},
     trackerUsername,
     users: {

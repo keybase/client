@@ -11,12 +11,10 @@ import type * as Types from '../constants/types/config'
 import type * as Tracker2Gen from '../actions/tracker2-gen'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
-import isEqual from 'lodash/isEqual'
 
 type Actions =
   | ConfigGen.Actions
   | Tracker2Gen.UpdatedDetailsPayload
-  | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
   | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
   | GregorGen.PushStatePayload
@@ -99,32 +97,11 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
       draftState.userSwitching = false
     }
   },
-  [ConfigGen.followerInfoUpdated]: (draftState, action) => {
-    if (draftState.uid === action.payload.uid) {
-      const newFollowers = new Set(action.payload.followers)
-      if (!isEqual(newFollowers, draftState.followers)) {
-        draftState.followers = newFollowers
-      }
-      const newFollowing = new Set(action.payload.followees)
-      if (!isEqual(newFollowing, draftState.following)) {
-        draftState.following = newFollowing
-      }
-    }
-  },
   [ConfigGen.loggedIn]: draftState => {
     draftState.loggedIn = true
   },
   [ConfigGen.loggedOut]: draftState => {
     draftState.loggedIn = false
-  },
-  [EngineGen.keybase1NotifyTrackingTrackingChanged]: (draftState, action) => {
-    const {isTracking, username} = action.payload.params
-    const {following} = draftState
-    if (isTracking) {
-      following.add(username)
-    } else {
-      following.delete(username)
-    }
   },
   [ConfigGen.globalError]: (draftState, action) => {
     const {globalError} = action.payload

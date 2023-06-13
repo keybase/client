@@ -4,6 +4,7 @@ import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
 import * as FSConstants from '../constants/fs'
 import * as FSTypes from '../constants/types/fs'
+import * as Followers from '../constants/followers'
 import * as React from 'react'
 import * as Styles from '../styles'
 import KB2 from '../util/electron.desktop'
@@ -64,11 +65,13 @@ const getCachedUsernames = memoize(
 
 // TODO could make this render less
 const RemoteProxy = React.memo(function MenubarRemoteProxy() {
+  const following = Followers.useFollowerState(s => s.following)
+  const followers = Followers.useFollowerState(s => s.followers)
   const s = Container.useSelector(state => {
     const {notifications, config, fs, chat2, users} = state
     const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
-    const {httpSrvToken, httpSrvAddress, windowShownCount, username, following} = config
-    const {outOfDate, loggedIn, followers} = config
+    const {httpSrvToken, httpSrvAddress, windowShownCount, username} = config
+    const {outOfDate, loggedIn} = config
     const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
     const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
     const widgetList = inboxLayout?.widgetList
@@ -77,8 +80,6 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     return {
       badgeMap,
       desktopAppBadgeCount,
-      followers,
-      following,
       httpSrvAddress,
       httpSrvToken,
       infoMap,
@@ -101,7 +102,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     }
   }, shallowEqual)
 
-  const {badgeMap, desktopAppBadgeCount, followers, following} = s
+  const {badgeMap, desktopAppBadgeCount} = s
   const {httpSrvAddress, httpSrvToken, infoMap, kbfsDaemonStatus, loggedIn, metaMap} = s
   const {navBadges, outOfDate, overallSyncStatus, participantMap, pathItems} = s
   const {sfmi, tlfUpdates, unreadMap, uploads, username} = s

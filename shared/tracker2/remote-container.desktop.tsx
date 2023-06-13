@@ -2,6 +2,7 @@
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/tracker2'
+import * as Followers from '../constants/followers'
 import * as Container from '../util/container'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import type * as Types from '../constants/types/tracker2'
@@ -25,13 +26,13 @@ const noDetails: Types.Details = {
 const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const dispatch = Container.useDispatch()
-  const {avatarRefreshCounter, darkMode, trackerUsername, tracker2, config} = state
+  const {avatarRefreshCounter, darkMode, trackerUsername, tracker2, config, followers, following} = state
   const {usernameToDetails} = tracker2
   const details = usernameToDetails.get(trackerUsername) ?? noDetails
   const {assertions, bio, followersCount, followingCount} = details
   const {guiID, location, reason, state: trackerState, teamShowcase} = details
-  const replace = useAvatarState(s => s.replace)
-  replace(avatarRefreshCounter)
+  useAvatarState(s => s.replace)(avatarRefreshCounter)
+  Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
   return (
     <Tracker
       assertionKeys={assertions ? [...assertions.keys()] : undefined}

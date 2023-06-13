@@ -1,17 +1,17 @@
 import * as Container from '../../util/container'
+import * as Followers from '../../constants/followers'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type * as RPCTypes from '../../constants/types/rpc-gen'
 import {FollowButton} from './buttons'
-import * as Tracker2Constants from '../../constants/tracker2'
 
 const renderItem = (_: number, item: RPCTypes.ProcessedContact) => <Item item={item} />
 
 const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
   const username = item.username
-  const label =
-    item.contactName || (item.component && (item.component.phoneNumber || item.component.email)) || ''
-  const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, username))
+  const label = item.contactName || item.component?.phoneNumber || item.component?.email || ''
+
+  const followThem = Followers.useFollowerState(s => s.following.has(username))
   if (followThem) {
     return null
   }

@@ -1,5 +1,6 @@
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/tracker2'
+import * as Followers from '../../constants/followers'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Bio from '.'
 import shallowEqual from 'shallowequal'
@@ -32,10 +33,8 @@ export default (ownProps: OwnProps) => {
       return {
         ...common,
         bio: d.bio,
-        followThem: Constants.followThem(state, username),
         followersCount: d.followersCount,
         followingCount: d.followingCount,
-        followsYou: Constants.followsYou(state, username),
         fullname: d.fullname,
         location: d.location,
       }
@@ -46,7 +45,13 @@ export default (ownProps: OwnProps) => {
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
+
+  const followThem = Followers.useFollowerState(s => s.following.has(username))
+  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
+
   const props = {
+    followThem,
+    followsYou,
     inTracker,
     onBack,
     username,

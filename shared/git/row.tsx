@@ -29,7 +29,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
   )
 
   const isNew = React.useContext(NewContext).has(id)
-  const lastEditUserFollowing = Container.useSelector(state => state.config.following.has(git.lastEditUser))
+
   const you = Container.useSelector(state => state.config.username)
 
   const setTeamRepoSettings = Constants.useGitState(s => s.dispatch.setTeamRepoSettings)
@@ -75,7 +75,6 @@ const ConnectedRow = (ownProps: OwnProps) => {
     isNew,
     lastEditTime: git.lastEditTime,
     lastEditUser: git.lastEditUser,
-    lastEditUserFollowing,
     name: git.name,
     onBrowseGitRepo: () =>
       _onBrowseGitRepo(
@@ -115,7 +114,6 @@ type Props = {
   expanded: boolean
   lastEditTime: string
   lastEditUser: string
-  lastEditUserFollowing: boolean
   name: string
   you?: string
   teamname?: string

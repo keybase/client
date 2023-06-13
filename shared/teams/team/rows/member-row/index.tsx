@@ -10,7 +10,6 @@ import MenuHeader from '../menu-header.new'
 
 export type Props = {
   firstItem: boolean
-  following: boolean
   fullName: string
   needsPUK: boolean
   onBlock: () => void

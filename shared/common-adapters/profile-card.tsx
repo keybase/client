@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Followers from '../constants/followers'
 import * as Styles from '../styles'
 import * as Platforms from '../util/platforms'
 import * as Container from '../util/container'
@@ -131,8 +132,8 @@ const ProfileCard = ({
   username,
 }: Props) => {
   const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
-  const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, username))
-  const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, username))
+  const followThem = Followers.useFollowerState(s => s.following.has(username))
+  const followsYou = Followers.useFollowerState(s => s.followers.has(username))
   const isSelf = Container.useSelector(state => state.config.username === username)
   const hasBrokenProof = [...(userDetails.assertions || new Map()).values()].find(
     assertion => assertion.state !== 'valid'

@@ -23,7 +23,6 @@ export default (ownProps: OwnProps) => {
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const info = members.get(username) || blankInfo
 
-  const following = Container.useSelector(state => state.config.following.has(username))
   const fullName = Container.useSelector(state =>
     state.config.username === username ? 'You' : info.fullName
   )
@@ -80,7 +79,6 @@ export default (ownProps: OwnProps) => {
   }
   const props = {
     firstItem,
-    following: following,
     fullName: fullName,
     needsPUK: needsPUK,
     onBlock: onBlock,
