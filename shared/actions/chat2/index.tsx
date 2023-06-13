@@ -2077,9 +2077,6 @@ const previewConversationTeam = async (
 const startupInboxLoad = (state: Container.TypedState) =>
   !!state.config.username && Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
 
-const startupUserReacjisLoad = (_: unknown, action: ConfigGen.BootstrapStatusLoadedPayload) =>
-  Chat2Gen.createUpdateUserReacjis({userReacjis: action.payload.userReacjis})
-
 const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
   const participantInfo = Constants.getParticipantInfo(state, action.payload.conversationIDKey)
@@ -3958,8 +3955,6 @@ const initChat = () => {
 
   // On login lets load the untrusted inbox. This helps make some flows easier
   Container.listenAction(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)
-
-  Container.listenAction(ConfigGen.bootstrapStatusLoaded, startupUserReacjisLoad)
 
   // Search handling
   Container.listenAction(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)

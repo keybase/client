@@ -1,4 +1,5 @@
 import * as ConfigGen from '../config-gen'
+import * as Chat2Gen from '../chat2-gen'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as Followers from '../../constants/followers'
@@ -87,18 +88,18 @@ const loadDaemonBootstrapStatus = async (
 
   const makeCall = async () => {
     const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
-    setBootstrap({
-      deviceID: s.deviceID,
-      deviceName: s.deviceName,
-      uid: s.uid,
-    })
+    const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
+    setBootstrap({deviceID, deviceName, uid})
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
-      loggedIn: s.loggedIn,
-      userReacjis: s.userReacjis,
-      username: s.username,
+      loggedIn,
+      username,
     })
+
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     listenerApi.dispatch(loadedAction)
+
+    listenerApi.dispatch(Chat2Gen.createUpdateUserReacjis({userReacjis}))
+
     // set HTTP srv info
     if (s.httpSrvInfo) {
       logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)

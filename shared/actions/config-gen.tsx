@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import type * as RPCTypes from '../constants/types/rpc-gen'
+
 import type * as Types from '../constants/types/config'
 import type * as Tabs from '../constants/tabs'
 import type * as ChatTypes from '../constants/types/chat2'
@@ -235,7 +235,6 @@ export const createLogoutHandshakeWait = (payload: {
 export const createBootstrapStatusLoaded = (payload: {
   readonly loggedIn: boolean
   readonly username: string
-  readonly userReacjis: RPCTypes.UserReacjis
 }) => ({payload, type: bootstrapStatusLoaded as typeof bootstrapStatusLoaded})
 export const createChangedActive = (payload: {readonly userActive: boolean}) => ({
   payload,

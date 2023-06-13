@@ -55,8 +55,7 @@
     "showMain": {},
     "bootstrapStatusLoaded": {
       "loggedIn": "boolean",
-      "username": "string",
-      "userReacjis": "RPCTypes.UserReacjis"
+      "username": "string"
     },
     "globalError": {"globalError?": "Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},
