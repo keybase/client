@@ -4,7 +4,6 @@ import type * as Types from '../constants/types/config'
 import type * as Tabs from '../constants/tabs'
 import type * as ChatTypes from '../constants/types/chat2'
 import type HiddenString from '../util/hidden-string'
-import type {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
@@ -20,7 +19,6 @@ export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
-export const globalError = 'config:globalError'
 export const initListenerLoops = 'config:initListenerLoops'
 export const installerRan = 'config:installerRan'
 export const loadOnLoginStartup = 'config:loadOnLoginStartup'
@@ -260,10 +258,6 @@ export const createDumpLogs = (payload: {readonly reason: 'quitting through menu
   payload,
   type: dumpLogs as typeof dumpLogs,
 })
-export const createGlobalError = (payload: {readonly globalError?: Error | RPCError} = {}) => ({
-  payload,
-  type: globalError as typeof globalError,
-})
 export const createLoadOnLoginStartup = (payload?: undefined) => ({
   payload,
   type: loadOnLoginStartup as typeof loadOnLoginStartup,
@@ -371,7 +365,6 @@ export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
-export type GlobalErrorPayload = ReturnType<typeof createGlobalError>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LoadOnLoginStartupPayload = ReturnType<typeof createLoadOnLoginStartup>
@@ -430,7 +423,6 @@ export type Actions =
   | DarkModePreferenceChangedPayload
   | DumpLogsPayload
   | FilePickerErrorPayload
-  | GlobalErrorPayload
   | InitListenerLoopsPayload
   | InstallerRanPayload
   | LoadOnLoginStartupPayload

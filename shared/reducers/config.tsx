@@ -4,12 +4,10 @@ import * as ChatConstants from '../constants/chat2'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ProvisionGen from '../actions/provision-gen'
 import * as ConfigGen from '../actions/config-gen'
-import * as Stats from '../engine/stats'
 import * as Container from '../util/container'
 import type * as GregorGen from '../actions/gregor-gen'
 import type * as Types from '../constants/types/config'
 import type * as Tracker2Gen from '../actions/tracker2-gen'
-import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
 
 type Actions =
@@ -97,20 +95,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.loggedOut]: draftState => {
     draftState.loggedIn = false
-  },
-  [ConfigGen.globalError]: (draftState, action) => {
-    const {globalError} = action.payload
-    if (globalError) {
-      logger.error('Error (global):', globalError)
-      if (isEOFError(globalError)) {
-        Stats.gotEOF()
-      }
-      if (isErrorTransient(globalError)) {
-        logger.info('globalError silencing:', globalError)
-        return
-      }
-    }
-    draftState.globalError = globalError
   },
   [ConfigGen.changedActive]: (draftState, action) => {
     draftState.userActive = action.payload.userActive

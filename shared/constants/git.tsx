@@ -1,9 +1,9 @@
 import type * as Types from './types/git'
 import * as dateFns from 'date-fns'
-import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
+import * as ConfigConstants from './config'
 
 const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
   const errors: Array<Error> = []
@@ -104,7 +104,8 @@ export const useGitState = Container.createZustand(
     const _load = async () => {
       const results = await RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, loadingWaitingKey)
       const {errors, repos} = parseRepos(results || [])
-      errors.forEach(globalError => reduxDispatch(ConfigGen.createGlobalError({globalError})))
+      const {setGlobalError} = ConfigConstants.useConfigState.getState().dispatch
+      errors.forEach(e => setGlobalError(e))
       set(s => {
         s.idToInfo = repos
       })

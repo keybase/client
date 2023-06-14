@@ -12,13 +12,19 @@ function isRPCErrorLike(err: Object): err is RPCErrorLike {
 
 // convertToError converts an RPC error object (or any object) into an
 // Error or RPCError.
-export function convertToError(err: Object, method?: string): Error | RPCError {
+export function convertToError(err: any, method?: string): Error | RPCError {
   if (err instanceof Error || err instanceof RPCError) {
     return err
   }
 
-  if (isRPCErrorLike(err)) {
-    return convertToRPCError(err, method)
+  if (!err) {
+    return new Error('blank error')
+  }
+
+  if (typeof err === 'object') {
+    if (isRPCErrorLike(err)) {
+      return convertToRPCError(err, method)
+    }
   }
 
   return new Error(`Unknown error: ${JSON.stringify(err)}`)

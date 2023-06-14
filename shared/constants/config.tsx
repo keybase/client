@@ -1,4 +1,5 @@
 import * as ConfigGen from '../actions/config-gen'
+import type {RPCError} from '../util/errors'
 import HiddenString from '../util/hidden-string'
 import type * as RPCTypes from './types/rpc-gen'
 import type * as Types from './types/config'
@@ -9,6 +10,10 @@ import {noConversationIDKey} from './types/chat2/common'
 import {create as createZustand} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 import {getReduxDispatch} from '../util/zustand'
+import {enableActionLogging} from '../local-debug'
+import logger from '../logger'
+import {convertToError, isEOFError, isErrorTransient} from '../util/errors'
+import * as Stats from '../engine/stats'
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
@@ -78,13 +83,16 @@ export type ZStore = {
   appFocused: boolean
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
+  globalError?: Error | RPCError
 }
 
 const initialZState: ZStore = {
   allowAnimatedEmojis: true,
+  androidShare: undefined,
   appFocused: true,
   configuredAccounts: [],
   defaultUsername: '',
+  globalError: undefined,
 }
 
 type ZState = ZStore & {
@@ -95,6 +103,7 @@ type ZState = ZStore & {
     changedFocus: (f: boolean) => void
     setAccounts: (a: ZStore['configuredAccounts']) => void
     setDefaultUsername: (u: string) => void
+    setGlobalError: (e?: any) => void
   }
 }
 
@@ -135,6 +144,26 @@ export const useConfigState = createZustand(
       setDefaultUsername: (u: string) => {
         set(s => {
           s.defaultUsername = u
+        })
+      },
+      setGlobalError: (_e?: Error | RPCError) => {
+        const e = convertToError(_e)
+        if (e) {
+          logger.error('Error (global):', e)
+          if (isEOFError(e)) {
+            Stats.gotEOF()
+          }
+          if (isErrorTransient(e)) {
+            logger.info('globalError silencing:', e)
+            return
+          }
+          if (enableActionLogging) {
+            const payload = {err: `Global Error: ${e.message} ${e.stack ?? ''}`}
+            logger.action({payload, type: 'config:globalError'})
+          }
+        }
+        set(s => {
+          s.globalError = e
         })
       },
     }
