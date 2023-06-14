@@ -70,7 +70,6 @@
     },
     "setOpenAtLogin": {"openAtLogin": "boolean"},
     "setNotifySound": {"notifySound": "boolean"},
-    "setDeletedSelf": {"deletedUsername": "string"},
     "persistRoute": {"path?": "Array<any>"},
     "setNavigator": {"navigator": "any"},
     "loggedOut": {},

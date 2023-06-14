@@ -31,7 +31,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  justDeletedSelf: '',
   justRevokedSelf: '',
   loggedIn: false,
   logoutHandshakeVersion: 1,
@@ -86,6 +85,7 @@ export type ZStore = {
     token: string
   }
   incomingShareUseOriginal?: boolean
+  justDeletedSelf: string
 }
 
 const initialZState: ZStore = {
@@ -100,6 +100,7 @@ const initialZState: ZStore = {
     token: '',
   },
   incomingShareUseOriginal: undefined,
+  justDeletedSelf: '',
 }
 
 type ZState = ZStore & {
@@ -113,6 +114,7 @@ type ZState = ZStore & {
     setGlobalError: (e?: any) => void
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
+    setJustDeletedSelf: (s: string) => void
   }
 }
 
@@ -185,6 +187,11 @@ export const useConfigState = createZustand(
       setIncomingShareUseOriginal: (use: boolean) => {
         set(s => {
           s.incomingShareUseOriginal = use
+        })
+      },
+      setJustDeletedSelf: (self: string) => {
+        set(s => {
+          s.justDeletedSelf = self
         })
       },
     }

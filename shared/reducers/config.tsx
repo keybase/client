@@ -108,9 +108,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.setUserSwitching]: (draftState, action) => {
     draftState.userSwitching = action.payload.userSwitching
   },
-  [ConfigGen.setDeletedSelf]: (draftState, action) => {
-    draftState.justDeletedSelf = action.payload.deletedUsername
-  },
   [ConfigGen.daemonHandshakeDone]: draftState => {
     draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
   },

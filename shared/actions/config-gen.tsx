@@ -40,7 +40,6 @@ export const pushLoaded = 'config:pushLoaded'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
 export const revoked = 'config:revoked'
-export const setDeletedSelf = 'config:setDeletedSelf'
 export const setNavigator = 'config:setNavigator'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
@@ -286,10 +285,6 @@ export const createRevoked = (payload: {
   readonly wasCurrentDevice: boolean
   readonly deviceName: string
 }) => ({payload, type: revoked as typeof revoked})
-export const createSetDeletedSelf = (payload: {readonly deletedUsername: string}) => ({
-  payload,
-  type: setDeletedSelf as typeof setDeletedSelf,
-})
 export const createSetNavigator = (payload: {readonly navigator: any}) => ({
   payload,
   type: setNavigator as typeof setNavigator,
@@ -376,7 +371,6 @@ export type PushLoadedPayload = ReturnType<typeof createPushLoaded>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
 export type RevokedPayload = ReturnType<typeof createRevoked>
-export type SetDeletedSelfPayload = ReturnType<typeof createSetDeletedSelf>
 export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
 export type SetNotifySoundPayload = ReturnType<typeof createSetNotifySound>
 export type SetOpenAtLoginPayload = ReturnType<typeof createSetOpenAtLogin>
@@ -432,7 +426,6 @@ export type Actions =
   | RemoteWindowWantsPropsPayload
   | RestartHandshakePayload
   | RevokedPayload
-  | SetDeletedSelfPayload
   | SetNavigatorPayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload

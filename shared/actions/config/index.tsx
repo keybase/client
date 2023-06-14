@@ -219,11 +219,6 @@ const loadDaemonAccounts = async (
   }
 }
 
-const showDeletedSelfRootPage = () => [
-  RouteTreeGen.createSwitchLoggedIn({loggedIn: false}),
-  RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}),
-]
-
 const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
 
 // Figure out whether we can log out using CanLogout, if so,
@@ -513,8 +508,6 @@ const initConfig = () => {
   Container.listenAction(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
   Container.listenAction(ConfigGen.loadOnStart, updateServerConfig)
-
-  Container.listenAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
