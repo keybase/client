@@ -559,14 +559,6 @@ const initConfig = () => {
     useAvatarState.getState().updated(name)
   })
 
-  Container.listenAction(ConfigGen.revoked, (_, action) => {
-    if (!action.payload.wasCurrentDevice) return
-    const {configuredAccounts} = Constants.useConfigState.getState()
-    const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
-    const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername)?.username ?? ''
-    setDefaultUsername(defaultUsername)
-  })
-
   Container.listenAction(ConfigGen.setSystemDarkMode, (_, action) => {
     // only to bridge electron bridge, todo remove this
     if (!Container.isMobile) {
@@ -594,7 +586,7 @@ const initConfig = () => {
   })
 
   Container.listenAction(ProvisionGen.startProvision, () => {
-    Constants.useConfigState.getState().dispatch.setJustRevokedSelf('')
+    Constants.useConfigState.getState().dispatch.resetRevokedSelf()
   })
 }
 

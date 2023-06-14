@@ -13,6 +13,7 @@ import {getReduxDispatch} from '../util/zustand'
 import {enableActionLogging} from '../local-debug'
 import logger from '../logger'
 import {convertToError, isEOFError, isErrorTransient} from '../util/errors'
+import {useCurrentUserState} from './current-user'
 import * as Stats from '../engine/stats'
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
@@ -110,18 +111,19 @@ type ZState = ZStore & {
     setAllowAnimatedEmojis: (a: boolean) => void
     setAndroidShare: (s: ZStore['androidShare']) => void
     changedFocus: (f: boolean) => void
+    resetRevokedSelf: () => void
+    revoke: (deviceName: string) => void
     setAccounts: (a: ZStore['configuredAccounts']) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: any) => void
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
-    setJustRevokedSelf: (s: string) => void
   }
 }
 
 export const useConfigState = createZustand(
-  immerZustand<ZState>(set => {
+  immerZustand<ZState>((set, get) => {
     const reduxDispatch = getReduxDispatch()
 
     const dispatch = {
@@ -138,6 +140,21 @@ export const useConfigState = createZustand(
           configuredAccounts: s.configuredAccounts,
           defaultUsername: s.defaultUsername,
         }))
+      },
+      resetRevokedSelf: () => {
+        set(s => {
+          s.justRevokedSelf = ''
+        })
+      },
+      revoke: (name: string) => {
+        const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
+        if (wasCurrentDevice) {
+          const {configuredAccounts} = get()
+          const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername)?.username ?? ''
+          set(s => {
+            s.defaultUsername = defaultUsername
+          })
+        }
       },
       setAccounts: (a: ZStore['configuredAccounts']) => {
         set(s => {
@@ -212,4 +229,4 @@ export const useConfigState = createZustand(
 
 export {useDaemonState, maxHandshakeTries} from './daemon'
 export {useFollowerState} from './followers'
-export {useCurrentUserState} from './current-user'
+export {useCurrentUserState}

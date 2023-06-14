@@ -280,11 +280,7 @@ export const createPushLoaded = (payload: {readonly pushLoaded: boolean}) => ({
   payload,
   type: pushLoaded as typeof pushLoaded,
 })
-export const createRevoked = (payload: {
-  readonly deviceID: string
-  readonly wasCurrentDevice: boolean
-  readonly deviceName: string
-}) => ({payload, type: revoked as typeof revoked})
+export const createRevoked = (payload?: undefined) => ({payload, type: revoked as typeof revoked})
 export const createSetNavigator = (payload: {readonly navigator: any}) => ({
   payload,
   type: setNavigator as typeof setNavigator,
