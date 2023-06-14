@@ -143,13 +143,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
       } as Types.State['runtimeStats']
     }
   },
-  [ConfigGen.updateHTTPSrvInfo]: (draftState, action) => {
-    logger.info(
-      `config reducer: http server info: addr: ${action.payload.address} token: ${action.payload.token}`
-    )
-    draftState.httpSrvAddress = action.payload.address
-    draftState.httpSrvToken = action.payload.token
-  },
   [ConfigGen.osNetworkStatusChanged]: (draftState, action) => {
     draftState.osNetworkOnline = action.payload.online
   },

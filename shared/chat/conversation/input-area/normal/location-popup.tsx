@@ -19,13 +19,13 @@ type Props = {conversationIDKey: Types.ConversationIDKey}
 const LocationPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const {httpSrvAddress, httpSrvToken, location, locationDenied} = Container.useSelector(state => {
-    const {httpSrvAddress, httpSrvToken} = state.config
+  const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
+  const {location, locationDenied} = Container.useSelector(state => {
     const location = state.chat2.lastCoord
     const locationDenied =
       state.chat2.commandStatusMap.get(conversationIDKey)?.displayType ===
       RPCChatTypes.UICommandStatusDisplayTyp.error
-    return {httpSrvAddress, httpSrvToken, location, locationDenied, username}
+    return {location, locationDenied, username}
   }, shallowEqual)
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const dispatch = Container.useDispatch()
@@ -60,7 +60,7 @@ const LocationPopup = (props: Props) => {
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight - 320)
   const mapSrc = location
-    ? `http://${httpSrvAddress}/map?lat=${location.lat}&lon=${location.lon}&width=${width}&height=${height}&username=${username}&token=${httpSrvToken}`
+    ? `http://${httpSrv.address}/map?lat=${location.lat}&lon=${location.lon}&width=${width}&height=${height}&username=${username}&token=${httpSrv.token}`
     : ''
   return (
     <Kb.Modal

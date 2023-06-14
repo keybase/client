@@ -29,8 +29,6 @@ export type WindowState = {
 }
 
 export type State = {
-  httpSrvAddress: string
-  httpSrvToken: string
   incomingShareUseOriginal?: boolean
   justDeletedSelf: string
   justRevokedSelf: string

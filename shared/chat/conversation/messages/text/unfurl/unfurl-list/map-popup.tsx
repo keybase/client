@@ -2,6 +2,7 @@ import * as Kb from '../../../../../../common-adapters/index'
 import * as Container from '../../../../../../util/container'
 import * as RouteTreeGen from '../../../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../../../actions/chat2-gen'
+import * as ConfigConstants from '../../../../../../constants/config'
 import * as Styles from '../../../../../../styles'
 import type * as Types from '../../../../../../constants/types/chat2'
 import openURL from '../../../../../../util/open-url'
@@ -20,8 +21,7 @@ type Props = {
 const UnfurlMapPopup = (props: Props) => {
   const {coord, isAuthor, isLiveLocation, url, conversationIDKey} = props
   const author = props.author ?? ''
-  const httpSrvAddress = Container.useSelector(state => state.config.httpSrvAddress)
-  const httpSrvToken = Container.useSelector(state => state.config.httpSrvToken)
+  const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
 
   const dispatch = Container.useDispatch()
   const onClose = () => {
@@ -43,7 +43,7 @@ const UnfurlMapPopup = (props: Props) => {
 
   const width = Math.ceil(Styles.dimensionWidth)
   const height = Math.ceil(Styles.dimensionHeight)
-  const mapSrc = `http://${httpSrvAddress}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrvToken}&username=${author}`
+  const mapSrc = `http://${httpSrv.address}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrv.token}&username=${author}`
   return (
     <Kb.Modal
       scrollViewContainerStyle={{maxWidth: undefined}}

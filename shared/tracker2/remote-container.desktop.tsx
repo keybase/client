@@ -28,6 +28,7 @@ const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const dispatch = Container.useDispatch()
   const {avatarRefreshCounter, darkMode, trackerUsername, tracker2, followers, following, username} = state
+  const {httpSrvToken, httpSrvAddress} = state
   const {usernameToDetails} = tracker2
   const details = usernameToDetails.get(trackerUsername) ?? noDetails
   const {assertions, bio, followersCount, followingCount} = details
@@ -35,6 +36,7 @@ const RemoteContainer = () => {
   useAvatarState(s => s.replace)(avatarRefreshCounter)
   Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
   ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
+  ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
   return (
     <Tracker
       assertionKeys={assertions ? [...assertions.keys()] : undefined}

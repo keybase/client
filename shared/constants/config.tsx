@@ -31,8 +31,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  httpSrvAddress: '',
-  httpSrvToken: '',
   incomingShareUseOriginal: undefined,
   justDeletedSelf: '',
   justRevokedSelf: '',
@@ -84,6 +82,10 @@ export type ZStore = {
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
+  httpSrv: {
+    address: string
+    token: string
+  }
 }
 
 const initialZState: ZStore = {
@@ -93,6 +95,10 @@ const initialZState: ZStore = {
   configuredAccounts: [],
   defaultUsername: '',
   globalError: undefined,
+  httpSrv: {
+    address: '',
+    token: '',
+  },
 }
 
 type ZState = ZStore & {
@@ -104,6 +110,7 @@ type ZState = ZStore & {
     setAccounts: (a: ZStore['configuredAccounts']) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: any) => void
+    setHTTPSrvInfo: (address: string, token: string) => void
   }
 }
 
@@ -164,6 +171,13 @@ export const useConfigState = createZustand(
         }
         set(s => {
           s.globalError = e
+        })
+      },
+      setHTTPSrvInfo: (address: string, token: string) => {
+        logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)
+        set(s => {
+          s.httpSrv.address = address
+          s.httpSrv.token = token
         })
       },
     }

@@ -7,6 +7,7 @@ import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
 import * as AvatarZus from './avatar-zus'
 import * as Followers from '../constants/followers'
+import * as ConfigConstants from '../constants/config'
 import type * as Types from '../constants/types/teams'
 import './avatar.css'
 
@@ -119,8 +120,7 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
   const followsYou = Followers.useFollowerState(s =>
     showFollowingStatus && username ? s.followers.has(username) : false
   )
-  const httpSrvAddress = Container.useSelector(state => state.config.httpSrvAddress)
-  const httpSrvToken = Container.useSelector(state => state.config.httpSrvToken)
+  const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
   const blocked = Container.useSelector(
     state => state.users?.blockMap?.get(username || teamname || '')?.chatBlocked
   )
@@ -135,16 +135,16 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
   const name = isTeam ? teamname : username
   const sizes = [960, 256, 192] as const
   const urlMap = sizes.reduce<{[key: number]: string}>((m, size) => {
-    m[size] = `http://${httpSrvAddress}/av?typ=${
+    m[size] = `http://${httpSrv.address}/av?typ=${
       isTeam ? 'team' : 'user'
-    }&name=${name}&format=square_${size}&mode=${
-      Styles.isDarkMode() ? 'dark' : 'light'
-    }&token=${httpSrvToken}&count=${counter}`
+    }&name=${name}&format=square_${size}&mode=${Styles.isDarkMode() ? 'dark' : 'light'}&token=${
+      httpSrv.token
+    }&count=${counter}`
     return m
   }, {})
   const url = ownProps.imageOverrideUrl
     ? `url("${encodeURI(ownProps.imageOverrideUrl)}")`
-    : httpSrvAddress && name
+    : httpSrv.address && name
     ? urlsToImgSet(urlMap, ownProps.size)
     : iconTypeToImgSet(
         isTeam

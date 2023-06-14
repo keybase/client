@@ -55,7 +55,6 @@ export const showMain = 'config:showMain'
 export const showShareActionSheet = 'config:showShareActionSheet'
 export const toggleRuntimeStats = 'config:toggleRuntimeStats'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
-export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
@@ -338,10 +337,6 @@ export const createToggleRuntimeStats = (payload?: undefined) => ({
   payload,
   type: toggleRuntimeStats as typeof toggleRuntimeStats,
 })
-export const createUpdateHTTPSrvInfo = (payload: {readonly address: string; readonly token: string}) => ({
-  payload,
-  type: updateHTTPSrvInfo as typeof updateHTTPSrvInfo,
-})
 export const createUpdateInfo = (payload: {
   readonly isOutOfDate: boolean
   readonly critical: boolean
@@ -401,7 +396,6 @@ export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
 export type ToggleRuntimeStatsPayload = ReturnType<typeof createToggleRuntimeStats>
 export type UpdateCriticalCheckStatusPayload = ReturnType<typeof createUpdateCriticalCheckStatus>
-export type UpdateHTTPSrvInfoPayload = ReturnType<typeof createUpdateHTTPSrvInfo>
 export type UpdateInfoPayload = ReturnType<typeof createUpdateInfo>
 export type UpdateMenubarWindowIDPayload = ReturnType<typeof createUpdateMenubarWindowID>
 export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
@@ -459,7 +453,6 @@ export type Actions =
   | ShowShareActionSheetPayload
   | ToggleRuntimeStatsPayload
   | UpdateCriticalCheckStatusPayload
-  | UpdateHTTPSrvInfoPayload
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
