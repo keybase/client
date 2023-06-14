@@ -3,7 +3,6 @@ import * as Electron from 'electron'
 import * as ConfigGen from '../../actions/config-gen'
 import * as fs from 'fs'
 import menuHelper from './menu-helper.desktop'
-import type {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import logger from '../../logger'
@@ -42,7 +41,7 @@ const setupDefaultSession = () => {
   })
 }
 
-const defaultWindowState: WindowState = {
+const defaultWindowState = {
   dockHidden: false,
   height: 600,
   isFullScreen: false,

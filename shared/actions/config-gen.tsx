@@ -174,10 +174,17 @@ export const createUpdateWindowMaxState = (payload: {readonly max: boolean}) => 
 /**
  * main electron window wants to store its state
  */
-export const createUpdateWindowState = (payload: {readonly windowState: Types.WindowState}) => ({
-  payload,
-  type: updateWindowState as typeof updateWindowState,
-})
+export const createUpdateWindowState = (payload: {
+  readonly windowState: {
+    dockHidden: boolean
+    height: number
+    isFullScreen: boolean
+    width: number
+    windowHidden: boolean
+    x: number
+    y: number
+  }
+}) => ({payload, type: updateWindowState as typeof updateWindowState})
 /**
  * mobile only: open the settings page
  */

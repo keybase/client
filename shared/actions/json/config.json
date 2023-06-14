@@ -110,7 +110,7 @@
     },
     "updateWindowState": {
       "_description": "main electron window wants to store its state",
-      "windowState": "Types.WindowState"
+      "windowState": "{ dockHidden: boolean; height: number; isFullScreen: boolean; width: number; windowHidden: boolean; x: number; y: number; }"
     },
     "setUseNativeFrame": {
       "useNativeFrame": "boolean"

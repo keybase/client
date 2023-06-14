@@ -224,18 +224,6 @@ const initializeUseNativeFrame = async (listenerApi: Container.ListenerApi) => {
   } catch (_) {}
 }
 
-const windowStateKey = 'windowState'
-const saveWindowState = async (state: Container.TypedState) => {
-  const {windowState} = state.config
-  await RPCTypes.configGuiSetValueRpcPromise({
-    path: windowStateKey,
-    value: {
-      isNull: false,
-      s: JSON.stringify(windowState),
-    },
-  })
-}
-
 const notifySoundKey = 'notifySound'
 const initializeNotifySound = async (listenerApi: Container.ListenerApi) => {
   try {
@@ -375,7 +363,6 @@ export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.restartHandshake, sendWindowsKBServiceCheck)
   Container.listenAction(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
   Container.listenAction(ConfigGen.loggedIn, initOsNetworkStatus)
-  Container.listenAction(ConfigGen.updateWindowState, saveWindowState)
 
   ConfigConstants.useConfigState.subscribe((s, prev) => {
     if (s.appFocused !== prev.appFocused) {

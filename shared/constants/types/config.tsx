@@ -18,19 +18,8 @@ export type ConfiguredAccount = {
 // 'notavailable' is the desktop default
 export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 
-export type WindowState = {
-  dockHidden: boolean
-  height: number
-  isFullScreen: boolean
-  width: number
-  windowHidden: boolean
-  x: number
-  y: number
-}
-
 export type State = {
   loggedIn: boolean
-  mainWindowMax: boolean
   notifySound: boolean
   openAtLogin: boolean
   osNetworkOnline: boolean
@@ -47,7 +36,6 @@ export type State = {
   startupLink: string
   startupTab?: Tab
   windowShownCount: Map<string, number>
-  windowState: WindowState
   userActive: boolean
   userSwitching: boolean
   useNativeFrame: boolean

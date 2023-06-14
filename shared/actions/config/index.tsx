@@ -543,6 +543,14 @@ const initConfig = () => {
   Container.listenAction(ProvisionGen.startProvision, () => {
     Constants.useConfigState.getState().dispatch.resetRevokedSelf()
   })
+
+  Container.listenAction(ConfigGen.updateWindowMaxState, (_, action) => {
+    Constants.useConfigState.getState().dispatch.setWindowIsMax(action.payload.max)
+  })
+
+  Container.listenAction(ConfigGen.updateWindowState, (_, action) => {
+    Constants.useConfigState.getState().dispatch.updateWindowState(action.payload.windowState)
+  })
 }
 
 export default initConfig
