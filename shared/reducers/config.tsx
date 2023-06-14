@@ -23,10 +23,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     useNativeFrame: draftState.useNativeFrame,
     userSwitching: draftState.userSwitching,
   }),
-  [ConfigGen.updateWindowShown]: (draftState, action) => {
-    const count = draftState.windowShownCount.get(action.payload.component) ?? 0
-    draftState.windowShownCount.set(action.payload.component, count + 1)
-  },
   [ConfigGen.setStartupDetails]: (draftState, action) => {
     if (!draftState.startupDetailsLoaded) {
       draftState.startupDetailsLoaded = true

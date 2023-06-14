@@ -54,7 +54,6 @@ export const initialState: Types.State = {
   userActive: true,
   userSwitching: false,
   whatsNewLastSeenVersion: '',
-  windowShownCount: new Map(),
 }
 
 export type ZStore = {
@@ -81,6 +80,7 @@ export type ZStore = {
   justRevokedSelf: string
   logoutHandshakeVersion: number
   logoutHandshakeWaiters: Map<string, number>
+  windowShownCount: Map<string, number>
   windowState: {
     dockHidden: boolean
     height: number
@@ -109,6 +109,7 @@ const initialZState: ZStore = {
   justRevokedSelf: '',
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
+  windowShownCount: new Map(),
   windowState: {
     dockHidden: false,
     height: 800,
@@ -137,6 +138,7 @@ type ZState = ZStore & {
     setJustDeletedSelf: (s: string) => void
     setWindowIsMax: (m: boolean) => void
     updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => void
+    windowShown: (win: string) => void
   }
 }
 
@@ -255,6 +257,11 @@ export const useConfigState = createZustand(
             },
           })
         )
+      },
+      windowShown: (win: string) => {
+        set(s => {
+          s.windowShownCount.set(win, (s.windowShownCount.get(win) ?? 0) + 1)
+        })
       },
     }
 

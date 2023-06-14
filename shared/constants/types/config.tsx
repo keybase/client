@@ -35,7 +35,6 @@ export type State = {
   startupFollowUser: string
   startupLink: string
   startupTab?: Tab
-  windowShownCount: Map<string, number>
   userActive: boolean
   userSwitching: boolean
   useNativeFrame: boolean

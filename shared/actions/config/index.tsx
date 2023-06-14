@@ -551,6 +551,10 @@ const initConfig = () => {
   Container.listenAction(ConfigGen.updateWindowState, (_, action) => {
     Constants.useConfigState.getState().dispatch.updateWindowState(action.payload.windowState)
   })
+
+  Container.listenAction(ConfigGen.updateWindowShown, (_, action) => {
+    Constants.useConfigState.getState().dispatch.windowShown(action.payload.component)
+  })
 }
 
 export default initConfig

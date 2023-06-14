@@ -16,9 +16,9 @@ const RemoteContainer = () => {
     username,
     httpSrvAddress,
     httpSrvToken,
+    windowShownCountNum,
     ...rest
   } = state
-  const {windowShownCount} = config
   useAvatarState(s => s.replace)(avatarRefreshCounter)
   ConfigConstants.useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
   Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
@@ -30,7 +30,7 @@ const RemoteContainer = () => {
       {...config}
       username={username}
       daemonHandshakeState={daemonHandshakeState}
-      windowShownCount={windowShownCount.get('menu') ?? 0}
+      windowShownCount={windowShownCountNum}
     />
   )
 }
