@@ -203,48 +203,6 @@ const updateNow = async () => {
   return ConfigGen.createCheckForUpdate()
 }
 
-const openAtLoginKey = 'openAtLogin'
-const initializeOpenAtLogin = async (listenerApi: Container.ListenerApi) => {
-  try {
-    const val = await RPCTypes.configGuiGetValueRpcPromise({path: openAtLoginKey})
-    const openAtLogin: boolean | undefined = val.b || undefined
-    const state = listenerApi.getState()
-    if (openAtLogin !== undefined && openAtLogin !== state.config.openAtLogin) {
-      listenerApi.dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin}))
-    }
-  } catch (_) {}
-}
-
-const onSetOpenAtLogin = async (state: Container.TypedState) => {
-  const {openAtLogin} = state.config
-  await RPCTypes.configGuiSetValueRpcPromise({
-    path: openAtLoginKey,
-    value: {
-      b: openAtLogin,
-      isNull: false,
-    },
-  })
-
-  if (__DEV__) {
-    console.log('onSetOpenAtLogin disabled for dev mode')
-    return
-  }
-  if (isLinux || isWindows) {
-    const enabled =
-      (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
-    if (enabled !== openAtLogin) {
-      await RPCTypes.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin}).catch(err => {
-        logger.warn(`Error in sending ctlSetOnLoginStartup: ${err.message}`)
-      })
-    }
-  } else {
-    logger.info(`Login item settings changed! now ${openAtLogin}`)
-    setOpenAtLogin?.(openAtLogin)
-      .then(() => {})
-      .catch(() => {})
-  }
-}
-
 export const requestLocationPermission = async () => Promise.resolve()
 export const watchPositionForMap = async () => Promise.resolve(() => {})
 
@@ -301,7 +259,6 @@ const maybePauseVideos = () => {
 }
 
 export const initPlatformListener = () => {
-  Container.listenAction(ConfigGen.setOpenAtLogin, onSetOpenAtLogin)
   Container.listenAction(ConfigGen.showMain, () => showMainWindow?.())
   Container.listenAction(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
@@ -331,7 +288,6 @@ export const initPlatformListener = () => {
   }
   Container.listenAction(ConfigGen.daemonHandshake, checkNav)
 
-  Container.spawn(initializeOpenAtLogin, 'initializeOpenAtLogin')
   Container.spawn(initializeInputMonitor, 'initializeInputMonitor')
   Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')
   Container.spawn(setupReachabilityWatcher, 'setupReachabilityWatcher')
@@ -340,4 +296,26 @@ export const initPlatformListener = () => {
   if (isLinux) {
     ConfigConstants.useConfigState.getState().dispatch.initUseNativeFrame()
   }
+
+  ConfigConstants.useConfigState.getState().dispatch.initNotifySound()
+  ConfigConstants.useConfigState.getState().dispatch.initOpenAtLogin()
+
+  Container.listenAction(ConfigGen.openAtLoginChanged, () => {
+    const {openAtLogin} = ConfigConstants.useConfigState.getState()
+    const f = async () => {
+      if (isLinux || isWindows) {
+        const enabled =
+          (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+        if (enabled !== openAtLogin) {
+          await RPCTypes.ctlSetOnLoginStartupRpcPromise({enabled: openAtLogin}).catch(err => {
+            logger.warn(`Error in sending ctlSetOnLoginStartup: ${err.message}`)
+          })
+        }
+      } else {
+        logger.info(`Login item settings changed! now ${openAtLogin ? 'on' : 'off'}`)
+        await setOpenAtLogin?.(openAtLogin)
+      }
+    }
+    Container.ignorePromise(f())
+  })
 }

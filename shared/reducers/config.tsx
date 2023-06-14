@@ -54,9 +54,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.changedActive]: (draftState, action) => {
     draftState.userActive = action.payload.userActive
   },
-  [ConfigGen.setOpenAtLogin]: (draftState, action) => {
-    draftState.openAtLogin = action.payload.openAtLogin
-  },
   [ConfigGen.setUserSwitching]: (draftState, action) => {
     draftState.userSwitching = action.payload.userSwitching
   },
@@ -104,8 +101,5 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.setWhatsNewLastSeenVersion]: (draftState, action) => {
     draftState.whatsNewLastSeenVersion = action.payload.lastSeenVersion
-  },
-  [ConfigGen.loadedOnLoginStartup]: (draftState, action) => {
-    draftState.openAtLogin = action.payload.status === true
   },
 })
