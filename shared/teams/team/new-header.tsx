@@ -290,7 +290,7 @@ const useHeaderCallbacks = (teamID: TeamID) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const yourUsername = ConfigConstants.useConfigState(s => s.username)
+  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
 
   const onAddSelf = () => {

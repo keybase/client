@@ -24,7 +24,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)

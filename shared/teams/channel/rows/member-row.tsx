@@ -42,7 +42,7 @@ const ChannelMemberRow = (props: Props) => {
   const teamMemberInfo = Container.useSelector(
     s => Constants.getTeamDetails(s, teamID)?.members?.get(username) ?? Constants.initialMemberInfo
   )
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type

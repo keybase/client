@@ -8,7 +8,7 @@ type Props = {
   message: Types.MessageSystemChangeAvatar
 }
 const SystemChangeAvatar = (props: Props) => {
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   return (
     <UserNotice>
       <Kb.Text type="BodySmall" style={styles.text}>

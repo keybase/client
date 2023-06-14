@@ -135,7 +135,7 @@ const ProfileCard = ({
   const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
   const followThem = Followers.useFollowerState(s => s.following.has(username))
   const followsYou = Followers.useFollowerState(s => s.followers.has(username))
-  const isSelf = ConfigConstants.useConfigState(s => s.username === username)
+  const isSelf = ConfigConstants.useCurrentUserState(s => s.username === username)
   const hasBrokenProof = [...(userDetails.assertions || new Map()).values()].find(
     assertion => assertion.state !== 'valid'
   )
@@ -250,7 +250,7 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
   const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const isSelf = you === username
   const onShow = React.useCallback(() => {
     setShowing(true)

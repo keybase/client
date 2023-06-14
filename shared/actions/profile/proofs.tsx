@@ -69,7 +69,7 @@ const recheckProof = async (_: unknown, action: ProfileGen.RecheckProofPayload) 
   await RPCTypes.proveCheckProofRpcPromise({sigID: action.payload.sigID}, Constants.waitingKey)
   return Tracker2Gen.createShowUser({
     asTracker: false,
-    username: ConfigConstants.useConfigState.getState().username,
+    username: ConfigConstants.useCurrentUserState.getState().username,
   })
 }
 
@@ -152,7 +152,7 @@ const addProof = async (
   })
 
   const loadAfter = Tracker2Gen.createLoad({
-    assertion: ConfigConstants.useConfigState.getState().username,
+    assertion: ConfigConstants.useCurrentUserState.getState().username,
     guiID: Tracker2Constants.generateGUIID(),
     inTracker: false,
     reason: '',

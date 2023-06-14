@@ -195,7 +195,7 @@ const useReduxFast = (
     trailingItem = leadingItem
     leadingItem = sm.get(trailingItem) ?? 0
   }
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   return Container.useSelector(state => {
     let ordinal = trailingItem
     let previous = leadingItem

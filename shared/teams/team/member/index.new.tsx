@@ -148,7 +148,7 @@ const TeamMember = (props: OwnProps) => {
   const teamID = props.teamID ?? Types.noTeamID
   const dispatch = Container.useDispatch()
 
-  const isMe = username === ConfigConstants.useConfigState(s => s.username)
+  const isMe = username === ConfigConstants.useCurrentUserState(s => s.username)
   const loading = Container.useSelector(state => {
     const memberships = state.teams.teamMemberToTreeMemberships.get(teamID)?.get(username)
     if (!memberships || !memberships.expectedCount) {
@@ -456,7 +456,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
   )
   const amLastOwner = Container.useSelector(state => Constants.isLastOwner(state, props.node.teamID))
-  const isMe = props.username == ConfigConstants.useConfigState(s => s.username)
+  const isMe = props.username == ConfigConstants.useCurrentUserState(s => s.username)
   const changingRole = Container.useAnyWaiting(
     Constants.editMembershipWaitingKey(props.node.teamID, props.username)
   )
@@ -642,7 +642,7 @@ export const TeamMemberHeader = (props: Props) => {
 
   const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
-  const yourUsername = ConfigConstants.useConfigState(s => s.username)
+  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
 
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))

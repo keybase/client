@@ -21,7 +21,7 @@ const getTlfName = (parsedPath: Types.ParsedPath): string => {
 const PublicBanner = ({path}: Props) => {
   const isWritable = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path).writable)
   const lastPublicBannerClosedTlf = Container.useSelector(state => state.fs.lastPublicBannerClosedTlf)
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const dispatch = Container.useDispatch()
   const setLastClosed = () => dispatch(FsGen.createSetLastPublicBannerClosedTlf({tlf: tlfName}))

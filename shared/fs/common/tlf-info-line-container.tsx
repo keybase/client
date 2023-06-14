@@ -12,7 +12,7 @@ export type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const _tlf = Container.useSelector(state => Constants.getTlfFromPath(state.fs.tlfs, ownProps.path))
-  const _username = ConfigConstants.useConfigState(s => s.username)
+  const _username = ConfigConstants.useCurrentUserState(s => s.username)
   const resetParticipants = _tlf === Constants.unknownTlf ? undefined : _tlf.resetParticipants
   const props = {
     isNew: _tlf.isNew,

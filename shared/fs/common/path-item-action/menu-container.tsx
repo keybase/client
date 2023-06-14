@@ -70,7 +70,7 @@ export default (ownProps: OwnProps) => {
   const _sfmiEnabled = Container.useSelector(
     state => state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
   )
-  const _username = ConfigConstants.useConfigState(s => s.username)
+  const _username = ConfigConstants.useCurrentUserState(s => s.username)
   const _view = Container.useSelector(state => state.fs.pathItemActionMenu.view)
 
   const dispatch = Container.useDispatch()

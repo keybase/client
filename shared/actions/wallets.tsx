@@ -407,7 +407,7 @@ const loadWalletDisclaimer = async (
     return false
   }
 
-  const username = ConfigConstants.useConfigState.getState().username
+  const username = ConfigConstants.useCurrentUserState.getState().username
   if (!username) {
     return false
   }

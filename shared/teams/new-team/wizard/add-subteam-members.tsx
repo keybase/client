@@ -24,7 +24,7 @@ const AddSubteamMembers = () => {
       ? dispatch(TeamsGen.createSetTeamWizardSubteamMembers({members: [...selectedMembers]}))
       : dispatch(TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID}))
 
-  const yourUsername = ConfigConstants.useConfigState(s => s.username)
+  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const parentTeamID = Container.useSelector(
     state => state.teams.newTeamWizard.parentTeamID ?? Types.noTeamID
   )

@@ -42,7 +42,7 @@ const Header = () => {
   const [showingMenu, setShowingMenu] = React.useState(false)
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const getAttachmentRef = () => attachmentRef.current
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const fullname = Container.useSelector(state => TrackerConstants.getDetails(state, username).fullname || '')
   const onProfileClick = () => dispatch(ProfileGen.createShowUserProfile({username}))
   const onClickWrapper = () => {
@@ -154,7 +154,7 @@ const hotKeys = Object.keys(keysMap)
 
 const TabBar = React.memo(function TabBar(props: Props) {
   const {navigation, state} = props
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const onHotKey = React.useCallback(
     (cmd: string) => {
       navigation.navigate(keysMap[cmd])
@@ -208,7 +208,7 @@ const Tab = React.memo(function Tab(props: TabProps) {
   const dispatch = Container.useDispatch()
 
   const accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
-  const current = ConfigConstants.useConfigState(s => s.username)
+  const current = ConfigConstants.useCurrentUserState(s => s.username)
   const onQuickSwitch = React.useMemo(
     () =>
       index === 0

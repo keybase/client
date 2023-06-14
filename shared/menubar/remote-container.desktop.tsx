@@ -12,7 +12,7 @@ const RemoteContainer = () => {
   useAvatarState(s => s.replace)(avatarRefreshCounter)
   ConfigConstants.useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
   Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
-  ConfigConstants.useConfigState(s => s.dispatch.replaceUsername)(username)
+  ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   return (
     <Menubar
       {...rest}

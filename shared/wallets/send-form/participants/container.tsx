@@ -107,7 +107,7 @@ const ConnectedParticipantsOtherAccount = () => {
   const showSpinner = toAccount ? toAccount.unknown : waiting
 
   const allAccounts = Container.useSelector(state => Constants.getAccounts(state).map(makeAccount))
-  const user = ConfigConstants.useConfigState(s => s.username)
+  const user = ConfigConstants.useCurrentUserState(s => s.username)
 
   const dispatch = Container.useDispatch()
   const onChangeFromAccount = (from: Types.AccountID) => {

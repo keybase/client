@@ -30,7 +30,7 @@ const Rekey = (props: Props) =>
 
 export default (ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
-  const _you = ConfigConstants.useConfigState(s => s.username)
+  const _you = ConfigConstants.useCurrentUserState(s => s.username)
   const rekeyers = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).rekeyers)
   const dispatch = Container.useDispatch()
   const onBack = () => {

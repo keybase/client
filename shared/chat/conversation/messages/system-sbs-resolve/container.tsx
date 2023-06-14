@@ -8,7 +8,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {message} = ownProps
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const props = {
     message,
     you,

@@ -22,7 +22,7 @@ export const InviteItem = ({
   teamID: Types.TeamID
 }) => {
   const dispatch = Container.useDispatch()
-  const yourUsername = ConfigConstants.useConfigState(s => s.username)
+  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const [waitingForExpire, setWaitingForExpire] = React.useState(false)
   const onExpire = () => {
     dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLink.id, teamID}))

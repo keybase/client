@@ -12,7 +12,7 @@ const waitToRefresh = 1000 * 60 * 5
 
 const PeopleReloadable = () => {
   const followSuggestions = Container.useSelector(state => state.people.followSuggestions)
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const newItems = Container.useSelector(state => state.people.newItems)
   const oldItems = Container.useSelector(state => state.people.oldItems)
   const signupEmail = Container.useSelector(state => state.signup.justSignedUpEmail)

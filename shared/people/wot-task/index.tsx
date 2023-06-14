@@ -93,7 +93,7 @@ const makeMessage = (props: Props) => {
 
 const WotTask = (props: Props) => {
   const dispatch = Container.useDispatch()
-  const myUsername = ConfigConstants.useConfigState(s => s.username)
+  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const otherUser = myUsername.localeCompare(props.voucher) === 0 ? props.vouchee : props.voucher
   const badged = true
   const onDismiss = (voucher: string, vouchee: string) => {

@@ -51,7 +51,7 @@ const getChannelsForList = memoize(
 
 const AddToChannels = (props: Props) => {
   const teamID = props.teamID ?? Types.noTeamID
-  const myUsername = ConfigConstants.useConfigState(s => s.username)
+  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const usernames = props.usernames ?? [myUsername]
   const mode = props.usernames ? 'others' : 'self'
   const dispatch = Container.useDispatch()

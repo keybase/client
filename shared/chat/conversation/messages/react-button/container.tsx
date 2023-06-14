@@ -24,7 +24,7 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const ordinal = React.useContext(OrdinalContext)
   const {emoji, className} = p
   const {getAttachmentRef, onLongPress, onShowPicker, showBorder, style} = p
-  const me = ConfigConstants.useConfigState(s => s.username)
+  const me = ConfigConstants.useCurrentUserState(s => s.username)
   const {active, count, decorated} = Container.useSelector(state => {
     const message = Constants.getMessage(state, conversationIDKey, ordinal)
     const reaction = message?.reactions?.get(emoji || '')

@@ -75,7 +75,7 @@ const loadAdditionalTlf = async (_: unknown, action: FsGen.LoadAdditionalTlfPayl
     const tlfType = rpcFolderTypeToTlfType(folder.folderType)
     const tlfName =
       tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-        ? tlfToPreferredOrder(folder.name, ConfigConstants.useConfigState.getState().username)
+        ? tlfToPreferredOrder(folder.name, ConfigConstants.useCurrentUserState.getState().username)
         : folder.name
     return (
       tlfType &&
@@ -139,7 +139,7 @@ const loadFavorites = async (state: Container.TypedState) => {
         const tlfType = rpcFolderTypeToTlfType(folder.folderType)
         const tlfName =
           tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-            ? tlfToPreferredOrder(folder.name, ConfigConstants.useConfigState.getState().username)
+            ? tlfToPreferredOrder(folder.name, ConfigConstants.useCurrentUserState.getState().username)
             : folder.name
         tlfType &&
           payload[tlfType].set(

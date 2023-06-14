@@ -60,7 +60,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     return {isDecryptingSnippet, snippet, snippetDecoration}
   }, shallowEqual)
 
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const participants = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
     const teamname = (meta?.teamname || layoutIsTeam ? layoutName : '') || ''
@@ -156,7 +156,7 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const conversationIDKey = React.useContext(ConversationIDKeyContext)
   const layoutIsTeam = React.useContext(IsTeamContext)
   const participants = React.useContext(ParticipantsContext)
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const {isLocked, isMuted} = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
     const isLocked = meta?.rekeyers?.has(you) || (meta?.rekeyers.size ?? 0) > 0 || !!meta?.wasFinalizedBy

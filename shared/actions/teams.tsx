@@ -619,7 +619,7 @@ function createNewTeamFromConversation(
   action: TeamsGen.CreateNewTeamFromConversationPayload
 ) {
   const {conversationIDKey, teamname} = action.payload
-  const me = ConfigConstants.useConfigState.getState().username
+  const me = ConfigConstants.useCurrentUserState.getState().username
 
   const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
   // exclude bots from the newly created team, they can be added back later.
@@ -732,7 +732,7 @@ const getTeams = async (
   if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return
   }
-  const username = ConfigConstants.useConfigState.getState().username
+  const username = ConfigConstants.useCurrentUserState.getState().username
   if (!username) {
     logger.warn('getTeams while logged out')
     return

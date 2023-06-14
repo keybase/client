@@ -16,7 +16,7 @@ export type OwnProps = {
 const TLFContainer = (p: OwnProps) => {
   const {tlfType, name, mixedMode, destinationPickerIndex, disabled} = p
   const tlf = Container.useSelector(state => Constants.getTlfFromTlfs(state.fs.tlfs, tlfType, name))
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const path = Constants.tlfTypeAndNameToPath(tlfType, name)
   const usernames = Constants.getUsernamesFromTlfName(name).filter(name => name !== username)
   const onOpen = useOpen({destinationPickerIndex, path})

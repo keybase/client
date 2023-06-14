@@ -71,7 +71,7 @@ export const SendPaymentPopup = (ownProps: SendOwnProps) => {
     }
     return paymentInfo
   })
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const dispatch = Container.useDispatch()
   const onCancel = (paymentID: WalletTypes.PaymentID) => {
@@ -153,7 +153,7 @@ export const SendPaymentPopup = (ownProps: SendOwnProps) => {
 }
 
 const RequestPaymentPopup = (ownProps: RequestOwnProps) => {
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const requestInfo = Container.useSelector(state => Constants.getRequestMessageInfo(state, ownProps.message))
 
   const dispatch = Container.useDispatch()

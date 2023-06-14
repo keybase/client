@@ -81,7 +81,7 @@ const useTopNTlfs = (
 
 const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<SectionListItem> => {
   const tlfs = Container.useSelector(state => state.fs.tlfs)
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const privateTopN = useTopNTlfs(Types.TlfType.Private, tlfs.private, n)
   const publicTopN = useTopNTlfs(Types.TlfType.Public, tlfs.public, n)
   const teamTopN = useTopNTlfs(Types.TlfType.Team, tlfs.team, n)

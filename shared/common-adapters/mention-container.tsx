@@ -10,7 +10,7 @@ export default (ownProps: OwnProps) => {
   let {username} = ownProps
   username = username.toLowerCase()
   const following = Followers.useFollowerState(s => s.following.has(username))
-  const myUsername = ConfigConstants.useConfigState(s => s.username)
+  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const theme = (() => {
     if (isSpecialMention(username)) {
       return 'highlight' as const

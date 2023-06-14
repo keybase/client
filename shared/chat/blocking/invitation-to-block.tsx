@@ -20,7 +20,7 @@ const BlockButtons = (props: Props) => {
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, props.conversationID)
   )
-  const currentUser = ConfigConstants.useConfigState(s => s.username)
+  const currentUser = ConfigConstants.useCurrentUserState(s => s.username)
   if (!blockButtonInfo) {
     return null
   }

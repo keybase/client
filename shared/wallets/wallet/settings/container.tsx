@@ -44,7 +44,7 @@ const SettingsContainer = () => {
   const account = Container.useSelector(state => Constants.getAccount(state, accountID))
   const name = account.name
   const mobileOnlyEditable = account.mobileOnlyEditable
-  const me = ConfigConstants.useConfigState(s => s.username)
+  const me = ConfigConstants.useCurrentUserState(s => s.username)
   // External partner URLs include the keybase username even for non-primary accounts.
   const externalPartners = Container.useSelector(state =>
     prepareExternalPartners(Constants.getExternalPartners(state), accountID, me)

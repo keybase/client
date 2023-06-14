@@ -182,7 +182,7 @@ export default (o: OwnProps) => {
     state => Constants.getPathUserSetting(state.fs.pathUserSettings, o.path).sort
   )
   const _tlfs = Container.useSelector(state => state.fs.tlfs)
-  const _username = ConfigConstants.useConfigState(s => s.username)
+  const _username = ConfigConstants.useCurrentUserState(s => s.username)
 
   const s = {
     _edits,

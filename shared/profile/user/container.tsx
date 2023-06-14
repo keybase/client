@@ -30,7 +30,7 @@ const filterWebOfTrustEntries = memoize(
 const Connected = (ownProps: OwnProps) => {
   const {username} = ownProps
   const d = Container.useSelector(state => Constants.getDetails(state, username))
-  const myName = ConfigConstants.useConfigState(s => s.username)
+  const myName = ConfigConstants.useCurrentUserState(s => s.username)
   const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === myName
 

@@ -16,7 +16,7 @@ export default () => {
   const selectedAccount = Container.useSelector(state => Constants.getAccount(state, _accountID))
   const accountID = selectedAccount.accountID
   const isDefaultWallet = selectedAccount.isDefault
-  const keybaseUser = ConfigConstants.useConfigState(s => s.username)
+  const keybaseUser = ConfigConstants.useCurrentUserState(s => s.username)
   const thisDeviceIsLockedOut = selectedAccount.deviceReadOnly
   const unreadPayments = Container.useSelector(state =>
     otherUnreadPayments(state.wallets.unreadPaymentsMap, selectedAccount.accountID)

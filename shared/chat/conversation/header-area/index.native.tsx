@@ -84,7 +84,7 @@ const ChannelHeader = (p: Props) => {
 const emptyArray = []
 const UsernameHeader = (p: Props) => {
   const {conversationIDKey} = p
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const {participants, theirFullname} = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const participants =

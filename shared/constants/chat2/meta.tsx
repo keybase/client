@@ -440,7 +440,7 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
   const accountID = WalletConstants.getDefaultAccountID(state.wallets)
   const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
 
-  const myUsername = ConfigConstants.useConfigState.getState().username
+  const myUsername = ConfigConstants.useCurrentUserState.getState().username
   return (
     !sendDisabled &&
     meta.teamType === 'adhoc' &&

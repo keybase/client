@@ -23,7 +23,7 @@ const editProfile = async (_: unknown, action: ProfileGen.EditProfilePayload) =>
   )
   return Tracker2Gen.createShowUser({
     asTracker: false,
-    username: ConfigConstants.useConfigState.getState().username,
+    username: ConfigConstants.useCurrentUserState.getState().username,
   })
 }
 
@@ -50,10 +50,10 @@ const uploadAvatar = async (_: unknown, action: ProfileGen.UploadAvatarPayload) 
 const finishRevoking = () => [
   Tracker2Gen.createShowUser({
     asTracker: false,
-    username: ConfigConstants.useConfigState.getState().username,
+    username: ConfigConstants.useCurrentUserState.getState().username,
   }),
   Tracker2Gen.createLoad({
-    assertion: ConfigConstants.useConfigState.getState().username,
+    assertion: ConfigConstants.useCurrentUserState.getState().username,
     guiID: TrackerConstants.generateGUIID(),
     inTracker: false,
     reason: '',
@@ -86,7 +86,7 @@ const submitRevokeProof = async (
   state: Container.TypedState,
   action: ProfileGen.SubmitRevokeProofPayload
 ) => {
-  const you = TrackerConstants.getDetails(state, ConfigConstants.useConfigState.getState().username)
+  const you = TrackerConstants.getDetails(state, ConfigConstants.useCurrentUserState.getState().username)
   if (!you || !you.assertions) return null
   const proof = [...you.assertions.values()].find(a => a.sigID === action.payload.proofId)
   if (!proof) return null
@@ -187,7 +187,7 @@ const backToProfile = () => [
   RouteTreeGen.createClearModals(),
   Tracker2Gen.createShowUser({
     asTracker: false,
-    username: ConfigConstants.useConfigState.getState().username,
+    username: ConfigConstants.useCurrentUserState.getState().username,
   }),
 ]
 

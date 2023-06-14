@@ -34,7 +34,7 @@ const RemoteContainer = () => {
   const {guiID, location, reason, state: trackerState, teamShowcase} = details
   useAvatarState(s => s.replace)(avatarRefreshCounter)
   Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
-  ConfigConstants.useConfigState(s => s.dispatch.replaceUsername)(username)
+  ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   return (
     <Tracker
       assertionKeys={assertions ? [...assertions.keys()] : undefined}

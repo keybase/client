@@ -14,7 +14,7 @@ const noTeams = []
 
 export default (ownProps: OwnProps) => {
   const d = Container.useSelector(state => Constants.getDetails(state, ownProps.username))
-  const _isYou = ConfigConstants.useConfigState(s => s.username === ownProps.username)
+  const _isYou = ConfigConstants.useCurrentUserState(s => s.username === ownProps.username)
   const _roles = Container.useSelector(state => state.teams.teamRoleMap.roles)
   const _teamNameToID = Container.useSelector(state => state.teams.teamNameToID)
   const _youAreInTeams = Container.useSelector(state => state.teams.teamnames.size > 0)

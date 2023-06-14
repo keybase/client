@@ -17,7 +17,7 @@ const WalletRowContainer = (op: OwnProps) => {
   const {accountID} = op
   const account = Container.useSelector(state => getAccount(state, accountID))
   const name = account.name
-  const me = ConfigConstants.useConfigState(s => s.username)
+  const me = ConfigConstants.useCurrentUserState(s => s.username)
   const keybaseUser = account.isDefault ? me : ''
   const selectedAccount = Container.useSelector(state => getSelectedAccount(state))
   const contents = account.balanceDescription

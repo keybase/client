@@ -90,7 +90,7 @@ const AvatarUserConnector = (props: TodoOwnProps) => {
 }
 
 const BioConnector = (props: TodoOwnProps) => {
-  const myUsername = ConfigConstants.useConfigState(s => s.username)
+  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
   const onConfirm = (username: string) => {
     // make sure we have tracker state & profile is up to date
@@ -101,7 +101,7 @@ const BioConnector = (props: TodoOwnProps) => {
 }
 
 const ProofConnector = (props: TodoOwnProps) => {
-  const myUsername = ConfigConstants.useConfigState(s => s.username)
+  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
   const onConfirm = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
   const onDismiss = onSkipTodo('proof', dispatch)

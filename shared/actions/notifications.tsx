@@ -82,7 +82,7 @@ const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCTypes.Badge
   revokedDevices.forEach(d => allDeviceChanges.add(d))
 
   // don't see badges related to this device
-  const deviceID = ConfigConstants.useConfigState.getState().deviceID
+  const deviceID = ConfigConstants.useCurrentUserState.getState().deviceID
   counts.set(Tabs.devicesTab, allDeviceChanges.size - (allDeviceChanges.has(deviceID) ? 1 : 0))
   counts.set(Tabs.chatTab, bs.smallTeamBadgeCount + bs.bigTeamBadgeCount)
   counts.set(

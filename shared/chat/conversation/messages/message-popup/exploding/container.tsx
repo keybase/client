@@ -35,7 +35,7 @@ export default (ownProps: OwnProps) => {
   // TODO remove
   const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
   const message = m?.type === 'text' || m?.type === 'attachment' ? m : emptyMessage
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const yourMessage = message.author === you
   const meta = Container.useSelector(state => Constants.getMeta(state, message.conversationIDKey))
   const participantInfo = Container.useSelector(state =>

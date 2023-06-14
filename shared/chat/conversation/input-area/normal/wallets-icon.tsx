@@ -16,7 +16,7 @@ export type WalletsIconProps = {
 const WalletsIcon = (props: WalletsIconProps) => {
   const {size, style, conversationIDKey} = props
 
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const {participantInfo} = Container.useSelector(state => {
     const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     return {participantInfo}

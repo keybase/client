@@ -11,7 +11,7 @@ import type {DeserializeProps} from '../menubar/remote-serializer.desktop'
 const FilesContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const {remoteTlfUpdates} = state
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
   return (
     <FilesPreview

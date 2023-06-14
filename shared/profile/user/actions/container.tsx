@@ -23,7 +23,7 @@ export default (ownProps: OwnProps) => {
   const isBot = Container.useSelector(state => state.chat2.featuredBotsMap.has(username))
 
   const _guiID = d.guiID
-  const _you = ConfigConstants.useConfigState(s => s.username)
+  const _you = ConfigConstants.useCurrentUserState(s => s.username)
   const blocked = d.blocked
   const hidFromFollowers = d.hidFromFollowers
   const state = d.state

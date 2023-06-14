@@ -460,7 +460,7 @@ export const getDisabledReasonsForRolePicker = (
     theyAreOwner = membersToModify.some(username => members.get(username)?.type === 'owner')
   }
 
-  const myUsername = ConfigConstants.useConfigState.getState().username
+  const myUsername = ConfigConstants.useCurrentUserState.getState().username
   const you = members.get(myUsername)
   // Fallback to the lowest role, although this shouldn't happen
   const yourRole = you?.type ?? 'reader'

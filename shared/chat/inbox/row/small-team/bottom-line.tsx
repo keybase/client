@@ -117,7 +117,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
     return !!typers?.size
   })
 
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const data = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
     const hasUnread = (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0

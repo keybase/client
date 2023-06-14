@@ -67,7 +67,7 @@ const getCachedUsernames = memoize(
 const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const following = Followers.useFollowerState(s => s.following)
   const followers = Followers.useFollowerState(s => s.followers)
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const s = Container.useSelector(state => {
     const {notifications, config, fs, chat2, users} = state
     const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications

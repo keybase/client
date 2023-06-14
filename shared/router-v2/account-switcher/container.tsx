@@ -19,7 +19,7 @@ const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolea
 export default () => {
   const _fullnames = Container.useSelector(state => state.users.infoMap)
   const _accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const fullname = Container.useSelector(state => TrackerConstants.getDetails(state, you).fullname || '')
   const waiting = Container.useAnyWaiting(LoginConstants.waitingKey)
 

@@ -13,7 +13,7 @@ const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplex
   const {message} = p
   const {conversationIDKey} = message
   const {teamID} = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
   const onManageChannels = React.useCallback(() => {
     dispatch(TeamsGen.createManageChatChannels({teamID}))

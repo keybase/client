@@ -115,7 +115,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const dispatch = Container.useDispatch()
 
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const data = Container.useSelector(state => {
     const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
     const hasLoadedEver = ordinals !== undefined

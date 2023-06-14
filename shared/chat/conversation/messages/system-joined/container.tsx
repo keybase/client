@@ -17,7 +17,7 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {channelname, teamType, teamname, teamID} = meta
 
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const authorIsYou = you === author
 
   const dispatch = Container.useDispatch()

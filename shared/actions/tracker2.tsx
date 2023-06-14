@@ -300,9 +300,9 @@ const showUser = (_: unknown, action: Tracker2Gen.ShowUserPayload) => {
 
 // if we mutated somehow reload ourselves and reget the suggestions
 const refreshSelf = (_: unknown, action: EngineGen.Keybase1NotifyUsersUserChangedPayload) =>
-  ConfigConstants.useConfigState.getState().uid === action.payload.params.uid && [
+  ConfigConstants.useCurrentUserState.getState().uid === action.payload.params.uid && [
     Tracker2Gen.createLoad({
-      assertion: ConfigConstants.useConfigState.getState().username,
+      assertion: ConfigConstants.useCurrentUserState.getState().username,
       forceDisplay: false,
       fromDaemon: false,
       guiID: Constants.generateGUIID(),

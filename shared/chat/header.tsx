@@ -17,7 +17,7 @@ type Props = {
 
 const Header = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const data = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta

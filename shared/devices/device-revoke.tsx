@@ -93,7 +93,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
 const useRevoke = (deviceID = '') => {
   const d = Constants.useDevicesState(s => s.deviceMap.get(deviceID))
   const load = Constants.useDevicesState(s => s.dispatch.load)
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const wasCurrentDevice = d?.currentDevice ?? false
   const dispatch = Container.useDispatch()
   const deviceName = d?.name ?? ''
@@ -142,7 +142,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const onSubmit = useRevoke(deviceID)
   const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
 
-  const actingDevice = ConfigConstants.useConfigState(s => s.deviceID)
+  const actingDevice = ConfigConstants.useCurrentUserState(s => s.deviceID)
   Container.useOnMountOnce(() => {
     const f = async () => {
       const tlfs = await loadEndangeredTLF(actingDevice, selectedDeviceID)

@@ -12,7 +12,7 @@ type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 const PinnedMessageContainer = React.memo(function PinnedMessageContainer(p: OwnProps) {
   const {conversationIDKey} = p
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const {teamname, pinnedMsg} = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     return {pinnedMsg: meta?.pinnedMsg, teamname: meta?.teamname}

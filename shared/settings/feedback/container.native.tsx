@@ -111,9 +111,9 @@ const Connected = (ownProps: OwnProps) => {
   const loggedOut = Container.useSelector(state => !state.config.loggedIn)
   const push = Container.useSelector(state => getPushTokenForLogSend(state))
 
-  const deviceID = ConfigConstants.useConfigState(s => s.deviceID)
-  const uid = ConfigConstants.useConfigState(s => s.uid)
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)
+  const uid = ConfigConstants.useCurrentUserState(s => s.uid)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const status = {
     appVersionCode,
     appVersionName,

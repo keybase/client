@@ -96,7 +96,7 @@ const DesktopSendToChat = (props: Props) => {
   const [title, setTitle] = React.useState('')
   const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
   const onCancel = () => {
     dispatch(RouteTreeGen.createClearModals())

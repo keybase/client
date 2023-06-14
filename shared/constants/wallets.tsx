@@ -714,7 +714,7 @@ export const getAssets = (state: TypedState, accountID: Types.AccountID): Array<
 
 export const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {
   const account = state.wallets.accountMap.get(accountID) ?? unknownAccount
-  const username = ConfigConstants.useConfigState.getState().username
+  const username = ConfigConstants.useCurrentUserState.getState().username
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
 

@@ -17,7 +17,7 @@ type Props = {
 
 const MoreMenuPopup = (props: Props) => {
   const {conversationIDKey, onHidden, visible} = props
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const {participantInfo, wallet} = Container.useSelector(state => {
     const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     const wallet = Constants.shouldShowWalletsIcon(state, conversationIDKey)

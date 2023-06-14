@@ -11,7 +11,7 @@ type OwnProps = {accountID: Types.AccountID}
 export default (ownProps: OwnProps) => {
   const accountID = ownProps.accountID ?? Types.noAccountID
   const accountName = Container.useSelector(state => Constants.getAccount(state, accountID).name)
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const waiting = Container.useAnyWaiting(Constants.setAccountAsDefaultWaitingKey)
   const dispatch = Container.useDispatch()
   const _onAccept = (accountID: Types.AccountID) => {

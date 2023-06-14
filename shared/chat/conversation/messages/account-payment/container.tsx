@@ -59,7 +59,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const {message} = ownProps
   const {conversationIDKey, ordinal} = message
   // TODO not huge selector
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const stateProps = Container.useSelector(state => {
     const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
     const youAreSender = ownProps.message.author === you

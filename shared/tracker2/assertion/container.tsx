@@ -38,7 +38,7 @@ export default (ownProps: OwnProps) => {
   let a = Constants.noAssertion
   let notAUser = false
   let stellarHidden = false
-  const isYours = ConfigConstants.useConfigState(s => ownProps.username === s.username)
+  const isYours = ConfigConstants.useCurrentUserState(s => ownProps.username === s.username)
   a = Container.useSelector(state => {
     if (ownProps.isSuggestion) {
       a =

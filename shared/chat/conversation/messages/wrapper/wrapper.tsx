@@ -129,7 +129,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     return EditCancelRetryType.RETRY_CANCEL
   }
 
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   return Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const {exploded, submitState, author, id, botUsername} = m

@@ -36,7 +36,7 @@ export const useMembersSections = (
   details: Types.TeamDetails,
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
-  const yourUsername = ConfigConstants.useConfigState(s => s.username)
+  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
   // TODO: figure out if this is bad for performance and if we should leave these functions early when we're not on that tab
 
   // TODO: consider moving this to the parent

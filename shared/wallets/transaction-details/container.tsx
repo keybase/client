@@ -16,7 +16,7 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const accountID = ownProps.accountID ?? Types.noAccountID
   const paymentID = ownProps.paymentID ?? Types.noPaymentID
   const _transaction = Container.useSelector(state => Constants.getPayment(state, accountID, paymentID))

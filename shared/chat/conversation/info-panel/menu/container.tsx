@@ -34,7 +34,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const {isSmallTeam, teamID: pteamID} = p
   const visible = true
 
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
 
   const data = Container.useSelector(state => {
     const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'

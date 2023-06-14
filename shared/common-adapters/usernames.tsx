@@ -260,7 +260,7 @@ const Usernames = React.memo(
     const colorBroken = p.colorBroken ?? true
     const underline = p.underline ?? true
     const withProfileCardPopup = p.withProfileCardPopup ?? true
-    const you = ConfigConstants.useConfigState(s => s.username)
+    const you = ConfigConstants.useCurrentUserState(s => s.username)
 
     const canFixOverdraw = React.useContext(Styles.CanFixOverdrawContext)
     const containerStyle2: Styles.StylesCrossPlatform = inline

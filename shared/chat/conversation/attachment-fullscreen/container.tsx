@@ -24,8 +24,8 @@ const Connected = (props: OwnProps) => {
   const inOrdinal = props.ordinal
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const dispatch = Container.useDispatch()
-  const currentDeviceName = ConfigConstants.useConfigState(s => s.deviceName)
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const currentDeviceName = ConfigConstants.useCurrentUserState(s => s.deviceName)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const data = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal)
     const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)

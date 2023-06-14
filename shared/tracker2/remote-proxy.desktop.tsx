@@ -23,7 +23,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const followers = Followers.useFollowerState(s => s.followers)
   const following = Followers.useFollowerState(s => s.following)
   const {blockMap, infoMap} = users
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const config = Container.useSelector(state => state.config)
   const {httpSrvToken, httpSrvAddress} = config
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details

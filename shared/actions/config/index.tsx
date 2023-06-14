@@ -47,7 +47,7 @@ const onHTTPSrvInfoUpdated = (_: unknown, action: EngineGen.Keybase1NotifyServic
   })
 
 const getFollowerInfo = (_: unknown, action: ConfigGen.LoadOnStartPayload) => {
-  const {uid} = Constants.useConfigState.getState()
+  const {uid} = Constants.useCurrentUserState.getState()
   logger.info(`getFollowerInfo: init; uid=${uid}`)
   if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     logger.info(
@@ -84,12 +84,16 @@ const loadDaemonBootstrapStatus = async (
   }
 
   const {wait} = Constants.useDaemonState.getState().dispatch
-  const {setBootstrap} = Constants.useConfigState.getState().dispatch
+  const {setBootstrap} = Constants.useCurrentUserState.getState().dispatch
+  const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
 
   const makeCall = async () => {
     const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
     const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
     setBootstrap({deviceID, deviceName, uid, username})
+    if (username) {
+      setDefaultUsername(username)
+    }
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       loggedIn,
     })
@@ -570,7 +574,7 @@ const initConfig = () => {
     if (!action.payload.wasCurrentDevice) return
     const {configuredAccounts} = Constants.useConfigState.getState()
     const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
-    const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername) ?? ''
+    const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername)?.username ?? ''
     setDefaultUsername(defaultUsername)
   })
 
@@ -589,7 +593,7 @@ const initConfig = () => {
 
   Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, (_, action) => {
     const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
-    if (Constants.useConfigState.getState().uid !== uid) {
+    if (Constants.useCurrentUserState.getState().uid !== uid) {
       return
     }
     const newFollowers = new Set(_newFollowers)

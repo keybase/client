@@ -24,7 +24,7 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
   const authorIsOwner = Container.useSelector(state =>
     TeamConstants.userIsRoleInTeam(state, teamID, author, 'owner')
   )
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
 

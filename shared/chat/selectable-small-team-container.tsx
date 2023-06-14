@@ -23,7 +23,7 @@ export default (ownProps: OwnProps) => {
   const _participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
-  const _username = ConfigConstants.useConfigState(s => s.username)
+  const _username = ConfigConstants.useCurrentUserState(s => s.username)
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const styles = Constants.getRowStyles(isSelected, _hasUnread)

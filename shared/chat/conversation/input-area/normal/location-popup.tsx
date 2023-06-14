@@ -18,7 +18,7 @@ type Props = {conversationIDKey: Types.ConversationIDKey}
 
 const LocationPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const {httpSrvAddress, httpSrvToken, location, locationDenied} = Container.useSelector(state => {
     const {httpSrvAddress, httpSrvToken} = state.config
     const location = state.chat2.lastCoord

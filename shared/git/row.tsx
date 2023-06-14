@@ -31,7 +31,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
 
   const isNew = React.useContext(NewContext).has(id)
 
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const setTeamRepoSettings = Constants.useGitState(s => s.dispatch.setTeamRepoSettings)
 

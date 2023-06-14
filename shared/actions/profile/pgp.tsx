@@ -17,7 +17,7 @@ const generatePgp = async (state: Container.TypedState, _a: unknown, listenerApi
       username: state.profile.pgpFullName || '',
     }))
 
-  const username = ConfigConstants.useConfigState.getState().username
+  const username = ConfigConstants.useCurrentUserState.getState().username
   listenerApi.dispatch(
     RouteTreeGen.createNavigateAppend({
       path: [

@@ -13,7 +13,7 @@ const UsersAddedToConversationContainer = React.memo(function UsersAddedToConver
   const channelname = Container.useSelector(
     state => Constants.getMeta(state, message.conversationIDKey).channelname
   )
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const props = {
     author,

@@ -39,7 +39,7 @@ export default () => {
   const fromAccountAssets = built.amountAvailable
   const fromAccountIsDefault = fromAccount.isDefault
   const fromAccountName = fromAccount.name
-  const yourUsername = ConfigConstants.useConfigState(s => s.username)
+  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
 
   const props = {
     fromAccountAssets,

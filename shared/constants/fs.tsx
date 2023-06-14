@@ -503,7 +503,7 @@ export const resetBannerType = (state: TypedState, path: Types.Path): Types.Rese
     return Types.ResetBannerNoOthersType.None
   }
 
-  const you = ConfigConstants.useConfigState.getState().username
+  const you = ConfigConstants.useCurrentUserState.getState().username
   if (resetParticipants.findIndex(username => username === you) >= 0) {
     return Types.ResetBannerNoOthersType.Self
   }

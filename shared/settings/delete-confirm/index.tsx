@@ -37,7 +37,7 @@ const Checkboxes = (props: CheckboxesProps) => (
 
 const DeleteConfirm = () => {
   const hasPassword = Container.useSelector(state => !state.settings.password.randomPW)
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
 
   const [checkData, setCheckData] = React.useState(false)
   const [checkTeams, setCheckTeams] = React.useState(false)

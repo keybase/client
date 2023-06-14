@@ -11,7 +11,7 @@ import type * as TeamsTypes from '../../constants/types/teams'
 
 export default () => {
   const waiting = WaitingConstants.useWaitingState(s => s.counts)
-  const _you = ConfigConstants.useConfigState(s => s.username)
+  const _you = ConfigConstants.useCurrentUserState(s => s.username)
   const teamMeta = Container.useSelector(state => state.teams.teamMeta)
   const dispatch = Container.useDispatch()
   const onCancel = (you: string) => {

@@ -12,7 +12,7 @@ const WrapperSystemInvite = React.memo(function WrapperSystemInvite(p: Props) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const common = useCommon(ordinal)
   const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
 
   if (message?.type !== 'systemSBSResolved') return null
 

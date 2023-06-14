@@ -56,7 +56,7 @@ export default (ownProps: OwnProps) => {
   const _participants = participantInfo.all
   const _teamID = meta.teamID
   const _teamname = meta.teamname
-  const _you = ConfigConstants.useConfigState(s => s.username)
+  const _you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const dispatch = Container.useDispatch()
   const _onAddReaction = (message: Types.Message) => {

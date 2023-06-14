@@ -372,7 +372,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     inputRef.current?.focus()
   }, [inputRef])
   const dispatch = Container.useDispatch()
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const onEditLastMessage = React.useCallback(() => {
     dispatch(
       Chat2Gen.createMessageSetEditing({

@@ -36,7 +36,7 @@ const useHintText = (p: {
   minWriterRole: Types.ConversationMeta['minWriterRole']
 }) => {
   const {minWriterRole, conversationIDKey, isExploding, isEditing, cannotWrite} = p
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const {teamType, teamname, channelname} = Container.useSelector(state => {
     const teamType = Constants.getMeta(state, conversationIDKey).teamType
     const teamname = Constants.getMeta(state, conversationIDKey).teamname

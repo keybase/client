@@ -24,7 +24,7 @@ export default (ownProps: OwnProps) => {
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const info = members.get(username) || blankInfo
 
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const fullName = you ? 'You' : info.fullName
   const needsPUK = info.needsPUK
   const roleType = info.type

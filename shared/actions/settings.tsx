@@ -321,7 +321,7 @@ const dbNuke = async () => {
 }
 
 const deleteAccountForever = async (_: unknown, action: SettingsGen.DeleteAccountForeverPayload) => {
-  const username = ConfigConstants.useConfigState.getState().username
+  const username = ConfigConstants.useCurrentUserState.getState().username
 
   if (!username) {
     throw new Error('Unable to delete account: no username set')
@@ -782,7 +782,7 @@ const loadContactImportEnabled = async (
   if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return
   }
-  const username = ConfigConstants.useConfigState.getState().username
+  const username = ConfigConstants.useCurrentUserState.getState().username
   if (!username) {
     logger.warn('no username')
     return
@@ -806,7 +806,7 @@ const loadContactImportEnabled = async (
 }
 
 const editContactImportEnabled = async (_: unknown, action: SettingsGen.EditContactImportEnabledPayload) => {
-  const username = ConfigConstants.useConfigState.getState().username
+  const username = ConfigConstants.useCurrentUserState.getState().username
   if (!username) {
     logger.warn('no username')
     return false

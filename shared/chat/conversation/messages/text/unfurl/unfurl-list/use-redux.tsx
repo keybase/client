@@ -29,7 +29,7 @@ export const getUnfurlInfo = (
 ) => {
   const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
   const author = message?.author
-  const you = ConfigConstants.useConfigState.getState().username
+  const you = ConfigConstants.useCurrentUserState.getState().username
   const youAreAuthor = author === you
   const unfurlInfo = [...(message?.unfurls?.values() ?? [])][idx]
 

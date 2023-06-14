@@ -19,7 +19,7 @@ type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey; isPreview
 const SettingsPanel = (props: SettingsPanelProps) => {
   const {conversationIDKey, isPreview} = props
   const dispatch = Container.useDispatch()
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {status, teamname, teamType, channelname, teamID} = meta
   const yourOperations = Container.useSelector(state =>

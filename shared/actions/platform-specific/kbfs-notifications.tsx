@@ -194,7 +194,7 @@ export function kbfsNotification(notification: FSNotification, notify: any) {
 
   let title = `KBFS: ${action}`
   let body = `Chat or files with ${usernames} ${notification.status}`
-  const user = ConfigConstants.useConfigState.getState().username
+  const user = ConfigConstants.useCurrentUserState.getState().username
   let rateLimitKey
 
   const isError = notification.statusCode === FSStatusCode.error

@@ -25,7 +25,7 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
 
   // action button specific definitions
   const dispatch = Container.useDispatch()
-  const myUsername = ConfigConstants.useConfigState(s => s.username)
+  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const blocked = Container.useSelector(state => state.users.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 

@@ -28,7 +28,7 @@ const getClaimProps = (state: Container.TypedState, message: Types.MessageText) 
     return undefined
   }
 
-  const you = ConfigConstants.useConfigState.getState().username
+  const you = ConfigConstants.useCurrentUserState.getState().username
   const youAreSender = message.author === you
   const cancelable = paymentInfo.status === 'claimable'
   const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)

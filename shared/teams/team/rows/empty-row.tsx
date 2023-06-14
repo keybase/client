@@ -82,7 +82,7 @@ const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
   const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const notIn = teamMeta.role === 'none' || props.notChannelMember
-  const you = ConfigConstants.useConfigState(s => s.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const dispatch = Container.useDispatch()
   const onSecondaryAction = useSecondaryAction(props)

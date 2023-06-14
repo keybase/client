@@ -8,7 +8,7 @@ import {HeaderTitle as _HeaderTitle, HeaderRightActions as _HeaderRightActions} 
 export const HeaderTitle = () => {
   const _account = Container.useSelector(state => Constants.getSelectedAccountData(state))
   const noDisclaimer = Container.useSelector(state => !state.wallets.acceptedDisclaimer)
-  const username = ConfigConstants.useConfigState(s => s.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const props = {
     accountID: _account.accountID,
     accountName: _account.name,
