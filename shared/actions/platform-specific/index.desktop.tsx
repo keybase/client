@@ -203,29 +203,6 @@ const updateNow = async () => {
   return ConfigGen.createCheckForUpdate()
 }
 
-const notifySoundKey = 'notifySound'
-const initializeNotifySound = async (listenerApi: Container.ListenerApi) => {
-  try {
-    const val = await RPCTypes.configGuiGetValueRpcPromise({path: notifySoundKey})
-    const notifySound: boolean | undefined = val.b || undefined
-    const state = listenerApi.getState()
-    if (notifySound !== undefined && notifySound !== state.config.notifySound) {
-      listenerApi.dispatch(ConfigGen.createSetNotifySound({notifySound}))
-    }
-  } catch (_) {}
-}
-
-const setNotifySound = async (state: Container.TypedState) => {
-  const {notifySound} = state.config
-  await RPCTypes.configGuiSetValueRpcPromise({
-    path: notifySoundKey,
-    value: {
-      b: notifySound,
-      isNull: false,
-    },
-  })
-}
-
 const openAtLoginKey = 'openAtLogin'
 const initializeOpenAtLogin = async (listenerApi: Container.ListenerApi) => {
   try {
@@ -325,7 +302,6 @@ const maybePauseVideos = () => {
 
 export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.setOpenAtLogin, onSetOpenAtLogin)
-  Container.listenAction(ConfigGen.setNotifySound, setNotifySound)
   Container.listenAction(ConfigGen.showMain, () => showMainWindow?.())
   Container.listenAction(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
@@ -355,7 +331,6 @@ export const initPlatformListener = () => {
   }
   Container.listenAction(ConfigGen.daemonHandshake, checkNav)
 
-  Container.spawn(initializeNotifySound, 'initializeNotifySound')
   Container.spawn(initializeOpenAtLogin, 'initializeOpenAtLogin')
   Container.spawn(initializeInputMonitor, 'initializeInputMonitor')
   Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')

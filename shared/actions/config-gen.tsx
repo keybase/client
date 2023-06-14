@@ -39,7 +39,6 @@ export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
 export const revoked = 'config:revoked'
 export const setNavigator = 'config:setNavigator'
-export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
 export const setStartupFile = 'config:setStartupFile'
@@ -277,10 +276,6 @@ export const createSetNavigator = (payload: {readonly navigator: any}) => ({
   payload,
   type: setNavigator as typeof setNavigator,
 })
-export const createSetNotifySound = (payload: {readonly notifySound: boolean}) => ({
-  payload,
-  type: setNotifySound as typeof setNotifySound,
-})
 export const createSetOpenAtLogin = (payload: {readonly openAtLogin: boolean}) => ({
   payload,
   type: setOpenAtLogin as typeof setOpenAtLogin,
@@ -354,7 +349,6 @@ export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindow
 export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
 export type RevokedPayload = ReturnType<typeof createRevoked>
 export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
-export type SetNotifySoundPayload = ReturnType<typeof createSetNotifySound>
 export type SetOpenAtLoginPayload = ReturnType<typeof createSetOpenAtLogin>
 export type SetStartupDetailsPayload = ReturnType<typeof createSetStartupDetails>
 export type SetStartupFilePayload = ReturnType<typeof createSetStartupFile>
@@ -406,7 +400,6 @@ export type Actions =
   | RestartHandshakePayload
   | RevokedPayload
   | SetNavigatorPayload
-  | SetNotifySoundPayload
   | SetOpenAtLoginPayload
   | SetStartupDetailsPayload
   | SetStartupFilePayload

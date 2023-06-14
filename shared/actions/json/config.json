@@ -60,7 +60,6 @@
       "startupFile": "HiddenString"
     },
     "setOpenAtLogin": {"openAtLogin": "boolean"},
-    "setNotifySound": {"notifySound": "boolean"},
     "persistRoute": {"path?": "Array<any>"},
     "setNavigator": {"navigator": "any"},
     "loggedOut": {},
