@@ -4,6 +4,7 @@ import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as Followers from '../../constants/followers'
 import * as GregorGen from '../gregor-gen'
+import * as ProvisionGen from '../provision-gen'
 import * as UsersGen from '../users-gen'
 import * as LoginConstants from '../../constants/login'
 import * as Constants from '../../constants/config'
@@ -590,6 +591,10 @@ const initConfig = () => {
     const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
     const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
     dispatch.replace(followers, following)
+  })
+
+  Container.listenAction(ProvisionGen.startProvision, () => {
+    Constants.useConfigState.getState().dispatch.setJustRevokedSelf('')
   })
 }
 

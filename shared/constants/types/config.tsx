@@ -29,7 +29,6 @@ export type WindowState = {
 }
 
 export type State = {
-  justRevokedSelf: string
   loggedIn: boolean
   logoutHandshakeWaiters: Map<string, number>
   logoutHandshakeVersion: number

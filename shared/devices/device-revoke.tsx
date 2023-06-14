@@ -103,6 +103,7 @@ const useRevoke = (deviceID = '') => {
         try {
           await RPCTypes.loginDeprovisionRpcPromise({doRevoke: true, username}, Constants.waitingKey)
           load()
+          ConfigConstants.useConfigState.getState().dispatch.setJustRevokedSelf(deviceName)
           dispatch(ConfigGen.createRevoked({deviceID, deviceName, wasCurrentDevice}))
         } catch {}
       } else {
