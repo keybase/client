@@ -149,10 +149,12 @@ export const useConfigState = createZustand(
       revoke: (name: string) => {
         const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
         if (wasCurrentDevice) {
-          const {configuredAccounts} = get()
-          const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername)?.username ?? ''
+          const {configuredAccounts, defaultUsername} = get()
+          const acc = configuredAccounts.find(n => n.username !== defaultUsername)
+          const du = acc?.username ?? ''
           set(s => {
-            s.defaultUsername = defaultUsername
+            s.defaultUsername = du
+            s.justRevokedSelf = name
           })
         }
         reduxDispatch(ConfigGen.createRevoked())
@@ -212,11 +214,6 @@ export const useConfigState = createZustand(
       setJustDeletedSelf: (self: string) => {
         set(s => {
           s.justDeletedSelf = self
-        })
-      },
-      setJustRevokedSelf: (self: string) => {
-        set(s => {
-          s.justRevokedSelf = self
         })
       },
     }
