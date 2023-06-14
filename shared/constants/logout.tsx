@@ -2,15 +2,12 @@ import logger from '../logger'
 import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as SettingsConstants from './settings'
-import * as Tabs from './tabs'
-import {isMobile} from './platform'
 // normally util.container but it re-exports from us so break the cycle
 import {create as createZustand} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 import {getReduxDispatch} from '../util/zustand'
 
-export const ignorePromise = (f: Promise<void>) => {
+const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
 }
 
@@ -49,15 +46,18 @@ export const useLogoutState = createZustand(
             get().dispatch.start()
             return
           } else {
+            const {passwordTab} = await import('./settings')
+            const {settingsTab} = await import('./tabs')
+            const {isMobile} = await import('./platform')
             if (isMobile) {
               reduxDispatch(
                 RouteTreeGen.createNavigateAppend({
-                  path: [Tabs.settingsTab, SettingsConstants.passwordTab],
+                  path: [settingsTab, passwordTab],
                 })
               )
             } else {
-              reduxDispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]}))
-              reduxDispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.passwordTab]}))
+              reduxDispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
+              reduxDispatch(RouteTreeGen.createNavigateAppend({path: [passwordTab]}))
             }
           }
         }
