@@ -68,7 +68,8 @@ const inboxRefresh = (
   state: Container.TypedState,
   action: Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload
 ) => {
-  const {username, loggedIn} = state.config
+  const username = ConfigConstants.useConfigState.getState().username
+  const {loggedIn} = state.config
   if (!loggedIn || !username) {
     return false
   }
@@ -219,11 +220,8 @@ const onGetInboxConvsUnboxed = (
   return actions
 }
 
-const onGetInboxConvFailed = (
-  state: Container.TypedState,
-  action: EngineGen.Chat1ChatUiChatInboxFailedPayload
-) => {
-  const {username} = state.config
+const onGetInboxConvFailed = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxFailedPayload) => {
+  const username = ConfigConstants.useConfigState.getState().username
   const {convID, error} = action.payload.params
   const conversationIDKey = Types.conversationIDToKey(convID)
   switch (error.typ) {
@@ -324,6 +322,7 @@ const onIncomingMessage = (
   const actions: Array<Container.TypedActions> = []
   const {modifiedMessage, convID, displayDesktopNotification, desktopNotificationSnippet} = incoming
 
+  const username = ConfigConstants.useConfigState.getState().username
   if (convID && cMsg) {
     const conversationIDKey = Types.conversationIDToKey(convID)
 
@@ -338,7 +337,7 @@ const onIncomingMessage = (
           decorated: cMsg.outbox.decoratedTextBody ?? '',
           emoji: cMsg.outbox.body,
           targetOrdinal: cMsg.outbox.supersedes,
-          username: state.config.username,
+          username,
         })
       )
       return actions
@@ -347,7 +346,7 @@ const onIncomingMessage = (
     const {containsLatestMessageMap} = state.chat2
     const shouldAddMessage = containsLatestMessageMap.get(conversationIDKey) || false
 
-    const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
+    const {getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
     const message = Constants.uiMessageToMessage(
       conversationIDKey,
       cMsg,
@@ -1873,11 +1872,9 @@ const messageSend = async (
   logger.info('non-empty text?', text.stringValue().length > 0)
 }
 
-const messageSendByUsernames = async (
-  state: Container.TypedState,
-  action: Chat2Gen.MessageSendByUsernamesPayload
-) => {
-  const tlfName = `${state.config.username},${action.payload.usernames}`
+const messageSendByUsernames = async (_: unknown, action: Chat2Gen.MessageSendByUsernamesPayload) => {
+  const username = ConfigConstants.useConfigState.getState().username
+  const tlfName = `${username},${action.payload.usernames}`
   try {
     const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
       {
@@ -1926,7 +1923,7 @@ const previewConversationPersonMakesAConversation = (
 
   // if stellar just search first, could do others maybe
   if ((reason === 'requestedPayment' || reason === 'sentPayment') && participants.length === 1) {
-    const username = state.config.username
+    const username = ConfigConstants.useConfigState.getState().username
     const toFind = participants[0]
     for (const [cid, p] of state.chat2.participantMap.entries()) {
       if (p.name.length === 2) {
@@ -2074,8 +2071,8 @@ const previewConversationTeam = async (
   }
 }
 
-const startupInboxLoad = (state: Container.TypedState) =>
-  !!state.config.username && Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
+const startupInboxLoad = () =>
+  !!ConfigConstants.useConfigState.getState().username && Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
 
 const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
@@ -2572,7 +2569,8 @@ const refreshMutualTeamsInConv = async (
 ) => {
   const {conversationIDKey} = action.payload
   const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-  const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username || '')
+  const username = ConfigConstants.useConfigState.getState().username
+  const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
   const results = await RPCChatTypes.localGetMutualTeamsLocalRpcPromise(
     {usernames: otherParticipants},
     Constants.waitingKeyMutualTeams(conversationIDKey)
@@ -2803,7 +2801,8 @@ const joinConversation = async (_: unknown, action: Chat2Gen.JoinConversationPay
 const fetchConversationBio = (state: Container.TypedState, action: Chat2Gen.SelectedConversationPayload) => {
   const {conversationIDKey} = action.payload
   const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-  const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username || '')
+  const username = ConfigConstants.useConfigState.getState().username
+  const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
   if (otherParticipants.length === 1) {
     // we're in a one-on-one convo
     const username = otherParticipants[0] || ''
@@ -2976,7 +2975,7 @@ const createConversation = async (
   action: Chat2Gen.CreateConversationPayload,
   listenerApi: Container.ListenerApi
 ) => {
-  const {username} = state.config
+  const username = ConfigConstants.useConfigState.getState().username
   if (!username) {
     logger.error('Making a convo while logged out?')
     return
@@ -3068,7 +3067,7 @@ const messageReplyPrivately = async (
     return
   }
 
-  const {username} = state.config
+  const username = ConfigConstants.useConfigState.getState().username
   if (!username) {
     throw new Error('messageReplyPrivately: making a convo while logged out?')
   }

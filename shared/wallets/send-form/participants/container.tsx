@@ -1,5 +1,6 @@
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
 import * as ProfileGen from '../../../actions/profile-gen'
+import * as ConfigConstants from '../../../constants/config'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -106,7 +107,7 @@ const ConnectedParticipantsOtherAccount = () => {
   const showSpinner = toAccount ? toAccount.unknown : waiting
 
   const allAccounts = Container.useSelector(state => Constants.getAccounts(state).map(makeAccount))
-  const user = Container.useSelector(state => state.config.username)
+  const user = ConfigConstants.useConfigState(s => s.username)
 
   const dispatch = Container.useDispatch()
   const onChangeFromAccount = (from: Types.AccountID) => {

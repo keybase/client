@@ -299,10 +299,10 @@ const showUser = (_: unknown, action: Tracker2Gen.ShowUserPayload) => {
 }
 
 // if we mutated somehow reload ourselves and reget the suggestions
-const refreshSelf = (state: Container.TypedState, action: EngineGen.Keybase1NotifyUsersUserChangedPayload) =>
+const refreshSelf = (_: unknown, action: EngineGen.Keybase1NotifyUsersUserChangedPayload) =>
   ConfigConstants.useConfigState.getState().uid === action.payload.params.uid && [
     Tracker2Gen.createLoad({
-      assertion: state.config.username,
+      assertion: ConfigConstants.useConfigState.getState().username,
       forceDisplay: false,
       fromDaemon: false,
       guiID: Constants.generateGUIID(),

@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
 import * as TeamConstants from '../constants/teams'
+import * as ConfigConstants from '../constants/config'
 import * as Platforms from '../constants/platform'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Styles from '../styles'
@@ -16,11 +17,11 @@ type Props = {
 
 const Header = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
+  const username = ConfigConstants.useConfigState(s => s.username)
   const data = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
     const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-    const username = state.config.username
     const infoPanelShowing = state.chat2.infoPanelShowing
     const canEditDesc = TeamConstants.getCanPerform(state, teamname).editChannelDescription
     return {
@@ -32,12 +33,11 @@ const Header = (props: Props) => {
       participantInfo,
       teamType,
       teamname,
-      username,
     }
   }, shallowEqual)
 
   const {canEditDesc, channelname, descriptionDecorated, infoPanelShowing, isMuted} = data
-  const {participantInfo, teamType, teamname, username} = data
+  const {participantInfo, teamType, teamname} = data
   const otherParticipants = Constants.getRowParticipants(participantInfo, username)
   const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0] : ''
   const otherInfo = Container.useSelector(state => state.users.infoMap.get(first))

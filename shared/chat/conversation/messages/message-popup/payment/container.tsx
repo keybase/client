@@ -2,6 +2,7 @@ import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import * as ConfigConstants from '../../../../../constants/config'
 import * as WalletConstants from '../../../../../constants/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
 import PaymentPopup from '.'
@@ -70,7 +71,7 @@ export const SendPaymentPopup = (ownProps: SendOwnProps) => {
     }
     return paymentInfo
   })
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useConfigState(s => s.username)
 
   const dispatch = Container.useDispatch()
   const onCancel = (paymentID: WalletTypes.PaymentID) => {
@@ -152,7 +153,7 @@ export const SendPaymentPopup = (ownProps: SendOwnProps) => {
 }
 
 const RequestPaymentPopup = (ownProps: RequestOwnProps) => {
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useConfigState(s => s.username)
   const requestInfo = Container.useSelector(state => Constants.getRequestMessageInfo(state, ownProps.message))
 
   const dispatch = Container.useDispatch()

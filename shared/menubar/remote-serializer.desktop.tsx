@@ -16,13 +16,7 @@ export type RemoteTlfUpdates = {
 }
 
 // for convenience we flatten the props we send over the wire
-type ConfigHoistedProps =
-  | 'outOfDate'
-  | 'httpSrvAddress'
-  | 'httpSrvToken'
-  | 'loggedIn'
-  | 'username'
-  | 'windowShownCount'
+type ConfigHoistedProps = 'outOfDate' | 'httpSrvAddress' | 'httpSrvToken' | 'loggedIn' | 'windowShownCount'
 
 type UsersHoistedProps = 'infoMap'
 
@@ -60,6 +54,7 @@ export type ProxyProps = {
   remoteTlfUpdates: Array<RemoteTlfUpdates>
   showingDiskSpaceBanner?: boolean
   totalSyncingBytes?: number
+  username: string
 } & Pick<ConfigState, ConfigHoistedProps> &
   Pick<NotificationsState, 'navBadges'> &
   Pick<UsersState, UsersHoistedProps>
@@ -111,6 +106,7 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
   }
   config: Pick<ConfigState, ConfigHoistedProps>
   users: Pick<UsersState, UsersHoistedProps>
+  username: string
 }
 
 const initialState: DeserializeProps = {
@@ -128,7 +124,6 @@ const initialState: DeserializeProps = {
     httpSrvToken: '',
     loggedIn: false,
     outOfDate: undefined,
-    username: '',
     windowShownCount: new Map([['menu', 0]]),
   },
   conversationsToSend: [],
@@ -149,6 +144,7 @@ const initialState: DeserializeProps = {
   remoteTlfUpdates: [],
   showingDiskSpaceBanner: false,
   totalSyncingBytes: 0,
+  username: '',
   users: {infoMap: new Map()},
 }
 
@@ -201,7 +197,7 @@ export const deserialize = (
       s.config.outOfDate = outOfDate
     }
     if (username !== undefined) {
-      s.config.username = username
+      s.username = username
     }
     if (windowShownCountNum !== undefined) {
       s.config.windowShownCount.set('menu', windowShownCountNum)

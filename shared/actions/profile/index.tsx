@@ -1,5 +1,6 @@
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/profile'
+import * as ConfigConstants from '../../constants/config'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -11,7 +12,7 @@ import {RPCError} from '../../util/errors'
 import {initPgp} from './pgp'
 import {initProofs} from './proofs'
 
-const editProfile = async (state: Container.TypedState, action: ProfileGen.EditProfilePayload) => {
+const editProfile = async (_: unknown, action: ProfileGen.EditProfilePayload) => {
   await RPCTypes.userProfileEditRpcPromise(
     {
       bio: action.payload.bio,
@@ -20,7 +21,10 @@ const editProfile = async (state: Container.TypedState, action: ProfileGen.EditP
     },
     TrackerConstants.waitingKey
   )
-  return Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
+  return Tracker2Gen.createShowUser({
+    asTracker: false,
+    username: ConfigConstants.useConfigState.getState().username,
+  })
 }
 
 const uploadAvatar = async (_: unknown, action: ProfileGen.UploadAvatarPayload) => {
@@ -43,10 +47,13 @@ const uploadAvatar = async (_: unknown, action: ProfileGen.UploadAvatarPayload) 
   }
 }
 
-const finishRevoking = (state: Container.TypedState) => [
-  Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
+const finishRevoking = () => [
+  Tracker2Gen.createShowUser({
+    asTracker: false,
+    username: ConfigConstants.useConfigState.getState().username,
+  }),
   Tracker2Gen.createLoad({
-    assertion: state.config.username,
+    assertion: ConfigConstants.useConfigState.getState().username,
     guiID: TrackerConstants.generateGUIID(),
     inTracker: false,
     reason: '',
@@ -79,7 +86,7 @@ const submitRevokeProof = async (
   state: Container.TypedState,
   action: ProfileGen.SubmitRevokeProofPayload
 ) => {
-  const you = TrackerConstants.getDetails(state, state.config.username)
+  const you = TrackerConstants.getDetails(state, ConfigConstants.useConfigState.getState().username)
   if (!you || !you.assertions) return null
   const proof = [...you.assertions.values()].find(a => a.sigID === action.payload.proofId)
   if (!proof) return null
@@ -176,9 +183,12 @@ const editAvatar = () =>
         path: [{props: {image: undefined}, selected: 'profileEditAvatar'}],
       })
 
-const backToProfile = (state: Container.TypedState) => [
+const backToProfile = () => [
   RouteTreeGen.createClearModals(),
-  Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
+  Tracker2Gen.createShowUser({
+    asTracker: false,
+    username: ConfigConstants.useConfigState.getState().username,
+  }),
 ]
 
 const wotVouch = async (state: Container.TypedState, action: ProfileGen.WotVouchPayload) => {

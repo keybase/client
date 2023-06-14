@@ -67,10 +67,11 @@ const getCachedUsernames = memoize(
 const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const following = Followers.useFollowerState(s => s.following)
   const followers = Followers.useFollowerState(s => s.followers)
+  const username = ConfigConstants.useConfigState(s => s.username)
   const s = Container.useSelector(state => {
     const {notifications, config, fs, chat2, users} = state
     const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
-    const {httpSrvToken, httpSrvAddress, windowShownCount, username} = config
+    const {httpSrvToken, httpSrvAddress, windowShownCount} = config
     const {outOfDate, loggedIn} = config
     const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
     const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
@@ -95,7 +96,6 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
       tlfUpdates,
       unreadMap,
       uploads,
-      username,
       widgetBadge,
       widgetList,
       windowShownCount,
@@ -105,7 +105,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const {badgeMap, desktopAppBadgeCount} = s
   const {httpSrvAddress, httpSrvToken, infoMap, kbfsDaemonStatus, loggedIn, metaMap} = s
   const {navBadges, outOfDate, overallSyncStatus, participantMap, pathItems} = s
-  const {sfmi, tlfUpdates, unreadMap, uploads, username} = s
+  const {sfmi, tlfUpdates, unreadMap, uploads} = s
   const {widgetBadge, widgetList, windowShownCount} = s
 
   const darkMode = Styles.isDarkMode()

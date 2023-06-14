@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as ConfigConstants from '../../../constants/config'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as ProfileGen from '../../../actions/profile-gen'
@@ -83,15 +84,14 @@ const ChannelHeader = (p: Props) => {
 const emptyArray = []
 const UsernameHeader = (p: Props) => {
   const {conversationIDKey} = p
+  const you = ConfigConstants.useConfigState(s => s.username)
   const {participants, theirFullname} = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const participants =
       (meta.teamname ? null : Constants.getParticipantInfo(state, conversationIDKey).name) || emptyArray
     const theirFullname =
       participants?.length === 2
-        ? participants
-            .filter(username => username !== state.config.username)
-            .map(username => getFullname(state, username))[0]
+        ? participants.filter(username => username !== you).map(username => getFullname(state, username))[0]
         : undefined
 
     return {participants, theirFullname}

@@ -54,8 +54,7 @@
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
     "bootstrapStatusLoaded": {
-      "loggedIn": "boolean",
-      "username": "string"
+      "loggedIn": "boolean"
     },
     "globalError": {"globalError?": "Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},

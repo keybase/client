@@ -1,5 +1,6 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -128,8 +129,8 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     return EditCancelRetryType.RETRY_CANCEL
   }
 
+  const you = ConfigConstants.useConfigState(s => s.username)
   return Container.useSelector(state => {
-    const you = state.config.username
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const {exploded, submitState, author, id, botUsername} = m
     const youSent = m.author === you && m.ordinal !== m.id

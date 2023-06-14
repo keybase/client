@@ -232,10 +232,10 @@ export const createLogoutHandshakeWait = (payload: {
   readonly version: number
   readonly increment: boolean
 }) => ({payload, type: logoutHandshakeWait as typeof logoutHandshakeWait})
-export const createBootstrapStatusLoaded = (payload: {
-  readonly loggedIn: boolean
-  readonly username: string
-}) => ({payload, type: bootstrapStatusLoaded as typeof bootstrapStatusLoaded})
+export const createBootstrapStatusLoaded = (payload: {readonly loggedIn: boolean}) => ({
+  payload,
+  type: bootstrapStatusLoaded as typeof bootstrapStatusLoaded,
+})
 export const createChangedActive = (payload: {readonly userActive: boolean}) => ({
   payload,
   type: changedActive as typeof changedActive,

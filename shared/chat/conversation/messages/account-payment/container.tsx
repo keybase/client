@@ -1,6 +1,7 @@
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import type * as Types from '../../../../constants/types/chat2'
+import * as ConfigConstants from '../../../../constants/config'
 import * as WalletConstants from '../../../../constants/wallets'
 import type * as WalletTypes from '../../../../constants/types/wallets'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
@@ -58,9 +59,9 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const {message} = ownProps
   const {conversationIDKey, ordinal} = message
   // TODO not huge selector
+  const you = ConfigConstants.useConfigState(s => s.username)
   const stateProps = Container.useSelector(state => {
     const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
-    const you = state.config.username
     const youAreSender = ownProps.message.author === you
     switch (ownProps.message.type) {
       case 'sendPayment': {

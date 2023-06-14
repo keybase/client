@@ -1,12 +1,13 @@
-import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
-import * as Styles from '../../../styles'
-import {ModalTitle} from '../../common'
-import * as Types from '../../../constants/types/teams'
+import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/teams'
-import {pluralize} from '../../../util/string'
+import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters'
+import * as React from 'react'
+import * as Styles from '../../../styles'
 import * as TeamsGen from '../../../actions/teams-gen'
+import * as Types from '../../../constants/types/teams'
+import {ModalTitle} from '../../common'
+import {pluralize} from '../../../util/string'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 
 const AddSubteamMembers = () => {
@@ -23,7 +24,7 @@ const AddSubteamMembers = () => {
       ? dispatch(TeamsGen.createSetTeamWizardSubteamMembers({members: [...selectedMembers]}))
       : dispatch(TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID}))
 
-  const yourUsername = Container.useSelector(state => state.config.username)
+  const yourUsername = ConfigConstants.useConfigState(s => s.username)
   const parentTeamID = Container.useSelector(
     state => state.teams.newTeamWizard.parentTeamID ?? Types.noTeamID
   )

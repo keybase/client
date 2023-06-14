@@ -51,7 +51,6 @@ export const initialState: Types.State = {
   useNativeFrame: defaultUseNativeFrame,
   userActive: true,
   userSwitching: false,
-  username: '',
   whatsNewLastSeenVersion: '',
   windowShownCount: new Map(),
   windowState: {
@@ -82,6 +81,7 @@ export type ZStore = {
   deviceID: RPCTypes.DeviceID
   deviceName: string
   uid: string
+  username: string
 }
 
 const initialZState: ZStore = {
@@ -92,12 +92,14 @@ const initialZState: ZStore = {
   deviceID: '',
   deviceName: '',
   uid: '',
+  username: '',
 }
 
 type Bootstrap = {
   deviceID: string
   deviceName: string
   uid: string
+  username: string
 }
 
 type ZState = ZStore & {
@@ -106,6 +108,8 @@ type ZState = ZStore & {
     setAllowAnimatedEmojis: (a: boolean) => void
     setAndroidShare: (s: ZStore['androidShare']) => void
     changedFocus: (f: boolean) => void
+    // ONLY used by remote windows
+    replaceUsername: (u: string) => void
     setAccounts: (a: ZStore['configuredAccounts']) => void
     setDefaultUsername: (u: string) => void
     setBootstrap: (b: Bootstrap) => void
@@ -122,6 +126,11 @@ export const useConfigState = createZustand(
           s.appFocused = f
         })
         reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
+      },
+      replaceUsername: (u: string) => {
+        set(s => {
+          s.username = u
+        })
       },
       reset: () => {
         set(s => ({
@@ -148,10 +157,14 @@ export const useConfigState = createZustand(
       },
       setBootstrap: (b: Bootstrap) => {
         set(s => {
-          const {deviceID, deviceName, uid} = b
+          const {deviceID, deviceName, uid, username} = b
           s.deviceID = deviceID
           s.deviceName = deviceName
           s.uid = uid
+          s.username = username
+          if (username) {
+            s.defaultUsername = username
+          }
         })
       },
       setDefaultUsername: (u: string) => {

@@ -1,10 +1,11 @@
-import * as React from 'react'
-import type * as Types from '../../../../constants/types/chat2'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
+import * as Container from '../../../../util/container'
+import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import SystemSimpleToComplex from '.'
-import * as Container from '../../../../util/container'
+import type * as Types from '../../../../constants/types/chat2'
 
 type OwnProps = {message: Types.MessageSystemSimpleToComplex}
 
@@ -12,7 +13,7 @@ const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplex
   const {message} = p
   const {conversationIDKey} = message
   const {teamID} = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useConfigState(s => s.username)
   const dispatch = Container.useDispatch()
   const onManageChannels = React.useCallback(() => {
     dispatch(TeamsGen.createManageChatChannels({teamID}))

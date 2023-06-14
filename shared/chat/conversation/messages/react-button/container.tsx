@@ -2,6 +2,7 @@ import * as React from 'react'
 import {ConvoIDContext, OrdinalContext} from '../ids-context'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import type {StylesCrossPlatform} from '../../../../styles'
@@ -23,8 +24,8 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const ordinal = React.useContext(OrdinalContext)
   const {emoji, className} = p
   const {getAttachmentRef, onLongPress, onShowPicker, showBorder, style} = p
+  const me = ConfigConstants.useConfigState(s => s.username)
   const {active, count, decorated} = Container.useSelector(state => {
-    const me = state.config.username
     const message = Constants.getMessage(state, conversationIDKey, ordinal)
     const reaction = message?.reactions?.get(emoji || '')
     const active = [...(reaction?.users ?? [])].some(r => r.username === me)

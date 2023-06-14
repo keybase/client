@@ -42,10 +42,8 @@ const Header = () => {
   const [showingMenu, setShowingMenu] = React.useState(false)
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const getAttachmentRef = () => attachmentRef.current
-  const fullname = Container.useSelector(
-    state => TrackerConstants.getDetails(state, state.config.username).fullname || ''
-  )
-  const username = Container.useSelector(state => state.config.username)
+  const username = ConfigConstants.useConfigState(s => s.username)
+  const fullname = Container.useSelector(state => TrackerConstants.getDetails(state, username).fullname || '')
   const onProfileClick = () => dispatch(ProfileGen.createShowUserProfile({username}))
   const onClickWrapper = () => {
     setShowingMenu(false)
@@ -156,8 +154,7 @@ const hotKeys = Object.keys(keysMap)
 
 const TabBar = React.memo(function TabBar(props: Props) {
   const {navigation, state} = props
-  const username = Container.useSelector(state => state.config.username)
-
+  const username = ConfigConstants.useConfigState(s => s.username)
   const onHotKey = React.useCallback(
     (cmd: string) => {
       navigation.navigate(keysMap[cmd])
@@ -211,7 +208,7 @@ const Tab = React.memo(function Tab(props: TabProps) {
   const dispatch = Container.useDispatch()
 
   const accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
-  const current = Container.useSelector(state => state.config.username)
+  const current = ConfigConstants.useConfigState(s => s.username)
   const onQuickSwitch = React.useMemo(
     () =>
       index === 0

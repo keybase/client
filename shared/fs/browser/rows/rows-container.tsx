@@ -2,6 +2,7 @@ import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
 import * as Constants from '../../../constants/fs'
+import * as ConfigConstants from '../../../constants/config'
 import {isMobile} from '../../../constants/platform'
 import {sortRowItems, type SortableRowItem} from './sort'
 import Rows, {type Props} from './rows'
@@ -181,7 +182,7 @@ export default (o: OwnProps) => {
     state => Constants.getPathUserSetting(state.fs.pathUserSettings, o.path).sort
   )
   const _tlfs = Container.useSelector(state => state.fs.tlfs)
-  const _username = Container.useSelector(state => state.config.username)
+  const _username = ConfigConstants.useConfigState(s => s.username)
 
   const s = {
     _edits,

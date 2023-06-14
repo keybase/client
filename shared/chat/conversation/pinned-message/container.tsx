@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as React from 'react'
@@ -11,7 +12,7 @@ type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 const PinnedMessageContainer = React.memo(function PinnedMessageContainer(p: OwnProps) {
   const {conversationIDKey} = p
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useConfigState(s => s.username)
   const {teamname, pinnedMsg} = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     return {pinnedMsg: meta?.pinnedMsg, teamname: meta?.teamname}

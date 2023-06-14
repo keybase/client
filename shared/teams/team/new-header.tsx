@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as ConfigConstants from '../../constants/config'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import TeamMenu from './menu-container'
 import type {TeamID} from '../../constants/types/teams'
@@ -289,7 +290,7 @@ const useHeaderCallbacks = (teamID: TeamID) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const yourUsername = Container.useSelector(s => s.config.username)
+  const yourUsername = ConfigConstants.useConfigState(s => s.username)
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
 
   const onAddSelf = () => {

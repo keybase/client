@@ -1,4 +1,5 @@
 import * as Constants from '../../../../constants/chat2'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
@@ -35,12 +36,12 @@ const useHintText = (p: {
   minWriterRole: Types.ConversationMeta['minWriterRole']
 }) => {
   const {minWriterRole, conversationIDKey, isExploding, isEditing, cannotWrite} = p
-  const {teamType, teamname, channelname, username} = Container.useSelector(state => {
+  const username = ConfigConstants.useConfigState(s => s.username)
+  const {teamType, teamname, channelname} = Container.useSelector(state => {
     const teamType = Constants.getMeta(state, conversationIDKey).teamType
     const teamname = Constants.getMeta(state, conversationIDKey).teamname
     const channelname = Constants.getMeta(state, conversationIDKey).channelname
-    const username = state.config.username
-    return {channelname, teamType, teamname, username}
+    return {channelname, teamType, teamname}
   }, shallowEqual)
   const participantInfoName = Container.useSelector(
     state => state.chat2.participantMap.get(conversationIDKey)?.name || Constants.noParticipantInfo.name,

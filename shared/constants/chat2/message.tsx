@@ -24,7 +24,7 @@ import isEqual from 'lodash/isEqual'
 export const getMessageStateExtras = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const getLastOrdinal = () =>
     [...(state.chat2.messageOrdinals.get(conversationIDKey) ?? [])].pop() ?? Types.numberToOrdinal(0)
-  const username = state.config.username
+  const username = ConfigConstants.useConfigState.getState().username
   const devicename = ConfigConstants.useConfigState.getState().deviceName
   return {devicename, getLastOrdinal, username}
 }

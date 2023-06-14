@@ -397,7 +397,7 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 const clearErrors = () => WalletsGen.createClearErrors()
 
 const loadWalletDisclaimer = async (
-  state: Container.TypedState,
+  _state: unknown,
   action:
     | ConfigGen.LoadOnStartPayload
     | WalletsGen.LoadAccountsPayload
@@ -407,7 +407,8 @@ const loadWalletDisclaimer = async (
     return false
   }
 
-  if (!state.config.username) {
+  const username = ConfigConstants.useConfigState.getState().username
+  if (!username) {
     return false
   }
   try {

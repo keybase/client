@@ -6,6 +6,7 @@ import type * as ChatTypes from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as ChatConstants from '../../../constants/chat2'
+import * as ConfigConstants from '../../../constants/config'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -41,7 +42,7 @@ const ChannelMemberRow = (props: Props) => {
   const teamMemberInfo = Container.useSelector(
     s => Constants.getTeamDetails(s, teamID)?.members?.get(username) ?? Constants.initialMemberInfo
   )
-  const you = Container.useSelector(s => s.config.username)
+  const you = ConfigConstants.useConfigState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type

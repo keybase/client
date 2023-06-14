@@ -3,6 +3,7 @@ import * as Container from '../../../../util/container'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Constants from '../../../../constants/chat2'
+import * as ConfigConstants from '../../../../constants/config'
 import type * as Types from '../../../../constants/types/chat2'
 import * as TeamConstants from '../../../../constants/teams'
 import SystemAddedToTeam from '.'
@@ -23,7 +24,7 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
   const authorIsOwner = Container.useSelector(state =>
     TeamConstants.userIsRoleInTeam(state, teamID, author, 'owner')
   )
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useConfigState(s => s.username)
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
 

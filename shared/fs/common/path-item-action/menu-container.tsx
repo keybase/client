@@ -1,6 +1,7 @@
 import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
 import * as Constants from '../../../constants/fs'
+import * as ConfigConstants from '../../../constants/config'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
@@ -69,7 +70,7 @@ export default (ownProps: OwnProps) => {
   const _sfmiEnabled = Container.useSelector(
     state => state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
   )
-  const _username = Container.useSelector(state => state.config.username)
+  const _username = ConfigConstants.useConfigState(s => s.username)
   const _view = Container.useSelector(state => state.fs.pathItemActionMenu.view)
 
   const dispatch = Container.useDispatch()

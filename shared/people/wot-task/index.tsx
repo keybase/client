@@ -1,5 +1,6 @@
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
+import * as ConfigConstants from '../../constants/config'
 import * as PeopleGen from '../../actions/people-gen'
 import type * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Styles from '../../styles'
@@ -92,7 +93,7 @@ const makeMessage = (props: Props) => {
 
 const WotTask = (props: Props) => {
   const dispatch = Container.useDispatch()
-  const myUsername = Container.useSelector(state => state.config.username)
+  const myUsername = ConfigConstants.useConfigState(s => s.username)
   const otherUser = myUsername.localeCompare(props.voucher) === 0 ? props.vouchee : props.voucher
   const badged = true
   const onDismiss = (voucher: string, vouchee: string) => {

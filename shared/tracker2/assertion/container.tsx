@@ -2,6 +2,7 @@ import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/tracker2'
+import * as ConfigConstants from '../../constants/config'
 import type * as Types from '../../constants/types/tracker2'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
@@ -37,8 +38,7 @@ export default (ownProps: OwnProps) => {
   let a = Constants.noAssertion
   let notAUser = false
   let stellarHidden = false
-  const isYours = Container.useSelector(state => ownProps.username === state.config.username)
-
+  const isYours = ConfigConstants.useConfigState(s => ownProps.username === s.username)
   a = Container.useSelector(state => {
     if (ownProps.isSuggestion) {
       a =

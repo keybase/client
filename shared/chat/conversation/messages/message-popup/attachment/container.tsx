@@ -2,6 +2,7 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
+import * as ConfigConstants from '../../../../../constants/config'
 import * as DeeplinksConstants from '../../../../../constants/deeplinks'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
@@ -44,7 +45,7 @@ export default (ownProps: OwnProps) => {
   const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
   const _label = Container.useSelector(state => Constants.getConversationLabel(state, meta, true))
   const _teamID = meta.teamID
-  const _you = Container.useSelector(state => state.config.username)
+  const _you = ConfigConstants.useConfigState(s => s.username)
   const pending = !!message.transferState
 
   const dispatch = Container.useDispatch()

@@ -1,4 +1,5 @@
 import * as Container from '../../../util/container'
+import * as ConfigConstants from '../../../constants/config'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/tracker2'
@@ -13,7 +14,7 @@ const noTeams = []
 
 export default (ownProps: OwnProps) => {
   const d = Container.useSelector(state => Constants.getDetails(state, ownProps.username))
-  const _isYou = Container.useSelector(state => state.config.username === ownProps.username)
+  const _isYou = ConfigConstants.useConfigState(s => s.username === ownProps.username)
   const _roles = Container.useSelector(state => state.teams.teamRoleMap.roles)
   const _teamNameToID = Container.useSelector(state => state.teams.teamNameToID)
   const _youAreInTeams = Container.useSelector(state => state.teams.teamnames.size > 0)

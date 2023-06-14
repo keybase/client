@@ -2,6 +2,7 @@ import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import type * as Types from '../../../constants/types/teams'
 import type * as ChatTypes from '../../../constants/types/chat2'
+import * as ConfigConstants from '../../../constants/config'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
@@ -81,7 +82,7 @@ const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
   const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const notIn = teamMeta.role === 'none' || props.notChannelMember
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useConfigState(s => s.username)
 
   const dispatch = Container.useDispatch()
   const onSecondaryAction = useSecondaryAction(props)

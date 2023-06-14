@@ -1,5 +1,6 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/git'
+import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
@@ -30,7 +31,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
 
   const isNew = React.useContext(NewContext).has(id)
 
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useConfigState(s => s.username)
 
   const setTeamRepoSettings = Constants.useGitState(s => s.dispatch.setTeamRepoSettings)
 

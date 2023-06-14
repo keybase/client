@@ -7,7 +7,7 @@ import {
 } from '../../constants/types/rpc-gen'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {pathSep} from '../../constants/platform'
-import type {TypedState} from '../../constants/reducer'
+import * as ConfigConstants from '../../constants/config'
 
 type DecodedKBFSError = {
   title: string
@@ -145,7 +145,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
   // }
 }
 
-export function kbfsNotification(notification: FSNotification, notify: any, state: TypedState) {
+export function kbfsNotification(notification: FSNotification, notify: any) {
   const action: string | undefined = (
     {
       // For now, disable file notifications because they're really annoying and
@@ -194,7 +194,7 @@ export function kbfsNotification(notification: FSNotification, notify: any, stat
 
   let title = `KBFS: ${action}`
   let body = `Chat or files with ${usernames} ${notification.status}`
-  const user = state.config.username
+  const user = ConfigConstants.useConfigState.getState().username
   let rateLimitKey
 
   const isError = notification.statusCode === FSStatusCode.error

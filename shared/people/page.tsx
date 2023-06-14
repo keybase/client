@@ -1,11 +1,12 @@
 import * as React from 'react'
 import * as Container from '../util/container'
+import * as ConfigConstants from '../constants/config'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Kb from '../common-adapters'
 import ProfileSearch from '../profile/search/bar'
 
 const HeaderAvatar = () => {
-  const myUsername = Container.useSelector(state => state.config.username)
+  const myUsername = ConfigConstants.useConfigState(s => s.username)
   const dispatch = Container.useDispatch()
   const onClick = React.useCallback(
     () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),

@@ -58,7 +58,6 @@ export type State = {
   windowShownCount: Map<string, number>
   windowState: WindowState
   userActive: boolean
-  username: string
   userSwitching: boolean
   useNativeFrame: boolean
   whatsNewLastSeenVersion: string

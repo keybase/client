@@ -1,6 +1,7 @@
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
+import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
@@ -19,7 +20,7 @@ const BlockButtons = (props: Props) => {
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, props.conversationID)
   )
-  const currentUser = Container.useSelector(state => state.config.username)
+  const currentUser = ConfigConstants.useConfigState(s => s.username)
   if (!blockButtonInfo) {
     return null
   }

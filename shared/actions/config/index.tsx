@@ -89,10 +89,9 @@ const loadDaemonBootstrapStatus = async (
   const makeCall = async () => {
     const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
     const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
-    setBootstrap({deviceID, deviceName, uid})
+    setBootstrap({deviceID, deviceName, uid, username})
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       loggedIn,
-      username,
     })
 
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
@@ -573,14 +572,6 @@ const initConfig = () => {
     const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
     const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername) ?? ''
     setDefaultUsername(defaultUsername)
-  })
-
-  Container.listenAction(ConfigGen.bootstrapStatusLoaded, (_, action) => {
-    const {username} = action.payload
-    // keep it if we're logged out
-    if (!username) return
-    const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
-    setDefaultUsername(username)
   })
 
   Container.listenAction(ConfigGen.setSystemDarkMode, (_, action) => {

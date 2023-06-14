@@ -113,7 +113,7 @@ const Connected = (ownProps: OwnProps) => {
 
   const deviceID = ConfigConstants.useConfigState(s => s.deviceID)
   const uid = ConfigConstants.useConfigState(s => s.uid)
-  const username = Container.useSelector(state => state.config.username)
+  const username = ConfigConstants.useConfigState(s => s.username)
   const status = {
     appVersionCode,
     appVersionName,

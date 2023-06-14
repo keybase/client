@@ -93,7 +93,7 @@ const loadEndangeredTLF = async (actingDevice: string, targetDevice: string) => 
 const useRevoke = (deviceID = '') => {
   const d = Constants.useDevicesState(s => s.deviceMap.get(deviceID))
   const load = Constants.useDevicesState(s => s.dispatch.load)
-  const username = Container.useSelector(state => state.config.username)
+  const username = ConfigConstants.useConfigState(s => s.username)
   const wasCurrentDevice = d?.currentDevice ?? false
   const dispatch = Container.useDispatch()
   const deviceName = d?.name ?? ''

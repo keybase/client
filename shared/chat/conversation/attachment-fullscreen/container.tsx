@@ -25,11 +25,11 @@ const Connected = (props: OwnProps) => {
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
   const dispatch = Container.useDispatch()
   const currentDeviceName = ConfigConstants.useConfigState(s => s.deviceName)
+  const username = ConfigConstants.useConfigState(s => s.username)
   const data = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal)
     const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
     const lastOrdinal = ordinals?.[ordinals.length - 1] ?? 0
-    const username = state.config.username
     const message = m?.type === 'attachment' ? m : blankMessage
     const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message
     const {id} = message
@@ -45,11 +45,10 @@ const Connected = (props: OwnProps) => {
       previewWidth,
       title,
       transferProgress,
-      username,
     }
   }, shallowEqual)
   const {downloadPath, fileURL, id, lastOrdinal} = data
-  const {message, previewHeight, previewURL, previewWidth, title, transferProgress, username} = data
+  const {message, previewHeight, previewURL, previewWidth, title, transferProgress} = data
   const getLastOrdinal = () => lastOrdinal
   const {height: clampedHeight, width: clampedWidth} = Constants.clampImageSize(
     previewWidth,

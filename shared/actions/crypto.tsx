@@ -1,6 +1,7 @@
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/crypto'
 import * as Constants from '../constants/crypto'
+import * as ConfigConstants from '../constants/config'
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -24,7 +25,7 @@ type OperationActionArgs = {
 type SetRecipientsSagaActions = CryptoGen.SetRecipientsPayload | CryptoGen.SetEncryptOptionsPayload
 // Get list of users from crypto TeamBuilding for encrypt operation
 const onSetRecipients = (state: Container.TypedState) => {
-  const {username: currentUser} = state.config
+  const currentUser = ConfigConstants.useConfigState.getState().username
   const {options} = state.crypto.encrypt
 
   const users = [...state.crypto.teamBuilding.finishedTeam]
@@ -154,7 +155,7 @@ const handleRunOperation = (
         // If no recipients are set and the user adds input, we should default
         // to self encryption (with state.config.username as the only recipient)
         else {
-          const {username} = state.config
+          const username = ConfigConstants.useConfigState.getState().username
           return makeOperationAction({
             input: value,
             inputType: type,
@@ -196,7 +197,7 @@ const handleRunOperation = (
     }
     case CryptoGen.clearRecipients: {
       const {operation} = action.payload
-      const {username} = state.config
+      const username = ConfigConstants.useConfigState.getState().username
       const {inProgress, input, inputType, options} = state.crypto.encrypt
       const unhiddenInput = input.stringValue()
 
@@ -224,7 +225,7 @@ const handleRunOperation = (
     case CryptoGen.setEncryptOptions: {
       const {options} = action.payload
       const {recipients, inProgress, input, inputType} = state.crypto.encrypt
-      const {username} = state.config
+      const username = ConfigConstants.useConfigState.getState().username
       const unhiddenInput = input.stringValue()
 
       // Do not run operations automatically on mobile. Wait for CryptoGen.runTextOperation
@@ -253,7 +254,7 @@ const handleRunOperation = (
     case CryptoGen.runTextOperation: {
       const {operation} = action.payload
       const {input, inputType} = state.crypto[operation]
-      const {username} = state.config
+      const username = ConfigConstants.useConfigState.getState().username
 
       const args: OperationActionArgs = {
         input,
@@ -275,7 +276,7 @@ const handleRunOperation = (
     case CryptoGen.runFileOperation: {
       const {operation, destinationDir} = action.payload
       const {input, inputType} = state.crypto[operation]
-      const {username} = state.config
+      const username = ConfigConstants.useConfigState.getState().username
       const args: OperationActionArgs = {
         destinationDir,
         input,
@@ -369,8 +370,8 @@ const getStatusCodeMessage = (
   return statusCodeToMessage[error.code] || genericMessage
 }
 
-const saltpackEncrypt = async (state: Container.TypedState, action: CryptoGen.SaltpackEncryptPayload) => {
-  const {username} = state.config
+const saltpackEncrypt = async (_: unknown, action: CryptoGen.SaltpackEncryptPayload) => {
+  const username = ConfigConstants.useConfigState.getState().username
   const {destinationDir, input, recipients, type, options} = action.payload
   switch (type) {
     case 'file': {
@@ -538,8 +539,8 @@ const saltpackDecrypt = async (_, action: CryptoGen.SaltpackDecryptPayload) => {
   }
 }
 
-const saltpackSign = async (state: Container.TypedState, action: CryptoGen.SaltpackSignPayload) => {
-  const {username} = state.config
+const saltpackSign = async (_: unknown, action: CryptoGen.SaltpackSignPayload) => {
+  const username = ConfigConstants.useConfigState.getState().username
   const {destinationDir, input, type} = action.payload
   switch (type) {
     case 'file': {

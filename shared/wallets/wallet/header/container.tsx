@@ -1,9 +1,10 @@
-import * as Container from '../../../util/container'
-import {memoize} from '../../../util/memoize'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/wallets'
-import type * as Types from '../../../constants/types/wallets'
+import * as Container from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import Header from '.'
+import type * as Types from '../../../constants/types/wallets'
+import {memoize} from '../../../util/memoize'
 
 const otherUnreadPayments = memoize(
   (map: Container.TypedState['wallets']['unreadPaymentsMap'], accID: Types.AccountID) =>
@@ -15,7 +16,7 @@ export default () => {
   const selectedAccount = Container.useSelector(state => Constants.getAccount(state, _accountID))
   const accountID = selectedAccount.accountID
   const isDefaultWallet = selectedAccount.isDefault
-  const keybaseUser = Container.useSelector(state => state.config.username)
+  const keybaseUser = ConfigConstants.useConfigState(s => s.username)
   const thisDeviceIsLockedOut = selectedAccount.deviceReadOnly
   const unreadPayments = Container.useSelector(state =>
     otherUnreadPayments(state.wallets.unreadPaymentsMap, selectedAccount.accountID)

@@ -1,5 +1,6 @@
 import {WalletRow} from '.'
 import * as Container from '../../../../../util/container'
+import * as ConfigConstants from '../../../../../constants/config'
 import {getAccount, getSelectedAccount} from '../../../../../constants/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import type {AccountID} from '../../../../../constants/types/wallets'
@@ -12,7 +13,7 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const account = Container.useSelector(state => getAccount(state, ownProps.accountID))
   const name = account.name
-  const me = Container.useSelector(state => state.config.username)
+  const me = ConfigConstants.useConfigState(s => s.username)
   const keybaseUser = account.isDefault ? me : ''
   const selectedAccount = Container.useSelector(state => getSelectedAccount(state))
   const contents = account.balanceDescription

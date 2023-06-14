@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
@@ -59,6 +60,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     return {isDecryptingSnippet, snippet, snippetDecoration}
   }, shallowEqual)
 
+  const you = ConfigConstants.useConfigState(s => s.username)
   const participants = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
     const teamname = (meta?.teamname || layoutIsTeam ? layoutName : '') || ''
@@ -68,7 +70,6 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     }
     const participantInfo = state.chat2.participantMap.get(conversationIDKey)
     if (participantInfo?.name.length) {
-      const you = state.config.username
       // Filter out ourselves unless it's our 1:1 conversation
       return participantInfo.name.filter((participant, _, list) =>
         list.length === 1 ? true : participant !== you
@@ -155,10 +156,10 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const conversationIDKey = React.useContext(ConversationIDKeyContext)
   const layoutIsTeam = React.useContext(IsTeamContext)
   const participants = React.useContext(ParticipantsContext)
+  const you = ConfigConstants.useConfigState(s => s.username)
   const {isLocked, isMuted} = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
-    const isLocked =
-      meta?.rekeyers?.has(state.config.username) || (meta?.rekeyers.size ?? 0) > 0 || !!meta?.wasFinalizedBy
+    const isLocked = meta?.rekeyers?.has(you) || (meta?.rekeyers.size ?? 0) > 0 || !!meta?.wasFinalizedBy
     const isMuted = state.chat2.mutedMap.get(conversationIDKey) ?? false
     return {isLocked, isMuted}
   })

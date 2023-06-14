@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
 import * as WaitConstants from '../constants/waiting'
+import * as ConfigConstants from '../constants/config'
 import * as DarkMode from '../constants/darkmode'
 import * as Followers from '../constants/followers'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
@@ -22,8 +23,9 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const followers = Followers.useFollowerState(s => s.followers)
   const following = Followers.useFollowerState(s => s.following)
   const {blockMap, infoMap} = users
+  const username = ConfigConstants.useConfigState(s => s.username)
   const config = Container.useSelector(state => state.config)
-  const {httpSrvToken, httpSrvAddress, username} = config
+  const {httpSrvToken, httpSrvAddress} = config
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const counts = new Map([

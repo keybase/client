@@ -1,4 +1,5 @@
 import Banner from './index'
+import * as ConfigConstants from '../../../constants/config'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
@@ -6,7 +7,7 @@ import * as Constants from '../../../constants/fs'
 
 const ConnectedBanner = () => {
   const _kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
-  const _name = Container.useSelector(state => state.config.username)
+  const _name = ConfigConstants.useConfigState(s => s.username)
   const _overallSyncStatus = Container.useSelector(state => state.fs.overallSyncStatus)
   const dispatch = Container.useDispatch()
   // This LoadPathMetadata triggers a sync retry.

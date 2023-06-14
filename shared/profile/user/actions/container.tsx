@@ -1,6 +1,7 @@
 import * as Constants from '../../../constants/tracker2'
 import * as Container from '../../../util/container'
 import * as Followers from '../../../constants/followers'
+import * as ConfigConstants from '../../../constants/config'
 import * as FsConstants from '../../../constants/fs'
 import * as FsTypes from '../../../constants/types/fs'
 import * as ProfileGen from '../../../actions/profile-gen'
@@ -22,7 +23,7 @@ export default (ownProps: OwnProps) => {
   const isBot = Container.useSelector(state => state.chat2.featuredBotsMap.has(username))
 
   const _guiID = d.guiID
-  const _you = Container.useSelector(state => state.config.username)
+  const _you = ConfigConstants.useConfigState(s => s.username)
   const blocked = d.blocked
   const hidFromFollowers = d.hidFromFollowers
   const state = d.state

@@ -7,6 +7,7 @@ import * as Styles from '../../styles'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
+import * as ConfigConstants from '../../constants/config'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type * as ChatTypes from '../../constants/types/chat2'
 import HiddenString from '../../util/hidden-string'
@@ -95,7 +96,7 @@ const DesktopSendToChat = (props: Props) => {
   const [title, setTitle] = React.useState('')
   const [conversationIDKey, setConversationIDKey] = React.useState(ChatConstants.noConversationIDKey)
   const [convName, setConvName] = React.useState('')
-  const username = Container.useSelector(state => state.config.username)
+  const username = ConfigConstants.useConfigState(s => s.username)
   const dispatch = Container.useDispatch()
   const onCancel = () => {
     dispatch(RouteTreeGen.createClearModals())

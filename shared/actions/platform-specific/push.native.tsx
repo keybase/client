@@ -339,14 +339,14 @@ const handlePush = async (
 const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 
 const uploadPushToken = async (state: Container.TypedState) => {
-  const {config, push} = state
-  const deviceID = ConfigConstants.useConfigState.getState().deviceID
-  if (!config.username || !deviceID) {
-    return false as const
+  const {push} = state
+  const {deviceID, username} = ConfigConstants.useConfigState.getState()
+  if (!username || !deviceID) {
+    return false
   }
   const {token} = push
   if (!token) {
-    return false as const
+    return false
   }
   try {
     await RPCTypes.apiserverPostRpcPromise({
@@ -362,7 +362,7 @@ const uploadPushToken = async (state: Container.TypedState) => {
   } catch (e) {
     logger.error("[PushToken] Couldn't save a push token", e)
   }
-  return false as const
+  return false
 }
 
 const deletePushToken = async (

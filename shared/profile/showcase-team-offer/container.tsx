@@ -1,6 +1,7 @@
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as ConfigConstants from '../../constants/config'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
@@ -10,7 +11,7 @@ import type * as TeamsTypes from '../../constants/types/teams'
 
 export default () => {
   const waiting = WaitingConstants.useWaitingState(s => s.counts)
-  const _you = Container.useSelector(state => state.config.username)
+  const _you = ConfigConstants.useConfigState(s => s.username)
   const teamMeta = Container.useSelector(state => state.teams.teamMeta)
   const dispatch = Container.useDispatch()
   const onCancel = (you: string) => {
