@@ -1,11 +1,9 @@
 import type {Details, Assertion} from '../constants/types/tracker2'
-import type {State as ConfigState} from '../constants/types/config'
 import type {State as UsersState, UserInfo, BlockState} from '../constants/types/users'
 import type {State as WaitingState} from '../constants/types/waiting'
 import type {RPCError} from '../util/errors'
 
 // for convenience we flatten the props we send over the wire
-type ConfigHoistedProps = 'httpSrvAddress' | 'httpSrvToken'
 type UsersHoistedProps = 'infoMap' | 'blockMap'
 type WaitingHoistedProps = 'counts' | 'errors'
 
@@ -16,8 +14,9 @@ export type ProxyProps = {
   darkMode: boolean
   trackerUsername: string
   username: string
+  httpSrvAddress: string
+  httpSrvToken: string
 } & Details &
-  Pick<ConfigState, ConfigHoistedProps> &
   Pick<UsersState, UsersHoistedProps> &
   Pick<WaitingState, WaitingHoistedProps>
 
@@ -44,7 +43,6 @@ type SerializeProps = Omit<
 export type DeserializeProps = {
   avatarRefreshCounter: Map<string, number>
   darkMode: boolean
-  config: Pick<ConfigState, ConfigHoistedProps>
   followers: Set<string>
   following: Set<string>
   users: Pick<UsersState, UsersHoistedProps>
@@ -53,17 +51,17 @@ export type DeserializeProps = {
   trackerUsername: string
   waiting: WaitingState
   username: string
+  httpSrvAddress: string
+  httpSrvToken: string
 }
 
 const initialState: DeserializeProps = {
   avatarRefreshCounter: new Map(),
-  config: {
-    httpSrvAddress: '',
-    httpSrvToken: '',
-  },
   darkMode: false,
   followers: new Set(),
   following: new Set(),
+  httpSrvAddress: '',
+  httpSrvToken: '',
   teams: {teamNameToID: new Map()},
   tracker2: {usernameToDetails: new Map()},
   trackerUsername: '',
@@ -165,13 +163,10 @@ export const deserialize = (
     avatarRefreshCounter: avatarRefreshCounterArr
       ? new Map(avatarRefreshCounterArr)
       : state.avatarRefreshCounter,
-    config: {
-      ...state.config,
-      httpSrvAddress: httpSrvAddress ?? state.config.httpSrvAddress,
-      httpSrvToken: httpSrvToken ?? state.config.httpSrvToken,
-    },
     followers: followersArr ? new Set(followersArr) : state.followers,
     following: followingArr ? new Set(followingArr) : state.following,
+    httpSrvAddress: httpSrvAddress ?? state.httpSrvAddress,
+    httpSrvToken: httpSrvToken ?? state.httpSrvToken,
     tracker2: {usernameToDetails: new Map([[trackerUsername, details]])},
     trackerUsername,
     username: username ?? state.username,

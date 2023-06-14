@@ -40,12 +40,6 @@ const onLoggedOut = (state: Container.TypedState) => {
   return undefined
 }
 
-const onHTTPSrvInfoUpdated = (_: unknown, action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload) =>
-  ConfigGen.createUpdateHTTPSrvInfo({
-    address: action.payload.params.info.address,
-    token: action.payload.params.info.token,
-  })
-
 const getFollowerInfo = (_: unknown, action: ConfigGen.LoadOnStartPayload) => {
   const {uid} = Constants.useCurrentUserState.getState()
   logger.info(`getFollowerInfo: init; uid=${uid}`)
@@ -100,15 +94,12 @@ const loadDaemonBootstrapStatus = async (
 
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     listenerApi.dispatch(loadedAction)
-
     listenerApi.dispatch(Chat2Gen.createUpdateUserReacjis({userReacjis}))
 
     // set HTTP srv info
     if (s.httpSrvInfo) {
       logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
-      listenerApi.dispatch(
-        ConfigGen.createUpdateHTTPSrvInfo({address: s.httpSrvInfo.address, token: s.httpSrvInfo.token})
-      )
+      Constants.useConfigState.getState().dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
     } else {
       logger.info(`[Bootstrap] http server: no info given`)
     }
@@ -540,7 +531,11 @@ const initConfig = () => {
     Constants.useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
   })
 
-  Container.listenAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
+  Container.listenAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, (_, action) => {
+    Constants.useConfigState
+      .getState()
+      .dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
+  })
 
   // Listen for updates to `whatsNewLastSeenVersion`
   Container.listenAction(GregorGen.pushState, gregorPushState)

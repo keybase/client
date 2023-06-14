@@ -1,16 +1,16 @@
-import * as ReduxToolKit from '@reduxjs/toolkit'
-import {listenerMiddleware} from '../util/redux-toolkit'
+import * as ConfigConstants from '../constants/config'
 import * as ConfigGen from '../actions/config-gen'
+import * as ReduxToolKit from '@reduxjs/toolkit'
 import logger from '../logger'
-import {reducers} from '../reducers'
 import type {TypedState} from '../constants/reducer'
 import {DEBUG_CHAT_DUMP} from '../constants/chat2'
 import {actionLogger} from './action-logger'
-import {convertToError} from '../util/errors'
-import {type Store} from 'redux'
 import {enableStoreLogging, enableActionLogging} from '../local-debug'
-import {isMobile} from '../constants/platform'
 import {initListeners} from './configure-listeners'
+import {isMobile} from '../constants/platform'
+import {listenerMiddleware} from '../util/redux-toolkit'
+import {reducers} from '../reducers'
+import {type Store} from 'redux'
 
 let theStore: Store<any, any>
 
@@ -82,15 +82,7 @@ const crashHandler = error => {
   if (__DEV__) {
     throw error
   }
-  if (theStore) {
-    theStore.dispatch(
-      ConfigGen.createGlobalError({
-        globalError: convertToError(error),
-      })
-    )
-  } else {
-    logger.warn('Got crash before store created?', error)
-  }
+  ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
 }
 
 let loggerMiddleware: any

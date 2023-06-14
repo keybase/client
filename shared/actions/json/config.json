@@ -3,8 +3,7 @@
     "import type * as Types from '../constants/types/config'",
     "import type * as Tabs from '../constants/tabs'",
     "import type * as ChatTypes from '../constants/types/chat2'",
-    "import type HiddenString from '../util/hidden-string'",
-    "import type {RPCError} from '../util/errors'"
+    "import type HiddenString from '../util/hidden-string'"
   ],
   "actions": {
     "restartHandshake": {
@@ -56,7 +55,6 @@
     "bootstrapStatusLoaded": {
       "loggedIn": "boolean"
     },
-    "globalError": {"globalError?": "Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
       "startupWasFromPush": "boolean",
@@ -107,10 +105,6 @@
     },
     "darkModePreferenceChanged": {},
     "setSystemDarkMode": {"dark": "boolean"},
-    "updateHTTPSrvInfo": {
-      "address": "string",
-      "token": "string"
-    },
     "remoteWindowWantsProps": {
       "_description": "remote electron window wants props sent",
       "component": "string",

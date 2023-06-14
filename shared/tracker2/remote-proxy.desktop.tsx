@@ -24,8 +24,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const following = Followers.useFollowerState(s => s.following)
   const {blockMap, infoMap} = users
   const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const config = Container.useSelector(state => state.config)
-  const {httpSrvToken, httpSrvAddress} = config
+  const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const counts = new Map([
@@ -61,8 +60,8 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
     fullname,
     guiID,
     hidFromFollowers,
-    httpSrvAddress,
-    httpSrvToken,
+    httpSrvAddress: httpSrv.address,
+    httpSrvToken: httpSrv.token,
     infoMap: mapFilterByKey(infoMap, trackerUsernames),
     location,
     reason,

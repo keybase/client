@@ -22,7 +22,7 @@ import * as Router2Constants from '../constants/router2'
 import {commonListenActions, filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import openSMS from '../util/sms'
-import {RPCError, convertToError, logError} from '../util/errors'
+import {RPCError, logError} from '../util/errors'
 import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
@@ -832,10 +832,7 @@ const saveChannelMembership = async (
         await RPCChatTypes.localJoinConversationByIDLocalRpcPromise({convID}, waitingKey)
         listenerApi.dispatch(TeamsGen.createAddParticipant({conversationIDKey, teamID}))
       } catch (error) {
-        if (!(error instanceof RPCError)) {
-          return
-        }
-        listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(error)}))
+        ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
       }
     } else {
       try {
@@ -843,10 +840,7 @@ const saveChannelMembership = async (
         await RPCChatTypes.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
         listenerApi.dispatch(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
       } catch (error) {
-        if (!(error instanceof RPCError)) {
-          return
-        }
-        listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(error)}))
+        ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
       }
     }
   }
@@ -976,11 +970,7 @@ const setMemberPublicity = async (_: unknown, action: TeamsGen.SetMemberPublicit
   }
 }
 
-const setPublicity = async (
-  state: Container.TypedState,
-  action: TeamsGen.SetPublicityPayload,
-  listenerApi: Container.ListenerApi
-) => {
+const setPublicity = async (state: Container.TypedState, action: TeamsGen.SetPublicityPayload) => {
   const {teamID, settings} = action.payload
   const waitingKey = Constants.settingsWaitingKey(teamID)
   const teamMeta = Constants.getTeamMeta(state, teamID)
@@ -1001,9 +991,8 @@ const setPublicity = async (
         },
         waitingKey
       )
-    } catch (_payload) {
-      const payload = _payload as Object
-      listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(payload)}))
+    } catch (payload) {
+      ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
     }
   }
   if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
@@ -1012,9 +1001,8 @@ const setPublicity = async (
         {disabled: settings.ignoreAccessRequests, teamID},
         waitingKey
       )
-    } catch (_payload) {
-      const payload = _payload as Object
-      listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(payload)}))
+    } catch (payload) {
+      ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
     }
   }
   if (publicityAnyMember !== settings.publicityAnyMember) {
@@ -1023,9 +1011,8 @@ const setPublicity = async (
         {anyMemberShowcase: settings.publicityAnyMember, teamID},
         waitingKey
       )
-    } catch (_payload) {
-      const payload = _payload as Object
-      listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(payload)}))
+    } catch (payload) {
+      ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
     }
   }
   if (publicityMember !== settings.publicityMember) {
@@ -1034,17 +1021,15 @@ const setPublicity = async (
         {isShowcased: settings.publicityMember, teamID},
         waitingKey
       )
-    } catch (_payload) {
-      const payload = _payload as Object
-      listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(payload)}))
+    } catch (payload) {
+      ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
     }
   }
   if (publicityTeam !== settings.publicityTeam) {
     try {
       await RPCTypes.teamsSetTeamShowcaseRpcPromise({isShowcased: settings.publicityTeam, teamID}, waitingKey)
-    } catch (_payload) {
-      const payload = _payload as Object
-      listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(payload)}))
+    } catch (payload) {
+      ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
     }
   }
 }

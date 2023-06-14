@@ -10,11 +10,12 @@ import {settingsTab} from '../../constants/tabs'
 const Connected = () => {
   const loggedIn = Container.useSelector(s => s.config.loggedIn)
   const daemonError = Constants.useDaemonState(s => s.error)
-  const error = Container.useSelector(s => s.config.globalError)
+  const error = Constants.useConfigState(s => s.globalError)
+  const setGlobalError = Constants.useConfigState(s => s.dispatch.setGlobalError)
   const dispatch = Container.useDispatch()
 
   const onFeedback = React.useCallback(() => {
-    dispatch(ConfigGen.createGlobalError({}))
+    setGlobalError()
     if (loggedIn) {
       dispatch(RouteTreeGen.createClearModals())
       if (Platform.isMobile) {
@@ -35,14 +36,12 @@ const Connected = () => {
     } else {
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
     }
-  }, [loggedIn, dispatch])
+  }, [loggedIn, dispatch, setGlobalError])
   const copyToClipboard = React.useCallback(
     (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
     [dispatch]
   )
-  const onDismiss = React.useCallback(() => {
-    dispatch(ConfigGen.createGlobalError({}))
-  }, [dispatch])
+  const onDismiss = setGlobalError
 
   if (daemonError || error) {
     return (

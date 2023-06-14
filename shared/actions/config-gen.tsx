@@ -4,7 +4,6 @@ import type * as Types from '../constants/types/config'
 import type * as Tabs from '../constants/tabs'
 import type * as ChatTypes from '../constants/types/chat2'
 import type HiddenString from '../util/hidden-string'
-import type {RPCError} from '../util/errors'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
@@ -20,7 +19,6 @@ export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
-export const globalError = 'config:globalError'
 export const initListenerLoops = 'config:initListenerLoops'
 export const installerRan = 'config:installerRan'
 export const loadOnLoginStartup = 'config:loadOnLoginStartup'
@@ -57,7 +55,6 @@ export const showMain = 'config:showMain'
 export const showShareActionSheet = 'config:showShareActionSheet'
 export const toggleRuntimeStats = 'config:toggleRuntimeStats'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
-export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
@@ -260,10 +257,6 @@ export const createDumpLogs = (payload: {readonly reason: 'quitting through menu
   payload,
   type: dumpLogs as typeof dumpLogs,
 })
-export const createGlobalError = (payload: {readonly globalError?: Error | RPCError} = {}) => ({
-  payload,
-  type: globalError as typeof globalError,
-})
 export const createLoadOnLoginStartup = (payload?: undefined) => ({
   payload,
   type: loadOnLoginStartup as typeof loadOnLoginStartup,
@@ -344,10 +337,6 @@ export const createToggleRuntimeStats = (payload?: undefined) => ({
   payload,
   type: toggleRuntimeStats as typeof toggleRuntimeStats,
 })
-export const createUpdateHTTPSrvInfo = (payload: {readonly address: string; readonly token: string}) => ({
-  payload,
-  type: updateHTTPSrvInfo as typeof updateHTTPSrvInfo,
-})
 export const createUpdateInfo = (payload: {
   readonly isOutOfDate: boolean
   readonly critical: boolean
@@ -371,7 +360,6 @@ export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
-export type GlobalErrorPayload = ReturnType<typeof createGlobalError>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LoadOnLoginStartupPayload = ReturnType<typeof createLoadOnLoginStartup>
@@ -408,7 +396,6 @@ export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
 export type ToggleRuntimeStatsPayload = ReturnType<typeof createToggleRuntimeStats>
 export type UpdateCriticalCheckStatusPayload = ReturnType<typeof createUpdateCriticalCheckStatus>
-export type UpdateHTTPSrvInfoPayload = ReturnType<typeof createUpdateHTTPSrvInfo>
 export type UpdateInfoPayload = ReturnType<typeof createUpdateInfo>
 export type UpdateMenubarWindowIDPayload = ReturnType<typeof createUpdateMenubarWindowID>
 export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
@@ -430,7 +417,6 @@ export type Actions =
   | DarkModePreferenceChangedPayload
   | DumpLogsPayload
   | FilePickerErrorPayload
-  | GlobalErrorPayload
   | InitListenerLoopsPayload
   | InstallerRanPayload
   | LoadOnLoginStartupPayload
@@ -467,7 +453,6 @@ export type Actions =
   | ShowShareActionSheetPayload
   | ToggleRuntimeStatsPayload
   | UpdateCriticalCheckStatusPayload
-  | UpdateHTTPSrvInfoPayload
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload

@@ -2,7 +2,6 @@ import type * as NetInfo from '@react-native-community/netinfo'
 import type * as RPCTypes from './rpc-gen'
 import type HiddenString from '../../util/hidden-string'
 import type {ConversationIDKey} from './chat2'
-import type {RPCError} from '../../util/errors'
 import type {Tab} from '../tabs'
 
 export type OutOfDate = {
@@ -30,9 +29,6 @@ export type WindowState = {
 }
 
 export type State = {
-  globalError?: Error | RPCError
-  httpSrvAddress: string
-  httpSrvToken: string
   incomingShareUseOriginal?: boolean
   justDeletedSelf: string
   justRevokedSelf: string

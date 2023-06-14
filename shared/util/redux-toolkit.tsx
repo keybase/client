@@ -1,9 +1,9 @@
-import {createListenerMiddleware, type ForkedTask} from '@reduxjs/toolkit'
+import * as ConfigConstants from '../constants/config'
 import * as ConfigGen from '../actions/config-gen'
-import type {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
-import {convertToError} from '../util/errors'
-import type {TypedState} from '../constants/reducer'
 import isArray from 'lodash/isArray'
+import type {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
+import type {TypedState} from '../constants/reducer'
+import {createListenerMiddleware, type ForkedTask} from '@reduxjs/toolkit'
 type ActionTypes = keyof TypedActionsMap
 
 type TypedDispatch = (action: TypedActions) => void
@@ -62,7 +62,7 @@ const listenActionImpl = (
           act && listenerApi.dispatch(act)
         }
       } catch (e) {
-        listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(e as any)}))
+        ConfigConstants.useConfigState.getState().dispatch.setGlobalError(e)
       }
     },
     matcher,
@@ -78,7 +78,7 @@ export const spawn = (effect: (listenerApi: ListenerApi) => void | Promise<void>
         try {
           await effect(listenerApi as any)
         } catch (e) {
-          listenerApi.dispatch(ConfigGen.createGlobalError({globalError: convertToError(e as any)}))
+          ConfigConstants.useConfigState.getState().dispatch.setGlobalError(e)
         }
         return
       })

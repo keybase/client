@@ -1,5 +1,4 @@
 import * as Tabs from '../constants/tabs'
-import * as ConfigGen from './config-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as FsGen from './fs-gen'
@@ -118,17 +117,23 @@ const receivedBadgeState = (
   ]
 }
 
-const receivedRootAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAuditRootAuditErrorPayload) =>
-  ConfigGen.createGlobalError({
-    globalError: new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`),
-  })
+const receivedRootAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAuditRootAuditErrorPayload) => {
+  ConfigConstants.useConfigState
+    .getState()
+    .dispatch.setGlobalError(
+      new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
+    )
+}
 
-const receivedBoxAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAuditBoxAuditErrorPayload) =>
-  ConfigGen.createGlobalError({
-    globalError: new Error(
-      `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
-    ),
-  })
+const receivedBoxAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAuditBoxAuditErrorPayload) => {
+  ConfigConstants.useConfigState
+    .getState()
+    .dispatch.setGlobalError(
+      new Error(
+        `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
+      )
+    )
+}
 
 const initNotifications = () => {
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)

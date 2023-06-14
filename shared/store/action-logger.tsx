@@ -1,7 +1,6 @@
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as PushGen from '../actions/push-gen'
-import * as ConfigGen from '../actions/config-gen'
 import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import type {TypedDispatch, TypedActions} from '../util/container'
@@ -59,15 +58,6 @@ const transformActionForLog = (action: TypedActions) => {
       // @ts-ignore don't try and narrow, if it exists we want it
       const {conversationIDKey, type: ntype, userInteraction} = notification
       return {payload: {conversationIDKey, ntype, userInteraction}}
-    }
-    case ConfigGen.globalError: {
-      const {type, payload} = action
-      let {globalError} = payload
-      let err = {}
-      if (globalError) {
-        err = {err: `Global Error: ${globalError.message} ${globalError.stack || ''}`}
-      }
-      return {payload: err, type}
     }
     case Chat2Gen.messagesWereDeleted: // fallthrough
     case Chat2Gen.messageSend: {

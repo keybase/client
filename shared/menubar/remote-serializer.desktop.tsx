@@ -16,7 +16,7 @@ export type RemoteTlfUpdates = {
 }
 
 // for convenience we flatten the props we send over the wire
-type ConfigHoistedProps = 'outOfDate' | 'httpSrvAddress' | 'httpSrvToken' | 'loggedIn' | 'windowShownCount'
+type ConfigHoistedProps = 'outOfDate' | 'loggedIn' | 'windowShownCount'
 
 type UsersHoistedProps = 'infoMap'
 
@@ -55,6 +55,8 @@ export type ProxyProps = {
   showingDiskSpaceBanner?: boolean
   totalSyncingBytes?: number
   username: string
+  httpSrvAddress: string
+  httpSrvToken: string
 } & Pick<ConfigState, ConfigHoistedProps> &
   Pick<NotificationsState, 'navBadges'> &
   Pick<UsersState, UsersHoistedProps>
@@ -84,6 +86,8 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
   following: Set<string>
   totalSyncingBytes: number
   showingDiskSpaceBanner: boolean
+  httpSrvAddress: string
+  httpSrvToken: string
   chat2: {
     badgeMap: Map<string, number>
     draftMap: Map<string, number>
@@ -120,8 +124,6 @@ const initialState: DeserializeProps = {
     unreadMap: new Map(),
   },
   config: {
-    httpSrvAddress: '',
-    httpSrvToken: '',
     loggedIn: false,
     outOfDate: undefined,
     windowShownCount: new Map([['menu', 0]]),
@@ -135,6 +137,8 @@ const initialState: DeserializeProps = {
   files: 0,
   followers: new Set(),
   following: new Set(),
+  httpSrvAddress: '',
+  httpSrvToken: '',
   kbfsDaemonStatus: {
     onlineStatus: FSTypes.KbfsDaemonOnlineStatus.Unknown,
     rpcStatus: FSTypes.KbfsDaemonRpcStatus.Connected,
@@ -185,10 +189,10 @@ export const deserialize = (
       s.following = new Set(followingArr)
     }
     if (httpSrvAddress !== undefined) {
-      s.config.httpSrvAddress = httpSrvAddress
+      s.httpSrvAddress = httpSrvAddress
     }
     if (httpSrvToken !== undefined) {
-      s.config.httpSrvToken = httpSrvToken
+      s.httpSrvToken = httpSrvToken
     }
     if (loggedIn !== undefined) {
       s.config.loggedIn = loggedIn
