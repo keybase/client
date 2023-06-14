@@ -1,12 +1,18 @@
 import logger from '../logger'
 import * as ConfigGen from '../actions/config-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as SettingsConstants from './settings'
+import * as Tabs from './tabs'
+import {isMobile} from './platform'
 // normally util.container but it re-exports from us so break the cycle
 import {create as createZustand} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 import {getReduxDispatch} from '../util/zustand'
 
-export const maxHandshakeTries = 3
+export const ignorePromise = (f: Promise<void>) => {
+  f.then(() => {}).catch(() => {})
+}
 
 export type ZStore = {
   waiters: Map<string, number>
@@ -24,6 +30,7 @@ type ZState = ZStore & {
     reset: () => void
     wait: (name: string, version: number, increment: boolean) => void
     start: () => void
+    requestLogout: () => void
   }
 }
 
@@ -31,23 +38,31 @@ export const useLogoutState = createZustand(
   immerZustand<ZState>((set, get) => {
     const reduxDispatch = getReduxDispatch()
 
-    const maybeDoneWithDaemonHandshake = (version: number) => {
-      if (version !== get().version) {
-        // ignore out of date actions
-        return
-      }
-      const {waiters} = get()
-      if (waiters.size > 0) {
-        // still waiting for things to finish
-      } else {
-        RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
-          .then(() => {})
-          .catch(() => {})
-      }
-      return
-    }
-
     const dispatch = {
+      requestLogout: () => {
+        // Figure out whether we can log out using CanLogout, if so,
+        // startLogoutHandshake, else do what's needed - right now only
+        // redirect to set password screen.
+        const f = async () => {
+          const canLogoutRes = await RPCTypes.userCanLogoutRpcPromise()
+          if (canLogoutRes.canLogout) {
+            get().dispatch.start()
+            return
+          } else {
+            if (isMobile) {
+              reduxDispatch(
+                RouteTreeGen.createNavigateAppend({
+                  path: [Tabs.settingsTab, SettingsConstants.passwordTab],
+                })
+              )
+            } else {
+              reduxDispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]}))
+              reduxDispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.passwordTab]}))
+            }
+          }
+        }
+        ignorePromise(f())
+      },
       reset: () => {
         set(s => ({
           ...initialZState,
@@ -80,7 +95,14 @@ export const useLogoutState = createZustand(
           }
         })
 
-        maybeDoneWithDaemonHandshake(version)
+        const {waiters} = get()
+        if (waiters.size > 0) {
+          // still waiting for things to finish
+        } else {
+          RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
+            .then(() => {})
+            .catch(() => {})
+        }
       },
     }
     return {

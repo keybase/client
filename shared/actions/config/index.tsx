@@ -13,7 +13,6 @@ import * as PushGen from '../push-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Router2 from '../../constants/router2'
-import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../settings-gen'
 import * as Tabs from '../../constants/tabs'
 import * as DarkMode from '../../constants/darkmode'
@@ -221,28 +220,6 @@ const loadDaemonAccounts = async (
 }
 
 const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
-
-// Figure out whether we can log out using CanLogout, if so,
-// startLogoutHandshake, else do what's needed - right now only
-// redirect to set password screen.
-const startLogoutHandshakeIfAllowed = async () => {
-  const canLogoutRes = await RPCTypes.userCanLogoutRpcPromise()
-  if (canLogoutRes.canLogout) {
-    Constants.useLogoutState.getState().dispatch.start()
-    return
-  } else {
-    if (Platform.isMobile) {
-      return RouteTreeGen.createNavigateAppend({
-        path: [Tabs.settingsTab, SettingsConstants.passwordTab],
-      })
-    } else {
-      return [
-        RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]}),
-        RouteTreeGen.createNavigateAppend({path: [SettingsConstants.passwordTab]}),
-      ]
-    }
-  }
-}
 
 // Monster push prompt
 // We've just started up, we don't have the permissions, we're logged in and we
@@ -480,8 +457,6 @@ const initConfig = () => {
   // If you start logged in we don't get the incoming call from the daemon so we generate our own here
   Container.listenAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
 
-  // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
-  Container.listenAction(ConfigGen.logout, startLogoutHandshakeIfAllowed)
   // Give time for all waiters to register and allow the case where there are no waiters
   Container.listenAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
   // When we're all done lets clean up

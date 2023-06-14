@@ -26,7 +26,6 @@ export const loadOnStart = 'config:loadOnStart'
 export const loadedOnLoginStartup = 'config:loadedOnLoginStartup'
 export const loggedIn = 'config:loggedIn'
 export const loggedOut = 'config:loggedOut'
-export const logout = 'config:logout'
 export const logoutAndTryToLogInAs = 'config:logoutAndTryToLogInAs'
 export const logoutHandshake = 'config:logoutHandshake'
 export const mobileAppState = 'config:mobileAppState'
@@ -201,10 +200,6 @@ export const createRemoteWindowWantsProps = (payload: {
   readonly param: string
 }) => ({payload, type: remoteWindowWantsProps as typeof remoteWindowWantsProps})
 /**
- * someone wants to log out
- */
-export const createLogout = (payload?: undefined) => ({payload, type: logout as typeof logout})
-/**
  * starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait
  */
 export const createDaemonHandshake = (payload: {
@@ -346,7 +341,6 @@ export type LoggedInPayload = ReturnType<typeof createLoggedIn>
 export type LoggedOutPayload = ReturnType<typeof createLoggedOut>
 export type LogoutAndTryToLogInAsPayload = ReturnType<typeof createLogoutAndTryToLogInAs>
 export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
-export type LogoutPayload = ReturnType<typeof createLogout>
 export type MobileAppStatePayload = ReturnType<typeof createMobileAppState>
 export type OpenAppSettingsPayload = ReturnType<typeof createOpenAppSettings>
 export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
@@ -400,7 +394,6 @@ export type Actions =
   | LoggedOutPayload
   | LogoutAndTryToLogInAsPayload
   | LogoutHandshakePayload
-  | LogoutPayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload
   | OpenAppStorePayload

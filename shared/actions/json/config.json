@@ -21,9 +21,6 @@
       "_description": "Sent whenever the mobile file picker encounters an error.",
       "error": "Error"
     },
-    "logout": {
-      "_description": "someone wants to log out"
-    },
     "logoutAndTryToLogInAs": {
       "_description": [
         "Log out the current user, keeping secrets stored.",

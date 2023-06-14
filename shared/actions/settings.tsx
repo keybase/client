@@ -60,10 +60,10 @@ const onSubmitNewPassword = async (
       Constants.settingsWaitingKey
     )
 
-    return [
-      RouteTreeGen.createNavigateUp(),
-      ...(action.payload.thenSignOut ? [ConfigGen.createLogout()] : []),
-    ]
+    if (action.payload.thenSignOut) {
+      ConfigConstants.useLogoutState.getState().dispatch.requestLogout()
+    }
+    return RouteTreeGen.createNavigateUp()
   } catch (error) {
     if (!(error instanceof RPCError)) {
       return
