@@ -29,7 +29,6 @@ export const loggedOut = 'config:loggedOut'
 export const logout = 'config:logout'
 export const logoutAndTryToLogInAs = 'config:logoutAndTryToLogInAs'
 export const logoutHandshake = 'config:logoutHandshake'
-export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
 export const openAppStore = 'config:openAppStore'
@@ -219,14 +218,6 @@ export const createLogoutHandshake = (payload: {readonly version: number}) => ({
   payload,
   type: logoutHandshake as typeof logoutHandshake,
 })
-/**
- * subsystems that need to do things during logout need to call this to register that we should wait.
- */
-export const createLogoutHandshakeWait = (payload: {
-  readonly name: string
-  readonly version: number
-  readonly increment: boolean
-}) => ({payload, type: logoutHandshakeWait as typeof logoutHandshakeWait})
 export const createBootstrapStatusLoaded = (payload: {readonly loggedIn: boolean}) => ({
   payload,
   type: bootstrapStatusLoaded as typeof bootstrapStatusLoaded,
@@ -355,7 +346,6 @@ export type LoggedInPayload = ReturnType<typeof createLoggedIn>
 export type LoggedOutPayload = ReturnType<typeof createLoggedOut>
 export type LogoutAndTryToLogInAsPayload = ReturnType<typeof createLogoutAndTryToLogInAs>
 export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
-export type LogoutHandshakeWaitPayload = ReturnType<typeof createLogoutHandshakeWait>
 export type LogoutPayload = ReturnType<typeof createLogout>
 export type MobileAppStatePayload = ReturnType<typeof createMobileAppState>
 export type OpenAppSettingsPayload = ReturnType<typeof createOpenAppSettings>
@@ -410,7 +400,6 @@ export type Actions =
   | LoggedOutPayload
   | LogoutAndTryToLogInAsPayload
   | LogoutHandshakePayload
-  | LogoutHandshakeWaitPayload
   | LogoutPayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload

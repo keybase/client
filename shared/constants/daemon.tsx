@@ -46,6 +46,8 @@ type ZState = ZStore & {
 
 export const useDaemonState = createZustand(
   immerZustand<ZState>((set, get) => {
+    const reduxDispatch = getReduxDispatch()
+
     const setFailed = (r: string) => {
       set(s => {
         s.handshakeFailedReason = r
@@ -85,8 +87,6 @@ export const useDaemonState = createZustand(
         s.handshakeRetriesLeft = maxHandshakeTries
       })
     }
-
-    const reduxDispatch = getReduxDispatch()
 
     let _firstTimeBootstrapDone = true
     const maybeDoneWithDaemonHandshake = (version: number) => {

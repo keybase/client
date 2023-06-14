@@ -225,10 +225,11 @@ const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only
 // redirect to set password screen.
-const startLogoutHandshakeIfAllowed = async (state: Container.TypedState) => {
+const startLogoutHandshakeIfAllowed = async () => {
   const canLogoutRes = await RPCTypes.userCanLogoutRpcPromise()
   if (canLogoutRes.canLogout) {
-    return startLogoutHandshake(state)
+    Constants.useLogoutState.getState().dispatch.start()
+    return
   } else {
     if (Platform.isMobile) {
       return RouteTreeGen.createNavigateAppend({
@@ -240,17 +241,6 @@ const startLogoutHandshakeIfAllowed = async (state: Container.TypedState) => {
         RouteTreeGen.createNavigateAppend({path: [SettingsConstants.passwordTab]}),
       ]
     }
-  }
-}
-
-const startLogoutHandshake = (state: Container.TypedState) =>
-  ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1})
-
-// This assumes there's at least a single waiter to trigger this, so if that ever changes you'll have to add
-// stuff to trigger this due to a timeout if there's no listeners or something
-const maybeDoneWithLogoutHandshake = async (state: Container.TypedState) => {
-  if (state.config.logoutHandshakeWaiters.size <= 0) {
-    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
   }
 }
 
@@ -320,21 +310,11 @@ const allowLogoutWaiters = async (
   action: ConfigGen.LogoutHandshakePayload,
   listenerApi: Container.ListenerApi
 ) => {
-  listenerApi.dispatch(
-    ConfigGen.createLogoutHandshakeWait({
-      increment: true,
-      name: 'nullhandshake',
-      version: action.payload.version,
-    })
-  )
+  const waitKey = 'nullhandshake'
+  const {version} = action.payload
+  Constants.useLogoutState.getState().dispatch.wait(waitKey, version, true)
   await listenerApi.delay(10)
-  listenerApi.dispatch(
-    ConfigGen.createLogoutHandshakeWait({
-      increment: false,
-      name: 'nullhandshake',
-      version: action.payload.version,
-    })
-  )
+  Constants.useLogoutState.getState().dispatch.wait(waitKey, version, false)
 }
 
 const updateServerConfig = async (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) =>
@@ -504,7 +484,6 @@ const initConfig = () => {
   Container.listenAction(ConfigGen.logout, startLogoutHandshakeIfAllowed)
   // Give time for all waiters to register and allow the case where there are no waiters
   Container.listenAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
-  Container.listenAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
   // When we're all done lets clean up
   Container.listenAction(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
@@ -552,6 +531,7 @@ const initConfig = () => {
   Container.listenAction(ConfigGen.resetStore, () => {
     Constants.useConfigState.getState().dispatch.reset()
     Constants.useDaemonState.getState().dispatch.reset()
+    Constants.useLogoutState.getState().dispatch.reset()
   })
 
   Container.listenAction(EngineGen.keybase1NotifyTeamAvatarUpdated, (_, action) => {

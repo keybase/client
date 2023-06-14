@@ -33,8 +33,6 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 
 export const initialState: Types.State = {
   loggedIn: false,
-  logoutHandshakeVersion: 1,
-  logoutHandshakeWaiters: new Map(),
   mainWindowMax: false,
   notifySound: false,
   openAtLogin: true,
@@ -87,6 +85,8 @@ export type ZStore = {
   incomingShareUseOriginal?: boolean
   justDeletedSelf: string
   justRevokedSelf: string
+  logoutHandshakeVersion: number
+  logoutHandshakeWaiters: Map<string, number>
 }
 
 const initialZState: ZStore = {
@@ -103,6 +103,8 @@ const initialZState: ZStore = {
   incomingShareUseOriginal: undefined,
   justDeletedSelf: '',
   justRevokedSelf: '',
+  logoutHandshakeVersion: 1,
+  logoutHandshakeWaiters: new Map(),
 }
 
 type ZState = ZStore & {
@@ -227,4 +229,5 @@ export const useConfigState = createZustand(
 
 export {useDaemonState, maxHandshakeTries} from './daemon'
 export {useFollowerState} from './followers'
+export {useLogoutState} from './logout'
 export {useCurrentUserState}
