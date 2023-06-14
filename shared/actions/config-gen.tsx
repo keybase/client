@@ -44,7 +44,6 @@ export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
 export const setStartupFile = 'config:setStartupFile'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
-export const setUseNativeFrame = 'config:setUseNativeFrame'
 export const setUserSwitching = 'config:setUserSwitching'
 export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
@@ -298,10 +297,6 @@ export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   payload,
   type: setSystemDarkMode as typeof setSystemDarkMode,
 })
-export const createSetUseNativeFrame = (payload: {readonly useNativeFrame: boolean}) => ({
-  payload,
-  type: setUseNativeFrame as typeof setUseNativeFrame,
-})
 export const createSetUserSwitching = (payload: {readonly userSwitching: boolean}) => ({
   payload,
   type: setUserSwitching as typeof setUserSwitching,
@@ -364,7 +359,6 @@ export type SetOpenAtLoginPayload = ReturnType<typeof createSetOpenAtLogin>
 export type SetStartupDetailsPayload = ReturnType<typeof createSetStartupDetails>
 export type SetStartupFilePayload = ReturnType<typeof createSetStartupFile>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
-export type SetUseNativeFramePayload = ReturnType<typeof createSetUseNativeFrame>
 export type SetUserSwitchingPayload = ReturnType<typeof createSetUserSwitching>
 export type SetWhatsNewLastSeenVersionPayload = ReturnType<typeof createSetWhatsNewLastSeenVersion>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
@@ -417,7 +411,6 @@ export type Actions =
   | SetStartupDetailsPayload
   | SetStartupFilePayload
   | SetSystemDarkModePayload
-  | SetUseNativeFramePayload
   | SetUserSwitchingPayload
   | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload

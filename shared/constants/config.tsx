@@ -50,7 +50,6 @@ export const initialState: Types.State = {
   startupLink: '',
   startupPushPayload: undefined,
   startupWasFromPush: false,
-  useNativeFrame: defaultUseNativeFrame,
   userActive: true,
   userSwitching: false,
   whatsNewLastSeenVersion: '',
@@ -80,6 +79,7 @@ export type ZStore = {
   justRevokedSelf: string
   logoutHandshakeVersion: number
   logoutHandshakeWaiters: Map<string, number>
+  useNativeFrame: boolean
   windowShownCount: Map<string, number>
   windowState: {
     dockHidden: boolean
@@ -109,6 +109,7 @@ const initialZState: ZStore = {
   justRevokedSelf: '',
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
+  useNativeFrame: defaultUseNativeFrame,
   windowShownCount: new Map(),
   windowState: {
     dockHidden: false,
@@ -139,6 +140,8 @@ type ZState = ZStore & {
     setWindowIsMax: (m: boolean) => void
     updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => void
     windowShown: (win: string) => void
+    setUseNativeFrame: (use: boolean) => void
+    initUseNativeFrame: () => void
   }
 }
 
@@ -146,6 +149,7 @@ export const useConfigState = createZustand(
   immerZustand<ZState>((set, get) => {
     const reduxDispatch = getReduxDispatch()
 
+    const nativeFrameKey = 'useNativeFrame'
     const dispatch = {
       changedFocus: (f: boolean) => {
         set(s => {
@@ -153,12 +157,23 @@ export const useConfigState = createZustand(
         })
         reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
       },
+      initUseNativeFrame: () => {
+        const f = async () => {
+          const val = await RPCTypes.configGuiGetValueRpcPromise({path: nativeFrameKey})
+          const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
+          set(s => {
+            s.useNativeFrame = useNativeFrame
+          })
+        }
+        ignorePromise(f())
+      },
       reset: () => {
         set(s => ({
           ...initialZState,
           appFocused: s.appFocused,
           configuredAccounts: s.configuredAccounts,
           defaultUsername: s.defaultUsername,
+          useNativeFrame: s.useNativeFrame,
         }))
       },
       resetRevokedSelf: () => {
@@ -235,6 +250,20 @@ export const useConfigState = createZustand(
         set(s => {
           s.justDeletedSelf = self
         })
+      },
+      setUseNativeFrame: (use: boolean) => {
+        set(s => {
+          s.useNativeFrame = use
+        })
+        ignorePromise(
+          RPCTypes.configGuiSetValueRpcPromise({
+            path: nativeFrameKey,
+            value: {
+              b: use,
+              isNull: false,
+            },
+          })
+        )
       },
       setWindowIsMax: (m: boolean) => {
         set(s => {

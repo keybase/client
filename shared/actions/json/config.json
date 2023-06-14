@@ -112,9 +112,6 @@
       "_description": "main electron window wants to store its state",
       "windowState": "{ dockHidden: boolean; height: number; isFullScreen: boolean; width: number; windowHidden: boolean; x: number; y: number; }"
     },
-    "setUseNativeFrame": {
-      "useNativeFrame": "boolean"
-    },
     "setWhatsNewLastSeenVersion": {
       "_description": [
         "Set the latest version number that a user has seen from Gregor.",

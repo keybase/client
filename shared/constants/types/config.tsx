@@ -37,6 +37,5 @@ export type State = {
   startupTab?: Tab
   userActive: boolean
   userSwitching: boolean
-  useNativeFrame: boolean
   whatsNewLastSeenVersion: string
 }

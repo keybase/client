@@ -20,7 +20,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     ...Constants.initialState,
     pushLoaded: draftState.pushLoaded,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
-    useNativeFrame: draftState.useNativeFrame,
     userSwitching: draftState.userSwitching,
   }),
   [ConfigGen.setStartupDetails]: (draftState, action) => {
@@ -105,9 +104,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     const map = remoteWindowNeedsProps.get(component) || new Map()
     remoteWindowNeedsProps.set(component, map)
     map.set(param, (map.get(param) || 0) + 1)
-  },
-  [ConfigGen.setUseNativeFrame]: (draftState, action) => {
-    draftState.useNativeFrame = action.payload.useNativeFrame
   },
   [ConfigGen.setWhatsNewLastSeenVersion]: (draftState, action) => {
     draftState.whatsNewLastSeenVersion = action.payload.lastSeenVersion

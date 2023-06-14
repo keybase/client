@@ -110,7 +110,7 @@ export const hideDockIcon = () => changeDock(false)
 
 let useNativeFrame = defaultUseNativeFrame
 let isDarkMode = false
-let darkModePreference = undefined
+let darkModePreference: undefined | 'system' | 'alwaysDark' | 'alwaysLight' = undefined
 let disableSpellCheck = false
 
 /**
@@ -121,44 +121,64 @@ const loadWindowState = () => {
   let openAtLogin = true
   try {
     const s = fs.readFileSync(guiConfigFilename, {encoding: 'utf8'})
-    const guiConfig = JSON.parse(s)
+    const guiConfig = JSON.parse(s) as
+      | Partial<{
+          openAtLogin: unknown
+          useNativeFrame: unknown
+          ui: Partial<{
+            disableSpellCheck: unknown
+            darkMode: unknown
+          }>
+          windowState: unknown
+        }>
+      | undefined
 
-    if (guiConfig.openAtLogin !== undefined) {
-      openAtLogin = guiConfig.openAtLogin
-    }
+    openAtLogin = typeof guiConfig?.openAtLogin === 'boolean' ? guiConfig.openAtLogin : openAtLogin
+    useNativeFrame =
+      typeof guiConfig?.useNativeFrame === 'boolean' ? guiConfig.useNativeFrame : useNativeFrame
 
-    if (guiConfig.useNativeFrame !== undefined) {
-      useNativeFrame = guiConfig.useNativeFrame
-    }
+    if (guiConfig?.ui) {
+      const {darkMode, disableSpellCheck: _disableSpellCheck} = guiConfig.ui
+      disableSpellCheck = typeof _disableSpellCheck === 'boolean' ? _disableSpellCheck : disableSpellCheck
 
-    if (guiConfig.ui) {
-      disableSpellCheck = guiConfig.ui.disableSpellCheck
-
-      const {darkMode} = guiConfig.ui
-      switch (darkMode) {
-        case 'system':
-          darkModePreference = darkMode
-          isDarkMode = KB2.constants.startDarkMode
-          break
-        case 'alwaysDark':
-          darkModePreference = darkMode
-          isDarkMode = true
-          break
-        case 'alwaysLight':
-          darkModePreference = darkMode
-          isDarkMode = false
-          break
+      if (typeof darkMode === 'string') {
+        switch (darkMode) {
+          case 'system':
+            darkModePreference = darkMode
+            isDarkMode = KB2.constants.startDarkMode
+            break
+          case 'alwaysDark':
+            darkModePreference = darkMode
+            isDarkMode = true
+            break
+          case 'alwaysLight':
+            darkModePreference = darkMode
+            isDarkMode = false
+            break
+        }
       }
     }
 
-    const obj = JSON.parse(guiConfig.windowState)
-    windowState.dockHidden = obj.dockHidden || windowState.dockHidden
-    windowState.height = obj.height || windowState.height
-    windowState.isFullScreen = obj.isFullScreen || windowState.isFullScreen
-    windowState.width = obj.width || windowState.width
-    windowState.windowHidden = obj.windowHidden || windowState.windowHidden
-    windowState.x = obj.x === undefined ? windowState.x : obj.x
-    windowState.y = obj.y === undefined ? windowState.y : obj.y
+    const obj = JSON.parse(typeof guiConfig?.windowState === 'string' ? guiConfig.windowState : '') as
+      | undefined
+      | Partial<{
+          dockHidden: unknown
+          height: unknown
+          isFullScreen: unknown
+          width: unknown
+          windowHidden: unknown
+          x: unknown
+          y: unknown
+        }>
+    windowState.dockHidden = typeof obj?.dockHidden === 'boolean' ? obj.dockHidden : windowState.dockHidden
+    windowState.height = typeof obj?.height === 'number' ? obj.height : windowState.height
+    windowState.isFullScreen =
+      typeof obj?.isFullScreen === 'boolean' ? obj.isFullScreen : windowState.isFullScreen
+    windowState.width = typeof obj?.width === 'number' ? obj.width : windowState.width
+    windowState.windowHidden =
+      typeof obj?.windowHidden === 'boolean' ? obj.windowHidden : windowState.windowHidden
+    windowState.x = typeof obj?.x === 'number' ? obj.x : windowState.x
+    windowState.y = typeof obj?.y === 'number' ? obj.y : windowState.y
 
     // sanity check it fits in the screen
     const displayBounds = Electron.screen.getDisplayMatching({

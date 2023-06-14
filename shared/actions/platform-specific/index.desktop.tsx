@@ -9,7 +9,7 @@ import logger from '../../logger'
 import type {RPCError} from '../../util/errors'
 import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine'
-import {isLinux, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
+import {isLinux, isWindows} from '../../constants/platform.desktop'
 import {kbfsNotification} from './kbfs-notifications'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import NotifyPopup from '../../util/notify-popup'
@@ -203,27 +203,6 @@ const updateNow = async () => {
   return ConfigGen.createCheckForUpdate()
 }
 
-const nativeFrameKey = 'useNativeFrame'
-
-const saveUseNativeFrame = async (state: Container.TypedState) => {
-  const {useNativeFrame} = state.config
-  await RPCTypes.configGuiSetValueRpcPromise({
-    path: nativeFrameKey,
-    value: {
-      b: useNativeFrame,
-      isNull: false,
-    },
-  })
-}
-
-const initializeUseNativeFrame = async (listenerApi: Container.ListenerApi) => {
-  try {
-    const val = await RPCTypes.configGuiGetValueRpcPromise({path: nativeFrameKey})
-    const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
-    listenerApi.dispatch(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
-  } catch (_) {}
-}
-
 const notifySoundKey = 'notifySound'
 const initializeNotifySound = async (listenerApi: Container.ListenerApi) => {
   try {
@@ -361,7 +340,6 @@ export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.updateNow, updateNow)
   Container.listenAction(ConfigGen.checkForUpdate, checkForUpdate)
   Container.listenAction(ConfigGen.restartHandshake, sendWindowsKBServiceCheck)
-  Container.listenAction(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
   Container.listenAction(ConfigGen.loggedIn, initOsNetworkStatus)
 
   ConfigConstants.useConfigState.subscribe((s, prev) => {
@@ -377,11 +355,14 @@ export const initPlatformListener = () => {
   }
   Container.listenAction(ConfigGen.daemonHandshake, checkNav)
 
-  Container.spawn(initializeUseNativeFrame, 'initializeUseNativeFrame')
   Container.spawn(initializeNotifySound, 'initializeNotifySound')
   Container.spawn(initializeOpenAtLogin, 'initializeOpenAtLogin')
   Container.spawn(initializeInputMonitor, 'initializeInputMonitor')
   Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')
   Container.spawn(setupReachabilityWatcher, 'setupReachabilityWatcher')
   Container.spawn(startOutOfDateCheckLoop, 'startOutOfDateCheckLoop')
+
+  if (isLinux) {
+    ConfigConstants.useConfigState.getState().dispatch.initUseNativeFrame()
+  }
 }

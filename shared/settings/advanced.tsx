@@ -1,5 +1,6 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/settings'
+import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as FSGen from '../actions/fs-gen'
 import * as Kb from '../common-adapters'
@@ -15,10 +16,8 @@ import {toggleRenderDebug} from '../router-v2/shim.shared'
 let initialUseNativeFrame: boolean | undefined
 
 const UseNativeFrame = () => {
-  const dispatch = Container.useDispatch()
-  const useNativeFrame = Container.useSelector(state => state.config.useNativeFrame)
-  const onChangeUseNativeFrame = (useNativeFrame: boolean) =>
-    dispatch(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
+  const useNativeFrame = ConfigConstants.useConfigState(s => s.useNativeFrame)
+  const onChangeUseNativeFrame = ConfigConstants.useConfigState(s => s.dispatch.setUseNativeFrame)
   if (initialUseNativeFrame === undefined) {
     initialUseNativeFrame = useNativeFrame
   }
