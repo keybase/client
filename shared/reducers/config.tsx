@@ -165,7 +165,4 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.loadedOnLoginStartup]: (draftState, action) => {
     draftState.openAtLogin = action.payload.status === true
   },
-  [ConfigGen.setIncomingShareUseOriginal]: (draftState, action) => {
-    draftState.incomingShareUseOriginal = action.payload.useOriginal
-  },
 })

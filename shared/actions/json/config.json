@@ -154,9 +154,6 @@
       "url?": "string",
       "text?": "string"
     },
-    "setIncomingShareUseOriginal": {
-      "useOriginal": "boolean"
-    },
     "initListenerLoops": {
       "_description": "Internal action just to start saga-like spawn processes"
     },

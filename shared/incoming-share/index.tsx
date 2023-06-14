@@ -7,7 +7,6 @@ import * as FsTypes from '../constants/types/fs'
 import * as FsConstants from '../constants/fs'
 import * as FsCommon from '../fs/common'
 import * as FsGen from '../actions/fs-gen'
-import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Platform from '../constants/platform'
 import * as SettingsConstants from '../constants/settings'
@@ -22,12 +21,8 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
     0
   )
   const originalOnly = originalTotalSize <= scaledTotalSize
+  const setUseOriginalInStore = ConfigConstants.useConfigState.getState().dispatch.setIncomingShareUseOriginal
 
-  const dispatch = Container.useDispatch()
-  const setUseOriginalInStore = React.useCallback(
-    (useOriginal: boolean) => dispatch(ConfigGen.createSetIncomingShareUseOriginal({useOriginal})),
-    [dispatch]
-  )
   const setUseOriginalInService = React.useCallback((useOriginal: boolean) => {
     RPCTypes.incomingShareSetPreferenceRpcPromise({
       preference: useOriginal
@@ -59,7 +54,7 @@ export const OriginalOrCompressedButton = ({incomingShareItems}: IncomingSharePr
     !originalOnly && syncCompressPreferenceFromServiceToStore()
   }, [originalOnly, syncCompressPreferenceFromServiceToStore])
 
-  const useOriginalValue = Container.useSelector(state => state.config.incomingShareUseOriginal)
+  const useOriginalValue = ConfigConstants.useConfigState(s => s.incomingShareUseOriginal)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {toggleShowingPopup} = p
@@ -199,7 +194,7 @@ type IncomingShareProps = {
 }
 
 const IncomingShare = (props: IncomingShareProps) => {
-  const useOriginalValue = Container.useSelector(state => state.config.incomingShareUseOriginal)
+  const useOriginalValue = ConfigConstants.useConfigState(s => s.incomingShareUseOriginal)
   const {sendPaths, text} = props.incomingShareItems.reduce(
     ({sendPaths, text}, item) => {
       if (item.content) {
