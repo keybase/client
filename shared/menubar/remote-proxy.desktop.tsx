@@ -69,10 +69,10 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const followers = Followers.useFollowerState(s => s.followers)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
+  const windowShownCount = ConfigConstants.useConfigState(s => s.windowShownCount)
   const s = Container.useSelector(state => {
     const {notifications, config, fs, chat2, users} = state
     const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
-    const {windowShownCount} = config
     const {outOfDate, loggedIn} = config
     const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
     const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
@@ -97,13 +97,12 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
       uploads,
       widgetBadge,
       widgetList,
-      windowShownCount,
     }
   }, shallowEqual)
 
   const {sfmi, tlfUpdates, unreadMap, uploads, badgeMap, desktopAppBadgeCount} = s
   const {widgetList, widgetBadge, infoMap, kbfsDaemonStatus, loggedIn, metaMap} = s
-  const {windowShownCount, navBadges, outOfDate, overallSyncStatus, participantMap, pathItems} = s
+  const {navBadges, outOfDate, overallSyncStatus, participantMap, pathItems} = s
 
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
@@ -204,7 +203,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     showingDiskSpaceBanner: showingBanner,
     username,
     widgetBadge,
-    windowShownCount,
+    windowShownCountNum: windowShownCount.get('menu') ?? 0,
   }
 
   return <Widget {...p} />

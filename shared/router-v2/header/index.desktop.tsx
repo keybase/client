@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
+import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
@@ -318,9 +319,9 @@ type HeaderProps = Omit<Props, 'loggedIn' | 'useNativeFrame' | 'isMaximized'>
 
 const DesktopHeaderWrapper = (p: HeaderProps) => {
   const {options, back, style, params, navigation} = p
-  const useNativeFrame = Container.useSelector(state => state.config.useNativeFrame)
+  const useNativeFrame = ConfigConstants.useConfigState(s => s.useNativeFrame)
   const loggedIn = Container.useSelector(state => state.config.loggedIn)
-  const isMaximized = Container.useSelector(state => state.config.mainWindowMax)
+  const isMaximized = ConfigConstants.useConfigState(s => s.windowState.isMaximized)
 
   return (
     <DesktopHeader

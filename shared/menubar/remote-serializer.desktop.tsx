@@ -16,7 +16,7 @@ export type RemoteTlfUpdates = {
 }
 
 // for convenience we flatten the props we send over the wire
-type ConfigHoistedProps = 'outOfDate' | 'loggedIn' | 'windowShownCount'
+type ConfigHoistedProps = 'outOfDate' | 'loggedIn'
 
 type UsersHoistedProps = 'infoMap'
 
@@ -57,6 +57,7 @@ export type ProxyProps = {
   username: string
   httpSrvAddress: string
   httpSrvToken: string
+  windowShownCountNum: number
 } & Pick<ConfigState, ConfigHoistedProps> &
   Pick<NotificationsState, 'navBadges'> &
   Pick<UsersState, UsersHoistedProps>
@@ -111,6 +112,7 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
   config: Pick<ConfigState, ConfigHoistedProps>
   users: Pick<UsersState, UsersHoistedProps>
   username: string
+  windowShownCountNum: number
 }
 
 const initialState: DeserializeProps = {
@@ -126,7 +128,6 @@ const initialState: DeserializeProps = {
   config: {
     loggedIn: false,
     outOfDate: undefined,
-    windowShownCount: new Map([['menu', 0]]),
   },
   conversationsToSend: [],
   daemonHandshakeState: 'starting',
@@ -150,6 +151,7 @@ const initialState: DeserializeProps = {
   totalSyncingBytes: 0,
   username: '',
   users: {infoMap: new Map()},
+  windowShownCountNum: 0,
 }
 
 export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
@@ -161,7 +163,6 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
     followingArr: [...following],
     infoMapArr: [...infoMap.entries()],
     navBadgesArr: [...p.navBadges.entries()],
-    windowShownCountNum: p.windowShownCount.get('menu') ?? 0,
   }
 }
 
@@ -204,7 +205,7 @@ export const deserialize = (
       s.username = username
     }
     if (windowShownCountNum !== undefined) {
-      s.config.windowShownCount.set('menu', windowShownCountNum)
+      s.windowShownCountNum = windowShownCountNum
     }
     if (conversationsToSend !== undefined) {
       s.conversationsToSend = conversationsToSend

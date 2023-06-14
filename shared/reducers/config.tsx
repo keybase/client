@@ -20,16 +20,8 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     ...Constants.initialState,
     pushLoaded: draftState.pushLoaded,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
-    useNativeFrame: draftState.useNativeFrame,
     userSwitching: draftState.userSwitching,
   }),
-  [ConfigGen.updateWindowMaxState]: (draftState, action) => {
-    draftState.mainWindowMax = action.payload.max
-  },
-  [ConfigGen.updateWindowShown]: (draftState, action) => {
-    const count = draftState.windowShownCount.get(action.payload.component) ?? 0
-    draftState.windowShownCount.set(action.payload.component, count + 1)
-  },
   [ConfigGen.setStartupDetails]: (draftState, action) => {
     if (!draftState.startupDetailsLoaded) {
       draftState.startupDetailsLoaded = true
@@ -112,12 +104,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     const map = remoteWindowNeedsProps.get(component) || new Map()
     remoteWindowNeedsProps.set(component, map)
     map.set(param, (map.get(param) || 0) + 1)
-  },
-  [ConfigGen.updateWindowState]: (draftState, action) => {
-    draftState.windowState = action.payload.windowState
-  },
-  [ConfigGen.setUseNativeFrame]: (draftState, action) => {
-    draftState.useNativeFrame = action.payload.useNativeFrame
   },
   [ConfigGen.setWhatsNewLastSeenVersion]: (draftState, action) => {
     draftState.whatsNewLastSeenVersion = action.payload.lastSeenVersion

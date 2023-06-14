@@ -1,7 +1,7 @@
 import * as ConfigGen from '../actions/config-gen'
 import type {RPCError} from '../util/errors'
 import HiddenString from '../util/hidden-string'
-import type * as RPCTypes from './types/rpc-gen'
+import * as RPCTypes from './types/rpc-gen'
 import type * as Types from './types/config'
 import uniq from 'lodash/uniq'
 import {defaultUseNativeFrame, runMode} from './platform'
@@ -15,6 +15,10 @@ import logger from '../logger'
 import {convertToError, isEOFError, isErrorTransient} from '../util/errors'
 import {useCurrentUserState} from './current-user'
 import * as Stats from '../engine/stats'
+
+const ignorePromise = (f: Promise<void>) => {
+  f.then(() => {}).catch(() => {})
+}
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
@@ -33,7 +37,6 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 
 export const initialState: Types.State = {
   loggedIn: false,
-  mainWindowMax: false,
   notifySound: false,
   openAtLogin: true,
   osNetworkOnline: false,
@@ -47,20 +50,9 @@ export const initialState: Types.State = {
   startupLink: '',
   startupPushPayload: undefined,
   startupWasFromPush: false,
-  useNativeFrame: defaultUseNativeFrame,
   userActive: true,
   userSwitching: false,
   whatsNewLastSeenVersion: '',
-  windowShownCount: new Map(),
-  windowState: {
-    dockHidden: false,
-    height: 800,
-    isFullScreen: false,
-    width: 600,
-    windowHidden: false,
-    x: 0,
-    y: 0,
-  },
 }
 
 export type ZStore = {
@@ -87,6 +79,18 @@ export type ZStore = {
   justRevokedSelf: string
   logoutHandshakeVersion: number
   logoutHandshakeWaiters: Map<string, number>
+  useNativeFrame: boolean
+  windowShownCount: Map<string, number>
+  windowState: {
+    dockHidden: boolean
+    height: number
+    isFullScreen: boolean
+    isMaximized: boolean
+    width: number
+    windowHidden: boolean
+    x: number
+    y: number
+  }
 }
 
 const initialZState: ZStore = {
@@ -105,6 +109,18 @@ const initialZState: ZStore = {
   justRevokedSelf: '',
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
+  useNativeFrame: defaultUseNativeFrame,
+  windowShownCount: new Map(),
+  windowState: {
+    dockHidden: false,
+    height: 800,
+    isFullScreen: false,
+    isMaximized: false,
+    width: 600,
+    windowHidden: false,
+    x: 0,
+    y: 0,
+  },
 }
 
 type ZState = ZStore & {
@@ -121,6 +137,11 @@ type ZState = ZStore & {
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
+    setWindowIsMax: (m: boolean) => void
+    updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => void
+    windowShown: (win: string) => void
+    setUseNativeFrame: (use: boolean) => void
+    initUseNativeFrame: () => void
   }
 }
 
@@ -128,6 +149,7 @@ export const useConfigState = createZustand(
   immerZustand<ZState>((set, get) => {
     const reduxDispatch = getReduxDispatch()
 
+    const nativeFrameKey = 'useNativeFrame'
     const dispatch = {
       changedFocus: (f: boolean) => {
         set(s => {
@@ -135,12 +157,23 @@ export const useConfigState = createZustand(
         })
         reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
       },
+      initUseNativeFrame: () => {
+        const f = async () => {
+          const val = await RPCTypes.configGuiGetValueRpcPromise({path: nativeFrameKey})
+          const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
+          set(s => {
+            s.useNativeFrame = useNativeFrame
+          })
+        }
+        ignorePromise(f())
+      },
       reset: () => {
         set(s => ({
           ...initialZState,
           appFocused: s.appFocused,
           configuredAccounts: s.configuredAccounts,
           defaultUsername: s.defaultUsername,
+          useNativeFrame: s.useNativeFrame,
         }))
       },
       resetRevokedSelf: () => {
@@ -216,6 +249,47 @@ export const useConfigState = createZustand(
       setJustDeletedSelf: (self: string) => {
         set(s => {
           s.justDeletedSelf = self
+        })
+      },
+      setUseNativeFrame: (use: boolean) => {
+        set(s => {
+          s.useNativeFrame = use
+        })
+        ignorePromise(
+          RPCTypes.configGuiSetValueRpcPromise({
+            path: nativeFrameKey,
+            value: {
+              b: use,
+              isNull: false,
+            },
+          })
+        )
+      },
+      setWindowIsMax: (m: boolean) => {
+        set(s => {
+          s.windowState.isMaximized = m
+        })
+      },
+      updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => {
+        const next = {...get().windowState, ...ws}
+        set(s => {
+          s.windowState = next
+        })
+
+        const windowStateKey = 'windowState'
+        ignorePromise(
+          RPCTypes.configGuiSetValueRpcPromise({
+            path: windowStateKey,
+            value: {
+              isNull: false,
+              s: JSON.stringify(next),
+            },
+          })
+        )
+      },
+      windowShown: (win: string) => {
+        set(s => {
+          s.windowShownCount.set(win, (s.windowShownCount.get(win) ?? 0) + 1)
         })
       },
     }
