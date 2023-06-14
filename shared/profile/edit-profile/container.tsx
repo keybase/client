@@ -1,11 +1,13 @@
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Constants from '../../constants/tracker2'
+import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
 import EditProfile from '.'
 
 export default () => {
-  const d = Container.useSelector(state => Constants.getDetails(state, state.config.username))
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const d = Container.useSelector(state => Constants.getDetails(state, username))
   const bio = d.bio || ''
   const fullname = d.fullname || ''
   const location = d.location || ''

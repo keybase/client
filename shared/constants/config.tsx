@@ -26,8 +26,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  deviceID: '',
-  deviceName: '',
   httpSrvAddress: '',
   httpSrvToken: '',
   incomingShareUseOriginal: undefined,
@@ -42,7 +40,6 @@ export const initialState: Types.State = {
   osNetworkOnline: false,
   outOfDate: undefined,
   pushLoaded: false,
-  registered: false,
   remoteWindowNeedsProps: new Map(),
   startupConversation: noConversationIDKey,
   startupDetailsLoaded: false,
@@ -51,11 +48,9 @@ export const initialState: Types.State = {
   startupLink: '',
   startupPushPayload: undefined,
   startupWasFromPush: false,
-  uid: '',
   useNativeFrame: defaultUseNativeFrame,
   userActive: true,
   userSwitching: false,
-  username: '',
   whatsNewLastSeenVersion: '',
   windowShownCount: new Map(),
   windowState: {
@@ -153,3 +148,4 @@ export const useConfigState = createZustand(
 
 export {useDaemonState, maxHandshakeTries} from './daemon'
 export {useFollowerState} from './followers'
+export {useCurrentUserState} from './current-user'

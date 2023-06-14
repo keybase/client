@@ -114,8 +114,8 @@ const onExit = () => {
   exitApp?.(0)
 }
 
-const onFSActivity = (state: Container.TypedState, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
-  kbfsNotification(action.payload.params.notification, NotifyPopup, state)
+const onFSActivity = (_: unknown, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
+  kbfsNotification(action.payload.params.notification, NotifyPopup)
 }
 
 const onPgpgKeySecret = async () =>

@@ -2,6 +2,7 @@ import Profile2, {type BackgroundColorType} from '.'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
+import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/tracker2'
 import * as Followers from '../../constants/followers'
 import * as Styles from '../../styles'
@@ -29,7 +30,7 @@ const filterWebOfTrustEntries = memoize(
 const Connected = (ownProps: OwnProps) => {
   const {username} = ownProps
   const d = Container.useSelector(state => Constants.getDetails(state, username))
-  const myName = Container.useSelector(state => state.config.username)
+  const myName = ConfigConstants.useCurrentUserState(s => s.username)
   const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === myName
 

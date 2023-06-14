@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../../../../../util/container'
 import * as Chat2Gen from '../../../../../../actions/chat2-gen'
+import * as ConfigConstants from '../../../../../../constants/config'
 import type * as Types from '../../../../../../constants/types/chat2'
 
 export const useActions = (
@@ -28,7 +29,8 @@ export const getUnfurlInfo = (
 ) => {
   const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
   const author = message?.author
-  const youAreAuthor = author === state.config.username
+  const you = ConfigConstants.useCurrentUserState.getState().username
+  const youAreAuthor = author === you
   const unfurlInfo = [...(message?.unfurls?.values() ?? [])][idx]
 
   if (!unfurlInfo)

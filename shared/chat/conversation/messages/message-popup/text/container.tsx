@@ -3,10 +3,11 @@ import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as DeeplinksConstants from '../../../../../constants/deeplinks'
+import * as ConfigConstants from '../../../../../constants/config'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import Text from '.'
 import openURL from '../../../../../util/open-url'
-import type * as React from 'react'
+import * as React from 'react'
 import type * as TeamTypes from '../../../../../constants/types/teams'
 import type * as Types from '../../../../../constants/types/chat2'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
@@ -55,7 +56,7 @@ export default (ownProps: OwnProps) => {
   const _participants = participantInfo.all
   const _teamID = meta.teamID
   const _teamname = meta.teamname
-  const _you = Container.useSelector(state => state.config.username)
+  const _you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const dispatch = Container.useDispatch()
   const _onAddReaction = (message: Types.Message) => {

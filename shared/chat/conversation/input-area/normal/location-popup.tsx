@@ -5,6 +5,7 @@ import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
@@ -17,8 +18,9 @@ type Props = {conversationIDKey: Types.ConversationIDKey}
 
 const LocationPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
-  const {httpSrvAddress, httpSrvToken, location, locationDenied, username} = Container.useSelector(state => {
-    const {httpSrvAddress, httpSrvToken, username} = state.config
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const {httpSrvAddress, httpSrvToken, location, locationDenied} = Container.useSelector(state => {
+    const {httpSrvAddress, httpSrvToken} = state.config
     const location = state.chat2.lastCoord
     const locationDenied =
       state.chat2.commandStatusMap.get(conversationIDKey)?.displayType ===

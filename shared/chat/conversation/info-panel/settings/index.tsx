@@ -1,16 +1,17 @@
-import * as React from 'react'
-import * as TeamConstants from '../../../../constants/teams'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Container from '../../../../util/container'
-import type * as Types from '../../../../constants/types/chat2'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
+import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Styles from '../../../../styles'
-import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
+import * as TeamConstants from '../../../../constants/teams'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
+import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
+import type * as Types from '../../../../constants/types/chat2'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
 type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey; isPreview: boolean}
@@ -18,7 +19,7 @@ type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey; isPreview
 const SettingsPanel = (props: SettingsPanelProps) => {
   const {conversationIDKey, isPreview} = props
   const dispatch = Container.useDispatch()
-  const username = Container.useSelector(state => state.config.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {status, teamname, teamType, channelname, teamID} = meta
   const yourOperations = Container.useSelector(state =>

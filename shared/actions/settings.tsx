@@ -2,6 +2,7 @@ import * as ChatTypes from '../constants/types/rpc-chat-gen'
 import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/settings'
 import * as WaitingConstants from '../constants/waiting'
+import * as ConfigConstants from '../constants/config'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -319,11 +320,8 @@ const dbNuke = async () => {
   await RPCTypes.ctlDbNukeRpcPromise(undefined, Constants.settingsWaitingKey)
 }
 
-const deleteAccountForever = async (
-  state: Container.TypedState,
-  action: SettingsGen.DeleteAccountForeverPayload
-) => {
-  const username = state.config.username
+const deleteAccountForever = async (_: unknown, action: SettingsGen.DeleteAccountForeverPayload) => {
+  const username = ConfigConstants.useCurrentUserState.getState().username
 
   if (!username) {
     throw new Error('Unable to delete account: no username set')
@@ -784,14 +782,15 @@ const loadContactImportEnabled = async (
   if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return
   }
-  if (!state.config.username) {
+  const username = ConfigConstants.useCurrentUserState.getState().username
+  if (!username) {
     logger.warn('no username')
     return
   }
   let enabled = false
   try {
     const value = await RPCTypes.configGuiGetValueRpcPromise(
-      {path: Constants.importContactsConfigKey(state.config.username)},
+      {path: Constants.importContactsConfigKey(username)},
       Constants.importContactsWaitingKey
     )
     enabled = !!value.b && !value.isNull
@@ -806,17 +805,15 @@ const loadContactImportEnabled = async (
   return SettingsGen.createLoadedContactImportEnabled({enabled})
 }
 
-const editContactImportEnabled = async (
-  state: Container.TypedState,
-  action: SettingsGen.EditContactImportEnabledPayload
-) => {
-  if (!state.config.username) {
+const editContactImportEnabled = async (_: unknown, action: SettingsGen.EditContactImportEnabledPayload) => {
+  const username = ConfigConstants.useCurrentUserState.getState().username
+  if (!username) {
     logger.warn('no username')
     return false
   }
   await RPCTypes.configGuiSetValueRpcPromise(
     {
-      path: Constants.importContactsConfigKey(state.config.username),
+      path: Constants.importContactsConfigKey(username),
       value: {b: action.payload.enable, isNull: false},
     },
     Constants.importContactsWaitingKey

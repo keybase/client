@@ -1,4 +1,5 @@
 import * as ConfigGen from '../config-gen'
+import * as Chat2Gen from '../chat2-gen'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as Followers from '../../constants/followers'
@@ -45,8 +46,8 @@ const onHTTPSrvInfoUpdated = (_: unknown, action: EngineGen.Keybase1NotifyServic
     token: action.payload.params.info.token,
   })
 
-const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
-  const {uid} = state.config
+const getFollowerInfo = (_: unknown, action: ConfigGen.LoadOnStartPayload) => {
+  const {uid} = Constants.useCurrentUserState.getState()
   logger.info(`getFollowerInfo: init; uid=${uid}`)
   if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     logger.info(
@@ -83,21 +84,25 @@ const loadDaemonBootstrapStatus = async (
   }
 
   const {wait} = Constants.useDaemonState.getState().dispatch
+  const {setBootstrap} = Constants.useCurrentUserState.getState().dispatch
+  const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
 
   const makeCall = async () => {
     const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
+    const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
+    setBootstrap({deviceID, deviceName, uid, username})
+    if (username) {
+      setDefaultUsername(username)
+    }
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
-      deviceID: s.deviceID,
-      deviceName: s.deviceName,
-      fullname: s.fullname || '',
-      loggedIn: s.loggedIn,
-      registered: s.registered,
-      uid: s.uid,
-      userReacjis: s.userReacjis,
-      username: s.username,
+      loggedIn,
     })
+
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     listenerApi.dispatch(loadedAction)
+
+    listenerApi.dispatch(Chat2Gen.createUpdateUserReacjis({userReacjis}))
+
     // set HTTP srv info
     if (s.httpSrvInfo) {
       logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
@@ -569,16 +574,8 @@ const initConfig = () => {
     if (!action.payload.wasCurrentDevice) return
     const {configuredAccounts} = Constants.useConfigState.getState()
     const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
-    const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername) ?? ''
+    const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername)?.username ?? ''
     setDefaultUsername(defaultUsername)
-  })
-
-  Container.listenAction(ConfigGen.bootstrapStatusLoaded, (_, action) => {
-    const {username} = action.payload
-    // keep it if we're logged out
-    if (!username) return
-    const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
-    setDefaultUsername(username)
   })
 
   Container.listenAction(ConfigGen.setSystemDarkMode, (_, action) => {
@@ -594,16 +591,16 @@ const initConfig = () => {
     Followers.useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
   })
 
-  Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, (state, action) => {
+  Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, (_, action) => {
     const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
-    if (state.config.uid !== uid) {
+    if (Constants.useCurrentUserState.getState().uid !== uid) {
       return
     }
     const newFollowers = new Set(_newFollowers)
     const newFollowing = new Set(_newFollowing)
     const {following: oldFollowing, followers: oldFollowers, dispatch} = Followers.useFollowerState.getState()
-    let following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
-    let followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
+    const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
+    const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
     dispatch.replace(followers, following)
   })
 }

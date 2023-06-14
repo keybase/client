@@ -1,6 +1,7 @@
 import * as Constants from '../../../../constants/teams'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import * as UsersGen from '../../../../actions/users-gen'
@@ -23,15 +24,13 @@ export default (ownProps: OwnProps) => {
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const info = members.get(username) || blankInfo
 
-  const fullName = Container.useSelector(state =>
-    state.config.username === username ? 'You' : info.fullName
-  )
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const fullName = you ? 'You' : info.fullName
   const needsPUK = info.needsPUK
   const roleType = info.type
   const status = info.status
   const waitingForAdd = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const waitingForRemove = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
-  const you = Container.useSelector(state => state.config.username)
   const youCanManageMembers = Container.useSelector(
     state => Constants.getCanPerform(state, teamname).manageMembers
   )

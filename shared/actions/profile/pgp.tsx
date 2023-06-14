@@ -1,6 +1,7 @@
 import * as Container from '../../util/container'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as ConfigConstants from '../../constants/config'
 import * as RouteTreeGen from '../route-tree-gen'
 import {RPCError} from '../../util/errors'
 import {peopleTab} from '../../constants/tabs'
@@ -16,7 +17,7 @@ const generatePgp = async (state: Container.TypedState, _a: unknown, listenerApi
       username: state.profile.pgpFullName || '',
     }))
 
-  const username = state.config.username
+  const username = ConfigConstants.useCurrentUserState.getState().username
   listenerApi.dispatch(
     RouteTreeGen.createNavigateAppend({
       path: [

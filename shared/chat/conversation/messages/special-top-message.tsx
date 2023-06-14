@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as FsConstants from '../../../constants/fs'
@@ -114,8 +115,8 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const dispatch = Container.useDispatch()
 
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const data = Container.useSelector(state => {
-    const username = state.config.username
     const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
     const hasLoadedEver = ordinals !== undefined
     const ordinal = ordinals?.[0] ?? 0
@@ -139,7 +140,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
     }
   }, shallowEqual)
   const {hasLoadedEver, loadMoreType, ordinal, retentionPolicy} = data
-  const {supersedes, teamType, teamRetentionPolicy, username} = data
+  const {supersedes, teamType, teamRetentionPolicy} = data
   // we defer showing this so it doesn't flash so much
   const [allowDigging, setAllowDigging] = React.useState(false)
   const [lastOrdinal, setLastOrdinal] = React.useState(ordinal)

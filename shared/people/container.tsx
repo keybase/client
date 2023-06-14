@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../constants/people'
+import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as PeopleGen from '../actions/people-gen'
@@ -11,7 +12,7 @@ const waitToRefresh = 1000 * 60 * 5
 
 const PeopleReloadable = () => {
   const followSuggestions = Container.useSelector(state => state.people.followSuggestions)
-  const username = Container.useSelector(state => state.config.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const newItems = Container.useSelector(state => state.people.newItems)
   const oldItems = Container.useSelector(state => state.people.oldItems)
   const signupEmail = Container.useSelector(state => state.signup.justSignedUpEmail)

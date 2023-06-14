@@ -1,6 +1,7 @@
 import * as Container from '../util/container'
 import * as Followers from '../constants/followers'
 import * as Kb from '../common-adapters'
+import * as ConfigConstants from '../constants/config'
 import * as Shared from './shared'
 import * as Styles from '../styles'
 import PeopleResult from './search-result/people-result'
@@ -239,7 +240,7 @@ export const ListBody = (
   const contactsImported = Container.useSelector(state => state.settings.contacts.importEnabled)
   const contactsPermissionStatus = Container.useSelector(state => state.settings.contacts.permissionStatus)
 
-  const username = Container.useSelector(state => state.config.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const following = Followers.useFollowerState(s => s.following)
 
   const maybeTeamDetails = Container.useSelector(state =>

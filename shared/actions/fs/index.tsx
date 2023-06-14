@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/fs'
+import * as ConfigConstants from '../../constants/config'
 import * as Router2Constants from '../../constants/router2'
 import * as EngineGen from '../engine-gen-gen'
 import * as FsGen from '../fs-gen'
@@ -62,7 +63,7 @@ const rpcConflictStateToConflictState = (rpcConflictState?: RPCTypes.ConflictSta
   }
 }
 
-const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.LoadAdditionalTlfPayload) => {
+const loadAdditionalTlf = async (_: unknown, action: FsGen.LoadAdditionalTlfPayload) => {
   if (Types.getPathLevel(action.payload.tlfPath) !== 3) {
     logger.warn('loadAdditionalTlf called on non-TLF path')
     return
@@ -74,7 +75,7 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
     const tlfType = rpcFolderTypeToTlfType(folder.folderType)
     const tlfName =
       tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-        ? tlfToPreferredOrder(folder.name, state.config.username)
+        ? tlfToPreferredOrder(folder.name, ConfigConstants.useCurrentUserState.getState().username)
         : folder.name
     return (
       tlfType &&
@@ -138,7 +139,7 @@ const loadFavorites = async (state: Container.TypedState) => {
         const tlfType = rpcFolderTypeToTlfType(folder.folderType)
         const tlfName =
           tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-            ? tlfToPreferredOrder(folder.name, state.config.username)
+            ? tlfToPreferredOrder(folder.name, ConfigConstants.useCurrentUserState.getState().username)
             : folder.name
         tlfType &&
           payload[tlfType].set(

@@ -1,5 +1,6 @@
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as SettingsConstants from './settings'
+import * as ConfigConstants from './config'
 import * as Styles from '../styles'
 import * as Tabs from './tabs'
 import * as TeamBuildingConstants from './team-building'
@@ -713,7 +714,7 @@ export const getAssets = (state: TypedState, accountID: Types.AccountID): Array<
 
 export const getFederatedAddress = (state: TypedState, accountID: Types.AccountID) => {
   const account = state.wallets.accountMap.get(accountID) ?? unknownAccount
-  const {username} = state.config
+  const username = ConfigConstants.useCurrentUserState.getState().username
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
 

@@ -4,6 +4,7 @@ import * as RPCTypes from '../types/rpc-gen'
 import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
+import * as ConfigConstants from '../config'
 import * as Message from './message'
 import {memoize} from '../../util/memoize'
 import type {ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
@@ -439,10 +440,11 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
   const accountID = WalletConstants.getDefaultAccountID(state.wallets)
   const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
 
+  const myUsername = ConfigConstants.useCurrentUserState.getState().username
   return (
     !sendDisabled &&
     meta.teamType === 'adhoc' &&
-    (participants?.name ?? []).filter(u => u !== state.config.username).length === 1
+    (participants?.name ?? []).filter(u => u !== myUsername).length === 1
   )
 }
 

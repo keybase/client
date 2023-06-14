@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import type * as RPCTypes from '../constants/types/rpc-gen'
+
 import type * as Types from '../constants/types/config'
 import type * as Tabs from '../constants/tabs'
 import type * as ChatTypes from '../constants/types/chat2'
@@ -20,7 +20,6 @@ export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
-export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
 export const initListenerLoops = 'config:initListenerLoops'
 export const installerRan = 'config:installerRan'
@@ -233,16 +232,10 @@ export const createLogoutHandshakeWait = (payload: {
   readonly version: number
   readonly increment: boolean
 }) => ({payload, type: logoutHandshakeWait as typeof logoutHandshakeWait})
-export const createBootstrapStatusLoaded = (payload: {
-  readonly deviceID: string
-  readonly deviceName: string
-  readonly fullname: string
-  readonly loggedIn: boolean
-  readonly registered: boolean
-  readonly uid: string
-  readonly username: string
-  readonly userReacjis: RPCTypes.UserReacjis
-}) => ({payload, type: bootstrapStatusLoaded as typeof bootstrapStatusLoaded})
+export const createBootstrapStatusLoaded = (payload: {readonly loggedIn: boolean}) => ({
+  payload,
+  type: bootstrapStatusLoaded as typeof bootstrapStatusLoaded,
+})
 export const createChangedActive = (payload: {readonly userActive: boolean}) => ({
   payload,
   type: changedActive as typeof changedActive,
@@ -267,11 +260,6 @@ export const createDumpLogs = (payload: {readonly reason: 'quitting through menu
   payload,
   type: dumpLogs as typeof dumpLogs,
 })
-export const createFollowerInfoUpdated = (payload: {
-  readonly uid: string
-  readonly followers: Array<string>
-  readonly followees: Array<string>
-}) => ({payload, type: followerInfoUpdated as typeof followerInfoUpdated})
 export const createGlobalError = (payload: {readonly globalError?: Error | RPCError} = {}) => ({
   payload,
   type: globalError as typeof globalError,
@@ -383,7 +371,6 @@ export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
-export type FollowerInfoUpdatedPayload = ReturnType<typeof createFollowerInfoUpdated>
 export type GlobalErrorPayload = ReturnType<typeof createGlobalError>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
@@ -443,7 +430,6 @@ export type Actions =
   | DarkModePreferenceChangedPayload
   | DumpLogsPayload
   | FilePickerErrorPayload
-  | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
   | InitListenerLoopsPayload
   | InstallerRanPayload

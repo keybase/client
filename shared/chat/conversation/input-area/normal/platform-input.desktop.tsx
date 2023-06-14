@@ -1,6 +1,7 @@
 /* eslint-env browser */
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
@@ -334,8 +335,6 @@ const SideButtons = (p: SideButtonsProps) => {
   )
 }
 
-const getYou = (state: Container.TypedState) => state.config.username
-
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const {cannotWrite, conversationIDKey, explodingModeSeconds, onCancelEditing} = p
   const {showWalletsIcon, hintText, inputSetRef, isEditing, onSubmit} = p
@@ -373,7 +372,7 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
     inputRef.current?.focus()
   }, [inputRef])
   const dispatch = Container.useDispatch()
-  const you = Container.useSelector(getYou)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const onEditLastMessage = React.useCallback(() => {
     dispatch(
       Chat2Gen.createMessageSetEditing({

@@ -54,14 +54,7 @@
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
     "bootstrapStatusLoaded": {
-      "deviceID": "string",
-      "deviceName": "string",
-      "fullname": "string",
-      "loggedIn": "boolean",
-      "registered": "boolean",
-      "uid": "string",
-      "username": "string",
-      "userReacjis": "RPCTypes.UserReacjis"
+      "loggedIn": "boolean"
     },
     "globalError": {"globalError?": "Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},

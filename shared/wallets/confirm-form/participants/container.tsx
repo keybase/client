@@ -1,6 +1,7 @@
 import ConfirmSend from '.'
 import * as Container from '../../../util/container'
 import {getAccount} from '../../../constants/wallets'
+import * as ConfigConstants from '../../../constants/config'
 import {stringToAccountID} from '../../../constants/types/wallets'
 
 export default () => {
@@ -38,7 +39,7 @@ export default () => {
   const fromAccountAssets = built.amountAvailable
   const fromAccountIsDefault = fromAccount.isDefault
   const fromAccountName = fromAccount.name
-  const yourUsername = Container.useSelector(state => state.config.username)
+  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
 
   const props = {
     fromAccountAssets,

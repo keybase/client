@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/profile'
+import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
 import * as DeeplinksGen from '../deeplinks-gen'
 import * as More from '../../constants/types/more'
@@ -64,15 +65,18 @@ const checkProof = async (state: Container.TypedState) => {
   }
 }
 
-const recheckProof = async (state: Container.TypedState, action: ProfileGen.RecheckProofPayload) => {
+const recheckProof = async (_: unknown, action: ProfileGen.RecheckProofPayload) => {
   await RPCTypes.proveCheckProofRpcPromise({sigID: action.payload.sigID}, Constants.waitingKey)
-  return Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
+  return Tracker2Gen.createShowUser({
+    asTracker: false,
+    username: ConfigConstants.useCurrentUserState.getState().username,
+  })
 }
 
 // only let one of these happen at a time
 let addProofInProgress = false
 const addProof = async (
-  state: Container.TypedState,
+  _: unknown,
   action: ProfileGen.AddProofPayload,
   listenerApi: Container.ListenerApi
 ) => {
@@ -148,7 +152,7 @@ const addProof = async (
   })
 
   const loadAfter = Tracker2Gen.createLoad({
-    assertion: state.config.username,
+    assertion: ConfigConstants.useCurrentUserState.getState().username,
     guiID: Tracker2Constants.generateGUIID(),
     inTracker: false,
     reason: '',

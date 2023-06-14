@@ -3,6 +3,7 @@ import * as RPCTypes from './types/rpc-gen'
 import * as FsGen from '../actions/fs-gen'
 import * as Tabs from './tabs'
 import * as SettingsConstants from './settings'
+import * as ConfigConstants from './config'
 import type {TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -501,7 +502,9 @@ export const resetBannerType = (state: TypedState, path: Types.Path): Types.Rese
   if (resetParticipants.length === 0) {
     return Types.ResetBannerNoOthersType.None
   }
-  if (resetParticipants.findIndex(username => username === state.config.username) >= 0) {
+
+  const you = ConfigConstants.useCurrentUserState.getState().username
+  if (resetParticipants.findIndex(username => username === you) >= 0) {
     return Types.ResetBannerNoOthersType.Self
   }
   return resetParticipants.length

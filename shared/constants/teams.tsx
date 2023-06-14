@@ -1,6 +1,7 @@
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Types from './types/teams'
+import * as ConfigConstants from './config'
 import * as TeamBuildingConstants from './team-building'
 import invert from 'lodash/invert'
 import type * as ChatTypes from './types/chat2'
@@ -458,7 +459,9 @@ export const getDisabledReasonsForRolePicker = (
   } else if (Array.isArray(membersToModify)) {
     theyAreOwner = membersToModify.some(username => members.get(username)?.type === 'owner')
   }
-  const you = members.get(state.config.username)
+
+  const myUsername = ConfigConstants.useCurrentUserState.getState().username
+  const you = members.get(myUsername)
   // Fallback to the lowest role, although this shouldn't happen
   const yourRole = you?.type ?? 'reader'
 
@@ -475,11 +478,11 @@ export const getDisabledReasonsForRolePicker = (
         : onlyOwnersCanTurnTeamMembersIntoOwners
     }
     const modifyingSelf =
-      membersToModify === state.config.username ||
-      (Array.isArray(membersToModify) && membersToModify?.includes(state.config.username))
+      membersToModify === myUsername ||
+      (Array.isArray(membersToModify) && membersToModify?.includes(myUsername))
     let noOtherOwners = true
     members.forEach(({type}, name) => {
-      if (name !== state.config.username && type === 'owner') {
+      if (name !== myUsername && type === 'owner') {
         if (typeof membersToModify === 'string' || !membersToModify?.includes(name)) {
           noOtherOwners = false
         }

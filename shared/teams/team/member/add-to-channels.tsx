@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as ChatConstants from '../../../constants/chat2'
+import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
@@ -50,7 +51,7 @@ const getChannelsForList = memoize(
 
 const AddToChannels = (props: Props) => {
   const teamID = props.teamID ?? Types.noTeamID
-  const myUsername = Container.useSelector(state => state.config.username)
+  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const usernames = props.usernames ?? [myUsername]
   const mode = props.usernames ? 'others' : 'self'
   const dispatch = Container.useDispatch()

@@ -24,10 +24,6 @@ type Actions =
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [Tracker2Gen.resetStore]: () => initialState,
-  [ConfigGen.bootstrapStatusLoaded]: (draftState, action) => {
-    const {username, fullname} = action.payload
-    getDetails(draftState, username).fullname = fullname
-  },
   [Tracker2Gen.load]: (draftState, action) => {
     const {guiID, forceDisplay, assertion, reason} = action.payload
     const username = assertion

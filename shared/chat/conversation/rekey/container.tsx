@@ -1,11 +1,12 @@
-import type * as Types from '../../../constants/types/chat2'
+import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/chat2'
-import ParticipantRekey from './participant-rekey'
-import YouRekey from './you-rekey'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {createShowUserProfile} from '../../../actions/profile-gen'
+import ParticipantRekey from './participant-rekey'
+import YouRekey from './you-rekey'
+import type * as Types from '../../../constants/types/chat2'
 import {createOpenPopup} from '../../../actions/unlock-folders-gen'
+import {createShowUserProfile} from '../../../actions/profile-gen'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -29,7 +30,7 @@ const Rekey = (props: Props) =>
 
 export default (ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
-  const _you = Container.useSelector(state => state.config.username)
+  const _you = ConfigConstants.useCurrentUserState(s => s.username)
   const rekeyers = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).rekeyers)
   const dispatch = Container.useDispatch()
   const onBack = () => {

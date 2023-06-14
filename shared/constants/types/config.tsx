@@ -30,8 +30,6 @@ export type WindowState = {
 }
 
 export type State = {
-  deviceID: RPCTypes.DeviceID
-  deviceName?: string
   globalError?: Error | RPCError
   httpSrvAddress: string
   httpSrvToken: string
@@ -47,7 +45,6 @@ export type State = {
   osNetworkOnline: boolean
   outOfDate?: OutOfDate
   pushLoaded: boolean
-  registered: boolean
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   runtimeStats?: RPCTypes.RuntimeStats
   startupDetailsLoaded: boolean
@@ -60,9 +57,7 @@ export type State = {
   startupTab?: Tab
   windowShownCount: Map<string, number>
   windowState: WindowState
-  uid: string
   userActive: boolean
-  username: string
   userSwitching: boolean
   useNativeFrame: boolean
   whatsNewLastSeenVersion: string

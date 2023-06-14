@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Container from '../../../../util/container'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
@@ -17,7 +18,7 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
   const {conversationIDKey, creator} = message
   const {teamID, teamname} = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const role = Container.useSelector(state => TeamConstants.getRole(state, teamID))
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const isAdmin = TeamConstants.isAdmin(role) || TeamConstants.isOwner(role)
   const team = teamname
   const dispatch = Container.useDispatch()

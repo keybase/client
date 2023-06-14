@@ -1,3 +1,4 @@
+import * as ConfigConstants from '../../../constants/config'
 import * as Container from '../../../util/container'
 import * as React from 'react'
 import PaymentStatus, {type Props} from '.'
@@ -39,8 +40,8 @@ const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: Own
   )
   const status = error ? 'error' : paymentInfo?.status ?? 'pending'
 
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const allowPopup = Container.useSelector(state => {
-    const you = state.config.username
     const author = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.author
     return status === 'completed' || status === 'pending' || status === 'claimable' || author === you
   })

@@ -1,4 +1,5 @@
 import * as Container from '../../util/container'
+import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import Feedback from '.'
@@ -110,9 +111,9 @@ const Connected = (ownProps: OwnProps) => {
   const loggedOut = Container.useSelector(state => !state.config.loggedIn)
   const push = Container.useSelector(state => getPushTokenForLogSend(state))
 
-  const deviceID = Container.useSelector(state => state.config.deviceID)
-  const uid = Container.useSelector(state => state.config.uid)
-  const username = Container.useSelector(state => state.config.username)
+  const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)
+  const uid = ConfigConstants.useCurrentUserState(s => s.uid)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const status = {
     appVersionCode,
     appVersionName,

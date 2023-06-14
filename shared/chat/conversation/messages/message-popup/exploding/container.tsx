@@ -2,6 +2,7 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
+import * as ConfigConstants from '../../../../../constants/config'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
@@ -34,7 +35,8 @@ export default (ownProps: OwnProps) => {
   // TODO remove
   const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
   const message = m?.type === 'text' || m?.type === 'attachment' ? m : emptyMessage
-  const yourMessage = Container.useSelector(state => message.author === state.config.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const yourMessage = message.author === you
   const meta = Container.useSelector(state => Constants.getMeta(state, message.conversationIDKey))
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, message.conversationIDKey)

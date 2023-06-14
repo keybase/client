@@ -19,10 +19,8 @@ const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolea
 export default () => {
   const _fullnames = Container.useSelector(state => state.users.infoMap)
   const _accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
-  const fullname = Container.useSelector(
-    state => TrackerConstants.getDetails(state, state.config.username).fullname || ''
-  )
-  const username = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const fullname = Container.useSelector(state => TrackerConstants.getDetails(state, you).fullname || '')
   const waiting = Container.useAnyWaiting(LoginConstants.waitingKey)
 
   const dispatch = Container.useDispatch()
@@ -45,7 +43,7 @@ export default () => {
   const onSignOut = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]}))
   }
-  const accountRows = prepareAccountRows(_accountRows, username)
+  const accountRows = prepareAccountRows(_accountRows, you)
   const props = {
     accountRows: accountRows.map(account => ({
       account: account,
@@ -54,14 +52,14 @@ export default () => {
     fullname: fullname,
     onAddAccount: onAddAccount,
     onCancel: onCancel,
-    onProfileClick: () => _onProfileClick(username),
+    onProfileClick: () => _onProfileClick(you),
     onSelectAccount: (username: string) => {
       const rows = accountRows.filter(account => account.username === username)
       const loggedIn = rows.length && rows[0].hasStoredSecret
       return loggedIn ? onSelectAccountLoggedIn(username) : onSelectAccountLoggedOut(username)
     },
     onSignOut: onSignOut,
-    username: username,
+    username: you,
     waiting: waiting,
   }
   return <AccountSwitcher {...props} />

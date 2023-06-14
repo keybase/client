@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
+import * as ConfigConstants from '../../../constants/config'
 import type * as Types from '../../../constants/types/teams'
 import * as TeamsGen from '../../../actions/teams-gen'
 
@@ -21,7 +22,7 @@ export const InviteItem = ({
   teamID: Types.TeamID
 }) => {
   const dispatch = Container.useDispatch()
-  const yourUsername = Container.useSelector(s => s.config.username)
+  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const [waitingForExpire, setWaitingForExpire] = React.useState(false)
   const onExpire = () => {
     dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLink.id, teamID}))

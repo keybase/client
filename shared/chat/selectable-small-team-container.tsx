@@ -1,7 +1,8 @@
+import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/chat2'
-import type * as Types from '../constants/types/chat2'
-import SelectableSmallTeam from './selectable-small-team'
 import * as Container from '../util/container'
+import SelectableSmallTeam from './selectable-small-team'
+import type * as Types from '../constants/types/chat2'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -22,7 +23,7 @@ export default (ownProps: OwnProps) => {
   const _participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
-  const _username = Container.useSelector(state => state.config.username)
+  const _username = ConfigConstants.useCurrentUserState(s => s.username)
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const styles = Constants.getRowStyles(isSelected, _hasUnread)

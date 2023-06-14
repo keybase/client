@@ -2,6 +2,7 @@ import * as ProfileGen from '../../../actions/profile-gen'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
+import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -194,11 +195,11 @@ const useReduxFast = (
     trailingItem = leadingItem
     leadingItem = sm.get(trailingItem) ?? 0
   }
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   return Container.useSelector(state => {
     let ordinal = trailingItem
     let previous = leadingItem
 
-    const you = state.config.username
     const pmessage = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const showUsername = m && getUsernameToShow(m, pmessage, you)

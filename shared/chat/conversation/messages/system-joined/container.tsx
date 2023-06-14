@@ -1,11 +1,12 @@
-import * as React from 'react'
-import type * as Types from '../../../../constants/types/chat2'
-import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as TeamsGen from '../../../../actions/teams-gen'
-import * as ProfileGen from '../../../../actions/profile-gen'
-import Joined from '.'
+import * as ConfigConstants from '../../../../constants/config'
+import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
+import * as ProfileGen from '../../../../actions/profile-gen'
+import * as React from 'react'
+import * as TeamsGen from '../../../../actions/teams-gen'
+import Joined from '.'
+import type * as Types from '../../../../constants/types/chat2'
 
 type OwnProps = {message: Types.MessageSystemJoined}
 
@@ -15,7 +16,9 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
 
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {channelname, teamType, teamname, teamID} = meta
-  const authorIsYou = Container.useSelector(state => state.config.username === author)
+
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const authorIsYou = you === author
 
   const dispatch = Container.useDispatch()
   const onManageChannels = React.useCallback(() => {

@@ -1,4 +1,5 @@
 import * as ChatConstants from '../../../../constants/chat2'
+import * as ConfigConstants from '../../../../constants/config'
 import * as ChatGen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
@@ -33,6 +34,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const {isSmallTeam, teamID: pteamID} = p
   const visible = true
 
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
+
   const data = Container.useSelector(state => {
     const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
@@ -55,7 +58,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
       const meta = ChatConstants.getMeta(state, conversationIDKey)
       const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
-      const participants = ChatConstants.getRowParticipants(participantInfo, state.config.username)
+      const participants = ChatConstants.getRowParticipants(participantInfo, username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =
         (participants.length === 1 &&

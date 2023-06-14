@@ -1,5 +1,6 @@
 import * as Kb from '../../../../common-adapters'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as WalletsGen from '../../../../actions/wallets-gen'
@@ -16,11 +17,11 @@ type Props = {
 
 const MoreMenuPopup = (props: Props) => {
   const {conversationIDKey, onHidden, visible} = props
-  const {participantInfo, wallet, you} = Container.useSelector(state => {
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const {participantInfo, wallet} = Container.useSelector(state => {
     const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     const wallet = Constants.shouldShowWalletsIcon(state, conversationIDKey)
-    const you = state.config.username
-    return {participantInfo, wallet, you}
+    return {participantInfo, wallet}
   }, shallowEqual)
   const dispatch = Container.useDispatch()
   const onLumens = (to: string, isRequest: boolean) => {

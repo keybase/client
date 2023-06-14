@@ -2,6 +2,7 @@ import * as Container from '../../util/container'
 import * as PeopleGen from '../../actions/people-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as ConfigConstants from '../../constants/config'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as SettingsTabs from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
@@ -89,7 +90,7 @@ const AvatarUserConnector = (props: TodoOwnProps) => {
 }
 
 const BioConnector = (props: TodoOwnProps) => {
-  const myUsername = Container.useSelector(state => state.config.username)
+  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
   const onConfirm = (username: string) => {
     // make sure we have tracker state & profile is up to date
@@ -100,7 +101,7 @@ const BioConnector = (props: TodoOwnProps) => {
 }
 
 const ProofConnector = (props: TodoOwnProps) => {
-  const myUsername = Container.useSelector(state => state.config.username)
+  const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
   const onConfirm = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
   const onDismiss = onSkipTodo('proof', dispatch)

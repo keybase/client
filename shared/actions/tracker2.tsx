@@ -1,4 +1,5 @@
 import * as Constants from '../constants/tracker2'
+import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as DeeplinksGen from './deeplinks-gen'
 import * as EngineGen from './engine-gen-gen'
@@ -298,10 +299,10 @@ const showUser = (_: unknown, action: Tracker2Gen.ShowUserPayload) => {
 }
 
 // if we mutated somehow reload ourselves and reget the suggestions
-const refreshSelf = (state: Container.TypedState, action: EngineGen.Keybase1NotifyUsersUserChangedPayload) =>
-  state.config.uid === action.payload.params.uid && [
+const refreshSelf = (_: unknown, action: EngineGen.Keybase1NotifyUsersUserChangedPayload) =>
+  ConfigConstants.useCurrentUserState.getState().uid === action.payload.params.uid && [
     Tracker2Gen.createLoad({
-      assertion: state.config.username,
+      assertion: ConfigConstants.useCurrentUserState.getState().username,
       forceDisplay: false,
       fromDaemon: false,
       guiID: Constants.generateGUIID(),

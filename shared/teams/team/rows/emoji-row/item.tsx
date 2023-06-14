@@ -5,6 +5,7 @@ import * as ChatTypes from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as Teams from '../../../../constants/teams'
+import * as ConfigConstants from '../../../../constants/config'
 import * as dateFns from 'date-fns'
 import type * as TeamTypes from '../../../../constants/types/teams'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../../../util/emoji'
@@ -23,7 +24,7 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const username = Container.useSelector(s => s.config.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)

@@ -339,14 +339,14 @@ const handlePush = async (
 const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 
 const uploadPushToken = async (state: Container.TypedState) => {
-  const {config, push} = state
-  const {deviceID} = config
-  if (!config.username || !deviceID) {
-    return false as const
+  const {push} = state
+  const {deviceID, username} = ConfigConstants.useCurrentUserState.getState()
+  if (!username || !deviceID) {
+    return false
   }
   const {token} = push
   if (!token) {
-    return false as const
+    return false
   }
   try {
     await RPCTypes.apiserverPostRpcPromise({
@@ -362,11 +362,11 @@ const uploadPushToken = async (state: Container.TypedState) => {
   } catch (e) {
     logger.error("[PushToken] Couldn't save a push token", e)
   }
-  return false as const
+  return false
 }
 
 const deletePushToken = async (
-  state: Container.TypedState,
+  _: unknown,
   action: ConfigGen.LogoutHandshakePayload,
   listenerApi: Container.ListenerApi
 ) => {
@@ -376,7 +376,7 @@ const deletePushToken = async (
   )
 
   try {
-    const deviceID = state.config.deviceID
+    const deviceID = ConfigConstants.useCurrentUserState.getState().deviceID
     if (!deviceID) {
       logger.info('[PushToken] no device id')
       return
@@ -511,7 +511,7 @@ const initialPermissionsCheck = async (listenerApi: Container.ListenerApi) => {
 }
 
 const checkPermissions = async (
-  _: Container.TypedState,
+  _: unknown,
   action: ConfigGen.MobileAppStatePayload,
   listenerApi: Container.ListenerApi
 ) => {

@@ -5,6 +5,7 @@ import * as Platforms from '../util/platforms'
 import * as Container from '../util/container'
 import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Constants from '../constants/tracker2'
+import * as ConfigConstants from '../constants/config'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import type * as Tracker2Types from '../constants/types/tracker2'
 import capitalize from 'lodash/capitalize'
@@ -134,7 +135,7 @@ const ProfileCard = ({
   const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
   const followThem = Followers.useFollowerState(s => s.following.has(username))
   const followsYou = Followers.useFollowerState(s => s.followers.has(username))
-  const isSelf = Container.useSelector(state => state.config.username === username)
+  const isSelf = ConfigConstants.useCurrentUserState(s => s.username === username)
   const hasBrokenProof = [...(userDetails.assertions || new Map()).values()].find(
     assertion => assertion.state !== 'valid'
   )
@@ -249,7 +250,8 @@ export const WithProfileCardPopup = ({username, children, ellipsisStyle}: WithPr
   const [showing, setShowing] = React.useState(false)
   const [remeasureHint, setRemeasureHint] = React.useState(0)
   const onLayoutChange = React.useCallback(() => setRemeasureHint(Date.now()), [setRemeasureHint])
-  const isSelf = Container.useSelector(state => state.config.username === username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const isSelf = you === username
   const onShow = React.useCallback(() => {
     setShowing(true)
   }, [])

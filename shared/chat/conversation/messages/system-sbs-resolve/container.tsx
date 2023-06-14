@@ -1,6 +1,6 @@
 import SystemInviteAccepted from '.'
 import type * as Types from '../../../../constants/types/chat2'
-import * as Container from '../../../../util/container'
+import * as ConfigConstants from '../../../../constants/config'
 
 type OwnProps = {
   message: Types.MessageSystemSBSResolved
@@ -8,7 +8,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {message} = ownProps
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const props = {
     message,
     you,

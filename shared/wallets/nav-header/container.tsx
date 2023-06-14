@@ -1,13 +1,14 @@
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import * as ConfigConstants from '../../constants/config'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderTitle as _HeaderTitle, HeaderRightActions as _HeaderRightActions} from '.'
 
 export const HeaderTitle = () => {
   const _account = Container.useSelector(state => Constants.getSelectedAccountData(state))
   const noDisclaimer = Container.useSelector(state => !state.wallets.acceptedDisclaimer)
-  const username = Container.useSelector(state => state.config.username)
+  const username = ConfigConstants.useCurrentUserState(s => s.username)
   const props = {
     accountID: _account.accountID,
     accountName: _account.name,

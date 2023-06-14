@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
@@ -116,12 +117,13 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
     return !!typers?.size
   })
 
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const data = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
     const hasUnread = (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0
     const youAreReset = meta?.membershipType === 'youAreReset'
     const participantNeedToRekey = (meta?.rekeyers?.size ?? 0) > 0
-    const youNeedToRekey = meta?.rekeyers?.has(state.config.username) ?? false
+    const youNeedToRekey = meta?.rekeyers?.has(you) ?? false
     const hasResetUsers = (meta?.resetParticipants.size ?? 0) > 0
     const draft = (!isSelected && !hasUnread && state.chat2.draftMap.get(conversationIDKey)) || ''
 

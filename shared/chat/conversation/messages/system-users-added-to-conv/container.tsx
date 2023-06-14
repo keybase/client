@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
+import * as ConfigConstants from '../../../../constants/config'
 import type * as Types from '../../../../constants/types/chat2'
 import {YouAdded, OthersAdded} from '.'
 
@@ -12,7 +13,7 @@ const UsersAddedToConversationContainer = React.memo(function UsersAddedToConver
   const channelname = Container.useSelector(
     state => Constants.getMeta(state, message.conversationIDKey).channelname
   )
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const props = {
     author,

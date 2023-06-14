@@ -5,7 +5,7 @@ import type {State as WaitingState} from '../constants/types/waiting'
 import type {RPCError} from '../util/errors'
 
 // for convenience we flatten the props we send over the wire
-type ConfigHoistedProps = 'httpSrvAddress' | 'httpSrvToken' | 'username'
+type ConfigHoistedProps = 'httpSrvAddress' | 'httpSrvToken'
 type UsersHoistedProps = 'infoMap' | 'blockMap'
 type WaitingHoistedProps = 'counts' | 'errors'
 
@@ -15,6 +15,7 @@ export type ProxyProps = {
   following: Set<string>
   darkMode: boolean
   trackerUsername: string
+  username: string
 } & Details &
   Pick<ConfigState, ConfigHoistedProps> &
   Pick<UsersState, UsersHoistedProps> &
@@ -51,6 +52,7 @@ export type DeserializeProps = {
   tracker2: {usernameToDetails: Map<string, Details>}
   trackerUsername: string
   waiting: WaitingState
+  username: string
 }
 
 const initialState: DeserializeProps = {
@@ -58,7 +60,6 @@ const initialState: DeserializeProps = {
   config: {
     httpSrvAddress: '',
     httpSrvToken: '',
-    username: '',
   },
   darkMode: false,
   followers: new Set(),
@@ -66,6 +67,7 @@ const initialState: DeserializeProps = {
   teams: {teamNameToID: new Map()},
   tracker2: {usernameToDetails: new Map()},
   trackerUsername: '',
+  username: '',
   users: {
     blockMap: new Map(),
     infoMap: new Map(),
@@ -167,12 +169,12 @@ export const deserialize = (
       ...state.config,
       httpSrvAddress: httpSrvAddress ?? state.config.httpSrvAddress,
       httpSrvToken: httpSrvToken ?? state.config.httpSrvToken,
-      username: username ?? state.config.username,
     },
     followers: followersArr ? new Set(followersArr) : state.followers,
     following: followingArr ? new Set(followingArr) : state.following,
     tracker2: {usernameToDetails: new Map([[trackerUsername, details]])},
     trackerUsername,
+    username: username ?? state.username,
     users: {
       blockMap,
       infoMap,

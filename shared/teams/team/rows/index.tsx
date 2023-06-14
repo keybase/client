@@ -1,6 +1,7 @@
 import * as React from 'react'
 import type * as Types from '../../../constants/types/teams'
 import * as Constants from '../../../constants/teams'
+import * as ConfigConstants from '../../../constants/config'
 import * as Chat2Types from '../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
@@ -35,7 +36,7 @@ export const useMembersSections = (
   details: Types.TeamDetails,
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
-  const yourUsername = Container.useSelector(state => state.config.username)
+  const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
   // TODO: figure out if this is bad for performance and if we should leave these functions early when we're not on that tab
 
   // TODO: consider moving this to the parent

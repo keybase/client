@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as ConfigConstants from '../../constants/config'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import openUrl from '../../util/open-url'
@@ -20,7 +21,7 @@ const getTlfName = (parsedPath: Types.ParsedPath): string => {
 const PublicBanner = ({path}: Props) => {
   const isWritable = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path).writable)
   const lastPublicBannerClosedTlf = Container.useSelector(state => state.fs.lastPublicBannerClosedTlf)
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const dispatch = Container.useDispatch()
   const setLastClosed = () => dispatch(FsGen.createSetLastPublicBannerClosedTlf({tlf: tlfName}))

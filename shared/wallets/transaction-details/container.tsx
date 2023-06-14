@@ -1,6 +1,7 @@
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import * as ConfigConstants from '../../constants/config'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
@@ -15,7 +16,7 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const you = Container.useSelector(state => state.config.username)
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
   const accountID = ownProps.accountID ?? Types.noAccountID
   const paymentID = ownProps.paymentID ?? Types.noPaymentID
   const _transaction = Container.useSelector(state => Constants.getPayment(state, accountID, paymentID))

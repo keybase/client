@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as ConfigConstants from '../../../../constants/config'
 import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
@@ -14,10 +15,11 @@ export type WalletsIconProps = {
 }
 const WalletsIcon = (props: WalletsIconProps) => {
   const {size, style, conversationIDKey} = props
-  const {participantInfo, you} = Container.useSelector(state => {
-    const you = state.config.username
+
+  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const {participantInfo} = Container.useSelector(state => {
     const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-    return {participantInfo, you}
+    return {participantInfo}
   }, shallowEqual)
   const otherParticipants = participantInfo.name.filter(u => u !== you)
   const to = otherParticipants[0]

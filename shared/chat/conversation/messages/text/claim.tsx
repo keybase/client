@@ -1,5 +1,6 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
@@ -27,7 +28,8 @@ const getClaimProps = (state: Container.TypedState, message: Types.MessageText) 
     return undefined
   }
 
-  const youAreSender = message.author === state.config.username
+  const you = ConfigConstants.useCurrentUserState.getState().username
+  const youAreSender = message.author === you
   const cancelable = paymentInfo.status === 'claimable'
   const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
   if (youAreSender || !cancelable || acceptedDisclaimer) {

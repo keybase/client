@@ -1,4 +1,5 @@
 import * as Container from '../../../util/container'
+import * as ConfigConstants from '../../../constants/config'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -16,7 +17,7 @@ const WalletRowContainer = (op: OwnProps) => {
   const {accountID} = op
   const account = Container.useSelector(state => getAccount(state, accountID))
   const name = account.name
-  const me = Container.useSelector(state => state.config.username)
+  const me = ConfigConstants.useCurrentUserState(s => s.username)
   const keybaseUser = account.isDefault ? me : ''
   const selectedAccount = Container.useSelector(state => getSelectedAccount(state))
   const contents = account.balanceDescription

@@ -6,6 +6,7 @@ import * as TeamsGen from './teams-gen'
 import * as ProfileGen from './profile-gen'
 import * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
+import * as ConfigConstants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as ChatTypes from '../constants/types/chat2'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
@@ -618,7 +619,7 @@ function createNewTeamFromConversation(
   action: TeamsGen.CreateNewTeamFromConversationPayload
 ) {
   const {conversationIDKey, teamname} = action.payload
-  const me = state.config.username
+  const me = ConfigConstants.useCurrentUserState.getState().username
 
   const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
   // exclude bots from the newly created team, they can be added back later.
@@ -731,7 +732,7 @@ const getTeams = async (
   if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return
   }
-  const username = state.config.username
+  const username = ConfigConstants.useCurrentUserState.getState().username
   if (!username) {
     logger.warn('getTeams while logged out')
     return
