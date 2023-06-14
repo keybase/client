@@ -155,6 +155,7 @@ export const useConfigState = createZustand(
             s.defaultUsername = defaultUsername
           })
         }
+        reduxDispatch(ConfigGen.createRevoked())
       },
       setAccounts: (a: ZStore['configuredAccounts']) => {
         set(s => {
