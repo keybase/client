@@ -2,20 +2,18 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import * as LoginGen from '../../actions/login-gen'
+import * as ConfigConstants from '../../constants/config'
 import Intro from '.'
 import * as Container from '../../util/container'
 
 export default () => {
-  const bannerMessage = Container.useSelector(state => {
-    let bannerMessage: string | undefined
-
-    if (state.config.justDeletedSelf) {
-      bannerMessage = `Your Keybase account ${state.config.justDeletedSelf} has been deleted. Au revoir!`
-    } else if (state.config.justRevokedSelf) {
-      bannerMessage = `${state.config.justRevokedSelf} was revoked successfully`
-    }
-    return bannerMessage
-  })
+  const justDeletedSelf = ConfigConstants.useConfigState(s => s.justDeletedSelf)
+  const justRevokedSelf = ConfigConstants.useConfigState(s => s.justRevokedSelf)
+  const bannerMessage = justDeletedSelf
+    ? `Your Keybase account ${justDeletedSelf} has been deleted. Au revoir!`
+    : justRevokedSelf
+    ? `${justRevokedSelf} was revoked successfully`
+    : ''
 
   const isOnline = Container.useSelector(state => state.login.isOnline)
 

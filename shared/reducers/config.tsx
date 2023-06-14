@@ -2,7 +2,6 @@ import logger from '../logger'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as ProvisionGen from '../actions/provision-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
 import type * as GregorGen from '../actions/gregor-gen'
@@ -16,19 +15,8 @@ type Actions =
   | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
   | GregorGen.PushStatePayload
-  | ProvisionGen.StartProvisionPayload
 
 export default Container.makeReducer<Actions, Types.State>(Constants.initialState, {
-  [ProvisionGen.startProvision]: draftState => {
-    draftState.justRevokedSelf = ''
-  },
-  [ConfigGen.revoked]: (draftState, action) => {
-    const {wasCurrentDevice, deviceName} = action.payload
-    // if revoking self find another name if it exists
-    if (wasCurrentDevice) {
-      draftState.justRevokedSelf = deviceName
-    }
-  },
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
     logoutHandshakeVersion: draftState.logoutHandshakeVersion,
@@ -108,9 +96,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.setUserSwitching]: (draftState, action) => {
     draftState.userSwitching = action.payload.userSwitching
   },
-  [ConfigGen.setDeletedSelf]: (draftState, action) => {
-    draftState.justDeletedSelf = action.payload.deletedUsername
-  },
   [ConfigGen.daemonHandshakeDone]: draftState => {
     draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
   },
@@ -164,8 +149,5 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.loadedOnLoginStartup]: (draftState, action) => {
     draftState.openAtLogin = action.payload.status === true
-  },
-  [ConfigGen.setIncomingShareUseOriginal]: (draftState, action) => {
-    draftState.incomingShareUseOriginal = action.payload.useOriginal
   },
 })

@@ -1,4 +1,3 @@
-import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/devices'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -103,7 +102,7 @@ const useRevoke = (deviceID = '') => {
         try {
           await RPCTypes.loginDeprovisionRpcPromise({doRevoke: true, username}, Constants.waitingKey)
           load()
-          dispatch(ConfigGen.createRevoked({deviceID, deviceName, wasCurrentDevice}))
+          ConfigConstants.useConfigState.getState().dispatch.revoke(deviceName)
         } catch {}
       } else {
         try {
@@ -112,7 +111,7 @@ const useRevoke = (deviceID = '') => {
             Constants.waitingKey
           )
           load()
-          dispatch(ConfigGen.createRevoked({deviceID, deviceName, wasCurrentDevice}))
+          ConfigConstants.useConfigState.getState().dispatch.revoke(deviceName)
           dispatch(
             RouteTreeGen.createNavUpToScreen({
               name: Container.isMobile

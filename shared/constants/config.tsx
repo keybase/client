@@ -13,6 +13,7 @@ import {getReduxDispatch} from '../util/zustand'
 import {enableActionLogging} from '../local-debug'
 import logger from '../logger'
 import {convertToError, isEOFError, isErrorTransient} from '../util/errors'
+import {useCurrentUserState} from './current-user'
 import * as Stats from '../engine/stats'
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
@@ -31,9 +32,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
 export const initialState: Types.State = {
-  incomingShareUseOriginal: undefined,
-  justDeletedSelf: '',
-  justRevokedSelf: '',
   loggedIn: false,
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
@@ -86,6 +84,9 @@ export type ZStore = {
     address: string
     token: string
   }
+  incomingShareUseOriginal?: boolean
+  justDeletedSelf: string
+  justRevokedSelf: string
 }
 
 const initialZState: ZStore = {
@@ -99,6 +100,9 @@ const initialZState: ZStore = {
     address: '',
     token: '',
   },
+  incomingShareUseOriginal: undefined,
+  justDeletedSelf: '',
+  justRevokedSelf: '',
 }
 
 type ZState = ZStore & {
@@ -107,15 +111,19 @@ type ZState = ZStore & {
     setAllowAnimatedEmojis: (a: boolean) => void
     setAndroidShare: (s: ZStore['androidShare']) => void
     changedFocus: (f: boolean) => void
+    resetRevokedSelf: () => void
+    revoke: (deviceName: string) => void
     setAccounts: (a: ZStore['configuredAccounts']) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: any) => void
     setHTTPSrvInfo: (address: string, token: string) => void
+    setIncomingShareUseOriginal: (use: boolean) => void
+    setJustDeletedSelf: (s: string) => void
   }
 }
 
 export const useConfigState = createZustand(
-  immerZustand<ZState>(set => {
+  immerZustand<ZState>((set, get) => {
     const reduxDispatch = getReduxDispatch()
 
     const dispatch = {
@@ -132,6 +140,24 @@ export const useConfigState = createZustand(
           configuredAccounts: s.configuredAccounts,
           defaultUsername: s.defaultUsername,
         }))
+      },
+      resetRevokedSelf: () => {
+        set(s => {
+          s.justRevokedSelf = ''
+        })
+      },
+      revoke: (name: string) => {
+        const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
+        if (wasCurrentDevice) {
+          const {configuredAccounts, defaultUsername} = get()
+          const acc = configuredAccounts.find(n => n.username !== defaultUsername)
+          const du = acc?.username ?? ''
+          set(s => {
+            s.defaultUsername = du
+            s.justRevokedSelf = name
+          })
+        }
+        reduxDispatch(ConfigGen.createRevoked())
       },
       setAccounts: (a: ZStore['configuredAccounts']) => {
         set(s => {
@@ -180,6 +206,16 @@ export const useConfigState = createZustand(
           s.httpSrv.token = token
         })
       },
+      setIncomingShareUseOriginal: (use: boolean) => {
+        set(s => {
+          s.incomingShareUseOriginal = use
+        })
+      },
+      setJustDeletedSelf: (self: string) => {
+        set(s => {
+          s.justDeletedSelf = self
+        })
+      },
     }
 
     return {
@@ -191,4 +227,4 @@ export const useConfigState = createZustand(
 
 export {useDaemonState, maxHandshakeTries} from './daemon'
 export {useFollowerState} from './followers'
-export {useCurrentUserState} from './current-user'
+export {useCurrentUserState}

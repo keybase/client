@@ -29,9 +29,6 @@ export type WindowState = {
 }
 
 export type State = {
-  incomingShareUseOriginal?: boolean
-  justDeletedSelf: string
-  justRevokedSelf: string
   loggedIn: boolean
   logoutHandshakeWaiters: Map<string, number>
   logoutHandshakeVersion: number

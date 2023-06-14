@@ -4,6 +4,7 @@ import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as Followers from '../../constants/followers'
 import * as GregorGen from '../gregor-gen'
+import * as ProvisionGen from '../provision-gen'
 import * as UsersGen from '../users-gen'
 import * as LoginConstants from '../../constants/login'
 import * as Constants from '../../constants/config'
@@ -218,11 +219,6 @@ const loadDaemonAccounts = async (
     }
   }
 }
-
-const showDeletedSelfRootPage = () => [
-  RouteTreeGen.createSwitchLoggedIn({loggedIn: false}),
-  RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}),
-]
 
 const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
 
@@ -514,8 +510,6 @@ const initConfig = () => {
   // Store per user server config info
   Container.listenAction(ConfigGen.loadOnStart, updateServerConfig)
 
-  Container.listenAction(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
-
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
 
@@ -565,14 +559,6 @@ const initConfig = () => {
     useAvatarState.getState().updated(name)
   })
 
-  Container.listenAction(ConfigGen.revoked, (_, action) => {
-    if (!action.payload.wasCurrentDevice) return
-    const {configuredAccounts} = Constants.useConfigState.getState()
-    const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
-    const defaultUsername = configuredAccounts.find(n => n.username !== defaultUsername)?.username ?? ''
-    setDefaultUsername(defaultUsername)
-  })
-
   Container.listenAction(ConfigGen.setSystemDarkMode, (_, action) => {
     // only to bridge electron bridge, todo remove this
     if (!Container.isMobile) {
@@ -597,6 +583,10 @@ const initConfig = () => {
     const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
     const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
     dispatch.replace(followers, following)
+  })
+
+  Container.listenAction(ProvisionGen.startProvision, () => {
+    Constants.useConfigState.getState().dispatch.resetRevokedSelf()
   })
 }
 

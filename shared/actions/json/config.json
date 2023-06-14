@@ -70,7 +70,6 @@
     },
     "setOpenAtLogin": {"openAtLogin": "boolean"},
     "setNotifySound": {"notifySound": "boolean"},
-    "setDeletedSelf": {"deletedUsername": "string"},
     "persistRoute": {"path?": "Array<any>"},
     "setNavigator": {"navigator": "any"},
     "loggedOut": {},
@@ -154,9 +153,6 @@
       "url?": "string",
       "text?": "string"
     },
-    "setIncomingShareUseOriginal": {
-      "useOriginal": "boolean"
-    },
     "initListenerLoops": {
       "_description": "Internal action just to start saga-like spawn processes"
     },
@@ -164,10 +160,6 @@
       "_description": "Plumb power monitor events from node",
       "event": "string"
     },
-    "revoked": {
-      "deviceID": "string",
-      "wasCurrentDevice": "boolean",
-      "deviceName": "string"
-    }
+    "revoked": {}
   }
 }

@@ -331,7 +331,13 @@ const deleteAccountForever = async (_: unknown, action: SettingsGen.DeleteAccoun
     {passphrase: action.payload.passphrase?.stringValue()},
     Constants.settingsWaitingKey
   )
-  return ConfigGen.createSetDeletedSelf({deletedUsername: username})
+
+  ConfigConstants.useConfigState.getState().dispatch.setJustDeletedSelf(username)
+
+  return [
+    RouteTreeGen.createSwitchLoggedIn({loggedIn: false}),
+    RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}),
+  ]
 }
 
 const loadSettings = async (
