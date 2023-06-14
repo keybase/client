@@ -366,7 +366,7 @@ const uploadPushToken = async (state: Container.TypedState) => {
 }
 
 const deletePushToken = async (
-  _: Container.TypedState,
+  _: unknown,
   action: ConfigGen.LogoutHandshakePayload,
   listenerApi: Container.ListenerApi
 ) => {
@@ -511,7 +511,7 @@ const initialPermissionsCheck = async (listenerApi: Container.ListenerApi) => {
 }
 
 const checkPermissions = async (
-  _: Container.TypedState,
+  _: unknown,
   action: ConfigGen.MobileAppStatePayload,
   listenerApi: Container.ListenerApi
 ) => {
