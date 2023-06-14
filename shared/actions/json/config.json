@@ -21,9 +21,6 @@
       "_description": "Sent whenever the mobile file picker encounters an error.",
       "error": "Error"
     },
-    "logout": {
-      "_description": "someone wants to log out"
-    },
     "logoutAndTryToLogInAs": {
       "_description": [
         "Log out the current user, keeping secrets stored.",
@@ -34,12 +31,6 @@
     "logoutHandshake": {
       "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
       "version": "number"
-    },
-    "logoutHandshakeWait": {
-      "_description": "subsystems that need to do things during logout need to call this to register that we should wait.",
-      "name": "string",
-      "version": "number",
-      "increment": "boolean"
     },
     "installerRan": {
       "_description": "desktop only: the installer ran and we can start up"

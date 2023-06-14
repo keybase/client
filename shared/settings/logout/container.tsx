@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/settings'
-import * as ConfigGen from '../../actions/config-gen'
+import * as ConfigConstants from '../../constants/config'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import HiddenString from '../../util/hidden-string'
@@ -26,10 +26,13 @@ const LogoutContainer = () => {
     },
     [dispatch]
   )
+
+  const requestLogout = ConfigConstants.useLogoutState(s => s.dispatch.requestLogout)
+
   const _onLogout = React.useCallback(() => {
-    dispatch(ConfigGen.createLogout())
+    requestLogout()
     dispatch(SettingsGen.createLoadedCheckPassword({}))
-  }, [dispatch])
+  }, [dispatch, requestLogout])
   const onSavePassword = React.useCallback(
     (password: string) => {
       dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))

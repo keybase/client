@@ -1,4 +1,3 @@
-import logger from '../logger'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as EngineGen from '../actions/engine-gen-gen'
@@ -19,8 +18,6 @@ type Actions =
 export default Container.makeReducer<Actions, Types.State>(Constants.initialState, {
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
-    logoutHandshakeVersion: draftState.logoutHandshakeVersion,
-    logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,
     pushLoaded: draftState.pushLoaded,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
     useNativeFrame: draftState.useNativeFrame,
@@ -32,28 +29,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.updateWindowShown]: (draftState, action) => {
     const count = draftState.windowShownCount.get(action.payload.component) ?? 0
     draftState.windowShownCount.set(action.payload.component, count + 1)
-  },
-
-  [ConfigGen.logoutHandshake]: (draftState, action) => {
-    draftState.logoutHandshakeVersion = action.payload.version
-    draftState.logoutHandshakeWaiters = new Map()
-  },
-  [ConfigGen.logoutHandshakeWait]: (draftState, action) => {
-    const {version} = action.payload
-    const {logoutHandshakeVersion} = draftState
-    if (version !== logoutHandshakeVersion) {
-      logger.info('Ignoring logout handshake due to version mismatch', version, logoutHandshakeVersion)
-      return
-    }
-    const {increment, name} = action.payload
-    const {logoutHandshakeWaiters} = draftState
-    const oldCount = logoutHandshakeWaiters.get(name) || 0
-    const newCount = oldCount + (increment ? 1 : -1)
-    if (newCount === 0) {
-      logoutHandshakeWaiters.delete(name)
-    } else {
-      logoutHandshakeWaiters.set(name, newCount)
-    }
   },
   [ConfigGen.setStartupDetails]: (draftState, action) => {
     if (!draftState.startupDetailsLoaded) {

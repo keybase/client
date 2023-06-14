@@ -365,15 +365,10 @@ const uploadPushToken = async (state: Container.TypedState) => {
   return false
 }
 
-const deletePushToken = async (
-  _: unknown,
-  action: ConfigGen.LogoutHandshakePayload,
-  listenerApi: Container.ListenerApi
-) => {
+const deletePushToken = async (_: unknown, action: ConfigGen.LogoutHandshakePayload) => {
+  const {version} = action.payload
   const waitKey = 'push:deleteToken'
-  listenerApi.dispatch(
-    ConfigGen.createLogoutHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
-  )
+  ConfigConstants.useLogoutState.getState().dispatch.wait(waitKey, version, true)
 
   try {
     const deviceID = ConfigConstants.useCurrentUserState.getState().deviceID
@@ -393,13 +388,7 @@ const deletePushToken = async (
   } catch (e) {
     logger.error('[PushToken] delete failed', e)
   } finally {
-    listenerApi.dispatch(
-      ConfigGen.createLogoutHandshakeWait({
-        increment: false,
-        name: waitKey,
-        version: action.payload.version,
-      })
-    )
+    ConfigConstants.useLogoutState.getState().dispatch.wait(waitKey, version, false)
   }
 }
 

@@ -26,10 +26,8 @@ export const loadOnStart = 'config:loadOnStart'
 export const loadedOnLoginStartup = 'config:loadedOnLoginStartup'
 export const loggedIn = 'config:loggedIn'
 export const loggedOut = 'config:loggedOut'
-export const logout = 'config:logout'
 export const logoutAndTryToLogInAs = 'config:logoutAndTryToLogInAs'
 export const logoutHandshake = 'config:logoutHandshake'
-export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
 export const openAppStore = 'config:openAppStore'
@@ -202,10 +200,6 @@ export const createRemoteWindowWantsProps = (payload: {
   readonly param: string
 }) => ({payload, type: remoteWindowWantsProps as typeof remoteWindowWantsProps})
 /**
- * someone wants to log out
- */
-export const createLogout = (payload?: undefined) => ({payload, type: logout as typeof logout})
-/**
  * starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait
  */
 export const createDaemonHandshake = (payload: {
@@ -219,14 +213,6 @@ export const createLogoutHandshake = (payload: {readonly version: number}) => ({
   payload,
   type: logoutHandshake as typeof logoutHandshake,
 })
-/**
- * subsystems that need to do things during logout need to call this to register that we should wait.
- */
-export const createLogoutHandshakeWait = (payload: {
-  readonly name: string
-  readonly version: number
-  readonly increment: boolean
-}) => ({payload, type: logoutHandshakeWait as typeof logoutHandshakeWait})
 export const createBootstrapStatusLoaded = (payload: {readonly loggedIn: boolean}) => ({
   payload,
   type: bootstrapStatusLoaded as typeof bootstrapStatusLoaded,
@@ -355,8 +341,6 @@ export type LoggedInPayload = ReturnType<typeof createLoggedIn>
 export type LoggedOutPayload = ReturnType<typeof createLoggedOut>
 export type LogoutAndTryToLogInAsPayload = ReturnType<typeof createLogoutAndTryToLogInAs>
 export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
-export type LogoutHandshakeWaitPayload = ReturnType<typeof createLogoutHandshakeWait>
-export type LogoutPayload = ReturnType<typeof createLogout>
 export type MobileAppStatePayload = ReturnType<typeof createMobileAppState>
 export type OpenAppSettingsPayload = ReturnType<typeof createOpenAppSettings>
 export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
@@ -410,8 +394,6 @@ export type Actions =
   | LoggedOutPayload
   | LogoutAndTryToLogInAsPayload
   | LogoutHandshakePayload
-  | LogoutHandshakeWaitPayload
-  | LogoutPayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload
   | OpenAppStorePayload

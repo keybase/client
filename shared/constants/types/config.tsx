@@ -30,8 +30,6 @@ export type WindowState = {
 
 export type State = {
   loggedIn: boolean
-  logoutHandshakeWaiters: Map<string, number>
-  logoutHandshakeVersion: number
   mainWindowMax: boolean
   notifySound: boolean
   openAtLogin: boolean

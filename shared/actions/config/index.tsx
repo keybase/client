@@ -13,7 +13,6 @@ import * as PushGen from '../push-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Router2 from '../../constants/router2'
-import * as SettingsConstants from '../../constants/settings'
 import * as SettingsGen from '../settings-gen'
 import * as Tabs from '../../constants/tabs'
 import * as DarkMode from '../../constants/darkmode'
@@ -222,38 +221,6 @@ const loadDaemonAccounts = async (
 
 const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
 
-// Figure out whether we can log out using CanLogout, if so,
-// startLogoutHandshake, else do what's needed - right now only
-// redirect to set password screen.
-const startLogoutHandshakeIfAllowed = async (state: Container.TypedState) => {
-  const canLogoutRes = await RPCTypes.userCanLogoutRpcPromise()
-  if (canLogoutRes.canLogout) {
-    return startLogoutHandshake(state)
-  } else {
-    if (Platform.isMobile) {
-      return RouteTreeGen.createNavigateAppend({
-        path: [Tabs.settingsTab, SettingsConstants.passwordTab],
-      })
-    } else {
-      return [
-        RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]}),
-        RouteTreeGen.createNavigateAppend({path: [SettingsConstants.passwordTab]}),
-      ]
-    }
-  }
-}
-
-const startLogoutHandshake = (state: Container.TypedState) =>
-  ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1})
-
-// This assumes there's at least a single waiter to trigger this, so if that ever changes you'll have to add
-// stuff to trigger this due to a timeout if there's no listeners or something
-const maybeDoneWithLogoutHandshake = async (state: Container.TypedState) => {
-  if (state.config.logoutHandshakeWaiters.size <= 0) {
-    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
-  }
-}
-
 // Monster push prompt
 // We've just started up, we don't have the permissions, we're logged in and we
 // haven't just signed up. This handles the scenario where the push notifications
@@ -320,21 +287,11 @@ const allowLogoutWaiters = async (
   action: ConfigGen.LogoutHandshakePayload,
   listenerApi: Container.ListenerApi
 ) => {
-  listenerApi.dispatch(
-    ConfigGen.createLogoutHandshakeWait({
-      increment: true,
-      name: 'nullhandshake',
-      version: action.payload.version,
-    })
-  )
+  const waitKey = 'nullhandshake'
+  const {version} = action.payload
+  Constants.useLogoutState.getState().dispatch.wait(waitKey, version, true)
   await listenerApi.delay(10)
-  listenerApi.dispatch(
-    ConfigGen.createLogoutHandshakeWait({
-      increment: false,
-      name: 'nullhandshake',
-      version: action.payload.version,
-    })
-  )
+  Constants.useLogoutState.getState().dispatch.wait(waitKey, version, false)
 }
 
 const updateServerConfig = async (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) =>
@@ -500,11 +457,8 @@ const initConfig = () => {
   // If you start logged in we don't get the incoming call from the daemon so we generate our own here
   Container.listenAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
 
-  // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
-  Container.listenAction(ConfigGen.logout, startLogoutHandshakeIfAllowed)
   // Give time for all waiters to register and allow the case where there are no waiters
   Container.listenAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
-  Container.listenAction(ConfigGen.logoutHandshakeWait, maybeDoneWithLogoutHandshake)
   // When we're all done lets clean up
   Container.listenAction(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
@@ -552,6 +506,7 @@ const initConfig = () => {
   Container.listenAction(ConfigGen.resetStore, () => {
     Constants.useConfigState.getState().dispatch.reset()
     Constants.useDaemonState.getState().dispatch.reset()
+    Constants.useLogoutState.getState().dispatch.reset()
   })
 
   Container.listenAction(EngineGen.keybase1NotifyTeamAvatarUpdated, (_, action) => {
