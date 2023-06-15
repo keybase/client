@@ -261,7 +261,6 @@ export const useConfigState = createZustand(
           map.set(params, (map.get(params) ?? 0) + 1)
           s.remoteWindowNeedsProps.set(component, map)
         })
-        console.log('aaa updated window needs props', get().remoteWindowNeedsProps, component, params)
       },
       reset: () => {
         set(s => ({
