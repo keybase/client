@@ -19,7 +19,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
-    userSwitching: draftState.userSwitching,
   }),
   [ConfigGen.setStartupDetails]: (draftState, action) => {
     if (!draftState.startupDetailsLoaded) {
@@ -37,18 +36,12 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.bootstrapStatusLoaded]: (draftState, action) => {
     draftState.loggedIn = action.payload.loggedIn
-    if (action.payload.loggedIn) {
-      draftState.userSwitching = false
-    }
   },
   [ConfigGen.loggedIn]: draftState => {
     draftState.loggedIn = true
   },
   [ConfigGen.loggedOut]: draftState => {
     draftState.loggedIn = false
-  },
-  [ConfigGen.setUserSwitching]: (draftState, action) => {
-    draftState.userSwitching = action.payload.userSwitching
   },
   [ConfigGen.daemonHandshakeDone]: draftState => {
     draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true

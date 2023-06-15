@@ -70,9 +70,6 @@
       "causedBySignup": "boolean",
       "causedByStartup": "boolean"
     },
-    "setUserSwitching": {
-      "userSwitching": "boolean"
-    },
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
     "updateNow": {},

@@ -88,9 +88,10 @@ const loadDaemonBootstrapStatus = async (
     if (username) {
       setDefaultUsername(username)
     }
-    const loadedAction = ConfigGen.createBootstrapStatusLoaded({
-      loggedIn,
-    })
+    const loadedAction = ConfigGen.createBootstrapStatusLoaded({loggedIn})
+    if (loggedIn) {
+      Constants.useConfigState.getState().dispatch.setUserSwitching(false)
+    }
 
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     listenerApi.dispatch(loadedAction)

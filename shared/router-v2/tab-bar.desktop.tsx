@@ -209,20 +209,21 @@ const Tab = React.memo(function Tab(props: TabProps) {
 
   const accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
   const current = ConfigConstants.useCurrentUserState(s => s.username)
+  const setUserSwitching = ConfigConstants.useConfigState(s => s.dispatch.setUserSwitching)
   const onQuickSwitch = React.useMemo(
     () =>
       index === 0
         ? () => {
             const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
             if (row) {
-              dispatch(ConfigGen.createSetUserSwitching({userSwitching: true}))
+              setUserSwitching(true)
               dispatch(LoginGen.createLogin({password: new HiddenString(''), username: row.username}))
             } else {
               onSelectTab(tab)
             }
           }
         : undefined,
-    [accountRows, dispatch, index, current, onSelectTab, tab]
+    [accountRows, dispatch, index, current, onSelectTab, tab, setUserSwitching]
   )
 
   // no long press on desktop so a quick version

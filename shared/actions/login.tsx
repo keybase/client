@@ -3,6 +3,7 @@ import * as LoginGen from './login-gen'
 import * as ConfigGen from './config-gen'
 import * as ProvisionGen from './provision-gen'
 import * as Constants from '../constants/login'
+import * as ConfigConstants from '../constants/config'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
 import logger from '../logger'
@@ -102,15 +103,15 @@ const loadIsOnline = async () => {
   }
 }
 
-// On login error, turn off the user switching flag, so that the login screen is not
-// hidden and the user can see and respond to the error.
-const loginError = () => ConfigGen.createSetUserSwitching({userSwitching: false})
-
 const initLogin = () => {
   // Actually log in
   Container.listenAction(LoginGen.login, login)
   Container.listenAction(LoginGen.loadIsOnline, loadIsOnline)
-  Container.listenAction(LoginGen.loginError, loginError)
+  Container.listenAction(LoginGen.loginError, () => {
+    // On login error, turn off the user switching flag, so that the login screen is not
+    // hidden and the user can see and respond to the error.
+    ConfigConstants.useConfigState(s => s.dispatch.setUserSwitching)(false)
+  })
 }
 
 export default initLogin

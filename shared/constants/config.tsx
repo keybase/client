@@ -49,7 +49,6 @@ export const initialState: Types.State = {
   startupLink: '',
   startupPushPayload: undefined,
   startupWasFromPush: false,
-  userSwitching: false,
 }
 
 export type ZStore = {
@@ -82,6 +81,7 @@ export type ZStore = {
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   runtimeStats?: RPCTypes.RuntimeStats
   useNativeFrame: boolean
+  userSwitching: boolean
   windowShownCount: Map<string, number>
   windowState: {
     dockHidden: boolean
@@ -121,6 +121,7 @@ const initialZState: ZStore = {
   },
   remoteWindowNeedsProps: new Map(),
   useNativeFrame: defaultUseNativeFrame,
+  userSwitching: false,
   windowShownCount: new Map(),
   windowState: {
     dockHidden: false,
@@ -157,6 +158,7 @@ type ZState = ZStore & {
     setNotifySound: (n: boolean) => void
     setOpenAtLogin: (open: boolean) => void
     setOutOfDate: (outOfDate: Types.OutOfDate) => void
+    setUserSwitching: (sw: boolean) => void
     setUseNativeFrame: (use: boolean) => void
     setWindowIsMax: (m: boolean) => void
     toggleRuntimeStats: () => void
@@ -269,6 +271,7 @@ export const useConfigState = createZustand(
           configuredAccounts: s.configuredAccounts,
           defaultUsername: s.defaultUsername,
           useNativeFrame: s.useNativeFrame,
+          userSwitching: s.userSwitching,
         }))
       },
       resetRevokedSelf: () => {
@@ -395,6 +398,11 @@ export const useConfigState = createZustand(
             },
           })
         )
+      },
+      setUserSwitching: (sw: boolean) => {
+        set(s => {
+          s.userSwitching = sw
+        })
       },
       setWindowIsMax: (m: boolean) => {
         set(s => {
