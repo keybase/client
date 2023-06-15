@@ -20,6 +20,11 @@ const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
 }
 
+const timeoutPromise = async (timeMs: number) =>
+  new Promise<void>(resolve => {
+    setTimeout(() => resolve(), timeMs)
+  })
+
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
 
@@ -37,8 +42,6 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 
 export const initialState: Types.State = {
   loggedIn: false,
-  osNetworkOnline: false,
-  outOfDate: undefined,
   pushLoaded: false,
   remoteWindowNeedsProps: new Map(),
   startupConversation: noConversationIDKey,
@@ -79,6 +82,7 @@ export type ZStore = {
   logoutHandshakeWaiters: Map<string, number>
   notifySound: boolean
   openAtLogin: boolean
+  outOfDate: Types.OutOfDate
   useNativeFrame: boolean
   windowShownCount: Map<string, number>
   windowState: {
@@ -111,6 +115,12 @@ const initialZState: ZStore = {
   logoutHandshakeWaiters: new Map(),
   notifySound: false,
   openAtLogin: true,
+  outOfDate: {
+    critical: false,
+    message: '',
+    outOfDate: false,
+    updating: false,
+  },
   useNativeFrame: defaultUseNativeFrame,
   windowShownCount: new Map(),
   windowState: {
@@ -128,6 +138,8 @@ const initialZState: ZStore = {
 type ZState = ZStore & {
   dispatch: {
     changedFocus: (f: boolean) => void
+    checkForUpdate: () => void
+    initAppUpdateLoop: () => void
     initNotifySound: () => void
     initOpenAtLogin: () => void
     initUseNativeFrame: () => void
@@ -144,8 +156,10 @@ type ZState = ZStore & {
     setJustDeletedSelf: (s: string) => void
     setNotifySound: (n: boolean) => void
     setOpenAtLogin: (open: boolean) => void
+    setOutOfDate: (outOfDate: Types.OutOfDate) => void
     setUseNativeFrame: (use: boolean) => void
     setWindowIsMax: (m: boolean) => void
+    updateApp: () => void
     updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => void
     windowShown: (win: string) => void
   }
@@ -159,12 +173,53 @@ export const useConfigState = createZustand(
     const notifySoundKey = 'notifySound'
     const openAtLoginKey = 'openAtLogin'
 
+    const _checkForUpdate = async () => {
+      try {
+        const {status, message} = await RPCTypes.configGetUpdateInfoRpcPromise()
+        get().dispatch.setOutOfDate(
+          status !== RPCTypes.UpdateInfoStatus.upToDate
+            ? {
+                critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
+                message,
+                outOfDate: true,
+                updating: false,
+              }
+            : {
+                critical: false,
+                message: '',
+                outOfDate: false,
+                updating: false,
+              }
+        )
+      } catch (err) {
+        logger.warn('error getting update info: ', err)
+      }
+    }
+
     const dispatch = {
       changedFocus: (f: boolean) => {
         set(s => {
           s.appFocused = f
         })
         reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
+      },
+      checkForUpdate: () => {
+        const f = async () => {
+          await _checkForUpdate()
+        }
+        ignorePromise(f())
+      },
+      initAppUpdateLoop: () => {
+        const f = async () => {
+          // eslint-disable-next-line
+          while (true) {
+            try {
+              await _checkForUpdate()
+            } catch {}
+            await timeoutPromise(3_600_000) // 1 hr
+          }
+        }
+        ignorePromise(f())
       },
       initNotifySound: () => {
         const f = async () => {
@@ -313,6 +368,11 @@ export const useConfigState = createZustand(
         }
         ignorePromise(f())
       },
+      setOutOfDate: (outOfDate: Types.OutOfDate) => {
+        set(s => {
+          s.outOfDate = outOfDate
+        })
+      },
       setUseNativeFrame: (use: boolean) => {
         set(s => {
           s.useNativeFrame = use
@@ -330,6 +390,25 @@ export const useConfigState = createZustand(
       setWindowIsMax: (m: boolean) => {
         set(s => {
           s.windowState.isMaximized = m
+        })
+      },
+      updateApp: () => {
+        const f = async () => {
+          await RPCTypes.configStartUpdateIfNeededRpcPromise()
+        }
+        ignorePromise(f())
+        // * If user choose to update:
+        //   We'd get killed and it doesn't matter what happens here.
+        // * If user hits "Ignore":
+        //   Note that we ignore the snooze here, so the state shouldn't change,
+        //   and we'd back to where we think we still need an update. So we could
+        //   have just unset the "updating" flag.However, in case server has
+        //   decided to pull out the update between last time we asked the updater
+        //   and now, we'd be in a wrong state if we didn't check with the service.
+        //   Since user has interacted with it, we still ask the service to make
+        //   sure.
+        set(s => {
+          s.outOfDate.updating = true
         })
       },
       updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => {

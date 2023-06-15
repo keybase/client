@@ -1,6 +1,6 @@
 import * as FSTypes from '../constants/types/fs'
 import type * as ChatTypes from '../constants/types/chat2'
-import type {State as ConfigState, DaemonHandshakeState} from '../constants/types/config'
+import type {State as ConfigState, DaemonHandshakeState, OutOfDate} from '../constants/types/config'
 import type {State as NotificationsState} from '../constants/types/notifications'
 import type {State as UsersState, UserInfo} from '../constants/types/users'
 import type {Tab} from '../constants/tabs'
@@ -16,7 +16,7 @@ export type RemoteTlfUpdates = {
 }
 
 // for convenience we flatten the props we send over the wire
-type ConfigHoistedProps = 'outOfDate' | 'loggedIn'
+type ConfigHoistedProps = 'loggedIn'
 
 type UsersHoistedProps = 'infoMap'
 
@@ -53,6 +53,7 @@ export type ProxyProps = {
   kbfsEnabled: boolean
   remoteTlfUpdates: Array<RemoteTlfUpdates>
   showingDiskSpaceBanner?: boolean
+  outOfDate: OutOfDate
   totalSyncingBytes?: number
   username: string
   httpSrvAddress: string
@@ -109,6 +110,7 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
     unreadMap: Map<string, number>
     mutedMap: Map<string, number>
   }
+  outOfDate: OutOfDate
   config: Pick<ConfigState, ConfigHoistedProps>
   users: Pick<UsersState, UsersHoistedProps>
   username: string
@@ -127,7 +129,6 @@ const initialState: DeserializeProps = {
   },
   config: {
     loggedIn: false,
-    outOfDate: undefined,
   },
   conversationsToSend: [],
   daemonHandshakeState: 'starting',
@@ -146,6 +147,12 @@ const initialState: DeserializeProps = {
   },
   kbfsEnabled: false,
   navBadges: new Map(),
+  outOfDate: {
+    critical: false,
+    message: '',
+    outOfDate: false,
+    updating: false,
+  },
   remoteTlfUpdates: [],
   showingDiskSpaceBanner: false,
   totalSyncingBytes: 0,
@@ -199,7 +206,7 @@ export const deserialize = (
       s.config.loggedIn = loggedIn
     }
     if (outOfDate !== undefined) {
-      s.config.outOfDate = outOfDate
+      s.outOfDate = outOfDate
     }
     if (username !== undefined) {
       s.username = username

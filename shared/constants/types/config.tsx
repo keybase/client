@@ -6,8 +6,9 @@ import type {Tab} from '../tabs'
 
 export type OutOfDate = {
   critical: boolean
-  message?: string
+  message: string
   updating: boolean
+  outOfDate: boolean
 }
 export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
 export type AppOutOfDateStatus = 'critical' | 'suggested' | 'ok' | 'checking'
@@ -20,8 +21,6 @@ export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 
 export type State = {
   loggedIn: boolean
-  osNetworkOnline: boolean
-  outOfDate?: OutOfDate
   pushLoaded: boolean
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   runtimeStats?: RPCTypes.RuntimeStats

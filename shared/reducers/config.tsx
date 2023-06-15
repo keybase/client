@@ -60,25 +60,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.daemonHandshakeDone]: draftState => {
     draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
   },
-  [ConfigGen.updateNow]: draftState => {
-    if (draftState.outOfDate) {
-      draftState.outOfDate.updating = true
-    } else {
-      draftState.outOfDate = {
-        critical: false,
-        updating: true,
-      }
-    }
-  },
-  [ConfigGen.updateInfo]: (draftState, action) => {
-    draftState.outOfDate = action.payload.isOutOfDate
-      ? {
-          critical: action.payload.critical,
-          message: action.payload.message,
-          updating: false,
-        }
-      : undefined
-  },
   [EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate]: (draftState, action) => {
     if (!action.payload.params.stats) {
       draftState.runtimeStats = undefined
@@ -88,9 +69,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
         ...action.payload.params.stats,
       } as Types.State['runtimeStats']
     }
-  },
-  [ConfigGen.osNetworkStatusChanged]: (draftState, action) => {
-    draftState.osNetworkOnline = action.payload.online
   },
   [ConfigGen.remoteWindowWantsProps]: (draftState, action) => {
     const {component, param} = action.payload

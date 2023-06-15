@@ -13,6 +13,7 @@ const RemoteContainer = () => {
     config,
     followers,
     following,
+    outOfDate,
     username,
     httpSrvAddress,
     httpSrvToken,
@@ -24,6 +25,7 @@ const RemoteContainer = () => {
   Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
   ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
+  ConfigConstants.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
   return (
     <Menubar
       {...rest}
@@ -31,6 +33,7 @@ const RemoteContainer = () => {
       username={username}
       daemonHandshakeState={daemonHandshakeState}
       windowShownCount={windowShownCountNum}
+      outOfDate={outOfDate}
     />
   )
 }
