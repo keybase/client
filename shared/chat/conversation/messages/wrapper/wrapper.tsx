@@ -490,12 +490,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
 
   const canFixOverdraw = !isPendingPayment && !showCenteredHighlight && !isEditing
 
-  const maybeSentChildren =
-    Container.isMobile && youSent ? (
-      <Sent sentKey={`${conversationIDKey}:${ordinal}`}>{children}</Sent>
-    ) : (
-      children
-    )
+  const maybeSentChildren = Container.isMobile && youSent ? <Sent>{children}</Sent> : children
 
   const tsprops = {
     botname,
