@@ -45,7 +45,7 @@ index 93d0feb..3b491f4 100644
  
  NS_ASSUME_NONNULL_END
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
-index 73ed099..6a09c2a 100644
+index 73ed099..8140253 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
 +++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
 @@ -8,9 +8,72 @@
@@ -121,7 +121,7 @@ index 73ed099..6a09c2a 100644
  #pragma mark - Overrides
  
  - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
-@@ -35,20 +98,23 @@
+@@ -35,34 +98,30 @@
  }
  
  -(void)paste:(id)sender {
@@ -130,39 +130,49 @@ index 73ed099..6a09c2a 100644
      UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
  
 -    BOOL hasStrings = pasteboard.hasStrings;
-+    /*BOOL hasStrings = pasteboard.hasStrings;
-     if (hasStrings) {
-         NSArray<NSString *> *strs = pasteboard.strings;
-         for (NSString *s in strs) {
-             hasStrings = [s length] != 0 && ![s containsString:@"<img src="];
-         }
+-    if (hasStrings) {
+-        NSArray<NSString *> *strs = pasteboard.strings;
+-        for (NSString *s in strs) {
+-            hasStrings = [s length] != 0 && ![s containsString:@"<img src="];
+-        }
 -    }
 -    if (pasteboard.hasURLs || hasStrings || pasteboard.hasColors) {
-+    }*/
-+    
-+    if ([pasteboard hasStrings] && ![pasteboard hasImages]) {
-+        [super paste:sender];
-         return;
-     }
-+    /*if (pasteboard.hasURLs || hasStrings || pasteboard.hasColors) {
-+        return;
-+    }*/
+-        return;
+-    }
++    NSArray<NSItemProvider *> * itemProviders = pasteboard.itemProviders;
      
-     if (_onPaste) {
-         NSArray<NSDictionary *> *files = [pasteboard getCopiedFiles];
-@@ -56,11 +122,11 @@
-             _onPaste(@{
-                 @"data": files,
-             });
+-    if (_onPaste) {
+-        NSArray<NSDictionary *> *files = [pasteboard getCopiedFiles];
+-        if (files != nil && files.count > 0) {
+-            _onPaste(@{
+-                @"data": files,
+-            });
 -        } else {
++    // regular paste
++    if (itemProviders.count == 1) {
++        if (pasteboard.hasStrings) {
++            [super paste:sender];
              return;
          }
      }
      
-+    [super paste:sender];
-     // Dismiss contextual menu
-     [self resignFirstResponder];
+-    // Dismiss contextual menu
+-    [self resignFirstResponder];
++    __weak typeof(self) weakSelf = self;
++    self.iph = [[ItemProviderHelper alloc]
++             initForShare:false
++                withItems:itemProviders
++               attrString:@""
++        completionHandler:^{
++        if (weakSelf.onDropped != nil) {
++            weakSelf.onDropped(@{@"manifest" : weakSelf.iph.manifest});
++        }
++          weakSelf.iph = nil;
++        }];
++    [self.iph startProcessing];
  }
+ 
+ @end
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h
 index be73123..1ce7f4d 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputView.h

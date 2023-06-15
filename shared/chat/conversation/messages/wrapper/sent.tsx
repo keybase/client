@@ -1,33 +1,22 @@
 import * as React from 'react'
 import {Animated} from 'react-native'
-// Bookkeep whats animating so it finishes and isn't replaced, if we've animated it we keep the key and use null
-const animatingMap = new Map<string, null | React.ReactElement>()
 
-type AnimatedChildProps = {
-  animatingKey: string
+type SentProps = {
   children: React.ReactNode
 }
-const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}: AnimatedChildProps) {
+export const Sent = function Sent(p: SentProps) {
+  const {children} = p
   const [done, setDone] = React.useState(false)
   const translateY = React.useRef(new Animated.Value(999)).current
   const opacity = React.useRef(new Animated.Value(0)).current
-  React.useEffect(() => {
-    // on unmount, mark it null
-    return () => {
-      animatingMap.set(animatingKey, null)
-    }
-  }, [animatingKey])
-
   // only animate up once
   const onceRef = React.useRef(false)
 
-  React.useEffect(() => {
-    onceRef.current = false
-  }, [animatingKey])
+  if (done) {
+    return <>{children}</>
+  }
 
-  return done ? (
-    <>{children}</>
-  ) : (
+  return (
     <Animated.View
       style={{opacity, overflow: 'hidden', transform: [{translateY}], width: '100%'}}
       onLayout={(e: any) => {
@@ -49,7 +38,6 @@ const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}
             useNativeDriver: true,
           }),
         ]).start(() => {
-          animatingMap.set(animatingKey, null)
           setDone(true)
         })
       }}
@@ -57,27 +45,4 @@ const AnimatedChild = React.memo(function AnimatedChild({children, animatingKey}
       {children}
     </Animated.View>
   )
-})
-
-type SentProps = {
-  children: React.ReactNode
-  sentKey: string
-}
-export const Sent = function Sent(p: SentProps) {
-  const {children, sentKey} = p
-  const state = animatingMap.get(sentKey)
-
-  // if its animating always show it
-  if (state) {
-    return state
-  }
-
-  // if state is null we already animated it
-  if (state === undefined) {
-    const c = <AnimatedChild animatingKey={sentKey}>{children}</AnimatedChild>
-    animatingMap.set(sentKey, c)
-    return c
-  } else {
-    return <>{children}</>
-  }
 }

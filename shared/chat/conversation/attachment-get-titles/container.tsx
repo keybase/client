@@ -76,6 +76,7 @@ export default Container.connect(
           path,
         }
       }),
+      titles: ownProps.route.params?.titles,
     }
   }
 )(GetTitles)
