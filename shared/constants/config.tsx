@@ -49,7 +49,6 @@ export const initialState: Types.State = {
   startupLink: '',
   startupPushPayload: undefined,
   startupWasFromPush: false,
-  userActive: true,
   userSwitching: false,
 }
 
@@ -473,4 +472,5 @@ export const useConfigState = createZustand(
 export {useDaemonState, maxHandshakeTries} from './daemon'
 export {useFollowerState} from './followers'
 export {useLogoutState} from './logout'
+export {useActiveState} from './active'
 export {useCurrentUserState}

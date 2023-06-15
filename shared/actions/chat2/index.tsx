@@ -1302,7 +1302,7 @@ const desktopNotify = async (state: Container.TypedState, action: Chat2Gen.Deskt
   const meta = Constants.getMeta(state, conversationIDKey)
 
   if (
-    Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) ||
+    Constants.isUserActivelyLookingAtThisThread(conversationIDKey) ||
     meta.isMuted // ignore muted convos
   ) {
     logger.info('not sending notification')
@@ -2347,7 +2347,7 @@ const markThreadAsRead = async (
     }
   }
 
-  if (!Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey)) {
+  if (!Constants.isUserActivelyLookingAtThisThread(conversationIDKey)) {
     logger.info('bail on not looking at this thread')
     return
   }

@@ -57,13 +57,13 @@ const handleWindowFocusEvents = () => {
   window.addEventListener('blur', () => handle(false))
 }
 
-const initializeInputMonitor = (listenerApi: Container.ListenerApi) => {
+const initializeInputMonitor = () => {
   const inputMonitor = new InputMonitor()
   inputMonitor.notifyActive = (userActive: boolean) => {
     if (skipAppFocusActions) {
       console.log('Skipping app focus actions!')
     } else {
-      listenerApi.dispatch(ConfigGen.createChangedActive({userActive}))
+      ConfigConstants.useActiveState.getState().dispatch.setActive(userActive)
       // let node thread save file
       activeChanged?.(Date.now(), userActive)
     }
@@ -239,7 +239,6 @@ export const initPlatformListener = () => {
   }
   Container.listenAction(ConfigGen.daemonHandshake, checkNav)
 
-  Container.spawn(initializeInputMonitor, 'initializeInputMonitor')
   Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')
   Container.spawn(setupReachabilityWatcher, 'setupReachabilityWatcher')
 
@@ -282,4 +281,6 @@ export const initPlatformListener = () => {
   ConfigConstants.useConfigState.getState().dispatch.initNotifySound()
   ConfigConstants.useConfigState.getState().dispatch.initOpenAtLogin()
   ConfigConstants.useConfigState.getState().dispatch.initAppUpdateLoop()
+
+  initializeInputMonitor()
 }

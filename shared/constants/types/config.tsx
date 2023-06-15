@@ -27,6 +27,5 @@ export type State = {
   startupFollowUser: string
   startupLink: string
   startupTab?: Tab
-  userActive: boolean
   userSwitching: boolean
 }
