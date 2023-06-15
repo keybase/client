@@ -280,10 +280,7 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
 }
 
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
-export const isUserActivelyLookingAtThisThread = (
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey
-) => {
+export const isUserActivelyLookingAtThisThread = (conversationIDKey: Types.ConversationIDKey) => {
   const selectedConversationIDKey = getSelectedConversation()
 
   let chatThreadSelected = false
@@ -298,10 +295,11 @@ export const isUserActivelyLookingAtThisThread = (
   }
 
   const {appFocused} = ConfigConstants.useConfigState.getState()
+  const {active: userActive} = ConfigConstants.useActiveState.getState()
 
   return (
     appFocused && // app focused?
-    state.config.userActive && // actually interacting w/ the app
+    userActive && // actually interacting w/ the app
     chatThreadSelected && // looking at the chat tab?
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )

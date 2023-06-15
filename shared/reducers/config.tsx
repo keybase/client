@@ -47,9 +47,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.loggedOut]: draftState => {
     draftState.loggedIn = false
   },
-  [ConfigGen.changedActive]: (draftState, action) => {
-    draftState.userActive = action.payload.userActive
-  },
   [ConfigGen.setUserSwitching]: (draftState, action) => {
     draftState.userSwitching = action.payload.userSwitching
   },

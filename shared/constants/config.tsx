@@ -49,7 +49,6 @@ export const initialState: Types.State = {
   startupLink: '',
   startupPushPayload: undefined,
   startupWasFromPush: false,
-  userActive: true,
   userSwitching: false,
 }
 
@@ -262,7 +261,6 @@ export const useConfigState = createZustand(
           map.set(params, (map.get(params) ?? 0) + 1)
           s.remoteWindowNeedsProps.set(component, map)
         })
-        console.log('aaa updated window needs props', get().remoteWindowNeedsProps, component, params)
       },
       reset: () => {
         set(s => ({
@@ -473,4 +471,5 @@ export const useConfigState = createZustand(
 export {useDaemonState, maxHandshakeTries} from './daemon'
 export {useFollowerState} from './followers'
 export {useLogoutState} from './logout'
+export {useActiveState} from './active'
 export {useCurrentUserState}
