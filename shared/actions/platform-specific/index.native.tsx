@@ -699,10 +699,8 @@ const onTabLongPress = (_: unknown, action: RouteTreeGen.TabLongPressPayload) =>
   const current = ConfigConstants.useCurrentUserState.getState().username
   const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
   if (row) {
-    return [
-      ConfigGen.createSetUserSwitching({userSwitching: true}),
-      LoginGen.createLogin({password: new Container.HiddenString(''), username: row.username}),
-    ]
+    ConfigConstants.useConfigState.getState().dispatch.setUserSwitching(true)
+    return [LoginGen.createLogin({password: new Container.HiddenString(''), username: row.username})]
   }
   return undefined
 }

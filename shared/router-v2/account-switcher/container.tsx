@@ -33,8 +33,10 @@ export default () => {
   const onCancel = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
+
+  const setUserSwitching = ConfigConstants.useConfigState(s => s.dispatch.setUserSwitching)
   const onSelectAccountLoggedIn = (username: string) => {
-    dispatch(ConfigGen.createSetUserSwitching({userSwitching: true}))
+    setUserSwitching(true)
     dispatch(LoginGen.createLogin({password: new HiddenString(''), username}))
   }
   const onSelectAccountLoggedOut = (username: string) => {

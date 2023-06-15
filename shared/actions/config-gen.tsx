@@ -39,7 +39,6 @@ export const setNavigator = 'config:setNavigator'
 export const setStartupDetails = 'config:setStartupDetails'
 export const setStartupFile = 'config:setStartupFile'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
-export const setUserSwitching = 'config:setUserSwitching'
 export const showMain = 'config:showMain'
 export const showShareActionSheet = 'config:showShareActionSheet'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
@@ -253,10 +252,6 @@ export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   payload,
   type: setSystemDarkMode as typeof setSystemDarkMode,
 })
-export const createSetUserSwitching = (payload: {readonly userSwitching: boolean}) => ({
-  payload,
-  type: setUserSwitching as typeof setUserSwitching,
-})
 export const createShowMain = (payload?: undefined) => ({payload, type: showMain as typeof showMain})
 export const createShowShareActionSheet = (payload: {
   readonly filePath?: string
@@ -301,7 +296,6 @@ export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
 export type SetStartupDetailsPayload = ReturnType<typeof createSetStartupDetails>
 export type SetStartupFilePayload = ReturnType<typeof createSetStartupFile>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
-export type SetUserSwitchingPayload = ReturnType<typeof createSetUserSwitching>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
 export type UpdateMenubarWindowIDPayload = ReturnType<typeof createUpdateMenubarWindowID>
@@ -344,7 +338,6 @@ export type Actions =
   | SetStartupDetailsPayload
   | SetStartupFilePayload
   | SetSystemDarkModePayload
-  | SetUserSwitchingPayload
   | ShowMainPayload
   | ShowShareActionSheetPayload
   | UpdateMenubarWindowIDPayload
