@@ -82,6 +82,7 @@ export type ZStore = {
   openAtLogin: boolean
   outOfDate: Types.OutOfDate
   remoteWindowNeedsProps: Map<string, Map<string, number>>
+  runtimeStats?: RPCTypes.RuntimeStats
   useNativeFrame: boolean
   windowShownCount: Map<string, number>
   windowState: {
@@ -160,7 +161,9 @@ type ZState = ZStore & {
     setOutOfDate: (outOfDate: Types.OutOfDate) => void
     setUseNativeFrame: (use: boolean) => void
     setWindowIsMax: (m: boolean) => void
+    toggleRuntimeStats: () => void
     updateApp: () => void
+    updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => void
     updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => void
     windowShown: (win: string) => void
   }
@@ -401,6 +404,12 @@ export const useConfigState = createZustand(
           s.windowState.isMaximized = m
         })
       },
+      toggleRuntimeStats: () => {
+        const f = async () => {
+          await RPCTypes.configToggleRuntimeStatsRpcPromise()
+        }
+        ignorePromise(f())
+      },
       updateApp: () => {
         const f = async () => {
           await RPCTypes.configStartUpdateIfNeededRpcPromise()
@@ -418,6 +427,18 @@ export const useConfigState = createZustand(
         //   sure.
         set(s => {
           s.outOfDate.updating = true
+        })
+      },
+      updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => {
+        set(s => {
+          if (!stats) {
+            s.runtimeStats = stats
+          } else {
+            s.runtimeStats = {
+              ...s.runtimeStats,
+              ...stats,
+            }
+          }
         })
       },
       updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => {

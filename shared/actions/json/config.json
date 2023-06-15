@@ -110,7 +110,6 @@
       ],
       "lastSeenVersion": "string"
     },
-    "toggleRuntimeStats": {},
     "loadOnStart": {
       "_description": [
         "This action is dispatched multiple times with various flags.",

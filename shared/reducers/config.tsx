@@ -56,16 +56,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.daemonHandshakeDone]: draftState => {
     draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
   },
-  [EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate]: (draftState, action) => {
-    if (!action.payload.params.stats) {
-      draftState.runtimeStats = undefined
-    } else {
-      draftState.runtimeStats = {
-        ...draftState.runtimeStats,
-        ...action.payload.params.stats,
-      } as Types.State['runtimeStats']
-    }
-  },
   [ConfigGen.setWhatsNewLastSeenVersion]: (draftState, action) => {
     draftState.whatsNewLastSeenVersion = action.payload.lastSeenVersion
   },

@@ -1,5 +1,4 @@
 import type * as NetInfo from '@react-native-community/netinfo'
-import type * as RPCTypes from './rpc-gen'
 import type HiddenString from '../../util/hidden-string'
 import type {ConversationIDKey} from './chat2'
 import type {Tab} from '../tabs'
@@ -11,7 +10,6 @@ export type OutOfDate = {
   outOfDate: boolean
 }
 export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
-export type AppOutOfDateStatus = 'critical' | 'suggested' | 'ok' | 'checking'
 export type ConfiguredAccount = {
   hasStoredSecret: boolean
   username: string
@@ -21,7 +19,6 @@ export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 
 export type State = {
   loggedIn: boolean
-  runtimeStats?: RPCTypes.RuntimeStats
   startupDetailsLoaded: boolean
   startupWasFromPush: boolean
   startupConversation: ConversationIDKey

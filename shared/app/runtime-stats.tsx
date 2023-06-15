@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Container from '../util/container'
+import * as ConfigConstants from '../constants/config'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 // import {isIPhoneX} from '../constants/platform'
@@ -84,7 +84,7 @@ const LogStats = (props: {num?: number}) => {
     []
   )
   const [, setDoRender] = React.useState(0)
-  const events = Container.useSelector(state => state.config.runtimeStats?.perfEvents)
+  const events = ConfigConstants.useConfigState(s => s.runtimeStats?.perfEvents)
   const lastEventsRef = React.useRef(new WeakSet<Array<RPCTypes.PerfEvent>>())
 
   const eventsRef = React.useRef<Array<RPCTypes.PerfEvent>>([])
@@ -393,7 +393,7 @@ const RuntimeStatsMobile = ({stats}: Props) => {
 }
 
 const RuntimeStats = () => {
-  const stats = Container.useSelector(state => state.config.runtimeStats)
+  const stats = ConfigConstants.useConfigState(s => s.runtimeStats)
   return stats ? (
     Styles.isMobile ? (
       <RuntimeStatsMobile stats={stats} />

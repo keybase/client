@@ -358,13 +358,6 @@ const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
   return actions
 }
 
-const toggleRuntimeStats = async () => {
-  try {
-    await RPCTypes.configToggleRuntimeStatsRpcPromise()
-  } catch (err) {
-    logger.warn('error toggling runtime stats', err)
-  }
-}
 const emitStartupOnLoadNotInARush = async () => {
   await Container.timeoutPromise(1000)
   return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
@@ -482,8 +475,6 @@ const initConfig = () => {
 
   Container.listenAction(ConfigGen.loadOnStart, getFollowerInfo)
 
-  Container.listenAction(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
-
   Container.listenAction(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
   Container.listenAction(ConfigGen.androidShare, onAndroidShare)
 
@@ -548,6 +539,10 @@ const initConfig = () => {
   Container.listenAction(ConfigGen.remoteWindowWantsProps, (_, action) => {
     const {component, param} = action.payload
     Constants.useConfigState.getState().dispatch.remoteWindowNeedsProps(component, param)
+  })
+
+  Container.listenAction(EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate, (_, action) => {
+    Constants.useConfigState.getState().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
   })
 }
 

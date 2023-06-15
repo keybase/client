@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as TabConstants from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/settings'
+import * as ConfigConstants from '../constants/config'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
@@ -62,7 +63,7 @@ const renderItem = ({item}) => {
 function SettingsNav() {
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
   const badgeNotifications = Container.useSelector(state => !state.push.hasPermissions)
-  const statsShown = Container.useSelector(state => !!state.config.runtimeStats)
+  const statsShown = ConfigConstants.useConfigState(s => !!s.runtimeStats)
   const dispatch = Container.useDispatch()
   const onTabChange = React.useCallback(
     (s: any) => {

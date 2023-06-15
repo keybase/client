@@ -21,7 +21,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-type Status = ConfigGen.UpdateCriticalCheckStatusPayload['payload']['status']
+type Status = 'critical' | 'suggested' | 'ok' | 'checking'
 export default () => {
   const [message, setMessage] = React.useState('')
   const [status, setStatus] = React.useState<Status>('ok')
