@@ -173,6 +173,7 @@ export type RootParamListChat = {
   chatAttachmentGetTitles: {
     conversationIDKey: Types.ConversationIDKey
     pathAndOutboxIDs: Array<Types.PathAndOutboxID>
+    titles?: Array<string>
     selectConversationWithReason?: 'extension' | 'files'
     // If tlfName is set, we'll use Chat2Gen.createAttachmentsUpload. Otherwise
     // Chat2Gen.createAttachFromDragAndDrop is used.
