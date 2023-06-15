@@ -66,13 +66,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
       } as Types.State['runtimeStats']
     }
   },
-  [ConfigGen.remoteWindowWantsProps]: (draftState, action) => {
-    const {component, param} = action.payload
-    const {remoteWindowNeedsProps} = draftState
-    const map = remoteWindowNeedsProps.get(component) || new Map()
-    remoteWindowNeedsProps.set(component, map)
-    map.set(param, (map.get(param) || 0) + 1)
-  },
   [ConfigGen.setWhatsNewLastSeenVersion]: (draftState, action) => {
     draftState.whatsNewLastSeenVersion = action.payload.lastSeenVersion
   },

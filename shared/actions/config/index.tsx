@@ -544,6 +544,11 @@ const initConfig = () => {
   Container.listenAction(ConfigGen.updateWindowShown, (_, action) => {
     Constants.useConfigState.getState().dispatch.windowShown(action.payload.component)
   })
+
+  Container.listenAction(ConfigGen.remoteWindowWantsProps, (_, action) => {
+    const {component, param} = action.payload
+    Constants.useConfigState.getState().dispatch.remoteWindowNeedsProps(component, param)
+  })
 }
 
 export default initConfig
