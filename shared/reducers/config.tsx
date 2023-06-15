@@ -18,7 +18,6 @@ type Actions =
 export default Container.makeReducer<Actions, Types.State>(Constants.initialState, {
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
-    pushLoaded: draftState.pushLoaded,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
     userSwitching: draftState.userSwitching,
   }),
@@ -35,9 +34,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.setStartupFile]: (draftState, action) => {
     draftState.startupFile = action.payload.startupFile
-  },
-  [ConfigGen.pushLoaded]: (draftState, action) => {
-    draftState.pushLoaded = action.payload.pushLoaded
   },
   [ConfigGen.bootstrapStatusLoaded]: (draftState, action) => {
     draftState.loggedIn = action.payload.loggedIn
@@ -59,25 +55,5 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.daemonHandshakeDone]: draftState => {
     draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
-  },
-  [EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate]: (draftState, action) => {
-    if (!action.payload.params.stats) {
-      draftState.runtimeStats = undefined
-    } else {
-      draftState.runtimeStats = {
-        ...draftState.runtimeStats,
-        ...action.payload.params.stats,
-      } as Types.State['runtimeStats']
-    }
-  },
-  [ConfigGen.remoteWindowWantsProps]: (draftState, action) => {
-    const {component, param} = action.payload
-    const {remoteWindowNeedsProps} = draftState
-    const map = remoteWindowNeedsProps.get(component) || new Map()
-    remoteWindowNeedsProps.set(component, map)
-    map.set(param, (map.get(param) || 0) + 1)
-  },
-  [ConfigGen.setWhatsNewLastSeenVersion]: (draftState, action) => {
-    draftState.whatsNewLastSeenVersion = action.payload.lastSeenVersion
   },
 })

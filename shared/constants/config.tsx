@@ -42,8 +42,6 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 
 export const initialState: Types.State = {
   loggedIn: false,
-  pushLoaded: false,
-  remoteWindowNeedsProps: new Map(),
   startupConversation: noConversationIDKey,
   startupDetailsLoaded: false,
   startupFile: new HiddenString(''),
@@ -53,7 +51,6 @@ export const initialState: Types.State = {
   startupWasFromPush: false,
   userActive: true,
   userSwitching: false,
-  whatsNewLastSeenVersion: '',
 }
 
 export type ZStore = {
@@ -83,6 +80,8 @@ export type ZStore = {
   notifySound: boolean
   openAtLogin: boolean
   outOfDate: Types.OutOfDate
+  remoteWindowNeedsProps: Map<string, Map<string, number>>
+  runtimeStats?: RPCTypes.RuntimeStats
   useNativeFrame: boolean
   windowShownCount: Map<string, number>
   windowState: {
@@ -121,6 +120,7 @@ const initialZState: ZStore = {
     outOfDate: false,
     updating: false,
   },
+  remoteWindowNeedsProps: new Map(),
   useNativeFrame: defaultUseNativeFrame,
   windowShownCount: new Map(),
   windowState: {
@@ -144,6 +144,7 @@ type ZState = ZStore & {
     initOpenAtLogin: () => void
     initUseNativeFrame: () => void
     reset: () => void
+    remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
     revoke: (deviceName: string) => void
     setAccounts: (a: ZStore['configuredAccounts']) => void
@@ -159,7 +160,9 @@ type ZState = ZStore & {
     setOutOfDate: (outOfDate: Types.OutOfDate) => void
     setUseNativeFrame: (use: boolean) => void
     setWindowIsMax: (m: boolean) => void
+    toggleRuntimeStats: () => void
     updateApp: () => void
+    updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => void
     updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => void
     windowShown: (win: string) => void
   }
@@ -252,6 +255,14 @@ export const useConfigState = createZustand(
           })
         }
         ignorePromise(f())
+      },
+      remoteWindowNeedsProps: (component: string, params: string) => {
+        set(s => {
+          const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
+          map.set(params, (map.get(params) ?? 0) + 1)
+          s.remoteWindowNeedsProps.set(component, map)
+        })
+        console.log('aaa updated window needs props', get().remoteWindowNeedsProps, component, params)
       },
       reset: () => {
         set(s => ({
@@ -392,6 +403,12 @@ export const useConfigState = createZustand(
           s.windowState.isMaximized = m
         })
       },
+      toggleRuntimeStats: () => {
+        const f = async () => {
+          await RPCTypes.configToggleRuntimeStatsRpcPromise()
+        }
+        ignorePromise(f())
+      },
       updateApp: () => {
         const f = async () => {
           await RPCTypes.configStartUpdateIfNeededRpcPromise()
@@ -409,6 +426,18 @@ export const useConfigState = createZustand(
         //   sure.
         set(s => {
           s.outOfDate.updating = true
+        })
+      },
+      updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => {
+        set(s => {
+          if (!stats) {
+            s.runtimeStats = stats
+          } else {
+            s.runtimeStats = {
+              ...s.runtimeStats,
+              ...stats,
+            }
+          }
         })
       },
       updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => {
@@ -434,7 +463,6 @@ export const useConfigState = createZustand(
         })
       },
     }
-
     return {
       ...initialZState,
       dispatch,

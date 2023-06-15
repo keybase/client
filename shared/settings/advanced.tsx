@@ -1,4 +1,3 @@
-import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/settings'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
@@ -195,7 +194,7 @@ const Developer = () => {
   const [clickCount, setClickCount] = React.useState(0)
 
   const onExtraKBFSLogging = () => dispatch(FSGen.createSetDebugLevel({level: 'vlog2'}))
-  const onToggleRuntimeStats = () => dispatch(ConfigGen.createToggleRuntimeStats())
+  const onToggleRuntimeStats = ConfigConstants.useConfigState(s => s.dispatch.toggleRuntimeStats)
   const onLabelClick = () =>
     setClickCount(s => {
       const next = s + 1

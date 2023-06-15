@@ -1,12 +1,6 @@
-import type {
-  NoVersion,
-  CurrentVersion,
-  LastVersion,
-  LastLastVersion,
-  WhatsNewVersion,
-  WhatsNewVersions,
-} from './types/whats-new'
-import {memoize} from '../util/memoize'
+import type * as RPCTypes from './types/rpc-gen'
+import {create as createZustand} from 'zustand'
+import {immer as immerZustand} from 'zustand/middleware/immer'
 
 /*
  * IMPORTANT:
@@ -37,29 +31,22 @@ const semver = {
     }, 0) === 3,
 }
 
-export const noVersion: NoVersion = '0.0.0'
-export const currentVersion: CurrentVersion = '5.5.0'
-export const lastVersion: LastVersion = '5.4.0'
-export const lastLastVersion: LastLastVersion = '5.3.0'
-export const versions: WhatsNewVersions = [currentVersion, lastVersion, lastLastVersion, noVersion]
+const noVersion: string = '0.0.0'
+export const currentVersion: string = '5.5.0'
+export const lastVersion: string = '5.4.0'
+export const lastLastVersion: string = '5.3.0'
+const versions = [currentVersion, lastVersion, lastLastVersion, noVersion] as const
 export const keybaseFM = 'Keybase FM 87.7'
 
-type seenVersionsMap = {[key in WhatsNewVersion]: boolean}
+type SeenVersionsMap = {[key in string]: boolean}
 
 const isVersionValid = (version: string) => {
   return version ? semver.valid(version) : false
 }
 
-export const anyVersionsUnseen = memoize((lastSeenVersion: string): boolean =>
-  // On first load of what's new, lastSeenVersion == noVersion so everything is unseen
-  lastLastVersion && lastSeenVersion === noVersion
-    ? true
-    : Object.values(getSeenVersions(lastSeenVersion)).some(seen => !seen)
-)
-
-export const getSeenVersions = (lastSeenVersion: string): seenVersionsMap => {
+const _getSeenVersions = (lastSeenVersion: string): SeenVersionsMap => {
   // Mark all versions as seen so that the icon doesn't change as Gregor state is loading
-  const initialMap: seenVersionsMap = {
+  const initialMap: SeenVersionsMap = {
     [currentVersion]: true,
     [lastLastVersion]: true,
     [lastVersion]: true,
@@ -95,3 +82,52 @@ export const getSeenVersions = (lastSeenVersion: string): seenVersionsMap => {
 
   return seenVersions
 }
+
+type ZStore = {
+  lastSeenVersion: string
+}
+const initialZState: ZStore = {
+  lastSeenVersion: '',
+}
+type ZState = ZStore & {
+  dispatch: {
+    updateLastSeen: (lastSeenItem?: {md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}) => void
+  }
+  anyVersionsUnseen: () => boolean
+  getSeenVersions: () => SeenVersionsMap
+}
+export const useState = createZustand(
+  immerZustand<ZState>((set, get) => {
+    const dispatch = {
+      updateLastSeen: (lastSeenItem?: {md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}) => {
+        if (lastSeenItem) {
+          const {body} = lastSeenItem.item
+          const pushStateLastSeenVersion = Buffer.from(body).toString()
+          const lastSeenVersion = pushStateLastSeenVersion || noVersion
+          // Default to 0.0.0 (noVersion) if user has never marked a version as seen
+          set(s => {
+            s.lastSeenVersion = lastSeenVersion
+          })
+        } else {
+          set(s => {
+            s.lastSeenVersion = noVersion
+          })
+        }
+      },
+    }
+    return {
+      ...initialZState,
+      anyVersionsUnseen: () => {
+        const {lastSeenVersion: ver} = get()
+        // On first load of what's new, lastSeenVersion == noVersion so everything is unseen
+        return ver !== '' && ver === noVersion
+          ? true
+          : Object.values(_getSeenVersions(ver)).some(seen => !seen)
+      },
+      dispatch,
+      getSeenVersions: () => {
+        return _getSeenVersions(get().lastSeenVersion)
+      },
+    }
+  })
+)

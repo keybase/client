@@ -3,14 +3,7 @@ import * as Container from '../util/container'
 import * as GregorGen from '../actions/gregor-gen'
 import type * as Tabs from '../constants/tabs'
 import openURL from '../util/open-url'
-import {
-  currentVersion,
-  lastVersion,
-  lastLastVersion,
-  noVersion,
-  getSeenVersions,
-  anyVersionsUnseen,
-} from '../constants/whats-new'
+import {currentVersion, useState} from '../constants/whats-new'
 import {Current, Last, LastLast} from './versions'
 import WhatsNew from '.'
 import type {NavigateAppendPayload} from '../actions/route-tree-gen'
@@ -22,7 +15,6 @@ type OwnProps = {
 }
 
 const WhatsNewContainer = (ownProps: OwnProps) => {
-  const lastSeenVersion = Container.useSelector(state => state.config.whatsNewLastSeenVersion)
   const dispatch = Container.useDispatch()
   const _onNavigate = (props: NavigateAppendPayload['payload']) => {
     dispatch(RouteTreeGen.createNavigateAppend(props))
@@ -42,8 +34,8 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
     })
     dispatch(action)
   }
-  const seenVersions = getSeenVersions(lastSeenVersion)
-  const newRelease = anyVersionsUnseen(lastSeenVersion)
+  const seenVersions = useState(s => s.getSeenVersions())
+  const newRelease = useState(s => s.anyVersionsUnseen())
   const onBack = () => {
     if (newRelease) {
       _onUpdateLastSeenVersion(currentVersion)
@@ -56,10 +48,6 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
     Current,
     Last,
     LastLast,
-    currentVersion,
-    lastLastVersion,
-    lastVersion,
-    noVersion,
     onBack,
     // Navigate then handle setting seen state and closing the modal (desktop only)
     onNavigate: (props: NavigateAppendPayload['payload']) => {

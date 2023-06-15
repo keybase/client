@@ -32,7 +32,6 @@ export const openAtLoginChanged = 'config:openAtLoginChanged'
 export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const persistRoute = 'config:persistRoute'
 export const powerMonitorEvent = 'config:powerMonitorEvent'
-export const pushLoaded = 'config:pushLoaded'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
 export const revoked = 'config:revoked'
@@ -41,11 +40,8 @@ export const setStartupDetails = 'config:setStartupDetails'
 export const setStartupFile = 'config:setStartupFile'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const setUserSwitching = 'config:setUserSwitching'
-export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
 export const showShareActionSheet = 'config:showShareActionSheet'
-export const toggleRuntimeStats = 'config:toggleRuntimeStats'
-export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
 export const updateWindowMaxState = 'config:updateWindowMaxState'
@@ -90,26 +86,11 @@ export const createPowerMonitorEvent = (payload: {readonly event: string}) => ({
   type: powerMonitorEvent as typeof powerMonitorEvent,
 })
 /**
- * Save critical check status
- */
-export const createUpdateCriticalCheckStatus = (payload: {
-  readonly status: 'critical' | 'suggested' | 'ok'
-  readonly message: string
-}) => ({payload, type: updateCriticalCheckStatus as typeof updateCriticalCheckStatus})
-/**
  * Sent whenever the mobile file picker encounters an error.
  */
 export const createFilePickerError = (payload: {readonly error: Error}) => ({
   payload,
   type: filePickerError as typeof filePickerError,
-})
-/**
- * Set the latest version number that a user has seen from Gregor.
- * This is used to set the badged state of the 'What's New' radio icon
- */
-export const createSetWhatsNewLastSeenVersion = (payload: {readonly lastSeenVersion: string}) => ({
-  payload,
-  type: setWhatsNewLastSeenVersion as typeof setWhatsNewLastSeenVersion,
 })
 /**
  * Stores the startup file path when launching Keybase from a cold start beofre log in
@@ -255,10 +236,6 @@ export const createPersistRoute = (payload: {readonly path?: Array<any>} = {}) =
   payload,
   type: persistRoute as typeof persistRoute,
 })
-export const createPushLoaded = (payload: {readonly pushLoaded: boolean}) => ({
-  payload,
-  type: pushLoaded as typeof pushLoaded,
-})
 export const createRevoked = (payload?: undefined) => ({payload, type: revoked as typeof revoked})
 export const createSetNavigator = (payload: {readonly navigator: any}) => ({
   payload,
@@ -286,10 +263,6 @@ export const createShowShareActionSheet = (payload: {
   readonly message?: string
   readonly mimeType: string
 }) => ({payload, type: showShareActionSheet as typeof showShareActionSheet})
-export const createToggleRuntimeStats = (payload?: undefined) => ({
-  payload,
-  type: toggleRuntimeStats as typeof toggleRuntimeStats,
-})
 export const createUpdateMenubarWindowID = (payload: {readonly id: number}) => ({
   payload,
   type: updateMenubarWindowID as typeof updateMenubarWindowID,
@@ -321,7 +294,6 @@ export type OpenAtLoginChangedPayload = ReturnType<typeof createOpenAtLoginChang
 export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
 export type PersistRoutePayload = ReturnType<typeof createPersistRoute>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
-export type PushLoadedPayload = ReturnType<typeof createPushLoaded>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
 export type RevokedPayload = ReturnType<typeof createRevoked>
@@ -330,11 +302,8 @@ export type SetStartupDetailsPayload = ReturnType<typeof createSetStartupDetails
 export type SetStartupFilePayload = ReturnType<typeof createSetStartupFile>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type SetUserSwitchingPayload = ReturnType<typeof createSetUserSwitching>
-export type SetWhatsNewLastSeenVersionPayload = ReturnType<typeof createSetWhatsNewLastSeenVersion>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
-export type ToggleRuntimeStatsPayload = ReturnType<typeof createToggleRuntimeStats>
-export type UpdateCriticalCheckStatusPayload = ReturnType<typeof createUpdateCriticalCheckStatus>
 export type UpdateMenubarWindowIDPayload = ReturnType<typeof createUpdateMenubarWindowID>
 export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
 export type UpdateWindowMaxStatePayload = ReturnType<typeof createUpdateWindowMaxState>
@@ -368,7 +337,6 @@ export type Actions =
   | OsNetworkStatusChangedPayload
   | PersistRoutePayload
   | PowerMonitorEventPayload
-  | PushLoadedPayload
   | RemoteWindowWantsPropsPayload
   | RestartHandshakePayload
   | RevokedPayload
@@ -377,11 +345,8 @@ export type Actions =
   | SetStartupFilePayload
   | SetSystemDarkModePayload
   | SetUserSwitchingPayload
-  | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload
   | ShowShareActionSheetPayload
-  | ToggleRuntimeStatsPayload
-  | UpdateCriticalCheckStatusPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
   | UpdateWindowMaxStatePayload
