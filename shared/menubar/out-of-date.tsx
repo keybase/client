@@ -5,23 +5,22 @@ import * as Styles from '../styles'
 import {isWindows, isDarwin} from '../constants/platform'
 import type * as ConfigTypes from '../constants/types/config'
 
-type Props = {
-  outOfDate?: ConfigTypes.OutOfDate
-}
-
-const getOutOfDateText = (outOfDate: ConfigTypes.OutOfDate) =>
-  `Your Keybase app is ${outOfDate.critical ? 'critically ' : ''}out of date` +
-  (outOfDate.message ? `: ${outOfDate.message}` : '.')
+type Props = {outOfDate: ConfigTypes.OutOfDate}
 
 const OutOfDate = ({outOfDate}: Props) => {
   const dispatch = Container.useDispatch()
   const updateNow = isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined
 
-  if (!outOfDate) return null
+  if (!outOfDate.outOfDate) return null
   const bannerColor = outOfDate.critical ? 'red' : 'yellow'
+
+  const bannerText =
+    `Your Keybase app is ${outOfDate.critical ? 'critically ' : ''}out of date` +
+    (outOfDate.message ? `: ${outOfDate.message}` : '.')
+
   return (
     <Kb.Banner color={bannerColor} style={styles.banner} textContainerStyle={styles.textContainerStyle}>
-      <Kb.BannerParagraph bannerColor={bannerColor} content={getOutOfDateText(outOfDate)} />
+      <Kb.BannerParagraph bannerColor={bannerColor} content={bannerText} />
       {outOfDate.updating ? (
         <Kb.BannerParagraph bannerColor={bannerColor} content="Updating…" />
       ) : (
@@ -46,19 +45,13 @@ const OutOfDate = ({outOfDate}: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  banner: {
-    flexShrink: 0,
-  },
+  banner: {flexShrink: 0},
   textContainerStyle: {
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
   },
-  textCritical: {
-    color: Styles.globalColors.white,
-  },
-  textNonCritical: {
-    color: Styles.globalColors.brown_75,
-  },
+  textCritical: {color: Styles.globalColors.white},
+  textNonCritical: {color: Styles.globalColors.brown_75},
 }))
 
 export default OutOfDate

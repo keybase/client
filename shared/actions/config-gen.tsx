@@ -12,7 +12,6 @@ export const androidShare = 'config:androidShare'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
-export const checkForUpdate = 'config:checkForUpdate'
 export const copyToClipboard = 'config:copyToClipboard'
 export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
@@ -47,7 +46,6 @@ export const showMain = 'config:showMain'
 export const showShareActionSheet = 'config:showShareActionSheet'
 export const toggleRuntimeStats = 'config:toggleRuntimeStats'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
-export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
 export const updateWindowMaxState = 'config:updateWindowMaxState'
@@ -228,10 +226,6 @@ export const createChangedFocus = (payload: {readonly appFocused: boolean}) => (
   payload,
   type: changedFocus as typeof changedFocus,
 })
-export const createCheckForUpdate = (payload?: undefined) => ({
-  payload,
-  type: checkForUpdate as typeof checkForUpdate,
-})
 export const createCopyToClipboard = (payload: {readonly text: string}) => ({
   payload,
   type: copyToClipboard as typeof copyToClipboard,
@@ -296,11 +290,6 @@ export const createToggleRuntimeStats = (payload?: undefined) => ({
   payload,
   type: toggleRuntimeStats as typeof toggleRuntimeStats,
 })
-export const createUpdateInfo = (payload: {
-  readonly isOutOfDate: boolean
-  readonly critical: boolean
-  readonly message?: string
-}) => ({payload, type: updateInfo as typeof updateInfo})
 export const createUpdateMenubarWindowID = (payload: {readonly id: number}) => ({
   payload,
   type: updateMenubarWindowID as typeof updateMenubarWindowID,
@@ -312,7 +301,6 @@ export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
 export type BootstrapStatusLoadedPayload = ReturnType<typeof createBootstrapStatusLoaded>
 export type ChangedActivePayload = ReturnType<typeof createChangedActive>
 export type ChangedFocusPayload = ReturnType<typeof createChangedFocus>
-export type CheckForUpdatePayload = ReturnType<typeof createCheckForUpdate>
 export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
 export type DaemonHandshakeDonePayload = ReturnType<typeof createDaemonHandshakeDone>
 export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
@@ -347,7 +335,6 @@ export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
 export type ToggleRuntimeStatsPayload = ReturnType<typeof createToggleRuntimeStats>
 export type UpdateCriticalCheckStatusPayload = ReturnType<typeof createUpdateCriticalCheckStatus>
-export type UpdateInfoPayload = ReturnType<typeof createUpdateInfo>
 export type UpdateMenubarWindowIDPayload = ReturnType<typeof createUpdateMenubarWindowID>
 export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
 export type UpdateWindowMaxStatePayload = ReturnType<typeof createUpdateWindowMaxState>
@@ -361,7 +348,6 @@ export type Actions =
   | BootstrapStatusLoadedPayload
   | ChangedActivePayload
   | ChangedFocusPayload
-  | CheckForUpdatePayload
   | CopyToClipboardPayload
   | DaemonHandshakeDonePayload
   | DaemonHandshakePayload
@@ -396,7 +382,6 @@ export type Actions =
   | ShowShareActionSheetPayload
   | ToggleRuntimeStatsPayload
   | UpdateCriticalCheckStatusPayload
-  | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
   | UpdateWindowMaxStatePayload

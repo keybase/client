@@ -32,7 +32,7 @@ export type Props = {
   loggedIn: boolean
   kbfsDaemonStatus: FsTypes.KbfsDaemonStatus
   kbfsEnabled: boolean
-  outOfDate?: ConfigTypes.OutOfDate
+  outOfDate: ConfigTypes.OutOfDate
   showingDiskSpaceBanner: boolean
   username: string
   navBadges: Map<string, number>

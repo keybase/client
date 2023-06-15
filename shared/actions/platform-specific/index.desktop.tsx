@@ -137,15 +137,6 @@ const onConnected = () => {
   RPCTypes.configHelloIAmRpcPromise({details: KB2.constants.helloDetails}).catch(() => {})
 }
 
-const onOutOfDate = (_: unknown, action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
-  const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
-  const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
-  NotifyPopup('Client out of date!', {body}, 60 * 60)
-  // This is from the API server. Consider notifications from API server
-  // always critical.
-  return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
-}
-
 const prepareLogSend = async (_: unknown, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
   const response = action.payload.response
   try {
@@ -164,43 +155,6 @@ const sendWindowsKBServiceCheck = () => {
   if (isWindows && handshakeFailedReason === ConfigConstants.noKBFSFailReason) {
     requestWindowsStartService?.()
   }
-}
-
-const startOutOfDateCheckLoop = async (listenerApi: Container.ListenerApi) => {
-  // eslint-disable-next-line
-  while (true) {
-    try {
-      const action = await checkForUpdate()
-      listenerApi.dispatch(action)
-    } catch (err) {
-      logger.warn('error getting update info: ', err)
-    }
-    await listenerApi.delay(3_600_000) // 1 hr
-  }
-}
-
-const checkForUpdate = async () => {
-  const {status, message} = await RPCTypes.configGetUpdateInfoRpcPromise()
-  return ConfigGen.createUpdateInfo({
-    critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
-    isOutOfDate: status !== RPCTypes.UpdateInfoStatus.upToDate,
-    message,
-  })
-}
-
-const updateNow = async () => {
-  await RPCTypes.configStartUpdateIfNeededRpcPromise()
-  // * If user choose to update:
-  //   We'd get killed and it doesn't matter what happens here.
-  // * If user hits "Ignore":
-  //   Note that we ignore the snooze here, so the state shouldn't change,
-  //   and we'd back to where we think we still need an update. So we could
-  //   have just unset the "updating" flag.However, in case server has
-  //   decided to pull out the update between last time we asked the updater
-  //   and now, we'd be in a wrong state if we didn't check with the service.
-  //   Since user has interacted with it, we still ask the service to make
-  //   sure.
-  return ConfigGen.createCheckForUpdate()
 }
 
 export const requestLocationPermission = async () => Promise.resolve()
@@ -268,10 +222,7 @@ export const initPlatformListener = () => {
   Container.listenAction(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
   Container.listenAction(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
   Container.listenAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
-  Container.listenAction(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
   Container.listenAction(ConfigGen.copyToClipboard, onCopyToClipboard)
-  Container.listenAction(ConfigGen.updateNow, updateNow)
-  Container.listenAction(ConfigGen.checkForUpdate, checkForUpdate)
   Container.listenAction(ConfigGen.restartHandshake, sendWindowsKBServiceCheck)
   Container.listenAction(ConfigGen.loggedIn, initOsNetworkStatus)
 
@@ -291,14 +242,6 @@ export const initPlatformListener = () => {
   Container.spawn(initializeInputMonitor, 'initializeInputMonitor')
   Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')
   Container.spawn(setupReachabilityWatcher, 'setupReachabilityWatcher')
-  Container.spawn(startOutOfDateCheckLoop, 'startOutOfDateCheckLoop')
-
-  if (isLinux) {
-    ConfigConstants.useConfigState.getState().dispatch.initUseNativeFrame()
-  }
-
-  ConfigConstants.useConfigState.getState().dispatch.initNotifySound()
-  ConfigConstants.useConfigState.getState().dispatch.initOpenAtLogin()
 
   Container.listenAction(ConfigGen.openAtLoginChanged, () => {
     const {openAtLogin} = ConfigConstants.useConfigState.getState()
@@ -318,4 +261,25 @@ export const initPlatformListener = () => {
     }
     Container.ignorePromise(f())
   })
+
+  Container.listenAction(EngineGen.keybase1NotifySessionClientOutOfDate, (_, action) => {
+    const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
+    const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
+    NotifyPopup('Client out of date!', {body}, 60 * 60)
+    // This is from the API server. Consider notifications from server always critical.
+    ConfigConstants.useConfigState
+      .getState()
+      .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
+  })
+
+  Container.listenAction(ConfigGen.updateNow, () => {
+    ConfigConstants.useConfigState.getState().dispatch.updateApp()
+  })
+
+  if (isLinux) {
+    ConfigConstants.useConfigState.getState().dispatch.initUseNativeFrame()
+  }
+  ConfigConstants.useConfigState.getState().dispatch.initNotifySound()
+  ConfigConstants.useConfigState.getState().dispatch.initOpenAtLogin()
+  ConfigConstants.useConfigState.getState().dispatch.initAppUpdateLoop()
 }
