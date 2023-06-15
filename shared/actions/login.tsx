@@ -110,7 +110,7 @@ const initLogin = () => {
   Container.listenAction(LoginGen.loginError, () => {
     // On login error, turn off the user switching flag, so that the login screen is not
     // hidden and the user can see and respond to the error.
-    ConfigConstants.useConfigState(s => s.dispatch.setUserSwitching)(false)
+    ConfigConstants.useConfigState.getState().dispatch.setUserSwitching(false)
   })
 }
 
