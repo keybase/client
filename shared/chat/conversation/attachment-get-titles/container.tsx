@@ -10,6 +10,7 @@ import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   pathAndOutboxIDs: Array<Types.PathAndOutboxID>
+  titles?: Array<string>
   selectConversationWithReason?: 'extension' | 'files'
   // If tlfName is set, we'll use Chat2Gen.createAttachmentsUpload. Otherwise
   // Chat2Gen.createAttachFromDragAndDrop is used.
@@ -21,9 +22,8 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const dispatch = Container.useDispatch()
   const conversationIDKey = ownProps.conversationIDKey ?? Constants.noConversationIDKey
-  const tlfName = ownProps.tlfName
+  const {titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
-  const pathAndOutboxIDs = ownProps.pathAndOutboxIDs
   const selectConversationWithReason = ownProps.selectConversationWithReason
   const onCancel = () => {
     dispatch(
@@ -77,6 +77,7 @@ export default (ownProps: OwnProps) => {
         path,
       }
     }),
+    titles,
   }
 
   return <GetTitles {...props} />

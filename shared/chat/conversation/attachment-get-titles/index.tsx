@@ -17,6 +17,7 @@ type PathAndInfo = {
 
 type Props = {
   pathAndInfos: Array<PathAndInfo>
+  titles?: Array<string>
   onCancel: () => void
   onSubmit: (titles: Array<string>) => void
 }
@@ -33,7 +34,7 @@ class GetTitles extends React.Component<Props, State> {
     super(props)
     this.state = {
       index: 0,
-      titles: props.pathAndInfos.map(() => ''),
+      titles: props.pathAndInfos.map((_, idx) => props.titles?.[idx] ?? ''),
     }
   }
 

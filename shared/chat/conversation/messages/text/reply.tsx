@@ -125,7 +125,7 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
   )
 })
 
-const Reply = React.memo(function Repy() {
+const Reply = React.memo(function Reply() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const replyTo = Container.useSelector(state => {

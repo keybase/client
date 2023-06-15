@@ -74,7 +74,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
   const dispatch = Container.useDispatch()
   const onDropped = React.useCallback(
     (items: DropItems) => {
-      const {attach, texts} = items.reduce(
+      let {attach, texts} = items.reduce(
         (obj, i) => {
           const {texts, attach} = obj
           if (i.content) {
@@ -87,6 +87,25 @@ const Conversation = React.memo(function Conversation(props: Props) {
         {attach: new Array<{path: string}>(), texts: new Array<string>()}
       )
 
+      // special case of one text and attachment, if its not a url
+      if (texts.length === 1 && attach.length === 1) {
+        if (texts[0].startsWith('http')) {
+          // just use the url and ignore the image
+          attach = []
+        } else {
+          dispatch(
+            RouteTreeGen.createNavigateAppend({
+              path: [
+                {
+                  props: {conversationIDKey, pathAndOutboxIDs: attach, titles: texts},
+                  selected: 'chatAttachmentGetTitles',
+                },
+              ],
+            })
+          )
+          return
+        }
+      }
       if (texts.length) {
         dispatch(
           Chat2Gen.createSetUnsentText({
