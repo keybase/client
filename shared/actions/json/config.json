@@ -103,13 +103,6 @@
       "_description": "main electron window wants to store its state",
       "windowState": "{ dockHidden: boolean; height: number; isFullScreen: boolean; width: number; windowHidden: boolean; x: number; y: number; }"
     },
-    "setWhatsNewLastSeenVersion": {
-      "_description": [
-        "Set the latest version number that a user has seen from Gregor.",
-        "This is used to set the badged state of the 'What's New' radio icon"
-      ],
-      "lastSeenVersion": "string"
-    },
     "loadOnStart": {
       "_description": [
         "This action is dispatched multiple times with various flags.",

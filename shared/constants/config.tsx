@@ -51,7 +51,6 @@ export const initialState: Types.State = {
   startupWasFromPush: false,
   userActive: true,
   userSwitching: false,
-  whatsNewLastSeenVersion: '',
 }
 
 export type ZStore = {
@@ -464,7 +463,6 @@ export const useConfigState = createZustand(
         })
       },
     }
-
     return {
       ...initialZState,
       dispatch,

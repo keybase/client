@@ -16,10 +16,10 @@ import * as Router2 from '../../constants/router2'
 import * as SettingsGen from '../settings-gen'
 import * as Tabs from '../../constants/tabs'
 import * as DarkMode from '../../constants/darkmode'
+import * as WhatsNew from '../../constants/whats-new'
 import {useAvatarState} from '../../common-adapters/avatar-zus'
 import logger from '../../logger'
 import {initPlatformListener} from '../platform-specific'
-import {noVersion} from '../../constants/whats-new'
 import isEqual from 'lodash/isEqual'
 
 const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
@@ -330,34 +330,6 @@ const logoutAndTryToLogInAs = async (
   setDefaultUsername(action.payload.username)
 }
 
-const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
-  const actions: Array<Container.TypedActions> = []
-  const items = action.payload.state
-
-  const allowAnimatedEmojis = !items.find(i => i.item.category === 'emojianimations')
-  Constants.useConfigState.getState().dispatch.setAllowAnimatedEmojis(allowAnimatedEmojis)
-
-  const lastSeenItem = items.find(i => i.item.category === 'whatsNewLastSeenVersion')
-  if (lastSeenItem) {
-    const {body} = lastSeenItem.item
-    const pushStateLastSeenVersion = Buffer.from(body).toString()
-    const lastSeenVersion = pushStateLastSeenVersion || noVersion
-    // Default to 0.0.0 (noVersion) if user has never marked a version as seen
-    actions.push(
-      ConfigGen.createSetWhatsNewLastSeenVersion({
-        lastSeenVersion,
-      })
-    )
-  } else {
-    actions.push(
-      ConfigGen.createSetWhatsNewLastSeenVersion({
-        lastSeenVersion: noVersion,
-      })
-    )
-  }
-  return actions
-}
-
 const emitStartupOnLoadNotInARush = async () => {
   await Container.timeoutPromise(1000)
   return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
@@ -468,8 +440,14 @@ const initConfig = () => {
       .dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
   })
 
-  // Listen for updates to `whatsNewLastSeenVersion`
-  Container.listenAction(GregorGen.pushState, gregorPushState)
+  Container.listenAction(GregorGen.pushState, (_, action) => {
+    const items = action.payload.state
+    const allowAnimatedEmojis = !items.find(i => i.item.category === 'emojianimations')
+    Constants.useConfigState.getState().dispatch.setAllowAnimatedEmojis(allowAnimatedEmojis)
+
+    const lastSeenItem = items.find(i => i.item.category === 'whatsNewLastSeenVersion')
+    WhatsNew.useState.getState().dispatch.updateLastSeen(lastSeenItem)
+  })
 
   Container.listenAction(SettingsGen.loadedSettings, maybeLoadAppLink)
 

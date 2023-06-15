@@ -29,5 +29,4 @@ export type State = {
   startupTab?: Tab
   userActive: boolean
   userSwitching: boolean
-  whatsNewLastSeenVersion: string
 }

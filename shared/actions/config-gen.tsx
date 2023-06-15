@@ -40,7 +40,6 @@ export const setStartupDetails = 'config:setStartupDetails'
 export const setStartupFile = 'config:setStartupFile'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const setUserSwitching = 'config:setUserSwitching'
-export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
 export const showShareActionSheet = 'config:showShareActionSheet'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
@@ -92,14 +91,6 @@ export const createPowerMonitorEvent = (payload: {readonly event: string}) => ({
 export const createFilePickerError = (payload: {readonly error: Error}) => ({
   payload,
   type: filePickerError as typeof filePickerError,
-})
-/**
- * Set the latest version number that a user has seen from Gregor.
- * This is used to set the badged state of the 'What's New' radio icon
- */
-export const createSetWhatsNewLastSeenVersion = (payload: {readonly lastSeenVersion: string}) => ({
-  payload,
-  type: setWhatsNewLastSeenVersion as typeof setWhatsNewLastSeenVersion,
 })
 /**
  * Stores the startup file path when launching Keybase from a cold start beofre log in
@@ -311,7 +302,6 @@ export type SetStartupDetailsPayload = ReturnType<typeof createSetStartupDetails
 export type SetStartupFilePayload = ReturnType<typeof createSetStartupFile>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type SetUserSwitchingPayload = ReturnType<typeof createSetUserSwitching>
-export type SetWhatsNewLastSeenVersionPayload = ReturnType<typeof createSetWhatsNewLastSeenVersion>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
 export type UpdateMenubarWindowIDPayload = ReturnType<typeof createUpdateMenubarWindowID>
@@ -355,7 +345,6 @@ export type Actions =
   | SetStartupFilePayload
   | SetSystemDarkModePayload
   | SetUserSwitchingPayload
-  | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload
   | ShowShareActionSheetPayload
   | UpdateMenubarWindowIDPayload

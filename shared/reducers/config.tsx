@@ -56,7 +56,4 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.daemonHandshakeDone]: draftState => {
     draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
   },
-  [ConfigGen.setWhatsNewLastSeenVersion]: (draftState, action) => {
-    draftState.whatsNewLastSeenVersion = action.payload.lastSeenVersion
-  },
 })
