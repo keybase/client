@@ -59,8 +59,7 @@
       "_description": "Stores the startup file path when launching Keybase from a cold start beofre log in",
       "startupFile": "HiddenString"
     },
-    "setOpenAtLogin": {"openAtLogin": "boolean"},
-    "setNotifySound": {"notifySound": "boolean"},
+    "openAtLoginChanged": {},
     "persistRoute": {"path?": "Array<any>"},
     "setNavigator": {"navigator": "any"},
     "loggedOut": {},
@@ -120,10 +119,6 @@
       "lastSeenVersion": "string"
     },
     "toggleRuntimeStats": {},
-    "loadOnLoginStartup": {},
-    "loadedOnLoginStartup": {
-      "status?": "boolean"
-    },
     "loadOnStart": {
       "_description": [
         "This action is dispatched multiple times with various flags.",

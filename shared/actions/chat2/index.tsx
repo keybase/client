@@ -1327,7 +1327,8 @@ const desktopNotify = async (state: Container.TypedState, action: Chat2Gen.Deskt
       resolve([])
     }
     logger.info('invoking NotifyPopup for chat notification')
-    NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, onClick, onClose)
+    const sound = ConfigConstants.useConfigState.getState().notifySound
+    NotifyPopup(title, {body, sound}, -1, author, onClick, onClose)
   })
 
   return actions

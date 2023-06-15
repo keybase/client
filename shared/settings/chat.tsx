@@ -1,5 +1,5 @@
-import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/settings'
+import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
@@ -35,7 +35,7 @@ export default () => {
   const contactSettingsError = Container.useSelector(state => state.settings.chat.contactSettings.error)
   const groups = Container.useSelector(state => state.settings.notifications.groups)
   const mobileHasPermissions = Container.useSelector(state => state.push.hasPermissions)
-  const sound = Container.useSelector(state => state.config.notifySound) // desktop
+  const sound = ConfigConstants.useConfigState(s => s.notifySound) // desktop
   const _teamMeta = Container.useSelector(state => state.teams.teamMeta)
   const unfurlError = Container.useSelector(state => state.settings.chat.unfurl.unfurlError)
   const unfurlMode = Container.useSelector(state => state.settings.chat.unfurl.unfurlMode)
@@ -68,9 +68,8 @@ export default () => {
   const onToggle = (group: string, name?: string) => {
     dispatch(SettingsGen.createNotificationsToggle({group, name}))
   }
-  const onToggleSound = (notifySound: boolean) => {
-    dispatch(ConfigGen.createSetNotifySound({notifySound}))
-  }
+  const onToggleSound = ConfigConstants.useConfigState(s => s.dispatch.setNotifySound)
+
   const onUnfurlSave = (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => {
     dispatch(SettingsGen.createUnfurlSettingsSaved({mode, whitelist: whitelist}))
   }

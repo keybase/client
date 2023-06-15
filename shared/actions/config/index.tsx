@@ -358,16 +358,6 @@ const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
   return actions
 }
 
-const loadOnLoginStartup = async () => {
-  try {
-    const status = (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
-    return ConfigGen.createLoadedOnLoginStartup({status})
-  } catch (err) {
-    logger.warn('Error in loading proxy data', err)
-    return null
-  }
-}
-
 const toggleRuntimeStats = async () => {
   try {
     await RPCTypes.configToggleRuntimeStatsRpcPromise()
@@ -500,7 +490,6 @@ const initConfig = () => {
   // Kick off platform specific stuff
   initPlatformListener()
 
-  Container.listenAction(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
   Container.listenAction(ConfigGen.powerMonitorEvent, onPowerMonitorEvent)
 
   Container.listenAction(ConfigGen.resetStore, () => {

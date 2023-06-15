@@ -37,8 +37,6 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 
 export const initialState: Types.State = {
   loggedIn: false,
-  notifySound: false,
-  openAtLogin: true,
   osNetworkOnline: false,
   outOfDate: undefined,
   pushLoaded: false,
@@ -79,6 +77,8 @@ export type ZStore = {
   justRevokedSelf: string
   logoutHandshakeVersion: number
   logoutHandshakeWaiters: Map<string, number>
+  notifySound: boolean
+  openAtLogin: boolean
   useNativeFrame: boolean
   windowShownCount: Map<string, number>
   windowState: {
@@ -109,6 +109,8 @@ const initialZState: ZStore = {
   justRevokedSelf: '',
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
+  notifySound: false,
+  openAtLogin: true,
   useNativeFrame: defaultUseNativeFrame,
   windowShownCount: new Map(),
   windowState: {
@@ -125,23 +127,27 @@ const initialZState: ZStore = {
 
 type ZState = ZStore & {
   dispatch: {
-    reset: () => void
-    setAllowAnimatedEmojis: (a: boolean) => void
-    setAndroidShare: (s: ZStore['androidShare']) => void
     changedFocus: (f: boolean) => void
+    initNotifySound: () => void
+    initOpenAtLogin: () => void
+    initUseNativeFrame: () => void
+    reset: () => void
     resetRevokedSelf: () => void
     revoke: (deviceName: string) => void
     setAccounts: (a: ZStore['configuredAccounts']) => void
+    setAllowAnimatedEmojis: (a: boolean) => void
+    setAndroidShare: (s: ZStore['androidShare']) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: any) => void
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
+    setNotifySound: (n: boolean) => void
+    setOpenAtLogin: (open: boolean) => void
+    setUseNativeFrame: (use: boolean) => void
     setWindowIsMax: (m: boolean) => void
     updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => void
     windowShown: (win: string) => void
-    setUseNativeFrame: (use: boolean) => void
-    initUseNativeFrame: () => void
   }
 }
 
@@ -150,12 +156,37 @@ export const useConfigState = createZustand(
     const reduxDispatch = getReduxDispatch()
 
     const nativeFrameKey = 'useNativeFrame'
+    const notifySoundKey = 'notifySound'
+    const openAtLoginKey = 'openAtLogin'
+
     const dispatch = {
       changedFocus: (f: boolean) => {
         set(s => {
           s.appFocused = f
         })
         reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
+      },
+      initNotifySound: () => {
+        const f = async () => {
+          const val = await RPCTypes.configGuiGetValueRpcPromise({path: notifySoundKey})
+          const notifySound = val.b
+          if (typeof notifySound === 'boolean') {
+            set(s => {
+              s.notifySound = notifySound
+            })
+          }
+        }
+        ignorePromise(f())
+      },
+      initOpenAtLogin: () => {
+        const f = async () => {
+          const val = await RPCTypes.configGuiGetValueRpcPromise({path: openAtLoginKey})
+          const openAtLogin = val.b
+          if (typeof openAtLogin === 'boolean') {
+            get().dispatch.setOpenAtLogin(openAtLogin)
+          }
+        }
+        ignorePromise(f())
       },
       initUseNativeFrame: () => {
         const f = async () => {
@@ -250,6 +281,37 @@ export const useConfigState = createZustand(
         set(s => {
           s.justDeletedSelf = self
         })
+      },
+      setNotifySound: (n: boolean) => {
+        set(s => {
+          s.notifySound = n
+        })
+        ignorePromise(
+          RPCTypes.configGuiSetValueRpcPromise({
+            path: notifySoundKey,
+            value: {
+              b: n,
+              isNull: false,
+            },
+          })
+        )
+      },
+      setOpenAtLogin: (open: boolean) => {
+        set(s => {
+          s.openAtLogin = open
+        })
+        const f = async () => {
+          await RPCTypes.configGuiSetValueRpcPromise({
+            path: openAtLoginKey,
+            value: {b: open, isNull: false},
+          })
+          if (__DEV__) {
+            console.log('onSetOpenAtLogin disabled for dev mode')
+            return
+          }
+          reduxDispatch(ConfigGen.createOpenAtLoginChanged())
+        }
+        ignorePromise(f())
       },
       setUseNativeFrame: (use: boolean) => {
         set(s => {

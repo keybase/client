@@ -21,9 +21,7 @@ export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
 export const initListenerLoops = 'config:initListenerLoops'
 export const installerRan = 'config:installerRan'
-export const loadOnLoginStartup = 'config:loadOnLoginStartup'
 export const loadOnStart = 'config:loadOnStart'
-export const loadedOnLoginStartup = 'config:loadedOnLoginStartup'
 export const loggedIn = 'config:loggedIn'
 export const loggedOut = 'config:loggedOut'
 export const logoutAndTryToLogInAs = 'config:logoutAndTryToLogInAs'
@@ -31,6 +29,7 @@ export const logoutHandshake = 'config:logoutHandshake'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
 export const openAppStore = 'config:openAppStore'
+export const openAtLoginChanged = 'config:openAtLoginChanged'
 export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const persistRoute = 'config:persistRoute'
 export const powerMonitorEvent = 'config:powerMonitorEvent'
@@ -39,8 +38,6 @@ export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
 export const revoked = 'config:revoked'
 export const setNavigator = 'config:setNavigator'
-export const setNotifySound = 'config:setNotifySound'
-export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
 export const setStartupFile = 'config:setStartupFile'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
@@ -247,18 +244,14 @@ export const createDumpLogs = (payload: {readonly reason: 'quitting through menu
   payload,
   type: dumpLogs as typeof dumpLogs,
 })
-export const createLoadOnLoginStartup = (payload?: undefined) => ({
-  payload,
-  type: loadOnLoginStartup as typeof loadOnLoginStartup,
-})
-export const createLoadedOnLoginStartup = (payload: {readonly status?: boolean} = {}) => ({
-  payload,
-  type: loadedOnLoginStartup as typeof loadedOnLoginStartup,
-})
 export const createLoggedOut = (payload?: undefined) => ({payload, type: loggedOut as typeof loggedOut})
 export const createMobileAppState = (payload: {
   readonly nextAppState: 'active' | 'background' | 'inactive'
 }) => ({payload, type: mobileAppState as typeof mobileAppState})
+export const createOpenAtLoginChanged = (payload?: undefined) => ({
+  payload,
+  type: openAtLoginChanged as typeof openAtLoginChanged,
+})
 export const createOsNetworkStatusChanged = (payload: {
   readonly online: boolean
   readonly type: Types.ConnectionType
@@ -276,14 +269,6 @@ export const createRevoked = (payload?: undefined) => ({payload, type: revoked a
 export const createSetNavigator = (payload: {readonly navigator: any}) => ({
   payload,
   type: setNavigator as typeof setNavigator,
-})
-export const createSetNotifySound = (payload: {readonly notifySound: boolean}) => ({
-  payload,
-  type: setNotifySound as typeof setNotifySound,
-})
-export const createSetOpenAtLogin = (payload: {readonly openAtLogin: boolean}) => ({
-  payload,
-  type: setOpenAtLogin as typeof setOpenAtLogin,
 })
 export const createSetStartupDetails = (payload: {
   readonly startupWasFromPush: boolean
@@ -336,9 +321,7 @@ export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
-export type LoadOnLoginStartupPayload = ReturnType<typeof createLoadOnLoginStartup>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
-export type LoadedOnLoginStartupPayload = ReturnType<typeof createLoadedOnLoginStartup>
 export type LoggedInPayload = ReturnType<typeof createLoggedIn>
 export type LoggedOutPayload = ReturnType<typeof createLoggedOut>
 export type LogoutAndTryToLogInAsPayload = ReturnType<typeof createLogoutAndTryToLogInAs>
@@ -346,6 +329,7 @@ export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
 export type MobileAppStatePayload = ReturnType<typeof createMobileAppState>
 export type OpenAppSettingsPayload = ReturnType<typeof createOpenAppSettings>
 export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
+export type OpenAtLoginChangedPayload = ReturnType<typeof createOpenAtLoginChanged>
 export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
 export type PersistRoutePayload = ReturnType<typeof createPersistRoute>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
@@ -354,8 +338,6 @@ export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindow
 export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
 export type RevokedPayload = ReturnType<typeof createRevoked>
 export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
-export type SetNotifySoundPayload = ReturnType<typeof createSetNotifySound>
-export type SetOpenAtLoginPayload = ReturnType<typeof createSetOpenAtLogin>
 export type SetStartupDetailsPayload = ReturnType<typeof createSetStartupDetails>
 export type SetStartupFilePayload = ReturnType<typeof createSetStartupFile>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
@@ -388,9 +370,7 @@ export type Actions =
   | FilePickerErrorPayload
   | InitListenerLoopsPayload
   | InstallerRanPayload
-  | LoadOnLoginStartupPayload
   | LoadOnStartPayload
-  | LoadedOnLoginStartupPayload
   | LoggedInPayload
   | LoggedOutPayload
   | LogoutAndTryToLogInAsPayload
@@ -398,6 +378,7 @@ export type Actions =
   | MobileAppStatePayload
   | OpenAppSettingsPayload
   | OpenAppStorePayload
+  | OpenAtLoginChangedPayload
   | OsNetworkStatusChangedPayload
   | PersistRoutePayload
   | PowerMonitorEventPayload
@@ -406,8 +387,6 @@ export type Actions =
   | RestartHandshakePayload
   | RevokedPayload
   | SetNavigatorPayload
-  | SetNotifySoundPayload
-  | SetOpenAtLoginPayload
   | SetStartupDetailsPayload
   | SetStartupFilePayload
   | SetSystemDarkModePayload

@@ -20,8 +20,6 @@ export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 
 export type State = {
   loggedIn: boolean
-  notifySound: boolean
-  openAtLogin: boolean
   osNetworkOnline: boolean
   outOfDate?: OutOfDate
   pushLoaded: boolean
