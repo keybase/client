@@ -46,7 +46,6 @@
     "bootstrapStatusLoaded": {
       "loggedIn": "boolean"
     },
-    "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
       "startupWasFromPush": "boolean",
       "startupConversation?": "ChatTypes.ConversationIDKey",

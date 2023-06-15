@@ -18,7 +18,6 @@ type Actions =
 export default Container.makeReducer<Actions, Types.State>(Constants.initialState, {
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
-    pushLoaded: draftState.pushLoaded,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
     userSwitching: draftState.userSwitching,
   }),
@@ -35,9 +34,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   },
   [ConfigGen.setStartupFile]: (draftState, action) => {
     draftState.startupFile = action.payload.startupFile
-  },
-  [ConfigGen.pushLoaded]: (draftState, action) => {
-    draftState.pushLoaded = action.payload.pushLoaded
   },
   [ConfigGen.bootstrapStatusLoaded]: (draftState, action) => {
     draftState.loggedIn = action.payload.loggedIn

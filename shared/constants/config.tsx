@@ -42,7 +42,6 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 
 export const initialState: Types.State = {
   loggedIn: false,
-  pushLoaded: false,
   remoteWindowNeedsProps: new Map(),
   startupConversation: noConversationIDKey,
   startupDetailsLoaded: false,

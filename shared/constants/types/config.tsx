@@ -21,7 +21,6 @@ export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 
 export type State = {
   loggedIn: boolean
-  pushLoaded: boolean
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   runtimeStats?: RPCTypes.RuntimeStats
   startupDetailsLoaded: boolean
