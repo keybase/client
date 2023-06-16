@@ -1,7 +1,6 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Stats from '../engine/stats'
-import HiddenString from '../util/hidden-string'
 import logger from '../logger'
 import type * as Types from './types/config'
 import type {ConversationIDKey} from './types/chat2'
