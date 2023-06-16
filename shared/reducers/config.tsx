@@ -9,9 +9,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.resetStore]: () => ({
     ...Constants.initialState,
   }),
-  [ConfigGen.setStartupFile]: (draftState, action) => {
-    draftState.startupFile = action.payload.startupFile
-  },
   [ConfigGen.bootstrapStatusLoaded]: (draftState, action) => {
     draftState.loggedIn = action.payload.loggedIn
   },

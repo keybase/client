@@ -1,7 +1,6 @@
 import * as ChatGen from './chat2-gen'
 import * as Container from '../util/container'
 import * as DeeplinksGen from './deeplinks-gen'
-import * as ConfigGen from './config-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -296,12 +295,8 @@ const handleSaltpackOpenFile = (
     typeof action.payload.path === 'string' ? action.payload.path : action.payload.path.stringValue()
 
   if (!state.config.loggedIn) {
-    console.warn(
-      'Tried to open a saltpack file before being logged in. Stashing the file path for after log in.'
-    )
-    return ConfigGen.createSetStartupFile({
-      startupFile: new Container.HiddenString(path),
-    })
+    console.warn('Tried to open a saltpack file before being logged in')
+    return
   }
   let operation: CryptoTypes.Operations | undefined
   if (CrytoConstants.isPathSaltpackEncrypted(path)) {
@@ -316,10 +311,6 @@ const handleSaltpackOpenFile = (
   }
 
   return [
-    // Clear previously set startupFile so that subsequent startups/logins do not route to the crypto tab with a stale startupFile
-    ConfigGen.createSetStartupFile({
-      startupFile: new Container.HiddenString(''),
-    }),
     RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}),
     CryptoGen.createOnSaltpackOpenFile({
       operation,

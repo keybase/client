@@ -1,7 +1,6 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Stats from '../engine/stats'
-import HiddenString from '../util/hidden-string'
 import logger from '../logger'
 import type * as Types from './types/config'
 import type {ConversationIDKey} from './types/chat2'
@@ -43,7 +42,6 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 
 export const initialState: Types.State = {
   loggedIn: false,
-  startupFile: new HiddenString(''),
 }
 
 export type ZStore = {
