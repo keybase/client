@@ -1,5 +1,4 @@
 import type * as NetInfo from '@react-native-community/netinfo'
-import type HiddenString from '../../util/hidden-string'
 
 export type OutOfDate = {
   critical: boolean
@@ -17,5 +16,4 @@ export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
 
 export type State = {
   loggedIn: boolean
-  startupFile: HiddenString
 }

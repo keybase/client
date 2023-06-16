@@ -44,10 +44,6 @@
     "bootstrapStatusLoaded": {
       "loggedIn": "boolean"
     },
-    "setStartupFile": {
-      "_description": "Stores the startup file path when launching Keybase from a cold start beofre log in",
-      "startupFile": "HiddenString"
-    },
     "openAtLoginChanged": {},
     "persistRoute": {"path?": "Array<any>"},
     "setNavigator": {"navigator": "any"},

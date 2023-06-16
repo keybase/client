@@ -43,7 +43,6 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 
 export const initialState: Types.State = {
   loggedIn: false,
-  startupFile: new HiddenString(''),
 }
 
 export type ZStore = {
