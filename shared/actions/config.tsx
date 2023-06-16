@@ -1,25 +1,25 @@
-import * as ConfigGen from '../config-gen'
-import * as Chat2Gen from '../chat2-gen'
-import * as Container from '../../util/container'
-import * as EngineGen from '../engine-gen-gen'
-import * as Followers from '../../constants/followers'
-import * as GregorGen from '../gregor-gen'
-import * as ProvisionGen from '../provision-gen'
-import * as UsersGen from '../users-gen'
-import * as LoginConstants from '../../constants/login'
-import * as Constants from '../../constants/config'
-import * as Platform from '../../constants/platform'
-import * as PushGen from '../push-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTreeGen from '../route-tree-gen'
-import * as Router2 from '../../constants/router2'
-import * as SettingsGen from '../settings-gen'
-import * as Tabs from '../../constants/tabs'
-import * as DarkMode from '../../constants/darkmode'
-import * as WhatsNew from '../../constants/whats-new'
-import {useAvatarState} from '../../common-adapters/avatar-zus'
-import logger from '../../logger'
-import {initPlatformListener} from '../platform-specific'
+import * as ConfigGen from './config-gen'
+import * as Chat2Gen from './chat2-gen'
+import * as Container from '../util/container'
+import * as EngineGen from './engine-gen-gen'
+import * as Followers from '../constants/followers'
+import * as GregorGen from './gregor-gen'
+import * as ProvisionGen from './provision-gen'
+import * as UsersGen from './users-gen'
+import * as LoginConstants from '../constants/login'
+import * as Constants from '../constants/config'
+import * as Platform from '../constants/platform'
+import * as PushGen from './push-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RouteTreeGen from './route-tree-gen'
+import * as Router2 from '../constants/router2'
+import * as SettingsGen from './settings-gen'
+import * as Tabs from '../constants/tabs'
+import * as DarkMode from '../constants/darkmode'
+import * as WhatsNew from '../constants/whats-new'
+import {useAvatarState} from '../common-adapters/avatar-zus'
+import logger from '../logger'
+import {initPlatformListener} from './platform-specific'
 import isEqual from 'lodash/isEqual'
 
 const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
@@ -248,9 +248,9 @@ const onShowPermissionsPrompt = async (
   listenerApi.dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsPushPrompt']}))
 }
 
-const onAndroidShare = (state: Container.TypedState) => {
+const onAndroidShare = () => {
   // already loaded, so just go now
-  if (state.config.startupDetailsLoaded) {
+  if (Constants.useConfigState.getState().startup.loaded) {
     return RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']})
   }
   return false
@@ -263,7 +263,11 @@ const maybeLoadAppLink = (state: Container.TypedState) => {
     return
   }
 
-  if (maybeLoadAppLinkOnce || !state.config.startupLink || !state.config.startupLink.endsWith('/phone-app')) {
+  if (
+    maybeLoadAppLinkOnce ||
+    !Constants.useConfigState.getState().startup.link ||
+    !Constants.useConfigState.getState().startup.link.endsWith('/phone-app')
+  ) {
     return
   }
   maybeLoadAppLinkOnce = true

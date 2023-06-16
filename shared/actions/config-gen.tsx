@@ -1,8 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
 import type * as Types from '../constants/types/config'
-import type * as Tabs from '../constants/tabs'
-import type * as ChatTypes from '../constants/types/chat2'
 import type HiddenString from '../util/hidden-string'
 
 // Constants
@@ -36,7 +34,6 @@ export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
 export const revoked = 'config:revoked'
 export const setNavigator = 'config:setNavigator'
-export const setStartupDetails = 'config:setStartupDetails'
 export const setStartupFile = 'config:setStartupFile'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const showMain = 'config:showMain'
@@ -240,14 +237,6 @@ export const createSetNavigator = (payload: {readonly navigator: any}) => ({
   payload,
   type: setNavigator as typeof setNavigator,
 })
-export const createSetStartupDetails = (payload: {
-  readonly startupWasFromPush: boolean
-  readonly startupConversation?: ChatTypes.ConversationIDKey
-  readonly startupLink: string
-  readonly startupTab?: Tabs.Tab
-  readonly startupFollowUser: string
-  readonly startupPushPayload?: string
-}) => ({payload, type: setStartupDetails as typeof setStartupDetails})
 export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   payload,
   type: setSystemDarkMode as typeof setSystemDarkMode,
@@ -293,7 +282,6 @@ export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindow
 export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
 export type RevokedPayload = ReturnType<typeof createRevoked>
 export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
-export type SetStartupDetailsPayload = ReturnType<typeof createSetStartupDetails>
 export type SetStartupFilePayload = ReturnType<typeof createSetStartupFile>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
@@ -335,7 +323,6 @@ export type Actions =
   | RestartHandshakePayload
   | RevokedPayload
   | SetNavigatorPayload
-  | SetStartupDetailsPayload
   | SetStartupFilePayload
   | SetSystemDarkModePayload
   | ShowMainPayload
