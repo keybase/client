@@ -144,14 +144,14 @@ const ShowMonsterSelector = (state: Container.TypedState) =>
 
 // gets state from redux used to make the linking object
 export const useReduxToLinking = (appState: Shared.AppState) => {
-  const startupTab = Container.useSelector(state => state.config.startupTab)
-  const startupConversation = Container.useSelector(state => {
-    const {startupConversation} = state.config
-    return ChatConstants.isValidConversationIDKey(startupConversation) ? startupConversation : undefined
-  })
+  const {startup} = ConfigConstants.useConfigState.getState()
+  const {tab: startupTab, followUser: startupFollowUser} = startup
+  let {conversation: startupConversation} = startup
+  if (!ChatConstants.isValidConversationIDKey(startupConversation)) {
+    startupConversation = ''
+  }
   const showMonster = Container.useSelector(ShowMonsterSelector)
   const androidShare = ConfigConstants.useConfigState(s => s.androidShare)
-  const startupFollowUser = Container.useSelector(state => state.config.startupFollowUser)
   const dispatch = Container.useDispatch()
 
   return appState === Shared.AppState.NEEDS_INIT

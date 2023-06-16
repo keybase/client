@@ -271,6 +271,10 @@ export const initPlatformListener = () => {
       .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
   })
 
+  Container.listenAction(ConfigGen.daemonHandshakeDone, () => {
+    ConfigConstants.useConfigState.getState().dispatch.setStartupDetailsLoaded()
+  })
+
   Container.listenAction(ConfigGen.updateNow, () => {
     ConfigConstants.useConfigState.getState().dispatch.updateApp()
   })

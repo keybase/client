@@ -1,8 +1,6 @@
 {
   "prelude": [
     "import type * as Types from '../constants/types/config'",
-    "import type * as Tabs from '../constants/tabs'",
-    "import type * as ChatTypes from '../constants/types/chat2'",
     "import type HiddenString from '../util/hidden-string'"
   ],
   "actions": {
@@ -45,14 +43,6 @@
     "showMain": {},
     "bootstrapStatusLoaded": {
       "loggedIn": "boolean"
-    },
-    "setStartupDetails": {
-      "startupWasFromPush": "boolean",
-      "startupConversation?": "ChatTypes.ConversationIDKey",
-      "startupLink": "string",
-      "startupTab?": "Tabs.Tab",
-      "startupFollowUser": "string",
-      "startupPushPayload?": "string"
     },
     "setStartupFile": {
       "_description": "Stores the startup file path when launching Keybase from a cold start beofre log in",

@@ -1,20 +1,21 @@
 import * as ConfigGen from '../actions/config-gen'
-import type {RPCError} from '../util/errors'
-import HiddenString from '../util/hidden-string'
 import * as RPCTypes from './types/rpc-gen'
-import type * as Types from './types/config'
-import uniq from 'lodash/uniq'
-import {defaultUseNativeFrame, runMode} from './platform'
-import {noConversationIDKey} from './types/chat2/common'
-// normally util.container but it re-exports from us so break the cycle
-import {create as createZustand} from 'zustand'
-import {immer as immerZustand} from 'zustand/middleware/immer'
-import {getReduxDispatch} from '../util/zustand'
-import {enableActionLogging} from '../local-debug'
-import logger from '../logger'
-import {convertToError, isEOFError, isErrorTransient} from '../util/errors'
-import {useCurrentUserState} from './current-user'
 import * as Stats from '../engine/stats'
+import HiddenString from '../util/hidden-string'
+import logger from '../logger'
+import type * as Types from './types/config'
+import type {ConversationIDKey} from './types/chat2'
+import type {RPCError} from '../util/errors'
+import type {Tab} from './tabs'
+import uniq from 'lodash/uniq'
+import {convertToError, isEOFError, isErrorTransient} from '../util/errors'
+import {create as createZustand} from 'zustand'
+import {defaultUseNativeFrame, runMode} from './platform'
+import {enableActionLogging} from '../local-debug'
+import {getReduxDispatch} from '../util/zustand'
+import {immer as immerZustand} from 'zustand/middleware/immer'
+import {noConversationIDKey} from './types/chat2/common'
+import {useCurrentUserState} from './current-user'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -42,13 +43,7 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 
 export const initialState: Types.State = {
   loggedIn: false,
-  startupConversation: noConversationIDKey,
-  startupDetailsLoaded: false,
   startupFile: new HiddenString(''),
-  startupFollowUser: '',
-  startupLink: '',
-  startupPushPayload: undefined,
-  startupWasFromPush: false,
 }
 
 export type ZStore = {
@@ -80,6 +75,15 @@ export type ZStore = {
   outOfDate: Types.OutOfDate
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   runtimeStats?: RPCTypes.RuntimeStats
+  startup: {
+    loaded: boolean
+    wasFromPush: boolean
+    conversation: ConversationIDKey
+    pushPayload: string
+    followUser: string
+    link: string
+    tab?: Tab
+  }
   useNativeFrame: boolean
   userSwitching: boolean
   windowShownCount: Map<string, number>
@@ -120,6 +124,14 @@ const initialZState: ZStore = {
     updating: false,
   },
   remoteWindowNeedsProps: new Map(),
+  startup: {
+    conversation: noConversationIDKey,
+    followUser: '',
+    link: '',
+    loaded: false,
+    pushPayload: '',
+    wasFromPush: false,
+  },
   useNativeFrame: defaultUseNativeFrame,
   userSwitching: false,
   windowShownCount: new Map(),
@@ -156,6 +168,8 @@ type ZState = ZStore & {
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
     setNotifySound: (n: boolean) => void
+    setStartupDetails: (st: Omit<ZStore['startup'], 'loaded'>) => void
+    setStartupDetailsLoaded: () => void
     setOpenAtLogin: (open: boolean) => void
     setOutOfDate: (outOfDate: Types.OutOfDate) => void
     setUserSwitching: (sw: boolean) => void
@@ -270,6 +284,7 @@ export const useConfigState = createZustand(
           appFocused: s.appFocused,
           configuredAccounts: s.configuredAccounts,
           defaultUsername: s.defaultUsername,
+          startup: {loaded: s.startup.loaded},
           useNativeFrame: s.useNativeFrame,
           userSwitching: s.userSwitching,
         }))
@@ -383,6 +398,22 @@ export const useConfigState = createZustand(
       setOutOfDate: (outOfDate: Types.OutOfDate) => {
         set(s => {
           s.outOfDate = outOfDate
+        })
+      },
+      setStartupDetails: (st: Omit<ZStore['startup'], 'loaded'>) => {
+        set(s => {
+          if (s.startup.loaded) {
+            return
+          }
+          s.startup = {
+            ...st,
+            loaded: true,
+          }
+        })
+      },
+      setStartupDetailsLoaded: () => {
+        set(s => {
+          s.startup.loaded = true
         })
       },
       setUseNativeFrame: (use: boolean) => {

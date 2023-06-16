@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as Clipboard from 'expo-clipboard'
 import * as ConfigConstants from '../../constants/config'
+import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Contacts from 'expo-contacts'
 import * as Container from '../../util/container'
@@ -24,7 +25,6 @@ import NetInfo from '@react-native-community/netinfo'
 import NotifyPopup from '../../util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
-import type * as FsTypes from '../../constants/types/fs'
 import {Alert, Linking, ActionSheetIOS} from 'react-native'
 import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine/require'
@@ -269,21 +269,21 @@ const setupNetInfoWatcher = (listenerApi: Container.ListenerApi) => {
 }
 
 // TODO rewrite this, v slow
-const loadStartupDetails = async (listenerApi: Container.ListenerApi) => {
-  let startupWasFromPush = false
-  let startupConversation: Types.ConversationIDKey | undefined = undefined
-  let startupPushPayload: string | undefined = undefined
-  let startupFollowUser: string = ''
-  let startupLink: string = ''
-  let startupTab: Tabs.Tab | 'blank' | undefined = undefined
-  let startupSharePath: FsTypes.LocalPath | undefined = undefined
-  let startupShareText: string | undefined = undefined
+const loadStartupDetails = async () => {
+  let wasFromPush = false
+  let conversation: Types.ConversationIDKey | undefined = undefined
+  let pushPayload = ''
+  let followUser = ''
+  let link = ''
+  let tab = ''
+  let sharePath = ''
+  let shareText = ''
 
-  const [routeState, link, push, share] = await Promise.all([
+  const [routeState, initialUrl, push, share] = await Promise.all([
     Container.neverThrowPromiseFunc(async () =>
       RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'}).then(v => v.s || '')
     ),
-    Container.neverThrowPromiseFunc(Linking.getInitialURL),
+    Container.neverThrowPromiseFunc(async () => Linking.getInitialURL()),
     Container.neverThrowPromiseFunc(getStartupDetailsFromInitialPush),
     Container.neverThrowPromiseFunc(getStartupDetailsFromInitialShare),
   ] as const)
@@ -300,75 +300,64 @@ const loadStartupDetails = async (listenerApi: Container.ListenerApi) => {
   // Top priority, push
   if (push) {
     logger.info('initialState: push', push.startupConversation, push.startupFollowUser)
-    startupWasFromPush = true
-    startupConversation = push.startupConversation
-    startupFollowUser = push.startupFollowUser ?? ''
-    startupPushPayload = push.startupPushPayload
+    wasFromPush = true
+    conversation = push.startupConversation
+    followUser = push.startupFollowUser ?? ''
+    pushPayload = push.startupPushPayload ?? ''
   } else if (link) {
     logger.info('initialState: link', link)
     // Second priority, deep link
-    startupLink = link
+    link = initialUrl ?? ''
   } else if (share?.fileUrl || share?.text) {
     logger.info('initialState: share')
-    startupSharePath = share.fileUrl || undefined
-    startupShareText = share.text || undefined
+    sharePath = share.fileUrl
+    shareText = share.text
   } else if (routeState) {
     // Last priority, saved from last session
     try {
-      const item = JSON.parse(routeState)
+      const item = JSON.parse(routeState) as
+        | undefined
+        | {param?: {selectedConversationIDKey?: unknown}; routeName?: string}
       if (item) {
-        startupConversation = (item.param && item.param.selectedConversationIDKey) || undefined
-        logger.info('initialState: routeState', startupConversation)
-        startupTab = item.routeName || undefined
+        const _convo = item.param?.selectedConversationIDKey || undefined
+        if (typeof _convo === 'string') {
+          conversation = _convo
+          logger.info('initialState: routeState', conversation)
+        }
+        const _rn = item.routeName || undefined
+        if (typeof _rn === 'string') {
+          tab = _rn as any as typeof tab
+        }
       }
     } catch (_) {
       logger.info('initialState: routeState parseFail')
-      startupConversation = undefined
-      startupTab = undefined
+      conversation = undefined
+      tab = ''
     }
   }
 
   // never allow this case
-  if (startupTab === 'blank') {
-    startupTab = undefined
+  if (tab === 'blank') {
+    tab = ''
   }
 
   const {setAndroidShare} = ConfigConstants.useConfigState.getState().dispatch
 
-  if (startupSharePath) {
-    setAndroidShare({type: RPCTypes.IncomingShareType.file, url: startupSharePath})
-  } else if (startupShareText) {
-    setAndroidShare({text: startupShareText, type: RPCTypes.IncomingShareType.text})
+  if (sharePath) {
+    setAndroidShare({type: RPCTypes.IncomingShareType.file, url: sharePath})
+  } else if (shareText) {
+    setAndroidShare({text: shareText, type: RPCTypes.IncomingShareType.text})
   }
 
-  listenerApi.dispatch(
-    ConfigGen.createSetStartupDetails({
-      startupConversation,
-      startupFollowUser,
-      startupLink,
-      startupPushPayload,
-      startupTab,
-      startupWasFromPush,
-    })
-  )
-}
-
-const waitForStartupDetails = async (
-  state: Container.TypedState,
-  action: ConfigGen.DaemonHandshakePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  // loadStartupDetails finished already
-  if (state.config.startupDetailsLoaded) {
-    return
-  }
-  // Else we have to wait for the loadStartupDetails to finish
-  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-  const {version} = action.payload
-  const name = 'platform.native-waitStartupDetails'
-  wait(name, version, true)
-  await listenerApi.take(action => action.type === ConfigGen.setStartupDetails)
-  wait(name, version, false)
+  ConfigConstants.useConfigState.getState().dispatch.setStartupDetails({
+    conversation: conversation ?? ChatConstants.noConversationIDKey,
+    followUser,
+    link,
+    pushPayload,
+    tab: tab as Tabs.Tab,
+    wasFromPush,
+  })
+  afterStartupDetails(true)
 }
 
 const copyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) => {
@@ -746,12 +735,29 @@ const initAudioModes = () => {
     .catch(() => {})
 }
 
+// if we are making the daemon wait then run this to cleanup
+let afterStartupDetails = (_done: boolean) => {}
+
 export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.persistRoute, persistRoute)
   Container.listenAction(ConfigGen.mobileAppState, updateChangedFocus)
   Container.listenAction(ConfigGen.openAppSettings, openAppSettings)
   Container.listenAction(ConfigGen.copyToClipboard, copyToClipboard)
-  Container.listenAction(ConfigGen.daemonHandshake, waitForStartupDetails)
+  Container.listenAction(ConfigGen.daemonHandshake, (_, action) => {
+    // loadStartupDetails finished already
+    if (ConfigConstants.useConfigState.getState().startup.loaded) {
+      afterStartupDetails = (_done: boolean) => {}
+    } else {
+      // Else we have to wait for the loadStartupDetails to finish
+      const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+      const {version} = action.payload
+      const startupDetailsWaiting = 'platform.native-waitStartupDetails'
+      afterStartupDetails = (done: boolean) => {
+        wait(startupDetailsWaiting, version, done ? false : true)
+      }
+      afterStartupDetails(false)
+    }
+  })
   Container.listenAction(ConfigGen.openAppStore, openAppStore)
   Container.listenAction(ConfigGen.filePickerError, handleFilePickerError)
   Container.listenAction(ProfileGen.editAvatar, editAvatar)
