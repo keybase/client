@@ -40,7 +40,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 
   const typingSnippet = Constants.useChatState(s => {
     const typers = !isInWidget ? s.typingMap.get(conversationIDKey) : undefined
-    if (!typers) return undefined
+    if (!typers?.size) return undefined
     return typers.size === 1
       ? `${typers.values().next().value as string} is typing...`
       : 'Multiple people typing...'
@@ -162,7 +162,7 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
     const isLocked = meta?.rekeyers?.has(you) || (meta?.rekeyers.size ?? 0) > 0 || !!meta?.wasFinalizedBy
     const isMuted = state.chat2.mutedMap.get(conversationIDKey) ?? false
     return {isLocked, isMuted}
-  })
+  }, shallowEqual)
 
   let participantOne = ''
   let participantTwo = ''
