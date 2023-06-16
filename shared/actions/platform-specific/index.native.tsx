@@ -270,15 +270,6 @@ const setupNetInfoWatcher = (listenerApi: Container.ListenerApi) => {
 
 // TODO rewrite this, v slow
 const loadStartupDetails = async () => {
-  let wasFromPush = false
-  let conversation: Types.ConversationIDKey | undefined = undefined
-  let pushPayload = ''
-  let followUser = ''
-  let link = ''
-  let tab = ''
-  let sharePath = ''
-  let shareText = ''
-
   const [routeState, initialUrl, push, share] = await Promise.all([
     Container.neverThrowPromiseFunc(async () =>
       RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'}).then(v => v.s || '')
@@ -297,6 +288,15 @@ const loadStartupDetails = async () => {
     })
   } catch (_) {}
 
+  let wasFromPush = false
+  let conversation: Types.ConversationIDKey | undefined = undefined
+  let pushPayload = ''
+  let followUser = ''
+  let link = ''
+  let tab = ''
+  let sharePath = ''
+  let shareText = ''
+
   // Top priority, push
   if (push) {
     logger.info('initialState: push', push.startupConversation, push.startupFollowUser)
@@ -304,10 +304,10 @@ const loadStartupDetails = async () => {
     conversation = push.startupConversation
     followUser = push.startupFollowUser ?? ''
     pushPayload = push.startupPushPayload ?? ''
-  } else if (link) {
+  } else if (initialUrl) {
     logger.info('initialState: link', link)
     // Second priority, deep link
-    link = initialUrl ?? ''
+    link = initialUrl
   } else if (share?.fileUrl || share?.text) {
     logger.info('initialState: share')
     sharePath = share.fileUrl

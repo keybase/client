@@ -14,6 +14,12 @@ const argArrayGood = (arr: Array<string>, len: number) => {
   return arr.length === len && arr.every(p => !!p.length)
 }
 export const isValidLink = (link: string) => {
+  const urlPrefix = 'https://keybase.io/'
+  if (link.startsWith(urlPrefix)) {
+    if (link.substring(urlPrefix.length).split('/').length === 1) {
+      return true
+    }
+  }
   const prefix = 'keybase://'
   if (!link.startsWith(prefix)) {
     return false
@@ -101,7 +107,6 @@ const makeLinking = (options: OptionsType) => {
       if (url != null && !isValidLink(url)) {
         url = null
       }
-
       if (!url) {
         if (showMonster) {
           url = 'keybase://settingsPushPrompt'
