@@ -68,7 +68,11 @@ const loadDaemonBootstrapStatus = async (
   listenerApi: Container.ListenerApi
 ) => {
   // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
-  if (action.type === ConfigGen.loggedInChanged && action.payload.causedByStartup) {
+  if (
+    action.type === ConfigGen.loggedInChanged &&
+    action.payload.causedByStartup &&
+    Constants.useConfigState.getState().loggedIn
+  ) {
     return
   }
 
@@ -84,7 +88,6 @@ const loadDaemonBootstrapStatus = async (
     const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
     const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
     setBootstrap({deviceID, deviceName, uid, username})
-    listenerApi.dispatch(ConfigGen.createBootstrapStatusLoaded())
     if (username) {
       setDefaultUsername(username)
     }

@@ -45,7 +45,6 @@ export const reducers = {
 export type TypedState = {
   autoreset: ReturnType<typeof autoreset>
   chat2: ReturnType<typeof chat2>
-  config: ReturnType<typeof config>
   crypto: ReturnType<typeof crypto>
   deeplinks: ReturnType<typeof deeplinks>
   fs: ReturnType<typeof fs>

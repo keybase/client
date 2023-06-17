@@ -362,6 +362,9 @@ export const useConfigState = createZustand(
         })
       },
       setLoggedIn: (l: boolean, causedByStartup = false) => {
+        if (l === get().loggedIn) {
+          return
+        }
         set(s => {
           s.loggedIn = l
         })
