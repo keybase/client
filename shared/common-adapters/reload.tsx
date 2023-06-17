@@ -1,5 +1,6 @@
 // A screen we show when we have a problem loading a screen
 import * as Container from '../util/container'
+import * as ConfigConstants from '../constants/config'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -162,7 +163,7 @@ export default (ownProps: OwnProps) => {
     error = ownProps.errorFilter(error) ? error : undefined
   }
 
-  const _loggedIn = Container.useSelector(state => state.config.loggedIn)
+  const _loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
 
   const stateProps = {
     _loggedIn,

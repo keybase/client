@@ -1,9 +1,7 @@
 {
-  "prelude": [
-    "import type * as Types from '../constants/types/config'",
-    "import type HiddenString from '../util/hidden-string'"
-  ],
+  "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
+    "bootstrapStatusLoaded": {},
     "restartHandshake": {
       "_description": "internal to config. should restart the handshake process"
     },
@@ -41,21 +39,10 @@
     "changedActive": {"userActive": "boolean"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
-    "bootstrapStatusLoaded": {
-      "loggedIn": "boolean"
-    },
     "openAtLoginChanged": {},
     "persistRoute": {"path?": "Array<any>"},
     "setNavigator": {"navigator": "any"},
-    "loggedOut": {},
-    "loggedIn": {
-      "_description": [
-        "Used internally to know we were logged in.",
-        "If you want to react to being logged in likely you want bootstrapStatusLoaded"
-      ],
-      "causedBySignup": "boolean",
-      "causedByStartup": "boolean"
-    },
+    "loggedInChanged": {"causedByStartup": "boolean"},
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
     "updateNow": {},

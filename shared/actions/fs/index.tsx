@@ -113,9 +113,9 @@ const loadAdditionalTlf = async (_: unknown, action: FsGen.LoadAdditionalTlfPayl
   }
 }
 
-const loadFavorites = async (state: Container.TypedState) => {
+const loadFavorites = async () => {
   try {
-    if (!state.config.loggedIn) {
+    if (!ConfigConstants.useConfigState.getState().loggedIn) {
       return false
     }
     const results = await RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
@@ -1159,7 +1159,7 @@ const initFS = () => {
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
   Container.listenAction([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
   Container.listenAction(
-    [ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.userIn, FsGen.checkKbfsDaemonRpcStatus],
+    [ConfigGen.installerRan, ConfigGen.loggedInChanged, FsGen.userIn, FsGen.checkKbfsDaemonRpcStatus],
     checkKbfsDaemonRpcStatus
   )
   Container.listenAction(FsGen.waitForKbfsDaemon, waitForKbfsDaemon)

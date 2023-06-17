@@ -285,7 +285,7 @@ const handleLoudMessage = async (
 
 // on iOS the go side handles a lot of push details
 const handlePush = async (
-  state: Container.TypedState,
+  _: unknown,
   action: PushGen.NotificationPayload,
   listenerApi: Container.ListenerApi
 ) => {
@@ -321,7 +321,7 @@ const handlePush = async (
         }
         break
       case 'settings.contacts':
-        if (state.config.loggedIn) {
+        if (ConfigConstants.useConfigState.getState().loggedIn) {
           listenerApi.dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
           listenerApi.dispatch(RouteTreeGen.createNavUpToScreen({name: 'peopleRoot'}))
         }

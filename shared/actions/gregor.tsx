@@ -1,5 +1,6 @@
 import logger from '../logger'
 import * as ConfigGen from './config-gen'
+import * as ConfigConstants from '../constants/config'
 import * as GregorGen from './gregor-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -37,11 +38,8 @@ const pushState = (_: unknown, action: EngineGen.Keybase1GregorUIPushStatePayloa
 }
 
 // Gregor reachability is only valid if we're logged in
-const reachabilityChanged = (
-  state: Container.TypedState,
-  action: EngineGen.Keybase1ReachabilityReachabilityChangedPayload
-) =>
-  state.config.loggedIn &&
+const reachabilityChanged = (_: unknown, action: EngineGen.Keybase1ReachabilityReachabilityChangedPayload) =>
+  ConfigConstants.useConfigState.getState().loggedIn &&
   GregorGen.createUpdateReachable({reachable: action.payload.params.reachability.reachable})
 
 // If ever you want to get OOBMs for a different system, then you need to enter it here.

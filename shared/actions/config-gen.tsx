@@ -1,7 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
 import type * as Types from '../constants/types/config'
-import type HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
@@ -19,8 +18,7 @@ export const filePickerError = 'config:filePickerError'
 export const initListenerLoops = 'config:initListenerLoops'
 export const installerRan = 'config:installerRan'
 export const loadOnStart = 'config:loadOnStart'
-export const loggedIn = 'config:loggedIn'
-export const loggedOut = 'config:loggedOut'
+export const loggedInChanged = 'config:loggedInChanged'
 export const logoutAndTryToLogInAs = 'config:logoutAndTryToLogInAs'
 export const logoutHandshake = 'config:logoutHandshake'
 export const mobileAppState = 'config:mobileAppState'
@@ -34,7 +32,6 @@ export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const restartHandshake = 'config:restartHandshake'
 export const revoked = 'config:revoked'
 export const setNavigator = 'config:setNavigator'
-export const setStartupFile = 'config:setStartupFile'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const showMain = 'config:showMain'
 export const showShareActionSheet = 'config:showShareActionSheet'
@@ -89,13 +86,6 @@ export const createFilePickerError = (payload: {readonly error: Error}) => ({
   type: filePickerError as typeof filePickerError,
 })
 /**
- * Stores the startup file path when launching Keybase from a cold start beofre log in
- */
-export const createSetStartupFile = (payload: {readonly startupFile: HiddenString}) => ({
-  payload,
-  type: setStartupFile as typeof setStartupFile,
-})
-/**
  * This action is dispatched multiple times with various flags.
  * If you want to do something as a result of startup or login listen to this.
  */
@@ -106,14 +96,6 @@ export const createLoadOnStart = (payload: {
     | 'reloggedIn'
     | 'startupOrReloginButNotInARush'
 }) => ({payload, type: loadOnStart as typeof loadOnStart})
-/**
- * Used internally to know we were logged in.
- * If you want to react to being logged in likely you want bootstrapStatusLoaded
- */
-export const createLoggedIn = (payload: {
-  readonly causedBySignup: boolean
-  readonly causedByStartup: boolean
-}) => ({payload, type: loggedIn as typeof loggedIn})
 /**
  * a window was shown
  */
@@ -191,7 +173,7 @@ export const createLogoutHandshake = (payload: {readonly version: number}) => ({
   payload,
   type: logoutHandshake as typeof logoutHandshake,
 })
-export const createBootstrapStatusLoaded = (payload: {readonly loggedIn: boolean}) => ({
+export const createBootstrapStatusLoaded = (payload?: undefined) => ({
   payload,
   type: bootstrapStatusLoaded as typeof bootstrapStatusLoaded,
 })
@@ -215,7 +197,10 @@ export const createDumpLogs = (payload: {readonly reason: 'quitting through menu
   payload,
   type: dumpLogs as typeof dumpLogs,
 })
-export const createLoggedOut = (payload?: undefined) => ({payload, type: loggedOut as typeof loggedOut})
+export const createLoggedInChanged = (payload: {readonly causedByStartup: boolean}) => ({
+  payload,
+  type: loggedInChanged as typeof loggedInChanged,
+})
 export const createMobileAppState = (payload: {
   readonly nextAppState: 'active' | 'background' | 'inactive'
 }) => ({payload, type: mobileAppState as typeof mobileAppState})
@@ -267,8 +252,7 @@ export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
-export type LoggedInPayload = ReturnType<typeof createLoggedIn>
-export type LoggedOutPayload = ReturnType<typeof createLoggedOut>
+export type LoggedInChangedPayload = ReturnType<typeof createLoggedInChanged>
 export type LogoutAndTryToLogInAsPayload = ReturnType<typeof createLogoutAndTryToLogInAs>
 export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
 export type MobileAppStatePayload = ReturnType<typeof createMobileAppState>
@@ -282,7 +266,6 @@ export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindow
 export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
 export type RevokedPayload = ReturnType<typeof createRevoked>
 export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
-export type SetStartupFilePayload = ReturnType<typeof createSetStartupFile>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
@@ -308,8 +291,7 @@ export type Actions =
   | InitListenerLoopsPayload
   | InstallerRanPayload
   | LoadOnStartPayload
-  | LoggedInPayload
-  | LoggedOutPayload
+  | LoggedInChangedPayload
   | LogoutAndTryToLogInAsPayload
   | LogoutHandshakePayload
   | MobileAppStatePayload
@@ -323,7 +305,6 @@ export type Actions =
   | RestartHandshakePayload
   | RevokedPayload
   | SetNavigatorPayload
-  | SetStartupFilePayload
   | SetSystemDarkModePayload
   | ShowMainPayload
   | ShowShareActionSheetPayload

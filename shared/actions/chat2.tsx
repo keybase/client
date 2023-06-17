@@ -68,8 +68,8 @@ const inboxRefresh = (
   state: Container.TypedState,
   action: Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload
 ) => {
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  const {loggedIn} = state.config
+  const {username} = ConfigConstants.useCurrentUserState.getState()
+  const {loggedIn} = ConfigConstants.useConfigState.getState()
   if (!loggedIn || !username) {
     return false
   }
@@ -285,7 +285,7 @@ const unboxRows = (
   state: Container.TypedState,
   action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectedConversationPayload
 ) => {
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return false
   }
   switch (action.type) {
@@ -2327,7 +2327,7 @@ const markThreadAsRead = async (
     | ConfigGen.ChangedActivePayload
     | Chat2Gen.TabSelectedPayload
 ) => {
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.info('bail on not logged in')
     return
   }
@@ -2397,7 +2397,7 @@ const markAsUnread = async (
   action: Chat2Gen.MarkAsUnreadPayload,
   listenerApi: Container.ListenerApi
 ) => {
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.info('bail on not logged in')
     return
   }
@@ -2491,8 +2491,8 @@ const markAsUnread = async (
   })
 }
 
-const markTeamAsRead = async (state: Container.TypedState, action: Chat2Gen.MarkTeamAsReadPayload) => {
-  if (!state.config.loggedIn) {
+const markTeamAsRead = async (_: unknown, action: Chat2Gen.MarkTeamAsReadPayload) => {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.info('bail on not logged in')
     return
   }
@@ -2503,7 +2503,7 @@ const markTeamAsRead = async (state: Container.TypedState, action: Chat2Gen.Mark
 }
 
 const messagesAdd = (state: Container.TypedState, _action: Chat2Gen.MessagesAddPayload) => {
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.info('bail on not logged in')
     return
   }

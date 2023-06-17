@@ -1,5 +1,6 @@
 import * as AutoresetGen from './autoreset-gen'
 import * as Constants from '../constants/recover-password'
+import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as ProvisionConstants from '../constants/provision'
 import * as ProvisionGen from './provision-gen'
@@ -149,9 +150,13 @@ const displayDeviceSelect = (_: unknown, action: RecoverPasswordGen.DisplayDevic
     replace: !!action.payload.replaceRoute,
   })
 
-const displayError = (state: Container.TypedState) =>
+const displayError = () =>
   RouteTreeGen.createNavigateAppend({
-    path: [state.config.loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError'],
+    path: [
+      ConfigConstants.useConfigState.getState().loggedIn
+        ? 'recoverPasswordErrorModal'
+        : 'recoverPasswordError',
+    ],
     replace: true,
   })
 

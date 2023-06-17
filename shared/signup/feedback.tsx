@@ -1,4 +1,5 @@
 import * as Constants from '../constants/settings'
+import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -8,7 +9,7 @@ import FeedbackForm from '../settings/feedback/index'
 import {SignupScreen, errorBanner} from './common'
 
 export default () => {
-  const loggedOut = Container.useSelector(state => !state.config.loggedIn)
+  const loggedOut = ConfigConstants.useConfigState(s => !s.loggedIn)
   const sendError = Container.useSelector(state => state.settings.feedback.error)
   const sending = Container.useAnyWaiting(Constants.sendFeedbackWaitingKey)
 

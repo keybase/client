@@ -1,4 +1,5 @@
 import * as Constants from '../constants/people'
+import * as ConfigConstants from '../constants/config'
 import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import * as Router2Constants from '../constants/router2'
 import * as Container from '../util/container'
@@ -260,9 +261,15 @@ const reduceRPCItemToPeopleItem = (
 
   return list
 }
-const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetPeopleDataPayload) => {
+const getPeopleData = async (_: unknown, action: PeopleGen.GetPeopleDataPayload) => {
   // more logging to understand why this fails so much
-  logger.info('getPeopleData: appFocused:', 'loggedIn', state.config.loggedIn, 'action', action)
+  logger.info(
+    'getPeopleData: appFocused:',
+    'loggedIn',
+    ConfigConstants.useConfigState.getState().loggedIn,
+    'action',
+    action
+  )
   let markViewed = false
   let numFollowSuggestionsWanted = defaultNumFollowSuggestions
   if (action.type === PeopleGen.getPeopleData) {

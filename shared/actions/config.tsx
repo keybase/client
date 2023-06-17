@@ -22,22 +22,22 @@ import logger from '../logger'
 import {initPlatformListener} from './platform-specific'
 import isEqual from 'lodash/isEqual'
 
-const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
+const onLoggedIn = () => {
   logger.info('keybase.1.NotifySession.loggedIn')
   // only send this if we think we're not logged in
-  if (!state.config.loggedIn) {
-    return ConfigGen.createLoggedIn({causedBySignup: action.payload.params.signedUp, causedByStartup: false})
+  const {loggedIn, dispatch} = Constants.useConfigState.getState()
+  if (!loggedIn) {
+    dispatch.setLoggedIn(true, false)
   }
-  return undefined
 }
 
-const onLoggedOut = (state: Container.TypedState) => {
+const onLoggedOut = () => {
   logger.info('keybase.1.NotifySession.loggedOut')
+  const {loggedIn, dispatch} = Constants.useConfigState.getState()
   // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-  if (state.config.loggedIn) {
-    return ConfigGen.createLoggedOut()
+  if (loggedIn) {
+    dispatch.setLoggedIn(false)
   }
-  return undefined
 }
 
 const getFollowerInfo = (_: unknown, action: ConfigGen.LoadOnStartPayload) => {
@@ -62,14 +62,13 @@ let wasUnreachable = false
 const loadDaemonBootstrapStatus = async (
   _: Container.TypedState,
   action:
-    | ConfigGen.LoggedInPayload
+    | ConfigGen.LoggedInChangedPayload
     | ConfigGen.DaemonHandshakePayload
-    | GregorGen.UpdateReachablePayload
-    | ConfigGen.LoggedOutPayload,
+    | GregorGen.UpdateReachablePayload,
   listenerApi: Container.ListenerApi
 ) => {
   // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
-  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+  if (action.type === ConfigGen.loggedInChanged && action.payload.causedByStartup) {
     return
   }
 
@@ -85,16 +84,16 @@ const loadDaemonBootstrapStatus = async (
     const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
     const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
     setBootstrap({deviceID, deviceName, uid, username})
+    listenerApi.dispatch(ConfigGen.createBootstrapStatusLoaded())
     if (username) {
       setDefaultUsername(username)
     }
-    const loadedAction = ConfigGen.createBootstrapStatusLoaded({loggedIn})
     if (loggedIn) {
       Constants.useConfigState.getState().dispatch.setUserSwitching(false)
     }
 
-    logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
-    listenerApi.dispatch(loadedAction)
+    logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
+    Constants.useConfigState.getState().dispatch.setLoggedIn(loggedIn)
     listenerApi.dispatch(Chat2Gen.createUpdateUserReacjis({userReacjis}))
 
     // set HTTP srv info
@@ -106,7 +105,7 @@ const loadDaemonBootstrapStatus = async (
     }
 
     // if we're logged in act like getAccounts is done already
-    if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
+    if (action.type === ConfigGen.daemonHandshake && loggedIn) {
       const {handshakeWaiters} = Constants.useDaemonState.getState()
       const {version} = action.payload
       if (handshakeWaiters.get(getAccountsWaitKey)) {
@@ -131,10 +130,7 @@ const loadDaemonBootstrapStatus = async (
         await makeCall()
       }
       break
-    case ConfigGen.loggedIn:
-      await makeCall()
-      break
-    case ConfigGen.loggedOut:
+    case ConfigGen.loggedInChanged:
       await makeCall()
       break
   }
@@ -145,16 +141,16 @@ const loadDaemonBootstrapStatus = async (
 const getAccountsWaitKey = 'config.getAccounts'
 
 const loadDaemonAccounts = async (
-  state: Container.TypedState,
-  action:
-    | ConfigGen.RevokedPayload
-    | ConfigGen.DaemonHandshakePayload
-    | ConfigGen.LoggedOutPayload
-    | ConfigGen.LoggedInPayload,
+  _: unknown,
+  action: ConfigGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedInChangedPayload,
   listenerApi: Container.ListenerApi
 ) => {
   // ignore since we handle handshake
-  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+  if (
+    action.type === ConfigGen.loggedInChanged &&
+    Constants.useConfigState.getState().loggedIn &&
+    action.payload.causedByStartup
+  ) {
     return
   }
 
@@ -164,7 +160,7 @@ const loadDaemonAccounts = async (
   if (action.type === ConfigGen.daemonHandshake) {
     handshakeVersion = action.payload.version
     // did we beat getBootstrapStatus?
-    if (!state.config.loggedIn) {
+    if (!Constants.useConfigState.getState().loggedIn) {
       handshakeWait = true
     }
   }
@@ -220,8 +216,6 @@ const loadDaemonAccounts = async (
   }
 }
 
-const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
-
 // Monster push prompt
 // We've just started up, we don't have the permissions, we're logged in and we
 // haven't just signed up. This handles the scenario where the push notifications
@@ -234,7 +228,7 @@ const onShowPermissionsPrompt = async (
   if (
     !Platform.isMobile ||
     !action.payload.show ||
-    !state.config.loggedIn ||
+    !Constants.useConfigState.getState().loggedIn ||
     state.push.justSignedUp ||
     state.push.hasPermissions
   ) {
@@ -278,14 +272,16 @@ const maybeLoadAppLink = (state: Container.TypedState) => {
   ]
 }
 
-let _emitInitialLoggedInOnce = false
-const emitInitialLoggedIn = (state: Container.TypedState) => {
-  if (_emitInitialLoggedInOnce) {
-    return false
-  }
-  _emitInitialLoggedInOnce = true
-  return state.config.loggedIn && ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: true})
-}
+// let _emitInitialLoggedInOnce = false
+// const emitInitialLoggedIn = () => {
+//   if (_emitInitialLoggedInOnce) {
+//     return false
+//   }
+//   _emitInitialLoggedInOnce = true
+//   if (Constants.useConfigState.getState().loggedIn) {
+//     ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: true})
+//   }
+// }
 
 const allowLogoutWaiters = async (
   _: Container.TypedState,
@@ -299,9 +295,9 @@ const allowLogoutWaiters = async (
   Constants.useLogoutState.getState().dispatch.wait(waitKey, version, false)
 }
 
-const updateServerConfig = async (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) =>
+const updateServerConfig = async (_: unknown, action: ConfigGen.LoadOnStartPayload) =>
   action.payload.phase === 'startupOrReloginButNotInARush' &&
-  state.config.loggedIn &&
+  Constants.useConfigState.getState().loggedIn &&
   RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
     serverConfigPath: Platform.serverConfigFileName,
   }).catch(e => {
@@ -323,11 +319,8 @@ const newNavigation = (
   Router2.dispatchOldAction(action)
 }
 
-const logoutAndTryToLogInAs = async (
-  state: Container.TypedState,
-  action: ConfigGen.LogoutAndTryToLogInAsPayload
-) => {
-  if (state.config.loggedIn) {
+const logoutAndTryToLogInAs = async (_: unknown, action: ConfigGen.LogoutAndTryToLogInAsPayload) => {
+  if (Constants.useConfigState.getState().loggedIn) {
     await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true}, LoginConstants.waitingKey)
   }
 
@@ -344,34 +337,6 @@ const emitStartupOnLoadNotInARush = async () => {
   })
 }
 
-const emitStartupOnLoadNotInARushLoggedIn = async (
-  _: Container.TypedState,
-  action: ConfigGen.LoggedInPayload
-) => {
-  if (action.payload.causedByStartup) {
-    return false
-  }
-  await Container.timeoutPromise(1000)
-  return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
-    requestAnimationFrame(() => {
-      resolve(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
-    })
-  })
-}
-
-let _emitStartupOnLoadDaemonConnectedOnce = false
-const emitStartupOnLoadDaemonConnectedOnce = () => {
-  if (!_emitStartupOnLoadDaemonConnectedOnce) {
-    _emitStartupOnLoadDaemonConnectedOnce = true
-    return ConfigGen.createLoadOnStart({phase: 'connectedToDaemonForFirstTime'})
-  }
-  return false
-}
-
-const emitStartupOnLoadLoggedIn = (_: Container.TypedState, action: ConfigGen.LoggedInPayload) => {
-  return !action.payload.causedByStartup ? ConfigGen.createLoadOnStart({phase: 'reloggedIn'}) : false
-}
-
 const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEventPayload) => {
   const {event} = action.payload
   try {
@@ -385,19 +350,44 @@ const initConfig = () => {
   })
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   Container.listenAction(
-    [ConfigGen.loggedIn, ConfigGen.daemonHandshake, GregorGen.updateReachable],
+    [ConfigGen.loggedInChanged, ConfigGen.daemonHandshake, GregorGen.updateReachable],
     loadDaemonBootstrapStatus
   )
   // Load the known accounts if you revoke / handshake / logout
   Container.listenAction(
-    [ConfigGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedOut, ConfigGen.loggedIn],
+    [ConfigGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedInChanged],
     loadDaemonAccounts
   )
 
   Container.listenAction(ConfigGen.daemonHandshakeDone, emitStartupOnLoadNotInARush)
-  Container.listenAction(ConfigGen.daemonHandshakeDone, emitStartupOnLoadDaemonConnectedOnce)
-  Container.listenAction(ConfigGen.loggedIn, emitStartupOnLoadLoggedIn)
-  Container.listenAction(ConfigGen.loggedIn, emitStartupOnLoadNotInARushLoggedIn)
+
+  let _emitStartupOnLoadDaemonConnectedOnce = false
+  Container.listenAction(ConfigGen.daemonHandshakeDone, () => {
+    if (!_emitStartupOnLoadDaemonConnectedOnce) {
+      _emitStartupOnLoadDaemonConnectedOnce = true
+      return ConfigGen.createLoadOnStart({phase: 'connectedToDaemonForFirstTime'})
+    }
+    return false
+  })
+  Container.listenAction(ConfigGen.loggedInChanged, (_, action) => {
+    return Constants.useConfigState.getState().loggedIn && !action.payload.causedByStartup
+      ? ConfigGen.createLoadOnStart({phase: 'reloggedIn'})
+      : false
+  })
+  Container.listenAction(ConfigGen.loggedInChanged, async (_, action) => {
+    if (!Constants.useConfigState.getState().loggedIn) {
+      return false
+    }
+    if (action.payload.causedByStartup) {
+      return false
+    }
+    await Container.timeoutPromise(1000)
+    return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
+      requestAnimationFrame(() => {
+        resolve(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
+      })
+    })
+  })
 
   Container.listenAction(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs)
 
@@ -415,12 +405,16 @@ const initConfig = () => {
     newNavigation
   )
   // If you start logged in we don't get the incoming call from the daemon so we generate our own here
-  Container.listenAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
+  // Container.listenAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
 
   // Give time for all waiters to register and allow the case where there are no waiters
   Container.listenAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
   // When we're all done lets clean up
-  Container.listenAction(ConfigGen.loggedOut, resetGlobalStore)
+  Container.listenAction(ConfigGen.loggedInChanged, () => {
+    return !Constants.useConfigState.getState().loggedIn
+      ? ({payload: {}, type: 'common:resetStore'} as any)
+      : null
+  })
   // Store per user server config info
   Container.listenAction(ConfigGen.loadOnStart, updateServerConfig)
 

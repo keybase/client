@@ -1,6 +1,5 @@
 import autoreset from './autoreset'
 import chat2 from './chat2'
-import config from './config'
 import crypto from './crypto'
 import deeplinks from './deeplinks'
 import fs from './fs'
@@ -23,7 +22,6 @@ import wallets from './wallets'
 export const reducers = {
   autoreset,
   chat2,
-  config,
   crypto,
   deeplinks,
   fs,

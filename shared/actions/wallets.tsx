@@ -78,7 +78,7 @@ const buildPayment = async (state: Container.TypedState) => {
 }
 
 const spawnBuildPayment = (
-  state: Container.TypedState,
+  _: unknown,
   action:
     | WalletsGen.SetBuildingAmountPayload
     | WalletsGen.SetBuildingCurrencyPayload
@@ -88,7 +88,7 @@ const spawnBuildPayment = (
     | WalletsGen.DisplayCurrencyReceivedPayload
     | WalletsGen.BuildingPaymentIDReceivedPayload
 ) => {
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.error('not logged in')
     return false
   }
@@ -423,14 +423,14 @@ const loadWalletDisclaimer = async (
 }
 
 const loadAccounts = async (
-  state: Container.TypedState,
+  _: unknown,
   action:
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.CreatedNewAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.DeletedAccountPayload
 ) => {
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.error('not logged in')
     return false
   }
@@ -506,7 +506,7 @@ const loadAssets = async (state: Container.TypedState, action: LoadAssetsActions
   if (action.type === WalletsGen.linkedExistingAccount && action.payload.error) {
     return false
   }
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.error('not logged in')
     return false
   }
@@ -587,7 +587,7 @@ type LoadPaymentsActions =
 const loadPayments = async (state: Container.TypedState, action: LoadPaymentsActions) => {
   const {accountID} = action.payload
 
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.error('not logged in')
     return false
   }
@@ -616,7 +616,7 @@ const loadPayments = async (state: Container.TypedState, action: LoadPaymentsAct
 }
 
 const loadMorePayments = async (state: Container.TypedState, action: WalletsGen.LoadMorePaymentsPayload) => {
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.error('not logged in')
     return false
   }
@@ -920,7 +920,7 @@ const exportSecretKey = async (_: unknown, action: WalletsGen.ExportSecretKeyPay
 }
 
 const maybeSelectDefaultAccount = (state: Container.TypedState, _: WalletsGen.AccountsReceivedPayload) => {
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.error('not logged in')
     return false
   }

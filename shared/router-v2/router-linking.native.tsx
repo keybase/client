@@ -145,7 +145,10 @@ const makeLinking = (options: OptionsType) => {
 }
 
 const ShowMonsterSelector = (state: Container.TypedState) =>
-  state.config.loggedIn && !state.push.justSignedUp && state.push.showPushPrompt && !state.push.hasPermissions
+  ConfigConstants.useConfigState.getState().loggedIn &&
+  !state.push.justSignedUp &&
+  state.push.showPushPrompt &&
+  !state.push.hasPermissions
 
 // gets state from redux used to make the linking object
 export const useReduxToLinking = (appState: Shared.AppState) => {

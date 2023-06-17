@@ -1259,11 +1259,8 @@ const getMembers = async (_: unknown, action: TeamsGen.GetMembersPayload) => {
   return
 }
 
-const badgeAppForTeams = (
-  state: Container.TypedState,
-  action: NotificationsGen.ReceivedBadgeStatePayload
-) => {
-  const loggedIn = state.config.loggedIn
+const badgeAppForTeams = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) => {
+  const loggedIn = ConfigConstants.useConfigState.getState().loggedIn
   if (!loggedIn) {
     // Don't make any calls we don't have permission to.
     return

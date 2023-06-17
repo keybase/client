@@ -10,9 +10,9 @@ const RemoteContainer = () => {
   const {
     avatarRefreshCounter,
     daemonHandshakeState,
-    config,
     followers,
     following,
+    loggedIn,
     outOfDate,
     username,
     httpSrvAddress,
@@ -26,10 +26,11 @@ const RemoteContainer = () => {
   ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
   ConfigConstants.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
+  ConfigConstants.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn)
   return (
     <Menubar
       {...rest}
-      {...config}
+      loggedIn={loggedIn}
       username={username}
       daemonHandshakeState={daemonHandshakeState}
       windowShownCount={windowShownCountNum}
