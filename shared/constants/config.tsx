@@ -40,10 +40,6 @@ export const publicFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
-export const initialState: Types.State = {
-  loggedIn: false,
-}
-
 export type ZStore = {
   allowAnimatedEmojis: boolean
   androidShare?:
@@ -66,6 +62,7 @@ export type ZStore = {
   incomingShareUseOriginal?: boolean
   justDeletedSelf: string
   justRevokedSelf: string
+  loggedIn: boolean
   logoutHandshakeVersion: number
   logoutHandshakeWaiters: Map<string, number>
   notifySound: boolean
@@ -111,6 +108,7 @@ const initialZState: ZStore = {
   incomingShareUseOriginal: undefined,
   justDeletedSelf: '',
   justRevokedSelf: '',
+  loggedIn: false,
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
   notifySound: false,
@@ -165,6 +163,7 @@ type ZState = ZStore & {
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
+    setLoggedIn: (l: boolean, causedByStartup?: boolean) => void
     setNotifySound: (n: boolean) => void
     setStartupDetails: (st: Omit<ZStore['startup'], 'loaded'>) => void
     setStartupDetailsLoaded: () => void
@@ -361,6 +360,15 @@ export const useConfigState = createZustand(
         set(s => {
           s.justDeletedSelf = self
         })
+      },
+      setLoggedIn: (l: boolean, causedByStartup = false) => {
+        if (l === get().loggedIn) {
+          return
+        }
+        set(s => {
+          s.loggedIn = l
+        })
+        reduxDispatch(ConfigGen.createLoggedInChanged({causedByStartup}))
       },
       setNotifySound: (n: boolean) => {
         set(s => {

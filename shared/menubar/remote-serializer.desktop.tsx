@@ -1,6 +1,6 @@
 import * as FSTypes from '../constants/types/fs'
 import type * as ChatTypes from '../constants/types/chat2'
-import type {State as ConfigState, DaemonHandshakeState, OutOfDate} from '../constants/types/config'
+import type {DaemonHandshakeState, OutOfDate} from '../constants/types/config'
 import type {State as NotificationsState} from '../constants/types/notifications'
 import type {State as UsersState, UserInfo} from '../constants/types/users'
 import type {Tab} from '../constants/tabs'
@@ -16,8 +16,6 @@ export type RemoteTlfUpdates = {
 }
 
 // for convenience we flatten the props we send over the wire
-type ConfigHoistedProps = 'loggedIn'
-
 type UsersHoistedProps = 'infoMap'
 
 type Conversation = {
@@ -51,6 +49,7 @@ export type ProxyProps = {
   following: Set<string>
   kbfsDaemonStatus: KbfsDaemonStatus
   kbfsEnabled: boolean
+  loggedIn: boolean
   remoteTlfUpdates: Array<RemoteTlfUpdates>
   showingDiskSpaceBanner?: boolean
   outOfDate: OutOfDate
@@ -59,8 +58,7 @@ export type ProxyProps = {
   httpSrvAddress: string
   httpSrvToken: string
   windowShownCountNum: number
-} & Pick<ConfigState, ConfigHoistedProps> &
-  Pick<NotificationsState, 'navBadges'> &
+} & Pick<NotificationsState, 'navBadges'> &
   Pick<UsersState, UsersHoistedProps>
 
 type SerializeProps = Omit<
@@ -78,7 +76,7 @@ type SerializeProps = Omit<
 // props we don't send at all if they're falsey
 type RemovedEmpties = 'darkMode' | 'fileName' | 'files' | 'totalSyncingBytes' | 'showingDiskSpaceBanner'
 
-export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps | RemovedEmpties> & {
+export type DeserializeProps = Omit<ProxyProps, UsersHoistedProps | RemovedEmpties> & {
   avatarRefreshCounter: Map<string, number>
   darkMode: boolean
   daemonHandshakeState: DaemonHandshakeState
@@ -110,8 +108,8 @@ export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoiste
     unreadMap: Map<string, number>
     mutedMap: Map<string, number>
   }
+  loggedIn: boolean
   outOfDate: OutOfDate
-  config: Pick<ConfigState, ConfigHoistedProps>
   users: Pick<UsersState, UsersHoistedProps>
   username: string
   windowShownCountNum: number
@@ -126,9 +124,6 @@ const initialState: DeserializeProps = {
     mutedMap: new Map(),
     participantMap: new Map(),
     unreadMap: new Map(),
-  },
-  config: {
-    loggedIn: false,
   },
   conversationsToSend: [],
   daemonHandshakeState: 'starting',
@@ -146,6 +141,7 @@ const initialState: DeserializeProps = {
     rpcStatus: FSTypes.KbfsDaemonRpcStatus.Connected,
   },
   kbfsEnabled: false,
+  loggedIn: false,
   navBadges: new Map(),
   outOfDate: {
     critical: false,
@@ -203,7 +199,7 @@ export const deserialize = (
       s.httpSrvToken = httpSrvToken
     }
     if (loggedIn !== undefined) {
-      s.config.loggedIn = loggedIn
+      s.loggedIn = loggedIn
     }
     if (outOfDate !== undefined) {
       s.outOfDate = outOfDate

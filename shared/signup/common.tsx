@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Container from '../util/container'
+import * as ConfigConstants from '../constants/config'
 import * as Kb from '../common-adapters'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {type Props as ButtonProps} from '../common-adapters/button'
@@ -12,7 +13,7 @@ type InfoIconProps = {
 }
 
 export const InfoIcon = (props: InfoIconProps) => {
-  const loggedIn = Container.useSelector(state => state.config.loggedIn)
+  const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
   const dispatch = Container.useDispatch()
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {

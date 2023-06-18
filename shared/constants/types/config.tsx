@@ -13,7 +13,3 @@ export type ConfiguredAccount = {
 }
 // 'notavailable' is the desktop default
 export type ConnectionType = NetInfo.NetInfoStateType | 'notavailable'
-
-export type State = {
-  loggedIn: boolean
-}

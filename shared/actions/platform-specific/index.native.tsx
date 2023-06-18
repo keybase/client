@@ -761,7 +761,7 @@ export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.openAppStore, openAppStore)
   Container.listenAction(ConfigGen.filePickerError, handleFilePickerError)
   Container.listenAction(ProfileGen.editAvatar, editAvatar)
-  Container.listenAction(ConfigGen.loggedIn, initOsNetworkStatus)
+  Container.listenAction(ConfigGen.loggedInChanged, initOsNetworkStatus)
   Container.listenAction(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
 
   Container.listenAction(ConfigGen.showShareActionSheet, onShareAction)

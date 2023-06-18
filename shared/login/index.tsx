@@ -1,13 +1,12 @@
 import * as React from 'react'
 import * as ConfigConstants from '../constants/config'
-import * as Container from '../util/container'
 
 const Loading = React.lazy(async () => import('./loading/container'))
 const Relogin = React.lazy(async () => import('./relogin/container'))
 const JoinOrLogin = React.lazy(async () => import('./join-or-login/container'))
 
 const RootLogin = () => {
-  const isLoggedIn = Container.useSelector(state => state.config.loggedIn)
+  const isLoggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
   const userSwitching = ConfigConstants.useConfigState(s => s.userSwitching)
   const showLoading = ConfigConstants.useDaemonState(s => s.handshakeState !== 'done' || userSwitching)
   const showRelogin = ConfigConstants.useConfigState(s => !showLoading && s.configuredAccounts.length > 0)

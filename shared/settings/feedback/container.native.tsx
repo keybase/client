@@ -108,7 +108,7 @@ const getPushTokenForLogSend = (state: Container.TypedState) => ({pushToken: sta
 const Connected = (ownProps: OwnProps) => {
   const feedback = ownProps.feedback ?? ''
   const chat = Container.useSelector(state => getExtraChatLogsForLogSend(state))
-  const loggedOut = Container.useSelector(state => !state.config.loggedIn)
+  const loggedOut = ConfigConstants.useConfigState(s => !s.loggedIn)
   const push = Container.useSelector(state => getPushTokenForLogSend(state))
 
   const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)

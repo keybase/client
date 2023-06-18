@@ -113,9 +113,9 @@ const loadAdditionalTlf = async (_: unknown, action: FsGen.LoadAdditionalTlfPayl
   }
 }
 
-const loadFavorites = async (state: Container.TypedState) => {
+const loadFavorites = async () => {
   try {
-    if (!state.config.loggedIn) {
+    if (!ConfigConstants.useConfigState.getState().loggedIn) {
       return false
     }
     const results = await RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
@@ -722,19 +722,6 @@ const waitForKbfsDaemon = async () => {
   return FsGen.createCheckKbfsDaemonRpcStatus()
 }
 
-const checkKbfsDaemonRpcStatus = async (state: Container.TypedState) => {
-  const connected = await RPCTypes.configWaitForClientRpcPromise({
-    clientType: RPCTypes.ClientType.kbfs,
-    timeout: 0, // Don't wait; just check if it's there.
-  })
-  const newStatus = connected ? Types.KbfsDaemonRpcStatus.Connected : Types.KbfsDaemonRpcStatus.Waiting
-  return [
-    state.fs.kbfsDaemonStatus.rpcStatus !== newStatus &&
-      FsGen.createKbfsDaemonRpcStatusChanged({rpcStatus: newStatus}),
-    newStatus === Types.KbfsDaemonRpcStatus.Waiting && FsGen.createWaitForKbfsDaemon(),
-  ]
-}
-
 const startManualCR = async (_: unknown, action: FsGen.StartManualConflictResolutionPayload) => {
   await RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
@@ -1159,8 +1146,22 @@ const initFS = () => {
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
   Container.listenAction([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
   Container.listenAction(
-    [ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.userIn, FsGen.checkKbfsDaemonRpcStatus],
-    checkKbfsDaemonRpcStatus
+    [ConfigGen.installerRan, ConfigGen.loggedInChanged, FsGen.userIn, FsGen.checkKbfsDaemonRpcStatus],
+    async (state, a) => {
+      if (a.type === ConfigGen.loggedInChanged && !ConfigConstants.useConfigState.getState().loggedIn) {
+        return
+      }
+      const connected = await RPCTypes.configWaitForClientRpcPromise({
+        clientType: RPCTypes.ClientType.kbfs,
+        timeout: 0, // Don't wait; just check if it's there.
+      })
+      const newStatus = connected ? Types.KbfsDaemonRpcStatus.Connected : Types.KbfsDaemonRpcStatus.Waiting
+      return [
+        state.fs.kbfsDaemonStatus.rpcStatus !== newStatus &&
+          FsGen.createKbfsDaemonRpcStatusChanged({rpcStatus: newStatus}),
+        newStatus === Types.KbfsDaemonRpcStatus.Waiting && FsGen.createWaitForKbfsDaemon(),
+      ]
+    }
   )
   Container.listenAction(FsGen.waitForKbfsDaemon, waitForKbfsDaemon)
   Container.listenAction(FsGen.setTlfSyncConfig, setTlfSyncConfig)

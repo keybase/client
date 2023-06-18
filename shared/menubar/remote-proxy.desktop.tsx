@@ -71,10 +71,10 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
   const windowShownCount = ConfigConstants.useConfigState(s => s.windowShownCount)
   const outOfDate = ConfigConstants.useConfigState(s => s.outOfDate)
+  const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
   const s = Container.useSelector(state => {
-    const {notifications, config, fs, chat2, users} = state
+    const {notifications, fs, chat2, users} = state
     const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
-    const {loggedIn} = config
     const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
     const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
     const widgetList = inboxLayout?.widgetList
@@ -85,7 +85,6 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
       desktopAppBadgeCount,
       infoMap,
       kbfsDaemonStatus,
-      loggedIn,
       metaMap,
       navBadges,
       overallSyncStatus,
@@ -101,7 +100,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   }, shallowEqual)
 
   const {sfmi, tlfUpdates, unreadMap, uploads, badgeMap, desktopAppBadgeCount} = s
-  const {widgetList, widgetBadge, infoMap, kbfsDaemonStatus, loggedIn, metaMap} = s
+  const {widgetList, widgetBadge, infoMap, kbfsDaemonStatus, metaMap} = s
   const {navBadges, overallSyncStatus, participantMap, pathItems} = s
 
   const darkMode = Styles.isDarkMode()

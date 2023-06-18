@@ -1,6 +1,5 @@
 // Look at this doc: https://goo.gl/7B6p4H
 import * as LoginGen from './login-gen'
-import * as ConfigGen from './config-gen'
 import * as ProvisionGen from './provision-gen'
 import * as Constants from '../constants/login'
 import * as ConfigConstants from '../constants/config'
@@ -78,13 +77,13 @@ const login = async (
       listenerApi
     )
     logger.info('login call succeeded')
-    listenerApi.dispatch(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
+    ConfigConstants.useConfigState.getState().dispatch.setLoggedIn(true, false)
   } catch (error) {
     if (!(error instanceof RPCError)) {
       return
     }
     if (error.code === RPCTypes.StatusCode.scalreadyloggedin) {
-      listenerApi.dispatch(ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: false}))
+      ConfigConstants.useConfigState.getState().dispatch.setLoggedIn(true, false)
     } else if (error.desc !== cancelDesc) {
       // If we're canceling then ignore the error
       error.desc = niceError(error)

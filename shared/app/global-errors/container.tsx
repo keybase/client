@@ -8,7 +8,7 @@ import GlobalError from '.'
 import {settingsTab} from '../../constants/tabs'
 
 const Connected = () => {
-  const loggedIn = Container.useSelector(s => s.config.loggedIn)
+  const loggedIn = Constants.useConfigState(s => s.loggedIn)
   const daemonError = Constants.useDaemonState(s => s.error)
   const error = Constants.useConfigState(s => s.globalError)
   const setGlobalError = Constants.useConfigState(s => s.dispatch.setGlobalError)

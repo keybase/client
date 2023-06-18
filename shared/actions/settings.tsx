@@ -340,11 +340,8 @@ const deleteAccountForever = async (_: unknown, action: SettingsGen.DeleteAccoun
   ]
 }
 
-const loadSettings = async (
-  state: Container.TypedState,
-  _: SettingsGen.LoadSettingsPayload | ConfigGen.BootstrapStatusLoadedPayload
-) => {
-  if (!state.config.loggedIn) {
+const loadSettings = async () => {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return false
   }
   try {
@@ -484,8 +481,8 @@ const checkPassword = async (_: unknown, action: SettingsGen.CheckPasswordPayloa
   return SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: res})
 }
 
-const loadLockdownMode = async (state: Container.TypedState) => {
-  if (!state.config.loggedIn) {
+const loadLockdownMode = async () => {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return false
   }
   try {
@@ -517,11 +514,8 @@ const saveProxyData = async (_: unknown, proxyDataPayload: SettingsGen.SaveProxy
   }
 }
 
-const setLockdownMode = async (
-  state: Container.TypedState,
-  action: SettingsGen.OnChangeLockdownModePayload
-) => {
-  if (!state.config.loggedIn) {
+const setLockdownMode = async (_: unknown, action: SettingsGen.OnChangeLockdownModePayload) => {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return false
   }
 
@@ -569,8 +563,8 @@ const sendFeedback = async (state: Container.TypedState, action: SettingsGen.Sen
   }
 }
 
-const contactSettingsRefresh = async (state: Container.TypedState) => {
-  if (!state.config.loggedIn) {
+const contactSettingsRefresh = async () => {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return false
   }
   try {
@@ -588,11 +582,8 @@ const contactSettingsRefresh = async (state: Container.TypedState) => {
   }
 }
 
-const contactSettingsSaved = async (
-  state: Container.TypedState,
-  action: SettingsGen.ContactSettingsSavedPayload
-) => {
-  if (!state.config.loggedIn) {
+const contactSettingsSaved = async (_: unknown, action: SettingsGen.ContactSettingsSavedPayload) => {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return false
   }
 
@@ -629,8 +620,8 @@ const contactSettingsSaved = async (
   }
 }
 
-const unfurlSettingsRefresh = async (state: Container.TypedState) => {
-  if (!state.config.loggedIn) {
+const unfurlSettingsRefresh = async () => {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return false
   }
   try {
@@ -646,11 +637,8 @@ const unfurlSettingsRefresh = async (state: Container.TypedState) => {
   }
 }
 
-const unfurlSettingsSaved = async (
-  state: Container.TypedState,
-  action: SettingsGen.UnfurlSettingsSavedPayload
-) => {
-  if (!state.config.loggedIn) {
+const unfurlSettingsSaved = async (_: unknown, action: SettingsGen.UnfurlSettingsSavedPayload) => {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return false
   }
 
@@ -779,10 +767,10 @@ const verifyPhoneNumber = async (_: unknown, action: SettingsGen.VerifyPhoneNumb
 }
 
 const loadContactImportEnabled = async (
-  state: Container.TypedState,
+  _: unknown,
   action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.LoadOnStartPayload
 ) => {
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return
   }
   if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {

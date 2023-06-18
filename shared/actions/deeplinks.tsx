@@ -9,6 +9,7 @@ import * as WalletsGen from './wallets-gen'
 import * as TeamsGen from './teams-gen'
 import * as CryptoGen from '../actions/crypto-gen'
 import * as CrytoConstants from '../constants/crypto'
+import * as ConfigConstants from '../constants/config'
 import type * as CryptoTypes from '../constants/types/crypto'
 import URL from 'url-parse'
 import logger from '../logger'
@@ -287,14 +288,11 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
   return false
 }
 
-const handleSaltpackOpenFile = (
-  state: Container.TypedState,
-  action: DeeplinksGen.SaltpackFileOpenPayload
-) => {
+const handleSaltpackOpenFile = (_: unknown, action: DeeplinksGen.SaltpackFileOpenPayload) => {
   const path =
     typeof action.payload.path === 'string' ? action.payload.path : action.payload.path.stringValue()
 
-  if (!state.config.loggedIn) {
+  if (!ConfigConstants.useConfigState.getState().loggedIn) {
     console.warn('Tried to open a saltpack file before being logged in')
     return
   }

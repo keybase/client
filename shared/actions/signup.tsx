@@ -67,9 +67,9 @@ const checkInviteCode = async (state: Container.TypedState) => {
   }
 }
 
-const requestAutoInvite = async (state: Container.TypedState) => {
+const requestAutoInvite = async () => {
   // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-  if (state.config.loggedIn) {
+  if (ConfigConstants.useConfigState.getState().loggedIn) {
     await RPCTypes.loginLogoutRpcPromise(
       {force: false, keepSecrets: true},
       ConfigConstants.createOtherAccountWaitingKey

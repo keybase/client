@@ -224,7 +224,7 @@ export const initPlatformListener = () => {
   Container.listenAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
   Container.listenAction(ConfigGen.copyToClipboard, onCopyToClipboard)
   Container.listenAction(ConfigGen.restartHandshake, sendWindowsKBServiceCheck)
-  Container.listenAction(ConfigGen.loggedIn, initOsNetworkStatus)
+  Container.listenAction(ConfigGen.loggedInChanged, initOsNetworkStatus)
 
   ConfigConstants.useConfigState.subscribe((s, prev) => {
     if (s.appFocused !== prev.appFocused) {
