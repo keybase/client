@@ -275,17 +275,6 @@ const maybeLoadAppLink = (state: Container.TypedState) => {
   ]
 }
 
-// let _emitInitialLoggedInOnce = false
-// const emitInitialLoggedIn = () => {
-//   if (_emitInitialLoggedInOnce) {
-//     return false
-//   }
-//   _emitInitialLoggedInOnce = true
-//   if (Constants.useConfigState.getState().loggedIn) {
-//     ConfigGen.createLoggedIn({causedBySignup: false, causedByStartup: true})
-//   }
-// }
-
 const allowLogoutWaiters = async (
   _: Container.TypedState,
   action: ConfigGen.LogoutHandshakePayload,
@@ -407,8 +396,6 @@ const initConfig = () => {
     ],
     newNavigation
   )
-  // If you start logged in we don't get the incoming call from the daemon so we generate our own here
-  // Container.listenAction(ConfigGen.daemonHandshakeDone, emitInitialLoggedIn)
 
   // Give time for all waiters to register and allow the case where there are no waiters
   Container.listenAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
