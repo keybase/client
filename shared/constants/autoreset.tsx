@@ -44,6 +44,7 @@ type ZState = State & {
 export const useState = Container.createZustand(
   Container.immerZustand<ZState>((set, get) => {
     const reduxDispatch = Container.getReduxDispatch()
+    const reduxStore = Container.getReduxStore()
     const dispatch = {
       cancelReset: () => {
         const f = async () => {
@@ -163,7 +164,8 @@ export const useState = Container.createZustand(
         }
         Container.ignorePromise(f())
       },
-      startAccountReset: (skipPassword: boolean, username: string) => {
+      startAccountReset: (skipPassword: boolean, _username: string) => {
+        const username = _username || reduxStore().recoverPassword.username
         set(s => {
           s.skipPassword = skipPassword
           s.error = ''
