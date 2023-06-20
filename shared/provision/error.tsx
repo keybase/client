@@ -1,5 +1,5 @@
-import * as AutoresetGen from '../actions/autoreset-gen'
 import * as Container from '../util/container'
+import * as Constants from '../constants/autoreset'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -15,8 +15,9 @@ const ConnectedRenderError = () => {
   const _username = Container.useSelector(state => state.provision.username)
   const error = Container.useSelector(state => state.provision.finalError)
   const dispatch = Container.useDispatch()
+  const startAccountReset = Constants.useState(s => s.dispatch.startAccountReset)
   const _onAccountReset = (username: string) => {
-    dispatch(AutoresetGen.createStartAccountReset({skipPassword: false, username}))
+    startAccountReset(false, username)
   }
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())

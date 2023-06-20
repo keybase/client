@@ -1,5 +1,4 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import type * as autoreset from './autoreset-gen'
 import type * as bots from './bots-gen'
 import type * as chat2 from './chat2-gen'
 import type * as config from './config-gen'
@@ -28,7 +27,6 @@ import type * as users from './users-gen'
 import type * as wallets from './wallets-gen'
 
 export type TypedActions =
-  | autoreset.Actions
   | bots.Actions
   | chat2.Actions
   | config.Actions

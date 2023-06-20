@@ -4,16 +4,17 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/autoreset'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as AutoresetGen from '../../actions/autoreset-gen'
 import {formatDurationForAutoreset} from '../../util/timestamp'
 
 const ResetModal = () => {
-  const isResetActive = Container.useSelector(state => state.autoreset.active)
+  const isResetActive = Constants.useState(s => s.active)
   return isResetActive ? <ResetModalImpl /> : null
 }
 
 const ResetModalImpl = () => {
-  const {active, endTime, error} = Container.useSelector(s => s.autoreset)
+  const active = Constants.useState(s => s.active)
+  const endTime = Constants.useState(s => s.endTime)
+  const error = Constants.useState(s => s.error)
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     if (!active) {
@@ -28,9 +29,7 @@ const ResetModalImpl = () => {
       ? 'This account is eligible to be reset.'
       : `This account will reset in ${formatDurationForAutoreset(timeLeft)}.`
 
-  const onCancelReset = () => {
-    dispatch(AutoresetGen.createCancelReset())
-  }
+  const onCancelReset = Constants.useState(s => s.dispatch.cancelReset)
 
   return (
     <Kb.SafeAreaView

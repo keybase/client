@@ -1,5 +1,5 @@
-import * as AutoresetGen from '../actions/autoreset-gen'
 import * as Constants from '../constants/provision'
+import * as ARConstants from '../constants/autoreset'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as ProvisionGen from '../actions/provision-gen'
@@ -20,9 +20,10 @@ const SelectOtherDeviceContainer = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }, [dispatch])
   const onBack = Container.useSafeSubmit(_onBack, false)
+  const startAccountReset = ARConstants.useState(s => s.dispatch.startAccountReset)
   const onResetAccount = React.useCallback(() => {
-    dispatch(AutoresetGen.createStartAccountReset({skipPassword: false, username}))
-  }, [dispatch, username])
+    startAccountReset(false, username)
+  }, [startAccountReset, username])
   const _onSelect = React.useCallback(
     (name: string) => {
       !waiting && dispatch(ProvisionGen.createSubmitDeviceSelect({name}))

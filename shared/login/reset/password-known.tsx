@@ -3,11 +3,10 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../../signup/common'
 import * as Container from '../../util/container'
-import * as AutoresetGen from '../../actions/autoreset-gen'
 import * as Constants from '../../constants/autoreset'
 
 const KnowPassword = () => {
-  const error = Container.useSelector(state => state.autoreset.error)
+  const error = Constants.useState(s => s.error)
   const waiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
 
   const dispatch = Container.useDispatch()
@@ -17,7 +16,8 @@ const KnowPassword = () => {
     () => dispatch(nav.safeNavigateAppendPayload({path: ['resetEnterPassword']})),
     [dispatch, nav]
   )
-  const onNo = React.useCallback(() => dispatch(AutoresetGen.createResetAccount({})), [dispatch])
+  const resetAccount = Constants.useState(s => s.dispatch.resetAccount)
+  const onNo = React.useCallback(() => resetAccount(), [resetAccount])
   return (
     <SignupScreen
       title="Account reset"

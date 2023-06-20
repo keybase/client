@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as AutoresetGen from '../../actions/autoreset-gen'
 import * as AutoresetConstants from '../../constants/autoreset'
 import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -16,22 +15,24 @@ export type Props = {
 const PromptReset = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const skipPassword = Container.useSelector(state => state.autoreset.skipPassword)
-  const error = Container.useSelector(state => state.autoreset.error)
+  const skipPassword = AutoresetConstants.useState(s => s.skipPassword)
+  const error = AutoresetConstants.useState(s => s.error)
+  const resetAccount = AutoresetConstants.useState(s => s.dispatch.resetAccount)
   const {resetPassword} = props
-  const onContinue = React.useCallback(
-    () =>
+  const onContinue = React.useCallback(() => {
+    if (resetPassword) {
       dispatch(
-        resetPassword
-          ? RecoverPasswordGen.createSubmitResetPassword({
-              action: RPCTypes.ResetPromptResponse.confirmReset,
-            })
-          : skipPassword
-          ? AutoresetGen.createResetAccount({})
-          : nav.safeNavigateAppendPayload({path: ['resetKnowPassword'], replace: true})
-      ),
-    [dispatch, skipPassword, resetPassword, nav]
-  )
+        RecoverPasswordGen.createSubmitResetPassword({
+          action: RPCTypes.ResetPromptResponse.confirmReset,
+        })
+      )
+    }
+    if (skipPassword) {
+      resetAccount()
+    } else {
+      dispatch(nav.safeNavigateAppendPayload({path: ['resetKnowPassword'], replace: true}))
+    }
+  }, [resetAccount, dispatch, skipPassword, resetPassword, nav])
   const onBack = React.useCallback(
     () => dispatch(skipPassword ? RecoverPasswordGen.createRestartRecovery() : nav.safeNavigateUpPayload()),
     [dispatch, skipPassword, nav]

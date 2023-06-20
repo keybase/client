@@ -5,7 +5,6 @@ import {SignupScreen} from '../../signup/common'
 import {addTicker, removeTicker} from '../../util/second-timer'
 import * as Constants from '../../constants/autoreset'
 import * as Container from '../../util/container'
-import * as AutoresetGen from '../../actions/autoreset-gen'
 import {formatDurationForAutoreset as formatDuration} from '../../util/timestamp'
 
 type Props = {pipelineStarted: boolean}
@@ -16,7 +15,7 @@ const formatTimeLeft = (endTime: number) => {
 
 const Waiting = (props: Props) => {
   const {pipelineStarted} = props
-  const endTime = Container.useSelector(state => state.autoreset.endTime)
+  const endTime = Constants.useState(s => s.endTime)
   const [formattedTime, setFormattedTime] = React.useState('a bit')
   const [hasSentAgain, setHasSentAgain] = React.useState(false)
   const [sendAgainSuccess, setSendAgainSuccess] = React.useState(false)
@@ -29,11 +28,12 @@ const Waiting = (props: Props) => {
     [dispatch, nav]
   )
 
+  const resetAccount = Constants.useState(s => s.dispatch.resetAccount)
   const onSendAgain = React.useCallback(() => {
     setHasSentAgain(true)
     setSendAgainSuccess(false)
-    dispatch(AutoresetGen.createResetAccount({}))
-  }, [dispatch])
+    resetAccount()
+  }, [resetAccount])
   const _sendAgainWaiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
   const sendAgainWaiting = hasSentAgain && _sendAgainWaiting
   const prevSendAgainWaiting = Container.usePrevious(sendAgainWaiting)
