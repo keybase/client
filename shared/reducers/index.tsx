@@ -1,5 +1,4 @@
 import chat2 from './chat2'
-import crypto from './crypto'
 import deeplinks from './deeplinks'
 import fs from './fs'
 import login from './login'
@@ -20,7 +19,6 @@ import wallets from './wallets'
 
 export const reducers = {
   chat2,
-  crypto,
   deeplinks,
   fs,
   login,
@@ -42,7 +40,6 @@ export const reducers = {
 
 export type TypedState = {
   chat2: ReturnType<typeof chat2>
-  crypto: ReturnType<typeof crypto>
   deeplinks: ReturnType<typeof deeplinks>
   fs: ReturnType<typeof fs>
   login: ReturnType<typeof login>

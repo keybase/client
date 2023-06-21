@@ -1,7 +1,7 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
-import * as CryptoGen from '../../../../../actions/crypto-gen'
+// import * as CryptoGen from '../../../../../actions/crypto-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
@@ -42,9 +42,10 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const dispatch = Container.useDispatch()
 
   const onSaltpackFileOpen = React.useCallback(
-    (path: string, operation: CryptoTypes.Operations) => {
+    (_path: string, _operation: CryptoTypes.Operations) => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}))
-      dispatch(CryptoGen.createOnSaltpackOpenFile({operation, path: new Container.HiddenString(path)}))
+      // TODO
+      // dispatch(CryptoGen.createOnSaltpackOpenFile({operation, path: new Container.HiddenString(path)}))
     },
     [dispatch]
   )

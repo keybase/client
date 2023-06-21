@@ -1,4 +1,4 @@
-import * as Container from '../util/container'
+import * as Z from '../util/zustand'
 
 type ZState = {
   counts: Map<string, number>
@@ -6,8 +6,8 @@ type ZState = {
   // used by remotes to update themselves
   replace: (m: Map<string, number>) => void
 }
-export const useAvatarState = Container.createZustand(
-  Container.immerZustand<ZState>(set => ({
+export const useAvatarState = Z.createZustand(
+  Z.immerZustand<ZState>(set => ({
     counts: new Map(),
     replace: (m: Map<string, number>) => {
       set(s => {

@@ -1,70 +1,59 @@
 import * as React from 'react'
-import * as CryptoGen from '../actions/crypto-gen'
 import * as Constants from '../constants/crypto'
 import * as FsConstants from '../constants/fs'
-import type * as Types from '../constants/types/crypto'
+// import type * as Types from '../constants/types/crypto'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platform from '../constants/platform'
 import type {IconType} from '../common-adapters/icon.constants-gen'
-import capitalize from 'lodash/capitalize'
-import HiddenString from '../util/hidden-string'
+// import capitalize from 'lodash/capitalize'
 import {pickFiles} from '../util/pick-files'
 
-type CommonProps = {
-  operation: Types.Operations
-}
-
-type TextProps = CommonProps & {
+type TextProps = {
   onChangeText: (text: string) => void
   onSetFile: (path: string) => void
   value: string
+  textIsCipher: boolean
+  // ['decrypt', 'cipher'],
+  // ['encrypt', 'plain'],
+  // ['sign', 'plain'],
+  // ['verify', 'cipher'],
+  placeholder: string
+  // [
+  //   'decrypt',
+  //   Platform.isMobile ? 'Enter text to decrypt' : 'Enter ciphertext, drop an encrypted file or folder, or',
+  // ],
+  // ['encrypt', Platform.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'],
+  // ['sign', Platform.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'],
+  // [
+  //   'verify',
+  //   Platform.isMobile ? 'Enter text to verify' : 'Enter a signed message, drop a signed file or folder, or',
+  // ],
+  // Tese magic numbers set the width of the single line `textarea` such that the
+  // placeholder text is visible and pushes the "browse" button far enough to the
+  // right to be exactly one empty character with from the end of the placeholder text
+  emptyWidth: number // TODO remove this
+  // [Constants.Operations.Encrypt]: 207,
+  // [Constants.Operations.Decrypt]: 320,
+  // [Constants.Operations.Sign]: 207,
+  // [Constants.Operations.Verify]: 342,
 }
 
-type FileProps = CommonProps & {
+type FileProps = {
   path: string
   size?: number
   onClearFiles: () => void
+  fileIcon: IconType
+  // ['decrypt', 'icon-file-saltpack-64'],
+  // ['encrypt', 'icon-file-64'],
+  // ['sign', 'icon-file-64'],
+  // ['verify', 'icon-file-saltpack-64'],
 }
 
-type DragAndDropProps = CommonProps & {
-  prompt: string
-  children: React.ReactNode
-}
-
-type RunOperationProps = CommonProps & {
+type RunOperationProps = {
   children?: React.ReactNode
 }
-
-// Tese magic numbers set the width of the single line `textarea` such that the
-// placeholder text is visible and pushes the "browse" button far enough to the
-// right to be exactly one empty character with from the end of the placeholder text
-const operationToEmptyInputWidth = {
-  [Constants.Operations.Encrypt]: 207,
-  [Constants.Operations.Decrypt]: 320,
-  [Constants.Operations.Sign]: 207,
-  [Constants.Operations.Verify]: 342,
-}
-
-const inputTextType = new Map([
-  ['decrypt', 'cipher'],
-  ['encrypt', 'plain'],
-  ['sign', 'plain'],
-  ['verify', 'cipher'],
-] as const)
-const inputPlaceholder = new Map([
-  [
-    'decrypt',
-    Platform.isMobile ? 'Enter text to decrypt' : 'Enter ciphertext, drop an encrypted file or folder, or',
-  ],
-  ['encrypt', Platform.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'],
-  ['sign', Platform.isMobile ? 'Enter text to sign' : 'Enter text, drop a file or folder, or'],
-  [
-    'verify',
-    Platform.isMobile ? 'Enter text to verify' : 'Enter a signed message, drop a signed file or folder, or',
-  ],
-] as const)
 
 /*
  * Before user enters text:
@@ -76,10 +65,7 @@ const inputPlaceholder = new Map([
  *  - Clear button
  */
 export const TextInput = (props: TextProps) => {
-  const {value, operation, onChangeText, onSetFile} = props
-  const textType = inputTextType.get(operation)
-  const placeholder = inputPlaceholder.get(operation)
-  const emptyWidth = operationToEmptyInputWidth[operation]
+  const {value, onChangeText, onSetFile, textIsCipher, placeholder, emptyWidth} = props
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
   // (despite the input being one line tall)
@@ -148,7 +134,7 @@ export const TextInput = (props: TextProps) => {
             padding="tiny"
             containerStyle={inputContainerStyle}
             style={inputStyle}
-            textType={textType === 'cipher' ? 'Terminal' : 'Body'}
+            textType={textIsCipher ? 'Terminal' : 'Body'}
             onChangeText={onChangeText}
             ref={inputRef}
           />
@@ -160,16 +146,8 @@ export const TextInput = (props: TextProps) => {
   )
 }
 
-const inputFileIcon = new Map([
-  ['decrypt', 'icon-file-saltpack-64'],
-  ['encrypt', 'icon-file-64'],
-  ['sign', 'icon-file-64'],
-  ['verify', 'icon-file-saltpack-64'],
-] as const)
-
 export const FileInput = (props: FileProps) => {
-  const {path, size, operation} = props
-  const fileIcon = inputFileIcon.get(operation) as IconType
+  const {path, size, fileIcon} = props
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   return (
@@ -205,66 +183,72 @@ export const FileInput = (props: FileProps) => {
     </Kb.Box2>
   )
 }
+// type InputProps = {
+//   input: string
+//   inputType: 'file' | 'text'
+//   updateText: (s: string) => void
+//   updateFile: (f: string) => void
+// }
+// export const Input = (props: InputProps) => {
+//   const {input, inputType, updateText, updateFile} = props
+//   // const inputType = Container.useSelector(state => state.crypto[operation].inputType)
 
-export const Input = (props: CommonProps) => {
-  const {operation} = props
-  const dispatch = Container.useDispatch()
+//   const [inputValue, setInputValue] = React.useState(input)
 
-  const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
-  const inputType = Container.useSelector(state => state.crypto[operation].inputType)
+//   // const setInput = Container.useThrottledCallback(
+//   //   Constants.useState(s => s.dispatch.setInput),
+//   //   100
+//   // )
+//   const onChangeText = React.useCallback(
+//     (text: string) => {
+//       setInputValue(text)
+//       updateText(text)
+//       // setInput(operation, 'text', text)
+//     },
+//     [updateText]
+//   )
 
-  const [inputValue, setInputValue] = React.useState(input)
+//   const onSetFile = updateFile
+//   const onClearFiles = React.useCallback(() => {
+//     setInputValue('')
+//     updateFile('')
+//   }, [updateFile])
+//   // const clearInput = Constants.useState(s => s.dispatch.clearInput)
+//   // const onClearInput = React.useCallback(() => {
+//   //   clearInput(operation)
+//   // }, [operation, clearInput])
 
-  const onSetInput = (type: Types.InputTypes, newValue: string) => {
-    dispatch(CryptoGen.createSetInput({operation, type, value: new HiddenString(newValue)}))
-  }
-  const onClearInput = () => {
-    dispatch(CryptoGen.createClearInput({operation}))
-  }
+//   return inputType === 'file' ? (
+//     <FileInput path={input} onClearFiles={onClearFiles} />
+//   ) : (
+//     <TextInput value={inputValue} onSetFile={onSetFile} onChangeText={onChangeText} />
+//   )
+// }
 
-  return inputType === 'file' ? (
-    <FileInput
-      operation={operation}
-      path={input}
-      onClearFiles={() => {
-        setInputValue('')
-        onClearInput()
-      }}
-    />
-  ) : (
-    <TextInput
-      operation={operation}
-      value={inputValue}
-      onSetFile={path => {
-        onSetInput('file', path)
-      }}
-      onChangeText={text => {
-        setInputValue(text)
-        onSetInput('text', text)
-      }}
-    />
-  )
+// const allowInputFolders = new Map([
+//   ['decrypt', false],
+//   ['encrypt', true],
+//   ['sign', true],
+//   ['verify', false],
+// ] as const)
+
+type DragAndDropProps = {
+  allowFolders: boolean
+  prompt: string
+  inProgress: boolean
+  children: React.ReactNode
+  setFile: (f: string) => void
 }
 
-const allowInputFolders = new Map([
-  ['decrypt', false],
-  ['encrypt', true],
-  ['sign', true],
-  ['verify', false],
-] as const)
-
 export const DragAndDrop = (props: DragAndDropProps) => {
-  const {prompt, children, operation} = props
-  const dispatch = Container.useDispatch()
+  const {prompt, children, inProgress, setFile, allowFolders} = props
 
-  const inProgress = Container.useSelector(store => store.crypto[operation].inProgress)
-
-  const onAttach = (localPaths: Array<string>) => {
-    const path = localPaths[0]
-    dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
-  }
-
-  const allowFolders = allowInputFolders.get(operation) as boolean
+  const onAttach = React.useCallback(
+    (localPaths: Array<string>) => {
+      setFile(localPaths[0])
+    },
+    [setFile]
+  )
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -281,12 +265,14 @@ export const DragAndDrop = (props: DragAndDropProps) => {
     </Kb.Box2>
   )
 }
+type BannerProps = {
+  infoMessage: string
+  warningMessage: string
+  errorMessage: string
+}
 
-export const OperationBanner = (props: CommonProps) => {
-  const {operation} = props
-  const infoMessage = Constants.infoMessage.get(operation)
-  const errorMessage = Container.useSelector(state => state.crypto[operation].errorMessage.stringValue())
-  const warningMessage = Container.useSelector(state => state.crypto[operation].warningMessage.stringValue())
+export const OperationBanner = (props: BannerProps) => {
+  const {warningMessage, errorMessage, infoMessage} = props
 
   if (!errorMessage && !warningMessage && infoMessage) {
     return (
@@ -314,33 +300,34 @@ export const OperationBanner = (props: CommonProps) => {
 
 // Mobile only
 export const InputActionsBar = (props: RunOperationProps) => {
-  const {operation, children} = props
-  const dispatch = Container.useDispatch()
-  const waitingKey = Constants.waitingKey
+  return null
+  // const {operation, children} = props
+  // const waitingKey = Constants.waitingKey
 
-  const operationTitle = capitalize(operation)
+  // const operationTitle = capitalize(operation)
+  // const runTextOperation = Constants.useState(s => s.dispatch.runTextOperation)
 
-  const onRunOperation = () => {
-    dispatch(CryptoGen.createRunTextOperation({operation}))
-  }
+  // const onRunOperation = () => {
+  //   runTextOperation(operation)
+  // }
 
-  return Styles.isMobile ? (
-    <Kb.Box2
-      direction="vertical"
-      fullWidth={true}
-      gap={Styles.isTablet ? 'small' : 'tiny'}
-      style={styles.inputActionsBarContainer}
-    >
-      {children}
-      <Kb.WaitingButton
-        mode="Primary"
-        waitingKey={waitingKey}
-        label={operationTitle}
-        fullWidth={true}
-        onClick={onRunOperation}
-      />
-    </Kb.Box2>
-  ) : null
+  // return Styles.isMobile ? (
+  //   <Kb.Box2
+  //     direction="vertical"
+  //     fullWidth={true}
+  //     gap={Styles.isTablet ? 'small' : 'tiny'}
+  //     style={styles.inputActionsBarContainer}
+  //   >
+  //     {children}
+  //     <Kb.WaitingButton
+  //       mode="Primary"
+  //       waitingKey={waitingKey}
+  //       label={operationTitle}
+  //       fullWidth={true}
+  //       onClick={onRunOperation}
+  //     />
+  //   </Kb.Box2>
+  // ) : null
 }
 
 const styles = Styles.styleSheetCreate(

@@ -7,7 +7,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
 import * as TeamsGen from './teams-gen'
-import * as CryptoGen from '../actions/crypto-gen'
+// import * as CryptoGen from '../actions/crypto-gen'
 import * as CrytoConstants from '../constants/crypto'
 import * as ConfigConstants from '../constants/config'
 import type * as CryptoTypes from '../constants/types/crypto'
@@ -310,10 +310,11 @@ const handleSaltpackOpenFile = (_: unknown, action: DeeplinksGen.SaltpackFileOpe
 
   return [
     RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}),
-    CryptoGen.createOnSaltpackOpenFile({
-      operation,
-      path: new Container.HiddenString(path),
-    }),
+    // TODO
+    // CryptoGen.createOnSaltpackOpenFile({
+    //   operation,
+    //   path: new Container.HiddenString(path),
+    // }),
   ]
 }
 

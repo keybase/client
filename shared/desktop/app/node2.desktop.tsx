@@ -23,7 +23,6 @@ import {
   dokanPath,
   windowsBinPath,
 } from '../../constants/platform.desktop'
-import {isPathSaltpack} from '../../constants/crypto'
 import {ctlQuit} from './ctl.desktop'
 import logger from '../../logger'
 import {assetRoot, htmlPrefix} from './html-root.desktop'
@@ -31,6 +30,9 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import type {Action} from '../app/ipctypes'
 import {makeEngine} from '../../engine'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
+
+const isPathSaltpack = (path: string) =>
+  path.endsWith('.signed.saltpack') || path.endsWith('.encrypted.saltpack')
 
 const {env} = KB2.constants
 const {mainWindowDispatch} = KB2.functions

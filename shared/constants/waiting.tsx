@@ -1,8 +1,6 @@
 import type {RPCError} from '../util/errors'
 import type * as Types from './types/waiting'
-// normally util.container but it re-exports from us so break the cycle
-import {create as createZustand} from 'zustand'
-import {immer as immerZustand} from 'zustand/middleware/immer'
+import * as Z from '../util/zustand'
 
 const initialState: Types.State = {
   counts: new Map(),
@@ -25,8 +23,8 @@ const getKeys = (k?: string | Array<string>) => {
   return k
 }
 
-export const useWaitingState = createZustand(
-  immerZustand<ZState>(set => {
+export const useWaitingState = Z.createZustand(
+  Z.immerZustand<ZState>(set => {
     const changeHelper = (keys: string | Array<string>, diff: 1 | -1, error?: RPCError) => {
       set(s => {
         getKeys(keys).forEach(k => {

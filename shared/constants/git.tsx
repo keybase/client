@@ -2,7 +2,7 @@ import type * as Types from './types/git'
 import * as dateFns from 'date-fns'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Container from '../util/container'
+import * as Z from '../util/zustand'
 import * as ConfigConstants from './config'
 
 const parseRepos = (results: Array<RPCTypes.GitRepoResult>) => {
@@ -81,9 +81,9 @@ type ZState = Types.State & {
   }
 }
 
-export const useGitState = Container.createZustand(
-  Container.immerZustand<ZState>((set, get) => {
-    const reduxDispatch = Container.getReduxDispatch()
+export const useGitState = Z.createZustand(
+  Z.immerZustand<ZState>((set, get) => {
+    const reduxDispatch = Z.getReduxDispatch()
 
     const callAndHandleError = (f: () => Promise<void>, loadAfter = true) => {
       const wrapper = async () => {
@@ -98,7 +98,7 @@ export const useGitState = Container.createZustand(
           })
         }
       }
-      Container.ignorePromise(wrapper())
+      Z.ignorePromise(wrapper())
     }
 
     const _load = async () => {
@@ -111,7 +111,7 @@ export const useGitState = Container.createZustand(
       })
     }
     const load = () => {
-      Container.ignorePromise(_load())
+      Z.ignorePromise(_load())
     }
     const dispatch = {
       clearBadges: () => {
@@ -156,7 +156,7 @@ export const useGitState = Container.createZustand(
             }
           }
         }
-        Container.ignorePromise(f())
+        Z.ignorePromise(f())
       },
       reset: () => {
         set(() => initialState)
