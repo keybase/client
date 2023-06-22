@@ -1,4 +1,3 @@
-import type * as TeamBuildingTypes from './team-building'
 import type HiddenString from '../../util/hidden-string'
 
 // Mobile only
@@ -33,8 +32,8 @@ export type EncryptOptions = {
 }
 
 export type State = {
-  readonly decrypt: CommonState
-  readonly encrypt: CommonState & {
+  decrypt: CommonState
+  encrypt: CommonState & {
     meta: {
       hasRecipients: boolean
       hasSBS: boolean
@@ -43,7 +42,6 @@ export type State = {
     options: EncryptOptions
     recipients: Array<string> // Only for encrypt operation
   }
-  readonly sign: CommonState
-  // readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-  readonly verify: CommonState
+  sign: CommonState
+  verify: CommonState
 }

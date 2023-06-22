@@ -763,6 +763,10 @@ export const useState = Z.createZustand(
             e.options.includeSelf = false
           }
         })
+
+        if (get().encrypt.inputType === 'text') {
+          encryptText()
+        }
       },
       setInput: (op: Types.Operations, type: Types.InputTypes, value: string) => {
         if (!value) {
