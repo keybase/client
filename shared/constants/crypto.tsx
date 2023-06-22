@@ -1,21 +1,18 @@
 import * as Platform from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Z from '../util/zustand'
-import * as UserConstants from './current-user'
-import {RPCError} from '../util/errors'
-import logger from '../logger'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as UserConstants from './current-user'
+import * as Z from '../util/zustand'
 import HiddenString from '../util/hidden-string'
+import logger from '../logger'
 import type * as Types from './types/crypto'
+import {RPCError} from '../util/errors'
 
 export const saltpackDocumentation = 'https://saltpack.org'
-
 export const inputDesktopMaxHeight = {maxHeight: '30%'}
 export const outputDesktopMaxHeight = {maxHeight: '70%'}
-
 export const waitingKey = 'cryptoWaiting'
 
-// Tab keys
 export const encryptTab = 'encryptTab'
 export const decryptTab = 'decryptTab'
 export const signTab = 'signTab'
@@ -187,9 +184,7 @@ const defaultCommonState = {
 }
 
 const initialState: State = {
-  decrypt: {
-    ...defaultCommonState,
-  },
+  decrypt: {...defaultCommonState},
   encrypt: {
     ...defaultCommonState,
     meta: {
@@ -203,12 +198,8 @@ const initialState: State = {
     },
     recipients: [],
   },
-  sign: {
-    ...defaultCommonState,
-  },
-  verify: {
-    ...defaultCommonState,
-  },
+  sign: {...defaultCommonState},
+  verify: {...defaultCommonState},
 }
 
 type ZState = State & {
@@ -275,32 +266,48 @@ export const useState = Z.createZustand(
       cs.outputSenderFullname = new HiddenString(signed ? senderFullname : '')
     }
 
-    const encryptText = () => {
+    const encrypt = (destinationDir: string) => {
       const f = async () => {
         const start = get().encrypt
         const username = UserConstants.useCurrentUserState.getState().username
-        let rs = start.recipients
-        if (!rs.length) {
-          rs = [username]
-        }
         const signed = start.options.sign
-
         const inputType = start.inputType
-        const plaintext = start.input.stringValue()
+        const input = start.input.stringValue()
+        const opts = {
+          includeSelf: start.options.includeSelf,
+          recipients: start.recipients.length ? start.recipients : [username],
+          signed,
+        }
         try {
-          const res = await RPCTypes.saltpackSaltpackEncryptStringRpcPromise(
-            {
-              opts: {includeSelf: start.options.includeSelf, recipients: rs, signed},
-              plaintext,
-            },
-            waitingKey
-          )
+          const callText = async () => {
+            const {
+              usedUnresolvedSBS,
+              unresolvedSBSAssertion,
+              ciphertext: output,
+            } = await RPCTypes.saltpackSaltpackEncryptStringRpcPromise({opts, plaintext: input}, waitingKey)
+            return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
+          }
+          const callFile = async () => {
+            const {
+              usedUnresolvedSBS,
+              unresolvedSBSAssertion,
+              filename: output,
+            } = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
+              {destinationDir, filename: input, opts},
+              waitingKey
+            )
+            return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
+          }
+          const {output, unresolvedSBSAssertion, usedUnresolvedSBS} = await (inputType === 'text'
+            ? callText()
+            : callFile())
+
           set(s => {
             onSuccess(
               s.encrypt,
-              s.encrypt.input.stringValue() === plaintext,
-              res.usedUnresolvedSBS ? getWarningMessageForSBS(res.unresolvedSBSAssertion) : '',
-              res.ciphertext,
+              s.encrypt.input.stringValue() === input,
+              usedUnresolvedSBS ? getWarningMessageForSBS(unresolvedSBSAssertion) : '',
+              output,
               inputType,
               signed,
               username,
@@ -314,44 +321,58 @@ export const useState = Z.createZustand(
           const error = _error
           logger.error(error)
           set(s => {
-            onError(s.encrypt, getStatusCodeMessage(error, 'encrypt', 'text'))
+            onError(s.encrypt, getStatusCodeMessage(error, 'encrypt', inputType))
           })
         }
       }
-
       Z.ignorePromise(f())
     }
-
+    const encryptText = () => {
+      encrypt('')
+    }
     const encryptFile = (destinationDir: string) => {
-      const f = async () => {
-        const start = get().encrypt
-        const username = UserConstants.useCurrentUserState.getState().username
-        let rs = start.recipients
-        if (!rs.length) {
-          rs = [username]
-        }
-        const signed = start.options.sign
+      encrypt(destinationDir)
+    }
 
-        const filename = start.input.stringValue()
+    const decrypt = (destinationDir: string) => {
+      const f = async () => {
+        const start = get().decrypt
+        const inputType = start.inputType
+        const input = start.input.stringValue()
         try {
-          const res = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
-            {
-              destinationDir,
-              filename,
-              opts: {includeSelf: start.options.includeSelf, recipients: rs, signed},
-            },
-            waitingKey
-          )
+          const callText = async () => {
+            const res = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise(
+              {ciphertext: input},
+              waitingKey
+            )
+            const {plaintext: output, info, signed} = res
+            const {sender} = info
+            const {username, fullname} = sender
+            return {fullname, output, signed, username}
+          }
+
+          const callFile = async () => {
+            const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise(
+              {destinationDir, encryptedFilename: input},
+              waitingKey
+            )
+            const {decryptedFilename: output, info, signed} = result
+            const {sender} = info
+            const {username, fullname} = sender
+            return {fullname, output, signed, username}
+          }
+
+          const {fullname, output, signed, username} = await (inputType === 'text' ? callText() : callFile())
           set(s => {
             onSuccess(
-              s.encrypt,
-              s.encrypt.input.stringValue() === filename,
-              res.usedUnresolvedSBS ? getWarningMessageForSBS(res.unresolvedSBSAssertion) : '',
-              res.filename,
-              'file',
+              s.decrypt,
+              s.decrypt.input.stringValue() === input,
+              '',
+              output,
+              inputType,
               signed,
               username,
-              ''
+              fullname
             )
           })
         } catch (_error) {
@@ -361,86 +382,20 @@ export const useState = Z.createZustand(
           const error = _error
           logger.error(error)
           set(s => {
-            onError(s.encrypt, getStatusCodeMessage(error, 'encrypt', 'file'))
+            onError(s.decrypt, getStatusCodeMessage(error, 'decrypt', inputType))
           })
         }
       }
+
       Z.ignorePromise(f())
     }
 
     const decryptText = () => {
-      const f = async () => {
-        const start = get().decrypt
-        try {
-          const ciphertext = start.input.stringValue()
-          const res = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise({ciphertext}, waitingKey)
-          const {plaintext, info, signed} = res
-          const {sender} = info
-          const {username, fullname} = sender
-
-          set(s => {
-            onSuccess(
-              s.decrypt,
-              s.decrypt.input.stringValue() === ciphertext,
-              '',
-              plaintext,
-              'text',
-              signed,
-              username,
-              fullname
-            )
-          })
-        } catch (_error) {
-          if (!(_error instanceof RPCError)) {
-            return
-          }
-          const error = _error
-          logger.error(error)
-          set(s => {
-            onError(s.decrypt, getStatusCodeMessage(error, 'decrypt', 'text'))
-          })
-        }
-      }
-
-      Z.ignorePromise(f())
+      decrypt('')
     }
 
     const decryptFile = (destinationDir: string) => {
-      const f = async () => {
-        const start = get().decrypt
-        const filename = start.input.stringValue()
-        try {
-          const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise(
-            {destinationDir, encryptedFilename: filename},
-            waitingKey
-          )
-          const {decryptedFilename, info, signed} = result
-          const {sender} = info
-          const {username, fullname} = sender
-          set(s => {
-            onSuccess(
-              s.decrypt,
-              s.decrypt.input.stringValue() === filename,
-              '',
-              decryptedFilename,
-              'file',
-              signed,
-              username,
-              fullname
-            )
-          })
-        } catch (_error) {
-          if (!(_error instanceof RPCError)) {
-            return
-          }
-          const error = _error
-          logger.error(error)
-          set(s => {
-            onError(s.decrypt, getStatusCodeMessage(error, 'decrypt', 'file'))
-          })
-        }
-      }
-      Z.ignorePromise(f())
+      decrypt(destinationDir)
     }
 
     const signText = () => {
@@ -848,181 +803,3 @@ export const useState = Z.createZustand(
     }
   })
 )
-
-// type EncryptState = {
-//   bytesComplete: number
-//   bytesTotal: number
-//   errorMessage: string
-//   file: string
-//   hasSBS: boolean
-//   hideIncludeSelf: boolean
-//   inProgress: boolean
-//   includeSelf: boolean
-//   output: string
-//   outputSenderFullname: string
-//   outputSenderUsername: string
-//   outputSigned: boolean
-//   outputStatus: 'success' | 'pending' | 'error'
-//   outputValid: boolean
-//   recipients: Array<string>
-//   sign: boolean
-//   text: string
-//   warningMessage: string
-// }
-// const initialEncryptState: EncryptState = {
-//   bytesComplete: 0,
-//   bytesTotal: 0,
-//   errorMessage: '',
-//   file: '',
-//   hasSBS: false,
-//   hideIncludeSelf: true,
-//   inProgress: false,
-//   includeSelf: false,
-//   output: '',
-//   outputSenderFullname: '',
-//   outputSenderUsername: '',
-//   outputSigned: false,
-//   outputStatus: 'success',
-//   outputValid: false,
-//   recipients: [],
-//   sign: false,
-//   text: '',
-//   warningMessage: '',
-// }
-// type ZEncryptState = EncryptState & {
-//   dispatch: {
-//     reset: () => void
-//     setText: (value: string) => void
-//     setFile: (f: string) => void
-//     setRecipients: (recipients: Array<string>, hasSBS: boolean) => void
-//     setOptions: (includeSelf: boolean, sign: boolean, hideIncludeSelf: boolean) => void
-//   }
-//   inputType: () => 'file' | 'text'
-// }
-
-// export const useEncryptState = Z.createZustand(
-//   Z.immerZustand<ZEncryptState>((set, get) => {
-//     // const getReduxStore = Z.getReduxStore()
-//     const encrypt = () => {
-//       const f = async () => {
-//         // mobile doesn't run anything automatically
-//         if (Platform.isMobile) return
-//         if (get().inProgress) return
-
-//         const username = UserConstants.useCurrentUserState.getState().username
-//         let rs = get().recipients
-//         if (!rs.length) {
-//           rs = [username]
-//         }
-//         console.log('aaa encrypting', get())
-
-//         const inputType = get().inputType()
-//         if (inputType === 'file') {
-//           // TODO
-//         } else {
-//           const plaintext = get().text
-//           const signed = get().sign
-//           try {
-//             const res = await RPCTypes.saltpackSaltpackEncryptStringRpcPromise(
-//               {
-//                 opts: {
-//                   includeSelf: get().includeSelf,
-//                   recipients: rs,
-//                   signed,
-//                 },
-//                 plaintext,
-//               },
-//               waitingKey
-//             )
-//             set(s => {
-//               s.outputValid = get().text === plaintext
-//               s.errorMessage = ''
-//               s.warningMessage = res.usedUnresolvedSBS
-//                 ? getWarningMessageForSBS(res.unresolvedSBSAssertion)
-//                 : ''
-//               s.output = res.ciphertext
-//               s.outputSenderUsername = signed ? username : ''
-//             })
-//           } catch (_error) {
-//             if (!(_error instanceof RPCError)) {
-//               return
-//             }
-//             const error = _error
-//             logger.error(error)
-//             set(s => {
-//               s.outputValid = false
-//               s.errorMessage = getStatusCodeMessage(error, 'encrypt', 'text')
-//               s.warningMessage = ''
-//               s.output = ''
-//               s.outputSenderUsername = ''
-//             })
-//           }
-//         }
-//       }
-
-//       Z.ignorePromise(f())
-//     }
-
-//     const dispatch = {
-//       onSaltpackStart: () => {
-//         set(s => {
-//           s.inProgress = true
-//         })
-//       },
-//       reset: () => {
-//         set(() => initialEncryptState)
-//       },
-//       setFile: (f: string) => {
-//         set(s => {
-//           s.text = ''
-//           s.file = f
-//           s.outputValid = false
-//           s.errorMessage = ''
-//           s.warningMessage = ''
-//         })
-
-//         encrypt()
-//       },
-//       setOptions: (includeSelf: boolean, sign: boolean, hideIncludeSelf: boolean) => {
-//         set(s => {
-//           s.outputValid = false
-//           s.includeSelf = includeSelf
-//           s.sign = sign
-//           s.hideIncludeSelf = hideIncludeSelf
-//           // User set themselves as a recipient so don't show the 'includeSelf' option for encrypt (since they're encrypting to themselves)
-//           if (hideIncludeSelf) {
-//             s.hideIncludeSelf = hideIncludeSelf
-//             s.includeSelf = false
-//           }
-//         })
-//       },
-//       setRecipients: (recipients: Array<string>, hasSBS: boolean) => {
-//         set(s => {
-//           s.outputValid = false
-//           s.hasSBS = hasSBS
-//           // Force signing when user is SBS
-//           if (hasSBS) {
-//             s.sign = true
-//           }
-//           s.recipients = recipients
-//         })
-//       },
-//       setText: (value: string) => {
-//         set(s => {
-//           s.text = value
-//           s.file = ''
-//           s.outputValid = false
-//           s.errorMessage = ''
-//           s.warningMessage = ''
-//         })
-
-//         encrypt()
-//       },
-//     }
-//     return {
-//       ...initialEncryptState,
-//       dispatch,
-//       inputType: () => (!get().text && get().file ? 'file' : 'text'),
-//     }
-//   })
-// )
