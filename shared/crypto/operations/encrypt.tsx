@@ -155,25 +155,19 @@ export const EncryptInput = () => {
   )
 }
 
-export const EncryptOutput = () => {
-  const content = (
-    <>
-      <EncryptOutputBanner />
-      <SignedSender operation={operation} />
-      {Container.isMobile ? <Kb.Divider /> : null}
-      <OperationOutput operation={operation} />
-      <OutputActionsBar operation={operation} />
-    </>
-  )
-
-  return Container.isMobile ? (
-    content
-  ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.outputDesktopMaxHeight}>
-      {content}
-    </Kb.Box2>
-  )
-}
+export const EncryptOutput = () => (
+  <Kb.Box2
+    direction="vertical"
+    fullHeight={true}
+    style={Container.isMobile ? undefined : Constants.outputDesktopMaxHeight}
+  >
+    <EncryptOutputBanner />
+    <SignedSender operation={operation} />
+    {Container.isMobile ? <Kb.Divider /> : null}
+    <OperationOutput operation={operation} />
+    <OutputActionsBar operation={operation} />
+  </Kb.Box2>
+)
 
 export const EncryptIO = () => (
   <DragAndDrop operation={operation} prompt="Drop a file to encrypt">

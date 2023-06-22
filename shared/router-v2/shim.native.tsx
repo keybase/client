@@ -42,19 +42,9 @@ const shimNewRoute = (Original: any, isModal: boolean, isLoggedOut: boolean, get
   })
 }
 
-const useSafeHeaderHeight = () => {
-  try {
-    return useHeaderHeight()
-  } catch {
-    return 0
-  }
-}
-
 const ModalWrapper = (p: {children: React.ReactNode}) => {
   const {children} = p
-  const headerHeight = useSafeHeaderHeight()
-  const paddingBottom = headerHeight
-  return <View style={[styles.modal, {paddingBottom}]}>{children}</View>
+  return <View style={styles.modal}>{children}</View>
 }
 
 const styles = Styles.styleSheetCreate(

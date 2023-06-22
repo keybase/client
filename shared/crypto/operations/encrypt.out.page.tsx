@@ -1,5 +1,4 @@
 import * as React from 'react'
-// import {HeaderLeftCancel2} from '../../common-adapters/header-hoc'
 
 const Output = React.lazy(async () => {
   const {EncryptOutput} = await import('./encrypt')
@@ -7,10 +6,9 @@ const Output = React.lazy(async () => {
 })
 
 const getOptions = () => ({
-  // headerLeft: () => <HeaderLeftCancel2 />,
   headerShown: true,
   needsKeyboard: false,
-  title: 'AAAEncrypt',
+  title: 'Encrypt',
 })
 
 const Screen = () => (
