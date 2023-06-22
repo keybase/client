@@ -223,7 +223,8 @@ export const useState = Z.createZustand(
       output: string,
       inputType: 'file' | 'text',
       signed: boolean,
-      senderUsername: string
+      senderUsername: string,
+      senderFullname: string
     ) => {
       cs.outputValid = outputValid
       cs.errorMessage = new HiddenString('')
@@ -233,6 +234,7 @@ export const useState = Z.createZustand(
       cs.outputType = inputType
       cs.outputSigned = signed
       cs.outputSenderUsername = new HiddenString(signed ? senderUsername : '')
+      cs.outputSenderFullname = new HiddenString(signed ? senderFullname : '')
     }
 
     const encryptText = () => {
@@ -268,7 +270,50 @@ export const useState = Z.createZustand(
               res.ciphertext,
               inputType,
               signed,
-              username
+              username,
+              ''
+            )
+          })
+        } catch (_error) {
+          if (!(_error instanceof RPCError)) {
+            return
+          }
+          const error = _error
+          logger.error(error)
+          set(s => {
+            onError(s.encrypt, getStatusCodeMessage(error, 'encrypt', 'text'))
+          })
+        }
+      }
+
+      Z.ignorePromise(f())
+    }
+
+    const decryptText = () => {
+      const f = async () => {
+        const start = get().decrypt
+
+        // mobile doesn't run anything automatically
+        if (Platform.isMobile) return
+        if (start.inProgress) return
+
+        try {
+          const ciphertext = start.input.stringValue()
+          const res = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise({ciphertext}, waitingKey)
+          const {plaintext, info, signed} = res
+          const {sender} = info
+          const {username, fullname} = sender
+
+          set(s => {
+            onSuccess(
+              s.decrypt,
+              s.decrypt.input.stringValue() === ciphertext,
+              '',
+              plaintext,
+              'text',
+              signed,
+              username,
+              fullname
             )
           })
         } catch (_error) {
@@ -455,7 +500,8 @@ export const useState = Z.createZustand(
                 res.filename,
                 'file',
                 signed,
-                username
+                username,
+                ''
               )
             })
           } catch (_error) {
@@ -520,7 +566,20 @@ export const useState = Z.createZustand(
           }
         })
         if (type === 'text') {
-          encryptText()
+          switch (op) {
+            case 'decrypt':
+              decryptText()
+              break
+            case 'encrypt':
+              encryptText()
+              break
+            case 'sign':
+              // TODO
+              break
+            case 'verify':
+              // TODO
+              break
+          }
         }
       },
       setRecipients: (recipients: Array<string>, hasSBS: boolean) => {
