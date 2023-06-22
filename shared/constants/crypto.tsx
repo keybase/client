@@ -289,6 +289,57 @@ export const useState = Z.createZustand(
       Z.ignorePromise(f())
     }
 
+    const encryptFile = (destinationDir: string) => {
+      const f = async () => {
+        const start = get().encrypt
+
+        // mobile doesn't run anything automatically
+        if (Platform.isMobile) return
+        if (start.inProgress) return
+
+        const username = UserConstants.useCurrentUserState.getState().username
+        let rs = start.recipients
+        if (!rs.length) {
+          rs = [username]
+        }
+        const signed = start.options.sign
+
+        const filename = start.input.stringValue()
+        try {
+          const res = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
+            {
+              destinationDir,
+              filename,
+              opts: {includeSelf: start.options.includeSelf, recipients: rs, signed},
+            },
+            waitingKey
+          )
+          set(s => {
+            onSuccess(
+              s.encrypt,
+              s.encrypt.input.stringValue() === filename,
+              res.usedUnresolvedSBS ? getWarningMessageForSBS(res.unresolvedSBSAssertion) : '',
+              res.filename,
+              'file',
+              signed,
+              username,
+              ''
+            )
+          })
+        } catch (_error) {
+          if (!(_error instanceof RPCError)) {
+            return
+          }
+          const error = _error
+          logger.error(error)
+          set(s => {
+            onError(s.encrypt, getStatusCodeMessage(error, 'encrypt', 'file'))
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    }
+
     const decryptText = () => {
       const f = async () => {
         const start = get().decrypt
@@ -331,6 +382,49 @@ export const useState = Z.createZustand(
       Z.ignorePromise(f())
     }
 
+    const decryptFile = (destinationDir: string) => {
+      const f = async () => {
+        const start = get().decrypt
+
+        // mobile doesn't run anything automatically
+        if (Platform.isMobile) return
+        if (start.inProgress) return
+
+        const filename = start.input.stringValue()
+        try {
+          const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise(
+            {destinationDir, encryptedFilename: filename},
+            waitingKey
+          )
+          const {decryptedFilename, info, signed} = result
+          const {sender} = info
+          const {username, fullname} = sender
+          set(s => {
+            onSuccess(
+              s.decrypt,
+              s.decrypt.input.stringValue() === filename,
+              '',
+              decryptedFilename,
+              'file',
+              signed,
+              username,
+              fullname
+            )
+          })
+        } catch (_error) {
+          if (!(_error instanceof RPCError)) {
+            return
+          }
+          const error = _error
+          logger.error(error)
+          set(s => {
+            onError(s.encrypt, getStatusCodeMessage(error, 'decrypt', 'file'))
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    }
+
     const signText = () => {
       const f = async () => {
         const start = get().sign
@@ -367,6 +461,47 @@ export const useState = Z.createZustand(
         }
       }
 
+      Z.ignorePromise(f())
+    }
+
+    const signFile = (destinationDir: string) => {
+      const f = async () => {
+        const start = get().sign
+
+        // mobile doesn't run anything automatically
+        if (Platform.isMobile) return
+        if (start.inProgress) return
+
+        const username = UserConstants.useCurrentUserState.getState().username
+        const filename = start.input.stringValue()
+        try {
+          const signedFilename = await RPCTypes.saltpackSaltpackSignFileRpcPromise(
+            {destinationDir, filename},
+            waitingKey
+          )
+          set(s => {
+            onSuccess(
+              s.sign,
+              s.sign.input.stringValue() === filename,
+              '',
+              signedFilename,
+              'file',
+              true,
+              username,
+              ''
+            )
+          })
+        } catch (_error) {
+          if (!(_error instanceof RPCError)) {
+            return
+          }
+          const error = _error
+          logger.error(error)
+          set(s => {
+            onError(s.encrypt, getStatusCodeMessage(error, 'sign', 'file'))
+          })
+        }
+      }
       Z.ignorePromise(f())
     }
 
@@ -407,6 +542,48 @@ export const useState = Z.createZustand(
         }
       }
 
+      Z.ignorePromise(f())
+    }
+
+    const verifyFile = (destinationDir: string) => {
+      const f = async () => {
+        const start = get().verify
+
+        // mobile doesn't run anything automatically
+        if (Platform.isMobile) return
+        if (start.inProgress) return
+
+        const signedFilename = start.input.stringValue()
+        try {
+          const res = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise(
+            {destinationDir, signedFilename},
+            waitingKey
+          )
+          const {verifiedFilename, sender, verified} = res
+          const {username, fullname} = sender
+          set(s => {
+            onSuccess(
+              s.verify,
+              s.verify.input.stringValue() === signedFilename,
+              '',
+              verifiedFilename,
+              'file',
+              verified,
+              username,
+              fullname
+            )
+          })
+        } catch (_error) {
+          if (!(_error instanceof RPCError)) {
+            return
+          }
+          const error = _error
+          logger.error(error)
+          set(s => {
+            onError(s.encrypt, getStatusCodeMessage(error, 'verify', 'file'))
+          })
+        }
+      }
       Z.ignorePromise(f())
     }
 
@@ -548,50 +725,20 @@ export const useState = Z.createZustand(
           o.errorMessage = new HiddenString('')
           o.warningMessage = new HiddenString('')
         })
-        const f = async () => {
-          if (op === Operations.Encrypt) {
-            const start = get().encrypt
-            const username = UserConstants.useCurrentUserState.getState().username
-            let rs = start.recipients
-            if (!rs.length) {
-              rs = [username]
-            }
-            const signed = start.options.sign
-
-            try {
-              const res = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
-                {
-                  destinationDir,
-                  filename: start.input.stringValue(),
-                  opts: {includeSelf: start.options.includeSelf, recipients: rs, signed},
-                },
-                waitingKey
-              )
-              set(s => {
-                onSuccess(
-                  s.encrypt,
-                  s.encrypt.input.stringValue() === start.input.stringValue(),
-                  res.usedUnresolvedSBS ? getWarningMessageForSBS(res.unresolvedSBSAssertion) : '',
-                  res.filename,
-                  'file',
-                  signed,
-                  username,
-                  ''
-                )
-              })
-            } catch (_error) {
-              if (!(_error instanceof RPCError)) {
-                return
-              }
-              const error = _error
-              logger.error(error)
-              set(s => {
-                onError(s.encrypt, getStatusCodeMessage(error, 'encrypt', 'file'))
-              })
-            }
-          }
+        switch (op) {
+          case 'encrypt':
+            encryptFile(destinationDir)
+            break
+          case 'decrypt':
+            decryptFile(destinationDir)
+            break
+          case 'verify':
+            verifyFile(destinationDir)
+            break
+          case 'sign':
+            signFile(destinationDir)
+            break
         }
-        Z.ignorePromise(f())
       },
       runTextOperation: (_op: Types.Operations) => {
         // TODO on mobile
