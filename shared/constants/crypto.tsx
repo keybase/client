@@ -374,7 +374,7 @@ export const useState = Z.createZustand(
           const error = _error
           logger.error(error)
           set(s => {
-            onError(s.encrypt, getStatusCodeMessage(error, 'encrypt', 'text'))
+            onError(s.decrypt, getStatusCodeMessage(error, 'decrypt', 'text'))
           })
         }
       }
@@ -418,7 +418,7 @@ export const useState = Z.createZustand(
           const error = _error
           logger.error(error)
           set(s => {
-            onError(s.encrypt, getStatusCodeMessage(error, 'decrypt', 'file'))
+            onError(s.decrypt, getStatusCodeMessage(error, 'decrypt', 'file'))
           })
         }
       }
@@ -456,7 +456,7 @@ export const useState = Z.createZustand(
           const error = _error
           logger.error(error)
           set(s => {
-            onError(s.encrypt, getStatusCodeMessage(error, 'sign', 'text'))
+            onError(s.sign, getStatusCodeMessage(error, 'sign', 'text'))
           })
         }
       }
@@ -498,7 +498,7 @@ export const useState = Z.createZustand(
           const error = _error
           logger.error(error)
           set(s => {
-            onError(s.encrypt, getStatusCodeMessage(error, 'sign', 'file'))
+            onError(s.sign, getStatusCodeMessage(error, 'sign', 'file'))
           })
         }
       }
@@ -537,7 +537,7 @@ export const useState = Z.createZustand(
           const error = _error
           logger.error(error)
           set(s => {
-            onError(s.encrypt, getStatusCodeMessage(error, 'verify', 'text'))
+            onError(s.verify, getStatusCodeMessage(error, 'verify', 'text'))
           })
         }
       }
@@ -580,7 +580,7 @@ export const useState = Z.createZustand(
           const error = _error
           logger.error(error)
           set(s => {
-            onError(s.encrypt, getStatusCodeMessage(error, 'verify', 'file'))
+            onError(s.verify, getStatusCodeMessage(error, 'verify', 'file'))
           })
         }
       }
