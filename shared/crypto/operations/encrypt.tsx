@@ -5,20 +5,27 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import Recipients from '../recipients'
 import openURL from '../../util/open-url'
-import {DragAndDrop, InputActionsBar, OperationBanner, FileInput, TextInput} from '../input'
+import {DragAndDrop, Input, InputActionsBar, OperationBanner} from '../input'
 import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
 import shallowEqual from 'shallowequal'
 
 const operation = Constants.Operations.Encrypt
 
 const EncryptOptions = React.memo(function EncryptOptions() {
-  const hideIncludeSelf = Constants.useEncryptState(s => s.hideIncludeSelf)
-  const hasRecipients = Constants.useEncryptState(s => s.recipients.length > 0)
-  const hasSBS = Constants.useEncryptState(s => s.hasSBS)
-  const includeSelf = Constants.useEncryptState(s => s.includeSelf)
-  const sign = Constants.useEncryptState(s => s.sign)
-  const inProgress = Constants.useEncryptState(s => s.inProgress)
-  const setOptions = Constants.useEncryptState(s => s.dispatch.setOptions)
+  const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = Constants.useState(s => {
+    const o = s[operation]
+    const {inProgress} = o
+    const {hasRecipients, hideIncludeSelf, hasSBS} = o.meta
+    const {includeSelf, sign} = o.options
+    return {hasRecipients, hasSBS, hideIncludeSelf, inProgress, includeSelf, sign}
+  }, shallowEqual)
+
+  const setEncryptOptions = Constants.useState(s => s.dispatch.setEncryptOptions)
+
+  const onSetOptions = (opts: {newIncludeSelf: boolean; newSign: boolean}) => {
+    const {newIncludeSelf, newSign} = opts
+    setEncryptOptions({includeSelf: newIncludeSelf, sign: newSign})
+  }
 
   const direction = Styles.isTablet ? 'horizontal' : Styles.isMobile ? 'vertical' : 'horizontal'
   const gap = Styles.isTablet ? 'medium' : Styles.isMobile ? 'xtiny' : 'medium'
@@ -36,24 +43,27 @@ const EncryptOptions = React.memo(function EncryptOptions() {
           label="Include yourself"
           disabled={inProgress || hasSBS || !hasRecipients}
           checked={hasSBS || includeSelf}
-          onCheck={newValue => setOptions(newValue, sign, hideIncludeSelf)}
+          onCheck={newValue => onSetOptions({newIncludeSelf: newValue, newSign: sign})}
         />
       )}
       <Kb.Checkbox
         label="Sign"
         disabled={inProgress || hasSBS}
         checked={sign}
-        onCheck={newValue => setOptions(includeSelf, newValue, hideIncludeSelf)}
+        onCheck={newValue => onSetOptions({newIncludeSelf: includeSelf, newSign: newValue})}
       />
     </Kb.Box2>
   )
 })
 
 const EncryptOutputBanner = () => {
-  const includeSelf = Constants.useEncryptState(s => s.includeSelf)
-  const hasRecipients = Constants.useEncryptState(s => s.recipients.length > 0)
-  const recipients = Constants.useEncryptState(s => s.recipients)
-  const outputType = Constants.useEncryptState(s => s.inputType())
+  const {hasRecipients, includeSelf, recipients, outputType} = Constants.useState(s => {
+    const o = s[operation]
+    const {recipients, outputType} = o
+    const {hasRecipients} = o.meta
+    const {includeSelf} = o.options
+    return {hasRecipients, includeSelf, outputType, recipients}
+  }, shallowEqual)
 
   const youAnd = (who: string) => (includeSelf ? `you and ${who}` : who)
   const whoCanRead = hasRecipients
@@ -112,43 +122,8 @@ const styles = Styles.styleSheetCreate(
 )
 
 export const EncryptInput = () => {
-  const {text, file, inProgress, warningMessage, errorMessage, output, outputValid, inputType} =
-    Constants.useEncryptState(s => {
-      const {text, file, inProgress, warningMessage, errorMessage, output, outputValid} = s
-      return {
-        errorMessage,
-        file,
-        inProgress,
-        inputType: s.inputType(),
-        isSuccessful: s.outputStatus === 'success',
-        output,
-        outputValid,
-        text,
-        warningMessage,
-      }
-    }, shallowEqual)
-  const setText = Constants.useEncryptState(s => s.dispatch.setText)
-  const setFile = Constants.useEncryptState(s => s.dispatch.setFile)
-  const size = 0
-  const onClearFiles = () => {
-    setFile('')
-  }
-
-  const input =
-    inputType === 'text' ? (
-      <TextInput
-        onChangeText={setText}
-        onSetFile={setFile}
-        value={text}
-        textIsCipher={false}
-        placeholder={Container.isMobile ? 'Enter text to encrypt' : 'Enter text, drop a file or folder, or'}
-        emptyWidth={207}
-      />
-    ) : (
-      <FileInput path={file} size={size} onClearFiles={onClearFiles} fileIcon="icon-file-64" />
-    )
   const options = Container.isMobile ? (
-    <InputActionsBar>
+    <InputActionsBar operation={operation}>
       <EncryptOptions />
     </InputActionsBar>
   ) : (
@@ -156,25 +131,21 @@ export const EncryptInput = () => {
   )
   const content = (
     <>
-      <OperationBanner
-        infoMessage={Constants.infoMessage.encrypt}
-        warningMessage={warningMessage}
-        errorMessage={errorMessage}
-      />
+      <OperationBanner operation={operation} />
       <Recipients />
-      {input}
+      <Input operation={operation} />
       {options}
     </>
   )
 
-  const reset = Constants.useEncryptState(s => s.dispatch.reset)
+  const resetOperation = Constants.useState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (Container.isMobile) {
-        reset()
+        resetOperation(operation)
       }
     }
-  }, [reset])
+  }, [resetOperation])
   return Container.isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
@@ -185,36 +156,12 @@ export const EncryptInput = () => {
 }
 
 export const EncryptOutput = () => {
-  const {text, file, inProgress, warningMessage, errorMessage, output, outputValid, inputType, isSuccessful} =
-    Constants.useEncryptState(s => {
-      const {text, file, inProgress, warningMessage, errorMessage, output, outputValid} = s
-      return {
-        errorMessage,
-        file,
-        inProgress,
-        inputType: s.inputType(),
-        isSuccessful: s.outputStatus === 'success',
-        output,
-        outputValid,
-        text,
-        warningMessage,
-      }
-    }, shallowEqual)
   const content = (
     <>
       <EncryptOutputBanner />
       <SignedSender operation={operation} />
       {Container.isMobile ? <Kb.Divider /> : null}
-      <OperationOutput
-        textType={'cipher'}
-        inProgress={inProgress}
-        output={output}
-        outputValid={outputValid}
-        outputType={inputType}
-        isSuccessful={isSuccessful}
-        outputTextIsLarge={}
-        fileIcon={}
-      />
+      <OperationOutput operation={operation} />
       <OutputActionsBar operation={operation} />
     </>
   )
@@ -228,22 +175,13 @@ export const EncryptOutput = () => {
   )
 }
 
-export const EncryptIO = () => {
-  const inProgress = Constants.useEncryptState(s => s.inProgress)
-  const setFile = Constants.useEncryptState(s => s.dispatch.setFile)
-  return (
-    <DragAndDrop
-      prompt="Drop a file to encrypt"
-      allowFolders={true}
-      inProgress={inProgress}
-      setFile={setFile}
-    >
-      <Kb.Box2 direction="vertical" fullHeight={true}>
-        <EncryptInput />
-        <EncryptOutput />
-      </Kb.Box2>
-    </DragAndDrop>
-  )
-}
+export const EncryptIO = () => (
+  <DragAndDrop operation={operation} prompt="Drop a file to encrypt">
+    <Kb.Box2 direction="vertical" fullHeight={true}>
+      <EncryptInput />
+      <EncryptOutput />
+    </Kb.Box2>
+  </DragAndDrop>
+)
 
 export default EncryptInput

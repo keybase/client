@@ -647,8 +647,7 @@ import * as ConfigGen from './config-gen'
 
 const initCrypto = () => {
   Container.listenAction(ConfigGen.resetStore, () => {
-    Constants.useEncryptState.getState().dispatch.reset()
-    // TODO others
+    Constants.useState.getState().dispatch.reset()
   })
 
   // Container.listenAction(

@@ -44,6 +44,6 @@ export type State = {
     recipients: Array<string> // Only for encrypt operation
   }
   readonly sign: CommonState
-  readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  // readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   readonly verify: CommonState
 }

@@ -16,7 +16,6 @@ import {
 import HiddenString from '../../util/hidden-string'
 import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import type {TypedState} from '../reducer'
-import * as Container from '../../util/container'
 import * as Z from '../../util/zustand'
 
 type ZState = {
