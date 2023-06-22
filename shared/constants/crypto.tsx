@@ -4,7 +4,7 @@ import * as Z from '../util/zustand'
 import * as UserConstants from './current-user'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
-// import * as TeamBuildingConstants from './team-building'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import HiddenString from '../util/hidden-string'
 import type * as Types from './types/crypto'
 
@@ -195,7 +195,7 @@ type ZState = Types.State & {
 
 export const useState = Z.createZustand(
   Z.immerZustand<ZState>((set, get) => {
-    // const reduxDispatch = Container.getReduxDispatch()
+    const reduxDispatch = Z.getReduxDispatch()
 
     const resetOutput = (o: Types.CommonState) => {
       o.output = new HiddenString('')
@@ -240,11 +240,6 @@ export const useState = Z.createZustand(
     const encryptText = () => {
       const f = async () => {
         const start = get().encrypt
-
-        // mobile doesn't run anything automatically
-        if (Platform.isMobile) return
-        if (start.inProgress) return
-
         const username = UserConstants.useCurrentUserState.getState().username
         let rs = start.recipients
         if (!rs.length) {
@@ -292,11 +287,6 @@ export const useState = Z.createZustand(
     const encryptFile = (destinationDir: string) => {
       const f = async () => {
         const start = get().encrypt
-
-        // mobile doesn't run anything automatically
-        if (Platform.isMobile) return
-        if (start.inProgress) return
-
         const username = UserConstants.useCurrentUserState.getState().username
         let rs = start.recipients
         if (!rs.length) {
@@ -343,11 +333,6 @@ export const useState = Z.createZustand(
     const decryptText = () => {
       const f = async () => {
         const start = get().decrypt
-
-        // mobile doesn't run anything automatically
-        if (Platform.isMobile) return
-        if (start.inProgress) return
-
         try {
           const ciphertext = start.input.stringValue()
           const res = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise({ciphertext}, waitingKey)
@@ -385,11 +370,6 @@ export const useState = Z.createZustand(
     const decryptFile = (destinationDir: string) => {
       const f = async () => {
         const start = get().decrypt
-
-        // mobile doesn't run anything automatically
-        if (Platform.isMobile) return
-        if (start.inProgress) return
-
         const filename = start.input.stringValue()
         try {
           const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise(
@@ -428,11 +408,6 @@ export const useState = Z.createZustand(
     const signText = () => {
       const f = async () => {
         const start = get().sign
-
-        // mobile doesn't run anything automatically
-        if (Platform.isMobile) return
-        if (start.inProgress) return
-
         try {
           const plaintext = start.input.stringValue()
           const ciphertext = await RPCTypes.saltpackSaltpackSignStringRpcPromise({plaintext}, waitingKey)
@@ -467,11 +442,6 @@ export const useState = Z.createZustand(
     const signFile = (destinationDir: string) => {
       const f = async () => {
         const start = get().sign
-
-        // mobile doesn't run anything automatically
-        if (Platform.isMobile) return
-        if (start.inProgress) return
-
         const username = UserConstants.useCurrentUserState.getState().username
         const filename = start.input.stringValue()
         try {
@@ -508,11 +478,6 @@ export const useState = Z.createZustand(
     const verifyText = () => {
       const f = async () => {
         const start = get().verify
-
-        // mobile doesn't run anything automatically
-        if (Platform.isMobile) return
-        if (start.inProgress) return
-
         try {
           const signedMsg = start.input.stringValue()
           const res = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise({signedMsg}, waitingKey)
@@ -548,11 +513,6 @@ export const useState = Z.createZustand(
     const verifyFile = (destinationDir: string) => {
       const f = async () => {
         const start = get().verify
-
-        // mobile doesn't run anything automatically
-        if (Platform.isMobile) return
-        if (start.inProgress) return
-
         const signedFilename = start.input.stringValue()
         try {
           const res = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise(
@@ -740,8 +700,29 @@ export const useState = Z.createZustand(
             break
         }
       },
-      runTextOperation: (_op: Types.Operations) => {
-        // TODO on mobile
+      runTextOperation: (op: Types.Operations) => {
+        let route: 'decryptOutput' | 'encryptOutput' | 'signOutput' | 'verifyOutput'
+        switch (op) {
+          case 'decrypt':
+            decryptText()
+            route = 'decryptOutput'
+            break
+          case 'encrypt':
+            route = 'encryptOutput'
+            encryptText()
+            break
+          case 'sign':
+            route = 'signOutput'
+            signText()
+            break
+          case 'verify':
+            route = 'verifyOutput'
+            verifyText()
+            break
+        }
+        if (Platform.isMobile) {
+          reduxDispatch(RouteTreeGen.createNavigateAppend({path: [route]}))
+        }
       },
       setEncryptOptions: (newOptions: Types.EncryptOptions, hideIncludeSelf?: boolean) => {
         set(s => {
@@ -792,21 +773,9 @@ export const useState = Z.createZustand(
             resetOutput(o)
           }
         })
-        if (type === 'text') {
-          switch (op) {
-            case 'decrypt':
-              decryptText()
-              break
-            case 'encrypt':
-              encryptText()
-              break
-            case 'sign':
-              signText()
-              break
-            case 'verify':
-              verifyText()
-              break
-          }
+        // mobile doesn't run anything automatically
+        if (type === 'text' && !Platform.isMobile) {
+          get().dispatch.runTextOperation(op)
         }
       },
       setRecipients: (recipients: Array<string>, hasSBS: boolean) => {
