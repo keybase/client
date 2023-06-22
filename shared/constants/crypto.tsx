@@ -327,12 +327,6 @@ export const useState = Z.createZustand(
       }
       Z.ignorePromise(f())
     }
-    const encryptText = () => {
-      encrypt('')
-    }
-    const encryptFile = (destinationDir: string) => {
-      encrypt(destinationDir)
-    }
 
     const decrypt = (destinationDir: string) => {
       const f = async () => {
@@ -388,14 +382,6 @@ export const useState = Z.createZustand(
       }
 
       Z.ignorePromise(f())
-    }
-
-    const decryptText = () => {
-      decrypt('')
-    }
-
-    const decryptFile = (destinationDir: string) => {
-      decrypt(destinationDir)
     }
 
     const signText = () => {
@@ -680,10 +666,10 @@ export const useState = Z.createZustand(
         })
         switch (op) {
           case 'encrypt':
-            encryptFile(destinationDir)
+            encrypt(destinationDir)
             break
           case 'decrypt':
-            decryptFile(destinationDir)
+            decrypt(destinationDir)
             break
           case 'verify':
             verifyFile(destinationDir)
@@ -697,12 +683,12 @@ export const useState = Z.createZustand(
         let route: 'decryptOutput' | 'encryptOutput' | 'signOutput' | 'verifyOutput'
         switch (op) {
           case 'decrypt':
-            decryptText()
+            decrypt('')
             route = 'decryptOutput'
             break
           case 'encrypt':
             route = 'encryptOutput'
-            encryptText()
+            encrypt('')
             break
           case 'sign':
             route = 'signOutput'
@@ -739,7 +725,7 @@ export const useState = Z.createZustand(
         })
 
         if (get().encrypt.inputType === 'text') {
-          encryptText()
+          encrypt('')
         }
       },
       setInput: (op: Types.Operations, type: Types.InputTypes, value: string) => {
