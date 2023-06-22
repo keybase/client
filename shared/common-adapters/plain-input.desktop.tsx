@@ -197,6 +197,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       placeholder: this.props.placeholder,
       placeholderColor: this.props.placeholderColor,
       ref: this._input,
+      spellCheck: this.props.spellCheck,
       ...(this.props.disabled ? {readOnly: true} : {}),
     }
     return commonProps

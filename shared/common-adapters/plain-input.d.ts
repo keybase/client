@@ -96,6 +96,7 @@ export type Props = {
   onClick?: () => void
   onKeyDown?: (event: React.KeyboardEvent) => void
   onKeyUp?: (event: React.KeyboardEvent) => void
+  spellCheck?: boolean
   // Mobile only
   children?: React.ReactNode
   allowFontScaling?: boolean

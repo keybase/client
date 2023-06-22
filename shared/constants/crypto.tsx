@@ -68,6 +68,45 @@ export const Tabs = [
   },
 ] as const
 
+type CommonState = {
+  bytesComplete: number
+  bytesTotal: number
+  errorMessage: HiddenString
+  inProgress: boolean
+  input: HiddenString
+  inputType: 'text' | 'file'
+  output: HiddenString
+  outputFileDestination: HiddenString
+  outputSenderFullname?: HiddenString
+  outputSenderUsername?: HiddenString
+  outputSigned?: boolean
+  outputStatus?: 'success' | 'pending' | 'error'
+  outputType?: 'text' | 'file'
+  warningMessage: HiddenString
+  // to ensure what the user types matches the input
+  outputValid: boolean
+}
+
+type EncryptOptions = {
+  includeSelf: boolean
+  sign: boolean
+}
+
+type State = {
+  decrypt: CommonState
+  encrypt: CommonState & {
+    meta: {
+      hasRecipients: boolean
+      hasSBS: boolean
+      hideIncludeSelf: boolean
+    }
+    options: EncryptOptions
+    recipients: Array<string> // Only for encrypt operation
+  }
+  sign: CommonState
+  verify: CommonState
+}
+
 export const Operations = {
   Decrypt: 'decrypt',
   Encrypt: 'encrypt',
@@ -147,7 +186,7 @@ const defaultCommonState = {
   warningMessage: new HiddenString(''),
 }
 
-const initialState: Types.State = {
+const initialState: State = {
   decrypt: {
     ...defaultCommonState,
   },
@@ -167,13 +206,12 @@ const initialState: Types.State = {
   sign: {
     ...defaultCommonState,
   },
-  // teamBuilding: TeamBuildingConstants.makeSubState(),
   verify: {
     ...defaultCommonState,
   },
 }
 
-type ZState = Types.State & {
+type ZState = State & {
   dispatch: {
     clearInput: (op: Types.Operations) => void
     clearRecipients: () => void
@@ -187,7 +225,7 @@ type ZState = Types.State & {
     onSaltpackStart: (op: Types.Operations) => void
     onSaltpackProgress: (op: Types.Operations, bytesComplete: number, bytesTotal: number) => void
     onSaltpackOpenFile: (op: Types.Operations, path: string) => void
-    setEncryptOptions: (options: Types.EncryptOptions, hideIncludeSelf?: boolean) => void
+    setEncryptOptions: (options: EncryptOptions, hideIncludeSelf?: boolean) => void
     setInput: (op: Types.Operations, type: Types.InputTypes, value: string) => void
     setRecipients: (recipients: Array<string>, hasSBS: boolean) => void
   }
@@ -197,7 +235,7 @@ export const useState = Z.createZustand(
   Z.immerZustand<ZState>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
 
-    const resetOutput = (o: Types.CommonState) => {
+    const resetOutput = (o: CommonState) => {
       o.output = new HiddenString('')
       o.outputStatus = undefined
       o.outputType = undefined
@@ -208,7 +246,7 @@ export const useState = Z.createZustand(
       o.warningMessage = new HiddenString('')
     }
 
-    const onError = (cs: Types.CommonState, errorMessage: string) => {
+    const onError = (cs: CommonState, errorMessage: string) => {
       cs.outputValid = false
       cs.errorMessage = new HiddenString(errorMessage)
       cs.warningMessage = new HiddenString('')
@@ -217,7 +255,7 @@ export const useState = Z.createZustand(
     }
 
     const onSuccess = (
-      cs: Types.CommonState,
+      cs: CommonState,
       outputValid: boolean,
       warningMessage: string,
       output: string,
@@ -724,7 +762,7 @@ export const useState = Z.createZustand(
           reduxDispatch(RouteTreeGen.createNavigateAppend({path: [route]}))
         }
       },
-      setEncryptOptions: (newOptions: Types.EncryptOptions, hideIncludeSelf?: boolean) => {
+      setEncryptOptions: (newOptions: EncryptOptions, hideIncludeSelf?: boolean) => {
         set(s => {
           const e = s.encrypt
           e.options = {
@@ -798,6 +836,10 @@ export const useState = Z.createZustand(
           }
           o.recipients = recipients
         })
+        // mobile doesn't run anything automatically
+        if (get().encrypt.inputType === 'text' && !Platform.isMobile) {
+          get().dispatch.runTextOperation('encrypt')
+        }
       },
     }
     return {

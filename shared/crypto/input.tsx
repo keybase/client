@@ -148,6 +148,8 @@ export const TextInput = (props: TextProps) => {
             containerStyle={inputContainerStyle}
             style={inputStyle}
             textType={textType === 'cipher' ? 'Terminal' : 'Body'}
+            autoCorrect={textType !== 'cipher'}
+            spellCheck={textType !== 'cipher'}
             onChangeText={onChangeText}
             ref={inputRef}
           />
