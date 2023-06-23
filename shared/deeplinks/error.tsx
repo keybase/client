@@ -1,4 +1,5 @@
 import * as Container from '../util/container'
+import * as Constants from '../constants/deeplinks'
 import * as Kb from '../common-adapters'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
@@ -28,10 +29,9 @@ type OwnProps = {
 
 const KeybaseLinkError = (props: OwnProps) => {
   const errorSource = props.errorSource
-  const message = Container.useSelector(s => {
+  const deepError = Constants.useState(s => (errorSource === 'app' ? s.keybaseLinkError : ''))
+  const reduxmessage = Container.useSelector(s => {
     switch (errorSource) {
-      case 'app':
-        return s.deeplinks.keybaseLinkError
       case 'sep7':
         return s.wallets.sep7ConfirmError
       case 'sep6':
@@ -40,6 +40,8 @@ const KeybaseLinkError = (props: OwnProps) => {
         return 'unknown'
     }
   })
+  const message = deepError || reduxmessage
+
   const sep6Error = Container.useSelector(s => s.wallets.sep6Error)
   const isError = errorSource !== 'sep6' || sep6Error
   const dispatch = Container.useDispatch()

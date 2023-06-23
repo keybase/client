@@ -1,5 +1,5 @@
 import * as Container from '../../util/container'
-import * as DeeplinksGen from '../../actions/deeplinks-gen'
+import * as LinkingConstants from '../../constants/deeplinks'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -31,11 +31,10 @@ type KeybaseLinkProps = {
 }
 
 const KeybaseLink = (props: KeybaseLinkProps) => {
-  const dispatch = Container.useDispatch()
-  const onClick = React.useCallback(
-    () => dispatch(DeeplinksGen.createLink({link: props.link})),
-    [dispatch, props.link]
-  )
+  const handleAppLink = LinkingConstants.useState(s => s.dispatch.handleAppLink)
+  const onClick = React.useCallback(() => {
+    handleAppLink(props.link)
+  }, [handleAppLink, props.link])
 
   return (
     <Text

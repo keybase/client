@@ -1,7 +1,7 @@
 import * as Constants from '../../constants/profile'
 import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
-import * as DeeplinksGen from '../deeplinks-gen'
+import * as LinksConstants from '../../constants/deeplinks'
 import * as More from '../../constants/types/more'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -262,12 +262,11 @@ const addProof = async (
       listenerApi.dispatch(loadAfter)
       listenerApi.dispatch(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
       if (error.code === RPCTypes.StatusCode.scgeneric && action.payload.reason === 'appLink') {
-        listenerApi.dispatch(
-          DeeplinksGen.createSetKeybaseLinkError({
-            error:
-              "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
-          })
-        )
+        LinksConstants.useState
+          .getState()
+          .dispatch.setLinkError(
+            "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
+          )
         listenerApi.dispatch(
           RouteTreeGen.createNavigateAppend({
             path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],

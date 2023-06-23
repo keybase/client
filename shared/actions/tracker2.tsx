@@ -1,7 +1,7 @@
 import * as Constants from '../constants/tracker2'
 import * as ConfigConstants from '../constants/config'
+import * as LinksConstants from '../constants/deeplinks'
 import * as Container from '../util/container'
-import * as DeeplinksGen from './deeplinks-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as ProfileGen from './profile-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -140,11 +140,11 @@ const load = async (
       } else if (error.code === RPCTypes.StatusCode.scnotfound) {
         // we're on the profile page for a user that does not exist. Currently the only way
         // to get here is with an invalid link or deeplink.
-        listenerApi.dispatch(
-          DeeplinksGen.createSetKeybaseLinkError({
-            error: `You followed a profile link for a user (${action.payload.assertion}) that does not exist.`,
-          })
-        )
+        LinksConstants.useState
+          .getState()
+          .dispatch.setLinkError(
+            `You followed a profile link for a user (${action.payload.assertion}) that does not exist.`
+          )
         listenerApi.dispatch(RouteTreeGen.createNavigateUp())
         listenerApi.dispatch(
           RouteTreeGen.createNavigateAppend({
