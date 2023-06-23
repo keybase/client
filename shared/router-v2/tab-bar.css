@@ -3,12 +3,26 @@
   flex-shrink: 0;
   width: 160px;
 }
-.darkMode .tab-container {
-  background-color: var(--color-redLighter);
+.darkMode {
+  .tab-container {
+    background-color: var(--color-redLighter);
+  }
 }
 .tab {
   flex-shrink: 0;
   height: 40px;
+  .tab-icon {
+    color: var(--color-blueDarkerOrBlack_85);
+    margin-left: 24px;
+    margin-right: 12px;
+  }
+  .tab-label {
+    color: var(--color-blueLighter);
+    flex-grow: 1;
+  }
+  .tab-highlight {
+    width: 3px;
+  }
 }
 .tab-selected {
   background-color: rgba(76, 142, 255, 0.4);
@@ -18,13 +32,10 @@
   transition-duration: 0.4s;
   transition-property: background-color;
 }
-.darkMode .tab-selected {
-  background-color: #1f1f1f;
-}
-.tab .tab-icon {
-  color: var(--color-blueDarkerOrBlack_85);
-  margin-left: 24px;
-  margin-right: 12px;
+.darkMode {
+  .tab-selected {
+    background-color: #1f1f1f;
+  }
 }
 .tab:hover .tab-icon,
 .tab-selected .tab-icon {
@@ -32,41 +43,48 @@
   margin-left: 24px;
   margin-right: 12px;
 }
-.darkMode .tab:hover .tab-icon,
-.darkMode .tab-selected .tab-icon {
-  color: rgba(255, 255, 255, 0.85);
+.darkMode {
+  .tab:hover .tab-icon,
+  .tab-selected .tab-icon {
+    color: rgba(255, 255, 255, 0.85);
+  }
 }
-.tab .tab-label {
-  color: var(--color-blueLighter);
-  flex-grow: 1;
-}
-.darkMode .tab .tab-label {
-  color: rgba(255, 255, 255, 0.5);
+.darkMode {
+  .tab {
+    .tab-label {
+      color: rgba(255, 255, 255, 0.5);
+    }
+  }
 }
 .tab:hover .tab-label,
 .tab-selected .tab-label {
   color: var(--color-white);
   flex-grow: 1;
 }
-.darkMode .tab:hover .tab-label,
-.darkMode .tab-selected .tab-label {
-  color: rgba(255, 255, 255, 0.85);
+.darkMode {
+  .tab:hover .tab-label,
+  .tab-selected .tab-label {
+    color: rgba(255, 255, 255, 0.85);
+  }
 }
 
 .tab-highlight {
   transition-property: background-color;
   transition-duration: 0.4s;
 }
-.tab .tab-highlight {
-  width: 3px;
+.tab-selected {
+  .tab-highlight {
+    background-color: var(--color-white);
+    width: 3px;
+    border-radius: 2px;
+  }
 }
-.tab-selected .tab-highlight {
-  background-color: var(--color-white);
-  width: 3px;
-  border-radius: 2px;
-}
-.darkMode .tab-selected .tab-highlight {
-  background-color: var(--color-blueDark);
+.darkMode {
+  .tab-selected {
+    .tab-highlight {
+      background-color: var(--color-blueDark);
+    }
+  }
 }
 .tab-tooltip {
   display: none !important;

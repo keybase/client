@@ -1,15 +1,16 @@
-.inbox-hover-container .grablines: {
-  opacity: 0;
-  transition: opacity 0.25s ease-in-out;
-}
-.inbox-hover-container  .grablinescontainer: {
-  opacity: 0.5;
-  transition: opacity 0.25s ease-in-out;
-}
-,
-.inbox-hover-container:hover .grablines: {
-  opacity: 1;
-}
-.inbox-hover-container:hover .grablinescontainer: {
-  opacity: 1;
+.inbox-hover-container {
+  .grabLines {
+    opacity: 0;
+    transition: opacity 0.25s ease-in-out;
+  }
+  .grabLinesContainer {
+    opacity: 0.5;
+    transition: opacity 0.25s ease-in-out;
+  }
+  &:hover {
+    .grabLines,
+    .grabLinesContainer {
+      opacity: 1;
+    }
+  }
 }
