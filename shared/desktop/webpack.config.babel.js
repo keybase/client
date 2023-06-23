@@ -35,7 +35,7 @@ const config = (_, {mode}) => {
         ignore: [/\.(native|ios|android)\.(ts|js)x?$/],
         plugins: [...(isHot && !nodeThread ? ['react-refresh/babel'] : [])],
         presets: [
-          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '24.1.1'}}],
+          ['@babel/preset-env', {debug: false, modules: false, targets: {electron: '25.1.1'}}],
           [
             '@babel/preset-react',
             {
