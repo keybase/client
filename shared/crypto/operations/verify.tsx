@@ -1,6 +1,5 @@
 import * as Constants from '../../constants/crypto'
 import * as Container from '../../util/container'
-import * as CryptoGen from '../../actions/crypto-gen'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import {Input, InputActionsBar, DragAndDrop, OperationBanner} from '../input'
@@ -9,14 +8,14 @@ import {OperationOutput, SignedSender, OutputActionsBar} from '../output'
 const operation = Constants.Operations.Verify
 
 export const VerifyInput = () => {
-  const dispatch = Container.useDispatch()
+  const resetOperation = Constants.useState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (Container.isMobile) {
-        dispatch(CryptoGen.createResetOperation({operation}))
+        resetOperation(operation)
       }
     }
-  }, [dispatch])
+  }, [resetOperation])
 
   const content = (
     <>

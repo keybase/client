@@ -1,4 +1,4 @@
-import * as Container from '../util/container'
+import * as Z from '../util/zustand'
 import * as RPCGen from '../constants/types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ProvisionGen from '../actions/provision-gen'
@@ -41,12 +41,15 @@ type ZState = State & {
   }
 }
 
-export const useState = Container.createZustand(
-  Container.immerZustand<ZState>((set, get) => {
-    const reduxDispatch = Container.getReduxDispatch()
-    const reduxStore = Container.getReduxStore()
+export const useState = Z.createZustand(
+  Z.immerZustand<ZState>((set, get) => {
+    const reduxDispatch = Z.getReduxDispatch()
+    const reduxStore = Z.getReduxStore()
     const dispatch = {
       cancelReset: () => {
+        set(s => {
+          s.error = ''
+        })
         const f = async () => {
           logger.info('Cancelled autoreset from logged-in user')
           try {
@@ -80,7 +83,7 @@ export const useState = Container.createZustand(
             }
           }
         }
-        Container.ignorePromise(f())
+        Z.ignorePromise(f())
       },
       reset: () => {
         set(() => initialState)
@@ -150,7 +153,7 @@ export const useState = Container.createZustand(
                 },
                 waitingKey: enterPipelineWaitingKey,
               },
-              Container.dummyListenerApi
+              Z.dummyListenerApi
             )
           } catch (error) {
             if (!(error instanceof RPCError)) {
@@ -162,7 +165,7 @@ export const useState = Container.createZustand(
             })
           }
         }
-        Container.ignorePromise(f())
+        Z.ignorePromise(f())
       },
       startAccountReset: (skipPassword: boolean, _username: string) => {
         const username = _username || reduxStore().recoverPassword.username

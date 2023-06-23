@@ -1,6 +1,7 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Stats from '../engine/stats'
+import * as Z from '../util/zustand'
 import logger from '../logger'
 import type * as Types from './types/config'
 import type {ConversationIDKey} from './types/chat2'
@@ -8,11 +9,8 @@ import type {RPCError} from '../util/errors'
 import type {Tab} from './tabs'
 import uniq from 'lodash/uniq'
 import {convertToError, isEOFError, isErrorTransient} from '../util/errors'
-import {create as createZustand} from 'zustand'
 import {defaultUseNativeFrame, runMode} from './platform'
 import {enableActionLogging} from '../local-debug'
-import {getReduxDispatch} from '../util/zustand'
-import {immer as immerZustand} from 'zustand/middleware/immer'
 import {noConversationIDKey} from './types/chat2/common'
 import {useCurrentUserState} from './current-user'
 
@@ -180,9 +178,9 @@ type ZState = ZStore & {
   }
 }
 
-export const useConfigState = createZustand(
-  immerZustand<ZState>((set, get) => {
-    const reduxDispatch = getReduxDispatch()
+export const useConfigState = Z.createZustand(
+  Z.immerZustand<ZState>((set, get) => {
+    const reduxDispatch = Z.getReduxDispatch()
 
     const nativeFrameKey = 'useNativeFrame'
     const notifySoundKey = 'notifySound'

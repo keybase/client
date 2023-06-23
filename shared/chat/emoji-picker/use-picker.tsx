@@ -1,4 +1,4 @@
-import * as Container from '../../util/container'
+import * as Z from '../../util/zustand'
 import type {RenderableEmoji} from '../../util/emoji'
 
 export type PickKey = 'addAlias' | 'chatInput' | 'reaction'
@@ -10,8 +10,8 @@ type ZState = {
   pickerMap: Map<PickKey, PickerValue | undefined>
   updatePickerMap: (key: PickKey, val?: PickerValue) => void
 }
-export const usePickerState = Container.createZustand(
-  Container.immerZustand<ZState>(set => ({
+export const usePickerState = Z.createZustand(
+  Z.immerZustand<ZState>(set => ({
     pickerMap: new Map(),
     updatePickerMap: (key: PickKey, val?: PickerValue) => {
       set(state => {

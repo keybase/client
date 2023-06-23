@@ -3,9 +3,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 // normally util.container but it re-exports from us so break the cycle
-import {create as createZustand} from 'zustand'
-import {immer as immerZustand} from 'zustand/middleware/immer'
-import {getReduxDispatch} from '../util/zustand'
+import * as Z from '../util/zustand'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -31,9 +29,9 @@ type ZState = ZStore & {
   }
 }
 
-export const useLogoutState = createZustand(
-  immerZustand<ZState>((set, get) => {
-    const reduxDispatch = getReduxDispatch()
+export const useLogoutState = Z.createZustand(
+  Z.immerZustand<ZState>((set, get) => {
+    const reduxDispatch = Z.getReduxDispatch()
 
     const dispatch = {
       requestLogout: () => {

@@ -1,6 +1,5 @@
 import * as Constants from '../../constants/crypto'
 import * as Container from '../../util/container'
-import * as CryptoGen from '../../actions/crypto-gen'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
@@ -8,22 +7,24 @@ import Recipients from '../recipients'
 import openURL from '../../util/open-url'
 import {DragAndDrop, Input, InputActionsBar, OperationBanner} from '../input'
 import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from '../output'
+import shallowEqual from 'shallowequal'
 
 const operation = Constants.Operations.Encrypt
 
 const EncryptOptions = React.memo(function EncryptOptions() {
-  const dispatch = Container.useDispatch()
+  const {hasSBS, hasRecipients, hideIncludeSelf, includeSelf, inProgress, sign} = Constants.useState(s => {
+    const o = s[operation]
+    const {inProgress} = o
+    const {hasRecipients, hideIncludeSelf, hasSBS} = o.meta
+    const {includeSelf, sign} = o.options
+    return {hasRecipients, hasSBS, hideIncludeSelf, inProgress, includeSelf, sign}
+  }, shallowEqual)
 
-  const hideIncludeSelf = Container.useSelector(state => state.crypto.encrypt.meta.hideIncludeSelf)
-  const hasRecipients = Container.useSelector(state => state.crypto.encrypt.meta.hasRecipients)
-  const hasSBS = Container.useSelector(state => state.crypto.encrypt.meta.hasSBS)
-  const includeSelf = Container.useSelector(state => state.crypto.encrypt.options.includeSelf)
-  const sign = Container.useSelector(state => state.crypto.encrypt.options.sign)
-  const inProgress = Container.useSelector(state => state.crypto.encrypt.inProgress)
+  const setEncryptOptions = Constants.useState(s => s.dispatch.setEncryptOptions)
 
   const onSetOptions = (opts: {newIncludeSelf: boolean; newSign: boolean}) => {
     const {newIncludeSelf, newSign} = opts
-    dispatch(CryptoGen.createSetEncryptOptions({options: {includeSelf: newIncludeSelf, sign: newSign}}))
+    setEncryptOptions({includeSelf: newIncludeSelf, sign: newSign})
   }
 
   const direction = Styles.isTablet ? 'horizontal' : Styles.isMobile ? 'vertical' : 'horizontal'
@@ -56,10 +57,13 @@ const EncryptOptions = React.memo(function EncryptOptions() {
 })
 
 const EncryptOutputBanner = () => {
-  const includeSelf = Container.useSelector(state => state.crypto.encrypt.options.includeSelf)
-  const hasRecipients = Container.useSelector(state => state.crypto.encrypt.meta.hasRecipients)
-  const recipients = Container.useSelector(state => state.crypto.encrypt.recipients)
-  const outputType = Container.useSelector(state => state.crypto.encrypt.outputType)
+  const {hasRecipients, includeSelf, recipients, outputType} = Constants.useState(s => {
+    const o = s[operation]
+    const {recipients, outputType} = o
+    const {hasRecipients} = o.meta
+    const {includeSelf} = o.options
+    return {hasRecipients, includeSelf, outputType, recipients}
+  }, shallowEqual)
 
   const youAnd = (who: string) => (includeSelf ? `you and ${who}` : who)
   const whoCanRead = hasRecipients
@@ -134,14 +138,14 @@ export const EncryptInput = () => {
     </>
   )
 
-  const dispatch = Container.useDispatch()
+  const resetOperation = Constants.useState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (Container.isMobile) {
-        dispatch(CryptoGen.createResetOperation({operation}))
+        resetOperation(operation)
       }
     }
-  }, [dispatch])
+  }, [resetOperation])
   return Container.isMobile ? (
     <Kb.KeyboardAvoidingView2>{content}</Kb.KeyboardAvoidingView2>
   ) : (
@@ -151,25 +155,19 @@ export const EncryptInput = () => {
   )
 }
 
-export const EncryptOutput = () => {
-  const content = (
-    <>
-      <EncryptOutputBanner />
-      <SignedSender operation={operation} />
-      {Container.isMobile ? <Kb.Divider /> : null}
-      <OperationOutput operation={operation} />
-      <OutputActionsBar operation={operation} />
-    </>
-  )
-
-  return Container.isMobile ? (
-    content
-  ) : (
-    <Kb.Box2 direction="vertical" fullHeight={true} style={Constants.outputDesktopMaxHeight}>
-      {content}
-    </Kb.Box2>
-  )
-}
+export const EncryptOutput = () => (
+  <Kb.Box2
+    direction="vertical"
+    fullHeight={true}
+    style={Container.isMobile ? undefined : Constants.outputDesktopMaxHeight}
+  >
+    <EncryptOutputBanner />
+    <SignedSender operation={operation} />
+    {Container.isMobile ? <Kb.Divider /> : null}
+    <OperationOutput operation={operation} />
+    <OutputActionsBar operation={operation} />
+  </Kb.Box2>
+)
 
 export const EncryptIO = () => (
   <DragAndDrop operation={operation} prompt="Drop a file to encrypt">

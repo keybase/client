@@ -1,4 +1,3 @@
-import * as CryptoGen from '../actions/crypto-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/crypto'
 import * as Kb from '../common-adapters'
@@ -10,8 +9,9 @@ const placeholder = 'Search people'
 const Recipients = () => {
   const dispatch = Container.useDispatch()
 
-  const recipients = Container.useSelector(state => state.crypto.encrypt.recipients)
-  const inProgress = Container.useSelector(state => state.crypto.encrypt.inProgress)
+  const recipients = Constants.useState(s => s.encrypt.recipients)
+  const inProgress = Constants.useState(s => s.encrypt.inProgress)
+  const clearRecipients = Constants.useState(s => s.dispatch.clearRecipients)
 
   const onAddRecipients = () => {
     if (inProgress) return
@@ -20,7 +20,7 @@ const Recipients = () => {
 
   const onClearRecipients = () => {
     if (inProgress) return
-    dispatch(CryptoGen.createClearRecipients({operation: Constants.Operations.Encrypt}))
+    clearRecipients()
   }
 
   return (
@@ -29,7 +29,7 @@ const Recipients = () => {
         <Kb.Text type="BodyTinySemibold" style={styles.toField}>
           To:
         </Kb.Text>
-        {recipients?.length ? (
+        {recipients.length ? (
           <Kb.ConnectedUsernames type="BodyBold" usernames={recipients} colorFollowing={true} />
         ) : (
           <>
