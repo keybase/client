@@ -226,23 +226,26 @@ export const useState = Z.createZustand(
   Z.immerZustand<ZState>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
 
+    const resetWarnings = (o: CommonState) => {
+      o.errorMessage = new HiddenString('')
+      o.warningMessage = new HiddenString('')
+    }
+
     const resetOutput = (o: CommonState) => {
+      resetWarnings(o)
+      o.bytesComplete = 0
+      o.bytesTotal = 0
       o.output = new HiddenString('')
       o.outputStatus = undefined
       o.outputType = undefined
       o.outputSenderUsername = undefined
       o.outputSenderFullname = undefined
       o.outputValid = false
-      o.errorMessage = new HiddenString('')
-      o.warningMessage = new HiddenString('')
     }
 
     const onError = (cs: CommonState, errorMessage: string) => {
-      cs.outputValid = false
+      resetOutput(cs)
       cs.errorMessage = new HiddenString(errorMessage)
-      cs.warningMessage = new HiddenString('')
-      cs.output = new HiddenString('')
-      cs.outputSenderUsername = new HiddenString('')
     }
 
     const onSuccess = (
@@ -256,7 +259,7 @@ export const useState = Z.createZustand(
       senderFullname: string
     ) => {
       cs.outputValid = outputValid
-      cs.errorMessage = new HiddenString('')
+      resetWarnings(cs)
       cs.warningMessage = new HiddenString(warningMessage)
       cs.output = new HiddenString(output)
       cs.outputStatus = 'success'
@@ -266,7 +269,7 @@ export const useState = Z.createZustand(
       cs.outputSenderFullname = new HiddenString(signed ? senderFullname : '')
     }
 
-    const encrypt = (destinationDir: string) => {
+    const encrypt = (destinationDir: string = '') => {
       const f = async () => {
         const start = get().encrypt
         const username = UserConstants.useCurrentUserState.getState().username
@@ -328,7 +331,7 @@ export const useState = Z.createZustand(
       Z.ignorePromise(f())
     }
 
-    const decrypt = (destinationDir: string) => {
+    const decrypt = (destinationDir: string = '') => {
       const f = async () => {
         const start = get().decrypt
         const inputType = start.inputType
@@ -384,24 +387,23 @@ export const useState = Z.createZustand(
       Z.ignorePromise(f())
     }
 
-    const signText = () => {
+    const sign = (destinationDir: string = '') => {
       const f = async () => {
         const start = get().sign
+        const inputType = start.inputType
+        const input = start.input.stringValue()
         try {
-          const plaintext = start.input.stringValue()
-          const ciphertext = await RPCTypes.saltpackSaltpackSignStringRpcPromise({plaintext}, waitingKey)
+          const callText = async () =>
+            await RPCTypes.saltpackSaltpackSignStringRpcPromise({plaintext: input}, waitingKey)
+
+          const callFile = async () =>
+            await RPCTypes.saltpackSaltpackSignFileRpcPromise({destinationDir, filename: input}, waitingKey)
+
+          const output = await (inputType === 'text' ? callText() : callFile())
+
           const username = UserConstants.useCurrentUserState.getState().username
           set(s => {
-            onSuccess(
-              s.sign,
-              s.sign.input.stringValue() === plaintext,
-              '',
-              ciphertext,
-              'text',
-              true,
-              username,
-              ''
-            )
+            onSuccess(s.sign, s.sign.input.stringValue() === input, '', output, inputType, true, username, '')
           })
         } catch (_error) {
           if (!(_error instanceof RPCError)) {
@@ -410,7 +412,7 @@ export const useState = Z.createZustand(
           const error = _error
           logger.error(error)
           set(s => {
-            onError(s.sign, getStatusCodeMessage(error, 'sign', 'text'))
+            onError(s.sign, getStatusCodeMessage(error, 'sign', inputType))
           })
         }
       }
@@ -418,58 +420,36 @@ export const useState = Z.createZustand(
       Z.ignorePromise(f())
     }
 
-    const signFile = (destinationDir: string) => {
-      const f = async () => {
-        const start = get().sign
-        const username = UserConstants.useCurrentUserState.getState().username
-        const filename = start.input.stringValue()
-        try {
-          const signedFilename = await RPCTypes.saltpackSaltpackSignFileRpcPromise(
-            {destinationDir, filename},
-            waitingKey
-          )
-          set(s => {
-            onSuccess(
-              s.sign,
-              s.sign.input.stringValue() === filename,
-              '',
-              signedFilename,
-              'file',
-              true,
-              username,
-              ''
-            )
-          })
-        } catch (_error) {
-          if (!(_error instanceof RPCError)) {
-            return
-          }
-          const error = _error
-          logger.error(error)
-          set(s => {
-            onError(s.sign, getStatusCodeMessage(error, 'sign', 'file'))
-          })
-        }
-      }
-      Z.ignorePromise(f())
-    }
-
-    const verifyText = () => {
+    const verify = (destinationDir: string = '') => {
       const f = async () => {
         const start = get().verify
+        const inputType = start.inputType
+        const input = start.input.stringValue()
         try {
-          const signedMsg = start.input.stringValue()
-          const res = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise({signedMsg}, waitingKey)
-          const {plaintext, sender, verified} = res
-          const {username, fullname} = sender
+          const callText = async () => {
+            const res = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input}, waitingKey)
+            const {plaintext: output, sender, verified: signed} = res
+            const {username, fullname} = sender
+            return {fullname, output, signed, username}
+          }
+          const callFile = async () => {
+            const res = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise(
+              {destinationDir, signedFilename: input},
+              waitingKey
+            )
+            const {verifiedFilename: output, sender, verified: signed} = res
+            const {username, fullname} = sender
+            return {fullname, output, signed, username}
+          }
+          const {fullname, output, signed, username} = await (inputType === 'text' ? callText() : callFile())
           set(s => {
             onSuccess(
               s.verify,
-              s.verify.input.stringValue() === signedMsg,
+              s.verify.input.stringValue() === input,
               '',
-              plaintext,
-              'text',
-              verified,
+              output,
+              inputType,
+              signed,
               username,
               fullname
             )
@@ -481,7 +461,7 @@ export const useState = Z.createZustand(
           const error = _error
           logger.error(error)
           set(s => {
-            onError(s.verify, getStatusCodeMessage(error, 'verify', 'text'))
+            onError(s.verify, getStatusCodeMessage(error, 'verify', inputType))
           })
         }
       }
@@ -489,39 +469,24 @@ export const useState = Z.createZustand(
       Z.ignorePromise(f())
     }
 
-    const verifyFile = (destinationDir: string) => {
+    const download = (op: Types.Operations) => {
       const f = async () => {
-        const start = get().verify
-        const signedFilename = start.input.stringValue()
-        try {
-          const res = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise(
-            {destinationDir, signedFilename},
-            waitingKey
-          )
-          const {verifiedFilename, sender, verified} = res
-          const {username, fullname} = sender
-          set(s => {
-            onSuccess(
-              s.verify,
-              s.verify.input.stringValue() === signedFilename,
-              '',
-              verifiedFilename,
-              'file',
-              verified,
-              username,
-              fullname
-            )
+        const callEncrypt = async () =>
+          await RPCTypes.saltpackSaltpackSaveCiphertextToFileRpcPromise({
+            ciphertext: get().encrypt.output.stringValue(),
           })
-        } catch (_error) {
-          if (!(_error instanceof RPCError)) {
-            return
-          }
-          const error = _error
-          logger.error(error)
-          set(s => {
-            onError(s.verify, getStatusCodeMessage(error, 'verify', 'file'))
+        const callSign = async () =>
+          await RPCTypes.saltpackSaltpackSaveSignedMsgToFileRpcPromise({
+            signedMsg: get().sign.output.stringValue(),
           })
-        }
+        const output = await (op === 'encrypt' ? callEncrypt() : callSign())
+        set(s => {
+          const o = s[op]
+          resetWarnings(o)
+          o.output = new HiddenString(output)
+          o.outputStatus = 'success'
+          o.outputType = 'file'
+        })
       }
       Z.ignorePromise(f())
     }
@@ -530,76 +495,32 @@ export const useState = Z.createZustand(
       clearInput: (op: Types.Operations) => {
         set(s => {
           const o = s[op]
-          o.bytesComplete = 0
-          o.bytesTotal = 0
+          resetOutput(o)
           o.inputType = 'text'
           o.input = new HiddenString('')
-          o.output = new HiddenString('')
-          o.outputStatus = undefined
-          o.outputType = undefined
-          o.outputSenderUsername = undefined
-          o.outputSenderFullname = undefined
-          o.errorMessage = new HiddenString('')
-          o.warningMessage = new HiddenString('')
           o.outputValid = true
         })
       },
       clearRecipients: () => {
         set(s => {
           const e = s.encrypt
-          e.bytesComplete = 0
-          e.bytesTotal = 0
+          resetOutput(e)
           e.recipients = initialState.encrypt.recipients
           // Reset options since they depend on the recipients
           e.options = initialState.encrypt.options
           e.meta = initialState.encrypt.meta
-          e.output = new HiddenString('')
-          e.outputStatus = undefined
-          e.outputType = undefined
-          e.outputSenderUsername = undefined
-          e.outputSenderFullname = undefined
-          e.outputValid = false
-          e.errorMessage = new HiddenString('')
-          e.warningMessage = new HiddenString('')
         })
       },
       downloadEncryptedText: () => {
-        const f = async () => {
-          const result = await RPCTypes.saltpackSaltpackSaveCiphertextToFileRpcPromise({
-            ciphertext: get().encrypt.output.stringValue(),
-          })
-          set(s => {
-            const o = s.encrypt
-            o.errorMessage = new HiddenString('')
-            o.warningMessage = new HiddenString('')
-            o.output = new HiddenString(result)
-            o.outputStatus = 'success'
-            o.outputType = 'file'
-          })
-        }
-        Z.ignorePromise(f())
+        download('encrypt')
       },
       downloadSignedText: () => {
-        const f = async () => {
-          const {output} = get().sign
-          const result = await RPCTypes.saltpackSaltpackSaveSignedMsgToFileRpcPromise({
-            signedMsg: output.stringValue(),
-          })
-          set(s => {
-            const o = s.sign
-            o.errorMessage = new HiddenString('')
-            o.warningMessage = new HiddenString('')
-            o.output = new HiddenString(result)
-            o.outputStatus = 'success'
-            o.outputType = 'file'
-          })
-        }
-        Z.ignorePromise(f())
+        download('sign')
       },
       onSaltpackDone: (op: Types.Operations) => {
         set(s => {
           const o = s[op]
-          // For any file operation that completes, invalidate the output since multiple decrypt/verify operations will produce filenames with unqiue
+          // For any file operation that completes, invalidate the output since multiple decrypt/verify operations will produce filenames with unique
           // counters on the end (as to not overwrite any existing files in the user's FS).
           // E.g. `${plaintextFilename} (n).ext`
           o.outputValid = false
@@ -619,8 +540,7 @@ export const useState = Z.createZustand(
           resetOutput(o)
           o.input = new HiddenString(path)
           o.inputType = 'file'
-          o.errorMessage = new HiddenString('')
-          o.warningMessage = new HiddenString('')
+          resetWarnings(o)
         })
       },
       onSaltpackProgress: (op: Types.Operations, bytesComplete: number, bytesTotal: number) => {
@@ -661,8 +581,7 @@ export const useState = Z.createZustand(
         set(s => {
           const o = s[op]
           o.outputValid = false
-          o.errorMessage = new HiddenString('')
-          o.warningMessage = new HiddenString('')
+          resetWarnings(o)
         })
         switch (op) {
           case 'encrypt':
@@ -672,10 +591,10 @@ export const useState = Z.createZustand(
             decrypt(destinationDir)
             break
           case 'verify':
-            verifyFile(destinationDir)
+            verify(destinationDir)
             break
           case 'sign':
-            signFile(destinationDir)
+            sign(destinationDir)
             break
         }
       },
@@ -683,20 +602,20 @@ export const useState = Z.createZustand(
         let route: 'decryptOutput' | 'encryptOutput' | 'signOutput' | 'verifyOutput'
         switch (op) {
           case 'decrypt':
-            decrypt('')
+            decrypt()
             route = 'decryptOutput'
             break
           case 'encrypt':
             route = 'encryptOutput'
-            encrypt('')
+            encrypt()
             break
           case 'sign':
             route = 'signOutput'
-            signText()
+            sign()
             break
           case 'verify':
             route = 'verifyOutput'
-            verifyText()
+            verify()
             break
         }
         if (Platform.isMobile) {
@@ -743,8 +662,7 @@ export const useState = Z.createZustand(
           o.inputType = inputType
           o.input = new HiddenString(value)
           o.outputValid = outputValid
-          o.errorMessage = new HiddenString('')
-          o.warningMessage = new HiddenString('')
+          resetWarnings(o)
 
           // Reset output when file input changes
           // Prompt for destination dir
