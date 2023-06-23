@@ -1,7 +1,6 @@
 {
   "prelude": ["import type HiddenString from '../util/hidden-string'"],
   "actions": {
-    "handleKeybaseLink": {"link": "string"},
     "link": {"link": "string"},
     "saltpackFileOpen": {
       "_description": [
@@ -10,10 +9,6 @@
         "Path is a string when coming from Electron open-file event and HiddenString when coming from state.config.startupFile."
       ],
       "path": "string | HiddenString"
-    },
-    "setKeybaseLinkError": {
-      "_description": "Set the error field for a Keybase URL scheme link.",
-      "error": "string"
     }
   }
 }

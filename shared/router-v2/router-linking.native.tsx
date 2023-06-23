@@ -1,7 +1,7 @@
 import * as ChatConstants from '../constants/chat2'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
-import * as DeeplinksGen from '../actions/deeplinks-gen'
+import * as LinkingConstants from '../constants/deeplinks'
 import * as Shared from './router.shared'
 import * as Tabs from '../constants/tabs'
 import {getStateFromPath} from '@react-navigation/native'
@@ -59,7 +59,6 @@ export const isValidLink = (link: string) => {
 
 type OptionsType = {
   androidShare?: ConfigConstants.ZStore['androidShare']
-  dispatch: Container.TypedDispatch
   startupTab?: string
   showMonster: boolean
   startupFollowUser?: string
@@ -67,7 +66,7 @@ type OptionsType = {
 }
 
 const makeLinking = (options: OptionsType) => {
-  const {androidShare, dispatch, startupTab, showMonster, startupFollowUser, startupConversation} = options
+  const {androidShare, startupTab, showMonster, startupFollowUser, startupConversation} = options
   const config = Container.produce(
     {
       initialRouteName: 'loggedIn',
@@ -124,7 +123,7 @@ const makeLinking = (options: OptionsType) => {
       }
       // allow deep links sagas access to the first link
       if (isValidLink(url)) {
-        setTimeout(() => url && dispatch(DeeplinksGen.createLink({link: url})), 1)
+        setTimeout(() => url && LinkingConstants.useState.getState().dispatch.handleAppLink(url), 1)
       }
       return url
     },
@@ -160,12 +159,10 @@ export const useReduxToLinking = (appState: Shared.AppState) => {
   }
   const showMonster = Container.useSelector(ShowMonsterSelector)
   const androidShare = ConfigConstants.useConfigState(s => s.androidShare)
-  const dispatch = Container.useDispatch()
 
   return appState === Shared.AppState.NEEDS_INIT
     ? makeLinking({
         androidShare,
-        dispatch,
         showMonster,
         startupConversation,
         startupFollowUser,

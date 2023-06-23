@@ -1,7 +1,7 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as Styles from '../styles'
-import * as DeeplinksGen from '../actions/deeplinks-gen'
 import * as WaitingConstants from '../constants/waiting'
+import * as LinkingConstants from '../constants/deeplinks'
 import * as React from 'react'
 import * as DarkMode from '../constants/darkmode'
 import {chatDebugEnabled} from '../constants/chat2/debug'
@@ -29,6 +29,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
   const dispatch = useDispatch()
   const appStateRef = React.useRef('active')
   const {setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
+  const handleAppLink = LinkingConstants.useState(s => s.dispatch.handleAppLink)
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
       appStateRef.current = nextAppState
@@ -48,7 +49,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
       }
     })
     const linkingSub = Linking.addEventListener('url', ({url}: {url: string}) => {
-      dispatch(DeeplinksGen.createLink({link: url}))
+      handleAppLink(url)
     })
 
     const kbSubWS = Keyboard.addListener('keyboardWillShow', () => {
@@ -73,7 +74,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
       kbSubWH.remove()
       kbSubDH.remove()
     }
-  }, [dispatch, setSystemDarkMode])
+  }, [dispatch, setSystemDarkMode, handleAppLink])
 
   const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
   return <Styles.DarkModeContext.Provider value={darkMode}>{children}</Styles.DarkModeContext.Provider>

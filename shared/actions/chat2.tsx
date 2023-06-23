@@ -1,10 +1,10 @@
 import * as BotsGen from './bots-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
+import * as LinksConstants from '../constants/deeplinks'
 import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
-import * as DeeplinksGen from './deeplinks-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
@@ -2021,15 +2021,14 @@ const previewConversationTeam = async (
     const first = resultMetas[0]
     if (!first) {
       if (action.payload.reason === 'appLink') {
-        return [
-          DeeplinksGen.createSetKeybaseLinkError({
-            error:
-              "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists.",
-          }),
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
-          }),
-        ]
+        LinksConstants.useState
+          .getState()
+          .dispatch.setLinkError(
+            "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
+          )
+        return RouteTreeGen.createNavigateAppend({
+          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+        })
       } else {
         return []
       }
@@ -2057,15 +2056,14 @@ const previewConversationTeam = async (
       error.code === RPCTypes.StatusCode.scteamnotfound &&
       reason === 'appLink'
     ) {
-      return [
-        DeeplinksGen.createSetKeybaseLinkError({
-          error:
-            "We couldn't find this team. Please check that you're a member of the team and the channel exists.",
-        }),
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
-        }),
-      ]
+      LinksConstants.useState
+        .getState()
+        .dispatch.setLinkError(
+          "We couldn't find this team. Please check that you're a member of the team and the channel exists."
+        )
+      return RouteTreeGen.createNavigateAppend({
+        path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+      })
     } else {
       throw error
     }
