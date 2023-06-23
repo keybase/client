@@ -2,9 +2,8 @@
   background-color: var(--color-blueDark);
   flex-shrink: 0;
   width: 160px;
-}
-.darkMode {
-  .tab-container {
+
+  .darkMode & {
     background-color: var(--color-redLighter);
   }
 }
@@ -31,9 +30,8 @@
   height: 40px;
   transition-duration: 0.4s;
   transition-property: background-color;
-}
-.darkMode {
-  .tab-selected {
+
+  .darkMode & {
     background-color: #1f1f1f;
   }
 }
@@ -42,10 +40,8 @@
   color: var(--color-white);
   margin-left: 24px;
   margin-right: 12px;
-}
-.darkMode {
-  .tab:hover .tab-icon,
-  .tab-selected .tab-icon {
+
+  .darkMode & {
     color: rgba(255, 255, 255, 0.85);
   }
 }
@@ -77,11 +73,7 @@
     background-color: var(--color-white);
     width: 3px;
     border-radius: 2px;
-  }
-}
-.darkMode {
-  .tab-selected {
-    .tab-highlight {
+    .darkMode & {
       background-color: var(--color-blueDark);
     }
   }
