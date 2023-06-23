@@ -1100,21 +1100,6 @@ const subscribeAndLoadSettings = (state: Container.TypedState) => {
   )
 }
 
-const maybeClearCriticalUpdate = (state: Container.TypedState, action: RouteTreeGen.OnNavChangedPayload) => {
-  const {prev, next} = action.payload
-  // Clear critical update when we nav away from tab
-  if (
-    state.fs.criticalUpdate &&
-    prev &&
-    Router2Constants.getTab(prev) === Tabs.fsTab &&
-    next &&
-    Router2Constants.getTab(next) !== Tabs.fsTab
-  ) {
-    return FsGen.createSetCriticalUpdate({val: false})
-  }
-  return false
-}
-
 const fsRrouteNames = ['fsRoot', 'barePreview']
 const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
@@ -1200,10 +1185,27 @@ const initFS = () => {
 
   Container.listenAction(FsGen.setDebugLevel, setDebugLevel)
 
-  Container.listenAction(RouteTreeGen.onNavChanged, maybeClearCriticalUpdate)
+  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
+    const {prev, next} = action.payload
+    const {criticalUpdate} = Constants.useState.getState()
+    // Clear critical update when we nav away from tab
+    if (
+      criticalUpdate &&
+      prev &&
+      Router2Constants.getTab(prev) === Tabs.fsTab &&
+      next &&
+      Router2Constants.getTab(next) !== Tabs.fsTab
+    ) {
+      Constants.useState.getState().dispatch.setCriticalUpdate(false)
+    }
+  })
   Container.listenAction(RouteTreeGen.onNavChanged, maybeOnFSTab)
 
   initPlatformSpecific()
+
+  Container.listenAction(FsGen.setCriticalUpdate, (_, action) => {
+    Constants.useState.getState().dispatch.setCriticalUpdate(action.payload.critical)
+  })
 }
 
 export default initFS

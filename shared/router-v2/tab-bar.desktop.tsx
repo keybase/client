@@ -196,7 +196,7 @@ type TabProps = {
 const TabBadge = (p: {name}) => {
   const {name} = p
   const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
-  const fsCriticalUpdate = Container.useSelector(state => state.fs.criticalUpdate)
+  const fsCriticalUpdate = FsConstants.useState(s => s.criticalUpdate)
   const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null
 }

@@ -96,7 +96,7 @@ const checkErrors = (
     } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdate) {
       logger.info('[Installer] fuse critical update, setting badge')
       // ignore critical update error, it's just to coerce specific behavior in the Go installer
-      dispatch(FsGen.createSetCriticalUpdate({val: true}))
+      dispatch(FsGen.createSetCriticalUpdate({critical: true}))
       return
     } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdateFailed) {
       errorTypes.fuse = true

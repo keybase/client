@@ -68,6 +68,7 @@ export const redbar = 'fs:redbar'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
+export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDirectMountDir = 'fs:setDirectMountDir'
@@ -358,6 +359,10 @@ export const createSaveMedia = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: saveMedia as typeof saveMedia,
 })
+export const createSetCriticalUpdate = (payload: {readonly critical: boolean}) => ({
+  payload,
+  type: setCriticalUpdate as typeof setCriticalUpdate,
+})
 export const createSetDebugLevel = (payload: {readonly level: string}) => ({
   payload,
   type: setDebugLevel as typeof setDebugLevel,
@@ -573,6 +578,7 @@ export type RedbarPayload = ReturnType<typeof createRedbar>
 export type RefreshDriverStatusPayload = ReturnType<typeof createRefreshDriverStatus>
 export type RefreshMountDirsAfter10sPayload = ReturnType<typeof createRefreshMountDirsAfter10s>
 export type SaveMediaPayload = ReturnType<typeof createSaveMedia>
+export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
 export type SetDestinationPickerParentPathPayload = ReturnType<typeof createSetDestinationPickerParentPath>
 export type SetDirectMountDirPayload = ReturnType<typeof createSetDirectMountDir>
@@ -680,6 +686,7 @@ export type Actions =
   | RefreshDriverStatusPayload
   | RefreshMountDirsAfter10sPayload
   | SaveMediaPayload
+  | SetCriticalUpdatePayload
   | SetDebugLevelPayload
   | SetDestinationPickerParentPathPayload
   | SetDirectMountDirPayload
