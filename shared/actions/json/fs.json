@@ -271,9 +271,6 @@
 
     "setDebugLevel": {
       "level": "string"
-    },
-    "setCriticalUpdate": {
-      "val": "boolean"
     }
   }
 }

@@ -524,8 +524,6 @@ export type FileContext = {
 }
 
 export type State = {
-  readonly badge: RPCTypes.FilesTabBadge
-  readonly criticalUpdate: boolean
   readonly destinationPicker: DestinationPicker
   readonly downloads: Downloads
   readonly edits: Edits

@@ -6,8 +6,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import {produce, type Draft} from 'immer'
 
 const initialState: Types.State = {
-  badge: RPCTypes.FilesTabBadge.none,
-  criticalUpdate: false,
   destinationPicker: {
     destinationParentPath: [],
     source: {
@@ -454,11 +452,5 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.loadedFileContext]: (draftState, action) => {
     draftState.fileContext.set(action.payload.path, action.payload.fileContext)
-  },
-  [FsGen.loadedFilesTabBadge]: (draftState, action) => {
-    draftState.badge = action.payload.badge
-  },
-  [FsGen.setCriticalUpdate]: (draftState, action) => {
-    draftState.criticalUpdate = action.payload.val
   },
 })

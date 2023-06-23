@@ -33,7 +33,7 @@ export type Props = {
 }
 
 const FilesTabBadge = () => {
-  const uploadIcon = FsConstants.getUploadIconForFilesTab(Container.useSelector(state => state.fs.badge))
+  const uploadIcon = FsConstants.useState(s => s.getUploadIconForFilesTab())
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.badgeIconUpload} /> : null
 }
 

@@ -1,4 +1,5 @@
 import * as Types from './types/fs'
+import * as Z from '../util/zustand'
 import * as RPCTypes from './types/rpc-gen'
 import * as FsGen from '../actions/fs-gen'
 import * as Tabs from './tabs'
@@ -769,19 +770,6 @@ export const getUploadIconForTlfType = (
 export const tlfIsStuckInConflict = (tlf: Types.Tlf) =>
   tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
 
-export const getUploadIconForFilesTab = (badge: RPCTypes.FilesTabBadge): Types.UploadIcon | undefined => {
-  switch (badge) {
-    case RPCTypes.FilesTabBadge.awaitingUpload:
-      return Types.UploadIcon.AwaitingToUpload
-    case RPCTypes.FilesTabBadge.uploadingStuck:
-      return Types.UploadIcon.UploadingStuck
-    case RPCTypes.FilesTabBadge.uploading:
-      return Types.UploadIcon.Uploading
-    case RPCTypes.FilesTabBadge.none:
-      return undefined
-  }
-}
-
 export const getPathStatusIconInMergeProps = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   tlf: Types.Tlf,
@@ -963,3 +951,61 @@ export const hideOrDisableInDestinationPicker = (
   username: string,
   destinationPickerIndex?: number
 ) => typeof destinationPickerIndex === 'number' && tlfType === Types.TlfType.Public && name !== username
+
+type State = {
+  badge: RPCTypes.FilesTabBadge
+  criticalUpdate: boolean
+}
+const initialState: State = {
+  badge: RPCTypes.FilesTabBadge.none,
+  criticalUpdate: false,
+}
+
+type ZState = State & {
+  dispatch: {
+    reset: () => void
+    setBadge: (b: RPCTypes.FilesTabBadge) => void
+    setCriticalUpdate: (u: boolean) => void
+  }
+  getUploadIconForFilesTab: () => Types.UploadIcon | undefined
+}
+
+export const useState = Z.createZustand(
+  Z.immerZustand<ZState>((set, get) => {
+    // const reduxDispatch = Z.getReduxDispatch()
+
+    const getUploadIconForFilesTab = () => {
+      switch (get().badge) {
+        case RPCTypes.FilesTabBadge.awaitingUpload:
+          return Types.UploadIcon.AwaitingToUpload
+        case RPCTypes.FilesTabBadge.uploadingStuck:
+          return Types.UploadIcon.UploadingStuck
+        case RPCTypes.FilesTabBadge.uploading:
+          return Types.UploadIcon.Uploading
+        case RPCTypes.FilesTabBadge.none:
+          return undefined
+      }
+    }
+    const dispatch = {
+      reset: () => {
+        set(() => initialState)
+      },
+      setBadge: (b: RPCTypes.FilesTabBadge) => {
+        set(s => {
+          s.badge = b
+        })
+      },
+      setCriticalUpdate: (u: boolean) => {
+        set(s => {
+          s.criticalUpdate = u
+        })
+      },
+    }
+
+    return {
+      ...initialState,
+      dispatch,
+      getUploadIconForFilesTab,
+    }
+  })
+)
