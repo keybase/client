@@ -1,6 +1,8 @@
-.darkMode input,
-.darkMode textarea {
-  background-color: var(--color-white);
+.darkMode {
+  & input,
+  & textarea {
+    background-color: var(--color-white);
+  }
 }
 
 input::-webkit-input-placeholder {
