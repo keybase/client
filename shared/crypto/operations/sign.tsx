@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as CryptoGen from '../../actions/crypto-gen'
 import * as Constants from '../../constants/crypto'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -10,7 +9,7 @@ import {OutputInfoBanner, OperationOutput, OutputActionsBar, SignedSender} from 
 const operation = Constants.Operations.Sign
 
 export const SignOutputBanner = () => {
-  const outputType = Container.useSelector(state => state.crypto.sign.outputType)
+  const outputType = Constants.useState(s => s.sign.outputType)
   return (
     <OutputInfoBanner operation={operation}>
       <Kb.Text type="BodySmallSemibold" center={true}>
@@ -29,14 +28,14 @@ export const SignOutputBanner = () => {
 }
 
 export const SignInput = () => {
-  const dispatch = Container.useDispatch()
+  const resetOperation = Constants.useState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (Container.isMobile) {
-        dispatch(CryptoGen.createResetOperation({operation}))
+        resetOperation(operation)
       }
     }
-  }, [dispatch])
+  }, [resetOperation])
 
   const content = (
     <>

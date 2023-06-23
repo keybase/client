@@ -7,8 +7,8 @@ import * as Constants from '../../constants/autoreset'
 import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 
 const ConfirmReset = () => {
-  const hasWallet = Container.useSelector(state => state.autoreset.hasWallet)
-  const error = Container.useSelector(state => state.autoreset.error)
+  const hasWallet = Constants.useState(s => s.hasWallet)
+  const error = Constants.useState(s => s.error)
 
   const dispatch = Container.useDispatch()
 

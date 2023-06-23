@@ -1,7 +1,5 @@
-// normally util.container but it re-exports from us so break the cycle
 import * as RPCTypes from './types/rpc-gen'
-import {create as createZustand} from 'zustand'
-import {immer as immerZustand} from 'zustand/middleware/immer'
+import * as Z from '../util/zustand'
 
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
 
@@ -31,8 +29,8 @@ const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
 }
 
-export const useDarkModeState = createZustand(
-  immerZustand<ZState>((set, get) => {
+export const useDarkModeState = Z.createZustand(
+  Z.immerZustand<ZState>((set, get) => {
     const dispatch = {
       loadDarkPrefs: () => {
         const f = async () => {

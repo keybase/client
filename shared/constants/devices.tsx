@@ -1,4 +1,4 @@
-import * as Container from '../util/container'
+import * as Z from '../util/zustand'
 import * as RPCTypes from './types/rpc-gen'
 import * as Types from './types/devices'
 import {memoize} from '../util/memoize'
@@ -17,11 +17,11 @@ type ZState = Types.State & {
   }
 }
 
-export const useDevicesState = Container.createZustand(
-  Container.immerZustand<ZState>(set => {
+export const useDevicesState = Z.createZustand(
+  Z.immerZustand<ZState>(set => {
     const dispatch = {
       clearBadges: () => {
-        Container.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
+        Z.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
       },
       load: () => {
         const f = async () => {
@@ -35,7 +35,7 @@ export const useDevicesState = Container.createZustand(
             )
           })
         }
-        Container.ignorePromise(f())
+        Z.ignorePromise(f())
       },
       reset: () => {
         set(() => initialState)

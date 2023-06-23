@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/provision'
+import * as ARConstants from '../../constants/autoreset'
 import * as Container from '../../util/container'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -32,7 +33,7 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
 }
 
 const UsernameOrEmailContainer = (op: OwnProps) => {
-  const _resetBannerUser = Container.useSelector(state => state.autoreset.username)
+  const _resetBannerUser = ARConstants.useState(s => s.username)
   const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
   const _error = Container.useSelector(state => state.provision.error.stringValue())
   const {inlineError, inlineSignUpLink} = Container.useSelector(state =>

@@ -1,10 +1,10 @@
-import * as Container from '../../util/container'
+import * as Z from '../../util/zustand'
 type ZState = {
   emojiUpdatedTrigger: number
   triggerEmojiUpdated: () => void
 }
-export const useEmojiState = Container.createZustand(
-  Container.immerZustand<ZState>(set => ({
+export const useEmojiState = Z.createZustand(
+  Z.immerZustand<ZState>(set => ({
     emojiUpdatedTrigger: 0,
     triggerEmojiUpdated: () => {
       set(state => {

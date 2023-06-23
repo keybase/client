@@ -1,10 +1,7 @@
 import logger from '../logger'
 import * as ConfigGen from '../actions/config-gen'
 import type * as Types from './types/config'
-// normally util.container but it re-exports from us so break the cycle
-import {create as createZustand} from 'zustand'
-import {immer as immerZustand} from 'zustand/middleware/immer'
-import {getReduxDispatch} from '../util/zustand'
+import * as Z from '../util/zustand'
 
 export const maxHandshakeTries = 3
 
@@ -44,9 +41,9 @@ type ZState = ZStore & {
   }
 }
 
-export const useDaemonState = createZustand(
-  immerZustand<ZState>((set, get) => {
-    const reduxDispatch = getReduxDispatch()
+export const useDaemonState = Z.createZustand(
+  Z.immerZustand<ZState>((set, get) => {
+    const reduxDispatch = Z.getReduxDispatch()
 
     const setFailed = (r: string) => {
       set(s => {

@@ -1,8 +1,6 @@
 import type * as RPCTypes from './types/rpc-gen'
 import * as ConfigGen from '../actions/config-gen'
-import {create as createZustand} from 'zustand'
-import {immer as immerZustand} from 'zustand/middleware/immer'
-import {getReduxDispatch} from '../util/zustand'
+import * as Z from '../util/zustand'
 
 export type ZStore = {
   deviceID: RPCTypes.DeviceID
@@ -33,9 +31,9 @@ type ZState = ZStore & {
   }
 }
 
-export const useCurrentUserState = createZustand(
-  immerZustand<ZState>(set => {
-    const reduxDispatch = getReduxDispatch()
+export const useCurrentUserState = Z.createZustand(
+  Z.immerZustand<ZState>(set => {
+    const reduxDispatch = Z.getReduxDispatch()
     const dispatch = {
       replaceUsername: (u: string) => {
         set(s => {

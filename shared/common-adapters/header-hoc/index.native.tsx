@@ -374,7 +374,10 @@ export const HeaderLeftCancel2 = React.memo(function HeaderLeftCancel(hp: {
   tintColor: string
 }) {
   const {pop} = Container.useNav()
+  const onBack = React.useCallback(() => {
+    pop?.()
+  }, [pop])
   return hp.canGoBack ?? true ? (
-    <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={pop} />
+    <LeftAction badgeNumber={0} leftAction="cancel" customIconColor={hp.tintColor} onLeftAction={onBack} />
   ) : null
 })

@@ -16,13 +16,13 @@ import {
 import HiddenString from '../../util/hidden-string'
 import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import type {TypedState} from '../reducer'
-import * as Container from '../../util/container'
+import * as Z from '../../util/zustand'
 
 type ZState = {
   typingMap: Map<Types.ConversationIDKey, Set<string>>
 }
-export const useChatState = Container.createZustand(
-  Container.immerZustand<ZState>(_set => ({
+export const useChatState = Z.createZustand(
+  Z.immerZustand<ZState>(_set => ({
     typingMap: new Map(),
   }))
 )

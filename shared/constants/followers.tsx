@@ -1,5 +1,4 @@
-import {create as createZustand} from 'zustand'
-import {immer as immerZustand} from 'zustand/middleware/immer'
+import * as Z from '../util/zustand'
 
 export type ZStore = {
   followers: Set<string>
@@ -18,8 +17,8 @@ type ZState = ZStore & {
     updateFollowers: (user: string, add: boolean) => void
   }
 }
-export const useFollowerState = createZustand(
-  immerZustand<ZState>(set => {
+export const useFollowerState = Z.createZustand(
+  Z.immerZustand<ZState>(set => {
     const dispatch = {
       replace: (followers: Set<string>, following: Set<string>) => {
         set(s => {

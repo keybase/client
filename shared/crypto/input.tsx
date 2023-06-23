@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as CryptoGen from '../actions/crypto-gen'
 import * as Constants from '../constants/crypto'
 import * as FsConstants from '../constants/fs'
 import type * as Types from '../constants/types/crypto'
@@ -9,8 +8,8 @@ import * as Styles from '../styles'
 import * as Platform from '../constants/platform'
 import type {IconType} from '../common-adapters/icon.constants-gen'
 import capitalize from 'lodash/capitalize'
-import HiddenString from '../util/hidden-string'
 import {pickFiles} from '../util/pick-files'
+import shallowEqual from 'shallowequal'
 
 type CommonProps = {
   operation: Types.Operations
@@ -149,6 +148,8 @@ export const TextInput = (props: TextProps) => {
             containerStyle={inputContainerStyle}
             style={inputStyle}
             textType={textType === 'cipher' ? 'Terminal' : 'Body'}
+            autoCorrect={textType !== 'cipher'}
+            spellCheck={textType !== 'cipher'}
             onChangeText={onChangeText}
             ref={inputRef}
           />
@@ -208,18 +209,24 @@ export const FileInput = (props: FileProps) => {
 
 export const Input = (props: CommonProps) => {
   const {operation} = props
-  const dispatch = Container.useDispatch()
 
-  const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
-  const inputType = Container.useSelector(state => state.crypto[operation].inputType)
+  const {input: _input, inputType} = Constants.useState(s => {
+    const o = s[operation]
+    const {input, inputType} = o
+    return {input, inputType}
+  }, shallowEqual)
+  const input = _input.stringValue()
 
   const [inputValue, setInputValue] = React.useState(input)
 
+  const setInput = Constants.useState(s => s.dispatch.setInput)
+  const clearInput = Constants.useState(s => s.dispatch.clearInput)
+
   const onSetInput = (type: Types.InputTypes, newValue: string) => {
-    dispatch(CryptoGen.createSetInput({operation, type, value: new HiddenString(newValue)}))
+    setInput(operation, type, newValue)
   }
   const onClearInput = () => {
-    dispatch(CryptoGen.createClearInput({operation}))
+    clearInput(operation)
   }
 
   return inputType === 'file' ? (
@@ -255,13 +262,12 @@ const allowInputFolders = new Map([
 
 export const DragAndDrop = (props: DragAndDropProps) => {
   const {prompt, children, operation} = props
-  const dispatch = Container.useDispatch()
-
-  const inProgress = Container.useSelector(store => store.crypto[operation].inProgress)
+  const inProgress = Constants.useState(s => s[operation].inProgress)
+  const setInput = Constants.useState(s => s.dispatch.setInput)
 
   const onAttach = (localPaths: Array<string>) => {
     const path = localPaths[0]
-    dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
+    setInput(operation, 'file', path)
   }
 
   const allowFolders = allowInputFolders.get(operation) as boolean
@@ -284,9 +290,14 @@ export const DragAndDrop = (props: DragAndDropProps) => {
 
 export const OperationBanner = (props: CommonProps) => {
   const {operation} = props
-  const infoMessage = Constants.infoMessage.get(operation)
-  const errorMessage = Container.useSelector(state => state.crypto[operation].errorMessage.stringValue())
-  const warningMessage = Container.useSelector(state => state.crypto[operation].warningMessage.stringValue())
+  const infoMessage = Constants.infoMessage[operation]
+
+  const {errorMessage: _errorMessage, warningMessage: _warningMessage} = Constants.useState(s => {
+    const {errorMessage, warningMessage} = s[operation]
+    return {errorMessage, warningMessage}
+  }, shallowEqual)
+  const errorMessage = _errorMessage.stringValue()
+  const warningMessage = _warningMessage.stringValue()
 
   if (!errorMessage && !warningMessage && infoMessage) {
     return (
@@ -315,13 +326,11 @@ export const OperationBanner = (props: CommonProps) => {
 // Mobile only
 export const InputActionsBar = (props: RunOperationProps) => {
   const {operation, children} = props
-  const dispatch = Container.useDispatch()
   const waitingKey = Constants.waitingKey
-
   const operationTitle = capitalize(operation)
-
+  const runTextOperation = Constants.useState(s => s.dispatch.runTextOperation)
   const onRunOperation = () => {
-    dispatch(CryptoGen.createRunTextOperation({operation}))
+    runTextOperation(operation)
   }
 
   return Styles.isMobile ? (

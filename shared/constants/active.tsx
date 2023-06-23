@@ -1,5 +1,4 @@
-import {create as createZustand} from 'zustand'
-import {immer as immerZustand} from 'zustand/middleware/immer'
+import * as Z from '../util/zustand'
 
 type ZStore = {
   active: boolean
@@ -12,8 +11,8 @@ type ZState = ZStore & {
     setActive: (a: boolean) => void
   }
 }
-export const useActiveState = createZustand(
-  immerZustand<ZState>(set => {
+export const useActiveState = Z.createZustand(
+  Z.immerZustand<ZState>(set => {
     const dispatch = {
       setActive: (a: boolean) => {
         set(s => {

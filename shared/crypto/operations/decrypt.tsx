@@ -1,6 +1,5 @@
 import * as Constants from '../../constants/crypto'
 import * as Container from '../../util/container'
-import * as CryptoGen from '../../actions/crypto-gen'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import {Input, DragAndDrop, InputActionsBar, OperationBanner} from '../input'
@@ -9,14 +8,14 @@ import {OperationOutput, OutputActionsBar, SignedSender} from '../output'
 const operation = Constants.Operations.Decrypt
 
 export const DecryptInput = () => {
-  const dispatch = Container.useDispatch()
+  const resetOperation = Constants.useState(s => s.dispatch.resetOperation)
   React.useEffect(() => {
     return () => {
       if (Container.isMobile) {
-        dispatch(CryptoGen.createResetOperation({operation}))
+        resetOperation(operation)
       }
     }
-  }, [dispatch])
+  }, [resetOperation])
   const contents = (
     <>
       <OperationBanner key="banner" operation={operation} />

@@ -17,10 +17,7 @@ export {getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params
 export {listenAction, type ListenerApi, spawn} from './redux-toolkit'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 import USH from './use-selector'
-export {create as createZustand} from 'zustand'
-export {immer as immerZustand} from 'zustand/middleware/immer'
 export {useAnyWaiting, useAnyErrors, useDispatchClearWaiting} from '../constants/waiting'
-export {getReduxDispatch, getReduxStore} from './zustand'
 
 // just then and catch and ignore async functions
 export const ignorePromise = (f: Promise<void>) => {

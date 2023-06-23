@@ -1,4 +1,3 @@
-import autoreset from './autoreset'
 import chat2 from './chat2'
 import crypto from './crypto'
 import deeplinks from './deeplinks'
@@ -20,7 +19,6 @@ import users from './users'
 import wallets from './wallets'
 
 export const reducers = {
-  autoreset,
   chat2,
   crypto,
   deeplinks,
@@ -43,7 +41,6 @@ export const reducers = {
 }
 
 export type TypedState = {
-  autoreset: ReturnType<typeof autoreset>
   chat2: ReturnType<typeof chat2>
   crypto: ReturnType<typeof crypto>
   deeplinks: ReturnType<typeof deeplinks>

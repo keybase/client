@@ -1,5 +1,5 @@
-import * as AutoresetGen from './autoreset-gen'
 import * as Constants from '../constants/recover-password'
+import * as ARConstants from '../constants/autoreset'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as ProvisionConstants from '../constants/provision'
@@ -60,7 +60,8 @@ const startRecoverPassword = async (
               response.result(action.payload.action)
               listenerApi.dispatch(RecoverPasswordGen.createCompleteResetPassword())
             } else {
-              listenerApi.dispatch(AutoresetGen.createStartAccountReset({skipPassword: true}))
+              const {startAccountReset} = ARConstants.useState.getState().dispatch
+              startAccountReset(true, '')
               response.result(RPCTypes.ResetPromptResponse.nothing)
             }
           },

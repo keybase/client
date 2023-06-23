@@ -2,25 +2,24 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../../signup/common'
-import HiddenString from '../../util/hidden-string'
 import * as Container from '../../util/container'
-import * as AutoresetGen from '../../actions/autoreset-gen'
 import * as Constants from '../../constants/autoreset'
 
 const EnterPassword = () => {
   const [password, setPassword] = React.useState('')
 
-  const error = Container.useSelector(state => state.autoreset.error)
-  const endTime = Container.useSelector(state => state.autoreset.endTime)
+  const error = Constants.useState(s => s.error)
+  const endTime = Constants.useState(s => s.endTime)
   const waiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
-  const onContinue = React.useCallback(
-    () => dispatch(AutoresetGen.createResetAccount({password: new HiddenString(password)})),
-    [dispatch, password]
-  )
+
+  const resetAccount = Constants.useState(s => s.dispatch.resetAccount)
+  const onContinue = React.useCallback(() => {
+    resetAccount(password)
+  }, [resetAccount, password])
 
   // If we're here because the timer has run out, change the title.
   const title = endTime > 0 && Date.now() > endTime ? 'Almost done' : 'Your password'

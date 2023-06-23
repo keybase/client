@@ -1,6 +1,5 @@
 import type * as RPCTypes from './types/rpc-gen'
-import {create as createZustand} from 'zustand'
-import {immer as immerZustand} from 'zustand/middleware/immer'
+import * as Z from '../util/zustand'
 
 /*
  * IMPORTANT:
@@ -96,8 +95,8 @@ type ZState = ZStore & {
   anyVersionsUnseen: () => boolean
   getSeenVersions: () => SeenVersionsMap
 }
-export const useState = createZustand(
-  immerZustand<ZState>((set, get) => {
+export const useState = Z.createZustand(
+  Z.immerZustand<ZState>((set, get) => {
     const dispatch = {
       updateLastSeen: (lastSeenItem?: {md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}) => {
         if (lastSeenItem) {
