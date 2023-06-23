@@ -8,6 +8,7 @@ export type Props = {
   url: string
   allowFile?: boolean
   muted?: boolean
+  autoPlay?: boolean
 }
 
 export type State = {
