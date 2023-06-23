@@ -39,7 +39,7 @@ const Video = (props: Props) => {
               props.onUrlError && props.onUrlError(JSON.stringify(e))
             }}
             useNativeControls={true}
-            shouldPlay={true}
+            shouldPlay={props.autoPlay ?? true}
             onFullscreenUpdate={event => {
               if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 StatusBar.setHidden(false)
