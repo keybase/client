@@ -85,10 +85,7 @@
   position: absolute;
   right: 0;
   top: 0;
-}
-
-.darkMode {
-  .avatar-background {
+  .darkMode & {
     background-color: #0f0f0f;
   }
 }
@@ -111,20 +108,14 @@
   position: absolute;
   right: 0;
   top: 0;
-}
-
-.darkMode {
-  .avatar-border-team {
+  .darkMode & {
     background: rgba(255, 255, 255, 0);
   }
 }
 
 .avatar-border {
   background: rgba(0, 0, 0, 0);
-}
-
-.darkMode {
-  .avatar-border {
+  .darkMode & {
     background: rgba(255, 255, 255, 0);
   }
 }

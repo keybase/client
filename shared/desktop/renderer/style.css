@@ -260,22 +260,22 @@ body {
 ::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-color);
   border-radius: 3px;
-}
-.darkMode ::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-color-dark);
-  border-radius: 3px;
+  .darkMode & {
+    background-color: var(--scrollbar-color-dark);
+    border-radius: 3px;
+  }
 }
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-color-hover);
-}
-.darkMode ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-color-hover-dark);
+  .darkMode & {
+    background-color: var(--scrollbar-color-hover-dark);
+  }
 }
 ::-webkit-scrollbar-thumb:active {
   background-color: var(--scrollbar-color-active);
-}
-.darkMode ::-webkit-scrollbar-thumb:active {
-  background-color: var(--scrollbar-color-active-dark);
+  .darkMode & {
+    background-color: var(--scrollbar-color-active-dark);
+  }
 }
 ::-webkit-scrollbar-thumb:vertical {
   min-height: var(--scrollbar-minlength);
@@ -284,8 +284,8 @@ body {
   min-width: var(--scrollbar-minlength);
 }
 
-.darkMode {
-  & input {
+input {
+  .darkMode & {
     background-color: #191919;
   }
 }
@@ -314,12 +314,9 @@ body {
   border-radius: 2px;
   &:hover {
     background-color: rgba(0, 0, 0, 0.05);
-  }
-}
-
-.darkMode {
-  .emoji-picker-emoji-box:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    .darkMode & {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
   }
 }
 

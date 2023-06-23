@@ -176,9 +176,7 @@
 .text_HeaderLink {
   font-size: 18px;
   line-height: 22px;
-}
-.darkMode {
-  .text_HeaderLink {
+  .darkMode & {
     color: var(--color-blueDarker2_75);
   }
 }
@@ -256,9 +254,7 @@
 
 .text_Terminal {
   color: #a8ccff;
-}
-.darkMode {
-  .text_Terminal {
+  .darkMode & {
     color: #4c8eff;
   }
 }
@@ -280,9 +276,7 @@
   height: 17px;
   padding: 2px;
   word-wrap: break-word;
-}
-.darkMode {
-  .text_TerminalInline {
+  .darkMode & {
     color: #f00;
   }
 }

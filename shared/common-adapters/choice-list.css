@@ -1,25 +1,25 @@
 .cl-entry {
   background-color: transparent;
-}
-.cl-entry:hover {
-  background-color: var(--color-blueLighter2);
-}
-.darkMode .cl-entry:hover {
-  background-color: #140d03;
+  &:hover {
+    background-color: var(--color-blueLighter2);
+    .darkMode & {
+      background-color: #140d03;
+    }
+    .cl-icon-container {
+      background: transparent;
+    }
+  }
 }
 
 .cl-icon {
   transform-origin: center center;
   transition: 0.5s transform;
-}
-.cl-entry:hover .cl-icon {
-  transform: translateX(25%);
+  &:hover .cl-icon {
+    transform: translateX(25%);
+  }
 }
 
 .cl-icon-container {
   transition: 0.5s background;
   border-radius: 50%;
-}
-.cl-entry:hover .cl-icon-container {
-  background: transparent;
 }
