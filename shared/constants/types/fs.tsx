@@ -524,7 +524,6 @@ export type FileContext = {
 }
 
 export type State = {
-  readonly kbfsDaemonStatus: KbfsDaemonStatus
   readonly lastPublicBannerClosedTlf: string
   readonly overallSyncStatus: OverallSyncStatus
   readonly pathItemActionMenu: PathItemActionMenu

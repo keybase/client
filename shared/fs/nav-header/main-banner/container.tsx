@@ -6,7 +6,7 @@ import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 
 const ConnectedBanner = () => {
-  const _kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+  const _kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
   const _name = ConfigConstants.useCurrentUserState(s => s.username)
   const _overallSyncStatus = Container.useSelector(state => state.fs.overallSyncStatus)
   const dispatch = Container.useDispatch()

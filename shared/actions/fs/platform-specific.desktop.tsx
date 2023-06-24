@@ -123,7 +123,7 @@ const refreshDriverStatus = async (
 ) => {
   if (
     action.type !== FsGen.kbfsDaemonRpcStatusChanged ||
-    action.payload.rpcStatus === Types.KbfsDaemonRpcStatus.Connected
+    Constants.useState.getState().kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected
   ) {
     let status = await RPCTypes.installFuseStatusRpcPromise({
       bundleVersion: '',

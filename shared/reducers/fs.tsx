@@ -2,10 +2,8 @@ import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
-import * as RPCTypes from '../constants/types/rpc-gen'
 
 const initialState: Types.State = {
-  kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   lastPublicBannerClosedTlf: '',
   overallSyncStatus: Constants.emptyOverallSyncStatus,
   pathInfos: new Map(),
@@ -219,25 +217,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   [FsGen.setPathItemActionMenuDownload]: (draftState, action) => {
     draftState.pathItemActionMenu.downloadID = action.payload.downloadID
     draftState.pathItemActionMenu.downloadIntent = action.payload.intent
-  },
-  [FsGen.waitForKbfsDaemon]: draftState => {
-    draftState.kbfsDaemonStatus.rpcStatus = Types.KbfsDaemonRpcStatus.Waiting
-  },
-  [FsGen.kbfsDaemonRpcStatusChanged]: (draftState, action) => {
-    if (action.payload.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
-      draftState.kbfsDaemonStatus.onlineStatus = Types.KbfsDaemonOnlineStatus.Offline
-    }
-    draftState.kbfsDaemonStatus.rpcStatus = action.payload.rpcStatus
-  },
-  [FsGen.kbfsDaemonOnlineStatusChanged]: (draftState, action) => {
-    draftState.kbfsDaemonStatus.onlineStatus =
-      action.payload.onlineStatus === RPCTypes.KbfsOnlineStatus.offline
-        ? Types.KbfsDaemonOnlineStatus.Offline
-        : action.payload.onlineStatus === RPCTypes.KbfsOnlineStatus.trying
-        ? Types.KbfsDaemonOnlineStatus.Trying
-        : action.payload.onlineStatus === RPCTypes.KbfsOnlineStatus.online
-        ? Types.KbfsDaemonOnlineStatus.Online
-        : Types.KbfsDaemonOnlineStatus.Unknown
   },
   [FsGen.overallSyncStatusChanged]: (draftState, action) => {
     draftState.overallSyncStatus.syncingFoldersProgress = action.payload.progress

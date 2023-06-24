@@ -30,8 +30,8 @@ const SyncFolders = (op: OwnProps) => {
   const syncingFoldersProgress = Container.useSelector(
     state => state.fs.overallSyncStatus.syncingFoldersProgress
   )
-  const online = Container.useSelector(
-    state => state.fs.kbfsDaemonStatus.onlineStatus !== Types.KbfsDaemonOnlineStatus.Offline
+  const online = Constants.useState(
+    s => s.kbfsDaemonStatus.onlineStatus !== Types.KbfsDaemonOnlineStatus.Offline
   )
   const {negative} = op
 

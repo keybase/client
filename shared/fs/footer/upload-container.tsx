@@ -27,7 +27,7 @@ const getDebugToggleShow = dispatch => {
 }
 
 const UpoadContainer = () => {
-  const kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+  const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
   const pathItems = Container.useSelector(state => state.fs.pathItems)
   const uploads = Container.useSelector(state => state.fs.uploads)
   const dispatch = Container.useDispatch()

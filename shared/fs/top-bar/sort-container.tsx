@@ -10,7 +10,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+  const _kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
   const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
   const _sortSetting = Container.useSelector(
     state => Constants.getPathUserSetting(state.fs.pathUserSettings, path).sort

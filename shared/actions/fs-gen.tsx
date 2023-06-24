@@ -6,7 +6,6 @@ import type * as Types from '../constants/types/fs'
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
-export const checkKbfsDaemonRpcStatus = 'fs:checkKbfsDaemonRpcStatus'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
 export const dismissDownload = 'fs:dismissDownload'
@@ -27,7 +26,6 @@ export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const getOnlineStatus = 'fs:getOnlineStatus'
 export const journalUpdate = 'fs:journalUpdate'
-export const kbfsDaemonOnlineStatusChanged = 'fs:kbfsDaemonOnlineStatusChanged'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadAdditionalTlf = 'fs:loadAdditionalTlf'
@@ -87,16 +85,11 @@ export const userFileEditsLoad = 'fs:userFileEditsLoad'
 export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 export const userIn = 'fs:userIn'
 export const userOut = 'fs:userOut'
-export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Action Creators
 export const createCancelDownload = (payload: {readonly downloadID: string}) => ({
   payload,
   type: cancelDownload as typeof cancelDownload,
-})
-export const createCheckKbfsDaemonRpcStatus = (payload?: undefined) => ({
-  payload,
-  type: checkKbfsDaemonRpcStatus as typeof checkKbfsDaemonRpcStatus,
 })
 export const createCopy = (payload: {readonly destinationParentPath: Types.Path}) => ({
   payload,
@@ -181,12 +174,10 @@ export const createJournalUpdate = (payload: {
   readonly totalSyncingBytes: number
   readonly endEstimate?: number
 }) => ({payload, type: journalUpdate as typeof journalUpdate})
-export const createKbfsDaemonOnlineStatusChanged = (payload: {
-  readonly onlineStatus: RPCTypes.KbfsOnlineStatus
-}) => ({payload, type: kbfsDaemonOnlineStatusChanged as typeof kbfsDaemonOnlineStatusChanged})
-export const createKbfsDaemonRpcStatusChanged = (payload: {
-  readonly rpcStatus: Types.KbfsDaemonRpcStatus
-}) => ({payload, type: kbfsDaemonRpcStatusChanged as typeof kbfsDaemonRpcStatusChanged})
+export const createKbfsDaemonRpcStatusChanged = (payload?: undefined) => ({
+  payload,
+  type: kbfsDaemonRpcStatusChanged as typeof kbfsDaemonRpcStatusChanged,
+})
 export const createLetResetUserBackIn = (payload: {
   readonly id: RPCTypes.TeamID
   readonly username: string
@@ -416,14 +407,9 @@ export const createUserFileEditsLoaded = (payload: {readonly tlfUpdates: Types.U
 })
 export const createUserIn = (payload?: undefined) => ({payload, type: userIn as typeof userIn})
 export const createUserOut = (payload?: undefined) => ({payload, type: userOut as typeof userOut})
-export const createWaitForKbfsDaemon = (payload?: undefined) => ({
-  payload,
-  type: waitForKbfsDaemon as typeof waitForKbfsDaemon,
-})
 
 // Action Payloads
 export type CancelDownloadPayload = ReturnType<typeof createCancelDownload>
-export type CheckKbfsDaemonRpcStatusPayload = ReturnType<typeof createCheckKbfsDaemonRpcStatus>
 export type CopyPayload = ReturnType<typeof createCopy>
 export type DeleteFilePayload = ReturnType<typeof createDeleteFile>
 export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
@@ -444,7 +430,6 @@ export type FolderListLoadPayload = ReturnType<typeof createFolderListLoad>
 export type FolderListLoadedPayload = ReturnType<typeof createFolderListLoaded>
 export type GetOnlineStatusPayload = ReturnType<typeof createGetOnlineStatus>
 export type JournalUpdatePayload = ReturnType<typeof createJournalUpdate>
-export type KbfsDaemonOnlineStatusChangedPayload = ReturnType<typeof createKbfsDaemonOnlineStatusChanged>
 export type KbfsDaemonRpcStatusChangedPayload = ReturnType<typeof createKbfsDaemonRpcStatusChanged>
 export type LetResetUserBackInPayload = ReturnType<typeof createLetResetUserBackIn>
 export type LoadAdditionalTlfPayload = ReturnType<typeof createLoadAdditionalTlf>
@@ -508,13 +493,11 @@ export type UserFileEditsLoadPayload = ReturnType<typeof createUserFileEditsLoad
 export type UserFileEditsLoadedPayload = ReturnType<typeof createUserFileEditsLoaded>
 export type UserInPayload = ReturnType<typeof createUserIn>
 export type UserOutPayload = ReturnType<typeof createUserOut>
-export type WaitForKbfsDaemonPayload = ReturnType<typeof createWaitForKbfsDaemon>
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | CancelDownloadPayload
-  | CheckKbfsDaemonRpcStatusPayload
   | CopyPayload
   | DeleteFilePayload
   | DismissDownloadPayload
@@ -535,7 +518,6 @@ export type Actions =
   | FolderListLoadedPayload
   | GetOnlineStatusPayload
   | JournalUpdatePayload
-  | KbfsDaemonOnlineStatusChangedPayload
   | KbfsDaemonRpcStatusChangedPayload
   | LetResetUserBackInPayload
   | LoadAdditionalTlfPayload
@@ -595,5 +577,4 @@ export type Actions =
   | UserFileEditsLoadedPayload
   | UserInPayload
   | UserOutPayload
-  | WaitForKbfsDaemonPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

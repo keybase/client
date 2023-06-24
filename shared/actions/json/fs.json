@@ -144,14 +144,7 @@
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
     },
-    "checkKbfsDaemonRpcStatus": {},
-    "waitForKbfsDaemon": {},
-    "kbfsDaemonRpcStatusChanged": {
-      "rpcStatus": "Types.KbfsDaemonRpcStatus"
-    },
-    "kbfsDaemonOnlineStatusChanged": {
-      "onlineStatus": "RPCTypes.KbfsOnlineStatus"
-    },
+    "kbfsDaemonRpcStatusChanged": {},
     "overallSyncStatusChanged": {
       "progress": "Types.SyncingFoldersProgress",
       "diskSpaceStatus": "Types.DiskSpaceStatus"

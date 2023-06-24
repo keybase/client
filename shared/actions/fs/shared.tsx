@@ -11,7 +11,8 @@ const noAccessErrorCodes = [
 
 export const errorToActionOrThrow = (error: any, path?: Types.Path) => {
   if (error?.code === RPCTypes.StatusCode.sckbfsclienttimeout) {
-    return FsGen.createCheckKbfsDaemonRpcStatus()
+    Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+    return
   }
   if (error?.code === RPCTypes.StatusCode.scidentifiesfailed) {
     // This is specifically to address the situation where when user tries to

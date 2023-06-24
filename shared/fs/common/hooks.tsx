@@ -15,9 +15,8 @@ const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constan
 
 const noop = () => {}
 const useDispatchWithKbfsDaemonConnectoinGuard = () => {
-  const isConnected = Container.useSelector(
-    state => state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected
-  )
+  const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
+  const isConnected = kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected
   const dispatch = Container.useDispatch()
   return isConnected ? dispatch : noop
 }

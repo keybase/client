@@ -522,7 +522,7 @@ const pollJournalFlushStatusUntilDone = async (
   } finally {
     polling = false
     listenerApi.dispatch(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
-    listenerApi.dispatch(FsGen.createCheckKbfsDaemonRpcStatus())
+    Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
   }
 }
 
@@ -654,25 +654,6 @@ const moveOrCopy = async (_: unknown, action: FsGen.MovePayload | FsGen.CopyPayl
   }
 }
 
-// Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
-// reducer and happens before this.
-let waitForKbfsDaemonInProgress = false
-const waitForKbfsDaemon = async () => {
-  if (waitForKbfsDaemonInProgress) {
-    return
-  }
-  waitForKbfsDaemonInProgress = true
-  try {
-    await RPCTypes.configWaitForClientRpcPromise({
-      clientType: RPCTypes.ClientType.kbfs,
-      timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
-    })
-  } catch (_) {}
-
-  waitForKbfsDaemonInProgress = false
-  return FsGen.createCheckKbfsDaemonRpcStatus()
-}
-
 const startManualCR = async (_: unknown, action: FsGen.StartManualConflictResolutionPayload) => {
   await RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
@@ -695,7 +676,8 @@ const finishManualCR = async (_: unknown, action: FsGen.FinishManualConflictReso
 const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
   try {
     const onlineStatus = await RPCTypes.SimpleFSSimpleFSGetOnlineStatusRpcPromise({clientID})
-    return FsGen.createKbfsDaemonOnlineStatusChanged({onlineStatus})
+    Constants.useState.getState().dispatch.kbfsDaemonOnlineStatusChanged(onlineStatus)
+    return
   } catch (error) {
     if (n > 0) {
       logger.warn(`failed to check if we are connected to MDServer: ${error}; n=${n}`)
@@ -786,9 +768,10 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
   return actions
 }
 
-const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = (state: Container.TypedState) =>
-  state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected &&
-  FsGen.createSetTlfsAsUnloaded()
+const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = () => {
+  const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
+  return kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected && FsGen.createSetTlfsAsUnloaded()
+}
 
 const setDebugLevel = async (_: unknown, action: FsGen.SetDebugLevelPayload) =>
   RPCTypes.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: action.payload.level})
@@ -960,11 +943,12 @@ const userOut = async () => RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID
 
 let fsBadgeSubscriptionID: string = ''
 
-const subscribeAndLoadFsBadge = (state: Container.TypedState) => {
+const subscribeAndLoadFsBadge = () => {
   const oldFsBadgeSubscriptionID = fsBadgeSubscriptionID
   fsBadgeSubscriptionID = Constants.makeUUID()
+  const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
   return (
-    state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
+    kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
       ...(oldFsBadgeSubscriptionID
         ? [FsGen.createUnsubscribe({subscriptionID: oldFsBadgeSubscriptionID})]
         : []),
@@ -978,11 +962,12 @@ const subscribeAndLoadFsBadge = (state: Container.TypedState) => {
 }
 
 let uploadStatusSubscriptionID: string = ''
-const subscribeAndLoadUploadStatus = (state: Container.TypedState) => {
+const subscribeAndLoadUploadStatus = () => {
   const oldUploadStatusSubscriptionID = uploadStatusSubscriptionID
   uploadStatusSubscriptionID = Constants.makeUUID()
+  const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
   return (
-    state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
+    kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
       ...(oldUploadStatusSubscriptionID
         ? [FsGen.createUnsubscribe({subscriptionID: oldUploadStatusSubscriptionID})]
         : []),
@@ -996,11 +981,12 @@ const subscribeAndLoadUploadStatus = (state: Container.TypedState) => {
 }
 
 let journalStatusSubscriptionID: string = ''
-const subscribeAndLoadJournalStatus = (state: Container.TypedState) => {
+const subscribeAndLoadJournalStatus = () => {
   const oldJournalStatusSubscriptionID = journalStatusSubscriptionID
   journalStatusSubscriptionID = Constants.makeUUID()
+  const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
   return (
-    state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
+    kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
       ...(oldJournalStatusSubscriptionID
         ? [FsGen.createUnsubscribe({subscriptionID: oldJournalStatusSubscriptionID})]
         : []),
@@ -1014,11 +1000,12 @@ const subscribeAndLoadJournalStatus = (state: Container.TypedState) => {
 }
 
 let settingsSubscriptionID: string = ''
-const subscribeAndLoadSettings = (state: Container.TypedState) => {
+const subscribeAndLoadSettings = () => {
   const oldSettingsSubscriptionID = settingsSubscriptionID
   settingsSubscriptionID = Constants.makeUUID()
+  const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
   return (
-    state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
+    kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
       ...(oldSettingsSubscriptionID
         ? [FsGen.createUnsubscribe({subscriptionID: oldSettingsSubscriptionID})]
         : []),
@@ -1059,25 +1046,12 @@ const initFS = () => {
   Container.listenAction(FsGen.loadPathMetadata, loadPathMetadata)
   Container.listenAction(FsGen.pollJournalStatus, pollJournalFlushStatusUntilDone)
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
-  Container.listenAction(
-    [ConfigGen.installerRan, ConfigGen.loggedInChanged, FsGen.userIn, FsGen.checkKbfsDaemonRpcStatus],
-    async (state, a) => {
-      if (a.type === ConfigGen.loggedInChanged && !ConfigConstants.useConfigState.getState().loggedIn) {
-        return
-      }
-      const connected = await RPCTypes.configWaitForClientRpcPromise({
-        clientType: RPCTypes.ClientType.kbfs,
-        timeout: 0, // Don't wait; just check if it's there.
-      })
-      const newStatus = connected ? Types.KbfsDaemonRpcStatus.Connected : Types.KbfsDaemonRpcStatus.Waiting
-      return [
-        state.fs.kbfsDaemonStatus.rpcStatus !== newStatus &&
-          FsGen.createKbfsDaemonRpcStatusChanged({rpcStatus: newStatus}),
-        newStatus === Types.KbfsDaemonRpcStatus.Waiting && FsGen.createWaitForKbfsDaemon(),
-      ]
+  Container.listenAction([ConfigGen.installerRan, ConfigGen.loggedInChanged, FsGen.userIn], (_, a) => {
+    if (a.type === ConfigGen.loggedInChanged && !ConfigConstants.useConfigState.getState().loggedIn) {
+      return
     }
-  )
-  Container.listenAction(FsGen.waitForKbfsDaemon, waitForKbfsDaemon)
+    Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+  })
   Container.listenAction(FsGen.setTlfSyncConfig, setTlfSyncConfig)
   Container.listenAction(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
   Container.listenAction([FsGen.getOnlineStatus], getOnlineStatus)

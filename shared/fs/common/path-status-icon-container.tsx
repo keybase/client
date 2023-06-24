@@ -9,7 +9,7 @@ type OwnPropsPathItem = {
 }
 
 const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
-  const _kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+  const _kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
   const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, ownProps.path))
   const _tlf = Container.useSelector(state => Constants.getTlfFromPath(state.fs.tlfs, ownProps.path))
   const _uploads = Container.useSelector(state => state.fs.uploads.syncingPaths)
@@ -32,7 +32,7 @@ type OwnPropsTlfType = {
 }
 
 const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
-  const _kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+  const _kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
   const _tlfList = Container.useSelector(state =>
     ownProps.tlfType ? Constants.getTlfListFromType(state.fs.tlfs, ownProps.tlfType) : new Map()
   )

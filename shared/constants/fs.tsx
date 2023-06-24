@@ -960,6 +960,7 @@ type State = {
   errors: Array<string>
   fileContext: Map<Types.Path, Types.FileContext>
   folderViewFilter: string | undefined // on mobile, '' is expanded empty, undefined is unexpanded
+  kbfsDaemonStatus: Types.KbfsDaemonStatus
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -979,15 +980,19 @@ const initialState: State = {
   errors: [],
   fileContext: new Map(),
   folderViewFilter: undefined,
+  kbfsDaemonStatus: unknownKbfsDaemonStatus,
 }
 
 type ZState = State & {
   dispatch: {
+    checkKbfsDaemonRpcStatus: () => void
     commitEdit: (editID: Types.EditID) => void
     discardEdit: (editID: Types.EditID) => void
     dismissRedbar: (index: number) => void
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
+    kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => void
+    kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => void
     loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
     loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
     loadFileContext: (path: Types.Path) => void
@@ -1004,6 +1009,7 @@ type ZState = State & {
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
     startRename: (path: Types.Path) => void
+    waitForKbfsDaemon: () => void
   }
   getUploadIconForFilesTab: () => Types.UploadIcon | undefined
 }
@@ -1012,6 +1018,10 @@ export const useState = Z.createZustand(
   Z.immerZustand<ZState>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
     const getReduxStore = Z.getReduxStore()
+
+    // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
+    // reducer and happens before this.
+    let waitForKbfsDaemonInProgress = false
 
     const getUploadIconForFilesTab = () => {
       switch (get().badge) {
@@ -1026,6 +1036,27 @@ export const useState = Z.createZustand(
       }
     }
     const dispatch = {
+      checkKbfsDaemonRpcStatus: () => {
+        const f = async () => {
+          const connected = await RPCTypes.configWaitForClientRpcPromise({
+            clientType: RPCTypes.ClientType.kbfs,
+            timeout: 0, // Don't wait; just check if it's there.
+          })
+          const newStatus = connected
+            ? Types.KbfsDaemonRpcStatus.Connected
+            : Types.KbfsDaemonRpcStatus.Waiting
+          const kbfsDaemonStatus = get().kbfsDaemonStatus
+          const {kbfsDaemonRpcStatusChanged, waitForKbfsDaemon} = get().dispatch
+
+          if (kbfsDaemonStatus.rpcStatus !== newStatus) {
+            kbfsDaemonRpcStatusChanged(newStatus)
+          }
+          if (newStatus === Types.KbfsDaemonRpcStatus.Waiting) {
+            waitForKbfsDaemon()
+          }
+        }
+        Z.ignorePromise(f())
+      },
       commitEdit: (editID: Types.EditID) => {
         const edit = get().edits.get(editID)
         if (!edit) {
@@ -1100,6 +1131,27 @@ export const useState = Z.createZustand(
         set(s => {
           s.edits.delete(editID)
         })
+      },
+      kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => {
+        set(s => {
+          s.kbfsDaemonStatus.onlineStatus =
+            onlineStatus === RPCTypes.KbfsOnlineStatus.offline
+              ? Types.KbfsDaemonOnlineStatus.Offline
+              : onlineStatus === RPCTypes.KbfsOnlineStatus.trying
+              ? Types.KbfsDaemonOnlineStatus.Trying
+              : onlineStatus === RPCTypes.KbfsOnlineStatus.online
+              ? Types.KbfsDaemonOnlineStatus.Online
+              : Types.KbfsDaemonOnlineStatus.Unknown
+        })
+      },
+      kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => {
+        set(s => {
+          if (rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+            s.kbfsDaemonStatus.onlineStatus = Types.KbfsDaemonOnlineStatus.Offline
+          }
+          s.kbfsDaemonStatus.rpcStatus = rpcStatus
+        })
+        reduxDispatch(FsGen.createKbfsDaemonRpcStatusChanged())
       },
       loadFileContext: (path: Types.Path) => {
         const f = async () => {
@@ -1249,6 +1301,27 @@ export const useState = Z.createZustand(
             type: Types.EditType.Rename,
           })
         })
+      },
+      waitForKbfsDaemon: () => {
+        set(s => {
+          s.kbfsDaemonStatus.rpcStatus = Types.KbfsDaemonRpcStatus.Waiting
+        })
+        const f = async () => {
+          if (waitForKbfsDaemonInProgress) {
+            return
+          }
+          waitForKbfsDaemonInProgress = true
+          try {
+            await RPCTypes.configWaitForClientRpcPromise({
+              clientType: RPCTypes.ClientType.kbfs,
+              timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
+            })
+          } catch (_) {}
+
+          waitForKbfsDaemonInProgress = false
+          get().dispatch.checkKbfsDaemonRpcStatus()
+        }
+        Z.ignorePromise(f())
       },
     }
 
