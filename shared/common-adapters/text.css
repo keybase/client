@@ -48,20 +48,22 @@
   font-family: Keybase;
 }
 
-.darkMode .text_HeaderBig,
-.darkMode .text_HeaderBigExtrabold,
-.darkMode .text_Header,
-.darkMode .text_HeaderItalic,
-.darkMode .text_HeaderExtrabold,
-.darkMode .text_BodyBig,
-.darkMode .text_BodyBigExtrabold,
-.darkMode .text_BodyExtrabold,
-.darkMode .text_BodySemiboldItalic,
-.darkMode .text_BodyBold,
-.darkMode .text_BodySemibold,
-.darkMode .text_BodyItalic,
-.darkMode .text_Body {
-  color: rgba(255, 255, 255, 0.85);
+.darkMode {
+  .text_HeaderBig,
+  .text_HeaderBigExtrabold,
+  .text_Header,
+  .text_HeaderItalic,
+  .text_HeaderExtrabold,
+  .text_BodyBig,
+  .text_BodyBigExtrabold,
+  .text_BodyExtrabold,
+  .text_BodySemiboldItalic,
+  .text_BodyBold,
+  .text_BodySemibold,
+  .text_BodyItalic,
+  .text_Body {
+    color: rgba(255, 255, 255, 0.85);
+  }
 }
 
 .text_BodySecondaryLink,
@@ -113,8 +115,7 @@
   cursor: pointer;
 }
 
-.text_HeaderBig,
-.text_HeaderBigExtrabold {
+:is(.text_HeaderBig, .text_HeaderBigExtrabold) {
   font-size: 24px;
   line-height: 28px;
 }
@@ -168,20 +169,15 @@
   font-weight: 800;
 }
 
-.text_Header,
-.text_HeaderItalic,
-.text_HeaderExtrabold,
-.text_HeaderLink {
+:is(.text_Header, .text_HeaderItalic, .text_HeaderExtrabold, .text_HeaderLink) {
   font-size: 18px;
   line-height: 22px;
-}
-.darkMode .text_HeaderLink {
-  color: var(--color-blueDarker2_75);
+  .darkMode & {
+    color: var(--color-blueDarker2_75);
+  }
 }
 
-.text_BodyBig,
-.text_BodyBigExtrabold,
-.text_BodyBigLink {
+:is(.text_BodyBig, .text_BodyBigExtrabold, .text_BodyBigLink) {
   font-size: 15px;
   line-height: 19px;
 }
@@ -241,10 +237,7 @@
   line-height: 17px;
 }
 
-.text_Terminal,
-.text_TerminalComment,
-.text_TerminalEmpty,
-.text_TerminalInline {
+:is(.text_Terminal, .text_TerminalComment, .text_TerminalEmpty, .text_TerminalInline) {
   font-size: 13px;
   line-height: 20px;
   font-family: Source Code Pro;
@@ -252,9 +245,9 @@
 
 .text_Terminal {
   color: #a8ccff;
-}
-.darkMode .text_Terminal {
-  color: #4c8eff;
+  .darkMode & {
+    color: #4c8eff;
+  }
 }
 
 .text_TerminalComment {
@@ -274,9 +267,9 @@
   height: 17px;
   padding: 2px;
   word-wrap: break-word;
-}
-.darkMode .text_TerminalInline {
-  color: #f00;
+  .darkMode & {
+    color: #f00;
+  }
 }
 
 .text_center {
@@ -284,11 +277,7 @@
   text-align: center;
 }
 
-.lineClamp1,
-.lineClamp2,
-.lineClamp3,
-.lineClamp4,
-.lineClamp5 {
+:is(.lineClamp1, .lineClamp2, .lineClamp3, .lineClamp4, .lineClamp5) {
   -webkit-box-orient: vertical;
   display: -webkit-box;
   overflow: hidden;

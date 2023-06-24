@@ -202,6 +202,19 @@ table {
 }
 /* End Keybase */
 
+:root {
+  --size-xxtiny: 2px;
+  --size-xtiny: 4px;
+  --size-tiny: 8px;
+  --size-xsmall: 12px;
+  --size-small: 16px;
+  --size-medium: 24px;
+  --size-mediumLarge: 32px;
+  --size-large: 40px;
+  --size-xlarge: 64px;
+  --size-border-radius: 4px;
+}
+
 html {
   box-sizing: border-box;
   cursor: default;
@@ -260,22 +273,22 @@ body {
 ::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-color);
   border-radius: 3px;
-}
-.darkMode ::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-color-dark);
-  border-radius: 3px;
+  .darkMode & {
+    background-color: var(--scrollbar-color-dark);
+    border-radius: 3px;
+  }
 }
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-color-hover);
-}
-.darkMode ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-color-hover-dark);
+  .darkMode & {
+    background-color: var(--scrollbar-color-hover-dark);
+  }
 }
 ::-webkit-scrollbar-thumb:active {
   background-color: var(--scrollbar-color-active);
-}
-.darkMode ::-webkit-scrollbar-thumb:active {
-  background-color: var(--scrollbar-color-active-dark);
+  .darkMode & {
+    background-color: var(--scrollbar-color-active-dark);
+  }
 }
 ::-webkit-scrollbar-thumb:vertical {
   min-height: var(--scrollbar-minlength);
@@ -284,8 +297,10 @@ body {
   min-width: var(--scrollbar-minlength);
 }
 
-.darkMode input {
-  background-color: #191919;
+input {
+  .darkMode & {
+    background-color: #191919;
+  }
 }
 
 #root {
@@ -303,74 +318,73 @@ body {
 
 .underline-hover-no-underline {
   text-decoration: underline;
-}
-
-.underline-hover-no-underline:hover {
-  text-decoration: none;
+  &:hover {
+    text-decoration: none;
+  }
 }
 
 .emoji-picker-emoji-box {
   border-radius: 2px;
-}
-
-.emoji-picker-emoji-box:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.darkMode .emoji-picker-emoji-box:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    .darkMode & {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+  }
 }
 
 .hover-underline {
   text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
-.hover-underline:hover {
-  text-decoration: underline;
-}
-
-.hover-underline-container:hover .underline {
-  text-decoration: underline;
-}
-
-.hover-underline-container:hover .hover-underline-child {
-  text-decoration: underline;
-}
-.underline-never {
-  text-decoration: none !important;
+.hover-underline-container {
+  &:hover {
+    .underline {
+      text-decoration: underline;
+    }
+    .hover-underline-child {
+      text-decoration: underline;
+    }
+    .underline-never {
+      text-decoration: none !important;
+    }
+  }
 }
 
 .hover-opacity {
   opacity: 0.8;
-}
-.hover-opacity:hover {
-  opacity: 1;
-}
-
-.hover-opacity.inverted {
-  opacity: 1;
-}
-.hover-opacity.inverted:hover {
-  opacity: 0.8;
-}
-
-.hover-container .hover-opacity-full {
-  opacity: 0;
-}
-.hover-container:hover .hover-opacity-full {
-  opacity: 1;
+  &:hover {
+    opacity: 1;
+  }
+  &.inverted {
+    opacity: 1;
+    &:hover {
+      opacity: 0.8;
+    }
+  }
 }
 
-.hover-container:hover .hover-reverse-row {
-  flex-direction: row-reverse;
-}
-
-.hover-container .hover-visible {
-  display: none;
-}
-
-.hover-container:hover .hover-visible {
-  display: flex;
+.hover-container {
+  .hover-opacity-full {
+    opacity: 0;
+  }
+  &:hover {
+    .hover-opacity-full {
+      opacity: 1;
+    }
+    .hover-reverse-row {
+      flex-direction: row-reverse;
+    }
+    .hover-visible {
+      display: flex;
+    }
+  }
+  .hover-visible {
+    display: none;
+  }
 }
 
 .underline {
@@ -386,23 +400,22 @@ body {
 .fade-anim-enter {
   opacity: 0;
   pointer-events: none;
-}
 
-.fade-anim-enter.fade-anim-enter-active {
-  opacity: 1;
-  pointer-events: auto;
-  transition: opacity 250ms ease-in-out;
+  &.fade-anim-enter-active {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 250ms ease-in-out;
+  }
 }
 
 .fade-anim-exit {
   opacity: 1;
   pointer-events: auto;
-}
-
-.fade-anim-exit.fade-anim-exit-active {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 250ms ease-in-out;
+  &.fade-anim-exit-active {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 250ms ease-in-out;
+  }
 }
 
 .fade-background-color {
@@ -418,23 +431,19 @@ body {
   border: none;
   background: none;
   box-shadow: none;
+  vertical-align: middle;
+  display: inline;
+  .emoji-native {
+    line-height: 0;
+    width: 0;
+    height: 0;
+    display: inline-block;
+  }
 }
 
 .emoji-native {
   font-family: 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', 'Apple Color Emoji', 'Twemoji Mozilla',
     'Noto Color Emoji', 'Android Emoji';
-}
-
-.emoji .emoji-native {
-  line-height: 0;
-  width: 0;
-  height: 0;
-  display: inline-block;
-}
-
-.emoji {
-  vertical-align: middle;
-  display: inline;
 }
 
 .center-emojis .emoji > span {
@@ -463,11 +472,17 @@ body {
 .addInviteAndLinkBox {
   transition: box-shadow 0.35s;
 }
-.headerTitle:hover .addInviteAndLinkBox {
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+.headerTitle:hover {
+  .addInviteAndLinkBox {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
 }
-.darkMode .headerTitle:hover .addInviteAndLinkBox {
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+.darkMode {
+  .headerTitle:hover {
+    .addInviteAndLinkBox {
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+    }
+  }
 }
 
 .selectionPopup {
@@ -478,9 +493,9 @@ body {
   transition: height 0.2s;
   height: 32px;
   overflow: hidden;
-}
-.hideableDropdown.hidden {
-  height: 0;
+  &.hidden {
+    height: 0;
+  }
 }
 
 .selectable {

@@ -8,19 +8,14 @@
   position: relative;
   width: 14px;
   opacity: 1;
-}
-
-.radio-button:hover {
-  border: solid 1px var(--color-blue);
-}
-
-.radio-button.disabled {
-  opacity: 0.4;
-}
-.radio-button.disabled:hover {
-}
-
-.radio-button.selected {
-  border: solid 1px var(--color-blue);
-  background-color: var(--color-blue);
+  &:hover {
+    border: solid 1px var(--color-blue);
+  }
+  &.disabled {
+    opacity: 0.4;
+  }
+  &.selected {
+    border: solid 1px var(--color-blue);
+    background-color: var(--color-blue);
+  }
 }
