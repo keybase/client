@@ -1,14 +1,15 @@
+import * as ConfigConstants from './config'
+import * as FsGen from '../actions/fs-gen'
+import * as RPCTypes from './types/rpc-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as SettingsConstants from './settings'
+import * as Tabs from './tabs'
 import * as Types from './types/fs'
 import * as Z from '../util/zustand'
-import * as RPCTypes from './types/rpc-gen'
-import * as FsGen from '../actions/fs-gen'
-import * as Tabs from './tabs'
-import * as SettingsConstants from './settings'
-import * as ConfigConstants from './config'
-import type {TypedState} from '../util/container'
-import {isLinux, isMobile} from './platform'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import type {TypedActions} from '../actions/typed-actions-gen'
+import type {TypedState} from '../util/container'
+import {RPCError} from '../util/errors'
+import {isLinux, isMobile} from './platform'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
@@ -971,6 +972,7 @@ const initialState: State = {
 
 type ZState = State & {
   dispatch: {
+    commitEdit: (editID: Types.EditID) => void
     discardEdit: (editID: Types.EditID) => void
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
@@ -1004,6 +1006,60 @@ export const useState = Z.createZustand(
       }
     }
     const dispatch = {
+      commitEdit: (editID: Types.EditID) => {
+        const edit = get().edits.get(editID)
+        if (!edit) {
+          return
+        }
+        const f = async () => {
+          switch (edit.type) {
+            case Types.EditType.NewFolder:
+              try {
+                await RPCTypes.SimpleFSSimpleFSOpenRpcPromise(
+                  {
+                    dest: pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
+                    flags: RPCTypes.OpenFlags.directory,
+                    opID: makeUUID(),
+                  },
+                  commitEditWaitingKey
+                )
+                get().dispatch.editSuccess(editID)
+                return
+              } catch (e) {
+                // TODO <<<<<<<<<<<<<<<<<<<
+                return // errorToActionOrThrow(e, edit.parentPath)
+              }
+            case Types.EditType.Rename:
+              try {
+                const opID = makeUUID()
+                await RPCTypes.SimpleFSSimpleFSMoveRpcPromise({
+                  dest: pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
+                  opID,
+                  overwriteExistingFiles: false,
+                  src: pathToRPCPath(Types.pathConcat(edit.parentPath, edit.originalName)),
+                })
+                await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, commitEditWaitingKey)
+                get().dispatch.editSuccess(editID)
+                return
+              } catch (error) {
+                if (!(error instanceof RPCError)) {
+                  return
+                }
+                if (
+                  [
+                    RPCTypes.StatusCode.scsimplefsnameexists,
+                    RPCTypes.StatusCode.scsimplefsdirnotempty,
+                  ].includes(error.code)
+                ) {
+                  get().dispatch.editError(editID, error.desc || 'name exists')
+                  return
+                }
+                throw error
+              }
+          }
+        }
+        Z.ignorePromise(f())
+      },
       discardEdit: (editID: Types.EditID) => {
         set(s => {
           s.edits.delete(editID)

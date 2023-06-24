@@ -115,9 +115,6 @@
     "favoriteIgnoreError": {
       "path": "Types.Path"
     },
-    "commitEdit": {
-      "editID": "Types.EditID"
-    },
     "redbar": {
       "error": "string"
     },

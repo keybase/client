@@ -542,58 +542,6 @@ const ignoreFavorite = async (_: Container.TypedState, action: FsGen.FavoriteIgn
   }
 }
 
-const commitEdit = async (_: unknown, action: FsGen.CommitEditPayload) => {
-  const {editID} = action.payload
-
-  const edit = Constants.useState.getState().edits.get(editID)
-  if (!edit) {
-    return false
-  }
-  switch (edit.type) {
-    case Types.EditType.NewFolder:
-      try {
-        await RPCTypes.SimpleFSSimpleFSOpenRpcPromise(
-          {
-            dest: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
-            flags: RPCTypes.OpenFlags.directory,
-            opID: Constants.makeUUID(),
-          },
-          Constants.commitEditWaitingKey
-        )
-        Constants.useState.getState().dispatch.editSuccess(editID)
-        return
-      } catch (e) {
-        return errorToActionOrThrow(e, edit.parentPath)
-      }
-    case Types.EditType.Rename:
-      try {
-        const opID = Constants.makeUUID()
-        await RPCTypes.SimpleFSSimpleFSMoveRpcPromise({
-          dest: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
-          opID,
-          overwriteExistingFiles: false,
-          src: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.originalName)),
-        })
-        await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.commitEditWaitingKey)
-        Constants.useState.getState().dispatch.editSuccess(editID)
-        return
-      } catch (error) {
-        if (!(error instanceof RPCError)) {
-          return
-        }
-        if (
-          [RPCTypes.StatusCode.scsimplefsnameexists, RPCTypes.StatusCode.scsimplefsdirnotempty].includes(
-            error.code
-          )
-        ) {
-          Constants.useState.getState().dispatch.editError(editID, error.desc || 'name exists')
-          return
-        }
-        throw error
-      }
-  }
-}
-
 const loadPathMetadata = async (_: Container.TypedState, action: FsGen.LoadPathMetadataPayload) => {
   const {path} = action.payload
   try {
@@ -1126,7 +1074,6 @@ const initFS = () => {
   Container.listenAction(FsGen.favoritesLoaded, updateFsBadge)
   Container.listenAction(FsGen.loadAdditionalTlf, loadAdditionalTlf)
   Container.listenAction(FsGen.letResetUserBackIn, letResetUserBackIn)
-  Container.listenAction(FsGen.commitEdit, commitEdit)
   Container.listenAction(FsGen.deleteFile, deleteFile)
   Container.listenAction(FsGen.loadPathMetadata, loadPathMetadata)
   Container.listenAction(FsGen.pollJournalStatus, pollJournalFlushStatusUntilDone)

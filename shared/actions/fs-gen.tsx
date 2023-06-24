@@ -7,7 +7,6 @@ export const resetStore = 'common:resetStore' // not a part of fs but is handled
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
 export const checkKbfsDaemonRpcStatus = 'fs:checkKbfsDaemonRpcStatus'
-export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
 export const dismissDownload = 'fs:dismissDownload'
@@ -108,10 +107,6 @@ export const createCancelDownload = (payload: {readonly downloadID: string}) => 
 export const createCheckKbfsDaemonRpcStatus = (payload?: undefined) => ({
   payload,
   type: checkKbfsDaemonRpcStatus as typeof checkKbfsDaemonRpcStatus,
-})
-export const createCommitEdit = (payload: {readonly editID: Types.EditID}) => ({
-  payload,
-  type: commitEdit as typeof commitEdit,
 })
 export const createCopy = (payload: {readonly destinationParentPath: Types.Path}) => ({
   payload,
@@ -475,7 +470,6 @@ export const createWaitForKbfsDaemon = (payload?: undefined) => ({
 // Action Payloads
 export type CancelDownloadPayload = ReturnType<typeof createCancelDownload>
 export type CheckKbfsDaemonRpcStatusPayload = ReturnType<typeof createCheckKbfsDaemonRpcStatus>
-export type CommitEditPayload = ReturnType<typeof createCommitEdit>
 export type CopyPayload = ReturnType<typeof createCopy>
 export type DeleteFilePayload = ReturnType<typeof createDeleteFile>
 export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
@@ -577,7 +571,6 @@ export type WaitForKbfsDaemonPayload = ReturnType<typeof createWaitForKbfsDaemon
 export type Actions =
   | CancelDownloadPayload
   | CheckKbfsDaemonRpcStatusPayload
-  | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload
   | DismissDownloadPayload
