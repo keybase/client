@@ -12,11 +12,6 @@ const initialState: Types.State = {
       type: Types.DestinationPickerSource.None,
     },
   },
-  downloads: {
-    info: new Map(),
-    regularDownloads: [],
-    state: new Map(),
-  },
   edits: new Map(),
   errors: [],
   fileContext: new Map(),
@@ -433,22 +428,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.loadedPathInfo]: (draftState, action) => {
     draftState.pathInfos = draftState.pathInfos.set(action.payload.path, action.payload.pathInfo)
-  },
-  [FsGen.loadedDownloadStatus]: (draftState, action) => {
-    draftState.downloads.regularDownloads = action.payload.regularDownloads
-    draftState.downloads.state = action.payload.state
-
-    const toDelete = [...draftState.downloads.info.keys()].filter(
-      downloadID => !action.payload.state.has(downloadID)
-    )
-    if (toDelete.length) {
-      const info = new Map(draftState.downloads.info)
-      toDelete.forEach(downloadID => info.delete(downloadID))
-      draftState.downloads.info = info
-    }
-  },
-  [FsGen.loadedDownloadInfo]: (draftState, action) => {
-    draftState.downloads.info.set(action.payload.downloadID, action.payload.info)
   },
   [FsGen.loadedFileContext]: (draftState, action) => {
     draftState.fileContext.set(action.payload.path, action.payload.fileContext)

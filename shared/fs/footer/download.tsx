@@ -34,8 +34,8 @@ const getProgress = (dlState: Types.DownloadState) => (
 
 const Download = (props: Props) => {
   const dlInfo = Kbfs.useFsDownloadInfo(props.downloadID)
-  const dlState = Container.useSelector(
-    state => state.fs.downloads.state.get(props.downloadID) || Constants.emptyDownloadState
+  const dlState = Constants.useState(
+    s => s.downloads.state.get(props.downloadID) || Constants.emptyDownloadState
   )
   const dispatch = Container.useDispatch()
   const open = dlState.localPath

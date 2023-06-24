@@ -953,16 +953,13 @@ const loadDownloadInfo = async (_: Container.TypedState, action: FsGen.LoadDownl
     const res = await RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
       downloadID: action.payload.downloadID,
     })
-
-    return FsGen.createLoadedDownloadInfo({
-      downloadID: action.payload.downloadID,
-      info: {
-        filename: res.filename,
-        isRegularDownload: res.isRegularDownload,
-        path: Types.stringToPath('/keybase' + res.path.path),
-        startTime: res.startTime,
-      },
+    Constants.useState.getState().dispatch.loadedDownloadInfo(action.payload.downloadID, {
+      filename: res.filename,
+      isRegularDownload: res.isRegularDownload,
+      path: Types.stringToPath('/keybase' + res.path.path),
+      startTime: res.startTime,
     })
+    return
   } catch (error) {
     return errorToActionOrThrow(error)
   }
@@ -971,9 +968,9 @@ const loadDownloadInfo = async (_: Container.TypedState, action: FsGen.LoadDownl
 const loadDownloadStatus = async () => {
   try {
     const res = await RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
-    return FsGen.createLoadedDownloadStatus({
-      regularDownloads: res.regularDownloadIDs || [],
-      state: new Map(
+    Constants.useState.getState().dispatch.loadedDownloadStatus(
+      res.regularDownloadIDs || [],
+      new Map(
         (res.states || []).map(s => [
           s.downloadID,
           {
@@ -985,8 +982,9 @@ const loadDownloadStatus = async () => {
             progress: s.progress,
           },
         ])
-      ),
-    })
+      )
+    )
+    return
   } catch (error) {
     return errorToActionOrThrow(error)
   }

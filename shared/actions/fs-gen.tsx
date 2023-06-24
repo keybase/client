@@ -46,8 +46,6 @@ export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
 export const loadUploadStatus = 'fs:loadUploadStatus'
 export const loadedAdditionalTlf = 'fs:loadedAdditionalTlf'
-export const loadedDownloadInfo = 'fs:loadedDownloadInfo'
-export const loadedDownloadStatus = 'fs:loadedDownloadStatus'
 export const loadedFileContext = 'fs:loadedFileContext'
 export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
@@ -274,14 +272,6 @@ export const createLoadedAdditionalTlf = (payload: {
   readonly tlf: Types.Tlf
   readonly tlfPath: Types.Path
 }) => ({payload, type: loadedAdditionalTlf as typeof loadedAdditionalTlf})
-export const createLoadedDownloadInfo = (payload: {
-  readonly downloadID: string
-  readonly info: Types.DownloadInfo
-}) => ({payload, type: loadedDownloadInfo as typeof loadedDownloadInfo})
-export const createLoadedDownloadStatus = (payload: {
-  readonly regularDownloads: Array<string>
-  readonly state: Map<string, Types.DownloadState>
-}) => ({payload, type: loadedDownloadStatus as typeof loadedDownloadStatus})
 export const createLoadedFileContext = (payload: {
   readonly path: Types.Path
   readonly fileContext: Types.FileContext
@@ -554,8 +544,6 @@ export type LoadSettingsPayload = ReturnType<typeof createLoadSettings>
 export type LoadTlfSyncConfigPayload = ReturnType<typeof createLoadTlfSyncConfig>
 export type LoadUploadStatusPayload = ReturnType<typeof createLoadUploadStatus>
 export type LoadedAdditionalTlfPayload = ReturnType<typeof createLoadedAdditionalTlf>
-export type LoadedDownloadInfoPayload = ReturnType<typeof createLoadedDownloadInfo>
-export type LoadedDownloadStatusPayload = ReturnType<typeof createLoadedDownloadStatus>
 export type LoadedFileContextPayload = ReturnType<typeof createLoadedFileContext>
 export type LoadedFilesTabBadgePayload = ReturnType<typeof createLoadedFilesTabBadge>
 export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
@@ -664,8 +652,6 @@ export type Actions =
   | LoadTlfSyncConfigPayload
   | LoadUploadStatusPayload
   | LoadedAdditionalTlfPayload
-  | LoadedDownloadInfoPayload
-  | LoadedDownloadStatusPayload
   | LoadedFileContextPayload
   | LoadedFilesTabBadgePayload
   | LoadedPathInfoPayload

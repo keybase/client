@@ -525,7 +525,6 @@ export type FileContext = {
 
 export type State = {
   readonly destinationPicker: DestinationPicker
-  readonly downloads: Downloads
   readonly edits: Edits
   readonly errors: Array<string>
   readonly fileContext: Map<Path, FileContext>

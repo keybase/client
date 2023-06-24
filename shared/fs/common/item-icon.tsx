@@ -133,7 +133,7 @@ type InTlfItemIconProps = {
 }
 
 const InTlfIcon = (props: InTlfItemIconProps) => {
-  const downloads = Container.useSelector(state => state.fs.downloads)
+  const downloads = Constants.useState(s => s.downloads)
   const pathItemActionMenu = Container.useSelector(state => state.fs.pathItemActionMenu)
   const downloadIntent = Constants.getDownloadIntent(props.path, downloads, pathItemActionMenu)
   const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, props.path))

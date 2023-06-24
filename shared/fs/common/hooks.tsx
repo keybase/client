@@ -125,9 +125,7 @@ export const useFsSoftError = (path: Types.Path): Types.SoftError | undefined =>
 }
 
 export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
-  const info = Container.useSelector(
-    state => state.fs.downloads.info.get(downloadID) || Constants.emptyDownloadInfo
-  )
+  const info = Constants.useState(s => s.downloads.info.get(downloadID) || Constants.emptyDownloadInfo)
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     // This never changes, so simply just load it once.
@@ -166,8 +164,8 @@ export const useFsFileContext = (path: Types.Path) => {
 
 export const useFsWatchDownloadForMobile = isMobile
   ? (downloadID: string, downloadIntent?: Types.DownloadIntent): boolean => {
-      const dlState = Container.useSelector(
-        state => state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
+      const dlState = Constants.useState(
+        s => s.downloads.state.get(downloadID) || Constants.emptyDownloadState
       )
       const finished = dlState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(dlState)
 

@@ -955,14 +955,22 @@ export const hideOrDisableInDestinationPicker = (
 type State = {
   badge: RPCTypes.FilesTabBadge
   criticalUpdate: boolean
+  downloads: Types.Downloads
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
   criticalUpdate: false,
+  downloads: {
+    info: new Map(),
+    regularDownloads: [],
+    state: new Map(),
+  },
 }
 
 type ZState = State & {
   dispatch: {
+    loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
+    loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
     reset: () => void
     setBadge: (b: RPCTypes.FilesTabBadge) => void
     setCriticalUpdate: (u: boolean) => void
@@ -987,6 +995,22 @@ export const useState = Z.createZustand(
       }
     }
     const dispatch = {
+      loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => {
+        set(s => {
+          s.downloads.info.set(downloadID, info)
+        })
+      },
+      loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => {
+        set(s => {
+          s.downloads.regularDownloads = regularDownloads
+          s.downloads.state = state
+
+          const toDelete = [...s.downloads.info.keys()].filter(downloadID => !state.has(downloadID))
+          if (toDelete.length) {
+            toDelete.forEach(downloadID => s.downloads.info.delete(downloadID))
+          }
+        })
+      },
       reset: () => {
         set(() => initialState)
       },

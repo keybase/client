@@ -228,11 +228,6 @@
     "download": {"path": "Types.Path"},
     "loadDownloadStatus": {},
     "loadDownloadInfo": {"downloadID": "string"},
-    "loadedDownloadStatus": {
-      "regularDownloads": "Array<string>",
-      "state": "Map<string, Types.DownloadState>"
-    },
-    "loadedDownloadInfo": {"downloadID": "string", "info": "Types.DownloadInfo"},
     "cancelDownload": {"downloadID": "string"},
     "dismissDownload": {"downloadID": "string"},
     "setPathItemActionMenuDownload": {

@@ -57,7 +57,7 @@ export default (ownProps: OwnProps) => {
   const {path, mode} = ownProps
 
   const _downloadID = Container.useSelector(state => state.fs.pathItemActionMenu.downloadID)
-  const _downloads = Container.useSelector(state => state.fs.downloads)
+  const _downloads = Constants.useState(s => s.downloads)
   const _fileContext = Container.useSelector(
     state => state.fs.fileContext.get(path) || Constants.emptyFileContext
   )

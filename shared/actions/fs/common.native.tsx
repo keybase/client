@@ -24,12 +24,10 @@ const pickAndUploadToPromise = async (_: Container.TypedState, action: FsGen.Pic
   }
 }
 
-const finishedDownloadWithIntent = async (
-  state: Container.TypedState,
-  action: FsGen.FinishedDownloadWithIntentPayload
-) => {
+const finishedDownloadWithIntent = async (_: unknown, action: FsGen.FinishedDownloadWithIntentPayload) => {
   const {downloadID, downloadIntent, mimeType} = action.payload
-  const downloadState = state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
+  const downloadState =
+    Constants.useState.getState().downloads.state.get(downloadID) || Constants.emptyDownloadState
   if (downloadState === Constants.emptyDownloadState) {
     logger.warn('missing download', downloadID)
     return
