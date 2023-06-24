@@ -84,8 +84,8 @@ export function usePrevious2<T>(value: T) {
 
 /** like useSelector but for remote stores **/
 export function useRemoteStore<S>(): S {
-    // TODO this will warn you not to do this, could just pass in a selector later
-  return useSelector(s => s), shallowEqual) as unknown as S
+  // TODO this will warn you not to do this, could just pass in a selector later
+  return useSelector(s => s, shallowEqual) as unknown as S
 }
 /**
       like useEffect but doesn't call on initial mount, only when deps change
