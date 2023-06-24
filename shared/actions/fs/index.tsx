@@ -15,7 +15,6 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Platform from '../../constants/platform'
 import {tlfToPreferredOrder} from '../../util/kbfs'
 import {errorToActionOrThrow} from './shared'
-import NotifyPopup from '../../util/notify-popup'
 import {RPCError} from '../../util/errors'
 import KB2 from '../../util/electron'
 import {requestPermissionsToWrite} from '../platform-specific'
@@ -712,62 +711,6 @@ const checkKbfsServerReachabilityIfNeeded = async (
   return null
 }
 
-const onNotifyFSOverallSyncSyncStatusChanged = (
-  state: Container.TypedState,
-  action: EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
-) => {
-  const diskSpaceStatus = action.payload.params.status.outOfSyncSpace
-    ? Types.DiskSpaceStatus.Error
-    : action.payload.params.status.localDiskBytesAvailable <
-      state.fs.settings.spaceAvailableNotificationThreshold
-    ? Types.DiskSpaceStatus.Warning
-    : Types.DiskSpaceStatus.Ok
-  // We need to type this separately since otherwise we can't concat to it.
-  const actions: Array<
-    | NotificationsGen.BadgeAppPayload
-    | FsGen.OverallSyncStatusChangedPayload
-    | FsGen.ShowHideDiskSpaceBannerPayload
-  > = [
-    FsGen.createOverallSyncStatusChanged({
-      diskSpaceStatus,
-      progress: action.payload.params.status.prefetchProgress,
-    }),
-  ]
-  // Only notify about the disk space status if it has changed.
-  if (diskSpaceStatus !== state.fs.overallSyncStatus.diskSpaceStatus) {
-    switch (diskSpaceStatus) {
-      case Types.DiskSpaceStatus.Error:
-        NotifyPopup('Sync Error', {
-          body: 'You are out of disk space. Some folders could not be synced.',
-          sound: true,
-        })
-        return actions.concat([
-          NotificationsGen.createBadgeApp({
-            key: 'outOfSpace',
-            on: action.payload.params.status.outOfSyncSpace,
-          }),
-        ])
-      case Types.DiskSpaceStatus.Warning:
-        {
-          const threshold = Constants.humanizeBytes(state.fs.settings.spaceAvailableNotificationThreshold, 0)
-          NotifyPopup('Disk Space Low', {
-            body: `You have less than ${threshold} of storage space left.`,
-          })
-          // Only show the banner if the previous state was OK and the new state
-          // is warning. Otherwise we rely on the previous state of the banner.
-          if (state.fs.overallSyncStatus.diskSpaceStatus === Types.DiskSpaceStatus.Ok) {
-            return actions.concat([FsGen.createShowHideDiskSpaceBanner({show: true})])
-          }
-        }
-        break
-      case Types.DiskSpaceStatus.Ok:
-        break
-      default:
-    }
-  }
-  return actions
-}
-
 const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = () => {
   const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
   return kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected && FsGen.createSetTlfsAsUnloaded()
@@ -1056,10 +999,9 @@ const initFS = () => {
   Container.listenAction(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
   Container.listenAction([FsGen.getOnlineStatus], getOnlineStatus)
   Container.listenAction(ConfigGen.osNetworkStatusChanged, checkKbfsServerReachabilityIfNeeded)
-  Container.listenAction(
-    EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
-    onNotifyFSOverallSyncSyncStatusChanged
-  )
+  Container.listenAction(EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged, (_, a) => {
+    a.payload.params.status
+  })
   Container.listenAction(FsGen.userIn, userIn)
   Container.listenAction(FsGen.userOut, userOut)
   Container.listenAction(FsGen.loadSettings, loadSettings)

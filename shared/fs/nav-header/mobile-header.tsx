@@ -93,8 +93,8 @@ const getBaseHeight = (path: Types.Path) => {
 
 export const useHeaderHeight = (path: Types.Path) => {
   const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
-  const bannerType = Container.useSelector(state =>
-    Constants.getMainBannerType(kbfsDaemonStatus, state.fs.overallSyncStatus)
+  const bannerType = Constants.useState(s =>
+    Constants.getMainBannerType(kbfsDaemonStatus, s.overallSyncStatus)
   )
   const base = getBaseHeight(path)
   switch (bannerType) {

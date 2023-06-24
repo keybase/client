@@ -4,7 +4,6 @@ import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
 
 const initialState: Types.State = {
-  overallSyncStatus: Constants.emptyOverallSyncStatus,
   pathInfos: new Map(),
   pathItemActionMenu: Constants.emptyPathItemActionMenu,
   pathItems: new Map(),
@@ -216,13 +215,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   [FsGen.setPathItemActionMenuDownload]: (draftState, action) => {
     draftState.pathItemActionMenu.downloadID = action.payload.downloadID
     draftState.pathItemActionMenu.downloadIntent = action.payload.intent
-  },
-  [FsGen.overallSyncStatusChanged]: (draftState, action) => {
-    draftState.overallSyncStatus.syncingFoldersProgress = action.payload.progress
-    draftState.overallSyncStatus.diskSpaceStatus = action.payload.diskSpaceStatus
-  },
-  [FsGen.showHideDiskSpaceBanner]: (draftState, action) => {
-    draftState.overallSyncStatus.showingBanner = action.payload.show
   },
   [FsGen.setDriverStatus]: (draftState, action) => {
     draftState.sfmi.driverStatus = action.payload.driverStatus

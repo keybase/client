@@ -1,4 +1,5 @@
 import * as ConfigConstants from './config'
+import * as NotificationsGen from '../actions/notifications-gen'
 import * as FsGen from '../actions/fs-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -6,6 +7,7 @@ import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as Types from './types/fs'
 import * as Z from '../util/zustand'
+import NotifyPopup from '../util/notify-popup'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../util/container'
 import {RPCError} from '../util/errors'
@@ -962,6 +964,7 @@ type State = {
   folderViewFilter: string | undefined // on mobile, '' is expanded empty, undefined is unexpanded
   kbfsDaemonStatus: Types.KbfsDaemonStatus
   lastPublicBannerClosedTlf: string
+  overallSyncStatus: Types.OverallSyncStatus
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -983,6 +986,7 @@ const initialState: State = {
   folderViewFilter: undefined,
   kbfsDaemonStatus: unknownKbfsDaemonStatus,
   lastPublicBannerClosedTlf: '',
+  overallSyncStatus: emptyOverallSyncStatus,
 }
 
 type ZState = State & {
@@ -1009,6 +1013,7 @@ type ZState = State & {
     setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => void
     setLastPublicBannerClosedTlf: (tlf: string) => void
     setMoveOrCopySource: (path: Types.Path) => void
+    syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
     startRename: (path: Types.Path) => void
@@ -1309,6 +1314,61 @@ export const useState = Z.createZustand(
             type: Types.EditType.Rename,
           })
         })
+      },
+      syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => {
+        const diskSpaceStatus = status.outOfSyncSpace
+          ? Types.DiskSpaceStatus.Error
+          : status.localDiskBytesAvailable <
+            // TODO ermove redux
+            getReduxStore().fs.settings.spaceAvailableNotificationThreshold
+          ? Types.DiskSpaceStatus.Warning
+          : Types.DiskSpaceStatus.Ok
+
+        const oldStatus = get().overallSyncStatus.diskSpaceStatus
+        set(s => {
+          s.overallSyncStatus.syncingFoldersProgress = status.prefetchProgress
+          s.overallSyncStatus.diskSpaceStatus = diskSpaceStatus
+        })
+
+        // Only notify about the disk space status if it has changed.
+        if (oldStatus !== diskSpaceStatus) {
+          switch (diskSpaceStatus) {
+            case Types.DiskSpaceStatus.Error:
+              NotifyPopup('Sync Error', {
+                body: 'You are out of disk space. Some folders could not be synced.',
+                sound: true,
+              })
+              reduxDispatch(
+                NotificationsGen.createBadgeApp({
+                  key: 'outOfSpace',
+                  on: status.outOfSyncSpace,
+                })
+              )
+              break
+            case Types.DiskSpaceStatus.Warning:
+              {
+                const threshold = humanizeBytes(
+                  // TODO remove
+                  getReduxStore().fs.settings.spaceAvailableNotificationThreshold,
+                  0
+                )
+                NotifyPopup('Disk Space Low', {
+                  body: `You have less than ${threshold} of storage space left.`,
+                })
+                // Only show the banner if the previous state was OK and the new state
+                // is warning. Otherwise we rely on the previous state of the banner.
+                if (oldStatus === Types.DiskSpaceStatus.Ok) {
+                  set(s => {
+                    s.overallSyncStatus.showingBanner = true
+                  })
+                }
+              }
+              break
+            case Types.DiskSpaceStatus.Ok:
+              break
+            default:
+          }
+        }
       },
       waitForKbfsDaemon: () => {
         set(s => {

@@ -524,7 +524,6 @@ export type FileContext = {
 }
 
 export type State = {
-  readonly overallSyncStatus: OverallSyncStatus
   readonly pathItemActionMenu: PathItemActionMenu
   readonly pathItems: PathItems
   readonly pathInfos: Map<Path, PathInfo>

@@ -47,7 +47,6 @@ export const openFilesFromWidget = 'fs:openFilesFromWidget'
 export const openLocalPathInSystemFileManager = 'fs:openLocalPathInSystemFileManager'
 export const openPathInSystemFileManager = 'fs:openPathInSystemFileManager'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
-export const overallSyncStatusChanged = 'fs:overallSyncStatusChanged'
 export const pathItemLoaded = 'fs:pathItemLoaded'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
@@ -70,7 +69,6 @@ export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
 export const setTlfsAsUnloaded = 'fs:setTlfsAsUnloaded'
 export const settingsLoaded = 'fs:settingsLoaded'
 export const shareNative = 'fs:shareNative'
-export const showHideDiskSpaceBanner = 'fs:showHideDiskSpaceBanner'
 export const sortSetting = 'fs:sortSetting'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const subscribeNonPath = 'fs:subscribeNonPath'
@@ -257,10 +255,6 @@ export const createOpenSecurityPreferences = (payload?: undefined) => ({
   payload,
   type: openSecurityPreferences as typeof openSecurityPreferences,
 })
-export const createOverallSyncStatusChanged = (payload: {
-  readonly progress: Types.SyncingFoldersProgress
-  readonly diskSpaceStatus: Types.DiskSpaceStatus
-}) => ({payload, type: overallSyncStatusChanged as typeof overallSyncStatusChanged})
 export const createPathItemLoaded = (payload: {
   readonly path: Types.Path
   readonly pathItem: Types.PathItem
@@ -349,10 +343,6 @@ export const createSettingsLoaded = (payload: {readonly settings?: Types.Setting
 export const createShareNative = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: shareNative as typeof shareNative,
-})
-export const createShowHideDiskSpaceBanner = (payload: {readonly show: boolean}) => ({
-  payload,
-  type: showHideDiskSpaceBanner as typeof showHideDiskSpaceBanner,
 })
 export const createSortSetting = (payload: {
   readonly path: Types.Path
@@ -448,7 +438,6 @@ export type OpenLocalPathInSystemFileManagerPayload = ReturnType<
 >
 export type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPathInSystemFileManager>
 export type OpenSecurityPreferencesPayload = ReturnType<typeof createOpenSecurityPreferences>
-export type OverallSyncStatusChangedPayload = ReturnType<typeof createOverallSyncStatusChanged>
 export type PathItemLoadedPayload = ReturnType<typeof createPathItemLoaded>
 export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
@@ -473,7 +462,6 @@ export type SetTlfSyncConfigPayload = ReturnType<typeof createSetTlfSyncConfig>
 export type SetTlfsAsUnloadedPayload = ReturnType<typeof createSetTlfsAsUnloaded>
 export type SettingsLoadedPayload = ReturnType<typeof createSettingsLoaded>
 export type ShareNativePayload = ReturnType<typeof createShareNative>
-export type ShowHideDiskSpaceBannerPayload = ReturnType<typeof createShowHideDiskSpaceBanner>
 export type SortSettingPayload = ReturnType<typeof createSortSetting>
 export type StartManualConflictResolutionPayload = ReturnType<typeof createStartManualConflictResolution>
 export type SubscribeNonPathPayload = ReturnType<typeof createSubscribeNonPath>
@@ -533,7 +521,6 @@ export type Actions =
   | OpenLocalPathInSystemFileManagerPayload
   | OpenPathInSystemFileManagerPayload
   | OpenSecurityPreferencesPayload
-  | OverallSyncStatusChangedPayload
   | PathItemLoadedPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload
@@ -556,7 +543,6 @@ export type Actions =
   | SetTlfsAsUnloadedPayload
   | SettingsLoadedPayload
   | ShareNativePayload
-  | ShowHideDiskSpaceBannerPayload
   | SortSettingPayload
   | StartManualConflictResolutionPayload
   | SubscribeNonPathPayload

@@ -141,13 +141,6 @@
       "view": "Types.PathItemActionMenuView"
     },
     "kbfsDaemonRpcStatusChanged": {},
-    "overallSyncStatusChanged": {
-      "progress": "Types.SyncingFoldersProgress",
-      "diskSpaceStatus": "Types.DiskSpaceStatus"
-    },
-    "showHideDiskSpaceBanner": {
-      "show": "boolean"
-    },
     "setPathSoftError": {
       "path": "Types.Path",
       "softError?": "Types.SoftError"
