@@ -8,8 +8,7 @@
     transition: opacity 0.25s ease-in-out;
   }
   &:hover {
-    .grabLines,
-    .grabLinesContainer {
+    :is(.grabLines, .grabLinesContainer) {
       opacity: 1;
     }
   }

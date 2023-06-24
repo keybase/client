@@ -202,6 +202,19 @@ table {
 }
 /* End Keybase */
 
+:root {
+  --size-xxtiny: 2px;
+  --size-xtiny: 4px;
+  --size-tiny: 8px;
+  --size-xsmall: 12px;
+  --size-small: 16px;
+  --size-medium: 24px;
+  --size-mediumLarge: 32px;
+  --size-large: 40px;
+  --size-xlarge: 64px;
+  --size-border-radius: 4px;
+}
+
 html {
   box-sizing: border-box;
   cursor: default;

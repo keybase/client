@@ -12,8 +12,8 @@
   height: 40px;
   .tab-icon {
     color: var(--color-blueDarkerOrBlack_85);
-    margin-left: 24px;
-    margin-right: 12px;
+    margin-left: var(--size-medium);
+    margin-right: var(--size-xsmall);
   }
   .tab-label {
     color: var(--color-blueLighter);
@@ -27,7 +27,7 @@
   background-color: rgba(76, 142, 255, 0.4);
   color: #ffffff;
   flex-shrink: 0;
-  height: 40px;
+  height: var(--size-large);
   transition-duration: 0.4s;
   transition-property: background-color;
 
@@ -35,11 +35,10 @@
     background-color: #1f1f1f;
   }
 }
-.tab:hover .tab-icon,
-.tab-selected .tab-icon {
+:is(.tab:hover, .tab-selected) .tab-icon {
   color: var(--color-white);
-  margin-left: 24px;
-  margin-right: 12px;
+  margin-left: var(--size-medium);
+  margin-right: var(--size-xsmall);
 
   .darkMode & {
     color: rgba(255, 255, 255, 0.85);
@@ -52,14 +51,11 @@
     }
   }
 }
-.tab:hover .tab-label,
-.tab-selected .tab-label {
+:is(.tab:hover, .tab-selected) .tab-label {
   color: var(--color-white);
   flex-grow: 1;
-}
-.darkMode {
-  .tab:hover .tab-label,
-  .tab-selected .tab-label {
+
+  .darkMode & {
     color: rgba(255, 255, 255, 0.85);
   }
 }
@@ -67,9 +63,8 @@
 .tab-highlight {
   transition-property: background-color;
   transition-duration: 0.4s;
-}
-.tab-selected {
-  .tab-highlight {
+
+  .tab-highlight & {
     background-color: var(--color-white);
     width: 3px;
     border-radius: 2px;
@@ -92,8 +87,7 @@
   .tab-selected {
     height: 48px;
   }
-  .tab-label,
-  .username {
+  :is(.tab-label, .username) {
     display: none !important;
   }
   .tab-tooltip {
