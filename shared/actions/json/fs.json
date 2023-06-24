@@ -115,27 +115,7 @@
     "favoriteIgnoreError": {
       "path": "Types.Path"
     },
-    "newFolderRow": {
-      "parentPath": "Types.Path"
-    },
-    "startRename": {
-      "path": "Types.Path"
-    },
-    "setEditName": {
-      "editID": "Types.EditID",
-      "name": "string"
-    },
     "commitEdit": {
-      "editID": "Types.EditID"
-    },
-    "editSuccess": {
-      "editID": "Types.EditID"
-    },
-    "editError": {
-      "editID": "Types.EditID",
-      "error": "string"
-    },
-    "discardEdit": {
       "editID": "Types.EditID"
     },
     "redbar": {

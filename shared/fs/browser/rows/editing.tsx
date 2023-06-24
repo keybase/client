@@ -13,13 +13,17 @@ type Props = {
 
 const Editing = ({editID}: Props) => {
   const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(FsGen.createDiscardEdit({editID}))
+  const discardEdit = Constants.useState(s => s.dispatch.discardEdit)
+  const onCancel = () => {
+    discardEdit(editID)
+  }
   const onSubmit = () => dispatch(FsGen.createCommitEdit({editID}))
-  const edit = Container.useSelector(state => state.fs.edits.get(editID) || Constants.emptyNewFolder)
+  const edit = Constants.useState(s => s.edits.get(editID) || Constants.emptyNewFolder)
   const [filename, setFilename] = React.useState(edit.name)
+  const setEditName = Constants.useState(s => s.dispatch.setEditName)
   React.useEffect(() => {
-    dispatch(FsGen.createSetEditName({editID, name: filename}))
-  }, [editID, filename, dispatch])
+    setEditName(editID, filename)
+  }, [editID, filename, setEditName])
   const onKeyUp = (event: React.KeyboardEvent) => event.key === 'Escape' && onCancel()
   return (
     <Kb.ListItem2

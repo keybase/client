@@ -102,9 +102,10 @@ export default (ownProps: OwnProps) => {
   const _ignoreTlf = React.useCallback(() => {
     dispatch(FsGen.createFavoriteIgnore({path}))
   }, [dispatch, path])
+  const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
   const _newFolder = React.useCallback(() => {
-    dispatch(FsGen.createNewFolderRow({parentPath: path}))
-  }, [dispatch, path])
+    newFolderRow(path)
+  }, [newFolderRow, path])
   const _openChat = () => {
     dispatch(
       Chat2Gen.createPreviewConversation({
@@ -115,9 +116,10 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
+  const startRename = Constants.useState(s => s.dispatch.startRename)
   const _rename = React.useCallback(() => {
-    dispatch(FsGen.createStartRename({path}))
-  }, [dispatch, path])
+    startRename(path)
+  }, [startRename, path])
   const _saveMedia = React.useCallback(() => {
     dispatch(FsGen.createSaveMedia({path}))
   }, [dispatch, path])

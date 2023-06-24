@@ -10,7 +10,6 @@ export const checkKbfsDaemonRpcStatus = 'fs:checkKbfsDaemonRpcStatus'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
-export const discardEdit = 'fs:discardEdit'
 export const dismissDownload = 'fs:dismissDownload'
 export const dismissRedbar = 'fs:dismissRedbar'
 export const dismissUpload = 'fs:dismissUpload'
@@ -19,8 +18,6 @@ export const driverDisable = 'fs:driverDisable'
 export const driverDisabling = 'fs:driverDisabling'
 export const driverEnable = 'fs:driverEnable'
 export const driverKextPermissionError = 'fs:driverKextPermissionError'
-export const editError = 'fs:editError'
-export const editSuccess = 'fs:editSuccess'
 export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
 export const favoritesLoad = 'fs:favoritesLoad'
@@ -51,7 +48,6 @@ export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
 export const loadedUploadStatus = 'fs:loadedUploadStatus'
 export const move = 'fs:move'
-export const newFolderRow = 'fs:newFolderRow'
 export const openAndUpload = 'fs:openAndUpload'
 export const openFilesFromWidget = 'fs:openFilesFromWidget'
 export const openLocalPathInSystemFileManager = 'fs:openLocalPathInSystemFileManager'
@@ -71,7 +67,6 @@ export const setDebugLevel = 'fs:setDebugLevel'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDirectMountDir = 'fs:setDirectMountDir'
 export const setDriverStatus = 'fs:setDriverStatus'
-export const setEditName = 'fs:setEditName'
 export const setFolderViewFilter = 'fs:setFolderViewFilter'
 export const setIncomingShareSource = 'fs:setIncomingShareSource'
 export const setLastPublicBannerClosedTlf = 'fs:setLastPublicBannerClosedTlf'
@@ -92,7 +87,6 @@ export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const sortSetting = 'fs:sortSetting'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
-export const startRename = 'fs:startRename'
 export const subscribeNonPath = 'fs:subscribeNonPath'
 export const subscribePath = 'fs:subscribePath'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
@@ -127,10 +121,6 @@ export const createDeleteFile = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: deleteFile as typeof deleteFile,
 })
-export const createDiscardEdit = (payload: {readonly editID: Types.EditID}) => ({
-  payload,
-  type: discardEdit as typeof discardEdit,
-})
 export const createDismissDownload = (payload: {readonly downloadID: string}) => ({
   payload,
   type: dismissDownload as typeof dismissDownload,
@@ -162,14 +152,6 @@ export const createDriverEnable = (payload: {readonly isRetry?: boolean} = {}) =
 export const createDriverKextPermissionError = (payload?: undefined) => ({
   payload,
   type: driverKextPermissionError as typeof driverKextPermissionError,
-})
-export const createEditError = (payload: {readonly editID: Types.EditID; readonly error: string}) => ({
-  payload,
-  type: editError as typeof editError,
-})
-export const createEditSuccess = (payload: {readonly editID: Types.EditID}) => ({
-  payload,
-  type: editSuccess as typeof editSuccess,
 })
 export const createFavoriteIgnore = (payload: {readonly path: Types.Path}) => ({
   payload,
@@ -292,10 +274,6 @@ export const createMove = (payload: {readonly destinationParentPath: Types.Path}
   payload,
   type: move as typeof move,
 })
-export const createNewFolderRow = (payload: {readonly parentPath: Types.Path}) => ({
-  payload,
-  type: newFolderRow as typeof newFolderRow,
-})
 export const createOpenAndUpload = (payload: {
   readonly type: Types.OpenDialogType
   readonly parentPath: Types.Path
@@ -368,10 +346,6 @@ export const createSetDirectMountDir = (payload: {readonly directMountDir: strin
 export const createSetDriverStatus = (payload: {readonly driverStatus: Types.DriverStatus}) => ({
   payload,
   type: setDriverStatus as typeof setDriverStatus,
-})
-export const createSetEditName = (payload: {readonly editID: Types.EditID; readonly name: string}) => ({
-  payload,
-  type: setEditName as typeof setEditName,
 })
 export const createSetFolderViewFilter = (payload: {readonly filter?: string} = {}) => ({
   payload,
@@ -453,10 +427,6 @@ export const createStartManualConflictResolution = (payload: {readonly tlfPath: 
   payload,
   type: startManualConflictResolution as typeof startManualConflictResolution,
 })
-export const createStartRename = (payload: {readonly path: Types.Path}) => ({
-  payload,
-  type: startRename as typeof startRename,
-})
 export const createSubscribeNonPath = (payload: {
   readonly subscriptionID: string
   readonly topic: RPCTypes.SubscriptionTopic
@@ -508,7 +478,6 @@ export type CheckKbfsDaemonRpcStatusPayload = ReturnType<typeof createCheckKbfsD
 export type CommitEditPayload = ReturnType<typeof createCommitEdit>
 export type CopyPayload = ReturnType<typeof createCopy>
 export type DeleteFilePayload = ReturnType<typeof createDeleteFile>
-export type DiscardEditPayload = ReturnType<typeof createDiscardEdit>
 export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
 export type DismissRedbarPayload = ReturnType<typeof createDismissRedbar>
 export type DismissUploadPayload = ReturnType<typeof createDismissUpload>
@@ -517,8 +486,6 @@ export type DriverDisablePayload = ReturnType<typeof createDriverDisable>
 export type DriverDisablingPayload = ReturnType<typeof createDriverDisabling>
 export type DriverEnablePayload = ReturnType<typeof createDriverEnable>
 export type DriverKextPermissionErrorPayload = ReturnType<typeof createDriverKextPermissionError>
-export type EditErrorPayload = ReturnType<typeof createEditError>
-export type EditSuccessPayload = ReturnType<typeof createEditSuccess>
 export type FavoriteIgnoreErrorPayload = ReturnType<typeof createFavoriteIgnoreError>
 export type FavoriteIgnorePayload = ReturnType<typeof createFavoriteIgnore>
 export type FavoritesLoadPayload = ReturnType<typeof createFavoritesLoad>
@@ -549,7 +516,6 @@ export type LoadedFilesTabBadgePayload = ReturnType<typeof createLoadedFilesTabB
 export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
 export type LoadedUploadStatusPayload = ReturnType<typeof createLoadedUploadStatus>
 export type MovePayload = ReturnType<typeof createMove>
-export type NewFolderRowPayload = ReturnType<typeof createNewFolderRow>
 export type OpenAndUploadPayload = ReturnType<typeof createOpenAndUpload>
 export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWidget>
 export type OpenLocalPathInSystemFileManagerPayload = ReturnType<
@@ -571,7 +537,6 @@ export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
 export type SetDestinationPickerParentPathPayload = ReturnType<typeof createSetDestinationPickerParentPath>
 export type SetDirectMountDirPayload = ReturnType<typeof createSetDirectMountDir>
 export type SetDriverStatusPayload = ReturnType<typeof createSetDriverStatus>
-export type SetEditNamePayload = ReturnType<typeof createSetEditName>
 export type SetFolderViewFilterPayload = ReturnType<typeof createSetFolderViewFilter>
 export type SetIncomingShareSourcePayload = ReturnType<typeof createSetIncomingShareSource>
 export type SetLastPublicBannerClosedTlfPayload = ReturnType<typeof createSetLastPublicBannerClosedTlf>
@@ -594,7 +559,6 @@ export type ShowIncomingSharePayload = ReturnType<typeof createShowIncomingShare
 export type ShowMoveOrCopyPayload = ReturnType<typeof createShowMoveOrCopy>
 export type SortSettingPayload = ReturnType<typeof createSortSetting>
 export type StartManualConflictResolutionPayload = ReturnType<typeof createStartManualConflictResolution>
-export type StartRenamePayload = ReturnType<typeof createStartRename>
 export type SubscribeNonPathPayload = ReturnType<typeof createSubscribeNonPath>
 export type SubscribePathPayload = ReturnType<typeof createSubscribePath>
 export type TlfSyncConfigLoadedPayload = ReturnType<typeof createTlfSyncConfigLoaded>
@@ -616,7 +580,6 @@ export type Actions =
   | CommitEditPayload
   | CopyPayload
   | DeleteFilePayload
-  | DiscardEditPayload
   | DismissDownloadPayload
   | DismissRedbarPayload
   | DismissUploadPayload
@@ -625,8 +588,6 @@ export type Actions =
   | DriverDisablingPayload
   | DriverEnablePayload
   | DriverKextPermissionErrorPayload
-  | EditErrorPayload
-  | EditSuccessPayload
   | FavoriteIgnoreErrorPayload
   | FavoriteIgnorePayload
   | FavoritesLoadPayload
@@ -657,7 +618,6 @@ export type Actions =
   | LoadedPathInfoPayload
   | LoadedUploadStatusPayload
   | MovePayload
-  | NewFolderRowPayload
   | OpenAndUploadPayload
   | OpenFilesFromWidgetPayload
   | OpenLocalPathInSystemFileManagerPayload
@@ -677,7 +637,6 @@ export type Actions =
   | SetDestinationPickerParentPathPayload
   | SetDirectMountDirPayload
   | SetDriverStatusPayload
-  | SetEditNamePayload
   | SetFolderViewFilterPayload
   | SetIncomingShareSourcePayload
   | SetLastPublicBannerClosedTlfPayload
@@ -698,7 +657,6 @@ export type Actions =
   | ShowMoveOrCopyPayload
   | SortSettingPayload
   | StartManualConflictResolutionPayload
-  | StartRenamePayload
   | SubscribeNonPathPayload
   | SubscribePathPayload
   | TlfSyncConfigLoadedPayload

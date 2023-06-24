@@ -3,7 +3,6 @@ import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {produce, type Draft} from 'immer'
 
 const initialState: Types.State = {
   destinationPicker: {
@@ -12,7 +11,6 @@ const initialState: Types.State = {
       type: Types.DestinationPickerSource.None,
     },
   },
-  edits: new Map(),
   errors: [],
   fileContext: new Map(),
   folderViewFilter: undefined,
@@ -74,17 +72,6 @@ const updatePathItem = (
   return newPathItemFromAction
 }
 
-const updateExistingEdit = (
-  draftState: Draft<Types.State>,
-  editID: Types.EditID,
-  change: (draftEdit: Draft<Types.Edit>) => void
-) => {
-  const existing = draftState.edits.get(editID)
-  if (existing) {
-    draftState.edits = new Map([...draftState.edits, [editID, produce(existing, change)]])
-  }
-}
-
 export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   [FsGen.resetStore]: () => {
     return initialState
@@ -95,6 +82,7 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     draftState.softErrors.pathErrors.delete(action.payload.path)
     draftState.softErrors.tlfErrors.delete(action.payload.path)
   },
+  //TODO edit stuff back!!!
   [FsGen.folderListLoaded]: (draftState, action) => {
     action.payload.pathItems.forEach((pathItemFromAction, path) => {
       const oldPathItem = Constants.getPathItem(draftState.pathItems, path)
@@ -110,6 +98,7 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
 
     // Remove Rename edits that are for path items that don't exist anymore in
     // case when/if a new item is added later the edit causes confusion.
+    /* TODO  <<<<<<<<<<<<<<<<<<<<<<<<
     const newEntries = [...draftState.edits.entries()].filter(([_, edit]) => {
       if (edit.type !== Types.EditType.Rename) {
         return true
@@ -123,6 +112,7 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     if (newEntries.length !== draftState.edits.size) {
       draftState.edits = new Map(newEntries)
     }
+        */
   },
   [FsGen.favoritesLoaded]: (draftState, action) => {
     draftState.tlfs.private = action.payload.private
@@ -230,66 +220,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       ...(draftState.tlfs[visibility].get(elems[2]) || Constants.unknownTlf),
       isIgnored: false,
     })
-  },
-  [FsGen.newFolderRow]: (draftState, action) => {
-    const {parentPath} = action.payload
-    const parentPathItem = Constants.getPathItem(draftState.pathItems, parentPath)
-    if (parentPathItem.type !== Types.PathType.Folder) {
-      console.warn(`bad parentPath: ${parentPathItem.type}`)
-      return
-    }
-
-    const existingNewFolderNames = new Set([...draftState.edits].map(([_, {name}]) => name))
-
-    let newFolderName = 'New Folder'
-    for (
-      let i = 2;
-      parentPathItem.children.has(newFolderName) || existingNewFolderNames.has(newFolderName);
-      ++i
-    ) {
-      newFolderName = `New Folder ${i}`
-    }
-
-    draftState.edits.set(Constants.makeEditID(), {
-      ...Constants.emptyNewFolder,
-      name: newFolderName,
-      originalName: newFolderName,
-      parentPath,
-    })
-  },
-  [FsGen.startRename]: (draftState, action) => {
-    const parentPath = Types.getPathParent(action.payload.path)
-    const originalName = Types.getPathName(action.payload.path)
-    draftState.edits.set(Constants.makeEditID(), {
-      name: originalName,
-      originalName,
-      parentPath,
-      type: Types.EditType.Rename,
-    })
-  },
-  [FsGen.setEditName]: (draftState, action) => {
-    updateExistingEdit(draftState, action.payload.editID, draftEdit => {
-      draftEdit.name = action.payload.name
-    })
-  },
-  [FsGen.editSuccess]: (draftState, action) => {
-    if (draftState.edits.has(action.payload.editID)) {
-      const edits = new Map(draftState.edits)
-      edits.delete(action.payload.editID)
-      draftState.edits = edits
-    }
-  },
-  [FsGen.editError]: (draftState, action) => {
-    updateExistingEdit(draftState, action.payload.editID, draftEdit => {
-      draftEdit.error = action.payload.error
-    })
-  },
-  [FsGen.discardEdit]: (draftState, action) => {
-    if (draftState.edits.has(action.payload.editID)) {
-      const edits = new Map(draftState.edits)
-      edits.delete(action.payload.editID)
-      draftState.edits = edits
-    }
   },
   [FsGen.redbar]: (draftState, action) => {
     draftState.errors.push(action.payload.error)

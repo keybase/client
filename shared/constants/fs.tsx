@@ -956,6 +956,7 @@ type State = {
   badge: RPCTypes.FilesTabBadge
   criticalUpdate: boolean
   downloads: Types.Downloads
+  edits: Types.Edits
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -965,15 +966,22 @@ const initialState: State = {
     regularDownloads: [],
     state: new Map(),
   },
+  edits: new Map(),
 }
 
 type ZState = State & {
   dispatch: {
+    discardEdit: (editID: Types.EditID) => void
+    editError: (editID: Types.EditID, error: string) => void
+    editSuccess: (editID: Types.EditID) => void
     loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
     loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
     reset: () => void
+    newFolderRow: (parentPath: Types.Path) => void
     setBadge: (b: RPCTypes.FilesTabBadge) => void
     setCriticalUpdate: (u: boolean) => void
+    startRename: (path: Types.Path) => void
+    setEditName: (editID: Types.EditID, name: string) => void
   }
   getUploadIconForFilesTab: () => Types.UploadIcon | undefined
 }
@@ -981,6 +989,7 @@ type ZState = State & {
 export const useState = Z.createZustand(
   Z.immerZustand<ZState>((set, get) => {
     // const reduxDispatch = Z.getReduxDispatch()
+    const getReduxStore = Z.getReduxStore()
 
     const getUploadIconForFilesTab = () => {
       switch (get().badge) {
@@ -995,6 +1004,22 @@ export const useState = Z.createZustand(
       }
     }
     const dispatch = {
+      discardEdit: (editID: Types.EditID) => {
+        set(s => {
+          s.edits.delete(editID)
+        })
+      },
+      editError: (editID: Types.EditID, error: string) => {
+        set(s => {
+          const e = s.edits.get(editID)
+          if (e) e.error = error
+        })
+      },
+      editSuccess: (editID: Types.EditID) => {
+        set(s => {
+          s.edits.delete(editID)
+        })
+      },
       loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => {
         set(s => {
           s.downloads.info.set(downloadID, info)
@@ -1011,6 +1036,32 @@ export const useState = Z.createZustand(
           }
         })
       },
+      newFolderRow: (parentPath: Types.Path) => {
+        // TODO remove redux store
+        const parentPathItem = getPathItem(getReduxStore().fs.pathItems, parentPath)
+        if (parentPathItem.type !== Types.PathType.Folder) {
+          console.warn(`bad parentPath: ${parentPathItem.type}`)
+          return
+        }
+
+        const existingNewFolderNames = new Set([...get().edits.values()].map(({name}) => name))
+
+        let newFolderName = 'New Folder'
+        let i = 2
+        while (parentPathItem.children.has(newFolderName) || existingNewFolderNames.has(newFolderName)) {
+          newFolderName = `New Folder ${i}`
+          ++i
+        }
+
+        set(s => {
+          s.edits.set(makeEditID(), {
+            ...emptyNewFolder,
+            name: newFolderName,
+            originalName: newFolderName,
+            parentPath,
+          })
+        })
+      },
       reset: () => {
         set(() => initialState)
       },
@@ -1022,6 +1073,26 @@ export const useState = Z.createZustand(
       setCriticalUpdate: (u: boolean) => {
         set(s => {
           s.criticalUpdate = u
+        })
+      },
+      setEditName: (editID: Types.EditID, name: string) => {
+        set(s => {
+          const e = s.edits.get(editID)
+          if (e) {
+            e.name = name
+          }
+        })
+      },
+      startRename: (path: Types.Path) => {
+        const parentPath = Types.getPathParent(path)
+        const originalName = Types.getPathName(path)
+        set(s => {
+          s.edits.set(makeEditID(), {
+            name: originalName,
+            originalName,
+            parentPath,
+            type: Types.EditType.Rename,
+          })
         })
       },
     }

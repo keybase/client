@@ -175,7 +175,7 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
     : rows
 
 export default (o: OwnProps) => {
-  const _edits = Container.useSelector(state => state.fs.edits)
+  const _edits = Constants.useState(s => s.edits)
   const _filter = Container.useSelector(state => state.fs.folderViewFilter)
   const _pathItems = Container.useSelector(state => state.fs.pathItems)
   const _sortSetting = Container.useSelector(

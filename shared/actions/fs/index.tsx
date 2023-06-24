@@ -542,9 +542,10 @@ const ignoreFavorite = async (_: Container.TypedState, action: FsGen.FavoriteIgn
   }
 }
 
-const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditPayload) => {
+const commitEdit = async (_: unknown, action: FsGen.CommitEditPayload) => {
   const {editID} = action.payload
-  const edit = state.fs.edits.get(editID)
+
+  const edit = Constants.useState.getState().edits.get(editID)
   if (!edit) {
     return false
   }
@@ -559,7 +560,8 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
           },
           Constants.commitEditWaitingKey
         )
-        return FsGen.createEditSuccess({editID})
+        Constants.useState.getState().dispatch.editSuccess(editID)
+        return
       } catch (e) {
         return errorToActionOrThrow(e, edit.parentPath)
       }
@@ -573,7 +575,8 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
           src: Constants.pathToRPCPath(Types.pathConcat(edit.parentPath, edit.originalName)),
         })
         await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.commitEditWaitingKey)
-        return FsGen.createEditSuccess({editID})
+        Constants.useState.getState().dispatch.editSuccess(editID)
+        return
       } catch (error) {
         if (!(error instanceof RPCError)) {
           return
@@ -583,7 +586,8 @@ const commitEdit = async (state: Container.TypedState, action: FsGen.CommitEditP
             error.code
           )
         ) {
-          return FsGen.createEditError({editID, error: error.desc || 'name exists'})
+          Constants.useState.getState().dispatch.editError(editID, error.desc || 'name exists')
+          return
         }
         throw error
       }
