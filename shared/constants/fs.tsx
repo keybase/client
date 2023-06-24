@@ -831,16 +831,14 @@ export const makeActionsForDestinationPickerOpen = (
   path: Types.Path,
   navigateAppend: (a: SafeNavigateAppendArg) => TypedActions,
   headerRightButton?: React.ReactNode
-): ReadonlyArray<TypedActions> =>
-  [
-    FsGen.createSetDestinationPickerParentPath({
-      index,
-      path,
-    }),
+): ReadonlyArray<TypedActions> => {
+  useState.getState().dispatch.setDestinationPickerParentPath(index, path)
+  return [
     navigateAppend({
       path: [{props: {headerRightButton, index}, selected: 'destinationPicker'}],
     }),
   ] as const
+}
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
 
@@ -956,6 +954,7 @@ export const hideOrDisableInDestinationPicker = (
 type State = {
   badge: RPCTypes.FilesTabBadge
   criticalUpdate: boolean
+  destinationPicker: Types.DestinationPicker
   downloads: Types.Downloads
   edits: Types.Edits
   errors: Array<string>
@@ -963,6 +962,12 @@ type State = {
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
   criticalUpdate: false,
+  destinationPicker: {
+    destinationParentPath: [],
+    source: {
+      type: Types.DestinationPickerSource.None,
+    },
+  },
   downloads: {
     info: new Map(),
     regularDownloads: [],
@@ -981,20 +986,25 @@ type ZState = State & {
     editSuccess: (editID: Types.EditID) => void
     loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
     loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
+    newFolderRow: (parentPath: Types.Path) => void
     redbar: (error: string) => void
     reset: () => void
-    newFolderRow: (parentPath: Types.Path) => void
     setBadge: (b: RPCTypes.FilesTabBadge) => void
     setCriticalUpdate: (u: boolean) => void
-    startRename: (path: Types.Path) => void
+    setDestinationPickerParentPath: (index: number, path: Types.Path) => void
     setEditName: (editID: Types.EditID, name: string) => void
+    setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => void
+    setMoveOrCopySource: (path: Types.Path) => void
+    showIncomingShare: (initialDestinationParentPath: Types.Path) => void
+    showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
+    startRename: (path: Types.Path) => void
   }
   getUploadIconForFilesTab: () => Types.UploadIcon | undefined
 }
 
 export const useState = Z.createZustand(
   Z.immerZustand<ZState>((set, get) => {
-    // const reduxDispatch = Z.getReduxDispatch()
+    const reduxDispatch = Z.getReduxDispatch()
     const getReduxStore = Z.getReduxStore()
 
     const getUploadIconForFilesTab = () => {
@@ -1145,6 +1155,11 @@ export const useState = Z.createZustand(
           s.criticalUpdate = u
         })
       },
+      setDestinationPickerParentPath: (index: number, path: Types.Path) => {
+        set(s => {
+          s.destinationPicker.destinationParentPath[index] = path
+        })
+      },
       setEditName: (editID: Types.EditID, name: string) => {
         set(s => {
           const e = s.edits.get(editID)
@@ -1152,6 +1167,43 @@ export const useState = Z.createZustand(
             e.name = name
           }
         })
+      },
+      setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => {
+        set(s => {
+          s.destinationPicker.source = {source, type: Types.DestinationPickerSource.IncomingShare}
+        })
+      },
+      setMoveOrCopySource: (path: Types.Path) => {
+        set(s => {
+          s.destinationPicker.source = {path, type: Types.DestinationPickerSource.MoveOrCopy}
+        })
+      },
+      showIncomingShare: (initialDestinationParentPath: Types.Path) => {
+        set(s => {
+          if (s.destinationPicker.source.type !== Types.DestinationPickerSource.IncomingShare) {
+            s.destinationPicker.source = {source: [], type: Types.DestinationPickerSource.IncomingShare}
+          }
+          s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
+        })
+        reduxDispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
+        )
+      },
+      showMoveOrCopy: (initialDestinationParentPath: Types.Path) => {
+        set(s => {
+          s.destinationPicker.source =
+            s.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
+              ? s.destinationPicker.source
+              : {
+                  path: defaultPath,
+                  type: Types.DestinationPickerSource.MoveOrCopy,
+                }
+
+          s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
+        })
+        reduxDispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
+        )
       },
       startRename: (path: Types.Path) => {
         const parentPath = Types.getPathParent(path)

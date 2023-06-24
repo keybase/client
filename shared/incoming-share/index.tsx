@@ -6,7 +6,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as FsTypes from '../constants/types/fs'
 import * as FsConstants from '../constants/fs'
 import * as FsCommon from '../fs/common'
-import * as FsGen from '../actions/fs-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Platform from '../constants/platform'
 import * as SettingsConstants from '../constants/settings'
@@ -161,8 +160,9 @@ const useHeader = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
 
 const useFooter = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
   const dispatch = Container.useDispatch()
+  const setIncomingShareSource = FsConstants.useState(s => s.dispatch.setIncomingShareSource)
   const saveInFiles = () => {
-    dispatch(FsGen.createSetIncomingShareSource({source: incomingShareItems}))
+    setIncomingShareSource(incomingShareItems)
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [

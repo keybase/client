@@ -142,18 +142,6 @@
     "deleteFile": {
       "path": "Types.Path"
     },
-    "setMoveOrCopySource": {
-      "path": "Types.Path"
-    },
-    "setDestinationPickerParentPath": {
-      "index": "number",
-      "path": "Types.Path"
-    },
-    "showMoveOrCopy": {"initialDestinationParentPath": "Types.Path"},
-    "setIncomingShareSource": {
-      "source": "Array<RPCTypes.IncomingShareItem>"
-    },
-    "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
     "setPathItemActionMenuView": {

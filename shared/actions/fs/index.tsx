@@ -594,27 +594,28 @@ const deleteFile = async (_: unknown, action: FsGen.DeleteFilePayload) => {
   return
 }
 
-const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload | FsGen.CopyPayload) => {
-  if (state.fs.destinationPicker.source.type === Types.DestinationPickerSource.None) {
+const moveOrCopy = async (_: unknown, action: FsGen.MovePayload | FsGen.CopyPayload) => {
+  const zState = Constants.useState.getState()
+  if (zState.destinationPicker.source.type === Types.DestinationPickerSource.None) {
     return
   }
 
   const params =
-    state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
+    zState.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
       ? [
           {
             dest: Constants.pathToRPCPath(
               Types.pathConcat(
                 action.payload.destinationParentPath,
-                Types.getPathName(state.fs.destinationPicker.source.path)
+                Types.getPathName(zState.destinationPicker.source.path)
               )
             ),
             opID: Constants.makeUUID(),
             overwriteExistingFiles: false,
-            src: Constants.pathToRPCPath(state.fs.destinationPicker.source.path),
+            src: Constants.pathToRPCPath(zState.destinationPicker.source.path),
           },
         ]
-      : state.fs.destinationPicker.source.source
+      : zState.destinationPicker.source.source
           .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
           .filter(({originalPath}) => !!originalPath)
           .map(({originalPath, scaledPath}) => ({
@@ -630,8 +631,9 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
             src: {
               PathType: RPCTypes.PathType.local,
               local: Types.getNormalizedLocalPath(
-                // @ts-ignore
-                state.config.incomingShareUseOriginal ? originalPath : scaledPath || originalPath
+                ConfigConstants.useConfigState.getState().incomingShareUseOriginal
+                  ? originalPath
+                  : scaledPath || originalPath
               ),
             } as RPCTypes.Path,
           }))
@@ -651,9 +653,6 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
     return errorToActionOrThrow(e, action.payload.destinationParentPath)
   }
 }
-
-const showMoveOrCopy = () =>
-  RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
 
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
 // reducer and happens before this.
@@ -1078,7 +1077,6 @@ const initFS = () => {
   Container.listenAction(FsGen.loadPathMetadata, loadPathMetadata)
   Container.listenAction(FsGen.pollJournalStatus, pollJournalFlushStatusUntilDone)
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
-  Container.listenAction([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
   Container.listenAction(
     [ConfigGen.installerRan, ConfigGen.loggedInChanged, FsGen.userIn, FsGen.checkKbfsDaemonRpcStatus],
     async (state, a) => {

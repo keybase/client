@@ -5,12 +5,6 @@ import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 const initialState: Types.State = {
-  destinationPicker: {
-    destinationParentPath: [],
-    source: {
-      type: Types.DestinationPickerSource.None,
-    },
-  },
   fileContext: new Map(),
   folderViewFilter: undefined,
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
@@ -222,43 +216,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.userFileEditsLoaded]: (draftState, action) => {
     draftState.tlfUpdates = action.payload.tlfUpdates
-  },
-  [FsGen.showMoveOrCopy]: (draftState, action) => {
-    draftState.destinationPicker.source =
-      draftState.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
-        ? draftState.destinationPicker.source
-        : ({
-            path: Constants.defaultPath,
-            type: Types.DestinationPickerSource.MoveOrCopy,
-          } as const)
-
-    draftState.destinationPicker.destinationParentPath = [action.payload.initialDestinationParentPath]
-  },
-  [FsGen.setMoveOrCopySource]: (draftState, action) => {
-    draftState.destinationPicker.source = {
-      path: action.payload.path,
-      type: Types.DestinationPickerSource.MoveOrCopy,
-    }
-  },
-  [FsGen.setDestinationPickerParentPath]: (draftState, action) => {
-    if (draftState.destinationPicker.destinationParentPath[action.payload.index] !== action.payload.path) {
-      draftState.destinationPicker.destinationParentPath[action.payload.index] = action.payload.path
-    }
-  },
-  [FsGen.showIncomingShare]: (draftState, action) => {
-    if (draftState.destinationPicker.source.type !== Types.DestinationPickerSource.IncomingShare) {
-      draftState.destinationPicker.source = {
-        source: [],
-        type: Types.DestinationPickerSource.IncomingShare,
-      } as Types.IncomingShareSource
-    }
-    draftState.destinationPicker.destinationParentPath = [action.payload.initialDestinationParentPath]
-  },
-  [FsGen.setIncomingShareSource]: (draftState, action) => {
-    draftState.destinationPicker.source = {
-      source: action.payload.source,
-      type: Types.DestinationPickerSource.IncomingShare,
-    } as const
   },
   [FsGen.setPathItemActionMenuView]: (draftState, action) => {
     draftState.pathItemActionMenu.previousView = draftState.pathItemActionMenu.view

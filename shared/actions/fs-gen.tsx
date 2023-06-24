@@ -61,13 +61,10 @@ export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
-export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDirectMountDir = 'fs:setDirectMountDir'
 export const setDriverStatus = 'fs:setDriverStatus'
 export const setFolderViewFilter = 'fs:setFolderViewFilter'
-export const setIncomingShareSource = 'fs:setIncomingShareSource'
 export const setLastPublicBannerClosedTlf = 'fs:setLastPublicBannerClosedTlf'
-export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownload = 'fs:setPathItemActionMenuDownload'
 export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
 export const setPathSoftError = 'fs:setPathSoftError'
@@ -80,8 +77,6 @@ export const setTlfsAsUnloaded = 'fs:setTlfsAsUnloaded'
 export const settingsLoaded = 'fs:settingsLoaded'
 export const shareNative = 'fs:shareNative'
 export const showHideDiskSpaceBanner = 'fs:showHideDiskSpaceBanner'
-export const showIncomingShare = 'fs:showIncomingShare'
-export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const sortSetting = 'fs:sortSetting'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const subscribeNonPath = 'fs:subscribeNonPath'
@@ -323,10 +318,6 @@ export const createSetDebugLevel = (payload: {readonly level: string}) => ({
   payload,
   type: setDebugLevel as typeof setDebugLevel,
 })
-export const createSetDestinationPickerParentPath = (payload: {
-  readonly index: number
-  readonly path: Types.Path
-}) => ({payload, type: setDestinationPickerParentPath as typeof setDestinationPickerParentPath})
 export const createSetDirectMountDir = (payload: {readonly directMountDir: string}) => ({
   payload,
   type: setDirectMountDir as typeof setDirectMountDir,
@@ -339,16 +330,9 @@ export const createSetFolderViewFilter = (payload: {readonly filter?: string} = 
   payload,
   type: setFolderViewFilter as typeof setFolderViewFilter,
 })
-export const createSetIncomingShareSource = (payload: {
-  readonly source: Array<RPCTypes.IncomingShareItem>
-}) => ({payload, type: setIncomingShareSource as typeof setIncomingShareSource})
 export const createSetLastPublicBannerClosedTlf = (payload: {readonly tlf: string}) => ({
   payload,
   type: setLastPublicBannerClosedTlf as typeof setLastPublicBannerClosedTlf,
-})
-export const createSetMoveOrCopySource = (payload: {readonly path: Types.Path}) => ({
-  payload,
-  type: setMoveOrCopySource as typeof setMoveOrCopySource,
 })
 export const createSetPathItemActionMenuDownload = (
   payload: {readonly downloadID?: string; readonly intent?: Types.DownloadIntent} = {}
@@ -398,14 +382,6 @@ export const createShareNative = (payload: {readonly path: Types.Path}) => ({
 export const createShowHideDiskSpaceBanner = (payload: {readonly show: boolean}) => ({
   payload,
   type: showHideDiskSpaceBanner as typeof showHideDiskSpaceBanner,
-})
-export const createShowIncomingShare = (payload: {readonly initialDestinationParentPath: Types.Path}) => ({
-  payload,
-  type: showIncomingShare as typeof showIncomingShare,
-})
-export const createShowMoveOrCopy = (payload: {readonly initialDestinationParentPath: Types.Path}) => ({
-  payload,
-  type: showMoveOrCopy as typeof showMoveOrCopy,
 })
 export const createSortSetting = (payload: {
   readonly path: Types.Path
@@ -519,13 +495,10 @@ export type RefreshMountDirsAfter10sPayload = ReturnType<typeof createRefreshMou
 export type SaveMediaPayload = ReturnType<typeof createSaveMedia>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
-export type SetDestinationPickerParentPathPayload = ReturnType<typeof createSetDestinationPickerParentPath>
 export type SetDirectMountDirPayload = ReturnType<typeof createSetDirectMountDir>
 export type SetDriverStatusPayload = ReturnType<typeof createSetDriverStatus>
 export type SetFolderViewFilterPayload = ReturnType<typeof createSetFolderViewFilter>
-export type SetIncomingShareSourcePayload = ReturnType<typeof createSetIncomingShareSource>
 export type SetLastPublicBannerClosedTlfPayload = ReturnType<typeof createSetLastPublicBannerClosedTlf>
-export type SetMoveOrCopySourcePayload = ReturnType<typeof createSetMoveOrCopySource>
 export type SetPathItemActionMenuDownloadPayload = ReturnType<typeof createSetPathItemActionMenuDownload>
 export type SetPathItemActionMenuViewPayload = ReturnType<typeof createSetPathItemActionMenuView>
 export type SetPathSoftErrorPayload = ReturnType<typeof createSetPathSoftError>
@@ -540,8 +513,6 @@ export type SetTlfsAsUnloadedPayload = ReturnType<typeof createSetTlfsAsUnloaded
 export type SettingsLoadedPayload = ReturnType<typeof createSettingsLoaded>
 export type ShareNativePayload = ReturnType<typeof createShareNative>
 export type ShowHideDiskSpaceBannerPayload = ReturnType<typeof createShowHideDiskSpaceBanner>
-export type ShowIncomingSharePayload = ReturnType<typeof createShowIncomingShare>
-export type ShowMoveOrCopyPayload = ReturnType<typeof createShowMoveOrCopy>
 export type SortSettingPayload = ReturnType<typeof createSortSetting>
 export type StartManualConflictResolutionPayload = ReturnType<typeof createStartManualConflictResolution>
 export type SubscribeNonPathPayload = ReturnType<typeof createSubscribeNonPath>
@@ -616,13 +587,10 @@ export type Actions =
   | SaveMediaPayload
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload
-  | SetDestinationPickerParentPathPayload
   | SetDirectMountDirPayload
   | SetDriverStatusPayload
   | SetFolderViewFilterPayload
-  | SetIncomingShareSourcePayload
   | SetLastPublicBannerClosedTlfPayload
-  | SetMoveOrCopySourcePayload
   | SetPathItemActionMenuDownloadPayload
   | SetPathItemActionMenuViewPayload
   | SetPathSoftErrorPayload
@@ -635,8 +603,6 @@ export type Actions =
   | SettingsLoadedPayload
   | ShareNativePayload
   | ShowHideDiskSpaceBannerPayload
-  | ShowIncomingSharePayload
-  | ShowMoveOrCopyPayload
   | SortSettingPayload
   | StartManualConflictResolutionPayload
   | SubscribeNonPathPayload
