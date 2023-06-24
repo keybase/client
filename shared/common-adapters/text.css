@@ -115,8 +115,7 @@
   cursor: pointer;
 }
 
-.text_HeaderBig,
-.text_HeaderBigExtrabold {
+:is(.text_HeaderBig, .text_HeaderBigExtrabold) {
   font-size: 24px;
   line-height: 28px;
 }
@@ -170,10 +169,7 @@
   font-weight: 800;
 }
 
-.text_Header,
-.text_HeaderItalic,
-.text_HeaderExtrabold,
-.text_HeaderLink {
+:is(.text_Header, .text_HeaderItalic, .text_HeaderExtrabold, .text_HeaderLink) {
   font-size: 18px;
   line-height: 22px;
   .darkMode & {
@@ -181,9 +177,7 @@
   }
 }
 
-.text_BodyBig,
-.text_BodyBigExtrabold,
-.text_BodyBigLink {
+:is(.text_BodyBig, .text_BodyBigExtrabold, .text_BodyBigLink) {
   font-size: 15px;
   line-height: 19px;
 }
@@ -243,10 +237,7 @@
   line-height: 17px;
 }
 
-.text_Terminal,
-.text_TerminalComment,
-.text_TerminalEmpty,
-.text_TerminalInline {
+:is(.text_Terminal, .text_TerminalComment, .text_TerminalEmpty, .text_TerminalInline) {
   font-size: 13px;
   line-height: 20px;
   font-family: Source Code Pro;
@@ -286,11 +277,7 @@
   text-align: center;
 }
 
-.lineClamp1,
-.lineClamp2,
-.lineClamp3,
-.lineClamp4,
-.lineClamp5 {
+:is(.lineClamp1, .lineClamp2, .lineClamp3, .lineClamp4, .lineClamp5) {
   -webkit-box-orient: vertical;
   display: -webkit-box;
   overflow: hidden;

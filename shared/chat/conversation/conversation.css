@@ -1,13 +1,11 @@
 .WrapperMessage {
-  &.highlighted,
-  &.highlighted:hover,
-  &.highlighted.WrapperMessage-hoverColor,
-  &.highlighted.WrapperMessage-hoverColor:hover {
-    animation-name: highlightAnimation;
-    animation-duration: 0.3s;
-    animation-timing-function: ease-in;
-    animation-play-state: running;
-    animation-fill-mode: forwards;
+  &.highlighted {
+    &,
+    &:hover,
+    &.WrapperMessage-hoverColor,
+    &.WrapperMessage-hoverColor:hover {
+      animation: highlightAnimation 0.3s ease-in forwards running;
+    }
   }
 
   &.highlighted {
@@ -46,9 +44,7 @@
 }
 
 .WrapperMessage-hoverBox {
-  padding-bottom: 3px;
-  padding-top: 3px;
-  padding-right: 16px;
+  padding: 3px 16px 3px 0;
   display: flex;
   flex-direction: column;
   position: relative;
