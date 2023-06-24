@@ -6,7 +6,6 @@ import type {DeserializeProps} from './remote-serializer.desktop'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 
 const RemoteContainer = () => {
-  const state = Container.useRemoteStore<DeserializeProps>()
   const {
     avatarRefreshCounter,
     daemonHandshakeState,
@@ -19,7 +18,7 @@ const RemoteContainer = () => {
     httpSrvToken,
     windowShownCountNum,
     ...rest
-  } = state
+  } = Container.useRemoteStore<DeserializeProps>()
   useAvatarState(s => s.replace)(avatarRefreshCounter)
   ConfigConstants.useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
   Followers.useFollowerState(s => s.dispatch.replace)(followers, following)

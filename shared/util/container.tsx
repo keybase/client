@@ -4,7 +4,7 @@ import type {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
 import type {ActionHandler as _ActionHandler} from './make-reducer'
 import type {TypedState as _TypedState} from '../constants/reducer'
 import {StatusCode} from '../constants/types/rpc-gen'
-import {useDispatch as RRuseDispatch, type TypedUseSelectorHook} from 'react-redux'
+import {useDispatch as RRuseDispatch, shallowEqual, type TypedUseSelectorHook} from 'react-redux'
 import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
 import type {Route} from '../constants/types/route-tree'
@@ -84,7 +84,8 @@ export function usePrevious2<T>(value: T) {
 
 /** like useSelector but for remote stores **/
 export function useRemoteStore<S>(): S {
-  return useSelector(s => s) as unknown as S
+    // TODO this will warn you not to do this, could just pass in a selector later
+  return useSelector(s => s), shallowEqual) as unknown as S
 }
 /**
       like useEffect but doesn't call on initial mount, only when deps change
