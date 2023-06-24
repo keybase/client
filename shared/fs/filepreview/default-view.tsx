@@ -2,7 +2,6 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
 import {PathItemAction, LastModifiedLine, ItemIcon} from '../common'
 import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 import {hasShare} from '../common/path-item-action/layout'
@@ -16,9 +15,7 @@ type DefaultViewProps = {
 }
 
 const DefaultView = (props: DefaultViewProps) => {
-  const fileContext = Container.useSelector(
-    state => state.fs.fileContext.get(props.path) || Constants.emptyFileContext
-  )
+  const fileContext = Constants.useState(s => s.fileContext.get(props.path) || Constants.emptyFileContext)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.Box2

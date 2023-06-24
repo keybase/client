@@ -5,7 +5,6 @@ import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 const initialState: Types.State = {
-  fileContext: new Map(),
   folderViewFilter: undefined,
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   lastPublicBannerClosedTlf: '',
@@ -305,8 +304,5 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.loadedPathInfo]: (draftState, action) => {
     draftState.pathInfos = draftState.pathInfos.set(action.payload.path, action.payload.pathInfo)
-  },
-  [FsGen.loadedFileContext]: (draftState, action) => {
-    draftState.fileContext.set(action.payload.path, action.payload.fileContext)
   },
 })

@@ -58,9 +58,7 @@ export default (ownProps: OwnProps) => {
 
   const _downloadID = Container.useSelector(state => state.fs.pathItemActionMenu.downloadID)
   const _downloads = Constants.useState(s => s.downloads)
-  const _fileContext = Container.useSelector(
-    state => state.fs.fileContext.get(path) || Constants.emptyFileContext
-  )
+  const _fileContext = Constants.useState(s => s.fileContext.get(path) || Constants.emptyFileContext)
   const _ignoreNeedsToWait = Container.useAnyWaiting([
     Constants.folderListWaitingKey,
     Constants.statWaitingKey,

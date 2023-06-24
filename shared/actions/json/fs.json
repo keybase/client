@@ -202,13 +202,6 @@
       "downloadID": "string",
       "mimeType": "string"
     },
-    "loadFileContext": {
-      "path": "Types.Path"
-    },
-    "loadedFileContext": {
-      "path": "Types.Path",
-      "fileContext": "Types.FileContext"
-    },
     "loadAdditionalTlf": {
       "tlfPath": "Types.Path"
     },

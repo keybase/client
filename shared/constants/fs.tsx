@@ -958,6 +958,7 @@ type State = {
   downloads: Types.Downloads
   edits: Types.Edits
   errors: Array<string>
+  fileContext: Map<Types.Path, Types.FileContext>
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -975,6 +976,7 @@ const initialState: State = {
   },
   edits: new Map(),
   errors: [],
+  fileContext: new Map(),
 }
 
 type ZState = State & {
@@ -986,6 +988,7 @@ type ZState = State & {
     editSuccess: (editID: Types.EditID) => void
     loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
     loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
+    loadFileContext: (path: Types.Path) => void
     newFolderRow: (parentPath: Types.Path) => void
     redbar: (error: string) => void
     reset: () => void
@@ -1094,6 +1097,28 @@ export const useState = Z.createZustand(
         set(s => {
           s.edits.delete(editID)
         })
+      },
+      loadFileContext: (path: Types.Path) => {
+        const f = async () => {
+          try {
+            const res = await RPCTypes.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
+              path: pathToRPCPath(path).kbfs,
+            })
+
+            set(s => {
+              s.fileContext.set(path, {
+                contentType: res.contentType,
+                url: res.url,
+                viewType: res.viewType,
+              })
+            })
+          } catch (err) {
+            // TODO put bac <<<<<<<<<<<<<<<<<<<<<,,
+            return
+            //  errorToActionOrThrow(err)
+          }
+        }
+        Z.ignorePromise(f())
       },
       loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => {
         set(s => {

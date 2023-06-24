@@ -33,7 +33,6 @@ export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadAdditionalTlf = 'fs:loadAdditionalTlf'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
-export const loadFileContext = 'fs:loadFileContext'
 export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
 export const loadPathInfo = 'fs:loadPathInfo'
 export const loadPathMetadata = 'fs:loadPathMetadata'
@@ -41,7 +40,6 @@ export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
 export const loadUploadStatus = 'fs:loadUploadStatus'
 export const loadedAdditionalTlf = 'fs:loadedAdditionalTlf'
-export const loadedFileContext = 'fs:loadedFileContext'
 export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
 export const loadedUploadStatus = 'fs:loadedUploadStatus'
@@ -206,10 +204,6 @@ export const createLoadDownloadStatus = (payload?: undefined) => ({
   payload,
   type: loadDownloadStatus as typeof loadDownloadStatus,
 })
-export const createLoadFileContext = (payload: {readonly path: Types.Path}) => ({
-  payload,
-  type: loadFileContext as typeof loadFileContext,
-})
 export const createLoadFilesTabBadge = (payload?: undefined) => ({
   payload,
   type: loadFilesTabBadge as typeof loadFilesTabBadge,
@@ -238,10 +232,6 @@ export const createLoadedAdditionalTlf = (payload: {
   readonly tlf: Types.Tlf
   readonly tlfPath: Types.Path
 }) => ({payload, type: loadedAdditionalTlf as typeof loadedAdditionalTlf})
-export const createLoadedFileContext = (payload: {
-  readonly path: Types.Path
-  readonly fileContext: Types.FileContext
-}) => ({payload, type: loadedFileContext as typeof loadedFileContext})
 export const createLoadedFilesTabBadge = (payload: {readonly badge: RPCTypes.FilesTabBadge}) => ({
   payload,
   type: loadedFilesTabBadge as typeof loadedFilesTabBadge,
@@ -465,7 +455,6 @@ export type LetResetUserBackInPayload = ReturnType<typeof createLetResetUserBack
 export type LoadAdditionalTlfPayload = ReturnType<typeof createLoadAdditionalTlf>
 export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
 export type LoadDownloadStatusPayload = ReturnType<typeof createLoadDownloadStatus>
-export type LoadFileContextPayload = ReturnType<typeof createLoadFileContext>
 export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge>
 export type LoadPathInfoPayload = ReturnType<typeof createLoadPathInfo>
 export type LoadPathMetadataPayload = ReturnType<typeof createLoadPathMetadata>
@@ -473,7 +462,6 @@ export type LoadSettingsPayload = ReturnType<typeof createLoadSettings>
 export type LoadTlfSyncConfigPayload = ReturnType<typeof createLoadTlfSyncConfig>
 export type LoadUploadStatusPayload = ReturnType<typeof createLoadUploadStatus>
 export type LoadedAdditionalTlfPayload = ReturnType<typeof createLoadedAdditionalTlf>
-export type LoadedFileContextPayload = ReturnType<typeof createLoadedFileContext>
 export type LoadedFilesTabBadgePayload = ReturnType<typeof createLoadedFilesTabBadge>
 export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
 export type LoadedUploadStatusPayload = ReturnType<typeof createLoadedUploadStatus>
@@ -559,7 +547,6 @@ export type Actions =
   | LoadAdditionalTlfPayload
   | LoadDownloadInfoPayload
   | LoadDownloadStatusPayload
-  | LoadFileContextPayload
   | LoadFilesTabBadgePayload
   | LoadPathInfoPayload
   | LoadPathMetadataPayload
@@ -567,7 +554,6 @@ export type Actions =
   | LoadTlfSyncConfigPayload
   | LoadUploadStatusPayload
   | LoadedAdditionalTlfPayload
-  | LoadedFileContextPayload
   | LoadedFilesTabBadgePayload
   | LoadedPathInfoPayload
   | LoadedUploadStatusPayload

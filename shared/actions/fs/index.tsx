@@ -941,24 +941,6 @@ const loadDownloadStatus = async () => {
   }
 }
 
-const loadFileContext = async (_: unknown, action: FsGen.LoadFileContextPayload) => {
-  try {
-    const res = await RPCTypes.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
-      path: Constants.pathToRPCPath(action.payload.path).kbfs,
-    })
-    return FsGen.createLoadedFileContext({
-      fileContext: {
-        contentType: res.contentType,
-        url: res.url,
-        viewType: res.viewType,
-      },
-      path: action.payload.path,
-    })
-  } catch (err) {
-    return errorToActionOrThrow(err)
-  }
-}
-
 const loadFilesTabBadge = async () => {
   try {
     const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
@@ -1111,7 +1093,6 @@ const initFS = () => {
   Container.listenAction(FsGen.startManualConflictResolution, startManualCR)
   Container.listenAction(FsGen.finishManualConflictResolution, finishManualCR)
   Container.listenAction(FsGen.loadPathInfo, loadPathInfo)
-  Container.listenAction(FsGen.loadFileContext, loadFileContext)
   Container.listenAction(FsGen.loadFilesTabBadge, loadFilesTabBadge)
 
   Container.listenAction([FsGen.download, FsGen.shareNative, FsGen.saveMedia], download)

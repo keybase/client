@@ -143,14 +143,14 @@ export const useFsDownloadStatus = () => {
 }
 
 export const useFsFileContext = (path: Types.Path) => {
-  const dispatch = Container.useDispatch()
   const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
   const [urlError, setUrlError] = React.useState<string>('')
+  const loadFileContext = Constants.useState(s => s.dispatch.loadFileContext)
   React.useEffect(() => {
     urlError && logger.info(`urlError: ${urlError}`)
-    pathItem.type === Types.PathType.File && dispatch(FsGen.createLoadFileContext({path}))
+    pathItem.type === Types.PathType.File && loadFileContext(path)
   }, [
-    dispatch,
+    loadFileContext,
     path,
     // Intentionally depend on pathItem instead of only pathItem.type so we
     // load when timestamp changes.
@@ -171,8 +171,9 @@ export const useFsWatchDownloadForMobile = isMobile
 
       const dlInfo = useFsDownloadInfo(downloadID)
       useFsFileContext(dlInfo.path)
-      const mimeType = Container.useSelector(
-        state => state.fs.fileContext.get(dlInfo.path) || Constants.emptyFileContext
+
+      const mimeType = Constants.useState(
+        s => s.fileContext.get(dlInfo.path) || Constants.emptyFileContext
       ).contentType
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)

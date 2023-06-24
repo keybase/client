@@ -524,7 +524,6 @@ export type FileContext = {
 }
 
 export type State = {
-  readonly fileContext: Map<Path, FileContext>
   readonly folderViewFilter: string | undefined // on mobile, '' is expanded empty, null is unexpanded
   readonly kbfsDaemonStatus: KbfsDaemonStatus
   readonly lastPublicBannerClosedTlf: string
