@@ -10,7 +10,6 @@ export const checkKbfsDaemonRpcStatus = 'fs:checkKbfsDaemonRpcStatus'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
 export const dismissDownload = 'fs:dismissDownload'
-export const dismissRedbar = 'fs:dismissRedbar'
 export const dismissUpload = 'fs:dismissUpload'
 export const download = 'fs:download'
 export const driverDisable = 'fs:driverDisable'
@@ -57,7 +56,6 @@ export const pathItemLoaded = 'fs:pathItemLoaded'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
 export const pollJournalStatus = 'fs:pollJournalStatus'
-export const redbar = 'fs:redbar'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
@@ -119,10 +117,6 @@ export const createDeleteFile = (payload: {readonly path: Types.Path}) => ({
 export const createDismissDownload = (payload: {readonly downloadID: string}) => ({
   payload,
   type: dismissDownload as typeof dismissDownload,
-})
-export const createDismissRedbar = (payload: {readonly index: number}) => ({
-  payload,
-  type: dismissRedbar as typeof dismissRedbar,
 })
 export const createDismissUpload = (payload: {readonly uploadID: string}) => ({
   payload,
@@ -309,7 +303,6 @@ export const createPollJournalStatus = (payload?: undefined) => ({
   payload,
   type: pollJournalStatus as typeof pollJournalStatus,
 })
-export const createRedbar = (payload: {readonly error: string}) => ({payload, type: redbar as typeof redbar})
 export const createRefreshDriverStatus = (payload?: undefined) => ({
   payload,
   type: refreshDriverStatus as typeof refreshDriverStatus,
@@ -473,7 +466,6 @@ export type CheckKbfsDaemonRpcStatusPayload = ReturnType<typeof createCheckKbfsD
 export type CopyPayload = ReturnType<typeof createCopy>
 export type DeleteFilePayload = ReturnType<typeof createDeleteFile>
 export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
-export type DismissRedbarPayload = ReturnType<typeof createDismissRedbar>
 export type DismissUploadPayload = ReturnType<typeof createDismissUpload>
 export type DownloadPayload = ReturnType<typeof createDownload>
 export type DriverDisablePayload = ReturnType<typeof createDriverDisable>
@@ -522,7 +514,6 @@ export type PathItemLoadedPayload = ReturnType<typeof createPathItemLoaded>
 export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
 export type PollJournalStatusPayload = ReturnType<typeof createPollJournalStatus>
-export type RedbarPayload = ReturnType<typeof createRedbar>
 export type RefreshDriverStatusPayload = ReturnType<typeof createRefreshDriverStatus>
 export type RefreshMountDirsAfter10sPayload = ReturnType<typeof createRefreshMountDirsAfter10s>
 export type SaveMediaPayload = ReturnType<typeof createSaveMedia>
@@ -574,7 +565,6 @@ export type Actions =
   | CopyPayload
   | DeleteFilePayload
   | DismissDownloadPayload
-  | DismissRedbarPayload
   | DismissUploadPayload
   | DownloadPayload
   | DriverDisablePayload
@@ -621,7 +611,6 @@ export type Actions =
   | PickAndUploadPayload
   | PlaceholderActionPayload
   | PollJournalStatusPayload
-  | RedbarPayload
   | RefreshDriverStatusPayload
   | RefreshMountDirsAfter10sPayload
   | SaveMediaPayload

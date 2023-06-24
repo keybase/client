@@ -525,7 +525,6 @@ export type FileContext = {
 
 export type State = {
   readonly destinationPicker: DestinationPicker
-  readonly errors: Array<string>
   readonly fileContext: Map<Path, FileContext>
   readonly folderViewFilter: string | undefined // on mobile, '' is expanded empty, null is unexpanded
   readonly kbfsDaemonStatus: KbfsDaemonStatus

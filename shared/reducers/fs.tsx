@@ -11,7 +11,6 @@ const initialState: Types.State = {
       type: Types.DestinationPickerSource.None,
     },
   },
-  errors: [],
   fileContext: new Map(),
   folderViewFilter: undefined,
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
@@ -220,15 +219,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       ...(draftState.tlfs[visibility].get(elems[2]) || Constants.unknownTlf),
       isIgnored: false,
     })
-  },
-  [FsGen.redbar]: (draftState, action) => {
-    draftState.errors.push(action.payload.error)
-  },
-  [FsGen.dismissRedbar]: (draftState, action) => {
-    draftState.errors = [
-      ...draftState.errors.slice(0, action.payload.index),
-      ...draftState.errors.slice(action.payload.index + 1),
-    ]
   },
   [FsGen.userFileEditsLoaded]: (draftState, action) => {
     draftState.tlfUpdates = action.payload.tlfUpdates

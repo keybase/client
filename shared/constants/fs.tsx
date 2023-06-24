@@ -958,6 +958,7 @@ type State = {
   criticalUpdate: boolean
   downloads: Types.Downloads
   edits: Types.Edits
+  errors: Array<string>
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -968,16 +969,19 @@ const initialState: State = {
     state: new Map(),
   },
   edits: new Map(),
+  errors: [],
 }
 
 type ZState = State & {
   dispatch: {
     commitEdit: (editID: Types.EditID) => void
     discardEdit: (editID: Types.EditID) => void
+    dismissRedbar: (index: number) => void
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
     loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
     loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
+    redbar: (error: string) => void
     reset: () => void
     newFolderRow: (parentPath: Types.Path) => void
     setBadge: (b: RPCTypes.FilesTabBadge) => void
@@ -1065,6 +1069,11 @@ export const useState = Z.createZustand(
           s.edits.delete(editID)
         })
       },
+      dismissRedbar: (index: number) => {
+        set(s => {
+          s.errors = [...s.errors.slice(0, index), ...s.errors.slice(index + 1)]
+        })
+      },
       editError: (editID: Types.EditID, error: string) => {
         set(s => {
           const e = s.edits.get(editID)
@@ -1116,6 +1125,11 @@ export const useState = Z.createZustand(
             originalName: newFolderName,
             parentPath,
           })
+        })
+      },
+      redbar: (error: string) => {
+        set(s => {
+          s.errors.push(error)
         })
       },
       reset: () => {

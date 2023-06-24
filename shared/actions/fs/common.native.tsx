@@ -33,12 +33,8 @@ const finishedDownloadWithIntent = async (_: unknown, action: FsGen.FinishedDown
     return
   }
   if (downloadState.error) {
-    return [
-      FsGen.createDismissDownload({downloadID}),
-      FsGen.createRedbar({
-        error: downloadState.error,
-      }),
-    ]
+    Constants.useState.getState().dispatch.redbar(downloadState.error)
+    return FsGen.createDismissDownload({downloadID})
   }
   const {localPath} = downloadState
   try {
