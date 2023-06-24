@@ -1184,13 +1184,21 @@ const loadMoreMessages = async (
 
   const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
   try {
+    let validated = false
     const results = await RPCChatTypes.localGetThreadNonblockRpcListener(
       {
         incomingCallMap: {
           'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
           'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
-          'chat.1.chatUi.chatThreadStatus': p =>
-            !!p && Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status: p.status}),
+          'chat.1.chatUi.chatThreadStatus': p => {
+            // if we're validated, never undo that
+            if (p.status.typ === RPCChatTypes.UIChatThreadStatusTyp.validated) {
+              validated = true
+            } else if (validated) {
+              return false
+            }
+            return !!p && Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status: p.status})
+          },
         },
         params: {
           cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
