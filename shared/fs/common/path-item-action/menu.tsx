@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/fs'
 import * as Kbfs from '../../common/hooks'
 import * as FsGen from '../../../actions/fs-gen'
 import type {FloatingMenuProps} from './types'
@@ -189,7 +190,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
 
 const PathItemActionMenu = (props: Props) => {
   Kbfs.useFsFileContext(props.path)
-  const {downloadID, downloadIntent} = Container.useSelector(state => state.fs.pathItemActionMenu)
+  const {downloadID, downloadIntent} = Constants.useState(s => s.pathItemActionMenu)
   const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
 
   const {

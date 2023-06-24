@@ -14,7 +14,7 @@ const StillContainer = (p: OwnProps) => {
   const {destinationPickerIndex, path} = p
   const _downloads = Constants.useState(s => s.downloads)
   const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
-  const _pathItemActionMenu = Container.useSelector(state => state.fs.pathItemActionMenu)
+  const _pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
   const _uploads = Container.useSelector(state => state.fs.uploads)
 
   const dispatch = Container.useDispatch()

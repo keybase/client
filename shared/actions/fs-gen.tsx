@@ -58,8 +58,6 @@ export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const setDirectMountDir = 'fs:setDirectMountDir'
 export const setDriverStatus = 'fs:setDriverStatus'
-export const setPathItemActionMenuDownload = 'fs:setPathItemActionMenuDownload'
-export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
 export const setPathSoftError = 'fs:setPathSoftError'
 export const setPreferredMountDirs = 'fs:setPreferredMountDirs'
 export const setSfmiBannerDismissed = 'fs:setSfmiBannerDismissed'
@@ -299,13 +297,6 @@ export const createSetDriverStatus = (payload: {readonly driverStatus: Types.Dri
   payload,
   type: setDriverStatus as typeof setDriverStatus,
 })
-export const createSetPathItemActionMenuDownload = (
-  payload: {readonly downloadID?: string; readonly intent?: Types.DownloadIntent} = {}
-) => ({payload, type: setPathItemActionMenuDownload as typeof setPathItemActionMenuDownload})
-export const createSetPathItemActionMenuView = (payload: {readonly view: Types.PathItemActionMenuView}) => ({
-  payload,
-  type: setPathItemActionMenuView as typeof setPathItemActionMenuView,
-})
 export const createSetPathSoftError = (payload: {
   readonly path: Types.Path
   readonly softError?: Types.SoftError
@@ -449,8 +440,6 @@ export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
 export type SetDirectMountDirPayload = ReturnType<typeof createSetDirectMountDir>
 export type SetDriverStatusPayload = ReturnType<typeof createSetDriverStatus>
-export type SetPathItemActionMenuDownloadPayload = ReturnType<typeof createSetPathItemActionMenuDownload>
-export type SetPathItemActionMenuViewPayload = ReturnType<typeof createSetPathItemActionMenuView>
 export type SetPathSoftErrorPayload = ReturnType<typeof createSetPathSoftError>
 export type SetPreferredMountDirsPayload = ReturnType<typeof createSetPreferredMountDirs>
 export type SetSfmiBannerDismissedPayload = ReturnType<typeof createSetSfmiBannerDismissed>
@@ -532,8 +521,6 @@ export type Actions =
   | SetDebugLevelPayload
   | SetDirectMountDirPayload
   | SetDriverStatusPayload
-  | SetPathItemActionMenuDownloadPayload
-  | SetPathItemActionMenuViewPayload
   | SetPathSoftErrorPayload
   | SetPreferredMountDirsPayload
   | SetSfmiBannerDismissedPayload

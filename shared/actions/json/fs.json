@@ -137,9 +137,6 @@
     },
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
-    "setPathItemActionMenuView": {
-      "view": "Types.PathItemActionMenuView"
-    },
     "kbfsDaemonRpcStatusChanged": {},
     "setPathSoftError": {
       "path": "Types.Path",
@@ -168,10 +165,6 @@
     "loadDownloadInfo": {"downloadID": "string"},
     "cancelDownload": {"downloadID": "string"},
     "dismissDownload": {"downloadID": "string"},
-    "setPathItemActionMenuDownload": {
-      "downloadID?": "string",
-      "intent?": "Types.DownloadIntent"
-    },
     "finishedDownloadWithIntent": {
       "downloadID": "string",
       "downloadIntent": "Types.DownloadIntent",

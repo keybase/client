@@ -1,5 +1,5 @@
 import * as Types from '../../../constants/types/fs'
-import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/fs'
 import type {FloatingMenuProps} from './types'
 import Menu from './menu-container'
 import Confirm from './confirm-container'
@@ -26,7 +26,7 @@ const ChooseView = (props: Props) => {
 }
 
 export default (ownProps: OwnProps) => {
-  const view = Container.useSelector(state => state.fs.pathItemActionMenu.view)
+  const view = Constants.useState(s => s.pathItemActionMenu.view)
   const props = {
     ...ownProps,
     view,

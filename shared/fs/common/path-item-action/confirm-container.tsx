@@ -13,17 +13,19 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _pathItemActionMenu = Container.useSelector(state => state.fs.pathItemActionMenu)
+  const _pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
   const size = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path).size)
+
+  const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
   const dispatch = Container.useDispatch()
   const _confirm = React.useCallback(
     ({view, previousView}) => {
       dispatch(
         view === 'confirm-save-media' ? FsGen.createSaveMedia({path}) : FsGen.createShareNative({path})
       )
-      dispatch(FsGen.createSetPathItemActionMenuView({view: previousView}))
+      setPathItemActionMenuView(previousView)
     },
-    [dispatch, path]
+    [setPathItemActionMenuView, dispatch, path]
   )
   const props = {
     ...ownProps,

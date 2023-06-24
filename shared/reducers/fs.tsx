@@ -5,7 +5,6 @@ import * as Container from '../util/container'
 
 const initialState: Types.State = {
   pathInfos: new Map(),
-  pathItemActionMenu: Constants.emptyPathItemActionMenu,
   pathItems: new Map(),
   pathUserSettings: new Map(),
   settings: Constants.emptySettings,
@@ -207,14 +206,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.userFileEditsLoaded]: (draftState, action) => {
     draftState.tlfUpdates = action.payload.tlfUpdates
-  },
-  [FsGen.setPathItemActionMenuView]: (draftState, action) => {
-    draftState.pathItemActionMenu.previousView = draftState.pathItemActionMenu.view
-    draftState.pathItemActionMenu.view = action.payload.view
-  },
-  [FsGen.setPathItemActionMenuDownload]: (draftState, action) => {
-    draftState.pathItemActionMenu.downloadID = action.payload.downloadID
-    draftState.pathItemActionMenu.downloadIntent = action.payload.intent
   },
   [FsGen.setDriverStatus]: (draftState, action) => {
     draftState.sfmi.driverStatus = action.payload.driverStatus

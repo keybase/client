@@ -134,7 +134,7 @@ type InTlfItemIconProps = {
 
 const InTlfIcon = (props: InTlfItemIconProps) => {
   const downloads = Constants.useState(s => s.downloads)
-  const pathItemActionMenu = Container.useSelector(state => state.fs.pathItemActionMenu)
+  const pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
   const downloadIntent = Constants.getDownloadIntent(props.path, downloads, pathItemActionMenu)
   const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, props.path))
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]

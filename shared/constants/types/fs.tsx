@@ -524,7 +524,6 @@ export type FileContext = {
 }
 
 export type State = {
-  readonly pathItemActionMenu: PathItemActionMenu
   readonly pathItems: PathItems
   readonly pathInfos: Map<Path, PathInfo>
   readonly pathUserSettings: Map<Path, PathUserSetting>

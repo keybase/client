@@ -411,12 +411,10 @@ const download = async (
     isRegularDownload: action.type === FsGen.download,
     path: Constants.pathToRPCPath(action.payload.path).kbfs,
   })
-  return action.type === FsGen.download
-    ? null
-    : FsGen.createSetPathItemActionMenuDownload({
-        downloadID,
-        intent: Constants.getDownloadIntentFromAction(action),
-      })
+  const {setPathItemActionMenuDownload} = Constants.useState.getState().dispatch
+  if (action.type !== FsGen.download) {
+    setPathItemActionMenuDownload(downloadID, Constants.getDownloadIntentFromAction(action))
+  }
 }
 
 const cancelDownload = async (_: unknown, action: FsGen.CancelDownloadPayload) =>

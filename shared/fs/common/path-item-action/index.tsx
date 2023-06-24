@@ -1,10 +1,8 @@
 import * as React from 'react'
 import type * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
-import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
-import * as FsGen from '../../../actions/fs-gen'
 import ChooseView from './choose-view'
 
 type SizeType = any
@@ -52,8 +50,9 @@ const IconClickable = props => (
 )
 
 const PathItemAction = (props: Props) => {
-  const dispatch = Container.useDispatch()
   const {initView, path, mode} = props
+  const setPathItemActionMenuDownload = Constants.useState(s => s.dispatch.setPathItemActionMenuDownload)
+  const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
@@ -61,7 +60,7 @@ const PathItemAction = (props: Props) => {
 
       const hide = () => {
         toggleShowingPopup()
-        dispatch(FsGen.createSetPathItemActionMenuDownload({}))
+        setPathItemActionMenuDownload()
       }
 
       return (
@@ -77,14 +76,14 @@ const PathItemAction = (props: Props) => {
         />
       )
     },
-    [dispatch, path, mode]
+    [setPathItemActionMenuDownload, path, mode]
   )
   const {toggleShowingPopup, showingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
   const onClick = React.useCallback(() => {
-    dispatch(FsGen.createSetPathItemActionMenuView({view: initView}))
+    setPathItemActionMenuView(initView)
     toggleShowingPopup()
-  }, [initView, dispatch, toggleShowingPopup])
+  }, [initView, setPathItemActionMenuView, toggleShowingPopup])
 
   if (props.path === Constants.defaultPath) {
     return null

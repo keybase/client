@@ -965,6 +965,7 @@ type State = {
   kbfsDaemonStatus: Types.KbfsDaemonStatus
   lastPublicBannerClosedTlf: string
   overallSyncStatus: Types.OverallSyncStatus
+  pathItemActionMenu: Types.PathItemActionMenu
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -987,6 +988,7 @@ const initialState: State = {
   kbfsDaemonStatus: unknownKbfsDaemonStatus,
   lastPublicBannerClosedTlf: '',
   overallSyncStatus: emptyOverallSyncStatus,
+  pathItemActionMenu: emptyPathItemActionMenu,
 }
 
 type ZState = State & {
@@ -1013,6 +1015,8 @@ type ZState = State & {
     setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => void
     setLastPublicBannerClosedTlf: (tlf: string) => void
     setMoveOrCopySource: (path: Types.Path) => void
+    setPathItemActionMenuDownload: (downloadID?: string, intent?: Types.DownloadIntent) => void
+    setPathItemActionMenuView: (view: Types.PathItemActionMenuView) => void
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
@@ -1274,6 +1278,18 @@ export const useState = Z.createZustand(
       setMoveOrCopySource: (path: Types.Path) => {
         set(s => {
           s.destinationPicker.source = {path, type: Types.DestinationPickerSource.MoveOrCopy}
+        })
+      },
+      setPathItemActionMenuDownload: (downloadID?: string, intent?: Types.DownloadIntent) => {
+        set(s => {
+          s.pathItemActionMenu.downloadID = downloadID
+          s.pathItemActionMenu.downloadIntent = intent
+        })
+      },
+      setPathItemActionMenuView: (view: Types.PathItemActionMenuView) => {
+        set(s => {
+          s.pathItemActionMenu.previousView = s.pathItemActionMenu.view
+          s.pathItemActionMenu.view = view
         })
       },
       showIncomingShare: (initialDestinationParentPath: Types.Path) => {
