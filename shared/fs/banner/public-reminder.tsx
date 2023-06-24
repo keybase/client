@@ -4,7 +4,6 @@ import * as ConfigConstants from '../../constants/config'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import openUrl from '../../util/open-url'
-import * as FsGen from '../../actions/fs-gen'
 import * as Container from '../../util/container'
 
 type Props = {
@@ -20,11 +19,12 @@ const getTlfName = (parsedPath: Types.ParsedPath): string => {
 
 const PublicBanner = ({path}: Props) => {
   const isWritable = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path).writable)
-  const lastPublicBannerClosedTlf = Container.useSelector(state => state.fs.lastPublicBannerClosedTlf)
+  const lastPublicBannerClosedTlf = Constants.useState(s => s.lastPublicBannerClosedTlf)
   const you = ConfigConstants.useCurrentUserState(s => s.username)
 
-  const dispatch = Container.useDispatch()
-  const setLastClosed = () => dispatch(FsGen.createSetLastPublicBannerClosedTlf({tlf: tlfName}))
+  const setLastPublicBannerClosedTlf = Constants.useState(s => s.dispatch.setLastPublicBannerClosedTlf)
+
+  const setLastClosed = () => setLastPublicBannerClosedTlf(tlfName)
 
   const parsedPath = Constants.parsePath(path)
   const tlfName = getTlfName(parsedPath)
@@ -32,9 +32,9 @@ const PublicBanner = ({path}: Props) => {
   // If we're showing the banner for a new TLF, clear the closed state
   React.useEffect(() => {
     if (lastPublicBannerClosedTlf !== '' && lastPublicBannerClosedTlf !== tlfName) {
-      dispatch(FsGen.createSetLastPublicBannerClosedTlf({tlf: ''}))
+      setLastPublicBannerClosedTlf('')
     }
-  }, [dispatch, tlfName, lastPublicBannerClosedTlf])
+  }, [setLastPublicBannerClosedTlf, tlfName, lastPublicBannerClosedTlf])
 
   if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.InGroupTlf) {
     return null

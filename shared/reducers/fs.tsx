@@ -4,7 +4,6 @@ import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
 
 const initialState: Types.State = {
-  lastPublicBannerClosedTlf: '',
   overallSyncStatus: Constants.emptyOverallSyncStatus,
   pathInfos: new Map(),
   pathItemActionMenu: Constants.emptyPathItemActionMenu,
@@ -263,9 +262,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     } else {
       draftState.softErrors.tlfErrors.delete(action.payload.path)
     }
-  },
-  [FsGen.setLastPublicBannerClosedTlf]: (draftState, action) => {
-    draftState.lastPublicBannerClosedTlf = action.payload.tlf
   },
   [FsGen.settingsLoaded]: (draftState, action) => {
     if (action.payload.settings) {

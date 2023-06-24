@@ -961,6 +961,7 @@ type State = {
   fileContext: Map<Types.Path, Types.FileContext>
   folderViewFilter: string | undefined // on mobile, '' is expanded empty, undefined is unexpanded
   kbfsDaemonStatus: Types.KbfsDaemonStatus
+  lastPublicBannerClosedTlf: string
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -981,6 +982,7 @@ const initialState: State = {
   fileContext: new Map(),
   folderViewFilter: undefined,
   kbfsDaemonStatus: unknownKbfsDaemonStatus,
+  lastPublicBannerClosedTlf: '',
 }
 
 type ZState = State & {
@@ -1005,6 +1007,7 @@ type ZState = State & {
     setEditName: (editID: Types.EditID, name: string) => void
     setFolderViewFilter: (filter?: string) => void
     setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => void
+    setLastPublicBannerClosedTlf: (tlf: string) => void
     setMoveOrCopySource: (path: Types.Path) => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
@@ -1256,6 +1259,11 @@ export const useState = Z.createZustand(
       setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => {
         set(s => {
           s.destinationPicker.source = {source, type: Types.DestinationPickerSource.IncomingShare}
+        })
+      },
+      setLastPublicBannerClosedTlf: (tlf: string) => {
+        set(s => {
+          s.lastPublicBannerClosedTlf = tlf
         })
       },
       setMoveOrCopySource: (path: Types.Path) => {

@@ -112,10 +112,6 @@
     "favoriteIgnoreError": {
       "path": "Types.Path"
     },
-    "setLastPublicBannerClosedTlf": {
-      "tlf": "string"
-    },
-
     "openFilesFromWidget": {
       "path": "Types.Path",
       "type": "Types.PathType"
