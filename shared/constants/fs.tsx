@@ -959,6 +959,7 @@ type State = {
   edits: Types.Edits
   errors: Array<string>
   fileContext: Map<Types.Path, Types.FileContext>
+  folderViewFilter: string | undefined // on mobile, '' is expanded empty, undefined is unexpanded
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -977,6 +978,7 @@ const initialState: State = {
   edits: new Map(),
   errors: [],
   fileContext: new Map(),
+  folderViewFilter: undefined,
 }
 
 type ZState = State & {
@@ -996,6 +998,7 @@ type ZState = State & {
     setCriticalUpdate: (u: boolean) => void
     setDestinationPickerParentPath: (index: number, path: Types.Path) => void
     setEditName: (editID: Types.EditID, name: string) => void
+    setFolderViewFilter: (filter?: string) => void
     setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => void
     setMoveOrCopySource: (path: Types.Path) => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
@@ -1191,6 +1194,11 @@ export const useState = Z.createZustand(
           if (e) {
             e.name = name
           }
+        })
+      },
+      setFolderViewFilter: (filter?: string) => {
+        set(s => {
+          s.folderViewFilter = filter
         })
       },
       setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => {

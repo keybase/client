@@ -5,7 +5,6 @@ import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 const initialState: Types.State = {
-  folderViewFilter: undefined,
   kbfsDaemonStatus: Constants.unknownKbfsDaemonStatus,
   lastPublicBannerClosedTlf: '',
   overallSyncStatus: Constants.emptyOverallSyncStatus,
@@ -117,9 +116,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.setTlfsAsUnloaded]: draftState => {
     draftState.tlfs.loaded = false
-  },
-  [FsGen.setFolderViewFilter]: (draftState, action) => {
-    draftState.folderViewFilter = action.payload.filter
   },
   [FsGen.tlfSyncConfigLoaded]: (draftState, action) => {
     const oldTlfList = draftState.tlfs[action.payload.tlfType]

@@ -29,9 +29,6 @@
       "public": "Types.TlfList",
       "team": "Types.TlfList"
     },
-    "setFolderViewFilter": {
-      "filter?": "string"
-    },
     "tlfSyncConfigLoaded": {
       "tlfType": "Types.TlfType",
       "tlfName": "string",

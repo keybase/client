@@ -61,7 +61,6 @@ export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const setDirectMountDir = 'fs:setDirectMountDir'
 export const setDriverStatus = 'fs:setDriverStatus'
-export const setFolderViewFilter = 'fs:setFolderViewFilter'
 export const setLastPublicBannerClosedTlf = 'fs:setLastPublicBannerClosedTlf'
 export const setPathItemActionMenuDownload = 'fs:setPathItemActionMenuDownload'
 export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
@@ -316,10 +315,6 @@ export const createSetDriverStatus = (payload: {readonly driverStatus: Types.Dri
   payload,
   type: setDriverStatus as typeof setDriverStatus,
 })
-export const createSetFolderViewFilter = (payload: {readonly filter?: string} = {}) => ({
-  payload,
-  type: setFolderViewFilter as typeof setFolderViewFilter,
-})
 export const createSetLastPublicBannerClosedTlf = (payload: {readonly tlf: string}) => ({
   payload,
   type: setLastPublicBannerClosedTlf as typeof setLastPublicBannerClosedTlf,
@@ -485,7 +480,6 @@ export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
 export type SetDirectMountDirPayload = ReturnType<typeof createSetDirectMountDir>
 export type SetDriverStatusPayload = ReturnType<typeof createSetDriverStatus>
-export type SetFolderViewFilterPayload = ReturnType<typeof createSetFolderViewFilter>
 export type SetLastPublicBannerClosedTlfPayload = ReturnType<typeof createSetLastPublicBannerClosedTlf>
 export type SetPathItemActionMenuDownloadPayload = ReturnType<typeof createSetPathItemActionMenuDownload>
 export type SetPathItemActionMenuViewPayload = ReturnType<typeof createSetPathItemActionMenuView>
@@ -575,7 +569,6 @@ export type Actions =
   | SetDebugLevelPayload
   | SetDirectMountDirPayload
   | SetDriverStatusPayload
-  | SetFolderViewFilterPayload
   | SetLastPublicBannerClosedTlfPayload
   | SetPathItemActionMenuDownloadPayload
   | SetPathItemActionMenuViewPayload

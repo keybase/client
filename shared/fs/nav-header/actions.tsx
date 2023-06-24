@@ -5,7 +5,6 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as FsGen from '../../actions/fs-gen'
 
 type Props = {
   onTriggerFilterMobile: () => void
@@ -15,11 +14,10 @@ type Props = {
 const FsNavHeaderRightActions = (props: Props) => {
   const softErrors = Container.useSelector(state => state.fs.softErrors)
   const hasSoftError = !!Constants.getSoftError(softErrors, props.path)
-
-  const dispatch = Container.useDispatch()
+  const setFolderViewFilter = Constants.useState(s => s.dispatch.setFolderViewFilter)
   React.useEffect(() => {
-    !Styles.isMobile && dispatch(FsGen.createSetFolderViewFilter({})) // mobile is handled in mobile-header.tsx
-  }, [dispatch, props.path]) // clear if path changes or it's a new layer of mount
+    !Styles.isMobile && setFolderViewFilter() // mobile is handled in mobile-header.tsx
+  }, [setFolderViewFilter, props.path]) // clear if path changes or it's a new layer of mount
 
   return !hasSoftError ? (
     <Kb.Box2 direction="horizontal" style={styles.container} centerChildren={true}>

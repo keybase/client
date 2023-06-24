@@ -4,7 +4,6 @@ import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import * as Kbfs from '../common'
-import * as FsGen from '../../actions/fs-gen'
 import * as Container from '../../util/container'
 import Actions from './actions'
 import MainBanner from './main-banner/container'
@@ -25,11 +24,12 @@ const MaybePublicTag = ({path}) =>
   Constants.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} /> : null
 
 const NavMobileHeader = (props: Props) => {
-  const expanded = Container.useSelector(state => state.fs.folderViewFilter !== undefined)
+  const expanded = Constants.useState(s => s.folderViewFilter !== undefined)
   const {pop} = Container.useNav()
-  const dispatch = Container.useDispatch()
-  const filterDone = () => dispatch(FsGen.createSetFolderViewFilter({}))
-  const triggerFilterMobile = () => dispatch(FsGen.createSetFolderViewFilter({filter: ''}))
+  const setFolderViewFilter = Constants.useState(s => s.dispatch.setFolderViewFilter)
+
+  const filterDone = setFolderViewFilter
+  const triggerFilterMobile = () => setFolderViewFilter('')
 
   // Clear if path changes; or it's a new layer of mount (important on Android
   // since it keeps old mount around after navigateAppend).
@@ -39,8 +39,8 @@ const NavMobileHeader = (props: Props) => {
   // anything for me at this point. So just use the fact that a new such thing
   // has been mounted as a proxy.
   React.useEffect(() => {
-    dispatch(FsGen.createSetFolderViewFilter({}))
-  }, [dispatch, props.path])
+    filterDone()
+  }, [filterDone, props.path])
 
   return props.path === Constants.defaultPath ? (
     <Kb.SafeAreaViewTop>
