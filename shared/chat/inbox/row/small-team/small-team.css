@@ -1,21 +1,24 @@
 .small-row {
   background-color: var(--color-blueGrey);
-}
-.small-row:hover {
-  background-color: var(--color-blueGreyDark);
-}
-.small-row.selected {
-  background-color: var(--color-blue);
-}
-.small-row .conversation-gear {
-  display: none;
-}
-.small-row:hover .conversation-gear {
-  display: flex;
-}
-.small-row:hover .conversation-timestamp {
-  display: flex;
-}
-.small-row:hover .conversation-timestamp {
-  display: none;
+
+  &:hover {
+    background-color: var(--color-blueGreyDark);
+
+    .conversation-gear,
+    .conversation-timestamp {
+      display: flex;
+    }
+  }
+
+  &.selected {
+    background-color: var(--color-blue);
+  }
+
+  .conversation-gear {
+    display: none;
+  }
+
+  .conversation-timestamp {
+    display: none;
+  }
 }
