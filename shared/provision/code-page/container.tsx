@@ -15,7 +15,8 @@ const CodePageContainer = () => {
   const provisionDeviceName = Container.useSelector(state => state.provision.deviceName)
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
   const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)
-  const currentDevice = DevicesConstants.useDevicesState(s => s.deviceMap.get(deviceID))
+  const currentDevice =
+    DevicesConstants.useDevicesState(s => s.deviceMap.get(deviceID)) ?? DevicesConstants.emptyDevice
   const error = Container.useSelector(state => state.provision.error.stringValue())
 
   const otherDevice = Container.useSelector(state => state.provision.codePageOtherDevice)
@@ -33,8 +34,6 @@ const CodePageContainer = () => {
     [dispatch, waiting]
   )
   const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
-
-  if (!currentDevice) return null // should be impossible
   return (
     <CodePage2
       error={error}
