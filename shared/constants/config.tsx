@@ -27,6 +27,7 @@ const timeoutPromise = async (timeMs: number) =>
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
 export const loginWaitingKey = 'login:waiting'
+// An ugly error message from the service that we'd like to rewrite ourselves.
 export const invalidPasswordErrorString = 'Bad password: Invalid password. Server rejected login attempt..'
 
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
@@ -294,7 +295,6 @@ export const useConfigState = Z.createZustand(
         const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
           response.error({code: RPCTypes.StatusCode.scgeneric, desc: cancelDesc})
         }
-        // An ugly error message from the service that we'd like to rewrite ourselves.
         const ignoreCallback = () => {}
         const f = async () => {
           try {
