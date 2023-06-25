@@ -178,9 +178,7 @@ export default (o: OwnProps) => {
   const _edits = Constants.useState(s => s.edits)
   const _filter = Constants.useState(s => s.folderViewFilter)
   const _pathItems = Constants.useState(s => s.pathItems)
-  const _sortSetting = Container.useSelector(
-    state => Constants.getPathUserSetting(state.fs.pathUserSettings, o.path).sort
-  )
+  const _sortSetting = Constants.useState(s => Constants.getPathUserSetting(s.pathUserSettings, o.path).sort)
   const _tlfs = Container.useSelector(state => state.fs.tlfs)
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
 

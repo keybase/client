@@ -33,10 +33,6 @@
       "enabled": "boolean",
       "tlfPath": "Types.Path"
     },
-    "sortSetting": {
-      "path": "Types.Path",
-      "sortSetting": "Types.SortSetting"
-    },
     "shareNative": {
       "path": "Types.Path"
     },

@@ -4,8 +4,6 @@ import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
 
 const initialState: Types.State = {
-  pathInfos: new Map(),
-  pathUserSettings: new Map(),
   settings: Constants.emptySettings,
   sfmi: {
     directMountDir: '',
@@ -85,14 +83,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       ])
       return
     }
-  },
-  [FsGen.sortSetting]: (draftState, action) => {
-    const pathUserSetting =
-      draftState.pathUserSettings.get(action.payload.path) || Constants.defaultPathUserSetting
-    draftState.pathUserSettings.set(action.payload.path, {
-      ...pathUserSetting,
-      sort: action.payload.sortSetting,
-    })
   },
   [FsGen.loadedUploadStatus]: (draftState, action) => {
     const writingToJournal = new Map(
@@ -193,8 +183,5 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.loadSettings]: draftState => {
     draftState.settings.isLoading = true
-  },
-  [FsGen.loadedPathInfo]: (draftState, action) => {
-    draftState.pathInfos = draftState.pathInfos.set(action.payload.path, action.payload.pathInfo)
   },
 })

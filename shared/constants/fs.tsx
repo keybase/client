@@ -967,6 +967,8 @@ type State = {
   overallSyncStatus: Types.OverallSyncStatus
   pathItemActionMenu: Types.PathItemActionMenu
   pathItems: Types.PathItems
+  pathInfos: Map<Types.Path, Types.PathInfo>
+  pathUserSettings: Map<Types.Path, Types.PathUserSetting>
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -989,8 +991,10 @@ const initialState: State = {
   kbfsDaemonStatus: unknownKbfsDaemonStatus,
   lastPublicBannerClosedTlf: '',
   overallSyncStatus: emptyOverallSyncStatus,
+  pathInfos: new Map(),
   pathItemActionMenu: emptyPathItemActionMenu,
   pathItems: new Map(),
+  pathUserSettings: new Map(),
 }
 
 type ZState = State & {
@@ -1008,6 +1012,7 @@ type ZState = State & {
     loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
     loadFileContext: (path: Types.Path) => void
     loadPathMetadata: (path: Types.Path) => void
+    loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
     newFolderRow: (parentPath: Types.Path) => void
     redbar: (error: string) => void
     reset: () => void
@@ -1021,6 +1026,7 @@ type ZState = State & {
     setMoveOrCopySource: (path: Types.Path) => void
     setPathItemActionMenuDownload: (downloadID?: string, intent?: Types.DownloadIntent) => void
     setPathItemActionMenuView: (view: Types.PathItemActionMenuView) => void
+    setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => void
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
@@ -1430,6 +1436,11 @@ export const useState = Z.createZustand(
           }
         })
       },
+      loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => {
+        set(s => {
+          s.pathInfos.set(path, info)
+        })
+      },
       newFolderRow: (parentPath: Types.Path) => {
         const parentPathItem = getPathItem(get().pathItems, parentPath)
         if (parentPathItem.type !== Types.PathType.Folder) {
@@ -1516,6 +1527,16 @@ export const useState = Z.createZustand(
         set(s => {
           s.pathItemActionMenu.previousView = s.pathItemActionMenu.view
           s.pathItemActionMenu.view = view
+        })
+      },
+      setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => {
+        set(s => {
+          const old = s.pathUserSettings.get(path)
+          if (old) {
+            old.sort = sortSetting
+          } else {
+            s.pathUserSettings.set(path, {...defaultPathUserSetting, sort: sortSetting})
+          }
         })
       },
       showIncomingShare: (initialDestinationParentPath: Types.Path) => {

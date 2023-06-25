@@ -102,12 +102,12 @@ export const useFsOnlineStatus = () => {
 }
 
 export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {
-  const pathInfo = Container.useSelector(state => state.fs.pathInfos.get(path) || Constants.emptyPathInfo)
+  const pathInfo = Constants.useState(s => s.pathInfos.get(path) || Constants.emptyPathInfo)
   const dispatch = Container.useDispatch()
   const alreadyKnown = knownPathInfo !== Constants.emptyPathInfo
   React.useEffect(() => {
     if (alreadyKnown) {
-      dispatch(FsGen.createLoadedPathInfo({path, pathInfo: knownPathInfo}))
+      Constants.useState.getState().dispatch.loadedPathInfo(path, knownPathInfo)
     } else if (pathInfo === Constants.emptyPathInfo) {
       // We only need to load if it's empty. This never changes once we have
       // it.

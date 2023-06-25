@@ -63,7 +63,6 @@ export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
 export const setTlfsAsUnloaded = 'fs:setTlfsAsUnloaded'
 export const settingsLoaded = 'fs:settingsLoaded'
 export const shareNative = 'fs:shareNative'
-export const sortSetting = 'fs:sortSetting'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const subscribeNonPath = 'fs:subscribeNonPath'
 export const subscribePath = 'fs:subscribePath'
@@ -315,10 +314,6 @@ export const createShareNative = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: shareNative as typeof shareNative,
 })
-export const createSortSetting = (payload: {
-  readonly path: Types.Path
-  readonly sortSetting: Types.SortSetting
-}) => ({payload, type: sortSetting as typeof sortSetting})
 export const createStartManualConflictResolution = (payload: {readonly tlfPath: Types.Path}) => ({
   payload,
   type: startManualConflictResolution as typeof startManualConflictResolution,
@@ -427,7 +422,6 @@ export type SetTlfSyncConfigPayload = ReturnType<typeof createSetTlfSyncConfig>
 export type SetTlfsAsUnloadedPayload = ReturnType<typeof createSetTlfsAsUnloaded>
 export type SettingsLoadedPayload = ReturnType<typeof createSettingsLoaded>
 export type ShareNativePayload = ReturnType<typeof createShareNative>
-export type SortSettingPayload = ReturnType<typeof createSortSetting>
 export type StartManualConflictResolutionPayload = ReturnType<typeof createStartManualConflictResolution>
 export type SubscribeNonPathPayload = ReturnType<typeof createSubscribeNonPath>
 export type SubscribePathPayload = ReturnType<typeof createSubscribePath>
@@ -502,7 +496,6 @@ export type Actions =
   | SetTlfsAsUnloadedPayload
   | SettingsLoadedPayload
   | ShareNativePayload
-  | SortSettingPayload
   | StartManualConflictResolutionPayload
   | SubscribeNonPathPayload
   | SubscribePathPayload

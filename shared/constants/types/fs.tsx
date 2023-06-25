@@ -524,8 +524,6 @@ export type FileContext = {
 }
 
 export type State = {
-  readonly pathInfos: Map<Path, PathInfo>
-  readonly pathUserSettings: Map<Path, PathUserSetting>
   readonly settings: Settings
   readonly sfmi: SystemFileManagerIntegration
   readonly softErrors: SoftErrors
