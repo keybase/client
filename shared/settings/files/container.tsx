@@ -7,10 +7,10 @@ import {isMobile} from '../../constants/platform'
 import type {PickerItem} from '../../common-adapters/floating-picker'
 
 const SettingsFiles = () => {
-  const areSettingsLoading = Container.useSelector(state => state.fs.settings.isLoading)
+  const areSettingsLoading = Constants.useState(s => s.settings.isLoading)
   const driverStatus = Container.useSelector(state => state.fs.sfmi.driverStatus)
-  const spaceAvailableNotificationThreshold = Container.useSelector(
-    state => state.fs.settings.spaceAvailableNotificationThreshold
+  const spaceAvailableNotificationThreshold = Constants.useState(
+    s => s.settings.spaceAvailableNotificationThreshold
   )
 
   const dispatch = Container.useDispatch()

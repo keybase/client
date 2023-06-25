@@ -31,7 +31,6 @@ export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
 export const loadPathInfo = 'fs:loadPathInfo'
-export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
 export const loadUploadStatus = 'fs:loadUploadStatus'
 export const loadedAdditionalTlf = 'fs:loadedAdditionalTlf'
@@ -61,7 +60,6 @@ export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotif
 export const setTlfSoftError = 'fs:setTlfSoftError'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
 export const setTlfsAsUnloaded = 'fs:setTlfsAsUnloaded'
-export const settingsLoaded = 'fs:settingsLoaded'
 export const shareNative = 'fs:shareNative'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const subscribeNonPath = 'fs:subscribeNonPath'
@@ -184,10 +182,6 @@ export const createLoadPathInfo = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: loadPathInfo as typeof loadPathInfo,
 })
-export const createLoadSettings = (payload?: undefined) => ({
-  payload,
-  type: loadSettings as typeof loadSettings,
-})
 export const createLoadTlfSyncConfig = (payload: {readonly tlfPath: Types.Path}) => ({
   payload,
   type: loadTlfSyncConfig as typeof loadTlfSyncConfig,
@@ -306,10 +300,6 @@ export const createSetTlfsAsUnloaded = (payload?: undefined) => ({
   payload,
   type: setTlfsAsUnloaded as typeof setTlfsAsUnloaded,
 })
-export const createSettingsLoaded = (payload: {readonly settings?: Types.Settings} = {}) => ({
-  payload,
-  type: settingsLoaded as typeof settingsLoaded,
-})
 export const createShareNative = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: shareNative as typeof shareNative,
@@ -386,7 +376,6 @@ export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
 export type LoadDownloadStatusPayload = ReturnType<typeof createLoadDownloadStatus>
 export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge>
 export type LoadPathInfoPayload = ReturnType<typeof createLoadPathInfo>
-export type LoadSettingsPayload = ReturnType<typeof createLoadSettings>
 export type LoadTlfSyncConfigPayload = ReturnType<typeof createLoadTlfSyncConfig>
 export type LoadUploadStatusPayload = ReturnType<typeof createLoadUploadStatus>
 export type LoadedAdditionalTlfPayload = ReturnType<typeof createLoadedAdditionalTlf>
@@ -420,7 +409,6 @@ export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
 export type SetTlfSoftErrorPayload = ReturnType<typeof createSetTlfSoftError>
 export type SetTlfSyncConfigPayload = ReturnType<typeof createSetTlfSyncConfig>
 export type SetTlfsAsUnloadedPayload = ReturnType<typeof createSetTlfsAsUnloaded>
-export type SettingsLoadedPayload = ReturnType<typeof createSettingsLoaded>
 export type ShareNativePayload = ReturnType<typeof createShareNative>
 export type StartManualConflictResolutionPayload = ReturnType<typeof createStartManualConflictResolution>
 export type SubscribeNonPathPayload = ReturnType<typeof createSubscribeNonPath>
@@ -464,7 +452,6 @@ export type Actions =
   | LoadDownloadStatusPayload
   | LoadFilesTabBadgePayload
   | LoadPathInfoPayload
-  | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
   | LoadUploadStatusPayload
   | LoadedAdditionalTlfPayload
@@ -494,7 +481,6 @@ export type Actions =
   | SetTlfSoftErrorPayload
   | SetTlfSyncConfigPayload
   | SetTlfsAsUnloadedPayload
-  | SettingsLoadedPayload
   | ShareNativePayload
   | StartManualConflictResolutionPayload
   | SubscribeNonPathPayload

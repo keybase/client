@@ -222,23 +222,6 @@ const setTlfSyncConfig = async (_: unknown, action: FsGen.SetTlfSyncConfigPayloa
   })
 }
 
-const loadSettings = async () => {
-  try {
-    const settings = await RPCTypes.SimpleFSSimpleFSSettingsRpcPromise()
-    return FsGen.createSettingsLoaded({
-      settings: {
-        ...Constants.emptySettings,
-        loaded: true,
-        sfmiBannerDismissed: settings.sfmiBannerDismissed,
-        spaceAvailableNotificationThreshold: settings.spaceAvailableNotificationThreshold,
-        syncOnCellular: settings.syncOnCellular,
-      },
-    })
-  } catch {
-    return FsGen.createSettingsLoaded({})
-  }
-}
-
 const setSpaceNotificationThreshold = async (
   _: unknown,
   action: FsGen.SetSpaceAvailableNotificationThresholdPayload
@@ -246,7 +229,7 @@ const setSpaceNotificationThreshold = async (
   await RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
     threshold: action.payload.spaceAvailableNotificationThreshold,
   })
-  return FsGen.createLoadSettings()
+  Constants.useState.getState().dispatch.loadSettings()
 }
 
 const download = async (
@@ -633,7 +616,8 @@ const onNonPathChange = (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscri
     case RPCTypes.SubscriptionTopic.filesTabBadge:
       return FsGen.createLoadFilesTabBadge()
     case RPCTypes.SubscriptionTopic.settings:
-      return FsGen.createLoadSettings()
+      Constants.useState.getState().dispatch.loadSettings()
+      return
     case RPCTypes.SubscriptionTopic.overallSyncStatus:
       return undefined
   }
@@ -776,6 +760,9 @@ const subscribeAndLoadSettings = () => {
   const oldSettingsSubscriptionID = settingsSubscriptionID
   settingsSubscriptionID = Constants.makeUUID()
   const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
+  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+    Constants.useState.getState().dispatch.loadSettings()
+  }
   return (
     kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
       ...(oldSettingsSubscriptionID
@@ -785,7 +772,6 @@ const subscribeAndLoadSettings = () => {
         subscriptionID: settingsSubscriptionID,
         topic: RPCTypes.SubscriptionTopic.settings,
       }),
-      FsGen.createLoadSettings(),
     ]
   )
 }
@@ -831,7 +817,6 @@ const initFS = () => {
   })
   Container.listenAction(FsGen.userIn, userIn)
   Container.listenAction(FsGen.userOut, userOut)
-  Container.listenAction(FsGen.loadSettings, loadSettings)
   Container.listenAction(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
   Container.listenAction(FsGen.startManualConflictResolution, startManualCR)
   Container.listenAction(FsGen.finishManualConflictResolution, finishManualCR)

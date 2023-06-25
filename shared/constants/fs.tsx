@@ -969,6 +969,7 @@ type State = {
   pathItems: Types.PathItems
   pathInfos: Map<Types.Path, Types.PathInfo>
   pathUserSettings: Map<Types.Path, Types.PathUserSetting>
+  settings: Types.Settings
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -995,6 +996,7 @@ const initialState: State = {
   pathItemActionMenu: emptyPathItemActionMenu,
   pathItems: new Map(),
   pathUserSettings: new Map(),
+  settings: emptySettings,
 }
 
 type ZState = State & {
@@ -1013,6 +1015,7 @@ type ZState = State & {
     loadFileContext: (path: Types.Path) => void
     loadPathMetadata: (path: Types.Path) => void
     loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
+    loadSettings: () => void
     newFolderRow: (parentPath: Types.Path) => void
     redbar: (error: string) => void
     reset: () => void
@@ -1117,7 +1120,7 @@ const updatePathItem = (
 export const useState = Z.createZustand(
   Z.immerZustand<ZState>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
-    const getReduxStore = Z.getReduxStore()
+    // const getReduxStore = Z.getReduxStore()
 
     // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
     // reducer and happens before this.
@@ -1420,6 +1423,29 @@ export const useState = Z.createZustand(
         }
         Z.ignorePromise(f())
       },
+      loadSettings: () => {
+        const f = async () => {
+          set(s => {
+            s.settings.isLoading = true
+          })
+          try {
+            const settings = await RPCTypes.SimpleFSSimpleFSSettingsRpcPromise()
+            set(s => {
+              const o = s.settings
+              o.isLoading = false
+              o.loaded = true
+              o.sfmiBannerDismissed = settings.sfmiBannerDismissed
+              o.spaceAvailableNotificationThreshold = settings.spaceAvailableNotificationThreshold
+              o.syncOnCellular = settings.syncOnCellular
+            })
+          } catch {
+            set(s => {
+              s.settings.isLoading = false
+            })
+          }
+        }
+        Z.ignorePromise(f())
+      },
       loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => {
         set(s => {
           s.downloads.info.set(downloadID, info)
@@ -1581,9 +1607,7 @@ export const useState = Z.createZustand(
       syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => {
         const diskSpaceStatus = status.outOfSyncSpace
           ? Types.DiskSpaceStatus.Error
-          : status.localDiskBytesAvailable <
-            // TODO ermove redux
-            getReduxStore().fs.settings.spaceAvailableNotificationThreshold
+          : status.localDiskBytesAvailable < get().settings.spaceAvailableNotificationThreshold
           ? Types.DiskSpaceStatus.Warning
           : Types.DiskSpaceStatus.Ok
 
@@ -1610,11 +1634,7 @@ export const useState = Z.createZustand(
               break
             case Types.DiskSpaceStatus.Warning:
               {
-                const threshold = humanizeBytes(
-                  // TODO remove
-                  getReduxStore().fs.settings.spaceAvailableNotificationThreshold,
-                  0
-                )
+                const threshold = humanizeBytes(get().settings.spaceAvailableNotificationThreshold, 0)
                 NotifyPopup('Disk Space Low', {
                   body: `You have less than ${threshold} of storage space left.`,
                 })

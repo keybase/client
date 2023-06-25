@@ -4,7 +4,6 @@ import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
 
 const initialState: Types.State = {
-  settings: Constants.emptySettings,
   sfmi: {
     directMountDir: '',
     driverStatus: Constants.defaultDriverStatus,
@@ -173,15 +172,5 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     } else {
       draftState.softErrors.tlfErrors.delete(action.payload.path)
     }
-  },
-  [FsGen.settingsLoaded]: (draftState, action) => {
-    if (action.payload.settings) {
-      draftState.settings = action.payload.settings
-    } else {
-      draftState.settings.isLoading = false
-    }
-  },
-  [FsGen.loadSettings]: draftState => {
-    draftState.settings.isLoading = true
   },
 })

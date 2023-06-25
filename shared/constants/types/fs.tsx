@@ -524,7 +524,6 @@ export type FileContext = {
 }
 
 export type State = {
-  readonly settings: Settings
   readonly sfmi: SystemFileManagerIntegration
   readonly softErrors: SoftErrors
   readonly tlfUpdates: UserTlfUpdates
