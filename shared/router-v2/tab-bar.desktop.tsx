@@ -1,7 +1,6 @@
 import './tab-bar.css'
 import * as ConfigGen from '../actions/config-gen'
 import * as ConfigConstants from '../constants/config'
-import * as LoginGen from '../actions/login-gen'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
 import * as Kb from '../common-adapters'
@@ -20,7 +19,6 @@ import * as Common from './common.desktop'
 import * as TrackerConstants from '../constants/tracker2'
 import AccountSwitcher from './account-switcher/container'
 import RuntimeStats from '../app/runtime-stats'
-import HiddenString from '../util/hidden-string'
 import openURL from '../util/open-url'
 import {isLinux} from '../constants/platform'
 import KB2 from '../util/electron.desktop'
@@ -210,6 +208,7 @@ const Tab = React.memo(function Tab(props: TabProps) {
   const accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
   const current = ConfigConstants.useCurrentUserState(s => s.username)
   const setUserSwitching = ConfigConstants.useConfigState(s => s.dispatch.setUserSwitching)
+  const login = ConfigConstants.useConfigState(s => s.dispatch.login)
   const onQuickSwitch = React.useMemo(
     () =>
       index === 0
@@ -217,7 +216,7 @@ const Tab = React.memo(function Tab(props: TabProps) {
             const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
             if (row) {
               setUserSwitching(true)
-              dispatch(LoginGen.createLogin({password: new HiddenString(''), username: row.username}))
+              login(row.username, '')
             } else {
               onSelectTab(tab)
             }

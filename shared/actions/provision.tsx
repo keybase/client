@@ -1,5 +1,4 @@
 import * as Constants from '../constants/provision'
-import * as LoginConstants from '../constants/login'
 import * as ConfigConstants from '../constants/config'
 import * as WaitingConstants from '../constants/waiting'
 import * as RouteTreeGen from './route-tree-gen'
@@ -304,7 +303,7 @@ class ProvisioningManager {
 
     // Service asking us again due to an error?
     const error =
-      params.pinentry.retryLabel === LoginConstants.invalidPasswordErrorString
+      params.pinentry.retryLabel === ConfigConstants.invalidPasswordErrorString
         ? 'Incorrect password.'
         : params.pinentry.retryLabel
 

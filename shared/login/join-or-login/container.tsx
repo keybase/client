@@ -1,7 +1,6 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
-import * as LoginGen from '../../actions/login-gen'
 import * as ConfigConstants from '../../constants/config'
 import Intro from '.'
 import * as Container from '../../util/container'
@@ -15,15 +14,14 @@ export default () => {
     ? `${justRevokedSelf} was revoked successfully`
     : ''
 
-  const isOnline = Container.useSelector(state => state.login.isOnline)
+  const isOnline = ConfigConstants.useConfigState(s => s.isOnline)
+  const loadIsOnline = ConfigConstants.useConfigState(s => s.dispatch.loadIsOnline)
 
   const dispatch = Container.useDispatch()
   const _onFeedback = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
   }
-  const checkIsOnline = () => {
-    dispatch(LoginGen.createLoadIsOnline())
-  }
+  const checkIsOnline = loadIsOnline
   const onLogin = () => {
     dispatch(ProvisionGen.createStartProvision())
   }

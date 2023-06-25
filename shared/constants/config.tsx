@@ -1,15 +1,16 @@
 import * as ConfigGen from '../actions/config-gen'
+import * as ProvisionGen from '../actions/provision-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import type * as Types from './types/config'
 import type {ConversationIDKey} from './types/chat2'
-import type {RPCError} from '../util/errors'
+import {type CommonResponseHandler} from '../engine/types'
 import type {Tab} from './tabs'
 import uniq from 'lodash/uniq'
-import {convertToError, isEOFError, isErrorTransient} from '../util/errors'
-import {defaultUseNativeFrame, runMode} from './platform'
+import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
+import {defaultUseNativeFrame, runMode, isMobile} from './platform'
 import {enableActionLogging} from '../local-debug'
 import {noConversationIDKey} from './types/chat2/common'
 import {useCurrentUserState} from './current-user'
@@ -25,6 +26,8 @@ const timeoutPromise = async (timeMs: number) =>
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
+export const loginWaitingKey = 'login:waiting'
+export const invalidPasswordErrorString = 'Bad password: Invalid password. Server rejected login attempt..'
 
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
@@ -53,11 +56,13 @@ export type ZStore = {
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
+  loginError?: RPCError
   httpSrv: {
     address: string
     token: string
   }
   incomingShareUseOriginal?: boolean
+  isOnline: boolean
   justDeletedSelf: string
   justRevokedSelf: string
   loggedIn: boolean
@@ -104,9 +109,11 @@ const initialZState: ZStore = {
     token: '',
   },
   incomingShareUseOriginal: undefined,
+  isOnline: false,
   justDeletedSelf: '',
   justRevokedSelf: '',
   loggedIn: false,
+  loginError: undefined,
   logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: new Map(),
   notifySound: false,
@@ -149,6 +156,9 @@ type ZState = ZStore & {
     initNotifySound: () => void
     initOpenAtLogin: () => void
     initUseNativeFrame: () => void
+    loadIsOnline: () => void
+    login: (username: string, password: string) => void
+    loginError: (error?: RPCError) => void
     reset: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
@@ -265,6 +275,104 @@ export const useConfigState = Z.createZustand(
           })
         }
         ignorePromise(f())
+      },
+      loadIsOnline: () => {
+        const f = async () => {
+          try {
+            const isOnline = await RPCTypes.loginIsOnlineRpcPromise(undefined)
+            set(s => {
+              s.isOnline = isOnline
+            })
+          } catch (err) {
+            logger.warn('Error in checking whether we are online', err)
+          }
+        }
+        Z.ignorePromise(f())
+      },
+      login: (username: string, passphrase: string) => {
+        const cancelDesc = 'Canceling RPC'
+        const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
+          response.error({code: RPCTypes.StatusCode.scgeneric, desc: cancelDesc})
+        }
+        // An ugly error message from the service that we'd like to rewrite ourselves.
+        const ignoreCallback = () => {}
+        const f = async () => {
+          try {
+            await RPCTypes.loginLoginRpcListener(
+              {
+                customResponseIncomingCallMap: {
+                  'keybase.1.gpgUi.selectKey': cancelOnCallback,
+                  'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
+                  'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
+                  'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
+                    cancelOnCallback(undefined, response)
+                    reduxDispatch(ProvisionGen.createSubmitUsername({username}))
+                  },
+                  'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
+                  'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
+                  'keybase.1.secretUi.getPassphrase': (params, response) => {
+                    if (params.pinentry.type === RPCTypes.PassphraseType.passPhrase) {
+                      // Service asking us again due to a bad passphrase?
+                      if (params.pinentry.retryLabel) {
+                        cancelOnCallback(params, response)
+                        let retryLabel = params.pinentry.retryLabel
+                        if (retryLabel === invalidPasswordErrorString) {
+                          retryLabel = 'Incorrect password.'
+                        }
+                        const error = new RPCError(retryLabel, RPCTypes.StatusCode.scinputerror)
+                        get().dispatch.loginError(error)
+                      } else {
+                        response.result({passphrase, storeSecret: false})
+                      }
+                    } else {
+                      cancelOnCallback(params, response)
+                    }
+                  },
+                },
+                // cancel if we get any of these callbacks, we're logging in, not provisioning
+                incomingCallMap: {
+                  'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
+                  'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+                  'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+                  'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
+                },
+                params: {
+                  clientType: RPCTypes.ClientType.guiMain,
+                  deviceName: '',
+                  deviceType: isMobile ? 'mobile' : 'desktop',
+                  doUserSwitch: true,
+                  paperKey: '',
+                  username,
+                },
+                waitingKey: loginWaitingKey,
+              },
+              Z.dummyListenerApi
+            )
+            logger.info('login call succeeded')
+            get().dispatch.setLoggedIn(true, false)
+          } catch (error) {
+            if (!(error instanceof RPCError)) {
+              return
+            }
+            if (error.code === RPCTypes.StatusCode.scalreadyloggedin) {
+              get().dispatch.setLoggedIn(true, false)
+            } else if (error.desc !== cancelDesc) {
+              // If we're canceling then ignore the error
+              error.desc = niceError(error)
+              get().dispatch.loginError(error)
+            }
+          }
+        }
+        get().dispatch.loginError()
+        Z.ignorePromise(f())
+      },
+      loginError: (error?: RPCError) => {
+        set(s => {
+          s.loginError = error
+        })
+        // On login error, turn off the user switching flag, so that the login screen is not
+        // hidden and the user can see and respond to the error.
+        get().dispatch.setUserSwitching(false)
       },
       remoteWindowNeedsProps: (component: string, params: string) => {
         set(s => {
