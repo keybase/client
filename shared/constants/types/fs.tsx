@@ -523,8 +523,6 @@ export type FileContext = {
   readonly url: string
 }
 
-export type State = {}
-
 export type Visibility = TlfType | undefined
 
 export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
