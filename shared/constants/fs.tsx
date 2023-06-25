@@ -1015,6 +1015,7 @@ type State = {
   settings: Types.Settings
   sfmi: Types.SystemFileManagerIntegration
   softErrors: Types.SoftErrors
+  tlfUpdates: Types.UserTlfUpdates
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -1051,6 +1052,7 @@ const initialState: State = {
     pathErrors: new Map(),
     tlfErrors: new Map(),
   },
+  tlfUpdates: [],
 }
 
 type ZState = State & {
@@ -1097,6 +1099,7 @@ type ZState = State & {
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
     startRename: (path: Types.Path) => void
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
+    userFileEditsLoad: () => void
     waitForKbfsDaemon: () => void
   }
   getUploadIconForFilesTab: () => Types.UploadIcon | undefined
@@ -1778,6 +1781,20 @@ export const useState = Z.createZustand(
             default:
           }
         }
+      },
+      userFileEditsLoad: () => {
+        const f = async () => {
+          try {
+            const writerEdits = await RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
+            set(s => {
+              s.tlfUpdates = userTlfHistoryRPCToState(writerEdits || [])
+            })
+          } catch (error) {
+            errorToActionOrThrow(error)
+            return
+          }
+        }
+        Z.ignorePromise(f())
       },
       waitForKbfsDaemon: () => {
         set(s => {

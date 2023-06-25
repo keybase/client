@@ -4,7 +4,6 @@ import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
 
 const initialState: Types.State = {
-  tlfUpdates: [],
   tlfs: {
     additionalTlfs: new Map(),
     loaded: false,
@@ -121,8 +120,5 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       ...(draftState.tlfs[visibility].get(elems[2]) || Constants.unknownTlf),
       isIgnored: false,
     })
-  },
-  [FsGen.userFileEditsLoaded]: (draftState, action) => {
-    draftState.tlfUpdates = action.payload.tlfUpdates
   },
 })

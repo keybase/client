@@ -104,9 +104,6 @@
       "parentPath": "Types.Path"
     },
     "userFileEditsLoad": {},
-    "userFileEditsLoaded": {
-      "tlfUpdates": "Types.UserTlfUpdates"
-    },
     "deleteFile": {
       "path": "Types.Path"
     },

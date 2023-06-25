@@ -224,18 +224,6 @@ const openAndUpload = async (_: unknown, action: FsGen.OpenAndUploadPayload) => 
   return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 }
 
-const loadUserFileEdits = async () => {
-  try {
-    const writerEdits = await RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
-    return FsGen.createUserFileEditsLoaded({
-      tlfUpdates: Constants.userTlfHistoryRPCToState(writerEdits || []),
-    })
-  } catch (error) {
-    Constants.errorToActionOrThrow(error)
-    return
-  }
-}
-
 const openFilesFromWidget = (_: unknown, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => [
   ConfigGen.createShowMain(),
   ...(path
@@ -296,7 +284,6 @@ const initPlatformSpecific = () => {
     refreshMountDirs
   )
   Container.listenAction(FsGen.openAndUpload, openAndUpload)
-  Container.listenAction([FsGen.userFileEditsLoad], loadUserFileEdits)
   Container.listenAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
     Container.listenAction(FsGen.driverEnable, onInstallCachedDokan)

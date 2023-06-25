@@ -65,7 +65,6 @@ export const unsubscribe = 'fs:unsubscribe'
 export const upload = 'fs:upload'
 export const uploadFromDragAndDrop = 'fs:uploadFromDragAndDrop'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
-export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 export const userIn = 'fs:userIn'
 export const userOut = 'fs:userOut'
 
@@ -317,10 +316,6 @@ export const createUserFileEditsLoad = (payload?: undefined) => ({
   payload,
   type: userFileEditsLoad as typeof userFileEditsLoad,
 })
-export const createUserFileEditsLoaded = (payload: {readonly tlfUpdates: Types.UserTlfUpdates}) => ({
-  payload,
-  type: userFileEditsLoaded as typeof userFileEditsLoaded,
-})
 export const createUserIn = (payload?: undefined) => ({payload, type: userIn as typeof userIn})
 export const createUserOut = (payload?: undefined) => ({payload, type: userOut as typeof userOut})
 
@@ -389,7 +384,6 @@ export type UnsubscribePayload = ReturnType<typeof createUnsubscribe>
 export type UploadFromDragAndDropPayload = ReturnType<typeof createUploadFromDragAndDrop>
 export type UploadPayload = ReturnType<typeof createUpload>
 export type UserFileEditsLoadPayload = ReturnType<typeof createUserFileEditsLoad>
-export type UserFileEditsLoadedPayload = ReturnType<typeof createUserFileEditsLoaded>
 export type UserInPayload = ReturnType<typeof createUserIn>
 export type UserOutPayload = ReturnType<typeof createUserOut>
 
@@ -456,7 +450,6 @@ export type Actions =
   | UploadFromDragAndDropPayload
   | UploadPayload
   | UserFileEditsLoadPayload
-  | UserFileEditsLoadedPayload
   | UserInPayload
   | UserOutPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}
