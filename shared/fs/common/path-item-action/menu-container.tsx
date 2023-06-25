@@ -96,9 +96,10 @@ export default (ownProps: OwnProps) => {
   const _download = React.useCallback(() => {
     dispatch(FsGen.createDownload({path}))
   }, [dispatch, path])
+  const favoriteIgnore = Constants.useState(s => s.dispatch.favoriteIgnore)
   const _ignoreTlf = React.useCallback(() => {
-    dispatch(FsGen.createFavoriteIgnore({path}))
-  }, [dispatch, path])
+    favoriteIgnore(path)
+  }, [favoriteIgnore, path])
   const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
   const _newFolder = React.useCallback(() => {
     newFolderRow(path)

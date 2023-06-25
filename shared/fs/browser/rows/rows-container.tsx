@@ -1,4 +1,3 @@
-import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
 import * as Constants from '../../../constants/fs'
@@ -179,7 +178,7 @@ export default (o: OwnProps) => {
   const _filter = Constants.useState(s => s.folderViewFilter)
   const _pathItems = Constants.useState(s => s.pathItems)
   const _sortSetting = Constants.useState(s => Constants.getPathUserSetting(s.pathUserSettings, o.path).sort)
-  const _tlfs = Container.useSelector(state => state.fs.tlfs)
+  const _tlfs = Constants.useState(s => s.tlfs)
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
 
   const s = {

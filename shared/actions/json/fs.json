@@ -15,17 +15,6 @@
     },
     "pollJournalStatus": {},
     "getOnlineStatus": {},
-    "favoritesLoad": {},
-    "favoritesLoaded": {
-      "private": "Types.TlfList",
-      "public": "Types.TlfList",
-      "team": "Types.TlfList"
-    },
-    "tlfSyncConfigLoaded": {
-      "tlfType": "Types.TlfType",
-      "tlfName": "string",
-      "syncConfig": "Types.TlfSyncConfig"
-    },
     "loadTlfSyncConfig": {
       "tlfPath": "Types.Path"
     },
@@ -81,12 +70,6 @@
     },
 
     "openSecurityPreferences": {},
-    "favoriteIgnore": {
-      "path": "Types.Path"
-    },
-    "favoriteIgnoreError": {
-      "path": "Types.Path"
-    },
     "openFilesFromWidget": {
       "path": "Types.Path",
       "type": "Types.PathType"
@@ -113,7 +96,6 @@
     "setSpaceAvailableNotificationThreshold": {
       "spaceAvailableNotificationThreshold": "number"
     },
-    "setTlfsAsUnloaded": {},
     "placeholderAction": {},
     "refreshMountDirsAfter10s": {},
     "loadPathInfo": {"path": "Types.Path"},
@@ -131,13 +113,6 @@
     "finishedRegularDownload": {
       "downloadID": "string",
       "mimeType": "string"
-    },
-    "loadAdditionalTlf": {
-      "tlfPath": "Types.Path"
-    },
-    "loadedAdditionalTlf": {
-      "tlf": "Types.Tlf",
-      "tlfPath": "Types.Path"
     },
     "loadFilesTabBadge": {},
     "loadedFilesTabBadge": {

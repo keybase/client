@@ -11,7 +11,7 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const {tlfPath} = ownProps
   const _tlfPathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, ownProps.tlfPath))
-  const _tlfs = Container.useSelector(state => state.fs.tlfs)
+  const _tlfs = Constants.useState(s => s.tlfs)
   const waiting = Container.useAnyWaiting(Constants.syncToggleWaitingKey)
 
   const dispatch = Container.useDispatch()

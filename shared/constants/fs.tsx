@@ -9,9 +9,10 @@ import * as Types from './types/fs'
 import * as Z from '../util/zustand'
 import NotifyPopup from '../util/notify-popup'
 import type {TypedActions} from '../actions/typed-actions-gen'
-import type {TypedState} from '../util/container'
 import {RPCError} from '../util/errors'
+import logger from '../logger'
 import {isLinux, isMobile} from './platform'
+import {tlfToPreferredOrder} from '../util/kbfs'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
@@ -21,6 +22,69 @@ export const commitEditWaitingKey = 'fs:commitEditWaitingKey'
 export const setSyncOnCellularWaitingKey = 'fs:setSyncOnCellular'
 
 export const defaultPath = Types.stringToPath('/keybase')
+
+export const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
+  switch (rpcFolderType) {
+    case RPCTypes.FolderType.private:
+      return Types.TlfType.Private
+    case RPCTypes.FolderType.public:
+      return Types.TlfType.Public
+    case RPCTypes.FolderType.team:
+      return Types.TlfType.Team
+    default:
+      return null
+  }
+}
+
+export const rpcConflictStateToConflictState = (
+  rpcConflictState?: RPCTypes.ConflictState
+): Types.ConflictState => {
+  if (rpcConflictState) {
+    if (rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview) {
+      const nv = rpcConflictState.normalview
+      return makeConflictStateNormalView({
+        localViewTlfPaths: (nv?.localViews || []).reduce<Array<Types.Path>>((arr, p) => {
+          p.PathType === RPCTypes.PathType.kbfs && arr.push(rpcPathToPath(p.kbfs))
+          return arr
+        }, []),
+        resolvingConflict: !!nv && nv.resolvingConflict,
+        stuckInConflict: !!nv && nv.stuckInConflict,
+      })
+    } else {
+      const nv = rpcConflictState?.manualresolvinglocalview.normalView
+      return makeConflictStateManualResolvingLocalView({
+        normalViewTlfPath:
+          nv && nv.PathType === RPCTypes.PathType.kbfs ? rpcPathToPath(nv.kbfs) : defaultPath,
+      })
+    }
+  } else {
+    return tlfNormalViewWithNoConflict
+  }
+}
+
+export const getSyncConfigFromRPC = (
+  tlfName: string,
+  tlfType: Types.TlfType,
+  config?: RPCTypes.FolderSyncConfig
+): Types.TlfSyncConfig => {
+  if (!config) {
+    return tlfSyncDisabled
+  }
+  switch (config.mode) {
+    case RPCTypes.FolderSyncMode.disabled:
+      return tlfSyncDisabled
+    case RPCTypes.FolderSyncMode.enabled:
+      return tlfSyncEnabled
+    case RPCTypes.FolderSyncMode.partial:
+      return makeTlfSyncPartial({
+        enabledPaths: config.paths
+          ? config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str))
+          : [],
+      })
+    default:
+      return tlfSyncDisabled
+  }
+}
 
 // See Installer.m: KBExitFuseKextError
 export const ExitCodeFuseKextError = 4
@@ -501,8 +565,8 @@ export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: s
 export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Types.Path =>
   Types.stringToPath(`/keybase/${tlfType}/${name}`)
 
-export const resetBannerType = (state: TypedState, path: Types.Path): Types.ResetBannerType => {
-  const resetParticipants = getTlfFromPath(state.fs.tlfs, path).resetParticipants
+export const resetBannerType = (_: unknown, path: Types.Path): Types.ResetBannerType => {
+  const resetParticipants = getTlfFromPath(useState.getState().tlfs, path).resetParticipants
   if (resetParticipants.length === 0) {
     return Types.ResetBannerNoOthersType.None
   }
@@ -1016,6 +1080,7 @@ type State = {
   sfmi: Types.SystemFileManagerIntegration
   softErrors: Types.SoftErrors
   tlfUpdates: Types.UserTlfUpdates
+  tlfs: Types.Tlfs
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -1053,6 +1118,13 @@ const initialState: State = {
     tlfErrors: new Map(),
   },
   tlfUpdates: [],
+  tlfs: {
+    additionalTlfs: new Map(),
+    loaded: false,
+    private: new Map(),
+    public: new Map(),
+    team: new Map(),
+  },
 }
 
 type ZState = State & {
@@ -1066,12 +1138,16 @@ type ZState = State & {
     driverKextPermissionError: () => void
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
+    favoritesLoad: () => void
+    favoriteIgnore: (path: Types.Path) => void
     folderListLoad: (path: Types.Path, recursive: boolean) => void
     kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => void
     kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => void
+    loadAdditionalTlf: (tlfPath: Types.Path) => void
     loadFileContext: (path: Types.Path) => void
     loadPathMetadata: (path: Types.Path) => void
     loadSettings: () => void
+    loadTlfSyncConfig: (tlfPath: Types.Path) => void
     loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
     loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
     loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
@@ -1094,6 +1170,7 @@ type ZState = State & {
     setPreferredMountDirs: (preferredMountDirs: Array<string>) => void
     setPathSoftError: (path: Types.Path, softError?: Types.SoftError) => void
     setTlfSoftError: (path: Types.Path, softError?: Types.SoftError) => void
+    setTlfsAsUnloaded: () => void
     setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
@@ -1325,6 +1402,113 @@ export const useState = Z.createZustand(
           s.edits.delete(editID)
         })
       },
+      favoriteIgnore: (path: Types.Path) => {
+        const f = async () => {
+          const folder = folderRPCFromPath(path)
+          if (!folder) {
+            throw new Error('No folder specified')
+          }
+          try {
+            await RPCTypes.favoriteFavoriteIgnoreRpcPromise({folder})
+          } catch (error) {
+            errorToActionOrThrow(error, path)
+            set(s => {
+              const elems = Types.getPathElements(path)
+              const visibility = Types.getVisibilityFromElems(elems)
+              if (!visibility) {
+                return
+              }
+              s.tlfs[visibility] = new Map(s.tlfs[visibility])
+              s.tlfs[visibility].set(elems[2], {
+                ...(s.tlfs[visibility].get(elems[2]) || unknownTlf),
+                isIgnored: false,
+              })
+            })
+          }
+        }
+        set(s => {
+          const elems = Types.getPathElements(path)
+          const visibility = Types.getVisibilityFromElems(elems)
+          if (!visibility) {
+            return
+          }
+          s.tlfs[visibility] = new Map(s.tlfs[visibility])
+          s.tlfs[visibility].set(elems[2], {
+            ...(s.tlfs[visibility].get(elems[2]) || unknownTlf),
+            isIgnored: true,
+          })
+        })
+        Z.ignorePromise(f())
+      },
+      favoritesLoad: () => {
+        const f = async () => {
+          try {
+            if (!ConfigConstants.useConfigState.getState().loggedIn) {
+              return
+            }
+            const results = await RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
+            const payload = {
+              private: new Map(),
+              public: new Map(),
+              team: new Map(),
+            } as const
+            const fs = [
+              ...(results.favoriteFolders
+                ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
+                : []),
+              ...(results.ignoredFolders
+                ? [{folders: results.ignoredFolders, isFavorite: false, isIgnored: true, isNew: false}]
+                : []),
+              ...(results.newFolders
+                ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
+                : []),
+            ]
+            fs.forEach(({folders, isFavorite, isIgnored, isNew}) =>
+              folders.forEach(folder => {
+                const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+                const tlfName =
+                  tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+                    ? tlfToPreferredOrder(
+                        folder.name,
+                        ConfigConstants.useCurrentUserState.getState().username
+                      )
+                    : folder.name
+                tlfType &&
+                  payload[tlfType].set(
+                    tlfName,
+                    makeTlf({
+                      conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
+                      isFavorite,
+                      isIgnored,
+                      isNew,
+                      name: tlfName,
+                      resetParticipants: (folder.reset_members || []).map(({username}) => username),
+                      syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
+                      teamId: folder.team_id || '',
+                      tlfMtime: folder.mtime || 0,
+                    })
+                  )
+              })
+            )
+
+            if (payload.private.size) {
+              set(s => {
+                s.tlfs.private = payload.private
+                s.tlfs.public = payload.public
+                s.tlfs.team = payload.team
+                s.tlfs.loaded = true
+              })
+              const counts = new Map<Tabs.Tab, number>()
+              counts.set(Tabs.fsTab, computeBadgeNumberForAll(get().tlfs))
+              reduxDispatch(NotificationsGen.createSetBadgeCounts({counts}))
+            }
+          } catch (e) {
+            errorToActionOrThrow(e)
+          }
+          return
+        }
+        Z.ignorePromise(f())
+      },
       folderListLoad: (rootPath: Types.Path, isRecursive: boolean) => {
         const f = async () => {
           try {
@@ -1462,6 +1646,60 @@ export const useState = Z.createZustand(
         })
         reduxDispatch(FsGen.createKbfsDaemonRpcStatusChanged())
       },
+      loadAdditionalTlf: (tlfPath: Types.Path) => {
+        const f = async () => {
+          if (Types.getPathLevel(tlfPath) !== 3) {
+            logger.warn('loadAdditionalTlf called on non-TLF path')
+            return
+          }
+          try {
+            const {folder, isFavorite, isIgnored, isNew} = await RPCTypes.SimpleFSSimpleFSGetFolderRpcPromise(
+              {path: pathToRPCPath(tlfPath).kbfs}
+            )
+            const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+            const tlfName =
+              tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+                ? tlfToPreferredOrder(folder.name, ConfigConstants.useCurrentUserState.getState().username)
+                : folder.name
+
+            if (tlfType) {
+              set(s => {
+                s.tlfs.additionalTlfs.set(
+                  tlfPath,
+                  makeTlf({
+                    conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
+                    isFavorite,
+                    isIgnored,
+                    isNew,
+                    name: tlfName,
+                    resetParticipants: (folder.reset_members || []).map(({username}) => username),
+                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
+                    teamId: folder.team_id || '',
+                    tlfMtime: folder.mtime || 0,
+                  })
+                )
+              })
+            }
+          } catch (error) {
+            if (!(error instanceof RPCError)) {
+              return
+            }
+            if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+              const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
+              const usernames = users?.map((elem: any) => elem.value)
+              // Don't leave the user on a broken FS dir screen.
+              reduxDispatch(RouteTreeGen.createNavigateUp())
+              reduxDispatch(
+                RouteTreeGen.createNavigateAppend({
+                  path: [{props: {source: 'newFolder', usernames}, selected: 'contactRestricted'}],
+                })
+              )
+            }
+            errorToActionOrThrow(error, tlfPath)
+          }
+        }
+        Z.ignorePromise(f())
+      },
       loadFileContext: (path: Types.Path) => {
         const f = async () => {
           try {
@@ -1527,6 +1765,45 @@ export const useState = Z.createZustand(
             set(s => {
               s.settings.isLoading = false
             })
+          }
+        }
+        Z.ignorePromise(f())
+      },
+      loadTlfSyncConfig: (tlfPath: Types.Path) => {
+        const f = async () => {
+          const parsedPath = parsePath(tlfPath)
+          if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.TeamTlf) {
+            return
+          }
+          try {
+            const result = await RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
+              path: pathToRPCPath(tlfPath),
+            })
+            const syncConfig = getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config)
+            const tlfName = parsedPath.tlfName
+            const tlfType = parsedPath.tlfType
+
+            set(s => {
+              const oldTlfList = s.tlfs[tlfType]
+              const oldTlfFromFavorites = oldTlfList.get(tlfName) || unknownTlf
+              if (oldTlfFromFavorites !== unknownTlf) {
+                s.tlfs[tlfType] = new Map([...oldTlfList, [tlfName, {...oldTlfFromFavorites, syncConfig}]])
+                return
+              }
+
+              const tlfPath = Types.pathConcat(Types.pathConcat(defaultPath, tlfType), tlfName)
+              const oldTlfFromAdditional = s.tlfs.additionalTlfs.get(tlfPath) || unknownTlf
+              if (oldTlfFromAdditional !== unknownTlf) {
+                s.tlfs.additionalTlfs = new Map([
+                  ...s.tlfs.additionalTlfs,
+                  [tlfPath, {...oldTlfFromAdditional, syncConfig}],
+                ])
+                return
+              }
+            })
+          } catch (e) {
+            errorToActionOrThrow(e, tlfPath)
+            return
           }
         }
         Z.ignorePromise(f())
@@ -1692,6 +1969,11 @@ export const useState = Z.createZustand(
           } else {
             s.softErrors.tlfErrors.delete(path)
           }
+        })
+      },
+      setTlfsAsUnloaded: () => {
+        set(s => {
+          s.tlfs.loaded = false
         })
       },
       showIncomingShare: (initialDestinationParentPath: Types.Path) => {

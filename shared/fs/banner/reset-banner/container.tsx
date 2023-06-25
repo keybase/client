@@ -16,7 +16,7 @@ type OwnProps = {
 
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
-  const _tlf = Container.useSelector(state => Constants.getTlfFromPath(state.fs.tlfs, path))
+  const _tlf = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, path))
   const dispatch = Container.useDispatch()
   const _onOpenWithoutResetUsers = React.useCallback(
     (currPath: Types.Path, users: {[K in string]: boolean}) => {

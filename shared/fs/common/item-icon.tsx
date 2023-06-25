@@ -2,7 +2,6 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
 import type {IconType} from '../../common-adapters/icon'
 
 export type Size = 96 | 48 | 32 | 16
@@ -75,7 +74,7 @@ const getTlfTypeIcon = (size: Size, tlfType: Types.TlfType) => {
 }
 
 export const TlfTypeIcon = (props: TlfTypeIconProps) => {
-  const tlfList = Container.useSelector(state => Constants.getTlfListFromType(state.fs.tlfs, props.tlfType))
+  const tlfList = Constants.useState(s => Constants.getTlfListFromType(s.tlfs, props.tlfType))
   const badgeCount = Constants.computeBadgeNumberForTlfList(tlfList)
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
   return (

@@ -14,10 +14,6 @@ export const download = 'fs:download'
 export const driverDisable = 'fs:driverDisable'
 export const driverDisabling = 'fs:driverDisabling'
 export const driverEnable = 'fs:driverEnable'
-export const favoriteIgnore = 'fs:favoriteIgnore'
-export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
-export const favoritesLoad = 'fs:favoritesLoad'
-export const favoritesLoaded = 'fs:favoritesLoaded'
 export const finishManualConflictResolution = 'fs:finishManualConflictResolution'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
@@ -25,14 +21,12 @@ export const getOnlineStatus = 'fs:getOnlineStatus'
 export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
-export const loadAdditionalTlf = 'fs:loadAdditionalTlf'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
 export const loadPathInfo = 'fs:loadPathInfo'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
 export const loadUploadStatus = 'fs:loadUploadStatus'
-export const loadedAdditionalTlf = 'fs:loadedAdditionalTlf'
 export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
 export const loadedUploadStatus = 'fs:loadedUploadStatus'
@@ -54,12 +48,10 @@ export const setDriverStatus = 'fs:setDriverStatus'
 export const setSfmiBannerDismissed = 'fs:setSfmiBannerDismissed'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
-export const setTlfsAsUnloaded = 'fs:setTlfsAsUnloaded'
 export const shareNative = 'fs:shareNative'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const subscribeNonPath = 'fs:subscribeNonPath'
 export const subscribePath = 'fs:subscribePath'
-export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const unsubscribe = 'fs:unsubscribe'
 export const upload = 'fs:upload'
@@ -105,23 +97,6 @@ export const createDriverEnable = (payload: {readonly isRetry?: boolean} = {}) =
   payload,
   type: driverEnable as typeof driverEnable,
 })
-export const createFavoriteIgnore = (payload: {readonly path: Types.Path}) => ({
-  payload,
-  type: favoriteIgnore as typeof favoriteIgnore,
-})
-export const createFavoriteIgnoreError = (payload: {readonly path: Types.Path}) => ({
-  payload,
-  type: favoriteIgnoreError as typeof favoriteIgnoreError,
-})
-export const createFavoritesLoad = (payload?: undefined) => ({
-  payload,
-  type: favoritesLoad as typeof favoritesLoad,
-})
-export const createFavoritesLoaded = (payload: {
-  readonly private: Types.TlfList
-  readonly public: Types.TlfList
-  readonly team: Types.TlfList
-}) => ({payload, type: favoritesLoaded as typeof favoritesLoaded})
 export const createFinishManualConflictResolution = (payload: {readonly localViewTlfPath: Types.Path}) => ({
   payload,
   type: finishManualConflictResolution as typeof finishManualConflictResolution,
@@ -152,10 +127,6 @@ export const createLetResetUserBackIn = (payload: {
   readonly id: RPCTypes.TeamID
   readonly username: string
 }) => ({payload, type: letResetUserBackIn as typeof letResetUserBackIn})
-export const createLoadAdditionalTlf = (payload: {readonly tlfPath: Types.Path}) => ({
-  payload,
-  type: loadAdditionalTlf as typeof loadAdditionalTlf,
-})
 export const createLoadDownloadInfo = (payload: {readonly downloadID: string}) => ({
   payload,
   type: loadDownloadInfo as typeof loadDownloadInfo,
@@ -180,10 +151,6 @@ export const createLoadUploadStatus = (payload?: undefined) => ({
   payload,
   type: loadUploadStatus as typeof loadUploadStatus,
 })
-export const createLoadedAdditionalTlf = (payload: {
-  readonly tlf: Types.Tlf
-  readonly tlfPath: Types.Path
-}) => ({payload, type: loadedAdditionalTlf as typeof loadedAdditionalTlf})
 export const createLoadedFilesTabBadge = (payload: {readonly badge: RPCTypes.FilesTabBadge}) => ({
   payload,
   type: loadedFilesTabBadge as typeof loadedFilesTabBadge,
@@ -270,10 +237,6 @@ export const createSetTlfSyncConfig = (payload: {
   readonly enabled: boolean
   readonly tlfPath: Types.Path
 }) => ({payload, type: setTlfSyncConfig as typeof setTlfSyncConfig})
-export const createSetTlfsAsUnloaded = (payload?: undefined) => ({
-  payload,
-  type: setTlfsAsUnloaded as typeof setTlfsAsUnloaded,
-})
 export const createShareNative = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: shareNative as typeof shareNative,
@@ -291,11 +254,6 @@ export const createSubscribePath = (payload: {
   readonly path: Types.Path
   readonly topic: RPCTypes.PathSubscriptionTopic
 }) => ({payload, type: subscribePath as typeof subscribePath})
-export const createTlfSyncConfigLoaded = (payload: {
-  readonly tlfType: Types.TlfType
-  readonly tlfName: string
-  readonly syncConfig: Types.TlfSyncConfig
-}) => ({payload, type: tlfSyncConfigLoaded as typeof tlfSyncConfigLoaded})
 export const createUninstallKBFSConfirm = (payload?: undefined) => ({
   payload,
   type: uninstallKBFSConfirm as typeof uninstallKBFSConfirm,
@@ -329,10 +287,6 @@ export type DownloadPayload = ReturnType<typeof createDownload>
 export type DriverDisablePayload = ReturnType<typeof createDriverDisable>
 export type DriverDisablingPayload = ReturnType<typeof createDriverDisabling>
 export type DriverEnablePayload = ReturnType<typeof createDriverEnable>
-export type FavoriteIgnoreErrorPayload = ReturnType<typeof createFavoriteIgnoreError>
-export type FavoriteIgnorePayload = ReturnType<typeof createFavoriteIgnore>
-export type FavoritesLoadPayload = ReturnType<typeof createFavoritesLoad>
-export type FavoritesLoadedPayload = ReturnType<typeof createFavoritesLoaded>
 export type FinishManualConflictResolutionPayload = ReturnType<typeof createFinishManualConflictResolution>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
 export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedRegularDownload>
@@ -340,14 +294,12 @@ export type GetOnlineStatusPayload = ReturnType<typeof createGetOnlineStatus>
 export type JournalUpdatePayload = ReturnType<typeof createJournalUpdate>
 export type KbfsDaemonRpcStatusChangedPayload = ReturnType<typeof createKbfsDaemonRpcStatusChanged>
 export type LetResetUserBackInPayload = ReturnType<typeof createLetResetUserBackIn>
-export type LoadAdditionalTlfPayload = ReturnType<typeof createLoadAdditionalTlf>
 export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
 export type LoadDownloadStatusPayload = ReturnType<typeof createLoadDownloadStatus>
 export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge>
 export type LoadPathInfoPayload = ReturnType<typeof createLoadPathInfo>
 export type LoadTlfSyncConfigPayload = ReturnType<typeof createLoadTlfSyncConfig>
 export type LoadUploadStatusPayload = ReturnType<typeof createLoadUploadStatus>
-export type LoadedAdditionalTlfPayload = ReturnType<typeof createLoadedAdditionalTlf>
 export type LoadedFilesTabBadgePayload = ReturnType<typeof createLoadedFilesTabBadge>
 export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
 export type LoadedUploadStatusPayload = ReturnType<typeof createLoadedUploadStatus>
@@ -373,12 +325,10 @@ export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
   typeof createSetSpaceAvailableNotificationThreshold
 >
 export type SetTlfSyncConfigPayload = ReturnType<typeof createSetTlfSyncConfig>
-export type SetTlfsAsUnloadedPayload = ReturnType<typeof createSetTlfsAsUnloaded>
 export type ShareNativePayload = ReturnType<typeof createShareNative>
 export type StartManualConflictResolutionPayload = ReturnType<typeof createStartManualConflictResolution>
 export type SubscribeNonPathPayload = ReturnType<typeof createSubscribeNonPath>
 export type SubscribePathPayload = ReturnType<typeof createSubscribePath>
-export type TlfSyncConfigLoadedPayload = ReturnType<typeof createTlfSyncConfigLoaded>
 export type UninstallKBFSConfirmPayload = ReturnType<typeof createUninstallKBFSConfirm>
 export type UnsubscribePayload = ReturnType<typeof createUnsubscribe>
 export type UploadFromDragAndDropPayload = ReturnType<typeof createUploadFromDragAndDrop>
@@ -399,10 +349,6 @@ export type Actions =
   | DriverDisablePayload
   | DriverDisablingPayload
   | DriverEnablePayload
-  | FavoriteIgnoreErrorPayload
-  | FavoriteIgnorePayload
-  | FavoritesLoadPayload
-  | FavoritesLoadedPayload
   | FinishManualConflictResolutionPayload
   | FinishedDownloadWithIntentPayload
   | FinishedRegularDownloadPayload
@@ -410,14 +356,12 @@ export type Actions =
   | JournalUpdatePayload
   | KbfsDaemonRpcStatusChangedPayload
   | LetResetUserBackInPayload
-  | LoadAdditionalTlfPayload
   | LoadDownloadInfoPayload
   | LoadDownloadStatusPayload
   | LoadFilesTabBadgePayload
   | LoadPathInfoPayload
   | LoadTlfSyncConfigPayload
   | LoadUploadStatusPayload
-  | LoadedAdditionalTlfPayload
   | LoadedFilesTabBadgePayload
   | LoadedPathInfoPayload
   | LoadedUploadStatusPayload
@@ -439,12 +383,10 @@ export type Actions =
   | SetSfmiBannerDismissedPayload
   | SetSpaceAvailableNotificationThresholdPayload
   | SetTlfSyncConfigPayload
-  | SetTlfsAsUnloadedPayload
   | ShareNativePayload
   | StartManualConflictResolutionPayload
   | SubscribeNonPathPayload
   | SubscribePathPayload
-  | TlfSyncConfigLoadedPayload
   | UninstallKBFSConfirmPayload
   | UnsubscribePayload
   | UploadFromDragAndDropPayload

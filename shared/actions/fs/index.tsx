@@ -13,7 +13,6 @@ import logger from '../../logger'
 import initPlatformSpecific from './platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Platform from '../../constants/platform'
-import {tlfToPreferredOrder} from '../../util/kbfs'
 import {RPCError} from '../../util/errors'
 import KB2 from '../../util/electron'
 import {requestPermissionsToWrite} from '../platform-specific'
@@ -21,193 +20,6 @@ import {requestPermissionsToWrite} from '../platform-specific'
 const {darwinCopyToKBFSTempUploadFile} = KB2.functions
 
 const clientID = Constants.makeUUID()
-
-const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
-  switch (rpcFolderType) {
-    case RPCTypes.FolderType.private:
-      return Types.TlfType.Private
-    case RPCTypes.FolderType.public:
-      return Types.TlfType.Public
-    case RPCTypes.FolderType.team:
-      return Types.TlfType.Team
-    default:
-      return null
-  }
-}
-
-const rpcConflictStateToConflictState = (rpcConflictState?: RPCTypes.ConflictState): Types.ConflictState => {
-  if (rpcConflictState) {
-    if (rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview) {
-      const nv = rpcConflictState.normalview
-      return Constants.makeConflictStateNormalView({
-        localViewTlfPaths: (nv?.localViews || []).reduce<Array<Types.Path>>((arr, p) => {
-          p.PathType === RPCTypes.PathType.kbfs && arr.push(Constants.rpcPathToPath(p.kbfs))
-          return arr
-        }, []),
-        resolvingConflict: !!nv && nv.resolvingConflict,
-        stuckInConflict: !!nv && nv.stuckInConflict,
-      })
-    } else {
-      const nv = rpcConflictState?.manualresolvinglocalview.normalView
-      return Constants.makeConflictStateManualResolvingLocalView({
-        normalViewTlfPath:
-          nv && nv.PathType === RPCTypes.PathType.kbfs
-            ? Constants.rpcPathToPath(nv.kbfs)
-            : Constants.defaultPath,
-      })
-    }
-  } else {
-    return Constants.tlfNormalViewWithNoConflict
-  }
-}
-
-const loadAdditionalTlf = async (_: unknown, action: FsGen.LoadAdditionalTlfPayload) => {
-  if (Types.getPathLevel(action.payload.tlfPath) !== 3) {
-    logger.warn('loadAdditionalTlf called on non-TLF path')
-    return
-  }
-  try {
-    const {folder, isFavorite, isIgnored, isNew} = await RPCTypes.SimpleFSSimpleFSGetFolderRpcPromise({
-      path: Constants.pathToRPCPath(action.payload.tlfPath).kbfs,
-    })
-    const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-    const tlfName =
-      tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-        ? tlfToPreferredOrder(folder.name, ConfigConstants.useCurrentUserState.getState().username)
-        : folder.name
-    return (
-      tlfType &&
-      FsGen.createLoadedAdditionalTlf({
-        tlf: Constants.makeTlf({
-          conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
-          isFavorite,
-          isIgnored,
-          isNew,
-          name: tlfName,
-          resetParticipants: (folder.reset_members || []).map(({username}) => username),
-          syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
-          teamId: folder.team_id || '',
-          tlfMtime: folder.mtime || 0,
-        }),
-        tlfPath: action.payload.tlfPath,
-      })
-    )
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-      const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
-      const usernames = users?.map((elem: any) => elem.value)
-      // Don't leave the user on a broken FS dir screen.
-      return [
-        RouteTreeGen.createNavigateUp(),
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {source: 'newFolder', usernames}, selected: 'contactRestricted'}],
-        }),
-      ]
-    }
-    Constants.errorToActionOrThrow(error, action.payload.tlfPath)
-    return
-  }
-}
-
-const loadFavorites = async () => {
-  try {
-    if (!ConfigConstants.useConfigState.getState().loggedIn) {
-      return false
-    }
-    const results = await RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
-    const payload = {
-      private: new Map(),
-      public: new Map(),
-      team: new Map(),
-    }
-    ;[
-      ...(results.favoriteFolders
-        ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
-        : []),
-      ...(results.ignoredFolders
-        ? [{folders: results.ignoredFolders, isFavorite: false, isIgnored: true, isNew: false}]
-        : []),
-      ...(results.newFolders
-        ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
-        : []),
-    ].forEach(({folders, isFavorite, isIgnored, isNew}) =>
-      folders.forEach(folder => {
-        const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-        const tlfName =
-          tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-            ? tlfToPreferredOrder(folder.name, ConfigConstants.useCurrentUserState.getState().username)
-            : folder.name
-        tlfType &&
-          payload[tlfType].set(
-            tlfName,
-            Constants.makeTlf({
-              conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
-              isFavorite,
-              isIgnored,
-              isNew,
-              name: tlfName,
-              resetParticipants: (folder.reset_members || []).map(({username}) => username),
-              syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
-              teamId: folder.team_id || '',
-              tlfMtime: folder.mtime || 0,
-            })
-          )
-      })
-    )
-    return payload.private.size ? FsGen.createFavoritesLoaded(payload) : undefined
-  } catch (e) {
-    Constants.errorToActionOrThrow(e)
-    return
-  }
-}
-
-const getSyncConfigFromRPC = (
-  tlfName: string,
-  tlfType: Types.TlfType,
-  config?: RPCTypes.FolderSyncConfig
-): Types.TlfSyncConfig => {
-  if (!config) {
-    return Constants.tlfSyncDisabled
-  }
-  switch (config.mode) {
-    case RPCTypes.FolderSyncMode.disabled:
-      return Constants.tlfSyncDisabled
-    case RPCTypes.FolderSyncMode.enabled:
-      return Constants.tlfSyncEnabled
-    case RPCTypes.FolderSyncMode.partial:
-      return Constants.makeTlfSyncPartial({
-        enabledPaths: config.paths
-          ? config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str))
-          : [],
-      })
-    default:
-      return Constants.tlfSyncDisabled
-  }
-}
-
-const loadTlfSyncConfig = async (_: unknown, action: FsGen.LoadTlfSyncConfigPayload) => {
-  const tlfPath = action.payload.tlfPath
-  const parsedPath = Constants.parsePath(tlfPath)
-  if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.TeamTlf) {
-    return false
-  }
-  try {
-    const result = await RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
-      path: Constants.pathToRPCPath(tlfPath),
-    })
-    return FsGen.createTlfSyncConfigLoaded({
-      syncConfig: getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config),
-      tlfName: parsedPath.tlfName,
-      tlfType: parsedPath.tlfType,
-    })
-  } catch (e) {
-    Constants.errorToActionOrThrow(e, tlfPath)
-    return
-  }
-}
 
 const setTlfSyncConfig = async (_: unknown, action: FsGen.SetTlfSyncConfigPayload) => {
   await RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
@@ -219,9 +31,7 @@ const setTlfSyncConfig = async (_: unknown, action: FsGen.SetTlfSyncConfigPayloa
     },
     Constants.syncToggleWaitingKey
   )
-  return FsGen.createLoadTlfSyncConfig({
-    tlfPath: action.payload.tlfPath,
-  })
+  Constants.useState.getState().dispatch.loadTlfSyncConfig(action.payload.tlfPath)
 }
 
 const setSpaceNotificationThreshold = async (
@@ -357,20 +167,6 @@ const pollJournalFlushStatusUntilDone = async (
   }
 }
 
-const ignoreFavorite = async (_: Container.TypedState, action: FsGen.FavoriteIgnorePayload) => {
-  const folder = Constants.folderRPCFromPath(action.payload.path)
-  if (!folder) {
-    throw new Error('No folder specified')
-  }
-  try {
-    await RPCTypes.favoriteFavoriteIgnoreRpcPromise({folder})
-    return null
-  } catch (error) {
-    Constants.errorToActionOrThrow(error, action.payload.path)
-    return FsGen.createFavoriteIgnore({path: action.payload.path})
-  }
-}
-
 const letResetUserBackIn = async (_: unknown, action: FsGen.LetResetUserBackInPayload) => {
   try {
     await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({
@@ -382,12 +178,6 @@ const letResetUserBackIn = async (_: unknown, action: FsGen.LetResetUserBackInPa
     return
   }
   return
-}
-
-const updateFsBadge = (state: Container.TypedState) => {
-  const counts = new Map<Tabs.Tab, number>()
-  counts.set(Tabs.fsTab, Constants.computeBadgeNumberForAll(state.fs.tlfs))
-  return NotificationsGen.createSetBadgeCounts({counts})
 }
 
 const deleteFile = async (_: unknown, action: FsGen.DeleteFilePayload) => {
@@ -471,14 +261,15 @@ const startManualCR = async (_: unknown, action: FsGen.StartManualConflictResolu
   await RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
   })
-  return FsGen.createFavoritesLoad()
+
+  Constants.useState.getState().dispatch.favoritesLoad()
 }
 
 const finishManualCR = async (_: unknown, action: FsGen.FinishManualConflictResolutionPayload) => {
   await RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
     path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
   })
-  return FsGen.createFavoritesLoad()
+  Constants.useState.getState().dispatch.favoritesLoad()
 }
 
 // At start-up we might have a race where we get connected to a kbfs daemon
@@ -527,7 +318,9 @@ const checkKbfsServerReachabilityIfNeeded = async (
 
 const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = () => {
   const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
-  return kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected && FsGen.createSetTlfsAsUnloaded()
+  if (kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+    Constants.useState.getState().dispatch.setTlfsAsUnloaded()
+  }
 }
 
 const setDebugLevel = async (_: unknown, action: FsGen.SetDebugLevelPayload) =>
@@ -611,7 +404,8 @@ const onNonPathChange = (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscri
   }
   switch (topic) {
     case RPCTypes.SubscriptionTopic.favorites:
-      return FsGen.createFavoritesLoad()
+      Constants.useState.getState().dispatch.favoritesLoad()
+      return
     case RPCTypes.SubscriptionTopic.journalStatus:
       return FsGen.createPollJournalStatus()
     case RPCTypes.SubscriptionTopic.onlineStatus:
@@ -802,11 +596,7 @@ const initFS = () => {
   Container.listenAction(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
   Container.listenAction(FsGen.loadUploadStatus, loadUploadStatus)
   Container.listenAction(FsGen.dismissUpload, dismissUpload)
-  Container.listenAction(FsGen.favoritesLoad, loadFavorites)
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
-  Container.listenAction(FsGen.favoriteIgnore, ignoreFavorite)
-  Container.listenAction(FsGen.favoritesLoaded, updateFsBadge)
-  Container.listenAction(FsGen.loadAdditionalTlf, loadAdditionalTlf)
   Container.listenAction(FsGen.letResetUserBackIn, letResetUserBackIn)
   Container.listenAction(FsGen.deleteFile, deleteFile)
   Container.listenAction(FsGen.pollJournalStatus, pollJournalFlushStatusUntilDone)
@@ -818,7 +608,6 @@ const initFS = () => {
     Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
   })
   Container.listenAction(FsGen.setTlfSyncConfig, setTlfSyncConfig)
-  Container.listenAction(FsGen.loadTlfSyncConfig, loadTlfSyncConfig)
   Container.listenAction([FsGen.getOnlineStatus], getOnlineStatus)
   Container.listenAction(ConfigGen.osNetworkStatusChanged, checkKbfsServerReachabilityIfNeeded)
   Container.listenAction(EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged, (_, a) => {

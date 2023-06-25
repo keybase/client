@@ -1,7 +1,7 @@
 import * as Tabs from '../constants/tabs'
 import * as EngineGen from './engine-gen-gen'
 import * as NotificationsGen from './notifications-gen'
-import * as FsGen from './fs-gen'
+import * as FsConstants from '../constants/fs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
 import * as ConfigConstants from '../constants/config'
@@ -111,10 +111,10 @@ const receivedBadgeState = (
   action: NotificationsGen.ReceivedBadgeStatePayload
 ) => {
   const counts = badgeStateToBadgeCounts(state, action.payload.badgeState)
-  return [
-    counts && NotificationsGen.createSetBadgeCounts({counts}),
-    !isMobile && shouldTriggerTlfLoad(action.payload.badgeState) && FsGen.createFavoritesLoad(),
-  ]
+  if (!isMobile && shouldTriggerTlfLoad(action.payload.badgeState)) {
+    FsConstants.useState.getState().dispatch.favoritesLoad()
+  }
+  return counts && NotificationsGen.createSetBadgeCounts({counts})
 }
 
 const receivedRootAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAuditRootAuditErrorPayload) => {

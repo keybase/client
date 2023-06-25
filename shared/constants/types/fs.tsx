@@ -524,7 +524,6 @@ export type FileContext = {
 }
 
 export type State = {
-  readonly tlfs: Tlfs
   readonly uploads: Uploads
 }
 

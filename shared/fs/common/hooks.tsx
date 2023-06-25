@@ -62,16 +62,16 @@ export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) 
 
 export const useFsTlfs = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.favorites)
-  const dispatch = Container.useDispatch()
+  const favoritesLoad = Constants.useState(s => s.dispatch.favoritesLoad)
   React.useEffect(() => {
-    dispatch(FsGen.createFavoritesLoad())
-  }, [dispatch])
+    favoritesLoad()
+  }, [favoritesLoad])
 }
 
 export const useFsTlf = (path: Types.Path) => {
   const tlfPath = Constants.getTlfPath(path)
-  const tlfs = Container.useSelector(state => state.fs.tlfs)
-  const dispatch = Container.useDispatch()
+  const tlfs = Constants.useState(s => s.tlfs)
+  const loadAdditionalTlf = Constants.useState(s => s.dispatch.loadAdditionalTlf)
   const active =
     // If we don't have a TLF path, we are not inside a TLF yet. So no need
     // to load.
@@ -86,11 +86,16 @@ export const useFsTlf = (path: Types.Path) => {
     Constants.getTlfFromPathInFavoritesOnly(tlfs, tlfPath) === Constants.unknownTlf
   // We need to load TLFs. We don't have notifications for this rpc yet, so
   // just poll on a 10s interval.
-  Kb.useInterval(() => dispatch(FsGen.createLoadAdditionalTlf({tlfPath})), active ? 10000 : undefined)
+  Kb.useInterval(
+    () => {
+      loadAdditionalTlf(tlfPath)
+    },
+    active ? 10000 : undefined
+  )
   // useInterval doesn't trigger at beginning, so call in an effect here.
   React.useEffect(() => {
-    active && dispatch(FsGen.createLoadAdditionalTlf({tlfPath}))
-  }, [active, dispatch, tlfPath])
+    active && loadAdditionalTlf(tlfPath)
+  }, [active, loadAdditionalTlf, tlfPath])
 }
 
 export const useFsOnlineStatus = () => {
