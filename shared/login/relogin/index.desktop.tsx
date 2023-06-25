@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Constants from '../../constants/login'
+import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import UserCard from '../user-card'
@@ -104,7 +104,7 @@ class Login extends React.Component<Props, State> {
               <Kb.WaitingButton
                 disabled={this.props.needPassword && !this.props.password}
                 fullWidth={true}
-                waitingKey={Constants.waitingKey}
+                waitingKey={ConfigConstants.loginWaitingKey}
                 style={styles.loginSubmitButton}
                 label="Log in"
                 onClick={this.props.onSubmit}
