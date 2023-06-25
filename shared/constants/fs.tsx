@@ -1,3 +1,4 @@
+// TODO w/ zustand cleanup remove more fs actions
 import * as ConfigConstants from './config'
 import * as NotificationsGen from '../actions/notifications-gen'
 import * as FsGen from '../actions/fs-gen'
