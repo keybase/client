@@ -65,7 +65,9 @@ const openPathInSystemFileManager = async (
         _rebaseKbfsPathToMountLocation(action.payload.path, state.fs.sfmi.directMountDir),
         ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
           Constants.parsePath(action.payload.path).kind
-        ) || Constants.getPathItem(state.fs.pathItems, action.payload.path).type === Types.PathType.Folder
+        ) ||
+          Constants.getPathItem(Constants.useState.getState().pathItems, action.payload.path).type ===
+            Types.PathType.Folder
       ).catch(e => errorToActionOrThrow(action.payload.path, e))
     : new Promise<void>((resolve, reject) => {
         if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {

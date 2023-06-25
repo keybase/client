@@ -4,7 +4,6 @@ import * as ConfigConstants from '../../constants/config'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import openUrl from '../../util/open-url'
-import * as Container from '../../util/container'
 
 type Props = {
   path: Types.Path
@@ -18,7 +17,7 @@ const getTlfName = (parsedPath: Types.ParsedPath): string => {
 }
 
 const PublicBanner = ({path}: Props) => {
-  const isWritable = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path).writable)
+  const isWritable = Constants.useState(s => Constants.getPathItem(s.pathItems, path).writable)
   const lastPublicBannerClosedTlf = Constants.useState(s => s.lastPublicBannerClosedTlf)
   const you = ConfigConstants.useCurrentUserState(s => s.username)
 

@@ -6,7 +6,6 @@ import LastModifiedLine from './last-modified-line-container'
 import TlfInfoLine from './tlf-info-line-container'
 import ItemIcon from './item-icon'
 import CommaSeparatedName from './comma-separated-name'
-import * as Container from '../../util/container'
 import {pluralize} from '../../util/string'
 import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} from './hooks'
 
@@ -39,7 +38,7 @@ const getNumberOfFilesAndFolders = (
 
 const FilesAndFoldersCount = (props: Props) => {
   useFsChildren(props.path)
-  const pathItems = Container.useSelector(state => state.fs.pathItems)
+  const pathItems = Constants.useState(s => s.pathItems)
   const {files, folders, loaded} = getNumberOfFilesAndFolders(pathItems, props.path)
   return loaded ? (
     <Kb.Text type="BodySmall">
@@ -80,7 +79,7 @@ const SoftErrorBanner = ({path}: {path: Types.Path}) => {
 const PathItemInfo = (props: Props) => {
   useFsOnlineStatus() // when used in chat, we don't have this from Files tab
   useFsPathMetadata(props.path)
-  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, props.path))
+  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, props.path))
   const name = (
     <CommaSeparatedName
       center={true}

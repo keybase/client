@@ -15,14 +15,6 @@
     },
     "pollJournalStatus": {},
     "getOnlineStatus": {},
-    "folderListLoad": {
-      "recursive": "boolean",
-      "path": "Types.Path"
-    },
-    "folderListLoaded": {
-      "path": "Types.Path",
-      "pathItems": "Map<Types.Path, Types.PathItem>"
-    },
     "favoritesLoad": {},
     "favoritesLoaded": {
       "private": "Types.TlfList",
@@ -40,13 +32,6 @@
     "setTlfSyncConfig": {
       "enabled": "boolean",
       "tlfPath": "Types.Path"
-    },
-    "pathItemLoaded": {
-      "path": "Types.Path",
-      "pathItem": "Types.PathItem"
-    },
-    "loadPathMetadata": {
-      "path": "Types.Path"
     },
     "sortSetting": {
       "path": "Types.Path",

@@ -9,7 +9,7 @@ type Props = {
 
 export const useOpen = (props: Props) => {
   const destPicker = Constants.useState(s => s.destinationPicker)
-  const pathItems = Container.useSelector(state => state.fs.pathItems)
+  const pathItems = Constants.useState(s => s.pathItems)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 

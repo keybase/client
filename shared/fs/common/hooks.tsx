@@ -47,18 +47,17 @@ const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
 
 export const useFsPathMetadata = (path: Types.Path) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.stat)
-  const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    isPathItem(path) && dispatch(FsGen.createLoadPathMetadata({path}))
-  }, [dispatch, path])
+    isPathItem(path) && Constants.useState.getState().dispatch.loadPathMetadata(path)
+  }, [path])
 }
 
 export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.children)
-  const dispatch = Container.useDispatch()
+  const {folderListLoad} = Constants.useState.getState().dispatch
   React.useEffect(() => {
-    isPathItem(path) && dispatch(FsGen.createFolderListLoad({path, recursive: initialLoadRecursive || false}))
-  }, [dispatch, path, initialLoadRecursive])
+    isPathItem(path) && folderListLoad(path, initialLoadRecursive || false)
+  }, [folderListLoad, path, initialLoadRecursive])
 }
 
 export const useFsTlfs = () => {
@@ -142,7 +141,7 @@ export const useFsDownloadStatus = () => {
 }
 
 export const useFsFileContext = (path: Types.Path) => {
-  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
   const [urlError, setUrlError] = React.useState<string>('')
   const loadFileContext = Constants.useState(s => s.dispatch.loadFileContext)
   React.useEffect(() => {

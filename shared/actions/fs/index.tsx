@@ -187,11 +187,8 @@ const getSyncConfigFromRPC = (
   }
 }
 
-const loadTlfSyncConfig = async (
-  _: unknown,
-  action: FsGen.LoadTlfSyncConfigPayload | FsGen.LoadPathMetadataPayload
-) => {
-  const tlfPath = action.type === FsGen.loadPathMetadata ? action.payload.path : action.payload.tlfPath
+const loadTlfSyncConfig = async (_: unknown, action: FsGen.LoadTlfSyncConfigPayload) => {
+  const tlfPath = action.payload.tlfPath
   const parsedPath = Constants.parsePath(tlfPath)
   if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.TeamTlf) {
     return false
@@ -250,156 +247,6 @@ const setSpaceNotificationThreshold = async (
     threshold: action.payload.spaceAvailableNotificationThreshold,
   })
   return FsGen.createLoadSettings()
-}
-
-const getPrefetchStatusFromRPC = (
-  prefetchStatus: RPCTypes.PrefetchStatus,
-  prefetchProgress: RPCTypes.PrefetchProgress
-) => {
-  switch (prefetchStatus) {
-    case RPCTypes.PrefetchStatus.notStarted:
-      return Constants.prefetchNotStarted
-    case RPCTypes.PrefetchStatus.inProgress:
-      return {
-        ...Constants.emptyPrefetchInProgress,
-        bytesFetched: prefetchProgress.bytesFetched,
-        bytesTotal: prefetchProgress.bytesTotal,
-        endEstimate: prefetchProgress.endEstimate,
-        startTime: prefetchProgress.start,
-      }
-    case RPCTypes.PrefetchStatus.complete:
-      return Constants.prefetchComplete
-    default:
-      return Constants.prefetchNotStarted
-  }
-}
-
-const direntToMetadata = (d: RPCTypes.Dirent) => ({
-  lastModifiedTimestamp: d.time,
-  lastWriter: d.lastWriterUnverified.username,
-  name: d.name.split('/').pop(),
-  prefetchStatus: getPrefetchStatusFromRPC(d.prefetchStatus, d.prefetchProgress),
-  size: d.size,
-  writable: d.writable,
-})
-
-const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>): Types.PathItem => {
-  switch (d.direntType) {
-    case RPCTypes.DirentType.dir:
-      return {
-        ...Constants.emptyFolder,
-        ...direntToMetadata(d),
-        children: new Set(children || []),
-        progress: children ? Types.ProgressType.Loaded : Types.ProgressType.Pending,
-      } as Types.PathItem
-    case RPCTypes.DirentType.sym:
-      return {
-        ...Constants.emptySymlink,
-        ...direntToMetadata(d),
-        // TODO: plumb link target
-      } as Types.PathItem
-    case RPCTypes.DirentType.file:
-    case RPCTypes.DirentType.exec:
-      return {
-        ...Constants.emptyFile,
-        ...direntToMetadata(d),
-      } as Types.PathItem
-  }
-}
-
-const folderList = async (
-  _: Container.TypedState,
-  action: FsGen.FolderListLoadPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const rootPath = action.payload.path
-  const isRecursive = action.type === FsGen.folderListLoad && action.payload.recursive
-  try {
-    const opID = Constants.makeUUID()
-    if (isRecursive) {
-      await RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
-        depth: 1,
-        filter: RPCTypes.ListFilter.filterSystemHidden,
-        opID,
-        path: Constants.pathToRPCPath(rootPath),
-        refreshSubscription: false,
-      })
-    } else {
-      await RPCTypes.SimpleFSSimpleFSListRpcPromise({
-        filter: RPCTypes.ListFilter.filterSystemHidden,
-        opID,
-        path: Constants.pathToRPCPath(rootPath),
-        refreshSubscription: false,
-      })
-    }
-
-    await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, Constants.folderListWaitingKey)
-
-    const result = await RPCTypes.SimpleFSSimpleFSReadListRpcPromise({opID})
-    const entries = result.entries || []
-    const childMap = entries.reduce((m, d) => {
-      const [parent, child] = d.name.split('/')
-      if (child) {
-        // Only add to the children set if the parent definitely has children.
-        const fullParent = Types.pathConcat(rootPath, parent)
-        let children = m.get(fullParent)
-        if (!children) {
-          children = new Set()
-          m.set(fullParent, children)
-        }
-        children.add(child)
-      } else {
-        let children = m.get(rootPath)
-        if (!children) {
-          children = new Set()
-          m.set(rootPath, children)
-        }
-        children.add(d.name)
-      }
-      return m
-    }, new Map())
-
-    const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
-      const path = Types.pathConcat(rootPath, d.name)
-      const entry = makeEntry(d, childMap.get(path))
-      if (entry.type === Types.PathType.Folder && isRecursive && !d.name.includes('/')) {
-        // Since we are loading with a depth of 2, first level directories are
-        // considered "loaded".
-        return [
-          path,
-          {
-            ...entry,
-            progress: Types.ProgressType.Loaded,
-          },
-        ]
-      }
-      return [path, entry]
-    }
-
-    // Get metadata fields of the directory that we just loaded from state to
-    // avoid overriding them.
-    const state = listenerApi.getState()
-    const rootPathItem = Constants.getPathItem(state.fs.pathItems, rootPath)
-    const rootFolder: Types.FolderPathItem = {
-      ...(rootPathItem.type === Types.PathType.Folder
-        ? rootPathItem
-        : {...Constants.emptyFolder, name: Types.getPathName(rootPath)}),
-      children: new Set(childMap.get(rootPath)),
-      progress: Types.ProgressType.Loaded,
-    }
-
-    // @ts-ignore TODO fix this
-    const pathItems: Array<[Types.Path, Types.FolderPathItem]> = [
-      ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder]] : []),
-      ...entries.map(direntToPathAndPathItem),
-    ]
-    listenerApi.dispatch(FsGen.createFolderListLoaded({path: rootPath, pathItems: new Map(pathItems)}))
-  } catch (error) {
-    const toPut = errorToActionOrThrow(error, rootPath)
-    if (toPut) {
-      listenerApi.dispatch(toPut)
-    }
-  }
 }
 
 const download = async (
@@ -536,25 +383,6 @@ const ignoreFavorite = async (_: Container.TypedState, action: FsGen.FavoriteIgn
       FsGen.createFavoriteIgnore({path: action.payload.path}),
       errorToActionOrThrow(error, action.payload.path),
     ]
-  }
-}
-
-const loadPathMetadata = async (_: Container.TypedState, action: FsGen.LoadPathMetadataPayload) => {
-  const {path} = action.payload
-  try {
-    const dirent = await RPCTypes.SimpleFSSimpleFSStatRpcPromise(
-      {
-        path: Constants.pathToRPCPath(path),
-        refreshSubscription: false,
-      },
-      Constants.statWaitingKey
-    )
-    return FsGen.createPathItemLoaded({
-      path,
-      pathItem: makeEntry(dirent),
-    })
-  } catch (err) {
-    return errorToActionOrThrow(err, path)
   }
 }
 
@@ -770,15 +598,18 @@ const unsubscribe = async (_: unknown, action: FsGen.UnsubscribePayload) => {
 const onPathChange = (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload) => {
   const {clientID: clientIDFromNotification, path, topics} = action.payload.params
   if (clientIDFromNotification !== clientID) {
-    return null
+    return
   }
-  /* eslint-disable-next-line */ // not smart enought to know all cases covered
-  return topics?.map(topic => {
+
+  const {folderListLoad} = Constants.useState.getState().dispatch
+  topics?.forEach(topic => {
     switch (topic) {
       case RPCTypes.PathSubscriptionTopic.children:
-        return FsGen.createFolderListLoad({path: Types.stringToPath(path), recursive: false})
+        folderListLoad(Types.stringToPath(path), false)
+        break
       case RPCTypes.PathSubscriptionTopic.stat:
-        return FsGen.createLoadPathMetadata({path: Types.stringToPath(path)})
+        Constants.useState.getState().dispatch.loadPathMetadata(Types.stringToPath(path))
+        break
     }
   })
 }
@@ -976,7 +807,6 @@ const initFS = () => {
   Container.listenAction(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
   Container.listenAction(FsGen.loadUploadStatus, loadUploadStatus)
   Container.listenAction(FsGen.dismissUpload, dismissUpload)
-  Container.listenAction(FsGen.folderListLoad, folderList)
   Container.listenAction(FsGen.favoritesLoad, loadFavorites)
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
   Container.listenAction(FsGen.favoriteIgnore, ignoreFavorite)
@@ -984,7 +814,6 @@ const initFS = () => {
   Container.listenAction(FsGen.loadAdditionalTlf, loadAdditionalTlf)
   Container.listenAction(FsGen.letResetUserBackIn, letResetUserBackIn)
   Container.listenAction(FsGen.deleteFile, deleteFile)
-  Container.listenAction(FsGen.loadPathMetadata, loadPathMetadata)
   Container.listenAction(FsGen.pollJournalStatus, pollJournalFlushStatusUntilDone)
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
   Container.listenAction([ConfigGen.installerRan, ConfigGen.loggedInChanged, FsGen.userIn], (_, a) => {

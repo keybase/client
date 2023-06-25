@@ -22,8 +22,6 @@ export const favoritesLoaded = 'fs:favoritesLoaded'
 export const finishManualConflictResolution = 'fs:finishManualConflictResolution'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
-export const folderListLoad = 'fs:folderListLoad'
-export const folderListLoaded = 'fs:folderListLoaded'
 export const getOnlineStatus = 'fs:getOnlineStatus'
 export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
@@ -33,7 +31,6 @@ export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
 export const loadPathInfo = 'fs:loadPathInfo'
-export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
 export const loadUploadStatus = 'fs:loadUploadStatus'
@@ -47,7 +44,6 @@ export const openFilesFromWidget = 'fs:openFilesFromWidget'
 export const openLocalPathInSystemFileManager = 'fs:openLocalPathInSystemFileManager'
 export const openPathInSystemFileManager = 'fs:openPathInSystemFileManager'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
-export const pathItemLoaded = 'fs:pathItemLoaded'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
 export const pollJournalStatus = 'fs:pollJournalStatus'
@@ -152,14 +148,6 @@ export const createFinishedRegularDownload = (payload: {
   readonly downloadID: string
   readonly mimeType: string
 }) => ({payload, type: finishedRegularDownload as typeof finishedRegularDownload})
-export const createFolderListLoad = (payload: {readonly recursive: boolean; readonly path: Types.Path}) => ({
-  payload,
-  type: folderListLoad as typeof folderListLoad,
-})
-export const createFolderListLoaded = (payload: {
-  readonly path: Types.Path
-  readonly pathItems: Map<Types.Path, Types.PathItem>
-}) => ({payload, type: folderListLoaded as typeof folderListLoaded})
 export const createGetOnlineStatus = (payload?: undefined) => ({
   payload,
   type: getOnlineStatus as typeof getOnlineStatus,
@@ -196,10 +184,6 @@ export const createLoadFilesTabBadge = (payload?: undefined) => ({
 export const createLoadPathInfo = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: loadPathInfo as typeof loadPathInfo,
-})
-export const createLoadPathMetadata = (payload: {readonly path: Types.Path}) => ({
-  payload,
-  type: loadPathMetadata as typeof loadPathMetadata,
 })
 export const createLoadSettings = (payload?: undefined) => ({
   payload,
@@ -253,10 +237,6 @@ export const createOpenSecurityPreferences = (payload?: undefined) => ({
   payload,
   type: openSecurityPreferences as typeof openSecurityPreferences,
 })
-export const createPathItemLoaded = (payload: {
-  readonly path: Types.Path
-  readonly pathItem: Types.PathItem
-}) => ({payload, type: pathItemLoaded as typeof pathItemLoaded})
 export const createPickAndUpload = (payload: {
   readonly type: Types.MobilePickType
   readonly parentPath: Types.Path
@@ -402,8 +382,6 @@ export type FavoritesLoadedPayload = ReturnType<typeof createFavoritesLoaded>
 export type FinishManualConflictResolutionPayload = ReturnType<typeof createFinishManualConflictResolution>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
 export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedRegularDownload>
-export type FolderListLoadPayload = ReturnType<typeof createFolderListLoad>
-export type FolderListLoadedPayload = ReturnType<typeof createFolderListLoaded>
 export type GetOnlineStatusPayload = ReturnType<typeof createGetOnlineStatus>
 export type JournalUpdatePayload = ReturnType<typeof createJournalUpdate>
 export type KbfsDaemonRpcStatusChangedPayload = ReturnType<typeof createKbfsDaemonRpcStatusChanged>
@@ -413,7 +391,6 @@ export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
 export type LoadDownloadStatusPayload = ReturnType<typeof createLoadDownloadStatus>
 export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge>
 export type LoadPathInfoPayload = ReturnType<typeof createLoadPathInfo>
-export type LoadPathMetadataPayload = ReturnType<typeof createLoadPathMetadata>
 export type LoadSettingsPayload = ReturnType<typeof createLoadSettings>
 export type LoadTlfSyncConfigPayload = ReturnType<typeof createLoadTlfSyncConfig>
 export type LoadUploadStatusPayload = ReturnType<typeof createLoadUploadStatus>
@@ -429,7 +406,6 @@ export type OpenLocalPathInSystemFileManagerPayload = ReturnType<
 >
 export type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPathInSystemFileManager>
 export type OpenSecurityPreferencesPayload = ReturnType<typeof createOpenSecurityPreferences>
-export type PathItemLoadedPayload = ReturnType<typeof createPathItemLoaded>
 export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
 export type PollJournalStatusPayload = ReturnType<typeof createPollJournalStatus>
@@ -485,8 +461,6 @@ export type Actions =
   | FinishManualConflictResolutionPayload
   | FinishedDownloadWithIntentPayload
   | FinishedRegularDownloadPayload
-  | FolderListLoadPayload
-  | FolderListLoadedPayload
   | GetOnlineStatusPayload
   | JournalUpdatePayload
   | KbfsDaemonRpcStatusChangedPayload
@@ -496,7 +470,6 @@ export type Actions =
   | LoadDownloadStatusPayload
   | LoadFilesTabBadgePayload
   | LoadPathInfoPayload
-  | LoadPathMetadataPayload
   | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
   | LoadUploadStatusPayload
@@ -510,7 +483,6 @@ export type Actions =
   | OpenLocalPathInSystemFileManagerPayload
   | OpenPathInSystemFileManagerPayload
   | OpenSecurityPreferencesPayload
-  | PathItemLoadedPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload
   | PollJournalStatusPayload

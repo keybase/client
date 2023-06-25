@@ -10,7 +10,7 @@ type OwnPropsPathItem = {
 
 const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
   const _kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
-  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, ownProps.path))
+  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, ownProps.path))
   const _tlf = Container.useSelector(state => Constants.getTlfFromPath(state.fs.tlfs, ownProps.path))
   const _uploads = Container.useSelector(state => state.fs.uploads.syncingPaths)
   const props = {

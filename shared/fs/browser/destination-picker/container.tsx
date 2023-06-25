@@ -54,7 +54,7 @@ const canBackUp = isMobile
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const destPicker = Constants.useState(s => s.destinationPicker)
   const isShare = destPicker.source.type === Types.DestinationPickerSource.IncomingShare
-  const pathItems = Container.useSelector(state => state.fs.pathItems)
+  const pathItems = Constants.useState(s => s.pathItems)
   const headerRightButton =
     destPicker.source.type === Types.DestinationPickerSource.IncomingShare ? (
       <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />

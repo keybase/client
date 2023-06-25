@@ -966,6 +966,7 @@ type State = {
   lastPublicBannerClosedTlf: string
   overallSyncStatus: Types.OverallSyncStatus
   pathItemActionMenu: Types.PathItemActionMenu
+  pathItems: Types.PathItems
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -989,6 +990,7 @@ const initialState: State = {
   lastPublicBannerClosedTlf: '',
   overallSyncStatus: emptyOverallSyncStatus,
   pathItemActionMenu: emptyPathItemActionMenu,
+  pathItems: new Map(),
 }
 
 type ZState = State & {
@@ -999,11 +1001,13 @@ type ZState = State & {
     dismissRedbar: (index: number) => void
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
+    folderListLoad: (path: Types.Path, recursive: boolean) => void
     kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => void
     kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => void
     loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
     loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
     loadFileContext: (path: Types.Path) => void
+    loadPathMetadata: (path: Types.Path) => void
     newFolderRow: (parentPath: Types.Path) => void
     redbar: (error: string) => void
     reset: () => void
@@ -1024,6 +1028,84 @@ type ZState = State & {
     waitForKbfsDaemon: () => void
   }
   getUploadIconForFilesTab: () => Types.UploadIcon | undefined
+}
+
+const getPrefetchStatusFromRPC = (
+  prefetchStatus: RPCTypes.PrefetchStatus,
+  prefetchProgress: RPCTypes.PrefetchProgress
+) => {
+  switch (prefetchStatus) {
+    case RPCTypes.PrefetchStatus.notStarted:
+      return prefetchNotStarted
+    case RPCTypes.PrefetchStatus.inProgress:
+      return {
+        ...emptyPrefetchInProgress,
+        bytesFetched: prefetchProgress.bytesFetched,
+        bytesTotal: prefetchProgress.bytesTotal,
+        endEstimate: prefetchProgress.endEstimate,
+        startTime: prefetchProgress.start,
+      }
+    case RPCTypes.PrefetchStatus.complete:
+      return prefetchComplete
+    default:
+      return prefetchNotStarted
+  }
+}
+
+const direntToMetadata = (d: RPCTypes.Dirent) => ({
+  lastModifiedTimestamp: d.time,
+  lastWriter: d.lastWriterUnverified.username,
+  name: d.name.split('/').pop(),
+  prefetchStatus: getPrefetchStatusFromRPC(d.prefetchStatus, d.prefetchProgress),
+  size: d.size,
+  writable: d.writable,
+})
+
+const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>): Types.PathItem => {
+  switch (d.direntType) {
+    case RPCTypes.DirentType.dir:
+      return {
+        ...emptyFolder,
+        ...direntToMetadata(d),
+        children: new Set(children || []),
+        progress: children ? Types.ProgressType.Loaded : Types.ProgressType.Pending,
+      } as Types.PathItem
+    case RPCTypes.DirentType.sym:
+      return {
+        ...emptySymlink,
+        ...direntToMetadata(d),
+        // TODO: plumb link target
+      } as Types.PathItem
+    case RPCTypes.DirentType.file:
+    case RPCTypes.DirentType.exec:
+      return {
+        ...emptyFile,
+        ...direntToMetadata(d),
+      } as Types.PathItem
+  }
+}
+
+const updatePathItem = (
+  oldPathItem: Types.PathItem,
+  newPathItemFromAction: Types.PathItem
+): Types.PathItem => {
+  if (
+    oldPathItem.type === Types.PathType.Folder &&
+    newPathItemFromAction.type === Types.PathType.Folder &&
+    oldPathItem.progress === Types.ProgressType.Loaded &&
+    newPathItemFromAction.progress === Types.ProgressType.Pending
+  ) {
+    // The new one doesn't have children, but the old one has. We don't
+    // want to override a loaded folder into pending. So first set the children
+    // in new one using what we already have, see if they are equal.
+    const newPathItemNoOverridingChildrenAndProgress = {
+      ...newPathItemFromAction,
+      children: oldPathItem.children,
+      progress: Types.ProgressType.Loaded,
+    }
+    return newPathItemNoOverridingChildrenAndProgress
+  }
+  return newPathItemFromAction
 }
 
 export const useState = Z.createZustand(
@@ -1144,6 +1226,125 @@ export const useState = Z.createZustand(
           s.edits.delete(editID)
         })
       },
+      folderListLoad: (rootPath: Types.Path, isRecursive: boolean) => {
+        const f = async () => {
+          try {
+            const opID = makeUUID()
+            if (isRecursive) {
+              await RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
+                depth: 1,
+                filter: RPCTypes.ListFilter.filterSystemHidden,
+                opID,
+                path: pathToRPCPath(rootPath),
+                refreshSubscription: false,
+              })
+            } else {
+              await RPCTypes.SimpleFSSimpleFSListRpcPromise({
+                filter: RPCTypes.ListFilter.filterSystemHidden,
+                opID,
+                path: pathToRPCPath(rootPath),
+                refreshSubscription: false,
+              })
+            }
+
+            await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, folderListWaitingKey)
+
+            const result = await RPCTypes.SimpleFSSimpleFSReadListRpcPromise({opID})
+            const entries = result.entries || []
+            const childMap = entries.reduce((m, d) => {
+              const [parent, child] = d.name.split('/')
+              if (child) {
+                // Only add to the children set if the parent definitely has children.
+                const fullParent = Types.pathConcat(rootPath, parent)
+                let children = m.get(fullParent)
+                if (!children) {
+                  children = new Set<string>()
+                  m.set(fullParent, children)
+                }
+                children.add(child)
+              } else {
+                let children = m.get(rootPath)
+                if (!children) {
+                  children = new Set()
+                  m.set(rootPath, children)
+                }
+                children.add(d.name)
+              }
+              return m
+            }, new Map<Types.Path, Set<string>>())
+
+            const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
+              const path = Types.pathConcat(rootPath, d.name)
+              const entry = makeEntry(d, childMap.get(path))
+              if (entry.type === Types.PathType.Folder && isRecursive && !d.name.includes('/')) {
+                // Since we are loading with a depth of 2, first level directories are
+                // considered "loaded".
+                return [
+                  path,
+                  {
+                    ...entry,
+                    progress: Types.ProgressType.Loaded,
+                  },
+                ] as const
+              }
+              return [path, entry] as const
+            }
+
+            // Get metadata fields of the directory that we just loaded from state to
+            // avoid overriding them.
+            const rootPathItem = getPathItem(get().pathItems, rootPath)
+            const rootFolder: Types.FolderPathItem = {
+              ...(rootPathItem.type === Types.PathType.Folder
+                ? rootPathItem
+                : {...emptyFolder, name: Types.getPathName(rootPath)}),
+              children: new Set(childMap.get(rootPath)),
+              progress: Types.ProgressType.Loaded,
+            }
+
+            const pathItems = new Map<Types.Path, Types.PathItem>([
+              ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder] as const] : []),
+              ...entries.map(direntToPathAndPathItem),
+            ] as const)
+            //TODO edit stuff back!!!
+            set(s => {
+              pathItems.forEach((pathItemFromAction, path) => {
+                const oldPathItem = getPathItem(s.pathItems, path)
+                const newPathItem = updatePathItem(oldPathItem, pathItemFromAction)
+                oldPathItem.type === Types.PathType.Folder &&
+                  oldPathItem.children.forEach(
+                    name =>
+                      (newPathItem.type !== Types.PathType.Folder || !newPathItem.children.has(name)) &&
+                      s.pathItems.delete(Types.pathConcat(path, name))
+                  )
+                s.pathItems.set(path, newPathItem)
+              })
+
+              // Remove Rename edits that are for path items that don't exist anymore in
+              // case when/if a new item is added later the edit causes confusion.
+              const newEntries = [...s.edits.entries()].filter(([_, edit]) => {
+                if (edit.type !== Types.EditType.Rename) {
+                  return true
+                }
+                const parent = getPathItem(s.pathItems, edit.parentPath)
+                if (parent.type === Types.PathType.Folder && parent.children.has(edit.name)) {
+                  return true
+                }
+                return false
+              })
+              if (newEntries.length !== s.edits.size) {
+                s.edits = new Map(newEntries)
+              }
+            })
+          } catch (error) {
+            // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            // const toPut = errorToActionOrThrow(error, rootPath)
+            // if (toPut) {
+            //   listenerApi.dispatch(toPut)
+            // }
+          }
+        }
+        Z.ignorePromise(f())
+      },
       kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => {
         set(s => {
           s.kbfsDaemonStatus.onlineStatus =
@@ -1187,6 +1388,32 @@ export const useState = Z.createZustand(
         }
         Z.ignorePromise(f())
       },
+      loadPathMetadata: (path: Types.Path) => {
+        const f = async () => {
+          try {
+            const dirent = await RPCTypes.SimpleFSSimpleFSStatRpcPromise(
+              {
+                path: pathToRPCPath(path),
+                refreshSubscription: false,
+              },
+              statWaitingKey
+            )
+
+            const pathItem = makeEntry(dirent)
+            set(s => {
+              const oldPathItem = getPathItem(s.pathItems, path)
+              s.pathItems.set(path, updatePathItem(oldPathItem, pathItem))
+              // TODO <<<<<<<<<<<<<<<<<<<<<<<<,
+              // s.softErrors.pathErrors.delete(path)
+              // s.softErrors.tlfErrors.delete(path)
+            })
+          } catch (err) {
+            // TODO <<<<<<<<<<<<<<<<<<<<
+            // return errorToActionOrThrow(err, path)
+          }
+        }
+        Z.ignorePromise(f())
+      },
       loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => {
         set(s => {
           s.downloads.info.set(downloadID, info)
@@ -1204,8 +1431,7 @@ export const useState = Z.createZustand(
         })
       },
       newFolderRow: (parentPath: Types.Path) => {
-        // TODO remove redux store
-        const parentPathItem = getPathItem(getReduxStore().fs.pathItems, parentPath)
+        const parentPathItem = getPathItem(get().pathItems, parentPath)
         if (parentPathItem.type !== Types.PathType.Folder) {
           console.warn(`bad parentPath: ${parentPathItem.type}`)
           return

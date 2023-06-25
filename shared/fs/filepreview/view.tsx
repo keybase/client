@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import DefaultView from './default-view-container'
 import TextView from './text-view'
@@ -27,7 +26,7 @@ const FilePreviewView = (p: Props) => {
 }
 
 const FilePreviewViewContent = ({path, onUrlError}: Props) => {
-  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
   const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
     pathItem.lastModifiedTimestamp
   )

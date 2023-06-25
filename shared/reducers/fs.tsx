@@ -5,7 +5,6 @@ import * as Container from '../util/container'
 
 const initialState: Types.State = {
   pathInfos: new Map(),
-  pathItems: new Map(),
   pathUserSettings: new Map(),
   settings: Constants.emptySettings,
   sfmi: {
@@ -35,70 +34,9 @@ const initialState: Types.State = {
 
 export const _initialStateForTest = initialState
 
-const updatePathItem = (
-  oldPathItem: Types.PathItem,
-  newPathItemFromAction: Types.PathItem
-): Types.PathItem => {
-  if (
-    oldPathItem.type === Types.PathType.Folder &&
-    newPathItemFromAction.type === Types.PathType.Folder &&
-    oldPathItem.progress === Types.ProgressType.Loaded &&
-    newPathItemFromAction.progress === Types.ProgressType.Pending
-  ) {
-    // The new one doesn't have children, but the old one has. We don't
-    // want to override a loaded folder into pending. So first set the children
-    // in new one using what we already have, see if they are equal.
-    const newPathItemNoOverridingChildrenAndProgress = {
-      ...newPathItemFromAction,
-      children: oldPathItem.children,
-      progress: Types.ProgressType.Loaded,
-    }
-    return newPathItemNoOverridingChildrenAndProgress
-  }
-  return newPathItemFromAction
-}
-
 export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   [FsGen.resetStore]: () => {
     return initialState
-  },
-  [FsGen.pathItemLoaded]: (draftState, action) => {
-    const oldPathItem = Constants.getPathItem(draftState.pathItems, action.payload.path)
-    draftState.pathItems.set(action.payload.path, updatePathItem(oldPathItem, action.payload.pathItem))
-    draftState.softErrors.pathErrors.delete(action.payload.path)
-    draftState.softErrors.tlfErrors.delete(action.payload.path)
-  },
-  //TODO edit stuff back!!!
-  [FsGen.folderListLoaded]: (draftState, action) => {
-    action.payload.pathItems.forEach((pathItemFromAction, path) => {
-      const oldPathItem = Constants.getPathItem(draftState.pathItems, path)
-      const newPathItem = updatePathItem(oldPathItem, pathItemFromAction)
-      oldPathItem.type === Types.PathType.Folder &&
-        oldPathItem.children.forEach(
-          name =>
-            (newPathItem.type !== Types.PathType.Folder || !newPathItem.children.has(name)) &&
-            draftState.pathItems.delete(Types.pathConcat(path, name))
-        )
-      draftState.pathItems.set(path, newPathItem)
-    })
-
-    // Remove Rename edits that are for path items that don't exist anymore in
-    // case when/if a new item is added later the edit causes confusion.
-    /* TODO  <<<<<<<<<<<<<<<<<<<<<<<<
-    const newEntries = [...draftState.edits.entries()].filter(([_, edit]) => {
-      if (edit.type !== Types.EditType.Rename) {
-        return true
-      }
-      const parent = Constants.getPathItem(draftState.pathItems, edit.parentPath)
-      if (parent.type === Types.PathType.Folder && parent.children.has(edit.name)) {
-        return true
-      }
-      return false
-    })
-    if (newEntries.length !== draftState.edits.size) {
-      draftState.edits = new Map(newEntries)
-    }
-        */
   },
   [FsGen.favoritesLoaded]: (draftState, action) => {
     draftState.tlfs.private = action.payload.private

@@ -20,7 +20,7 @@ type OwnProps = {path: Types.Path}
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
   const _kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
-  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
   const resetBannerType = Container.useSelector(state => Constants.resetBannerType(state, path))
   const props = {
     offlineUnsynced: Constants.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),

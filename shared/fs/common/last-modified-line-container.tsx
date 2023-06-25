@@ -1,6 +1,5 @@
 import type * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
 import LastModifiedLine from './last-modified-line'
 
 export type OwnProps = {
@@ -10,7 +9,7 @@ export type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {path, mode} = ownProps
-  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
   const props = {
     lastModifiedTimestamp:
       _pathItem === Constants.unknownPathItem ? undefined : _pathItem.lastModifiedTimestamp,

@@ -62,7 +62,7 @@ export default (ownProps: OwnProps) => {
     Constants.folderListWaitingKey,
     Constants.statWaitingKey,
   ])
-  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
   const _pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
   const _downloadID = _pathItemActionMenu.downloadID
   const _sfmiEnabled = Container.useSelector(

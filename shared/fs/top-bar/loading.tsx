@@ -23,7 +23,7 @@ const styles = Styles.styleSheetCreate(
 
 const Loading = (op: OwnProps) => {
   const {path} = op
-  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
   const _tlfsLoaded = Container.useSelector(state => !!state.fs.tlfs.private.size)
   const parsedPath = Constants.parsePath(path)
   let show = false

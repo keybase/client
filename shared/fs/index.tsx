@@ -62,7 +62,7 @@ type OwnProps = {path?: Types.Path}
 
 const Connected = (ownProps?: OwnProps) => {
   const path = ownProps?.path ?? Constants.defaultPath
-  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
+  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
   const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
 
   const dispatch = Container.useDispatch()

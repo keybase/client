@@ -73,7 +73,7 @@ const UploadButton = (props: UploadButtonProps) => {
 }
 
 export default (ownProps: OwnProps) => {
-  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, ownProps.path))
+  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, ownProps.path))
   const dispatch = Container.useDispatch()
   const _openAndUploadBoth = () => {
     dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Both}))

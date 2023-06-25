@@ -14,7 +14,7 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
   const _pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
-  const size = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path).size)
+  const size = Constants.useState(s => Constants.getPathItem(s.pathItems, path).size)
 
   const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
   const dispatch = Container.useDispatch()
