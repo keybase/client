@@ -56,13 +56,11 @@ const escapeBackslash = isWindows
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
   Path.join(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(pathSep))
 
-const openPathInSystemFileManager = async (
-  state: Container.TypedState,
-  action: FsGen.OpenPathInSystemFileManagerPayload
-) =>
-  state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled && state.fs.sfmi.directMountDir
+const openPathInSystemFileManager = async (_: unknown, action: FsGen.OpenPathInSystemFileManagerPayload) => {
+  const sfmi = Constants.useState.getState().sfmi
+  return sfmi.driverStatus.type === Types.DriverStatusType.Enabled && sfmi.directMountDir
     ? _openPathInSystemFileManagerPromise(
-        _rebaseKbfsPathToMountLocation(action.payload.path, state.fs.sfmi.directMountDir),
+        _rebaseKbfsPathToMountLocation(action.payload.path, sfmi.directMountDir),
         ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
           Constants.parsePath(action.payload.path).kind
         ) ||
@@ -70,7 +68,7 @@ const openPathInSystemFileManager = async (
             Types.PathType.Folder
       ).catch(e => errorToActionOrThrow(action.payload.path, e))
     : new Promise<void>((resolve, reject) => {
-        if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
+        if (sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
           // This usually indicates a developer error as
           // openPathInSystemFileManager shouldn't be used when FUSE integration
           // is not enabled. So just blackbar to encourage a log send.
@@ -80,6 +78,7 @@ const openPathInSystemFileManager = async (
           resolve()
         }
       })
+}
 
 const fuseStatusToUninstallExecPath = isWindows
   ? (status: RPCTypes.FuseStatus) => {
@@ -91,19 +90,22 @@ const fuseStatusToUninstallExecPath = isWindows
 const fuseStatusToActions =
   (previousStatusType: Types.DriverStatusType) => (status: RPCTypes.FuseStatus | undefined) => {
     if (!status) {
-      return FsGen.createSetDriverStatus({
-        driverStatus: Constants.defaultDriverStatus,
-      })
+      Constants.useState.getState().dispatch.setDriverStatus(Constants.defaultDriverStatus)
+      return
     }
+
+    if (status.kextStarted) {
+      Constants.useState.getState().dispatch.setDriverStatus({
+        ...Constants.emptyDriverStatusEnabled,
+        dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
+        dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
+      })
+    } else {
+      Constants.useState.getState().dispatch.setDriverStatus(Constants.emptyDriverStatusDisabled)
+    }
+
     return status.kextStarted
       ? [
-          FsGen.createSetDriverStatus({
-            driverStatus: {
-              ...Constants.emptyDriverStatusEnabled,
-              dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
-              dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
-            },
-          }),
           ...(previousStatusType === Types.DriverStatusType.Disabled
             ? [
                 FsGen.createOpenPathInSystemFileManager({
@@ -112,15 +114,11 @@ const fuseStatusToActions =
               ]
             : []), // open Finder/Explorer/etc for newly enabled
         ]
-      : [
-          FsGen.createSetDriverStatus({
-            driverStatus: Constants.emptyDriverStatusDisabled,
-          }),
-        ]
+      : []
   }
 
 const refreshDriverStatus = async (
-  state: Container.TypedState,
+  _: unknown,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload
 ) => {
   if (
@@ -134,7 +132,7 @@ const refreshDriverStatus = async (
       const m = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
       status = await (windowsCheckMountFromOtherDokanInstall?.(m, status) ?? Promise.resolve(status))
     }
-    return fuseStatusToActions(state.fs.sfmi.driverStatus.type)(status)
+    return fuseStatusToActions(Constants.useState.getState().sfmi.driverStatus.type)(status)
   }
   return false
 }
@@ -147,8 +145,8 @@ const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult):
 const driverEnableFuse = async (_: unknown, action: FsGen.DriverEnablePayload) => {
   const result = await RPCTypes.installInstallFuseRpcPromise()
   if (fuseInstallResultIsKextPermissionError(result)) {
+    Constants.useState.getState().dispatch.driverKextPermissionError()
     return [
-      FsGen.createDriverKextPermissionError(),
       ...(action.payload.isRetry ? [] : [RouteTreeGen.createNavigateAppend({path: ['kextPermission']})]),
     ]
   } else {
@@ -160,7 +158,9 @@ const driverEnableFuse = async (_: unknown, action: FsGen.DriverEnablePayload) =
 
 const uninstallKBFSConfirm = async () => {
   const remove = await (uninstallKBFSDialog?.() ?? Promise.resolve(false))
-  return remove ? FsGen.createDriverDisabling() : false
+  if (remove) {
+    Constants.useState.getState().dispatch.driverDisabling()
+  }
 }
 
 const uninstallKBFS = async () =>
@@ -170,22 +170,24 @@ const uninstallKBFS = async () =>
     exitApp?.(0)
   })
 
-const uninstallDokanConfirm = async (
-  state: Container.TypedState
-): Promise<Container.TypedActions | false> => {
-  if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
+const uninstallDokanConfirm = async (): Promise<Container.TypedActions | false> => {
+  const driverStatus = Constants.useState.getState().sfmi.driverStatus
+  if (driverStatus.type !== Types.DriverStatusType.Enabled) {
     return false
   }
-  if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
+  if (!driverStatus.dokanUninstallExecPath) {
     await uninstallDokanDialog?.()
     return FsGen.createRefreshDriverStatus()
   }
-  return FsGen.createDriverDisabling()
+
+  Constants.useState.getState().dispatch.driverDisabling()
+  return false
 }
 
-const onUninstallDokan = async (state: Container.TypedState) => {
-  if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) return
-  const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath || ''
+const onUninstallDokan = async () => {
+  const driverStatus = Constants.useState.getState().sfmi.driverStatus
+  if (driverStatus.type !== Types.DriverStatusType.Enabled) return
+  const execPath: string = driverStatus.dokanUninstallExecPath || ''
   logger.info('Invoking dokan uninstaller', execPath)
   try {
     await uninstallDokan?.(execPath)
@@ -239,14 +241,8 @@ const openFilesFromWidget = (_: unknown, {payload: {path}}: FsGen.OpenFilesFromW
     : ([RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]})] as any)),
 ]
 
-const changedFocus = (state: Container.TypedState, action: ConfigGen.ChangedFocusPayload) =>
-  action.payload.appFocused &&
-  state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Disabled &&
-  state.fs.sfmi.driverStatus.kextPermissionError &&
-  FsGen.createDriverEnable({isRetry: true})
-
 const refreshMountDirs = async (
-  state: Container.TypedState,
+  _: unknown,
   action:
     | FsGen.RefreshMountDirsAfter10sPayload
     | FsGen.KbfsDaemonRpcStatusChangedPayload
@@ -255,16 +251,18 @@ const refreshMountDirs = async (
   if (action.type === FsGen.refreshMountDirsAfter10s) {
     await new Promise(resolve => setTimeout(resolve, 10000))
   }
-  if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
+
+  const driverStatus = Constants.useState.getState().sfmi.driverStatus
+  if (driverStatus.type !== Types.DriverStatusType.Enabled) {
     return null
   }
   const directMountDir = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
   const preferredMountDirs = await RPCTypes.kbfsMountGetPreferredMountDirsRpcPromise()
+
+  Constants.useState.getState().dispatch.setDirectMountDir(directMountDir)
+  Constants.useState.getState().dispatch.setPreferredMountDirs(preferredMountDirs || [])
+
   return [
-    FsGen.createSetDirectMountDir({directMountDir}),
-    FsGen.createSetPreferredMountDirs({
-      preferredMountDirs: preferredMountDirs || [],
-    }),
     // Check again in 10s, as redirector comes up only after kbfs daemon is alive.
     ...(action.type !== FsGen.refreshMountDirsAfter10s ? [FsGen.createRefreshMountDirsAfter10s()] : []),
   ]
@@ -308,7 +306,9 @@ const initPlatformSpecific = () => {
     Container.listenAction(FsGen.driverDisabling, uninstallKBFS)
   }
   Container.listenAction(FsGen.openSecurityPreferences, openSecurityPreferences)
-  Container.listenAction(ConfigGen.changedFocus, changedFocus)
+  Container.listenAction(ConfigGen.changedFocus, (_, a) => {
+    Constants.useState.getState().dispatch.onChangedFocus(a.payload.appFocused)
+  })
   Container.listenAction(
     [FsGen.setSfmiBannerDismissed, FsGen.driverEnable, FsGen.driverDisable],
     setSfmiBannerDismissed

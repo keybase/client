@@ -970,6 +970,7 @@ type State = {
   pathInfos: Map<Types.Path, Types.PathInfo>
   pathUserSettings: Map<Types.Path, Types.PathUserSetting>
   settings: Types.Settings
+  sfmi: Types.SystemFileManagerIntegration
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -997,6 +998,11 @@ const initialState: State = {
   pathItems: new Map(),
   pathUserSettings: new Map(),
   settings: emptySettings,
+  sfmi: {
+    directMountDir: '',
+    driverStatus: defaultDriverStatus,
+    preferredMountDirs: [],
+  },
 }
 
 type ZState = State & {
@@ -1005,23 +1011,29 @@ type ZState = State & {
     commitEdit: (editID: Types.EditID) => void
     discardEdit: (editID: Types.EditID) => void
     dismissRedbar: (index: number) => void
+    driverDisabling: () => void
+    driverEnable: (isRetry?: boolean) => void
+    driverKextPermissionError: () => void
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
     folderListLoad: (path: Types.Path, recursive: boolean) => void
     kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => void
     kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => void
-    loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
-    loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
     loadFileContext: (path: Types.Path) => void
     loadPathMetadata: (path: Types.Path) => void
-    loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
     loadSettings: () => void
+    loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
+    loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
+    loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
     newFolderRow: (parentPath: Types.Path) => void
+    onChangedFocus: (appFocused: boolean) => void
     redbar: (error: string) => void
     reset: () => void
     setBadge: (b: RPCTypes.FilesTabBadge) => void
     setCriticalUpdate: (u: boolean) => void
     setDestinationPickerParentPath: (index: number, path: Types.Path) => void
+    setDirectMountDir: (directMountDir: string) => void
+    setDriverStatus: (driverStatus: Types.DriverStatus) => void
     setEditName: (editID: Types.EditID, name: string) => void
     setFolderViewFilter: (filter?: string) => void
     setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => void
@@ -1029,11 +1041,12 @@ type ZState = State & {
     setMoveOrCopySource: (path: Types.Path) => void
     setPathItemActionMenuDownload: (downloadID?: string, intent?: Types.DownloadIntent) => void
     setPathItemActionMenuView: (view: Types.PathItemActionMenuView) => void
+    setPreferredMountDirs: (preferredMountDirs: Array<string>) => void
     setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => void
-    syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
     startRename: (path: Types.Path) => void
+    syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     waitForKbfsDaemon: () => void
   }
   getUploadIconForFilesTab: () => Types.UploadIcon | undefined
@@ -1222,6 +1235,30 @@ export const useState = Z.createZustand(
       dismissRedbar: (index: number) => {
         set(s => {
           s.errors = [...s.errors.slice(0, index), ...s.errors.slice(index + 1)]
+        })
+      },
+      driverDisabling: () => {
+        set(s => {
+          if (s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled) {
+            s.sfmi.driverStatus.isDisabling = true
+          }
+        })
+        reduxDispatch(FsGen.createDriverDisabling())
+      },
+      driverEnable: (isRetry?: boolean) => {
+        set(s => {
+          if (s.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
+            s.sfmi.driverStatus.isEnabling = true
+          }
+        })
+        reduxDispatch(FsGen.createDriverEnable({isRetry}))
+      },
+      driverKextPermissionError: () => {
+        set(s => {
+          if (s.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
+            s.sfmi.driverStatus.kextPermissionError = true
+            s.sfmi.driverStatus.isEnabling = false
+          }
         })
       },
       editError: (editID: Types.EditID, error: string) => {
@@ -1492,6 +1529,16 @@ export const useState = Z.createZustand(
           })
         })
       },
+      onChangedFocus: (appFocused: boolean) => {
+        const driverStatus = get().sfmi.driverStatus
+        if (
+          appFocused &&
+          driverStatus.type === Types.DriverStatusType.Disabled &&
+          driverStatus.kextPermissionError
+        ) {
+          get().dispatch.driverEnable(true)
+        }
+      },
       redbar: (error: string) => {
         set(s => {
           s.errors.push(error)
@@ -1514,6 +1561,17 @@ export const useState = Z.createZustand(
         set(s => {
           s.destinationPicker.destinationParentPath[index] = path
         })
+      },
+      setDirectMountDir: (directMountDir: string) => {
+        set(s => {
+          s.sfmi.directMountDir = directMountDir
+        })
+      },
+      setDriverStatus: (driverStatus: Types.DriverStatus) => {
+        set(s => {
+          s.sfmi.driverStatus = driverStatus
+        })
+        reduxDispatch(FsGen.createSetDriverStatus())
       },
       setEditName: (editID: Types.EditID, name: string) => {
         set(s => {
@@ -1553,6 +1611,11 @@ export const useState = Z.createZustand(
         set(s => {
           s.pathItemActionMenu.previousView = s.pathItemActionMenu.view
           s.pathItemActionMenu.view = view
+        })
+      },
+      setPreferredMountDirs: (preferredMountDirs: Array<string>) => {
+        set(s => {
+          s.sfmi.preferredMountDirs = preferredMountDirs
         })
       },
       setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => {

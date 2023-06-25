@@ -68,17 +68,11 @@
     "uninstallKBFSConfirm": {},
 
     "refreshDriverStatus": {},
-    "setDriverStatus": {
-      "driverStatus": "Types.DriverStatus"
-    },
+    "setDriverStatus": {},
     "setSfmiBannerDismissed": {"dismissed": "boolean"},
-    "driverEnable": {
-      "isRetry?": "boolean"
-    },
+    "driverEnable": {"isRetry?": "boolean"},
     "driverDisable": {},
     "driverDisabling": {},
-    "driverKextPermissionError": {},
-
     "startManualConflictResolution": {
       "tlfPath": "Types.Path"
     },
@@ -133,8 +127,6 @@
     "setTlfsAsUnloaded": {},
     "placeholderAction": {},
     "refreshMountDirsAfter10s": {},
-    "setDirectMountDir": {"directMountDir": "string"},
-    "setPreferredMountDirs": {"preferredMountDirs": "Array<string>"},
     "loadPathInfo": {"path": "Types.Path"},
     "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
     "download": {"path": "Types.Path"},

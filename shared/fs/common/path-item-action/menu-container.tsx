@@ -65,9 +65,7 @@ export default (ownProps: OwnProps) => {
   const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
   const _pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
   const _downloadID = _pathItemActionMenu.downloadID
-  const _sfmiEnabled = Container.useSelector(
-    state => state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
-  )
+  const _sfmiEnabled = Constants.useState(s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled)
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
   const _view = _pathItemActionMenu.view
 

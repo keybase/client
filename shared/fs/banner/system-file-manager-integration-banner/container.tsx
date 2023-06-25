@@ -9,7 +9,8 @@ type OwnProps = {
 }
 
 const SFMIContainer = (op: OwnProps) => {
-  const driverStatus = Container.useSelector(state => state.fs.sfmi.driverStatus)
+  const driverStatus = Constants.useState(s => s.sfmi.driverStatus)
+  const driverEnable = Constants.useState(s => s.dispatch.driverEnable)
   const settings = Constants.useState(s => s.settings)
   const dispatch = Container.useDispatch()
   const onDisable = React.useCallback(() => dispatch(FsGen.createDriverDisable()), [dispatch])
@@ -17,7 +18,7 @@ const SFMIContainer = (op: OwnProps) => {
     () => dispatch(FsGen.createSetSfmiBannerDismissed({dismissed: true})),
     [dispatch]
   )
-  const onEnable = React.useCallback(() => dispatch(FsGen.createDriverEnable({})), [dispatch])
+  const onEnable = driverEnable
   return (
     <Banner
       alwaysShow={op.alwaysShow}

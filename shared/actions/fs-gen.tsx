@@ -14,7 +14,6 @@ export const download = 'fs:download'
 export const driverDisable = 'fs:driverDisable'
 export const driverDisabling = 'fs:driverDisabling'
 export const driverEnable = 'fs:driverEnable'
-export const driverKextPermissionError = 'fs:driverKextPermissionError'
 export const favoriteIgnore = 'fs:favoriteIgnore'
 export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
 export const favoritesLoad = 'fs:favoritesLoad'
@@ -51,10 +50,8 @@ export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
-export const setDirectMountDir = 'fs:setDirectMountDir'
 export const setDriverStatus = 'fs:setDriverStatus'
 export const setPathSoftError = 'fs:setPathSoftError'
-export const setPreferredMountDirs = 'fs:setPreferredMountDirs'
 export const setSfmiBannerDismissed = 'fs:setSfmiBannerDismissed'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const setTlfSoftError = 'fs:setTlfSoftError'
@@ -110,10 +107,6 @@ export const createDriverDisabling = (payload?: undefined) => ({
 export const createDriverEnable = (payload: {readonly isRetry?: boolean} = {}) => ({
   payload,
   type: driverEnable as typeof driverEnable,
-})
-export const createDriverKextPermissionError = (payload?: undefined) => ({
-  payload,
-  type: driverKextPermissionError as typeof driverKextPermissionError,
 })
 export const createFavoriteIgnore = (payload: {readonly path: Types.Path}) => ({
   payload,
@@ -262,11 +255,7 @@ export const createSetDebugLevel = (payload: {readonly level: string}) => ({
   payload,
   type: setDebugLevel as typeof setDebugLevel,
 })
-export const createSetDirectMountDir = (payload: {readonly directMountDir: string}) => ({
-  payload,
-  type: setDirectMountDir as typeof setDirectMountDir,
-})
-export const createSetDriverStatus = (payload: {readonly driverStatus: Types.DriverStatus}) => ({
+export const createSetDriverStatus = (payload?: undefined) => ({
   payload,
   type: setDriverStatus as typeof setDriverStatus,
 })
@@ -274,10 +263,6 @@ export const createSetPathSoftError = (payload: {
   readonly path: Types.Path
   readonly softError?: Types.SoftError
 }) => ({payload, type: setPathSoftError as typeof setPathSoftError})
-export const createSetPreferredMountDirs = (payload: {readonly preferredMountDirs: Array<string>}) => ({
-  payload,
-  type: setPreferredMountDirs as typeof setPreferredMountDirs,
-})
 export const createSetSfmiBannerDismissed = (payload: {readonly dismissed: boolean}) => ({
   payload,
   type: setSfmiBannerDismissed as typeof setSfmiBannerDismissed,
@@ -359,7 +344,6 @@ export type DownloadPayload = ReturnType<typeof createDownload>
 export type DriverDisablePayload = ReturnType<typeof createDriverDisable>
 export type DriverDisablingPayload = ReturnType<typeof createDriverDisabling>
 export type DriverEnablePayload = ReturnType<typeof createDriverEnable>
-export type DriverKextPermissionErrorPayload = ReturnType<typeof createDriverKextPermissionError>
 export type FavoriteIgnoreErrorPayload = ReturnType<typeof createFavoriteIgnoreError>
 export type FavoriteIgnorePayload = ReturnType<typeof createFavoriteIgnore>
 export type FavoritesLoadPayload = ReturnType<typeof createFavoritesLoad>
@@ -398,10 +382,8 @@ export type RefreshMountDirsAfter10sPayload = ReturnType<typeof createRefreshMou
 export type SaveMediaPayload = ReturnType<typeof createSaveMedia>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
-export type SetDirectMountDirPayload = ReturnType<typeof createSetDirectMountDir>
 export type SetDriverStatusPayload = ReturnType<typeof createSetDriverStatus>
 export type SetPathSoftErrorPayload = ReturnType<typeof createSetPathSoftError>
-export type SetPreferredMountDirsPayload = ReturnType<typeof createSetPreferredMountDirs>
 export type SetSfmiBannerDismissedPayload = ReturnType<typeof createSetSfmiBannerDismissed>
 export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
   typeof createSetSpaceAvailableNotificationThreshold
@@ -435,7 +417,6 @@ export type Actions =
   | DriverDisablePayload
   | DriverDisablingPayload
   | DriverEnablePayload
-  | DriverKextPermissionErrorPayload
   | FavoriteIgnoreErrorPayload
   | FavoriteIgnorePayload
   | FavoritesLoadPayload
@@ -472,10 +453,8 @@ export type Actions =
   | SaveMediaPayload
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload
-  | SetDirectMountDirPayload
   | SetDriverStatusPayload
   | SetPathSoftErrorPayload
-  | SetPreferredMountDirsPayload
   | SetSfmiBannerDismissedPayload
   | SetSpaceAvailableNotificationThresholdPayload
   | SetTlfSoftErrorPayload

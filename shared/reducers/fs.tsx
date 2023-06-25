@@ -4,11 +4,6 @@ import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
 
 const initialState: Types.State = {
-  sfmi: {
-    directMountDir: '',
-    driverStatus: Constants.defaultDriverStatus,
-    preferredMountDirs: [],
-  },
   softErrors: {
     pathErrors: new Map(),
     tlfErrors: new Map(),
@@ -133,31 +128,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.userFileEditsLoaded]: (draftState, action) => {
     draftState.tlfUpdates = action.payload.tlfUpdates
-  },
-  [FsGen.setDriverStatus]: (draftState, action) => {
-    draftState.sfmi.driverStatus = action.payload.driverStatus
-  },
-  [FsGen.driverEnable]: draftState => {
-    if (draftState.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
-      draftState.sfmi.driverStatus.isEnabling = true
-    }
-  },
-  [FsGen.driverKextPermissionError]: draftState => {
-    if (draftState.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
-      draftState.sfmi.driverStatus.kextPermissionError = true
-      draftState.sfmi.driverStatus.isEnabling = false
-    }
-  },
-  [FsGen.driverDisabling]: draftState => {
-    if (draftState.sfmi.driverStatus.type === Types.DriverStatusType.Enabled) {
-      draftState.sfmi.driverStatus.isDisabling = true
-    }
-  },
-  [FsGen.setDirectMountDir]: (draftState, action) => {
-    draftState.sfmi.directMountDir = action.payload.directMountDir
-  },
-  [FsGen.setPreferredMountDirs]: (draftState, action) => {
-    draftState.sfmi.preferredMountDirs = action.payload.preferredMountDirs
   },
   [FsGen.setPathSoftError]: (draftState, action) => {
     if (action.payload.softError) {

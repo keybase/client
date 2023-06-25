@@ -4,21 +4,19 @@ import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
 import {useFuseClosedSourceConsent} from './hooks'
 import * as FsGen from '../../actions/fs-gen'
+import * as Constants from '../../constants/fs'
 import {fileUIName} from '../../constants/platform'
 import * as Container from '../../util/container'
-import shallowEqual from 'shallowequal'
 
 type Props = {
   mode: 'Icon' | 'Button'
 }
 
 const SFMIPopup = (props: Props) => {
-  const {isEnabling, type} = Container.useSelector(state => {
-    const {driverStatus} = state.fs.sfmi
-    const {type} = driverStatus
-    const isEnabling = type === Types.DriverStatusType.Disabled ? driverStatus.isEnabling : false
-    return {isEnabling, type}
-  }, shallowEqual)
+  const sfmi = Constants.useState(s => s.sfmi)
+  const {driverStatus} = sfmi
+  const {type} = driverStatus
+  const isEnabling = type === Types.DriverStatusType.Disabled ? driverStatus.isEnabling : false
   const dispatch = Container.useDispatch()
   const enableDriver = React.useCallback(() => {
     dispatch(FsGen.createDriverEnable())
