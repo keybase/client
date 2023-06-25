@@ -69,7 +69,7 @@ const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
     type: Types.stringToDeviceType(d.device.type),
   })
 
-const emptyDevice: Types.Device = {
+export const emptyDevice: Types.Device = {
   created: 0,
   currentDevice: false,
   deviceID: Types.stringToDeviceID(''),

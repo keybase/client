@@ -1,7 +1,7 @@
 import logger from '../logger'
 import * as EngineGen from './engine-gen-gen'
 import * as PinentryGen from './pinentry-gen'
-import * as Constants from '../constants/login'
+import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {getEngine} from '../engine/require'
@@ -26,7 +26,7 @@ const onGetPassword = (_: unknown, action: EngineGen.Keybase1SecretUiGetPassphra
   const {pinentry} = params
   const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
   let {retryLabel} = pinentry
-  if (retryLabel === Constants.invalidPasswordErrorString) {
+  if (retryLabel === ConfigConstants.invalidPasswordErrorString) {
     retryLabel = 'Incorrect password.'
   }
 

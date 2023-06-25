@@ -1,15 +1,12 @@
 import * as ConfigGen from '../../actions/config-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
-import * as LoginConstants from '../../constants/login'
-import * as LoginGen from '../../actions/login-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import AccountSwitcher from './index'
-import HiddenString from '../../util/hidden-string'
 
 const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
   accountRows: Array<T>,
@@ -21,7 +18,7 @@ export default () => {
   const _accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const fullname = Container.useSelector(state => TrackerConstants.getDetails(state, you).fullname || '')
-  const waiting = Container.useAnyWaiting(LoginConstants.waitingKey)
+  const waiting = Container.useAnyWaiting(ConfigConstants.loginWaitingKey)
 
   const dispatch = Container.useDispatch()
   const _onProfileClick = (username: string) => {
@@ -35,9 +32,10 @@ export default () => {
   }
 
   const setUserSwitching = ConfigConstants.useConfigState(s => s.dispatch.setUserSwitching)
+  const login = ConfigConstants.useConfigState(s => s.dispatch.login)
   const onSelectAccountLoggedIn = (username: string) => {
     setUserSwitching(true)
-    dispatch(LoginGen.createLogin({password: new HiddenString(''), username}))
+    login(username, '')
   }
   const onSelectAccountLoggedOut = (username: string) => {
     dispatch(ConfigGen.createLogoutAndTryToLogInAs({username}))

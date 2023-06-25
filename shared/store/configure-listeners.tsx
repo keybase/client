@@ -8,7 +8,6 @@ import initDevice from '../actions/devices'
 import initFS from '../actions/fs'
 import initGit from '../actions/git'
 import initGregor from '../actions/gregor'
-import initLogin from '../actions/login'
 import initProvision from '../actions/provision'
 import initNotifications from '../actions/notifications'
 import initPeople from '../actions/people'
@@ -33,7 +32,6 @@ export const initListeners = () => {
   initDevice()
   initFS()
   initGregor()
-  initLogin()
   initProvision()
   initNotifications()
   initPinentry()

@@ -9,7 +9,6 @@ import * as DarkMode from '../../constants/darkmode'
 import * as EngineGen from '../engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
-import * as LoginGen from '../login-gen'
 import * as MediaLibrary from 'expo-media-library'
 import * as ProfileGen from '../profile-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
@@ -689,9 +688,9 @@ const onTabLongPress = (_: unknown, action: RouteTreeGen.TabLongPressPayload) =>
   const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
   if (row) {
     ConfigConstants.useConfigState.getState().dispatch.setUserSwitching(true)
-    return [LoginGen.createLogin({password: new Container.HiddenString(''), username: row.username})]
+    ConfigConstants.useConfigState.getState().dispatch.login(row.username, '')
   }
-  return undefined
+  return
 }
 
 const onPersistRoute = async () => {

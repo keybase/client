@@ -1,6 +1,4 @@
 import chat2 from './chat2'
-import crypto from './crypto'
-import login from './login'
 import notifications from './notifications'
 import people from './people'
 import pinentry from './pinentry'
@@ -15,11 +13,12 @@ import tracker2 from './tracker2'
 import unlockFolders from './unlock-folders'
 import users from './users'
 import wallets from './wallets'
+// team building leftovers, TODO remove
+import crypto from './crypto'
 
 export const reducers = {
   chat2,
   crypto,
-  login,
   notifications,
   people,
   pinentry,
@@ -39,7 +38,6 @@ export const reducers = {
 export type TypedState = {
   chat2: ReturnType<typeof chat2>
   crypto: ReturnType<typeof crypto>
-  login: ReturnType<typeof login>
   notifications: ReturnType<typeof notifications>
   people: ReturnType<typeof people>
   pinentry: ReturnType<typeof pinentry>

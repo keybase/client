@@ -1,10 +1,8 @@
 import * as React from 'react'
-import * as LoginGen from '../../actions/login-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import * as RecoverPasswordGen from '../../actions/recover-password-gen'
-import HiddenString from '../../util/hidden-string'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
 import * as Container from '../../util/container'
@@ -35,24 +33,24 @@ const LoginWrapper = (props: Props) => {
 
   const [gotNeedPasswordError, setGotNeedPasswordError] = React.useState(false)
 
-  const dispatch = Container.useDispatch()
-
   const {onLogin, loggedInMap} = props
 
   const onSubmit = React.useCallback(() => {
     onLogin(selectedUser, password)
   }, [selectedUser, password, onLogin])
 
+  const loginError = ConfigConstants.useConfigState(s => s.dispatch.loginError)
+
   const selectedUserChange = React.useCallback(
-    user => {
-      dispatch(LoginGen.createLoginError({}))
+    (user: string) => {
+      loginError()
       setPassword('')
       setSelectedUser(user)
       if (loggedInMap.get(user)) {
         onLogin(user, '')
       }
     },
-    [dispatch, setPassword, setSelectedUser, onLogin, loggedInMap]
+    [loginError, setPassword, setSelectedUser, onLogin, loggedInMap]
   )
 
   // Effects
@@ -64,11 +62,12 @@ const LoginWrapper = (props: Props) => {
   React.useEffect(() => {
     setSelectedUser(props.selectedUser)
   }, [props.selectedUser, setSelectedUser])
+
   React.useEffect(() => {
     if (!prevPassword && !!password) {
-      dispatch(LoginGen.createLoginError({}))
+      loginError()
     }
-  }, [password, prevPassword, dispatch])
+  }, [password, prevPassword, loginError])
   React.useEffect(() => {
     if (props.error === needPasswordError) {
       setGotNeedPasswordError(true)
@@ -98,7 +97,7 @@ const LoginWrapper = (props: Props) => {
 
 export default () => {
   const _users = ConfigConstants.useConfigState(s => s.configuredAccounts)
-  const error = Container.useSelector(state => state.login.error)
+  const error = ConfigConstants.useConfigState(s => s.loginError)
   const selectedUser = ConfigConstants.useConfigState(s => s.defaultUsername)
   const dispatch = Container.useDispatch()
   const onForgotPassword = (username: string) => {
@@ -107,9 +106,7 @@ export default () => {
   const onFeedback = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
   }
-  const onLogin = (username: string, password: string) => {
-    dispatch(LoginGen.createLogin({password: new HiddenString(password), username}))
-  }
+  const onLogin = ConfigConstants.useConfigState(s => s.dispatch.login)
   const onSignup = () => {
     dispatch(SignupGen.createRequestAutoInvite())
   }

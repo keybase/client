@@ -1,4 +1,4 @@
-import * as Constants from '../../constants/login'
+import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as KbMobile from '../../common-adapters/mobile.native'
 import * as React from 'react'
@@ -71,7 +71,7 @@ class LoginRender extends React.Component<Props, State> {
               )}
               <Kb.WaitingButton
                 disabled={this.props.needPassword && !this.props.password}
-                waitingKey={Constants.waitingKey}
+                waitingKey={ConfigConstants.loginWaitingKey}
                 style={{marginTop: this.props.needPassword ? 0 : Styles.globalMargins.small, width: '100%'}}
                 fullWidth={true}
                 label="Log in"

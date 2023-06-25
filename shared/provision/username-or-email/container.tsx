@@ -9,6 +9,7 @@ import * as SignupGen from '../../actions/signup-gen'
 import Username from '.'
 import {usernameHint} from '../../constants/signup'
 import type {RPCError} from '../../util/errors'
+import shallowEqual from 'shallowequal'
 
 type OwnProps = {fromReset?: boolean}
 
@@ -36,8 +37,9 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const _resetBannerUser = ARConstants.useState(s => s.username)
   const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
   const _error = Container.useSelector(state => state.provision.error.stringValue())
-  const {inlineError, inlineSignUpLink} = Container.useSelector(state =>
-    decodeInlineError(state.provision.inlineError)
+  const {inlineError, inlineSignUpLink} = Container.useSelector(
+    state => decodeInlineError(state.provision.inlineError),
+    shallowEqual
   )
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
   const initialUsername = Container.useSelector(state => state.provision.initialUsername)
