@@ -51,10 +51,8 @@ export const saveMedia = 'fs:saveMedia'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const setDriverStatus = 'fs:setDriverStatus'
-export const setPathSoftError = 'fs:setPathSoftError'
 export const setSfmiBannerDismissed = 'fs:setSfmiBannerDismissed'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
-export const setTlfSoftError = 'fs:setTlfSoftError'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
 export const setTlfsAsUnloaded = 'fs:setTlfsAsUnloaded'
 export const shareNative = 'fs:shareNative'
@@ -259,10 +257,6 @@ export const createSetDriverStatus = (payload?: undefined) => ({
   payload,
   type: setDriverStatus as typeof setDriverStatus,
 })
-export const createSetPathSoftError = (payload: {
-  readonly path: Types.Path
-  readonly softError?: Types.SoftError
-}) => ({payload, type: setPathSoftError as typeof setPathSoftError})
 export const createSetSfmiBannerDismissed = (payload: {readonly dismissed: boolean}) => ({
   payload,
   type: setSfmiBannerDismissed as typeof setSfmiBannerDismissed,
@@ -273,10 +267,6 @@ export const createSetSpaceAvailableNotificationThreshold = (payload: {
   payload,
   type: setSpaceAvailableNotificationThreshold as typeof setSpaceAvailableNotificationThreshold,
 })
-export const createSetTlfSoftError = (payload: {
-  readonly path: Types.Path
-  readonly softError?: Types.SoftError
-}) => ({payload, type: setTlfSoftError as typeof setTlfSoftError})
 export const createSetTlfSyncConfig = (payload: {
   readonly enabled: boolean
   readonly tlfPath: Types.Path
@@ -383,12 +373,10 @@ export type SaveMediaPayload = ReturnType<typeof createSaveMedia>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
 export type SetDriverStatusPayload = ReturnType<typeof createSetDriverStatus>
-export type SetPathSoftErrorPayload = ReturnType<typeof createSetPathSoftError>
 export type SetSfmiBannerDismissedPayload = ReturnType<typeof createSetSfmiBannerDismissed>
 export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
   typeof createSetSpaceAvailableNotificationThreshold
 >
-export type SetTlfSoftErrorPayload = ReturnType<typeof createSetTlfSoftError>
 export type SetTlfSyncConfigPayload = ReturnType<typeof createSetTlfSyncConfig>
 export type SetTlfsAsUnloadedPayload = ReturnType<typeof createSetTlfsAsUnloaded>
 export type ShareNativePayload = ReturnType<typeof createShareNative>
@@ -454,10 +442,8 @@ export type Actions =
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload
   | SetDriverStatusPayload
-  | SetPathSoftErrorPayload
   | SetSfmiBannerDismissedPayload
   | SetSpaceAvailableNotificationThresholdPayload
-  | SetTlfSoftErrorPayload
   | SetTlfSyncConfigPayload
   | SetTlfsAsUnloadedPayload
   | ShareNativePayload

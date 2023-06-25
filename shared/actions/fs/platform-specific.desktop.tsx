@@ -7,7 +7,6 @@ import * as Tabs from '../../constants/tabs'
 import * as Container from '../../util/container'
 import {isWindows, isLinux, pathSep} from '../../constants/platform.desktop'
 import logger from '../../logger'
-import {errorToActionOrThrow} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Path from '../../util/path'
 import KB2 from '../../util/electron.desktop'
@@ -42,7 +41,8 @@ const openLocalPathInSystemFileManager = async (
       throw new Error('impossible')
     }
   } catch (e) {
-    return errorToActionOrThrow(e)
+    Constants.errorToActionOrThrow(e)
+    return
   }
 }
 
@@ -66,7 +66,7 @@ const openPathInSystemFileManager = async (_: unknown, action: FsGen.OpenPathInS
         ) ||
           Constants.getPathItem(Constants.useState.getState().pathItems, action.payload.path).type ===
             Types.PathType.Folder
-      ).catch(e => errorToActionOrThrow(action.payload.path, e))
+      ).catch(e => Constants.errorToActionOrThrow(action.payload.path, e))
     : new Promise<void>((resolve, reject) => {
         if (sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
           // This usually indicates a developer error as
@@ -211,7 +211,8 @@ const onInstallCachedDokan = async () => {
     await installCachedDokan?.()
     return FsGen.createRefreshDriverStatus()
   } catch (e) {
-    return errorToActionOrThrow(e)
+    Constants.errorToActionOrThrow(e)
+    return
   }
 }
 
@@ -230,7 +231,8 @@ const loadUserFileEdits = async () => {
       tlfUpdates: Constants.userTlfHistoryRPCToState(writerEdits || []),
     })
   } catch (error) {
-    return errorToActionOrThrow(error)
+    Constants.errorToActionOrThrow(error)
+    return
   }
 }
 

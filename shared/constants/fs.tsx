@@ -953,6 +953,49 @@ export const hideOrDisableInDestinationPicker = (
   destinationPickerIndex?: number
 ) => typeof destinationPickerIndex === 'number' && tlfType === Types.TlfType.Public && name !== username
 
+const noAccessErrorCodes = [
+  RPCTypes.StatusCode.scsimplefsnoaccess,
+  RPCTypes.StatusCode.scteamnotfound,
+  RPCTypes.StatusCode.scteamreaderror,
+]
+
+export const errorToActionOrThrow = (error: any, path?: Types.Path) => {
+  if (error?.code === RPCTypes.StatusCode.sckbfsclienttimeout) {
+    useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+    return
+  }
+  if (error?.code === RPCTypes.StatusCode.scidentifiesfailed) {
+    // This is specifically to address the situation where when user tries to
+    // remove a shared TLF from their favorites but another user of the TLF has
+    // deleted their account the subscribePath call cauused from the popup will
+    // get SCIdentifiesFailed error. We can't do anything here so just move on.
+    // (Ideally we'd be able to tell it's becaue the user was deleted, but we
+    // don't have that from Go right now.)
+    //
+    // TODO: TRIAGE-2379 this should probably be ignored on Go side. We
+    // already use fsGui identifyBehavior and there's no reason we should get
+    // an identify error here.
+    return undefined
+  }
+  if (path && error?.code === RPCTypes.StatusCode.scsimplefsnotexist) {
+    useState.getState().dispatch.setPathSoftError(path, Types.SoftError.Nonexistent)
+    return
+  }
+  if (path && noAccessErrorCodes.includes(error?.code)) {
+    const tlfPath = getTlfPath(path)
+    if (tlfPath) {
+      useState.getState().dispatch.setTlfSoftError(tlfPath, Types.SoftError.NoAccess)
+      return
+    }
+  }
+  if (error?.code === RPCTypes.StatusCode.scdeleted) {
+    // The user is deleted. Let user know and move on.
+    useState.getState().dispatch.redbar('A user in this shared folder has deleted their account.')
+    return
+  }
+  throw error
+}
+
 type State = {
   badge: RPCTypes.FilesTabBadge
   criticalUpdate: boolean
@@ -971,6 +1014,7 @@ type State = {
   pathUserSettings: Map<Types.Path, Types.PathUserSetting>
   settings: Types.Settings
   sfmi: Types.SystemFileManagerIntegration
+  softErrors: Types.SoftErrors
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -1002,6 +1046,10 @@ const initialState: State = {
     directMountDir: '',
     driverStatus: defaultDriverStatus,
     preferredMountDirs: [],
+  },
+  softErrors: {
+    pathErrors: new Map(),
+    tlfErrors: new Map(),
   },
 }
 
@@ -1042,6 +1090,8 @@ type ZState = State & {
     setPathItemActionMenuDownload: (downloadID?: string, intent?: Types.DownloadIntent) => void
     setPathItemActionMenuView: (view: Types.PathItemActionMenuView) => void
     setPreferredMountDirs: (preferredMountDirs: Array<string>) => void
+    setPathSoftError: (path: Types.Path, softError?: Types.SoftError) => void
+    setTlfSoftError: (path: Types.Path, softError?: Types.SoftError) => void
     setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
@@ -1193,8 +1243,8 @@ export const useState = Z.createZustand(
                 get().dispatch.editSuccess(editID)
                 return
               } catch (e) {
-                // TODO <<<<<<<<<<<<<<<<<<<
-                return // errorToActionOrThrow(e, edit.parentPath)
+                errorToActionOrThrow(e, edit.parentPath)
+                return
               }
             case Types.EditType.Rename:
               try {
@@ -1382,11 +1432,8 @@ export const useState = Z.createZustand(
               }
             })
           } catch (error) {
-            // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            // const toPut = errorToActionOrThrow(error, rootPath)
-            // if (toPut) {
-            //   listenerApi.dispatch(toPut)
-            // }
+            errorToActionOrThrow(error, rootPath)
+            return
           }
         }
         Z.ignorePromise(f())
@@ -1427,9 +1474,8 @@ export const useState = Z.createZustand(
               })
             })
           } catch (err) {
-            // TODO put bac <<<<<<<<<<<<<<<<<<<<<,,
+            errorToActionOrThrow(err)
             return
-            //  errorToActionOrThrow(err)
           }
         }
         Z.ignorePromise(f())
@@ -1449,13 +1495,12 @@ export const useState = Z.createZustand(
             set(s => {
               const oldPathItem = getPathItem(s.pathItems, path)
               s.pathItems.set(path, updatePathItem(oldPathItem, pathItem))
-              // TODO <<<<<<<<<<<<<<<<<<<<<<<<,
-              // s.softErrors.pathErrors.delete(path)
-              // s.softErrors.tlfErrors.delete(path)
+              s.softErrors.pathErrors.delete(path)
+              s.softErrors.tlfErrors.delete(path)
             })
           } catch (err) {
-            // TODO <<<<<<<<<<<<<<<<<<<<
-            // return errorToActionOrThrow(err, path)
+            errorToActionOrThrow(err, path)
+            return
           }
         }
         Z.ignorePromise(f())
@@ -1613,6 +1658,15 @@ export const useState = Z.createZustand(
           s.pathItemActionMenu.view = view
         })
       },
+      setPathSoftError: (path: Types.Path, softError?: Types.SoftError) => {
+        set(s => {
+          if (softError) {
+            s.softErrors.pathErrors.set(path, softError)
+          } else {
+            s.softErrors.pathErrors.delete(path)
+          }
+        })
+      },
       setPreferredMountDirs: (preferredMountDirs: Array<string>) => {
         set(s => {
           s.sfmi.preferredMountDirs = preferredMountDirs
@@ -1625,6 +1679,15 @@ export const useState = Z.createZustand(
             old.sort = sortSetting
           } else {
             s.pathUserSettings.set(path, {...defaultPathUserSetting, sort: sortSetting})
+          }
+        })
+      },
+      setTlfSoftError: (path: Types.Path, softError?: Types.SoftError) => {
+        set(s => {
+          if (softError) {
+            s.softErrors.tlfErrors.set(path, softError)
+          } else {
+            s.softErrors.tlfErrors.delete(path)
           }
         })
       },

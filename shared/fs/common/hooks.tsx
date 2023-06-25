@@ -118,7 +118,7 @@ export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): 
 }
 
 export const useFsSoftError = (path: Types.Path): Types.SoftError | undefined => {
-  const softErrors = Container.useSelector(state => state.fs.softErrors)
+  const softErrors = Constants.useState(s => s.softErrors)
   return Constants.getSoftError(softErrors, path)
 }
 

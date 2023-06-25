@@ -14,7 +14,6 @@ import initPlatformSpecific from './platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Platform from '../../constants/platform'
 import {tlfToPreferredOrder} from '../../util/kbfs'
-import {errorToActionOrThrow} from './shared'
 import {RPCError} from '../../util/errors'
 import KB2 from '../../util/electron'
 import {requestPermissionsToWrite} from '../platform-specific'
@@ -108,7 +107,8 @@ const loadAdditionalTlf = async (_: unknown, action: FsGen.LoadAdditionalTlfPayl
         }),
       ]
     }
-    return errorToActionOrThrow(error, action.payload.tlfPath)
+    Constants.errorToActionOrThrow(error, action.payload.tlfPath)
+    return
   }
 }
 
@@ -159,7 +159,8 @@ const loadFavorites = async () => {
     )
     return payload.private.size ? FsGen.createFavoritesLoaded(payload) : undefined
   } catch (e) {
-    return errorToActionOrThrow(e)
+    Constants.errorToActionOrThrow(e)
+    return
   }
 }
 
@@ -203,7 +204,8 @@ const loadTlfSyncConfig = async (_: unknown, action: FsGen.LoadTlfSyncConfigPayl
       tlfType: parsedPath.tlfType,
     })
   } catch (e) {
-    return errorToActionOrThrow(e, tlfPath)
+    Constants.errorToActionOrThrow(e, tlfPath)
+    return
   }
 }
 
@@ -261,7 +263,8 @@ const upload = async (_: Container.TypedState, action: FsGen.UploadPayload) => {
     })
     return false
   } catch (err) {
-    return errorToActionOrThrow(err)
+    Constants.errorToActionOrThrow(err)
+    return
   }
 }
 
@@ -270,7 +273,8 @@ const loadUploadStatus = async () => {
     const uploadStates = await RPCTypes.SimpleFSSimpleFSGetUploadStatusRpcPromise()
     return FsGen.createLoadedUploadStatus({uploadStates: uploadStates || []})
   } catch (err) {
-    return errorToActionOrThrow(err)
+    Constants.errorToActionOrThrow(err)
+    return
   }
 }
 
@@ -362,10 +366,8 @@ const ignoreFavorite = async (_: Container.TypedState, action: FsGen.FavoriteIgn
     await RPCTypes.favoriteFavoriteIgnoreRpcPromise({folder})
     return null
   } catch (error) {
-    return [
-      FsGen.createFavoriteIgnore({path: action.payload.path}),
-      errorToActionOrThrow(error, action.payload.path),
-    ]
+    Constants.errorToActionOrThrow(error, action.payload.path)
+    return FsGen.createFavoriteIgnore({path: action.payload.path})
   }
 }
 
@@ -376,7 +378,8 @@ const letResetUserBackIn = async (_: unknown, action: FsGen.LetResetUserBackInPa
       username: action.payload.username,
     })
   } catch (error) {
-    return errorToActionOrThrow(error)
+    Constants.errorToActionOrThrow(error)
+    return
   }
   return
 }
@@ -397,7 +400,8 @@ const deleteFile = async (_: unknown, action: FsGen.DeleteFilePayload) => {
     })
     await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
   } catch (e) {
-    return errorToActionOrThrow(e, action.payload.path)
+    Constants.errorToActionOrThrow(e, action.payload.path)
+    return
   }
   return
 }
@@ -458,7 +462,8 @@ const moveOrCopy = async (_: unknown, action: FsGen.MovePayload | FsGen.CopyPayl
     // just retry it. If we do want retry in the future we can include those
     // paths in the action.
   } catch (e) {
-    return errorToActionOrThrow(e, action.payload.destinationParentPath)
+    Constants.errorToActionOrThrow(e, action.payload.destinationParentPath)
+    return
   }
 }
 
@@ -549,7 +554,8 @@ const subscribePath = async (_: unknown, action: FsGen.SubscribePathPayload) => 
       // We'll handle this error in loadAdditionalTLF instead.
       return
     }
-    return errorToActionOrThrow(error, action.payload.path)
+    Constants.errorToActionOrThrow(error, action.payload.path)
+    return
   }
 }
 
@@ -564,7 +570,8 @@ const subscribeNonPath = async (_: unknown, action: FsGen.SubscribeNonPathPayloa
     })
     return null
   } catch (err) {
-    return errorToActionOrThrow(err)
+    Constants.errorToActionOrThrow(err)
+    return
   }
 }
 
@@ -651,7 +658,8 @@ const loadDownloadInfo = async (_: Container.TypedState, action: FsGen.LoadDownl
     })
     return
   } catch (error) {
-    return errorToActionOrThrow(error)
+    Constants.errorToActionOrThrow(error)
+    return
   }
 }
 
@@ -676,7 +684,8 @@ const loadDownloadStatus = async () => {
     )
     return
   } catch (error) {
-    return errorToActionOrThrow(error)
+    Constants.errorToActionOrThrow(error)
+    return
   }
 }
 

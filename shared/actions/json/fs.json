@@ -113,14 +113,6 @@
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
     "kbfsDaemonRpcStatusChanged": {},
-    "setPathSoftError": {
-      "path": "Types.Path",
-      "softError?": "Types.SoftError"
-    },
-    "setTlfSoftError": {
-      "path": "Types.Path",
-      "softError?": "Types.SoftError"
-    },
     "setSpaceAvailableNotificationThreshold": {
       "spaceAvailableNotificationThreshold": "number"
     },

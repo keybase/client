@@ -4,10 +4,6 @@ import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
 
 const initialState: Types.State = {
-  softErrors: {
-    pathErrors: new Map(),
-    tlfErrors: new Map(),
-  },
   tlfUpdates: [],
   tlfs: {
     additionalTlfs: new Map(),
@@ -128,19 +124,5 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.userFileEditsLoaded]: (draftState, action) => {
     draftState.tlfUpdates = action.payload.tlfUpdates
-  },
-  [FsGen.setPathSoftError]: (draftState, action) => {
-    if (action.payload.softError) {
-      draftState.softErrors.pathErrors.set(action.payload.path, action.payload.softError)
-    } else {
-      draftState.softErrors.pathErrors.delete(action.payload.path)
-    }
-  },
-  [FsGen.setTlfSoftError]: (draftState, action) => {
-    if (action.payload.softError) {
-      draftState.softErrors.tlfErrors.set(action.payload.path, action.payload.softError)
-    } else {
-      draftState.softErrors.tlfErrors.delete(action.payload.path)
-    }
   },
 })

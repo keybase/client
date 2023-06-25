@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
-import * as Container from '../../util/container'
 
 type Props = {
   onTriggerFilterMobile: () => void
@@ -12,7 +11,7 @@ type Props = {
 }
 
 const FsNavHeaderRightActions = (props: Props) => {
-  const softErrors = Container.useSelector(state => state.fs.softErrors)
+  const softErrors = Constants.useState(s => s.softErrors)
   const hasSoftError = !!Constants.getSoftError(softErrors, props.path)
   const setFolderViewFilter = Constants.useState(s => s.dispatch.setFolderViewFilter)
   React.useEffect(() => {
