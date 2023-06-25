@@ -1,6 +1,4 @@
-import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
-import * as Container from '../../util/container'
 import Upload from './upload'
 import {useUploadCountdown} from './use-upload-countdown'
 import * as Constants from '../../constants/fs'
@@ -8,19 +6,18 @@ import * as Constants from '../../constants/fs'
 // NOTE flip this to show a button to debug the upload banner animations.
 const enableDebugUploadBanner = false
 
-const getDebugToggleShow = dispatch => {
+const getDebugToggleShow = () => {
   if (!(__DEV__ && enableDebugUploadBanner)) {
     return undefined
   }
 
+  const journalUpdate = Constants.useState.getState().dispatch.journalUpdate
   let showing = false
   return () => {
-    dispatch(
-      FsGen.createJournalUpdate({
-        endEstimate: showing ? undefined : Date.now() + 1000 * 60 * 60,
-        syncingPaths: showing ? [] : [Types.stringToPath('/keybase')],
-        totalSyncingBytes: showing ? 0 : 1,
-      })
+    journalUpdate(
+      showing ? [] : [Types.stringToPath('/keybase')],
+      showing ? 0 : 1,
+      showing ? undefined : Date.now() + 1000 * 60 * 60
     )
     showing = !showing
   }
@@ -29,9 +26,8 @@ const getDebugToggleShow = dispatch => {
 const UpoadContainer = () => {
   const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
   const pathItems = Constants.useState(s => s.pathItems)
-  const uploads = Container.useSelector(state => state.fs.uploads)
-  const dispatch = Container.useDispatch()
-  const debugToggleShow = getDebugToggleShow(dispatch)
+  const uploads = Constants.useState(s => s.uploads)
+  const debugToggleShow = getDebugToggleShow()
 
   // We just use syncingPaths rather than merging with writingToJournal here
   // since journal status comes a bit slower, and merging the two causes

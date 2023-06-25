@@ -523,9 +523,7 @@ export type FileContext = {
   readonly url: string
 }
 
-export type State = {
-  readonly uploads: Uploads
-}
+export type State = {}
 
 export type Visibility = TlfType | undefined
 

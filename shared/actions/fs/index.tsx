@@ -78,16 +78,6 @@ const upload = async (_: Container.TypedState, action: FsGen.UploadPayload) => {
   }
 }
 
-const loadUploadStatus = async () => {
-  try {
-    const uploadStates = await RPCTypes.SimpleFSSimpleFSGetUploadStatusRpcPromise()
-    return FsGen.createLoadedUploadStatus({uploadStates: uploadStates || []})
-  } catch (err) {
-    Constants.errorToActionOrThrow(err)
-    return
-  }
-}
-
 const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.UploadFromDragAndDropPayload) => {
   if (Platform.isDarwin && darwinCopyToKBFSTempUploadFile) {
     const dir = await RPCTypes.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
@@ -143,13 +133,14 @@ const pollJournalFlushStatusUntilDone = async (
         await RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
           filter: RPCTypes.ListFilter.filterSystemHidden,
         })
-      listenerApi.dispatch(
-        FsGen.createJournalUpdate({
-          endEstimate: endEstimate ?? undefined,
-          syncingPaths: (syncingPaths || []).map(Types.stringToPath),
+
+      Constants.useState
+        .getState()
+        .dispatch.journalUpdate(
+          (syncingPaths || []).map(Types.stringToPath),
           totalSyncingBytes,
-        })
-      )
+          endEstimate ?? undefined
+        )
 
       // It's possible syncingPaths has not been emptied before
       // totalSyncingBytes becomes 0. So check both.
@@ -413,7 +404,8 @@ const onNonPathChange = (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscri
     case RPCTypes.SubscriptionTopic.downloadStatus:
       return FsGen.createLoadDownloadStatus()
     case RPCTypes.SubscriptionTopic.uploadStatus:
-      return FsGen.createLoadUploadStatus()
+      Constants.useState.getState().dispatch.loadUploadStatus()
+      return
     case RPCTypes.SubscriptionTopic.filesTabBadge:
       return FsGen.createLoadFilesTabBadge()
     case RPCTypes.SubscriptionTopic.settings:
@@ -525,6 +517,10 @@ const subscribeAndLoadUploadStatus = () => {
   const oldUploadStatusSubscriptionID = uploadStatusSubscriptionID
   uploadStatusSubscriptionID = Constants.makeUUID()
   const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
+
+  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+    Constants.useState.getState().dispatch.loadUploadStatus()
+  }
   return (
     kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
       ...(oldUploadStatusSubscriptionID
@@ -534,7 +530,6 @@ const subscribeAndLoadUploadStatus = () => {
         subscriptionID: uploadStatusSubscriptionID,
         topic: RPCTypes.SubscriptionTopic.uploadStatus,
       }),
-      FsGen.createLoadUploadStatus(),
     ]
   )
 }
@@ -594,7 +589,6 @@ const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
 const initFS = () => {
   Container.listenAction(FsGen.upload, upload)
   Container.listenAction(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
-  Container.listenAction(FsGen.loadUploadStatus, loadUploadStatus)
   Container.listenAction(FsGen.dismissUpload, dismissUpload)
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
   Container.listenAction(FsGen.letResetUserBackIn, letResetUserBackIn)

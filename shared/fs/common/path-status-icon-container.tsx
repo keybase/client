@@ -1,6 +1,5 @@
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
 import PathStatusIcon from './path-status-icon'
 
 type OwnPropsPathItem = {
@@ -12,7 +11,7 @@ const PathStatusIconPathItem = (ownProps: OwnPropsPathItem) => {
   const _kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
   const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, ownProps.path))
   const _tlf = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, ownProps.path))
-  const _uploads = Container.useSelector(state => state.fs.uploads.syncingPaths)
+  const _uploads = Constants.useState(s => s.uploads.syncingPaths)
   const props = {
     isFolder: _pathItem.type === Types.PathType.Folder,
     showTooltipOnPressMobile: ownProps.showTooltipOnPressMobile,
@@ -36,7 +35,7 @@ const PathStatusIconTlfType = (ownProps: OwnPropsTlfType) => {
   const _tlfList = Constants.useState(s =>
     ownProps.tlfType ? Constants.getTlfListFromType(s.tlfs, ownProps.tlfType) : new Map()
   )
-  const _uploads = Container.useSelector(state => state.fs.uploads)
+  const _uploads = Constants.useState(s => s.uploads)
   const props = {
     isFolder: true,
     isTlfType: true,

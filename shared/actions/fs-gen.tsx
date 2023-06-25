@@ -18,7 +18,6 @@ export const finishManualConflictResolution = 'fs:finishManualConflictResolution
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
 export const getOnlineStatus = 'fs:getOnlineStatus'
-export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
@@ -26,10 +25,8 @@ export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
 export const loadPathInfo = 'fs:loadPathInfo'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
-export const loadUploadStatus = 'fs:loadUploadStatus'
 export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
-export const loadedUploadStatus = 'fs:loadedUploadStatus'
 export const move = 'fs:move'
 export const openAndUpload = 'fs:openAndUpload'
 export const openFilesFromWidget = 'fs:openFilesFromWidget'
@@ -114,11 +111,6 @@ export const createGetOnlineStatus = (payload?: undefined) => ({
   payload,
   type: getOnlineStatus as typeof getOnlineStatus,
 })
-export const createJournalUpdate = (payload: {
-  readonly syncingPaths: Array<Types.Path>
-  readonly totalSyncingBytes: number
-  readonly endEstimate?: number
-}) => ({payload, type: journalUpdate as typeof journalUpdate})
 export const createKbfsDaemonRpcStatusChanged = (payload?: undefined) => ({
   payload,
   type: kbfsDaemonRpcStatusChanged as typeof kbfsDaemonRpcStatusChanged,
@@ -147,10 +139,6 @@ export const createLoadTlfSyncConfig = (payload: {readonly tlfPath: Types.Path})
   payload,
   type: loadTlfSyncConfig as typeof loadTlfSyncConfig,
 })
-export const createLoadUploadStatus = (payload?: undefined) => ({
-  payload,
-  type: loadUploadStatus as typeof loadUploadStatus,
-})
 export const createLoadedFilesTabBadge = (payload: {readonly badge: RPCTypes.FilesTabBadge}) => ({
   payload,
   type: loadedFilesTabBadge as typeof loadedFilesTabBadge,
@@ -159,10 +147,6 @@ export const createLoadedPathInfo = (payload: {
   readonly path: Types.Path
   readonly pathInfo: Types.PathInfo
 }) => ({payload, type: loadedPathInfo as typeof loadedPathInfo})
-export const createLoadedUploadStatus = (payload: {readonly uploadStates: Array<RPCTypes.UploadState>}) => ({
-  payload,
-  type: loadedUploadStatus as typeof loadedUploadStatus,
-})
 export const createMove = (payload: {readonly destinationParentPath: Types.Path}) => ({
   payload,
   type: move as typeof move,
@@ -291,7 +275,6 @@ export type FinishManualConflictResolutionPayload = ReturnType<typeof createFini
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
 export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedRegularDownload>
 export type GetOnlineStatusPayload = ReturnType<typeof createGetOnlineStatus>
-export type JournalUpdatePayload = ReturnType<typeof createJournalUpdate>
 export type KbfsDaemonRpcStatusChangedPayload = ReturnType<typeof createKbfsDaemonRpcStatusChanged>
 export type LetResetUserBackInPayload = ReturnType<typeof createLetResetUserBackIn>
 export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
@@ -299,10 +282,8 @@ export type LoadDownloadStatusPayload = ReturnType<typeof createLoadDownloadStat
 export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge>
 export type LoadPathInfoPayload = ReturnType<typeof createLoadPathInfo>
 export type LoadTlfSyncConfigPayload = ReturnType<typeof createLoadTlfSyncConfig>
-export type LoadUploadStatusPayload = ReturnType<typeof createLoadUploadStatus>
 export type LoadedFilesTabBadgePayload = ReturnType<typeof createLoadedFilesTabBadge>
 export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
-export type LoadedUploadStatusPayload = ReturnType<typeof createLoadedUploadStatus>
 export type MovePayload = ReturnType<typeof createMove>
 export type OpenAndUploadPayload = ReturnType<typeof createOpenAndUpload>
 export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWidget>
@@ -353,7 +334,6 @@ export type Actions =
   | FinishedDownloadWithIntentPayload
   | FinishedRegularDownloadPayload
   | GetOnlineStatusPayload
-  | JournalUpdatePayload
   | KbfsDaemonRpcStatusChangedPayload
   | LetResetUserBackInPayload
   | LoadDownloadInfoPayload
@@ -361,10 +341,8 @@ export type Actions =
   | LoadFilesTabBadgePayload
   | LoadPathInfoPayload
   | LoadTlfSyncConfigPayload
-  | LoadUploadStatusPayload
   | LoadedFilesTabBadgePayload
   | LoadedPathInfoPayload
-  | LoadedUploadStatusPayload
   | MovePayload
   | OpenAndUploadPayload
   | OpenFilesFromWidgetPayload

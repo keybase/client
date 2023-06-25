@@ -1,6 +1,5 @@
 import chat2 from './chat2'
 import crypto from './crypto'
-import fs from './fs'
 import login from './login'
 import notifications from './notifications'
 import people from './people'
@@ -20,7 +19,6 @@ import wallets from './wallets'
 export const reducers = {
   chat2,
   crypto,
-  fs,
   login,
   notifications,
   people,
@@ -41,7 +39,6 @@ export const reducers = {
 export type TypedState = {
   chat2: ReturnType<typeof chat2>
   crypto: ReturnType<typeof crypto>
-  fs: ReturnType<typeof fs>
   login: ReturnType<typeof login>
   notifications: ReturnType<typeof notifications>
   people: ReturnType<typeof people>

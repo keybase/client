@@ -1081,6 +1081,7 @@ type State = {
   softErrors: Types.SoftErrors
   tlfUpdates: Types.UserTlfUpdates
   tlfs: Types.Tlfs
+  uploads: Types.Uploads
 }
 const initialState: State = {
   badge: RPCTypes.FilesTabBadge.none,
@@ -1125,6 +1126,12 @@ const initialState: State = {
     public: new Map(),
     team: new Map(),
   },
+  uploads: {
+    endEstimate: undefined,
+    syncingPaths: new Set(),
+    totalSyncingBytes: 0,
+    writingToJournal: new Map(),
+  },
 }
 
 type ZState = State & {
@@ -1141,6 +1148,7 @@ type ZState = State & {
     favoritesLoad: () => void
     favoriteIgnore: (path: Types.Path) => void
     folderListLoad: (path: Types.Path, recursive: boolean) => void
+    journalUpdate: (syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: number) => void
     kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => void
     kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => void
     loadAdditionalTlf: (tlfPath: Types.Path) => void
@@ -1148,6 +1156,7 @@ type ZState = State & {
     loadPathMetadata: (path: Types.Path) => void
     loadSettings: () => void
     loadTlfSyncConfig: (tlfPath: Types.Path) => void
+    loadUploadStatus: () => void
     loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
     loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
     loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
@@ -1588,7 +1597,6 @@ export const useState = Z.createZustand(
               ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder] as const] : []),
               ...entries.map(direntToPathAndPathItem),
             ] as const)
-            //TODO edit stuff back!!!
             set(s => {
               pathItems.forEach((pathItemFromAction, path) => {
                 const oldPathItem = getPathItem(s.pathItems, path)
@@ -1624,6 +1632,13 @@ export const useState = Z.createZustand(
           }
         }
         Z.ignorePromise(f())
+      },
+      journalUpdate: (syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: number) => {
+        set(s => {
+          s.uploads.syncingPaths = new Set(syncingPaths)
+          s.uploads.totalSyncingBytes = totalSyncingBytes
+          s.uploads.endEstimate = endEstimate || undefined
+        })
       },
       kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => {
         set(s => {
@@ -1808,6 +1823,37 @@ export const useState = Z.createZustand(
         }
         Z.ignorePromise(f())
       },
+      loadUploadStatus: () => {
+        const f = async () => {
+          try {
+            const uploadStates = await RPCTypes.SimpleFSSimpleFSGetUploadStatusRpcPromise()
+            set(s => {
+              // return FsGen.createLoadedUploadStatus({uploadStates: uploadStates || []})
+
+              const writingToJournal = new Map(
+                uploadStates?.map(uploadState => {
+                  const path = rpcPathToPath(uploadState.targetPath)
+                  const oldUploadState = s.uploads.writingToJournal.get(path)
+                  return [
+                    path,
+                    oldUploadState &&
+                    uploadState.error === oldUploadState.error &&
+                    uploadState.canceled === oldUploadState.canceled &&
+                    uploadState.uploadID === oldUploadState.uploadID
+                      ? oldUploadState
+                      : uploadState,
+                  ]
+                })
+              )
+              s.uploads.writingToJournal = writingToJournal
+            })
+          } catch (err) {
+            errorToActionOrThrow(err)
+          }
+        }
+        Z.ignorePromise(f())
+      },
+
       loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => {
         set(s => {
           s.downloads.info.set(downloadID, info)

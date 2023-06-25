@@ -36,17 +36,8 @@
       "parentPath": "Types.Path",
       "localPaths": "Array<string>"
     },
-    "loadUploadStatus": {},
-    "loadedUploadStatus": {
-      "uploadStates": "Array<RPCTypes.UploadState>"
-    },
     "dismissUpload": {
       "uploadID": "string"
-    },
-    "journalUpdate": {
-      "syncingPaths": "Array<Types.Path>",
-      "totalSyncingBytes": "number",
-      "endEstimate?": "number"
     },
     "openLocalPathInSystemFileManager": {
       "localPath": "string"
