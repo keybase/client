@@ -8,10 +8,7 @@ import {androidAddCompleteDownload, fsCacheDir, fsDownloadDir} from 'react-nativ
 
 const finishedRegularDownloadIDs = new Set<string>()
 
-const finishedRegularDownload = async (
-  state: Container.TypedState,
-  action: FsGen.FinishedRegularDownloadPayload
-) => {
+const finishedRegularDownload = async (_: unknown, action: FsGen.FinishedRegularDownloadPayload) => {
   const {downloadID, mimeType} = action.payload
 
   // This is fired from a hook and can happen more than once per downloadID.
@@ -22,8 +19,10 @@ const finishedRegularDownload = async (
   }
   finishedRegularDownloadIDs.add(downloadID)
 
-  const downloadState = state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
-  const downloadInfo = state.fs.downloads.info.get(downloadID) || Constants.emptyDownloadInfo
+  const downloadState =
+    Constants.useState.getState().downloads.state.get(downloadID) || Constants.emptyDownloadState
+  const downloadInfo =
+    Constants.useState.getState().downloads.info.get(downloadID) || Constants.emptyDownloadInfo
   if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
     logger.warn('missing download', downloadID)
     return null

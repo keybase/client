@@ -1,6 +1,5 @@
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
 import {useFsPathInfo} from './hooks'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -12,7 +11,7 @@ type PathInfoProps = {
 }
 
 const useMountPointPath = (platformAfterMountPath: string) => {
-  const sfmi = Container.useSelector(state => state.fs.sfmi)
+  const sfmi = Constants.useState(s => s.sfmi)
   const mount =
     sfmi.driverStatus.type === Types.DriverStatusType.Enabled
       ? sfmi.preferredMountDirs[0] || sfmi.directMountDir

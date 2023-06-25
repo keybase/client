@@ -168,7 +168,7 @@ const DokanOutdated = (props: Props) => {
 
 type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
-  const preferredMountDirs = Container.useSelector(state => state.fs.sfmi.preferredMountDirs)
+  const preferredMountDirs = Constants.useState(s => s.sfmi.preferredMountDirs)
   const displayingMountDir = preferredMountDirs[0] || ''
   const dispatch = Container.useDispatch()
   const open = displayingMountDir

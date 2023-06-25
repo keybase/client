@@ -3,7 +3,6 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as ConfigConstants from '../../constants/config'
-import * as Container from '../../util/container'
 import TlfType from './rows/tlf-type-container'
 import Tlf from './rows/tlf-container'
 import SfmiBanner from '../banner/system-file-manager-integration-banner/container'
@@ -80,7 +79,7 @@ const useTopNTlfs = (
   )
 
 const useRecentTlfs = (n: number, destinationPickerIndex?: number): Array<SectionListItem> => {
-  const tlfs = Container.useSelector(state => state.fs.tlfs)
+  const tlfs = Constants.useState(s => s.tlfs)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const privateTopN = useTopNTlfs(Types.TlfType.Private, tlfs.private, n)
   const publicTopN = useTopNTlfs(Types.TlfType.Public, tlfs.public, n)

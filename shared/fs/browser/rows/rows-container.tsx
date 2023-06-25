@@ -1,4 +1,3 @@
-import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
 import * as Constants from '../../../constants/fs'
@@ -175,13 +174,11 @@ const filterRowItems = (rows: Array<RowTypes.NamedRowItem>, filter?: string) =>
     : rows
 
 export default (o: OwnProps) => {
-  const _edits = Container.useSelector(state => state.fs.edits)
-  const _filter = Container.useSelector(state => state.fs.folderViewFilter)
-  const _pathItems = Container.useSelector(state => state.fs.pathItems)
-  const _sortSetting = Container.useSelector(
-    state => Constants.getPathUserSetting(state.fs.pathUserSettings, o.path).sort
-  )
-  const _tlfs = Container.useSelector(state => state.fs.tlfs)
+  const _edits = Constants.useState(s => s.edits)
+  const _filter = Constants.useState(s => s.folderViewFilter)
+  const _pathItems = Constants.useState(s => s.pathItems)
+  const _sortSetting = Constants.useState(s => Constants.getPathUserSetting(s.pathUserSettings, o.path).sort)
+  const _tlfs = Constants.useState(s => s.tlfs)
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
 
   const s = {

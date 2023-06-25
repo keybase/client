@@ -1,6 +1,7 @@
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import {fileUIName} from '../../constants/platform'
 import * as Container from '../../util/container'
@@ -27,13 +28,12 @@ const OpenInSystemFileManager = ({path}: Props) => {
 }
 
 const OpenInSFM = (props: Props) => {
-  const shouldHideFileManagerIcon = Container.useSelector(
-    state =>
-      state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Disabled &&
-      state.fs.settings.sfmiBannerDismissed
+  const sfmiBannerDismissed = Constants.useState(s => s.settings.sfmiBannerDismissed)
+  const shouldHideFileManagerIcon = Constants.useState(
+    s => s.sfmi.driverStatus.type === Types.DriverStatusType.Disabled && sfmiBannerDismissed
   )
-  const showOpenInSystemFileManager = Container.useSelector(
-    state => state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
+  const showOpenInSystemFileManager = Constants.useState(
+    s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
   )
 
   if (shouldHideFileManagerIcon) return null

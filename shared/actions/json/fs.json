@@ -15,45 +15,12 @@
     },
     "pollJournalStatus": {},
     "getOnlineStatus": {},
-    "folderListLoad": {
-      "recursive": "boolean",
-      "path": "Types.Path"
-    },
-    "folderListLoaded": {
-      "path": "Types.Path",
-      "pathItems": "Map<Types.Path, Types.PathItem>"
-    },
-    "favoritesLoad": {},
-    "favoritesLoaded": {
-      "private": "Types.TlfList",
-      "public": "Types.TlfList",
-      "team": "Types.TlfList"
-    },
-    "setFolderViewFilter": {
-      "filter?": "string"
-    },
-    "tlfSyncConfigLoaded": {
-      "tlfType": "Types.TlfType",
-      "tlfName": "string",
-      "syncConfig": "Types.TlfSyncConfig"
-    },
     "loadTlfSyncConfig": {
       "tlfPath": "Types.Path"
     },
     "setTlfSyncConfig": {
       "enabled": "boolean",
       "tlfPath": "Types.Path"
-    },
-    "pathItemLoaded": {
-      "path": "Types.Path",
-      "pathItem": "Types.PathItem"
-    },
-    "loadPathMetadata": {
-      "path": "Types.Path"
-    },
-    "sortSetting": {
-      "path": "Types.Path",
-      "sortSetting": "Types.SortSetting"
     },
     "shareNative": {
       "path": "Types.Path"
@@ -69,17 +36,8 @@
       "parentPath": "Types.Path",
       "localPaths": "Array<string>"
     },
-    "loadUploadStatus": {},
-    "loadedUploadStatus": {
-      "uploadStates": "Array<RPCTypes.UploadState>"
-    },
     "dismissUpload": {
       "uploadID": "string"
-    },
-    "journalUpdate": {
-      "syncingPaths": "Array<Types.Path>",
-      "totalSyncingBytes": "number",
-      "endEstimate?": "number"
     },
     "openLocalPathInSystemFileManager": {
       "localPath": "string"
@@ -90,17 +48,11 @@
     "uninstallKBFSConfirm": {},
 
     "refreshDriverStatus": {},
-    "setDriverStatus": {
-      "driverStatus": "Types.DriverStatus"
-    },
+    "setDriverStatus": {},
     "setSfmiBannerDismissed": {"dismissed": "boolean"},
-    "driverEnable": {
-      "isRetry?": "boolean"
-    },
+    "driverEnable": {"isRetry?": "boolean"},
     "driverDisable": {},
     "driverDisabling": {},
-    "driverKextPermissionError": {},
-
     "startManualConflictResolution": {
       "tlfPath": "Types.Path"
     },
@@ -109,45 +61,6 @@
     },
 
     "openSecurityPreferences": {},
-    "favoriteIgnore": {
-      "path": "Types.Path"
-    },
-    "favoriteIgnoreError": {
-      "path": "Types.Path"
-    },
-    "newFolderRow": {
-      "parentPath": "Types.Path"
-    },
-    "startRename": {
-      "path": "Types.Path"
-    },
-    "setEditName": {
-      "editID": "Types.EditID",
-      "name": "string"
-    },
-    "commitEdit": {
-      "editID": "Types.EditID"
-    },
-    "editSuccess": {
-      "editID": "Types.EditID"
-    },
-    "editError": {
-      "editID": "Types.EditID",
-      "error": "string"
-    },
-    "discardEdit": {
-      "editID": "Types.EditID"
-    },
-    "redbar": {
-      "error": "string"
-    },
-    "dismissRedbar": {
-      "index": "number"
-    },
-    "setLastPublicBannerClosedTlf": {
-      "tlf": "string"
-    },
-
     "openFilesFromWidget": {
       "path": "Types.Path",
       "type": "Types.PathType"
@@ -165,80 +78,24 @@
       "parentPath": "Types.Path"
     },
     "userFileEditsLoad": {},
-    "userFileEditsLoaded": {
-      "tlfUpdates": "Types.UserTlfUpdates"
-    },
     "deleteFile": {
       "path": "Types.Path"
     },
-    "setMoveOrCopySource": {
-      "path": "Types.Path"
-    },
-    "setDestinationPickerParentPath": {
-      "index": "number",
-      "path": "Types.Path"
-    },
-    "showMoveOrCopy": {"initialDestinationParentPath": "Types.Path"},
-    "setIncomingShareSource": {
-      "source": "Array<RPCTypes.IncomingShareItem>"
-    },
-    "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
-    "setPathItemActionMenuView": {
-      "view": "Types.PathItemActionMenuView"
-    },
-    "checkKbfsDaemonRpcStatus": {},
-    "waitForKbfsDaemon": {},
-    "kbfsDaemonRpcStatusChanged": {
-      "rpcStatus": "Types.KbfsDaemonRpcStatus"
-    },
-    "kbfsDaemonOnlineStatusChanged": {
-      "onlineStatus": "RPCTypes.KbfsOnlineStatus"
-    },
-    "overallSyncStatusChanged": {
-      "progress": "Types.SyncingFoldersProgress",
-      "diskSpaceStatus": "Types.DiskSpaceStatus"
-    },
-    "showHideDiskSpaceBanner": {
-      "show": "boolean"
-    },
-    "setPathSoftError": {
-      "path": "Types.Path",
-      "softError?": "Types.SoftError"
-    },
-    "setTlfSoftError": {
-      "path": "Types.Path",
-      "softError?": "Types.SoftError"
-    },
-    "loadSettings": {},
-    "settingsLoaded": {
-      "settings?": "Types.Settings"
-    },
+    "kbfsDaemonRpcStatusChanged": {},
     "setSpaceAvailableNotificationThreshold": {
       "spaceAvailableNotificationThreshold": "number"
     },
-    "setTlfsAsUnloaded": {},
     "placeholderAction": {},
     "refreshMountDirsAfter10s": {},
-    "setDirectMountDir": {"directMountDir": "string"},
-    "setPreferredMountDirs": {"preferredMountDirs": "Array<string>"},
     "loadPathInfo": {"path": "Types.Path"},
     "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
     "download": {"path": "Types.Path"},
     "loadDownloadStatus": {},
     "loadDownloadInfo": {"downloadID": "string"},
-    "loadedDownloadStatus": {
-      "regularDownloads": "Array<string>",
-      "state": "Map<string, Types.DownloadState>"
-    },
-    "loadedDownloadInfo": {"downloadID": "string", "info": "Types.DownloadInfo"},
     "cancelDownload": {"downloadID": "string"},
     "dismissDownload": {"downloadID": "string"},
-    "setPathItemActionMenuDownload": {
-      "downloadID?": "string",
-      "intent?": "Types.DownloadIntent"
-    },
     "finishedDownloadWithIntent": {
       "downloadID": "string",
       "downloadIntent": "Types.DownloadIntent",
@@ -247,20 +104,6 @@
     "finishedRegularDownload": {
       "downloadID": "string",
       "mimeType": "string"
-    },
-    "loadFileContext": {
-      "path": "Types.Path"
-    },
-    "loadedFileContext": {
-      "path": "Types.Path",
-      "fileContext": "Types.FileContext"
-    },
-    "loadAdditionalTlf": {
-      "tlfPath": "Types.Path"
-    },
-    "loadedAdditionalTlf": {
-      "tlf": "Types.Tlf",
-      "tlfPath": "Types.Path"
     },
     "loadFilesTabBadge": {},
     "loadedFilesTabBadge": {
@@ -273,7 +116,7 @@
       "level": "string"
     },
     "setCriticalUpdate": {
-      "val": "boolean"
+      "critical": "boolean"
     }
   }
 }

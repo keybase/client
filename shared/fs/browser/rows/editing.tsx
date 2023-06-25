@@ -3,8 +3,6 @@ import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
-import * as FsGen from '../../../actions/fs-gen'
 import {rowStyles} from './common'
 
 type Props = {
@@ -12,14 +10,20 @@ type Props = {
 }
 
 const Editing = ({editID}: Props) => {
-  const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(FsGen.createDiscardEdit({editID}))
-  const onSubmit = () => dispatch(FsGen.createCommitEdit({editID}))
-  const edit = Container.useSelector(state => state.fs.edits.get(editID) || Constants.emptyNewFolder)
+  const discardEdit = Constants.useState(s => s.dispatch.discardEdit)
+  const onCancel = () => {
+    discardEdit(editID)
+  }
+  const commitEdit = Constants.useState(s => s.dispatch.commitEdit)
+  const onSubmit = () => {
+    commitEdit(editID)
+  }
+  const edit = Constants.useState(s => s.edits.get(editID) || Constants.emptyNewFolder)
   const [filename, setFilename] = React.useState(edit.name)
+  const setEditName = Constants.useState(s => s.dispatch.setEditName)
   React.useEffect(() => {
-    dispatch(FsGen.createSetEditName({editID, name: filename}))
-  }, [editID, filename, dispatch])
+    setEditName(editID, filename)
+  }, [editID, filename, setEditName])
   const onKeyUp = (event: React.KeyboardEvent) => event.key === 'Escape' && onCancel()
   return (
     <Kb.ListItem2

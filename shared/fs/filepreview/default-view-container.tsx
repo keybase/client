@@ -8,10 +8,8 @@ type OwnProps = {path: Types.Path}
 
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
-  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
-  const sfmiEnabled = Container.useSelector(
-    state => state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
-  )
+  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
+  const sfmiEnabled = Constants.useState(s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled)
   const dispatch = Container.useDispatch()
   const download = () => {
     dispatch(FsGen.createDownload({path}))

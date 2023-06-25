@@ -5,7 +5,6 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
-import {errorToActionOrThrow} from './shared'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 
 const pickAndUploadToPromise = async (_: Container.TypedState, action: FsGen.PickAndUploadPayload) => {
@@ -20,27 +19,22 @@ const pickAndUploadToPromise = async (_: Container.TypedState, action: FsGen.Pic
           })
         )
   } catch (e) {
-    return errorToActionOrThrow(e)
+    Constants.errorToActionOrThrow(e)
+    return
   }
 }
 
-const finishedDownloadWithIntent = async (
-  state: Container.TypedState,
-  action: FsGen.FinishedDownloadWithIntentPayload
-) => {
+const finishedDownloadWithIntent = async (_: unknown, action: FsGen.FinishedDownloadWithIntentPayload) => {
   const {downloadID, downloadIntent, mimeType} = action.payload
-  const downloadState = state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
+  const downloadState =
+    Constants.useState.getState().downloads.state.get(downloadID) || Constants.emptyDownloadState
   if (downloadState === Constants.emptyDownloadState) {
     logger.warn('missing download', downloadID)
     return
   }
   if (downloadState.error) {
-    return [
-      FsGen.createDismissDownload({downloadID}),
-      FsGen.createRedbar({
-        error: downloadState.error,
-      }),
-    ]
+    Constants.useState.getState().dispatch.redbar(downloadState.error)
+    return FsGen.createDismissDownload({downloadID})
   }
   const {localPath} = downloadState
   try {
@@ -57,7 +51,8 @@ const finishedDownloadWithIntent = async (
         return null
     }
   } catch (err) {
-    return errorToActionOrThrow(err)
+    Constants.errorToActionOrThrow(err)
+    return
   }
 }
 

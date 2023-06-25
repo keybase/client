@@ -55,7 +55,7 @@ const isPending = (props: Props) =>
   (props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling)
 
 const FinderIntegration = (props: Props) => {
-  const preferredMountDirs = Container.useSelector(state => state.fs.sfmi.preferredMountDirs)
+  const preferredMountDirs = Constants.useState(s => s.sfmi.preferredMountDirs)
   const displayingMountDir = preferredMountDirs[0] || ''
   const dispatch = Container.useDispatch()
   const openMount = displayingMountDir

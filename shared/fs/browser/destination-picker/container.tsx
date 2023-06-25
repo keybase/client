@@ -52,9 +52,9 @@ const canBackUp = isMobile
   : () => false
 
 const ConnectedDestinationPicker = (ownProps: OwnProps) => {
-  const destPicker = Container.useSelector(state => state.fs.destinationPicker)
+  const destPicker = Constants.useState(s => s.destinationPicker)
   const isShare = destPicker.source.type === Types.DestinationPickerSource.IncomingShare
-  const pathItems = Container.useSelector(state => state.fs.pathItems)
+  const pathItems = Constants.useState(s => s.pathItems)
   const headerRightButton =
     destPicker.source.type === Types.DestinationPickerSource.IncomingShare ? (
       <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />
@@ -63,6 +63,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
+  const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
   const dispatchProps = {
     _onBackUp: (currentPath: Types.Path) =>
       Constants.makeActionsForDestinationPickerOpen(
@@ -70,7 +71,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         Types.getPathParent(currentPath),
         nav.safeNavigateAppendPayload
       ).forEach(action => dispatch(action)),
-    _onCopyHere: destinationParentPath => {
+    _onCopyHere: (destinationParentPath: Types.Path) => {
       dispatch(FsGen.createCopy({destinationParentPath}))
       dispatch(RouteTreeGen.createClearModals())
       dispatch(
@@ -79,7 +80,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         })
       )
     },
-    _onMoveHere: destinationParentPath => {
+    _onMoveHere: (destinationParentPath: Types.Path) => {
       dispatch(FsGen.createMove({destinationParentPath}))
       dispatch(RouteTreeGen.createClearModals())
       dispatch(
@@ -88,8 +89,9 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         })
       )
     },
-    _onNewFolder: destinationParentPath =>
-      dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
+    _onNewFolder: (destinationParentPath: Types.Path) => {
+      newFolderRow(destinationParentPath)
+    },
     onBack: () => {
       dispatch(RouteTreeGen.createNavigateUp())
     },

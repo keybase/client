@@ -1,6 +1,5 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as FsGen from '../../actions/fs-gen'
+import * as Constants from '../../constants/fs'
 
 type Props = {
   refresh: () => void
@@ -16,10 +15,7 @@ class Component extends React.PureComponent<Props> {
 }
 
 export default () => {
-  const dispatch = Container.useDispatch()
-  const refresh = () => {
-    dispatch(FsGen.createLoadSettings())
-  }
+  const refresh = Constants.useState(s => s.dispatch.loadSettings)
   const props = {
     refresh,
   }

@@ -56,22 +56,18 @@ const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, t
 export default (ownProps: OwnProps) => {
   const {path, mode} = ownProps
 
-  const _downloadID = Container.useSelector(state => state.fs.pathItemActionMenu.downloadID)
-  const _downloads = Container.useSelector(state => state.fs.downloads)
-  const _fileContext = Container.useSelector(
-    state => state.fs.fileContext.get(path) || Constants.emptyFileContext
-  )
+  const _downloads = Constants.useState(s => s.downloads)
+  const _fileContext = Constants.useState(s => s.fileContext.get(path) || Constants.emptyFileContext)
   const _ignoreNeedsToWait = Container.useAnyWaiting([
     Constants.folderListWaitingKey,
     Constants.statWaitingKey,
   ])
-  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
-  const _pathItemActionMenu = Container.useSelector(state => state.fs.pathItemActionMenu)
-  const _sfmiEnabled = Container.useSelector(
-    state => state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled
-  )
+  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
+  const _pathItemActionMenu = Constants.useState(s => s.pathItemActionMenu)
+  const _downloadID = _pathItemActionMenu.downloadID
+  const _sfmiEnabled = Constants.useState(s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled)
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
-  const _view = Container.useSelector(state => state.fs.pathItemActionMenu.view)
+  const _view = _pathItemActionMenu.view
 
   const dispatch = Container.useDispatch()
 
@@ -81,14 +77,15 @@ export default (ownProps: OwnProps) => {
     },
     [dispatch]
   )
+
+  const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
+
   const _confirmSaveMedia = React.useCallback(() => {
-    dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSaveMedia}))
-  }, [dispatch])
+    setPathItemActionMenuView(Types.PathItemActionMenuView.ConfirmSaveMedia)
+  }, [setPathItemActionMenuView])
   const _confirmSendToOtherApp = React.useCallback(() => {
-    dispatch(
-      FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSendToOtherApp})
-    )
-  }, [dispatch])
+    setPathItemActionMenuView(Types.PathItemActionMenuView.ConfirmSendToOtherApp)
+  }, [setPathItemActionMenuView])
   const _delete = () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -99,12 +96,14 @@ export default (ownProps: OwnProps) => {
   const _download = React.useCallback(() => {
     dispatch(FsGen.createDownload({path}))
   }, [dispatch, path])
+  const favoriteIgnore = Constants.useState(s => s.dispatch.favoriteIgnore)
   const _ignoreTlf = React.useCallback(() => {
-    dispatch(FsGen.createFavoriteIgnore({path}))
-  }, [dispatch, path])
+    favoriteIgnore(path)
+  }, [favoriteIgnore, path])
+  const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
   const _newFolder = React.useCallback(() => {
-    dispatch(FsGen.createNewFolderRow({parentPath: path}))
-  }, [dispatch, path])
+    newFolderRow(path)
+  }, [newFolderRow, path])
   const _openChat = () => {
     dispatch(
       Chat2Gen.createPreviewConversation({
@@ -115,9 +114,10 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
+  const startRename = Constants.useState(s => s.dispatch.startRename)
   const _rename = React.useCallback(() => {
-    dispatch(FsGen.createStartRename({path}))
-  }, [dispatch, path])
+    startRename(path)
+  }, [startRename, path])
   const _saveMedia = React.useCallback(() => {
     dispatch(FsGen.createSaveMedia({path}))
   }, [dispatch, path])
@@ -133,8 +133,8 @@ export default (ownProps: OwnProps) => {
     dispatch(FsGen.createShareNative({path}))
   }, [dispatch, path])
   const _share = React.useCallback(() => {
-    dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.Share}))
-  }, [dispatch])
+    setPathItemActionMenuView(Types.PathItemActionMenuView.Share)
+  }, [setPathItemActionMenuView])
   const _showInSystemFileManager = React.useCallback(() => {
     dispatch(FsGen.createOpenPathInSystemFileManager({path}))
   }, [dispatch, path])

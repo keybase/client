@@ -3,8 +3,6 @@ import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as React from 'react'
-import * as Container from '../../util/container'
-import * as FsGen from '../../actions/fs-gen'
 import debounce from 'lodash/debounce'
 
 type Props = {
@@ -14,15 +12,14 @@ type Props = {
 }
 
 const FolderViewFilter = (props: Props) => {
-  const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, props.path))
-
-  const dispatch = Container.useDispatch()
+  const pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, props.path))
+  const setFolderViewFilter = Constants.useState(s => s.dispatch.setFolderViewFilter)
   const onUpdate = React.useMemo(
     () =>
       debounce((newFilter: string) => {
-        dispatch(FsGen.createSetFolderViewFilter({filter: newFilter}))
+        setFolderViewFilter(newFilter)
       }),
-    [dispatch]
+    [setFolderViewFilter]
   )
 
   return Constants.isFolder(props.path, pathItem) && Types.getPathLevel(props.path) > 1 ? (

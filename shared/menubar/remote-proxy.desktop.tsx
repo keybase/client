@@ -72,10 +72,15 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const windowShownCount = ConfigConstants.useConfigState(s => s.windowShownCount)
   const outOfDate = ConfigConstants.useConfigState(s => s.outOfDate)
   const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
+  const kbfsDaemonStatus = FSConstants.useState(s => s.kbfsDaemonStatus)
+  const overallSyncStatus = FSConstants.useState(s => s.overallSyncStatus)
+  const pathItems = FSConstants.useState(s => s.pathItems)
+  const sfmi = FSConstants.useState(s => s.sfmi)
+  const tlfUpdates = FSConstants.useState(s => s.tlfUpdates)
+  const uploads = FSConstants.useState(s => s.uploads)
   const s = Container.useSelector(state => {
-    const {notifications, fs, chat2, users} = state
+    const {notifications, chat2, users} = state
     const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
-    const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = fs
     const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
     const widgetList = inboxLayout?.widgetList
     const {infoMap} = users
@@ -84,24 +89,17 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
       badgeMap,
       desktopAppBadgeCount,
       infoMap,
-      kbfsDaemonStatus,
       metaMap,
       navBadges,
-      overallSyncStatus,
       participantMap,
-      pathItems,
-      sfmi,
-      tlfUpdates,
       unreadMap,
-      uploads,
       widgetBadge,
       widgetList,
     }
   }, shallowEqual)
 
-  const {sfmi, tlfUpdates, unreadMap, uploads, badgeMap, desktopAppBadgeCount} = s
-  const {widgetList, widgetBadge, infoMap, kbfsDaemonStatus, metaMap} = s
-  const {navBadges, overallSyncStatus, participantMap, pathItems} = s
+  const {unreadMap, badgeMap, desktopAppBadgeCount} = s
+  const {widgetList, widgetBadge, infoMap, metaMap, navBadges, participantMap} = s
 
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus

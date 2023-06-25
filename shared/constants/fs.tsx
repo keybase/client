@@ -1,13 +1,19 @@
-import * as Types from './types/fs'
-import * as RPCTypes from './types/rpc-gen'
-import * as FsGen from '../actions/fs-gen'
-import * as Tabs from './tabs'
-import * as SettingsConstants from './settings'
+// TODO w/ zustand cleanup remove more fs actions
 import * as ConfigConstants from './config'
-import type {TypedState} from '../util/container'
-import {isLinux, isMobile} from './platform'
+import * as NotificationsGen from '../actions/notifications-gen'
+import * as FsGen from '../actions/fs-gen'
+import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as SettingsConstants from './settings'
+import * as Tabs from './tabs'
+import * as Types from './types/fs'
+import * as Z from '../util/zustand'
+import NotifyPopup from '../util/notify-popup'
 import type {TypedActions} from '../actions/typed-actions-gen'
+import {RPCError} from '../util/errors'
+import logger from '../logger'
+import {isLinux, isMobile} from './platform'
+import {tlfToPreferredOrder} from '../util/kbfs'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
@@ -17,6 +23,69 @@ export const commitEditWaitingKey = 'fs:commitEditWaitingKey'
 export const setSyncOnCellularWaitingKey = 'fs:setSyncOnCellular'
 
 export const defaultPath = Types.stringToPath('/keybase')
+
+export const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
+  switch (rpcFolderType) {
+    case RPCTypes.FolderType.private:
+      return Types.TlfType.Private
+    case RPCTypes.FolderType.public:
+      return Types.TlfType.Public
+    case RPCTypes.FolderType.team:
+      return Types.TlfType.Team
+    default:
+      return null
+  }
+}
+
+export const rpcConflictStateToConflictState = (
+  rpcConflictState?: RPCTypes.ConflictState
+): Types.ConflictState => {
+  if (rpcConflictState) {
+    if (rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview) {
+      const nv = rpcConflictState.normalview
+      return makeConflictStateNormalView({
+        localViewTlfPaths: (nv?.localViews || []).reduce<Array<Types.Path>>((arr, p) => {
+          p.PathType === RPCTypes.PathType.kbfs && arr.push(rpcPathToPath(p.kbfs))
+          return arr
+        }, []),
+        resolvingConflict: !!nv && nv.resolvingConflict,
+        stuckInConflict: !!nv && nv.stuckInConflict,
+      })
+    } else {
+      const nv = rpcConflictState?.manualresolvinglocalview.normalView
+      return makeConflictStateManualResolvingLocalView({
+        normalViewTlfPath:
+          nv && nv.PathType === RPCTypes.PathType.kbfs ? rpcPathToPath(nv.kbfs) : defaultPath,
+      })
+    }
+  } else {
+    return tlfNormalViewWithNoConflict
+  }
+}
+
+export const getSyncConfigFromRPC = (
+  tlfName: string,
+  tlfType: Types.TlfType,
+  config?: RPCTypes.FolderSyncConfig
+): Types.TlfSyncConfig => {
+  if (!config) {
+    return tlfSyncDisabled
+  }
+  switch (config.mode) {
+    case RPCTypes.FolderSyncMode.disabled:
+      return tlfSyncDisabled
+    case RPCTypes.FolderSyncMode.enabled:
+      return tlfSyncEnabled
+    case RPCTypes.FolderSyncMode.partial:
+      return makeTlfSyncPartial({
+        enabledPaths: config.paths
+          ? config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str))
+          : [],
+      })
+    default:
+      return tlfSyncDisabled
+  }
+}
 
 // See Installer.m: KBExitFuseKextError
 export const ExitCodeFuseKextError = 4
@@ -497,8 +566,8 @@ export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: s
 export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Types.Path =>
   Types.stringToPath(`/keybase/${tlfType}/${name}`)
 
-export const resetBannerType = (state: TypedState, path: Types.Path): Types.ResetBannerType => {
-  const resetParticipants = getTlfFromPath(state.fs.tlfs, path).resetParticipants
+export const resetBannerType = (_: unknown, path: Types.Path): Types.ResetBannerType => {
+  const resetParticipants = getTlfFromPath(useState.getState().tlfs, path).resetParticipants
   if (resetParticipants.length === 0) {
     return Types.ResetBannerNoOthersType.None
   }
@@ -769,19 +838,6 @@ export const getUploadIconForTlfType = (
 export const tlfIsStuckInConflict = (tlf: Types.Tlf) =>
   tlf.conflictState.type === Types.ConflictStateType.NormalView && tlf.conflictState.stuckInConflict
 
-export const getUploadIconForFilesTab = (badge: RPCTypes.FilesTabBadge): Types.UploadIcon | undefined => {
-  switch (badge) {
-    case RPCTypes.FilesTabBadge.awaitingUpload:
-      return Types.UploadIcon.AwaitingToUpload
-    case RPCTypes.FilesTabBadge.uploadingStuck:
-      return Types.UploadIcon.UploadingStuck
-    case RPCTypes.FilesTabBadge.uploading:
-      return Types.UploadIcon.Uploading
-    case RPCTypes.FilesTabBadge.none:
-      return undefined
-  }
-}
-
 export const getPathStatusIconInMergeProps = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   tlf: Types.Tlf,
@@ -842,16 +898,14 @@ export const makeActionsForDestinationPickerOpen = (
   path: Types.Path,
   navigateAppend: (a: SafeNavigateAppendArg) => TypedActions,
   headerRightButton?: React.ReactNode
-): ReadonlyArray<TypedActions> =>
-  [
-    FsGen.createSetDestinationPickerParentPath({
-      index,
-      path,
-    }),
+): ReadonlyArray<TypedActions> => {
+  useState.getState().dispatch.setDestinationPickerParentPath(index, path)
+  return [
     navigateAppend({
       path: [{props: {headerRightButton, index}, selected: 'destinationPicker'}],
     }),
   ] as const
+}
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
 
@@ -963,3 +1017,1141 @@ export const hideOrDisableInDestinationPicker = (
   username: string,
   destinationPickerIndex?: number
 ) => typeof destinationPickerIndex === 'number' && tlfType === Types.TlfType.Public && name !== username
+
+const noAccessErrorCodes = [
+  RPCTypes.StatusCode.scsimplefsnoaccess,
+  RPCTypes.StatusCode.scteamnotfound,
+  RPCTypes.StatusCode.scteamreaderror,
+]
+
+export const errorToActionOrThrow = (error: any, path?: Types.Path) => {
+  if (error?.code === RPCTypes.StatusCode.sckbfsclienttimeout) {
+    useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+    return
+  }
+  if (error?.code === RPCTypes.StatusCode.scidentifiesfailed) {
+    // This is specifically to address the situation where when user tries to
+    // remove a shared TLF from their favorites but another user of the TLF has
+    // deleted their account the subscribePath call cauused from the popup will
+    // get SCIdentifiesFailed error. We can't do anything here so just move on.
+    // (Ideally we'd be able to tell it's becaue the user was deleted, but we
+    // don't have that from Go right now.)
+    //
+    // TODO: TRIAGE-2379 this should probably be ignored on Go side. We
+    // already use fsGui identifyBehavior and there's no reason we should get
+    // an identify error here.
+    return undefined
+  }
+  if (path && error?.code === RPCTypes.StatusCode.scsimplefsnotexist) {
+    useState.getState().dispatch.setPathSoftError(path, Types.SoftError.Nonexistent)
+    return
+  }
+  if (path && noAccessErrorCodes.includes(error?.code)) {
+    const tlfPath = getTlfPath(path)
+    if (tlfPath) {
+      useState.getState().dispatch.setTlfSoftError(tlfPath, Types.SoftError.NoAccess)
+      return
+    }
+  }
+  if (error?.code === RPCTypes.StatusCode.scdeleted) {
+    // The user is deleted. Let user know and move on.
+    useState.getState().dispatch.redbar('A user in this shared folder has deleted their account.')
+    return
+  }
+  throw error
+}
+
+type State = {
+  badge: RPCTypes.FilesTabBadge
+  criticalUpdate: boolean
+  destinationPicker: Types.DestinationPicker
+  downloads: Types.Downloads
+  edits: Types.Edits
+  errors: Array<string>
+  fileContext: Map<Types.Path, Types.FileContext>
+  folderViewFilter: string | undefined // on mobile, '' is expanded empty, undefined is unexpanded
+  kbfsDaemonStatus: Types.KbfsDaemonStatus
+  lastPublicBannerClosedTlf: string
+  overallSyncStatus: Types.OverallSyncStatus
+  pathItemActionMenu: Types.PathItemActionMenu
+  pathItems: Types.PathItems
+  pathInfos: Map<Types.Path, Types.PathInfo>
+  pathUserSettings: Map<Types.Path, Types.PathUserSetting>
+  settings: Types.Settings
+  sfmi: Types.SystemFileManagerIntegration
+  softErrors: Types.SoftErrors
+  tlfUpdates: Types.UserTlfUpdates
+  tlfs: Types.Tlfs
+  uploads: Types.Uploads
+}
+const initialState: State = {
+  badge: RPCTypes.FilesTabBadge.none,
+  criticalUpdate: false,
+  destinationPicker: {
+    destinationParentPath: [],
+    source: {
+      type: Types.DestinationPickerSource.None,
+    },
+  },
+  downloads: {
+    info: new Map(),
+    regularDownloads: [],
+    state: new Map(),
+  },
+  edits: new Map(),
+  errors: [],
+  fileContext: new Map(),
+  folderViewFilter: undefined,
+  kbfsDaemonStatus: unknownKbfsDaemonStatus,
+  lastPublicBannerClosedTlf: '',
+  overallSyncStatus: emptyOverallSyncStatus,
+  pathInfos: new Map(),
+  pathItemActionMenu: emptyPathItemActionMenu,
+  pathItems: new Map(),
+  pathUserSettings: new Map(),
+  settings: emptySettings,
+  sfmi: {
+    directMountDir: '',
+    driverStatus: defaultDriverStatus,
+    preferredMountDirs: [],
+  },
+  softErrors: {
+    pathErrors: new Map(),
+    tlfErrors: new Map(),
+  },
+  tlfUpdates: [],
+  tlfs: {
+    additionalTlfs: new Map(),
+    loaded: false,
+    private: new Map(),
+    public: new Map(),
+    team: new Map(),
+  },
+  uploads: {
+    endEstimate: undefined,
+    syncingPaths: new Set(),
+    totalSyncingBytes: 0,
+    writingToJournal: new Map(),
+  },
+}
+
+type ZState = State & {
+  dispatch: {
+    checkKbfsDaemonRpcStatus: () => void
+    commitEdit: (editID: Types.EditID) => void
+    discardEdit: (editID: Types.EditID) => void
+    dismissRedbar: (index: number) => void
+    driverDisabling: () => void
+    driverEnable: (isRetry?: boolean) => void
+    driverKextPermissionError: () => void
+    editError: (editID: Types.EditID, error: string) => void
+    editSuccess: (editID: Types.EditID) => void
+    favoritesLoad: () => void
+    favoriteIgnore: (path: Types.Path) => void
+    folderListLoad: (path: Types.Path, recursive: boolean) => void
+    journalUpdate: (syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: number) => void
+    kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => void
+    kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => void
+    loadAdditionalTlf: (tlfPath: Types.Path) => void
+    loadFileContext: (path: Types.Path) => void
+    loadPathMetadata: (path: Types.Path) => void
+    loadSettings: () => void
+    loadTlfSyncConfig: (tlfPath: Types.Path) => void
+    loadUploadStatus: () => void
+    loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
+    loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
+    loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
+    newFolderRow: (parentPath: Types.Path) => void
+    onChangedFocus: (appFocused: boolean) => void
+    redbar: (error: string) => void
+    reset: () => void
+    setBadge: (b: RPCTypes.FilesTabBadge) => void
+    setCriticalUpdate: (u: boolean) => void
+    setDestinationPickerParentPath: (index: number, path: Types.Path) => void
+    setDirectMountDir: (directMountDir: string) => void
+    setDriverStatus: (driverStatus: Types.DriverStatus) => void
+    setEditName: (editID: Types.EditID, name: string) => void
+    setFolderViewFilter: (filter?: string) => void
+    setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => void
+    setLastPublicBannerClosedTlf: (tlf: string) => void
+    setMoveOrCopySource: (path: Types.Path) => void
+    setPathItemActionMenuDownload: (downloadID?: string, intent?: Types.DownloadIntent) => void
+    setPathItemActionMenuView: (view: Types.PathItemActionMenuView) => void
+    setPreferredMountDirs: (preferredMountDirs: Array<string>) => void
+    setPathSoftError: (path: Types.Path, softError?: Types.SoftError) => void
+    setTlfSoftError: (path: Types.Path, softError?: Types.SoftError) => void
+    setTlfsAsUnloaded: () => void
+    setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => void
+    showIncomingShare: (initialDestinationParentPath: Types.Path) => void
+    showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
+    startRename: (path: Types.Path) => void
+    syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
+    userFileEditsLoad: () => void
+    waitForKbfsDaemon: () => void
+  }
+  getUploadIconForFilesTab: () => Types.UploadIcon | undefined
+}
+
+const getPrefetchStatusFromRPC = (
+  prefetchStatus: RPCTypes.PrefetchStatus,
+  prefetchProgress: RPCTypes.PrefetchProgress
+) => {
+  switch (prefetchStatus) {
+    case RPCTypes.PrefetchStatus.notStarted:
+      return prefetchNotStarted
+    case RPCTypes.PrefetchStatus.inProgress:
+      return {
+        ...emptyPrefetchInProgress,
+        bytesFetched: prefetchProgress.bytesFetched,
+        bytesTotal: prefetchProgress.bytesTotal,
+        endEstimate: prefetchProgress.endEstimate,
+        startTime: prefetchProgress.start,
+      }
+    case RPCTypes.PrefetchStatus.complete:
+      return prefetchComplete
+    default:
+      return prefetchNotStarted
+  }
+}
+
+const direntToMetadata = (d: RPCTypes.Dirent) => ({
+  lastModifiedTimestamp: d.time,
+  lastWriter: d.lastWriterUnverified.username,
+  name: d.name.split('/').pop(),
+  prefetchStatus: getPrefetchStatusFromRPC(d.prefetchStatus, d.prefetchProgress),
+  size: d.size,
+  writable: d.writable,
+})
+
+const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>): Types.PathItem => {
+  switch (d.direntType) {
+    case RPCTypes.DirentType.dir:
+      return {
+        ...emptyFolder,
+        ...direntToMetadata(d),
+        children: new Set(children || []),
+        progress: children ? Types.ProgressType.Loaded : Types.ProgressType.Pending,
+      } as Types.PathItem
+    case RPCTypes.DirentType.sym:
+      return {
+        ...emptySymlink,
+        ...direntToMetadata(d),
+        // TODO: plumb link target
+      } as Types.PathItem
+    case RPCTypes.DirentType.file:
+    case RPCTypes.DirentType.exec:
+      return {
+        ...emptyFile,
+        ...direntToMetadata(d),
+      } as Types.PathItem
+  }
+}
+
+const updatePathItem = (
+  oldPathItem: Types.PathItem,
+  newPathItemFromAction: Types.PathItem
+): Types.PathItem => {
+  if (
+    oldPathItem.type === Types.PathType.Folder &&
+    newPathItemFromAction.type === Types.PathType.Folder &&
+    oldPathItem.progress === Types.ProgressType.Loaded &&
+    newPathItemFromAction.progress === Types.ProgressType.Pending
+  ) {
+    // The new one doesn't have children, but the old one has. We don't
+    // want to override a loaded folder into pending. So first set the children
+    // in new one using what we already have, see if they are equal.
+    const newPathItemNoOverridingChildrenAndProgress = {
+      ...newPathItemFromAction,
+      children: oldPathItem.children,
+      progress: Types.ProgressType.Loaded,
+    }
+    return newPathItemNoOverridingChildrenAndProgress
+  }
+  return newPathItemFromAction
+}
+
+export const useState = Z.createZustand(
+  Z.immerZustand<ZState>((set, get) => {
+    const reduxDispatch = Z.getReduxDispatch()
+    // const getReduxStore = Z.getReduxStore()
+
+    // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
+    // reducer and happens before this.
+    let waitForKbfsDaemonInProgress = false
+
+    const getUploadIconForFilesTab = () => {
+      switch (get().badge) {
+        case RPCTypes.FilesTabBadge.awaitingUpload:
+          return Types.UploadIcon.AwaitingToUpload
+        case RPCTypes.FilesTabBadge.uploadingStuck:
+          return Types.UploadIcon.UploadingStuck
+        case RPCTypes.FilesTabBadge.uploading:
+          return Types.UploadIcon.Uploading
+        case RPCTypes.FilesTabBadge.none:
+          return undefined
+      }
+    }
+    const dispatch = {
+      checkKbfsDaemonRpcStatus: () => {
+        const f = async () => {
+          const connected = await RPCTypes.configWaitForClientRpcPromise({
+            clientType: RPCTypes.ClientType.kbfs,
+            timeout: 0, // Don't wait; just check if it's there.
+          })
+          const newStatus = connected
+            ? Types.KbfsDaemonRpcStatus.Connected
+            : Types.KbfsDaemonRpcStatus.Waiting
+          const kbfsDaemonStatus = get().kbfsDaemonStatus
+          const {kbfsDaemonRpcStatusChanged, waitForKbfsDaemon} = get().dispatch
+
+          if (kbfsDaemonStatus.rpcStatus !== newStatus) {
+            kbfsDaemonRpcStatusChanged(newStatus)
+          }
+          if (newStatus === Types.KbfsDaemonRpcStatus.Waiting) {
+            waitForKbfsDaemon()
+          }
+        }
+        Z.ignorePromise(f())
+      },
+      commitEdit: (editID: Types.EditID) => {
+        const edit = get().edits.get(editID)
+        if (!edit) {
+          return
+        }
+        const f = async () => {
+          switch (edit.type) {
+            case Types.EditType.NewFolder:
+              try {
+                await RPCTypes.SimpleFSSimpleFSOpenRpcPromise(
+                  {
+                    dest: pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
+                    flags: RPCTypes.OpenFlags.directory,
+                    opID: makeUUID(),
+                  },
+                  commitEditWaitingKey
+                )
+                get().dispatch.editSuccess(editID)
+                return
+              } catch (e) {
+                errorToActionOrThrow(e, edit.parentPath)
+                return
+              }
+            case Types.EditType.Rename:
+              try {
+                const opID = makeUUID()
+                await RPCTypes.SimpleFSSimpleFSMoveRpcPromise({
+                  dest: pathToRPCPath(Types.pathConcat(edit.parentPath, edit.name)),
+                  opID,
+                  overwriteExistingFiles: false,
+                  src: pathToRPCPath(Types.pathConcat(edit.parentPath, edit.originalName)),
+                })
+                await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, commitEditWaitingKey)
+                get().dispatch.editSuccess(editID)
+                return
+              } catch (error) {
+                if (!(error instanceof RPCError)) {
+                  return
+                }
+                if (
+                  [
+                    RPCTypes.StatusCode.scsimplefsnameexists,
+                    RPCTypes.StatusCode.scsimplefsdirnotempty,
+                  ].includes(error.code)
+                ) {
+                  get().dispatch.editError(editID, error.desc || 'name exists')
+                  return
+                }
+                throw error
+              }
+          }
+        }
+        Z.ignorePromise(f())
+      },
+      discardEdit: (editID: Types.EditID) => {
+        set(s => {
+          s.edits.delete(editID)
+        })
+      },
+      dismissRedbar: (index: number) => {
+        set(s => {
+          s.errors = [...s.errors.slice(0, index), ...s.errors.slice(index + 1)]
+        })
+      },
+      driverDisabling: () => {
+        set(s => {
+          if (s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled) {
+            s.sfmi.driverStatus.isDisabling = true
+          }
+        })
+        reduxDispatch(FsGen.createDriverDisabling())
+      },
+      driverEnable: (isRetry?: boolean) => {
+        set(s => {
+          if (s.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
+            s.sfmi.driverStatus.isEnabling = true
+          }
+        })
+        reduxDispatch(FsGen.createDriverEnable({isRetry}))
+      },
+      driverKextPermissionError: () => {
+        set(s => {
+          if (s.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
+            s.sfmi.driverStatus.kextPermissionError = true
+            s.sfmi.driverStatus.isEnabling = false
+          }
+        })
+      },
+      editError: (editID: Types.EditID, error: string) => {
+        set(s => {
+          const e = s.edits.get(editID)
+          if (e) e.error = error
+        })
+      },
+      editSuccess: (editID: Types.EditID) => {
+        set(s => {
+          s.edits.delete(editID)
+        })
+      },
+      favoriteIgnore: (path: Types.Path) => {
+        const f = async () => {
+          const folder = folderRPCFromPath(path)
+          if (!folder) {
+            throw new Error('No folder specified')
+          }
+          try {
+            await RPCTypes.favoriteFavoriteIgnoreRpcPromise({folder})
+          } catch (error) {
+            errorToActionOrThrow(error, path)
+            set(s => {
+              const elems = Types.getPathElements(path)
+              const visibility = Types.getVisibilityFromElems(elems)
+              if (!visibility) {
+                return
+              }
+              s.tlfs[visibility] = new Map(s.tlfs[visibility])
+              s.tlfs[visibility].set(elems[2], {
+                ...(s.tlfs[visibility].get(elems[2]) || unknownTlf),
+                isIgnored: false,
+              })
+            })
+          }
+        }
+        set(s => {
+          const elems = Types.getPathElements(path)
+          const visibility = Types.getVisibilityFromElems(elems)
+          if (!visibility) {
+            return
+          }
+          s.tlfs[visibility] = new Map(s.tlfs[visibility])
+          s.tlfs[visibility].set(elems[2], {
+            ...(s.tlfs[visibility].get(elems[2]) || unknownTlf),
+            isIgnored: true,
+          })
+        })
+        Z.ignorePromise(f())
+      },
+      favoritesLoad: () => {
+        const f = async () => {
+          try {
+            if (!ConfigConstants.useConfigState.getState().loggedIn) {
+              return
+            }
+            const results = await RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
+            const payload = {
+              private: new Map(),
+              public: new Map(),
+              team: new Map(),
+            } as const
+            const fs = [
+              ...(results.favoriteFolders
+                ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
+                : []),
+              ...(results.ignoredFolders
+                ? [{folders: results.ignoredFolders, isFavorite: false, isIgnored: true, isNew: false}]
+                : []),
+              ...(results.newFolders
+                ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
+                : []),
+            ]
+            fs.forEach(({folders, isFavorite, isIgnored, isNew}) =>
+              folders.forEach(folder => {
+                const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+                const tlfName =
+                  tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+                    ? tlfToPreferredOrder(
+                        folder.name,
+                        ConfigConstants.useCurrentUserState.getState().username
+                      )
+                    : folder.name
+                tlfType &&
+                  payload[tlfType].set(
+                    tlfName,
+                    makeTlf({
+                      conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
+                      isFavorite,
+                      isIgnored,
+                      isNew,
+                      name: tlfName,
+                      resetParticipants: (folder.reset_members || []).map(({username}) => username),
+                      syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
+                      teamId: folder.team_id || '',
+                      tlfMtime: folder.mtime || 0,
+                    })
+                  )
+              })
+            )
+
+            if (payload.private.size) {
+              set(s => {
+                s.tlfs.private = payload.private
+                s.tlfs.public = payload.public
+                s.tlfs.team = payload.team
+                s.tlfs.loaded = true
+              })
+              const counts = new Map<Tabs.Tab, number>()
+              counts.set(Tabs.fsTab, computeBadgeNumberForAll(get().tlfs))
+              reduxDispatch(NotificationsGen.createSetBadgeCounts({counts}))
+            }
+          } catch (e) {
+            errorToActionOrThrow(e)
+          }
+          return
+        }
+        Z.ignorePromise(f())
+      },
+      folderListLoad: (rootPath: Types.Path, isRecursive: boolean) => {
+        const f = async () => {
+          try {
+            const opID = makeUUID()
+            if (isRecursive) {
+              await RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise({
+                depth: 1,
+                filter: RPCTypes.ListFilter.filterSystemHidden,
+                opID,
+                path: pathToRPCPath(rootPath),
+                refreshSubscription: false,
+              })
+            } else {
+              await RPCTypes.SimpleFSSimpleFSListRpcPromise({
+                filter: RPCTypes.ListFilter.filterSystemHidden,
+                opID,
+                path: pathToRPCPath(rootPath),
+                refreshSubscription: false,
+              })
+            }
+
+            await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}, folderListWaitingKey)
+
+            const result = await RPCTypes.SimpleFSSimpleFSReadListRpcPromise({opID})
+            const entries = result.entries || []
+            const childMap = entries.reduce((m, d) => {
+              const [parent, child] = d.name.split('/')
+              if (child) {
+                // Only add to the children set if the parent definitely has children.
+                const fullParent = Types.pathConcat(rootPath, parent)
+                let children = m.get(fullParent)
+                if (!children) {
+                  children = new Set<string>()
+                  m.set(fullParent, children)
+                }
+                children.add(child)
+              } else {
+                let children = m.get(rootPath)
+                if (!children) {
+                  children = new Set()
+                  m.set(rootPath, children)
+                }
+                children.add(d.name)
+              }
+              return m
+            }, new Map<Types.Path, Set<string>>())
+
+            const direntToPathAndPathItem = (d: RPCTypes.Dirent) => {
+              const path = Types.pathConcat(rootPath, d.name)
+              const entry = makeEntry(d, childMap.get(path))
+              if (entry.type === Types.PathType.Folder && isRecursive && !d.name.includes('/')) {
+                // Since we are loading with a depth of 2, first level directories are
+                // considered "loaded".
+                return [
+                  path,
+                  {
+                    ...entry,
+                    progress: Types.ProgressType.Loaded,
+                  },
+                ] as const
+              }
+              return [path, entry] as const
+            }
+
+            // Get metadata fields of the directory that we just loaded from state to
+            // avoid overriding them.
+            const rootPathItem = getPathItem(get().pathItems, rootPath)
+            const rootFolder: Types.FolderPathItem = {
+              ...(rootPathItem.type === Types.PathType.Folder
+                ? rootPathItem
+                : {...emptyFolder, name: Types.getPathName(rootPath)}),
+              children: new Set(childMap.get(rootPath)),
+              progress: Types.ProgressType.Loaded,
+            }
+
+            const pathItems = new Map<Types.Path, Types.PathItem>([
+              ...(Types.getPathLevel(rootPath) > 2 ? [[rootPath, rootFolder] as const] : []),
+              ...entries.map(direntToPathAndPathItem),
+            ] as const)
+            set(s => {
+              pathItems.forEach((pathItemFromAction, path) => {
+                const oldPathItem = getPathItem(s.pathItems, path)
+                const newPathItem = updatePathItem(oldPathItem, pathItemFromAction)
+                oldPathItem.type === Types.PathType.Folder &&
+                  oldPathItem.children.forEach(
+                    name =>
+                      (newPathItem.type !== Types.PathType.Folder || !newPathItem.children.has(name)) &&
+                      s.pathItems.delete(Types.pathConcat(path, name))
+                  )
+                s.pathItems.set(path, newPathItem)
+              })
+
+              // Remove Rename edits that are for path items that don't exist anymore in
+              // case when/if a new item is added later the edit causes confusion.
+              const newEntries = [...s.edits.entries()].filter(([_, edit]) => {
+                if (edit.type !== Types.EditType.Rename) {
+                  return true
+                }
+                const parent = getPathItem(s.pathItems, edit.parentPath)
+                if (parent.type === Types.PathType.Folder && parent.children.has(edit.name)) {
+                  return true
+                }
+                return false
+              })
+              if (newEntries.length !== s.edits.size) {
+                s.edits = new Map(newEntries)
+              }
+            })
+          } catch (error) {
+            errorToActionOrThrow(error, rootPath)
+            return
+          }
+        }
+        Z.ignorePromise(f())
+      },
+      journalUpdate: (syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: number) => {
+        set(s => {
+          s.uploads.syncingPaths = new Set(syncingPaths)
+          s.uploads.totalSyncingBytes = totalSyncingBytes
+          s.uploads.endEstimate = endEstimate || undefined
+        })
+      },
+      kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => {
+        set(s => {
+          s.kbfsDaemonStatus.onlineStatus =
+            onlineStatus === RPCTypes.KbfsOnlineStatus.offline
+              ? Types.KbfsDaemonOnlineStatus.Offline
+              : onlineStatus === RPCTypes.KbfsOnlineStatus.trying
+              ? Types.KbfsDaemonOnlineStatus.Trying
+              : onlineStatus === RPCTypes.KbfsOnlineStatus.online
+              ? Types.KbfsDaemonOnlineStatus.Online
+              : Types.KbfsDaemonOnlineStatus.Unknown
+        })
+      },
+      kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => {
+        set(s => {
+          if (rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+            s.kbfsDaemonStatus.onlineStatus = Types.KbfsDaemonOnlineStatus.Offline
+          }
+          s.kbfsDaemonStatus.rpcStatus = rpcStatus
+        })
+        reduxDispatch(FsGen.createKbfsDaemonRpcStatusChanged())
+      },
+      loadAdditionalTlf: (tlfPath: Types.Path) => {
+        const f = async () => {
+          if (Types.getPathLevel(tlfPath) !== 3) {
+            logger.warn('loadAdditionalTlf called on non-TLF path')
+            return
+          }
+          try {
+            const {folder, isFavorite, isIgnored, isNew} = await RPCTypes.SimpleFSSimpleFSGetFolderRpcPromise(
+              {path: pathToRPCPath(tlfPath).kbfs}
+            )
+            const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+            const tlfName =
+              tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+                ? tlfToPreferredOrder(folder.name, ConfigConstants.useCurrentUserState.getState().username)
+                : folder.name
+
+            if (tlfType) {
+              set(s => {
+                s.tlfs.additionalTlfs.set(
+                  tlfPath,
+                  makeTlf({
+                    conflictState: rpcConflictStateToConflictState(folder.conflictState || undefined),
+                    isFavorite,
+                    isIgnored,
+                    isNew,
+                    name: tlfName,
+                    resetParticipants: (folder.reset_members || []).map(({username}) => username),
+                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || undefined),
+                    teamId: folder.team_id || '',
+                    tlfMtime: folder.mtime || 0,
+                  })
+                )
+              })
+            }
+          } catch (error) {
+            if (!(error instanceof RPCError)) {
+              return
+            }
+            if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+              const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
+              const usernames = users?.map((elem: any) => elem.value)
+              // Don't leave the user on a broken FS dir screen.
+              reduxDispatch(RouteTreeGen.createNavigateUp())
+              reduxDispatch(
+                RouteTreeGen.createNavigateAppend({
+                  path: [{props: {source: 'newFolder', usernames}, selected: 'contactRestricted'}],
+                })
+              )
+            }
+            errorToActionOrThrow(error, tlfPath)
+          }
+        }
+        Z.ignorePromise(f())
+      },
+      loadFileContext: (path: Types.Path) => {
+        const f = async () => {
+          try {
+            const res = await RPCTypes.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
+              path: pathToRPCPath(path).kbfs,
+            })
+
+            set(s => {
+              s.fileContext.set(path, {
+                contentType: res.contentType,
+                url: res.url,
+                viewType: res.viewType,
+              })
+            })
+          } catch (err) {
+            errorToActionOrThrow(err)
+            return
+          }
+        }
+        Z.ignorePromise(f())
+      },
+      loadPathMetadata: (path: Types.Path) => {
+        const f = async () => {
+          try {
+            const dirent = await RPCTypes.SimpleFSSimpleFSStatRpcPromise(
+              {
+                path: pathToRPCPath(path),
+                refreshSubscription: false,
+              },
+              statWaitingKey
+            )
+
+            const pathItem = makeEntry(dirent)
+            set(s => {
+              const oldPathItem = getPathItem(s.pathItems, path)
+              s.pathItems.set(path, updatePathItem(oldPathItem, pathItem))
+              s.softErrors.pathErrors.delete(path)
+              s.softErrors.tlfErrors.delete(path)
+            })
+          } catch (err) {
+            errorToActionOrThrow(err, path)
+            return
+          }
+        }
+        Z.ignorePromise(f())
+      },
+      loadSettings: () => {
+        const f = async () => {
+          set(s => {
+            s.settings.isLoading = true
+          })
+          try {
+            const settings = await RPCTypes.SimpleFSSimpleFSSettingsRpcPromise()
+            set(s => {
+              const o = s.settings
+              o.isLoading = false
+              o.loaded = true
+              o.sfmiBannerDismissed = settings.sfmiBannerDismissed
+              o.spaceAvailableNotificationThreshold = settings.spaceAvailableNotificationThreshold
+              o.syncOnCellular = settings.syncOnCellular
+            })
+          } catch {
+            set(s => {
+              s.settings.isLoading = false
+            })
+          }
+        }
+        Z.ignorePromise(f())
+      },
+      loadTlfSyncConfig: (tlfPath: Types.Path) => {
+        const f = async () => {
+          const parsedPath = parsePath(tlfPath)
+          if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.TeamTlf) {
+            return
+          }
+          try {
+            const result = await RPCTypes.SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise({
+              path: pathToRPCPath(tlfPath),
+            })
+            const syncConfig = getSyncConfigFromRPC(parsedPath.tlfName, parsedPath.tlfType, result.config)
+            const tlfName = parsedPath.tlfName
+            const tlfType = parsedPath.tlfType
+
+            set(s => {
+              const oldTlfList = s.tlfs[tlfType]
+              const oldTlfFromFavorites = oldTlfList.get(tlfName) || unknownTlf
+              if (oldTlfFromFavorites !== unknownTlf) {
+                s.tlfs[tlfType] = new Map([...oldTlfList, [tlfName, {...oldTlfFromFavorites, syncConfig}]])
+                return
+              }
+
+              const tlfPath = Types.pathConcat(Types.pathConcat(defaultPath, tlfType), tlfName)
+              const oldTlfFromAdditional = s.tlfs.additionalTlfs.get(tlfPath) || unknownTlf
+              if (oldTlfFromAdditional !== unknownTlf) {
+                s.tlfs.additionalTlfs = new Map([
+                  ...s.tlfs.additionalTlfs,
+                  [tlfPath, {...oldTlfFromAdditional, syncConfig}],
+                ])
+                return
+              }
+            })
+          } catch (e) {
+            errorToActionOrThrow(e, tlfPath)
+            return
+          }
+        }
+        Z.ignorePromise(f())
+      },
+      loadUploadStatus: () => {
+        const f = async () => {
+          try {
+            const uploadStates = await RPCTypes.SimpleFSSimpleFSGetUploadStatusRpcPromise()
+            set(s => {
+              // return FsGen.createLoadedUploadStatus({uploadStates: uploadStates || []})
+
+              const writingToJournal = new Map(
+                uploadStates?.map(uploadState => {
+                  const path = rpcPathToPath(uploadState.targetPath)
+                  const oldUploadState = s.uploads.writingToJournal.get(path)
+                  return [
+                    path,
+                    oldUploadState &&
+                    uploadState.error === oldUploadState.error &&
+                    uploadState.canceled === oldUploadState.canceled &&
+                    uploadState.uploadID === oldUploadState.uploadID
+                      ? oldUploadState
+                      : uploadState,
+                  ]
+                })
+              )
+              s.uploads.writingToJournal = writingToJournal
+            })
+          } catch (err) {
+            errorToActionOrThrow(err)
+          }
+        }
+        Z.ignorePromise(f())
+      },
+
+      loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => {
+        set(s => {
+          s.downloads.info.set(downloadID, info)
+        })
+      },
+      loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => {
+        set(s => {
+          s.downloads.regularDownloads = regularDownloads
+          s.downloads.state = state
+
+          const toDelete = [...s.downloads.info.keys()].filter(downloadID => !state.has(downloadID))
+          if (toDelete.length) {
+            toDelete.forEach(downloadID => s.downloads.info.delete(downloadID))
+          }
+        })
+      },
+      loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => {
+        set(s => {
+          s.pathInfos.set(path, info)
+        })
+      },
+      newFolderRow: (parentPath: Types.Path) => {
+        const parentPathItem = getPathItem(get().pathItems, parentPath)
+        if (parentPathItem.type !== Types.PathType.Folder) {
+          console.warn(`bad parentPath: ${parentPathItem.type}`)
+          return
+        }
+
+        const existingNewFolderNames = new Set([...get().edits.values()].map(({name}) => name))
+
+        let newFolderName = 'New Folder'
+        let i = 2
+        while (parentPathItem.children.has(newFolderName) || existingNewFolderNames.has(newFolderName)) {
+          newFolderName = `New Folder ${i}`
+          ++i
+        }
+
+        set(s => {
+          s.edits.set(makeEditID(), {
+            ...emptyNewFolder,
+            name: newFolderName,
+            originalName: newFolderName,
+            parentPath,
+          })
+        })
+      },
+      onChangedFocus: (appFocused: boolean) => {
+        const driverStatus = get().sfmi.driverStatus
+        if (
+          appFocused &&
+          driverStatus.type === Types.DriverStatusType.Disabled &&
+          driverStatus.kextPermissionError
+        ) {
+          get().dispatch.driverEnable(true)
+        }
+      },
+      redbar: (error: string) => {
+        set(s => {
+          s.errors.push(error)
+        })
+      },
+      reset: () => {
+        set(() => initialState)
+      },
+      setBadge: (b: RPCTypes.FilesTabBadge) => {
+        set(s => {
+          s.badge = b
+        })
+      },
+      setCriticalUpdate: (u: boolean) => {
+        set(s => {
+          s.criticalUpdate = u
+        })
+      },
+      setDestinationPickerParentPath: (index: number, path: Types.Path) => {
+        set(s => {
+          s.destinationPicker.destinationParentPath[index] = path
+        })
+      },
+      setDirectMountDir: (directMountDir: string) => {
+        set(s => {
+          s.sfmi.directMountDir = directMountDir
+        })
+      },
+      setDriverStatus: (driverStatus: Types.DriverStatus) => {
+        set(s => {
+          s.sfmi.driverStatus = driverStatus
+        })
+        reduxDispatch(FsGen.createSetDriverStatus())
+      },
+      setEditName: (editID: Types.EditID, name: string) => {
+        set(s => {
+          const e = s.edits.get(editID)
+          if (e) {
+            e.name = name
+          }
+        })
+      },
+      setFolderViewFilter: (filter?: string) => {
+        set(s => {
+          s.folderViewFilter = filter
+        })
+      },
+      setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => {
+        set(s => {
+          s.destinationPicker.source = {source, type: Types.DestinationPickerSource.IncomingShare}
+        })
+      },
+      setLastPublicBannerClosedTlf: (tlf: string) => {
+        set(s => {
+          s.lastPublicBannerClosedTlf = tlf
+        })
+      },
+      setMoveOrCopySource: (path: Types.Path) => {
+        set(s => {
+          s.destinationPicker.source = {path, type: Types.DestinationPickerSource.MoveOrCopy}
+        })
+      },
+      setPathItemActionMenuDownload: (downloadID?: string, intent?: Types.DownloadIntent) => {
+        set(s => {
+          s.pathItemActionMenu.downloadID = downloadID
+          s.pathItemActionMenu.downloadIntent = intent
+        })
+      },
+      setPathItemActionMenuView: (view: Types.PathItemActionMenuView) => {
+        set(s => {
+          s.pathItemActionMenu.previousView = s.pathItemActionMenu.view
+          s.pathItemActionMenu.view = view
+        })
+      },
+      setPathSoftError: (path: Types.Path, softError?: Types.SoftError) => {
+        set(s => {
+          if (softError) {
+            s.softErrors.pathErrors.set(path, softError)
+          } else {
+            s.softErrors.pathErrors.delete(path)
+          }
+        })
+      },
+      setPreferredMountDirs: (preferredMountDirs: Array<string>) => {
+        set(s => {
+          s.sfmi.preferredMountDirs = preferredMountDirs
+        })
+      },
+      setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => {
+        set(s => {
+          const old = s.pathUserSettings.get(path)
+          if (old) {
+            old.sort = sortSetting
+          } else {
+            s.pathUserSettings.set(path, {...defaultPathUserSetting, sort: sortSetting})
+          }
+        })
+      },
+      setTlfSoftError: (path: Types.Path, softError?: Types.SoftError) => {
+        set(s => {
+          if (softError) {
+            s.softErrors.tlfErrors.set(path, softError)
+          } else {
+            s.softErrors.tlfErrors.delete(path)
+          }
+        })
+      },
+      setTlfsAsUnloaded: () => {
+        set(s => {
+          s.tlfs.loaded = false
+        })
+      },
+      showIncomingShare: (initialDestinationParentPath: Types.Path) => {
+        set(s => {
+          if (s.destinationPicker.source.type !== Types.DestinationPickerSource.IncomingShare) {
+            s.destinationPicker.source = {source: [], type: Types.DestinationPickerSource.IncomingShare}
+          }
+          s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
+        })
+        reduxDispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
+        )
+      },
+      showMoveOrCopy: (initialDestinationParentPath: Types.Path) => {
+        set(s => {
+          s.destinationPicker.source =
+            s.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
+              ? s.destinationPicker.source
+              : {
+                  path: defaultPath,
+                  type: Types.DestinationPickerSource.MoveOrCopy,
+                }
+
+          s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
+        })
+        reduxDispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
+        )
+      },
+      startRename: (path: Types.Path) => {
+        const parentPath = Types.getPathParent(path)
+        const originalName = Types.getPathName(path)
+        set(s => {
+          s.edits.set(makeEditID(), {
+            name: originalName,
+            originalName,
+            parentPath,
+            type: Types.EditType.Rename,
+          })
+        })
+      },
+      syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => {
+        const diskSpaceStatus = status.outOfSyncSpace
+          ? Types.DiskSpaceStatus.Error
+          : status.localDiskBytesAvailable < get().settings.spaceAvailableNotificationThreshold
+          ? Types.DiskSpaceStatus.Warning
+          : Types.DiskSpaceStatus.Ok
+
+        const oldStatus = get().overallSyncStatus.diskSpaceStatus
+        set(s => {
+          s.overallSyncStatus.syncingFoldersProgress = status.prefetchProgress
+          s.overallSyncStatus.diskSpaceStatus = diskSpaceStatus
+        })
+
+        // Only notify about the disk space status if it has changed.
+        if (oldStatus !== diskSpaceStatus) {
+          switch (diskSpaceStatus) {
+            case Types.DiskSpaceStatus.Error:
+              NotifyPopup('Sync Error', {
+                body: 'You are out of disk space. Some folders could not be synced.',
+                sound: true,
+              })
+              reduxDispatch(
+                NotificationsGen.createBadgeApp({
+                  key: 'outOfSpace',
+                  on: status.outOfSyncSpace,
+                })
+              )
+              break
+            case Types.DiskSpaceStatus.Warning:
+              {
+                const threshold = humanizeBytes(get().settings.spaceAvailableNotificationThreshold, 0)
+                NotifyPopup('Disk Space Low', {
+                  body: `You have less than ${threshold} of storage space left.`,
+                })
+                // Only show the banner if the previous state was OK and the new state
+                // is warning. Otherwise we rely on the previous state of the banner.
+                if (oldStatus === Types.DiskSpaceStatus.Ok) {
+                  set(s => {
+                    s.overallSyncStatus.showingBanner = true
+                  })
+                }
+              }
+              break
+            case Types.DiskSpaceStatus.Ok:
+              break
+            default:
+          }
+        }
+      },
+      userFileEditsLoad: () => {
+        const f = async () => {
+          try {
+            const writerEdits = await RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
+            set(s => {
+              s.tlfUpdates = userTlfHistoryRPCToState(writerEdits || [])
+            })
+          } catch (error) {
+            errorToActionOrThrow(error)
+            return
+          }
+        }
+        Z.ignorePromise(f())
+      },
+      waitForKbfsDaemon: () => {
+        set(s => {
+          s.kbfsDaemonStatus.rpcStatus = Types.KbfsDaemonRpcStatus.Waiting
+        })
+        const f = async () => {
+          if (waitForKbfsDaemonInProgress) {
+            return
+          }
+          waitForKbfsDaemonInProgress = true
+          try {
+            await RPCTypes.configWaitForClientRpcPromise({
+              clientType: RPCTypes.ClientType.kbfs,
+              timeout: 60, // 1min. This is arbitrary since we're gonna check again anyway if we're not connected.
+            })
+          } catch (_) {}
+
+          waitForKbfsDaemonInProgress = false
+          get().dispatch.checkKbfsDaemonRpcStatus()
+        }
+        Z.ignorePromise(f())
+      },
+    }
+
+    return {
+      ...initialState,
+      dispatch,
+      getUploadIconForFilesTab,
+    }
+  })
+)

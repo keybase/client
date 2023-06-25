@@ -3,7 +3,6 @@ import * as Styles from '../../styles/index'
 import * as Types from '../../constants/types/fs'
 import TopBar from '../top-bar'
 import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
 
 type Props = {
   path: Types.Path
@@ -48,7 +47,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {path} = ownProps
-  const syncConfig = Container.useSelector(state => Constants.getTlfFromPath(state.fs.tlfs, path).syncConfig)
+  const syncConfig = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, path).syncConfig)
   const props = {
     ...ownProps,
     syncEnabled: !!syncConfig && syncConfig.mode === Types.TlfSyncMode.Enabled,

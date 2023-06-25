@@ -149,7 +149,7 @@ export const SimpleLoading = React.memo(function SimpleLoading() {
 })
 
 export const FilesTabBadge = () => {
-  const uploadIcon = FsConstants.getUploadIconForFilesTab(Container.useSelector(state => state.fs.badge))
+  const uploadIcon = FsConstants.useState(s => s.getUploadIconForFilesTab())
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
 }
 

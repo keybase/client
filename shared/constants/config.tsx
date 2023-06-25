@@ -161,7 +161,7 @@ type ZState = ZStore & {
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
-    setLoggedIn: (l: boolean, causedByStartup?: boolean) => void
+    setLoggedIn: (l: boolean, causedByStartup?: boolean, skipSideEffect?: boolean) => void
     setNotifySound: (n: boolean) => void
     setStartupDetails: (st: Omit<ZStore['startup'], 'loaded'>) => void
     setStartupDetailsLoaded: () => void
@@ -359,14 +359,16 @@ export const useConfigState = Z.createZustand(
           s.justDeletedSelf = self
         })
       },
-      setLoggedIn: (l: boolean, causedByStartup = false) => {
+      setLoggedIn: (l: boolean, causedByStartup = false, skipSideEffect = false) => {
         if (l === get().loggedIn) {
           return
         }
         set(s => {
           s.loggedIn = l
         })
-        reduxDispatch(ConfigGen.createLoggedInChanged({causedByStartup}))
+        if (!skipSideEffect) {
+          reduxDispatch(ConfigGen.createLoggedInChanged({causedByStartup}))
+        }
       },
       setNotifySound: (n: boolean) => {
         set(s => {

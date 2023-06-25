@@ -1,4 +1,3 @@
-import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
@@ -23,8 +22,8 @@ const styles = Styles.styleSheetCreate(
 
 const Loading = (op: OwnProps) => {
   const {path} = op
-  const _pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
-  const _tlfsLoaded = Container.useSelector(state => !!state.fs.tlfs.private.size)
+  const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
+  const _tlfsLoaded = Constants.useState(s => !!s.tlfs.private.size)
   const parsedPath = Constants.parsePath(path)
   let show = false
 

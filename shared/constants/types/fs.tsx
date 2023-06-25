@@ -523,30 +523,6 @@ export type FileContext = {
   readonly url: string
 }
 
-export type State = {
-  readonly badge: RPCTypes.FilesTabBadge
-  readonly criticalUpdate: boolean
-  readonly destinationPicker: DestinationPicker
-  readonly downloads: Downloads
-  readonly edits: Edits
-  readonly errors: Array<string>
-  readonly fileContext: Map<Path, FileContext>
-  readonly folderViewFilter: string | undefined // on mobile, '' is expanded empty, null is unexpanded
-  readonly kbfsDaemonStatus: KbfsDaemonStatus
-  readonly lastPublicBannerClosedTlf: string
-  readonly overallSyncStatus: OverallSyncStatus
-  readonly pathItemActionMenu: PathItemActionMenu
-  readonly pathItems: PathItems
-  readonly pathInfos: Map<Path, PathInfo>
-  readonly pathUserSettings: Map<Path, PathUserSetting>
-  readonly settings: Settings
-  readonly sfmi: SystemFileManagerIntegration
-  readonly softErrors: SoftErrors
-  readonly tlfUpdates: UserTlfUpdates
-  readonly tlfs: Tlfs
-  readonly uploads: Uploads
-}
-
 export type Visibility = TlfType | undefined
 
 export const direntToPathType = (d: RPCTypes.Dirent): PathType => {
