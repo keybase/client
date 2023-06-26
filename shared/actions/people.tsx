@@ -26,19 +26,6 @@ import {commonListenActions, filterForNs} from './team-building'
 //     updates: new Map<string, Types.WotUpdate>(Object.entries(action.payload.badgeState.wotUpdates || {})),
 //   })
 
-const homeUIRefresh = () => {
-  Constants.useState.getState().dispatch.loadPeople(false)
-}
-
-const connected = async () => {
-  try {
-    await RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
-    console.log('Registered home UI')
-  } catch (error) {
-    console.warn('Error in registering home UI:', error)
-  }
-}
-
 const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.AddUsersToTeamSoFarPayload) => {
   const {users} = action.payload
   const user = users[0]
@@ -52,23 +39,30 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
   ]
 }
 
-const maybeMarkViewed = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
-  const {prev, next} = action.payload
-  if (
-    prev &&
-    Router2Constants.getTab(prev) === Tabs.peopleTab &&
-    next &&
-    Router2Constants.getTab(next) !== Tabs.peopleTab
-  ) {
-    Constants.useState.getState().dispatch.markViewed()
-  }
-}
-
 const initPeople = () => {
   // Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
-  Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
-  Container.listenAction(EngineGen.connected, connected)
-  Container.listenAction(RouteTreeGen.onNavChanged, maybeMarkViewed)
+  Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, () => {
+    Constants.useState.getState().dispatch.loadPeople(false)
+  })
+  Container.listenAction(EngineGen.connected, async () => {
+    try {
+      await RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
+      console.log('Registered home UI')
+    } catch (error) {
+      console.warn('Error in registering home UI:', error)
+    }
+  })
+  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
+    const {prev, next} = action.payload
+    if (
+      prev &&
+      Router2Constants.getTab(prev) === Tabs.peopleTab &&
+      next &&
+      Router2Constants.getTab(next) !== Tabs.peopleTab
+    ) {
+      Constants.useState.getState().dispatch.markViewed()
+    }
+  })
   commonListenActions('people')
   Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
   Container.listenAction(SettingsGen.emailVerified, (_, a) => {
