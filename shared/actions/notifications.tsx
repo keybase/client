@@ -5,6 +5,7 @@ import * as FsConstants from '../constants/fs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
 import * as ConfigConstants from '../constants/config'
+import * as Constants from '../constants/notifications'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
 
@@ -56,7 +57,7 @@ const setupNotifications = async () => {
 const createBadgeState = (_: unknown, action: EngineGen.Keybase1NotifyBadgesBadgeStatePayload) =>
   NotificationsGen.createReceivedBadgeState({badgeState: action.payload.params.badgeState})
 
-const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCTypes.BadgeState) => {
+const badgeStateToBadgeCounts = (_: unknown, bs: RPCTypes.BadgeState) => {
   const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
   const deletedTeams = bs.deletedTeams ?? []
   const newDevices = bs.newDevices ?? []
@@ -68,7 +69,7 @@ const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCTypes.Badge
   const unreadWalletAccounts = bs.unreadWalletAccounts ?? []
   const wotUpdates = bs.wotUpdates ?? new Map<string, RPCTypes.WotUpdate>()
 
-  if (state.notifications.badgeVersion >= inboxVers) {
+  if (Constants.useState.getState().badgeVersion >= inboxVers) {
     return undefined
   }
 
@@ -114,7 +115,9 @@ const receivedBadgeState = (
   if (!isMobile && shouldTriggerTlfLoad(action.payload.badgeState)) {
     FsConstants.useState.getState().dispatch.favoritesLoad()
   }
-  return counts && NotificationsGen.createSetBadgeCounts({counts})
+  if (counts) {
+    Constants.useState.getState().dispatch.setBadgeCounts(counts)
+  }
 }
 
 const receivedRootAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAuditRootAuditErrorPayload) => {

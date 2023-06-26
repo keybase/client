@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/fs'
+import * as NotifConstants from '../../constants/notifications'
 import * as ConfigConstants from '../../constants/config'
 import * as Router2Constants from '../../constants/router2'
 import * as EngineGen from '../engine-gen-gen'
@@ -6,7 +7,6 @@ import * as FsGen from '../fs-gen'
 import * as ConfigGen from '../config-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
-import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
 import * as Container from '../../util/container'
 import logger from '../../logger'
@@ -147,13 +147,12 @@ const pollJournalFlushStatusUntilDone = async (
       if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
         break
       }
-
-      listenerApi.dispatch(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true}))
+      NotifConstants.useState.getState().dispatch.badgeApp('kbfsUploading', true)
       await listenerApi.delay(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
     }
   } finally {
     polling = false
-    listenerApi.dispatch(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
+    NotifConstants.useState.getState().dispatch.badgeApp('kbfsUploading', false)
     Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
   }
 }

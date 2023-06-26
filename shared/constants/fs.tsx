@@ -1,6 +1,6 @@
 // TODO w/ zustand cleanup remove more fs actions
 import * as ConfigConstants from './config'
-import * as NotificationsGen from '../actions/notifications-gen'
+import * as NotifConstants from './notifications'
 import * as FsGen from '../actions/fs-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -1510,7 +1510,7 @@ export const useState = Z.createZustand(
               })
               const counts = new Map<Tabs.Tab, number>()
               counts.set(Tabs.fsTab, computeBadgeNumberForAll(get().tlfs))
-              reduxDispatch(NotificationsGen.createSetBadgeCounts({counts}))
+              NotifConstants.useState.getState().dispatch.setBadgeCounts(counts)
             }
           } catch (e) {
             errorToActionOrThrow(e)
@@ -2083,12 +2083,7 @@ export const useState = Z.createZustand(
                 body: 'You are out of disk space. Some folders could not be synced.',
                 sound: true,
               })
-              reduxDispatch(
-                NotificationsGen.createBadgeApp({
-                  key: 'outOfSpace',
-                  on: status.outOfSyncSpace,
-                })
-              )
+              NotifConstants.useState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
               break
             case Types.DiskSpaceStatus.Warning:
               {

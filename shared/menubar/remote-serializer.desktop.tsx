@@ -1,7 +1,7 @@
 import * as FSTypes from '../constants/types/fs'
+import type * as Tabs from '../constants/tabs'
 import type * as ChatTypes from '../constants/types/chat2'
 import type {DaemonHandshakeState, OutOfDate} from '../constants/types/config'
-import type {State as NotificationsState} from '../constants/types/notifications'
 import type {State as UsersState, UserInfo} from '../constants/types/users'
 import type {Tab} from '../constants/tabs'
 import {produce} from 'immer'
@@ -58,8 +58,8 @@ export type ProxyProps = {
   httpSrvAddress: string
   httpSrvToken: string
   windowShownCountNum: number
-} & Pick<NotificationsState, 'navBadges'> &
-  Pick<UsersState, UsersHoistedProps>
+  navBadges: Map<Tabs.Tab, number>
+} & Pick<UsersState, UsersHoistedProps>
 
 type SerializeProps = Omit<
   ProxyProps,
