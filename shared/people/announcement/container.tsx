@@ -1,9 +1,9 @@
 import Announcement from '.'
-import * as PeopleGen from '../../actions/people-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RouteTree from '../../actions/route-tree-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
+import * as Constants from '../../constants/people'
 import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
 import * as Container from '../../util/container'
@@ -22,6 +22,9 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const {appLink, badged, confirmLabel, iconUrl, id, text, url, dismissable} = ownProps
   const dispatch = Container.useDispatch()
+
+  const loadPeople = Constants.useState(s => s.dispatch.loadPeople)
+  const dismissAnnouncement = Constants.useState(s => s.dispatch.dismissAnnouncement)
 
   const onConfirm = () => {
     if (url) {
@@ -65,12 +68,12 @@ export default (ownProps: OwnProps) => {
         dispatch(RouteTree.createSwitchTab({tab: Tabs.teamsTab}))
         break
     }
-    dispatch(PeopleGen.createDismissAnnouncement({id}))
-    dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
+    dismissAnnouncement(id)
+    loadPeople(true, 10)
   }
   const _onDismiss = () => {
-    dispatch(PeopleGen.createDismissAnnouncement({id}))
-    dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
+    dismissAnnouncement(id)
+    loadPeople(true, 10)
   }
   const props = {
     badged,

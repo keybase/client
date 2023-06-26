@@ -3,7 +3,6 @@ import {type Draft as _Draft} from 'immer'
 import type {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
 import type {ActionHandler as _ActionHandler} from './make-reducer'
 import type {TypedState as _TypedState} from '../constants/reducer'
-import {StatusCode} from '../constants/types/rpc-gen'
 import {useDispatch as RRuseDispatch, shallowEqual, type TypedUseSelectorHook} from 'react-redux'
 import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
@@ -18,6 +17,7 @@ export {listenAction, type ListenerApi, spawn} from './redux-toolkit'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 import USH from './use-selector'
 export {useAnyWaiting, useAnyErrors, useDispatchClearWaiting} from '../constants/waiting'
+export {networkErrorCodes, isNetworkErr} from '../util/errors'
 
 // just then and catch and ignore async functions
 export const ignorePromise = (f: Promise<void>) => {
@@ -52,14 +52,6 @@ export type PagesToParams<T> = {
 export type ViewPropsToPageProps<T> = T extends (p: infer P) => any ? {route: {params: P}} : never
 
 const useSelector = USH.useSelector as TypedUseSelectorHook<RootState>
-
-export const networkErrorCodes = [
-  StatusCode.scgenericapierror,
-  StatusCode.scapinetworkerror,
-  StatusCode.sctimeout,
-]
-
-export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
 
 export type RemoteWindowSerializeProps<P> = {[K in keyof P]-?: (val: P[K], old?: P[K]) => any}
 

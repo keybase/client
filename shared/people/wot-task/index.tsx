@@ -1,3 +1,4 @@
+/*
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as ConfigConstants from '../../constants/config'
@@ -120,3 +121,5 @@ const WotTask = (props: Props) => {
 }
 
 export default WotTask
+*/
+export default {}

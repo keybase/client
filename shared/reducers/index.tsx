@@ -1,5 +1,4 @@
 import chat2 from './chat2'
-import people from './people'
 import pinentry from './pinentry'
 import profile from './profile'
 import provision from './provision'
@@ -14,6 +13,7 @@ import users from './users'
 import wallets from './wallets'
 // team building leftovers, TODO remove
 import crypto from './crypto'
+import people from './people'
 
 export const reducers = {
   chat2,

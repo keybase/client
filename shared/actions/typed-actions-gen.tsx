@@ -8,7 +8,6 @@ import type * as enginegen from './engine-gen-gen'
 import type * as fs from './fs-gen'
 import type * as gregor from './gregor-gen'
 import type * as notifications from './notifications-gen'
-import type * as people from './people-gen'
 import type * as pinentry from './pinentry-gen'
 import type * as profile from './profile-gen'
 import type * as provision from './provision-gen'
@@ -34,7 +33,6 @@ export type TypedActions =
   | fs.Actions
   | gregor.Actions
   | notifications.Actions
-  | people.Actions
   | pinentry.Actions
   | profile.Actions
   | provision.Actions

@@ -3,7 +3,6 @@ import * as Constants from '../constants/people'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as PeopleGen from '../actions/people-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import People from '.'
 
@@ -11,13 +10,15 @@ let lastRefresh: number = 0
 const waitToRefresh = 1000 * 60 * 5
 
 const PeopleReloadable = () => {
-  const followSuggestions = Container.useSelector(state => state.people.followSuggestions)
+  const followSuggestions = Constants.useState(s => s.followSuggestions)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const newItems = Container.useSelector(state => state.people.newItems)
-  const oldItems = Container.useSelector(state => state.people.oldItems)
+  const newItems = Constants.useState(s => s.newItems)
+  const oldItems = Constants.useState(s => s.oldItems)
   const signupEmail = Container.useSelector(state => state.signup.justSignedUpEmail)
   const waiting = Container.useAnyWaiting(Constants.getPeopleDataWaitingKey)
-  const wotUpdates = Container.useSelector(state => state.people.wotUpdates)
+
+  const loadPeople = Constants.useState(s => s.dispatch.loadPeople)
+  // const wotUpdates = Container.useSelector(state => state.people.wotUpdates)
 
   const dispatch = Container.useDispatch()
   const getData = React.useCallback(
@@ -25,10 +26,10 @@ const PeopleReloadable = () => {
       const now = Date.now()
       if (force || !lastRefresh || lastRefresh + waitToRefresh < now) {
         lastRefresh = now
-        dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10}))
+        loadPeople(markViewed, 10)
       }
     },
-    [dispatch]
+    [loadPeople]
   )
   const onClickUser = React.useCallback(
     (username: string) => dispatch(createShowUserProfile({username})),
@@ -51,7 +52,7 @@ const PeopleReloadable = () => {
         onClickUser={onClickUser}
         signupEmail={signupEmail}
         waiting={waiting}
-        wotUpdates={wotUpdates}
+        // wotUpdates={wotUpdates}
       />
     </Kb.Reloadable>
   )

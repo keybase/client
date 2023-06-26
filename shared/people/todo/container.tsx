@@ -1,5 +1,6 @@
+import * as React from 'react'
 import * as Container from '../../util/container'
-import * as PeopleGen from '../../actions/people-gen'
+import * as Constants from '../../constants/people'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
@@ -26,8 +27,12 @@ type TodoOwnProps = {
 }
 
 const installLinkURL = 'https://keybase.io/download'
-const onSkipTodo = (type: Types.TodoType, dispatch: Container.TypedDispatch) => () =>
-  dispatch(PeopleGen.createSkipTodo({type}))
+const useOnSkipTodo = (type: Types.TodoType) => {
+  const skipTodo = Constants.useState(s => s.dispatch.skipTodo)
+  return React.useCallback(() => {
+    skipTodo(type)
+  }, [skipTodo, type])
+}
 
 function makeDefaultButtons(
   onConfirm: () => void,
@@ -58,7 +63,7 @@ const AddEmailConnector = (props: TodoOwnProps) => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']}))
   }
-  const onDismiss = onSkipTodo('addEmail', dispatch)
+  const onDismiss = useOnSkipTodo('addEmail')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -70,7 +75,7 @@ const AddPhoneNumberConnector = (props: TodoOwnProps) => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
   }
-  const onDismiss = onSkipTodo('addPhoneNumber', dispatch)
+  const onDismiss = useOnSkipTodo('addPhoneNumber')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -104,15 +109,14 @@ const ProofConnector = (props: TodoOwnProps) => {
   const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
   const onConfirm = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
-  const onDismiss = onSkipTodo('proof', dispatch)
+  const onDismiss = useOnSkipTodo('proof')
   const buttons = makeDefaultButtons(() => onConfirm(myUsername), props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
 
 const DeviceConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
   const onConfirm = () => openURL(installLinkURL)
-  const onDismiss = onSkipTodo('device', dispatch)
+  const onDismiss = useOnSkipTodo('device')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -122,7 +126,7 @@ const FollowConnector = (props: TodoOwnProps) => {
   const onConfirm = () => {
     dispatch(appendPeopleBuilder())
   }
-  const onDismiss = onSkipTodo('follow', dispatch)
+  const onDismiss = useOnSkipTodo('follow')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -130,7 +134,7 @@ const FollowConnector = (props: TodoOwnProps) => {
 const ChatConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
   const onConfirm = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
-  const onDismiss = onSkipTodo('chat', dispatch)
+  const onDismiss = useOnSkipTodo('chat')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -153,7 +157,7 @@ const TeamConnector = (props: TodoOwnProps) => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
     dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
   }
-  const onDismiss = onSkipTodo('team', dispatch)
+  const onDismiss = useOnSkipTodo('team')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -161,7 +165,7 @@ const TeamConnector = (props: TodoOwnProps) => {
 const FolderConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
   const onConfirm = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}))
-  const onDismiss = onSkipTodo('folder', dispatch)
+  const onDismiss = useOnSkipTodo('folder')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -176,7 +180,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
     }
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam}, selected: 'gitNewRepo'}]}))
   }
-  const onDismiss = onSkipTodo('gitRepo', dispatch)
+  const onDismiss = useOnSkipTodo('gitRepo')
   const buttons: Array<TaskButton> = [
     {
       label: 'Create a personal repo',
@@ -198,7 +202,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
 const TeamShowcaseConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
   const onConfirm = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
-  const onDismiss = onSkipTodo('teamShowcase', dispatch)
+  const onDismiss = useOnSkipTodo('teamShowcase')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
 }
@@ -206,9 +210,10 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
   const addingEmail = Container.useSelector(state => state.settings.email.addingEmail)
   const dispatch = Container.useDispatch()
+  const setResentEmail = Constants.useState(s => s.dispatch.setResentEmail)
   const onConfirm = (email: string) => {
     dispatch(SettingsGen.createEditEmail({email, verify: true}))
-    dispatch(PeopleGen.createSetResentEmail({email}))
+    setResentEmail(email)
   }
   const onManage = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
@@ -280,7 +285,7 @@ const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
     dispatch(SettingsGen.createEditEmail({email, makeSearchable: true}))
   }
-  const onDismiss = onSkipTodo('legacyEmailVisibility', dispatch)
+  const onDismiss = useOnSkipTodo('legacyEmailVisibility')
   const buttons: Array<TaskButton> = [
     ...(props.metadata
       ? [

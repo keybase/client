@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Container from '../util/container'
+import * as Constants from '../constants/people'
 import * as Kb from '../common-adapters'
-import * as PeopleGen from '../actions/people-gen'
 import * as SignupGen from '../actions/signup-gen'
 import * as Styles from '../styles'
 import type * as Types from '../constants/types/people'
@@ -11,7 +11,7 @@ import FollowSuggestions from './follow-suggestions'
 import {noEmail} from '../constants/signup'
 import type {Props} from '.'
 import Todo from './todo/container'
-import WotTask from './wot-task'
+// import WotTask from './wot-task'
 
 export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => React.ReactNode = (
   item,
@@ -86,16 +86,17 @@ const EmailVerificationBanner = () => {
 }
 
 const ResentEmailVerificationBanner = () => {
-  const dispatch = Container.useDispatch()
-  const resentEmail = Container.useSelector(s => s.people.resentEmail)
-
+  const resentEmail = Constants.useState(s => s.resentEmail)
+  const setResentEmail = Constants.useState(s => s.dispatch.setResentEmail)
   React.useEffect(
     () =>
       // Only have a cleanup function
       () => {
-        resentEmail && dispatch(PeopleGen.createSetResentEmail({email: ''}))
+        if (resentEmail) {
+          setResentEmail('')
+        }
       },
-    [dispatch, resentEmail]
+    [setResentEmail, resentEmail]
   )
 
   if (!resentEmail) {
@@ -120,7 +121,7 @@ export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
       {props.newItems
         .filter(item => item.type !== 'todo' || item.todoType !== 'verifyAllEmail' || !props.signupEmail)
         .map(item => itemToComponent(item, props))}
-      {Array.from(props.wotUpdates, ([key, item]) => (
+      {/*Array.from(props.wotUpdates, ([key, item]) => (
         <WotTask
           key={key}
           voucher={item.voucher}
@@ -128,7 +129,7 @@ export const PeoplePageList = React.memo(function PeoplePageList(props: Props) {
           status={item.status}
           onClickUser={props.onClickUser}
         />
-      ))}
+      ))*/}
 
       <FollowSuggestions suggestions={props.followSuggestions} />
       {props.oldItems.map(item => itemToComponent(item, props))}

@@ -119,3 +119,11 @@ export function isErrorTransient(error: RPCError | Error) {
 }
 
 export {RPCError}
+
+export const networkErrorCodes = [
+  RPCTypes.StatusCode.scgenericapierror,
+  RPCTypes.StatusCode.scapinetworkerror,
+  RPCTypes.StatusCode.sctimeout,
+]
+
+export const isNetworkErr = (code: number) => networkErrorCodes.includes(code)
