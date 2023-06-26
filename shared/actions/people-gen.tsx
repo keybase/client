@@ -5,29 +5,19 @@ import type * as Types from '../constants/types/people'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of people but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'people:'
-export const badgeAppForWotNotifications = 'people:badgeAppForWotNotifications'
-export const markViewed = 'people:markViewed'
 export const skipTodo = 'people:skipTodo'
 
 // Action Creators
-export const createBadgeAppForWotNotifications = (payload: {
-  readonly updates: Map<string, Types.WotUpdate>
-}) => ({payload, type: badgeAppForWotNotifications as typeof badgeAppForWotNotifications})
-export const createMarkViewed = (payload?: undefined) => ({payload, type: markViewed as typeof markViewed})
 export const createSkipTodo = (payload: {readonly type: Types.TodoType}) => ({
   payload,
   type: skipTodo as typeof skipTodo,
 })
 
 // Action Payloads
-export type BadgeAppForWotNotificationsPayload = ReturnType<typeof createBadgeAppForWotNotifications>
-export type MarkViewedPayload = ReturnType<typeof createMarkViewed>
 export type SkipTodoPayload = ReturnType<typeof createSkipTodo>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | BadgeAppForWotNotificationsPayload
-  | MarkViewedPayload
   | SkipTodoPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

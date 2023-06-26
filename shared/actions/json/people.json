@@ -1,10 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/people'"],
   "actions": {
-    "badgeAppForWotNotifications": {
-      "updates": "Map<string, Types.WotUpdate>"
-    },
-    "markViewed": {},
     "skipTodo": {
       "type": "Types.TodoType"
     }

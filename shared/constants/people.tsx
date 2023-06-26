@@ -1,4 +1,5 @@
 import * as ConfigConstants from './config'
+import {isNetworkErr, RPCError} from '../util/errors'
 import * as Followers from './followers'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
@@ -353,6 +354,7 @@ type ZState = State & {
     dismissAnnouncement: (id: RPCTypes.HomeScreenAnnouncementID) => void
     loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
     setResentEmail: (email: string) => void
+    markViewed: () => void
     reset: () => void
   }
 }
@@ -480,6 +482,23 @@ export const useState = Z.createZustand(
             })
             // never throw black bars
           } catch (_) {}
+        }
+        Z.ignorePromise(f())
+      },
+      markViewed: () => {
+        const f = async () => {
+          try {
+            await RPCTypes.homeHomeMarkViewedRpcPromise()
+          } catch (error) {
+            if (!(error instanceof RPCError)) {
+              throw error
+            }
+            if (isNetworkErr(error.code)) {
+              logger.warn('Network error calling homeMarkViewed')
+            } else {
+              throw error
+            }
+          }
         }
         Z.ignorePromise(f())
       },

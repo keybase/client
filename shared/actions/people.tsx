@@ -3,7 +3,6 @@ import * as SettingsGen from './settings-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as NotificationsGen from './notifications-gen'
 import * as PeopleGen from './people-gen'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -11,9 +10,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
 import * as TeamBuildingGen from './team-building-gen'
 import {commonListenActions, filterForNs} from './team-building'
-import logger from '../logger'
-import type * as Types from '../constants/types/people'
-import {RPCError} from '../util/errors'
 
 // const dismissWotNotifications = async (_: unknown, action: PeopleGen.DismissWotNotificationsPayload) => {
 //   try {
@@ -26,25 +22,10 @@ import {RPCError} from '../util/errors'
 //   }
 // }
 
-const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
-  PeopleGen.createBadgeAppForWotNotifications({
-    updates: new Map<string, Types.WotUpdate>(Object.entries(action.payload.badgeState.wotUpdates || {})),
-  })
-
-const markViewed = async () => {
-  try {
-    await RPCTypes.homeHomeMarkViewedRpcPromise()
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      throw error
-    }
-    if (Container.isNetworkErr(error.code)) {
-      logger.warn('Network error calling homeMarkViewed')
-    } else {
-      throw error
-    }
-  }
-}
+// const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
+//   PeopleGen.createBadgeAppForWotNotifications({
+//     updates: new Map<string, Types.WotUpdate>(Object.entries(action.payload.badgeState.wotUpdates || {})),
+//   })
 
 const skipTodo = async (_: unknown, action: PeopleGen.SkipTodoPayload) => {
   try {
@@ -91,15 +72,13 @@ const maybeMarkViewed = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) =
     next &&
     Router2Constants.getTab(next) !== Tabs.peopleTab
   ) {
-    return PeopleGen.createMarkViewed()
+    Constants.useState.getState().dispatch.markViewed()
   }
-  return false
 }
 
 const initPeople = () => {
-  Container.listenAction(PeopleGen.markViewed, markViewed)
   Container.listenAction(PeopleGen.skipTodo, skipTodo)
-  Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  // Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
   Container.listenAction(EngineGen.connected, connected)
   Container.listenAction(RouteTreeGen.onNavChanged, maybeMarkViewed)
