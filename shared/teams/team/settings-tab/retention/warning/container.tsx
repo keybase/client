@@ -19,7 +19,7 @@ export default (ownProps: OwnProps) => {
   const entityType = ownProps.entityType
   const policy = ownProps.policy
 
-  const updateConfirm = useConfirm(s => s.updateConfirm)
+  const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
   const onConfirm = () => {
     dispatch(RouteTreeGen.createNavigateUp())
     updateConfirm(policy)

@@ -6,8 +6,7 @@ import './app/globals.native'
 import {Appearance} from 'react-native'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
 import * as DarkMode from './constants/darkmode'
-import {enableES5, enableMapSet} from 'immer'
-enableES5()
+import {enableMapSet} from 'immer'
 enableMapSet()
 
 const {setSystemSupported, setSystemDarkMode, setDarkModePreference} =

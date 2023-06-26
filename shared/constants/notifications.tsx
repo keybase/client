@@ -5,7 +5,7 @@ import * as Tabs from './tabs'
 export type BadgeType = 'regular' | 'update' | 'error' | 'uploading'
 export type NotificationKeys = 'kbfsUploading' | 'outOfSpace'
 
-type State = {
+type Store = {
   badgeVersion: number
   desktopAppBadgeCount: number
   keyState: Map<NotificationKeys, boolean>
@@ -13,7 +13,7 @@ type State = {
   navBadges: Map<Tabs.Tab, number>
   widgetBadge: BadgeType
 }
-const initialState: State = {
+const initialStore: Store = {
   badgeVersion: -1,
   desktopAppBadgeCount: 0,
   keyState: new Map(),
@@ -22,16 +22,16 @@ const initialState: State = {
   widgetBadge: 'regular',
 }
 
-type ZState = State & {
+type State = Store & {
   dispatch: {
-    reset: () => void
+    resetState: () => void
     badgeApp: (key: NotificationKeys, on: boolean) => void
     setBadgeCounts: (counts: Map<Tabs.Tab, number>) => void
   }
 }
 
 export const useState = Z.createZustand(
-  Z.immerZustand<ZState>(set => {
+  Z.immerZustand<State>(set => {
     const updateWidgetBadge = (s: State) => {
       let widgetBadge: BadgeType = 'regular'
       const {keyState} = s
@@ -51,8 +51,8 @@ export const useState = Z.createZustand(
           updateWidgetBadge(s)
         })
       },
-      reset: () => {
-        set(() => initialState)
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
       },
       setBadgeCounts: (counts: Map<Tabs.Tab, number>) => {
         set(s => {
@@ -88,7 +88,7 @@ export const useState = Z.createZustand(
       },
     }
     return {
-      ...initialState,
+      ...initialStore,
       dispatch,
     }
   })

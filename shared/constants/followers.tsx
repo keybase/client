@@ -1,24 +1,24 @@
 import * as Z from '../util/zustand'
 
-export type ZStore = {
+export type Store = {
   followers: Set<string>
   following: Set<string>
 }
-const initialZState: ZStore = {
+const initialStore: Store = {
   followers: new Set(),
   following: new Set(),
 }
 
-type ZState = ZStore & {
+type State = Store & {
   dispatch: {
-    reset: () => void
+    resetState: () => void
     replace: (followers: Set<string>, following: Set<string>) => void
     updateFollowing: (user: string, add: boolean) => void
     updateFollowers: (user: string, add: boolean) => void
   }
 }
 export const useFollowerState = Z.createZustand(
-  Z.immerZustand<ZState>(set => {
+  Z.immerZustand<State>(set => {
     const dispatch = {
       replace: (followers: Set<string>, following: Set<string>) => {
         set(s => {
@@ -26,10 +26,8 @@ export const useFollowerState = Z.createZustand(
           s.following = following
         })
       },
-      reset: () => {
-        set(() => ({
-          ...initialZState,
-        }))
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
       },
       updateFollowers: (user: string, add: boolean) => {
         set(s => {
@@ -52,7 +50,7 @@ export const useFollowerState = Z.createZustand(
     }
 
     return {
-      ...initialZState,
+      ...initialStore,
       dispatch,
     }
   })

@@ -1,9 +1,9 @@
 import * as RPCTypes from '../constants/types/rpc-gen'
-import type * as Types from '../constants/types/pinentry'
+import type * as Constants from '../constants/pinentry'
 
 export type ProxyProps = {
   darkMode: boolean
-} & Types.State
+} & Constants.Store
 
 type SerializeProps = ProxyProps
 export type DeserializeProps = ProxyProps

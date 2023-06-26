@@ -2,14 +2,14 @@ import type * as RPCTypes from './types/rpc-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Z from '../util/zustand'
 
-export type ZStore = {
+export type Store = {
   deviceID: RPCTypes.DeviceID
   deviceName: string
   uid: string
   username: string
 }
 
-const initialZState: ZStore = {
+const initialStore: Store = {
   deviceID: '',
   deviceName: '',
   uid: '',
@@ -23,22 +23,26 @@ type Bootstrap = {
   username: string
 }
 
-type ZState = ZStore & {
+type State = Store & {
   dispatch: {
     // ONLY used by remote windows
     replaceUsername: (u: string) => void
     setBootstrap: (b: Bootstrap) => void
+    resetState: () => void
   }
 }
 
 export const useCurrentUserState = Z.createZustand(
-  Z.immerZustand<ZState>(set => {
+  Z.immerZustand<State>(set => {
     const reduxDispatch = Z.getReduxDispatch()
     const dispatch = {
       replaceUsername: (u: string) => {
         set(s => {
           s.username = u
         })
+      },
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
       },
       setBootstrap: (b: Bootstrap) => {
         set(s => {
@@ -53,7 +57,7 @@ export const useCurrentUserState = Z.createZustand(
     }
 
     return {
-      ...initialZState,
+      ...initialStore,
       dispatch,
     }
   })

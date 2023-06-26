@@ -9,7 +9,7 @@ import logger from '../logger'
 import URL from 'url-parse'
 
 const prefix = 'keybase://'
-type State = {
+type Store = {
   keybaseLinkError: string
 }
 export const linkFromConvAndMessage = (conv: string, messageID: number) =>
@@ -30,21 +30,21 @@ const validTeamnamePart = (s: string): boolean => {
 
 const validTeamname = (s: string) => s.split('.').every(validTeamnamePart)
 
-const initialState: State = {
+const initialStore: Store = {
   keybaseLinkError: '',
 }
 
-type ZState = State & {
+type State = Store & {
   dispatch: {
     handleAppLink: (link: string) => void
     handleKeybaseLink: (link: string) => void
-    reset: () => void
+    resetState: () => void
     setLinkError: (e: string) => void
   }
 }
 
 export const useState = Z.createZustand(
-  Z.immerZustand<ZState>((set, get) => {
+  Z.immerZustand<State>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
     const getReduxStore = Z.getReduxStore()
 
@@ -269,8 +269,8 @@ export const useState = Z.createZustand(
           })
         )
       },
-      reset: () => {
-        set(() => initialState)
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
       },
       setLinkError: (e: string) => {
         set(s => {
@@ -279,7 +279,7 @@ export const useState = Z.createZustand(
       },
     }
     return {
-      ...initialState,
+      ...initialStore,
       dispatch,
     }
   })

@@ -59,7 +59,7 @@ export const AddAliasModal = (props: Props) => {
   const addAliasRpc = useRPC(RPCChatGen.localAddEmojiAliasRpcPromise)
   const [addAliasWaiting, setAddAliasWaiting] = React.useState(false)
 
-  const refreshEmoji = useEmojiState(s => s.triggerEmojiUpdated)
+  const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
 
   const doAddAlias = emoji
     ? () => {

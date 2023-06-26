@@ -6,8 +6,7 @@ import './app/globals.native'
 import {Appearance} from 'react-native'
 import {darkModeSupported, guiConfig} from 'react-native-kb'
 import * as DarkMode from './constants/darkmode'
-import {enableES5, enableMapSet} from 'immer'
-enableES5()
+import {enableMapSet} from 'immer'
 enableMapSet()
 
 // Add scaleY back to work around its removal in React Native 0.70. needed for list perf issues, see list-area.native

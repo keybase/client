@@ -38,7 +38,7 @@ const onSetRecipients = (state: Container.TypedState) => {
 
 const initCrypto = () => {
   Container.listenAction(ConfigGen.resetStore, () => {
-    Constants.useState.getState().dispatch.reset()
+    Constants.useState.getState().dispatch.resetState()
   })
 
   commonListenActions('crypto')

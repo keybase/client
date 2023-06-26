@@ -19,7 +19,7 @@ const RemoteContainer = () => {
     windowShownCountNum,
     ...rest
   } = Container.useRemoteStore<DeserializeProps>()
-  useAvatarState(s => s.replace)(avatarRefreshCounter)
+  useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
   ConfigConstants.useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
   Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
   ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)

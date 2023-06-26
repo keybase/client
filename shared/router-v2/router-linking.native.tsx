@@ -58,7 +58,7 @@ export const isValidLink = (link: string) => {
 }
 
 type OptionsType = {
-  androidShare?: ConfigConstants.ZStore['androidShare']
+  androidShare?: ConfigConstants.Store['androidShare']
   startupTab?: string
   showMonster: boolean
   startupFollowUser?: string

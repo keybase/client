@@ -3,22 +3,23 @@ import * as Z from '../util/zustand'
 
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight'
 
-export type ZStore = {
+export type Store = {
   darkModePreference: DarkModePreference
   systemDarkMode: boolean
   supported: boolean
 }
 
-const initialState: ZStore = {
+const initialStore: Store = {
   darkModePreference: 'system',
   supported: false,
   systemDarkMode: false,
 }
 
-type ZState = ZStore & {
+type State = Store & {
   isDarkMode: () => boolean
   dispatch: {
     loadDarkPrefs: () => void
+    resetState: () => void
     setDarkModePreference: (p: DarkModePreference) => void
     setSystemDarkMode: (dark: boolean) => void
     setSystemSupported: (s: boolean) => void
@@ -30,7 +31,7 @@ const ignorePromise = (f: Promise<void>) => {
 }
 
 export const useDarkModeState = Z.createZustand(
-  Z.immerZustand<ZState>((set, get) => {
+  Z.immerZustand<State>((set, get) => {
     const dispatch = {
       loadDarkPrefs: () => {
         const f = async () => {
@@ -49,9 +50,10 @@ export const useDarkModeState = Z.createZustand(
         }
         ignorePromise(f())
       },
-      reset: () => {
+      resetState: () => {
         set(s => ({
-          ...initialState,
+          ...s,
+          ...initialStore,
           darkModePreference: s.darkModePreference,
         }))
       },
@@ -80,7 +82,7 @@ export const useDarkModeState = Z.createZustand(
     }
 
     return {
-      ...initialState,
+      ...initialStore,
       dispatch,
       isDarkMode: () => {
         switch (get().darkModePreference) {

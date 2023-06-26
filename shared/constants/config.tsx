@@ -42,7 +42,7 @@ export const publicFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
-export type ZStore = {
+export type Store = {
   allowAnimatedEmojis: boolean
   androidShare?:
     | {
@@ -98,7 +98,7 @@ export type ZStore = {
   }
 }
 
-const initialZState: ZStore = {
+const initialStore: Store = {
   allowAnimatedEmojis: true,
   androidShare: undefined,
   appFocused: true,
@@ -149,7 +149,7 @@ const initialZState: ZStore = {
   },
 }
 
-type ZState = ZStore & {
+type State = Store & {
   dispatch: {
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
@@ -160,13 +160,13 @@ type ZState = ZStore & {
     loadIsOnline: () => void
     login: (username: string, password: string) => void
     loginError: (error?: RPCError) => void
-    reset: () => void
+    resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
     revoke: (deviceName: string) => void
-    setAccounts: (a: ZStore['configuredAccounts']) => void
+    setAccounts: (a: Store['configuredAccounts']) => void
     setAllowAnimatedEmojis: (a: boolean) => void
-    setAndroidShare: (s: ZStore['androidShare']) => void
+    setAndroidShare: (s: Store['androidShare']) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: any) => void
     setHTTPSrvInfo: (address: string, token: string) => void
@@ -174,7 +174,7 @@ type ZState = ZStore & {
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean, causedByStartup?: boolean, skipSideEffect?: boolean) => void
     setNotifySound: (n: boolean) => void
-    setStartupDetails: (st: Omit<ZStore['startup'], 'loaded'>) => void
+    setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
     setStartupDetailsLoaded: () => void
     setOpenAtLogin: (open: boolean) => void
     setOutOfDate: (outOfDate: Types.OutOfDate) => void
@@ -184,13 +184,13 @@ type ZState = ZStore & {
     toggleRuntimeStats: () => void
     updateApp: () => void
     updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => void
-    updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => void
+    updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => void
     windowShown: (win: string) => void
   }
 }
 
 export const useConfigState = Z.createZustand(
-  Z.immerZustand<ZState>((set, get) => {
+  Z.immerZustand<State>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
 
     const nativeFrameKey = 'useNativeFrame'
@@ -381,9 +381,15 @@ export const useConfigState = Z.createZustand(
           s.remoteWindowNeedsProps.set(component, map)
         })
       },
-      reset: () => {
+      resetRevokedSelf: () => {
+        set(s => {
+          s.justRevokedSelf = ''
+        })
+      },
+      resetState: () => {
         set(s => ({
-          ...initialZState,
+          ...s,
+          ...initialStore,
           appFocused: s.appFocused,
           configuredAccounts: s.configuredAccounts,
           defaultUsername: s.defaultUsername,
@@ -391,11 +397,6 @@ export const useConfigState = Z.createZustand(
           useNativeFrame: s.useNativeFrame,
           userSwitching: s.userSwitching,
         }))
-      },
-      resetRevokedSelf: () => {
-        set(s => {
-          s.justRevokedSelf = ''
-        })
       },
       revoke: (name: string) => {
         const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
@@ -410,7 +411,7 @@ export const useConfigState = Z.createZustand(
         }
         reduxDispatch(ConfigGen.createRevoked())
       },
-      setAccounts: (a: ZStore['configuredAccounts']) => {
+      setAccounts: (a: Store['configuredAccounts']) => {
         set(s => {
           s.configuredAccounts = a
         })
@@ -420,7 +421,7 @@ export const useConfigState = Z.createZustand(
           s.allowAnimatedEmojis = a
         })
       },
-      setAndroidShare: (share: ZStore['androidShare']) => {
+      setAndroidShare: (share: Store['androidShare']) => {
         set(s => {
           s.androidShare = share
         })
@@ -514,7 +515,7 @@ export const useConfigState = Z.createZustand(
           s.outOfDate = outOfDate
         })
       },
-      setStartupDetails: (st: Omit<ZStore['startup'], 'loaded'>) => {
+      setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => {
         set(s => {
           if (s.startup.loaded) {
             return
@@ -591,7 +592,7 @@ export const useConfigState = Z.createZustand(
           }
         })
       },
-      updateWindowState: (ws: Omit<ZStore['windowState'], 'isMaximized'>) => {
+      updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => {
         const next = {...get().windowState, ...ws}
         set(s => {
           s.windowState = next
@@ -615,7 +616,7 @@ export const useConfigState = Z.createZustand(
       },
     }
     return {
-      ...initialZState,
+      ...initialStore,
       dispatch,
     }
   })

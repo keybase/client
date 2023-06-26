@@ -6,10 +6,14 @@ import * as Tabs from '../constants/tabs'
 import * as CrytoConstants from '../constants/crypto'
 import * as Constants from '../constants/deeplinks'
 import * as ConfigConstants from '../constants/config'
+import * as ConfigGen from './config-gen'
 import type * as CryptoTypes from '../constants/types/crypto'
 import logger from '../logger'
 
 const initDeeplinks = () => {
+  Container.listenAction(ConfigGen.resetStore, () => {
+    Constants.useState.getState().dispatch.resetState()
+  })
   Container.listenAction(DeeplinksGen.link, (_, action) => {
     Constants.useState.getState().dispatch.handleAppLink(action.payload.link)
   })

@@ -9,20 +9,20 @@ const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
 }
 
-export type ZStore = {
+export type Store = {
   waiters: Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things
   version: number
 }
 
-const initialZState: ZStore = {
+const initialStore: Store = {
   version: 1,
   waiters: new Map(),
 }
 
-type ZState = ZStore & {
+type State = Store & {
   dispatch: {
-    reset: () => void
+    resetState: () => void
     wait: (name: string, version: number, increment: boolean) => void
     start: () => void
     requestLogout: () => void
@@ -30,7 +30,7 @@ type ZState = ZStore & {
 }
 
 export const useLogoutState = Z.createZustand(
-  Z.immerZustand<ZState>((set, get) => {
+  Z.immerZustand<State>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
 
     const dispatch = {
@@ -61,9 +61,10 @@ export const useLogoutState = Z.createZustand(
         }
         ignorePromise(f())
       },
-      reset: () => {
+      resetState: () => {
         set(s => ({
-          ...initialZState,
+          ...s,
+          ...initialStore,
           version: s.version,
           waiters: s.waiters,
         }))
@@ -104,7 +105,7 @@ export const useLogoutState = Z.createZustand(
       },
     }
     return {
-      ...initialZState,
+      ...initialStore,
       dispatch,
     }
   })

@@ -5,7 +5,7 @@ import * as Z from '../util/zustand'
 
 export const maxHandshakeTries = 3
 
-export type ZStore = {
+export type Store = {
   error?: Error
   handshakeState: Types.DaemonHandshakeState
   handshakeFailedReason: string
@@ -15,7 +15,7 @@ export type ZStore = {
   handshakeVersion: number
 }
 
-const initialDZState: ZStore = {
+const initialStore: Store = {
   handshakeFailedReason: '',
   handshakeRetriesLeft: maxHandshakeTries,
   handshakeState: 'starting',
@@ -23,9 +23,9 @@ const initialDZState: ZStore = {
   handshakeWaiters: new Map(),
 }
 
-type ZState = ZStore & {
+type State = Store & {
   dispatch: {
-    reset: () => void
+    resetState: () => void
     setError: (e?: Error) => void
     setState: (s: Types.DaemonHandshakeState) => void
     wait: (
@@ -42,7 +42,7 @@ type ZState = ZStore & {
 }
 
 export const useDaemonState = Z.createZustand(
-  Z.immerZustand<ZState>((set, get) => {
+  Z.immerZustand<State>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
 
     const setFailed = (r: string) => {
@@ -116,9 +116,10 @@ export const useDaemonState = Z.createZustand(
     const dispatch = {
       daemonHandshake,
       daemonHandshakeDone,
-      reset: () => {
+      resetState: () => {
         set(s => ({
-          ...initialDZState,
+          ...s,
+          ...initialStore,
           handshakeState: s.handshakeState,
           handshakeVersion: s.handshakeVersion,
         }))
@@ -185,7 +186,7 @@ export const useDaemonState = Z.createZustand(
       },
     }
     return {
-      ...initialDZState,
+      ...initialStore,
       dispatch,
     }
   })

@@ -1,15 +1,32 @@
 import * as Z from '../../util/zustand'
-type ZState = {
+type Store = {
   emojiUpdatedTrigger: number
-  triggerEmojiUpdated: () => void
 }
+
+const initialStore: Store = {
+  emojiUpdatedTrigger: 0,
+}
+
+type State = Store & {
+  dispatch: {
+    triggerEmojiUpdated: () => void
+    resetState: () => void
+  }
+}
+
 export const useEmojiState = Z.createZustand(
-  Z.immerZustand<ZState>(set => ({
-    emojiUpdatedTrigger: 0,
-    triggerEmojiUpdated: () => {
-      set(state => {
-        state.emojiUpdatedTrigger++
-      })
-    },
-  }))
+  Z.immerZustand<State>(set => {
+    const dispatch = {
+      resetState: () => set(s => ({...s, ...initialStore})),
+      triggerEmojiUpdated: () => {
+        set(state => {
+          state.emojiUpdatedTrigger++
+        })
+      },
+    }
+    return {
+      ...initialStore,
+      dispatch,
+    }
+  })
 )

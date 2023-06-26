@@ -1,19 +1,23 @@
 import * as Z from '../util/zustand'
 
-type ZStore = {
+type Store = {
   active: boolean
 }
-const initialZState: ZStore = {
+const initialStore: Store = {
   active: true,
 }
-type ZState = ZStore & {
+type State = Store & {
   dispatch: {
+    resetState: () => void
     setActive: (a: boolean) => void
   }
 }
 export const useActiveState = Z.createZustand(
-  Z.immerZustand<ZState>(set => {
+  Z.immerZustand<State>(set => {
     const dispatch = {
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
+      },
       setActive: (a: boolean) => {
         set(s => {
           s.active = a
@@ -21,7 +25,7 @@ export const useActiveState = Z.createZustand(
       },
     }
     return {
-      ...initialZState,
+      ...initialStore,
       dispatch,
     }
   })

@@ -54,19 +54,19 @@ const parseRepoError = (result: RPCTypes.GitRepoResult): Error => {
   return new Error(`Git repo error: ${errStr}`)
 }
 
-const initialState: Types.State = {
+const initialStore: Types.State = {
   error: undefined,
   idToInfo: new Map(),
   isNew: new Set(),
 }
 
-type ZState = Types.State & {
+type State = Types.State & {
   dispatch: {
     setError: (err?: Error) => void
     clearBadges: () => void
     load: () => void
     setBadges: (set: Set<string>) => void
-    reset: () => void
+    resetState: () => void
     createPersonalRepo: (name: string) => void
     createTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => void
     deletePersonalRepo: (repoName: string) => void
@@ -82,7 +82,7 @@ type ZState = Types.State & {
 }
 
 export const useGitState = Z.createZustand(
-  Z.immerZustand<ZState>((set, get) => {
+  Z.immerZustand<State>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
 
     const callAndHandleError = (f: () => Promise<void>, loadAfter = true) => {
@@ -158,8 +158,8 @@ export const useGitState = Z.createZustand(
         }
         Z.ignorePromise(f())
       },
-      reset: () => {
-        set(() => initialState)
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
       },
       setBadges: (b: Set<string>) => {
         set(s => {
@@ -187,7 +187,7 @@ export const useGitState = Z.createZustand(
       },
     }
     return {
-      ...initialState,
+      ...initialStore,
       dispatch,
     }
   })

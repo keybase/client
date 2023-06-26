@@ -181,7 +181,7 @@ const loadDaemonAccounts = async (
 
     let existingDefaultFound = false
     let currentName = ''
-    const nextConfiguredAccounts: Constants.ZStore['configuredAccounts'] = []
+    const nextConfiguredAccounts: Constants.Store['configuredAccounts'] = []
     const usernameToFullname: {[username: string]: string} = {}
 
     configuredAccounts.forEach(account => {
@@ -451,14 +451,14 @@ const initConfig = () => {
   Container.listenAction(ConfigGen.powerMonitorEvent, onPowerMonitorEvent)
 
   Container.listenAction(ConfigGen.resetStore, () => {
-    Constants.useConfigState.getState().dispatch.reset()
-    Constants.useDaemonState.getState().dispatch.reset()
-    Constants.useLogoutState.getState().dispatch.reset()
+    Constants.useConfigState.getState().dispatch.resetState()
+    Constants.useDaemonState.getState().dispatch.resetState()
+    Constants.useLogoutState.getState().dispatch.resetState()
   })
 
   Container.listenAction(EngineGen.keybase1NotifyTeamAvatarUpdated, (_, action) => {
     const {name} = action.payload.params
-    useAvatarState.getState().updated(name)
+    useAvatarState.getState().dispatch.updated(name)
   })
 
   Container.listenAction(ConfigGen.setSystemDarkMode, (_, action) => {

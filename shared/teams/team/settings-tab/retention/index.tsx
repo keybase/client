@@ -67,7 +67,7 @@ const RetentionPicker = (p: Props) => {
   const dispatch = Container.useDispatch()
 
   const modalConfirmed = useConfirm(s => s.confirmed)
-  const updateConfirm = useConfirm(s => s.updateConfirm)
+  const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
 
   const [lastConfirmed, setLastConfirmed] = React.useState<RetentionPolicy | undefined>(undefined)
   if (lastConfirmed !== modalConfirmed) {

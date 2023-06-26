@@ -1,6 +1,7 @@
 // helpers for redux / zustand
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
+import {create as _createZustand} from 'zustand'
 
 type TypedDispatch = (action: TypedActions) => void
 
@@ -29,4 +30,18 @@ export const dummyListenerApi = {
 }
 
 export {immer as immerZustand} from 'zustand/middleware/immer'
-export {create as createZustand} from 'zustand'
+const checkResetStoreCZ: any = (p: any) => {
+  // @ts-ignore
+  const temp = _createZustand(p)
+  try {
+    temp.getState().dispatch.resetState()
+    // invalid resets can blow away dispatch!!
+    temp.getState().dispatch.resetState()
+  } catch (e) {
+    // eslint-disable-next-line
+    debugger
+    console.log('Store without a resetState or invalid reset state!!!!', e)
+  }
+  return temp
+}
+export const createZustand: typeof _createZustand = __DEV__ ? checkResetStoreCZ : _createZustand

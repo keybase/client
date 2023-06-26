@@ -5,8 +5,7 @@ import * as ConfigGen from './config-gen'
 
 const initGit = () => {
   Container.listenAction(ConfigGen.resetStore, () => {
-    const {reset} = Constants.useGitState.getState().dispatch
-    reset()
+    Constants.useGitState.getState().dispatch.resetState()
   })
   Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {
     const {setBadges} = Constants.useGitState.getState().dispatch

@@ -5,7 +5,7 @@ import * as ConfigGen from './config-gen'
 
 const initAutoReset = () => {
   Container.listenAction(ConfigGen.resetStore, () => {
-    Constants.useState.getState().dispatch.reset()
+    Constants.useState.getState().dispatch.resetState()
   })
   Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {
     const {resetState} = action.payload.badgeState
