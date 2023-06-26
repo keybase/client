@@ -1061,7 +1061,7 @@ export const errorToActionOrThrow = (error: any, path?: Types.Path) => {
   throw error
 }
 
-type State = {
+type Store = {
   badge: RPCTypes.FilesTabBadge
   criticalUpdate: boolean
   destinationPicker: Types.DestinationPicker
@@ -1084,7 +1084,7 @@ type State = {
   tlfs: Types.Tlfs
   uploads: Types.Uploads
 }
-const initialState: State = {
+const initialStore: Store = {
   badge: RPCTypes.FilesTabBadge.none,
   criticalUpdate: false,
   destinationPicker: {
@@ -1135,7 +1135,7 @@ const initialState: State = {
   },
 }
 
-type ZState = State & {
+type State = Store & {
   dispatch: {
     checkKbfsDaemonRpcStatus: () => void
     commitEdit: (editID: Types.EditID) => void
@@ -1164,7 +1164,7 @@ type ZState = State & {
     newFolderRow: (parentPath: Types.Path) => void
     onChangedFocus: (appFocused: boolean) => void
     redbar: (error: string) => void
-    reset: () => void
+    resetState: () => void
     setBadge: (b: RPCTypes.FilesTabBadge) => void
     setCriticalUpdate: (u: boolean) => void
     setDestinationPickerParentPath: (index: number, path: Types.Path) => void
@@ -1271,9 +1271,8 @@ const updatePathItem = (
 }
 
 export const useState = Z.createZustand(
-  Z.immerZustand<ZState>((set, get) => {
+  Z.immerZustand<State>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
-    // const getReduxStore = Z.getReduxStore()
 
     // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
     // reducer and happens before this.
@@ -1916,8 +1915,8 @@ export const useState = Z.createZustand(
           s.errors.push(error)
         })
       },
-      reset: () => {
-        set(() => initialState)
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
       },
       setBadge: (b: RPCTypes.FilesTabBadge) => {
         set(s => {
@@ -2144,7 +2143,7 @@ export const useState = Z.createZustand(
     }
 
     return {
-      ...initialState,
+      ...initialStore,
       dispatch,
       getUploadIconForFilesTab,
     }

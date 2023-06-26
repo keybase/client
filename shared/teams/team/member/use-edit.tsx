@@ -1,15 +1,32 @@
 import * as Z from '../../../util/zustand'
-type ZState = {
+
+type Store = {
   editUpdatedTrigger: number
-  triggerEditUpdated: () => void
+}
+const initialStore: Store = {
+  editUpdatedTrigger: 0,
+}
+type State = Store & {
+  dispatch: {
+    triggerEditUpdated: () => void
+    resetState: () => void
+  }
 }
 export const useEditState = Z.createZustand(
-  Z.immerZustand<ZState>(set => ({
-    editUpdatedTrigger: 0,
-    triggerEditUpdated: () => {
-      set(state => {
-        state.editUpdatedTrigger++
-      })
-    },
-  }))
+  Z.immerZustand<State>(set => {
+    const dispatch = {
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
+      },
+      triggerEditUpdated: () => {
+        set(s => {
+          s.editUpdatedTrigger++
+        })
+      },
+    }
+    return {
+      ...initialStore,
+      dispatch,
+    }
+  })
 )

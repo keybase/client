@@ -65,7 +65,7 @@ export const Tabs = [
   },
 ] as const
 
-type CommonState = {
+type CommonStore = {
   bytesComplete: number
   bytesTotal: number
   errorMessage: HiddenString
@@ -89,9 +89,9 @@ type EncryptOptions = {
   sign: boolean
 }
 
-type State = {
-  decrypt: CommonState
-  encrypt: CommonState & {
+type Store = {
+  decrypt: CommonStore
+  encrypt: CommonStore & {
     meta: {
       hasRecipients: boolean
       hasSBS: boolean
@@ -100,8 +100,8 @@ type State = {
     options: EncryptOptions
     recipients: Array<string> // Only for encrypt operation
   }
-  sign: CommonState
-  verify: CommonState
+  sign: CommonStore
+  verify: CommonStore
 }
 
 export const Operations = {
@@ -165,7 +165,7 @@ const getStatusCodeMessage = (
 }
 
 // State
-const defaultCommonState = {
+const defaultCommonStore = {
   bytesComplete: 0,
   bytesTotal: 0,
   errorMessage: new HiddenString(''),
@@ -183,10 +183,10 @@ const defaultCommonState = {
   warningMessage: new HiddenString(''),
 }
 
-const initialState: State = {
-  decrypt: {...defaultCommonState},
+const initialStore: Store = {
+  decrypt: {...defaultCommonStore},
   encrypt: {
-    ...defaultCommonState,
+    ...defaultCommonStore,
     meta: {
       hasRecipients: false,
       hasSBS: false,
@@ -198,17 +198,17 @@ const initialState: State = {
     },
     recipients: [],
   },
-  sign: {...defaultCommonState},
-  verify: {...defaultCommonState},
+  sign: {...defaultCommonStore},
+  verify: {...defaultCommonStore},
 }
 
-type ZState = State & {
+type State = Store & {
   dispatch: {
     clearInput: (op: Types.Operations) => void
     clearRecipients: () => void
     downloadEncryptedText: () => void
     downloadSignedText: () => void
-    reset: () => void
+    resetState: () => void
     resetOperation: (op: Types.Operations) => void
     runFileOperation: (op: Types.Operations, destinationDir: string) => void
     runTextOperation: (op: Types.Operations) => void
@@ -223,15 +223,15 @@ type ZState = State & {
 }
 
 export const useState = Z.createZustand(
-  Z.immerZustand<ZState>((set, get) => {
+  Z.immerZustand<State>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
 
-    const resetWarnings = (o: CommonState) => {
+    const resetWarnings = (o: CommonStore) => {
       o.errorMessage = new HiddenString('')
       o.warningMessage = new HiddenString('')
     }
 
-    const resetOutput = (o: CommonState) => {
+    const resetOutput = (o: CommonStore) => {
       resetWarnings(o)
       o.bytesComplete = 0
       o.bytesTotal = 0
@@ -243,13 +243,13 @@ export const useState = Z.createZustand(
       o.outputValid = false
     }
 
-    const onError = (cs: CommonState, errorMessage: string) => {
+    const onError = (cs: CommonStore, errorMessage: string) => {
       resetOutput(cs)
       cs.errorMessage = new HiddenString(errorMessage)
     }
 
     const onSuccess = (
-      cs: CommonState,
+      cs: CommonStore,
       outputValid: boolean,
       warningMessage: string,
       output: string,
@@ -505,10 +505,10 @@ export const useState = Z.createZustand(
         set(s => {
           const e = s.encrypt
           resetOutput(e)
-          e.recipients = initialState.encrypt.recipients
+          e.recipients = initialStore.encrypt.recipients
           // Reset options since they depend on the recipients
-          e.options = initialState.encrypt.options
-          e.meta = initialState.encrypt.meta
+          e.options = initialStore.encrypt.options
+          e.meta = initialStore.encrypt.meta
         })
       },
       downloadEncryptedText: () => {
@@ -560,22 +560,22 @@ export const useState = Z.createZustand(
           s[op].inProgress = true
         })
       },
-      reset: () => {
-        set(() => initialState)
-      },
       resetOperation: (op: Types.Operations) => {
         set(s => {
           switch (op) {
             case Operations.Encrypt:
-              s[op] = initialState[op]
+              s[op] = initialStore[op]
               break
             case Operations.Decrypt:
             case Operations.Sign:
             case Operations.Verify:
-              s[op] = initialState[op]
+              s[op] = initialStore[op]
               break
           }
         })
+      },
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
       },
       runFileOperation: (op: Types.Operations, destinationDir: string) => {
         set(s => {
@@ -702,7 +702,7 @@ export const useState = Z.createZustand(
       },
     }
     return {
-      ...initialState,
+      ...initialStore,
       dispatch,
     }
   })

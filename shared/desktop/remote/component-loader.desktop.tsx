@@ -8,12 +8,10 @@ import Root from '../renderer/container.desktop'
 import {disableDragDrop} from '../../util/drag-drop.desktop'
 import ErrorBoundary from '../../common-adapters/error-boundary'
 import {initDesktopStyles} from '../../styles/index.desktop'
-import {enableMapSet} from 'immer'
 import KB2 from '../../util/electron.desktop'
 
 const {closeWindow, showInactive} = KB2.functions
 
-enableMapSet()
 disableDragDrop()
 
 module.hot?.accept()

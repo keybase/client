@@ -1,16 +1,34 @@
 import * as Z from '../../../../util/zustand'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
-type ZState = {
+
+type Store = {
   confirmed: RetentionPolicy | undefined
-  updateConfirm: (rt: RetentionPolicy | undefined) => void
 }
+const initialStore: Store = {
+  confirmed: undefined,
+}
+type State = Store & {
+  dispatch: {
+    resetState: () => void
+    updateConfirm: (rt: RetentionPolicy | undefined) => void
+  }
+}
+
 export const useConfirm = Z.createZustand(
-  Z.immerZustand<ZState>(set => ({
-    confirmed: undefined,
-    updateConfirm: (rt: RetentionPolicy | undefined) => {
-      set(state => {
-        state.confirmed = rt
-      })
-    },
-  }))
+  Z.immerZustand<State>(set => {
+    const dispatch = {
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
+      },
+      updateConfirm: (rt: RetentionPolicy | undefined) => {
+        set(state => {
+          state.confirmed = rt
+        })
+      },
+    }
+    return {
+      ...initialStore,
+      dispatch,
+    }
+  })
 )

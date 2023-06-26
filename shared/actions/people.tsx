@@ -1,5 +1,6 @@
 import * as Constants from '../constants/people'
 import * as SettingsGen from './settings-gen'
+import * as ConfigGen from './config-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
@@ -40,6 +41,9 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
 }
 
 const initPeople = () => {
+  Container.listenAction(ConfigGen.resetStore, () => {
+    Constants.useState.getState().dispatch.resetState()
+  })
   // Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, () => {
     Constants.useState.getState().dispatch.loadPeople(false)

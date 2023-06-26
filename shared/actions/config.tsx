@@ -17,6 +17,7 @@ import * as SettingsGen from './settings-gen'
 import * as Tabs from '../constants/tabs'
 import * as DarkMode from '../constants/darkmode'
 import * as WhatsNew from '../constants/whats-new'
+import {useWaitingState} from '../constants/waiting'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import logger from '../logger'
 import {initPlatformListener} from './platform-specific'
@@ -181,7 +182,7 @@ const loadDaemonAccounts = async (
 
     let existingDefaultFound = false
     let currentName = ''
-    const nextConfiguredAccounts: Constants.ZStore['configuredAccounts'] = []
+    const nextConfiguredAccounts: Constants.Store['configuredAccounts'] = []
     const usernameToFullname: {[username: string]: string} = {}
 
     configuredAccounts.forEach(account => {
@@ -451,14 +452,21 @@ const initConfig = () => {
   Container.listenAction(ConfigGen.powerMonitorEvent, onPowerMonitorEvent)
 
   Container.listenAction(ConfigGen.resetStore, () => {
-    Constants.useConfigState.getState().dispatch.reset()
-    Constants.useDaemonState.getState().dispatch.reset()
-    Constants.useLogoutState.getState().dispatch.reset()
+    Constants.useConfigState.getState().dispatch.resetState()
+    Constants.useDaemonState.getState().dispatch.resetState()
+    Constants.useLogoutState.getState().dispatch.resetState()
+    DarkMode.useDarkModeState.getState().dispatch.resetState()
+    Constants.useCurrentUserState.getState().dispatch.resetState()
+    Constants.useFollowerState.getState().dispatch.resetState()
+    Constants.useActiveState.getState().dispatch.resetState()
+    useWaitingState.getState().dispatch.resetState()
+    useAvatarState.getState().dispatch.resetState()
+    WhatsNew.useState.getState().dispatch.resetState()
   })
 
   Container.listenAction(EngineGen.keybase1NotifyTeamAvatarUpdated, (_, action) => {
     const {name} = action.payload.params
-    useAvatarState.getState().updated(name)
+    useAvatarState.getState().dispatch.updated(name)
   })
 
   Container.listenAction(ConfigGen.setSystemDarkMode, (_, action) => {

@@ -2,14 +2,14 @@ import type {RPCError} from '../util/errors'
 import type * as Types from './types/waiting'
 import * as Z from '../util/zustand'
 
-const initialState: Types.State = {
+const initialStore: Types.State = {
   counts: new Map(),
   errors: new Map(),
 }
 
-type ZState = Types.State & {
+type State = Types.State & {
   dispatch: {
-    reset: () => void
+    resetState: () => void
     clear: (keys: string | Array<string>) => void
     increment: (keys: string | Array<string>) => void
     decrement: (keys: string | Array<string>, error?: RPCError) => void
@@ -24,7 +24,7 @@ const getKeys = (k?: string | Array<string>) => {
 }
 
 export const useWaitingState = Z.createZustand(
-  Z.immerZustand<ZState>(set => {
+  Z.immerZustand<State>(set => {
     const changeHelper = (keys: string | Array<string>, diff: 1 | -1, error?: RPCError) => {
       set(s => {
         getKeys(keys).forEach(k => {
@@ -73,13 +73,13 @@ export const useWaitingState = Z.createZustand(
       },
       decrement,
       increment,
-      reset: () => {
-        set(() => initialState)
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
       },
     }
 
     return {
-      ...initialState,
+      ...initialStore,
       dispatch,
     }
   })

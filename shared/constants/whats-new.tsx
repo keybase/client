@@ -82,22 +82,26 @@ const _getSeenVersions = (lastSeenVersion: string): SeenVersionsMap => {
   return seenVersions
 }
 
-type ZStore = {
+type Store = {
   lastSeenVersion: string
 }
-const initialZState: ZStore = {
+const initialStore: Store = {
   lastSeenVersion: '',
 }
-type ZState = ZStore & {
+type State = Store & {
   dispatch: {
+    resetState: () => void
     updateLastSeen: (lastSeenItem?: {md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}) => void
   }
   anyVersionsUnseen: () => boolean
   getSeenVersions: () => SeenVersionsMap
 }
 export const useState = Z.createZustand(
-  Z.immerZustand<ZState>((set, get) => {
+  Z.immerZustand<State>((set, get) => {
     const dispatch = {
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
+      },
       updateLastSeen: (lastSeenItem?: {md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}) => {
         if (lastSeenItem) {
           const {body} = lastSeenItem.item
@@ -115,7 +119,7 @@ export const useState = Z.createZustand(
       },
     }
     return {
-      ...initialZState,
+      ...initialStore,
       anyVersionsUnseen: () => {
         const {lastSeenVersion: ver} = get()
         // On first load of what's new, lastSeenVersion == noVersion so everything is unseen

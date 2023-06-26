@@ -336,33 +336,32 @@ const reduceRPCItemToPeopleItem = (
   return list
 }
 
-type State = {
+type Store = {
   followSuggestions: Array<Types.FollowSuggestion>
   newItems: Array<Types.PeopleScreenItem>
   oldItems: Array<Types.PeopleScreenItem>
   resentEmail: string
 }
-const initialState: State = {
+const initialStore: Store = {
   followSuggestions: [],
   newItems: [],
   oldItems: [],
   resentEmail: '',
 }
 
-type ZState = State & {
+type State = Store & {
   dispatch: {
     dismissAnnouncement: (id: RPCTypes.HomeScreenAnnouncementID) => void
     loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
-
     setResentEmail: (email: string) => void
     skipTodo: (type: Types.TodoType) => void
     markViewed: () => void
-    reset: () => void
+    resetState: () => void
   }
 }
 
 export const useState = Z.createZustand(
-  Z.immerZustand<ZState>((set, get) => {
+  Z.immerZustand<State>((set, get) => {
     const dispatch = {
       dismissAnnouncement: (id: RPCTypes.HomeScreenAnnouncementID) => {
         const f = async () => {
@@ -504,8 +503,8 @@ export const useState = Z.createZustand(
         }
         Z.ignorePromise(f())
       },
-      reset: () => {
-        set(() => initialState)
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
       },
       setResentEmail: (email: string) => {
         set(s => {
@@ -526,7 +525,7 @@ export const useState = Z.createZustand(
       },
     }
     return {
-      ...initialState,
+      ...initialStore,
       dispatch,
     }
   })

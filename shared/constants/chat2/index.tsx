@@ -18,13 +18,32 @@ import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import type {TypedState} from '../reducer'
 import * as Z from '../../util/zustand'
 
-type ZState = {
+type Store = {
   typingMap: Map<Types.ConversationIDKey, Set<string>>
 }
+
+const initialStore: Store = {
+  typingMap: new Map(),
+}
+
+type State = Store & {
+  dispatch: {
+    resetState: () => void
+  }
+}
+
 export const useChatState = Z.createZustand(
-  Z.immerZustand<ZState>(_set => ({
-    typingMap: new Map(),
-  }))
+  Z.immerZustand<State>(set => {
+    const dispatch = {
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
+      },
+    }
+    return {
+      ...initialStore,
+      dispatch,
+    }
+  })
 )
 
 export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {

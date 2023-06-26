@@ -1,17 +1,7 @@
 {
-  "prelude": [ ],
+  "prelude": [],
   "actions": {
-    "newPinentry": {
-      "showTyping": "RPCTypes.Feature",
-      "type": "RPCTypes.PassphraseType",
-      "prompt": "string",
-      "windowTitle": "string",
-      "submitLabel?": "string",
-      "cancelLabel?": "string",
-      "retryLabel?": "string"
-    },
-    "close": { },
-    "onSubmit": { "password": "string" },
+    "onSubmit": {"password": "string"},
     "onCancel": {}
   }
 }

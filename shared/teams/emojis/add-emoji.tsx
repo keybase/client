@@ -163,7 +163,7 @@ const useStuff = (conversationIDKey: ChatTypes.ConversationIDKey, onChange?: () 
 }
 
 export const AddEmojiModal = (props: Props) => {
-  const onChange = useEmojiState(s => s.triggerEmojiUpdated)
+  const onChange = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
   const {addFiles, bannerError, clearErrors, clearFiles, doAddEmojis, emojisToAdd, waitingAddEmojis} =
     useStuff(props.conversationIDKey, onChange)
 

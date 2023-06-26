@@ -9,7 +9,7 @@ export const enterPipelineWaitingKey = 'autoreset:EnterPipelineWaitingKey'
 export const actuallyResetWaitingKey = 'autoreset:ActuallyResetWaitingKey' // TODO not really set
 export const cancelResetWaitingKey = 'autoreset:cancelWaitingKey'
 
-type State = {
+type Store = {
   active: boolean
   afterSubmitResetPrompt: (action: RPCGen.ResetPromptResponse) => void
   endTime: number
@@ -19,7 +19,7 @@ type State = {
   username: string
 }
 
-const initialState: State = {
+const initialStore: Store = {
   active: false,
   afterSubmitResetPrompt: (_action: RPCGen.ResetPromptResponse) => {
     console.log('Unset afterSubmitResetPrompt called')
@@ -31,10 +31,10 @@ const initialState: State = {
   username: '',
 }
 
-type ZState = State & {
+type State = Store & {
   dispatch: {
     cancelReset: () => void
-    reset: () => void
+    resetState: () => void
     resetAccount: (password?: string) => void
     startAccountReset: (skipPassword: boolean, username: string) => void
     updateARState: (active: boolean, endTime: number) => void
@@ -42,7 +42,7 @@ type ZState = State & {
 }
 
 export const useState = Z.createZustand(
-  Z.immerZustand<ZState>((set, get) => {
+  Z.immerZustand<State>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
     const reduxStore = Z.getReduxStore()
     const dispatch = {
@@ -85,9 +85,6 @@ export const useState = Z.createZustand(
         }
         Z.ignorePromise(f())
       },
-      reset: () => {
-        set(() => initialState)
-      },
       resetAccount: (password: string = '') => {
         set(s => {
           s.error = ''
@@ -106,7 +103,7 @@ export const useState = Z.createZustand(
                 s.hasWallet = hasWallet
                 s.afterSubmitResetPrompt = (action: RPCGen.ResetPromptResponse) => {
                   set(s => {
-                    s.afterSubmitResetPrompt = initialState.afterSubmitResetPrompt
+                    s.afterSubmitResetPrompt = initialStore.afterSubmitResetPrompt
                   })
                   response.result(action)
                   if (action === RPCGen.ResetPromptResponse.confirmReset) {
@@ -167,6 +164,9 @@ export const useState = Z.createZustand(
         }
         Z.ignorePromise(f())
       },
+      resetState: () => {
+        set(s => ({...s, ...initialStore}))
+      },
       startAccountReset: (skipPassword: boolean, _username: string) => {
         const username = _username || reduxStore().recoverPassword.username
         set(s => {
@@ -186,7 +186,7 @@ export const useState = Z.createZustand(
       },
     }
     return {
-      ...initialState,
+      ...initialStore,
       dispatch,
     }
   })
