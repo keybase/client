@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as TabConstants from '../constants/tabs'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/settings'
+import * as NotifConstants from '../constants/notifications'
 import * as ConfigConstants from '../constants/config'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Container from '../util/container'
@@ -61,7 +62,7 @@ const renderItem = ({item}) => {
 }
 
 function SettingsNav() {
-  const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
+  const badgeNumbers = NotifConstants.useState(s => s.navBadges)
   const badgeNotifications = Container.useSelector(state => !state.push.hasPermissions)
   const statsShown = ConfigConstants.useConfigState(s => !!s.runtimeStats)
   const dispatch = Container.useDispatch()

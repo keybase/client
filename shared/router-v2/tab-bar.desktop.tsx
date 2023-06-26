@@ -3,6 +3,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
+import * as NotifConstants from '../constants/notifications'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as Platforms from '../constants/platform'
@@ -193,7 +194,7 @@ type TabProps = {
 
 const TabBadge = (p: {name}) => {
   const {name} = p
-  const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
+  const badgeNumbers = NotifConstants.useState(s => s.navBadges)
   const fsCriticalUpdate = FsConstants.useState(s => s.criticalUpdate)
   const badge = (badgeNumbers.get(name) ?? 0) + (name === Tabs.fsTab && fsCriticalUpdate ? 1 : 0)
   return badge ? <Kb.Badge className="tab-badge" badgeNumber={badge} /> : null

@@ -1,4 +1,5 @@
 import * as Constants from '../constants/router2'
+import * as NotifConstants from '../constants/notifications'
 import * as DarkMode from '../constants/darkmode'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -58,8 +59,8 @@ const makeNavScreens = (rs, Screen, isModal) => {
 
 const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
   const {isFocused, routeName} = props
+  const navBadges = NotifConstants.useState(s => s.navBadges)
   const badgeNumber = Container.useSelector(state => {
-    const {navBadges} = state.notifications
     const {hasPermissions} = state.push
     const onSettings = routeName === Tabs.settingsTab
     const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]

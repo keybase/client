@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/settings'
+import * as NotifConstants from '../../constants/notifications'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -15,7 +16,7 @@ type Props = {
 }
 
 const LeftNav = (props: Props) => {
-  const badgeNumbers = Container.useSelector(state => state.notifications.navBadges)
+  const badgeNumbers = NotifConstants.useState(s => s.navBadges)
   const badgeNotifications = Container.useSelector(state => !state.push.hasPermissions)
   return (
     <Kb.ScrollView style={styles.container}>

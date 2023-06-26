@@ -3,6 +3,7 @@ import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
 import * as FSConstants from '../constants/fs'
+import * as NotifConstants from '../constants/notifications'
 import * as FSTypes from '../constants/types/fs'
 import * as Followers from '../constants/followers'
 import * as React from 'react'
@@ -10,7 +11,6 @@ import * as Styles from '../styles'
 import KB2 from '../util/electron.desktop'
 import _getIcons from './icons'
 import shallowEqual from 'shallowequal'
-import type * as NotificationTypes from '../constants/types/notifications'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {intersect} from '../util/set'
 import {mapFilterByKey} from '../util/map'
@@ -20,13 +20,13 @@ import {useAvatarState} from '../common-adapters/avatar-zus'
 
 const {showTray} = KB2.functions
 
-const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
+const getIcons = (iconType: NotifConstants.BadgeType, isBadged: boolean) => {
   return _getIcons(iconType, isBadged, DarkMode.useDarkModeState.getState().systemDarkMode)
 }
 
 type WidgetProps = {
   desktopAppBadgeCount: number
-  widgetBadge: NotificationTypes.BadgeType
+  widgetBadge: NotifConstants.BadgeType
 }
 
 function useWidgetBrowserWindow(p: WidgetProps) {
@@ -78,16 +78,18 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const sfmi = FSConstants.useState(s => s.sfmi)
   const tlfUpdates = FSConstants.useState(s => s.tlfUpdates)
   const uploads = FSConstants.useState(s => s.uploads)
+  const {desktopAppBadgeCount, navBadges, widgetBadge} = NotifConstants.useState(s => {
+    const {desktopAppBadgeCount, navBadges, widgetBadge} = s
+    return {desktopAppBadgeCount, navBadges, widgetBadge}
+  }, shallowEqual)
   const s = Container.useSelector(state => {
-    const {notifications, chat2, users} = state
-    const {desktopAppBadgeCount, navBadges, widgetBadge} = notifications
+    const {chat2, users} = state
     const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
     const widgetList = inboxLayout?.widgetList
     const {infoMap} = users
 
     return {
       badgeMap,
-      desktopAppBadgeCount,
       infoMap,
       metaMap,
       navBadges,
@@ -98,8 +100,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     }
   }, shallowEqual)
 
-  const {unreadMap, badgeMap, desktopAppBadgeCount} = s
-  const {widgetList, widgetBadge, infoMap, metaMap, navBadges, participantMap} = s
+  const {unreadMap, badgeMap, widgetList, infoMap, metaMap, participantMap} = s
 
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus

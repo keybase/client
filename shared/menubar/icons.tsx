@@ -1,4 +1,4 @@
-import type * as NotificationTypes from '../constants/types/notifications'
+import type * as NotificationTypes from '../constants/notifications'
 import {isDarwin, isWindows, isLinux} from '../constants/platform'
 
 const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean, isSystemDarkMode: boolean) => {
