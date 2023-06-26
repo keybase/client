@@ -15,27 +15,21 @@ import logger from '../logger'
 import type * as Types from '../constants/types/people'
 import {RPCError} from '../util/errors'
 
-const dismissWotNotifications = async (_: unknown, action: PeopleGen.DismissWotNotificationsPayload) => {
-  try {
-    await RPCTypes.wotDismissWotNotificationsRpcPromise({
-      vouchee: action.payload.vouchee,
-      voucher: action.payload.voucher,
-    })
-  } catch (e) {
-    logger.warn('dismissWotUpdate error', e)
-  }
-}
+// const dismissWotNotifications = async (_: unknown, action: PeopleGen.DismissWotNotificationsPayload) => {
+//   try {
+//     await RPCTypes.wotDismissWotNotificationsRpcPromise({
+//       vouchee: action.payload.vouchee,
+//       voucher: action.payload.voucher,
+//     })
+//   } catch (e) {
+//     logger.warn('dismissWotUpdate error', e)
+//   }
+// }
 
 const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   PeopleGen.createBadgeAppForWotNotifications({
     updates: new Map<string, Types.WotUpdate>(Object.entries(action.payload.badgeState.wotUpdates || {})),
   })
-
-const dismissAnnouncement = async (_: unknown, action: PeopleGen.DismissAnnouncementPayload) => {
-  await RPCTypes.homeHomeDismissAnnouncementRpcPromise({
-    i: action.payload.id,
-  })
-}
 
 const markViewed = async () => {
   try {
@@ -105,9 +99,7 @@ const maybeMarkViewed = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) =
 const initPeople = () => {
   Container.listenAction(PeopleGen.markViewed, markViewed)
   Container.listenAction(PeopleGen.skipTodo, skipTodo)
-  Container.listenAction(PeopleGen.dismissAnnouncement, dismissAnnouncement)
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
-  Container.listenAction(PeopleGen.dismissWotNotifications, dismissWotNotifications)
   Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
   Container.listenAction(EngineGen.connected, connected)
   Container.listenAction(RouteTreeGen.onNavChanged, maybeMarkViewed)

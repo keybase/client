@@ -350,6 +350,7 @@ const initialState: State = {
 
 type ZState = State & {
   dispatch: {
+    dismissAnnouncement: (id: RPCTypes.HomeScreenAnnouncementID) => void
     loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
     setResentEmail: (email: string) => void
     reset: () => void
@@ -359,6 +360,14 @@ type ZState = State & {
 export const useState = Z.createZustand(
   Z.immerZustand<ZState>(set => {
     const dispatch = {
+      dismissAnnouncement: (id: RPCTypes.HomeScreenAnnouncementID) => {
+        const f = async () => {
+          await RPCTypes.homeHomeDismissAnnouncementRpcPromise({
+            i: id,
+          })
+        }
+        Z.ignorePromise(f())
+      },
       loadPeople: (markViewed: boolean, numFollowSuggestionsWanted = defaultNumFollowSuggestions) => {
         const f = async () => {
           // more logging to understand why this fails so much

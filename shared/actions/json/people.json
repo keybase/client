@@ -1,9 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/people'"],
   "actions": {
-    "dismissAnnouncement": {
-      "id": "RPCTypes.HomeScreenAnnouncementID"
-    },
     "badgeAppForWotNotifications": {
       "updates": "Map<string, Types.WotUpdate>"
     },
