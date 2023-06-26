@@ -11,10 +11,10 @@ let lastRefresh: number = 0
 const waitToRefresh = 1000 * 60 * 5
 
 const PeopleReloadable = () => {
-  const followSuggestions = Container.useSelector(state => state.people.followSuggestions)
+  const followSuggestions = Constants.useState(s => s.followSuggestions)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const newItems = Container.useSelector(state => state.people.newItems)
-  const oldItems = Container.useSelector(state => state.people.oldItems)
+  const newItems = Constants.useState(s => s.newItems)
+  const oldItems = Constants.useState(s => s.oldItems)
   const signupEmail = Container.useSelector(state => state.signup.justSignedUpEmail)
   const waiting = Container.useAnyWaiting(Constants.getPeopleDataWaitingKey)
   const wotUpdates = Container.useSelector(state => state.people.wotUpdates)

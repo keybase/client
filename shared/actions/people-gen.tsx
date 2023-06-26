@@ -10,7 +10,6 @@ export const dismissAnnouncement = 'people:dismissAnnouncement'
 export const dismissWotNotifications = 'people:dismissWotNotifications'
 export const getPeopleData = 'people:getPeopleData'
 export const markViewed = 'people:markViewed'
-export const peopleDataProcessed = 'people:peopleDataProcessed'
 export const setResentEmail = 'people:setResentEmail'
 export const skipTodo = 'people:skipTodo'
 
@@ -31,13 +30,6 @@ export const createGetPeopleData = (payload: {
   readonly numFollowSuggestionsWanted: number
 }) => ({payload, type: getPeopleData as typeof getPeopleData})
 export const createMarkViewed = (payload?: undefined) => ({payload, type: markViewed as typeof markViewed})
-export const createPeopleDataProcessed = (payload: {
-  readonly oldItems: Array<Types.PeopleScreenItem>
-  readonly newItems: Array<Types.PeopleScreenItem>
-  readonly followSuggestions: Array<Types.FollowSuggestion>
-  readonly lastViewed: Date
-  readonly version: number
-}) => ({payload, type: peopleDataProcessed as typeof peopleDataProcessed})
 export const createSetResentEmail = (payload: {readonly email: string}) => ({
   payload,
   type: setResentEmail as typeof setResentEmail,
@@ -53,7 +45,6 @@ export type DismissAnnouncementPayload = ReturnType<typeof createDismissAnnounce
 export type DismissWotNotificationsPayload = ReturnType<typeof createDismissWotNotifications>
 export type GetPeopleDataPayload = ReturnType<typeof createGetPeopleData>
 export type MarkViewedPayload = ReturnType<typeof createMarkViewed>
-export type PeopleDataProcessedPayload = ReturnType<typeof createPeopleDataProcessed>
 export type SetResentEmailPayload = ReturnType<typeof createSetResentEmail>
 export type SkipTodoPayload = ReturnType<typeof createSkipTodo>
 
@@ -65,7 +56,6 @@ export type Actions =
   | DismissWotNotificationsPayload
   | GetPeopleDataPayload
   | MarkViewedPayload
-  | PeopleDataProcessedPayload
   | SetResentEmailPayload
   | SkipTodoPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

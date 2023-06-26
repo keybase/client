@@ -6,18 +6,12 @@ import * as TeamBuildingConstants from '../constants/team-building'
 import type * as TeamBuildingGen from '../actions/team-building-gen'
 import type * as Types from '../constants/types/people'
 import {editTeambuildingDraft} from './team-building'
-import isEqual from 'lodash/isEqual'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 
 const initialState: Types.State = {
-  followSuggestions: [],
   inviteCounts: undefined,
-  lastViewed: new Date(),
-  newItems: [],
-  oldItems: [],
   resentEmail: '',
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  version: -1,
   wotUpdates: new Map<string, Types.WotUpdate>(),
 }
 
@@ -29,23 +23,6 @@ type Actions =
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [PeopleGen.resetStore]: () => initialState,
-  [PeopleGen.peopleDataProcessed]: (draftState, action) => {
-    const {payload} = action
-    const {followSuggestions, lastViewed, newItems, oldItems, version} = payload
-    if (!isEqual(followSuggestions, draftState.followSuggestions)) {
-      draftState.followSuggestions = followSuggestions
-    }
-    if (lastViewed.getTime() !== draftState.lastViewed.getTime()) {
-      draftState.lastViewed = lastViewed
-    }
-    if (!isEqual(newItems, draftState.newItems)) {
-      draftState.newItems = newItems
-    }
-    if (!isEqual(oldItems, draftState.oldItems)) {
-      draftState.oldItems = oldItems
-    }
-    draftState.version = version
-  },
   [PeopleGen.badgeAppForWotNotifications]: (draftState, action) => {
     // quick skip
     if (draftState.wotUpdates.size || action.payload.updates.size) {

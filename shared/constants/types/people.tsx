@@ -66,20 +66,15 @@ export type WotUpdate = {
 export type PeopleScreenItem = Todo | FollowedNotificationItem | Announcement
 
 export type FollowSuggestion = {
-  username: string
-  fullName?: string
   followsMe: boolean
+  fullName?: string
   iFollow: boolean
+  username: string
 }
 
 export type State = {
-  readonly lastViewed: Date
-  readonly version: number
-  readonly newItems: Array<PeopleScreenItem>
-  readonly oldItems: Array<PeopleScreenItem>
-  readonly wotUpdates: Map<string, WotUpdate>
-  readonly followSuggestions: Array<FollowSuggestion>
-  readonly resentEmail: string
-  readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-  readonly inviteCounts: RPCTypes.InviteCounts | undefined
+  inviteCounts: RPCTypes.InviteCounts | undefined
+  resentEmail: string
+  teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  wotUpdates: Map<string, WotUpdate>
 }
