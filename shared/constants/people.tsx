@@ -353,14 +353,16 @@ type ZState = State & {
   dispatch: {
     dismissAnnouncement: (id: RPCTypes.HomeScreenAnnouncementID) => void
     loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
+
     setResentEmail: (email: string) => void
+    skipTodo: (type: Types.TodoType) => void
     markViewed: () => void
     reset: () => void
   }
 }
 
 export const useState = Z.createZustand(
-  Z.immerZustand<ZState>(set => {
+  Z.immerZustand<ZState>((set, get) => {
     const dispatch = {
       dismissAnnouncement: (id: RPCTypes.HomeScreenAnnouncementID) => {
         const f = async () => {
@@ -509,6 +511,18 @@ export const useState = Z.createZustand(
         set(s => {
           s.resentEmail = email
         })
+      },
+      skipTodo: (type: Types.TodoType) => {
+        const f = async () => {
+          try {
+            await RPCTypes.homeHomeSkipTodoTypeRpcPromise({
+              t: RPCTypes.HomeScreenTodoType[type],
+            })
+            // TODO get rid of this load and have core send us a homeUIRefresh
+            get().dispatch.loadPeople(false)
+          } catch (_) {}
+        }
+        Z.ignorePromise(f())
       },
     }
     return {

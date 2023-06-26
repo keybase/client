@@ -1,8 +1,0 @@
-{
-  "prelude": ["import type * as Types from '../constants/types/people'"],
-  "actions": {
-    "skipTodo": {
-      "type": "Types.TodoType"
-    }
-  }
-}

@@ -3,7 +3,6 @@ import * as SettingsGen from './settings-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as PeopleGen from './people-gen'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -26,17 +25,6 @@ import {commonListenActions, filterForNs} from './team-building'
 //   PeopleGen.createBadgeAppForWotNotifications({
 //     updates: new Map<string, Types.WotUpdate>(Object.entries(action.payload.badgeState.wotUpdates || {})),
 //   })
-
-const skipTodo = async (_: unknown, action: PeopleGen.SkipTodoPayload) => {
-  try {
-    await RPCTypes.homeHomeSkipTodoTypeRpcPromise({
-      t: RPCTypes.HomeScreenTodoType[action.payload.type],
-    })
-    // TODO get rid of this load and have core send us a homeUIRefresh
-    Constants.useState.getState().dispatch.loadPeople(false)
-  } catch (_) {}
-  return
-}
 
 const homeUIRefresh = () => {
   Constants.useState.getState().dispatch.loadPeople(false)
@@ -77,7 +65,6 @@ const maybeMarkViewed = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) =
 }
 
 const initPeople = () => {
-  Container.listenAction(PeopleGen.skipTodo, skipTodo)
   // Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
   Container.listenAction(EngineGen.connected, connected)
