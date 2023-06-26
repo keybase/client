@@ -31,7 +31,7 @@ const useOnSkipTodo = (type: Types.TodoType) => {
   const skipTodo = Constants.useState(s => s.dispatch.skipTodo)
   return React.useCallback(() => {
     skipTodo(type)
-  }, [type])
+  }, [skipTodo, type])
 }
 
 function makeDefaultButtons(
