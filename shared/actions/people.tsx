@@ -1,4 +1,5 @@
 import * as Constants from '../constants/people'
+import * as SettingsGen from './settings-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
@@ -57,19 +58,14 @@ const skipTodo = async (_: unknown, action: PeopleGen.SkipTodoPayload) => {
       t: RPCTypes.HomeScreenTodoType[action.payload.type],
     })
     // TODO get rid of this load and have core send us a homeUIRefresh
-    return PeopleGen.createGetPeopleData({
-      markViewed: false,
-      numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-    })
+    Constants.useState.getState().dispatch.loadPeople(false)
   } catch (_) {}
-  return false
+  return
 }
 
-const homeUIRefresh = () =>
-  PeopleGen.createGetPeopleData({
-    markViewed: false,
-    numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-  })
+const homeUIRefresh = () => {
+  Constants.useState.getState().dispatch.loadPeople(false)
+}
 
 const connected = async () => {
   try {
@@ -117,6 +113,9 @@ const initPeople = () => {
   Container.listenAction(RouteTreeGen.onNavChanged, maybeMarkViewed)
   commonListenActions('people')
   Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
+  Container.listenAction(SettingsGen.emailVerified, (_, a) => {
+    Constants.useState.getState().dispatch.setResentEmail(a.payload.email)
+  })
 }
 
 export default initPeople

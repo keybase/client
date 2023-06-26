@@ -73,8 +73,5 @@ export type FollowSuggestion = {
 }
 
 export type State = {
-  inviteCounts: RPCTypes.InviteCounts | undefined
-  resentEmail: string
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-  wotUpdates: Map<string, WotUpdate>
 }

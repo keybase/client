@@ -339,16 +339,19 @@ type State = {
   followSuggestions: Array<Types.FollowSuggestion>
   newItems: Array<Types.PeopleScreenItem>
   oldItems: Array<Types.PeopleScreenItem>
+  resentEmail: string
 }
 const initialState: State = {
   followSuggestions: [],
   newItems: [],
   oldItems: [],
+  resentEmail: '',
 }
 
 type ZState = State & {
   dispatch: {
-    loadPeople: (markViewed: boolean, numFollowSuggestionsWanted: number) => void
+    loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
+    setResentEmail: (email: string) => void
     reset: () => void
   }
 }
@@ -356,7 +359,7 @@ type ZState = State & {
 export const useState = Z.createZustand(
   Z.immerZustand<ZState>(set => {
     const dispatch = {
-      loadPeople: (markViewed: boolean, numFollowSuggestionsWanted: number) => {
+      loadPeople: (markViewed: boolean, numFollowSuggestionsWanted = defaultNumFollowSuggestions) => {
         const f = async () => {
           // more logging to understand why this fails so much
           logger.info(
@@ -473,6 +476,11 @@ export const useState = Z.createZustand(
       },
       reset: () => {
         set(() => initialState)
+      },
+      setResentEmail: (email: string) => {
+        set(s => {
+          s.resentEmail = email
+        })
       },
     }
     return {

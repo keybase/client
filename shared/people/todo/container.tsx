@@ -1,4 +1,5 @@
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/people'
 import * as PeopleGen from '../../actions/people-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -206,9 +207,10 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
   const addingEmail = Container.useSelector(state => state.settings.email.addingEmail)
   const dispatch = Container.useDispatch()
+  const setResentEmail = Constants.useState(s => s.dispatch.setResentEmail)
   const onConfirm = (email: string) => {
     dispatch(SettingsGen.createEditEmail({email, verify: true}))
-    dispatch(PeopleGen.createSetResentEmail({email}))
+    setResentEmail(email)
   }
   const onManage = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))

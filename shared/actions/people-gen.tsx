@@ -8,9 +8,7 @@ export const typePrefix = 'people:'
 export const badgeAppForWotNotifications = 'people:badgeAppForWotNotifications'
 export const dismissAnnouncement = 'people:dismissAnnouncement'
 export const dismissWotNotifications = 'people:dismissWotNotifications'
-export const getPeopleData = 'people:getPeopleData'
 export const markViewed = 'people:markViewed'
-export const setResentEmail = 'people:setResentEmail'
 export const skipTodo = 'people:skipTodo'
 
 // Action Creators
@@ -25,15 +23,7 @@ export const createDismissWotNotifications = (payload: {
   readonly voucher: string
   readonly vouchee: string
 }) => ({payload, type: dismissWotNotifications as typeof dismissWotNotifications})
-export const createGetPeopleData = (payload: {
-  readonly markViewed: boolean
-  readonly numFollowSuggestionsWanted: number
-}) => ({payload, type: getPeopleData as typeof getPeopleData})
 export const createMarkViewed = (payload?: undefined) => ({payload, type: markViewed as typeof markViewed})
-export const createSetResentEmail = (payload: {readonly email: string}) => ({
-  payload,
-  type: setResentEmail as typeof setResentEmail,
-})
 export const createSkipTodo = (payload: {readonly type: Types.TodoType}) => ({
   payload,
   type: skipTodo as typeof skipTodo,
@@ -43,9 +33,7 @@ export const createSkipTodo = (payload: {readonly type: Types.TodoType}) => ({
 export type BadgeAppForWotNotificationsPayload = ReturnType<typeof createBadgeAppForWotNotifications>
 export type DismissAnnouncementPayload = ReturnType<typeof createDismissAnnouncement>
 export type DismissWotNotificationsPayload = ReturnType<typeof createDismissWotNotifications>
-export type GetPeopleDataPayload = ReturnType<typeof createGetPeopleData>
 export type MarkViewedPayload = ReturnType<typeof createMarkViewed>
-export type SetResentEmailPayload = ReturnType<typeof createSetResentEmail>
 export type SkipTodoPayload = ReturnType<typeof createSkipTodo>
 
 // All Actions
@@ -54,8 +42,6 @@ export type Actions =
   | BadgeAppForWotNotificationsPayload
   | DismissAnnouncementPayload
   | DismissWotNotificationsPayload
-  | GetPeopleDataPayload
   | MarkViewedPayload
-  | SetResentEmailPayload
   | SkipTodoPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

@@ -4,6 +4,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RouteTree from '../../actions/route-tree-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
+import * as Constants from '../../constants/people'
 import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
 import * as Container from '../../util/container'
@@ -22,6 +23,8 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const {appLink, badged, confirmLabel, iconUrl, id, text, url, dismissable} = ownProps
   const dispatch = Container.useDispatch()
+
+  const loadPeople = Constants.useState(s => s.dispatch.loadPeople)
 
   const onConfirm = () => {
     if (url) {
@@ -66,11 +69,11 @@ export default (ownProps: OwnProps) => {
         break
     }
     dispatch(PeopleGen.createDismissAnnouncement({id}))
-    dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
+    loadPeople(true, 10)
   }
   const _onDismiss = () => {
     dispatch(PeopleGen.createDismissAnnouncement({id}))
-    dispatch(PeopleGen.createGetPeopleData({markViewed: true, numFollowSuggestionsWanted: 10}))
+    loadPeople(true, 10)
   }
   const props = {
     badged,
