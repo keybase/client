@@ -1,6 +1,7 @@
 import logger from '../logger'
 import * as ConfigConstants from '../constants/config'
 import * as EngineGen from './engine-gen-gen'
+import * as ConfigGen from './config-gen'
 import * as PinentryGen from './pinentry-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/pinentry'
@@ -9,6 +10,11 @@ import {getEngine} from '../engine/require'
 
 const initPinentry = () => {
   getEngine().registerCustomResponse('keybase.1.secretUi.getPassphrase')
+
+  Container.listenAction(ConfigGen.resetStore, () => {
+    Constants.useState.getState().dispatch.resetState()
+  })
+
   Container.listenAction(EngineGen.keybase1SecretUiGetPassphrase, (_, action) => {
     const {response, params} = action.payload
     const {pinentry} = params

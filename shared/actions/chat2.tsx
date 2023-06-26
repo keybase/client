@@ -3886,6 +3886,9 @@ const updateTyping = (action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) 
 }
 
 const initChat = () => {
+  Container.listenAction(ConfigGen.resetStore, () => {
+    Constants.useChatState.getState().dispatch.resetState()
+  })
   // Platform specific actions
   if (Container.isMobile) {
     Container.listenAction(Chat2Gen.messageAttachmentNativeShare, mobileMessageAttachmentShare)

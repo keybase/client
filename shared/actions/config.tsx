@@ -17,6 +17,7 @@ import * as SettingsGen from './settings-gen'
 import * as Tabs from '../constants/tabs'
 import * as DarkMode from '../constants/darkmode'
 import * as WhatsNew from '../constants/whats-new'
+import {useWaitingState} from '../constants/waiting'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import logger from '../logger'
 import {initPlatformListener} from './platform-specific'
@@ -454,6 +455,13 @@ const initConfig = () => {
     Constants.useConfigState.getState().dispatch.resetState()
     Constants.useDaemonState.getState().dispatch.resetState()
     Constants.useLogoutState.getState().dispatch.resetState()
+    DarkMode.useDarkModeState.getState().dispatch.resetState()
+    Constants.useCurrentUserState.getState().dispatch.resetState()
+    Constants.useFollowerState.getState().dispatch.resetState()
+    Constants.useActiveState.getState().dispatch.resetState()
+    useWaitingState.getState().dispatch.resetState()
+    useAvatarState.getState().dispatch.resetState()
+    WhatsNew.useState.getState().dispatch.resetState()
   })
 
   Container.listenAction(EngineGen.keybase1NotifyTeamAvatarUpdated, (_, action) => {
