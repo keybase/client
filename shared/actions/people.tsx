@@ -41,9 +41,6 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
 }
 
 const initPeople = () => {
-  Container.listenAction(ConfigGen.resetStore, () => {
-    Constants.useState.getState().dispatch.resetState()
-  })
   // Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, () => {
     Constants.useState.getState().dispatch.loadPeople(false)

@@ -2,7 +2,6 @@ import * as Container from '../util/container'
 import * as Constants from '../constants/crypto'
 import * as ConfigConstants from '../constants/config'
 import * as TeamBuildingGen from './team-building-gen'
-import * as ConfigGen from './config-gen'
 import {commonListenActions, filterForNs} from './team-building'
 
 // Get list of users from crypto TeamBuilding for encrypt operation
@@ -37,10 +36,6 @@ const onSetRecipients = (state: Container.TypedState) => {
 }
 
 const initCrypto = () => {
-  Container.listenAction(ConfigGen.resetStore, () => {
-    Constants.useState.getState().dispatch.resetState()
-  })
-
   commonListenActions('crypto')
   // This action is used to hook into the TeamBuildingGen.finishedTeamBuilding action.
   // We want this so that we can figure out which user(s) have been selected and pass that result over to store.crypto.encrypt.recipients

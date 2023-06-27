@@ -17,7 +17,7 @@ import * as SettingsGen from './settings-gen'
 import * as Tabs from '../constants/tabs'
 import * as DarkMode from '../constants/darkmode'
 import * as WhatsNew from '../constants/whats-new'
-import {useWaitingState} from '../constants/waiting'
+import * as Z from '../util/zustand'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import logger from '../logger'
 import {initPlatformListener} from './platform-specific'
@@ -288,7 +288,7 @@ const allowLogoutWaiters = async (
   Constants.useLogoutState.getState().dispatch.wait(waitKey, version, false)
 }
 
-const updateServerConfig = async (_: unknown, action: ConfigGen.LoadOnStartPayload) =>
+const updateServerConfig = (_: unknown, action: ConfigGen.LoadOnStartPayload) =>
   action.payload.phase === 'startupOrReloginButNotInARush' &&
   Constants.useConfigState.getState().loggedIn &&
   RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
@@ -452,16 +452,7 @@ const initConfig = () => {
   Container.listenAction(ConfigGen.powerMonitorEvent, onPowerMonitorEvent)
 
   Container.listenAction(ConfigGen.resetStore, () => {
-    Constants.useConfigState.getState().dispatch.resetState()
-    Constants.useDaemonState.getState().dispatch.resetState()
-    Constants.useLogoutState.getState().dispatch.resetState()
-    DarkMode.useDarkModeState.getState().dispatch.resetState()
-    Constants.useCurrentUserState.getState().dispatch.resetState()
-    Constants.useFollowerState.getState().dispatch.resetState()
-    Constants.useActiveState.getState().dispatch.resetState()
-    useWaitingState.getState().dispatch.resetState()
-    useAvatarState.getState().dispatch.resetState()
-    WhatsNew.useState.getState().dispatch.resetState()
+    Z.resetAllStores()
   })
 
   Container.listenAction(EngineGen.keybase1NotifyTeamAvatarUpdated, (_, action) => {
