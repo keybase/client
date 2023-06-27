@@ -31,9 +31,6 @@ export const dummyListenerApi = {
 }
 
 type HasReset = {dispatch: {resetState: 'default' | (() => void)}}
-// const hasReset = (s: any): s is HasReset => {
-//   return typeof s?.dispatch?.resetState === 'function'
-// }
 
 const resetters: (() => void)[] = []
 // Auto adds immer and keeps track of resets
