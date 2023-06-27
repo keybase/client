@@ -1,6 +1,5 @@
 import * as Constants from '../constants/people'
 import * as SettingsGen from './settings-gen'
-import * as ConfigGen from './config-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'

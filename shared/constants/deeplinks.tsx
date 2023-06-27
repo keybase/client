@@ -43,8 +43,7 @@ type State = Store & {
   }
 }
 
-export const useState = Z.createZustand(
-  Z.immerZustand<State>((set, get) => {
+export const useState = Z.createZustand <State>((set, get) => {
     const reduxDispatch = Z.getReduxDispatch()
     const getReduxStore = Z.getReduxStore()
 
@@ -283,4 +282,4 @@ export const useState = Z.createZustand(
       dispatch,
     }
   })
-)
+

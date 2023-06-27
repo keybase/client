@@ -222,488 +222,483 @@ type State = Store & {
   }
 }
 
-export const useState = Z.createZustand(
-  Z.immerZustand<State>((set, get) => {
-    const reduxDispatch = Z.getReduxDispatch()
+export const useState = Z.createZustand<State>((set, get) => {
+  const reduxDispatch = Z.getReduxDispatch()
 
-    const resetWarnings = (o: CommonStore) => {
-      o.errorMessage = new HiddenString('')
-      o.warningMessage = new HiddenString('')
-    }
+  const resetWarnings = (o: CommonStore) => {
+    o.errorMessage = new HiddenString('')
+    o.warningMessage = new HiddenString('')
+  }
 
-    const resetOutput = (o: CommonStore) => {
-      resetWarnings(o)
-      o.bytesComplete = 0
-      o.bytesTotal = 0
-      o.output = new HiddenString('')
-      o.outputStatus = undefined
-      o.outputType = undefined
-      o.outputSenderUsername = undefined
-      o.outputSenderFullname = undefined
-      o.outputValid = false
-    }
+  const resetOutput = (o: CommonStore) => {
+    resetWarnings(o)
+    o.bytesComplete = 0
+    o.bytesTotal = 0
+    o.output = new HiddenString('')
+    o.outputStatus = undefined
+    o.outputType = undefined
+    o.outputSenderUsername = undefined
+    o.outputSenderFullname = undefined
+    o.outputValid = false
+  }
 
-    const onError = (cs: CommonStore, errorMessage: string) => {
-      resetOutput(cs)
-      cs.errorMessage = new HiddenString(errorMessage)
-    }
+  const onError = (cs: CommonStore, errorMessage: string) => {
+    resetOutput(cs)
+    cs.errorMessage = new HiddenString(errorMessage)
+  }
 
-    const onSuccess = (
-      cs: CommonStore,
-      outputValid: boolean,
-      warningMessage: string,
-      output: string,
-      inputType: 'file' | 'text',
-      signed: boolean,
-      senderUsername: string,
-      senderFullname: string
-    ) => {
-      cs.outputValid = outputValid
-      resetWarnings(cs)
-      cs.warningMessage = new HiddenString(warningMessage)
-      cs.output = new HiddenString(output)
-      cs.outputStatus = 'success'
-      cs.outputType = inputType
-      cs.outputSigned = signed
-      cs.outputSenderUsername = new HiddenString(signed ? senderUsername : '')
-      cs.outputSenderFullname = new HiddenString(signed ? senderFullname : '')
-    }
+  const onSuccess = (
+    cs: CommonStore,
+    outputValid: boolean,
+    warningMessage: string,
+    output: string,
+    inputType: 'file' | 'text',
+    signed: boolean,
+    senderUsername: string,
+    senderFullname: string
+  ) => {
+    cs.outputValid = outputValid
+    resetWarnings(cs)
+    cs.warningMessage = new HiddenString(warningMessage)
+    cs.output = new HiddenString(output)
+    cs.outputStatus = 'success'
+    cs.outputType = inputType
+    cs.outputSigned = signed
+    cs.outputSenderUsername = new HiddenString(signed ? senderUsername : '')
+    cs.outputSenderFullname = new HiddenString(signed ? senderFullname : '')
+  }
 
-    const encrypt = (destinationDir: string = '') => {
-      const f = async () => {
-        const start = get().encrypt
-        const username = UserConstants.useCurrentUserState.getState().username
-        const signed = start.options.sign
-        const inputType = start.inputType
-        const input = start.input.stringValue()
-        const opts = {
-          includeSelf: start.options.includeSelf,
-          recipients: start.recipients.length ? start.recipients : [username],
-          signed,
-        }
-        try {
-          const callText = async () => {
-            const {
-              usedUnresolvedSBS,
-              unresolvedSBSAssertion,
-              ciphertext: output,
-            } = await RPCTypes.saltpackSaltpackEncryptStringRpcPromise({opts, plaintext: input}, waitingKey)
-            return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
-          }
-          const callFile = async () => {
-            const {
-              usedUnresolvedSBS,
-              unresolvedSBSAssertion,
-              filename: output,
-            } = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
-              {destinationDir, filename: input, opts},
-              waitingKey
-            )
-            return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
-          }
-          const {output, unresolvedSBSAssertion, usedUnresolvedSBS} = await (inputType === 'text'
-            ? callText()
-            : callFile())
-
-          set(s => {
-            onSuccess(
-              s.encrypt,
-              s.encrypt.input.stringValue() === input,
-              usedUnresolvedSBS ? getWarningMessageForSBS(unresolvedSBSAssertion) : '',
-              output,
-              inputType,
-              signed,
-              username,
-              ''
-            )
-          })
-        } catch (_error) {
-          if (!(_error instanceof RPCError)) {
-            return
-          }
-          const error = _error
-          logger.error(error)
-          set(s => {
-            onError(s.encrypt, getStatusCodeMessage(error, 'encrypt', inputType))
-          })
-        }
+  const encrypt = (destinationDir: string = '') => {
+    const f = async () => {
+      const start = get().encrypt
+      const username = UserConstants.useCurrentUserState.getState().username
+      const signed = start.options.sign
+      const inputType = start.inputType
+      const input = start.input.stringValue()
+      const opts = {
+        includeSelf: start.options.includeSelf,
+        recipients: start.recipients.length ? start.recipients : [username],
+        signed,
       }
-      Z.ignorePromise(f())
-    }
-
-    const decrypt = (destinationDir: string = '') => {
-      const f = async () => {
-        const start = get().decrypt
-        const inputType = start.inputType
-        const input = start.input.stringValue()
-        try {
-          const callText = async () => {
-            const res = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise(
-              {ciphertext: input},
-              waitingKey
-            )
-            const {plaintext: output, info, signed} = res
-            const {sender} = info
-            const {username, fullname} = sender
-            return {fullname, output, signed, username}
-          }
-
-          const callFile = async () => {
-            const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise(
-              {destinationDir, encryptedFilename: input},
-              waitingKey
-            )
-            const {decryptedFilename: output, info, signed} = result
-            const {sender} = info
-            const {username, fullname} = sender
-            return {fullname, output, signed, username}
-          }
-
-          const {fullname, output, signed, username} = await (inputType === 'text' ? callText() : callFile())
-          set(s => {
-            onSuccess(
-              s.decrypt,
-              s.decrypt.input.stringValue() === input,
-              '',
-              output,
-              inputType,
-              signed,
-              username,
-              fullname
-            )
-          })
-        } catch (_error) {
-          if (!(_error instanceof RPCError)) {
-            return
-          }
-          const error = _error
-          logger.error(error)
-          set(s => {
-            onError(s.decrypt, getStatusCodeMessage(error, 'decrypt', inputType))
-          })
+      try {
+        const callText = async () => {
+          const {
+            usedUnresolvedSBS,
+            unresolvedSBSAssertion,
+            ciphertext: output,
+          } = await RPCTypes.saltpackSaltpackEncryptStringRpcPromise({opts, plaintext: input}, waitingKey)
+          return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
         }
-      }
-
-      Z.ignorePromise(f())
-    }
-
-    const sign = (destinationDir: string = '') => {
-      const f = async () => {
-        const start = get().sign
-        const inputType = start.inputType
-        const input = start.input.stringValue()
-        try {
-          const callText = async () =>
-            await RPCTypes.saltpackSaltpackSignStringRpcPromise({plaintext: input}, waitingKey)
-
-          const callFile = async () =>
-            await RPCTypes.saltpackSaltpackSignFileRpcPromise({destinationDir, filename: input}, waitingKey)
-
-          const output = await (inputType === 'text' ? callText() : callFile())
-
-          const username = UserConstants.useCurrentUserState.getState().username
-          set(s => {
-            onSuccess(s.sign, s.sign.input.stringValue() === input, '', output, inputType, true, username, '')
-          })
-        } catch (_error) {
-          if (!(_error instanceof RPCError)) {
-            return
-          }
-          const error = _error
-          logger.error(error)
-          set(s => {
-            onError(s.sign, getStatusCodeMessage(error, 'sign', inputType))
-          })
+        const callFile = async () => {
+          const {
+            usedUnresolvedSBS,
+            unresolvedSBSAssertion,
+            filename: output,
+          } = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
+            {destinationDir, filename: input, opts},
+            waitingKey
+          )
+          return {output, unresolvedSBSAssertion, usedUnresolvedSBS}
         }
-      }
+        const {output, unresolvedSBSAssertion, usedUnresolvedSBS} = await (inputType === 'text'
+          ? callText()
+          : callFile())
 
-      Z.ignorePromise(f())
-    }
-
-    const verify = (destinationDir: string = '') => {
-      const f = async () => {
-        const start = get().verify
-        const inputType = start.inputType
-        const input = start.input.stringValue()
-        try {
-          const callText = async () => {
-            const res = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input}, waitingKey)
-            const {plaintext: output, sender, verified: signed} = res
-            const {username, fullname} = sender
-            return {fullname, output, signed, username}
-          }
-          const callFile = async () => {
-            const res = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise(
-              {destinationDir, signedFilename: input},
-              waitingKey
-            )
-            const {verifiedFilename: output, sender, verified: signed} = res
-            const {username, fullname} = sender
-            return {fullname, output, signed, username}
-          }
-          const {fullname, output, signed, username} = await (inputType === 'text' ? callText() : callFile())
-          set(s => {
-            onSuccess(
-              s.verify,
-              s.verify.input.stringValue() === input,
-              '',
-              output,
-              inputType,
-              signed,
-              username,
-              fullname
-            )
-          })
-        } catch (_error) {
-          if (!(_error instanceof RPCError)) {
-            return
-          }
-          const error = _error
-          logger.error(error)
-          set(s => {
-            onError(s.verify, getStatusCodeMessage(error, 'verify', inputType))
-          })
-        }
-      }
-
-      Z.ignorePromise(f())
-    }
-
-    const download = (op: Types.Operations) => {
-      const f = async () => {
-        const callEncrypt = async () =>
-          await RPCTypes.saltpackSaltpackSaveCiphertextToFileRpcPromise({
-            ciphertext: get().encrypt.output.stringValue(),
-          })
-        const callSign = async () =>
-          await RPCTypes.saltpackSaltpackSaveSignedMsgToFileRpcPromise({
-            signedMsg: get().sign.output.stringValue(),
-          })
-        const output = await (op === 'encrypt' ? callEncrypt() : callSign())
         set(s => {
-          const o = s[op]
-          resetWarnings(o)
-          o.output = new HiddenString(output)
-          o.outputStatus = 'success'
-          o.outputType = 'file'
+          onSuccess(
+            s.encrypt,
+            s.encrypt.input.stringValue() === input,
+            usedUnresolvedSBS ? getWarningMessageForSBS(unresolvedSBSAssertion) : '',
+            output,
+            inputType,
+            signed,
+            username,
+            ''
+          )
         })
-      }
-      Z.ignorePromise(f())
-    }
-
-    const dispatch = {
-      clearInput: (op: Types.Operations) => {
-        set(s => {
-          const o = s[op]
-          resetOutput(o)
-          o.inputType = 'text'
-          o.input = new HiddenString('')
-          o.outputValid = true
-        })
-      },
-      clearRecipients: () => {
-        set(s => {
-          const e = s.encrypt
-          resetOutput(e)
-          e.recipients = initialStore.encrypt.recipients
-          // Reset options since they depend on the recipients
-          e.options = initialStore.encrypt.options
-          e.meta = initialStore.encrypt.meta
-        })
-      },
-      downloadEncryptedText: () => {
-        download('encrypt')
-      },
-      downloadSignedText: () => {
-        download('sign')
-      },
-      onSaltpackDone: (op: Types.Operations) => {
-        set(s => {
-          const o = s[op]
-          // For any file operation that completes, invalidate the output since multiple decrypt/verify operations will produce filenames with unique
-          // counters on the end (as to not overwrite any existing files in the user's FS).
-          // E.g. `${plaintextFilename} (n).ext`
-          o.outputValid = false
-          o.bytesComplete = 0
-          o.bytesTotal = 0
-          o.inProgress = false
-          o.outputStatus = 'pending'
-        })
-      },
-      onSaltpackOpenFile: (op: Types.Operations, path: string) => {
-        set(s => {
-          const o = s[op]
-          // Bail on setting operation input if another file RPC is in progress
-          if (o.inProgress) return
-          if (!path) return
-
-          resetOutput(o)
-          o.input = new HiddenString(path)
-          o.inputType = 'file'
-          resetWarnings(o)
-        })
-      },
-      onSaltpackProgress: (op: Types.Operations, bytesComplete: number, bytesTotal: number) => {
-        set(s => {
-          const o = s[op]
-          const done = bytesComplete === bytesTotal
-          o.bytesComplete = done ? 0 : bytesComplete
-          o.bytesTotal = done ? 0 : bytesTotal
-          o.inProgress = !done
-          if (!done) {
-            o.outputStatus = 'pending'
-          }
-        })
-      },
-      onSaltpackStart: (op: Types.Operations) => {
-        set(s => {
-          s[op].inProgress = true
-        })
-      },
-      resetOperation: (op: Types.Operations) => {
-        set(s => {
-          switch (op) {
-            case Operations.Encrypt:
-              s[op] = initialStore[op]
-              break
-            case Operations.Decrypt:
-            case Operations.Sign:
-            case Operations.Verify:
-              s[op] = initialStore[op]
-              break
-          }
-        })
-      },
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-      runFileOperation: (op: Types.Operations, destinationDir: string) => {
-        set(s => {
-          const o = s[op]
-          o.outputValid = false
-          resetWarnings(o)
-        })
-        switch (op) {
-          case 'encrypt':
-            encrypt(destinationDir)
-            break
-          case 'decrypt':
-            decrypt(destinationDir)
-            break
-          case 'verify':
-            verify(destinationDir)
-            break
-          case 'sign':
-            sign(destinationDir)
-            break
-        }
-      },
-      runTextOperation: (op: Types.Operations) => {
-        let route: 'decryptOutput' | 'encryptOutput' | 'signOutput' | 'verifyOutput'
-        switch (op) {
-          case 'decrypt':
-            decrypt()
-            route = 'decryptOutput'
-            break
-          case 'encrypt':
-            route = 'encryptOutput'
-            encrypt()
-            break
-          case 'sign':
-            route = 'signOutput'
-            sign()
-            break
-          case 'verify':
-            route = 'verifyOutput'
-            verify()
-            break
-        }
-        if (Platform.isMobile) {
-          reduxDispatch(RouteTreeGen.createNavigateAppend({path: [route]}))
-        }
-      },
-      setEncryptOptions: (newOptions: EncryptOptions, hideIncludeSelf?: boolean) => {
-        set(s => {
-          const e = s.encrypt
-          e.options = {
-            ...e.options,
-            ...newOptions,
-          }
-          // Reset output when file input changes
-          // Prompt for destination dir
-          if (e.inputType === 'file') {
-            resetOutput(e)
-          }
-          // Output no longer valid since options have changed
-          e.outputValid = false
-          // User set themselves as a recipient so don't show the 'includeSelf' option for encrypt (since they're encrypting to themselves)
-          if (hideIncludeSelf) {
-            e.meta.hideIncludeSelf = hideIncludeSelf
-            e.options.includeSelf = false
-          }
-        })
-
-        if (get().encrypt.inputType === 'text') {
-          encrypt('')
-        }
-      },
-      setInput: (op: Types.Operations, type: Types.InputTypes, value: string) => {
-        if (!value) {
-          get().dispatch.clearInput(op)
+      } catch (_error) {
+        if (!(_error instanceof RPCError)) {
           return
         }
+        const error = _error
+        logger.error(error)
         set(s => {
-          const o = s[op]
-          const oldInput = o.input
-          // Reset input to 'text' when no value given (cleared input or removed file upload)
-          const inputType = value ? type : 'text'
-          const outputValid = oldInput.stringValue() === value
-
-          o.inputType = inputType
-          o.input = new HiddenString(value)
-          o.outputValid = outputValid
-          resetWarnings(o)
-
-          // Reset output when file input changes
-          // Prompt for destination dir
-          if (inputType === 'file') {
-            resetOutput(o)
-          }
+          onError(s.encrypt, getStatusCodeMessage(error, 'encrypt', inputType))
         })
-        // mobile doesn't run anything automatically
-        if (type === 'text' && !Platform.isMobile) {
-          get().dispatch.runTextOperation(op)
+      }
+    }
+    Z.ignorePromise(f())
+  }
+
+  const decrypt = (destinationDir: string = '') => {
+    const f = async () => {
+      const start = get().decrypt
+      const inputType = start.inputType
+      const input = start.input.stringValue()
+      try {
+        const callText = async () => {
+          const res = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise({ciphertext: input}, waitingKey)
+          const {plaintext: output, info, signed} = res
+          const {sender} = info
+          const {username, fullname} = sender
+          return {fullname, output, signed, username}
         }
-      },
-      setRecipients: (recipients: Array<string>, hasSBS: boolean) => {
+
+        const callFile = async () => {
+          const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise(
+            {destinationDir, encryptedFilename: input},
+            waitingKey
+          )
+          const {decryptedFilename: output, info, signed} = result
+          const {sender} = info
+          const {username, fullname} = sender
+          return {fullname, output, signed, username}
+        }
+
+        const {fullname, output, signed, username} = await (inputType === 'text' ? callText() : callFile())
         set(s => {
-          const o = s.encrypt
-          // Reset output when file input changes
-          // Prompt for destination dir
-          if (o.inputType === 'file') {
-            resetOutput(o)
-          }
-          // Output no longer valid since recipients have changed
-          o.outputValid = false
-          if (!o.recipients.length && recipients.length) {
-            o.meta.hasRecipients = true
-            o.meta.hasSBS = hasSBS
-          }
-          // Force signing when user is SBS
-          if (hasSBS) {
-            o.options.sign = true
-          }
-          o.recipients = recipients
+          onSuccess(
+            s.decrypt,
+            s.decrypt.input.stringValue() === input,
+            '',
+            output,
+            inputType,
+            signed,
+            username,
+            fullname
+          )
         })
-        // mobile doesn't run anything automatically
-        if (get().encrypt.inputType === 'text' && !Platform.isMobile) {
-          get().dispatch.runTextOperation('encrypt')
+      } catch (_error) {
+        if (!(_error instanceof RPCError)) {
+          return
         }
-      },
+        const error = _error
+        logger.error(error)
+        set(s => {
+          onError(s.decrypt, getStatusCodeMessage(error, 'decrypt', inputType))
+        })
+      }
     }
-    return {
-      ...initialStore,
-      dispatch,
+
+    Z.ignorePromise(f())
+  }
+
+  const sign = (destinationDir: string = '') => {
+    const f = async () => {
+      const start = get().sign
+      const inputType = start.inputType
+      const input = start.input.stringValue()
+      try {
+        const callText = async () =>
+          await RPCTypes.saltpackSaltpackSignStringRpcPromise({plaintext: input}, waitingKey)
+
+        const callFile = async () =>
+          await RPCTypes.saltpackSaltpackSignFileRpcPromise({destinationDir, filename: input}, waitingKey)
+
+        const output = await (inputType === 'text' ? callText() : callFile())
+
+        const username = UserConstants.useCurrentUserState.getState().username
+        set(s => {
+          onSuccess(s.sign, s.sign.input.stringValue() === input, '', output, inputType, true, username, '')
+        })
+      } catch (_error) {
+        if (!(_error instanceof RPCError)) {
+          return
+        }
+        const error = _error
+        logger.error(error)
+        set(s => {
+          onError(s.sign, getStatusCodeMessage(error, 'sign', inputType))
+        })
+      }
     }
-  })
-)
+
+    Z.ignorePromise(f())
+  }
+
+  const verify = (destinationDir: string = '') => {
+    const f = async () => {
+      const start = get().verify
+      const inputType = start.inputType
+      const input = start.input.stringValue()
+      try {
+        const callText = async () => {
+          const res = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input}, waitingKey)
+          const {plaintext: output, sender, verified: signed} = res
+          const {username, fullname} = sender
+          return {fullname, output, signed, username}
+        }
+        const callFile = async () => {
+          const res = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise(
+            {destinationDir, signedFilename: input},
+            waitingKey
+          )
+          const {verifiedFilename: output, sender, verified: signed} = res
+          const {username, fullname} = sender
+          return {fullname, output, signed, username}
+        }
+        const {fullname, output, signed, username} = await (inputType === 'text' ? callText() : callFile())
+        set(s => {
+          onSuccess(
+            s.verify,
+            s.verify.input.stringValue() === input,
+            '',
+            output,
+            inputType,
+            signed,
+            username,
+            fullname
+          )
+        })
+      } catch (_error) {
+        if (!(_error instanceof RPCError)) {
+          return
+        }
+        const error = _error
+        logger.error(error)
+        set(s => {
+          onError(s.verify, getStatusCodeMessage(error, 'verify', inputType))
+        })
+      }
+    }
+
+    Z.ignorePromise(f())
+  }
+
+  const download = (op: Types.Operations) => {
+    const f = async () => {
+      const callEncrypt = async () =>
+        await RPCTypes.saltpackSaltpackSaveCiphertextToFileRpcPromise({
+          ciphertext: get().encrypt.output.stringValue(),
+        })
+      const callSign = async () =>
+        await RPCTypes.saltpackSaltpackSaveSignedMsgToFileRpcPromise({
+          signedMsg: get().sign.output.stringValue(),
+        })
+      const output = await (op === 'encrypt' ? callEncrypt() : callSign())
+      set(s => {
+        const o = s[op]
+        resetWarnings(o)
+        o.output = new HiddenString(output)
+        o.outputStatus = 'success'
+        o.outputType = 'file'
+      })
+    }
+    Z.ignorePromise(f())
+  }
+
+  const dispatch = {
+    clearInput: (op: Types.Operations) => {
+      set(s => {
+        const o = s[op]
+        resetOutput(o)
+        o.inputType = 'text'
+        o.input = new HiddenString('')
+        o.outputValid = true
+      })
+    },
+    clearRecipients: () => {
+      set(s => {
+        const e = s.encrypt
+        resetOutput(e)
+        e.recipients = initialStore.encrypt.recipients
+        // Reset options since they depend on the recipients
+        e.options = initialStore.encrypt.options
+        e.meta = initialStore.encrypt.meta
+      })
+    },
+    downloadEncryptedText: () => {
+      download('encrypt')
+    },
+    downloadSignedText: () => {
+      download('sign')
+    },
+    onSaltpackDone: (op: Types.Operations) => {
+      set(s => {
+        const o = s[op]
+        // For any file operation that completes, invalidate the output since multiple decrypt/verify operations will produce filenames with unique
+        // counters on the end (as to not overwrite any existing files in the user's FS).
+        // E.g. `${plaintextFilename} (n).ext`
+        o.outputValid = false
+        o.bytesComplete = 0
+        o.bytesTotal = 0
+        o.inProgress = false
+        o.outputStatus = 'pending'
+      })
+    },
+    onSaltpackOpenFile: (op: Types.Operations, path: string) => {
+      set(s => {
+        const o = s[op]
+        // Bail on setting operation input if another file RPC is in progress
+        if (o.inProgress) return
+        if (!path) return
+
+        resetOutput(o)
+        o.input = new HiddenString(path)
+        o.inputType = 'file'
+        resetWarnings(o)
+      })
+    },
+    onSaltpackProgress: (op: Types.Operations, bytesComplete: number, bytesTotal: number) => {
+      set(s => {
+        const o = s[op]
+        const done = bytesComplete === bytesTotal
+        o.bytesComplete = done ? 0 : bytesComplete
+        o.bytesTotal = done ? 0 : bytesTotal
+        o.inProgress = !done
+        if (!done) {
+          o.outputStatus = 'pending'
+        }
+      })
+    },
+    onSaltpackStart: (op: Types.Operations) => {
+      set(s => {
+        s[op].inProgress = true
+      })
+    },
+    resetOperation: (op: Types.Operations) => {
+      set(s => {
+        switch (op) {
+          case Operations.Encrypt:
+            s[op] = initialStore[op]
+            break
+          case Operations.Decrypt:
+          case Operations.Sign:
+          case Operations.Verify:
+            s[op] = initialStore[op]
+            break
+        }
+      })
+    },
+    resetState: () => {
+      set(s => ({...s, ...initialStore}))
+    },
+    runFileOperation: (op: Types.Operations, destinationDir: string) => {
+      set(s => {
+        const o = s[op]
+        o.outputValid = false
+        resetWarnings(o)
+      })
+      switch (op) {
+        case 'encrypt':
+          encrypt(destinationDir)
+          break
+        case 'decrypt':
+          decrypt(destinationDir)
+          break
+        case 'verify':
+          verify(destinationDir)
+          break
+        case 'sign':
+          sign(destinationDir)
+          break
+      }
+    },
+    runTextOperation: (op: Types.Operations) => {
+      let route: 'decryptOutput' | 'encryptOutput' | 'signOutput' | 'verifyOutput'
+      switch (op) {
+        case 'decrypt':
+          decrypt()
+          route = 'decryptOutput'
+          break
+        case 'encrypt':
+          route = 'encryptOutput'
+          encrypt()
+          break
+        case 'sign':
+          route = 'signOutput'
+          sign()
+          break
+        case 'verify':
+          route = 'verifyOutput'
+          verify()
+          break
+      }
+      if (Platform.isMobile) {
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: [route]}))
+      }
+    },
+    setEncryptOptions: (newOptions: EncryptOptions, hideIncludeSelf?: boolean) => {
+      set(s => {
+        const e = s.encrypt
+        e.options = {
+          ...e.options,
+          ...newOptions,
+        }
+        // Reset output when file input changes
+        // Prompt for destination dir
+        if (e.inputType === 'file') {
+          resetOutput(e)
+        }
+        // Output no longer valid since options have changed
+        e.outputValid = false
+        // User set themselves as a recipient so don't show the 'includeSelf' option for encrypt (since they're encrypting to themselves)
+        if (hideIncludeSelf) {
+          e.meta.hideIncludeSelf = hideIncludeSelf
+          e.options.includeSelf = false
+        }
+      })
+
+      if (get().encrypt.inputType === 'text') {
+        encrypt('')
+      }
+    },
+    setInput: (op: Types.Operations, type: Types.InputTypes, value: string) => {
+      if (!value) {
+        get().dispatch.clearInput(op)
+        return
+      }
+      set(s => {
+        const o = s[op]
+        const oldInput = o.input
+        // Reset input to 'text' when no value given (cleared input or removed file upload)
+        const inputType = value ? type : 'text'
+        const outputValid = oldInput.stringValue() === value
+
+        o.inputType = inputType
+        o.input = new HiddenString(value)
+        o.outputValid = outputValid
+        resetWarnings(o)
+
+        // Reset output when file input changes
+        // Prompt for destination dir
+        if (inputType === 'file') {
+          resetOutput(o)
+        }
+      })
+      // mobile doesn't run anything automatically
+      if (type === 'text' && !Platform.isMobile) {
+        get().dispatch.runTextOperation(op)
+      }
+    },
+    setRecipients: (recipients: Array<string>, hasSBS: boolean) => {
+      set(s => {
+        const o = s.encrypt
+        // Reset output when file input changes
+        // Prompt for destination dir
+        if (o.inputType === 'file') {
+          resetOutput(o)
+        }
+        // Output no longer valid since recipients have changed
+        o.outputValid = false
+        if (!o.recipients.length && recipients.length) {
+          o.meta.hasRecipients = true
+          o.meta.hasSBS = hasSBS
+        }
+        // Force signing when user is SBS
+        if (hasSBS) {
+          o.options.sign = true
+        }
+        o.recipients = recipients
+      })
+      // mobile doesn't run anything automatically
+      if (get().encrypt.inputType === 'text' && !Platform.isMobile) {
+        get().dispatch.runTextOperation('encrypt')
+      }
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

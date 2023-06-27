@@ -17,42 +17,40 @@ type State = Types.State & {
   }
 }
 
-export const useDevicesState = Z.createZustand(
-  Z.immerZustand<State>(set => {
-    const dispatch = {
-      clearBadges: () => {
-        Z.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
-      },
-      load: () => {
-        const f = async () => {
-          const results = await RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, waitingKey)
-          set(s => {
-            s.deviceMap = new Map(
-              results?.map(r => {
-                const d = rpcDeviceToDevice(r)
-                return [d.deviceID, d]
-              })
-            )
-          })
-        }
-        Z.ignorePromise(f())
-      },
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-      setBadges: (b: Set<string>) => {
+export const useDevicesState = Z.createZustand<State>(set => {
+  const dispatch = {
+    clearBadges: () => {
+      Z.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
+    },
+    load: () => {
+      const f = async () => {
+        const results = await RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, waitingKey)
         set(s => {
-          s.isNew = b
+          s.deviceMap = new Map(
+            results?.map(r => {
+              const d = rpcDeviceToDevice(r)
+              return [d.deviceID, d]
+            })
+          )
         })
-      },
-    }
+      }
+      Z.ignorePromise(f())
+    },
+    resetState: () => {
+      set(s => ({...s, ...initialStore}))
+    },
+    setBadges: (b: Set<string>) => {
+      set(s => {
+        s.isNew = b
+      })
+    },
+  }
 
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})
 
 const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
   makeDevice({

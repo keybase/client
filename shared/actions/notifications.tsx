@@ -1,6 +1,5 @@
 import * as Tabs from '../constants/tabs'
 import * as EngineGen from './engine-gen-gen'
-import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as FsConstants from '../constants/fs'
 import * as RPCTypes from '../constants/types/rpc-gen'

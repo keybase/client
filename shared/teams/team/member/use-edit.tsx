@@ -12,21 +12,19 @@ type State = Store & {
     resetState: () => void
   }
 }
-export const useEditState = Z.createZustand(
-  Z.immerZustand<State>(set => {
-    const dispatch = {
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-      triggerEditUpdated: () => {
-        set(s => {
-          s.editUpdatedTrigger++
-        })
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+export const useEditState = Z.createZustand<State>(set => {
+  const dispatch = {
+    resetState: () => {
+      set(s => ({...s, ...initialStore}))
+    },
+    triggerEditUpdated: () => {
+      set(s => {
+        s.editUpdatedTrigger++
+      })
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

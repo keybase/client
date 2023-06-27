@@ -32,19 +32,17 @@ type State = Store & {
   }
 }
 
-export const useChatState = Z.createZustand(
-  Z.immerZustand<State>(set => {
-    const dispatch = {
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+export const useChatState = Z.createZustand<State>(set => {
+  const dispatch = {
+    resetState: () => {
+      set(s => ({...s, ...initialStore}))
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})
 
 export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
   switch (m.type) {

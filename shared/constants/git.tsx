@@ -81,117 +81,115 @@ type State = Types.State & {
   }
 }
 
-export const useGitState = Z.createZustand(
-  Z.immerZustand<State>((set, get) => {
-    const reduxDispatch = Z.getReduxDispatch()
+export const useGitState = Z.createZustand<State>((set, get) => {
+  const reduxDispatch = Z.getReduxDispatch()
 
-    const callAndHandleError = (f: () => Promise<void>, loadAfter = true) => {
-      const wrapper = async () => {
-        try {
-          await f()
-          if (loadAfter) {
-            load()
+  const callAndHandleError = (f: () => Promise<void>, loadAfter = true) => {
+    const wrapper = async () => {
+      try {
+        await f()
+        if (loadAfter) {
+          load()
+        }
+      } catch (error) {
+        set(s => {
+          s.error = error as Error
+        })
+      }
+    }
+    Z.ignorePromise(wrapper())
+  }
+
+  const _load = async () => {
+    const results = await RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, loadingWaitingKey)
+    const {errors, repos} = parseRepos(results || [])
+    const {setGlobalError} = ConfigConstants.useConfigState.getState().dispatch
+    errors.forEach(e => setGlobalError(e))
+    set(s => {
+      s.idToInfo = repos
+    })
+  }
+  const load = () => {
+    Z.ignorePromise(_load())
+  }
+  const dispatch = {
+    clearBadges: () => {
+      callAndHandleError(async () => {
+        await RPCTypes.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
+      }, false)
+    },
+    createPersonalRepo: (repoName: string) => {
+      callAndHandleError(async () => {
+        await RPCTypes.gitCreatePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
+      })
+    },
+    createTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => {
+      callAndHandleError(async () => {
+        const teamName = {parts: teamname.split('.')}
+        await RPCTypes.gitCreateTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
+      })
+    },
+    deletePersonalRepo: (repoName: string) => {
+      callAndHandleError(async () => {
+        await RPCTypes.gitDeletePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
+      })
+    },
+    deleteTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => {
+      callAndHandleError(async () => {
+        const teamName = {parts: teamname.split('.')}
+        await RPCTypes.gitDeleteTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
+      })
+    },
+    load,
+    navigateToTeamRepo: (teamname: string, repoID: string) => {
+      const f = async () => {
+        await _load()
+        for (const [, info] of get().idToInfo) {
+          if (info.repoID === repoID && info.teamname === teamname) {
+            reduxDispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {expanded: info.id}, selected: 'gitRoot'}],
+              })
+            )
+            break
           }
-        } catch (error) {
-          set(s => {
-            s.error = error as Error
-          })
         }
       }
-      Z.ignorePromise(wrapper())
-    }
-
-    const _load = async () => {
-      const results = await RPCTypes.gitGetAllGitMetadataRpcPromise(undefined, loadingWaitingKey)
-      const {errors, repos} = parseRepos(results || [])
-      const {setGlobalError} = ConfigConstants.useConfigState.getState().dispatch
-      errors.forEach(e => setGlobalError(e))
+      Z.ignorePromise(f())
+    },
+    resetState: () => {
+      set(s => ({...s, ...initialStore}))
+    },
+    setBadges: (b: Set<string>) => {
       set(s => {
-        s.idToInfo = repos
+        s.isNew = b
       })
-    }
-    const load = () => {
-      Z.ignorePromise(_load())
-    }
-    const dispatch = {
-      clearBadges: () => {
-        callAndHandleError(async () => {
-          await RPCTypes.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
-        }, false)
-      },
-      createPersonalRepo: (repoName: string) => {
-        callAndHandleError(async () => {
-          await RPCTypes.gitCreatePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
+    },
+    setError: (err?: Error) => {
+      set(s => {
+        s.error = err
+      })
+    },
+    setTeamRepoSettings: (channelName: string, teamname: string, repoID: string, chatDisabled: boolean) => {
+      callAndHandleError(async () => {
+        await RPCTypes.gitSetTeamRepoSettingsRpcPromise({
+          channelName,
+          chatDisabled,
+          folder: {
+            created: false,
+            folderType: RPCTypes.FolderType.team,
+            name: teamname,
+          },
+          repoID,
         })
-      },
-      createTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => {
-        callAndHandleError(async () => {
-          const teamName = {parts: teamname.split('.')}
-          await RPCTypes.gitCreateTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
-        })
-      },
-      deletePersonalRepo: (repoName: string) => {
-        callAndHandleError(async () => {
-          await RPCTypes.gitDeletePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
-        })
-      },
-      deleteTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => {
-        callAndHandleError(async () => {
-          const teamName = {parts: teamname.split('.')}
-          await RPCTypes.gitDeleteTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
-        })
-      },
-      load,
-      navigateToTeamRepo: (teamname: string, repoID: string) => {
-        const f = async () => {
-          await _load()
-          for (const [, info] of get().idToInfo) {
-            if (info.repoID === repoID && info.teamname === teamname) {
-              reduxDispatch(
-                RouteTreeGen.createNavigateAppend({
-                  path: [{props: {expanded: info.id}, selected: 'gitRoot'}],
-                })
-              )
-              break
-            }
-          }
-        }
-        Z.ignorePromise(f())
-      },
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-      setBadges: (b: Set<string>) => {
-        set(s => {
-          s.isNew = b
-        })
-      },
-      setError: (err?: Error) => {
-        set(s => {
-          s.error = err
-        })
-      },
-      setTeamRepoSettings: (channelName: string, teamname: string, repoID: string, chatDisabled: boolean) => {
-        callAndHandleError(async () => {
-          await RPCTypes.gitSetTeamRepoSettingsRpcPromise({
-            channelName,
-            chatDisabled,
-            folder: {
-              created: false,
-              folderType: RPCTypes.FolderType.team,
-              name: teamname,
-            },
-            repoID,
-          })
-        })
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+      })
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})
 
 const emptyInfo = {
   canDelete: false,

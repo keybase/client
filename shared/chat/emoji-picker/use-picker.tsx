@@ -10,13 +10,11 @@ type ZState = {
   pickerMap: Map<PickKey, PickerValue | undefined>
   updatePickerMap: (key: PickKey, val?: PickerValue) => void
 }
-export const usePickerState = Z.createZustand(
-  Z.immerZustand<ZState>(set => ({
-    pickerMap: new Map(),
-    updatePickerMap: (key: PickKey, val?: PickerValue) => {
-      set(state => {
-        state.pickerMap.set(key, val)
-      })
-    },
-  }))
-)
+export const usePickerState = Z.createZustand<ZState>(set => ({
+  pickerMap: new Map(),
+  updatePickerMap: (key: PickKey, val?: PickerValue) => {
+    set(state => {
+      state.pickerMap.set(key, val)
+    })
+  },
+}))

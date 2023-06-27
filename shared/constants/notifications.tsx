@@ -30,66 +30,64 @@ type State = Store & {
   }
 }
 
-export const useState = Z.createZustand(
-  Z.immerZustand<State>(set => {
-    const updateWidgetBadge = (s: State) => {
-      let widgetBadge: BadgeType = 'regular'
-      const {keyState} = s
-      if (keyState.get('outOfSpace')) {
-        widgetBadge = 'error'
-      } else if (keyState.get('kbfsUploading')) {
-        widgetBadge = 'uploading'
-      }
-      s.widgetBadge = widgetBadge
+export const useState = Z.createZustand<State>(set => {
+  const updateWidgetBadge = (s: State) => {
+    let widgetBadge: BadgeType = 'regular'
+    const {keyState} = s
+    if (keyState.get('outOfSpace')) {
+      widgetBadge = 'error'
+    } else if (keyState.get('kbfsUploading')) {
+      widgetBadge = 'uploading'
     }
+    s.widgetBadge = widgetBadge
+  }
 
-    const dispatch = {
-      badgeApp: (key: NotificationKeys, on: boolean) => {
-        set(s => {
-          const {keyState} = s
-          keyState.set(key, on)
-          updateWidgetBadge(s)
-        })
-      },
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-      setBadgeCounts: (counts: Map<Tabs.Tab, number>) => {
-        set(s => {
-          const chatCount = counts.get(Tabs.chatTab)
-          if (chatCount) {
-            s.mobileAppBadgeCount = chatCount
-          }
+  const dispatch = {
+    badgeApp: (key: NotificationKeys, on: boolean) => {
+      set(s => {
+        const {keyState} = s
+        keyState.set(key, on)
+        updateWidgetBadge(s)
+      })
+    },
+    resetState: () => {
+      set(s => ({...s, ...initialStore}))
+    },
+    setBadgeCounts: (counts: Map<Tabs.Tab, number>) => {
+      set(s => {
+        const chatCount = counts.get(Tabs.chatTab)
+        if (chatCount) {
+          s.mobileAppBadgeCount = chatCount
+        }
 
-          // desktopAppBadgeCount is the sum of badge counts on all tabs. What
-          // happens here is for each tab we deduct the old count from the
-          // current desktopAppBadgeCount, then add the new count into it.
-          //
-          // For example, assume following existing state:
-          // 1) the overall app badge has 12, i.e. state.desktopAppBadgeCount === 12;
-          // 2) and the FS tab count is 4, i.e. state.navBadges.get(Tabs.fsTab) === 4;
-          // Now we receive `{count: {[Tabs.fsTab]: 7}}` indicating that the
-          // new FS tab badge count should become 7. So we deduct 4 from 12 and
-          // add 7, and we'd get 15.
-          //
-          // This way the app badge count is always consistent with the badged
-          // tabs.
-          s.desktopAppBadgeCount = [...counts.entries()].reduce<number>(
-            (count, [k, v]) => count - (s.navBadges.get(k) || 0) + v,
-            s.desktopAppBadgeCount
-          )
+        // desktopAppBadgeCount is the sum of badge counts on all tabs. What
+        // happens here is for each tab we deduct the old count from the
+        // current desktopAppBadgeCount, then add the new count into it.
+        //
+        // For example, assume following existing state:
+        // 1) the overall app badge has 12, i.e. state.desktopAppBadgeCount === 12;
+        // 2) and the FS tab count is 4, i.e. state.navBadges.get(Tabs.fsTab) === 4;
+        // Nw we receive `{count: {[Tabs.fsTab]: 7}}` indicating that the
+        // new FS tab badge count should become 7. So we deduct 4 from 12 and
+        // add 7, and we'd get 15.
+        //
+        // This way the app badge count is always consistent with the badged
+        // tabs.
+        s.desktopAppBadgeCount = [...counts.entries()].reduce<number>(
+          (count, [k, v]) => count - (s.navBadges.get(k) || 0) + v,
+          s.desktopAppBadgeCount
+        )
 
-          const navBadges = new Map([...s.navBadges, ...counts])
-          if (!isEqual(navBadges, s.navBadges)) {
-            s.navBadges = navBadges
-          }
-          updateWidgetBadge(s)
-        })
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+        const navBadges = new Map([...s.navBadges, ...counts])
+        if (!isEqual(navBadges, s.navBadges)) {
+          s.navBadges = navBadges
+        }
+        updateWidgetBadge(s)
+      })
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

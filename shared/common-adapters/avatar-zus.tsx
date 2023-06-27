@@ -17,26 +17,24 @@ type State = Store & {
   }
 }
 
-export const useAvatarState = Z.createZustand(
-  Z.immerZustand<State>(set => {
-    const dispatch = {
-      replace: (m: Map<string, number>) => {
-        set(s => {
-          s.counts = m
-        })
-      },
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-      updated: (key: string) => {
-        set(s => {
-          s.counts.set(key, (s.counts.get(key) ?? 0) + 1)
-        })
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+export const useAvatarState = Z.createZustand<State>(set => {
+  const dispatch = {
+    replace: (m: Map<string, number>) => {
+      set(s => {
+        s.counts = m
+      })
+    },
+    resetState: () => {
+      set(s => ({...s, ...initialStore}))
+    },
+    updated: (key: string) => {
+      set(s => {
+        s.counts.set(key, (s.counts.get(key) ?? 0) + 1)
+      })
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

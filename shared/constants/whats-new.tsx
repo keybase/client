@@ -96,41 +96,37 @@ type State = Store & {
   anyVersionsUnseen: () => boolean
   getSeenVersions: () => SeenVersionsMap
 }
-export const useState = Z.createZustand(
-  Z.immerZustand<State>((set, get) => {
-    const dispatch = {
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-      updateLastSeen: (lastSeenItem?: {md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}) => {
-        if (lastSeenItem) {
-          const {body} = lastSeenItem.item
-          const pushStateLastSeenVersion = Buffer.from(body).toString()
-          const lastSeenVersion = pushStateLastSeenVersion || noVersion
-          // Default to 0.0.0 (noVersion) if user has never marked a version as seen
-          set(s => {
-            s.lastSeenVersion = lastSeenVersion
-          })
-        } else {
-          set(s => {
-            s.lastSeenVersion = noVersion
-          })
-        }
-      },
-    }
-    return {
-      ...initialStore,
-      anyVersionsUnseen: () => {
-        const {lastSeenVersion: ver} = get()
-        // On first load of what's new, lastSeenVersion == noVersion so everything is unseen
-        return ver !== '' && ver === noVersion
-          ? true
-          : Object.values(_getSeenVersions(ver)).some(seen => !seen)
-      },
-      dispatch,
-      getSeenVersions: () => {
-        return _getSeenVersions(get().lastSeenVersion)
-      },
-    }
-  })
-)
+export const useState = Z.createZustand<State>((set, get) => {
+  const dispatch = {
+    resetState: () => {
+      set(s => ({...s, ...initialStore}))
+    },
+    updateLastSeen: (lastSeenItem?: {md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}) => {
+      if (lastSeenItem) {
+        const {body} = lastSeenItem.item
+        const pushStateLastSeenVersion = Buffer.from(body).toString()
+        const lastSeenVersion = pushStateLastSeenVersion || noVersion
+        // Default to 0.0.0 (noVersion) if user has never marked a version as seen
+        set(s => {
+          s.lastSeenVersion = lastSeenVersion
+        })
+      } else {
+        set(s => {
+          s.lastSeenVersion = noVersion
+        })
+      }
+    },
+  }
+  return {
+    ...initialStore,
+    anyVersionsUnseen: () => {
+      const {lastSeenVersion: ver} = get()
+      // On first load of what's new, lastSeenVersion == noVersion so everything is unseen
+      return ver !== '' && ver === noVersion ? true : Object.values(_getSeenVersions(ver)).some(seen => !seen)
+    },
+    dispatch,
+    getSeenVersions: () => {
+      return _getSeenVersions(get().lastSeenVersion)
+    },
+  }
+})
