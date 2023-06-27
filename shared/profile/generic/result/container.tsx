@@ -1,11 +1,12 @@
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/profile'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as ProfileGen from '../../../actions/profile-gen'
 import Success from '.'
 
 export default () => {
-  const errorText = Container.useSelector(state =>
-    state.profile.errorCode !== null ? state.profile.errorText || 'Failed to verify proof' : ''
+  const errorText = Constants.useState(s =>
+    s.errorCode !== undefined ? s.errorText || 'Failed to verify proof' : ''
   )
   const proofUsername = Container.useSelector(
     state => state.profile.username + state.profile.platformGenericParams?.suffix ?? '@unknown'

@@ -3,9 +3,11 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import PostProof from '.'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/profile'
 
 export default () => {
   const profile = Container.useSelector(state => state.profile)
+  const errorText = Constants.useState(s => s.errorText)
 
   if (
     !profile.platform ||
@@ -45,7 +47,6 @@ export default () => {
       break
   }
 
-  const errorMessage = profile.errorText
   const platformUserName = profile.username
 
   const dispatch = Container.useDispatch()
@@ -60,13 +61,13 @@ export default () => {
     dispatch(ProfileGen.createCheckProof())
   }
   const props = {
-    copyToClipboard: copyToClipboard,
-    errorMessage: errorMessage,
-    onCancel: onCancel,
-    onSubmit: onSubmit,
+    copyToClipboard,
+    errorMessage: errorText,
+    onCancel,
+    onSubmit,
     openLinkBeforeSubmit: openLinkBeforeSubmit,
-    platform: platform,
-    platformUserName: platformUserName,
+    platform,
+    platformUserName,
     proofText: proofText,
     url: url,
   }

@@ -1,4 +1,5 @@
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/profile'
 import * as ProfileGen from '../../../actions/profile-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import openURL from '../../../util/open-url'
@@ -6,7 +7,8 @@ import EnterUsername from '.'
 
 const ConnectedEnterUsername = () => {
   const profile = Container.useSelector(state => state.profile)
-  const {username, platformGenericParams, platformGenericURL, errorText, platformGenericChecking} = profile
+  const errorText = Constants.useState(s => s.errorText)
+  const {username, platformGenericParams, platformGenericURL, platformGenericChecking} = profile
   const _platformURL = platformGenericURL
   const error = errorText
   const serviceIcon = platformGenericParams?.logoBlack ?? []

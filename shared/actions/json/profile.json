@@ -53,10 +53,6 @@
       "guiID": "string"
     },
     "finishBlockUser": {"error?": "string"},
-    "updateErrorText": {
-      "errorText": "string",
-      "errorCode?": "number"
-    },
     "updatePgpInfo": {
       "_description": "Update any fields",
       "pgpEmail1?": "string",

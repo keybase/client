@@ -41,8 +41,6 @@ const updateUsername = (draftState: Container.Draft<Types.State>) => {
 }
 
 const clearErrors = (draftState: Container.Draft<Types.State>) => {
-  draftState.errorCode = undefined
-  draftState.errorText = ''
   draftState.platformGeneric = undefined
   draftState.platformGenericChecking = false
   draftState.platformGenericParams = undefined
@@ -81,10 +79,6 @@ export default Container.makeReducer<ProfileGen.Actions, Types.State>(initialSta
     draftState.proofFound = action.payload.found
     draftState.proofStatus = action.payload.status
   },
-  [ProfileGen.updateErrorText]: (draftState, action) => {
-    draftState.errorCode = action.payload.errorCode
-    draftState.errorText = action.payload.errorText
-  },
   [ProfileGen.updateSigID]: (draftState, action) => {
     draftState.sigID = action.payload.sigID
   },
@@ -110,8 +104,9 @@ export default Container.makeReducer<ProfileGen.Actions, Types.State>(initialSta
   [ProfileGen.addProof]: (draftState, action) => {
     const {platform} = action.payload
     const maybeNotGeneric = More.asPlatformsExpandedType(platform)
-    draftState.errorCode = undefined
-    draftState.errorText = ''
+    // TODO
+    // draftState.errorCode = undefined
+    // draftState.errorText = ''
     draftState.platform = maybeNotGeneric ?? undefined
     draftState.platformGeneric = maybeNotGeneric ? undefined : platform
     updateUsername(draftState)
@@ -132,13 +127,15 @@ export default Container.makeReducer<ProfileGen.Actions, Types.State>(initialSta
   [ProfileGen.clearPlatformGeneric]: draftState => {
     clearErrors(draftState)
   },
-  [ProfileGen.recheckProof]: draftState => {
-    draftState.errorCode = undefined
-    draftState.errorText = ''
+  [ProfileGen.recheckProof]: _draftState => {
+    // TODO
+    // draftState.errorCode = undefined
+    // draftState.errorText = ''
   },
-  [ProfileGen.checkProof]: draftState => {
-    draftState.errorCode = undefined
-    draftState.errorText = ''
+  [ProfileGen.checkProof]: _draftState => {
+    // TODO
+    // draftState.errorCode = undefined
+    // draftState.errorText = ''
   },
   [ProfileGen.submitBTCAddress]: draftState => {
     updateUsername(draftState)
