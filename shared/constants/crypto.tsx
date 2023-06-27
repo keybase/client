@@ -208,7 +208,7 @@ type State = Store & {
     clearRecipients: () => void
     downloadEncryptedText: () => void
     downloadSignedText: () => void
-    resetState: () => void
+    resetState: 'default'
     resetOperation: (op: Types.Operations) => void
     runFileOperation: (op: Types.Operations, destinationDir: string) => void
     runTextOperation: (op: Types.Operations) => void
@@ -487,8 +487,8 @@ export const useState = Z.createZustand<State>((set, get) => {
     Z.ignorePromise(f())
   }
 
-  const dispatch = {
-    clearInput: (op: Types.Operations) => {
+  const dispatch: State['dispatch'] = {
+    clearInput: op => {
       set(s => {
         const o = s[op]
         resetOutput(o)
@@ -513,7 +513,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     downloadSignedText: () => {
       download('sign')
     },
-    onSaltpackDone: (op: Types.Operations) => {
+    onSaltpackDone: op => {
       set(s => {
         const o = s[op]
         // For any file operation that completes, invalidate the output since multiple decrypt/verify operations will produce filenames with unique
@@ -526,7 +526,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         o.outputStatus = 'pending'
       })
     },
-    onSaltpackOpenFile: (op: Types.Operations, path: string) => {
+    onSaltpackOpenFile: (op, path) => {
       set(s => {
         const o = s[op]
         // Bail on setting operation input if another file RPC is in progress
@@ -539,7 +539,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         resetWarnings(o)
       })
     },
-    onSaltpackProgress: (op: Types.Operations, bytesComplete: number, bytesTotal: number) => {
+    onSaltpackProgress: (op, bytesComplete, bytesTotal) => {
       set(s => {
         const o = s[op]
         const done = bytesComplete === bytesTotal
@@ -551,12 +551,12 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    onSaltpackStart: (op: Types.Operations) => {
+    onSaltpackStart: op => {
       set(s => {
         s[op].inProgress = true
       })
     },
-    resetOperation: (op: Types.Operations) => {
+    resetOperation: op => {
       set(s => {
         switch (op) {
           case Operations.Encrypt:
@@ -570,10 +570,8 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
-    runFileOperation: (op: Types.Operations, destinationDir: string) => {
+    resetState: 'default',
+    runFileOperation: (op, destinationDir) => {
       set(s => {
         const o = s[op]
         o.outputValid = false
@@ -594,7 +592,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           break
       }
     },
-    runTextOperation: (op: Types.Operations) => {
+    runTextOperation: op => {
       let route: 'decryptOutput' | 'encryptOutput' | 'signOutput' | 'verifyOutput'
       switch (op) {
         case 'decrypt':
@@ -618,7 +616,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         reduxDispatch(RouteTreeGen.createNavigateAppend({path: [route]}))
       }
     },
-    setEncryptOptions: (newOptions: EncryptOptions, hideIncludeSelf?: boolean) => {
+    setEncryptOptions: (newOptions, hideIncludeSelf) => {
       set(s => {
         const e = s.encrypt
         e.options = {
@@ -671,7 +669,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         get().dispatch.runTextOperation(op)
       }
     },
-    setRecipients: (recipients: Array<string>, hasSBS: boolean) => {
+    setRecipients: (recipients, hasSBS) => {
       set(s => {
         const o = s.encrypt
         // Reset output when file input changes

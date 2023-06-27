@@ -356,13 +356,13 @@ type State = Store & {
     setResentEmail: (email: string) => void
     skipTodo: (type: Types.TodoType) => void
     markViewed: () => void
-    resetState: () => void
+    resetState: 'default'
   }
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const dispatch = {
-    dismissAnnouncement: (id: RPCTypes.HomeScreenAnnouncementID) => {
+  const dispatch: State['dispatch'] = {
+    dismissAnnouncement: id => {
       const f = async () => {
         await RPCTypes.homeHomeDismissAnnouncementRpcPromise({
           i: id,
@@ -370,7 +370,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    loadPeople: (markViewed: boolean, numFollowSuggestionsWanted = defaultNumFollowSuggestions) => {
+    loadPeople: (markViewed, numFollowSuggestionsWanted = defaultNumFollowSuggestions) => {
       const f = async () => {
         // more logging to understand why this fails so much
         logger.info(
@@ -502,15 +502,13 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
-    setResentEmail: (email: string) => {
+    resetState: 'default',
+    setResentEmail: email => {
       set(s => {
         s.resentEmail = email
       })
     },
-    skipTodo: (type: Types.TodoType) => {
+    skipTodo: type => {
       const f = async () => {
         try {
           await RPCTypes.homeHomeSkipTodoTypeRpcPromise({

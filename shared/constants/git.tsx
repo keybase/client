@@ -66,7 +66,7 @@ type State = Types.State & {
     clearBadges: () => void
     load: () => void
     setBadges: (set: Set<string>) => void
-    resetState: () => void
+    resetState: 'default'
     createPersonalRepo: (name: string) => void
     createTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => void
     deletePersonalRepo: (repoName: string) => void
@@ -112,36 +112,36 @@ export const useGitState = Z.createZustand<State>((set, get) => {
   const load = () => {
     Z.ignorePromise(_load())
   }
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     clearBadges: () => {
       callAndHandleError(async () => {
         await RPCTypes.gregorDismissCategoryRpcPromise({category: 'new_git_repo'})
       }, false)
     },
-    createPersonalRepo: (repoName: string) => {
+    createPersonalRepo: repoName => {
       callAndHandleError(async () => {
         await RPCTypes.gitCreatePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
       })
     },
-    createTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => {
+    createTeamRepo: (repoName, teamname, notifyTeam) => {
       callAndHandleError(async () => {
         const teamName = {parts: teamname.split('.')}
         await RPCTypes.gitCreateTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
       })
     },
-    deletePersonalRepo: (repoName: string) => {
+    deletePersonalRepo: repoName => {
       callAndHandleError(async () => {
         await RPCTypes.gitDeletePersonalRepoRpcPromise({repoName}, loadingWaitingKey)
       })
     },
-    deleteTeamRepo: (repoName: string, teamname: string, notifyTeam: boolean) => {
+    deleteTeamRepo: (repoName, teamname, notifyTeam) => {
       callAndHandleError(async () => {
         const teamName = {parts: teamname.split('.')}
         await RPCTypes.gitDeleteTeamRepoRpcPromise({notifyTeam, repoName, teamName}, loadingWaitingKey)
       })
     },
     load,
-    navigateToTeamRepo: (teamname: string, repoID: string) => {
+    navigateToTeamRepo: (teamname, repoID) => {
       const f = async () => {
         await _load()
         for (const [, info] of get().idToInfo) {
@@ -157,20 +157,18 @@ export const useGitState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
-    setBadges: (b: Set<string>) => {
+    resetState: 'default',
+    setBadges: b => {
       set(s => {
         s.isNew = b
       })
     },
-    setError: (err?: Error) => {
+    setError: err => {
       set(s => {
         s.error = err
       })
     },
-    setTeamRepoSettings: (channelName: string, teamname: string, repoID: string, chatDisabled: boolean) => {
+    setTeamRepoSettings: (channelName, teamname, repoID, chatDisabled) => {
       callAndHandleError(async () => {
         await RPCTypes.gitSetTeamRepoSettingsRpcPromise({
           channelName,

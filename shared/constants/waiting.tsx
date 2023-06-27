@@ -9,7 +9,7 @@ const initialStore: Types.State = {
 
 type State = Types.State & {
   dispatch: {
-    resetState: () => void
+    resetState: 'default'
     clear: (keys: string | Array<string>) => void
     increment: (keys: string | Array<string>) => void
     decrement: (keys: string | Array<string>, error?: RPCError) => void
@@ -23,7 +23,7 @@ const getKeys = (k?: string | Array<string>) => {
   return k
 }
 
-export const useWaitingState = Z.createZustand<State>(set => {
+export const useWaitingState = Z.createZustand<State>((set, get) => {
   const changeHelper = (keys: string | Array<string>, diff: 1 | -1, error?: RPCError) => {
     set(s => {
       getKeys(keys).forEach(k => {
@@ -46,23 +46,17 @@ export const useWaitingState = Z.createZustand<State>(set => {
     })
   }
 
-  const increment = (keys: string | Array<string>) => {
-    changeHelper(keys, 1)
-  }
-  const decrement = (keys: string | Array<string>, error?: RPCError) => {
-    changeHelper(keys, -1, error)
-  }
-  const dispatch = {
-    batch: (changes: Array<{key: string | Array<string>; increment: boolean; error?: RPCError}>) => {
+  const dispatch: State['dispatch'] = {
+    batch: changes => {
       changes.forEach(c => {
         if (c.increment) {
-          increment(c.key)
+          get().dispatch.increment(c.key)
         } else {
-          decrement(c.key, c.error)
+          get().dispatch.decrement(c.key, c.error)
         }
       })
     },
-    clear: (keys: string | Array<string>) => {
+    clear: keys => {
       set(s => {
         getKeys(keys).forEach(k => {
           s.counts.delete(k)
@@ -70,11 +64,13 @@ export const useWaitingState = Z.createZustand<State>(set => {
         })
       })
     },
-    decrement,
-    increment,
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
+    decrement: (keys, error) => {
+      changeHelper(keys, -1, error)
     },
+    increment: keys => {
+      changeHelper(keys, 1)
+    },
+    resetState: 'default',
   }
 
   return {

@@ -28,22 +28,20 @@ type State = Store & {
     // ONLY used by remote windows
     replaceUsername: (u: string) => void
     setBootstrap: (b: Bootstrap) => void
-    resetState: () => void
+    resetState: 'default'
   }
 }
 
 export const useCurrentUserState = Z.createZustand<State>(set => {
   const reduxDispatch = Z.getReduxDispatch()
-  const dispatch = {
-    replaceUsername: (u: string) => {
+  const dispatch: State['dispatch'] = {
+    replaceUsername: u => {
       set(s => {
         s.username = u
       })
     },
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
-    setBootstrap: (b: Bootstrap) => {
+    resetState: 'default',
+    setBootstrap: b => {
       set(s => {
         const {deviceID, deviceName, uid, username} = b
         s.deviceID = deviceID

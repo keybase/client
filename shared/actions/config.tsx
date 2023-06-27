@@ -288,7 +288,7 @@ const allowLogoutWaiters = async (
   Constants.useLogoutState.getState().dispatch.wait(waitKey, version, false)
 }
 
-const updateServerConfig = (_: unknown, action: ConfigGen.LoadOnStartPayload) =>
+const updateServerConfig = async (_: unknown, action: ConfigGen.LoadOnStartPayload) =>
   action.payload.phase === 'startupOrReloginButNotInARush' &&
   Constants.useConfigState.getState().loggedIn &&
   RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({

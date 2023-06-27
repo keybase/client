@@ -28,15 +28,13 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
-    resetState: () => void
+    resetState: 'default'
   }
 }
 
-export const useChatState = Z.createZustand<State>(set => {
-  const dispatch = {
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
+export const useChatState = Z.createZustand<State>(() => {
+  const dispatch: State['dispatch'] = {
+    resetState: 'default',
   }
   return {
     ...initialStore,

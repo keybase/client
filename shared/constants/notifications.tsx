@@ -24,7 +24,7 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
-    resetState: () => void
+    resetState: 'default'
     badgeApp: (key: NotificationKeys, on: boolean) => void
     setBadgeCounts: (counts: Map<Tabs.Tab, number>) => void
   }
@@ -42,18 +42,16 @@ export const useState = Z.createZustand<State>(set => {
     s.widgetBadge = widgetBadge
   }
 
-  const dispatch = {
-    badgeApp: (key: NotificationKeys, on: boolean) => {
+  const dispatch: State['dispatch'] = {
+    badgeApp: (key, on) => {
       set(s => {
         const {keyState} = s
         keyState.set(key, on)
         updateWidgetBadge(s)
       })
     },
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
-    setBadgeCounts: (counts: Map<Tabs.Tab, number>) => {
+    resetState: 'default',
+    setBadgeCounts: counts => {
       set(s => {
         const chatCount = counts.get(Tabs.chatTab)
         if (chatCount) {

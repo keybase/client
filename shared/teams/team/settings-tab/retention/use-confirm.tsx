@@ -9,17 +9,15 @@ const initialStore: Store = {
 }
 type State = Store & {
   dispatch: {
-    resetState: () => void
+    resetState: 'default'
     updateConfirm: (rt: RetentionPolicy | undefined) => void
   }
 }
 
 export const useConfirm = Z.createZustand<State>(set => {
-  const dispatch = {
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
-    updateConfirm: (rt: RetentionPolicy | undefined) => {
+  const dispatch: State['dispatch'] = {
+    resetState: 'default',
+    updateConfirm: rt => {
       set(state => {
         state.confirmed = rt
       })

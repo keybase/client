@@ -11,24 +11,22 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
-    resetState: () => void
+    resetState: 'default'
     replace: (followers: Set<string>, following: Set<string>) => void
     updateFollowing: (user: string, add: boolean) => void
     updateFollowers: (user: string, add: boolean) => void
   }
 }
 export const useFollowerState = Z.createZustand<State>(set => {
-  const dispatch = {
-    replace: (followers: Set<string>, following: Set<string>) => {
+  const dispatch: State['dispatch'] = {
+    replace: (followers, following) => {
       set(s => {
         s.followers = followers
         s.following = following
       })
     },
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
-    updateFollowers: (user: string, add: boolean) => {
+    resetState: 'default',
+    updateFollowers: (user, add) => {
       set(s => {
         if (add) {
           s.followers.add(user)
@@ -37,7 +35,7 @@ export const useFollowerState = Z.createZustand<State>(set => {
         }
       })
     },
-    updateFollowing: (user: string, add: boolean) => {
+    updateFollowing: (user, add) => {
       set(s => {
         if (add) {
           s.following.add(user)

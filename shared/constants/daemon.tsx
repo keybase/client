@@ -112,7 +112,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
   // When there are no more waiters, we can show the actual app
 
   let _firstTimeConnecting = true
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     daemonHandshake,
     daemonHandshakeDone,
     resetState: () => {
@@ -141,7 +141,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
 
       daemonHandshake(firstTimeConnecting, get().handshakeVersion + 1)
     },
-    wait: (name: string, version: number, increment: boolean, failedReason?: string, failedFatal?: true) => {
+    wait: (name, version, increment, failedReason, failedFatal) => {
       const {handshakeState, handshakeFailedReason, handshakeVersion} = get()
       if (handshakeState !== 'waitingForWaiters') {
         throw new Error("Should only get a wait while we're waiting")

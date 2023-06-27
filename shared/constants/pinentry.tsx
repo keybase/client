@@ -45,9 +45,9 @@ type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     onCancel: () => {},
-    onGetPassword: (p: GetPasswordParams) => {
+    onGetPassword: p => {
       logger.info('Asked for password')
       const {response, showTyping, type, prompt, windowTitle, submitLabel, cancelLabel, retryLabel} = p
 

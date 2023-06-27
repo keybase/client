@@ -1164,7 +1164,7 @@ type State = Store & {
     newFolderRow: (parentPath: Types.Path) => void
     onChangedFocus: (appFocused: boolean) => void
     redbar: (error: string) => void
-    resetState: () => void
+    resetState: 'default'
     setBadge: (b: RPCTypes.FilesTabBadge) => void
     setCriticalUpdate: (u: boolean) => void
     setDestinationPickerParentPath: (index: number, path: Types.Path) => void
@@ -1289,7 +1289,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         return undefined
     }
   }
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     checkKbfsDaemonRpcStatus: () => {
       const f = async () => {
         const connected = await RPCTypes.configWaitForClientRpcPromise({
@@ -1309,7 +1309,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    commitEdit: (editID: Types.EditID) => {
+    commitEdit: editID => {
       const edit = get().edits.get(editID)
       if (!edit) {
         return
@@ -1363,12 +1363,12 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    discardEdit: (editID: Types.EditID) => {
+    discardEdit: editID => {
       set(s => {
         s.edits.delete(editID)
       })
     },
-    dismissRedbar: (index: number) => {
+    dismissRedbar: index => {
       set(s => {
         s.errors = [...s.errors.slice(0, index), ...s.errors.slice(index + 1)]
       })
@@ -1381,7 +1381,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
       reduxDispatch(FsGen.createDriverDisabling())
     },
-    driverEnable: (isRetry?: boolean) => {
+    driverEnable: isRetry => {
       set(s => {
         if (s.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
           s.sfmi.driverStatus.isEnabling = true
@@ -1397,18 +1397,18 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    editError: (editID: Types.EditID, error: string) => {
+    editError: (editID, error) => {
       set(s => {
         const e = s.edits.get(editID)
         if (e) e.error = error
       })
     },
-    editSuccess: (editID: Types.EditID) => {
+    editSuccess: editID => {
       set(s => {
         s.edits.delete(editID)
       })
     },
-    favoriteIgnore: (path: Types.Path) => {
+    favoriteIgnore: path => {
       const f = async () => {
         const folder = folderRPCFromPath(path)
         if (!folder) {
@@ -1512,7 +1512,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    folderListLoad: (rootPath: Types.Path, isRecursive: boolean) => {
+    folderListLoad: (rootPath, isRecursive) => {
       const f = async () => {
         try {
           const opID = makeUUID()
@@ -1627,14 +1627,14 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    journalUpdate: (syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: number) => {
+    journalUpdate: (syncingPaths, totalSyncingBytes, endEstimate) => {
       set(s => {
         s.uploads.syncingPaths = new Set(syncingPaths)
         s.uploads.totalSyncingBytes = totalSyncingBytes
         s.uploads.endEstimate = endEstimate || undefined
       })
     },
-    kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => {
+    kbfsDaemonOnlineStatusChanged: onlineStatus => {
       set(s => {
         s.kbfsDaemonStatus.onlineStatus =
           onlineStatus === RPCTypes.KbfsOnlineStatus.offline
@@ -1646,7 +1646,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             : Types.KbfsDaemonOnlineStatus.Unknown
       })
     },
-    kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => {
+    kbfsDaemonRpcStatusChanged: rpcStatus => {
       set(s => {
         if (rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
           s.kbfsDaemonStatus.onlineStatus = Types.KbfsDaemonOnlineStatus.Offline
@@ -1655,7 +1655,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
       reduxDispatch(FsGen.createKbfsDaemonRpcStatusChanged())
     },
-    loadAdditionalTlf: (tlfPath: Types.Path) => {
+    loadAdditionalTlf: tlfPath => {
       const f = async () => {
         if (Types.getPathLevel(tlfPath) !== 3) {
           logger.warn('loadAdditionalTlf called on non-TLF path')
@@ -1709,7 +1709,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    loadFileContext: (path: Types.Path) => {
+    loadFileContext: path => {
       const f = async () => {
         try {
           const res = await RPCTypes.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
@@ -1730,7 +1730,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    loadPathMetadata: (path: Types.Path) => {
+    loadPathMetadata: path => {
       const f = async () => {
         try {
           const dirent = await RPCTypes.SimpleFSSimpleFSStatRpcPromise(
@@ -1778,7 +1778,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    loadTlfSyncConfig: (tlfPath: Types.Path) => {
+    loadTlfSyncConfig: tlfPath => {
       const f = async () => {
         const parsedPath = parsePath(tlfPath)
         if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.TeamTlf) {
@@ -1847,13 +1847,12 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-
-    loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => {
+    loadedDownloadInfo: (downloadID, info) => {
       set(s => {
         s.downloads.info.set(downloadID, info)
       })
     },
-    loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => {
+    loadedDownloadStatus: (regularDownloads, state) => {
       set(s => {
         s.downloads.regularDownloads = regularDownloads
         s.downloads.state = state
@@ -1864,12 +1863,12 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => {
+    loadedPathInfo: (path, info) => {
       set(s => {
         s.pathInfos.set(path, info)
       })
     },
-    newFolderRow: (parentPath: Types.Path) => {
+    newFolderRow: parentPath => {
       const parentPathItem = getPathItem(get().pathItems, parentPath)
       if (parentPathItem.type !== Types.PathType.Folder) {
         console.warn(`bad parentPath: ${parentPathItem.type}`)
@@ -1894,7 +1893,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         })
       })
     },
-    onChangedFocus: (appFocused: boolean) => {
+    onChangedFocus: appFocused => {
       const driverStatus = get().sfmi.driverStatus
       if (
         appFocused &&
@@ -1904,41 +1903,39 @@ export const useState = Z.createZustand<State>((set, get) => {
         get().dispatch.driverEnable(true)
       }
     },
-    redbar: (error: string) => {
+    redbar: error => {
       set(s => {
         s.errors.push(error)
       })
     },
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
-    setBadge: (b: RPCTypes.FilesTabBadge) => {
+    resetState: 'default',
+    setBadge: b => {
       set(s => {
         s.badge = b
       })
     },
-    setCriticalUpdate: (u: boolean) => {
+    setCriticalUpdate: u => {
       set(s => {
         s.criticalUpdate = u
       })
     },
-    setDestinationPickerParentPath: (index: number, path: Types.Path) => {
+    setDestinationPickerParentPath: (index, path) => {
       set(s => {
         s.destinationPicker.destinationParentPath[index] = path
       })
     },
-    setDirectMountDir: (directMountDir: string) => {
+    setDirectMountDir: directMountDir => {
       set(s => {
         s.sfmi.directMountDir = directMountDir
       })
     },
-    setDriverStatus: (driverStatus: Types.DriverStatus) => {
+    setDriverStatus: driverStatus => {
       set(s => {
         s.sfmi.driverStatus = driverStatus
       })
       reduxDispatch(FsGen.createSetDriverStatus())
     },
-    setEditName: (editID: Types.EditID, name: string) => {
+    setEditName: (editID, name) => {
       set(s => {
         const e = s.edits.get(editID)
         if (e) {
@@ -1946,39 +1943,39 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    setFolderViewFilter: (filter?: string) => {
+    setFolderViewFilter: filter => {
       set(s => {
         s.folderViewFilter = filter
       })
     },
-    setIncomingShareSource: (source: Array<RPCTypes.IncomingShareItem>) => {
+    setIncomingShareSource: source => {
       set(s => {
         s.destinationPicker.source = {source, type: Types.DestinationPickerSource.IncomingShare}
       })
     },
-    setLastPublicBannerClosedTlf: (tlf: string) => {
+    setLastPublicBannerClosedTlf: tlf => {
       set(s => {
         s.lastPublicBannerClosedTlf = tlf
       })
     },
-    setMoveOrCopySource: (path: Types.Path) => {
+    setMoveOrCopySource: path => {
       set(s => {
         s.destinationPicker.source = {path, type: Types.DestinationPickerSource.MoveOrCopy}
       })
     },
-    setPathItemActionMenuDownload: (downloadID?: string, intent?: Types.DownloadIntent) => {
+    setPathItemActionMenuDownload: (downloadID, intent) => {
       set(s => {
         s.pathItemActionMenu.downloadID = downloadID
         s.pathItemActionMenu.downloadIntent = intent
       })
     },
-    setPathItemActionMenuView: (view: Types.PathItemActionMenuView) => {
+    setPathItemActionMenuView: view => {
       set(s => {
         s.pathItemActionMenu.previousView = s.pathItemActionMenu.view
         s.pathItemActionMenu.view = view
       })
     },
-    setPathSoftError: (path: Types.Path, softError?: Types.SoftError) => {
+    setPathSoftError: (path, softError) => {
       set(s => {
         if (softError) {
           s.softErrors.pathErrors.set(path, softError)
@@ -1987,12 +1984,12 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    setPreferredMountDirs: (preferredMountDirs: Array<string>) => {
+    setPreferredMountDirs: preferredMountDirs => {
       set(s => {
         s.sfmi.preferredMountDirs = preferredMountDirs
       })
     },
-    setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => {
+    setSorting: (path, sortSetting) => {
       set(s => {
         const old = s.pathUserSettings.get(path)
         if (old) {
@@ -2002,7 +1999,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    setTlfSoftError: (path: Types.Path, softError?: Types.SoftError) => {
+    setTlfSoftError: (path, softError) => {
       set(s => {
         if (softError) {
           s.softErrors.tlfErrors.set(path, softError)
@@ -2016,7 +2013,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.tlfs.loaded = false
       })
     },
-    showIncomingShare: (initialDestinationParentPath: Types.Path) => {
+    showIncomingShare: initialDestinationParentPath => {
       set(s => {
         if (s.destinationPicker.source.type !== Types.DestinationPickerSource.IncomingShare) {
           s.destinationPicker.source = {source: [], type: Types.DestinationPickerSource.IncomingShare}
@@ -2027,7 +2024,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
       )
     },
-    showMoveOrCopy: (initialDestinationParentPath: Types.Path) => {
+    showMoveOrCopy: initialDestinationParentPath => {
       set(s => {
         s.destinationPicker.source =
           s.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
@@ -2043,7 +2040,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
       )
     },
-    startRename: (path: Types.Path) => {
+    startRename: path => {
       const parentPath = Types.getPathParent(path)
       const originalName = Types.getPathName(path)
       set(s => {
@@ -2055,7 +2052,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         })
       })
     },
-    syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => {
+    syncStatusChanged: status => {
       const diskSpaceStatus = status.outOfSyncSpace
         ? Types.DiskSpaceStatus.Error
         : status.localDiskBytesAvailable < get().settings.spaceAvailableNotificationThreshold

@@ -31,7 +31,7 @@ const ignorePromise = (f: Promise<void>) => {
 }
 
 export const useDarkModeState = Z.createZustand<State>((set, get) => {
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     loadDarkPrefs: () => {
       const f = async () => {
         const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
@@ -56,7 +56,7 @@ export const useDarkModeState = Z.createZustand<State>((set, get) => {
         darkModePreference: s.darkModePreference,
       }))
     },
-    setDarkModePreference: (p: DarkModePreference) => {
+    setDarkModePreference: p => {
       set(s => {
         s.darkModePreference = p
       })
@@ -68,12 +68,12 @@ export const useDarkModeState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
-    setSystemDarkMode: (dark: boolean) => {
+    setSystemDarkMode: dark => {
       set(s => {
         s.systemDarkMode = dark
       })
     },
-    setSystemSupported: (sup: boolean) => {
+    setSystemSupported: sup => {
       set(s => {
         s.supported = sup
       })

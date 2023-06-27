@@ -34,7 +34,7 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     cancelReset: () => void
-    resetState: () => void
+    resetState: 'default'
     resetAccount: (password?: string) => void
     startAccountReset: (skipPassword: boolean, username: string) => void
     updateARState: (active: boolean, endTime: number) => void
@@ -44,7 +44,7 @@ type State = Store & {
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const reduxStore = Z.getReduxStore()
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     cancelReset: () => {
       set(s => {
         s.error = ''
@@ -84,7 +84,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    resetAccount: (password: string = '') => {
+    resetAccount: (password = '') => {
       set(s => {
         s.error = ''
       })
@@ -163,10 +163,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
-    startAccountReset: (skipPassword: boolean, _username: string) => {
+    resetState: 'default',
+    startAccountReset: (skipPassword, _username) => {
       const username = _username || reduxStore().recoverPassword.username
       set(s => {
         s.skipPassword = skipPassword
@@ -177,7 +175,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         RouteTreeGen.createNavigateAppend({path: ['recoverPasswordPromptResetAccount'], replace: true})
       )
     },
-    updateARState: (active: boolean, endTime: number) => {
+    updateARState: (active, endTime) => {
       set(s => {
         s.active = active
         s.endTime = endTime

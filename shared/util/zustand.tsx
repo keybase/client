@@ -30,15 +30,15 @@ export const dummyListenerApi = {
   },
 }
 
-type HasReset = {dispatch: {resetState: () => void}}
-const hasReset = (s: any): s is HasReset => {
-  return typeof s?.dispatch?.resetState === 'function'
-}
+type HasReset = {dispatch: {resetState: 'default' | (() => void)}}
+// const hasReset = (s: any): s is HasReset => {
+//   return typeof s?.dispatch?.resetState === 'function'
+// }
 
 const resetters: (() => void)[] = []
 // Auto adds immer and keeps track of resets
 export const createZustand = <
-  T, //  extends HasReset,
+  T extends HasReset,
   Mps extends [StoreMutatorIdentifier, unknown][] = [],
   Mcs extends [StoreMutatorIdentifier, unknown][] = []
 >(
@@ -47,15 +47,13 @@ export const createZustand = <
   const f = immerZustand(initializer)
   const store = _create<T>(f as StateCreator<T>)
   const initialState = store.getState()
-  // custom reset
-  if (hasReset(initialState)) {
-    resetters.push(() => {
-      initialState.dispatch.resetState()
-    })
-  } else {
+  const reset = initialState.dispatch.resetState
+  if (reset === 'default') {
     resetters.push(() => {
       store.setState(initialState, true)
     })
+  } else {
+    resetters.push(reset)
   }
   return store
 }

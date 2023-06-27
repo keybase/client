@@ -12,13 +12,13 @@ type State = Types.State & {
   dispatch: {
     load: () => void
     clearBadges: () => void
-    resetState: () => void
+    resetState: 'default'
     setBadges: (set: Set<string>) => void
   }
 }
 
 export const useDevicesState = Z.createZustand<State>(set => {
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     clearBadges: () => {
       Z.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
     },
@@ -36,10 +36,8 @@ export const useDevicesState = Z.createZustand<State>(set => {
       }
       Z.ignorePromise(f())
     },
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
-    setBadges: (b: Set<string>) => {
+    resetState: 'default',
+    setBadges: b => {
       set(s => {
         s.isNew = b
       })

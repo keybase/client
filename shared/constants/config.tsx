@@ -219,8 +219,8 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     }
   }
 
-  const dispatch = {
-    changedFocus: (f: boolean) => {
+  const dispatch: State['dispatch'] = {
+    changedFocus: f => {
       set(s => {
         s.appFocused = f
       })
@@ -289,7 +289,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    login: (username: string, passphrase: string) => {
+    login: (username, passphrase) => {
       const cancelDesc = 'Canceling RPC'
       const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
         response.error({code: RPCTypes.StatusCode.scgeneric, desc: cancelDesc})
@@ -365,7 +365,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       get().dispatch.loginError()
       Z.ignorePromise(f())
     },
-    loginError: (error?: RPCError) => {
+    loginError: error => {
       set(s => {
         s.loginError = error
       })
@@ -373,7 +373,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       // hidden and the user can see and respond to the error.
       get().dispatch.setUserSwitching(false)
     },
-    remoteWindowNeedsProps: (component: string, params: string) => {
+    remoteWindowNeedsProps: (component, params) => {
       set(s => {
         const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
         map.set(params, (map.get(params) ?? 0) + 1)
@@ -397,7 +397,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         userSwitching: s.userSwitching,
       }))
     },
-    revoke: (name: string) => {
+    revoke: name => {
       const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
       if (wasCurrentDevice) {
         const {configuredAccounts, defaultUsername} = get()
@@ -410,27 +410,27 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       reduxDispatch(ConfigGen.createRevoked())
     },
-    setAccounts: (a: Store['configuredAccounts']) => {
+    setAccounts: a => {
       set(s => {
         s.configuredAccounts = a
       })
     },
-    setAllowAnimatedEmojis: (a: boolean) => {
+    setAllowAnimatedEmojis: a => {
       set(s => {
         s.allowAnimatedEmojis = a
       })
     },
-    setAndroidShare: (share: Store['androidShare']) => {
+    setAndroidShare: share => {
       set(s => {
         s.androidShare = share
       })
     },
-    setDefaultUsername: (u: string) => {
+    setDefaultUsername: u => {
       set(s => {
         s.defaultUsername = u
       })
     },
-    setGlobalError: (_e?: Error | RPCError) => {
+    setGlobalError: _e => {
       const e = convertToError(_e)
       if (e) {
         logger.error('Error (global):', e)
@@ -450,24 +450,24 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.globalError = e
       })
     },
-    setHTTPSrvInfo: (address: string, token: string) => {
+    setHTTPSrvInfo: (address, token) => {
       logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)
       set(s => {
         s.httpSrv.address = address
         s.httpSrv.token = token
       })
     },
-    setIncomingShareUseOriginal: (use: boolean) => {
+    setIncomingShareUseOriginal: use => {
       set(s => {
         s.incomingShareUseOriginal = use
       })
     },
-    setJustDeletedSelf: (self: string) => {
+    setJustDeletedSelf: self => {
       set(s => {
         s.justDeletedSelf = self
       })
     },
-    setLoggedIn: (l: boolean, causedByStartup = false, skipSideEffect = false) => {
+    setLoggedIn: (l, causedByStartup = false, skipSideEffect = false) => {
       if (l === get().loggedIn) {
         return
       }
@@ -478,7 +478,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         reduxDispatch(ConfigGen.createLoggedInChanged({causedByStartup}))
       }
     },
-    setNotifySound: (n: boolean) => {
+    setNotifySound: n => {
       set(s => {
         s.notifySound = n
       })
@@ -492,7 +492,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         })
       )
     },
-    setOpenAtLogin: (open: boolean) => {
+    setOpenAtLogin: open => {
       set(s => {
         s.openAtLogin = open
       })
@@ -509,12 +509,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
-    setOutOfDate: (outOfDate: Types.OutOfDate) => {
+    setOutOfDate: outOfDate => {
       set(s => {
         s.outOfDate = outOfDate
       })
     },
-    setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => {
+    setStartupDetails: st => {
       set(s => {
         if (s.startup.loaded) {
           return
@@ -530,7 +530,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.startup.loaded = true
       })
     },
-    setUseNativeFrame: (use: boolean) => {
+    setUseNativeFrame: use => {
       set(s => {
         s.useNativeFrame = use
       })
@@ -544,12 +544,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         })
       )
     },
-    setUserSwitching: (sw: boolean) => {
+    setUserSwitching: sw => {
       set(s => {
         s.userSwitching = sw
       })
     },
-    setWindowIsMax: (m: boolean) => {
+    setWindowIsMax: m => {
       set(s => {
         s.windowState.isMaximized = m
       })
@@ -579,7 +579,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.outOfDate.updating = true
       })
     },
-    updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => {
+    updateRuntimeStats: stats => {
       set(s => {
         if (!stats) {
           s.runtimeStats = stats
@@ -591,7 +591,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => {
+    updateWindowState: ws => {
       const next = {...get().windowState, ...ws}
       set(s => {
         s.windowState = next
@@ -608,7 +608,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         })
       )
     },
-    windowShown: (win: string) => {
+    windowShown: win => {
       set(s => {
         s.windowShownCount.set(win, (s.windowShownCount.get(win) ?? 0) + 1)
       })

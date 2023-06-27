@@ -90,18 +90,16 @@ const initialStore: Store = {
 }
 type State = Store & {
   dispatch: {
-    resetState: () => void
+    resetState: 'default'
     updateLastSeen: (lastSeenItem?: {md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}) => void
   }
   anyVersionsUnseen: () => boolean
   getSeenVersions: () => SeenVersionsMap
 }
 export const useState = Z.createZustand<State>((set, get) => {
-  const dispatch = {
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
-    },
-    updateLastSeen: (lastSeenItem?: {md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}) => {
+  const dispatch: State['dispatch'] = {
+    resetState: 'default',
+    updateLastSeen: lastSeenItem => {
       if (lastSeenItem) {
         const {body} = lastSeenItem.item
         const pushStateLastSeenVersion = Buffer.from(body).toString()

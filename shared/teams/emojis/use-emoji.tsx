@@ -10,13 +10,13 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     triggerEmojiUpdated: () => void
-    resetState: () => void
+    resetState: 'default'
   }
 }
 
 export const useEmojiState = Z.createZustand<State>(set => {
-  const dispatch = {
-    resetState: () => set(s => ({...s, ...initialStore})),
+  const dispatch: State['dispatch'] = {
+    resetState: 'default',
     triggerEmojiUpdated: () => {
       set(state => {
         state.emojiUpdatedTrigger++

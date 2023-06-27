@@ -32,7 +32,7 @@ type State = Store & {
 export const useLogoutState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
 
-  const dispatch = {
+  const dispatch: State['dispatch'] = {
     requestLogout: () => {
       // Figure out whether we can log out using CanLogout, if so,
       // startLogoutHandshake, else do what's needed - right now only
@@ -75,7 +75,7 @@ export const useLogoutState = Z.createZustand<State>((set, get) => {
       })
       reduxDispatch(ConfigGen.createLogoutHandshake({version}))
     },
-    wait: (name: string, _version: number, increment: boolean) => {
+    wait: (name, _version, increment) => {
       const {version} = get()
 
       if (version !== _version) {
