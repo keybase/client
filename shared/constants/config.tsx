@@ -189,438 +189,436 @@ type State = Store & {
   }
 }
 
-export const useConfigState = Z.createZustand(
-  Z.immerZustand<State>((set, get) => {
-    const reduxDispatch = Z.getReduxDispatch()
+export const useConfigState = Z.createZustand<State>((set, get) => {
+  const reduxDispatch = Z.getReduxDispatch()
 
-    const nativeFrameKey = 'useNativeFrame'
-    const notifySoundKey = 'notifySound'
-    const openAtLoginKey = 'openAtLogin'
+  const nativeFrameKey = 'useNativeFrame'
+  const notifySoundKey = 'notifySound'
+  const openAtLoginKey = 'openAtLogin'
 
-    const _checkForUpdate = async () => {
-      try {
-        const {status, message} = await RPCTypes.configGetUpdateInfoRpcPromise()
-        get().dispatch.setOutOfDate(
-          status !== RPCTypes.UpdateInfoStatus.upToDate
-            ? {
-                critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
-                message,
-                outOfDate: true,
-                updating: false,
-              }
-            : {
-                critical: false,
-                message: '',
-                outOfDate: false,
-                updating: false,
-              }
-        )
-      } catch (err) {
-        logger.warn('error getting update info: ', err)
-      }
+  const _checkForUpdate = async () => {
+    try {
+      const {status, message} = await RPCTypes.configGetUpdateInfoRpcPromise()
+      get().dispatch.setOutOfDate(
+        status !== RPCTypes.UpdateInfoStatus.upToDate
+          ? {
+              critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
+              message,
+              outOfDate: true,
+              updating: false,
+            }
+          : {
+              critical: false,
+              message: '',
+              outOfDate: false,
+              updating: false,
+            }
+      )
+    } catch (err) {
+      logger.warn('error getting update info: ', err)
     }
+  }
 
-    const dispatch = {
-      changedFocus: (f: boolean) => {
-        set(s => {
-          s.appFocused = f
-        })
-        reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
-      },
-      checkForUpdate: () => {
-        const f = async () => {
-          await _checkForUpdate()
+  const dispatch: State['dispatch'] = {
+    changedFocus: f => {
+      set(s => {
+        s.appFocused = f
+      })
+      reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
+    },
+    checkForUpdate: () => {
+      const f = async () => {
+        await _checkForUpdate()
+      }
+      ignorePromise(f())
+    },
+    initAppUpdateLoop: () => {
+      const f = async () => {
+        // eslint-disable-next-line
+        while (true) {
+          try {
+            await _checkForUpdate()
+          } catch {}
+          await timeoutPromise(3_600_000) // 1 hr
         }
-        ignorePromise(f())
-      },
-      initAppUpdateLoop: () => {
-        const f = async () => {
-          // eslint-disable-next-line
-          while (true) {
-            try {
-              await _checkForUpdate()
-            } catch {}
-            await timeoutPromise(3_600_000) // 1 hr
-          }
-        }
-        ignorePromise(f())
-      },
-      initNotifySound: () => {
-        const f = async () => {
-          const val = await RPCTypes.configGuiGetValueRpcPromise({path: notifySoundKey})
-          const notifySound = val.b
-          if (typeof notifySound === 'boolean') {
-            set(s => {
-              s.notifySound = notifySound
-            })
-          }
-        }
-        ignorePromise(f())
-      },
-      initOpenAtLogin: () => {
-        const f = async () => {
-          const val = await RPCTypes.configGuiGetValueRpcPromise({path: openAtLoginKey})
-          const openAtLogin = val.b
-          if (typeof openAtLogin === 'boolean') {
-            get().dispatch.setOpenAtLogin(openAtLogin)
-          }
-        }
-        ignorePromise(f())
-      },
-      initUseNativeFrame: () => {
-        const f = async () => {
-          const val = await RPCTypes.configGuiGetValueRpcPromise({path: nativeFrameKey})
-          const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
+      }
+      ignorePromise(f())
+    },
+    initNotifySound: () => {
+      const f = async () => {
+        const val = await RPCTypes.configGuiGetValueRpcPromise({path: notifySoundKey})
+        const notifySound = val.b
+        if (typeof notifySound === 'boolean') {
           set(s => {
-            s.useNativeFrame = useNativeFrame
+            s.notifySound = notifySound
           })
         }
-        ignorePromise(f())
-      },
-      loadIsOnline: () => {
-        const f = async () => {
-          try {
-            const isOnline = await RPCTypes.loginIsOnlineRpcPromise(undefined)
-            set(s => {
-              s.isOnline = isOnline
-            })
-          } catch (err) {
-            logger.warn('Error in checking whether we are online', err)
-          }
+      }
+      ignorePromise(f())
+    },
+    initOpenAtLogin: () => {
+      const f = async () => {
+        const val = await RPCTypes.configGuiGetValueRpcPromise({path: openAtLoginKey})
+        const openAtLogin = val.b
+        if (typeof openAtLogin === 'boolean') {
+          get().dispatch.setOpenAtLogin(openAtLogin)
         }
-        Z.ignorePromise(f())
-      },
-      login: (username: string, passphrase: string) => {
-        const cancelDesc = 'Canceling RPC'
-        const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
-          response.error({code: RPCTypes.StatusCode.scgeneric, desc: cancelDesc})
+      }
+      ignorePromise(f())
+    },
+    initUseNativeFrame: () => {
+      const f = async () => {
+        const val = await RPCTypes.configGuiGetValueRpcPromise({path: nativeFrameKey})
+        const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
+        set(s => {
+          s.useNativeFrame = useNativeFrame
+        })
+      }
+      ignorePromise(f())
+    },
+    loadIsOnline: () => {
+      const f = async () => {
+        try {
+          const isOnline = await RPCTypes.loginIsOnlineRpcPromise(undefined)
+          set(s => {
+            s.isOnline = isOnline
+          })
+        } catch (err) {
+          logger.warn('Error in checking whether we are online', err)
         }
-        const ignoreCallback = () => {}
-        const f = async () => {
-          try {
-            await RPCTypes.loginLoginRpcListener(
-              {
-                customResponseIncomingCallMap: {
-                  'keybase.1.gpgUi.selectKey': cancelOnCallback,
-                  'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
-                  'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-                  'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
-                    cancelOnCallback(undefined, response)
-                    reduxDispatch(ProvisionGen.createSubmitUsername({username}))
-                  },
-                  'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
-                  'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-                  'keybase.1.secretUi.getPassphrase': (params, response) => {
-                    if (params.pinentry.type === RPCTypes.PassphraseType.passPhrase) {
-                      // Service asking us again due to a bad passphrase?
-                      if (params.pinentry.retryLabel) {
-                        cancelOnCallback(params, response)
-                        let retryLabel = params.pinentry.retryLabel
-                        if (retryLabel === invalidPasswordErrorString) {
-                          retryLabel = 'Incorrect password.'
-                        }
-                        const error = new RPCError(retryLabel, RPCTypes.StatusCode.scinputerror)
-                        get().dispatch.loginError(error)
-                      } else {
-                        response.result({passphrase, storeSecret: false})
-                      }
-                    } else {
+      }
+      Z.ignorePromise(f())
+    },
+    login: (username, passphrase) => {
+      const cancelDesc = 'Canceling RPC'
+      const cancelOnCallback = (_: unknown, response: CommonResponseHandler) => {
+        response.error({code: RPCTypes.StatusCode.scgeneric, desc: cancelDesc})
+      }
+      const ignoreCallback = () => {}
+      const f = async () => {
+        try {
+          await RPCTypes.loginLoginRpcListener(
+            {
+              customResponseIncomingCallMap: {
+                'keybase.1.gpgUi.selectKey': cancelOnCallback,
+                'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
+                'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
+                'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
+                  cancelOnCallback(undefined, response)
+                  reduxDispatch(ProvisionGen.createSubmitUsername({username}))
+                },
+                'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
+                'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
+                'keybase.1.secretUi.getPassphrase': (params, response) => {
+                  if (params.pinentry.type === RPCTypes.PassphraseType.passPhrase) {
+                    // Service asking us again due to a bad passphrase?
+                    if (params.pinentry.retryLabel) {
                       cancelOnCallback(params, response)
+                      let retryLabel = params.pinentry.retryLabel
+                      if (retryLabel === invalidPasswordErrorString) {
+                        retryLabel = 'Incorrect password.'
+                      }
+                      const error = new RPCError(retryLabel, RPCTypes.StatusCode.scinputerror)
+                      get().dispatch.loginError(error)
+                    } else {
+                      response.result({passphrase, storeSecret: false})
                     }
-                  },
+                  } else {
+                    cancelOnCallback(params, response)
+                  }
                 },
-                // cancel if we get any of these callbacks, we're logging in, not provisioning
-                incomingCallMap: {
-                  'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
-                  'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
-                  'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
-                  'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
-                },
-                params: {
-                  clientType: RPCTypes.ClientType.guiMain,
-                  deviceName: '',
-                  deviceType: isMobile ? 'mobile' : 'desktop',
-                  doUserSwitch: true,
-                  paperKey: '',
-                  username,
-                },
-                waitingKey: loginWaitingKey,
               },
-              Z.dummyListenerApi
-            )
-            logger.info('login call succeeded')
-            get().dispatch.setLoggedIn(true, false)
-          } catch (error) {
-            if (!(error instanceof RPCError)) {
-              return
-            }
-            if (error.code === RPCTypes.StatusCode.scalreadyloggedin) {
-              get().dispatch.setLoggedIn(true, false)
-            } else if (error.desc !== cancelDesc) {
-              // If we're canceling then ignore the error
-              error.desc = niceError(error)
-              get().dispatch.loginError(error)
-            }
-          }
-        }
-        get().dispatch.loginError()
-        Z.ignorePromise(f())
-      },
-      loginError: (error?: RPCError) => {
-        set(s => {
-          s.loginError = error
-        })
-        // On login error, turn off the user switching flag, so that the login screen is not
-        // hidden and the user can see and respond to the error.
-        get().dispatch.setUserSwitching(false)
-      },
-      remoteWindowNeedsProps: (component: string, params: string) => {
-        set(s => {
-          const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
-          map.set(params, (map.get(params) ?? 0) + 1)
-          s.remoteWindowNeedsProps.set(component, map)
-        })
-      },
-      resetRevokedSelf: () => {
-        set(s => {
-          s.justRevokedSelf = ''
-        })
-      },
-      resetState: () => {
-        set(s => ({
-          ...s,
-          ...initialStore,
-          appFocused: s.appFocused,
-          configuredAccounts: s.configuredAccounts,
-          defaultUsername: s.defaultUsername,
-          startup: {loaded: s.startup.loaded},
-          useNativeFrame: s.useNativeFrame,
-          userSwitching: s.userSwitching,
-        }))
-      },
-      revoke: (name: string) => {
-        const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
-        if (wasCurrentDevice) {
-          const {configuredAccounts, defaultUsername} = get()
-          const acc = configuredAccounts.find(n => n.username !== defaultUsername)
-          const du = acc?.username ?? ''
-          set(s => {
-            s.defaultUsername = du
-            s.justRevokedSelf = name
-          })
-        }
-        reduxDispatch(ConfigGen.createRevoked())
-      },
-      setAccounts: (a: Store['configuredAccounts']) => {
-        set(s => {
-          s.configuredAccounts = a
-        })
-      },
-      setAllowAnimatedEmojis: (a: boolean) => {
-        set(s => {
-          s.allowAnimatedEmojis = a
-        })
-      },
-      setAndroidShare: (share: Store['androidShare']) => {
-        set(s => {
-          s.androidShare = share
-        })
-      },
-      setDefaultUsername: (u: string) => {
-        set(s => {
-          s.defaultUsername = u
-        })
-      },
-      setGlobalError: (_e?: Error | RPCError) => {
-        const e = convertToError(_e)
-        if (e) {
-          logger.error('Error (global):', e)
-          if (isEOFError(e)) {
-            Stats.gotEOF()
-          }
-          if (isErrorTransient(e)) {
-            logger.info('globalError silencing:', e)
+              // cancel if we get any of these callbacks, we're logging in, not provisioning
+              incomingCallMap: {
+                'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
+                'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+                'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+                'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
+              },
+              params: {
+                clientType: RPCTypes.ClientType.guiMain,
+                deviceName: '',
+                deviceType: isMobile ? 'mobile' : 'desktop',
+                doUserSwitch: true,
+                paperKey: '',
+                username,
+              },
+              waitingKey: loginWaitingKey,
+            },
+            Z.dummyListenerApi
+          )
+          logger.info('login call succeeded')
+          get().dispatch.setLoggedIn(true, false)
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
             return
           }
-          if (enableActionLogging) {
-            const payload = {err: `Global Error: ${e.message} ${e.stack ?? ''}`}
-            logger.action({payload, type: 'config:globalError'})
+          if (error.code === RPCTypes.StatusCode.scalreadyloggedin) {
+            get().dispatch.setLoggedIn(true, false)
+          } else if (error.desc !== cancelDesc) {
+            // If we're canceling then ignore the error
+            error.desc = niceError(error)
+            get().dispatch.loginError(error)
           }
         }
+      }
+      get().dispatch.loginError()
+      Z.ignorePromise(f())
+    },
+    loginError: error => {
+      set(s => {
+        s.loginError = error
+      })
+      // On login error, turn off the user switching flag, so that the login screen is not
+      // hidden and the user can see and respond to the error.
+      get().dispatch.setUserSwitching(false)
+    },
+    remoteWindowNeedsProps: (component, params) => {
+      set(s => {
+        const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
+        map.set(params, (map.get(params) ?? 0) + 1)
+        s.remoteWindowNeedsProps.set(component, map)
+      })
+    },
+    resetRevokedSelf: () => {
+      set(s => {
+        s.justRevokedSelf = ''
+      })
+    },
+    resetState: () => {
+      set(s => ({
+        ...s,
+        ...initialStore,
+        appFocused: s.appFocused,
+        configuredAccounts: s.configuredAccounts,
+        defaultUsername: s.defaultUsername,
+        startup: {loaded: s.startup.loaded},
+        useNativeFrame: s.useNativeFrame,
+        userSwitching: s.userSwitching,
+      }))
+    },
+    revoke: name => {
+      const wasCurrentDevice = useCurrentUserState.getState().deviceName === name
+      if (wasCurrentDevice) {
+        const {configuredAccounts, defaultUsername} = get()
+        const acc = configuredAccounts.find(n => n.username !== defaultUsername)
+        const du = acc?.username ?? ''
         set(s => {
-          s.globalError = e
+          s.defaultUsername = du
+          s.justRevokedSelf = name
         })
-      },
-      setHTTPSrvInfo: (address: string, token: string) => {
-        logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)
-        set(s => {
-          s.httpSrv.address = address
-          s.httpSrv.token = token
-        })
-      },
-      setIncomingShareUseOriginal: (use: boolean) => {
-        set(s => {
-          s.incomingShareUseOriginal = use
-        })
-      },
-      setJustDeletedSelf: (self: string) => {
-        set(s => {
-          s.justDeletedSelf = self
-        })
-      },
-      setLoggedIn: (l: boolean, causedByStartup = false, skipSideEffect = false) => {
-        if (l === get().loggedIn) {
+      }
+      reduxDispatch(ConfigGen.createRevoked())
+    },
+    setAccounts: a => {
+      set(s => {
+        s.configuredAccounts = a
+      })
+    },
+    setAllowAnimatedEmojis: a => {
+      set(s => {
+        s.allowAnimatedEmojis = a
+      })
+    },
+    setAndroidShare: share => {
+      set(s => {
+        s.androidShare = share
+      })
+    },
+    setDefaultUsername: u => {
+      set(s => {
+        s.defaultUsername = u
+      })
+    },
+    setGlobalError: _e => {
+      const e = convertToError(_e)
+      if (e) {
+        logger.error('Error (global):', e)
+        if (isEOFError(e)) {
+          Stats.gotEOF()
+        }
+        if (isErrorTransient(e)) {
+          logger.info('globalError silencing:', e)
           return
         }
-        set(s => {
-          s.loggedIn = l
-        })
-        if (!skipSideEffect) {
-          reduxDispatch(ConfigGen.createLoggedInChanged({causedByStartup}))
+        if (enableActionLogging) {
+          const payload = {err: `Global Error: ${e.message} ${e.stack ?? ''}`}
+          logger.action({payload, type: 'config:globalError'})
         }
-      },
-      setNotifySound: (n: boolean) => {
-        set(s => {
-          s.notifySound = n
+      }
+      set(s => {
+        s.globalError = e
+      })
+    },
+    setHTTPSrvInfo: (address, token) => {
+      logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)
+      set(s => {
+        s.httpSrv.address = address
+        s.httpSrv.token = token
+      })
+    },
+    setIncomingShareUseOriginal: use => {
+      set(s => {
+        s.incomingShareUseOriginal = use
+      })
+    },
+    setJustDeletedSelf: self => {
+      set(s => {
+        s.justDeletedSelf = self
+      })
+    },
+    setLoggedIn: (l, causedByStartup = false, skipSideEffect = false) => {
+      if (l === get().loggedIn) {
+        return
+      }
+      set(s => {
+        s.loggedIn = l
+      })
+      if (!skipSideEffect) {
+        reduxDispatch(ConfigGen.createLoggedInChanged({causedByStartup}))
+      }
+    },
+    setNotifySound: n => {
+      set(s => {
+        s.notifySound = n
+      })
+      ignorePromise(
+        RPCTypes.configGuiSetValueRpcPromise({
+          path: notifySoundKey,
+          value: {
+            b: n,
+            isNull: false,
+          },
         })
-        ignorePromise(
-          RPCTypes.configGuiSetValueRpcPromise({
-            path: notifySoundKey,
-            value: {
-              b: n,
-              isNull: false,
-            },
-          })
-        )
-      },
-      setOpenAtLogin: (open: boolean) => {
-        set(s => {
-          s.openAtLogin = open
+      )
+    },
+    setOpenAtLogin: open => {
+      set(s => {
+        s.openAtLogin = open
+      })
+      const f = async () => {
+        await RPCTypes.configGuiSetValueRpcPromise({
+          path: openAtLoginKey,
+          value: {b: open, isNull: false},
         })
-        const f = async () => {
-          await RPCTypes.configGuiSetValueRpcPromise({
-            path: openAtLoginKey,
-            value: {b: open, isNull: false},
-          })
-          if (__DEV__) {
-            console.log('onSetOpenAtLogin disabled for dev mode')
-            return
-          }
-          reduxDispatch(ConfigGen.createOpenAtLoginChanged())
+        if (__DEV__) {
+          console.log('onSetOpenAtLogin disabled for dev mode')
+          return
         }
-        ignorePromise(f())
-      },
-      setOutOfDate: (outOfDate: Types.OutOfDate) => {
-        set(s => {
-          s.outOfDate = outOfDate
-        })
-      },
-      setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => {
-        set(s => {
-          if (s.startup.loaded) {
-            return
-          }
-          s.startup = {
-            ...st,
-            loaded: true,
-          }
-        })
-      },
-      setStartupDetailsLoaded: () => {
-        set(s => {
-          s.startup.loaded = true
-        })
-      },
-      setUseNativeFrame: (use: boolean) => {
-        set(s => {
-          s.useNativeFrame = use
-        })
-        ignorePromise(
-          RPCTypes.configGuiSetValueRpcPromise({
-            path: nativeFrameKey,
-            value: {
-              b: use,
-              isNull: false,
-            },
-          })
-        )
-      },
-      setUserSwitching: (sw: boolean) => {
-        set(s => {
-          s.userSwitching = sw
-        })
-      },
-      setWindowIsMax: (m: boolean) => {
-        set(s => {
-          s.windowState.isMaximized = m
-        })
-      },
-      toggleRuntimeStats: () => {
-        const f = async () => {
-          await RPCTypes.configToggleRuntimeStatsRpcPromise()
+        reduxDispatch(ConfigGen.createOpenAtLoginChanged())
+      }
+      ignorePromise(f())
+    },
+    setOutOfDate: outOfDate => {
+      set(s => {
+        s.outOfDate = outOfDate
+      })
+    },
+    setStartupDetails: st => {
+      set(s => {
+        if (s.startup.loaded) {
+          return
         }
-        ignorePromise(f())
-      },
-      updateApp: () => {
-        const f = async () => {
-          await RPCTypes.configStartUpdateIfNeededRpcPromise()
+        s.startup = {
+          ...st,
+          loaded: true,
         }
-        ignorePromise(f())
-        // * If user choose to update:
-        //   We'd get killed and it doesn't matter what happens here.
-        // * If user hits "Ignore":
-        //   Note that we ignore the snooze here, so the state shouldn't change,
-        //   and we'd back to where we think we still need an update. So we could
-        //   have just unset the "updating" flag.However, in case server has
-        //   decided to pull out the update between last time we asked the updater
-        //   and now, we'd be in a wrong state if we didn't check with the service.
-        //   Since user has interacted with it, we still ask the service to make
-        //   sure.
-        set(s => {
-          s.outOfDate.updating = true
+      })
+    },
+    setStartupDetailsLoaded: () => {
+      set(s => {
+        s.startup.loaded = true
+      })
+    },
+    setUseNativeFrame: use => {
+      set(s => {
+        s.useNativeFrame = use
+      })
+      ignorePromise(
+        RPCTypes.configGuiSetValueRpcPromise({
+          path: nativeFrameKey,
+          value: {
+            b: use,
+            isNull: false,
+          },
         })
-      },
-      updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => {
-        set(s => {
-          if (!stats) {
-            s.runtimeStats = stats
-          } else {
-            s.runtimeStats = {
-              ...s.runtimeStats,
-              ...stats,
-            }
+      )
+    },
+    setUserSwitching: sw => {
+      set(s => {
+        s.userSwitching = sw
+      })
+    },
+    setWindowIsMax: m => {
+      set(s => {
+        s.windowState.isMaximized = m
+      })
+    },
+    toggleRuntimeStats: () => {
+      const f = async () => {
+        await RPCTypes.configToggleRuntimeStatsRpcPromise()
+      }
+      ignorePromise(f())
+    },
+    updateApp: () => {
+      const f = async () => {
+        await RPCTypes.configStartUpdateIfNeededRpcPromise()
+      }
+      ignorePromise(f())
+      // * If user choose to update:
+      //   We'd get killed and it doesn't matter what happens here.
+      // * If user hits "Ignore":
+      //   Note that we ignore the snooze here, so the state shouldn't change,
+      //   and we'd back to where we think we still need an update. So we could
+      //   have just unset the "updating" flag.However, in case server has
+      //   decided to pull out the update between last time we asked the updater
+      //   and now, we'd be in a wrong state if we didn't check with the service.
+      //   Since user has interacted with it, we still ask the service to make
+      //   sure.
+      set(s => {
+        s.outOfDate.updating = true
+      })
+    },
+    updateRuntimeStats: stats => {
+      set(s => {
+        if (!stats) {
+          s.runtimeStats = stats
+        } else {
+          s.runtimeStats = {
+            ...s.runtimeStats,
+            ...stats,
           }
-        })
-      },
-      updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => {
-        const next = {...get().windowState, ...ws}
-        set(s => {
-          s.windowState = next
-        })
+        }
+      })
+    },
+    updateWindowState: ws => {
+      const next = {...get().windowState, ...ws}
+      set(s => {
+        s.windowState = next
+      })
 
-        const windowStateKey = 'windowState'
-        ignorePromise(
-          RPCTypes.configGuiSetValueRpcPromise({
-            path: windowStateKey,
-            value: {
-              isNull: false,
-              s: JSON.stringify(next),
-            },
-          })
-        )
-      },
-      windowShown: (win: string) => {
-        set(s => {
-          s.windowShownCount.set(win, (s.windowShownCount.get(win) ?? 0) + 1)
+      const windowStateKey = 'windowState'
+      ignorePromise(
+        RPCTypes.configGuiSetValueRpcPromise({
+          path: windowStateKey,
+          value: {
+            isNull: false,
+            s: JSON.stringify(next),
+          },
         })
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+      )
+    },
+    windowShown: win => {
+      set(s => {
+        s.windowShownCount.set(win, (s.windowShownCount.get(win) ?? 0) + 1)
+      })
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})
 
 export {useDaemonState, maxHandshakeTries} from './daemon'
 export {useFollowerState} from './followers'

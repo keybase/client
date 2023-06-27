@@ -141,7 +141,7 @@ const ChooseEmoji = Styles.isMobile
         emojiStr: '',
         renderableEmoji: {},
       }
-      const updatePickerMap = usePickerState(s => s.updatePickerMap)
+      const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
 
       const [lastEmoji, setLastEmoji] = React.useState('')
       if (lastEmoji !== emojiStr) {

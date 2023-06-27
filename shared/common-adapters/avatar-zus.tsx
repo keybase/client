@@ -13,30 +13,26 @@ type State = Store & {
     updated: (key: string) => void
     // used by remotes to update themselves
     replace: (m: Map<string, number>) => void
-    resetState: () => void
+    resetState: 'default'
   }
 }
 
-export const useAvatarState = Z.createZustand(
-  Z.immerZustand<State>(set => {
-    const dispatch = {
-      replace: (m: Map<string, number>) => {
-        set(s => {
-          s.counts = m
-        })
-      },
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-      updated: (key: string) => {
-        set(s => {
-          s.counts.set(key, (s.counts.get(key) ?? 0) + 1)
-        })
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+export const useAvatarState = Z.createZustand<State>(set => {
+  const dispatch: State['dispatch'] = {
+    replace: m => {
+      set(s => {
+        s.counts = m
+      })
+    },
+    resetState: 'default',
+    updated: key => {
+      set(s => {
+        s.counts.set(key, (s.counts.get(key) ?? 0) + 1)
+      })
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

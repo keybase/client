@@ -11,26 +11,22 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     triggerAllowOpen: () => void
-    resetState: () => void
+    resetState: 'default'
   }
 }
 // just to plumb the state, really the settings tab should change how it works, its quite
 // old and creaky
-export const useSettingsState = Z.createZustand(
-  Z.immerZustand<State>(set => {
-    const dispatch = {
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-      triggerAllowOpen: () => {
-        set(state => {
-          state.allowOpenTrigger++
-        })
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+export const useSettingsState = Z.createZustand<State>(set => {
+  const dispatch: State['dispatch'] = {
+    resetState: 'default',
+    triggerAllowOpen: () => {
+      set(state => {
+        state.allowOpenTrigger++
+      })
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

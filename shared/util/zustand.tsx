@@ -1,7 +1,8 @@
 // helpers for redux / zustand
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
-import {create as _createZustand} from 'zustand'
+import {create as _create, type StateCreator, type StoreMutatorIdentifier} from 'zustand'
+import {immer as immerZustand} from 'zustand/middleware/immer'
 
 type TypedDispatch = (action: TypedActions) => void
 
@@ -29,48 +30,33 @@ export const dummyListenerApi = {
   },
 }
 
-// only in dev
-// const autoResetStore = __DEV__ && false
-// const sanityCheckByResettingStoreAutomatically = __DEV__ && true
-// const sanityStores = new Array<any>()
+type HasReset = {dispatch: {resetState: 'default' | (() => void)}}
 
-// const checkResetStoreCZ: any = (p: any) => {
-//   // @ts-ignore
-//   const temp = _createZustand(p)
-//   if (sanityCheckByResettingStoreAutomatically) {
-//     sanityStores.push(temp)
-//   }
+const resetters: (() => void)[] = []
+// Auto adds immer and keeps track of resets
+export const createZustand = <
+  T extends HasReset,
+  Mps extends [StoreMutatorIdentifier, unknown][] = [],
+  Mcs extends [StoreMutatorIdentifier, unknown][] = []
+>(
+  initializer: StateCreator<T, [...Mps, ['zustand/immer', never]], Mcs>
+) => {
+  const f = immerZustand(initializer)
+  const store = _create<T>(f as StateCreator<T>)
+  const initialState = store.getState()
+  const reset = initialState.dispatch.resetState
+  if (reset === 'default') {
+    resetters.push(() => {
+      store.setState(initialState, true)
+    })
+  } else {
+    resetters.push(reset)
+  }
+  return store
+}
 
-//   try {
-//     if (autoResetStore) {
-//       temp.getState().dispatch.resetState()
-//       // invalid resets can blow away dispatch!!
-//       temp.getState().dispatch.resetState()
-//     }
-//   } catch (e) {
-//     // eslint-disable-next-line
-//     debugger
-//     console.log('Store without a resetState or invalid reset state!!!!', e)
-//   }
-//   return temp
-// }
-
-// if (sanityCheckByResettingStoreAutomatically) {
-//   console.log('Sanity check reset hookup')
-//   setTimeout(() => {
-//     const before = sanityStores.map(s => s.getState())
-//     getReduxDispatch()({type: 'common:resetStore'} as any)
-//     const after = sanityStores.map(s => s.getState())
-//     before.forEach((b, idx) => {
-//       if (b === after[idx]) {
-//         // eslint-disable-next-line
-//         debugger
-//         console.log("Store wasn't reset!")
-//       }
-//     })
-//   }, 100)
-// }
-// export const createZustand: typeof _createZustand = __DEV__ ? checkResetStoreCZ : _createZustand
-
-export const createZustand = _createZustand
-export {immer as immerZustand} from 'zustand/middleware/immer'
+export const resetAllStores = () => {
+  for (const resetter of resetters) {
+    resetter()
+  }
+}

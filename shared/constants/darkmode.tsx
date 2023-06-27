@@ -30,70 +30,68 @@ const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
 }
 
-export const useDarkModeState = Z.createZustand(
-  Z.immerZustand<State>((set, get) => {
-    const dispatch = {
-      loadDarkPrefs: () => {
-        const f = async () => {
-          const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
-          const preference = v.s
-          switch (preference) {
-            case 'system':
-            case 'alwaysDark': // fallthrough
-            case 'alwaysLight': // fallthrough
-              set(s => {
-                s.darkModePreference = preference
-              })
-              break
-            default:
-          }
-        }
-        ignorePromise(f())
-      },
-      resetState: () => {
-        set(s => ({
-          ...s,
-          ...initialStore,
-          darkModePreference: s.darkModePreference,
-        }))
-      },
-      setDarkModePreference: (p: DarkModePreference) => {
-        set(s => {
-          s.darkModePreference = p
-        })
-        const f = async () => {
-          await RPCTypes.configGuiSetValueRpcPromise({
-            path: 'ui.darkMode',
-            value: {isNull: false, s: p},
-          })
-        }
-        ignorePromise(f())
-      },
-      setSystemDarkMode: (dark: boolean) => {
-        set(s => {
-          s.systemDarkMode = dark
-        })
-      },
-      setSystemSupported: (sup: boolean) => {
-        set(s => {
-          s.supported = sup
-        })
-      },
-    }
-
-    return {
-      ...initialStore,
-      dispatch,
-      isDarkMode: () => {
-        switch (get().darkModePreference) {
+export const useDarkModeState = Z.createZustand<State>((set, get) => {
+  const dispatch: State['dispatch'] = {
+    loadDarkPrefs: () => {
+      const f = async () => {
+        const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.darkMode'})
+        const preference = v.s
+        switch (preference) {
           case 'system':
-            return get().systemDarkMode
-          case 'alwaysDark':
-            return true
-          case 'alwaysLight':
-            return false
+          case 'alwaysDark': // fallthrough
+          case 'alwaysLight': // fallthrough
+            set(s => {
+              s.darkModePreference = preference
+            })
+            break
+          default:
         }
-      },
-    }
-  })
-)
+      }
+      ignorePromise(f())
+    },
+    resetState: () => {
+      set(s => ({
+        ...s,
+        ...initialStore,
+        darkModePreference: s.darkModePreference,
+      }))
+    },
+    setDarkModePreference: p => {
+      set(s => {
+        s.darkModePreference = p
+      })
+      const f = async () => {
+        await RPCTypes.configGuiSetValueRpcPromise({
+          path: 'ui.darkMode',
+          value: {isNull: false, s: p},
+        })
+      }
+      ignorePromise(f())
+    },
+    setSystemDarkMode: dark => {
+      set(s => {
+        s.systemDarkMode = dark
+      })
+    },
+    setSystemSupported: sup => {
+      set(s => {
+        s.supported = sup
+      })
+    },
+  }
+
+  return {
+    ...initialStore,
+    dispatch,
+    isDarkMode: () => {
+      switch (get().darkModePreference) {
+        case 'system':
+          return get().systemDarkMode
+        case 'alwaysDark':
+          return true
+        case 'alwaysLight':
+          return false
+      }
+    },
+  }
+})

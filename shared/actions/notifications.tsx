@@ -1,6 +1,5 @@
 import * as Tabs from '../constants/tabs'
 import * as EngineGen from './engine-gen-gen'
-import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as FsConstants from '../constants/fs'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -140,9 +139,6 @@ const receivedBoxAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAudit
 }
 
 const initNotifications = () => {
-  Container.listenAction(ConfigGen.resetStore, () => {
-    Constants.useState.getState().dispatch.resetState()
-  })
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   Container.listenAction(EngineGen.keybase1NotifyAuditRootAuditError, receivedRootAuditError)
   Container.listenAction(EngineGen.keybase1NotifyAuditBoxAuditError, receivedBoxAuditError)

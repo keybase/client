@@ -356,177 +356,173 @@ type State = Store & {
     setResentEmail: (email: string) => void
     skipTodo: (type: Types.TodoType) => void
     markViewed: () => void
-    resetState: () => void
+    resetState: 'default'
   }
 }
 
-export const useState = Z.createZustand(
-  Z.immerZustand<State>((set, get) => {
-    const dispatch = {
-      dismissAnnouncement: (id: RPCTypes.HomeScreenAnnouncementID) => {
-        const f = async () => {
-          await RPCTypes.homeHomeDismissAnnouncementRpcPromise({
-            i: id,
-          })
-        }
-        Z.ignorePromise(f())
-      },
-      loadPeople: (markViewed: boolean, numFollowSuggestionsWanted = defaultNumFollowSuggestions) => {
-        const f = async () => {
-          // more logging to understand why this fails so much
-          logger.info(
-            'getPeopleData: appFocused:',
-            'loggedIn',
-            ConfigConstants.useConfigState.getState().loggedIn,
-            'action',
-            {markViewed, numFollowSuggestionsWanted}
+export const useState = Z.createZustand<State>((set, get) => {
+  const dispatch: State['dispatch'] = {
+    dismissAnnouncement: id => {
+      const f = async () => {
+        await RPCTypes.homeHomeDismissAnnouncementRpcPromise({
+          i: id,
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    loadPeople: (markViewed, numFollowSuggestionsWanted = defaultNumFollowSuggestions) => {
+      const f = async () => {
+        // more logging to understand why this fails so much
+        logger.info(
+          'getPeopleData: appFocused:',
+          'loggedIn',
+          ConfigConstants.useConfigState.getState().loggedIn,
+          'action',
+          {markViewed, numFollowSuggestionsWanted}
+        )
+
+        try {
+          const data = await RPCTypes.homeHomeGetScreenRpcPromise(
+            {markViewed, numFollowSuggestionsWanted},
+            getPeopleDataWaitingKey
           )
+          const {following, followers} = Followers.useFollowerState.getState()
+          const oldItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
+            .filter(item => !item.badged && item.data.t !== RPCTypes.HomeScreenItemType.todo)
+            .reduce(reduceRPCItemToPeopleItem, [])
+          const newItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
+            .filter(item => item.badged || item.data.t === RPCTypes.HomeScreenItemType.todo)
+            .reduce(reduceRPCItemToPeopleItem, [])
 
-          try {
-            const data = await RPCTypes.homeHomeGetScreenRpcPromise(
-              {markViewed, numFollowSuggestionsWanted},
-              getPeopleDataWaitingKey
-            )
-            const {following, followers} = Followers.useFollowerState.getState()
-            const oldItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
-              .filter(item => !item.badged && item.data.t !== RPCTypes.HomeScreenItemType.todo)
-              .reduce(reduceRPCItemToPeopleItem, [])
-            const newItems: Array<Types.PeopleScreenItem> = (data.items ?? [])
-              .filter(item => item.badged || item.data.t === RPCTypes.HomeScreenItemType.todo)
-              .reduce(reduceRPCItemToPeopleItem, [])
-
-            if (debugTodo) {
-              const allTodos = Object.values(RPCTypes.HomeScreenTodoType).reduce<
-                Array<RPCTypes.HomeScreenTodoType>
-              >((arr, t) => {
-                typeof t !== 'string' && arr.push(t)
-                return arr
-              }, [])
-              allTodos.forEach(avdlType => {
-                const todoType = todoTypeEnumToType[avdlType]
-                if (newItems.some(t => t.type === 'todo' && t.todoType === todoType)) {
-                  return
-                }
-                const instructions = makeDescriptionForTodoItem({
-                  legacyEmailVisibility: 'user@example.com',
-                  t: avdlType,
-                  verifyAllEmail: 'user@example.com',
-                  verifyAllPhoneNumber: '+1555000111',
-                } as any)
-                let metadata: Types.TodoMetaEmail | Types.TodoMetaPhone | undefined
-                if (
-                  avdlType === RPCTypes.HomeScreenTodoType.verifyAllEmail ||
-                  avdlType === RPCTypes.HomeScreenTodoType.legacyEmailVisibility
-                ) {
-                  metadata = makeTodoMetaEmail({
-                    email: 'user@example.com',
-                  })
-                } else if (avdlType === RPCTypes.HomeScreenTodoType.verifyAllPhoneNumber) {
-                  metadata = makeTodoMetaPhone({
-                    phone: '+1555000111',
-                  })
-                }
-                newItems.push(
-                  makeTodo({
-                    badged: true,
-                    confirmLabel: todoTypeToConfirmLabel[todoType],
-                    icon: todoTypeToIcon[todoType],
-                    instructions,
-                    metadata,
-                    todoType,
-                    type: 'todo',
-                  })
-                )
-              })
-              newItems.unshift(
-                makeFollowedNotificationItem({
+          if (debugTodo) {
+            const allTodos = Object.values(RPCTypes.HomeScreenTodoType).reduce<
+              Array<RPCTypes.HomeScreenTodoType>
+            >((arr, t) => {
+              typeof t !== 'string' && arr.push(t)
+              return arr
+            }, [])
+            allTodos.forEach(avdlType => {
+              const todoType = todoTypeEnumToType[avdlType]
+              if (newItems.some(t => t.type === 'todo' && t.todoType === todoType)) {
+                return
+              }
+              const instructions = makeDescriptionForTodoItem({
+                legacyEmailVisibility: 'user@example.com',
+                t: avdlType,
+                verifyAllEmail: 'user@example.com',
+                verifyAllPhoneNumber: '+1555000111',
+              } as any)
+              let metadata: Types.TodoMetaEmail | Types.TodoMetaPhone | undefined
+              if (
+                avdlType === RPCTypes.HomeScreenTodoType.verifyAllEmail ||
+                avdlType === RPCTypes.HomeScreenTodoType.legacyEmailVisibility
+              ) {
+                metadata = makeTodoMetaEmail({
+                  email: 'user@example.com',
+                })
+              } else if (avdlType === RPCTypes.HomeScreenTodoType.verifyAllPhoneNumber) {
+                metadata = makeTodoMetaPhone({
+                  phone: '+1555000111',
+                })
+              }
+              newItems.push(
+                makeTodo({
                   badged: true,
-                  newFollows: [
-                    makeFollowedNotification({
-                      contactDescription: 'Danny Test -- dannytest39@keyba.se',
-                      username: 'dannytest39',
-                    }),
-                  ],
-                  notificationTime: new Date(),
-                  type: 'contact',
+                  confirmLabel: todoTypeToConfirmLabel[todoType],
+                  icon: todoTypeToIcon[todoType],
+                  instructions,
+                  metadata,
+                  todoType,
+                  type: 'todo',
                 })
               )
-            }
-
-            const followSuggestions = (data.followSuggestions ?? []).reduce<Array<Types.FollowSuggestion>>(
-              (list, suggestion) => {
-                const followsMe = followers.has(suggestion.username)
-                const iFollow = following.has(suggestion.username)
-                list.push(
-                  makeFollowSuggestion({
-                    followsMe,
-                    fullName: suggestion.fullName,
-                    iFollow,
-                    username: suggestion.username,
-                  })
-                )
-                return list
-              },
-              []
-            )
-
-            set(s => {
-              if (!isEqual(followSuggestions, s.followSuggestions)) {
-                s.followSuggestions = followSuggestions
-              }
-              if (!isEqual(newItems, s.newItems)) {
-                s.newItems = newItems
-              }
-              if (!isEqual(oldItems, s.oldItems)) {
-                s.oldItems = oldItems
-              }
             })
-            // never throw black bars
-          } catch (_) {}
-        }
-        Z.ignorePromise(f())
-      },
-      markViewed: () => {
-        const f = async () => {
-          try {
-            await RPCTypes.homeHomeMarkViewedRpcPromise()
-          } catch (error) {
-            if (!(error instanceof RPCError)) {
-              throw error
+            newItems.unshift(
+              makeFollowedNotificationItem({
+                badged: true,
+                newFollows: [
+                  makeFollowedNotification({
+                    contactDescription: 'Danny Test -- dannytest39@keyba.se',
+                    username: 'dannytest39',
+                  }),
+                ],
+                notificationTime: new Date(),
+                type: 'contact',
+              })
+            )
+          }
+
+          const followSuggestions = (data.followSuggestions ?? []).reduce<Array<Types.FollowSuggestion>>(
+            (list, suggestion) => {
+              const followsMe = followers.has(suggestion.username)
+              const iFollow = following.has(suggestion.username)
+              list.push(
+                makeFollowSuggestion({
+                  followsMe,
+                  fullName: suggestion.fullName,
+                  iFollow,
+                  username: suggestion.username,
+                })
+              )
+              return list
+            },
+            []
+          )
+
+          set(s => {
+            if (!isEqual(followSuggestions, s.followSuggestions)) {
+              s.followSuggestions = followSuggestions
             }
-            if (isNetworkErr(error.code)) {
-              logger.warn('Network error calling homeMarkViewed')
-            } else {
-              throw error
+            if (!isEqual(newItems, s.newItems)) {
+              s.newItems = newItems
             }
+            if (!isEqual(oldItems, s.oldItems)) {
+              s.oldItems = oldItems
+            }
+          })
+          // never throw black bars
+        } catch (_) {}
+      }
+      Z.ignorePromise(f())
+    },
+    markViewed: () => {
+      const f = async () => {
+        try {
+          await RPCTypes.homeHomeMarkViewedRpcPromise()
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            throw error
+          }
+          if (isNetworkErr(error.code)) {
+            logger.warn('Network error calling homeMarkViewed')
+          } else {
+            throw error
           }
         }
-        Z.ignorePromise(f())
-      },
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-      setResentEmail: (email: string) => {
-        set(s => {
-          s.resentEmail = email
-        })
-      },
-      skipTodo: (type: Types.TodoType) => {
-        const f = async () => {
-          try {
-            await RPCTypes.homeHomeSkipTodoTypeRpcPromise({
-              t: RPCTypes.HomeScreenTodoType[type],
-            })
-            // TODO get rid of this load and have core send us a homeUIRefresh
-            get().dispatch.loadPeople(false)
-          } catch (_) {}
-        }
-        Z.ignorePromise(f())
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+      }
+      Z.ignorePromise(f())
+    },
+    resetState: 'default',
+    setResentEmail: email => {
+      set(s => {
+        s.resentEmail = email
+      })
+    },
+    skipTodo: type => {
+      const f = async () => {
+        try {
+          await RPCTypes.homeHomeSkipTodoTypeRpcPromise({
+            t: RPCTypes.HomeScreenTodoType[type],
+          })
+          // TODO get rid of this load and have core send us a homeUIRefresh
+          get().dispatch.loadPeople(false)
+        } catch (_) {}
+      }
+      Z.ignorePromise(f())
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

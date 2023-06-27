@@ -586,9 +586,6 @@ const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
 }
 
 const initFS = () => {
-  Container.listenAction(ConfigGen.resetStore, () => {
-    Constants.useState.getState().dispatch.resetState()
-  })
   Container.listenAction(FsGen.upload, upload)
   Container.listenAction(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
   Container.listenAction(FsGen.dismissUpload, dismissUpload)

@@ -29,84 +29,82 @@ type State = Store & {
   }
 }
 
-export const useLogoutState = Z.createZustand(
-  Z.immerZustand<State>((set, get) => {
-    const reduxDispatch = Z.getReduxDispatch()
+export const useLogoutState = Z.createZustand<State>((set, get) => {
+  const reduxDispatch = Z.getReduxDispatch()
 
-    const dispatch = {
-      requestLogout: () => {
-        // Figure out whether we can log out using CanLogout, if so,
-        // startLogoutHandshake, else do what's needed - right now only
-        // redirect to set password screen.
-        const f = async () => {
-          const canLogoutRes = await RPCTypes.userCanLogoutRpcPromise()
-          if (canLogoutRes.canLogout) {
-            get().dispatch.start()
-            return
-          } else {
-            const {passwordTab} = await import('./settings')
-            const {settingsTab} = await import('./tabs')
-            const {isMobile} = await import('./platform')
-            if (isMobile) {
-              reduxDispatch(
-                RouteTreeGen.createNavigateAppend({
-                  path: [settingsTab, passwordTab],
-                })
-              )
-            } else {
-              reduxDispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
-              reduxDispatch(RouteTreeGen.createNavigateAppend({path: [passwordTab]}))
-            }
-          }
-        }
-        ignorePromise(f())
-      },
-      resetState: () => {
-        set(s => ({
-          ...s,
-          ...initialStore,
-          version: s.version,
-          waiters: s.waiters,
-        }))
-      },
-      start: () => {
-        const version = get().version + 1
-        set(s => {
-          s.version = version
-        })
-        reduxDispatch(ConfigGen.createLogoutHandshake({version}))
-      },
-      wait: (name: string, _version: number, increment: boolean) => {
-        const {version} = get()
-
-        if (version !== _version) {
-          logger.info('Ignoring handshake wait due to version mismatch', version, _version)
+  const dispatch: State['dispatch'] = {
+    requestLogout: () => {
+      // Figure out whether we can log out using CanLogout, if so,
+      // startLogoutHandshake, else do what's needed - right now only
+      // redirect to set password screen.
+      const f = async () => {
+        const canLogoutRes = await RPCTypes.userCanLogoutRpcPromise()
+        if (canLogoutRes.canLogout) {
+          get().dispatch.start()
           return
-        }
-
-        set(s => {
-          const oldCount = s.waiters.get(name) || 0
-          const newCount = oldCount + (increment ? 1 : -1)
-          if (newCount === 0) {
-            s.waiters.delete(name)
-          } else {
-            s.waiters.set(name, newCount)
-          }
-        })
-
-        const {waiters} = get()
-        if (waiters.size > 0) {
-          // still waiting for things to finish
         } else {
-          RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
-            .then(() => {})
-            .catch(() => {})
+          const {passwordTab} = await import('./settings')
+          const {settingsTab} = await import('./tabs')
+          const {isMobile} = await import('./platform')
+          if (isMobile) {
+            reduxDispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [settingsTab, passwordTab],
+              })
+            )
+          } else {
+            reduxDispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
+            reduxDispatch(RouteTreeGen.createNavigateAppend({path: [passwordTab]}))
+          }
         }
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+      }
+      ignorePromise(f())
+    },
+    resetState: () => {
+      set(s => ({
+        ...s,
+        ...initialStore,
+        version: s.version,
+        waiters: s.waiters,
+      }))
+    },
+    start: () => {
+      const version = get().version + 1
+      set(s => {
+        s.version = version
+      })
+      reduxDispatch(ConfigGen.createLogoutHandshake({version}))
+    },
+    wait: (name, _version, increment) => {
+      const {version} = get()
+
+      if (version !== _version) {
+        logger.info('Ignoring handshake wait due to version mismatch', version, _version)
+        return
+      }
+
+      set(s => {
+        const oldCount = s.waiters.get(name) || 0
+        const newCount = oldCount + (increment ? 1 : -1)
+        if (newCount === 0) {
+          s.waiters.delete(name)
+        } else {
+          s.waiters.set(name, newCount)
+        }
+      })
+
+      const {waiters} = get()
+      if (waiters.size > 0) {
+        // still waiting for things to finish
+      } else {
+        RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: false})
+          .then(() => {})
+          .catch(() => {})
+      }
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

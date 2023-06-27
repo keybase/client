@@ -44,46 +44,44 @@ type State = Store & {
   }
 }
 
-export const useState = Z.createZustand(
-  Z.immerZustand<State>((set, get) => {
-    const dispatch = {
-      onCancel: () => {},
-      onGetPassword: (p: GetPasswordParams) => {
-        logger.info('Asked for password')
-        const {response, showTyping, type, prompt, windowTitle, submitLabel, cancelLabel, retryLabel} = p
+export const useState = Z.createZustand<State>((set, get) => {
+  const dispatch: State['dispatch'] = {
+    onCancel: () => {},
+    onGetPassword: p => {
+      logger.info('Asked for password')
+      const {response, showTyping, type, prompt, windowTitle, submitLabel, cancelLabel, retryLabel} = p
 
-        set(s => {
-          s.cancelLabel = cancelLabel
-          s.prompt = prompt
-          s.retryLabel = retryLabel
-          s.showTyping = showTyping
-          s.submitLabel = submitLabel
-          s.type = type
-          s.windowTitle = windowTitle
-          s.dispatch.onSubmit = (password: string) => {
-            response.result({passphrase: password, storeSecret: false})
-            set(s => {
-              s.dispatch.onSubmit = (_p: string) => {}
-            })
-            get().dispatch.resetState()
-          }
-          s.dispatch.onCancel = () => {
-            response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
-            set(s => {
-              s.dispatch.onCancel = () => {}
-            })
-            get().dispatch.resetState()
-          }
-        })
-      },
-      onSubmit: () => {},
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+      set(s => {
+        s.cancelLabel = cancelLabel
+        s.prompt = prompt
+        s.retryLabel = retryLabel
+        s.showTyping = showTyping
+        s.submitLabel = submitLabel
+        s.type = type
+        s.windowTitle = windowTitle
+        s.dispatch.onSubmit = (password: string) => {
+          response.result({passphrase: password, storeSecret: false})
+          set(s => {
+            s.dispatch.onSubmit = (_p: string) => {}
+          })
+          get().dispatch.resetState()
+        }
+        s.dispatch.onCancel = () => {
+          response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+          set(s => {
+            s.dispatch.onCancel = () => {}
+          })
+          get().dispatch.resetState()
+        }
+      })
+    },
+    onSubmit: () => {},
+    resetState: () => {
+      set(s => ({...s, ...initialStore}))
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

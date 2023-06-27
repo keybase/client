@@ -41,153 +41,145 @@ type State = Store & {
   }
 }
 
-export const useDaemonState = Z.createZustand(
-  Z.immerZustand<State>((set, get) => {
-    const reduxDispatch = Z.getReduxDispatch()
+export const useDaemonState = Z.createZustand<State>((set, get) => {
+  const reduxDispatch = Z.getReduxDispatch()
 
-    const setFailed = (r: string) => {
-      set(s => {
-        s.handshakeFailedReason = r
-      })
+  const setFailed = (r: string) => {
+    set(s => {
+      s.handshakeFailedReason = r
+    })
+  }
+  const setState = (ds: Types.DaemonHandshakeState) => {
+    set(s => {
+      s.handshakeState = ds
+    })
+  }
+  const daemonHandshake = (firstTimeConnecting: boolean, version: number) => {
+    setState('waitingForWaiters')
+    set(s => {
+      s.handshakeVersion = version
+      s.handshakeWaiters = new Map()
+    })
+    reduxDispatch(ConfigGen.createDaemonHandshake({firstTimeConnecting, version}))
+  }
+  const setError = (e?: Error) => {
+    if (e) {
+      logger.error('Error (daemon):', e)
     }
-    const setState = (ds: Types.DaemonHandshakeState) => {
-      set(s => {
-        s.handshakeState = ds
-      })
+    set(s => {
+      s.error = e
+    })
+  }
+  const daemonHandshakeDone = () => {
+    setState('done')
+    reduxDispatch(ConfigGen.createDaemonHandshakeDone())
+  }
+
+  const restartHandshake = () => {
+    reduxDispatch(ConfigGen.createRestartHandshake())
+    setState('starting')
+    setFailed('')
+    set(s => {
+      s.handshakeRetriesLeft = maxHandshakeTries
+    })
+  }
+
+  let _firstTimeBootstrapDone = true
+  const maybeDoneWithDaemonHandshake = (version: number) => {
+    if (version !== get().handshakeVersion) {
+      // ignore out of date actions
+      return
     }
-    const daemonHandshake = (firstTimeConnecting: boolean, version: number) => {
-      setState('waitingForWaiters')
-      set(s => {
-        s.handshakeVersion = version
-        s.handshakeWaiters = new Map()
-      })
-      reduxDispatch(ConfigGen.createDaemonHandshake({firstTimeConnecting, version}))
-    }
-    const setError = (e?: Error) => {
-      if (e) {
-        logger.error('Error (daemon):', e)
+    const {handshakeWaiters, handshakeFailedReason, handshakeRetriesLeft} = get()
+    if (handshakeWaiters.size > 0) {
+      // still waiting for things to finish
+    } else {
+      if (handshakeFailedReason) {
+        if (handshakeRetriesLeft) {
+          restartHandshake()
+        }
+      } else {
+        if (_firstTimeBootstrapDone) {
+          _firstTimeBootstrapDone = false
+          logger.info('First bootstrap ended')
+        }
+        daemonHandshakeDone()
       }
-      set(s => {
-        s.error = e
-      })
     }
-    const daemonHandshakeDone = () => {
-      setState('done')
-      reduxDispatch(ConfigGen.createDaemonHandshakeDone())
-    }
+    return
+  }
 
-    const restartHandshake = () => {
-      reduxDispatch(ConfigGen.createRestartHandshake())
+  // When there are no more waiters, we can show the actual app
+
+  let _firstTimeConnecting = true
+  const dispatch: State['dispatch'] = {
+    daemonHandshake,
+    daemonHandshakeDone,
+    resetState: () => {
+      set(s => ({
+        ...s,
+        ...initialStore,
+        handshakeState: s.handshakeState,
+        handshakeVersion: s.handshakeVersion,
+      }))
+    },
+    setError,
+    setState,
+    startHandshake: () => {
+      setError()
       setState('starting')
       setFailed('')
       set(s => {
-        s.handshakeRetriesLeft = maxHandshakeTries
+        s.handshakeRetriesLeft = Math.max(0, s.handshakeRetriesLeft - 1)
       })
-    }
 
-    let _firstTimeBootstrapDone = true
-    const maybeDoneWithDaemonHandshake = (version: number) => {
-      if (version !== get().handshakeVersion) {
-        // ignore out of date actions
+      const firstTimeConnecting = _firstTimeConnecting
+      _firstTimeConnecting = false
+      if (firstTimeConnecting) {
+        logger.info('First bootstrap started')
+      }
+
+      daemonHandshake(firstTimeConnecting, get().handshakeVersion + 1)
+    },
+    wait: (name, version, increment, failedReason, failedFatal) => {
+      const {handshakeState, handshakeFailedReason, handshakeVersion} = get()
+      if (handshakeState !== 'waitingForWaiters') {
+        throw new Error("Should only get a wait while we're waiting")
+      }
+
+      if (version !== handshakeVersion) {
+        logger.info('Ignoring handshake wait due to version mismatch', version, handshakeVersion)
         return
       }
-      const {handshakeWaiters, handshakeFailedReason, handshakeRetriesLeft} = get()
-      if (handshakeWaiters.size > 0) {
-        // still waiting for things to finish
-      } else {
-        if (handshakeFailedReason) {
-          if (handshakeRetriesLeft) {
-            restartHandshake()
-          }
+
+      set(s => {
+        const oldCount = s.handshakeWaiters.get(name) || 0
+        const newCount = oldCount + (increment ? 1 : -1)
+        if (newCount === 0) {
+          s.handshakeWaiters.delete(name)
         } else {
-          if (_firstTimeBootstrapDone) {
-            _firstTimeBootstrapDone = false
-            logger.info('First bootstrap ended')
-          }
-          daemonHandshakeDone()
+          s.handshakeWaiters.set(name, newCount)
+        }
+      })
+
+      if (failedFatal) {
+        setFailed(failedReason || '')
+        set(s => {
+          s.handshakeRetriesLeft = 0
+        })
+      } else {
+        // Keep the first error
+        const f = failedReason || ''
+        if (f && !handshakeFailedReason) {
+          setFailed(f)
         }
       }
-      return
-    }
 
-    // When there are no more waiters, we can show the actual app
-
-    let _firstTimeConnecting = true
-    const dispatch = {
-      daemonHandshake,
-      daemonHandshakeDone,
-      resetState: () => {
-        set(s => ({
-          ...s,
-          ...initialStore,
-          handshakeState: s.handshakeState,
-          handshakeVersion: s.handshakeVersion,
-        }))
-      },
-      setError,
-      setState,
-      startHandshake: () => {
-        setError()
-        setState('starting')
-        setFailed('')
-        set(s => {
-          s.handshakeRetriesLeft = Math.max(0, s.handshakeRetriesLeft - 1)
-        })
-
-        const firstTimeConnecting = _firstTimeConnecting
-        _firstTimeConnecting = false
-        if (firstTimeConnecting) {
-          logger.info('First bootstrap started')
-        }
-
-        daemonHandshake(firstTimeConnecting, get().handshakeVersion + 1)
-      },
-      wait: (
-        name: string,
-        version: number,
-        increment: boolean,
-        failedReason?: string,
-        failedFatal?: true
-      ) => {
-        const {handshakeState, handshakeFailedReason, handshakeVersion} = get()
-        if (handshakeState !== 'waitingForWaiters') {
-          throw new Error("Should only get a wait while we're waiting")
-        }
-
-        if (version !== handshakeVersion) {
-          logger.info('Ignoring handshake wait due to version mismatch', version, handshakeVersion)
-          return
-        }
-
-        set(s => {
-          const oldCount = s.handshakeWaiters.get(name) || 0
-          const newCount = oldCount + (increment ? 1 : -1)
-          if (newCount === 0) {
-            s.handshakeWaiters.delete(name)
-          } else {
-            s.handshakeWaiters.set(name, newCount)
-          }
-        })
-
-        if (failedFatal) {
-          setFailed(failedReason || '')
-          set(s => {
-            s.handshakeRetriesLeft = 0
-          })
-        } else {
-          // Keep the first error
-          const f = failedReason || ''
-          if (f && !handshakeFailedReason) {
-            setFailed(f)
-          }
-        }
-
-        maybeDoneWithDaemonHandshake(version)
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+      maybeDoneWithDaemonHandshake(version)
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

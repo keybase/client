@@ -8,25 +8,21 @@ const initialStore: Store = {
 }
 type State = Store & {
   dispatch: {
-    resetState: () => void
+    resetState: 'default'
     setActive: (a: boolean) => void
   }
 }
-export const useActiveState = Z.createZustand(
-  Z.immerZustand<State>(set => {
-    const dispatch = {
-      resetState: () => {
-        set(s => ({...s, ...initialStore}))
-      },
-      setActive: (a: boolean) => {
-        set(s => {
-          s.active = a
-        })
-      },
-    }
-    return {
-      ...initialStore,
-      dispatch,
-    }
-  })
-)
+export const useActiveState = Z.createZustand<State>(set => {
+  const dispatch: State['dispatch'] = {
+    resetState: 'default',
+    setActive: a => {
+      set(s => {
+        s.active = a
+      })
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})
