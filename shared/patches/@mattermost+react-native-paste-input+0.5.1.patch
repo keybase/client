@@ -45,7 +45,7 @@ index 93d0feb..3b491f4 100644
  
  NS_ASSUME_NONNULL_END
 diff --git a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
-index 73ed099..1df0117 100644
+index 73ed099..8140253 100644
 --- a/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
 +++ b/node_modules/@mattermost/react-native-paste-input/ios/PasteInputTextView.m
 @@ -8,9 +8,72 @@
@@ -121,7 +121,7 @@ index 73ed099..1df0117 100644
  #pragma mark - Overrides
  
  - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
-@@ -35,34 +98,34 @@
+@@ -35,34 +98,30 @@
  }
  
  -(void)paste:(id)sender {
@@ -158,10 +158,6 @@ index 73ed099..1df0117 100644
      
 -    // Dismiss contextual menu
 -    [self resignFirstResponder];
-+    // Only one at a time due to threading issues
-+    NSItemProvider * itemP = itemProviders.firstObject;
-+    itemProviders = @[itemP];
-+    
 +    __weak typeof(self) weakSelf = self;
 +    self.iph = [[ItemProviderHelper alloc]
 +             initForShare:false
