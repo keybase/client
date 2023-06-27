@@ -357,7 +357,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
       }];
     } else {
       [decodes addObject:^(){
-        [item loadFileRepresentationForTypeIdentifier:@"public.text" completionHandler:textHandler];
+        [item loadObjectOfClass:NSString.class completionHandler:textHandler];
       }];
     }
   }
