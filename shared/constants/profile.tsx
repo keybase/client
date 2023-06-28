@@ -13,9 +13,18 @@ import * as TrackerConstants from './tracker2'
 import * as ConfigConstants from './config'
 import {isMobile} from './platform'
 import type * as RPCGen from './types/rpc-gen'
-import type * as Types from './types/profile'
+import type {SiteIconSet} from './types/tracker2'
 
-export const makeInitialState = (): Types.State => ({})
+type ProveGenericParams = {
+  logoBlack: SiteIconSet
+  logoFull: SiteIconSet
+  title: string
+  subtext: string
+  suffix: string
+  buttonLabel: string
+}
+
+// type WotAuthorQuestion = 'question1' | 'question2'
 
 type ValidCallback =
   | 'keybase.1.proveUi.checking'
@@ -32,7 +41,7 @@ type CustomResp<T extends ValidCallback> = {
     : (res: RPCTypes.MessageTypes[T]['outParam']) => void
 }
 
-export const makeProveGenericParams = (): Types.ProveGenericParams => ({
+export const makeProveGenericParams = (): ProveGenericParams => ({
   buttonLabel: '',
   logoBlack: [],
   logoFull: [],
@@ -41,7 +50,7 @@ export const makeProveGenericParams = (): Types.ProveGenericParams => ({
   title: '',
 })
 
-export const toProveGenericParams = (p: RPCGen.ProveParameters): Types.ProveGenericParams => ({
+export const toProveGenericParams = (p: RPCGen.ProveParameters): ProveGenericParams => ({
   ...makeProveGenericParams(),
   buttonLabel: p.buttonLabel,
   logoBlack: p.logoBlack || [],
@@ -73,7 +82,7 @@ type Store = {
   platform?: More.PlatformsExpandedType
   platformGeneric?: string
   platformGenericChecking: boolean
-  platformGenericParams?: Types.ProveGenericParams
+  platformGenericParams?: ProveGenericParams
   platformGenericURL?: string
   promptShouldStoreKeyOnServer: boolean
   proofFound: boolean
