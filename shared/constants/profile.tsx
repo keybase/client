@@ -151,6 +151,7 @@ type State = Store & {
 // },
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
+  const getReduxStore = Z.getReduxStore()
   const clearErrors = (s: Store) => {
     s.errorCode = undefined
     s.errorText = ''
@@ -353,8 +354,38 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.blockUserModal = 'waiting'
       })
     },
-    submitRevokeProof: _proofId => {
-      // todo
+    submitRevokeProof: proofId => {
+      const f = async () => {
+        const you = TrackerConstants.getDetails(
+          getReduxStore(),
+          ConfigConstants.useCurrentUserState.getState().username
+        )
+        if (!you.assertions) return
+        const proof = [...you.assertions.values()].find(a => a.sigID === proofId)
+        if (!proof) return
+
+        if (proof.type === 'pgp') {
+          try {
+            await RPCTypes.revokeRevokeKeyRpcPromise({keyID: proof.kid}, waitingKey)
+          } catch (e) {
+            logger.info('error in dropping pgp key', e)
+            set(s => {
+              s.revokeError = `Error in dropping Pgp Key: ${String(e)}`
+            })
+          }
+        } else {
+          try {
+            await RPCTypes.revokeRevokeSigsRpcPromise({sigIDQueries: [proofId]}, waitingKey)
+            get().dispatch.finishRevoking()
+          } catch (error) {
+            logger.warn(`Error when revoking proof ${proofId}`, error)
+            set(s => {
+              s.revokeError = 'There was an error revoking your proof. You can click the button to try again.'
+            })
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     submitUnblockUser: (_username, _guiID) => {
       // TODO

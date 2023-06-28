@@ -12,39 +12,6 @@
 // import {initPgp} from './pgp'
 // import {initProofs} from './proofs'
 
-// const submitRevokeProof = async (
-//   state: Container.TypedState,
-//   action: ProfileGen.SubmitRevokeProofPayload
-// ) => {
-//   const you = TrackerConstants.getDetails(state, ConfigConstants.useCurrentUserState.getState().username)
-//   if (!you || !you.assertions) return null
-//   const proof = [...you.assertions.values()].find(a => a.sigID === action.payload.proofId)
-//   if (!proof) return null
-
-//   if (proof.type === 'pgp') {
-//     try {
-//       await RPCTypes.revokeRevokeKeyRpcPromise({keyID: proof.kid}, Constants.waitingKey)
-//       return false
-//     } catch (e) {
-//       logger.info('error in dropping pgp key', e)
-//       return ProfileGen.createRevokeFinish({error: `Error in dropping Pgp Key: ${e}`})
-//     }
-//   } else {
-//     try {
-//       await RPCTypes.revokeRevokeSigsRpcPromise(
-//         {sigIDQueries: [action.payload.proofId]},
-//         Constants.waitingKey
-//       )
-//       return ProfileGen.createFinishRevoking()
-//     } catch (error) {
-//       logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
-//       return ProfileGen.createRevokeFinish({
-//         error: 'There was an error revoking your proof. You can click the button to try again.',
-//       })
-//     }
-//   }
-// }
-
 // const submitBlockUser = async (_: unknown, action: ProfileGen.SubmitBlockUserPayload) => {
 //   try {
 //     await RPCTypes.userBlockUserRpcPromise({username: action.payload.username}, Constants.blockUserWaitingKey)
@@ -95,7 +62,6 @@
 
 const initProfile = () => {
   // TODO
-  // Container.listenAction(ProfileGen.submitRevokeProof, submitRevokeProof)
   // Container.listenAction(ProfileGen.submitBlockUser, submitBlockUser)
   // Container.listenAction(ProfileGen.submitUnblockUser, submitUnblockUser)
   // initPgp()
