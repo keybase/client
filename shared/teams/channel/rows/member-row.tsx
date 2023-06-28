@@ -129,10 +129,10 @@ const ChannelMemberRow = (props: Props) => {
     </Kb.Box2>
   )
 
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
-      const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
       const onOpenProfile = () => username && showUserProfile(username)
       const onRemoveFromChannel = () =>
         dispatch(
@@ -237,6 +237,7 @@ const ChannelMemberRow = (props: Props) => {
       props.isGeneral,
       conversationIDKey,
       crown,
+      showUserProfile,
     ]
   )
 
