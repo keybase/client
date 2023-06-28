@@ -289,7 +289,21 @@ export const useState = Z.createZustand<State>((set, get) => {
     generatePgp: () => {
       // TODO
     },
-    hideStellar: _h => {
+    hideStellar: hidden => {
+      const f = async () => {
+        try {
+          await RPCTypes.apiserverPostRpcPromise(
+            {
+              args: [{key: 'hidden', value: hidden ? '1' : '0'}],
+              endpoint: 'stellar/hidden',
+            },
+            TrackerConstants.waitingKey
+          )
+        } catch (e) {
+          logger.warn('Error setting Stellar hidden:', e)
+        }
+      }
+      Z.ignorePromise(f())
       // TODO
     },
     proofParamsReceived: params => {

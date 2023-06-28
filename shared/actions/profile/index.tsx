@@ -107,20 +107,6 @@
 //   }
 // }
 
-// const hideStellar = async (_: Container.TypedState, action: ProfileGen.HideStellarPayload) => {
-//   try {
-//     await RPCTypes.apiserverPostRpcPromise(
-//       {
-//         args: [{key: 'hidden', value: action.payload.hidden ? '1' : '0'}],
-//         endpoint: 'stellar/hidden',
-//       },
-//       TrackerConstants.waitingKey
-//     )
-//   } catch (e) {
-//     logger.warn('Error setting Stellar hidden:', e)
-//   }
-// }
-
 // const wotVouch = async (state: Container.TypedState, action: ProfileGen.WotVouchPayload) => {
 //   const {guiID, otherText, proofs, statement, username, verificationType} = action.payload
 //   const details = state.tracker2.usernameToDetails.get(username)
@@ -163,7 +149,6 @@ const initProfile = () => {
   // Container.listenAction(ProfileGen.submitBlockUser, submitBlockUser)
   // Container.listenAction(ProfileGen.submitUnblockUser, submitUnblockUser)
   // Container.listenAction(ProfileGen.finishRevoking, finishRevoking)
-  // Container.listenAction(ProfileGen.hideStellar, hideStellar)
   // Container.listenAction(ProfileGen.wotVouch, wotVouch)
   // initPgp()
   // initProofs()
