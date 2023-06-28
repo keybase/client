@@ -688,6 +688,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     resetState: () => {
+      // keep our injected callbacks
       set(s => ({...s, ...initialStore}))
     },
     setEditAvatar: (f: () => void) => {
@@ -839,16 +840,6 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    // wotVouch: () => {
-    //   set(s => {
-    //     s.wotAuthorError = ''
-    //   })
-    // },
-    // wotVouchSetError: error => {
-    //   set(s => {
-    //     s.wotAuthorError = error
-    //   })
-    // },
   }
   return {
     ...initialStore,
