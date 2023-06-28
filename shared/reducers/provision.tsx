@@ -40,7 +40,6 @@ export default Container.makeReducer<ProvisionGen.Actions, Types.State>(initialS
   },
   [ProvisionGen.showNewDeviceNamePage]: (draftState, action) => {
     draftState.error = action.payload.error ?? initialState.error
-    draftState.existingDevices = action.payload.existingDevices
   },
   [ProvisionGen.addNewDevice]: (draftState, action) => {
     draftState.error = initialState.error
@@ -77,12 +76,6 @@ export default Container.makeReducer<ProvisionGen.Actions, Types.State>(initialS
     draftState.finalError = undefined
     draftState.inlineError = undefined
     draftState.username = action.payload.username
-  },
-  [ProvisionGen.switchToGPGSignOnly]: (draftState, action) => {
-    draftState.gpgImportError = action.payload.importError
-  },
-  [ProvisionGen.submitGPGSignOK]: draftState => {
-    draftState.gpgImportError = undefined
   },
   [ProvisionGen.forgotUsernameResult]: (draftState, action) => {
     draftState.forgotUsernameResult = action.payload.result

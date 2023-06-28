@@ -1,5 +1,6 @@
 import * as DeviceTypes from './types/devices'
 import * as RPCTypes from './types/rpc-gen'
+import * as Z from '../util/zustand'
 import HiddenString from '../util/hidden-string'
 import type * as Types from './types/provision'
 import type {CommonResponseHandler, RPCError} from '../engine/types'
@@ -28,7 +29,6 @@ export const makeState = (): Types.State => ({
   deviceName: '',
   devices: [],
   error: new HiddenString(''),
-  existingDevices: [],
   forgotUsernameResult: '',
   initialUsername: '',
   username: '',
@@ -65,3 +65,36 @@ export const deviceNameInstructions =
   'Your device name must have 3-64 characters and not end with punctuation.'
 
 export const badDeviceChars = /[^a-zA-Z0-9-_' ]/g
+
+type Store = {
+  gpgImportError?: string
+}
+const initialStore: Store = {
+  gpgImportError: undefined,
+}
+
+type State = Store & {
+  dispatch: {
+    resetState: 'default'
+  }
+}
+
+export const useState = Z.createZustand<State>((_set, _get) => {
+  // const reduxDispatch = Z.getReduxDispatch()
+  const dispatch: State['dispatch'] = {
+    resetState: 'default',
+  }
+
+  // TODO internal
+  // [ProvisionGen.switchToGPGSignOnly]: (draftState, action) => {
+  //   draftState.gpgImportError = action.payload.importError
+  // },
+  // [ProvisionGen.submitGPGSignOK]: draftState => {
+  //   draftState.gpgImportError = undefined
+  // },
+
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})
