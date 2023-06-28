@@ -127,7 +127,6 @@ type State = Store & {
     finishedWithKeyGen: (shouldStoreKeyOnServer: boolean) => void
     generatePgp: () => void
     hideStellar: (h: boolean) => void
-    // proofParamsReceived: (params: Types.ProveGenericParams) => void
     recheckProof: (sigID: string) => void
     resetState: () => void
     setEditAvatar: (f: () => void) => void
@@ -145,22 +144,11 @@ type State = Store & {
       pgpErrorText?: string
       pgpFullName?: string
     }) => void
-    // updatePlatform: (platform: More.PlatformsExpandedType) => void
-    // updatePlatformGenericURL: (url: string) => void
-    updateProofStatus: (found: boolean, status: RPCTypes.ProofStatus) => void
-    // updateProofText: (proof: string) => void
     updateUsername: (username: string) => void
     uploadAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) => void
-    // wotVouch: () => void
-    // wotVouchSetError: (error: string) => void
   }
 }
 
-// TODO
-// [ProfileGen.updateErrorText]: (draftState, action) => {
-//   draftState.errorCode = action.payload.errorCode
-//   draftState.errorText = action.payload.errorText
-// },
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const getReduxStore = Z.getReduxStore()
@@ -200,6 +188,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           usernameValid = legacyFormat || segwitFormat
         }
         break
+      default:
     }
 
     s.username = username
@@ -213,6 +202,43 @@ export const useState = Z.createZustand<State>((set, get) => {
   }
 
   let afterCheckProof = () => {}
+
+  const submitCryptoAddress = (wantedFamily: 'btc' | 'zcash') => {
+    set(s => {
+      updateUsername(s)
+    })
+    const f = async () => {
+      if (!get().usernameValid) {
+        set(s => {
+          s.errorText = 'Invalid address format'
+          s.errorCode = 0
+        })
+        return
+      }
+
+      try {
+        await RPCTypes.cryptocurrencyRegisterAddressRpcPromise(
+          {address: get().username, force: true, wantedFamily},
+          waitingKey
+        )
+        set(s => {
+          s.proofFound = true
+          s.proofStatus = RPCTypes.ProofStatus.ok
+        })
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['profileConfirmOrPending']}))
+      } catch (_error) {
+        if (_error instanceof RPCError) {
+          const error = _error
+          logger.warn('Error making proof')
+          set(s => {
+            s.errorText = error.desc
+            s.errorCode = error.code
+          })
+        }
+      }
+    }
+    Z.ignorePromise(f())
+  }
 
   const dispatch: State['dispatch'] = {
     addProof: (platform, reason) => {
@@ -255,13 +281,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           code: RPCTypes.StatusCode.scinputcanceled,
           desc: 'Cancel Add Proof',
         }
-
         set(s => {
           s.sigID = undefined
         })
-
         let canceled = false
-
         // Setup cancelling
         set(s => {
           s.dispatch.cancelAddProof = () => {
@@ -488,8 +511,11 @@ export const useState = Z.createZustand<State>((set, get) => {
             set(s => {
               s.errorText = ''
             })
-            // TODO?? / replace
-            // reduxDispatch ( ProfileGen.createUpdateProofStatus({found, status}))
+
+            set(s => {
+              s.proofFound = found
+              s.proofStatus = status
+            })
             if (!isGeneric) {
               reduxDispatch(
                 RouteTreeGen.createNavigateAppend({
@@ -644,12 +670,22 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
-      // TODO
     },
-    recheckProof: _sigID => {
-      // TODO
-      // draftState.errorCode = undefined
-      // draftState.errorText = ''
+    recheckProof: sigID => {
+      set(s => {
+        s.errorCode = undefined
+        s.errorText = ''
+      })
+      const f = async () => {
+        await RPCTypes.proveCheckProofRpcPromise({sigID}, waitingKey)
+        reduxDispatch(
+          Tracker2Gen.createShowUser({
+            asTracker: false,
+            username: ConfigConstants.useCurrentUserState.getState().username,
+          })
+        )
+      }
+      Z.ignorePromise(f())
     },
     resetState: () => {
       set(s => ({...s, ...initialStore}))
@@ -666,9 +702,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profile'}]}))
     },
     submitBTCAddress: () => {
-      set(s => {
-        updateUsername(s)
-      })
+      submitCryptoAddress('btc')
     },
     submitBlockUser: username => {
       set(s => {
@@ -767,9 +801,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       // overriden while making a proof
     },
     submitZcashAddress: () => {
-      set(s => {
-        updateUsername(s)
-      })
+      submitCryptoAddress('zcash')
     },
     updatePgpInfo: p => {
       set(s => {
@@ -784,12 +816,6 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.pgpErrorEmail3 = !!valid3
         s.pgpErrorText = Validators.isValidName(s.pgpFullName) || valid1 || valid2 || valid3
         s.pgpFullName = p.pgpFullName || s.pgpFullName
-      })
-    },
-    updateProofStatus: (found, status) => {
-      set(s => {
-        s.proofFound = found
-        s.proofStatus = status
       })
     },
     updateUsername: username => {
