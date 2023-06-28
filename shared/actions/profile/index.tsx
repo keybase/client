@@ -12,26 +12,6 @@
 // import {initPgp} from './pgp'
 // import {initProofs} from './proofs'
 
-// const uploadAvatar = async (_: unknown, action: ProfileGen.UploadAvatarPayload) => {
-//   try {
-//     await RPCTypes.userUploadUserAvatarRpcPromise(
-//       {
-//         crop: action.payload.crop,
-//         filename: action.payload.filename,
-//       },
-//       Constants.uploadAvatarWaitingKey
-//     )
-//     return RouteTreeGen.createNavigateUp()
-//   } catch (error) {
-//     if (!(error instanceof RPCError)) {
-//       return
-//     }
-//     // error displayed in component
-//     logger.warn(`Error uploading user avatar: ${error.message}`)
-//     return false
-//   }
-// }
-
 // const finishRevoking = () => [
 //   Tracker2Gen.createShowUser({
 //     asTracker: false,
@@ -182,7 +162,6 @@ const initProfile = () => {
   // Container.listenAction(ProfileGen.submitRevokeProof, submitRevokeProof)
   // Container.listenAction(ProfileGen.submitBlockUser, submitBlockUser)
   // Container.listenAction(ProfileGen.submitUnblockUser, submitUnblockUser)
-  // Container.listenAction(ProfileGen.uploadAvatar, uploadAvatar)
   // Container.listenAction(ProfileGen.finishRevoking, finishRevoking)
   // Container.listenAction(ProfileGen.hideStellar, hideStellar)
   // Container.listenAction(ProfileGen.wotVouch, wotVouch)

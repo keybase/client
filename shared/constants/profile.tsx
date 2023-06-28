@@ -1,4 +1,5 @@
 import * as Z from '../util/zustand'
+import {RPCError} from '../util/errors'
 import * as More from './types/more'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import logger from '../logger'
@@ -111,7 +112,7 @@ type State = Store & {
     hideStellar: (h: boolean) => void
     proofParamsReceived: (params: Types.ProveGenericParams) => void
     recheckProof: (sigID: string) => void
-    resetState: 'default'
+    resetState: () => void
     revokeFinish: (error?: string) => void
     setEditAvatar: (f: () => void) => void
     showUserProfile: (username: string) => void
@@ -301,7 +302,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       // draftState.errorCode = undefined
       // draftState.errorText = ''
     },
-    resetState: 'default',
+    resetState: () => {
+      set(s => ({...s, ...initialStore}))
+    },
     revokeFinish: error => {
       set(s => {
         s.revokeError = error ?? ''
@@ -406,8 +409,20 @@ export const useState = Z.createZustand<State>((set, get) => {
         updateUsername(s)
       })
     },
-    uploadAvatar: (_filename, _crop) => {
-      // TODO
+    uploadAvatar: (filename, crop) => {
+      const f = async () => {
+        try {
+          await RPCTypes.userUploadUserAvatarRpcPromise({crop, filename}, uploadAvatarWaitingKey)
+          reduxDispatch(RouteTreeGen.createNavigateUp())
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          // error displayed in component
+          logger.warn(`Error uploading user avatar: ${error.message}`)
+        }
+      }
+      Z.ignorePromise(f())
     },
     // wotVouch: () => {
     //   set(s => {
