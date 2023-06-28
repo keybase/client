@@ -12,7 +12,6 @@ import initProvision from '../actions/provision'
 import initNotifications from '../actions/notifications'
 import initPeople from '../actions/people'
 import initPinentry from '../actions/pinentry'
-import initProfile from '../actions/profile'
 import initRecoverPassword from '../actions/recover-password'
 import initTracker from '../actions/tracker2'
 import initSettings from '../actions/settings'
@@ -35,7 +34,6 @@ export const initListeners = () => {
   initProvision()
   initNotifications()
   initPinentry()
-  initProfile()
   initRecoverPassword()
   initTracker()
   initSettings()
