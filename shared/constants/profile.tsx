@@ -2,6 +2,7 @@ import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import * as More from './types/more'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Tracker2Gen from '../actions/tracker2-gen'
 import logger from '../logger'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Validators from '../util/simple-validators'
@@ -113,7 +114,6 @@ type State = Store & {
     proofParamsReceived: (params: Types.ProveGenericParams) => void
     recheckProof: (sigID: string) => void
     resetState: () => void
-    revokeFinish: (error?: string) => void
     setEditAvatar: (f: () => void) => void
     showUserProfile: (username: string) => void
     submitBlockUser: (username: string) => void
@@ -281,7 +281,19 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     finishRevoking: () => {
-      // TODO
+      const username = ConfigConstants.useCurrentUserState.getState().username
+      get().dispatch.showUserProfile(username)
+      reduxDispatch(
+        Tracker2Gen.createLoad({
+          assertion: ConfigConstants.useCurrentUserState.getState().username,
+          guiID: TrackerConstants.generateGUIID(),
+          inTracker: false,
+          reason: '',
+        })
+      )
+      set(s => {
+        s.revokeError = ''
+      })
     },
     finishedWithKeyGen: _shouldStoreKeyOnServer => {
       // TODO
@@ -318,11 +330,6 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     resetState: () => {
       set(s => ({...s, ...initialStore}))
-    },
-    revokeFinish: error => {
-      set(s => {
-        s.revokeError = error ?? ''
-      })
     },
     setEditAvatar: (f: () => void) => {
       set(s => {

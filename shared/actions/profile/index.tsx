@@ -12,20 +12,6 @@
 // import {initPgp} from './pgp'
 // import {initProofs} from './proofs'
 
-// const finishRevoking = () => [
-//   Tracker2Gen.createShowUser({
-//     asTracker: false,
-//     username: ConfigConstants.useCurrentUserState.getState().username,
-//   }),
-//   Tracker2Gen.createLoad({
-//     assertion: ConfigConstants.useCurrentUserState.getState().username,
-//     guiID: TrackerConstants.generateGUIID(),
-//     inTracker: false,
-//     reason: '',
-//   }),
-//   ProfileGen.createRevokeFinish(),
-// ]
-
 // const submitRevokeProof = async (
 //   state: Container.TypedState,
 //   action: ProfileGen.SubmitRevokeProofPayload
@@ -107,49 +93,11 @@
 //   }
 // }
 
-// const wotVouch = async (state: Container.TypedState, action: ProfileGen.WotVouchPayload) => {
-//   const {guiID, otherText, proofs, statement, username, verificationType} = action.payload
-//   const details = state.tracker2.usernameToDetails.get(username)
-//   if (!details) {
-//     return ProfileGen.createWotVouchSetError({error: 'Missing user details.'})
-//   } else if (details.state !== 'valid') {
-//     return ProfileGen.createWotVouchSetError({error: `User is not in a valid state. (${details.state})`})
-//   } else if (details.resetBrokeTrack) {
-//     return ProfileGen.createWotVouchSetError({error: 'User has reset their account since following.'})
-//   }
-//   try {
-//     await RPCTypes.wotWotVouchRpcPromise(
-//       {
-//         confidence: {
-//           other: otherText,
-//           proofs,
-//           usernameVerifiedVia: verificationType,
-//         },
-//         guiID,
-//         username,
-//         vouchText: statement,
-//       },
-//       Constants.wotAuthorWaitingKey
-//     )
-//   } catch (error) {
-//     if (!(error instanceof RPCError)) {
-//       return
-//     }
-//     logger.warn('Error from wotVouch:', error)
-//     return ProfileGen.createWotVouchSetError({
-//       error: error.desc || `There was an error submitting the claim.`,
-//     })
-//   }
-//   return [ProfileGen.createWotVouchSetError({error: ''}), RouteTreeGen.createClearModals()]
-// }
-
 const initProfile = () => {
   // TODO
   // Container.listenAction(ProfileGen.submitRevokeProof, submitRevokeProof)
   // Container.listenAction(ProfileGen.submitBlockUser, submitBlockUser)
   // Container.listenAction(ProfileGen.submitUnblockUser, submitUnblockUser)
-  // Container.listenAction(ProfileGen.finishRevoking, finishRevoking)
-  // Container.listenAction(ProfileGen.wotVouch, wotVouch)
   // initPgp()
   // initProofs()
 }
