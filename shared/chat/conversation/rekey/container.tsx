@@ -1,12 +1,12 @@
 import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/chat2'
+import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 import type * as Types from '../../../constants/types/chat2'
 import {createOpenPopup} from '../../../actions/unlock-folders-gen'
-import {createShowUserProfile} from '../../../actions/profile-gen'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -42,9 +42,8 @@ export default (ownProps: OwnProps) => {
   const onRekey = () => {
     dispatch(createOpenPopup())
   }
-  const onShowProfile = (username: string) => {
-    dispatch(createShowUserProfile({username}))
-  }
+
+  const onShowProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const props = {
     onBack,
     onEnterPaperkey,

@@ -1,7 +1,7 @@
 import * as ConfigGen from '../../actions/config-gen'
 import * as ConfigConstants from '../../constants/config'
+import * as ProfileConstants from '../../constants/profile'
 import * as Container from '../../util/container'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsConstants from '../../constants/settings'
@@ -21,9 +21,7 @@ export default () => {
   const waiting = Container.useAnyWaiting(ConfigConstants.loginWaitingKey)
 
   const dispatch = Container.useDispatch()
-  const _onProfileClick = (username: string) => {
-    dispatch(ProfileGen.createShowUserProfile({username}))
-  }
+  const _onProfileClick = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onAddAccount = () => {
     dispatch(ProvisionGen.createStartProvision())
   }

@@ -133,6 +133,8 @@ type State = Store & {
     updateProofText: (proof) => void
     updateSigID: (sigID?: RPCTypes.SigID) => void
     updateUsername: (username: string) => void
+uploadAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) => void
+},
     wotVouch: () => void
     wotVouchSetError: (error: string) => void
   }
@@ -381,22 +383,25 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.sigID = sigID
       })
     },
-    updateUsername: (username: string) => {
+    updateUsername: (username) => {
       set(s => {
         s.username = username
         updateUsername(s)
       })
     },
-    wotVouch: () => {
-      set(s => {
-        s.wotAuthorError = ''
-      })
-    },
-    wotVouchSetError: error => {
-      set(s => {
-        s.wotAuthorError = error
-      })
-    },
+uploadAvatar: (filename, crop) => {
+            // TODO
+        },
+    // wotVouch: () => {
+    //   set(s => {
+    //     s.wotAuthorError = ''
+    //   })
+    // },
+    // wotVouchSetError: error => {
+    //   set(s => {
+    //     s.wotAuthorError = error
+    //   })
+    // },
   }
   return {
     ...initialStore,
