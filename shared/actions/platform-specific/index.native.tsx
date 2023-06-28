@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as Clipboard from 'expo-clipboard'
 import * as ConfigConstants from '../../constants/config'
+import * as ProfileConstants from '../../constants/profile'
 import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Contacts from 'expo-contacts'
@@ -45,6 +46,7 @@ import {
   getStartupDetailsFromInitialShare,
 } from './push.native'
 import {pluralize} from '../../util/string'
+import * as Z from '../../util/zustand'
 
 const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
   const {params} = action.payload
@@ -368,17 +370,23 @@ const handleFilePickerError = (_: unknown, action: ConfigGen.FilePickerErrorPayl
   Alert.alert('Error', action.payload.error.message)
 }
 
-const editAvatar = async () => {
-  try {
-    const result = await launchImageLibraryAsync('photo')
-    return result.canceled
-      ? null
-      : RouteTreeGen.createNavigateAppend({
-          path: [{props: {image: result?.assets?.[0]}, selected: 'profileEditAvatar'}],
-        })
-  } catch (error) {
-    return ConfigGen.createFilePickerError({error: new Error(error as any)})
+const editAvatar = () => {
+  const reduxDispatch = Z.getReduxDispatch()
+  const f = async () => {
+    try {
+      const result = await launchImageLibraryAsync('photo')
+      if (!result.canceled) {
+        reduxDispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {image: result.assets[0]}, selected: 'profileEditAvatar'}],
+          })
+        )
+      }
+    } catch (error) {
+      reduxDispatch(ConfigGen.createFilePickerError({error: new Error(String(error))}))
+    }
   }
+  Z.ignorePromise(f())
 }
 
 const openAppStore = async () =>
@@ -758,8 +766,8 @@ export const initPlatformListener = () => {
   })
   Container.listenAction(ConfigGen.openAppStore, openAppStore)
   Container.listenAction(ConfigGen.filePickerError, handleFilePickerError)
-  // TODO
-  // Container.listenAction(ProfileGen.editAvatar, editAvatar)
+
+  ProfileConstants.useState.getState().dispatch.setEditAvatar(editAvatar)
   Container.listenAction(ConfigGen.loggedInChanged, initOsNetworkStatus)
   Container.listenAction(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
 

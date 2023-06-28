@@ -12,21 +12,6 @@
 // import {initPgp} from './pgp'
 // import {initProofs} from './proofs'
 
-// const editProfile = async (_: unknown, action: ProfileGen.EditProfilePayload) => {
-//   await RPCTypes.userProfileEditRpcPromise(
-//     {
-//       bio: action.payload.bio,
-//       fullName: action.payload.fullname,
-//       location: action.payload.location,
-//     },
-//     TrackerConstants.waitingKey
-//   )
-//   return Tracker2Gen.createShowUser({
-//     asTracker: false,
-//     username: ConfigConstants.useCurrentUserState.getState().username,
-//   })
-// }
-
 // const uploadAvatar = async (_: unknown, action: ProfileGen.UploadAvatarPayload) => {
 //   try {
 //     await RPCTypes.userUploadUserAvatarRpcPromise(
@@ -60,28 +45,6 @@
 //   }),
 //   ProfileGen.createRevokeFinish(),
 // ]
-
-// const showUserProfile = (_: unknown, action: ProfileGen.ShowUserProfilePayload) => {
-//   const {username} = action.payload
-//   return [
-//     ...(Container.isMobile ? [RouteTreeGen.createClearModals()] : []),
-//     RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profile'}]}),
-//   ]
-// }
-
-// const onClickAvatar = (_: unknown, action: ProfileGen.OnClickAvatarPayload) => {
-//   if (!action.payload.username) {
-//     return
-//   }
-
-//   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-//   if (!action.payload.openWebsite) {
-//     return ProfileGen.createShowUserProfile({username: action.payload.username})
-//   } else {
-//     openURL(`https://keybase.io/${action.payload.username}`)
-//     return undefined
-//   }
-// }
 
 // const submitRevokeProof = async (
 //   state: Container.TypedState,
@@ -177,20 +140,6 @@
 //     logger.warn('Error setting Stellar hidden:', e)
 //   }
 // }
-// const editAvatar = () =>
-//   Container.isMobile
-//     ? undefined // handled in platform specific
-//     : RouteTreeGen.createNavigateAppend({
-//         path: [{props: {image: undefined}, selected: 'profileEditAvatar'}],
-//       })
-
-// const backToProfile = () => [
-//   RouteTreeGen.createClearModals(),
-//   Tracker2Gen.createShowUser({
-//     asTracker: false,
-//     username: ConfigConstants.useCurrentUserState.getState().username,
-//   }),
-// ]
 
 // const wotVouch = async (state: Container.TypedState, action: ProfileGen.WotVouchPayload) => {
 //   const {guiID, otherText, proofs, statement, username, verificationType} = action.payload
@@ -233,13 +182,8 @@ const initProfile = () => {
   // Container.listenAction(ProfileGen.submitRevokeProof, submitRevokeProof)
   // Container.listenAction(ProfileGen.submitBlockUser, submitBlockUser)
   // Container.listenAction(ProfileGen.submitUnblockUser, submitUnblockUser)
-  // Container.listenAction(ProfileGen.backToProfile, backToProfile)
-  // Container.listenAction(ProfileGen.editProfile, editProfile)
   // Container.listenAction(ProfileGen.uploadAvatar, uploadAvatar)
   // Container.listenAction(ProfileGen.finishRevoking, finishRevoking)
-  // Container.listenAction(ProfileGen.onClickAvatar, onClickAvatar)
-  // Container.listenAction(ProfileGen.showUserProfile, showUserProfile)
-  // Container.listenAction(ProfileGen.editAvatar, editAvatar)
   // Container.listenAction(ProfileGen.hideStellar, hideStellar)
   // Container.listenAction(ProfileGen.wotVouch, wotVouch)
   // initPgp()

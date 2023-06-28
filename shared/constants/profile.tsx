@@ -4,6 +4,9 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import logger from '../logger'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Validators from '../util/simple-validators'
+import * as TrackerConstants from './tracker2'
+import * as ConfigConstants from './config'
+import {isMobile} from './platform'
 import type * as RPCGen from './types/rpc-gen'
 import type * as Types from './types/profile'
 
@@ -110,6 +113,7 @@ type State = Store & {
     recheckProof: (sigID: string) => void
     resetState: 'default'
     revokeFinish: (error?: string) => void
+    setEditAvatar: (f: () => void) => void
     showUserProfile: (username: string) => void
     submitBlockUser: (username: string) => void
     submitBTCAddress: () => void
@@ -130,13 +134,12 @@ type State = Store & {
     updatePlatformGenericURL: (url: string) => void
     updatePromptShouldStoreKeyOnServer: (promptShouldStoreKeyOnServer: boolean) => void
     updateProofStatus: (found: boolean, status: RPCTypes.ProofStatus) => void
-    updateProofText: (proof) => void
+    updateProofText: (proof: string) => void
     updateSigID: (sigID?: RPCTypes.SigID) => void
     updateUsername: (username: string) => void
-uploadAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) => void
-},
-    wotVouch: () => void
-    wotVouchSetError: (error: string) => void
+    uploadAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) => void
+    // wotVouch: () => void
+    // wotVouchSetError: (error: string) => void
   }
 }
 
@@ -200,7 +203,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     backToProfile: () => {
-      // todo
+      reduxDispatch(RouteTreeGen.createClearModals())
+      get().dispatch.showUserProfile(ConfigConstants.useCurrentUserState.getState().username)
     },
     cancelAddProof: () => {
       set(s => {
@@ -261,10 +265,14 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     editAvatar: () => {
-      // TODO
+      throw new Error('This is overloaded by platform specific')
     },
-    editProfile: (bio, fullname, location) => {
-      // TODO
+    editProfile: (bio, fullName, location) => {
+      const f = async () => {
+        await RPCTypes.userProfileEditRpcPromise({bio, fullName, location}, TrackerConstants.waitingKey)
+        get().dispatch.showUserProfile(ConfigConstants.useCurrentUserState.getState().username)
+      }
+      Z.ignorePromise(f())
     },
     finishBlockUser: error => {
       set(s => {
@@ -274,13 +282,13 @@ export const useState = Z.createZustand<State>((set, get) => {
     finishRevoking: () => {
       // TODO
     },
-    finishedWithKeyGen: shouldStoreKeyOnServer => {
+    finishedWithKeyGen: _shouldStoreKeyOnServer => {
       // TODO
     },
     generatePgp: () => {
       // TODO
     },
-    hideStellar: h => {
+    hideStellar: _h => {
       // TODO
     },
     proofParamsReceived: params => {
@@ -288,7 +296,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.platformGenericParams = params
       })
     },
-    recheckProof: sigID => {
+    recheckProof: _sigID => {
       // TODO
       // draftState.errorCode = undefined
       // draftState.errorText = ''
@@ -299,27 +307,36 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.revokeError = error ?? ''
       })
     },
-    showUserProfile: (username: string) => {
-      // TODO
+    setEditAvatar: (f: () => void) => {
+      set(s => {
+        s.dispatch.editAvatar = f
+      })
+    },
+    showUserProfile: username => {
+      if (isMobile) {
+        reduxDispatch(RouteTreeGen.createClearModals())
+      }
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profile'}]}))
     },
     submitBTCAddress: () => {
       set(s => {
         updateUsername(s)
       })
     },
-    submitBlockUser: (username: string) => {
+    submitBlockUser: _username => {
+      // TODO
       set(s => {
         s.blockUserModal = 'waiting'
       })
     },
-    submitRevokeProof: (proofId: string) => {
+    submitRevokeProof: _proofId => {
       // todo
+    },
+    submitUnblockUser: (_username, _guiID) => {
+      // TODO
     },
     submitUsername: () => {
       // todo
-    },
-    submitUnblockUser: (username: string, guiID: string) => {
-      // TODO
     },
     submitZcashAddress: () => {
       set(s => {
@@ -383,15 +400,15 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.sigID = sigID
       })
     },
-    updateUsername: (username) => {
+    updateUsername: username => {
       set(s => {
         s.username = username
         updateUsername(s)
       })
     },
-uploadAvatar: (filename, crop) => {
-            // TODO
-        },
+    uploadAvatar: (_filename, _crop) => {
+      // TODO
+    },
     // wotVouch: () => {
     //   set(s => {
     //     s.wotAuthorError = ''
