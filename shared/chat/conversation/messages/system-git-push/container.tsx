@@ -2,7 +2,7 @@ import * as Container from '../../../../util/container'
 import * as FsConstants from '../../../../constants/fs'
 import * as FsTypes from '../../../../constants/types/fs'
 import * as GitConstants from '../../../../constants/git'
-import * as ProfileGen from '../../../../actions/profile-gen'
+import * as ProfileConstants from '../../../../constants/profile'
 import * as React from 'react'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import Git from '.'
@@ -29,13 +29,14 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
     },
     [dispatch, message]
   )
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onClickUserAvatar = React.useCallback(
     (username: string) => {
       Container.isMobile
-        ? dispatch(ProfileGen.createShowUserProfile({username}))
+        ? showUserProfile(username)
         : dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     },
-    [dispatch]
+    [dispatch, showUserProfile]
   )
   const navigateToTeamRepo = GitConstants.useGitState(s => s.dispatch.navigateToTeamRepo)
   const onViewGitRepo = React.useCallback(

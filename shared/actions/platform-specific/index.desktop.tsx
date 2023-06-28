@@ -1,10 +1,13 @@
 import * as ConfigConstants from '../../constants/config'
+import * as RouteTreeGen from '../route-tree-gen'
+import * as ProfileConstants from '../../constants/profile'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as FsConstants from '../../constants/fs'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Z from '../../util/zustand'
 import InputMonitor from './input-monitor.desktop'
 import KB2 from '../../util/electron.desktop'
 import logger from '../../logger'
@@ -214,6 +217,15 @@ const maybePauseVideos = () => {
   })
 }
 
+const editAvatar = () => {
+  const reduxDispatch = Z.getReduxDispatch()
+  reduxDispatch(
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {image: undefined}, selected: 'profileEditAvatar'}],
+    })
+  )
+}
+
 export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.showMain, () => showMainWindow?.())
   Container.listenAction(ConfigGen.dumpLogs, dumpLogs)
@@ -290,6 +302,8 @@ export const initPlatformListener = () => {
   Container.listenAction(FsGen.userFileEditsLoad, () => {
     FsConstants.useState.getState().dispatch.userFileEditsLoad()
   })
+
+  ProfileConstants.useState.getState().dispatch.setEditAvatar(editAvatar)
 
   initializeInputMonitor()
 }

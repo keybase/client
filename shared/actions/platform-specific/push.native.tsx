@@ -2,11 +2,11 @@ import * as Chat2Gen from '../chat2-gen'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
+import * as ProfileConstants from '../../constants/profile'
 import * as ConfigConstants from '../../constants/config'
 import * as WaitingConstants from '../../constants/waiting'
 import * as Container from '../../util/container'
 import * as NotificationsGen from '../notifications-gen'
-import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -311,7 +311,7 @@ const handlePush = async (
         if (notification.userInteraction) {
           const {username} = notification
           logger.info('[Push] follower: ', username)
-          listenerApi.dispatch(ProfileGen.createShowUserProfile({username}))
+          ProfileConstants.useState.getState().dispatch.showUserProfile(username)
         }
         break
       case 'chat.extension':

@@ -1,7 +1,7 @@
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as React from 'react'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as Constants from '../../../constants/fs'
+import * as ProfileConstants from '../../../constants/profile'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import type * as RPCTypes from '../../../constants/types/rpc-gen'
@@ -34,13 +34,14 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     },
     [dispatch]
   )
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onViewProfile = React.useCallback(
     (username: string) => () => {
       Container.isMobile
-        ? dispatch(ProfileGen.createShowUserProfile({username}))
+        ? showUserProfile(username)
         : dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     },
-    [dispatch]
+    [dispatch, showUserProfile]
   )
   const props = {
     onOpenWithoutResetUsers: () =>

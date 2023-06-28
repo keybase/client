@@ -1,9 +1,9 @@
 import * as Constants from '../constants/tracker2'
 import * as ConfigConstants from '../constants/config'
 import * as LinksConstants from '../constants/deeplinks'
+import * as ProfileConstants from '../constants/profile'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as ProfileGen from './profile-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Tracker2Gen from './tracker2-gen'
@@ -292,7 +292,8 @@ const showUser = (_: unknown, action: Tracker2Gen.ShowUserPayload) => {
   })
   if (!action.payload.skipNav) {
     // go to profile page
-    return [load, ProfileGen.createShowUserProfile({username: action.payload.username})]
+    ProfileConstants.useState.getState().dispatch.showUserProfile(action.payload.username)
+    return load
   } else {
     return load
   }

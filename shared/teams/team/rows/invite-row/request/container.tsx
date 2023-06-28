@@ -1,13 +1,13 @@
+import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as Constants from '../../../../../constants/teams'
+import * as ProfileConstants from '../../../../../constants/profile'
+import * as Container from '../../../../../util/container'
 import * as React from 'react'
 import * as TeamsGen from '../../../../../actions/teams-gen'
 import type * as Types from '../../../../../constants/types/teams'
-import * as Constants from '../../../../../constants/teams'
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Container from '../../../../../util/container'
-import {sendNotificationFooter} from '../../../../role-picker'
 import type {RowProps} from '.'
 import {TeamRequestRow} from '.'
-import {createShowUserProfile} from '../../../../../actions/profile-gen'
+import {sendNotificationFooter} from '../../../../role-picker'
 
 type OwnProps = {
   ctime: number
@@ -88,8 +88,9 @@ export default (ownProps: OwnProps) => {
   const onChat = () => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))
   }
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {
-    dispatch(createShowUserProfile({username}))
+    showUserProfile(username)
   }
   const props = {
     _notifLabel: _notifLabel,

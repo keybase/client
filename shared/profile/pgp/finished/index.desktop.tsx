@@ -1,9 +1,9 @@
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/profile'
 import Modal from '../../modal'
 
 type Props = {
@@ -86,16 +86,13 @@ const styles = Styles.styleSheetCreate(
 )
 
 export default () => {
-  const pgpKeyString = Container.useSelector(
-    state => state.profile.pgpPublicKey || 'Error getting public key...'
-  )
-  const promptShouldStoreKeyOnServer = Container.useSelector(
-    state => state.profile.promptShouldStoreKeyOnServer
-  )
+  const pgpKeyString = Constants.useState(s => s.pgpPublicKey || 'Error getting public key...')
+  const promptShouldStoreKeyOnServer = Constants.useState(s => s.promptShouldStoreKeyOnServer)
+  const finishedWithKeyGen = Constants.useState(s => s.dispatch.finishedWithKeyGen)
 
   const dispatch = Container.useDispatch()
   const onDone = (shouldStoreKeyOnServer: boolean) => {
-    dispatch(ProfileGen.createFinishedWithKeyGen({shouldStoreKeyOnServer}))
+    finishedWithKeyGen(shouldStoreKeyOnServer)
     dispatch(RouteTreeGen.createClearModals())
   }
   const props = {

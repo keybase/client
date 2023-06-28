@@ -1,5 +1,5 @@
 import * as Container from '../../../util/container'
-import * as ProfileGen from '../../../actions/profile-gen'
+import * as Constants from '../../../constants/profile'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
 import * as Styles from '../../../styles'
@@ -10,8 +10,9 @@ export default () => {
   const onCancel = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
+  const addProof = Constants.useState(s => s.dispatch.addProof)
   const providerClicked = (key: string) => {
-    dispatch(ProfileGen.createAddProof({platform: key, reason: 'profile'}))
+    addProof(key, 'profile')
   }
   const props = {
     onCancel: onCancel,

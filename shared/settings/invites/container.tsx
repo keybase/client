@@ -1,8 +1,8 @@
 import * as Constants from '../../constants/settings'
+import * as ProfileConstants from '../../constants/profile'
 import * as SettingsGen from '../../actions/settings-gen'
 import type * as Types from '../../constants/types/settings'
 import Invites from '.'
-import {createShowUserProfile} from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 
@@ -35,9 +35,8 @@ export default () => {
       })
     )
   }
-  const onSelectUser = (username: string) => {
-    dispatch(createShowUserProfile({username}))
-  }
+
+  const onSelectUser = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const props = {
     acceptedInvites: acceptedInvites,
     error: error,

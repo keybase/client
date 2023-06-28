@@ -1,13 +1,14 @@
 import * as Kb from '../../../common-adapters'
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/profile'
 import Modal from '../../modal'
 
 export default function Generate() {
   const dispatch = Container.useDispatch()
+  const cancelPgpGen = Constants.useState(s => s.dispatch.cancelPgpGen)
   const onCancel = () => {
-    dispatch(ProfileGen.createCancelPgpGen())
+    cancelPgpGen()
     dispatch(RouteTreeGen.createClearModals())
   }
   return (

@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Constants from '../../../../../constants/chat2'
+import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
 import * as DeeplinksConstants from '../../../../../constants/deeplinks'
 import * as ConfigConstants from '../../../../../constants/config'
@@ -11,7 +12,6 @@ import * as React from 'react'
 import type * as TeamTypes from '../../../../../constants/types/teams'
 import type * as Types from '../../../../../constants/types/chat2'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
-import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerformByID} from '../../../../../constants/teams'
 import {makeMessageText} from '../../../../../constants/chat2/message'
 
@@ -190,9 +190,9 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
-  const _onViewProfile = (username: string) => {
-    dispatch(createShowUserProfile({username}))
-  }
+
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const _onViewProfile = showUserProfile
   const yourMessage = message.author === _you
   const isDeleteable = !!(_isDeleteable && (yourMessage || _canAdminDelete))
   const isEditable = !!(_isEditable && yourMessage)

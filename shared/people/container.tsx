@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Constants from '../constants/people'
+import * as ProfileConstants from '../constants/profile'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import {createShowUserProfile} from '../actions/profile-gen'
 import People from '.'
 
 let lastRefresh: number = 0
@@ -20,7 +20,6 @@ const PeopleReloadable = () => {
   const loadPeople = Constants.useState(s => s.dispatch.loadPeople)
   // const wotUpdates = Container.useSelector(state => state.people.wotUpdates)
 
-  const dispatch = Container.useDispatch()
   const getData = React.useCallback(
     (markViewed = true, force = false) => {
       const now = Date.now()
@@ -31,10 +30,10 @@ const PeopleReloadable = () => {
     },
     [loadPeople]
   )
-  const onClickUser = React.useCallback(
-    (username: string) => dispatch(createShowUserProfile({username})),
-    [dispatch]
-  )
+
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+
+  const onClickUser = React.useCallback((username: string) => showUserProfile(username), [showUserProfile])
 
   const onReload = React.useCallback(
     () => getData(false, !followSuggestions.length),

@@ -1,33 +1,38 @@
-import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/profile'
 import ProveEnterUsername from '.'
 
 export default () => {
-  const profile = Container.useSelector(state => state.profile)
+  const platform = Constants.useState(s => s.platform)
+  const username = Constants.useState(s => s.username)
+  const _errorText = Constants.useState(s => s.errorText)
+  const updateUsername = Constants.useState(s => s.dispatch.updateUsername)
+  const cancelAddProof = Constants.useState(s => s.dispatch.cancelAddProof)
+  const submitBTCAddress = Constants.useState(s => s.dispatch.submitBTCAddress)
+  const submitZcashAddress = Constants.useState(s => s.dispatch.submitZcashAddress)
+  const submitUsername = Constants.useState(s => s.dispatch.submitUsername)
 
-  if (!profile.platform) {
+  if (!platform) {
     throw new Error('No platform passed to prove enter username')
   }
 
-  const errorText = profile.errorText === 'Input canceled' ? '' : profile.errorText
-  const platform = profile.platform
-  const username = profile.username
+  const errorText = _errorText === 'Input canceled' ? '' : _errorText
 
   const dispatch = Container.useDispatch()
   const _onSubmit = (username: string, platform?: string) => {
-    dispatch(ProfileGen.createUpdateUsername({username}))
+    updateUsername(username)
 
     if (platform === 'btc') {
-      dispatch(ProfileGen.createSubmitBTCAddress())
+      submitBTCAddress()
     } else if (platform === 'zcash') {
-      dispatch(ProfileGen.createSubmitZcashAddress())
+      submitZcashAddress()
     } else {
-      dispatch(ProfileGen.createSubmitUsername())
+      submitUsername()
     }
   }
   const onCancel = () => {
-    dispatch(ProfileGen.createCancelAddProof())
+    cancelAddProof()
     dispatch(RouteTreeGen.createClearModals())
   }
   const props = {

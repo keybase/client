@@ -1,6 +1,6 @@
-import * as ProfileGen from '../actions/profile-gen'
 import * as Followers from '../constants/followers'
 import * as ConfigConstants from '../constants/config'
+import * as ProfileConstants from '../constants/profile'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import Mention, {type OwnProps} from './mention'
 import {isSpecialMention} from '../constants/chat2'
@@ -26,9 +26,10 @@ export default (ownProps: OwnProps) => {
 
   const dispatch = Container.useDispatch()
 
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const _onClick = () => {
     if (Container.isMobile) {
-      dispatch(ProfileGen.createShowUserProfile({username}))
+      showUserProfile(username)
     } else {
       dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     }

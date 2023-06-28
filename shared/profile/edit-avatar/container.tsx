@@ -1,5 +1,4 @@
 import EditAvatar from '.'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
@@ -56,9 +55,12 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
+
+  const uploadAvatar = Constants.useState(s => s.dispatch.uploadAvatar)
+
   const onSaveUserAvatar = (_filename: string, crop?: RPCTypes.ImageCropRect) => {
     const filename = Styles.unnormalizePath(_filename)
-    dispatch(ProfileGen.createUploadAvatar({crop, filename}))
+    uploadAvatar(filename, crop)
   }
   const onSaveWizardAvatar = (_filename: string, crop?: Types.AvatarCrop) => {
     const filename = Styles.unnormalizePath(_filename)

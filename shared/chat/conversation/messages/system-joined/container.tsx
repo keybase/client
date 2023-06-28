@@ -1,8 +1,8 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
+import * as ProfileConstants from '../../../../constants/profile'
 import * as Container from '../../../../util/container'
-import * as ProfileGen from '../../../../actions/profile-gen'
 import * as React from 'react'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import Joined from '.'
@@ -33,8 +33,9 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
       })
     )
   }, [dispatch, conversationIDKey])
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onAuthorClick = (username: string) => {
-    dispatch(ProfileGen.createShowUserProfile({username}))
+    showUserProfile(username)
   }
 
   const joiners2 = React.useMemo(() => {

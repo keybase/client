@@ -1,4 +1,3 @@
-// import * as UsersGen from './users-gen'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as UsersGen from './users-gen'
@@ -7,8 +6,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/users'
 import * as TrackerConstants from '../constants/tracker2'
 import * as Tracker2Gen from './tracker2-gen'
-import * as ProfileGen from './profile-gen'
-import * as RouteTreeGen from './route-tree-gen'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
 
@@ -90,34 +87,34 @@ const submitRevokeVouch = async (_: Container.TypedState, action: UsersGen.Submi
   })
 }
 
-const wotReact = async (_: unknown, action: UsersGen.WotReactPayload) => {
-  const {fromModal, reaction, sigID, voucher} = action.payload
-  if (!fromModal) {
-    // This needs an error path. Happens when coming from a button directly on the profile screen.
-    await RPCTypes.wotWotReactRpcPromise(
-      {allowEmptySigID: false, reaction, sigID, voucher},
-      Constants.wotReactWaitingKey
-    )
-    return []
-  }
-  try {
-    await RPCTypes.wotWotReactRpcPromise(
-      {allowEmptySigID: false, reaction, sigID, voucher},
-      Constants.wotReactWaitingKey
-    )
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return ProfileGen.createWotVouchSetError({
-        error: `There was an error reviewing the claim.`,
-      })
-    }
-    logger.warn('Error from wotReact:', error)
-    return ProfileGen.createWotVouchSetError({
-      error: error.desc || `There was an error reviewing the claim.`,
-    })
-  }
-  return [ProfileGen.createWotVouchSetError({error: ''}), RouteTreeGen.createClearModals()]
-}
+// const wotReact = async (_: unknown, action: UsersGen.WotReactPayload) => {
+//   const {fromModal, reaction, sigID, voucher} = action.payload
+//   if (!fromModal) {
+//     // This needs an error path. Happens when coming from a button directly on the profile screen.
+//     await RPCTypes.wotWotReactRpcPromise(
+//       {allowEmptySigID: false, reaction, sigID, voucher},
+//       Constants.wotReactWaitingKey
+//     )
+//     return []
+//   }
+//   try {
+//     await RPCTypes.wotWotReactRpcPromise(
+//       {allowEmptySigID: false, reaction, sigID, voucher},
+//       Constants.wotReactWaitingKey
+//     )
+//   } catch (error) {
+//     if (!(error instanceof RPCError)) {
+//       return ProfileGen.createWotVouchSetError({
+//         error: `There was an error reviewing the claim.`,
+//       })
+//     }
+//     logger.warn('Error from wotReact:', error)
+//     return ProfileGen.createWotVouchSetError({
+//       error: error.desc || `There was an error reviewing the claim.`,
+//     })
+//   }
+//   return [ProfileGen.createWotVouchSetError({error: ''}), RouteTreeGen.createClearModals()]
+// }
 
 const initUsers = () => {
   Container.listenAction(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate)
@@ -125,7 +122,7 @@ const initUsers = () => {
   Container.listenAction(UsersGen.setUserBlocks, setUserBlocks)
   Container.listenAction(UsersGen.getBlockState, getBlockState)
   Container.listenAction(UsersGen.reportUser, reportUser)
-  Container.listenAction(UsersGen.wotReact, wotReact)
+  // Container.listenAction(UsersGen.wotReact, wotReact)
   Container.listenAction(UsersGen.submitRevokeVouch, submitRevokeVouch)
   Container.listenAction(TeamBuildingGen.searchResultsLoaded, refreshBlockList)
 }

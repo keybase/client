@@ -2,8 +2,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/chat2'
 import * as ConfigConstants from '../../constants/config'
+import * as ProfileConstants from '../../constants/profile'
 import * as Container from '../../util/container'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 type Props = {conversationID: string}
 
@@ -21,6 +21,7 @@ const BlockButtons = (props: Props) => {
     Constants.getParticipantInfo(state, props.conversationID)
   )
   const currentUser = ConfigConstants.useCurrentUserState(s => s.username)
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   if (!blockButtonInfo) {
     return null
   }
@@ -30,7 +31,7 @@ const BlockButtons = (props: Props) => {
     person => person !== currentUser && person !== adder && !Constants.isAssertion(person)
   )
 
-  const onViewProfile = () => dispatch(ProfileGen.createShowUserProfile({username: adder}))
+  const onViewProfile = () => showUserProfile(adder)
   const onViewTeam = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
   const onBlock = () =>

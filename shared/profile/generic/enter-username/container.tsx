@@ -1,12 +1,19 @@
 import * as Container from '../../../util/container'
-import * as ProfileGen from '../../../actions/profile-gen'
+import * as Constants from '../../../constants/profile'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import openURL from '../../../util/open-url'
 import EnterUsername from '.'
+import shallowEqual from 'shallowequal'
 
 const ConnectedEnterUsername = () => {
-  const profile = Container.useSelector(state => state.profile)
-  const {username, platformGenericParams, platformGenericURL, errorText, platformGenericChecking} = profile
+  const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = Constants.useState(
+    s => {
+      const {platformGenericChecking, platformGenericParams, platformGenericURL, username} = s
+      return {platformGenericChecking, platformGenericParams, platformGenericURL, username}
+    },
+    shallowEqual
+  )
+  const errorText = Constants.useState(s => s.errorText)
   const _platformURL = platformGenericURL
   const error = errorText
   const serviceIcon = platformGenericParams?.logoBlack ?? []
@@ -18,20 +25,20 @@ const ConnectedEnterUsername = () => {
   const unreachable = !!platformGenericURL
   const waiting = platformGenericChecking
 
+  const cancelAddProof = Constants.useState(s => s.dispatch.cancelAddProof)
+  const updateUsername = Constants.useState(s => s.dispatch.updateUsername)
+  const submitUsername = Constants.useState(s => s.dispatch.submitUsername)
+
   const dispatch = Container.useDispatch()
   const onBack = () => {
-    dispatch(ProfileGen.createCancelAddProof())
+    cancelAddProof()
     dispatch(RouteTreeGen.createClearModals())
   }
-  const onChangeUsername = (username: string) => {
-    dispatch(ProfileGen.createUpdateUsername({username}))
-  }
+  const onChangeUsername = updateUsername
   const onContinue = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['profileGenericProofResult']}))
   }
-  const onSubmit = () => {
-    dispatch(ProfileGen.createSubmitUsername())
-  }
+  const onSubmit = submitUsername
   const props = {
     error: error,
     onBack: onBack,

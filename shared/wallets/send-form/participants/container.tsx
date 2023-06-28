@@ -1,6 +1,6 @@
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as ConfigConstants from '../../../constants/config'
+import * as ProfileConstants from '../../../constants/profile'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -27,8 +27,9 @@ const ConnectedParticipantsKeybaseUser = () => {
   const onOpenTracker = (username: string) => {
     dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
   }
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onOpenUserProfile = (username: string) => {
-    dispatch(ProfileGen.createShowUserProfile({username}))
+    showUserProfile(username)
   }
   const onRemoveProfile = () => {
     dispatch(WalletsGen.createSetBuildingTo({to: ''}))

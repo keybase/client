@@ -1,9 +1,9 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
+import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
@@ -96,12 +96,12 @@ const UsernameHeader = (p: Props) => {
 
     return {participants, theirFullname}
   }, shallowEqual)
-  const dispatch = Container.useDispatch()
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onShowProfile = React.useCallback(
     (username: string) => {
-      dispatch(ProfileGen.createShowUserProfile({username}))
+      showUserProfile(username)
     },
-    [dispatch]
+    [showUserProfile]
   )
 
   return (

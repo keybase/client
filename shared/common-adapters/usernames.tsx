@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as ConfigConstants from '../constants/config'
+import * as ProfileConstants from '../constants/profile'
 import * as Followers from '../constants/followers'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
-import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import Text, {
   type TextType,
@@ -95,12 +95,13 @@ const Username = React.memo(function Username(p: UsernameProps) {
 
   const dispatch = Container.useDispatch()
 
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onOpenProfile = React.useCallback(
     (evt: any) => {
       evt?.stopPropagation()
-      dispatch(ProfileGen.createShowUserProfile({username}))
+      showUserProfile(username)
     },
-    [dispatch, username]
+    [showUserProfile, username]
   )
   const onOpenTracker = React.useCallback(
     (evt: any) => {

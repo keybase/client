@@ -1,30 +1,24 @@
-import * as ProfileGen from '../../actions/profile-gen'
 import ConfirmOrPending from '.'
 import {ProofStatus} from '../../constants/types/rpc-gen'
 import {globalColors} from '../../styles'
-import * as Container from '../../util/container'
+import * as Constants from '../../constants/profile'
 
 export default () => {
-  const profile = Container.useSelector(state => state.profile)
-  const isGood = profile.proofFound && profile.proofStatus === ProofStatus.ok
-  const isPending =
-    !isGood &&
-    !profile.proofFound &&
-    !!profile.proofStatus &&
-    profile.proofStatus <= ProofStatus.baseHardError
+  const proofFound = Constants.useState(s => s.proofFound)
+  const proofStatus = Constants.useState(s => s.proofStatus)
+  const platform = Constants.useState(s => s.platform)
+  const username = Constants.useState(s => s.username)
+  const backToProfile = Constants.useState(s => s.dispatch.backToProfile)
 
-  if (!profile.platform) {
+  const isGood = proofFound && proofStatus === ProofStatus.ok
+  const isPending = !isGood && !proofFound && !!proofStatus && proofStatus <= ProofStatus.baseHardError
+
+  if (!platform) {
     throw new Error('No platform passed to confirm or pending container')
   }
 
-  const platform = profile.platform
   const platformIconOverlayColor = isGood ? globalColors.green : globalColors.greyDark
-  const username = profile.username
-
-  const dispatch = Container.useDispatch()
-  const onCancel = () => {
-    dispatch(ProfileGen.createBackToProfile())
-  }
+  const onCancel = backToProfile
   const props = {isPending, onCancel, platform, platformIconOverlayColor, username}
   return <ConfirmOrPending {...props} />
 }

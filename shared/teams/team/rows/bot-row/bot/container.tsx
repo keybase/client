@@ -1,5 +1,5 @@
 import * as Constants from '../../../../../constants/teams'
-import * as ProfileGen from '../../../../../actions/profile-gen'
+import * as ProfileConstants from '../../../../../constants/profile'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../../../../actions/tracker2-gen'
 import * as Container from '../../../../../util/container'
@@ -42,9 +42,10 @@ export default (ownProps: OwnProps) => {
   const username = info.username
 
   const dispatch = Container.useDispatch()
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const _onShowTracker = (username: string) => {
     if (Container.isMobile) {
-      dispatch(ProfileGen.createShowUserProfile({username}))
+      showUserProfile(username)
     } else {
       dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     }
