@@ -457,6 +457,7 @@ protocol chatUi {
   void chatStellarDone(int sessionID, boolean canceled);
 
  record GiphySearchResult {
+    string query;
     string targetUrl;
     string previewUrl;
     int previewWidth;

@@ -2099,6 +2099,7 @@ func (o UIChatPaymentSummary) DeepCopy() UIChatPaymentSummary {
 }
 
 type GiphySearchResult struct {
+	Query          string `codec:"query" json:"query"`
 	TargetUrl      string `codec:"targetUrl" json:"targetUrl"`
 	PreviewUrl     string `codec:"previewUrl" json:"previewUrl"`
 	PreviewWidth   int    `codec:"previewWidth" json:"previewWidth"`
@@ -2108,6 +2109,7 @@ type GiphySearchResult struct {
 
 func (o GiphySearchResult) DeepCopy() GiphySearchResult {
 	return GiphySearchResult{
+		Query:          o.Query,
 		TargetUrl:      o.TargetUrl,
 		PreviewUrl:     o.PreviewUrl,
 		PreviewWidth:   o.PreviewWidth,

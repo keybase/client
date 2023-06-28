@@ -1644,6 +1644,10 @@
       "fields": [
         {
           "type": "string",
+          "name": "query"
+        },
+        {
+          "type": "string",
           "name": "targetUrl"
         },
         {

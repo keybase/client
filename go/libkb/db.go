@@ -76,6 +76,7 @@ const (
 	DBUserEKBox                      = 0xeb
 	DBTeamEKBox                      = 0xec
 	DBChatIndex                      = 0xed
+	DBChatGiphy                      = 0xee
 	DBChatReacji                     = 0xef
 	DBMerkleRoot                     = 0xf0
 	DBTrackers                       = 0xf1

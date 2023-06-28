@@ -97,6 +97,7 @@ func (s *Source) makeBuiltins() {
 	if s.G().IsMobileAppType() || s.G().GetRunMode() == libkb.DevelRunMode {
 		common = append(common, cmds[cmdLocation])
 	}
+	// TODO Use GiphyQueries() to get (i.e.3) recent quieries and append
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
 	s.builtins[chat1.ConversationBuiltinCommandTyp_BIGTEAM] = append([]types.ConversationCommand{

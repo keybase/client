@@ -189,10 +189,12 @@ func Search(mctx libkb.MetaContext, apiKeySource types.ExternalAPIKeySource, que
 	}
 	if query == nil {
 		// grab trending with no query
+		// TODO Use GiphyResults to fill in the initial results as much as we can (with fallback to trending)
 		endpoint = fmt.Sprintf("%s/v1/gifs/trending?api_key=%s&limit=%d", giphyProxy, apiKey.Giphy(), limit)
 	} else {
 		endpoint = fmt.Sprintf("%s/v1/gifs/search?api_key=%s&q=%s&limit=%d", giphyProxy, apiKey.Giphy(),
 			url.QueryEscape(*query), limit)
 	}
+	// TODO plumb query to results
 	return runAPICall(mctx, endpoint, srv)
 }
