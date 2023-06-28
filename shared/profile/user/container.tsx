@@ -1,9 +1,9 @@
 import Profile2, {type BackgroundColorType} from '.'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/tracker2'
+import * as ProfileConstants from '../../constants/profile'
 import * as Followers from '../../constants/followers'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
@@ -118,9 +118,8 @@ const Connected = (ownProps: OwnProps) => {
   })()
 
   const dispatch = Container.useDispatch()
-  const _onEditAvatar = () => {
-    dispatch(ProfileGen.createEditAvatar())
-  }
+  const editAvatar = ProfileConstants.useState(s => s.dispatch.editAvatar)
+  const _onEditAvatar = editAvatar
   // const _onIKnowThem = (username: string, guiID: string) => {
   //   dispatch(
   //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})

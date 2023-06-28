@@ -1,9 +1,9 @@
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/wallets'
+import * as ProfileConstants from '../../constants/profile'
 import * as Types from '../../constants/types/wallets'
 import * as ConfigConstants from '../../constants/config'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {getFullname} from '../../constants/users'
@@ -48,9 +48,8 @@ export default (ownProps: OwnProps) => {
   const onLoadPaymentDetail = () => {
     dispatch(WalletsGen.createLoadPaymentDetail({accountID, paymentID}))
   }
-  const onShowProfile = (username: string) => {
-    dispatch(ProfileGen.createShowUserProfile({username}))
-  }
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const onShowProfile = showUserProfile
   const tx = _transaction
   if (loading) {
     const props = {

@@ -1,6 +1,6 @@
 import * as Constants from '../../constants/wallets'
+import * as ProfileConstants from '../../constants/profile'
 import * as Container from '../../util/container'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
@@ -23,9 +23,10 @@ export default () => {
   const to = build.to
 
   const dispatch = Container.useDispatch()
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const _onReviewProofs = (username: string) => {
     Container.isMobile
-      ? dispatch(ProfileGen.createShowUserProfile({username}))
+      ? showUserProfile(username)
       : dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
   }
   const onAbandonPayment = () => {

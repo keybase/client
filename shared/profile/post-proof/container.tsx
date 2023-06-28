@@ -1,33 +1,34 @@
 import * as ConfigGen from '../../actions/config-gen'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import PostProof from '.'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/profile'
 
 export default () => {
-  const profile = Container.useSelector(state => state.profile)
+  const platform = Constants.useState(s => s.platform)
   const errorText = Constants.useState(s => s.errorText)
+  const username = Constants.useState(s => s.username)
+  let proofText = Constants.useState(s => s.proofText)
+
+  const cancelAddProof = Constants.useState(s => s.dispatch.cancelAddProof)
+  const checkProof = Constants.useState(s => s.dispatch.checkProof)
 
   if (
-    !profile.platform ||
-    profile.platform === 'zcash' ||
-    profile.platform === 'btc' ||
-    profile.platform === 'dnsOrGenericWebSite' ||
-    profile.platform === 'pgp'
+    !platform ||
+    platform === 'zcash' ||
+    platform === 'btc' ||
+    platform === 'dnsOrGenericWebSite' ||
+    platform === 'pgp'
   ) {
-    throw new Error(`Invalid profile platform in PostProofContainer: ${profile.platform || ''}`)
+    throw new Error(`Invalid profile platform in PostProofContainer: ${platform || ''}`)
   }
-
-  const platform = profile.platform
 
   let url = ''
   let openLinkBeforeSubmit = false
-  let proofText = profile.proofText || ''
   switch (platform) {
     case 'twitter':
       openLinkBeforeSubmit = true
-      url = profile.proofText ? `https://twitter.com/home?status=${profile.proofText || ''}` : ''
+      url = proofText ? `https://twitter.com/home?status=${proofText || ''}` : ''
       break
     case 'github':
       openLinkBeforeSubmit = true
@@ -36,18 +37,18 @@ export default () => {
     case 'reddit': // fallthrough
     case 'facebook':
       openLinkBeforeSubmit = true
-      url = profile.proofText ? profile.proofText : ''
+      url = proofText ? proofText : ''
       proofText = ''
       break
     case 'hackernews':
       openLinkBeforeSubmit = true
-      url = `https://news.ycombinator.com/user?id=${profile.username || ''}`
+      url = `https://news.ycombinator.com/user?id=${username || ''}`
       break
     default:
       break
   }
 
-  const platformUserName = profile.username
+  const platformUserName = username
 
   const dispatch = Container.useDispatch()
   const copyToClipboard = (text: string) => {
@@ -55,11 +56,9 @@ export default () => {
   }
   const onCancel = () => {
     dispatch(RouteTreeGen.createClearModals())
-    dispatch(ProfileGen.createCancelAddProof())
+    cancelAddProof()
   }
-  const onSubmit = () => {
-    dispatch(ProfileGen.createCheckProof())
-  }
+  const onSubmit = checkProof
   const props = {
     copyToClipboard,
     errorMessage: errorText,
@@ -68,7 +67,7 @@ export default () => {
     openLinkBeforeSubmit: openLinkBeforeSubmit,
     platform,
     platformUserName,
-    proofText: proofText,
+    proofText,
     url: url,
   }
   return <PostProof {...props} />

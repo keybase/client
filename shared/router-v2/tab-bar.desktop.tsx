@@ -3,11 +3,11 @@ import * as ConfigGen from '../actions/config-gen'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
+import * as ProfileConstants from '../constants/profile'
 import * as NotifConstants from '../constants/notifications'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as Platforms from '../constants/platform'
-import * as ProfileGen from '../actions/profile-gen'
 import * as ProvisionGen from '../actions/provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
@@ -43,7 +43,8 @@ const Header = () => {
   const getAttachmentRef = () => attachmentRef.current
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const fullname = Container.useSelector(state => TrackerConstants.getDetails(state, username).fullname || '')
-  const onProfileClick = () => dispatch(ProfileGen.createShowUserProfile({username}))
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const onProfileClick = () => showUserProfile(username)
   const onClickWrapper = () => {
     setShowingMenu(false)
     onProfileClick()

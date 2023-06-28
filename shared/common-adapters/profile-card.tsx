@@ -3,8 +3,8 @@ import * as Followers from '../constants/followers'
 import * as Styles from '../styles'
 import * as Platforms from '../util/platforms'
 import * as Container from '../util/container'
-import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Constants from '../constants/tracker2'
+import * as ProfileConstants from '../constants/profile'
 import * as ConfigConstants from '../constants/config'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import type * as Tracker2Types from '../constants/types/tracker2'
@@ -179,10 +179,11 @@ const ProfileCard = ({
     [dispatch, userDetails]
   )
 
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const openProfile = React.useCallback(() => {
-    dispatch(ProfileGen.createShowUserProfile({username}))
+    showUserProfile(username)
     onHide?.()
-  }, [dispatch, onHide, username])
+  }, [showUserProfile, onHide, username])
 
   return (
     <Kb.Box2

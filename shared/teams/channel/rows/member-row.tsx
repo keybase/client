@@ -5,12 +5,12 @@ import type * as Types from '../../../constants/types/teams'
 import type * as ChatTypes from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
+import * as ProfileConstants from '../../../constants/profile'
 import * as ChatConstants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as UsersGen from '../../../actions/users-gen'
 import MenuHeader from '../../team/rows/menu-header.new'
 
@@ -132,7 +132,8 @@ const ChannelMemberRow = (props: Props) => {
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
-      const onOpenProfile = () => username && dispatch(ProfileGen.createShowUserProfile({username}))
+      const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+      const onOpenProfile = () => username && showUserProfile(username)
       const onRemoveFromChannel = () =>
         dispatch(
           RouteTreeGen.createNavigateAppend({

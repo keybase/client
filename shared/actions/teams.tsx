@@ -3,10 +3,10 @@
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsGen from './teams-gen'
-import * as ProfileGen from './profile-gen'
 import * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
 import * as ConfigConstants from '../constants/config'
+import * as ProfileConstants from '../constants/profile'
 import * as ChatConstants from '../constants/chat2'
 import * as ChatTypes from '../constants/types/chat2'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
@@ -383,7 +383,7 @@ const addReAddErrorHandler = (username: string, e: RPCError) => {
   // identify error
   if (e.code === RPCTypes.StatusCode.scidentifysummaryerror) {
     // show profile card
-    return ProfileGen.createShowUserProfile({username})
+    ProfileConstants.useState.getState().dispatch.showUserProfile(username)
   }
   return undefined
 }

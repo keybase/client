@@ -1,9 +1,9 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/teams'
 import * as ConfigConstants from '../../../constants/config'
+import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -644,9 +644,10 @@ export const TeamMemberHeader = (props: Props) => {
   const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
   const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
 
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
-  const onViewProfile = () => dispatch(ProfileGen.createShowUserProfile({username}))
+  const onViewProfile = () => showUserProfile(username)
   const onViewTeam = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
 

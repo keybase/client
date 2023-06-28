@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/people'
-import * as ProfileGen from '../../actions/profile-gen'
+import * as ProfileConstants from '../../constants/profile'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as SettingsGen from '../../actions/settings-gen'
@@ -88,8 +88,8 @@ const AvatarTeamConnector = (props: TodoOwnProps) => {
 }
 
 const AvatarUserConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
-  const onConfirm = () => dispatch(ProfileGen.createEditAvatar())
+  const editAvatar = ProfileConstants.useState(s => s.dispatch.editAvatar)
+  const onConfirm = editAvatar
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />
 }
@@ -107,8 +107,8 @@ const BioConnector = (props: TodoOwnProps) => {
 
 const ProofConnector = (props: TodoOwnProps) => {
   const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
-  const dispatch = Container.useDispatch()
-  const onConfirm = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const onConfirm = showUserProfile
   const onDismiss = useOnSkipTodo('proof')
   const buttons = makeDefaultButtons(() => onConfirm(myUsername), props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />

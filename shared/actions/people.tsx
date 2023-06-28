@@ -1,9 +1,9 @@
 import * as Constants from '../constants/people'
 import * as SettingsGen from './settings-gen'
 import * as Router2Constants from '../constants/router2'
+import * as ProfileConstants from '../constants/profile'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
@@ -33,10 +33,8 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
 
   // keybase username is in serviceMap.keybase, otherwise assertion is id
   const username = user.serviceMap.keybase || user.id
-  return [
-    TeamBuildingGen.createCancelTeamBuilding({namespace: 'people'}),
-    ProfileGen.createShowUserProfile({username}),
-  ]
+  ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+  return TeamBuildingGen.createCancelTeamBuilding({namespace: 'people'})
 }
 
 const initPeople = () => {

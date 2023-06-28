@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigConstants from '../../../../constants/config'
+import * as ProfileConstants from '../../../../constants/profile'
 import * as Container from '../../../../util/container'
-import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import SystemChangeRetention from '.'
@@ -24,11 +24,12 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
   )
 
   const dispatch = Container.useDispatch()
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onClickUserAvatar = React.useCallback(() => {
     Container.isMobile
-      ? dispatch(ProfileGen.createShowUserProfile({username: user}))
+      ? showUserProfile(user)
       : dispatch(Tracker2Gen.createShowUser({asTracker: true, username: user}))
-  }, [dispatch, user])
+  }, [showUserProfile, dispatch, user])
   const onManageRetention = React.useCallback(() => {
     dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'settings'}))
   }, [dispatch, conversationIDKey])

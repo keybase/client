@@ -1,10 +1,10 @@
 import * as Constants from '../../../constants/tracker2'
+import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
 import * as Followers from '../../../constants/followers'
 import * as ConfigConstants from '../../../constants/config'
 import * as FsConstants from '../../../constants/fs'
 import * as FsTypes from '../../../constants/types/fs'
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -64,8 +64,9 @@ export default (ownProps: OwnProps) => {
       WalletsGen.createOpenSendRequestForm({from: WalletsType.noAccountID, isRequest, recipientType, to})
     )
   }
+  const submitUnblockUser = ProfileConstants.useState(s => s.dispatch.submitUnblockUser)
   const _onUnblock = (username: string, guiID: string) => {
-    dispatch(ProfileGen.createSubmitUnblockUser({guiID, username}))
+    submitUnblockUser(username, guiID)
   }
   const props = {
     blocked: blocked,

@@ -1,8 +1,8 @@
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as ConfigConstants from '../../../constants/config'
+import * as ProfileConstants from '../../../constants/profile'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -69,14 +69,15 @@ type LProps = {
 const LeftSide = React.memo(function LeftSide(p: LProps) {
   const {username} = p
   const dispatch = Container.useDispatch()
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onAuthorClick = React.useCallback(() => {
     if (!username) return
     if (Container.isMobile) {
-      dispatch(ProfileGen.createShowUserProfile({username}))
+      showUserProfile(username)
     } else {
       dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     }
-  }, [dispatch, username])
+  }, [showUserProfile, dispatch, username])
 
   return username ? (
     <Kb.Avatar
@@ -101,13 +102,14 @@ const TopSide = React.memo(function TopSide(p: TProps) {
   const {timestamp, botAlias, showUsername, authorIsBot, authorRoleInTeam, teamType} = p
 
   const dispatch = Container.useDispatch()
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onAuthorClick = React.useCallback(() => {
     if (Container.isMobile) {
-      showUsername && dispatch(ProfileGen.createShowUserProfile({username: showUsername}))
+      showUsername && showUserProfile(showUsername)
     } else {
       showUsername && dispatch(Tracker2Gen.createShowUser({asTracker: true, username: showUsername}))
     }
-  }, [dispatch, showUsername])
+  }, [dispatch, showUsername, showUserProfile])
 
   const authorIsOwner = authorRoleInTeam === 'owner'
   const authorIsAdmin = authorRoleInTeam === 'admin'

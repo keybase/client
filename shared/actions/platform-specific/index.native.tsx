@@ -10,7 +10,6 @@ import * as EngineGen from '../engine-gen-gen'
 import * as ExpoLocation from 'expo-location'
 import * as ExpoTaskManager from 'expo-task-manager'
 import * as MediaLibrary from 'expo-media-library'
-import * as ProfileGen from '../profile-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -759,7 +758,8 @@ export const initPlatformListener = () => {
   })
   Container.listenAction(ConfigGen.openAppStore, openAppStore)
   Container.listenAction(ConfigGen.filePickerError, handleFilePickerError)
-  Container.listenAction(ProfileGen.editAvatar, editAvatar)
+  // TODO
+  // Container.listenAction(ProfileGen.editAvatar, editAvatar)
   Container.listenAction(ConfigGen.loggedInChanged, initOsNetworkStatus)
   Container.listenAction(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
 

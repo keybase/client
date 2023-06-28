@@ -1,9 +1,9 @@
 import * as ChatGen from '../actions/chat2-gen'
-import * as ProfileGen from '../actions/profile-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Tabs from './tabs'
 import * as TeamsGen from '../actions/teams-gen'
 import * as WalletsGen from '../actions/wallets-gen'
+import * as ProfileConstants from './profile'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import URL from 'url-parse'
@@ -49,7 +49,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
   const handleShowUserProfileLink = (username: string) => {
     reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
-    reduxDispatch(ProfileGen.createShowUserProfile({username}))
+    ProfileConstants.useState.getState().dispatch.showUserProfile(username)
   }
 
   const isKeybaseIoUrl = (url: URL<string>) => {
@@ -159,8 +159,8 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (parts[1] === 'new-proof' && (parts.length === 3 || parts.length === 4)) {
             parts.length === 4 &&
               parts[3] &&
-              reduxDispatch(ProfileGen.createUpdateUsername({username: parts[3]}))
-            reduxDispatch(ProfileGen.createAddProof({platform: parts[2], reason: 'appLink'}))
+              ProfileConstants.useState.getState().dispatch.showUserProfile(parts[3])
+            ProfileConstants.useState.getState().dispatch.addProof(parts[2], 'appLink')
             return
           } else if (parts[1] === 'show' && parts.length === 3) {
             // Username is basically a team name part, we can use the same logic to

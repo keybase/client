@@ -1,7 +1,7 @@
 import * as Container from '../../util/container'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/tracker2'
+import * as ProfileConstants from '../../constants/profile'
 import * as ConfigConstants from '../../constants/config'
 import type * as Types from '../../constants/types/tracker2'
 import Assertion from '.'
@@ -83,14 +83,17 @@ export default (ownProps: OwnProps) => {
   const value = a.value
 
   const dispatch = Container.useDispatch()
+  const addProof = ProfileConstants.useState(s => s.dispatch.addProof)
+  const hideStellar = ProfileConstants.useState(s => s.dispatch.hideStellar)
+  const recheckProof = ProfileConstants.useState(s => s.dispatch.recheckProof)
   const _onCreateProof = (type: string) => {
-    dispatch(ProfileGen.createAddProof({platform: type, reason: 'profile'}))
+    addProof(type, 'profile')
   }
   const _onHideStellar = (hidden: boolean) => {
-    dispatch(ProfileGen.createHideStellar({hidden}))
+    hideStellar(hidden)
   }
   const _onRecheck = (sigID: string) => {
-    dispatch(ProfileGen.createRecheckProof({sigID}))
+    recheckProof(sigID)
   }
   const _onRevokeProof = (
     type: PlatformsExpandedType,

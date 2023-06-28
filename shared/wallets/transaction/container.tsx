@@ -1,7 +1,7 @@
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/wallets'
+import * as ProfileConstants from '../../constants/profile'
 import type * as Types from '../../constants/types/wallets'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {Transaction, type ReadState} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -32,9 +32,8 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
-  const onShowProfile = (username: string) => {
-    dispatch(ProfileGen.createShowUserProfile({username}))
-  }
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const onShowProfile = showUserProfile
 
   const tx = _transaction
   const {yourRole, counterparty, counterpartyType} = Constants.paymentToYourInfoAndCounterparty(tx)

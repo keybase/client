@@ -1,8 +1,8 @@
 import * as Container from '../util/container'
 import * as ConfigConstants from '../constants/config'
+import * as ProfileConstants from '../constants/profile'
 import * as FsTypes from '../constants/types/fs'
 import * as FsGen from '../actions/fs-gen'
-import * as ProfileGen from '../actions/profile-gen'
 import * as FsUtil from '../util/kbfs'
 import * as TimestampUtil from '../util/timestamp'
 import {FilesPreview} from './files.desktop'
@@ -13,6 +13,7 @@ const FilesContainer = () => {
   const {remoteTlfUpdates} = state
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   return (
     <FilesPreview
       userTlfUpdates={
@@ -23,7 +24,7 @@ const FilesContainer = () => {
               const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
               const tlfType = FsTypes.getPathVisibility(c.tlf) || FsTypes.TlfType.Private
               return {
-                onClickAvatar: () => dispatch(ProfileGen.createShowUserProfile({username: c.writer})),
+                onClickAvatar: () => showUserProfile(c.writer),
                 onSelectPath: () =>
                   dispatch(FsGen.createOpenFilesFromWidget({path: c.tlf, type: FsTypes.PathType.Folder})),
                 participants: participants || [],

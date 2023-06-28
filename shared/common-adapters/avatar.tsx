@@ -4,10 +4,10 @@ import Avatar from './avatar.render'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type IconStyle} from './icon'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
-import * as ProfileGen from '../actions/profile-gen'
 import * as AvatarZus from './avatar-zus'
 import * as Followers from '../constants/followers'
 import * as ConfigConstants from '../constants/config'
+import * as ProfileConstants from '../constants/profile'
 import type * as Types from '../constants/types/teams'
 import './avatar.css'
 
@@ -124,10 +124,10 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
   const blocked = Container.useSelector(
     state => state.users?.blockMap?.get(username || teamname || '')?.chatBlocked
   )
-  const dispatch = Container.useDispatch()
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const goToProfile = React.useCallback(
-    () => username && dispatch(ProfileGen.createShowUserProfile({username})),
-    [dispatch, username]
+    () => username && showUserProfile(username),
+    [showUserProfile, username]
   )
 
   const opClick = ownProps.onClick === 'profile' ? (username ? goToProfile : undefined) : ownProps.onClick

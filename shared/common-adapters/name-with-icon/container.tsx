@@ -1,9 +1,9 @@
 import * as React from 'react'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import NameWithIcon, {type NameWithIconProps} from '.'
 import * as Container from '../../util/container'
+import * as ProfileConstants from '../../constants/profile'
 
 export type ConnectedNameWithIconProps = {
   onClick?: 'tracker' | 'profile' | NameWithIconProps['onClick']
@@ -24,9 +24,10 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
   const onOpenTracker = React.useCallback(() => {
     username && dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
   }, [dispatch, username])
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onOpenUserProfile = React.useCallback(() => {
-    username && dispatch(ProfileGen.createShowUserProfile({username}))
-  }, [dispatch, username])
+    username && showUserProfile(username)
+  }, [username, showUserProfile])
 
   let functionOnClick: NameWithIconProps['onClick']
   let clickType: NameWithIconProps['clickType'] = 'onClick'

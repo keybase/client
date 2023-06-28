@@ -2,8 +2,8 @@ import * as Constants from '../../../../constants/teams'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
+import * as ProfileConstants from '../../../../constants/profile'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
-import * as ProfileGen from '../../../../actions/profile-gen'
 import * as UsersGen from '../../../../actions/users-gen'
 import type * as Types from '../../../../constants/types/teams'
 import {TeamMemberRow} from '.'
@@ -55,8 +55,9 @@ export default (ownProps: OwnProps) => {
   const onClick = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]}))
   }
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {
-    username && dispatch(ProfileGen.createShowUserProfile({username}))
+    username && showUserProfile(username)
   }
   const onReAddToTeam = () => {
     dispatch(
@@ -71,7 +72,7 @@ export default (ownProps: OwnProps) => {
   }
   const onShowTracker = () => {
     if (Container.isMobile) {
-      dispatch(ProfileGen.createShowUserProfile({username}))
+      showUserProfile(username)
     } else {
       dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
     }

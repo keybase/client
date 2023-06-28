@@ -1,6 +1,6 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
-import * as ProfileGen from '../../../../actions/profile-gen'
+import * as ProfileConstants from '../../../../constants/profile'
 import type * as Types from '../../../../constants/types/chat2'
 import ResetUser from '.'
 import * as Container from '../../../../util/container'
@@ -26,9 +26,8 @@ export default (ownProps: OwnProps) => {
   const _letThemIn = (username: string, conversationIDKey: Types.ConversationIDKey) => {
     dispatch(Chat2Gen.createResetLetThemIn({conversationIDKey, username}))
   }
-  const _viewProfile = (username: string) => {
-    dispatch(ProfileGen.createShowUserProfile({username}))
-  }
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const _viewProfile = showUserProfile
   const username = (_resetParticipants && [..._resetParticipants][0]) || ''
   const nonResetUsers = new Set(_participants)
   _resetParticipants.forEach(r => nonResetUsers.delete(r))

@@ -1,10 +1,10 @@
 import * as Container from '../../../util/container'
 import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
+import * as ProfileConstants from '../../../constants/profile'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/chat2'
-import * as ProfileGen from '../../../actions/profile-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import Participant from './participant'
 import * as Styles from '../../../styles'
@@ -21,7 +21,6 @@ const spinnerItem = 'spinner item'
 
 const MembersTab = (props: Props) => {
   const {conversationIDKey} = props
-  const dispatch = Container.useDispatch()
   const {channelname, infoMap, teamMembers, teamname} = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const {teamID, channelname, teamname} = meta
@@ -74,7 +73,8 @@ const MembersTab = (props: Props) => {
       return l.username.localeCompare(r.username)
     })
 
-  const onShowProfile = (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))
+  const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const onShowProfile = showUserProfile
 
   const sections = showSpinner
     ? [{key: spinnerItem}]
