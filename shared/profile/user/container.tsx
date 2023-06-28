@@ -126,7 +126,7 @@ const Connected = (ownProps: OwnProps) => {
   //   )
   // }
   const _onReload = (username: string, isYou: boolean, state: Types.DetailsState) => {
-    if (state !== 'valid') {
+    if (state !== 'valid' && !isYou) {
       // Might be a Keybase user or not, launch non-user profile fetch.
       dispatch(Tracker2Gen.createLoadNonUserProfile({assertion: username}))
     }

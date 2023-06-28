@@ -212,7 +212,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
   let afterCheckProof = () => {}
 
-  const submitCryptoAddress = (wantedFamily: 'btc' | 'zcash') => {
+  const submitCryptoAddress = (wantedFamily: 'bitcoin' | 'zcash') => {
     set(s => {
       updateUsername(s)
     })
@@ -712,7 +712,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profile'}]}))
     },
     submitBTCAddress: () => {
-      submitCryptoAddress('btc')
+      submitCryptoAddress('bitcoin')
     },
     submitBlockUser: username => {
       set(s => {

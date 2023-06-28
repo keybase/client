@@ -62,7 +62,12 @@ const ConfirmOrPending = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  blue: {color: Styles.globalColors.blueDark},
+  blue: Styles.platformStyles({
+    common: {color: Styles.globalColors.blueDark},
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
   center: {alignSelf: 'center'},
   grey: {color: Styles.globalColors.black_20},
 }))
