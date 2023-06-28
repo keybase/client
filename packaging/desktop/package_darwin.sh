@@ -297,12 +297,12 @@ notarize_dmg() {(
     return
   fi
   echo "Uploading $dmg_name to notarization service in $out_dir"
-  uuid=$(xcrun altool --notarize-app --primary-bundle-id "keybase.notarize" --username "apple-dev@keyba.se" --password "@keychain:notarization" --file "$dmg_name" 2>&1 | grep 'RequestUUID' | awk '{ print $3 }')
+  uuid=$(xcrun notarytool submit --notarize-app --username "apple-dev@keyba.se" --password "@keychain:notarization" "$dmg_name" 2>&1 | grep 'RequestUUID' | awk '{ print $3 }')
   echo "Successfully uploaded to notarization service, polling for result: $uuid"
   sleep 15
   while :
   do
-    fullstatus=$(xcrun altool --notarization-info "$uuid" --username "apple-dev@keyba.se" --password "@keychain:notarization" 2>&1)
+    fullstatus=$(xcrun notarytool info --username "apple-dev@keyba.se" --password "@keychain:notarization" "$uuid" 2>&1)
     status=$(echo "$fullstatus" | grep 'Status\:' | awk '{ print $2 }')
     if [ "$status" = "success" ]; then
       echo "Notarization success"
