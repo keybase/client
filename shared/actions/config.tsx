@@ -5,7 +5,6 @@ import * as EngineGen from './engine-gen-gen'
 import * as SignupGen from './signup-gen'
 import * as Followers from '../constants/followers'
 import * as GregorGen from './gregor-gen'
-import * as ProvisionGen from './provision-gen'
 import * as UsersGen from './users-gen'
 import * as Constants from '../constants/config'
 import * as Platform from '../constants/platform'
@@ -486,10 +485,6 @@ const initConfig = () => {
     dispatch.replace(followers, following)
   })
 
-  Container.listenAction(ProvisionGen.startProvision, () => {
-    Constants.useConfigState.getState().dispatch.resetRevokedSelf()
-  })
-
   Container.listenAction(ConfigGen.updateWindowMaxState, (_, action) => {
     Constants.useConfigState.getState().dispatch.setWindowIsMax(action.payload.max)
   })
@@ -511,9 +506,7 @@ const initConfig = () => {
     Constants.useConfigState.getState().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
   })
 
-  Container.listenAction([SignupGen.requestAutoInvite, ProvisionGen.startProvision], () => {
-    Constants.useConfigState.getState().dispatch.loginError()
-  })
+  Container.listenAction([SignupGen.requestAutoInvite], () => {})
 }
 
 export default initConfig

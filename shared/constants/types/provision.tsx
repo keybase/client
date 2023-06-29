@@ -10,13 +10,10 @@ export type Device = {
 }
 
 export type State = {
-  codePageOtherDevice: Device
   // Code from the daemon
   codePageIncomingTextCode: HiddenString
   // Code from other device
   codePageOutgoingTextCode: HiddenString
-  // shared by all errors, we only ever want one error
-  error: HiddenString
   // if the entire process is dead, we store the whole error so we can render a lot of details about it
   finalError?: RPCError
   forgotUsernameResult: string
@@ -24,5 +21,7 @@ export type State = {
   username: string
   initialUsername: string
   deviceName: string
-  devices: Array<Device>
+
+  // TEMP just to reduce reducer arnings for now RMEOE
+  error: HiddenString
 }

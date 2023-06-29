@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
+import * as Constants from '../constants/provision'
 import * as Kb from '../common-adapters'
 import * as DevicesConstants from '../constants/devices'
 import type * as Types from '../constants/types/devices'
@@ -60,7 +61,7 @@ const Troubleshooting = (props: Props) => {
     setWaiting(true)
   }, [dispatch, username])
 
-  const device = Container.useSelector(state => state.provision.codePageOtherDevice)
+  const device = Constants.useState(s => s.codePageOtherDevice)
   const deviceIconNo = (device.deviceNumberOfType % DevicesConstants.numBackgrounds) + 1
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.

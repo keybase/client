@@ -17,9 +17,9 @@ const CodePageContainer = () => {
   const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)
   const currentDevice =
     DevicesConstants.useDevicesState(s => s.deviceMap.get(deviceID)) ?? DevicesConstants.emptyDevice
-  const error = Container.useSelector(state => state.provision.error.stringValue())
+  const error = Constants.useState(s => s.error)
 
-  const otherDevice = Container.useSelector(state => state.provision.codePageOtherDevice)
+  const otherDevice = Constants.useState(s => s.codePageOtherDevice)
   const iconNumber = DevicesConstants.useDeviceIconNumber(otherDevice.id)
   const textCode = Container.useSelector(state => state.provision.codePageIncomingTextCode.stringValue())
   const waiting = Container.useAnyWaiting(Constants.waitingKey)

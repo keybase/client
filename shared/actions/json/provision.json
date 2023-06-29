@@ -1,25 +1,15 @@
 {
   "prelude": [
-    "import type * as Types from '../constants/types/provision'",
     "import type HiddenString from '../util/hidden-string'",
     "import type {RPCError} from '../util/errors'"
   ],
   "actions": {
-    "startProvision": {"fromReset?": "boolean", "initUsername?": "string"},
     "provisionError": {"error?": "HiddenString "},
-    "submitUsername": {"username": "string"},
-    "submitPassword": {"password": "HiddenString"},
-    "submitPaperkey": {"paperkey": "HiddenString"},
     "submitTextCode": {"phrase": "HiddenString"},
-    "submitDeviceSelect": {"name": "string"},
     "submitDeviceName": {"name": "string"},
     "submitGPGMethod": {"exportKey": "boolean"},
     "switchToGPGSignOnly": {"importError": "string"},
     "submitGPGSignOK": {"accepted": "boolean"},
-    "showDeviceListPage": {
-      "_description": "Show the list of devices the user can use to provision a device",
-      "devices": "Array<Types.Device>"
-    },
     "showNewDeviceNamePage": {
       "_description": "Ask the user for a new device name",
       "existingDevices": "Array<string>",

@@ -2,7 +2,6 @@ import * as Constants from '../constants/provision'
 import * as ARConstants from '../constants/autoreset'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as ProvisionGen from '../actions/provision-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
@@ -11,7 +10,8 @@ import type * as Types from '../constants/types/provision'
 import {SignupScreen} from '../signup/common'
 
 const SelectOtherDeviceContainer = () => {
-  const devices = Container.useSelector(state => state.provision.devices)
+  const devices = Constants.useState(s => s.devices)
+  const submitDeviceSelect = Constants.useState(s => s.dispatch.submitDeviceSelect)
   const username = Container.useSelector(state => state.provision.username)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
@@ -26,9 +26,9 @@ const SelectOtherDeviceContainer = () => {
   }, [startAccountReset, username])
   const _onSelect = React.useCallback(
     (name: string) => {
-      !waiting && dispatch(ProvisionGen.createSubmitDeviceSelect({name}))
+      !waiting && submitDeviceSelect(name)
     },
-    [dispatch, waiting]
+    [submitDeviceSelect, waiting]
   )
   const onSelect = Container.useSafeSubmit(_onSelect, false)
   return (

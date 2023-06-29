@@ -1,18 +1,16 @@
 import * as Constants from '../constants/provision'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as ProvisionGen from '../actions/provision-gen'
 import * as React from 'react'
 import * as RecoverPasswordGen from '../actions/recover-password-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
-import HiddenString from '../util/hidden-string'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
 import {isMobile} from '../constants/platform'
 
 export default () => {
-  const error = Container.useSelector(state => state.provision.error.stringValue())
+  const error = Constants.useState(s => s.error)
   const resetEmailSent = Container.useSelector(state => state.recoverPassword.resetEmailSent)
   const username = Container.useSelector(state => state.provision.username)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
@@ -24,9 +22,7 @@ export default () => {
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const onSubmit = (password: string) => {
-    dispatch(ProvisionGen.createSubmitPassword({password: new HiddenString(password)}))
-  }
+  const onSubmit = Constants.useState(s => s.dispatch.setPassphrase)
   const props = {
     error,
     onBack,

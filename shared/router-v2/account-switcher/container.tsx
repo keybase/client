@@ -1,8 +1,8 @@
 import * as ConfigGen from '../../actions/config-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as ProfileConstants from '../../constants/profile'
+import * as ProvisionConstants from '../../constants/provision'
 import * as Container from '../../util/container'
-import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
@@ -22,9 +22,8 @@ export default () => {
 
   const dispatch = Container.useDispatch()
   const _onProfileClick = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-  const onAddAccount = () => {
-    dispatch(ProvisionGen.createStartProvision())
-  }
+
+  const onAddAccount = ProvisionConstants.useState(s => s.dispatch.startProvision)
   const onCancel = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }

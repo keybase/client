@@ -12,8 +12,8 @@ import {SignupScreen, errorBanner} from '../signup/common'
 import {defaultDevicename} from '../constants/signup'
 
 const PublicNameContainer = () => {
-  const devices = Container.useSelector(state => state.provision.devices)
-  const error = Container.useSelector(state => state.provision.error.stringValue())
+  const devices = Constants.useState(s => s.devices)
+  const error = Constants.useState(s => s.error)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const dispatch = Container.useDispatch()
 

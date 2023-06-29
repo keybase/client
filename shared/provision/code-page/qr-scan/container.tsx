@@ -6,7 +6,7 @@ import QRScan from '.'
 import HiddenString from '../../../util/hidden-string'
 
 const QRScanContainer = () => {
-  const error = Container.useSelector(state => state.provision.error.stringValue())
+  const error = Constants.useState(s => s.error)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const dispatch = Container.useDispatch()
   const _onSubmitTextCode = React.useCallback(

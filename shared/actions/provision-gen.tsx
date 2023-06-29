@@ -1,6 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import type * as Types from '../constants/types/provision'
 import type HiddenString from '../util/hidden-string'
 import type {RPCError} from '../util/errors'
 
@@ -15,22 +14,16 @@ export const forgotUsernameResult = 'provision:forgotUsernameResult'
 export const provisionDone = 'provision:provisionDone'
 export const provisionError = 'provision:provisionError'
 export const showCodePage = 'provision:showCodePage'
-export const showDeviceListPage = 'provision:showDeviceListPage'
 export const showFinalErrorPage = 'provision:showFinalErrorPage'
 export const showGPGPage = 'provision:showGPGPage'
 export const showInlineError = 'provision:showInlineError'
 export const showNewDeviceNamePage = 'provision:showNewDeviceNamePage'
 export const showPaperkeyPage = 'provision:showPaperkeyPage'
 export const showPasswordPage = 'provision:showPasswordPage'
-export const startProvision = 'provision:startProvision'
 export const submitDeviceName = 'provision:submitDeviceName'
-export const submitDeviceSelect = 'provision:submitDeviceSelect'
 export const submitGPGMethod = 'provision:submitGPGMethod'
 export const submitGPGSignOK = 'provision:submitGPGSignOK'
-export const submitPaperkey = 'provision:submitPaperkey'
-export const submitPassword = 'provision:submitPassword'
 export const submitTextCode = 'provision:submitTextCode'
-export const submitUsername = 'provision:submitUsername'
 export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 
 // Action Creators
@@ -41,13 +34,6 @@ export const createShowNewDeviceNamePage = (payload: {
   readonly existingDevices: Array<string>
   readonly error?: HiddenString
 }) => ({payload, type: showNewDeviceNamePage as typeof showNewDeviceNamePage})
-/**
- * Show the list of devices the user can use to provision a device
- */
-export const createShowDeviceListPage = (payload: {readonly devices: Array<Types.Device>}) => ({
-  payload,
-  type: showDeviceListPage as typeof showDeviceListPage,
-})
 /**
  * We're no longer holding an open provisioning session; it is safe to start another.
  */
@@ -100,16 +86,9 @@ export const createShowPasswordPage = (payload: {readonly error?: HiddenString} 
   payload,
   type: showPasswordPage as typeof showPasswordPage,
 })
-export const createStartProvision = (
-  payload: {readonly fromReset?: boolean; readonly initUsername?: string} = {}
-) => ({payload, type: startProvision as typeof startProvision})
 export const createSubmitDeviceName = (payload: {readonly name: string}) => ({
   payload,
   type: submitDeviceName as typeof submitDeviceName,
-})
-export const createSubmitDeviceSelect = (payload: {readonly name: string}) => ({
-  payload,
-  type: submitDeviceSelect as typeof submitDeviceSelect,
 })
 export const createSubmitGPGMethod = (payload: {readonly exportKey: boolean}) => ({
   payload,
@@ -119,21 +98,9 @@ export const createSubmitGPGSignOK = (payload: {readonly accepted: boolean}) => 
   payload,
   type: submitGPGSignOK as typeof submitGPGSignOK,
 })
-export const createSubmitPaperkey = (payload: {readonly paperkey: HiddenString}) => ({
-  payload,
-  type: submitPaperkey as typeof submitPaperkey,
-})
-export const createSubmitPassword = (payload: {readonly password: HiddenString}) => ({
-  payload,
-  type: submitPassword as typeof submitPassword,
-})
 export const createSubmitTextCode = (payload: {readonly phrase: HiddenString}) => ({
   payload,
   type: submitTextCode as typeof submitTextCode,
-})
-export const createSubmitUsername = (payload: {readonly username: string}) => ({
-  payload,
-  type: submitUsername as typeof submitUsername,
 })
 export const createSwitchToGPGSignOnly = (payload: {readonly importError: string}) => ({
   payload,
@@ -149,22 +116,16 @@ export type ForgotUsernameResultPayload = ReturnType<typeof createForgotUsername
 export type ProvisionDonePayload = ReturnType<typeof createProvisionDone>
 export type ProvisionErrorPayload = ReturnType<typeof createProvisionError>
 export type ShowCodePagePayload = ReturnType<typeof createShowCodePage>
-export type ShowDeviceListPagePayload = ReturnType<typeof createShowDeviceListPage>
 export type ShowFinalErrorPagePayload = ReturnType<typeof createShowFinalErrorPage>
 export type ShowGPGPagePayload = ReturnType<typeof createShowGPGPage>
 export type ShowInlineErrorPayload = ReturnType<typeof createShowInlineError>
 export type ShowNewDeviceNamePagePayload = ReturnType<typeof createShowNewDeviceNamePage>
 export type ShowPaperkeyPagePayload = ReturnType<typeof createShowPaperkeyPage>
 export type ShowPasswordPagePayload = ReturnType<typeof createShowPasswordPage>
-export type StartProvisionPayload = ReturnType<typeof createStartProvision>
 export type SubmitDeviceNamePayload = ReturnType<typeof createSubmitDeviceName>
-export type SubmitDeviceSelectPayload = ReturnType<typeof createSubmitDeviceSelect>
 export type SubmitGPGMethodPayload = ReturnType<typeof createSubmitGPGMethod>
 export type SubmitGPGSignOKPayload = ReturnType<typeof createSubmitGPGSignOK>
-export type SubmitPaperkeyPayload = ReturnType<typeof createSubmitPaperkey>
-export type SubmitPasswordPayload = ReturnType<typeof createSubmitPassword>
 export type SubmitTextCodePayload = ReturnType<typeof createSubmitTextCode>
-export type SubmitUsernamePayload = ReturnType<typeof createSubmitUsername>
 export type SwitchToGPGSignOnlyPayload = ReturnType<typeof createSwitchToGPGSignOnly>
 
 // All Actions
@@ -178,21 +139,15 @@ export type Actions =
   | ProvisionDonePayload
   | ProvisionErrorPayload
   | ShowCodePagePayload
-  | ShowDeviceListPagePayload
   | ShowFinalErrorPagePayload
   | ShowGPGPagePayload
   | ShowInlineErrorPayload
   | ShowNewDeviceNamePagePayload
   | ShowPaperkeyPagePayload
   | ShowPasswordPagePayload
-  | StartProvisionPayload
   | SubmitDeviceNamePayload
-  | SubmitDeviceSelectPayload
   | SubmitGPGMethodPayload
   | SubmitGPGSignOKPayload
-  | SubmitPaperkeyPayload
-  | SubmitPasswordPayload
   | SubmitTextCodePayload
-  | SubmitUsernamePayload
   | SwitchToGPGSignOnlyPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}
