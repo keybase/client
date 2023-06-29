@@ -27,7 +27,8 @@ func TestGiphyStorage(t *testing.T) {
 	giphy1 := chat1.GiphySearchResult{
 		TargetUrl: "url1",
 	}
-	store.Put(ctx, uid, giphy1)
+	err := store.Put(ctx, uid, giphy1)
+	require.NoError(t, err)
 
 	giphyRes = store.GiphyResults(ctx, uid)
 	require.Equal(t, len(giphyRes), 1)
@@ -36,14 +37,16 @@ func TestGiphyStorage(t *testing.T) {
 	giphy2 := chat1.GiphySearchResult{
 		TargetUrl: "url2",
 	}
-	store.Put(ctx, uid, giphy2)
+	err = store.Put(ctx, uid, giphy2)
+	require.NoError(t, err)
 
 	giphyRes = store.GiphyResults(ctx, uid)
 	require.Equal(t, len(giphyRes), 2)
 	require.Equal(t, giphyRes[0], giphy1)
 	require.Equal(t, giphyRes[1], giphy2)
 
-	store.Put(ctx, uid, giphy2)
+	err = store.Put(ctx, uid, giphy2)
+	require.NoError(t, err)
 
 	giphyRes = store.GiphyResults(ctx, uid)
 	require.Equal(t, len(giphyRes), 2)
