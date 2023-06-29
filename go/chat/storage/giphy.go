@@ -26,23 +26,15 @@ type GiphyResultFrequency struct {
 	Mtime  gregor1.Time
 }
 
-type GiphyQueryFrequency struct {
-	Count int
-	Mtime gregor1.Time
-}
-
-// Locally track the usage of particular giphy images/search queries to power the UI.
+// Locally track the usage of particular giphy images to power the UI.
 type GiphyInternalStorage struct {
 	// targetURL -> result frequency/mtime
 	Results map[string]GiphyResultFrequency
-	// query -> query frequency/mtime
-	Queries map[string]GiphyQueryFrequency
 }
 
 func NewGiphyInternalStorage() GiphyInternalStorage {
 	return GiphyInternalStorage{
 		Results: make(map[string]GiphyResultFrequency),
-		Queries: make(map[string]GiphyQueryFrequency),
 	}
 }
 
@@ -116,10 +108,6 @@ type GiphyStore struct {
 //	               targetUrl: {GiphyResult, frequency, mtime},
 //	               ...
 //	             },
-//		         {
-//	               query: {frequency, mtime},
-//	               ...
-//	             }
 //		},
 func NewGiphyStore(g *globals.Context) *GiphyStore {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
@@ -171,9 +159,6 @@ func (s *GiphyStore) populateCacheLocked(ctx context.Context, uid gregor1.UID) (
 	if entry.Data.Results == nil {
 		entry.Data.Results = make(map[string]GiphyResultFrequency)
 	}
-	if entry.Data.Queries == nil {
-		entry.Data.Queries = make(map[string]GiphyQueryFrequency)
-	}
 
 	cache = entry.Data
 	return cache
@@ -190,11 +175,6 @@ func (s *GiphyStore) Put(ctx context.Context, uid gregor1.UID, giphy chat1.Giphy
 	resultItem.Count++
 	resultItem.Mtime = gregor1.ToTime(time.Now())
 	cache.Results[giphy.TargetUrl] = resultItem
-
-	queryItem := cache.Queries[giphy.Query]
-	queryItem.Count++
-	queryItem.Mtime = gregor1.ToTime(time.Now())
-	cache.Queries[giphy.Query] = queryItem
 
 	dbKey := s.dbKey(uid)
 	err := s.encryptedDB.Put(ctx, dbKey, giphyDiskEntry{
@@ -236,37 +216,6 @@ func (s *GiphyStore) GiphyResults(ctx context.Context, uid gregor1.UID) []chat1.
 	results := make([]chat1.GiphySearchResult, 0, len(pairs))
 	for _, p := range pairs {
 		results = append(results, p.result.Result)
-	}
-
-	return results
-}
-
-type queryWithScore struct {
-	query string
-	score float64
-}
-
-func (s *GiphyStore) GiphyQueries(ctx context.Context, uid gregor1.UID) []string {
-	s.Lock()
-	defer s.Unlock()
-
-	cache := s.populateCacheLocked(ctx, uid)
-
-	pairs := make([]queryWithScore, 0, len(cache.Queries))
-	for query, res := range cache.Queries {
-		score := ScoreByFrequencyAndMtime(res.Count, res.Mtime)
-		pairs = append(pairs, queryWithScore{query: query, score: score})
-	}
-	// sort by frequency and then alphabetically
-	sort.Slice(pairs, func(i, j int) bool {
-		if pairs[i].score == pairs[j].score {
-			return pairs[i].query < pairs[j].query
-		}
-		return pairs[i].score > pairs[j].score
-	})
-	results := make([]string, 0, len(pairs))
-	for _, p := range pairs {
-		results = append(results, p.query)
 	}
 
 	return results

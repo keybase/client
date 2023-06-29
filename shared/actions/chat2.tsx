@@ -3350,16 +3350,14 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
 }
 
 const giphySend = (state: Container.TypedState, action: Chat2Gen.GiphySendPayload) => {
-  const {conversationIDKey, url} = action.payload
+  const {conversationIDKey, result} = action.payload
   const replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
-  // TODO update giphy cache
-  //RPCChatTypes.localMarkAsReadLocalRpcPromise({
-  //  conversationID: Types.keyToConversationID(conversationIDKey),
-  //  forceUnread: true,
-  //  msgID,
-  //})
-  //  .then(() => {})
-  //  .catch(() => {})
+  RPCChatTypes.localTrackGiphyUsageRpcPromise({
+    result,
+  })
+    .then(() => {})
+    .catch(() => {})
+  const url = new Container.HiddenString(result.targetUrl)
   return Chat2Gen.createMessageSend({conversationIDKey, replyTo: replyTo || undefined, text: url})
 }
 

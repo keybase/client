@@ -4037,3 +4037,18 @@ func (h *Server) ForwardMessageConvSearch(ctx context.Context, term string) (res
 	}
 	return res, nil
 }
+
+func (h *Server) TrackGiphyUsage(ctx context.Context, arg chat1.TrackGiphyUsageArg) (res chat1.TrackGiphyUsageRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		h.identNotifier)
+	// Do not log user content.
+	defer h.Trace(ctx, &err, fmt.Sprintf("TrackGiphyUsage"))()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		h.Debug(ctx, "TrackGiphyUsage: not logged in: %s", err)
+		return chat1.TrackGiphyUsageRes{}, nil
+	}
+	err = storage.NewGiphyStore(h.G()).Put(ctx, uid, arg.Result)
+	return chat1.TrackGiphyUsageRes{}, err
+}
