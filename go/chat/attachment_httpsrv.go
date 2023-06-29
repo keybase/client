@@ -312,7 +312,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.
 		r.Debug(ctx, "serveGiphyGallerySelect: failed to get chat UI: %s", err)
 	}
 
-	err = storage.NewGiphyStore(s.G()).Put(ctx, uid, result)
+	err = storage.NewGiphyStore(r.G()).Put(ctx, uid, result)
 	if err != nil {
 		r.Debug(ctx, "serveGiphyGallerySelect: failed to track giphy select: %s", err)
 	}

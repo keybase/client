@@ -24,9 +24,6 @@ func TestGiphyStorage(t *testing.T) {
 	giphyRes := store.GiphyResults(ctx, uid)
 	require.Equal(t, len(giphyRes), 0)
 
-	queryRes := store.GiphyQueries(ctx, uid, 5)
-	require.Equal(t, len(queryRes), 0)
-
 	giphy1 := chat1.GiphySearchResult{
 		TargetUrl: "url1",
 	}
