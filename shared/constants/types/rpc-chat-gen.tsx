@@ -630,9 +630,9 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID; readonly msgID: MessageID; readonly collapse: Boolean}
     outParam: void
   }
-  'chat.1.local.trackGiphyUsage': {
+  'chat.1.local.trackGiphySelect': {
     inParam: {readonly result: GiphySearchResult}
-    outParam: TrackGiphyUsageRes
+    outParam: TrackGiphySelectRes
   }
   'chat.1.local.unboxMobilePushNotification': {
     inParam: {readonly payload: String; readonly convID: String; readonly membersType: ConversationMembersType; readonly pushIDs?: Array<String> | null; readonly shouldAck: Boolean}
@@ -1493,7 +1493,7 @@ export type ThreadView = {readonly messages?: Array<MessageUnboxed> | null; read
 export type ThreadViewBoxed = {readonly messages?: Array<MessageBoxed> | null; readonly pagination?: Pagination | null}
 export type TopicID = Bytes
 export type TopicNameState = Bytes
-export type TrackGiphyUsageRes = {}
+export type TrackGiphySelectRes = {}
 export type TyperInfo = {readonly uid: Keybase1.UID; readonly username: String; readonly deviceID: Keybase1.DeviceID}
 export type UIAssetUrlInfo = {readonly previewUrl: String; readonly fullUrl: String; readonly fullUrlCached: Boolean; readonly mimeType: String; readonly videoDuration?: String | null; readonly inlineVideoPlayable: Boolean}
 export type UIBotCommandsUpdateSettings = {readonly settings: {[key: string]: Keybase1.TeamBotSettings}}
@@ -1765,7 +1765,7 @@ export const localSetWelcomeMessageRpcPromise = (params: MessageTypes['chat.1.lo
 export const localSimpleSearchInboxConvNamesRpcPromise = (params: MessageTypes['chat.1.local.simpleSearchInboxConvNames']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.simpleSearchInboxConvNames']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.simpleSearchInboxConvNames', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.simpleSearchInboxConvNames']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localToggleEmojiAnimationsRpcPromise = (params: MessageTypes['chat.1.local.toggleEmojiAnimations']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.toggleEmojiAnimations']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.toggleEmojiAnimations', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.toggleEmojiAnimations']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localToggleMessageCollapseRpcPromise = (params: MessageTypes['chat.1.local.toggleMessageCollapse']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.toggleMessageCollapse']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.toggleMessageCollapse', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.toggleMessageCollapse']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const localTrackGiphyUsageRpcPromise = (params: MessageTypes['chat.1.local.trackGiphyUsage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.trackGiphyUsage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.trackGiphyUsage', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.trackGiphyUsage']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localTrackGiphySelectRpcPromise = (params: MessageTypes['chat.1.local.trackGiphySelect']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.trackGiphySelect']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.trackGiphySelect', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.trackGiphySelect']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUnboxMobilePushNotificationRpcPromise = (params: MessageTypes['chat.1.local.unboxMobilePushNotification']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.unboxMobilePushNotification']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.unboxMobilePushNotification', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.unboxMobilePushNotification']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUnpinMessageRpcPromise = (params: MessageTypes['chat.1.local.unpinMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.unpinMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.unpinMessage', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.unpinMessage']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUpdateTypingRpcPromise = (params: MessageTypes['chat.1.local.updateTyping']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.updateTyping']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.updateTyping', params, callback: (error: SimpleError, result: MessageTypes['chat.1.local.updateTyping']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))

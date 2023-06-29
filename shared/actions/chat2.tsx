@@ -3352,7 +3352,7 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
 const giphySend = (state: Container.TypedState, action: Chat2Gen.GiphySendPayload) => {
   const {conversationIDKey, result} = action.payload
   const replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
-  RPCChatTypes.localTrackGiphyUsageRpcPromise({
+  RPCChatTypes.localTrackGiphySelectRpcPromise({
     result,
   })
     .then(() => {})

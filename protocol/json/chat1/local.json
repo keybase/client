@@ -4210,7 +4210,7 @@
     },
     {
       "type": "record",
-      "name": "TrackGiphyUsageRes",
+      "name": "TrackGiphySelectRes",
       "fields": []
     }
   ],
@@ -6367,7 +6367,7 @@
       ],
       "response": null
     },
-    "trackGiphyUsage": {
+    "trackGiphySelect": {
       "request": [
         {
           "name": "sessionID",
@@ -6378,7 +6378,7 @@
           "type": "GiphySearchResult"
         }
       ],
-      "response": "TrackGiphyUsageRes"
+      "response": "TrackGiphySelectRes"
     }
   },
   "namespace": "chat.1"
