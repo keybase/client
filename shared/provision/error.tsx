@@ -12,7 +12,7 @@ import {StatusCode} from '../constants/types/rpc-gen'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../styles'
 
 const ConnectedRenderError = () => {
-  const _username = Container.useSelector(state => state.provision.username)
+  const _username = Constants.useState(s => s.username)
   const error = Container.useSelector(state => state.provision.finalError)
   const dispatch = Container.useDispatch()
   const startAccountReset = Constants.useState(s => s.dispatch.startAccountReset)

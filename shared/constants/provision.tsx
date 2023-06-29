@@ -32,12 +32,7 @@ export const makeState = (): Types.State => ({
   codePageIncomingTextCode: new HiddenString(''),
   codePageOutgoingTextCode: new HiddenString(''),
   deviceName: '',
-  // TEMP
-  error: new HiddenString(''),
-  // TEMP
   forgotUsernameResult: '',
-  initialUsername: '',
-  username: '',
 })
 
 export const rpcDeviceToDevice = (d: RPCTypes.Device) => {

@@ -55,7 +55,7 @@ const Troubleshooting = (props: Props) => {
   const dispatch = Container.useDispatch()
   const [waiting, setWaiting] = React.useState(false)
   const onBack = props.onCancel
-  const username = Container.useSelector(state => state.provision.username)
+  const username = Constants.useState(s => s.username)
   const onWayBack = React.useCallback(() => {
     dispatch(ProvisionGen.createBackToDeviceList({username}))
     setWaiting(true)

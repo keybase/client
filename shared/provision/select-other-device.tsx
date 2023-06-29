@@ -12,7 +12,7 @@ import {SignupScreen} from '../signup/common'
 const SelectOtherDeviceContainer = () => {
   const devices = Constants.useState(s => s.devices)
   const submitDeviceSelect = Constants.useState(s => s.dispatch.submitDeviceSelect)
-  const username = Container.useSelector(state => state.provision.username)
+  const username = Constants.useState(s => s.username)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   const dispatch = Container.useDispatch()

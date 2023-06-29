@@ -15,7 +15,6 @@ type Props = {
   onGoToSignup: (username: string) => void
   onSubmit: (username: string) => void
   resetBannerUser?: string
-  submittedUsername: string
   waiting: boolean
 }
 

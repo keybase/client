@@ -12,7 +12,7 @@ import {isMobile} from '../constants/platform'
 export default () => {
   const error = Constants.useState(s => s.error)
   const resetEmailSent = Container.useSelector(state => state.recoverPassword.resetEmailSent)
-  const username = Container.useSelector(state => state.provision.username)
+  const username = Constants.useState(s => s.username)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   const dispatch = Container.useDispatch()

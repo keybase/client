@@ -41,9 +41,8 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
     shallowEqual
   )
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''
-  const initialUsername = Container.useSelector(state => state.provision.initialUsername)
   // So we can clear the error if the name is changed
-  const submittedUsername = Container.useSelector(state => state.provision.username)
+  const username = Constants.useState(s => s.username)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
@@ -70,7 +69,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   return (
     <Username
       error={error}
-      initialUsername={initialUsername}
+      initialUsername={username}
       inlineError={inlineError}
       inlineSignUpLink={inlineSignUpLink}
       onBack={onBack}
@@ -78,7 +77,6 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
       onGoToSignup={onGoToSignup}
       onSubmit={onSubmit}
       resetBannerUser={resetBannerUser}
-      submittedUsername={submittedUsername}
       waiting={waiting}
     />
   )

@@ -18,10 +18,7 @@ export type State = {
   finalError?: RPCError
   forgotUsernameResult: string
   inlineError?: RPCError
-  username: string
-  initialUsername: string
+  // username: string
+  // initialUsername: string
   deviceName: string
-
-  // TEMP just to reduce reducer arnings for now RMEOE
-  error: HiddenString
 }
