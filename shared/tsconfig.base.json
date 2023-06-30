@@ -28,6 +28,7 @@
     "noUnusedParameters": true,
     "outDir": "./.tsOuts/.tsOut/emit",
     "paths": {
+      "menubar": ["override-d.ts/misc/index.d.ts"],
       "react-native-kb": ["override-d.ts/react-native-kb/index.d.ts"],
       "react-native-drop-view": ["override-d.ts/react-native-drop-view/index.d.ts"]
     },

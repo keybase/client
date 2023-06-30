@@ -145,7 +145,7 @@ const MenuBar = () => {
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
 
     mb.window?.removeAllListeners('close')
-    mb.window?.on('close', event => {
+    mb.window?.on('close', (event: any) => {
       event.preventDefault()
       mb.hideWindow()
     })
@@ -206,7 +206,7 @@ const MenuBar = () => {
     mb.on('after-show', () => {
       logger.info('Showing menubar at', mb.window?.getBounds())
     })
-    mb.tray.on('click', (_, bounds: Bounds) => {
+    mb.tray.on('click', (_: unknown, bounds: Bounds) => {
       logger.info('Clicked tray icon:', bounds)
     })
   })
