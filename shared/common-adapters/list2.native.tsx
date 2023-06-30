@@ -42,6 +42,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
     }
 
     const keyProp = this.props.keyProperty || 'key'
+    // @ts-ignore
     return item[keyProp] ?? String(index)
   }
 
@@ -55,7 +56,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
           bounces={this.props.bounces}
           renderItem={this._itemRender}
           data={this.props.items}
-          getItemLayout={(data, index) => this._getItemLayout(data, index)}
+          getItemLayout={(data: any, index: number) => this._getItemLayout(data, index)}
           keyExtractor={this._keyExtractor}
           keyboardShouldPersistTaps={this.props.keyboardShouldPersistTaps}
           onEndReached={this.props.onEndReached}

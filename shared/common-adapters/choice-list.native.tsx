@@ -65,7 +65,7 @@ const styleEntry = {
   paddingTop: globalMargins.tiny,
 }
 
-const styleIconContainer = active => ({
+const styleIconContainer = (active: boolean) => ({
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   alignSelf: 'center',

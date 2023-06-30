@@ -27,6 +27,7 @@ class List<Item> extends React.PureComponent<Props<Item>> {
     }
 
     const keyProp = this.props.keyProperty || 'key'
+    // @ts-ignore
     return item[keyProp] ?? String(index)
   }
 

@@ -15,13 +15,14 @@ const EmojiWrapper = (props: Props) => {
 
   const match = emojiName.match(nameReg)
   if (!match) return null
-  const name = match[1]
+  const name = match[1] ?? ''
   const skin = match[2]
 
   let emoji: EmojiData | undefined = emojiNameMap[name]
   if (skin) {
     const skinNum = parseInt(skin)
     if (!isNaN(skinNum)) {
+      // @ts-ignore
       emoji = emoji?.skin_variations?.[skinTones[skinNum - 1] ?? ''] as typeof emoji
     }
   }

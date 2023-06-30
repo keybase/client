@@ -1,4 +1,5 @@
 import {isDebuggingInChrome, isMobile} from '../constants/platform'
+// @ts-ignore
 import skipAnimations from './skip-animations'
 import type {
   default as ReAnimatedType,
@@ -19,7 +20,7 @@ let useAnimatedStyle: typeof useAnimatedStyleType
 let withTiming: typeof withTimingType
 let withDelay: typeof withDelayType
 let useAnimatedScrollHandler: typeof useAnimatedScrollHandlerType
-let createAnimatedComponent: typeof ReAnimatedType['createAnimatedComponent']
+let createAnimatedComponent: (typeof ReAnimatedType)['createAnimatedComponent']
 let Animated: typeof ReAnimatedType
 let interpolate: typeof interpolateType
 let Extrapolation: typeof ExtrapolationType
@@ -45,7 +46,7 @@ if (isMobile && !skipAnimations) {
   if (isMobile) {
     console.log('\n\n\nDEBUG: mock ReAnimated enabled')
   }
-  Animated = {View: ({children}) => children} as any
+  Animated = {View: ({children}: any) => children} as any
   createAnimatedComponent = (f: any) => f
   useSharedValue = (a: any) => ({value: a})
   withRepeat = (a: any) => a

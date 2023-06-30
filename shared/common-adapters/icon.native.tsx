@@ -183,7 +183,9 @@ export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize:
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
   const idealMults = [2, 3, 1]
   for (const mult of idealMults) {
+    // @ts-ignore
     if (multsMap[mult]) {
+      // @ts-ignore
       return iconMeta[imgMap[multsMap[mult]]].require
     }
   }
@@ -201,6 +203,7 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
   const multsMap = Shared.getMultsMap(imgMap, targetSize)
   const imgSet = Object.keys(multsMap)
     .map(mult => {
+      // @ts-ignore
       const uri = imgMap[multsMap[mult]]
       if (!uri) {
         return null

@@ -20,6 +20,7 @@ type AOM = {[key: string]: AnimationObject}
 const Animation = React.memo(function Animation(props: Props) {
   const {animationType} = props
   const dataRef = React.useRef<AOM>(require('./animation-data.json'))
+  // @ts-ignore
   const source = React.useRef<AnimationObject>(dataRef.current[animationType])
   useDepChangeEffect(() => {
     const data = dataRef.current?.[animationType]

@@ -129,7 +129,10 @@ export const ConversationListRender = (props: ConversationListRenderProps) => {
               case 'Enter':
                 if (props.results.length > 0) {
                   const result = props.results[props.selected]
-                  props.onSelect(Types.conversationIDToKey(result?.convID ?? ''), result?.name ?? '')
+                  props.onSelect(
+                    result?.convID ? Types.conversationIDToKey(result?.convID) : '',
+                    result?.name ?? ''
+                  )
                 }
                 break
             }

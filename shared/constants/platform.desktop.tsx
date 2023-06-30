@@ -1,3 +1,4 @@
+import {capitalize} from 'lodash'
 import KB2 from '../util/electron.desktop'
 import * as Path from '../util/path'
 const {env, platform} = KB2.constants
@@ -71,7 +72,7 @@ const getLinuxPaths = () => {
 }
 
 const getWindowsPaths = () => {
-  const appName = `Keybase${runMode === 'prod' ? '' : runMode[0].toUpperCase() + runMode.slice(1)}`
+  const appName = `Keybase${runMode === 'prod' ? '' : capitalize(runMode)}`
   let appdata = env.LOCALAPPDATA || ''
   // Remove leading drive letter e.g. C:
   if (/^[a-zA-Z]:/.test(appdata)) {
@@ -91,7 +92,7 @@ const getWindowsPaths = () => {
 }
 
 const getDarwinPaths = () => {
-  const appName = `Keybase${runMode === 'prod' ? '' : runMode[0].toUpperCase() + runMode.slice(1)}`
+  const appName = `Keybase${runMode === 'prod' ? '' : capitalize(runMode)}`
   const libraryDir = `${homeEnv}/Library/`
   const logDir = `${libraryDir}Logs/`
 

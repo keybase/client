@@ -59,11 +59,11 @@ const iconContainerThemed = {
   },
 }
 
-function actionStyle(extraMargin) {
+function actionStyle(extraMargin: boolean) {
   return extraMargin ? {marginRight: 32} : {marginRight: 16}
 }
 
-function bodyContainerStyle(swipeToAction) {
+function bodyContainerStyle(swipeToAction?: boolean) {
   return {
     flex: 2,
     justifyContent: 'center',

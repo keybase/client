@@ -13,6 +13,7 @@ type Background =
   | 'Success'
   | 'Terminal'
 
+type Values<T extends object> = T[keyof T]
 type TextType = keyof typeof allTextTypes
 type TextTypeBold = 'BodyTinyBold' | 'BodySmallBold' | 'BodyBold' | 'BodyBig' | 'Header' | 'HeaderBig'
 // Talk to design before adding a color here - these should cover all cases.

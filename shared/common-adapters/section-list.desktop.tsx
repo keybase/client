@@ -150,6 +150,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
   _checkSticky = () => {
     if (this._listRef.current) {
       const [firstIndex] = this._listRef.current.getVisibleRange()
+      if (firstIndex === undefined) return
       const item = this._flat[firstIndex]
       if (item) {
         this.setState(p =>
@@ -244,7 +245,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
       return 0
     }
     for (let i = 0; i < this._flat.length; i++) {
-      const item = this._flat[i]
+      const item = this._flat[i]!
       if (item.type === 'body') {
         // are we there yet?
         if (index === 0) {
@@ -271,7 +272,7 @@ class SectionList<T extends Section<any, any>> extends React.Component<Props<T>,
       : 0
   }
 
-  private itemRenderer = (index, key) => this._itemRenderer(index, key, false)
+  private itemRenderer = (index: number, key: any) => this._itemRenderer(index, key, false)
 
   render() {
     this._flatten(this.props.sections)
