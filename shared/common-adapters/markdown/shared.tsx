@@ -72,7 +72,7 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
       state: SimpleMarkdown.State,
       prevCapture: string
     ): SimpleMarkdown.Capture | null => {
-      if (state.blockQuoteRecursionLevel > 6) {
+      if (state['blockQuoteRecursionLevel'] > 6) {
         return null
       }
       const regex = /^( *>(?:[^\n](?!```))+\n?)+/
@@ -90,8 +90,8 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
       nestedParse: SimpleMarkdown.Parser,
       state: SimpleMarkdown.State
     ) => {
-      const content = capture[0].replace(/^ *> */gm, '')
-      const blockQuoteRecursionLevel = state.blockQuoteRecursionLevel || 0
+      const content = capture[0]?.replace(/^ *> */gm, '') ?? ''
+      const blockQuoteRecursionLevel = state['blockQuoteRecursionLevel'] || 0
       const nextState = {...state, blockQuoteRecursionLevel: blockQuoteRecursionLevel + 1}
       return {content: nestedParse(content, nextState)}
     },
@@ -118,7 +118,7 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
       _state: SimpleMarkdown.State
     ) => {
       // If it's a unicode emoji, let's get it's shortname
-      const shortName = emojiIndexByChar[capture[0]]
+      const shortName = emojiIndexByChar[capture[0] ?? '']
       return {content: shortName || capture[0]}
     },
   },
@@ -133,13 +133,13 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
   // it won't match.
   fallbackParagraph: {
     match: (source: string, state: SimpleMarkdown.State, _prevCapture: string) =>
-      Styles.isMobile && !state.inParagraph ? [source] : null,
+      Styles.isMobile && !state['inParagraph'] ? [source] : null,
     order: 10000,
     parse: (
       capture: SimpleMarkdown.Capture,
       nestedParse: SimpleMarkdown.Parser,
       state: SimpleMarkdown.State
-    ) => wrapInParagraph(nestedParse, capture[0], state),
+    ) => wrapInParagraph(nestedParse, capture[0] ?? '', state),
   },
   fence: {
     // aka the ``` code blocks
@@ -188,7 +188,7 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
       state: SimpleMarkdown.State
     ) => {
       // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
-      const content = Styles.isMobile ? capture[1].replace(/\n$/, '') : capture[1]
+      const content = Styles.isMobile ? capture[1]?.replace(/\n$/, '') ?? '' : capture[1] ?? ''
       return {content: SimpleMarkdown.parseInline(nestedParse, content, {...state, inParagraph: true})}
     },
   },
@@ -213,7 +213,7 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
           ? wrapInParagraph(nestedParse, capture[1], state)
           : (SimpleMarkdown.parseInline(
               nestedParse,
-              capture[1],
+              capture[1] ?? '',
               state
             ) as Array<SimpleMarkdown.SingleASTNode>)
       return {
@@ -247,7 +247,7 @@ const rules: {[type: string]: SimpleMarkdown.ParserRule} = {
     // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
     match: (source: string, state: SimpleMarkdown.State, prevCapture: string) =>
-      Styles.isMobile && !state.inParagraph ? null : textMatch(source, state, prevCapture),
+      Styles.isMobile && !state['inParagraph'] ? null : textMatch(source, state, prevCapture),
   },
 }
 
@@ -261,13 +261,13 @@ const noRules: {[type: string]: SimpleMarkdown.ParserRule} = {
   // it won't match.
   fallbackParagraph: {
     match: (source: string, state: SimpleMarkdown.State, _prevCapture: string) =>
-      Styles.isMobile && !state.inParagraph ? [source] : null,
+      Styles.isMobile && !state['inParagraph'] ? [source] : null,
     order: 10000,
     parse: (
       capture: SimpleMarkdown.Capture,
       nestedParse: SimpleMarkdown.Parser,
       state: SimpleMarkdown.State
-    ) => wrapInParagraph(nestedParse, capture[0], state),
+    ) => wrapInParagraph(nestedParse, capture[0] ?? '', state),
   },
   paragraph: {
     ...SimpleMarkdown.defaultRules.paragraph,
@@ -281,7 +281,7 @@ const noRules: {[type: string]: SimpleMarkdown.ParserRule} = {
       state: SimpleMarkdown.State
     ) => {
       // Remove a trailing newline because sometimes it sneaks in from when we add the newline to create the initial block
-      const content = Styles.isMobile ? capture[1].replace(/\n$/, '') : capture[1]
+      const content = (Styles.isMobile ? capture[1]?.replace(/\n$/, '') : capture[1]) ?? ''
       return {content: SimpleMarkdown.parseInline(nestedParse, content, {...state, inParagraph: true})}
     },
   },
@@ -292,17 +292,19 @@ const noRules: {[type: string]: SimpleMarkdown.ParserRule} = {
     // ours: stop on single new lines and common tlds. We want to stop at common tlds so this regex doesn't
     // consume the common case of saying: Checkout google.com, they got all the cool gizmos.
     match: (source: string, state: SimpleMarkdown.State, _prevCapture: string) =>
-      Styles.isMobile && !state.inParagraph ? null : [source],
+      Styles.isMobile && !state['inParagraph'] ? null : [source],
   },
 }
 const noMarkdownParser = SimpleMarkdown.parserFor(noRules)
 
-const isAllEmoji = ast => {
+const isAllEmoji = (ast: Array<SimpleMarkdown.SingleASTNode>) => {
   const trimmed = ast.filter(n => n.type !== 'newline')
   // Only 1 paragraph
-  if (trimmed.length === 1 && trimmed[0].content && trimmed[0].content.some) {
+  // @ts-ignore
+  if (trimmed.length === 1 && trimmed[0]?.content && trimmed[0]?.content?.some) {
     // Is something in the content not an emoji?
-    return !trimmed[0].content.some(n => n.type !== 'emoji' && n.type !== 'newline')
+    // @ts-ignore
+    return !trimmed[0]?.content?.some(n => n.type !== 'emoji' && n.type !== 'newline')
   }
   return false
 }

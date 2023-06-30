@@ -12,7 +12,7 @@ import {useTeamDetailsSubscribe} from '../subscriber'
 // to derive E164 phone number based on seitan invite name and user's region.
 const extractPhoneNumber = (name: string, region: string): string => {
   const matches = /\((.*)\)/.exec(name)
-  const maybeNumber = matches?.[1].replace(/[^0-9+]/g, '')
+  const maybeNumber = matches?.[1]?.replace(/[^0-9+]/g, '')
   return (maybeNumber && SettingsConstants.getE164(maybeNumber, region)) ?? ''
 }
 

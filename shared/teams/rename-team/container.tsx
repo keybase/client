@@ -13,7 +13,7 @@ export default (ownProps: OwnProps) => {
   const waiting = WaitConstants.useAnyWaiting(Constants.teamRenameWaitingKey)
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
   const dispatch = Container.useDispatch()
-  const _onRename = (oldName, newName) => {
+  const _onRename = (oldName: string, newName: string) => {
     dispatch(TeamsGen.createRenameTeam({newName, oldName}))
   }
   const onCancel = () => {
@@ -26,7 +26,7 @@ export default (ownProps: OwnProps) => {
   const props = {
     error: (!error ? undefined : error.message) || '',
     onCancel: onCancel,
-    onRename: newName => _onRename(teamname, newName),
+    onRename: (newName: string) => _onRename(teamname, newName),
     onSuccess: onSuccess,
     teamname: teamname,
     waiting: waiting,

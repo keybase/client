@@ -40,9 +40,11 @@ const _newRoutes: ReadonlyArray<RoutePlusTab> = [
 _newRoutes.forEach(({route, tab}) => {
   Object.keys(route).forEach(name => {
     // Just sanity check dupes
+    // @ts-ignore
     if (nameToTab[name]) {
       throw new Error('New route with dupe name, disallowed! ' + name)
     }
+    // @ts-ignore
     nameToTab[name] = tab
     routes[name] = route[name]
   })

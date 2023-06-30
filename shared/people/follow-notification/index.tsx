@@ -36,7 +36,7 @@ const FollowNotification = (props: Props) => {
   }
 
   const {newFollows, onClickUser, type} = props
-  const username = newFollows[0].username
+  const username = newFollows[0]?.username ?? ''
   const usernameComponent = (
     <Kb.ConnectedUsernames
       {...connectedUsernamesProps}
@@ -44,7 +44,7 @@ const FollowNotification = (props: Props) => {
       onUsernameClicked={props.onClickUser}
     />
   )
-  const desc = newFollows[0].contactDescription
+  const desc = newFollows[0]?.contactDescription ?? ''
 
   const onClick = React.useCallback(() => {
     onClickUser(username)

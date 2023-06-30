@@ -77,8 +77,10 @@ const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
 
   const animationType: Kb.AnimationType | undefined = isExploding
     ? Styles.isDarkMode()
-      ? statusToIconDarkExploding[status]
-      : statusToIconExploding[status]
+      ? // @ts-ignore
+        statusToIconDarkExploding[status]
+      : // @ts-ignore
+        statusToIconExploding[status]
     : Styles.isDarkMode()
     ? statusToIconDark[status]
     : statusToIcon[status]

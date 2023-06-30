@@ -252,7 +252,7 @@ const TeamMember = (props: OwnProps) => {
                 const last = failedAt.pop()
                 failedAtStr = failedAt.join(', ') + ', and ' + last
               } else {
-                failedAtStr = failedAt[0]
+                failedAtStr = failedAt[0] ?? ''
               }
               return (
                 <Kb.BannerParagraph

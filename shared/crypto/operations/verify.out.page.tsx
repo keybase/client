@@ -7,7 +7,7 @@ const Output = React.lazy(async () => {
 })
 
 const getOptions = () => ({
-  headerLeft: p => <HeaderLeftCancel2 {...p} />,
+  headerLeft: (p: any) => <HeaderLeftCancel2 {...p} />,
   headerShown: true,
   needsKeyboard: false,
   title: 'Verify',

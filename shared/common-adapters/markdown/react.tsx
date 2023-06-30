@@ -168,7 +168,7 @@ const reactComponentsForMarkdownType = {
       let lastResult: SimpleMarkdown.ReactElements = null
       for (let i = 0; i < arr.length; i++) {
         state.key = '' + i
-        const nodeOut = output(arr[i], state)
+        const nodeOut = output(arr[i]!, state)
         if (typeof nodeOut === 'string' && typeof lastResult === 'string') {
           lastResult = lastResult + nodeOut
           result[result.length - 1] = lastResult
@@ -190,7 +190,10 @@ const reactComponentsForMarkdownType = {
       state: SimpleMarkdown.State
     ) => (
       <Box key={state.key} style={markdownStyles.quoteStyle}>
-        {output(node.content, {...state, inBlockQuote: true})}
+        {
+          // @ts-ignore
+          output(node.content, {...state, inBlockQuote: true})
+        }
       </Box>
     ),
   },
@@ -203,10 +206,10 @@ const reactComponentsForMarkdownType = {
       <Text
         type="Body"
         key={state.key}
-        style={Styles.collapseStyles([markdownStyles.strikeStyle, state.styleOverride.del])}
-        allowFontScaling={state.allowFontScaling}
+        style={Styles.collapseStyles([markdownStyles.strikeStyle, state['styleOverride'].del])}
+        allowFontScaling={state['allowFontScaling']}
       >
-        {output(node.content, state)}
+        {output(node['content'], state)}
       </Text>
     ),
   },
@@ -219,9 +222,9 @@ const reactComponentsForMarkdownType = {
       <Text
         type="Body"
         key={state.key}
-        style={Styles.collapseStyles([markdownStyles.italicStyle, state.styleOverride.em])}
+        style={Styles.collapseStyles([markdownStyles.italicStyle, state['styleOverride'].em])}
       >
-        {output(node.content, state)}
+        {output(node['content'], state)}
       </Text>
     ),
   },
@@ -232,10 +235,10 @@ const reactComponentsForMarkdownType = {
       state: SimpleMarkdown.State
     ) => (
       <Emoji
-        emojiName={String(node.content).toLowerCase()}
+        emojiName={String(node['content']).toLowerCase()}
         size={16}
         key={state.key}
-        disableSelecting={state.virtualText}
+        disableSelecting={state['virtualText']}
       />
     ),
   },
@@ -251,20 +254,20 @@ const reactComponentsForMarkdownType = {
             type="Body"
             style={Styles.collapseStyles([
               markdownStyles.codeSnippetBlockTextStyle,
-              state.styleOverride.fence,
+              state['styleOverride'].fence,
             ])}
-            allowFontScaling={state.allowFontScaling}
+            allowFontScaling={state['allowFontScaling']}
           >
-            {node.content}
+            {node['content']}
           </Text>
         </Box>
       ) : (
         <Text
           key={state.key}
           type="Body"
-          style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state.styleOverride.fence])}
+          style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state['styleOverride'].fence])}
         >
-          {node.content}
+          {node['content']}
         </Text>
       ),
   },
@@ -277,10 +280,10 @@ const reactComponentsForMarkdownType = {
       <Text
         type="Body"
         key={state.key}
-        style={Styles.collapseStyles([markdownStyles.codeSnippetStyle, state.styleOverride.inlineCode])}
-        allowFontScaling={state.allowFontScaling}
+        style={Styles.collapseStyles([markdownStyles.codeSnippetStyle, state['styleOverride'].inlineCode])}
+        allowFontScaling={state['allowFontScaling']}
       >
-        {node.content}
+        {node['content']}
       </Text>
     ),
   },
@@ -290,14 +293,14 @@ const reactComponentsForMarkdownType = {
       output: SimpleMarkdown.ReactOutput,
       state: SimpleMarkdown.State
     ) =>
-      !Styles.isMobile || state.inParagraph ? (
+      !Styles.isMobile || state['inParagraph'] ? (
         output({content: '\n', type: 'text'}, state)
       ) : (
         <Text
           type="Body"
           key={state.key}
-          style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride.paragraph])}
-          allowFontScaling={state.allowFontScaling}
+          style={Styles.collapseStyles([markdownStyles.textBlockStyle, state['styleOverride'].paragraph])}
+          allowFontScaling={state['allowFontScaling']}
         >
           {'\n'}
         </Text>
@@ -310,13 +313,13 @@ const reactComponentsForMarkdownType = {
       state: SimpleMarkdown.State
     ) => (
       <Text
-        className={state.paragraphTextClassName}
+        className={state['paragraphTextClassName']}
         type="Body"
         key={state.key}
-        style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride.paragraph])}
-        allowFontScaling={state.allowFontScaling}
+        style={Styles.collapseStyles([markdownStyles.textBlockStyle, state['styleOverride'].paragraph])}
+        allowFontScaling={state['allowFontScaling']}
       >
-        {output(node.content, {...state, inParagraph: true})}
+        {output(node['content'], {...state, inParagraph: true})}
       </Text>
     ),
   },
@@ -327,11 +330,11 @@ const reactComponentsForMarkdownType = {
       state: SimpleMarkdown.State
     ) => (
       <ServiceDecoration
-        json={node.content}
+        json={node['content']}
         key={state.key}
-        allowFontScaling={state.allowFontScaling}
-        messageType={state.messageType}
-        styleOverride={state.styleOverride}
+        allowFontScaling={state['allowFontScaling']}
+        messageType={state['messageType']}
+        styleOverride={state['styleOverride']}
         styles={markdownStyles as any}
         disableBigEmojis={false}
         disableEmojiAnimation={false}
@@ -347,10 +350,10 @@ const reactComponentsForMarkdownType = {
       <Text
         type="BodySemibold"
         key={state.key}
-        style={Styles.collapseStyles([markdownStyles.boldStyle, state.styleOverride.strong])}
-        allowFontScaling={state.allowFontScaling}
+        style={Styles.collapseStyles([markdownStyles.boldStyle, state['styleOverride'].strong])}
+        allowFontScaling={state['allowFontScaling']}
       >
-        {output(node.content, state)}
+        {output(node['content'], state)}
       </Text>
     ),
   },
@@ -370,9 +373,9 @@ const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).r
         output: SimpleMarkdown.ReactOutput,
         state: SimpleMarkdown.State
       ) =>
-        typeof node.content !== 'object'
-          ? SimpleMarkdown.defaultRules.text.react({content: node.content, type: 'text'}, output, state)
-          : output(node.content, state),
+        typeof node['content'] !== 'object'
+          ? SimpleMarkdown.defaultRules.text.react({content: node['content'], type: 'text'}, output, state)
+          : output(node['content'], state),
     }
   }
   return obj
@@ -388,11 +391,11 @@ const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         state: SimpleMarkdown.State
       ) => (
         <Emoji
-          style={state.styleOverride?.paragraph}
-          emojiName={String(node.content)}
+          style={state['styleOverride']?.paragraph}
+          emojiName={String(node['content'])}
           size={32}
           key={state.key}
-          allowFontScaling={state.allowFontScaling}
+          allowFontScaling={state['allowFontScaling']}
         />
       ),
     },
@@ -406,9 +409,9 @@ const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
           type="Body"
           key={state.key}
           style={markdownStyles.bigTextBlockStyle}
-          allowFontScaling={state.allowFontScaling}
+          allowFontScaling={state['allowFontScaling']}
         >
-          {output(node.content, {...state, inParagraph: true})}
+          {output(node['content'], {...state, inParagraph: true})}
         </Text>
       ),
     },
@@ -426,7 +429,10 @@ const previewOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         output: SimpleMarkdown.ReactOutput,
         state: SimpleMarkdown.State
       ) =>
-        React.Children.toArray([output([{content: '> ', type: 'text'}], state), output(node.content, state)]),
+        React.Children.toArray([
+          output([{content: '> ', type: 'text'}], state),
+          output(node['content'], state),
+        ]),
     },
     codeBlock: {
       react: (
@@ -434,7 +440,10 @@ const previewOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         output: SimpleMarkdown.ReactOutput,
         state: SimpleMarkdown.State
       ) =>
-        React.Children.toArray([output([{content: ' ', type: 'text'}], state), output(node.content, state)]),
+        React.Children.toArray([
+          output([{content: ' ', type: 'text'}], state),
+          output(node['content'], state),
+        ]),
     },
     emoji: {
       react: (
@@ -457,10 +466,10 @@ const previewOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         state: SimpleMarkdown.State
       ) => (
         <ServiceDecoration
-          json={node.content}
+          json={node['content']}
           key={state.key}
-          allowFontScaling={state.allowFontScaling}
-          styleOverride={state.styleOverride}
+          allowFontScaling={state['allowFontScaling']}
+          styleOverride={state['styleOverride']}
           styles={markdownStyles as any}
           disableBigEmojis={true}
           disableEmojiAnimation={true}
@@ -490,10 +499,10 @@ const serviceOnlyOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
         state: SimpleMarkdown.State
       ) => (
         <ServiceDecoration
-          json={node.content}
+          json={node['content']}
           key={state.key}
-          allowFontScaling={state.allowFontScaling}
-          styleOverride={state.styleOverride}
+          allowFontScaling={state['allowFontScaling']}
+          styleOverride={state['styleOverride']}
           styles={markdownStyles as any}
           disableBigEmojis={true}
           disableEmojiAnimation={true}

@@ -21,7 +21,7 @@ type State = {
 
 class CreateAccount extends React.Component<Props, State> {
   state = {name: ''}
-  _onNameChange = name => this.setState({name})
+  _onNameChange = (name: string) => this.setState({name})
   _onDone = () => (this._disabled() || this.props.waiting ? undefined : this.props.onDone(this.state.name))
   _disabled = () => !this.state.name
   _getBottomButtons = () => [

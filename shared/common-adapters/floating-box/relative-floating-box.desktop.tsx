@@ -251,7 +251,7 @@ function computePopupStyle(
 
   const positionsShuffled = positionFallbacks || without(positions, position).concat([position])
   for (let i = 0; !isStyleInViewport(style, popupCoords) && i < positionsShuffled.length; i += 1) {
-    style = _computePopupStyle(positionsShuffled[i], coords, popupCoords, matchDimension, offset)
+    style = _computePopupStyle(positionsShuffled[i]!, coords, popupCoords, matchDimension, offset)
   }
   if (!isStyleInViewport(style, popupCoords)) {
     style = pushStyleIntoViewport(style, popupCoords)
@@ -280,7 +280,7 @@ export class RelativeFloatingBox extends React.PureComponent<
   popupNode: HTMLElement | null = null
   down: undefined | {x: number; y: number}
   state: {style: {}}
-  constructor(props) {
+  constructor(props: ModalPositionRelativeProps) {
     super(props)
     this.state = {style: {}}
   }

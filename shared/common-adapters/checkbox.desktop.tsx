@@ -22,7 +22,7 @@ const Checkbox = (props: Props) => {
         !props.disabled && Styles.desktopStyles.clickable,
         props.style,
       ] as any)}
-      onClick={e =>
+      onClick={(e: any) =>
         // If something in labelComponent needs to catch a click without calling this, use
         // event.preventDefault()
         props.disabled || e.defaultPrevented ? undefined : props.onCheck && props.onCheck(!props.checked)

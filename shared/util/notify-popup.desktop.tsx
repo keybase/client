@@ -25,15 +25,15 @@ function NotifyPopup(
     // Exists? just call it to push the time back
     if (rateLimit[key]) {
       rateLimitPayloads[key] = {onClick: onClick, opts, title}
-      rateLimit[key]()
+      rateLimit[key]!()
       return
     } else {
       // else set it up and call it below
       rateLimit[key] = debounce(() => {
         if (rateLimitPayloads[key]) {
-          const {title, opts, onClick} = rateLimitPayloads[key]
+          const {title, opts, onClick} = rateLimitPayloads[key] ?? {}
           delete rateLimitPayloads[key]
-          const notification = new Notification(title, {...opts, silent: !sound})
+          const notification = new Notification(title ?? '', {...opts, silent: !sound})
           notification.onclick = onClick ?? null
           notification.onclose = onClose ?? null
         }

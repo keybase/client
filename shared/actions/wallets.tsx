@@ -214,7 +214,7 @@ const setLastSentXLM = (
   })
 
 const requestPayment = async (state: Container.TypedState) => {
-  let buildRes: Unpacked<ReturnType<typeof RPCStellarTypes.localBuildRequestLocalRpcPromise>>
+  let buildRes: Container.Unpacked<ReturnType<typeof RPCStellarTypes.localBuildRequestLocalRpcPromise>>
   try {
     buildRes = await RPCStellarTypes.localBuildRequestLocalRpcPromise(
       stateToBuildRequestParams(state),
@@ -980,7 +980,7 @@ const maybeNavigateAwayFromSendForm = () => {
   const actions: Array<Container.TypedActions> = []
   // pop off any routes that are part of the popup
   path.reverse().some(p => {
-    if (Constants.sendRequestFormRoutes.includes(p.name)) {
+    if ((Constants.sendRequestFormRoutes as ReadonlyArray<string>).includes(p.name)) {
       actions.push(RouteTreeGen.createNavigateUp())
       return false
     }

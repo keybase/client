@@ -10,7 +10,7 @@ type Props = {
   onFeedback?: () => void
 }
 
-const Feedback = ({onFeedback}) =>
+const Feedback = ({onFeedback}: {onFeedback?: () => void}) =>
   onFeedback ? (
     <Kb.ButtonBar>
       <Kb.Button type="Dim" label="Send us feedback" onClick={onFeedback} />

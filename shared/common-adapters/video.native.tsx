@@ -11,7 +11,7 @@ const Kb = {Box}
 // There seems to be a race between navigation animation and the measurement stuff
 // here that causes stuff to be rendered off-screen. So delay mounting to avoid
 // the race.
-const DelayMount = ({children}) => {
+const DelayMount = ({children}: any) => {
   const [mount, setMount] = React.useState(false)
   React.useEffect(() => {
     const id = setTimeout(() => setMount(true), 500)
@@ -27,7 +27,7 @@ const Video = (props: Props) => {
       <DelayMount>
         <Kb.Box
           style={styles.container}
-          onLayout={event => {
+          onLayout={(event: any) => {
             event?.nativeEvent?.layout &&
               setContainerSize(event.nativeEvent.layout.height, event.nativeEvent.layout.width)
           }}

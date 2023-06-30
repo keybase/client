@@ -5,6 +5,7 @@ import * as Styles from '../../styles'
 
 export const getOtherErrorInfo = (err: Error) => {
   const info = {}
+  // @ts-ignore
   for (const k in err) info[k] = (err as Object)[k]
   // @ts-ignore
   delete info.name
@@ -65,13 +66,13 @@ class Feedback extends React.Component<Props, State> {
     }
   }
 
-  _onChangeFeedback = feedback => {
+  _onChangeFeedback = (feedback: string) => {
     this.setState({feedback})
   }
 
   _onChangeSendLogs = (sendLogs: boolean) => this.setState({sendLogs})
 
-  _onChangeEmail = email => {
+  _onChangeEmail = (email: string) => {
     this.setState({email})
   }
 

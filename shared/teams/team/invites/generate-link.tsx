@@ -104,7 +104,7 @@ const GenerateLinkModal = (props: Props) => {
 
   const generateLinkRPC = Container.useRPC(RPCGen.teamsTeamCreateSeitanInvitelinkWithDurationRpcPromise)
   const onGenerate = () => {
-    const expireAfter = validityValuesMap[validity]
+    const expireAfter = validityValuesMap[validity as keyof typeof validityValuesMap] ?? ''
     const maxUses = expireAfter == null ? 1 : -1
 
     generateLinkRPC(
@@ -129,7 +129,7 @@ const GenerateLinkModal = (props: Props) => {
     },
     isRolePickerOpen: isRolePickerOpen,
     onCancelRolePicker: () => setRolePickerOpen(false),
-    onConfirmRolePicker: role => {
+    onConfirmRolePicker: (role: Types.TeamRoleType) => {
       setRolePickerOpen(false)
       setTeamRole(role)
     },

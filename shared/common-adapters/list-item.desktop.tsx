@@ -46,11 +46,11 @@ class ListItem extends React.Component<Props> {
   }
 }
 
-function containerStyle(clickable) {
+function containerStyle(clickable: boolean) {
   return clickable ? desktopStyles.clickable : {}
 }
 
-function actionStyle(extraMargin) {
+function actionStyle(extraMargin: boolean) {
   return extraMargin ? {marginRight: 32} : {marginRight: 16}
 }
 

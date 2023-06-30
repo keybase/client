@@ -27,9 +27,13 @@ const localError = console.error.bind(console)
 
 // inject for convenience
 if (__DEV__) {
+  // @ts-ignore
   console._log = console.log
+  // @ts-ignore
   console._warn = console.warn
+  // @ts-ignore
   console._error = console.error
+  // @ts-ignore
   console._info = console.info
 }
 

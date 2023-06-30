@@ -140,7 +140,7 @@ const deriveRecommendation = memoize(expensiveDeriveResults)
 // 27 - 0-9 section
 const sortAndSplitRecommendations = memoize(
   (
-    results: Unpacked<typeof deriveSearchResults>,
+    results: Container.Unpacked<typeof deriveSearchResults>,
     showingContactsButton: boolean
   ): Array<Types.SearchRecSection> | undefined => {
     if (!results) return undefined
@@ -166,7 +166,7 @@ const sortAndSplitRecommendations = memoize(
     const numSectionIdx = recSectionIdx + 27
     results.forEach(rec => {
       if (!rec.contact) {
-        sections[recSectionIdx].data.push(rec)
+        sections[recSectionIdx]?.data.push(rec)
         return
       }
       if (rec.prettyName || rec.displayLabel) {
@@ -185,7 +185,7 @@ const sortAndSplitRecommendations = memoize(
                 shortcut: true,
               }
             }
-            sections[sectionIdx].data.push(rec)
+            sections[sectionIdx]?.data.push(rec)
           } else {
             if (!sections[numSectionIdx]) {
               sections[numSectionIdx] = {
@@ -194,7 +194,7 @@ const sortAndSplitRecommendations = memoize(
                 shortcut: true,
               }
             }
-            sections[numSectionIdx].data.push(rec)
+            sections[numSectionIdx]?.data.push(rec)
           }
         }
       }

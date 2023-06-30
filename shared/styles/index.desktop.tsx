@@ -108,9 +108,9 @@ export const backgroundURL = (...to: Array<string>) => {
   const goodPath = [...to]
 
   if (goodPath && goodPath.length) {
-    const last = goodPath[goodPath.length - 1]
+    const last = goodPath[goodPath.length - 1] ?? ''
     const ext = Path.extname(last)
-    goodPath[goodPath.length - 1] = Path.basename(last, ext)
+    goodPath[goodPath.length - 1] = Path.basename(last, ext) ?? ''
     const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
     const images = [1, 2, 3].map(
       mult => `url('${getAssetPath('images', guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`

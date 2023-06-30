@@ -191,7 +191,7 @@ const Connected = (ownProps: OwnProps) => {
   const unreadIndices: Map<number, number> = new Map()
   let unreadTotal: number = 0
   for (let i = rows.length - 1; i >= 0; i--) {
-    const row = rows[i]
+    const row = rows[i]!
     if (row.type === 'big') {
       if (
         row.conversationIDKey &&

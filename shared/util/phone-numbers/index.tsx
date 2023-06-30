@@ -49,14 +49,14 @@ const load = () => {
       // https://github.com/OpenBookPrices/country-data/tree/011dbb6658b0df5a36690af7086baa3e5c20c30c#status-notes
       _countryDataRaw[curr.alpha2] = {
         alpha2: curr.alpha2,
-        callingCode: curr.countryCallingCodes[0],
+        callingCode: curr.countryCallingCodes[0] ?? '',
         emoji: curr.emoji || '',
         emojiText,
         example: phoneUtil.format(phoneUtil.getExampleNumber(curr.alpha2), PNF.NATIONAL),
         name: curr.name,
         pickerText:
           (isMobile ? `${curr.emoji} ` : '') +
-          `${curr.name} ${curr.countryCallingCodes[0].replace(' ', '\xa0')}`,
+          `${curr.name} ${curr.countryCallingCodes[0]?.replace(' ', '\xa0') ?? ''}`,
       }
 
       // Skip all the non-GB UK numbers. This way we avoid having to write all the

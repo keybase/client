@@ -64,7 +64,7 @@ class WhatsNew extends React.PureComponent<Props> {
       <Wrapper>
         {Current && (
           <Current
-            seen={seenVersions[currentVersion]}
+            seen={seenVersions[currentVersion] ?? false}
             onNavigate={onNavigate}
             onNavigateExternal={onNavigateExternal}
             onSwitchTab={onSwitchTab}
@@ -72,7 +72,7 @@ class WhatsNew extends React.PureComponent<Props> {
         )}
         {lastVersion && Last && (
           <Last
-            seen={seenVersions[lastVersion]}
+            seen={seenVersions[lastVersion] ?? false}
             onNavigate={onNavigate}
             onNavigateExternal={onNavigateExternal}
             onSwitchTab={onSwitchTab}
@@ -80,7 +80,7 @@ class WhatsNew extends React.PureComponent<Props> {
         )}
         {lastLastVersion && LastLast && (
           <LastLast
-            seen={seenVersions[lastLastVersion]}
+            seen={seenVersions[lastLastVersion] ?? false}
             onNavigate={onNavigate}
             onNavigateExternal={onNavigateExternal}
             onSwitchTab={onSwitchTab}

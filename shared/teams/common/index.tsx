@@ -26,7 +26,11 @@ export const usePhoneNumberList = () => {
    * Push a phone number to the list.
    */
   const addPhoneNumber = () => {
-    phoneNumbers.push({key: phoneNumbers[phoneNumbers.length - 1].key + 1, phoneNumber: '', valid: false})
+    phoneNumbers.push({
+      key: (phoneNumbers[phoneNumbers.length - 1]?.key ?? 0) + 1,
+      phoneNumber: '',
+      valid: false,
+    })
     setPhoneNumbers([...phoneNumbers])
   }
   /**

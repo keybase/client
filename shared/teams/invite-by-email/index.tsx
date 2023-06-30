@@ -60,7 +60,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     this.setState({isRolePickerOpen: false})
   }
 
-  onConfirmRolePicker = role => {
+  onConfirmRolePicker = (role: TeamRoleType) => {
     this.setState({isRolePickerOpen: false, role})
   }
 

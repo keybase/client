@@ -4,7 +4,7 @@ import * as Container from '../util/container'
 import type {Props} from './image2'
 import LoadingStateView from './loading-state-view'
 
-const onDragStart = e => e.preventDefault()
+const onDragStart = (e: any) => e.preventDefault()
 const Image2 = (p: Props) => {
   const {showLoadingStateUntilLoaded, src, onLoad, onError} = p
   const [loading, setLoading] = React.useState(true)

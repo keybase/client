@@ -1,5 +1,6 @@
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+// @ts-ignore
 import QRCodeGen from 'qrcode-generator'
 
 type AddressesProps = {
@@ -92,7 +93,7 @@ const Addresses = ({federatedAddress, stellarAddress}: AddressesProps) => (
   </Kb.Box2>
 )
 
-const QrImage = ({address}) => {
+const QrImage = ({address}: {address: string}) => {
   const qr = QRCodeGen(4, 'L')
   qr.addData(address)
   qr.make()

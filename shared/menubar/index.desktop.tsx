@@ -399,8 +399,9 @@ const iconMap = {
   [Tabs.fsTab]: 'iconfont-nav-2-files',
   [Tabs.teamsTab]: 'iconfont-nav-2-teams',
 } as const
-const BadgeIcon = ({tab, countMap, openApp}) => {
+const BadgeIcon = ({tab, countMap, openApp}: any) => {
   const count = countMap.get(tab)
+  // @ts-ignore
   const iconType = iconMap[tab]
 
   if ((tab === Tabs.devicesTab && !count) || !iconType) {

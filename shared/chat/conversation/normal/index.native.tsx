@@ -89,7 +89,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
 
       // special case of one text and attachment, if its not a url
       if (texts.length === 1 && attach.length === 1) {
-        if (texts[0].startsWith('http')) {
+        if (texts[0]!.startsWith('http')) {
           // just use the url and ignore the image
           attach = []
         } else {

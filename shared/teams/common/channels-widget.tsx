@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type * as Types from '../../constants/types/teams'
+import type * as Container from '../../util/container'
 import ChannelPopup from '../team/settings-tab/channel-popup'
 import useAutocompleter from './use-autocompleter'
 import {useAllChannelMetas} from './channel-hooks'
@@ -69,7 +70,7 @@ const ChannelInputDesktop = (props: ChannelInputProps) => {
   )
 
   const onSelect = React.useCallback(
-    (value: Unpacked<typeof channelItems>['value']) => {
+    (value: Container.Unpacked<typeof channelItems>['value']) => {
       onAdd([value])
       setFilter('')
     },

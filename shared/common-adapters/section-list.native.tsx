@@ -16,7 +16,7 @@ const SectionList = React.forwardRef<NativeSectionList, Props<any>>(function Sec
       : undefined
   }, [getItemHeight, getSectionHeaderHeight])
   const onViewableItemsChanged = onSectionChange
-    ? e => {
+    ? (e: any) => {
         const section = e.viewableItems[0]?.section
         section && onSectionChange(section)
       }
@@ -87,12 +87,12 @@ const getGetItemLayout =
     while (i < index) {
       switch (elementPointer.type) {
         case 'SECTION_HEADER': {
-          const sectionData = data[sectionIndex].data
+          const sectionData = data[sectionIndex]?.data
 
           offset += getSectionHeaderHeight(sectionIndex)
 
           // If this section is empty, we go right to the footer...
-          if (sectionData.length === 0) {
+          if (sectionData?.length === 0) {
             elementPointer = {type: 'SECTION_FOOTER'}
             // ...otherwise we make elementPointer point at the first row in this section
           } else {
@@ -102,14 +102,13 @@ const getGetItemLayout =
           break
         }
         case 'ROW': {
-          const sectionData = data[sectionIndex].data
-
+          const sectionData = data[sectionIndex]?.data
           const rowIndex = elementPointer.index
 
-          offset += getItemHeight(sectionData[rowIndex], sectionIndex, rowIndex)
+          offset += getItemHeight(sectionData?.[rowIndex], sectionIndex, rowIndex)
           elementPointer.index += 1
 
-          if (rowIndex === sectionData.length - 1) {
+          if (rowIndex === (sectionData?.length ?? 0) - 1) {
             elementPointer = {type: 'SECTION_FOOTER'}
           } else {
             offset += getSeparatorHeight(sectionIndex, rowIndex)
@@ -135,7 +134,7 @@ const getGetItemLayout =
         break
       case 'ROW': {
         const rowIndex = elementPointer.index
-        length = getItemHeight(data[sectionIndex].data[rowIndex], sectionIndex, rowIndex)
+        length = getItemHeight(data[sectionIndex]?.data[rowIndex], sectionIndex, rowIndex)
         break
       }
       case 'SECTION_FOOTER':

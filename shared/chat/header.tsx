@@ -39,7 +39,7 @@ const Header = (props: Props) => {
   const {canEditDesc, channelname, descriptionDecorated, infoPanelShowing, isMuted} = data
   const {participantInfo, teamType, teamname} = data
   const otherParticipants = Constants.getRowParticipants(participantInfo, username)
-  const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0] : ''
+  const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
   const otherInfo = Container.useSelector(state => state.users.infoMap.get(first))
   // If it's a one-on-one chat, use the user's fullname as the description
   const desc = (otherInfo?.bio && otherInfo.bio.replace(/(\r\n|\n|\r)/gm, ' ')) || descriptionDecorated
@@ -190,7 +190,7 @@ const Header = (props: Props) => {
                     inline={true}
                     commaColor={Styles.globalColors.black_50}
                     type="BodySmallBold"
-                    usernames={withoutSelf[0]}
+                    usernames={withoutSelf[0] ?? ''}
                     onUsernameClicked="profile"
                   />
                   {!!description && (

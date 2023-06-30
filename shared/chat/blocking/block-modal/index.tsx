@@ -81,7 +81,7 @@ type ReportOptionsProps = {
   setReason: (reason: string) => void
   showIncludeTranscript: boolean
 }
-const reasons = ["I don't know this person", 'Spam', 'Harassment', 'Obscene material', 'Other...']
+const reasons = ["I don't know this person", 'Spam', 'Harassment', 'Obscene material', 'Other...'] as const
 const defaultReport: ReportSettings = {
   extraNotes: '',
   includeTranscript: true,

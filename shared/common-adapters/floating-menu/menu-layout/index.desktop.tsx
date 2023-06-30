@@ -110,7 +110,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
 
     return (
       <Box
-        onClick={event => {
+        onClick={(event: any) => {
           // never allow a click to go through
           event.stopPropagation()
         }}

@@ -4,7 +4,7 @@ import type {Props} from '.'
 import {View} from 'react-native'
 
 class Measure extends React.Component<Props> {
-  _onLayout = e => {
+  _onLayout = (e: any) => {
     this.props.onMeasured(e.nativeEvent.layout.width)
   }
   render() {

@@ -197,7 +197,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     ])
   }
 
-  onImageChange = (e: {nativeEvent: {uri; linkUri; mime; data}}) => {
+  onImageChange = (e: {nativeEvent: {uri: string; linkUri: string}}) => {
     if (this.props.onPasteImage) {
       const {uri, linkUri} = e.nativeEvent
       uri && this.props.onPasteImage(linkUri || uri)

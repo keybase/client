@@ -238,7 +238,7 @@ const ConversationList = React.memo(function ConversationList(p: {
 
       console.log(listRef.current)
 
-      const items = data?.map((ordinal, idx) => {
+      const items = data?.map((ordinal: number, idx: number) => {
         const layout = _layouts?.[idx]
         const m = mm.get(ordinal) ?? ({} as any)
         return {

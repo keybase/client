@@ -70,6 +70,7 @@ async function listener(
     }
 
     const callMap = bothCallMaps.reduce((map, {method, custom}) => {
+      // @ts-ignore
       map[method] = (params: any, _response: CommonResponseHandler) => {
         // No longer waiting on the server
         if (waitingKey) {
@@ -122,7 +123,7 @@ async function listener(
     }, {})
 
     // Make the actual call
-    let outstandingIntervalID
+    let outstandingIntervalID: any
     if (printOutstandingRPCs) {
       outstandingIntervalID = setInterval(() => {
         console.log('Engine/Listener with a still-alive eventChannel for method:', method)

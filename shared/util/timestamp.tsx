@@ -97,7 +97,9 @@ const formatRelativeCalendarForFS = (dontUpperCase: boolean, token: string, date
     return dateFns.isSameYear(date, baseDate) ? "EEE MMM d 'at' p" : "EEE MMM d yyyy 'at' p"
   }
 
-  return dontUpperCase ? noUpperCaseFirst[token] : upperCaseFirst[token]
+  return dontUpperCase
+    ? noUpperCaseFirst[token as keyof typeof noUpperCaseFirst]
+    : upperCaseFirst[token as keyof typeof upperCaseFirst]
 }
 
 export const formatTimeForFS = (time: number, dontUpperCase: boolean): string =>
@@ -204,8 +206,9 @@ const formatDistanceLocale = {
   xSeconds: '{{count}}s',
   xYears: '{{count}}y',
 }
+type Token = keyof typeof formatDistanceLocale
 
-const formatDistanceAbbr = (token: keyof typeof formatDistanceLocale, count: number): string =>
+const formatDistanceAbbr = (token: Token, count: number): string =>
   formatDistanceLocale[token].replace('{{count}}', String(count))
 
 export function formatTimeForPeopleItem(time: number): string {

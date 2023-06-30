@@ -41,7 +41,7 @@ class GetTitles extends React.Component<Props, State> {
   _onNext = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault()
 
-    const {info} = this.props.pathAndInfos[this.state.index]
+    const {info} = this.props.pathAndInfos[this.state.index] ?? {}
     if (!info) return
 
     const nextIndex = this.state.index + 1
@@ -84,10 +84,10 @@ class GetTitles extends React.Component<Props, State> {
     let preview: React.ReactNode = null
     switch (info.type) {
       case 'image':
-        preview = <Kb.ZoomableImage src={path} style={styles.image} />
+        preview = path ? <Kb.ZoomableImage src={path} style={styles.image} /> : null
         break
       case 'video':
-        preview = <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} />
+        preview = path ? <Kb.Video autoPlay={false} allowFile={true} muted={true} url={path} /> : null
         break
       default:
         preview = (

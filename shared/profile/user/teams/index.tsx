@@ -74,7 +74,7 @@ const Teams = (p: Props) =>
           {...t}
           onJoinTeam={p.onJoinTeam}
           onViewTeam={() => p.onViewTeam(t.name)}
-          inTeam={p.teamMeta[t.name].inTeam}
+          inTeam={p.teamMeta[t.name]?.inTeam ?? false}
         />
       ))}
     </Kb.Box2>

@@ -17,7 +17,7 @@ export type Props = {
   sbsDescription?: string
 }
 
-const FollowText = ({followThem, followsYou}) => {
+const FollowText = ({followThem, followsYou}: {followThem?: boolean; followsYou?: boolean}) => {
   let text: string = ''
   if (followThem) {
     if (followsYou) {

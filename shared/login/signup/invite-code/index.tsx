@@ -45,7 +45,7 @@ class InviteCode extends React.Component<Props, State> {
               value={this.state.inviteCode}
               errorText={this.props.error}
               onEnterKeyDown={this._onSubmit}
-              onChangeText={inviteCode => this.setState({inviteCode})}
+              onChangeText={(inviteCode: string) => this.setState({inviteCode})}
             />
             <ContinueButton disabled={!this.state.inviteCode} onClick={this._onSubmit} />
             <Kb.Text type="BodySmall">Not invited?</Kb.Text>

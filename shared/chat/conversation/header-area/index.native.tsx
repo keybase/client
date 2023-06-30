@@ -81,7 +81,7 @@ const ChannelHeader = (p: Props) => {
   )
 }
 
-const emptyArray = []
+const emptyArray = new Array<string>()
 const UsernameHeader = (p: Props) => {
   const {conversationIDKey} = p
   const you = ConfigConstants.useCurrentUserState(s => s.username)

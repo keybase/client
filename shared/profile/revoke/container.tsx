@@ -11,7 +11,7 @@ type OwnProps = {
   platformHandle: string
   proofId: string
 }
-const noIcon = []
+const noIcon: SiteIconSet = []
 
 export default (ownProps: OwnProps) => {
   const {platformHandle, platform, proofId} = ownProps

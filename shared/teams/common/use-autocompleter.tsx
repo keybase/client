@@ -64,7 +64,7 @@ function useAutocompleter<U>(
   const numItems = itemsFiltered.length
   const selectedItem = itemsFiltered[selected]
   const onKeyDown = React.useCallback(
-    evt => {
+    (evt: {key: string}) => {
       let diff = 0
       switch (evt.key) {
         case 'ArrowDown':
@@ -75,7 +75,7 @@ function useAutocompleter<U>(
           break
         case 'Enter':
           setSelected(0)
-          onSelect(selectedItem.value)
+          selectedItem?.value && onSelect(selectedItem.value)
           return
       }
       let newSelected = selected + diff

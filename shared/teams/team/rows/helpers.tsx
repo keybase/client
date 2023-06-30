@@ -43,7 +43,8 @@ export const getOrderedMemberArray = (
           const weights = getWeights(yourOperations.manageMembers)
           // Diff the statuses then types. If they're both the same sort alphabetically
           const diff1 = weights[a.status] - weights[b.status]
-          const diff2 = weights[a.type] - weights[b.type]
+          // @ts-ignore
+          const diff2 = (weights[a.type as any] ?? 0) - (weights[b.type as any] ?? 0)
           return diff1 || diff2 || a.username.localeCompare(b.username)
         })
         .filter(

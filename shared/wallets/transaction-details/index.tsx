@@ -149,7 +149,7 @@ const Counterparty = (props: CounterpartyProps) => {
   }
 }
 
-const AccountMeta = ({counterpartyMeta, accountID}) => (
+const AccountMeta = ({counterpartyMeta, accountID}: any) => (
   <Kb.Box2 direction="horizontal" style={{flexWrap: 'wrap'}}>
     {!!counterpartyMeta && (
       <Kb.Text type="BodySmall">

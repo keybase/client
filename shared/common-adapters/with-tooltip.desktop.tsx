@@ -24,7 +24,7 @@ const WithTooltip = React.memo(function WithTooltip(p: Props) {
     setVisible(false)
   }, [])
 
-  const setAttachmentRef = React.useCallback(ref => {
+  const setAttachmentRef = React.useCallback((ref: any) => {
     attachmentRef.current = ref
   }, [])
   const getAttachmentRef = React.useCallback(() => attachmentRef.current, [])

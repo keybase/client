@@ -332,11 +332,11 @@ export const pathTypeToTextType = (type: Types.PathType) =>
   type === Types.PathType.Folder ? 'BodySemibold' : 'Body'
 
 export const splitTlfIntoUsernames = (tlf: string): Array<string> =>
-  tlf.split(' ')[0].replace(/#/g, ',').split(',')
+  tlf.split(' ')[0]?.replace(/#/g, ',').split(',') ?? []
 
 export const getUsernamesFromPath = (path: Types.Path): Array<string> => {
   const elems = Types.getPathElements(path)
-  return elems.length < 3 ? [] : splitTlfIntoUsernames(elems[2])
+  return elems.length < 3 ? [] : splitTlfIntoUsernames(elems[2]!)
 }
 
 export const humanReadableFileSize = (size: number) => {
@@ -476,7 +476,7 @@ export const showIgnoreFolder = (path: Types.Path, username?: string): boolean =
   if (elems.length !== 3) {
     return false
   }
-  return ['public', 'private'].includes(elems[1]) && elems[2] !== username
+  return ['public', 'private'].includes(elems[1]!) && elems[2]! !== username
 }
 
 export const syntheticEventToTargetRect = (evt?: React.SyntheticEvent): ClientRect | undefined =>
@@ -510,7 +510,7 @@ export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
 
 export const getTlfPath = (path: Types.Path): Types.Path => {
   const elems = Types.getPathElements(path)
-  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]), elems[2]) : undefined
+  return elems.length > 2 ? Types.pathConcat(Types.pathConcat(defaultPath, elems[1]!), elems[2]!) : undefined
 }
 
 export const getTlfListAndTypeFromPath = (
@@ -540,7 +540,7 @@ export const getTlfFromPathInFavoritesOnly = (tlfs: Types.Tlfs, path: Types.Path
     return unknownTlf
   }
   const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
-  return tlfList.get(elems[2]) || unknownTlf
+  return tlfList.get(elems[2]!) || unknownTlf
 }
 
 export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
@@ -584,7 +584,7 @@ export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
 
 export const usernameInPath = (username: string, path: Types.Path) => {
   const elems = Types.getPathElements(path)
-  return elems.length >= 3 && elems[2].split(',').includes(username)
+  return elems.length >= 3 && elems[2]!.split(',').includes(username)
 }
 
 export const getUsernamesFromTlfName = (tlfName: string): Array<string> => {
@@ -654,7 +654,7 @@ const splitTlfIntoReadersAndWriters = (
   const [w, r] = tlf.split('#')
   return {
     readers: r ? r.split(',').filter(i => !!i) : undefined,
-    writers: w.split(',').filter(i => !!i),
+    writers: w?.split(',').filter(i => !!i) ?? [],
   }
 }
 
@@ -672,17 +672,17 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
         case 3:
           return {
             kind: Types.PathKind.GroupTlf,
-            tlfName: elems[2],
+            tlfName: elems[2]!,
             tlfType: Types.TlfType.Private,
-            ...splitTlfIntoReadersAndWriters(elems[2]),
+            ...splitTlfIntoReadersAndWriters(elems[2]!),
           }
         default:
           return {
             kind: Types.PathKind.InGroupTlf,
             rest: elems.slice(3),
-            tlfName: elems[2],
+            tlfName: elems[2] ?? '',
             tlfType: Types.TlfType.Private,
-            ...splitTlfIntoReadersAndWriters(elems[2]),
+            ...splitTlfIntoReadersAndWriters(elems[2] ?? ''),
           }
       }
     case 'public':
@@ -692,17 +692,17 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
         case 3:
           return {
             kind: Types.PathKind.GroupTlf,
-            tlfName: elems[2],
+            tlfName: elems[2]!,
             tlfType: Types.TlfType.Public,
-            ...splitTlfIntoReadersAndWriters(elems[2]),
+            ...splitTlfIntoReadersAndWriters(elems[2]!),
           }
         default:
           return {
             kind: Types.PathKind.InGroupTlf,
             rest: elems.slice(3),
-            tlfName: elems[2],
+            tlfName: elems[2] ?? '',
             tlfType: Types.TlfType.Public,
-            ...splitTlfIntoReadersAndWriters(elems[2]),
+            ...splitTlfIntoReadersAndWriters(elems[2] ?? ''),
           }
       }
     case 'team':
@@ -712,16 +712,16 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
         case 3:
           return {
             kind: Types.PathKind.TeamTlf,
-            team: elems[2],
-            tlfName: elems[2],
+            team: elems[2]!,
+            tlfName: elems[2]!,
             tlfType: Types.TlfType.Team,
           }
         default:
           return {
             kind: Types.PathKind.InTeamTlf,
             rest: elems.slice(3),
-            team: elems[2],
-            tlfName: elems[2],
+            team: elems[2] ?? '',
+            tlfName: elems[2] ?? '',
             tlfType: Types.TlfType.Team,
           }
       }
@@ -767,7 +767,7 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
     if (parsedPath.writers.length + (parsedPath.readers ? parsedPath.readers.length : 0) === 2) {
       const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
       if (notMe.length === 1) {
-        return notMe[0]
+        return notMe[0]!
       }
     }
     return 'group conversation'
@@ -1425,8 +1425,8 @@ export const useState = Z.createZustand<State>((set, get) => {
               return
             }
             s.tlfs[visibility] = new Map(s.tlfs[visibility])
-            s.tlfs[visibility].set(elems[2], {
-              ...(s.tlfs[visibility].get(elems[2]) || unknownTlf),
+            s.tlfs[visibility].set(elems[2] ?? '', {
+              ...(s.tlfs[visibility].get(elems[2] ?? '') || unknownTlf),
               isIgnored: false,
             })
           })
@@ -1439,8 +1439,8 @@ export const useState = Z.createZustand<State>((set, get) => {
           return
         }
         s.tlfs[visibility] = new Map(s.tlfs[visibility])
-        s.tlfs[visibility].set(elems[2], {
-          ...(s.tlfs[visibility].get(elems[2]) || unknownTlf),
+        s.tlfs[visibility].set(elems[2] ?? '', {
+          ...(s.tlfs[visibility].get(elems[2] ?? '') || unknownTlf),
           isIgnored: true,
         })
       })
@@ -1541,7 +1541,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             const [parent, child] = d.name.split('/')
             if (child) {
               // Only add to the children set if the parent definitely has children.
-              const fullParent = Types.pathConcat(rootPath, parent)
+              const fullParent = Types.pathConcat(rootPath, parent ?? '')
               let children = m.get(fullParent)
               if (!children) {
                 children = new Set<string>()

@@ -24,7 +24,7 @@ type State = {
 }
 
 const widths = [10, 80, 2, 66]
-const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]
+const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]!
 
 const FakeRow = ({idx}: {idx: number}) => (
   <Kb.Box2 direction="horizontal" style={styles.fakeRow}>

@@ -222,7 +222,7 @@ export const EmojiPickerDesktop = (props: Props) => {
   const {conversationIDKey} = props
   const {filter, onChoose, setFilter, topReacjis} = useReacji(props)
   const {currentSkinTone, setSkinTone} = useSkinTone()
-  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji)
+  const [hoveredEmoji, setHoveredEmoji] = React.useState<EmojiData>(Data.defaultHoverEmoji as any)
   const {waiting, customEmojiGroups} = useCustomReacji(
     conversationIDKey,
     props.onlyTeamCustomEmoji,
@@ -242,7 +242,7 @@ export const EmojiPickerDesktop = (props: Props) => {
         styles.contain,
         props.small && styles.containerDesktopSmall,
       ])}
-      onClick={e => e.stopPropagation()}
+      onClick={(e: any) => e.stopPropagation()}
       gap="tiny"
     >
       <Kb.Box2

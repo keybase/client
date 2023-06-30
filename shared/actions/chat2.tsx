@@ -957,7 +957,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType).reduce<Arra
         break
       default:
         {
-          const val = RPCChatTypes.MessageType[key]
+          const val = RPCChatTypes.MessageType[key as any]
           if (typeof val === 'number') {
             arr.push(val)
           }
@@ -2254,7 +2254,7 @@ const attachmentsUpload = async (state: Container.TypedState, action: Chat2Gen.A
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
           metadata: Buffer.from([]),
           outboxID: outboxIDs[i],
-          title: titles[i],
+          title: titles[i] ?? '',
           tlfName: tlfName ?? '',
           visibility: RPCTypes.TLFVisibility.private,
         },
@@ -3041,7 +3041,7 @@ const createConversation = async (
         | Array<{key: string; value: string}>
       let disallowedUsers: Array<string> = []
       if (errUsernames?.length) {
-        const {value} = errUsernames[0]
+        const {value} = errUsernames[0] ?? {value: ''}
         disallowedUsers = value.split(',')
       }
       const allowedUsers = action.payload.participants.filter(x => !disallowedUsers?.includes(x))

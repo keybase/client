@@ -37,7 +37,7 @@ const noteMap = new Map([
   ['web', webNote],
 ])
 
-const WebDescription = ({platformUserName}) => {
+const WebDescription = ({platformUserName}: {platformUserName: string}) => {
   const root = `${platformUserName}/keybase.txt`
   const wellKnown = `${platformUserName}/.well-known/keybase.txt`
   return (

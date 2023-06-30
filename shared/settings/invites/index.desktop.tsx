@@ -117,7 +117,7 @@ class Invites extends React.Component<Props, State> {
   }
 }
 
-function intersperseDividers(arr) {
+function intersperseDividers(arr: Array<React.ReactNode>) {
   return intersperseFn(i => <Kb.Divider key={i} />, arr)
 }
 

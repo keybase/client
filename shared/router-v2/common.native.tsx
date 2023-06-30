@@ -54,9 +54,15 @@ export const defaultNavigationOptions: any = {
     flexShrink: 0,
     ...(DEBUGCOLORS ? {backgroundColor: 'pink'} : {}),
   },
-  headerLeft: ({canGoBack, onPress, tintColor}) => (
-    <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />
-  ),
+  headerLeft: ({
+    canGoBack,
+    onPress,
+    tintColor,
+  }: {
+    canGoBack: boolean
+    onPress: () => void
+    tintColor: string
+  }) => <HeaderLeftArrow canGoBack={canGoBack} onPress={onPress} tintColor={tintColor} />,
   headerLeftContainerStyle: {
     flexGrow: 0,
     flexShrink: 0,
@@ -101,9 +107,10 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export const useSubnavTabAction = (navigation, state) =>
+export const useSubnavTabAction = (navigation: any, state: any) =>
   React.useCallback(
     (tab: string) => {
+      // @ts-ignore
       const route = state.routes.find(r => r.name === tab)
       const event = route
         ? navigation.emit({

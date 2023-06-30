@@ -124,7 +124,7 @@ const AddToChannels = (props: Props) => {
   const numSelected = selected.size
 
   const getItemLayout = React.useCallback(
-    (index: number, item?: Unpacked<typeof items>) =>
+    (index: number, item?: Container.Unpacked<typeof items>) =>
       item && item.type === 'header'
         ? {
             index,
@@ -138,7 +138,7 @@ const AddToChannels = (props: Props) => {
           },
     [mode]
   )
-  const renderItem = (_, item: Unpacked<typeof items>) => {
+  const renderItem = (_: unknown, item: Container.Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
         const allSelected = selected.size === convIDKeysAvailable.length
@@ -257,7 +257,17 @@ const AddToChannels = (props: Props) => {
   )
 }
 
-const HeaderRow = ({mode, onCreate, onSelectAll, onSelectNone}) => (
+const HeaderRow = ({
+  mode,
+  onCreate,
+  onSelectAll,
+  onSelectNone,
+}: {
+  mode: any
+  onCreate: any
+  onSelectAll: any
+  onSelectNone: any
+}) => (
   <Kb.Box2
     direction="horizontal"
     alignItems="center"

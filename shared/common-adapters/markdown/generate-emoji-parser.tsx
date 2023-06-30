@@ -4,6 +4,7 @@ import emojiData from 'emoji-datasource-apple'
 // MUST be lodash for node to work simply
 
 import {escapeRegExp} from 'lodash'
+// @ts-ignore
 import prettier from 'prettier'
 
 const commonTlds = [
@@ -38,7 +39,7 @@ const commonTlds = [
  */
 
 // from https://github.com/twitter/twemoji/blob/gh-pages/twemoji-generator.js
-function UTF162JSON(text) {
+function UTF162JSON(text: string) {
   const r: Array<string> = []
   for (let i = 0; i < text.length; i++) {
     r.push('\\u' + ('000' + text.charCodeAt(i).toString(16)).slice(-4))
@@ -47,10 +48,10 @@ function UTF162JSON(text) {
 }
 
 function genEmojiData() {
-  const emojiIndexByChar = {}
-  const emojiIndexByName = {}
+  const emojiIndexByChar: any = {}
+  const emojiIndexByName: any = {}
   const emojiLiterals: Array<string> = []
-  function addEmojiLiteral(unified, name, skinTone?) {
+  function addEmojiLiteral(unified: string, name: string, skinTone?: number) {
     const chars = unified.split('-').map(c => String.fromCodePoint(parseInt(c, 16)))
     const literals = chars.map(c => UTF162JSON(c)).join('')
 
@@ -72,7 +73,8 @@ function genEmojiData() {
     if (emoji.skin_variations) {
       Object.keys(emoji.skin_variations).forEach((k, idx) =>
         // + 2 because idx starts at 0, and skin-tone-1 is not a thing
-        addEmojiLiteral(emoji.skin_variations[k].unified, emoji.short_name, idx + 2)
+        // @ts-ignore
+        addEmojiLiteral(emoji.skin_variations[k]?.unified ?? '', emoji.short_name, idx + 2)
       )
     }
     addEmojiLiteral(emoji.unified, emoji.short_name)

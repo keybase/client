@@ -437,13 +437,15 @@ const makeContactsResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
   }
   switch (cts.length) {
     case 1:
-      return `${contactNotifMarker} ${cts[0].contactName} joined Keybase!`
+      return `${contactNotifMarker} ${cts[0]?.contactName ?? ''} joined Keybase!`
     case 2:
-      return `${contactNotifMarker}s ${cts[0].contactName} and ${cts[1].contactName} joined Keybase!`
+      return `${contactNotifMarker}s ${cts[0]?.contactName ?? ''} and ${
+        cts[1]?.contactName ?? ''
+      } joined Keybase!`
     default: {
       const lenMinusTwo = cts.length - 2
-      return `${contactNotifMarker}s ${cts[0].contactName}, ${
-        cts[1].contactName
+      return `${contactNotifMarker}s ${cts[0]?.contactName ?? ''}, ${
+        cts[1]?.contactName ?? ''
       }, and ${lenMinusTwo} ${pluralize('other', lenMinusTwo)} joined Keybase!`
     }
   }
@@ -633,9 +635,9 @@ ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
   getEngine()._dispatch(
     Chat2Gen.createUpdateLastCoord({
       coord: {
-        accuracy: Math.floor(pos.coords.accuracy ?? 0),
-        lat: pos.coords.latitude,
-        lon: pos.coords.longitude,
+        accuracy: Math.floor(pos?.coords.accuracy ?? 0),
+        lat: pos?.coords.latitude ?? 0,
+        lon: pos?.coords.longitude ?? 0,
       },
     })
   )

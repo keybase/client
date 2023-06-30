@@ -45,7 +45,7 @@ const ItemRenderer = (p: Common.ItemRendererProps<EmojiData>) => {
 
 // 2+ valid emoji chars and no ending colon
 const emojiPrepass = /[a-z0-9_]{2,}(?!.*:)/i
-const empty = []
+const empty = new Array<EmojiData>()
 
 export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
   const dispatch = Container.useDispatch()

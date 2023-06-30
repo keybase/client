@@ -12,8 +12,9 @@ export const getOptions = (route: {getOptions?: (o: any) => any}): any => {
 
 export const shim = (routes: any, platformWrapper: any, isModal: boolean, isLoggedOut: boolean) => {
   return Object.keys(routes).reduce((map, route) => {
-    let _cached = null
+    let _cached: any = null
 
+    // @ts-ignore
     map[route] = {
       ...routes[route],
       // only wrap if it uses getScreen originally, else let screen be special (sub navs in desktop)

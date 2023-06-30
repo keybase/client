@@ -12,7 +12,7 @@ const settingsSubRoutes = {
   ...sharedNewRoutes,
 }
 
-function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}) {
+function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}: any) {
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
@@ -33,7 +33,7 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
           {state.routes.map((route, i) => {
             return i === state.index ? (
               <Kb.Box2 key={route.key} direction="vertical" fullHeight={true} fullWidth={true}>
-                {descriptors[route.key].render()}
+                {descriptors[route.key]?.render()}
               </Kb.Box2>
             ) : null
           })}
@@ -62,8 +62,10 @@ const SettingsSubNavigator = () => (
       <TabNavigator.Screen
         key={name}
         name={name}
+        // @ts-ignore
         getComponent={settingsSubRoutes[name].getScreen}
         options={({route, navigation}) => {
+          // @ts-ignore
           const no = getOptions(settingsSubRoutes[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}

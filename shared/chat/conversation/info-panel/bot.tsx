@@ -293,6 +293,7 @@ const BotTab = (props: Props) => {
     }
   }
 
+  // @ts-ignore TODO Fix
   const items: Array<string | RPCTypes.FeaturedBot> = [
     ...(canManageBots ? [addBotButton] : []),
     ...(botsInConv.length > 0 ? [inThisChannelHeader] : []),
@@ -310,13 +311,13 @@ const BotTab = (props: Props) => {
       data: items,
       key: 'bots',
       // @ts-ignore this is a mobile-only property we don't want to generally expose because it might end up confusing people.
-      keyExtractor: (item: Unpacked<typeof items>, index: number) => {
+      keyExtractor: (item: Container.Unpacked<typeof items>, index: number) => {
         if (typeof item === 'string' || item instanceof String) {
           return item
         }
         return item.botUsername ? 'abot-' + item.botUsername : index
       },
-      renderItem: ({item}) => {
+      renderItem: ({item}: any) => {
         if (item === addBotButton) {
           return (
             <Kb.Button

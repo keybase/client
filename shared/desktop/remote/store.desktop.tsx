@@ -25,7 +25,7 @@ class RemoteStore {
 
   getStore = () => this._store
 
-  _onPropsUpdated = propsStr => {
+  _onPropsUpdated = (propsStr: string) => {
     // setImmediate since this can be a side effect of the reducer which redux doesn't like
     setTimeout(() => {
       this._store.dispatch({

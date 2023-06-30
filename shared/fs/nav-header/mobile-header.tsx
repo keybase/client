@@ -20,7 +20,7 @@ type Props = {
   path: Types.Path
 }
 
-const MaybePublicTag = ({path}) =>
+const MaybePublicTag = ({path}: {path: Types.Path}) =>
   Constants.hasPublicTag(path) ? <Kb.Meta title="public" backgroundColor={Styles.globalColors.green} /> : null
 
 const NavMobileHeader = (props: Props) => {

@@ -15,7 +15,7 @@ const closeTeamBuilding = (_: Container.TypedState) => {
   const routeNames = [...namespaceToRoute.values()]
   const routeName = modals[modals.length - 1]?.name
 
-  return !routeNames.includes(routeName) ? false : RouteTreeGen.createNavigateUp()
+  return !routeNames.includes(routeName ?? '') ? false : RouteTreeGen.createNavigateUp()
 }
 
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -27,7 +27,7 @@ const parseRawResultToUser = (
 ): TeamBuildingTypes.User | undefined => {
   const serviceMap = Object.keys(result.servicesSummary || {}).reduce<{[key: string]: string}>(
     (acc, service_name) => {
-      acc[service_name] = result.servicesSummary[service_name].username
+      acc[service_name] = result.servicesSummary[service_name]?.username ?? ''
       return acc
     },
     {}

@@ -155,7 +155,7 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
       )
       .catch(err => logger.error('[Installer]: Error zipping up logs: ', err))
 
-  const handleResults = (err: {code: number} | undefined, _, stdout: string, stderr: string) => {
+  const handleResults = (err: {code: number} | undefined, _: unknown, stdout: string, stderr: string) => {
     const loggingPromise = logOutput(stdout, stderr)
     const errors: Array<string> = []
     const errorTypes: ErrorTypes = {

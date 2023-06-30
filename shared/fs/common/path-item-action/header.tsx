@@ -13,7 +13,7 @@ const Header = (props: Props) => (
     onClick={
       // This box is necessary as otherwise the click event propagates into
       // the ListItem2 backed row.
-      event => event.stopPropagation()
+      (event: any) => event.stopPropagation()
     }
   >
     <PathItemInfo path={props.path} containerStyle={styles.container} />

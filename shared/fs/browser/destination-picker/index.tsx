@@ -25,7 +25,7 @@ type Props = {
   headerRightButton?: React.ReactNode
 }
 
-const NewFolder = ({onNewFolder}) => (
+const NewFolder = ({onNewFolder}: any) => (
   <Kb.ClickableBox style={styles.newFolderBox} onClick={onNewFolder}>
     <Kb.Icon type="iconfont-folder-new" color={Styles.globalColors.blue} />
     <Kb.Text type="BodyBig" style={styles.newFolderText}>

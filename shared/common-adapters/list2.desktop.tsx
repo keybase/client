@@ -5,7 +5,7 @@ import type {Props} from './list2'
 import {smallHeight, largeHeight} from './list-item2'
 
 class List2<T> extends React.PureComponent<Props<T>> {
-  _keyExtractor = index => {
+  _keyExtractor = (index: number) => {
     const item = this.props.items[index]
     if (this.props.indexAsKey || !item) {
       return String(index)
@@ -16,16 +16,20 @@ class List2<T> extends React.PureComponent<Props<T>> {
     }
 
     const keyProp = this.props.keyProperty || 'key'
+    // @ts-ignore
     return item[keyProp] ?? String(index)
   }
 
   // This has to be a separate variable since if we construct it inside render
   // it's a new function everytime, and that triggers react-window to unmount
   // all rows and mount again.
-  _row = ({index, style}) => <div style={style}>{this.props.renderItem(index, this.props.items[index])}</div>
+  _row = ({index, style}: any) => (
+    // @ts-ignore
+    <div style={style}>{this.props.renderItem(index, this.props.items[index])}</div>
+  )
 
   // Need to pass in itemData to make items re-render on prop changes.
-  _fixed = ({height, width, itemHeight}) => (
+  _fixed = ({height, width, itemHeight}: any) => (
     <FixedSizeList
       style={this.props.style as React.CSSProperties}
       height={height}
@@ -41,7 +45,7 @@ class List2<T> extends React.PureComponent<Props<T>> {
 
   private variableSizeListRef = React.createRef<VariableSizeList>()
 
-  _variable = ({height, width, getItemLayout}) => (
+  _variable = ({height, width, getItemLayout}: any) => (
     <VariableSizeList
       ref={this.variableSizeListRef}
       style={this.props.style as React.CSSProperties}

@@ -12,7 +12,7 @@ const categorize = (contact: Contact): string => {
   if (!contact.name) {
     return '0-9'
   }
-  const firstLetter = contact.name[0].toUpperCase()
+  const firstLetter = contact.name[0]?.toUpperCase() ?? ''
   if ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.includes(firstLetter)) {
     return firstLetter
   } else if ('0123456789'.includes(firstLetter)) {

@@ -3,6 +3,7 @@ import * as ConfigConstants from '../../../constants/config'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/tracker2'
+import type * as Types from '../../../constants/types/tracker2'
 import {noTeamID} from '../../../constants/types/teams'
 import Teams, {type Props} from '.'
 
@@ -10,7 +11,7 @@ type OwnProps = {
   username: string
 }
 
-const noTeams = []
+const noTeams = new Array<Types.TeamShowcase>()
 
 export default (ownProps: OwnProps) => {
   const d = Container.useSelector(state => Constants.getDetails(state, ownProps.username))

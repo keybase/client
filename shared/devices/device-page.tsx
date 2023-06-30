@@ -8,7 +8,15 @@ import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../util/time
 
 type OwnProps = {deviceID: string}
 
-const TimelineMarker = ({first, last, closedCircle}) => (
+const TimelineMarker = ({
+  first,
+  last,
+  closedCircle,
+}: {
+  first: boolean
+  last: boolean
+  closedCircle: boolean
+}) => (
   <Kb.Box style={styles.marker}>
     <Kb.Box style={Styles.collapseStyles([styles.timelineLineTop, first && styles.invisible])} />
     <Kb.Box style={closedCircle ? styles.circleClosed : styles.circleOpen} />
@@ -16,7 +24,7 @@ const TimelineMarker = ({first, last, closedCircle}) => (
   </Kb.Box>
 )
 
-const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
+const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}: any) => (
   <Kb.Box2 direction="vertical" style={styles.timelineLabel}>
     <Kb.Text type="Body">{desc}</Kb.Text>
     {!!subDesc && subDescIsName && (
@@ -32,7 +40,7 @@ const TimelineLabel = ({desc, subDesc, subDescIsName, spacerOnBottom}) => (
   </Kb.Box2>
 )
 
-const Timeline = ({device}) => {
+const Timeline = ({device}: any) => {
   const timeline = [
     ...(device.revokedAt
       ? [

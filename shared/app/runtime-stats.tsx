@@ -15,14 +15,13 @@ const yesNo = (v?: boolean) => (v ? 'YES' : 'NO')
 
 const severityStyle = (s: RPCTypes.StatsSeverityLevel) => {
   switch (s) {
-    case RPCTypes.StatsSeverityLevel.normal:
-      return styles.statNormal
     case RPCTypes.StatsSeverityLevel.warning:
       return styles.statWarning
     case RPCTypes.StatsSeverityLevel.severe:
       return styles.statSevere
+    default:
+      return styles.statNormal
   }
-  return styles.statNormal
 }
 
 const processTypeString = (s: RPCTypes.ProcessType) => {
@@ -103,7 +102,7 @@ const LogStats = (props: {num?: number}) => {
       const parts = e.message.split(' ')
       if (parts.length >= 2) {
         const [prefix, body] = parts
-        const bodyParts = body.split('.')
+        const bodyParts = body?.split('.') ?? []
         const b = bodyParts.length > 1 ? bodyParts.slice(-2).join('.') : bodyParts[0]
         switch (prefix) {
           case 'GET':
