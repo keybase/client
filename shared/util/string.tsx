@@ -4,7 +4,7 @@ export function pluralize(str: string, count?: number): string {
 }
 
 export function indefiniteArticle(str: string): string {
-  return str.length === 0 ? '' : 'aeiou'.includes(str[0].toLowerCase()) ? 'an' : 'a'
+  return str.length === 0 ? '' : 'aeiou'.includes(str[0]!.toLowerCase()) ? 'an' : 'a'
 }
 
 // Returns a RegExp that matches any string with the given filter

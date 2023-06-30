@@ -16,7 +16,7 @@ type Props = {
   isSender: boolean
 }
 
-const AssetList = ({accountID, isSender, username}) => {
+const AssetList = ({accountID, isSender, username}: any) => {
   const acceptedAssets = Container.useSelector(state =>
     username
       ? state.wallets.trustline.acceptedAssetsByUsername.get(username) ?? Constants.emptyAccountAcceptedAssets
@@ -29,7 +29,7 @@ const AssetList = ({accountID, isSender, username}) => {
   const assetMap = Container.useSelector(state => state.wallets.trustline.assetMap)
   const dispatch = Container.useDispatch()
   const onSelect = React.useCallback(
-    asset => {
+    (asset: any) => {
       dispatch(
         isSender
           ? WalletsGen.createSetBuildingAdvancedSenderAsset({senderAsset: asset})

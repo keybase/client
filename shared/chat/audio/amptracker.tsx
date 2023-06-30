@@ -152,15 +152,15 @@ class BucketList {
     }
     const newBl = new BucketList()
     let t = 0
-    const end = this.buckets[this.buckets.length - 1].end()
+    const end = this.buckets[this.buckets.length - 1]!.end()
     let oldInd = 0 // an index into the old buckets. For performance reasons, we'll also move across this
     while (t < end) {
       const b = new Bucket(t, dt, 0)
       newBl.addBucket(b)
       let vTotal = 0
       let fTotal = 0
-      while (oldInd < this.buckets.length && this.buckets[oldInd].start() < b.end()) {
-        const oldBucket = this.buckets[oldInd]
+      while (oldInd >= 0 && oldInd < this.buckets.length && this.buckets[oldInd]!.start() < b.end()) {
+        const oldBucket = this.buckets[oldInd]!
         const frac = fractionOfAThatIsOnB(b, oldBucket)
         vTotal += oldBucket.v * frac
         fTotal += frac

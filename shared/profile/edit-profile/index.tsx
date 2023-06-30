@@ -39,9 +39,9 @@ class EditProfile extends React.Component<Props, State> {
     )
   }
 
-  _updateFullname = fullname => this.setState({fullname})
-  _updateBio = bio => this.setState({bio})
-  _updateLocation = location => this.setState({location})
+  _updateFullname = (fullname: string) => this.setState({fullname})
+  _updateBio = (bio: string) => this.setState({bio})
+  _updateLocation = (location: string) => this.setState({location})
 
   _submit = () => {
     this.props.onSubmit(this.state.bio, this.state.fullname, this.state.location)

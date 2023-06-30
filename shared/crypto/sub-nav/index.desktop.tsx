@@ -22,7 +22,7 @@ const cryptoSubRoutes = {
   [Constants.signTab]: {getScreen: (): typeof SignIO => require('../operations/sign').SignIO},
   [Constants.verifyTab]: {getScreen: (): typeof VerifyIO => require('../operations/verify').VerifyIO},
 }
-function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}) {
+function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}: any) {
   const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
@@ -43,7 +43,10 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
           {state.routes.map((route, i) => {
             return i === state.index ? (
               <Kb.Box2 key={route.key} direction="vertical" fullHeight={true} fullWidth={true}>
-                {descriptors[route.key].render()}
+                {
+                  // @ts-ignore
+                  descriptors[route.key]?.render()
+                }
               </Kb.Box2>
             ) : null
           })}
@@ -69,8 +72,12 @@ const CryptoSubNavigator = () => (
       <TabNavigator.Screen
         key={name}
         name={name}
-        getComponent={cryptoSubRoutes[name].getScreen}
+        getComponent={
+          // @ts-ignore
+          cryptoSubRoutes[name].getScreen
+        }
         options={({route, navigation}) => {
+          // @ts-ignore
           const no = getOptions(cryptoSubRoutes[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}

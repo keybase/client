@@ -11,7 +11,7 @@ import {useSafeCallback} from '../util/container'
 type OwnProps = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
 }
-const noHighlight = []
+const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
 
 export default function AddDevice(ownProps: OwnProps) {
   const highlight = ownProps.highlight ?? noHighlight

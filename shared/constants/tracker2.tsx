@@ -174,8 +174,10 @@ export const sortAssertionKeys = (a: string, b: string) => {
   const typeB = pb[0]
 
   if (typeA === typeB) {
-    return pa[1].localeCompare(pb[1])
+    return pa[1]?.localeCompare(pb[1] ?? '') ?? 0
   }
+
+  if (!typeA || !typeB) return 0
 
   const scoreA = _scoreAssertionKey(typeB)
   const scoreB = _scoreAssertionKey(typeA)

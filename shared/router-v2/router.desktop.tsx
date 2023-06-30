@@ -61,7 +61,7 @@ const makeTabStack = (tab: DesktopTabs) => {
   return Comp
 }
 
-const makeNavScreens = (rs, Screen, _isModal: boolean) => {
+const makeNavScreens = (rs: any, Screen: any, _isModal: boolean) => {
   return Object.keys(rs).map(name => {
     return (
       <Screen
@@ -69,7 +69,7 @@ const makeNavScreens = (rs, Screen, _isModal: boolean) => {
         navigationKey={name}
         name={name}
         getComponent={rs[name].getScreen}
-        options={({route, navigation}) => {
+        options={({route, navigation}: any) => {
           const no = Shim.getOptions(rs[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
@@ -136,7 +136,8 @@ const RootStack = createNativeStackNavigator()
 const ModalScreens = makeNavScreens(Shim.shim(modalRoutes, true, false), RootStack.Screen, true)
 const documentTitle = {
   formatter: () => {
-    const tabLabel = Tabs.desktopTabMeta[Constants.getTab() ?? '']?.label ?? ''
+    // @ts-ignore
+    const tabLabel: string = Tabs.desktopTabMeta[Constants.getTab() ?? '']?.label ?? ''
     return `Keybase: ${tabLabel}`
   },
 }

@@ -69,7 +69,7 @@ class Input extends React.PureComponent<Props, State> {
     return {end: selectionEnd, start: selectionStart}
   }
 
-  _onChangeTextDone = value => {
+  _onChangeTextDone = (value: string) => {
     this.props.onChangeText?.(value)
   }
 
@@ -242,7 +242,7 @@ class Input extends React.PureComponent<Props, State> {
     return this.state.focused ? Styles.globalColors.blue : Styles.globalColors.black_10
   }
 
-  _rowsToHeight = rows => {
+  _rowsToHeight = (rows: number) => {
     return rows * _lineHeight + 1 // border
   }
 

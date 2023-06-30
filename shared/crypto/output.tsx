@@ -329,7 +329,7 @@ const OutputFileDestination = (props: {operation: Types.Operations}) => {
         ...(Platforms.isDarwin ? {defaultPath} : {}),
       })
       if (!filePaths.length) return
-      const path = filePaths[0]
+      const path = filePaths[0]!
       runFileOperation(operation, path)
     }
     Container.ignorePromise(f())

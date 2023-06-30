@@ -75,7 +75,7 @@ const appShouldDieOnStartup = () => {
     // Release numbers for OS versions can be looked up here: https://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
     // 14.0.0 == 10.10.0
     // 15.0.0 == 10.11.0
-    if (parseInt(os.release().split('.')[0], 10) < 14) {
+    if (parseInt(os.release().split('.')?.[0] ?? '', 10) < 14) {
       Electron.dialog.showErrorBox('Keybase Error', "This version of macOS isn't currently supported.")
       return true
     }
@@ -195,12 +195,12 @@ const getStartupProcessArgs = () => {
 
   if (
     process.argv.length > 1 &&
-    (isRelevantDeepLink(process.argv[1]) || isValidSaltpackFilePath(process.argv[1]))
+    (isRelevantDeepLink(process.argv[1] ?? '') || isValidSaltpackFilePath(process.argv[1] ?? ''))
   ) {
     arg = process.argv[1]
   } else if (
     process.argv.length > 2 &&
-    (isRelevantDeepLink(process.argv[2]) || isValidSaltpackFilePath(process.argv[2]))
+    (isRelevantDeepLink(process.argv[2] ?? '') || isValidSaltpackFilePath(process.argv[2] ?? ''))
   ) {
     arg = process.argv[2]
   }

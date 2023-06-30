@@ -66,7 +66,7 @@ class Text extends React.Component<Props> {
     openURL(this.props.onClickURL)
   }
 
-  private onContextMenu = event => {
+  private onContextMenu = (event: any) => {
     const url = this.props.onClickURL
     if (!url) {
       return

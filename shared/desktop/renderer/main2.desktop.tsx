@@ -65,7 +65,7 @@ const setupStore = () => {
   return {initListeners, store}
 }
 
-const setupApp = (store, initListeners) => {
+const setupApp = (store: any, initListeners: any) => {
   disableDragDrop()
 
   const {batch} = WaitingConstants.useWaitingState.getState().dispatch
@@ -120,7 +120,7 @@ const FontLoader = () => (
   </div>
 )
 
-let store
+let store: any
 
 const DarkCSSInjector = () => {
   const isDark = DarkMode.useDarkModeState(s => s.isDarkMode())
@@ -162,7 +162,7 @@ const render = (Component = Main) => {
   )
 }
 
-const setupHMR = _ => {
+const setupHMR = () => {
   const accept = module.hot && module.hot.accept
   if (!accept) {
     return
@@ -191,7 +191,7 @@ const load = () => {
   const {initListeners} = temp
   store = temp.store
   setupApp(store, initListeners)
-  setupHMR(store)
+  setupHMR()
 
   if (__DEV__) {
     // let us load devtools first

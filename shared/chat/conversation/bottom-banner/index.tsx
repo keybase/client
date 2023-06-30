@@ -36,10 +36,12 @@ const BannerText = (props: Partial<TextProps>) => (
 const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, onDismiss}: InviteProps) => {
   const theirName =
     users.length === 1
-      ? usernameToContactName.get(users[0]) || assertionToDisplay(users[0])
+      ? usernameToContactName.get(users[0]!) || assertionToDisplay(users[0]!)
       : `these ${users.length} people`
   const mobileClickInstall =
-    users.length === 1 && users[0].endsWith('@phone') ? () => openSMS(users[0].slice(0, -6)) : openShareSheet
+    users.length === 1 && users[0]!.endsWith('@phone')
+      ? () => openSMS(users[0]!.slice(0, -6))
+      : openShareSheet
   const caption = `Last step: summon ${theirName}!`
 
   if (isMobile) {

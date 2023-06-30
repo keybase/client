@@ -114,28 +114,28 @@ const getContentDescription = (items: Array<RPCTypes.IncomingShareItem>) => {
     return undefined
   }
   if (items.length > 1) {
-    return items.some(({type}) => type !== items[0].type) ? (
+    return items.some(({type}) => type !== items[0]?.type) ? (
       <Kb.Text type="BodyTiny">{items.length} items</Kb.Text>
     ) : (
       <Kb.Text type="BodyTiny">
-        {items.length} {incomingShareTypeToString(items[0].type, false, true)}
+        {items.length} {incomingShareTypeToString(items[0]!.type, false, true)}
       </Kb.Text>
     )
   }
 
-  if (items[0].content) {
+  if (items[0]!.content) {
     // If it's a text snippet, just say "1 text snippet" and don't show text
     // file name. We can get a file name here if the payload is from a text
     // selection (rather than URL).
-    return <Kb.Text type="BodyTiny">1 {incomingShareTypeToString(items[0].type, false, false)}</Kb.Text>
+    return <Kb.Text type="BodyTiny">1 {incomingShareTypeToString(items[0]!.type, false, false)}</Kb.Text>
   }
 
   // If it's a URL, originalPath is not populated.
-  const name = items[0].originalPath && FsTypes.getLocalPathName(items[0].originalPath)
+  const name = items[0]!.originalPath && FsTypes.getLocalPathName(items[0]!.originalPath)
   return name ? (
     <FsCommon.Filename type="BodyTiny" filename={name} />
   ) : (
-    <Kb.Text type="BodyTiny">1 {incomingShareTypeToString(items[0].type, false, false)}</Kb.Text>
+    <Kb.Text type="BodyTiny">1 {incomingShareTypeToString(items[0]!.type, false, false)}</Kb.Text>
   )
 }
 
@@ -350,8 +350,8 @@ const incomingShareTypeToString = (
 
 const isChatOnly = (items?: Array<RPCTypes.IncomingShareItem>): boolean =>
   items?.length === 1 &&
-  items[0].type === RPCTypes.IncomingShareType.text &&
-  !!items[0].content &&
-  !items[0].originalPath
+  items[0]!.type === RPCTypes.IncomingShareType.text &&
+  !!items[0]!.content &&
+  !items[0]!.originalPath
 
 export default IncomingShareMain

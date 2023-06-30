@@ -13,8 +13,8 @@ export type Props = {
   onEnable: () => void
   onEnableSyncNotifications: () => void
   onShowKextPermissionPopup: () => void
-  onChangedSyncNotifications: (number) => void
-  onSetSyncNotificationThreshold: (number) => void
+  onChangedSyncNotifications: (n: number) => void
+  onSetSyncNotificationThreshold: (n: number) => void
   onDisableSyncNotifications: () => void
   spaceAvailableNotificationThreshold: number
 }

@@ -957,7 +957,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType).reduce<Arra
         break
       default:
         {
-          const val = RPCChatTypes.MessageType[key]
+          const val = RPCChatTypes.MessageType[key as any]
           if (typeof val === 'number') {
             arr.push(val)
           }
@@ -2254,7 +2254,7 @@ const attachmentsUpload = async (state: Container.TypedState, action: Chat2Gen.A
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
           metadata: Buffer.from([]),
           outboxID: outboxIDs[i],
-          title: titles[i],
+          title: titles[i] ?? '',
           tlfName: tlfName ?? '',
           visibility: RPCTypes.TLFVisibility.private,
         },
@@ -3041,7 +3041,7 @@ const createConversation = async (
         | Array<{key: string; value: string}>
       let disallowedUsers: Array<string> = []
       if (errUsernames?.length) {
-        const {value} = errUsernames[0]
+        const {value} = errUsernames[0] ?? {value: ''}
         disallowedUsers = value.split(',')
       }
       const allowedUsers = action.payload.participants.filter(x => !disallowedUsers?.includes(x))
@@ -3350,8 +3350,14 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
 }
 
 const giphySend = (state: Container.TypedState, action: Chat2Gen.GiphySendPayload) => {
-  const {conversationIDKey, url} = action.payload
+  const {conversationIDKey, result} = action.payload
   const replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
+  RPCChatTypes.localTrackGiphySelectRpcPromise({
+    result,
+  })
+    .then(() => {})
+    .catch(() => {})
+  const url = new Container.HiddenString(result.targetUrl)
   return Chat2Gen.createMessageSend({conversationIDKey, replyTo: replyTo || undefined, text: url})
 }
 

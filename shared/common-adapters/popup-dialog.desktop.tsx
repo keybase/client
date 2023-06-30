@@ -5,7 +5,7 @@ import {EscapeHandler} from '../util/key-event-handler.desktop'
 import * as Styles from '../styles'
 import type {Props} from './popup-dialog'
 
-function stopBubbling(ev) {
+function stopBubbling(ev: any) {
   ev.stopPropagation()
 }
 

@@ -10,9 +10,9 @@ import CustomEmoji from './custom-emoji'
 const categorized = groupBy(emojidata, 'category')
 const sorted: typeof categorized = {}
 for (const cat in categorized) {
-  sorted[cat] = categorized[cat].sort((a, b) => a.sort_order - b.sort_order)
+  sorted[cat] = categorized[cat]!.sort((a, b) => a.sort_order - b.sort_order)
 }
-delete sorted.undefined
+delete sorted['undefined']
 export const categoryOrder = [
   'Smileys & Emotion',
   'Animals & Nature',
@@ -81,7 +81,7 @@ export const emojiSearch = (filter: string, maxResults: number) => {
 
 export const skinTones = ['1F3FA', '1F3FB', '1F3FC', '1F3FD', '1F3FE', '1F3FF'] as const
 
-export const defaultHoverEmoji = emojiNameMap.potato || emojidata[0]
+export const defaultHoverEmoji = emojiNameMap['potato'] || emojidata[0]
 
 export type EmojiData = {
   category: string

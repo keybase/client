@@ -172,10 +172,10 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
     teamname = participants.split('#')[0] ?? ''
   } else {
     if (layoutIsTeam) {
-      teamname = participants[0]
+      teamname = participants[0] ?? ''
     } else {
-      participantOne = participants[0]
-      participantTwo = participants[1]
+      participantOne = participants[0] ?? ''
+      participantTwo = participants[1] ?? ''
     }
   }
 

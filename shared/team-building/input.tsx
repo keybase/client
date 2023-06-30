@@ -69,7 +69,7 @@ const Input = (props: Props) => {
   }, [focusCounter, prevFocusCounter])
 
   const onKeyDown = React.useCallback(
-    e => {
+    (e: any) => {
       handleKeyDown(
         () => e.preventDefault(),
         e.ctrlKey,
@@ -83,7 +83,7 @@ const Input = (props: Props) => {
   )
 
   const onKeyPress = React.useCallback(
-    e => {
+    (e: any) => {
       handleKeyDown(noop, false, e.nativeEvent.key, onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown)
     },
     [onUpArrowKeyDown, onDownArrowKeyDown, onEnterKeyDown]

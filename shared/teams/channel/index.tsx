@@ -85,7 +85,7 @@ const useTabsState = (
   const defaultSelectedTab = lastSelectedTabs[conversationIDKey] ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
   const setSelectedTab = React.useCallback(
-    t => {
+    (t: TabKey) => {
       lastSelectedTabs[conversationIDKey] = t
       _setSelectedTab(t)
     },

@@ -34,15 +34,15 @@ const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
     props.users.length === 1
       ? [
           'Some of ',
-          {onClick: () => onClickUsername(props.users[0]), text: props.users[0]},
+          {onClick: () => onClickUsername(props.users[0]!), text: props.users[0]!},
           "'s proofs have changed since you last followed them.",
         ]
       : [
           ...(props.users.length === 2
             ? [
-                {onClick: () => onClickUsername(props.users[0]), text: props.users[0]},
+                {onClick: () => onClickUsername(props.users[0]!), text: props.users[0]!},
                 ' and ',
-                {onClick: () => onClickUsername(props.users[1]), text: props.users[1]},
+                {onClick: () => onClickUsername(props.users[1]!), text: props.users[1]!},
               ]
             : props.users.reduce<Array<string | {text: string; onClick: () => void}>>(
                 (content, user, index, {length}) => [

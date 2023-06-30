@@ -33,8 +33,8 @@ const rootRows = [
 ]
 
 const getRenderItem =
-  destinationPickerIndex =>
-  ({item, section}) =>
+  (destinationPickerIndex?: number) =>
+  ({item, section}: any) =>
     section.key === 'section-top' ? (
       <WrapRow>
         <TlfType name={item.name} destinationPickerIndex={destinationPickerIndex} />
@@ -51,7 +51,7 @@ const getRenderItem =
       </WrapRow>
     )
 
-const renderSectionHeader = ({section}) =>
+const renderSectionHeader = ({section}: any) =>
   section.key === 'banner-sfmi' ? <SfmiBanner /> : <Kb.SectionDivider label={section.title} />
 
 const useTopNTlfs = (

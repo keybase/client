@@ -97,7 +97,7 @@ export const TextInput = (props: TextProps) => {
       buttonLabel: 'Select',
     })
     if (!filePaths.length) return
-    const path = filePaths[0]
+    const path = filePaths[0]!
     onSetFile(path)
   }
 
@@ -267,7 +267,7 @@ export const DragAndDrop = (props: DragAndDropProps) => {
 
   const onAttach = (localPaths: Array<string>) => {
     const path = localPaths[0]
-    setInput(operation, 'file', path)
+    setInput(operation, 'file', path ?? '')
   }
 
   const allowFolders = allowInputFolders.get(operation) as boolean

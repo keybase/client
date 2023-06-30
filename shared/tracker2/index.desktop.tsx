@@ -103,7 +103,7 @@ const getButtons = (props: Props) => {
   return []
 }
 
-const TeamShowcase = ({name}) => (
+const TeamShowcase = ({name}: {name: string}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
     <Kb.Avatar size={32} teamname={name} isTeam={true} />
     <Kb.Text type="BodySemibold">{name}</Kb.Text>

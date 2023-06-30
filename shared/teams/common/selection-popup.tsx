@@ -222,7 +222,7 @@ const SelectionPopup = (props: Props) =>
     <TeamSelectionPopup {...props} />
   ) : null
 
-const ActionsWrapper = ({children}) => (
+const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2 fullWidth={Styles.isPhone} direction={Styles.isPhone ? 'vertical' : 'horizontal'} gap="tiny">
     {children}
   </Kb.Box2>
@@ -278,7 +278,7 @@ function allSameOrNull<T>(arr: T[]): T | null {
     return null
   }
   const first = arr[0]
-  return arr.some(r => r !== first) ? null : first
+  return (arr.some(r => r !== first) ? null : first) ?? null
 }
 const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: string[]}) => {
   const dispatch = Container.useDispatch()

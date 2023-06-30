@@ -12,6 +12,7 @@ const getConfigOverload = () => {
       const lastLoggedInUser = serverConfig?.lastLoggedInUser
       if (typeof lastLoggedInUser === 'string') {
         if (lastLoggedInUser) {
+          // @ts-ignore
           const userConfig = serverConfig[lastLoggedInUser] as {printRPCStats?: boolean} | undefined
           if (userConfig?.printRPCStats) {
             config.printRPCStats = true

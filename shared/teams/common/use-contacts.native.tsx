@@ -18,7 +18,7 @@ export type Contact = {
 }
 
 // for sorting
-const strcmp = (a, b) => (a === b ? 0 : a > b ? 1 : -1)
+const strcmp = (a: string, b: string) => (a === b ? 0 : a > b ? 1 : -1)
 const compareContacts = (a: Contact, b: Contact): number => {
   if (a.name === b.name) {
     return strcmp(a.value, b.value)

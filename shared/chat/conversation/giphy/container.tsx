@@ -2,7 +2,7 @@ import * as React from 'react'
 import type * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
-import HiddenString from '../../../util/hidden-string'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import GiphySearch from '.'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}
@@ -12,8 +12,8 @@ const GiphySearchContainer = React.memo(function GiphySearchContainer(p: OwnProp
   const giphy = Container.useSelector(state => state.chat2.giphyResultMap.get(conversationIDKey))
   const dispatch = Container.useDispatch()
   const onClick = React.useCallback(
-    (url: string) => {
-      dispatch(Chat2Gen.createGiphySend({conversationIDKey, url: new HiddenString(url)}))
+    (result: RPCChatTypes.GiphySearchResult) => {
+      dispatch(Chat2Gen.createGiphySend({conversationIDKey, result}))
     },
     [dispatch, conversationIDKey]
   )

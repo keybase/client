@@ -37,14 +37,14 @@ const tabToData = {
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
 
-const makeNavScreens = (rs, Screen, isModal) => {
+const makeNavScreens = (rs: any, Screen: any, isModal: any) => {
   return Object.keys(rs).map(name => {
     return (
       <Screen
         key={name}
         name={name}
         getComponent={rs[name].getScreen}
-        options={({route, navigation}) => {
+        options={({route, navigation}: any) => {
           const no = Shim.getOptions(rs[name])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {
@@ -72,9 +72,11 @@ const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; ro
     return badgeNumber
   })
 
+  // @ts-ignore
   return tabToData[routeName] ? (
     <View style={styles.container}>
       <Kb.Icon
+        // @ts-ignore
         type={tabToData[routeName].icon}
         fontSize={32}
         style={styles.tab}
@@ -146,6 +148,7 @@ const makeTabStack = (tab: string) => {
     function TabStack() {
       return (
         <S.Navigator
+          // @ts-ignore
           initialRouteName={tabRoots[tab]}
           screenOptions={{
             ...Common.defaultNavigationOptions,
@@ -193,11 +196,11 @@ const AppTabs = React.memo(
 
     const makeTabBarIcon =
       (routeName: string) =>
-      ({focused}) =>
+      ({focused}: {focused: boolean}) =>
         <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
     const makeTabBarLabel =
       (routeName: string) =>
-      ({focused}) =>
+      ({focused}: {focused: boolean}) =>
         (
           <Kb.Text
             style={Styles.collapseStyles([
@@ -212,7 +215,10 @@ const AppTabs = React.memo(
             ])}
             type="BodyBig"
           >
-            {tabToData[routeName].label}
+            {
+              // @ts-ignore
+              tabToData[routeName].label
+            }
           </Kb.Text>
         )
 

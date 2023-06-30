@@ -34,7 +34,9 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
         const toSend = {...serialized}
         // clear undefineds / exact dupes
         Object.keys(toSend).forEach(k => {
+          // @ts-ignore
           if (toSend[k] === undefined || JSON.stringify(toSend[k]) === JSON.stringify(lastToSend?.[k])) {
+            // @ts-ignore
             delete toSend[k]
           }
         })

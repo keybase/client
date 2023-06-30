@@ -4,6 +4,7 @@ import os from 'os'
 import packager, {type Options} from 'electron-packager'
 import path from 'path'
 import webpack from 'webpack'
+// @ts-ignore
 import rootConfig from './webpack.config.babel'
 import {readdir} from 'node:fs/promises'
 
@@ -48,7 +49,7 @@ const copySyncFolder = async (src: string, target: string, onlyExts: Array<strin
   const relSrcs = files.map(f => f.substring(srcRoot.length))
   const dsts = relSrcs.map(f => path.join(dstRoot, f))
 
-  relSrcs.forEach((s, idx) => fs.copySync(path.join(srcRoot, s), dsts[idx]))
+  relSrcs.forEach((s, idx) => fs.copySync(path.join(srcRoot, s), dsts[idx] ?? ''))
 }
 
 const copySync = (src: string, target: string, options?: object) => {
@@ -72,10 +73,11 @@ const getArgs = () => {
     if (r === undefined) {
       // single param?
     } else {
-      if (l.startsWith('--')) {
+      if (l?.startsWith('--')) {
         const k = l.substring(2)
 
         if (Object.prototype.hasOwnProperty.call(ret, k)) {
+          // @ts-ignore
           ret[k] = r
         }
       } else {
@@ -208,6 +210,7 @@ async function main() {
 
 async function startPack() {
   console.log('Starting webpack build\nInjecting __VERSION__: ', appVersion)
+  // @ts-ignore
   process.env.APP_VERSION = appVersion
   const webpackConfig = rootConfig(null, {mode: 'production'})
   try {
@@ -235,12 +238,12 @@ async function startPack() {
 
     rimrafSync(desktopPath('release'))
 
-    let aps = [[platform, arch]]
+    const aps = [[platform, arch]]
     await Promise.all(
       aps.map(async ([plat, arch]) => {
         try {
-          const appPaths = await pack(plat, arch)
-          postPack(appPaths, plat, arch)
+          const appPaths = await pack(plat!, arch!)
+          postPack(appPaths, plat!, arch!)
         } catch (err) {
           console.error(err)
           process.exit(1)
@@ -291,7 +294,7 @@ function postPack(appPaths: Array<string>, plat: string, arch: string) {
     return
   }
   const subdir = plat === 'darwin' ? 'Keybase.app/Contents/Resources' : 'resources'
-  const dir = path.join(appPaths[0], subdir, 'app/desktop/dist')
+  const dir = path.join(appPaths[0]!, subdir, 'app/desktop/dist')
   const modules = ['node', 'main', 'tracker2', 'menubar', 'unlock-folders', 'pinentry']
   const files = [
     ...modules.map(p => p + '.bundle.js'),

@@ -121,7 +121,7 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
 
       if (action.payload.fromKey) {
         const {fromKey} = action.payload
-        if (fromKey !== visible.key) {
+        if (fromKey !== visible?.key) {
           logger.warn('Skipping append on wrong screen')
           return
         }

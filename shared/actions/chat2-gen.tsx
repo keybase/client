@@ -1307,7 +1307,7 @@ export const createRemoveBotMember = (payload: {
  */
 export const createGiphySend = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly url: HiddenString
+  readonly result: RPCChatTypes.GiphySearchResult
 }) => ({payload, type: giphySend as typeof giphySend})
 /**
  * set bot public commands

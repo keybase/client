@@ -53,7 +53,7 @@ type Props = {
 const resetSignal = 'reset'
 type DeviceOrReset = Types.Device | 'reset'
 export class SelectOtherDevice extends React.Component<Props> {
-  _renderItem = (index, item: DeviceOrReset) => {
+  _renderItem = (index: number, item: DeviceOrReset) => {
     if (item === resetSignal) {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} key="reset">

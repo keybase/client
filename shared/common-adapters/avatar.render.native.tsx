@@ -30,6 +30,7 @@ const borderSize = 1
 const Avatar = React.memo(function Avatar(props: Props) {
   const {size} = props
   const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
+  // @ts-ignore
   const containerStyle = Styles.collapseStyles([boxStyles[size], props.style])
 
   return (
@@ -39,8 +40,19 @@ const Avatar = React.memo(function Avatar(props: Props) {
           <Kb.Box style={[styles.background, {backgroundColor: Styles.globalColors.white, borderRadius}]} />
         )}
         {!!props.blocked && (
-          <Kb.Box style={[imageStyles[props.size], {borderRadius}]}>
-            <Icon type="icon-poop-96" style={iconStyles[props.size]} />
+          <Kb.Box
+            style={
+              // @ts-ignore
+              [imageStyles[props.size], {borderRadius}]
+            }
+          >
+            <Icon
+              type="icon-poop-96"
+              style={
+                // @ts-ignore
+                iconStyles[props.size]
+              }
+            />
           </Kb.Box>
         )}
         {!!props.url && (
@@ -48,6 +60,7 @@ const Avatar = React.memo(function Avatar(props: Props) {
             showLoadingStateUntilLoaded={false}
             src={props.url}
             style={Styles.collapseStyles([
+              // @ts-ignore
               imageStyles[props.size],
               {
                 borderRadius,
@@ -68,7 +81,10 @@ const Avatar = React.memo(function Avatar(props: Props) {
         {props.followIconType && (
           <Kb.Icon
             type={props.followIconType}
-            style={Styles.collapseStyles([iconStyles[props.followIconSize], props.followIconStyle])}
+            style={
+              // @ts-ignore
+              Styles.collapseStyles([iconStyles[props.followIconSize], props.followIconStyle])
+            }
           />
         )}
         {props.editable && (

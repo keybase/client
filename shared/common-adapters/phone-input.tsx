@@ -39,12 +39,12 @@ const Kb = {
 const normalizeCountryCode = (countryCode: string) =>
   countryCode.endsWith('?') ? countryCode.slice(0, -1) : countryCode
 const getCallingCode = (countryCode: string) =>
-  countryCode !== '' ? countryData()[normalizeCountryCode(countryCode)].callingCode : ''
+  countryCode !== '' ? countryData()[normalizeCountryCode(countryCode)]?.callingCode ?? '' : ''
 const getCountryEmoji = (countryCode: string) => (
-  <Kb.Emoji size={16} emojiName={countryData()[normalizeCountryCode(countryCode)].emojiText} />
+  <Kb.Emoji size={16} emojiName={countryData()[normalizeCountryCode(countryCode)]?.emojiText ?? ''} />
 )
 const getPlaceholder = (countryCode: string) =>
-  countryCode !== '' ? 'Ex: ' + countryData()[normalizeCountryCode(countryCode)].example : 'N/A'
+  countryCode !== '' ? 'Ex: ' + countryData()[normalizeCountryCode(countryCode)]?.example ?? 'N/A' : 'N/A'
 const filterNumeric = (text: string) => text.replace(/[^\d]/g, '')
 const prioritizedCountries = ['US', 'CA', 'GB']
 
@@ -323,7 +323,7 @@ class _PhoneInput extends React.Component<OldProps> {
         const changedChar = this.props.formatted[diffIndex]
 
         // Make sure that the changed char isn't a number
-        if (isNaN(parseInt(changedChar, 10))) {
+        if (isNaN(parseInt(changedChar ?? '', 10))) {
           // At this point we're certain we're in the special scenario.
 
           // Take everything BUT the different character, make it all numbers
@@ -345,9 +345,9 @@ class _PhoneInput extends React.Component<OldProps> {
       return
     }
     for (let i = 0; i < newText.length - 1; i++) {
-      this.props.formatter.inputDigit(newText[i])
+      this.props.formatter.inputDigit(newText[i]!)
     }
-    const formatted = this.props.formatter.inputDigit(newText[newText.length - 1])
+    const formatted = this.props.formatter.inputDigit(newText[newText.length - 1]!)
     this.setFormattedPhoneNumber(formatted)
 
     // Special case for NA area
@@ -390,7 +390,7 @@ class _PhoneInput extends React.Component<OldProps> {
 
     // NA countries that use area codes require special behaviour
     if (newText.length === 4) {
-      newText = newText[0]
+      newText = newText[0]!
     }
     this.props.setPrefix(newText)
   }
@@ -435,7 +435,7 @@ class _PhoneInput extends React.Component<OldProps> {
             ? !this.props.prefix
               ? '- Pick a country -'
               : '- Invalid country prefix -'
-            : countryData()[this.props.country].emoji + ' ' + countryData()[this.props.country].name}
+            : countryData()[this.props.country]?.emoji + ' ' + countryData()[this.props.country]?.name}
         </Kb.Text>
       )
     }

@@ -43,10 +43,11 @@ const AlphabetIndex = (props: Props) => {
       if (sectionMeasureRef.current && isValidMeasure(sectionMeasureRef.current)) {
         const measure = sectionMeasureRef.current
         const touch = evt.nativeEvent.touches[0]
+        if (!touch) return
         const index = Math.floor((touch.pageY - measure.pageY) / measure.height)
         if (index >= 0 && index < labels.length && index !== currIndex.current) {
           currIndex.current = index
-          onScroll(labels[index])
+          onScroll(labels[index] ?? '')
         }
         if (showNumSection && index >= labels.length && index < labels.length + 3) {
           // last three are the '0 • 9'

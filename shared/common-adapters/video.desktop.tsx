@@ -15,7 +15,7 @@ export default class extends React.PureComponent<Props, State> {
 
   _mounted = false
 
-  _onContainerResize = ({bounds}) =>
+  _onContainerResize = ({bounds}: any) =>
     this._mounted && this.setState({containerHeight: bounds.height, containerWidth: bounds.width})
 
   _videoRef: {
@@ -31,7 +31,7 @@ export default class extends React.PureComponent<Props, State> {
         : this._videoRef.current.pause())
   }
 
-  _onVideoLoadedmetadata = ({target}) => {
+  _onVideoLoadedmetadata = ({target}: any) => {
     this._mounted &&
       this.setState({
         loadedVideoSize: true,

@@ -10,7 +10,7 @@ export function intersperseFn<A, B>(
   const toReturn = new Array(arr.length * 2 - 1)
   toReturn[0] = arr[0]
   for (let i = 1; i < arr.length; i++) {
-    toReturn[i * 2 - 1] = separatorFn(i, arr[i], arr)
+    toReturn[i * 2 - 1] = separatorFn(i, arr[i]!, arr)
     toReturn[i * 2] = arr[i]
   }
   return toReturn
@@ -21,7 +21,7 @@ export function findLast<T>(arr: Array<T>, cb: (t: T) => boolean): T | undefined
   if (arr.findLast) return arr.findLast(cb)
   const last = arr.length - 1
   for (let i = last; i >= 0; --i) {
-    if (cb(arr[i])) {
+    if (cb(arr[i]!)) {
       return arr[i]
     }
   }

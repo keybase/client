@@ -73,9 +73,9 @@ const TeamInfo = (props: Props) => {
       banners={
         <>
           {Object.keys(errors).map(k =>
-            errors[k] ? (
+            errors[k as keyof typeof errors] ? (
               <Kb.Banner color="red" key={k}>
-                {errors[k]}
+                {errors[k as keyof typeof errors] ?? ''}
               </Kb.Banner>
             ) : null
           )}

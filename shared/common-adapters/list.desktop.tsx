@@ -37,7 +37,7 @@ class List extends React.PureComponent<Props<any>> {
     return children
   }
 
-  _setListRef = r => {
+  _setListRef = (r: RL | null) => {
     this._list = r
   }
 
@@ -68,7 +68,7 @@ class List extends React.PureComponent<Props<any>> {
   // This matches the way onEndReached works for flatlist on RN
   _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
 
-  _onScroll = e => e.currentTarget && this._checkOnEndReached(e.currentTarget)
+  _onScroll = (e: any) => e.currentTarget && this._checkOnEndReached(e.currentTarget)
 
   render() {
     return (

@@ -68,7 +68,9 @@ const useDoAddEmojis = (
               }
               const failedFilenamesKeys = Object.keys(res.failedFilenames || {})
               !failedFilenamesKeys.length && dispatch(RouteTreeGen.createClearModals())
-              setErrors(new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key].uidisplay])))
+              setErrors(
+                new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key]?.uidisplay ?? '']))
+              )
               setBannerError(`Failed to add ${failedFilenamesKeys.length} emoji.`)
               setWaitingAddEmojis(false)
             },
@@ -210,9 +212,9 @@ export default AddEmojiModalWrapper
 
 const usePickFiles = (addFiles: (filePaths: Array<string>) => void) => {
   const [dragOver, setDragOver] = React.useState(false)
-  const onDragOver = e => e.dataTransfer.types.includes('Files') && setDragOver(true)
+  const onDragOver = (e: any) => e.dataTransfer.types.includes('Files') && setDragOver(true)
   const onDragLeave = () => setDragOver(false)
-  const onDrop = e => {
+  const onDrop = (e: any) => {
     if (!e.dataTransfer.types.includes('Files')) {
       return
     }

@@ -10,7 +10,7 @@ type OwnProps = {
   path: Types.Path
 }
 
-const OpenChat = props =>
+const OpenChat = (props: any) =>
   props.onChat && (
     <Kb.WithTooltip tooltip={`Chat with users in this ${props.isTeam ? 'team' : 'folder'}`}>
       <Kb.Icon

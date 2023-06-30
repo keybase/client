@@ -17,13 +17,13 @@ type SendBodyAdvancedProps = {}
 const SecretNoteAndPublicMemo = () => {
   const dispatch = Container.useDispatch()
   const onChangeSecretNote = React.useCallback(
-    secretNote => {
+    (secretNote: string) => {
       dispatch(WalletsGen.createSetBuildingAdvancedSecretNote({secretNote: new HiddenString(secretNote)}))
     },
     [dispatch]
   )
   const onChangePublicMemo = React.useCallback(
-    publicMemo => {
+    (publicMemo: string) => {
       dispatch(WalletsGen.createSetBuildingAdvancedPublicMemo({publicMemo: new HiddenString(publicMemo)}))
     },
     [dispatch]

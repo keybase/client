@@ -28,6 +28,7 @@ const updateInfo = (
   const next = map.get(username)
   if (next) {
     Object.keys(info).forEach(key => {
+      // @ts-ignore
       next[key] = info[key]
     })
   } else {

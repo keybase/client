@@ -40,10 +40,12 @@ const useTabsState = (
   providedTab?: Types.TabKey
 ): [Types.TabKey, (t: Types.TabKey) => void] => {
   const dispatch = Container.useDispatch()
+  // @ts-ignore
   const defaultSelectedTab = lastSelectedTabs[teamID] ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<Types.TabKey>(defaultSelectedTab)
   const setSelectedTab = React.useCallback(
-    t => {
+    (t: Types.TabKey) => {
+      // @ts-ignore
       lastSelectedTabs[teamID] = t
       if (selectedTab !== 'settings' && t === 'settings') {
         dispatch(TeamsGen.createSettingsError({error: ''}))
@@ -112,7 +114,7 @@ const Team = (props: Props) => {
   const headerSection = {
     data: ['header', 'tabs'],
     key: 'headerSection',
-    renderItem: ({item}) =>
+    renderItem: ({item}: any) =>
       item === 'header' ? (
         <NewTeamHeader teamID={teamID} />
       ) : (
@@ -156,7 +158,7 @@ const Team = (props: Props) => {
   }
 
   const renderSectionHeader = React.useCallback(
-    ({section}) =>
+    ({section}: any) =>
       section.title ? (
         <Kb.SectionDivider
           label={section.title}

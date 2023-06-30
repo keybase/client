@@ -105,7 +105,7 @@ const filterUsersAndTeams = (
   })
 
   if (sortedUsers.length === 0 && sortedTeams.length === 1) {
-    const first = sortedTeams[0]
+    const first = sortedTeams[0]!
     // The only user+team result is a single team. Present its channels as well.
     return [first, ...allChannels.filter(v => v.teamname === first.teamname)]
   }

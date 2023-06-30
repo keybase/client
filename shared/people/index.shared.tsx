@@ -57,8 +57,9 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
           url={item.url}
         />
       )
+    default:
+      return null
   }
-  return null
 }
 
 const EmailVerificationBanner = () => {

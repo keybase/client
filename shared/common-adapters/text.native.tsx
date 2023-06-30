@@ -16,6 +16,7 @@ const styles = Styles.styleSheetCreate(() =>
       modes.forEach(mode => {
         map[`${type}:${mode}`] = {
           ...fontSizeToSizeStyle(meta.fontSize),
+          // @ts-ignore
           color: meta.colorForBackground[mode] || Styles.globalColors.black,
           ...meta.styleOverride,
         }

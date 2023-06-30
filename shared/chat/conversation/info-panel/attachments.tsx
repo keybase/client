@@ -82,13 +82,13 @@ function formMonths<I extends {ctime: number; key: React.Key}>(
 ): Array<{
   key: React.Key
   data: Array<I>
-  month: string
+  month?: string
   year: number
 }> {
   if (items.length === 0) {
     return []
   }
-  const dateInfo = getDateInfo(items[0])
+  const dateInfo = getDateInfo(items[0]!)
   let curMonth = {
     ...dateInfo,
     data: [] as Array<I>,
@@ -568,7 +568,7 @@ export const useAttachmentSections = (
             return {
               data,
               key: month.key,
-              renderItem: ({item}: {item: Unpacked<typeof data>; index: number}) => (
+              renderItem: ({item}: {item: Container.Unpacked<typeof data>; index: number}) => (
                 <Kb.Box2
                   direction="horizontal"
                   fullWidth={true}

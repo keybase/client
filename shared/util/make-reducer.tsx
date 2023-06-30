@@ -18,6 +18,7 @@ function makeReducer<A, S>(
   }
 ) {
   return (state: S = initialState, action: TypedActions): S => {
+    // @ts-ignore
     const actionReducer = map[action.type]
     if (!actionReducer) {
       return state

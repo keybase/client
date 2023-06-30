@@ -36,10 +36,10 @@ export default () => {
   )
 
   const dispatch = Container.useDispatch()
-  const _onLoadMore = accountID => {
+  const _onLoadMore = (accountID: string) => {
     dispatch(WalletsGen.createLoadMorePayments({accountID}))
   }
-  const _onMarkAsRead = (accountID, mostRecentID) => {
+  const _onMarkAsRead = (accountID: string, mostRecentID: any) => {
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID}))
   }
   const onBack = () => {
@@ -69,10 +69,10 @@ export default () => {
   })
 
   // split into pending & history
-  let mostRecentID
+  let mostRecentID: any
   const paymentsList = payments && [...payments.values()]
   const [_history, _pending] = partition(paymentsList, p => p.section === 'history')
-  const mapItem = p => ({paymentID: p.id, timestamp: p.time})
+  const mapItem = (p: any) => ({paymentID: p.id, timestamp: p.time})
   let history: any = _history.map(mapItem)
   const pending = _pending.map(mapItem)
 

@@ -19,7 +19,7 @@ export default (ownProps: OwnProps) => {
   const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
   const dispatch = Container.useDispatch()
   const _confirm = React.useCallback(
-    ({view, previousView}) => {
+    ({view, previousView}: any) => {
       dispatch(
         view === 'confirm-save-media' ? FsGen.createSaveMedia({path}) : FsGen.createShareNative({path})
       )

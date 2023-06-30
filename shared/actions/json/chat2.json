@@ -579,7 +579,7 @@
     "giphySend": {
       "_description": "send a message from Giphy search",
       "conversationIDKey": "Types.ConversationIDKey",
-      "url": "HiddenString"
+      "result": "RPCChatTypes.GiphySearchResult"
     },
     "giphyGotSearchResult": {
       "_description": "Giphy search results obtained",

@@ -77,7 +77,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       return null
     }
     const usernameMatch = match[1]
-    if (usernameMatch.length < 2 || usernameMatch.length > 16) {
+    if (!usernameMatch || usernameMatch.length < 2 || usernameMatch.length > 16) {
       return null
     }
     // Ignore query string and hash parameters.
@@ -94,7 +94,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       return null
     }
     const teamName = match[1]
-    if (teamName.length < 2 || teamName.length > 255) {
+    if (!teamName || teamName.length < 2 || teamName.length > 255) {
       return null
     }
     // `url.query` has a wrong type in @types/url-parse. It's a `string` in the
@@ -160,12 +160,12 @@ export const useState = Z.createZustand<State>((set, get) => {
             parts.length === 4 &&
               parts[3] &&
               ProfileConstants.useState.getState().dispatch.showUserProfile(parts[3])
-            ProfileConstants.useState.getState().dispatch.addProof(parts[2], 'appLink')
+            ProfileConstants.useState.getState().dispatch.addProof(parts[2]!, 'appLink')
             return
           } else if (parts[1] === 'show' && parts.length === 3) {
             // Username is basically a team name part, we can use the same logic to
             // validate deep link.
-            const username = parts[2]
+            const username = parts[2]!
             if (username.length && validTeamnamePart(username)) {
               return handleShowUserProfileLink(username)
             }
@@ -190,14 +190,16 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         case 'convid':
           if (parts.length === 2) {
-            reduxDispatch(ChatGen.createNavigateToThread({conversationIDKey: parts[1], reason: 'navChanged'}))
+            reduxDispatch(
+              ChatGen.createNavigateToThread({conversationIDKey: parts[1]!, reason: 'navChanged'})
+            )
             return
           }
           break
         case 'chat':
           if (parts.length === 2 || parts.length === 3) {
-            if (parts[1].includes('#')) {
-              const teamChat = parts[1].split('#')
+            if (parts[1]!.includes('#')) {
+              const teamChat = parts[1]!.split('#')
               if (teamChat.length !== 2) {
                 get().dispatch.setLinkError(error)
                 reduxDispatch(
@@ -208,7 +210,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                 return
               }
               const [teamname, channelname] = teamChat
-              const highlightMessageID = parseInt(parts[2], 10)
+              const highlightMessageID = parseInt(parts[2]!, 10)
               if (highlightMessageID < 0) {
                 logger.warn(`invalid chat message id: ${highlightMessageID}`)
                 return
@@ -223,7 +225,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               )
               return
             } else {
-              const highlightMessageID = parseInt(parts[2], 10)
+              const highlightMessageID = parseInt(parts[2]!, 10)
               if (highlightMessageID < 0) {
                 logger.warn(`invalid chat message id: ${highlightMessageID}`)
                 return
@@ -231,7 +233,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               reduxDispatch(
                 ChatGen.createPreviewConversation({
                   highlightMessageID,
-                  participants: parts[1].split(','),
+                  participants: parts[1]!.split(','),
                   reason: 'appLink',
                 })
               )
@@ -241,7 +243,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           break
         case 'team-page': // keybase://team-page/{team_name}/{manage_settings,add_or_invite}?
           if (parts.length >= 2) {
-            const teamName = parts[1]
+            const teamName = parts[1]!
             if (teamName.length && validTeamname(teamName)) {
               const actionPart = parts[2]
               const action = isTeamPageAction(actionPart) ? actionPart : undefined
@@ -254,7 +256,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']}))
           return
         case 'team-invite-link':
-          reduxDispatch(TeamsGen.createOpenInviteLink({inviteID: parts[1], inviteKey: parts[2] || ''}))
+          reduxDispatch(TeamsGen.createOpenInviteLink({inviteID: parts[1] ?? '', inviteKey: parts[2] || ''}))
           return
         default:
         // Fall through to the error return below.

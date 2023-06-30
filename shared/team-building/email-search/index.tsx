@@ -29,7 +29,7 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
   const canSubmit = !!user && !waiting && isEmailValid
 
   const onChange = React.useCallback(
-    text => {
+    (text: string) => {
       // Remove leading or trailing whitespace
       text = text.trim()
       setEmailString(text)

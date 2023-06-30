@@ -22,8 +22,8 @@ export default (ownProps: OwnProps) => {
   if (!teamname) {
     const parts = name.split('#')
     if (parts.length >= 2) {
-      teamname = parts[0]
-      channelname = parts[1]
+      teamname = parts[0]!
+      channelname = parts[1]!
     }
   }
   const props = {

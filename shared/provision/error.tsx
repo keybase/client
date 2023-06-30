@@ -48,7 +48,7 @@ type Props = {
   onPasswordReset: () => void
 }
 
-const List = p => (
+const List = (p: any) => (
   <Box2 direction="vertical" style={styles.list}>
     {p.children}
   </Box2>
@@ -306,7 +306,10 @@ const RenderError = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}:
         <Wrapper onBack={onBack}>
           <Kb.Box2 direction="vertical">
             <Text center={true} type="Body" selectable={true}>
-              {rewriteErrorDesc[error.desc] || error.desc}
+              {
+                // @ts-ignore
+                rewriteErrorDesc[error.desc] || error.desc
+              }
             </Text>
             <Text center={true} type="BodySmall" selectable={true}>
               {' '}

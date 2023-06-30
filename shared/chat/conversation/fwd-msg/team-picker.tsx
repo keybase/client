@@ -135,7 +135,7 @@ const TeamPicker = (props: Props) => {
               isHovered={false}
               isMuted={false}
               isSelected={false}
-              teamname={item.name.split('#')[0]}
+              teamname={item.name.split('#')[0] ?? ''}
             />
           ) : (
             <Avatars participantOne={item.parts?.[0]} participantTwo={item.parts?.[1]} />

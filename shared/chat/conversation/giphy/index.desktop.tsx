@@ -38,7 +38,7 @@ class GiphySearch extends React.Component<Props, State> {
       <Kb.Box style={styles.outerContainer}>
         <Kb.Box2
           direction="vertical"
-          ref={el => (this.container = el)}
+          ref={(el: any) => (this.container = el)}
           style={Styles.collapseStyles([
             styles.scrollContainer,
             {overflowY: this.state.width ? 'auto' : 'scroll'} as any,
@@ -60,7 +60,7 @@ class GiphySearch extends React.Component<Props, State> {
             (this.props.previews ? (
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
                 {this.props.previews?.map((p, index) => {
-                  const margin = -margins[index] / 2 - 1
+                  const margin = -margins[index]! / 2 - 1
                   return p.targetUrl ? (
                     <Kb.Box2 key={String(index)} direction="horizontal" style={styles.imageContainer}>
                       <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
@@ -68,7 +68,7 @@ class GiphySearch extends React.Component<Props, State> {
                           autoplayVideo={true}
                           height={gridHeight}
                           isVideo={p.previewIsVideo}
-                          onClick={() => this.props.onClick(p.targetUrl)}
+                          onClick={() => this.props.onClick(p)}
                           style={styles.image}
                           url={p.previewUrl}
                           width={scaledWidth(p.previewWidth)}

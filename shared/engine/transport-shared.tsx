@@ -101,7 +101,7 @@ class TransportShared extends RobustTransport {
 
     if (incomingRPCCallback) {
       // delay the call back to us
-      const handler = payload => {
+      const handler = (payload: any) => {
         this._injectInstrumentedResponse(payload)
         incomingRPCCallback(payload)
       }

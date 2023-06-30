@@ -187,7 +187,7 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const DeviceHeader = ({onAddNew}) => (
+const DeviceHeader = ({onAddNew}: any) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
     <Kb.Button label="Add a device or paper key" fullWidth={true} />
   </Kb.ClickableBox>
@@ -207,11 +207,11 @@ const headerStyles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-const RevokedHeader = ({onToggleExpanded, expanded}) => (
+const RevokedHeader = ({onToggleExpanded, expanded}: any) => (
   <Kb.SectionDivider collapsed={!expanded} onToggleCollapsed={onToggleExpanded} label="Revoked devices" />
 )
 
-const PaperKeyNudge = ({onAddDevice}) => (
+const PaperKeyNudge = ({onAddDevice}: any) => (
   <Kb.ClickableBox onClick={onAddDevice}>
     <Kb.Box2 direction="horizontal" style={paperKeyNudgeStyles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={paperKeyNudgeStyles.border}>

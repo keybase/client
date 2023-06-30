@@ -70,14 +70,14 @@ export function parseUserId(id: UserId): {
   const matches = /^\[([^[\]]+)\]@([^@[\]]+)$/.exec(id)
   if (matches) {
     return {
-      serviceId: serviceIdFromString(matches[2]),
-      username: matches[1],
+      serviceId: serviceIdFromString(matches[2] ?? ''),
+      username: matches[1] ?? '',
     }
   }
   const [username, maybeServiceId] = id.split('@')
-  const serviceId = serviceIdFromString(maybeServiceId)
+  const serviceId = serviceIdFromString(maybeServiceId ?? '')
   return {
     serviceId,
-    username,
+    username: username ?? '',
   }
 }

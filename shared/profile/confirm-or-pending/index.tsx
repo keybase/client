@@ -14,6 +14,7 @@ type Props = {
 
 const ConfirmOrPending = (props: Props) => {
   const message =
+    // @ts-ignore
     messageMap[props.platform] ||
     (props.isPending
       ? 'Some proofs can take a few hours to recognize. Check back later.'

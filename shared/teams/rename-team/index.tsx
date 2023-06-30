@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
-const splitTeamname = teamname => teamname.split('.')
+const splitTeamname = (teamname: string) => teamname.split('.')
 
 type Props = {
   error?: string
@@ -25,7 +25,7 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
     const teamNameParts = splitTeamname(this.props.teamname)
     const newName = teamNameParts.pop()
     this._prefix = teamNameParts.join('.')
-    this._originalName = newName
+    this._originalName = newName ?? ''
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -36,7 +36,7 @@ class RenameTeam extends React.Component<Props, {error: string; newName: string}
   }
 
   _newFullName = () => [this._prefix, this.state.newName].join('.')
-  _onChangeText = newName => this.setState({newName})
+  _onChangeText = (newName: string) => this.setState({newName})
   _disabled = () => this.state.newName.length < 2
   _validateTeamname = () => {
     const {newName} = this.state

@@ -90,7 +90,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       }
       const words = upToCursor.split(wordRegex)
       const word = words[words.length - 1]
-      const position = {end: selection.start, start: selection.start - word.length}
+      const position = {end: selection.start, start: selection.start - word!.length}
       return {position, word}
     }
     return null
@@ -109,6 +109,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
         return
       }
       const {word} = cursorInfo
+      if (!word) return
       if (active) {
         const activeMarker = suggestorToMarker[active]
         const matchInfo = matchesMarker(word, activeMarker)
@@ -149,7 +150,7 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       }
       const input = inputRef.current
       const cursorInfo = getWordAtCursor()
-      if (!cursorInfo) {
+      if (!cursorInfo?.word) {
         return
       }
       const matchInfo = matchesMarker(cursorInfo.word, suggestorToMarker[active])

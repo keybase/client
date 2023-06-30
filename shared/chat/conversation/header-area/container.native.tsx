@@ -96,7 +96,7 @@ const HeaderBranchContainer = React.memo(function HeaderBranchContainer(p: OwnPr
 })
 export default HeaderBranchContainer
 
-const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}) => {
+const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}: any) => {
   const visiblePath = getVisiblePath()
   const onTopOfInbox = visiblePath?.length === 3 && visiblePath[1]?.name === Tabs.chatTab
   const badgeNumber = Container.useSelector(state =>

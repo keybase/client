@@ -52,7 +52,7 @@ const SettingsFiles = () => {
     ),
     onBack,
     onChangedSyncNotifications: (selectedIdx: number) =>
-      onSetSyncNotificationThreshold(allowedNotificationThresholds[selectedIdx]),
+      onSetSyncNotificationThreshold(allowedNotificationThresholds[selectedIdx] ?? 0),
     onDisable,
     onDisableSyncNotifications,
     onEnable,

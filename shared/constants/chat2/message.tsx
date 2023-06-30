@@ -553,7 +553,7 @@ export const uiPaymentInfoToChatPaymentInfo = (
   if (!ps || ps.length !== 1) {
     return undefined
   }
-  const p = ps[0]
+  const p = ps[0]!
   const serviceStatus = WalletConstants.statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
     accountID: p.accountID ? WalletTypes.stringToAccountID(p.accountID) : WalletTypes.noAccountID,
@@ -587,11 +587,11 @@ export const reactionMapToReactions = (r: RPCChatTypes.UIReactionMap): MessageTy
         arr.push([
           emoji,
           {
-            decorated: r.reactions[emoji].decorated,
+            decorated: r.reactions[emoji]!.decorated,
             users: new Set(
-              Object.keys(r.reactions[emoji].users).map(username =>
+              Object.keys(r.reactions[emoji]!.users).map(username =>
                 makeReaction({
-                  timestamp: r.reactions[emoji].users[username].ctime,
+                  timestamp: r.reactions[emoji]!.users[username]?.ctime,
                   username,
                 })
               )
@@ -1405,7 +1405,9 @@ export const mergeMessage = (old: Types.Message | undefined, m: Types.Message): 
       case 'reactions':
       case 'mentionsAt':
       case 'audioAmps':
+        // @ts-ignore
         if (shallowEqual([...old[key]], [...m[key]])) {
+          // @ts-ignore
           toRet[key] = old[key]
         } else {
           allSame = false
@@ -1414,7 +1416,9 @@ export const mergeMessage = (old: Types.Message | undefined, m: Types.Message): 
       case 'bodySummary':
       case 'decoratedText':
       case 'text':
+        // @ts-ignore
         if (old[key]?.stringValue?.() === m[key]?.stringValue?.()) {
+          // @ts-ignore
           toRet[key] = old[key]
         } else {
           allSame = false

@@ -23,7 +23,7 @@ class EnterUsername extends React.Component<Props, State> {
   _submit = () => {
     this.state.canSubmit && this.props.onSubmit(this.state.username)
   }
-  _onChangeUsername = username => this.setState({canSubmit: !!username.length, username})
+  _onChangeUsername = (username: string) => this.setState({canSubmit: !!username.length, username})
   render() {
     const pt = platformText[this.props.platform]
     if (!pt || !pt.headerText) {
@@ -79,7 +79,7 @@ class EnterUsername extends React.Component<Props, State> {
   }
 }
 
-const UsernameTips = ({platform}) =>
+const UsernameTips = ({platform}: {platform: PlatformsExpandedType}) =>
   platform === 'hackernews' ? (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tips}>
       <Kb.Text type="BodySmallSemibold">&bull; You must have karma &ge; 2</Kb.Text>

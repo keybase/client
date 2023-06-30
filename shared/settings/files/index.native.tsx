@@ -22,7 +22,7 @@ class ThresholdDropdown extends React.PureComponent<
     this.props.onSetSyncNotificationThreshold(this.state.notificationThreshold)
     this.setState({visible: false})
   }
-  _select = selectedVal => this.setState({notificationThreshold: selectedVal})
+  _select = (selectedVal?: number) => selectedVal && this.setState({notificationThreshold: selectedVal})
   _show = () => this.setState({visible: true})
   _toggleShowingMenu = () => this.setState(s => ({visible: !s.visible}))
   render() {

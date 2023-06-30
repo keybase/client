@@ -14,6 +14,7 @@ export type Props = {
 }
 
 const RoleButton = (props: Props) => {
+  // @ts-ignore
   const iconType = roleIconMap[props.selectedRole]
 
   return (

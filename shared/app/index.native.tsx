@@ -81,17 +81,19 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
 }
 
 // dont' remake engine/store on reload
-if (__DEV__ && !globalThis.madeEngine) {
-  globalThis.madeEngine = false
+if (__DEV__ && !globalThis.DEBUGmadeEngine) {
+  globalThis.DEBUGmadeEngine = false
 }
 
+if (__HOT__) {
+}
 const ensureStore = () => {
   if (__DEV__) {
-    if (globalThis.madeEngine) {
+    if (globalThis.DEBUGmadeEngine) {
       _store = global.DEBUGStore
       return
     }
-    globalThis.madeEngine = true
+    globalThis.DEBUGmadeEngine = true
   }
   if (_store) {
     return

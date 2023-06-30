@@ -36,7 +36,7 @@ class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}>
   }
 }
 
-const ActionButtons = ({onCancel, onSubmit}) => (
+const ActionButtons = ({onCancel, onSubmit}: {onCancel: () => void; onSubmit: () => void}) => (
   <Kb.Box2
     direction={Styles.isMobile ? 'vertical' : 'horizontalReverse'}
     fullWidth={Styles.isMobile}

@@ -22,8 +22,9 @@ const bkgColor = (typ: RPCChatTypes.UICommandStatusDisplayTyp) => {
       return {backgroundColor: Styles.globalColors.yellowLight}
     case RPCChatTypes.UICommandStatusDisplayTyp.status:
       return {}
+    default:
+      return {}
   }
-  return {}
 }
 
 const textColor = (typ: RPCChatTypes.UICommandStatusDisplayTyp) => {
@@ -34,8 +35,9 @@ const textColor = (typ: RPCChatTypes.UICommandStatusDisplayTyp) => {
       return Styles.globalColors.blackOrBlack
     case RPCChatTypes.UICommandStatusDisplayTyp.status:
       return Styles.globalColors.black
+    default:
+      return Styles.globalColors.black
   }
-  return Styles.globalColors.black
 }
 
 const CommandStatus = (props: Props) => {

@@ -228,14 +228,14 @@ export function ZoomableBox(props: Props) {
   }, [])
 
   const onContainerLayout = useCallback(
-    e => {
+    (e: any) => {
       containerHeight.value = e.nativeEvent.layout.height
       containerWidth.value = e.nativeEvent.layout.width
     },
     [containerHeight, containerWidth]
   )
   const onLayout = useCallback(
-    e => {
+    (e: any) => {
       viewHeight.value = e.nativeEvent.layout.height
       viewWidth.value = e.nativeEvent.layout.width
     },

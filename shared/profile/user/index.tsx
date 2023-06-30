@@ -330,6 +330,7 @@ class User extends React.Component<Props2, State> {
   constructor(props: Props2) {
     super(props)
     this.state = {
+      // @ts-ignore
       selectedTab: usernameSelectedTab[props.username] || 'followers',
       width: Styles.dimensionWidth,
     }
@@ -341,12 +342,13 @@ class User extends React.Component<Props2, State> {
         return null
       }
       const selectedTab = tab
+      // @ts-ignore
       usernameSelectedTab[this.props.username] = selectedTab
       return {selectedTab}
     })
   }
 
-  _renderSectionHeader = ({section}) => {
+  _renderSectionHeader = ({section}: any) => {
     if (section === this._bioTeamProofsSection) return null
     if (this.props.notAUser) return null
 

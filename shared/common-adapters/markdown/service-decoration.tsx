@@ -149,7 +149,7 @@ const ServiceDecoration = (p: Props) => {
     return (
       <Mention
         allowFontScaling={allowFontScaling || false}
-        style={styles.wrapStyle}
+        style={styles['wrapStyle']}
         username={parsed.atmention}
       />
     )
@@ -157,7 +157,7 @@ const ServiceDecoration = (p: Props) => {
     return (
       <MaybeMention
         allowFontScaling={allowFontScaling || false}
-        style={styles.wrapStyle}
+        style={styles['wrapStyle']}
         name={parsed.maybemention.name}
         channel={parsed.maybemention.channel}
       />
@@ -169,20 +169,20 @@ const ServiceDecoration = (p: Props) => {
         ? link
         : 'http://' + link
     return linkIsKeybaseLink(link) ? (
-      <KeybaseLink link={link} linkStyle={styleOverride.link} wrapStyle={styles.wrapStyle} />
+      <KeybaseLink link={link} linkStyle={styleOverride.link} wrapStyle={styles['wrapStyle']} />
     ) : parsed.link.punycode ? (
       <WarningLink
         url={openUrl}
         display={parsed.link.url}
         punycode={parsed.link.punycode}
         linkStyle={styleOverride.link}
-        wrapStyle={styles.wrapStyle}
+        wrapStyle={styles['wrapStyle']}
       />
     ) : (
       <Text
         className="hover-underline hover_contained_color_blueDark"
         type="BodyPrimaryLink"
-        style={Styles.collapseStyles([styles.wrapStyle, linkStyle, styleOverride.link])}
+        style={Styles.collapseStyles([styles['wrapStyle'], linkStyle, styleOverride.link])}
         title={parsed.link.url}
         onClickURL={openUrl}
         onLongPressURL={openUrl}
@@ -198,7 +198,7 @@ const ServiceDecoration = (p: Props) => {
       <Text
         className="hover-underline hover_contained_color_blueDark"
         type="BodyPrimaryLink"
-        style={Styles.collapseStyles([styles.wrapStyle, linkStyle, styleOverride.mailto])}
+        style={Styles.collapseStyles([styles['wrapStyle'], linkStyle, styleOverride.mailto])}
         title={parsed.mailto.url}
         onClickURL={openUrl}
         onLongPressURL={openUrl}
@@ -212,7 +212,7 @@ const ServiceDecoration = (p: Props) => {
         allowFontScaling={allowFontScaling || false}
         convID={parsed.channelnamemention.convID}
         name={parsed.channelnamemention.name}
-        style={Styles.collapseStyles([styles.linkStyle, linkStyle, styleOverride.link])}
+        style={Styles.collapseStyles([styles['linkStyle'], linkStyle, styleOverride.link])}
       />
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.kbfspath) {

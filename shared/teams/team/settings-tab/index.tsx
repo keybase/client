@@ -195,7 +195,7 @@ const IgnoreAccessRequests = (props: SettingProps) =>
     </Kb.Box2>
   ) : null
 
-const toRolePickerPropsHelper = (state: State, setState) => ({
+const toRolePickerPropsHelper = (state: State, setState: any) => ({
   disabledReasonsForRolePicker: {
     admin: `Users can't join open teams as admins.`,
     owner: `Users can't join open teams as owners.`,
@@ -205,7 +205,7 @@ const toRolePickerPropsHelper = (state: State, setState) => ({
   isRolePickerOpen: state.isRolePickerOpen,
   newOpenTeamRole: state.newOpenTeamRole,
   onCancelRolePicker: () => setState({isRolePickerOpen: false}),
-  onConfirmRolePicker: role => setState({isRolePickerOpen: false, newOpenTeamRole: role}),
+  onConfirmRolePicker: (role: any) => setState({isRolePickerOpen: false, newOpenTeamRole: role}),
   onOpenRolePicker: () => setState({isRolePickerOpen: true}),
 })
 
@@ -291,7 +291,7 @@ export class Settings extends React.Component<Props, State> {
   }
 
   render() {
-    const rolePickerProps = toRolePickerPropsHelper(this.state, s => this.setState(s))
+    const rolePickerProps = toRolePickerPropsHelper(this.state, (s: any) => this.setState(s))
     const submenuProps: SettingProps = {
       ...this.props,
       ...this.state,

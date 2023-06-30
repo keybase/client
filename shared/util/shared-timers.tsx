@@ -52,7 +52,7 @@ class Timers {
     id++
     const ref = {fn, id}
     if (this._refs[key]) {
-      this._refs[key].push(ref)
+      this._refs[key]!.push(ref)
       return id
     } else if (!ms) {
       const msg = `SharedTimers: Tried to add timer observer with key '${key}' but no timer exists`
@@ -67,10 +67,10 @@ class Timers {
 
   removeObserver = (key: string, id: SharedTimerID) => {
     if (this._refs[key]) {
-      const i = this._refs[key].findIndex(r => r.id === id)
+      const i = this._refs[key]!.findIndex(r => r.id === id)
       if (i >= 0) {
-        this._refs[key].splice(i, 1)
-        if (!this._refs[key].length) {
+        this._refs[key]!.splice(i, 1)
+        if (!this._refs[key]!.length) {
           delete this._refs[key]
           this._removeTimer(key)
         }
@@ -81,7 +81,7 @@ class Timers {
   _removeTimer = (key: string) => {
     const i = this._timers.findIndex(t => t.key === key)
     if (i > 0) {
-      clearTimeout(this._timers[i].timeoutID)
+      clearTimeout(this._timers[i]?.timeoutID)
       this._timers.splice(i, 1)
     }
   }
@@ -91,7 +91,7 @@ class Timers {
       // nobody's listening
       return
     }
-    const refs = this._refs[key]
+    const refs = this._refs[key]!
     refs.forEach(r => r.fn())
     delete this._refs[key]
     this._removeTimer(key)

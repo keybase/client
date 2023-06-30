@@ -2,6 +2,7 @@
 import fs from 'fs'
 import path from 'path'
 import {execSync} from 'child_process'
+// @ts-ignore
 import prettier from 'prettier'
 import crypto from 'crypto'
 
@@ -189,6 +190,7 @@ const fontsGeneratedSuccess = (web: boolean, result: FontResult) => {
 const generateWebCSS = (result: FontResult) => {
   const svgFilenames = getSvgNames(false /* print skipped */)
   const rules: {[key: string]: number} = svgFilenames.reduce((map, {counter, name}) => {
+    // @ts-ignore
     map[`kb-iconfont-${name}`] = computeCounter(counter)
     return map
   }, {})
@@ -251,7 +253,7 @@ const generateWebCSS = (result: FontResult) => {
 ${Object.keys(rules)
   .map(
     name => `.icon-${name}:before {
-  content: "\\${rules[name].toString(16)}";
+  content: "\\${rules[name]?.toString(16)}";
 }`
   )
   .join('\n')}`
@@ -278,6 +280,7 @@ function insertIconAssets(iconFiles: Array<string>) {
     .filter(i => i.startsWith('icon-'))
     .forEach(i => {
       const shortName = i.slice(0, -4)
+      // @ts-ignore
       icons[shortName] = {
         extension: i.slice(-3),
         imagesDir: `'icons'`,
@@ -294,18 +297,21 @@ function insertIconAssets(iconFiles: Array<string>) {
     .forEach(i => {
       const shortName = i.slice(0, -4)
       const lightName = shortName.replace(/^icon-dark-/, 'icon-')
+      // @ts-ignore
       if (!icons[lightName]) {
         console.error(`Found a dark icon without a matching light icon! ${lightName} ${i}`)
         process.exit(1)
       }
+      // @ts-ignore
       icons[lightName].nameDark = `'${shortName}'`
+      // @ts-ignore
       icons[lightName].requireDark = `'../images/icons/${i}'`
     })
 
   return icons
 }
 
-function insertIllustrationAssets(illustrationFiles) {
+function insertIllustrationAssets(illustrationFiles: Array<string>) {
   return illustrationFiles.reduce((prevIcons, i) => {
     const shortName = i.slice(0, -4)
     return {
@@ -322,7 +328,7 @@ function insertIllustrationAssets(illustrationFiles) {
   }, {})
 }
 
-function insertReleaseAssets(releaseFiles) {
+function insertReleaseAssets(releaseFiles: Array<string>) {
   return releaseFiles.reduce((prevIcons, i) => {
     const shortName = i.slice(0, -4)
     return {
@@ -360,6 +366,7 @@ function updateIconConstants() {
   // Build constants for iconfont svgs
   const svgFilenames = getSvgNames(false /* print skipped */)
   svgFilenames.reduce((_, {counter, name, size}) => {
+    // @ts-ignore
     return (icons[`iconfont-${name}`] = {
       isFont: true,
       gridSize: size,
@@ -385,17 +392,18 @@ function updateIconConstants() {
     Object.keys(icons)
       .sort()
       .map(name => {
+        // @ts-ignore
         const icon = icons[name]
         const meta = [
-          icon.charCode ? [`charCode: 0x${icons[name].charCode.toString(16)}`] : [],
-          icon.extension ? [`extension: '${icons[name].extension}'`] : [],
-          icon.imagesDir ? [`imagesDir: ${icons[name].imagesDir}`] : [],
-          icon.gridSize ? [`gridSize: ${icons[name].gridSize}`] : [],
+          icon.charCode ? [`charCode: 0x${icon.charCode.toString(16)}`] : [],
+          icon.extension ? [`extension: '${icon.extension}'`] : [],
+          icon.imagesDir ? [`imagesDir: ${icon.imagesDir}`] : [],
+          icon.gridSize ? [`gridSize: ${icon.gridSize}`] : [],
           `isFont: ${icon.isFont}`,
-          icon.nameDark ? [`nameDark: ${icons[name].nameDark}`] : [],
-          icon.require ? [`get require(): string {return require(${icons[name].require}) as string}`] : [],
+          icon.nameDark ? [`nameDark: ${icon.nameDark}`] : [],
+          icon.require ? [`get require(): string {return require(${icon.require}) as string}`] : [],
           icon.requireDark
-            ? [`get requireDark(): string {return require(${icons[name].requireDark}) as string}`]
+            ? [`get requireDark(): string {return require(${icon.requireDark}) as string}`]
             : [],
         ]
 
@@ -427,8 +435,10 @@ function updateIconConstants() {
 /* Icon types */
 ${Object.keys(icons).reduce(
   (res, name) =>
+    // @ts-ignore
     icons[name].isFont
-      ? res + `.icon-gen-${name}::before {content: "\\${icons[name].charCode.toString(16)}";}\n`
+      ? // @ts-ignore
+        res + `.icon-gen-${name}::before {content: "\\${icons[name].charCode.toString(16)}";}\n`
       : res,
   ''
 )}
@@ -540,12 +550,15 @@ function unusedAssetes() {
     let root = parsed.name
     const atFiles = root.match(/(.*)@[23]x$/)
     if (atFiles) {
-      root = atFiles[1]
+      root = atFiles[1] ?? ''
     }
 
+    // @ts-ignore
     if (!images[root]) {
+      // @ts-ignore
       images[root] = []
     }
+    // @ts-ignore
     images[root].push(f)
   })
 
@@ -556,6 +569,7 @@ function unusedAssetes() {
     } catch (error_) {
       const error = error_ as any
       if (error.status === 1) {
+        // @ts-ignore
         console.log(images[image].join('\n'))
       }
     }

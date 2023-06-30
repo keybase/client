@@ -124,7 +124,7 @@ class Dropdown extends React.Component<Props, State> {
       : []
     const items = pickItem.concat(actualItems).concat(otherItem)
 
-    const onValueChange = value => {
+    const onValueChange = (value: string) => {
       if (value === this.state.value) {
         return
       }

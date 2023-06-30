@@ -12,7 +12,7 @@ export const shim = (routes: any, isModal: boolean, isLoggedOut: boolean) =>
 const mouseResetValue = -9999
 const mouseDistanceThreshold = 5
 
-const useMouseClick = (navigation, noClose) => {
+const useMouseClick = (navigation: any, noClose: boolean) => {
   const backgroundRef = React.useRef(null)
 
   // we keep track of mouse down/up to determine if we should call it a 'click'. We don't want dragging the
@@ -50,7 +50,7 @@ const useMouseClick = (navigation, noClose) => {
   return [backgroundRef, onMouseUp, onMouseDown] as const
 }
 type ModalType = 'Default' | 'DefaultFullHeight' | 'DefaultFullWidth' | 'Wide' | 'SuperWide'
-const ModalWrapper = ({navigationOptions, navigation, children}) => {
+const ModalWrapper = ({navigationOptions, navigation, children}: any) => {
   const {modal2Style, modal2AvoidTabs, modal2, modal2ClearCover, modal2NoClose, modal2Type} =
     navigationOptions ?? {}
 

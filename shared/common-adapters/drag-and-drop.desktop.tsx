@@ -16,7 +16,7 @@ type State = {
 class DragAndDrop extends React.PureComponent<Props, State> {
   state = {showDropOverlay: false}
 
-  _onDrop = async e => {
+  _onDrop = async (e: any) => {
     if (!this._validDrag(e)) return
     const fileList = e.dataTransfer.files
     const paths: Array<string> = fileList.length
@@ -45,9 +45,9 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     this.setState({showDropOverlay: false})
   }
 
-  _validDrag = e => e.dataTransfer.types.includes('Files') && !this.props.disabled
+  _validDrag = (e: any) => e.dataTransfer.types.includes('Files') && !this.props.disabled
 
-  _onDragOver = e => {
+  _onDragOver = (e: any) => {
     if (this._validDrag(e)) {
       e.dataTransfer.dropEffect = 'copy'
       this.setState({showDropOverlay: true})

@@ -45,7 +45,7 @@ export default (ownProps: OwnProps) => {
     isKeybaseUser = !!user.username
     if (!subLabel && labelledInviteRegex.test(label)) {
       const match = labelledInviteRegex.exec(label)!
-      label = match[1]
+      label = match[1] ?? ''
       subLabel = match[2]
     }
     try {

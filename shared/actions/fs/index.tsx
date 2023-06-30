@@ -267,7 +267,7 @@ const finishManualCR = async (_: unknown, action: FsGen.FinishManualConflictReso
 // until we get through. After each try we delay for 2s, so this should give us
 // e.g. 12s when n == 6. If it still doesn't work after 12s, something's wrong
 // and we deserve a black bar.
-const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
+const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<void> => {
   try {
     const onlineStatus = await RPCTypes.SimpleFSSimpleFSGetOnlineStatusRpcPromise({clientID})
     Constants.useState.getState().dispatch.kbfsDaemonOnlineStatusChanged(onlineStatus)
@@ -387,7 +387,7 @@ const onPathChange = (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscripti
   })
 }
 
-const onNonPathChange = (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload) => {
+const onNonPathChange = async (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload) => {
   const {clientID: clientIDFromNotification, topic} = action.payload.params
   if (clientIDFromNotification !== clientID) {
     return null
@@ -415,7 +415,7 @@ const onNonPathChange = (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscri
   }
 }
 
-const getOnlineStatus = () => checkIfWeReConnectedToMDServerUpToNTimes(2)
+const getOnlineStatus = async () => checkIfWeReConnectedToMDServerUpToNTimes(2)
 
 const loadPathInfo = async (_: unknown, action: FsGen.LoadPathInfoPayload) => {
   const pathInfo = await RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({

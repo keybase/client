@@ -21,12 +21,12 @@ type InputState = {
 class EnterUsernameInput extends React.Component<InputProps, InputState> {
   state = {focus: false, username: this.props.username}
 
-  _onChangeUsername = username => {
+  _onChangeUsername = (username: string) => {
     this.props.onChangeUsername(username)
     this.setState({username})
   }
 
-  _setFocus = focus => this.setState(s => (s.focus === focus ? null : {focus}))
+  _setFocus = (focus: boolean) => this.setState(s => (s.focus === focus ? null : {focus}))
   _onFocus = () => this._setFocus(true)
   _onBlur = () => this._setFocus(false)
 
@@ -91,7 +91,7 @@ class EnterUsernameInput extends React.Component<InputProps, InputState> {
   }
 }
 
-const Unreachable = props => (
+const Unreachable = (props: any) => (
   <Kb.Box2
     direction="horizontal"
     gap="xtiny"

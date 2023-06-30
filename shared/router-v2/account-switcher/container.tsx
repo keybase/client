@@ -52,7 +52,7 @@ export default () => {
     onProfileClick: () => _onProfileClick(you),
     onSelectAccount: (username: string) => {
       const rows = accountRows.filter(account => account.username === username)
-      const loggedIn = rows.length && rows[0].hasStoredSecret
+      const loggedIn = (rows.length && rows[0]?.hasStoredSecret) ?? false
       return loggedIn ? onSelectAccountLoggedIn(username) : onSelectAccountLoggedOut(username)
     },
     onSignOut: onSignOut,

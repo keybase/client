@@ -89,7 +89,7 @@ class Engine {
     // Print out any alive sessions periodically
     if (printOutstandingRPCs) {
       setInterval(() => {
-        if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k].getDangling()).length) {
+        if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k]?.getDangling()).length) {
           logger.localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
@@ -134,17 +134,17 @@ class Engine {
   // Got a cancelled sequence id
   _handleCancel(seqid: number) {
     const cancelledSessionID = Object.keys(this._sessionsMap).find(key =>
-      this._sessionsMap[key].hasSeqID(seqid)
+      this._sessionsMap[key]?.hasSeqID(seqid)
     )
     if (cancelledSessionID) {
       const s = this._sessionsMap[cancelledSessionID]
       rpcLog({
         extra: {cancelledSessionID},
-        method: s._startMethod || 'unknown',
+        method: s?._startMethod || 'unknown',
         reason: '[cancel]',
         type: 'engineInternal',
       })
-      s.cancel()
+      s?.cancel()
     } else {
       rpcLog({
         extra: {cancelledSessionID},
@@ -247,8 +247,8 @@ class Engine {
       incomingCallMap,
       invoke: (method, param, cb) => {
         const callback =
-          method =>
-          (...args) => {
+          (method: string) =>
+          (...args: any) => {
             // If first argument is set, convert it to an Error type
             if (args.length > 0 && !!args[0]) {
               args[0] = convertToError(args[0], method)

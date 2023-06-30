@@ -30,7 +30,7 @@ type Event = {
 
 const [, , guiOrCore, logfile, outfile, ..._swimlanes] = process.argv
 // Good params?
-if (!['gui', 'core'].includes(guiOrCore) || !logfile || !outfile) {
+if (!['gui', 'core'].includes(guiOrCore ?? '') || !logfile || !outfile) {
   console.log('Usage: node log-to-trace (gui|core) logfile outfile [filter1] [filter2]')
   process.exit(1)
 }
@@ -61,7 +61,7 @@ const convertGuiLine = (line: string): Info | undefined => {
     console.log('🛑 Skipping unparsed line:', line)
     return
   }
-  const [, type, time, _data] = e
+  const [, type, time = '', _data = ''] = e
   let name = ''
   let args = {}
   switch (type) {
@@ -78,7 +78,7 @@ const convertGuiLine = (line: string): Info | undefined => {
       {
         const m = actionReg.exec(_data)
         if (m) {
-          const [, actionType, payload] = m
+          const [, actionType = '', payload = ''] = m
           name = actionType
           try {
             args = JSON.parse(payload.replace(actionPayloadReg, '"'))
@@ -115,7 +115,7 @@ const convertCoreLine = (line: string): Info | undefined => {
     console.log('🛑 Skipping unparsed line:', line)
     return
   }
-  const [, time, _app, file, fileline, counter, _typeAndMethod, _tags] = e
+  const [, time = '', _app = '', file = '', fileline = '', counter = '', _typeAndMethod = '', _tags = ''] = e
   let tags = 'NO_TAG'
   if (_tags) {
     const match = tagsReg.exec(_tags)
@@ -208,15 +208,21 @@ lines.forEach(line => {
   switch (info.type) {
     case '+':
       // If we overwrite an event, bookkeep that
+      // @ts-ignore
       if (knownIDs[info.id]) {
+        // @ts-ignore
         output.single = output.single.concat(buildEvent(knownIDs[info.id], 'i'))
         output.collision.push(info)
       }
+      // @ts-ignore
       knownIDs[info.id] = info
       break
     case '-':
+      // @ts-ignore
       if (knownIDs[info.id]) {
+        // @ts-ignore
         output.good = output.good.concat(buildGood(knownIDs[info.id], info))
+        // @ts-ignore
         knownIDs[info.id] = undefined
       } else {
         // If we didn't find a corresponding event, bookkeep that

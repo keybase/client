@@ -34,7 +34,7 @@ const measureCb =
   (_x: number, _y: number, width: number, height: number, pageX: number, pageY: number) =>
     resolve({height, left: pageX, top: pageY, width})
 
-const FloatingBox = props => (
+const FloatingBox = (props: any) => (
   <Kb.Portal hostName="popup-root">
     <Kb.Box pointerEvents="box-none" style={[Styles.globalStyles.fillAbsolute, props.style]}>
       {props.children}
