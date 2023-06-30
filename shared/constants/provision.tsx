@@ -10,6 +10,7 @@ import {isMobile} from './platform'
 import HiddenString from '../util/hidden-string'
 import type * as Types from './types/provision'
 import type {CommonResponseHandler /*, RPCError*/} from '../engine/types'
+import shallowEqual from 'shallowequal'
 
 export const waitingKey = 'provision:waiting'
 export const forgotUsernameWaitingKey = 'provision:forgotUsername'
@@ -66,7 +67,11 @@ export const deviceNameInstructions =
 
 export const badDeviceChars = /[^a-zA-Z0-9-_' ]/g
 
-type Step = {type: 'username'} | {type: 'passphrase'} | {type: 'deviceName'}
+type Step =
+  | {type: 'username'}
+  | {type: 'passphrase'}
+  | {type: 'deviceName'}
+  | {type: 'chooseDevice'; devices: Array<Types.Device>}
 type ExtractType<T> = T extends {type: infer U} ? U : never
 type StepTypes = ExtractType<Step>
 // type Step = {type: 'username' | 'password'
@@ -294,9 +299,32 @@ export const useState = Z.createZustand<State>((set, get) => {
                     )
                   }
                 },
-                'keybase.1.provisionUi.chooseDevice': (_params, response) => {
-                  // TODO deal with the devices list being different than our auto submit
+                'keybase.1.provisionUi.chooseDevice': (params, response) => {
                   if (isCanceled(response)) return
+                  const {devices: _devices} = params
+                  const devices = _devices?.map(d => rpcDeviceToDevice(d)) ?? []
+                  ++submitStep
+                  set(s => {
+                    s.error = ''
+                    s.devices = devices
+                    s.dispatch.submitDeviceSelect = (device: string) => {
+                      _submitDeviceSelect(device)
+                      set(s => {
+                        response.result(s.codePageOtherDevice.id)
+                      })
+                    }
+                  })
+
+                  const auto = autoSubmit[submitStep]
+                  if (auto?.type === 'chooseDevice' && shallowEqual(auto.devices, devices)) {
+                    console.log('Provision: auto submit passphrase')
+                    get().dispatch.setPassphrase(get().passphrase)
+                  } else {
+                    reduxDispatch(
+                      RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice'], replace: true})
+                    )
+                  }
+
                   /*this.chooseDeviceHandler(params, response),*/
                 },
                 'keybase.1.provisionUi.chooseGPGMethod': (_params, response) => {
