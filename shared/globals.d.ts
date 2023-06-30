@@ -18,13 +18,16 @@ export interface Console {
 
 declare global {
   var DEBUGmadeEngine: boolean | undefined
-  var DEBUGStore: any | undefined
+  var DEBUGStore: any
   var DEBUGlistenersInited: boolean | undefined
-  var _fromPreload: any | undefined
+  var DEBUGEngine: any
+  var _fromPreload: any
   var __HOT__: boolean
   var __VERSION__: string
   var __FILE_SUFFIX__: string
   var __PROFILE__: boolean
   var __STORYBOOK__: boolean
   var __STORYSHOT__: boolean
+  var rpcOnGo: undefined | ((b: any) => void)
+  var rpcOnJs: undefined | ((b: any) => void)
 }

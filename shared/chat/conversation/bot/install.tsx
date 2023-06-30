@@ -305,7 +305,8 @@ const InstallBotPopup = (props: Props) => {
                     <Kb.Text type="BodySemibold">
                       {teamname}{' '}
                       {installInConvs.length === 1
-                        ? `(#${channelMetas.get(installInConvs[0])?.channelname ?? ''})`
+                        ? // @ts-ignore
+                          `(#${channelMetas.get(installInConvs[0])?.channelname ?? ''})`
                         : `(${installInConvs.length > 0 ? installInConvs.length : 'all'} channels)`}
                     </Kb.Text>
                   </Kb.Box2>

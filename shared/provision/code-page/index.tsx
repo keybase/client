@@ -58,21 +58,14 @@ class CodePage2 extends React.Component<Props, State> {
     !this.state.troubleshooting && this.props.onClose()
   }
 
-  static _validTabs = (deviceType: DeviceType, otherDeviceType) => {
-    if (deviceType === 'desktop' && otherDeviceType === 'desktop') {
-      return ['viewText', 'enterText']
-    } else {
-      return ['QR', 'viewText', 'enterText']
-    }
-  }
-
   _defaultTab = (props: Props) => {
     const oppositeTabMap = {
       QR: 'QR',
       enterText: 'viewText',
       viewText: 'enterText',
     }
-    const getTabOrOpposite = tabToShowToNew =>
+    const getTabOrOpposite = (tabToShowToNew: any) =>
+      // @ts-ignore
       props.currentDeviceAlreadyProvisioned ? oppositeTabMap[tabToShowToNew] : tabToShowToNew
 
     if (currentDeviceType === 'mobile') {
@@ -281,8 +274,8 @@ const SwitchTab = (
     return null
   }
 
-  let label
-  let tab
+  let label: string
+  let tab: Tab
 
   if (props.selected === 'QR') {
     label = 'Type secret instead'
@@ -338,7 +331,7 @@ const EnterText = (props: Props & {code: string; setCode: (code: string) => void
   const {code, setCode} = props
   const {onSubmitTextCode} = props
   const onSubmit = React.useCallback(
-    e => {
+    (e: any) => {
       e.preventDefault()
       code && onSubmitTextCode(code)
     },
@@ -370,12 +363,14 @@ const ViewText = (props: Props) => (
 )
 
 const Instructions = (p: Props) => {
+  // @ts-ignore
   const maybeIcon = (
     {
       desktop: `icon-computer-background-${p.iconNumber}-96`,
       mobile: `icon-phone-background-${p.iconNumber}-96`,
     } as const
   )[p.currentDeviceAlreadyProvisioned ? p.currentDevice.type : p.otherDevice.type]
+  // @ts-ignore
   const icon = Kb.isValidIconType(maybeIcon) ? maybeIcon : 'icon-computer-96'
 
   return (

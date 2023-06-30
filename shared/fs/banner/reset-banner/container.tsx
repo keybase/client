@@ -22,7 +22,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     (currPath: Types.Path, users: {[K in string]: boolean}) => {
       const pathElems = Types.getPathElements(currPath)
       if (pathElems.length < 3) return
-      const filteredPathName = folderNameWithoutUsers(pathElems[2], users)
+      const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
       const filteredPath = Types.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
       dispatch(Constants.makeActionForOpenPathInFilesTab(filteredPath))
     },
@@ -48,6 +48,7 @@ const ConnectedBanner = (ownProps: OwnProps) => {
       _onOpenWithoutResetUsers(
         path,
         _tlf.resetParticipants.reduce((acc, i: string) => {
+          // @ts-ignore
           acc[i] = true
           return acc
         }, {})

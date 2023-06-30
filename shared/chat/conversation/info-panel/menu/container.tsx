@@ -62,7 +62,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =
         (participants.length === 1 &&
-          (state.users.infoMap.get(participants[0]) || {fullname: ''}).fullname) ||
+          (state.users.infoMap.get(participants[0]!) || {fullname: ''}).fullname) ||
         ''
       const {teamID, teamname, channelname, membershipType, status, isMuted, teamType} = meta
       const yourOperations = TeamConstants.getCanPerformByID(state, teamID)

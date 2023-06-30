@@ -141,7 +141,7 @@ export default (ownProps: OwnProps) => {
 
   const getLayout = _view === 'share' ? getShareLayout : getRootLayout
   const layout = getLayout(mode, ownProps.path, _pathItem, _fileContext, _username)
-  const c = action => (isMobile ? addCancelIfNeeded(action, _cancel, _downloadID) : action)
+  const c = (action: any) => (isMobile ? addCancelIfNeeded(action, _cancel, _downloadID) : action)
 
   const getSendToOtherApp = () => {
     const {sharing} = getDownloadingState(_downloads, _downloadID, _pathItemActionMenu)

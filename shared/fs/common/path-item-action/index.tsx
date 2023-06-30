@@ -34,7 +34,7 @@ export type Props = {
   initView: Types.PathItemActionMenuView
 }
 
-const IconClickable = props => (
+const IconClickable = (props: any) => (
   <Kb.WithTooltip tooltip="More actions">
     <Kb.Icon
       fixOverdraw={false}

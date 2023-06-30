@@ -103,7 +103,7 @@ const getRawLayout = (
   }
 }
 
-const totalShare = layout => (layout.sendAttachmentToChat ? 1 : 0) + (layout.sendToOtherApp ? 1 : 0)
+const totalShare = (layout: Layout) => (layout.sendAttachmentToChat ? 1 : 0) + (layout.sendToOtherApp ? 1 : 0)
 
 const consolidateShares = (layout: Layout): Layout =>
   isMobile && totalShare(layout) > 1

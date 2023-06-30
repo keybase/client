@@ -40,7 +40,7 @@ const SFMIPopup = (props: Props) => {
         >
           <Kb.Box
             style={styles.container}
-            onClick={e => {
+            onClick={(e: any) => {
               e.stopPropagation()
             }}
           >

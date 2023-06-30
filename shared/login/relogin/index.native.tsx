@@ -16,7 +16,7 @@ type State = {
 class LoginRender extends React.Component<Props, State> {
   state = {scrollViewHeight: undefined}
 
-  _selectedUserChange = selectedUser => {
+  _selectedUserChange = (selectedUser: string) => {
     this.props.selectedUserChange(selectedUser)
   }
 
@@ -34,7 +34,7 @@ class LoginRender extends React.Component<Props, State> {
 
     return (
       <Kb.Box
-        onLayout={evt => this.setState({scrollViewHeight: evt.nativeEvent.layout.height})}
+        onLayout={(evt: any) => this.setState({scrollViewHeight: evt.nativeEvent.layout.height})}
         style={Styles.globalStyles.flexOne}
       >
         <KbMobile.NativeScrollView

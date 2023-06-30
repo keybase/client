@@ -6,7 +6,7 @@ const Revoke = React.lazy(async () => import('./device-revoke'))
 type OwnProps = Container.ViewPropsToPageProps<typeof Revoke>
 
 const getOptions = () => ({
-  headerLeft: p => <HeaderLeftCancel {...p} />,
+  headerLeft: (p: any) => <HeaderLeftCancel {...p} />,
   title: '',
 })
 

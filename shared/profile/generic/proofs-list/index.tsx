@@ -29,7 +29,7 @@ class Providers extends React.Component<ProvidersProps> {
     height: Styles.isMobile ? 56 : 48,
     type: 'fixed',
   } as const
-  _renderItem = (_, provider) => (
+  _renderItem = (_: any, provider: any) => (
     <React.Fragment key={provider.name}>
       <Kb.Divider />
       <Kb.ClickableBox
@@ -86,9 +86,9 @@ class Providers extends React.Component<ProvidersProps> {
   }
 }
 
-const normalizeForFiltering = input => input.toLowerCase().replace(/[.\s]/g, '')
+const normalizeForFiltering = (input: string) => input.toLowerCase().replace(/[.\s]/g, '')
 
-const filterProvider = (p, filter) => {
+const filterProvider = (p: IdentityProvider, filter: RegExp) => {
   return normalizeForFiltering(p.name).match(filter) || normalizeForFiltering(p.desc).match(filter)
 }
 
@@ -98,7 +98,7 @@ type State = {
 
 class ProofsList extends React.Component<Props, State> {
   state = {filter: ''}
-  _onSetFilter = filter => this.setState({filter})
+  _onSetFilter = (filter: string) => this.setState({filter})
   render() {
     return (
       <Kb.PopupWrapper onCancel={this.props.onCancel}>

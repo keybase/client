@@ -41,7 +41,7 @@ class GetTitles extends React.Component<Props, State> {
   _onNext = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault()
 
-    const {info} = this.props.pathAndInfos[this.state.index]
+    const {info} = this.props.pathAndInfos[this.state.index] ?? {}
     if (!info) return
 
     const nextIndex = this.state.index + 1

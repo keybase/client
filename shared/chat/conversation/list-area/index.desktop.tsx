@@ -398,7 +398,7 @@ const useScrolling = (
     const toFind = Math.floor(Types.ordinalToNumber(editingOrdinal) / 10)
     const allWaypoints = Array.from(waypoints) as Array<HTMLElement>
     const found = findLast(allWaypoints, w => {
-      const key = w.dataset.key
+      const key = w.dataset['key']
       return key !== undefined && parseInt(key, 10) === toFind
     })
     found?.scrollIntoView({block: 'center', inline: 'nearest'})

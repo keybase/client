@@ -29,14 +29,14 @@ class RequestInvite extends React.Component<Props, State> {
           value={this.state.email}
           errorText={this.props.emailError}
           onEnterKeyDown={this._onSubmit}
-          onChangeText={email => this.setState({email})}
+          onChangeText={(email: string) => this.setState({email})}
           autoFocus={true}
         />
         <Input
           hintText="Your name"
           value={this.state.name}
           errorText={this.props.nameError}
-          onChangeText={name => this.setState({name})}
+          onChangeText={(name: string) => this.setState({name})}
         />
         <ContinueButton
           label="Request"

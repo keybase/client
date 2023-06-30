@@ -12,7 +12,7 @@ type State = {
 
 const other = 'Someone else...'
 
-const UserRow = ({user, hasStoredSecret}) => (
+const UserRow = ({user, hasStoredSecret}: any) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.userRow} gap="xtiny">
     <Kb.Text type="Header" style={user === other ? styles.other : styles.provisioned}>
       {user}

@@ -214,7 +214,7 @@ const setLastSentXLM = (
   })
 
 const requestPayment = async (state: Container.TypedState) => {
-  let buildRes: Unpacked<ReturnType<typeof RPCStellarTypes.localBuildRequestLocalRpcPromise>>
+  let buildRes: Container.Unpacked<ReturnType<typeof RPCStellarTypes.localBuildRequestLocalRpcPromise>>
   try {
     buildRes = await RPCStellarTypes.localBuildRequestLocalRpcPromise(
       stateToBuildRequestParams(state),

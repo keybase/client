@@ -1132,7 +1132,7 @@ const addTeamWithChosenChannels = async (
     return
   }
   const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
-  let pushState: Unpacked<ReturnType<typeof RPCTypes.gregorGetStateRpcPromise>>
+  let pushState: Container.Unpacked<ReturnType<typeof RPCTypes.gregorGetStateRpcPromise>>
   try {
     pushState = await RPCTypes.gregorGetStateRpcPromise(undefined, Constants.teamWaitingKey(teamID))
   } catch (err) {

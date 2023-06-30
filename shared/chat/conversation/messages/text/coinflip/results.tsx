@@ -108,16 +108,28 @@ const Card = (props: CardType) => (
       <Kb.Text
         selectable={true}
         type={Styles.isMobile ? 'BodySmall' : 'Body'}
-        style={{color: suits[cards[props.card].suit].color}}
+        style={
+          // @ts-ignore
+          {color: suits[cards[props.card].suit].color}
+        }
       >
-        {cards[props.card].value}
+        {
+          // @ts-ignore
+          cards[props.card].value
+        }
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
         fontSize={Styles.isMobile ? 10 : 12}
-        type={suits[cards[props.card]?.suit]?.icon}
-        color={suits[cards[props.card].suit].color}
+        type={
+          // @ts-ignore
+          suits[cards[props.card]?.suit]?.icon
+        }
+        color={
+          // @ts-ignore
+          suits[cards[props.card].suit].color
+        }
         style={styles.cardSuit}
       />
     </Kb.Box2>

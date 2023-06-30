@@ -104,7 +104,7 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
   </Kb.Box2>
 )
 
-const fixedHeight = height => ({
+const fixedHeight = (height: number) => ({
   height,
   maxHeight: height,
   minHeight: height,

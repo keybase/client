@@ -436,7 +436,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const idx = messages.findIndex(item => item.id === message.id)
     if (idx !== -1) {
       const m = messages[idx]
-      if (m.type === 'attachment') {
+      if (m!.type === 'attachment') {
         m.transferState = 'downloading'
         m.transferProgress = ratio
       }
@@ -463,7 +463,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const idx = messages.findIndex(item => item.id === message.id)
     if (idx !== -1) {
       const m = messages[idx]
-      if (m.type === 'attachment') {
+      if (m!.type === 'attachment') {
         m.downloadPath = path
         m.fileURLCached = true
         m.transferProgress = 0
@@ -875,7 +875,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const convMsgMap = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
       messageMap.set(conversationIDKey, convMsgMap)
       for (let i = ordinals.length - 1; i >= 0; i--) {
-        const ordinal = ordinals[i]
+        const ordinal = ordinals[i]!
         const message = convMsgMap.get(ordinal)
         if (message && message.id > 0) {
           maxMsgID = message.id
@@ -1034,7 +1034,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (status.typ === RPCChatTypes.UIBotCommandsUpdateStatusTyp.uptodate) {
       const settingsMap = new Map<string, RPCTypes.TeamBotSettings>()
       Object.keys(status.uptodate.settings).forEach(u => {
-        settingsMap.set(u, status.uptodate.settings[u])
+        settingsMap.set(u, status.uptodate.settings[u]!)
       })
       botSettings.set(conversationIDKey, settingsMap)
     }

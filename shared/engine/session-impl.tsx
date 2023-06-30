@@ -132,7 +132,7 @@ class Session {
     this._startCallback = callback
 
     // When this request is done the session is done
-    const wrappedCallback = (...args) => {
+    const wrappedCallback = (...args: any) => {
       this._startCallback?.(...args)
       this._startCallback = undefined
       this.end()
@@ -175,9 +175,11 @@ class Session {
       type: 'engineInternal',
     })
 
+    // @ts-ignore
     let handler = this._incomingCallMap[method]
 
     if (!handler) {
+      // @ts-ignore
       handler = this._customResponseIncomingCallMap[method]
     }
 

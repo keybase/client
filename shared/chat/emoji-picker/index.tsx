@@ -190,6 +190,7 @@ const getSectionsAndBookmarks = memoize(
     }
 
     getEmojiSections(emojisPerLine).forEach(section => {
+      // @ts-ignore
       const categoryIcon = Data.categoryIcons[section.title]
       categoryIcon &&
         bookmarks.push({
@@ -341,13 +342,13 @@ class EmojiPicker extends React.PureComponent<Props, State> {
 
   _sections = new Array<Section>()
   private getSectionHeaderHeight = (sectionIndex: number) => {
-    return this._sections[sectionIndex].key === 'not-found' ? notFoundHeight : 32
+    return this._sections[sectionIndex]?.key === 'not-found' ? notFoundHeight : 32
   }
 
   _emojisPerLine = 1
   private renderItem = ({item}: {item: Row; index: number}) => this.getEmojiRow(item, this._emojisPerLine)
 
-  private renderSectionHeader = ({section}) => {
+  private renderSectionHeader = ({section}: any) => {
     return section.key === 'not-found' ? this.makeNotFound() : this.getSectionHeader(section.title)
   }
 
@@ -493,4 +494,4 @@ const styles = Styles.styleSheetCreate(
 
 export default EmojiPicker
 
-const emptyArray = []
+const emptyArray = new Array<RPCChatGen.EmojiGroup>()

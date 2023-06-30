@@ -66,10 +66,13 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
     out.start(({finished}) => finished && cbIfFinish())
   }
   _stopAnimation(animation: string) {
+    // @ts-ignore
     if (!this._animations[animation]) {
       return
     }
+    // @ts-ignore
     this._animations[animation].stop()
+    // @ts-ignore
     this._animations[animation] = undefined
   }
   _stopAllAnimations() {

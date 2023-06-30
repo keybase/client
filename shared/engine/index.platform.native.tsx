@@ -40,7 +40,7 @@ class NativeTransport extends TransportShared {
     buf.set(packed, len.length)
     // Pass data over to the native side to be handled, with JSI!
     try {
-      global.rpcOnGo(buf.buffer)
+      global.rpcOnGo?.(buf.buffer)
     } catch (e) {
       logger.error('>>>> rpcOnGo JS thrown!', e)
     }
@@ -57,7 +57,7 @@ function createClient(
     new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback)
   )
 
-  global.rpcOnJs = objs => {
+  global.rpcOnJs = (objs: any) => {
     try {
       client.transport._dispatch(objs)
     } catch (e) {

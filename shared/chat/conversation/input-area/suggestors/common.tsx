@@ -66,7 +66,7 @@ export function List<T>(p: ListProps<T>) {
   const [selectedIndex, setSelectedIndex] = React.useState(0)
 
   const renderItem = React.useCallback(
-    (idx, item: T) => (
+    (idx: number, item: T) => (
       <Kb.ClickableBox key={keyExtractor(item, idx)} onClick={() => onSelected(item, true)}>
         <ItemRenderer selected={idx === selectedIndex} item={item} conversationIDKey={conversationIDKey} />
       </Kb.ClickableBox>
