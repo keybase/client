@@ -12,7 +12,7 @@ const CodePageContainer = () => {
   const storeDeviceName = ConfigConstants.useCurrentUserState(s => s.deviceName)
   const currentDeviceAlreadyProvisioned = !!storeDeviceName
   // we either have a name for real or we asked on a previous screen
-  const provisionDeviceName = Container.useSelector(state => state.provision.deviceName)
+  const provisionDeviceName = Constants.useState(s => s.deviceName)
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
   const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)
   const currentDevice =

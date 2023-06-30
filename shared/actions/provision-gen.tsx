@@ -17,23 +17,13 @@ export const showCodePage = 'provision:showCodePage'
 export const showFinalErrorPage = 'provision:showFinalErrorPage'
 export const showGPGPage = 'provision:showGPGPage'
 export const showInlineError = 'provision:showInlineError'
-export const showNewDeviceNamePage = 'provision:showNewDeviceNamePage'
 export const showPaperkeyPage = 'provision:showPaperkeyPage'
-export const showPasswordPage = 'provision:showPasswordPage'
-export const submitDeviceName = 'provision:submitDeviceName'
 export const submitGPGMethod = 'provision:submitGPGMethod'
 export const submitGPGSignOK = 'provision:submitGPGSignOK'
 export const submitTextCode = 'provision:submitTextCode'
 export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 
 // Action Creators
-/**
- * Ask the user for a new device name
- */
-export const createShowNewDeviceNamePage = (payload: {
-  readonly existingDevices: Array<string>
-  readonly error?: HiddenString
-}) => ({payload, type: showNewDeviceNamePage as typeof showNewDeviceNamePage})
 /**
  * We're no longer holding an open provisioning session; it is safe to start another.
  */
@@ -82,14 +72,6 @@ export const createShowPaperkeyPage = (payload: {readonly error?: HiddenString} 
   payload,
   type: showPaperkeyPage as typeof showPaperkeyPage,
 })
-export const createShowPasswordPage = (payload: {readonly error?: HiddenString} = {}) => ({
-  payload,
-  type: showPasswordPage as typeof showPasswordPage,
-})
-export const createSubmitDeviceName = (payload: {readonly name: string}) => ({
-  payload,
-  type: submitDeviceName as typeof submitDeviceName,
-})
 export const createSubmitGPGMethod = (payload: {readonly exportKey: boolean}) => ({
   payload,
   type: submitGPGMethod as typeof submitGPGMethod,
@@ -119,10 +101,7 @@ export type ShowCodePagePayload = ReturnType<typeof createShowCodePage>
 export type ShowFinalErrorPagePayload = ReturnType<typeof createShowFinalErrorPage>
 export type ShowGPGPagePayload = ReturnType<typeof createShowGPGPage>
 export type ShowInlineErrorPayload = ReturnType<typeof createShowInlineError>
-export type ShowNewDeviceNamePagePayload = ReturnType<typeof createShowNewDeviceNamePage>
 export type ShowPaperkeyPagePayload = ReturnType<typeof createShowPaperkeyPage>
-export type ShowPasswordPagePayload = ReturnType<typeof createShowPasswordPage>
-export type SubmitDeviceNamePayload = ReturnType<typeof createSubmitDeviceName>
 export type SubmitGPGMethodPayload = ReturnType<typeof createSubmitGPGMethod>
 export type SubmitGPGSignOKPayload = ReturnType<typeof createSubmitGPGSignOK>
 export type SubmitTextCodePayload = ReturnType<typeof createSubmitTextCode>
@@ -142,10 +121,7 @@ export type Actions =
   | ShowFinalErrorPagePayload
   | ShowGPGPagePayload
   | ShowInlineErrorPayload
-  | ShowNewDeviceNamePagePayload
   | ShowPaperkeyPagePayload
-  | ShowPasswordPagePayload
-  | SubmitDeviceNamePayload
   | SubmitGPGMethodPayload
   | SubmitGPGSignOKPayload
   | SubmitTextCodePayload

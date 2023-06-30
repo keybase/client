@@ -20,5 +20,5 @@ export type State = {
   inlineError?: RPCError
   // username: string
   // initialUsername: string
-  deviceName: string
+  // deviceName: string
 }

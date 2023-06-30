@@ -31,7 +31,6 @@ export const makeDevice = (): Types.Device => ({
 export const makeState = (): Types.State => ({
   codePageIncomingTextCode: new HiddenString(''),
   codePageOutgoingTextCode: new HiddenString(''),
-  deviceName: '',
   forgotUsernameResult: '',
 })
 
@@ -67,7 +66,7 @@ export const deviceNameInstructions =
 
 export const badDeviceChars = /[^a-zA-Z0-9-_' ]/g
 
-type Step = {type: 'username'} | {type: 'passphrase'}
+type Step = {type: 'username'} | {type: 'passphrase'} | {type: 'deviceName'}
 type ExtractType<T> = T extends {type: infer U} ? U : never
 type StepTypes = ExtractType<Step>
 // type Step = {type: 'username' | 'password'
@@ -87,6 +86,8 @@ type Store = {
   provisionStep: number
   callbackMap: Map<StepTypes, () => void>
   passphrase: string
+  existingDevices: Array<string>
+  deviceName: string
 }
 const initialStore: Store = {
   codePageOtherDevice: makeDevice(),
@@ -101,6 +102,8 @@ const initialStore: Store = {
   provisionStep: 0,
   callbackMap: new Map(),
   passphrase: '',
+  existingDevices: [],
+  deviceName: '',
 }
 
 type State = Store & {
@@ -109,7 +112,7 @@ type State = Store & {
     // addNewDevice: (otherDeviceType: 'desktop' | 'mobile') => void
     resetState: () => void
     // maybe remove
-    showDeviceListPage: (devices: Array<Types.Device>) => void
+    // showDeviceListPage: (devices: Array<Types.Device>) => void
     submitDeviceSelect: (name: string) => void
 
     // new stuff
@@ -118,6 +121,7 @@ type State = Store & {
     cancel: () => void
     setUsername: (username: string) => void
     setPassphrase: (passphrase: string) => void
+    setDeviceName: (name: string) => void
   }
 }
 
@@ -140,7 +144,24 @@ export const useState = Z.createZustand<State>((set, get) => {
       s.passphrase = passphrase
       s.autoSubmit.push({type: 'passphrase'})
     })
-    // get().dispatch.continueProvisioning('passphrase')
+  }
+
+  const _setDeviceName = (name: string) => {
+    set(s => {
+      s.deviceName = name
+      s.autoSubmit.push({type: 'deviceName'})
+    })
+  }
+
+  const _submitDeviceSelect = (name: string) => {
+    const selectedDevice = get().devices.find(d => d.name === name)
+    if (!selectedDevice) {
+      throw new Error('Selected a non existant device?')
+    }
+    set(s => {
+      s.codePageOtherDevice = selectedDevice
+      s.error = ''
+    })
   }
 
   const dispatch: State['dispatch'] = {
@@ -179,15 +200,16 @@ export const useState = Z.createZustand<State>((set, get) => {
         cancel: _cancel,
       }))
     },
-    showDeviceListPage: devices => {
-      set(s => {
-        s.devices = devices
-        s.error = ''
-      })
-      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice'], replace: true}))
-    },
+    // showDeviceListPage: devices => {
+    //   set(s => {
+    //     s.devices = devices
+    //     s.error = ''
+    //   })
+    //   reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice'], replace: true}))
+    // },
     setUsername: _setUsername,
     setPassphrase: _setPassphrase,
+    setDeviceName: _setDeviceName,
     continueProvisioning: _from => {
       // const autoIndex = get().autoSubmit.findIndex(a => a.type === from)
       //       if (autoIndex === ) { }
@@ -243,9 +265,34 @@ export const useState = Z.createZustand<State>((set, get) => {
                   if (isCanceled(response)) return
                   /*this.displayAndPromptSecretHandler(params, response),*/
                 },
-                'keybase.1.provisionUi.PromptNewDeviceName': (_params, response) => {
+                'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
                   if (isCanceled(response)) return
-                  /*this.promptNewDeviceNameHandler(params, response),*/
+                  const {errorMessage, existingDevices} = params
+                  // errored before
+                  if (!errorMessage) {
+                    ++submitStep
+                  }
+                  set(s => {
+                    s.error = errorMessage
+                    s.existingDevices = existingDevices ?? []
+                    s.dispatch.setDeviceName = (name: string) => {
+                      _setDeviceName(name)
+                      response.result(name)
+                    }
+                  })
+
+                  const auto = autoSubmit[submitStep]
+                  if (auto?.type === 'deviceName') {
+                    console.log('Provision: auto submit device name')
+                    get().dispatch.setDeviceName(get().deviceName)
+                  } else {
+                    reduxDispatch(
+                      RouteTreeGen.createNavigateAppend({
+                        path: ['setPublicName'],
+                        replace: true,
+                      })
+                    )
+                  }
                 },
                 'keybase.1.provisionUi.chooseDevice': (_params, response) => {
                   // TODO deal with the devices list being different than our auto submit
@@ -329,16 +376,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    submitDeviceSelect: name => {
-      const selectedDevice = get().devices.find(d => d.name === name)
-      if (!selectedDevice) {
-        throw new Error('Selected a non existant device?')
-      }
-      set(s => {
-        s.codePageOtherDevice = selectedDevice
-        s.error = ''
-      })
-    },
+    submitDeviceSelect: _submitDeviceSelect,
   }
 
   // TODO internal

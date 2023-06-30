@@ -6,15 +6,9 @@
   "actions": {
     "provisionError": {"error?": "HiddenString "},
     "submitTextCode": {"phrase": "HiddenString"},
-    "submitDeviceName": {"name": "string"},
     "submitGPGMethod": {"exportKey": "boolean"},
     "switchToGPGSignOnly": {"importError": "string"},
     "submitGPGSignOK": {"accepted": "boolean"},
-    "showNewDeviceNamePage": {
-      "_description": "Ask the user for a new device name",
-      "existingDevices": "Array<string>",
-      "error?": "HiddenString"
-    },
     "showCodePage": {
       "code": "HiddenString",
       "error?": "HiddenString"
@@ -26,9 +20,6 @@
     "showGPGPage": {},
     "showInlineError": {
       "inlineError": "RPCError"
-    },
-    "showPasswordPage": {
-      "error?": "HiddenString"
     },
     "showPaperkeyPage": {
       "error?": "HiddenString"
