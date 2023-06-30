@@ -17,9 +17,15 @@ import * as Z from '../util/zustand'
 
 const semver = {
   gte: (a: string, b: string) => {
-    const [a1, a2, a3] = a.split('.').map(i => parseInt(i))
-    const [b1, b2, b3] = b.split('.').map(i => parseInt(i))
-    return a1 >= b1 && a2 >= b2 && a3 >= b3
+    const arra = a.split('.').map(i => parseInt(i))
+    const [a1, a2, a3] = arra
+    const arrb = b.split('.').map(i => parseInt(i))
+    const [b1, b2, b3] = arrb
+    if (arra.length === 3 && arrb.length === 3) {
+      return a1! >= b1! && a2! >= b2! && a3! >= b3!
+    } else {
+      return false
+    }
   },
   valid: (v: string) =>
     v.split('.').reduce((cnt, i) => {

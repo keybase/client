@@ -5,6 +5,7 @@ import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
 import SyncingFolders from './syncing-folders'
 import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'
+// @ts-ignore
 import * as ReactIs from 'react-is'
 import KB2 from '../../util/electron.desktop'
 import shallowEqual from 'shallowequal'

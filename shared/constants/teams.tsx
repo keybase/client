@@ -164,11 +164,13 @@ export const rpcTeamRoleMapAndVersionToTeamRoleMap = (
   }
   for (const key in m.teams) {
     const value = m.teams[key]
-    ret.roles.set(key, {
-      implicitAdmin:
-        value.implicitRole === RPCTypes.TeamRole.admin || value.implicitRole == RPCTypes.TeamRole.owner,
-      role: teamRoleByEnum[value.role] || 'none',
-    })
+    if (value) {
+      ret.roles.set(key, {
+        implicitAdmin:
+          value.implicitRole === RPCTypes.TeamRole.admin || value.implicitRole == RPCTypes.TeamRole.owner,
+        role: teamRoleByEnum[value.role] || 'none',
+      })
+    }
   }
   return ret
 }
@@ -874,7 +876,7 @@ export const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Typ
   }
 
   const ck = _canUserPerformCacheKey(roleAndDetails)
-  if (_canUserPerformCache[ck]) return _canUserPerformCache[ck]
+  if (_canUserPerformCache[ck]) return _canUserPerformCache[ck]!
 
   const {role, implicitAdmin} = roleAndDetails
   const isAdminOrAbove = role === 'admin' || role === 'owner'
@@ -961,13 +963,13 @@ export const stringifyPeople = (people: string[]): string => {
     case 0:
       return 'nobody'
     case 1:
-      return people[0]
+      return people[0]!
     case 2:
-      return `${people[0]} and ${people[1]}`
+      return `${people[0]!} and ${people[1]!}`
     case 3:
-      return `${people[0]}, ${people[1]} and ${people[2]}`
+      return `${people[0]!}, ${people[1]!} and ${people[2]!}`
     default:
-      return `${people[0]}, ${people[1]}, and ${people.length - 2} others`
+      return `${people[0] ?? ''}, ${people[1] ?? ''}, and ${people.length - 2} others`
   }
 }
 
@@ -983,7 +985,7 @@ export const consumeTeamTreeMembershipValue = (
 // maybeGetSparseMemberInfo first looks in the details, which should be kept up-to-date, then looks
 // in the treeloader-powered map (which can go stale) as a backup. If it returns null, it means we
 // don't know the answer (yet). If it returns type='none', that means the user is not in the team.
-export const maybeGetSparseMemberInfo = (state: TypedState, teamID, username) => {
+export const maybeGetSparseMemberInfo = (state: TypedState, teamID: string, username: string) => {
   const details = state.teams.teamDetails.get(teamID)
   if (details) {
     return details.members.get(username) ?? {type: 'none'}

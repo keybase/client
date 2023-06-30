@@ -19,6 +19,7 @@ const commands = {
     code: () => {
       console.log(
         Object.keys(commands)
+          // @ts-ignore
           .map(c => commands[c].help && `yarn run ${c}}${commands[c].help || ''}`)
           .filter(Boolean)
           .join('\n')
@@ -109,7 +110,7 @@ function exec(command: string, env?: any, options?: Object) {
   )
 }
 
-const decorateInfo = info => {
+const decorateInfo = (info: any) => {
   const temp = {
     ...info,
     env: {
@@ -201,6 +202,7 @@ const clearTSCache = () => {
 }
 
 function main() {
+  // @ts-ignore
   let info = commands[command]
 
   if (!info) {

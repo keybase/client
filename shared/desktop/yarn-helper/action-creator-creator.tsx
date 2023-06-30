@@ -1,3 +1,4 @@
+// @ts-ignore
 import prettier from 'prettier'
 import path from 'path'
 import json5 from 'json5'
@@ -25,11 +26,12 @@ const payloadHasType = (payload: ActionDesc, toFind: RegExp) => {
     if (Array.isArray(ps)) {
       return ps.some(p => toFind.exec(p))
     } else {
-      return toFind.exec(ps)
+      return toFind.exec(ps ?? '')
     }
   })
 }
 const actionHasType = (actions: Actions, toFind: RegExp) =>
+  // @ts-ignore
   Object.keys(actions).some(key => payloadHasType(actions[key], toFind))
 
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
@@ -75,14 +77,17 @@ export type Actions =
 }
 
 function compileActions(ns: ActionNS, actions: Actions, compileActionFn: CompileActionFn): string {
-  return Object.keys(actions)
-    .map((actionName: ActionName) => compileActionFn(ns, actionName, actions[actionName]))
-    .sort()
-    .join('\n')
+  return (
+    Object.keys(actions)
+      // @ts-ignore
+      .map((actionName: ActionName) => compileActionFn(ns, actionName, actions[actionName]))
+      .sort()
+      .join('\n')
+  )
 }
 
 function capitalize(s: string): string {
-  return s[0].toUpperCase() + s.slice(1)
+  return (s[0]?.toUpperCase() ?? '') + s.slice(1)
 }
 
 function payloadKeys(p: ActionDesc) {
@@ -114,9 +119,9 @@ function compileActionPayloads(_: ActionNS, actionName: ActionName) {
 function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
   const hasPayload = !!payloadKeys(desc).length
   const assignPayload = payloadOptional(desc)
-  const comment = desc._description
+  const comment = desc['_description']
     ? `/**
-     * ${Array.isArray(desc._description) ? desc._description.join('\n* ') : desc._description}
+     * ${Array.isArray(desc['_description']) ? desc['_description'].join('\n* ') : desc['_description']}
      */
     `
     : ''

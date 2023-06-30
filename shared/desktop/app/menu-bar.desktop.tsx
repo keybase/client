@@ -17,7 +17,7 @@ const {mainWindowDispatch} = KB2.functions
 const htmlFile = `${htmlPrefix}${assetRoot}menubar${__FILE_SUFFIX__}.html?param=menubar`
 
 // support dynamic dark mode system bar in big sur
-const useImageTemplate = os.platform() === 'darwin' && parseInt(os.release().split('.')[0], 10) >= 20
+const useImageTemplate = os.platform() === 'darwin' && parseInt(os.release().split('.')?.[0] ?? '', 10) >= 20
 
 let iconPath = getIcons('regular', false, Electron.nativeTheme.shouldUseDarkColors)
 // only use imageTemplate if its not badged, else we lose the orange

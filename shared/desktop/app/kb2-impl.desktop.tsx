@@ -17,6 +17,7 @@ if (pathSep !== '/' && pathSep !== '\\') {
 const kb2: KB2['constants'] = {
   assetRoot: path.resolve(__DEV__ || __PROFILE__ ? '.' : app.getAppPath()).replaceAll('\\', '/') + '/',
   configOverload: {}, // filled in later
+  // @ts-ignore
   dokanPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'DokanSetup_redist.exe'),
   downloadFolder: path.join(os.homedir(), 'Downloads'),
   env: {
@@ -50,6 +51,7 @@ const kb2: KB2['constants'] = {
   pathSep,
   platform,
   startDarkMode: nativeTheme.shouldUseDarkColors,
+  // @ts-ignore
   windowsBinPath: path.resolve(env.LOCALAPPDATA ?? '', 'Keybase', 'keybase.exe'),
 }
 

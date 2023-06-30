@@ -1,5 +1,6 @@
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+// @ts-ignore
 import QRCodeGen from 'qrcode-generator'
 
 type AddressesProps = {

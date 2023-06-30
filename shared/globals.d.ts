@@ -21,6 +21,7 @@ declare global {
   var DEBUGStore: any
   var DEBUGlistenersInited: boolean | undefined
   var DEBUGEngine: any
+  var DEBUGLoaded: boolean | undefined
   var _fromPreload: any
   var __HOT__: boolean
   var __VERSION__: string
