@@ -199,9 +199,7 @@ func Search(g *globals.Context, mctx libkb.MetaContext, apiKeySource types.Exter
 	results := storage.NewGiphyStore(g).GiphyResults(mctx.Ctx(), mctx.CurrentUID().ToBytes())
 	if len(results) > limit {
 		results = results[:limit]
-	}
-	// grab trending if we don't have enough recents
-	if len(results) < limit {
+	} else if len(results) < limit { // grab trending if we don't have enough recents
 		limit -= len(results)
 		endpoint = fmt.Sprintf("%s/v1/gifs/trending?api_key=%s&limit=%d", giphyProxy, apiKey.Giphy(), limit)
 		trendingResults, err := runAPICall(mctx, endpoint, srv)
