@@ -4207,6 +4207,11 @@
           "name": "onlyInTeam"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TrackGiphySelectRes",
+      "fields": []
     }
   ],
   "messages": {
@@ -6361,6 +6366,19 @@
         }
       ],
       "response": null
+    },
+    "trackGiphySelect": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "result",
+          "type": "GiphySearchResult"
+        }
+      ],
+      "response": "TrackGiphySelectRes"
     }
   },
   "namespace": "chat.1"

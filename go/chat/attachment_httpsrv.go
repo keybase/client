@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/giphy"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/go-codec/codec"
 
@@ -253,20 +254,20 @@ type giphyGalleryInfo struct {
 }
 
 func (r *AttachmentHTTPSrv) getGiphyGallerySelectURL(ctx context.Context, convID chat1.ConversationID,
-	tlfName, targetURL string) string {
+	tlfName string, result chat1.GiphySearchResult) string {
 	addr, err := r.httpSrv.Addr()
 	if err != nil {
 		r.Debug(ctx, "getGiphySelectURL: failed to get HTTP server address: %s", err)
 		return ""
 	}
-	key, err := r.genURLKey(r.giphySelectPrefix, targetURL)
+	key, err := r.genURLKey(r.giphySelectPrefix, result)
 	if err != nil {
 		r.Debug(ctx, "getGiphySelectURL: failed to generate URL key: %s", err)
 		return ""
 	}
-	r.urlMap.Add(key, targetURL)
+	r.urlMap.Add(key, result)
 	return fmt.Sprintf("http://%s/%s?url=%s&convID=%s&tlfName=%s&key=%s", addr, r.endpoint,
-		url.QueryEscape(targetURL), convID, tlfName, key)
+		url.QueryEscape(result.TargetUrl), convID, tlfName, key)
 }
 
 func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.ResponseWriter,
@@ -276,7 +277,14 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.
 	strConvID := req.URL.Query().Get("convID")
 	tlfName := req.URL.Query().Get("tlfName")
 	key := req.URL.Query().Get("key")
-	if mapURL, ok := r.urlMap.Get(key); !ok || mapURL != url {
+
+	infoInt, ok := r.urlMap.Get(key)
+	if !ok {
+		r.makeError(ctx, w, http.StatusNotFound, "invalid key: %s", key)
+		return
+	}
+	result := infoInt.(chat1.GiphySearchResult)
+	if result.TargetUrl != url {
 		r.makeError(ctx, w, http.StatusNotFound, "invalid key: %s", key)
 		return
 	}
@@ -303,6 +311,11 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.
 	} else {
 		r.Debug(ctx, "serveGiphyGallerySelect: failed to get chat UI: %s", err)
 	}
+
+	err = storage.NewGiphyStore(r.G()).Put(ctx, uid, result)
+	if err != nil {
+		r.Debug(ctx, "serveGiphyGallerySelect: failed to track giphy select: %s", err)
+	}
 }
 
 func (r *AttachmentHTTPSrv) serveGiphyGallery(ctx context.Context, w http.ResponseWriter, req *http.Request) {
@@ -319,7 +332,7 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(ctx context.Context, w http.Respon
 		videoStr += fmt.Sprintf(`
 			<img style="height: 100%%" src="%s" onclick="sendMessage('%s')" />
 		`, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.ConvID, galleryInfo.TlfName,
-			res.TargetUrl))
+			res))
 	}
 	res := fmt.Sprintf(`
 	<html>

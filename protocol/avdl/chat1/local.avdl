@@ -1463,4 +1463,8 @@ protocol local {
   }
   UserEmojiRes userEmojis(EmojiFetchOpts opts, union { null, ConversationID } convID);
   void toggleEmojiAnimations(boolean enabled);
+
+  record TrackGiphySelectRes {
+  }
+  TrackGiphySelectRes trackGiphySelect(int sessionID, GiphySearchResult result);
 }

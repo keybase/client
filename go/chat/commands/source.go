@@ -97,6 +97,7 @@ func (s *Source) makeBuiltins() {
 	if s.G().IsMobileAppType() || s.G().GetRunMode() == libkb.DevelRunMode {
 		common = append(common, cmds[cmdLocation])
 	}
+
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
 	s.builtins[chat1.ConversationBuiltinCommandTyp_BIGTEAM] = append([]types.ConversationCommand{

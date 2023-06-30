@@ -68,7 +68,7 @@ class GiphySearch extends React.Component<Props, State> {
                           autoplayVideo={true}
                           height={gridHeight}
                           isVideo={p.previewIsVideo}
-                          onClick={() => this.props.onClick(p.targetUrl)}
+                          onClick={() => this.props.onClick(p)}
                           style={styles.image}
                           url={p.previewUrl}
                           width={scaledWidth(p.previewWidth)}
