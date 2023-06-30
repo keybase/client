@@ -54,7 +54,7 @@ const PerfRow = () => {
   )
 }
 
-const renderItem = ({item}) => {
+const renderItem = ({item}: any) => {
   if (item.text === 'perf') {
     return <PerfRow />
   }

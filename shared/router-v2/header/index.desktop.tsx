@@ -38,7 +38,7 @@ type Props = {
   }
 }
 
-const PlainTitle = ({title}) => (
+const PlainTitle = ({title}: {title: any}) => (
   <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
     <Kb.Text style={styles.plainText} type="Header">
       {title}

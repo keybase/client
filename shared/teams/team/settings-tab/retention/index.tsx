@@ -188,8 +188,9 @@ const RetentionPicker = (p: Props) => {
                   title: policy.title,
                 } as const,
               ]
+            default:
+              return arr
           }
-          return arr
         }, new Array<Kb.MenuItems[0]>())
       }
       const items = makeItems()

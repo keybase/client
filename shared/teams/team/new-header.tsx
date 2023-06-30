@@ -79,9 +79,11 @@ type HeaderTitleProps = {
 
 const roleDisplay = {
   admin: 'an admin of',
+  bot: 'a bot in',
   none: 'not a member of',
   owner: 'an owner of',
   reader: 'a reader in',
+  restrictedbot: 'a bot in',
   writer: 'a writer in',
 }
 

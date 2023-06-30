@@ -45,7 +45,7 @@ class ProxySettings extends React.Component<Props, State> {
       const address = addressPort.slice(0, addressPort.length - 1).join(':')
       let port = '8080'
       if (addressPort.length >= 2) {
-        port = addressPort[addressPort.length - 1]
+        port = addressPort[addressPort.length - 1] ?? ''
       }
 
       const proxyType = RPCTypes.ProxyType[this.props.proxyData.proxyType]
@@ -73,7 +73,7 @@ class ProxySettings extends React.Component<Props, State> {
     const proxyData = {
       addressWithPort: this.state.address + ':' + this.state.port,
       certPinning: this.certPinning(),
-      proxyType: RPCTypes.ProxyType[this.state.proxyType] as unknown as RPCTypes.ProxyType,
+      proxyType: RPCTypes.ProxyType[this.state.proxyType as any] as unknown as RPCTypes.ProxyType,
     }
     this.props.saveProxyData(proxyData)
   }
@@ -110,7 +110,7 @@ class ProxySettings extends React.Component<Props, State> {
             onSelect={() => this.proxyTypeSelected(proxyType)}
             selected={this.state.proxyType === proxyType}
             key={proxyType}
-            label={proxyTypeToDisplayName[proxyType]}
+            label={proxyTypeToDisplayName[proxyType as keyof typeof proxyTypeToDisplayName] ?? ''}
             style={styles.radioButton}
           />
         ))}

@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
-const commasToPeriods = s => s.replace(/,/, '.')
+const commasToPeriods = (s: string) => s.replace(/,/, '.')
 
-const isValidAmount = (amt, numDecimalsAllowed) => {
+const isValidAmount = (amt: string, numDecimalsAllowed: number) => {
   if (!isNaN(Number(amt)) || amt === '.') {
     if (amt && amt.startsWith && amt.startsWith('-')) {
       return false
@@ -16,19 +16,19 @@ const isValidAmount = (amt, numDecimalsAllowed) => {
       return true
     }
     const decimal = split[split.length - 1]
-    if (decimal.length <= numDecimalsAllowed) {
+    if ((decimal?.length ?? 0) <= numDecimalsAllowed) {
       return true
     }
   }
   return false
 }
 
-const truncateAmount = (amt, numDecimalsAllowed) => {
+const truncateAmount = (amt: string, numDecimalsAllowed: number) => {
   const num = Number(amt)
   return num.toFixed(numDecimalsAllowed)
 }
 
-const placeholder = {}
+const placeholder: any = {}
 const getPlaceHolder = (numDecimalsAllowed: number) => {
   if (!placeholder[numDecimalsAllowed]) {
     placeholder[numDecimalsAllowed] = `0.${'0'.repeat(numDecimalsAllowed)}`
@@ -47,7 +47,7 @@ type AmountInputProps = {
 export const AmountInput = (props: AmountInputProps) => {
   const {numDecimalsAllowed, onChangeAmount, value} = props
   const _onChangeAmount = React.useCallback(
-    t => {
+    (t: string) => {
       // we treat commas and periods as the decimal separator, converted to
       // periods throughout the send form
       const tNormalized = commasToPeriods(t)

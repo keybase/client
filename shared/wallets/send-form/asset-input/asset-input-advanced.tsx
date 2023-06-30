@@ -19,7 +19,8 @@ export const AssetInputRecipientAdvanced = (_: EmptyProps) => {
   const accountMap = Container.useSelector(state => state.wallets.accountMap)
   const dispatch = Container.useDispatch()
   const onChangeAmount = React.useCallback(
-    recipientAmount => dispatch(WalletsGen.createSetBuildingAdvancedRecipientAmount({recipientAmount})),
+    (recipientAmount: any) =>
+      dispatch(WalletsGen.createSetBuildingAdvancedRecipientAmount({recipientAmount})),
     [dispatch]
   )
   const recipient = accountMap.get(buildingAdvanced.recipient)

@@ -90,7 +90,7 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
     {
       data: members.length ? members : ['empty'],
       key: 'membersSection',
-      renderItem: ({item, index}) => {
+      renderItem: ({item, index}: any) => {
         return item === 'empty' ? (
           <Kb.Box2
             direction="vertical"
@@ -108,7 +108,7 @@ const ExternalTeamInfo = ({info}: ExternalTeamProps) => {
       },
     },
   ]
-  const renderSectionHeader = ({section}) => {
+  const renderSectionHeader = ({section}: any) => {
     if (section.key === 'membersSection') {
       return (
         <Kb.Tabs

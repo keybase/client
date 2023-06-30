@@ -297,7 +297,7 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
       _onToggleSearchable: (setSearchable: boolean) => {
         dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, setSearchable}))
       },
-      _onVerify: phoneNumber => {
+      _onVerify: (phoneNumber: string) => {
         dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
         dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
       },

@@ -78,7 +78,7 @@ export const DEBUGDump = (conversationIDKey: string) => {
   logger.error('chat debug dump: ', JSON.stringify(output))
 }
 
-const crashHandler = error => {
+const crashHandler = (error: any) => {
   if (__DEV__) {
     throw error
   }
@@ -88,6 +88,7 @@ const crashHandler = error => {
 let loggerMiddleware: any
 let lastError = new Error('')
 
+// @ts-ignore
 const errorCatching = () => next => action => {
   try {
     return next(action)
@@ -107,6 +108,7 @@ const errorCatching = () => next => action => {
   }
 }
 
+// @ts-ignore
 const freezeMiddleware = _store => next => action => next(Object.freeze(action))
 
 const middlewares = [
@@ -118,8 +120,8 @@ const middlewares = [
 ]
 
 // don't setup listeners again
-if (__DEV__ && !globalThis.listenersInited) {
-  globalThis.listenersInited = false
+if (__DEV__ && !globalThis.DEBUGlistenersInited) {
+  globalThis.DEBUGlistenersInited = false
 }
 
 export default function makeStore() {
@@ -141,11 +143,11 @@ export default function makeStore() {
   return {
     initListeners: () => {
       if (__DEV__) {
-        if (globalThis.listenersInited) {
+        if (globalThis.DEBUGlistenersInited) {
           console.log('Dev reloading not registering listeners again')
           return
         } else {
-          globalThis.listenersInited = true
+          globalThis.DEBUGlistenersInited = true
         }
       }
       // register our listeners

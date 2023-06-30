@@ -19,6 +19,16 @@ import USH from './use-selector'
 export {useAnyWaiting, useAnyErrors, useDispatchClearWaiting} from '../constants/waiting'
 export {networkErrorCodes, isNetworkErr} from '../util/errors'
 
+export type Values<T extends object> = T[keyof T]
+
+export type Unpacked<T> = T extends (infer U)[]
+  ? U
+  : T extends (...args: any[]) => infer U
+  ? U
+  : T extends Promise<infer U>
+  ? U
+  : T
+
 // just then and catch and ignore async functions
 export const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})

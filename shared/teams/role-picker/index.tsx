@@ -277,7 +277,7 @@ const RolePicker = <IncludeSetIndividually extends boolean>(props: Props<Include
       {!Styles.isMobile && <Header />}
       <Kb.ScrollView style={styles.innerScroll}>
         {roles.map(role => {
-          const disabled = props.disabledRoles ? props.disabledRoles[role as string] : undefined
+          const disabled = props.disabledRoles ? props.disabledRoles[role] : undefined
           if (disabled === null) {
             return null
           }

@@ -52,7 +52,7 @@ const listenActionImpl = (
   effect: (...args: Array<any>) => any
 ) => {
   const actions: Array<TypedActions> = isArray(action) ? action : [action]
-  const matcher: any = action => actions.includes(action.type)
+  const matcher: any = (action: any) => actions.includes(action.type)
   listenerMiddleware.startListening({
     effect: async (action, listenerApi) => {
       try {

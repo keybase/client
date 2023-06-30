@@ -76,9 +76,12 @@ const makeLinking = (options: OptionsType) => {
           screens: {
             ...tabs.reduce((m, name) => {
               // m[name] = name
+              // @ts-ignore
               m[name] = {
+                // @ts-ignore
                 initialRouteName: tabRoots[name],
                 screens: {
+                  // @ts-ignore
                   [tabRoots[name]]: name,
                 },
               }
@@ -90,7 +93,9 @@ const makeLinking = (options: OptionsType) => {
     },
     draft => {
       const {screens} = draft.screens.loggedIn
+      // @ts-ignore
       screens[Tabs.chatTab].screens.chatConversation = 'chat/:convoName/:highlightMessageID?'
+      // @ts-ignore
       screens[Tabs.peopleTab].screens.profile = 'profile/show/:username'
     }
   )

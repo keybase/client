@@ -147,6 +147,7 @@ const Header = () => {
 }
 
 const keysMap = Tabs.desktopTabs.reduce((map, tab, index) => {
+  // @ts-ignore
   map[`mod+${index + 1}`] = tab
   return map
 }, {})
@@ -157,6 +158,7 @@ const TabBar = React.memo(function TabBar(props: Props) {
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const onHotKey = React.useCallback(
     (cmd: string) => {
+      // @ts-ignore
       navigation.navigate(keysMap[cmd])
     },
     [navigation]
@@ -172,15 +174,18 @@ const TabBar = React.memo(function TabBar(props: Props) {
         <Header />
         <Kb.Divider style={styles.divider} />
       </Kb.Box2>
-      {state.routes.map((route, index) => (
-        <Tab
-          key={route.key}
-          tab={route.name}
-          index={index}
-          isSelected={index === state.index}
-          onSelectTab={onSelectTab}
-        />
-      ))}
+      {
+        // @ts-ignore
+        state.routes.map((route, index) => (
+          <Tab
+            key={route.key}
+            tab={route.name}
+            index={index}
+            isSelected={index === state.index}
+            onSelectTab={onSelectTab}
+          />
+        ))
+      }
       <RuntimeStats />
     </Kb.Box2>
   ) : null
@@ -193,7 +198,7 @@ type TabProps = {
   onSelectTab: (t: Tabs.AppTab) => void
 }
 
-const TabBadge = (p: {name}) => {
+const TabBadge = (p: {name: Tabs.Tab}) => {
   const {name} = p
   const badgeNumbers = NotifConstants.useState(s => s.navBadges)
   const fsCriticalUpdate = FsConstants.useState(s => s.criticalUpdate)

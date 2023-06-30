@@ -12,7 +12,8 @@ const ff: FeatureFlags = {
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {}
 
 // load overrides
-Object.keys(ff).forEach(k => {
+Object.keys(ff).forEach(_k => {
+  const k: keyof FeatureFlags = _k as any
   ff[k] = featureOn(k as keyof FeatureFlags) || ff[k] || (featureOn('admin') && !!inAdmin[k])
 })
 

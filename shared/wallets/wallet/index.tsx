@@ -58,7 +58,7 @@ class Wallet extends React.Component<Props> {
     this.props.onMarkAsRead()
   }
 
-  _renderItem = ({item, index, section}) => {
+  _renderItem = ({item, index, section}: any) => {
     const children: Array<React.ReactNode> = []
     if (item === 'notLoadedYet') {
       children.push(
@@ -97,7 +97,7 @@ class Wallet extends React.Component<Props> {
     return children
   }
 
-  _keyExtractor = (item, index) => {
+  _keyExtractor = (item: any, index: any) => {
     if (typeof item === 'string') {
       return item
     }
@@ -107,7 +107,7 @@ class Wallet extends React.Component<Props> {
     return index
   }
 
-  _renderSectionHeader = ({section}) => {
+  _renderSectionHeader = ({section}: any) => {
     const stripePatternName = Styles.isMobile
       ? Styles.isDarkMode()
         ? require('../../images/icons/dark-pattern-stripes-blue-5-black-5-mobile.png')

@@ -45,7 +45,7 @@ class ChooseAsset extends React.Component<Props> {
     }
   }
 
-  _renderSectionHeader = ({section}) => {
+  _renderSectionHeader = ({section}: any) => {
     switch (section.key) {
       case 'display choices':
         return (

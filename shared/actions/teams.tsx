@@ -514,7 +514,7 @@ const editMembership = async (_: unknown, action: TeamsGen.EditMembershipPayload
     }
     if (usernames.length === 1) {
       // error is shown in the member page
-      return TeamsGen.createSetEditMemberError({error: error.message, teamID, username: usernames[0]})
+      return TeamsGen.createSetEditMemberError({error: error.message, teamID, username: usernames[0] ?? ''})
     }
   }
   return false

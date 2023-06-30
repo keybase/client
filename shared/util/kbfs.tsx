@@ -9,28 +9,30 @@ type UserList = Array<{
 // Parses the folder name and returns an array of usernames
 export function parseFolderNameToUsers(yourUsername: string | undefined, folderName: string): UserList {
   const [userList] = splitByFirstOccurrenceOf(folderName, ' ')
-  const [writers, readers = ''] = userList.split('#')
+  const [writers, readers = ''] = userList?.split('#') ?? []
 
-  const writersParsed = writers.split(',').map(u => ({
-    username: u,
-    you: yourUsername === u,
-  }))
+  const writersParsed =
+    writers?.split(',').map(u => ({
+      username: u,
+      you: yourUsername === u,
+    })) ?? []
 
-  const readersParsed = readers.split(',').map(u => ({
-    readOnly: true,
-    username: u,
-    you: yourUsername === u,
-  }))
+  const readersParsed =
+    readers?.split(',').map(u => ({
+      readOnly: true,
+      username: u,
+      you: yourUsername === u,
+    })) ?? []
 
   return writersParsed.concat(readersParsed).filter(u => !!u.username)
 }
 
 export function folderNameWithoutUsers(folderName: string, users: {[K in string]: boolean}) {
   const [userList] = splitByFirstOccurrenceOf(folderName, ' ')
-  const [writers, readers = undefined] = splitByFirstOccurrenceOf(userList, '#')
+  const [writers, readers = undefined] = splitByFirstOccurrenceOf(userList ?? '', '#')
 
-  const writerNames = writers.split(',')
-  const readerNames = readers ? readers.split(',') : []
+  const writerNames = writers?.split(',') ?? []
+  const readerNames = readers?.split(',') ?? []
 
   const filteredWriterNames = writerNames.filter(name => !users[name])
   const filteredReaderNames = readerNames.filter(name => !users[name])
@@ -60,10 +62,10 @@ const splitByFirstOccurrenceOf = (str: string, delimiter: string): Array<string>
 
 export const tlfToPreferredOrder = (tlf: string, me: string): string => {
   const [userList, extension = ''] = splitByFirstOccurrenceOf(tlf, ' ')
-  const [writers, readers = undefined] = splitByFirstOccurrenceOf(userList, '#')
+  const [writers, readers = undefined] = splitByFirstOccurrenceOf(userList ?? '', '#')
 
-  let writerNames = writers.split(',')
-  let readerNames = readers ? readers.split(',') : []
+  let writerNames = writers?.split(',') ?? []
+  let readerNames = readers?.split(',') ?? []
   let whereAmI = writerNames.indexOf(me)
   if (whereAmI === -1) {
     whereAmI = readerNames.indexOf(me)
@@ -88,7 +90,7 @@ export const tlfToParticipantsOrTeamname = (tlf: string) => {
     const [, , type, names] = parts
     if (type === 'private' || type === 'public') {
       // allow talking to yourself
-      participants = parseFolderNameToUsers('', names).map(u => u.username)
+      participants = parseFolderNameToUsers('', names ?? '').map(u => u.username)
     } else if (type === 'team') {
       teamname = names
     }

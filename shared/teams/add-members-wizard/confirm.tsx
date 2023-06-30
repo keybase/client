@@ -362,7 +362,7 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
     setRole(individualRole)
     setShowingMenu(true)
   }
-  const onConfirmRole = newRole => {
+  const onConfirmRole = (newRole: typeof rolePickerRole) => {
     setRole(newRole)
     setShowingMenu(false)
     dispatch(TeamsGen.createSetAddMembersWizardIndividualRole({assertion: props.assertion, role: newRole}))

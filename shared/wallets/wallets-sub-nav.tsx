@@ -36,7 +36,17 @@ const WalletsAndDetails = () => {
   )
 }
 
-function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavior}) {
+function LeftTabNavigator({
+  initialRouteName,
+  children,
+  screenOptions,
+  backBehavior,
+}: {
+  initialRouteName: string
+  children: React.ReactNode
+  screenOptions: any
+  backBehavior: any
+}) {
   const {state, descriptors, NavigationContent} = useNavigationBuilder(TabRouter, {
     backBehavior,
     children,
@@ -54,7 +64,7 @@ function LeftTabNavigator({initialRouteName, children, screenOptions, backBehavi
           {state.routes.map((route, i) => {
             return i === state.index ? (
               <Kb.Box2 key={route.key} direction="vertical" fullHeight={true} fullWidth={true}>
-                {descriptors[route.key].render()}
+                {descriptors[route.key]?.render()}
               </Kb.Box2>
             ) : null
           })}
@@ -86,9 +96,9 @@ const WalletSubNavigator = () => (
       <TabNavigator.Screen
         key={name}
         name={name}
-        getComponent={walletSubRoutes[name].getScreen}
+        getComponent={walletSubRoutes[name as keyof typeof walletSubRoutes]?.getScreen as any}
         options={({route, navigation}) => {
-          const no = getOptions(walletSubRoutes[name])
+          const no = getOptions(walletSubRoutes[name as keyof typeof walletSubRoutes])
           const opt = typeof no === 'function' ? no({navigation, route}) : no
           return {...opt}
         }}

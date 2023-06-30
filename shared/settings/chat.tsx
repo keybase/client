@@ -14,7 +14,7 @@ import type * as Types from '../constants/types/settings'
 import type {TeamMeta, TeamID} from '../constants/types/teams'
 import {Group} from './notifications/render'
 
-const emptyList = []
+const emptyList = new Array<string>()
 
 export default () => {
   const contactSettingsEnabled = Container.useSelector(
@@ -159,8 +159,10 @@ class Chat extends React.Component<Props, State> {
   }
   _isUnfurlWhitelistChanged() {
     return (
-      Object.keys(this.state.unfurlWhitelistRemoved).filter(d => this.state.unfurlWhitelistRemoved[d])
-        .length > 0
+      Object.keys(this.state.unfurlWhitelistRemoved).filter(
+        // @ts-ignore
+        d => this.state.unfurlWhitelistRemoved[d]
+      ).length > 0
     )
   }
   _getUnfurlMode() {
@@ -177,7 +179,8 @@ class Chat extends React.Component<Props, State> {
   }
   _getUnfurlWhitelist(filtered: boolean) {
     return filtered
-      ? (this.props.unfurlWhitelist || []).filter(w => !this.state.unfurlWhitelistRemoved[w])
+      ? // @ts-ignore
+        (this.props.unfurlWhitelist || []).filter(w => !this.state.unfurlWhitelistRemoved[w])
       : this.props.unfurlWhitelist || []
   }
   _setUnfurlMode(mode: RPCChatTypes.UnfurlMode) {
@@ -192,6 +195,7 @@ class Chat extends React.Component<Props, State> {
     }))
   }
   _isUnfurlWhitelistRemoved(domain: string) {
+    // @ts-ignore
     return this.state.unfurlWhitelistRemoved[domain]
   }
   _isUnfurlSaveDisabled() {
@@ -306,6 +310,7 @@ class Chat extends React.Component<Props, State> {
                       >
                         {this.props.teamMeta.map(teamMeta => (
                           <TeamRow
+                            // @ts-ignore
                             checked={this.state.contactSettingsSelectedTeams[teamMeta.id]}
                             key={teamMeta.id}
                             isOpen={teamMeta.isOpen}
@@ -479,7 +484,17 @@ class Chat extends React.Component<Props, State> {
   }
 }
 
-const TeamRow = ({checked, isOpen, name, onCheck}) => (
+const TeamRow = ({
+  checked,
+  isOpen,
+  name,
+  onCheck,
+}: {
+  checked: boolean
+  isOpen: boolean
+  name: string
+  onCheck: (c: boolean) => void
+}) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.teamRowContainer}>
       <Kb.Checkbox checked={checked} onCheck={checked => onCheck(checked)} style={styles.teamCheckbox} />

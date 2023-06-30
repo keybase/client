@@ -24,7 +24,7 @@ class RenameAccountPopup extends React.Component<Props, State> {
   state = {name: this.props.initialName}
 
   _disabled = () => !this.state.name || this.state.name === this.props.initialName
-  _onNameChange = name => this.setState({name})
+  _onNameChange = (name: string) => this.setState({name})
   _onDone = () => (this._disabled() || this.props.waiting ? undefined : this.props.onDone(this.state.name))
   _getBottomButtons = () => [
     ...(Styles.isMobile

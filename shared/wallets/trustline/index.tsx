@@ -33,7 +33,7 @@ const makeSections = (props: BodyProps) => [
         {
           data: props.searchingAssets,
           key: 'section-search',
-          keyExtractor: item => `search-item:${item}`,
+          keyExtractor: (item: string) => `search-item:${item}`,
           title: '',
         },
       ]
@@ -43,7 +43,7 @@ const makeSections = (props: BodyProps) => [
         {
           data: props.acceptedAssets,
           key: 'section-accepted',
-          keyExtractor: item => `accepted-item:${item}`,
+          keyExtractor: (item: string) => `accepted-item:${item}`,
           title: 'Accepted assets',
         },
       ]
@@ -53,7 +53,7 @@ const makeSections = (props: BodyProps) => [
         {
           data: props.popularAssets,
           key: 'section-popular',
-          keyExtractor: item => `popular-item:${item}`,
+          keyExtractor: (item: string) => `popular-item:${item}`,
           title: 'Popular assets',
         },
       ]
@@ -68,7 +68,7 @@ const getSectionListKey = (props: BodyProps) =>
     props.popularAssets.length ? 'pa' : '_'
   }`
 
-const sectionHeader = section => (section.title ? <Kb.SectionDivider label={section.title} /> : null)
+const sectionHeader = (section: any) => (section.title ? <Kb.SectionDivider label={section.title} /> : null)
 
 const ListUpdateOnMount = (props: BodyProps) => {
   // hack to get `ReactList` to render more than one item on initial mount.
@@ -189,7 +189,7 @@ const TrustlineDesktop = (props: Props) => {
   )
 }
 
-const TrustlineMobile = p => {
+const TrustlineMobile = (p: any) => {
   const {onDone, ...rest} = p
   return (
     <Kb.HeaderHocWrapper borderless={true} title="Trustlines" rightActionLabel="Done" onRightAction={onDone}>
