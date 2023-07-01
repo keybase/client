@@ -19,13 +19,13 @@ const PublicNameContainer = () => {
   const _onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onBack = Container.useSafeSubmit(_onBack, !!error)
   const setDeviceName = Constants.useState(s => s.dispatch.setDeviceName)
-  const _onSubmit = React.useCallback(
+  const onSubmit = React.useCallback(
     (name: string) => {
       !waiting && setDeviceName(name)
     },
     [waiting, setDeviceName]
   )
-  const onSubmit = Container.useSafeSubmit(_onSubmit, !!error)
+  // const onSubmit = Container.useSafeSubmit(_onSubmit, !!error)
 
   const deviceNumbers = devices
     .filter(d => d.type === (Platform.isMobile ? 'mobile' : 'desktop'))

@@ -4,11 +4,11 @@ import * as Container from '../../../util/container'
 import QRScan from '.'
 
 const QRScanContainer = () => {
-  const error = Constants.useState(s => s.error)
+  // const error = Constants.useState(s => s.error)
   const submitTextCode = Constants.useState(s => s.dispatch.submitTextCode)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const _onSubmitTextCode = submitTextCode
-  const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
+  const onSubmitTextCode = submitTextCode
+  // const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
   return <QRScan onSubmitTextCode={onSubmitTextCode} waiting={waiting} />
 }
 export default QRScanContainer

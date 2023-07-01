@@ -58,13 +58,13 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
     [dispatch]
   )
   const setUsername = Constants.useState(s => s.dispatch.setUsername)
-  const _onSubmit = React.useCallback(
+  const onSubmit = React.useCallback(
     (username: string) => {
       !waiting && setUsername(username)
     },
     [setUsername, waiting]
   )
-  const onSubmit = Container.useSafeSubmit(_onSubmit, hasError)
+  // const onSubmit = Container.useSafeSubmit(_onSubmit, hasError)
 
   return (
     <Username

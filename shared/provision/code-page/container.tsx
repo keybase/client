@@ -27,13 +27,13 @@ const CodePageContainer = () => {
   const dispatch = Container.useDispatch()
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onClose = React.useCallback(() => dispatch(ProvisionGen.createCancelProvision()), [dispatch])
-  const _onSubmitTextCode = React.useCallback(
+  const onSubmitTextCode = React.useCallback(
     (code: string) => {
       !waiting && submitTextCode(code)
     },
     [submitTextCode, waiting]
   )
-  const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
+  // const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
   return (
     <CodePage2
       error={error}

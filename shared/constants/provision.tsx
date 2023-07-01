@@ -142,30 +142,52 @@ export const useState = Z.createZustand<State>((set, get) => {
     console.log('Provision: cancel called while not overloaded')
   }
 
-  const _setUsername = (username: string) => {
+  // add a new value to submit and clear things behind
+  const _updateAutoSubmit = (step: Store['autoSubmit'][0]) => {
+    set(s => {
+      const idx = s.autoSubmit.findIndex(a => a.type === step.type)
+      if (idx !== -1) {
+        s.autoSubmit.splice(idx)
+      }
+      s.autoSubmit.push(step)
+    })
+  }
+
+  const _setUsername = (username: string, restart: boolean = true) => {
     set(s => {
       s.username = username
       s.autoSubmit = [{type: 'username'}]
+      s.error = ''
     })
-
-    get().dispatch.restartProvisioning()
+    if (restart) {
+      get().dispatch.restartProvisioning()
+    }
   }
-  const _setPassphrase = (passphrase: string) => {
+  const _setPassphrase = (passphrase: string, restart: boolean = true) => {
     set(s => {
       s.passphrase = passphrase
-      s.autoSubmit.push({type: 'passphrase'})
+      s.error = ''
     })
+    _updateAutoSubmit({type: 'passphrase'})
+    if (restart) {
+      get().dispatch.restartProvisioning()
+    }
   }
 
-  const _setDeviceName = (name: string) => {
+  const _setDeviceName = (name: string, restart: boolean = true) => {
     set(s => {
       s.deviceName = name
-      s.autoSubmit.push({type: 'deviceName'})
+      s.error = ''
     })
+    _updateAutoSubmit({type: 'deviceName'})
+    if (restart) {
+      get().dispatch.restartProvisioning()
+    }
   }
 
-  const _submitDeviceSelect = (name: string) => {
-    const selectedDevice = get().devices.find(d => d.name === name)
+  const _submitDeviceSelect = (name: string, restart: boolean = true) => {
+    const devices = get().devices
+    const selectedDevice = devices.find(d => d.name === name)
     if (!selectedDevice) {
       throw new Error('Selected a non existant device?')
     }
@@ -173,10 +195,15 @@ export const useState = Z.createZustand<State>((set, get) => {
       s.codePageOtherDevice = selectedDevice
       s.error = ''
     })
+    _updateAutoSubmit({type: 'chooseDevice', devices})
+    if (restart) {
+      get().dispatch.restartProvisioning()
+    }
   }
 
   const _submitTextCode = (_code: string) => {
-    console.log('Provision, unwathced submitTextCode called')
+    console.log('Provision, unwatched submitTextCode called')
+    get().dispatch.restartProvisioning()
   }
 
   const dispatch: State['dispatch'] = {
@@ -287,16 +314,19 @@ export const useState = Z.createZustand<State>((set, get) => {
                     s.error = previousErr
                     s.codePageIncomingTextCode = phrase
                     s.dispatch.submitTextCode = (code: string) => {
-                      s.error = ''
-                      response.result({phrase: code, secret: null as any})
-                      s.dispatch.submitTextCode = _submitTextCode
+                      set(s => {
+                        s.error = ''
+                        s.dispatch.submitTextCode = _submitTextCode
+                      })
+                      const good = code.replace(/\W+/g, ' ').trim()
+                      response.result({phrase: good, secret: null as any})
                     }
                   })
                   // no autosubmit
                   reduxDispatch(
                     RouteTreeGen.createNavigateAppend({
                       path: ['codePage'],
-                      replace: true,
+                      // replace: true,
                     })
                   )
                 },
@@ -311,7 +341,10 @@ export const useState = Z.createZustand<State>((set, get) => {
                     s.error = errorMessage
                     s.existingDevices = existingDevices ?? []
                     s.dispatch.setDeviceName = (name: string) => {
-                      _setDeviceName(name)
+                      _setDeviceName(name, false)
+                      set(s => {
+                        s.dispatch.setDeviceName = _setDeviceName
+                      })
                       response.result(name)
                     }
                   })
@@ -324,7 +357,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     reduxDispatch(
                       RouteTreeGen.createNavigateAppend({
                         path: ['setPublicName'],
-                        replace: true,
+                        // replace: true,
                       })
                     )
                   }
@@ -338,10 +371,12 @@ export const useState = Z.createZustand<State>((set, get) => {
                     s.error = ''
                     s.devices = devices
                     s.dispatch.submitDeviceSelect = (device: string) => {
-                      _submitDeviceSelect(device)
+                      _submitDeviceSelect(device, false)
+                      const id = get().codePageOtherDevice.id
                       set(s => {
-                        response.result(s.codePageOtherDevice.id)
+                        s.dispatch.submitDeviceSelect = _submitDeviceSelect
                       })
+                      response.result(id)
                     }
                   })
 
@@ -351,7 +386,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     get().dispatch.setPassphrase(get().passphrase)
                   } else {
                     reduxDispatch(
-                      RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice'], replace: true})
+                      RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice'] /*replace: true*/})
                     )
                   }
 
@@ -381,7 +416,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                         ? 'Incorrect password.'
                         : retryLabel
                     s.dispatch.setPassphrase = (passphrase: string) => {
-                      _setPassphrase(passphrase)
+                      _setPassphrase(passphrase, false)
                       set(s => {
                         s.dispatch.setPassphrase = _setPassphrase
                       })
@@ -396,10 +431,14 @@ export const useState = Z.createZustand<State>((set, get) => {
                   } else {
                     switch (type) {
                       case RPCTypes.PassphraseType.passPhrase:
-                        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['password'], replace: true}))
+                        reduxDispatch(
+                          RouteTreeGen.createNavigateAppend({path: ['password'] /*replace: true*/})
+                        )
                         break
                       case RPCTypes.PassphraseType.paperKey:
-                        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['paperkey'], replace: true}))
+                        reduxDispatch(
+                          RouteTreeGen.createNavigateAppend({path: ['paperkey'] /*replace: true*/})
+                        )
                         break
                       default:
                         throw new Error('Got confused about password entry. Please send a log to us!')
@@ -435,7 +474,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     submitDeviceSelect: _submitDeviceSelect,
-    submitTextCode: (_code: string) => _submitTextCode,
+    submitTextCode: _submitTextCode,
   }
 
   // TODO internal

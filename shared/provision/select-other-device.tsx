@@ -24,13 +24,13 @@ const SelectOtherDeviceContainer = () => {
   const onResetAccount = React.useCallback(() => {
     startAccountReset(false, username)
   }, [startAccountReset, username])
-  const _onSelect = React.useCallback(
+  const onSelect = React.useCallback(
     (name: string) => {
       !waiting && submitDeviceSelect(name)
     },
     [submitDeviceSelect, waiting]
   )
-  const onSelect = Container.useSafeSubmit(_onSelect, false)
+  // const onSelect = Container.useSafeSubmit(_onSelect, false)
   return (
     <SelectOtherDevice
       devices={devices}
