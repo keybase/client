@@ -7,7 +7,6 @@ import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Z from '../util/zustand'
 import {isMobile} from './platform'
-import HiddenString from '../util/hidden-string'
 import type * as Types from './types/provision'
 import type {CommonResponseHandler /*, RPCError*/} from '../engine/types'
 import shallowEqual from 'shallowequal'
@@ -30,8 +29,6 @@ export const makeDevice = (): Types.Device => ({
 })
 
 export const makeState = (): Types.State => ({
-  codePageIncomingTextCode: new HiddenString(''),
-  codePageOutgoingTextCode: new HiddenString(''),
   forgotUsernameResult: '',
 })
 
@@ -93,6 +90,10 @@ type Store = {
   passphrase: string
   existingDevices: Array<string>
   deviceName: string
+  // Code from the daemon
+  codePageIncomingTextCode: string
+  // Code from other device
+  // codePageOutgoingTextCode: string
 }
 const initialStore: Store = {
   codePageOtherDevice: makeDevice(),
@@ -109,6 +110,10 @@ const initialStore: Store = {
   passphrase: '',
   existingDevices: [],
   deviceName: '',
+  // Code from the daemon
+  codePageIncomingTextCode: '',
+  // Code from other device
+  // codePageOutgoingTextCode: '',
 }
 
 type State = Store & {
@@ -127,6 +132,7 @@ type State = Store & {
     setUsername: (username: string) => void
     setPassphrase: (passphrase: string) => void
     setDeviceName: (name: string) => void
+    submitTextCode: (code: string) => void
   }
 }
 
@@ -167,6 +173,10 @@ export const useState = Z.createZustand<State>((set, get) => {
       s.codePageOtherDevice = selectedDevice
       s.error = ''
     })
+  }
+
+  const _submitTextCode = (_code: string) => {
+    console.log('Provision, unwathced submitTextCode called')
   }
 
   const dispatch: State['dispatch'] = {
@@ -266,9 +276,29 @@ export const useState = Z.createZustand<State>((set, get) => {
               customResponseIncomingCallMap: {
                 'keybase.1.gpgUi.selectKey': cancelOnCallback,
                 'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
-                'keybase.1.provisionUi.DisplayAndPromptSecret': (_params, response) => {
+                'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
                   if (isCanceled(response)) return
-                  /*this.displayAndPromptSecretHandler(params, response),*/
+                  const {phrase, previousErr} = params
+                  // errored before
+                  if (!previousErr) {
+                    ++submitStep
+                  }
+                  set(s => {
+                    s.error = previousErr
+                    s.codePageIncomingTextCode = phrase
+                    s.dispatch.submitTextCode = (code: string) => {
+                      s.error = ''
+                      response.result({phrase: code, secret: null as any})
+                      s.dispatch.submitTextCode = _submitTextCode
+                    }
+                  })
+                  // no autosubmit
+                  reduxDispatch(
+                    RouteTreeGen.createNavigateAppend({
+                      path: ['codePage'],
+                      replace: true,
+                    })
+                  )
                 },
                 'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
                   if (isCanceled(response)) return
@@ -405,6 +435,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     submitDeviceSelect: _submitDeviceSelect,
+    submitTextCode: (_code: string) => _submitTextCode,
   }
 
   // TODO internal

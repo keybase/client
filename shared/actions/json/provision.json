@@ -5,14 +5,9 @@
   ],
   "actions": {
     "provisionError": {"error?": "HiddenString "},
-    "submitTextCode": {"phrase": "HiddenString"},
     "submitGPGMethod": {"exportKey": "boolean"},
     "switchToGPGSignOnly": {"importError": "string"},
     "submitGPGSignOK": {"accepted": "boolean"},
-    "showCodePage": {
-      "code": "HiddenString",
-      "error?": "HiddenString"
-    },
     "showFinalErrorPage": {
       "finalError": "RPCError",
       "fromDeviceAdd": "boolean"

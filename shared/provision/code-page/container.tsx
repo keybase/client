@@ -6,7 +6,6 @@ import * as ConfigConstants from '../../constants/config'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import CodePage2 from '.'
-import HiddenString from '../../util/hidden-string'
 
 const CodePageContainer = () => {
   const storeDeviceName = ConfigConstants.useCurrentUserState(s => s.deviceName)
@@ -21,17 +20,18 @@ const CodePageContainer = () => {
 
   const otherDevice = Constants.useState(s => s.codePageOtherDevice)
   const iconNumber = DevicesConstants.useDeviceIconNumber(otherDevice.id)
-  const textCode = Container.useSelector(state => state.provision.codePageIncomingTextCode.stringValue())
+  const textCode = Constants.useState(s => s.codePageIncomingTextCode)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
+  const submitTextCode = Constants.useState(s => s.dispatch.submitTextCode)
 
   const dispatch = Container.useDispatch()
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onClose = React.useCallback(() => dispatch(ProvisionGen.createCancelProvision()), [dispatch])
   const _onSubmitTextCode = React.useCallback(
     (code: string) => {
-      !waiting && dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)}))
+      !waiting && submitTextCode(code)
     },
-    [dispatch, waiting]
+    [submitTextCode, waiting]
   )
   const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
   return (

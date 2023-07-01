@@ -13,14 +13,12 @@ export const forgotUsername = 'provision:forgotUsername'
 export const forgotUsernameResult = 'provision:forgotUsernameResult'
 export const provisionDone = 'provision:provisionDone'
 export const provisionError = 'provision:provisionError'
-export const showCodePage = 'provision:showCodePage'
 export const showFinalErrorPage = 'provision:showFinalErrorPage'
 export const showGPGPage = 'provision:showGPGPage'
 export const showInlineError = 'provision:showInlineError'
 export const showPaperkeyPage = 'provision:showPaperkeyPage'
 export const submitGPGMethod = 'provision:submitGPGMethod'
 export const submitGPGSignOK = 'provision:submitGPGSignOK'
-export const submitTextCode = 'provision:submitTextCode'
 export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 
 // Action Creators
@@ -55,10 +53,6 @@ export const createProvisionError = (payload: {readonly error?: HiddenString} = 
   payload,
   type: provisionError as typeof provisionError,
 })
-export const createShowCodePage = (payload: {
-  readonly code: HiddenString
-  readonly error?: HiddenString
-}) => ({payload, type: showCodePage as typeof showCodePage})
 export const createShowFinalErrorPage = (payload: {
   readonly finalError: RPCError
   readonly fromDeviceAdd: boolean
@@ -80,10 +74,6 @@ export const createSubmitGPGSignOK = (payload: {readonly accepted: boolean}) => 
   payload,
   type: submitGPGSignOK as typeof submitGPGSignOK,
 })
-export const createSubmitTextCode = (payload: {readonly phrase: HiddenString}) => ({
-  payload,
-  type: submitTextCode as typeof submitTextCode,
-})
 export const createSwitchToGPGSignOnly = (payload: {readonly importError: string}) => ({
   payload,
   type: switchToGPGSignOnly as typeof switchToGPGSignOnly,
@@ -97,14 +87,12 @@ export type ForgotUsernamePayload = ReturnType<typeof createForgotUsername>
 export type ForgotUsernameResultPayload = ReturnType<typeof createForgotUsernameResult>
 export type ProvisionDonePayload = ReturnType<typeof createProvisionDone>
 export type ProvisionErrorPayload = ReturnType<typeof createProvisionError>
-export type ShowCodePagePayload = ReturnType<typeof createShowCodePage>
 export type ShowFinalErrorPagePayload = ReturnType<typeof createShowFinalErrorPage>
 export type ShowGPGPagePayload = ReturnType<typeof createShowGPGPage>
 export type ShowInlineErrorPayload = ReturnType<typeof createShowInlineError>
 export type ShowPaperkeyPagePayload = ReturnType<typeof createShowPaperkeyPage>
 export type SubmitGPGMethodPayload = ReturnType<typeof createSubmitGPGMethod>
 export type SubmitGPGSignOKPayload = ReturnType<typeof createSubmitGPGSignOK>
-export type SubmitTextCodePayload = ReturnType<typeof createSubmitTextCode>
 export type SwitchToGPGSignOnlyPayload = ReturnType<typeof createSwitchToGPGSignOnly>
 
 // All Actions
@@ -117,13 +105,11 @@ export type Actions =
   | ForgotUsernameResultPayload
   | ProvisionDonePayload
   | ProvisionErrorPayload
-  | ShowCodePagePayload
   | ShowFinalErrorPagePayload
   | ShowGPGPagePayload
   | ShowInlineErrorPayload
   | ShowPaperkeyPagePayload
   | SubmitGPGMethodPayload
   | SubmitGPGSignOKPayload
-  | SubmitTextCodePayload
   | SwitchToGPGSignOnlyPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}
