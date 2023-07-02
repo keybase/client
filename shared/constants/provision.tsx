@@ -9,7 +9,7 @@ import * as Z from '../util/zustand'
 import {isMobile} from './platform'
 import type * as Types from './types/provision'
 import type {CommonResponseHandler /*, RPCError*/} from '../engine/types'
-import shallowEqual from 'shallowequal'
+import isEqual from 'lodash/isEqual'
 
 export const waitingKey = 'provision:waiting'
 export const forgotUsernameWaitingKey = 'provision:forgotUsername'
@@ -18,6 +18,7 @@ export const forgotUsernameWaitingKey = 'provision:forgotUsername'
 // const errorCausedByUsCanceling = (e?: RPCError) =>
 //   (e ? e.desc : undefined) === 'Input canceled' || (e ? e.desc : undefined) === 'kex canceled by caller'
 const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
+  console.log('aaa cancelOnCallback ', _)
   response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 
@@ -141,6 +142,9 @@ export const useState = Z.createZustand<State>((set, get) => {
   const _cancel = () => {
     console.log('Provision: cancel called while not overloaded')
   }
+
+  // TODO
+  // maybe keep a cancel around which is called so we can restart
 
   // add a new value to submit and clear things behind
   const _updateAutoSubmit = (step: Store['autoSubmit'][0]) => {
@@ -278,12 +282,14 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
 
       let cancelled = false
-      set(s => {
-        // s.phase = 'started'
-        s.dispatch.cancel = () => {
-          cancelled = true
-        }
-      })
+      // TODO pull out more helpers to manage cancel etc
+      //
+      // set(s => {
+      //   // s.phase = 'started'
+      //   s.dispatch.cancel = () => {
+      //     cancelled = true
+      //   }
+      // })
       console.log('Provision: startProvisioning starting with auto submit', get().autoSubmit)
       const f = async () => {
         const isCanceled = (response: CommonResponseHandler) => {
@@ -313,10 +319,18 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = previousErr
                     s.codePageIncomingTextCode = phrase
+                    s.dispatch.cancel = () => {
+                      cancelled = true
+                      cancelOnCallback(undefined, response)
+                      set(s => {
+                        s.dispatch.cancel = _cancel
+                      })
+                    }
                     s.dispatch.submitTextCode = (code: string) => {
                       set(s => {
                         s.error = ''
                         s.dispatch.submitTextCode = _submitTextCode
+                        s.dispatch.cancel = _cancel
                       })
                       const good = code.replace(/\W+/g, ' ').trim()
                       response.result({phrase: good, secret: null as any})
@@ -340,10 +354,18 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = errorMessage
                     s.existingDevices = existingDevices ?? []
+                    s.dispatch.cancel = () => {
+                      cancelled = true
+                      cancelOnCallback(undefined, response)
+                      set(s => {
+                        s.dispatch.cancel = _cancel
+                      })
+                    }
                     s.dispatch.setDeviceName = (name: string) => {
                       _setDeviceName(name, false)
                       set(s => {
                         s.dispatch.setDeviceName = _setDeviceName
+                        s.dispatch.cancel = _cancel
                       })
                       response.result(name)
                     }
@@ -370,20 +392,28 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = ''
                     s.devices = devices
+                    s.dispatch.cancel = () => {
+                      cancelled = true
+                      cancelOnCallback(undefined, response)
+                      set(s => {
+                        s.dispatch.cancel = _cancel
+                      })
+                    }
                     s.dispatch.submitDeviceSelect = (device: string) => {
                       _submitDeviceSelect(device, false)
                       const id = get().codePageOtherDevice.id
                       set(s => {
                         s.dispatch.submitDeviceSelect = _submitDeviceSelect
+                        s.dispatch.cancel = _cancel
                       })
                       response.result(id)
                     }
                   })
 
                   const auto = autoSubmit[submitStep]
-                  if (auto?.type === 'chooseDevice' && shallowEqual(auto.devices, devices)) {
+                  if (auto?.type === 'chooseDevice' && isEqual(auto.devices, devices)) {
                     console.log('Provision: auto submit passphrase')
-                    get().dispatch.setPassphrase(get().passphrase)
+                    get().dispatch.submitDeviceSelect(get().codePageOtherDevice.name)
                   } else {
                     reduxDispatch(
                       RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice'] /*replace: true*/})
@@ -411,6 +441,13 @@ export const useState = Z.createZustand<State>((set, get) => {
 
                   // Service asking us again due to an error?
                   set(s => {
+                    s.dispatch.cancel = () => {
+                      cancelled = true
+                      cancelOnCallback(undefined, response)
+                      set(s => {
+                        s.dispatch.cancel = _cancel
+                      })
+                    }
                     s.error =
                       retryLabel === ConfigConstants.invalidPasswordErrorString
                         ? 'Incorrect password.'
@@ -419,6 +456,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                       _setPassphrase(passphrase, false)
                       set(s => {
                         s.dispatch.setPassphrase = _setPassphrase
+                        s.dispatch.cancel = _cancel
                       })
                       response.result({passphrase, storeSecret: false})
                     }
