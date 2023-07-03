@@ -36,8 +36,8 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const _resetBannerUser = ARConstants.useState(s => s.username)
   const resetBannerUser = op.fromReset ? _resetBannerUser : undefined
   const _error = Constants.useState(s => s.error)
-  const {inlineError, inlineSignUpLink} = Container.useSelector(
-    state => decodeInlineError(state.provision.inlineError),
+  const {inlineError, inlineSignUpLink} = Constants.useState(
+    s => decodeInlineError(s.inlineError),
     shallowEqual
   )
   const error = _error ? _error : inlineError && !inlineSignUpLink ? inlineError : ''

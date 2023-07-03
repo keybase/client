@@ -6,17 +6,18 @@ import * as ConfigConstants from './config'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Z from '../util/zustand'
+import {RPCError} from '../util/errors'
 import {isMobile} from './platform'
 import type * as Types from './types/provision'
-import type {CommonResponseHandler /*, RPCError*/} from '../engine/types'
+import {type CommonResponseHandler} from '../engine/types'
 import isEqual from 'lodash/isEqual'
 
 export const waitingKey = 'provision:waiting'
 export const forgotUsernameWaitingKey = 'provision:forgotUsername'
 
 // Do NOT change this. These values are used by the daemon also so this way we can ignore it when they do it / when we do
-// const errorCausedByUsCanceling = (e?: RPCError) =>
-//   (e ? e.desc : undefined) === 'Input canceled' || (e ? e.desc : undefined) === 'kex canceled by caller'
+const errorCausedByUsCanceling = (e?: RPCError) =>
+  (e ? e.desc : undefined) === 'Input canceled' || (e ? e.desc : undefined) === 'kex canceled by caller'
 const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
   console.log('aaa cancelOnCallback ', _)
   response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
@@ -70,6 +71,7 @@ type Step =
   | {type: 'passphrase'}
   | {type: 'deviceName'}
   | {type: 'chooseDevice'; devices: Array<Types.Device>}
+  | {type: 'promptSecret'}
 type ExtractType<T> = T extends {type: infer U} ? U : never
 type StepTypes = ExtractType<Step>
 // type Step = {type: 'username' | 'password'
@@ -95,6 +97,9 @@ type Store = {
   codePageIncomingTextCode: string
   // Code from other device
   // codePageOutgoingTextCode: string
+  finalError?: RPCError
+  inlineError?: RPCError
+  forgotUsernameResult: string
 }
 const initialStore: Store = {
   codePageOtherDevice: makeDevice(),
@@ -115,6 +120,10 @@ const initialStore: Store = {
   codePageIncomingTextCode: '',
   // Code from other device
   // codePageOutgoingTextCode: '',
+  finalError: undefined,
+  inlineError: undefined,
+  // TODO actions
+  forgotUsernameResult: '',
 }
 
 type State = Store & {
@@ -161,7 +170,6 @@ export const useState = Z.createZustand<State>((set, get) => {
     set(s => {
       s.username = username
       s.autoSubmit = [{type: 'username'}]
-      s.error = ''
     })
     if (restart) {
       get().dispatch.restartProvisioning()
@@ -170,7 +178,6 @@ export const useState = Z.createZustand<State>((set, get) => {
   const _setPassphrase = (passphrase: string, restart: boolean = true) => {
     set(s => {
       s.passphrase = passphrase
-      s.error = ''
     })
     _updateAutoSubmit({type: 'passphrase'})
     if (restart) {
@@ -181,7 +188,6 @@ export const useState = Z.createZustand<State>((set, get) => {
   const _setDeviceName = (name: string, restart: boolean = true) => {
     set(s => {
       s.deviceName = name
-      s.error = ''
     })
     _updateAutoSubmit({type: 'deviceName'})
     if (restart) {
@@ -197,7 +203,6 @@ export const useState = Z.createZustand<State>((set, get) => {
     }
     set(s => {
       s.codePageOtherDevice = selectedDevice
-      s.error = ''
     })
     _updateAutoSubmit({type: 'chooseDevice', devices})
     if (restart) {
@@ -290,7 +295,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       //     cancelled = true
       //   }
       // })
-      console.log('Provision: startProvisioning starting with auto submit', get().autoSubmit)
+      // freeze the autosubmit for this call so changes don't affect us
+      const {autoSubmit} = get()
+      console.log('Provision: startProvisioning starting with auto submit', autoSubmit)
       const f = async () => {
         const isCanceled = (response: CommonResponseHandler) => {
           if (cancelled) {
@@ -300,9 +307,35 @@ export const useState = Z.createZustand<State>((set, get) => {
           return false
         }
 
-        // freeze the autosubmit for this call so changes don't affect us
-        const {autoSubmit} = get()
+        // Make cancel set the flag and cancel the current rpc
+        const setupCancel = (response: CommonResponseHandler) => {
+          set(s => {
+            s.dispatch.cancel = () => {
+              cancelled = true
+              cancelOnCallback(undefined, response)
+              set(s => {
+                s.dispatch.cancel = _cancel
+              })
+            }
+          })
+        }
+
         let submitStep = 0
+        const shouldAutoSubmit = (hadError: boolean, step: Step) => {
+          if (!hadError) {
+            ++submitStep
+          }
+          const auto = autoSubmit[submitStep]
+          return isEqual(auto, step)
+        }
+
+        const resetErrorAndCancel = () => {
+          set(s => {
+            s.error = ''
+            s.dispatch.cancel = _cancel
+          })
+        }
+
         try {
           await RPCTypes.loginLoginRpcListener(
             {
@@ -312,115 +345,73 @@ export const useState = Z.createZustand<State>((set, get) => {
                 'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
                   if (isCanceled(response)) return
                   const {phrase, previousErr} = params
-                  // errored before
-                  if (!previousErr) {
-                    ++submitStep
-                  }
+                  setupCancel(response)
                   set(s => {
                     s.error = previousErr
                     s.codePageIncomingTextCode = phrase
-                    s.dispatch.cancel = () => {
-                      cancelled = true
-                      cancelOnCallback(undefined, response)
-                      set(s => {
-                        s.dispatch.cancel = _cancel
-                      })
-                    }
                     s.dispatch.submitTextCode = (code: string) => {
                       set(s => {
-                        s.error = ''
                         s.dispatch.submitTextCode = _submitTextCode
-                        s.dispatch.cancel = _cancel
                       })
+                      resetErrorAndCancel()
                       const good = code.replace(/\W+/g, ' ').trim()
                       response.result({phrase: good, secret: null as any})
                     }
                   })
-                  // no autosubmit
-                  reduxDispatch(
-                    RouteTreeGen.createNavigateAppend({
-                      path: ['codePage'],
-                      // replace: true,
-                    })
-                  )
+
+                  // we ignore the return as we never autosubmit, but we want things to increment
+                  shouldAutoSubmit(!!previousErr, {type: 'promptSecret'})
+                  reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['codePage']}))
                 },
                 'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
                   if (isCanceled(response)) return
                   const {errorMessage, existingDevices} = params
-                  // errored before
-                  if (!errorMessage) {
-                    ++submitStep
-                  }
+                  setupCancel(response)
                   set(s => {
                     s.error = errorMessage
                     s.existingDevices = existingDevices ?? []
-                    s.dispatch.cancel = () => {
-                      cancelled = true
-                      cancelOnCallback(undefined, response)
-                      set(s => {
-                        s.dispatch.cancel = _cancel
-                      })
-                    }
                     s.dispatch.setDeviceName = (name: string) => {
                       _setDeviceName(name, false)
                       set(s => {
                         s.dispatch.setDeviceName = _setDeviceName
-                        s.dispatch.cancel = _cancel
                       })
+                      resetErrorAndCancel()
                       response.result(name)
                     }
                   })
 
-                  const auto = autoSubmit[submitStep]
-                  if (auto?.type === 'deviceName') {
+                  if (shouldAutoSubmit(!!errorMessage, {type: 'deviceName'})) {
                     console.log('Provision: auto submit device name')
                     get().dispatch.setDeviceName(get().deviceName)
                   } else {
-                    reduxDispatch(
-                      RouteTreeGen.createNavigateAppend({
-                        path: ['setPublicName'],
-                        // replace: true,
-                      })
-                    )
+                    reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['setPublicName']}))
                   }
                 },
                 'keybase.1.provisionUi.chooseDevice': (params, response) => {
                   if (isCanceled(response)) return
                   const {devices: _devices} = params
                   const devices = _devices?.map(d => rpcDeviceToDevice(d)) ?? []
-                  ++submitStep
+                  setupCancel(response)
                   set(s => {
                     s.error = ''
                     s.devices = devices
-                    s.dispatch.cancel = () => {
-                      cancelled = true
-                      cancelOnCallback(undefined, response)
-                      set(s => {
-                        s.dispatch.cancel = _cancel
-                      })
-                    }
                     s.dispatch.submitDeviceSelect = (device: string) => {
                       _submitDeviceSelect(device, false)
                       const id = get().codePageOtherDevice.id
                       set(s => {
                         s.dispatch.submitDeviceSelect = _submitDeviceSelect
-                        s.dispatch.cancel = _cancel
                       })
+                      resetErrorAndCancel()
                       response.result(id)
                     }
                   })
 
-                  const auto = autoSubmit[submitStep]
-                  if (auto?.type === 'chooseDevice' && isEqual(auto.devices, devices)) {
+                  if (shouldAutoSubmit(false, {type: 'chooseDevice', devices})) {
                     console.log('Provision: auto submit passphrase')
                     get().dispatch.submitDeviceSelect(get().codePageOtherDevice.name)
                   } else {
-                    reduxDispatch(
-                      RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice'] /*replace: true*/})
-                    )
+                    reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice']}))
                   }
-
-                  /*this.chooseDeviceHandler(params, response),*/
                 },
                 'keybase.1.provisionUi.chooseGPGMethod': (_params, response) => {
                   if (isCanceled(response)) return
@@ -434,20 +425,10 @@ export const useState = Z.createZustand<State>((set, get) => {
                   if (isCanceled(response)) return
                   const {pinentry} = params
                   const {retryLabel, type} = pinentry
-                  // errored before
-                  if (!retryLabel) {
-                    ++submitStep
-                  }
 
+                  setupCancel(response)
                   // Service asking us again due to an error?
                   set(s => {
-                    s.dispatch.cancel = () => {
-                      cancelled = true
-                      cancelOnCallback(undefined, response)
-                      set(s => {
-                        s.dispatch.cancel = _cancel
-                      })
-                    }
                     s.error =
                       retryLabel === ConfigConstants.invalidPasswordErrorString
                         ? 'Incorrect password.'
@@ -456,27 +437,22 @@ export const useState = Z.createZustand<State>((set, get) => {
                       _setPassphrase(passphrase, false)
                       set(s => {
                         s.dispatch.setPassphrase = _setPassphrase
-                        s.dispatch.cancel = _cancel
                       })
+                      resetErrorAndCancel()
                       response.result({passphrase, storeSecret: false})
                     }
                   })
 
-                  const auto = autoSubmit[submitStep]
-                  if (auto?.type === 'passphrase') {
+                  if (shouldAutoSubmit(!!retryLabel, {type: 'passphrase'})) {
                     console.log('Provision: auto submit passphrase')
                     get().dispatch.setPassphrase(get().passphrase)
                   } else {
                     switch (type) {
                       case RPCTypes.PassphraseType.passPhrase:
-                        reduxDispatch(
-                          RouteTreeGen.createNavigateAppend({path: ['password'] /*replace: true*/})
-                        )
+                        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['password']}))
                         break
                       case RPCTypes.PassphraseType.paperKey:
-                        reduxDispatch(
-                          RouteTreeGen.createNavigateAppend({path: ['paperkey'] /*replace: true*/})
-                        )
+                        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['paperkey']}))
                         break
                       default:
                         throw new Error('Got confused about password entry. Please send a log to us!')
@@ -507,7 +483,44 @@ export const useState = Z.createZustand<State>((set, get) => {
           // success
           // TODO other stuff
           get().dispatch.resetState()
-        } catch {}
+        } catch (_finalError) {
+          if (!(_finalError instanceof RPCError)) {
+            console.log('Provision non rpc error at end?', _finalError)
+            return
+          }
+          const finalError = _finalError
+          // If it's a non-existent username or invalid, allow the opportunity to
+          // correct it right there on the page.
+          switch (finalError.code) {
+            case RPCTypes.StatusCode.scnotfound:
+            case RPCTypes.StatusCode.scbadusername:
+              set(s => {
+                s.inlineError = finalError
+              })
+              break
+            default:
+              if (!errorCausedByUsCanceling(finalError)) {
+                set(s => {
+                  s.finalError = finalError
+                })
+                // TODO device
+                const parentPath = /*action.payload.fromDeviceAdd ? devicesRoot : */ ['login'] as const
+                const replace = true // !action.payload.fromDeviceAdd
+                const path = ['error'] as const
+                reduxDispatch(RouteTreeGen.createClearModals())
+                reduxDispatch(RouteTreeGen.createNavigateAppend({path: [...parentPath, ...path], replace}))
+              }
+              break
+          }
+        } finally {
+          resetErrorAndCancel()
+          set(s => {
+            s.dispatch.submitTextCode = _submitTextCode
+            s.dispatch.setDeviceName = _setDeviceName
+            s.dispatch.submitDeviceSelect = _submitDeviceSelect
+            s.dispatch.setPassphrase = _setPassphrase
+          })
+        }
       }
       Z.ignorePromise(f())
     },

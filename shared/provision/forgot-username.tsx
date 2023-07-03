@@ -17,7 +17,7 @@ const ForgotUsername = () => {
     !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
   }, [defaultCountry, dispatch])
 
-  const forgotUsernameResult = Container.useSelector(state => state.provision.forgotUsernameResult)
+  const forgotUsernameResult = Constants.useState(s => s.forgotUsernameResult)
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const waiting = Container.useAnyWaiting(Constants.forgotUsernameWaitingKey)
 
