@@ -136,7 +136,6 @@ type State = Store & {
     submitDeviceSelect: (name: string) => void
 
     // new stuff
-    continueProvisioning: (from: StepTypes) => void
     restartProvisioning: () => void
     cancel: () => void
     setUsername: (username: string) => void
@@ -151,9 +150,6 @@ export const useState = Z.createZustand<State>((set, get) => {
   const _cancel = () => {
     console.log('Provision: cancel called while not overloaded')
   }
-
-  // TODO
-  // maybe keep a cancel around which is called so we can restart
 
   // add a new value to submit and clear things behind
   const _updateAutoSubmit = (step: Store['autoSubmit'][0]) => {
@@ -215,7 +211,18 @@ export const useState = Z.createZustand<State>((set, get) => {
     get().dispatch.restartProvisioning()
   }
 
+  // calls we dynamically override while waiting for responses
+  const dispatchOverrides = {
+    cancel: _cancel,
+    setDeviceName: _setDeviceName,
+    setPassphrase: _setPassphrase,
+    setUsername: _setUsername,
+    submitDeviceSelect: _submitDeviceSelect,
+    submitTextCode: _submitTextCode,
+  } as const
+
   const dispatch: State['dispatch'] = {
+    ...dispatchOverrides,
     startProvision: (name = '', fromReset = false) => {
       ConfigConstants.useConfigState.getState().dispatch.loginError()
       ConfigConstants.useConfigState.getState().dispatch.resetRevokedSelf()
@@ -239,44 +246,14 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    cancel: _cancel,
     resetState: () => {
       WaitingConstants.useWaitingState.getState().dispatch.clear(waitingKey)
-      // if (get().phase !== 'stopped') {
       get().dispatch.cancel()
-      // }
       set(s => ({
         ...s,
         ...initialStore,
-        cancel: _cancel,
+        ...dispatchOverrides,
       }))
-    },
-    // showDeviceListPage: devices => {
-    //   set(s => {
-    //     s.devices = devices
-    //     s.error = ''
-    //   })
-    //   reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice'], replace: true}))
-    // },
-    setUsername: _setUsername,
-    setPassphrase: _setPassphrase,
-    setDeviceName: _setDeviceName,
-    continueProvisioning: _from => {
-      // const autoIndex = get().autoSubmit.findIndex(a => a.type === from)
-      //       if (autoIndex === ) { }
-      // const cb = get().callbackMap.get(from)
-      // if (cb) {
-      //   console.log('Provision continue from', from)
-      //   cb()
-      // } else {
-      //   console.log('Provision restart from', from)
-      //   // adjust back the autosubmit
-      //   set(s => {
-      //     s.autoSubmit = s.autoSubmit.slice(0, autoIndex + 1)
-      //   })
-      //   // restart and auto submit
-      //   get().dispatch.restartProvisioning()
-      // }
     },
     restartProvisioning: () => {
       get().dispatch.cancel()
@@ -287,14 +264,6 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
 
       let cancelled = false
-      // TODO pull out more helpers to manage cancel etc
-      //
-      // set(s => {
-      //   // s.phase = 'started'
-      //   s.dispatch.cancel = () => {
-      //     cancelled = true
-      //   }
-      // })
       // freeze the autosubmit for this call so changes don't affect us
       const {autoSubmit} = get()
       console.log('Provision: startProvisioning starting with auto submit', autoSubmit)
@@ -413,14 +382,17 @@ export const useState = Z.createZustand<State>((set, get) => {
                     reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice']}))
                   }
                 },
-                'keybase.1.provisionUi.chooseGPGMethod': (_params, response) => {
-                  if (isCanceled(response)) return
-                  /*this.chooseGPGMethodHandler(params, response),*/
-                },
-                'keybase.1.provisionUi.switchToGPGSignOK': (_params, response) => {
-                  if (isCanceled(response)) return
-                  /*this.switchToGPGSignOKHandler(params, response),*/
-                },
+                // exists now?
+                'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
+                // (_params, response) => {
+                // if (isCanceled(response)) return
+                /*this.chooseGPGMethodHandler(params, response),*/
+                // },
+                'keybase.1.provisionUi.switchToGPGSignOK': cancelOnCallback,
+                // (_params, response) => {
+                // if (isCanceled(response)) return
+                /*this.switchToGPGSignOKHandler(params, response),*/
+                // },
                 'keybase.1.secretUi.getPassphrase': (params, response) => {
                   if (isCanceled(response)) return
                   const {pinentry} = params
@@ -513,19 +485,11 @@ export const useState = Z.createZustand<State>((set, get) => {
               break
           }
         } finally {
-          resetErrorAndCancel()
-          set(s => {
-            s.dispatch.submitTextCode = _submitTextCode
-            s.dispatch.setDeviceName = _setDeviceName
-            s.dispatch.submitDeviceSelect = _submitDeviceSelect
-            s.dispatch.setPassphrase = _setPassphrase
-          })
+          get().dispatch.resetState()
         }
       }
       Z.ignorePromise(f())
     },
-    submitDeviceSelect: _submitDeviceSelect,
-    submitTextCode: _submitTextCode,
   }
 
   // TODO internal
