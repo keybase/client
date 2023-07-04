@@ -382,17 +382,8 @@ export const useState = Z.createZustand<State>((set, get) => {
                     reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice']}))
                   }
                 },
-                // exists now?
                 'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
-                // (_params, response) => {
-                // if (isCanceled(response)) return
-                /*this.chooseGPGMethodHandler(params, response),*/
-                // },
                 'keybase.1.provisionUi.switchToGPGSignOK': cancelOnCallback,
-                // (_params, response) => {
-                // if (isCanceled(response)) return
-                /*this.switchToGPGSignOKHandler(params, response),*/
-                // },
                 'keybase.1.secretUi.getPassphrase': (params, response) => {
                   if (isCanceled(response)) return
                   const {pinentry} = params

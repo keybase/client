@@ -1,2 +1,3 @@
-const empty = () => null
-export default empty
+// const empty = () => null
+// export default empty
+export {}

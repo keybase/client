@@ -1,11 +1,12 @@
-import * as React from 'react'
+// import * as React from 'react'
 
-const GPG = React.lazy(async () => import('./container'))
+// const GPG = React.lazy(async () => import('./container'))
 
-const Screen = () => (
-  <React.Suspense>
-    <GPG />
-  </React.Suspense>
-)
+// const Screen = () => (
+//   <React.Suspense>
+//     <GPG />
+//   </React.Suspense>
+// )
 
-export default {getScreen: () => Screen}
+// export default {getScreen: () => Screen}
+export {}

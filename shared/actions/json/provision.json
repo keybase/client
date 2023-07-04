@@ -1,24 +1,6 @@
 {
-  "prelude": [
-    "import type HiddenString from '../util/hidden-string'",
-    "import type {RPCError} from '../util/errors'"
-  ],
+  "prelude": [],
   "actions": {
-    "provisionError": {"error?": "HiddenString "},
-    "submitGPGMethod": {"exportKey": "boolean"},
-    "switchToGPGSignOnly": {"importError": "string"},
-    "submitGPGSignOK": {"accepted": "boolean"},
-    "showFinalErrorPage": {
-      "finalError": "RPCError",
-      "fromDeviceAdd": "boolean"
-    },
-    "showGPGPage": {},
-    "showInlineError": {
-      "inlineError": "RPCError"
-    },
-    "showPaperkeyPage": {
-      "error?": "HiddenString"
-    },
     "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]},
     "forgotUsername": {
       "email?": "string",
@@ -27,7 +9,6 @@
     "forgotUsernameResult": {
       "result": "string"
     },
-    "cancelProvision": {},
     "backToDeviceList": {"username": "string"},
     "provisionDone": {
       "_description": "We're no longer holding an open provisioning session; it is safe to start another."

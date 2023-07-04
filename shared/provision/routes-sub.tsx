@@ -2,7 +2,7 @@
 import codePage from './code-page/page'
 import error from './error.page'
 import forgotUsername from './forgot-username.page'
-import gpgSign from './gpg-sign/page'
+// import gpgSign from './gpg-sign/page'
 import paperkey from './paper-key.page'
 import password from './password.page'
 import selectOtherDevice from './select-other-device.page'
@@ -13,7 +13,7 @@ export const newRoutes = {
   codePage,
   error,
   forgotUsername,
-  gpgSign,
+  // gpgSign,
   paperkey,
   password,
   selectOtherDevice,

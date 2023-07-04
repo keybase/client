@@ -3,7 +3,6 @@ import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as DevicesConstants from '../../constants/devices'
 import * as ConfigConstants from '../../constants/config'
-import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import CodePage2 from '.'
 
@@ -26,7 +25,8 @@ const CodePageContainer = () => {
 
   const dispatch = Container.useDispatch()
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
-  const onClose = React.useCallback(() => dispatch(ProvisionGen.createCancelProvision()), [dispatch])
+
+  const onClose = Constants.useState(s => s.dispatch.cancel)
   const onSubmitTextCode = React.useCallback(
     (code: string) => {
       !waiting && submitTextCode(code)
