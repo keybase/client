@@ -212,6 +212,13 @@ export const useState = Z.createZustand<State>((set, get) => {
     get().dispatch.restartProvisioning()
   }
 
+  const resetErrorAndCancel = () => {
+    set(s => {
+      s.error = ''
+      s.dispatch.cancel = _cancel
+    })
+  }
+
   // calls we dynamically override while waiting for responses
   const dispatchOverrides = {
     cancel: _cancel,
@@ -238,12 +245,6 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.dispatch.cancel = _cancel
             })
           }
-        })
-      }
-      const resetErrorAndCancel = () => {
-        set(s => {
-          s.error = ''
-          s.dispatch.cancel = _cancel
         })
       }
       const isCanceled = (response: CommonResponseHandler) => {
@@ -380,13 +381,6 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
           const auto = autoSubmit[submitStep]
           return isEqual(auto, step)
-        }
-
-        const resetErrorAndCancel = () => {
-          set(s => {
-            s.error = ''
-            s.dispatch.cancel = _cancel
-          })
         }
 
         try {
