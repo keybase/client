@@ -128,6 +128,7 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
+    addNewDevice: (otherDeviceType: 'desktop' | 'mobile') => void
     startProvision: (name?: string, fromReset?: boolean) => void
     // addNewDevice: (otherDeviceType: 'desktop' | 'mobile') => void
     resetState: () => void
@@ -223,6 +224,89 @@ export const useState = Z.createZustand<State>((set, get) => {
 
   const dispatch: State['dispatch'] = {
     ...dispatchOverrides,
+    addNewDevice: otherDeviceType => {
+      set(s => {
+        s.codePageOtherDevice.type = otherDeviceType
+      })
+      let cancelled = false
+      const setupCancel = (response: CommonResponseHandler) => {
+        set(s => {
+          s.dispatch.cancel = () => {
+            cancelled = true
+            cancelOnCallback(undefined, response)
+            set(s => {
+              s.dispatch.cancel = _cancel
+            })
+          }
+        })
+      }
+      const resetErrorAndCancel = () => {
+        set(s => {
+          s.error = ''
+          s.dispatch.cancel = _cancel
+        })
+      }
+      const isCanceled = (response: CommonResponseHandler) => {
+        if (cancelled) {
+          cancelOnCallback(undefined, response)
+          return true
+        }
+        return false
+      }
+      const f = async () => {
+        await RPCTypes.deviceDeviceAddRpcListener(
+          {
+            customResponseIncomingCallMap: {
+              'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
+                if (isCanceled(response)) return
+                const {phrase, previousErr} = params
+                setupCancel(response)
+                set(s => {
+                  s.error = previousErr
+                  s.codePageIncomingTextCode = phrase
+                  s.dispatch.submitTextCode = (code: string) => {
+                    set(s => {
+                      s.dispatch.submitTextCode = _submitTextCode
+                    })
+                    resetErrorAndCancel()
+                    const good = code.replace(/\W+/g, ' ').trim()
+                    response.result({phrase: good, secret: null as any})
+                  }
+                })
+                reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['codePage']}))
+              },
+              'keybase.1.provisionUi.chooseDeviceType': (_params, response) => {
+                const {type} = get().codePageOtherDevice
+                switch (type) {
+                  case 'mobile':
+                    response.result(RPCTypes.DeviceType.mobile)
+                    break
+                  case 'desktop':
+                    response.result(RPCTypes.DeviceType.desktop)
+                    break
+                  default:
+                    response.error()
+                    throw new Error('Tried to add a device but of unknown type' + type)
+                }
+              },
+            },
+            incomingCallMap: {
+              'keybase.1.provisionUi.DisplaySecretExchanged': () => {
+                WaitingConstants.useWaitingState.getState().dispatch.increment(waitingKey)
+              },
+              'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
+              'keybase.1.provisionUi.ProvisionerSuccess': () => {},
+            },
+            params: undefined,
+            waitingKey,
+          },
+          Z.dummyListenerApi
+        )
+
+        reduxDispatch(RouteTreeGen.createClearModals())
+      }
+      Z.ignorePromise(f())
+    },
     startProvision: (name = '', fromReset = false) => {
       ConfigConstants.useConfigState.getState().dispatch.loginError()
       ConfigConstants.useConfigState.getState().dispatch.resetRevokedSelf()

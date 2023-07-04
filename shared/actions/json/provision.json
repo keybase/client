@@ -1,7 +1,6 @@
 {
   "prelude": [],
   "actions": {
-    "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]},
     "forgotUsername": {
       "email?": "string",
       "phone?": "string"

@@ -3,7 +3,6 @@
 // Constants
 export const resetStore = 'common:resetStore' // not a part of provision but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'provision:'
-export const addNewDevice = 'provision:addNewDevice'
 export const backToDeviceList = 'provision:backToDeviceList'
 export const forgotUsername = 'provision:forgotUsername'
 export const forgotUsernameResult = 'provision:forgotUsernameResult'
@@ -16,10 +15,6 @@ export const provisionDone = 'provision:provisionDone'
 export const createProvisionDone = (payload?: undefined) => ({
   payload,
   type: provisionDone as typeof provisionDone,
-})
-export const createAddNewDevice = (payload: {readonly otherDeviceType: 'desktop' | 'mobile'}) => ({
-  payload,
-  type: addNewDevice as typeof addNewDevice,
 })
 export const createBackToDeviceList = (payload: {readonly username: string}) => ({
   payload,
@@ -35,7 +30,6 @@ export const createForgotUsernameResult = (payload: {readonly result: string}) =
 })
 
 // Action Payloads
-export type AddNewDevicePayload = ReturnType<typeof createAddNewDevice>
 export type BackToDeviceListPayload = ReturnType<typeof createBackToDeviceList>
 export type ForgotUsernamePayload = ReturnType<typeof createForgotUsername>
 export type ForgotUsernameResultPayload = ReturnType<typeof createForgotUsernameResult>
@@ -44,7 +38,6 @@ export type ProvisionDonePayload = ReturnType<typeof createProvisionDone>
 // All Actions
 // prettier-ignore
 export type Actions =
-  | AddNewDevicePayload
   | BackToDeviceListPayload
   | ForgotUsernamePayload
   | ForgotUsernameResultPayload
