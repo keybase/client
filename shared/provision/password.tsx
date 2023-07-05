@@ -1,8 +1,8 @@
 import * as Constants from '../constants/provision'
+import * as RecoverConstants from '../constants/recover-password'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RecoverPasswordGen from '../actions/recover-password-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import UserCard from '../login/user-card'
@@ -11,13 +11,16 @@ import {isMobile} from '../constants/platform'
 
 export default () => {
   const error = Constants.useState(s => s.error)
-  const resetEmailSent = Container.useSelector(state => state.recoverPassword.resetEmailSent)
+  const resetEmailSent = RecoverConstants.useState(s => s.resetEmailSent)
   const username = Constants.useState(s => s.username)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   const dispatch = Container.useDispatch()
+
+  const startRecoverPassword = RecoverConstants.useState(s => s.dispatch.startRecoverPassword)
+
   const _onForgotPassword = (username: string) => {
-    dispatch(RecoverPasswordGen.createStartRecoverPassword({abortProvisioning: true, username}))
+    startRecoverPassword({abortProvisioning: true, username})
   }
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
@@ -47,15 +50,14 @@ export type Props = {
 
 const Password = (props: Props) => {
   const [password, setPassword] = React.useState('')
-  const dispatch = Container.useDispatch()
   const {onSubmit} = props
   const _onSubmit = React.useCallback(() => onSubmit(password), [password, onSubmit])
-
+  const resetState = RecoverConstants.useState(s => s.dispatch.resetState)
   React.useEffect(
     () => () => {
-      dispatch(RecoverPasswordGen.createResetResetPasswordState())
+      resetState()
     },
-    [dispatch]
+    [resetState]
   )
 
   return (

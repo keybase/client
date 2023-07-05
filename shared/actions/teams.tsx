@@ -733,7 +733,8 @@ const getTeams = async (
     return
   }
   const username = ConfigConstants.useCurrentUserState.getState().username
-  if (!username) {
+  const loggedIn = ConfigConstants.useConfigState.getState().loggedIn
+  if (!username || !loggedIn) {
     logger.warn('getTeams while logged out')
     return
   }

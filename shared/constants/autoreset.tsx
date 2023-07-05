@@ -2,6 +2,7 @@ import * as Z from '../util/zustand'
 import * as RPCGen from '../constants/types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ProvisionConstants from './provision'
+import * as RecoverConstants from './recover-password'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
 
@@ -43,7 +44,6 @@ type State = Store & {
 
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
-  const reduxStore = Z.getReduxStore()
   const dispatch: State['dispatch'] = {
     cancelReset: () => {
       set(s => {
@@ -163,7 +163,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     resetState: 'default',
     startAccountReset: (skipPassword, _username) => {
-      const username = _username || reduxStore().recoverPassword.username
+      const username = _username || RecoverConstants.useState.getState().username
       set(s => {
         s.skipPassword = skipPassword
         s.error = ''

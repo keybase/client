@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as AutoresetConstants from '../../constants/autoreset'
-import * as RecoverPasswordGen from '../../actions/recover-password-gen'
+import * as Constants from '../../constants/recover-password'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {SignupScreen} from '../../signup/common'
 import type {ButtonType} from '../../common-adapters/button'
@@ -19,24 +19,28 @@ const PromptReset = (props: Props) => {
   const error = AutoresetConstants.useState(s => s.error)
   const resetAccount = AutoresetConstants.useState(s => s.dispatch.resetAccount)
   const {resetPassword} = props
+
+  const submitResetPassword = Constants.useState(s => s.dispatch.submitResetPassword)
+  const startRecoverPassword = Constants.useState(s => s.dispatch.startRecoverPassword)
+  const username = Constants.useState(s => s.username)
+
   const onContinue = React.useCallback(() => {
     if (resetPassword) {
-      dispatch(
-        RecoverPasswordGen.createSubmitResetPassword({
-          action: RPCTypes.ResetPromptResponse.confirmReset,
-        })
-      )
+      submitResetPassword(RPCTypes.ResetPromptResponse.confirmReset)
     }
     if (skipPassword) {
       resetAccount()
     } else {
       dispatch(nav.safeNavigateAppendPayload({path: ['resetKnowPassword'], replace: true}))
     }
-  }, [resetAccount, dispatch, skipPassword, resetPassword, nav])
-  const onBack = React.useCallback(
-    () => dispatch(skipPassword ? RecoverPasswordGen.createRestartRecovery() : nav.safeNavigateUpPayload()),
-    [dispatch, skipPassword, nav]
-  )
+  }, [submitResetPassword, resetAccount, dispatch, skipPassword, resetPassword, nav])
+  const onBack = React.useCallback(() => {
+    if (skipPassword) {
+      startRecoverPassword({replaceRoute: true, username})
+    } else {
+      dispatch(nav.safeNavigateUpPayload())
+    }
+  }, [startRecoverPassword, dispatch, skipPassword, nav, username])
   const title = props.resetPassword ? 'Reset password' : skipPassword ? 'Recover password' : 'Account reset'
 
   return (

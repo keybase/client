@@ -11,7 +11,6 @@ import initGregor from '../actions/gregor'
 import initNotifications from '../actions/notifications'
 import initPeople from '../actions/people'
 import initPinentry from '../actions/pinentry'
-import initRecoverPassword from '../actions/recover-password'
 import initTracker from '../actions/tracker2'
 import initSettings from '../actions/settings'
 import initSignup from '../actions/signup'
@@ -32,7 +31,6 @@ export const initListeners = () => {
   initGregor()
   initNotifications()
   initPinentry()
-  initRecoverPassword()
   initTracker()
   initSettings()
   initTeams()

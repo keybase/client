@@ -1,20 +1,24 @@
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RecoverPasswordGen from '../../actions/recover-password-gen'
+import * as Constants from '../../constants/recover-password'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type {ButtonType} from '../../common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 import {globalColors} from '../../styles'
 
 const ConnectedExplainDevice = () => {
-  const ed = Container.useSelector(state => state.recoverPassword.explainedDevice)
+  const ed = Constants.useState(s => s.explainedDevice)
   const deviceName = ed ? ed.name : ''
   const deviceType = ed ? ed.type : undefined
-  const username = Container.useSelector(state => state.recoverPassword.username)
+  const username = Constants.useState(s => s.username)
+  const startRecoverPassword = Constants.useState(s => s.dispatch.startRecoverPassword)
   const dispatch = Container.useDispatch()
   const onBack = () => {
-    dispatch(RecoverPasswordGen.createRestartRecovery())
+    startRecoverPassword({
+      replaceRoute: true,
+      username,
+    })
   }
   const onComplete = () => {
     dispatch(RouteTreeGen.createNavigateUp())
