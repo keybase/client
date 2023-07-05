@@ -40,7 +40,7 @@ const PromptReset = (props: Props) => {
     } else {
       dispatch(nav.safeNavigateUpPayload())
     }
-  }, [dispatch, skipPassword, nav])
+  }, [startRecoverPassword, dispatch, skipPassword, nav, username])
   const title = props.resetPassword ? 'Reset password' : skipPassword ? 'Recover password' : 'Account reset'
 
   return (
