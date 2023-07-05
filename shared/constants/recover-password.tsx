@@ -94,7 +94,6 @@ export const useState = Z.createZustand<State>((set, get) => {
           await RPCTypes.loginRecoverPassphraseRpcListener(
             {
               customResponseIncomingCallMap: {
-                'keybase.1.loginUi.promptPassphraseRecovery': () => {},
                 'keybase.1.loginUi.chooseDeviceToRecoverWith': (params, response) => {
                   const replaceRoute = !!p.replaceRoute
                   const devices = (params.devices || []).map(d => ProvisionConstants.rpcDeviceToDevice(d))
@@ -129,6 +128,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     })
                   )
                 },
+                'keybase.1.loginUi.promptPassphraseRecovery': () => {},
                 // This same RPC is called at the beginning and end of the 7-day wait by the service.
                 'keybase.1.loginUi.promptResetAccount': (params, response) => {
                   if (params.prompt.t == RPCTypes.ResetPromptType.enterResetPw) {
