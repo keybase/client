@@ -20,15 +20,5 @@ export declare function watchPositionForMap(
   conversationIDKey: Types.ConversationIDKey
 ): Promise<() => void>
 
-export declare function displayNewMessageNotification(
-  text: string,
-  convID: string | null,
-  badgeCount: number | null,
-  myMsgID: number | null,
-  soundName: string | null
-): void
-
-export declare function clearAllNotifications(): void
-
 export declare function initPlatformListener(): void
 export declare function requestPermissionsToWrite(): Promise<void>
