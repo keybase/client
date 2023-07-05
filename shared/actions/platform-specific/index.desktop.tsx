@@ -27,7 +27,7 @@ const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
 }
 
 export const requestPermissionsToWrite = async () => {
-  return Promise.reject(new Error('Requets permissions - unsupported on this platform'))
+  return Promise.resolve(true)
 }
 
 export function showShareActionSheet() {
@@ -35,14 +35,6 @@ export function showShareActionSheet() {
 }
 export async function saveAttachmentToCameraRoll() {
   return Promise.reject(new Error('Save Attachment to camera roll - unsupported on this platform'))
-}
-
-export function displayNewMessageNotification() {
-  throw new Error('Display new message notification not available on this platform')
-}
-
-export function clearAllNotifications() {
-  throw new Error('Clear all notifications not available on this platform')
 }
 
 const handleWindowFocusEvents = (listenerApi: Container.ListenerApi) => {
