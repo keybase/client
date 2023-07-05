@@ -5,7 +5,16 @@ import {useRedux} from './use-redux'
 // its important we use explicit height/width so we never CLS while loading
 const Image2Impl = () => {
   const {previewURL, height, width} = useRedux()
-  return <img draggable={false} src={previewURL} height={height} width={width} style={styles.image as any} />
+  return (
+    <img
+      loading="lazy"
+      draggable={false}
+      src={previewURL}
+      height={height}
+      width={width}
+      style={styles.image as any}
+    />
+  )
 }
 
 const styles = Styles.styleSheetCreate(

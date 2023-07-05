@@ -59,6 +59,7 @@ const Avatar = (props: Props) => {
         props.crop?.offsetLeft !== undefined &&
         props.crop?.offsetTop !== undefined && (
           <img
+            loading="lazy"
             className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
             style={{
               backgroundImage: props.url,

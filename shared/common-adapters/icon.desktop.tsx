@@ -77,6 +77,7 @@ const Icon = React.memo<Props>(
 
       iconElement = (
         <img
+          loading="lazy"
           className={className}
           draggable={false}
           ref={hasContainer ? undefined : (ref as any)}
