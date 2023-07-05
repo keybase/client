@@ -18,7 +18,7 @@ const initPinentry = () => {
     if (retryLabel === ConfigConstants.invalidPasswordErrorString) {
       retryLabel = 'Incorrect password.'
     }
-    Constants.useState().dispatch.onGetPassword({
+    Constants.useState.getState().dispatch.onGetPassword({
       cancelLabel,
       prompt,
       response,
@@ -38,10 +38,10 @@ const initPinentry = () => {
     }
   })
   Container.listenAction(PinentryGen.onCancel, () => {
-    Constants.useState().dispatch.onCancel()
+    Constants.useState.getState().dispatch.onCancel()
   })
   Container.listenAction(PinentryGen.onSubmit, (_, action) => {
-    Constants.useState().dispatch.onSubmit(action.payload.password)
+    Constants.useState.getState().dispatch.onSubmit(action.payload.password)
   })
 }
 

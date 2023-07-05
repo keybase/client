@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/provision'
 import * as Container from '../util/container'
-import * as ProvisionGen from '../actions/provision-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as SettingsGen from '../actions/settings-gen'
@@ -17,7 +16,7 @@ const ForgotUsername = () => {
     !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
   }, [defaultCountry, dispatch])
 
-  const forgotUsernameResult = Container.useSelector(state => state.provision.forgotUsernameResult)
+  const forgotUsernameResult = Constants.useState(s => s.forgotUsernameResult)
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const waiting = Container.useAnyWaiting(Constants.forgotUsernameWaitingKey)
 
@@ -27,13 +26,16 @@ const ForgotUsername = () => {
   // If "valid" is false, phoneNumber gets set to null, therefore phoneNumber is only
   // truthy when it's valid. This is used in the form validation logic in the code.
   const [phoneNumber, setPhoneNumber] = React.useState<string | undefined>()
+
+  const forgotUsername = Constants.useState(s => s.dispatch.forgotUsername)
+
   const onSubmit = React.useCallback(() => {
     if (!emailSelected && phoneNumber) {
-      dispatch(ProvisionGen.createForgotUsername({phone: phoneNumber}))
+      forgotUsername(phoneNumber)
     } else if (emailSelected) {
-      dispatch(ProvisionGen.createForgotUsername({email}))
+      forgotUsername(undefined, email)
     }
-  }, [dispatch, email, phoneNumber, emailSelected])
+  }, [forgotUsername, email, phoneNumber, emailSelected])
 
   const error = forgotUsernameResult !== 'success' ? forgotUsernameResult : ''
   const disabled = (!emailSelected && phoneNumber === null) || (emailSelected && !email)

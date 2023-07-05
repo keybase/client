@@ -1,5 +1,6 @@
 import * as Container from '../util/container'
 import * as Constants from '../constants/autoreset'
+import * as ProvisionConstants from '../constants/provision'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -12,8 +13,8 @@ import {StatusCode} from '../constants/types/rpc-gen'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../styles'
 
 const ConnectedRenderError = () => {
-  const _username = Container.useSelector(state => state.provision.username)
-  const error = Container.useSelector(state => state.provision.finalError)
+  const _username = Constants.useState(s => s.username)
+  const error = ProvisionConstants.useState(s => s.finalError)
   const dispatch = Container.useDispatch()
   const startAccountReset = Constants.useState(s => s.dispatch.startAccountReset)
   const _onAccountReset = (username: string) => {

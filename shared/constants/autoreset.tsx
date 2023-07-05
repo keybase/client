@@ -1,7 +1,7 @@
 import * as Z from '../util/zustand'
 import * as RPCGen from '../constants/types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as ProvisionGen from '../actions/provision-gen'
+import * as ProvisionConstants from './provision'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
 
@@ -109,9 +109,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = ''
                   })
-                  reduxDispatch(
-                    ProvisionGen.createStartProvision({fromReset: true, initUsername: get().username})
-                  )
+                  ProvisionConstants.useState.getState().dispatch.startProvision(get().username, true)
                 } else {
                   reduxDispatch(RouteTreeGen.createNavUpToScreen({name: 'login'}))
                 }

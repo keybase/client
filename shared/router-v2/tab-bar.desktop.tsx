@@ -1,6 +1,7 @@
 import './tab-bar.css'
 import * as ConfigGen from '../actions/config-gen'
 import * as ConfigConstants from '../constants/config'
+import * as ProvisionConstants from '../constants/provision'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
 import * as ProfileConstants from '../constants/profile'
@@ -8,7 +9,6 @@ import * as NotifConstants from '../constants/notifications'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as Platforms from '../constants/platform'
-import * as ProvisionGen from '../actions/provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -50,7 +50,10 @@ const Header = () => {
     onProfileClick()
   }
 
-  const onAddAccount = () => dispatch(ProvisionGen.createStartProvision())
+  const startProvision = ProvisionConstants.useState(s => s.dispatch.startProvision)
+  const onAddAccount = () => {
+    startProvision()
+  }
   const onHelp = () => openURL('https://book.keybase.io')
   const onQuit = () => {
     if (!__DEV__) {

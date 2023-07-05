@@ -1,8 +1,8 @@
 import * as Constants from '../constants/signup'
+import * as ProvisionConstants from '../constants/provision'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
-import * as ProvisionGen from '../actions/provision-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SignupGen from '../actions/signup-gen'
@@ -23,8 +23,10 @@ const ConnectedEnterUsername = () => {
   const onContinue = (username: string) => {
     dispatch(SignupGen.createCheckUsername({username}))
   }
+
+  const startProvision = ProvisionConstants.useState(s => s.dispatch.startProvision)
   const onLogin = (initUsername: string) => {
-    dispatch(ProvisionGen.createStartProvision({initUsername}))
+    startProvision(initUsername)
   }
   const props = {
     error,

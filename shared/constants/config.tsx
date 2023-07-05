@@ -1,5 +1,5 @@
 import * as ConfigGen from '../actions/config-gen'
-import * as ProvisionGen from '../actions/provision-gen'
+import * as ProvisionConstants from './provision'
 import * as RPCTypes from './types/rpc-gen'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
@@ -305,7 +305,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
                 'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
                 'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
                   cancelOnCallback(undefined, response)
-                  reduxDispatch(ProvisionGen.createSubmitUsername({username}))
+                  ProvisionConstants.useState.getState().dispatch.setUsername(username)
                 },
                 'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
                 'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,

@@ -1,8 +1,8 @@
 import * as Container from '../util/container'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as ProvisionGen from '../actions/provision-gen'
 import * as Constants from '../constants/devices'
+import * as ProvisionConstants from '../constants/provision'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {isLargeScreen} from '../constants/platform'
@@ -18,14 +18,11 @@ export default function AddDevice(ownProps: OwnProps) {
   const iconNumbers = Constants.useNextDeviceIconNumber()
   const dispatch = Container.useDispatch()
   const safeOptions = {onlyOnce: true}
+  const addNewDevice = ProvisionConstants.useState(s => s.dispatch.addNewDevice)
 
-  const onAddComputer = useSafeCallback(
-    React.useCallback(
-      () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
-      [dispatch]
-    ),
-    safeOptions
-  )
+  const onAddComputer = React.useCallback(() => {
+    addNewDevice('desktop')
+  }, [addNewDevice])
 
   const onAddPaperKey = useSafeCallback(
     React.useCallback(() => {
@@ -34,14 +31,14 @@ export default function AddDevice(ownProps: OwnProps) {
     safeOptions
   )
 
-  const onAddPhone = useSafeCallback(
-    React.useCallback(
-      () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
-      [dispatch]
-    ),
-    safeOptions
-  )
-  const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const onAddPhone = React.useCallback(() => {
+    addNewDevice('mobile')
+  }, [addNewDevice])
+  const cancel = ProvisionConstants.useState(s => s.dispatch.cancel)
+  const onCancel = React.useCallback(() => {
+    cancel()
+    dispatch(RouteTreeGen.createNavigateUp())
+  }, [cancel, dispatch])
   return (
     <Kb.PopupWrapper onCancel={onCancel}>
       <Kb.ScrollView alwaysBounceVertical={false}>

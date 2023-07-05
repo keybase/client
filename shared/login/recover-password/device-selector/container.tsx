@@ -1,17 +1,18 @@
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/provision'
 import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
 import {SelectOtherDevice} from '../../../provision/select-other-device'
 
 const ConnectedDeviceSelector = () => {
   const devices = Container.useSelector(state => state.recoverPassword.devices)
-  const _onSelect = (id: string) => {
-    dispatch(RecoverPasswordGen.createSubmitDeviceSelect({id}))
-  }
+
+  const submitDeviceSelect = Constants.useState(s => s.dispatch.submitDeviceSelect)
+  const _onSelect = submitDeviceSelect
   const onBack = () => {
     dispatch(RecoverPasswordGen.createAbortDeviceSelect())
   }
   const onResetAccount = () => {
-    dispatch(RecoverPasswordGen.createSubmitDeviceSelect({id: ''}))
+    submitDeviceSelect('')
   }
 
   const dispatch = Container.useDispatch()

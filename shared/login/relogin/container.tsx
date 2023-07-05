@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import Login from '.'
@@ -8,6 +7,7 @@ import sortBy from 'lodash/sortBy'
 import * as Container from '../../util/container'
 import type * as ConfigTypes from '../../constants/types/config'
 import * as ConfigConstants from '../../constants/config'
+import * as Constants from '../../constants/provision'
 
 const needPasswordError = 'passphrase cannot be empty'
 
@@ -110,11 +110,9 @@ export default () => {
   const onSignup = () => {
     dispatch(SignupGen.createRequestAutoInvite())
   }
-  const onSomeoneElse = () => {
-    dispatch(ProvisionGen.createStartProvision())
-  }
+  const onSomeoneElse = Constants.useState(s => s.dispatch.startProvision)
   const props = {
-    error: (error && error.desc) || '',
+    error: error?.desc || '',
     loggedInMap: new Map<string, boolean>(_users.map(account => [account.username, account.hasStoredSecret])),
     onFeedback,
     onForgotPassword,

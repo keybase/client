@@ -1,7 +1,7 @@
-import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import * as ConfigConstants from '../../constants/config'
+import * as Constants from '../../constants/provision'
 import Intro from '.'
 import * as Container from '../../util/container'
 
@@ -22,9 +22,7 @@ export default () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
   }
   const checkIsOnline = loadIsOnline
-  const onLogin = () => {
-    dispatch(ProvisionGen.createStartProvision())
-  }
+  const onLogin = Constants.useState(s => s.dispatch.startProvision)
   const onSignup = () => {
     dispatch(SignupGen.createRequestAutoInvite())
   }

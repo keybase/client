@@ -3,7 +3,6 @@ import * as ARConstants from '../constants/autoreset'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as ProvisionConstants from '../constants/provision'
-import * as ProvisionGen from './provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RecoverPasswordGen from './recover-password-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -23,7 +22,7 @@ const startRecoverPassword = async (
   listenerApi: Container.ListenerApi
 ) => {
   if (action.payload.abortProvisioning) {
-    listenerApi.dispatch(ProvisionGen.createCancelProvision())
+    ProvisionConstants.useState.getState().dispatch.cancel()
   }
   let hadError = false
   try {
