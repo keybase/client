@@ -85,8 +85,6 @@ if (__DEV__ && !globalThis.DEBUGmadeEngine) {
   globalThis.DEBUGmadeEngine = false
 }
 
-if (__HOT__) {
-}
 const ensureStore = () => {
   if (__DEV__) {
     if (globalThis.DEBUGmadeEngine) {

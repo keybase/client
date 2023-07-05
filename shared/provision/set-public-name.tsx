@@ -25,8 +25,6 @@ const PublicNameContainer = () => {
     },
     [waiting, setDeviceName]
   )
-  // const onSubmit = Container.useSafeSubmit(_onSubmit, !!error)
-
   const deviceNumbers = devices
     .filter(d => d.type === (Platform.isMobile ? 'mobile' : 'desktop'))
     .map(d => d.deviceNumberOfType)

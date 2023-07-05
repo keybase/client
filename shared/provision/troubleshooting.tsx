@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Constants from '../constants/provision'
+import * as Container from '../util/container'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Kb from '../common-adapters'
 import * as DevicesConstants from '../constants/devices'
 import type * as Types from '../constants/types/devices'
@@ -50,15 +52,11 @@ const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) 
 )
 
 const Troubleshooting = (props: Props) => {
-  // const dispatch = Container.useDispatch()
-  // const [waiting, setWaiting] = React.useState(false)
+  const dispatch = Container.useDispatch()
   const onBack = props.onCancel
-  // const username = Constants.useState(s => s.username)
-  const onWayBack = onBack
-  // const onWayBack = React.useCallback(() => {
-  //   dispatch(ProvisionGen.createBackToDeviceList({username}))
-  //   setWaiting(true)
-  // }, [dispatch, username])
+  const onWayBack = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavUpToScreen({name: 'login'}))
+  }, [dispatch])
 
   const device = Constants.useState(s => s.codePageOtherDevice)
   const deviceIconNo = (device.deviceNumberOfType % DevicesConstants.numBackgrounds) + 1

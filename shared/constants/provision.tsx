@@ -38,7 +38,7 @@ const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
   response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 
-export const makeDevice = (): Device => ({
+const makeDevice = (): Device => ({
   deviceNumberOfType: 0,
   id: DeviceTypes.stringToDeviceID(''),
   name: '',

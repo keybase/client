@@ -64,8 +64,6 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
     },
     [setUsername, waiting]
   )
-  // const onSubmit = Container.useSafeSubmit(_onSubmit, hasError)
-
   return (
     <Username
       error={error}

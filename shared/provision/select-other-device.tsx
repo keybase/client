@@ -30,7 +30,6 @@ const SelectOtherDeviceContainer = () => {
     },
     [submitDeviceSelect, waiting]
   )
-  // const onSelect = Container.useSafeSubmit(_onSelect, false)
   return (
     <SelectOtherDevice
       devices={devices}

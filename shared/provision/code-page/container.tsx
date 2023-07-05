@@ -33,7 +33,6 @@ const CodePageContainer = () => {
     },
     [submitTextCode, waiting]
   )
-  // const onSubmitTextCode = Container.useSafeSubmit(_onSubmitTextCode, !!error)
   return (
     <CodePage2
       error={error}
