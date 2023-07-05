@@ -72,11 +72,11 @@ export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     ...dispatchOverrides,
     resetState: () => {
-      get().dispatch.cancel()
+      // we do not cancel as we'll get logouts etc and don't want to lose our state
       set(s => ({
         ...s,
         ...initialStore,
-        ...dispatchOverrides,
+        // ...dispatchOverrides,
       }))
     },
     startRecoverPassword: p => {
@@ -94,6 +94,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           await RPCTypes.loginRecoverPassphraseRpcListener(
             {
               customResponseIncomingCallMap: {
+                'keybase.1.loginUi.promptPassphraseRecovery': () => {},
                 'keybase.1.loginUi.chooseDeviceToRecoverWith': (params, response) => {
                   const replaceRoute = !!p.replaceRoute
                   const devices = (params.devices || []).map(d => ProvisionConstants.rpcDeviceToDevice(d))
@@ -112,6 +113,9 @@ export const useState = Z.createZustand<State>((set, get) => {
                       })
                       const d = get().devices.find(d => d.name === name)
                       if (d) {
+                        set(s => {
+                          s.dispatch.cancel = _cancel
+                        })
                         response.result(d.id)
                       } else {
                         get().dispatch.cancel()
@@ -137,6 +141,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                       s.dispatch.submitResetPassword = action => {
                         set(s => {
                           s.dispatch.submitResetPassword = _submitResetPassword
+                          s.dispatch.cancel = _cancel
                         })
                         response.result(action)
                         set(s => {
@@ -178,6 +183,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                       s.dispatch.submitPaperKey = passphrase => {
                         set(s => {
                           s.dispatch.submitPaperKey = _submitPaperKey
+                          s.dispatch.cancel = _cancel
                         })
                         response.result({passphrase, storeSecret: false})
                       }
@@ -204,6 +210,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                         s.dispatch.submitPassword = (passphrase: string) => {
                           set(s => {
                             s.dispatch.submitPassword = _submitPassword
+                            s.dispatch.cancel = _cancel
                           })
                           response.result({passphrase, storeSecret: true})
                         }
@@ -232,6 +239,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             },
             Z.dummyListenerApi
           )
+          console.log('Recovered account')
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
