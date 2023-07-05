@@ -215,13 +215,6 @@
     "loadedHasRandomPw": {
       "randomPW": "boolean"
     },
-    "resetCheckPasswordIsCorrect": {},
-    "checkPassword": {
-      "password": "HiddenString"
-    },
-    "loadedCheckPassword": {
-      "checkPasswordIsCorrect?": "boolean"
-    },
     "sendFeedback": {
       "feedback": "string",
       "sendLogs": "boolean",

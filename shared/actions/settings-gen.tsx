@@ -12,7 +12,6 @@ export const addPhoneNumber = 'settings:addPhoneNumber'
 export const addedEmail = 'settings:addedEmail'
 export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const certificatePinningToggled = 'settings:certificatePinningToggled'
-export const checkPassword = 'settings:checkPassword'
 export const clearAddedEmail = 'settings:clearAddedEmail'
 export const clearAddedPhone = 'settings:clearAddedPhone'
 export const clearAddingEmail = 'settings:clearAddingEmail'
@@ -43,7 +42,6 @@ export const loadLockdownMode = 'settings:loadLockdownMode'
 export const loadProxyData = 'settings:loadProxyData'
 export const loadRememberPassword = 'settings:loadRememberPassword'
 export const loadSettings = 'settings:loadSettings'
-export const loadedCheckPassword = 'settings:loadedCheckPassword'
 export const loadedContactImportEnabled = 'settings:loadedContactImportEnabled'
 export const loadedContactPermissions = 'settings:loadedContactPermissions'
 export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
@@ -72,7 +70,6 @@ export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
 export const resendVerificationForPhoneNumber = 'settings:resendVerificationForPhoneNumber'
-export const resetCheckPasswordIsCorrect = 'settings:resetCheckPasswordIsCorrect'
 export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const sentVerificationEmail = 'settings:sentVerificationEmail'
@@ -251,10 +248,6 @@ export const createCertificatePinningToggled = (payload: {readonly toggled?: boo
   payload,
   type: certificatePinningToggled as typeof certificatePinningToggled,
 })
-export const createCheckPassword = (payload: {readonly password: HiddenString}) => ({
-  payload,
-  type: checkPassword as typeof checkPassword,
-})
 export const createDbNuke = (payload?: undefined) => ({payload, type: dbNuke as typeof dbNuke})
 export const createDeleteAccountForever = (payload: {readonly passphrase?: HiddenString} = {}) => ({
   payload,
@@ -327,10 +320,6 @@ export const createLoadRememberPassword = (payload?: undefined) => ({
 export const createLoadSettings = (payload?: undefined) => ({
   payload,
   type: loadSettings as typeof loadSettings,
-})
-export const createLoadedCheckPassword = (payload: {readonly checkPasswordIsCorrect?: boolean} = {}) => ({
-  payload,
-  type: loadedCheckPassword as typeof loadedCheckPassword,
 })
 export const createLoadedContactImportEnabled = (payload: {readonly enabled: boolean}) => ({
   payload,
@@ -436,10 +425,6 @@ export const createProcessorProfile = (payload: {readonly durationSeconds: numbe
 export const createRequestContactPermissions = (
   payload: {readonly thenToggleImportOn?: boolean; readonly fromSettings?: boolean} = {}
 ) => ({payload, type: requestContactPermissions as typeof requestContactPermissions})
-export const createResetCheckPasswordIsCorrect = (payload?: undefined) => ({
-  payload,
-  type: resetCheckPasswordIsCorrect as typeof resetCheckPasswordIsCorrect,
-})
 export const createSaveProxyData = (payload: {readonly proxyData: RPCTypes.ProxyData}) => ({
   payload,
   type: saveProxyData as typeof saveProxyData,
@@ -478,7 +463,6 @@ export type AddPhoneNumberPayload = ReturnType<typeof createAddPhoneNumber>
 export type AddedEmailPayload = ReturnType<typeof createAddedEmail>
 export type AddedPhoneNumberPayload = ReturnType<typeof createAddedPhoneNumber>
 export type CertificatePinningToggledPayload = ReturnType<typeof createCertificatePinningToggled>
-export type CheckPasswordPayload = ReturnType<typeof createCheckPassword>
 export type ClearAddedEmailPayload = ReturnType<typeof createClearAddedEmail>
 export type ClearAddedPhonePayload = ReturnType<typeof createClearAddedPhone>
 export type ClearAddingEmailPayload = ReturnType<typeof createClearAddingEmail>
@@ -509,7 +493,6 @@ export type LoadLockdownModePayload = ReturnType<typeof createLoadLockdownMode>
 export type LoadProxyDataPayload = ReturnType<typeof createLoadProxyData>
 export type LoadRememberPasswordPayload = ReturnType<typeof createLoadRememberPassword>
 export type LoadSettingsPayload = ReturnType<typeof createLoadSettings>
-export type LoadedCheckPasswordPayload = ReturnType<typeof createLoadedCheckPassword>
 export type LoadedContactImportEnabledPayload = ReturnType<typeof createLoadedContactImportEnabled>
 export type LoadedContactPermissionsPayload = ReturnType<typeof createLoadedContactPermissions>
 export type LoadedHasRandomPwPayload = ReturnType<typeof createLoadedHasRandomPw>
@@ -540,7 +523,6 @@ export type RequestContactPermissionsPayload = ReturnType<typeof createRequestCo
 export type ResendVerificationForPhoneNumberPayload = ReturnType<
   typeof createResendVerificationForPhoneNumber
 >
-export type ResetCheckPasswordIsCorrectPayload = ReturnType<typeof createResetCheckPasswordIsCorrect>
 export type SaveProxyDataPayload = ReturnType<typeof createSaveProxyData>
 export type SendFeedbackPayload = ReturnType<typeof createSendFeedback>
 export type SentVerificationEmailPayload = ReturnType<typeof createSentVerificationEmail>
@@ -564,7 +546,6 @@ export type Actions =
   | AddedEmailPayload
   | AddedPhoneNumberPayload
   | CertificatePinningToggledPayload
-  | CheckPasswordPayload
   | ClearAddedEmailPayload
   | ClearAddedPhonePayload
   | ClearAddingEmailPayload
@@ -595,7 +576,6 @@ export type Actions =
   | LoadProxyDataPayload
   | LoadRememberPasswordPayload
   | LoadSettingsPayload
-  | LoadedCheckPasswordPayload
   | LoadedContactImportEnabledPayload
   | LoadedContactPermissionsPayload
   | LoadedHasRandomPwPayload
@@ -624,7 +604,6 @@ export type Actions =
   | ProcessorProfilePayload
   | RequestContactPermissionsPayload
   | ResendVerificationForPhoneNumberPayload
-  | ResetCheckPasswordIsCorrectPayload
   | SaveProxyDataPayload
   | SendFeedbackPayload
   | SentVerificationEmailPayload

@@ -140,19 +140,17 @@ export type ContactsState = {
 }
 
 export type State = {
-  readonly allowDeleteAccount: boolean
-  readonly chat: ChatState
-  readonly checkPasswordIsCorrect?: boolean
-  readonly contacts: ContactsState
-  readonly didToggleCertificatePinning?: boolean
-  readonly email: EmailState
-  readonly feedback: FeedbackState
-  readonly invites: InvitesState
-  readonly lockdownModeEnabled?: boolean
-  readonly notifications: NotificationsState
-  readonly password: PasswordState
-  readonly phoneNumbers: PhoneNumbersState
-  readonly proxyData?: RPCTypes.ProxyData
+  chat: ChatState
+  contacts: ContactsState
+  didToggleCertificatePinning?: boolean
+  email: EmailState
+  feedback: FeedbackState
+  invites: InvitesState
+  lockdownModeEnabled?: boolean
+  notifications: NotificationsState
+  password: PasswordState
+  phoneNumbers: PhoneNumbersState
+  proxyData?: RPCTypes.ProxyData
 }
 
 export type PlanLevel = string

@@ -8,31 +8,26 @@ import HiddenString from '../../util/hidden-string'
 import LogOut from '.'
 
 const LogoutContainer = () => {
-  const checkPasswordIsCorrect = Container.useSelector(state => state.settings.checkPasswordIsCorrect)
+  const checkPasswordIsCorrect = Constants.useState(s => s.checkPasswordIsCorrect)
+  const resetCheckPassword = Constants.useState(s => s.dispatch.resetCheckPassword)
+  const checkPassword = Constants.useState(s => s.dispatch.checkPassword)
   const hasRandomPW = Container.useSelector(state => state.settings.password.randomPW)
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
   const dispatch = Container.useDispatch()
   const onBootstrap = React.useCallback(() => dispatch(SettingsGen.createLoadHasRandomPw()), [dispatch])
   const onCancel = React.useCallback(() => {
-    dispatch(SettingsGen.createLoadedCheckPassword({}))
+    resetCheckPassword()
     dispatch(RouteTreeGen.createNavigateUp())
-  }, [dispatch])
-  const onCheckPassword = React.useCallback(
-    (password: string) => {
-      if (password) {
-        dispatch(SettingsGen.createCheckPassword({password: new HiddenString(password)}))
-      }
-    },
-    [dispatch]
-  )
+  }, [resetCheckPassword, dispatch])
+  const onCheckPassword = checkPassword
 
   const requestLogout = ConfigConstants.useLogoutState(s => s.dispatch.requestLogout)
 
   const _onLogout = React.useCallback(() => {
     requestLogout()
-    dispatch(SettingsGen.createLoadedCheckPassword({}))
-  }, [dispatch, requestLogout])
+    resetCheckPassword()
+  }, [resetCheckPassword, requestLogout])
   const onSavePassword = React.useCallback(
     (password: string) => {
       dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))

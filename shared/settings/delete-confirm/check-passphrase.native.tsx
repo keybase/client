@@ -10,20 +10,19 @@ const CheckPassphraseMobile = () => {
   const [password, setPassword] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(false)
 
-  const checkPasswordIsCorrect = Container.useSelector(state => state.settings.checkPasswordIsCorrect)
+  const checkPasswordIsCorrect = Constants.useState(s => s.checkPasswordIsCorrect)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
+  const checkPassword = Constants.useState(s => s.dispatch.checkPassword)
+  const resetCheckPassword = Constants.useState(s => s.dispatch.resetCheckPassword)
+
   const onCancel = () => {
-    dispatch(SettingsGen.createResetCheckPasswordIsCorrect())
+    resetCheckPassword()
     dispatch(nav.safeNavigateUpPayload())
   }
-  const onCheckPassword = (password: string) => {
-    if (password) {
-      dispatch(SettingsGen.createCheckPassword({password: new HiddenString(password)}))
-    }
-  }
+  const onCheckPassword = checkPassword
   const deleteForever = () =>
     dispatch(SettingsGen.createDeleteAccountForever({passphrase: new HiddenString(password)}))
 

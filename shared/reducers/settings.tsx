@@ -169,12 +169,6 @@ const passwordActions: Container.ActionHandler<Actions, Types.State> = {
     password.error = undefined
     password.newPasswordConfirm = action.payload.password
   },
-  [SettingsGen.resetCheckPasswordIsCorrect]: draftState => {
-    draftState.checkPasswordIsCorrect = undefined
-  },
-  [SettingsGen.checkPassword]: draftState => {
-    draftState.checkPasswordIsCorrect = undefined
-  },
   [SettingsGen.onUpdatedPGPSettings]: (draftState, action) => {
     draftState.password.hasPGPKeyOnServer = action.payload.hasKeys
   },
@@ -183,9 +177,6 @@ const passwordActions: Container.ActionHandler<Actions, Types.State> = {
   },
   [SettingsGen.loadedHasRandomPw]: (draftState, action) => {
     draftState.password.randomPW = action.payload.randomPW
-  },
-  [SettingsGen.loadedCheckPassword]: (draftState, action) => {
-    draftState.checkPasswordIsCorrect = action.payload.checkPasswordIsCorrect
   },
 }
 

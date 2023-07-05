@@ -1,4 +1,5 @@
 import * as ChatConstants from './chat2'
+import * as Z from '../util/zustand'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
 import HiddenString from '../util/hidden-string'
@@ -41,7 +42,6 @@ export const toPhoneRow = (p: RPCTypes.UserPhoneNumber) => {
 }
 
 export const makeState = (): Types.State => ({
-  allowDeleteAccount: false,
   chat: {
     contactSettings: {
       error: '',
@@ -215,3 +215,47 @@ export type SettingsTab =
   | typeof cryptoTab
   | typeof contactsTab
   | typeof whatsNewTab
+
+type Store = {
+  checkPasswordIsCorrect?: boolean
+}
+
+const initialStore: Store = {
+  checkPasswordIsCorrect: undefined,
+}
+
+export type State = Store & {
+  dispatch: {
+    checkPassword: (password: string) => void
+    resetCheckPassword: () => void
+    resetState: 'default'
+  }
+}
+
+export const useState = Z.createZustand<State>(set => {
+  // const reduxDispatch = Z.getReduxDispatch()
+  const dispatch: State['dispatch'] = {
+    checkPassword: passphrase => {
+      set(s => {
+        s.checkPasswordIsCorrect = undefined
+      })
+      const f = async () => {
+        const res = await RPCTypes.accountPassphraseCheckRpcPromise({passphrase}, checkPasswordWaitingKey)
+        set(s => {
+          s.checkPasswordIsCorrect = res
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    resetCheckPassword: () => {
+      set(s => {
+        s.checkPasswordIsCorrect = undefined
+      })
+    },
+    resetState: 'default',
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

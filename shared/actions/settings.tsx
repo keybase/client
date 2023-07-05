@@ -473,14 +473,6 @@ const rememberPassword = async (_: unknown, action: SettingsGen.OnChangeRemember
   await RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
 }
 
-const checkPassword = async (_: unknown, action: SettingsGen.CheckPasswordPayload) => {
-  const res = await RPCTypes.accountPassphraseCheckRpcPromise(
-    {passphrase: action.payload.password.stringValue()},
-    Constants.checkPasswordWaitingKey
-  )
-  return SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: res})
-}
-
 const loadLockdownMode = async () => {
   if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return false
@@ -907,8 +899,6 @@ const initSettings = () => {
   Container.listenAction(EngineGen.keybase1NotifyUsersPasswordChanged, passwordChanged)
 
   Container.listenAction(SettingsGen.stop, stop)
-
-  Container.listenAction(SettingsGen.checkPassword, checkPassword)
 
   Container.listenAction(SettingsGen.loadProxyData, loadProxyData)
   Container.listenAction(SettingsGen.saveProxyData, saveProxyData)
