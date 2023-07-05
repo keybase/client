@@ -76,7 +76,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => ({
         ...s,
         ...initialStore,
-        // ...dispatchOverrides,
+        ...dispatchOverrides,
       }))
     },
     startRecoverPassword: p => {
