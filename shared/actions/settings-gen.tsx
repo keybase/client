@@ -11,7 +11,6 @@ export const addEmail = 'settings:addEmail'
 export const addPhoneNumber = 'settings:addPhoneNumber'
 export const addedEmail = 'settings:addedEmail'
 export const addedPhoneNumber = 'settings:addedPhoneNumber'
-export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const clearAddedEmail = 'settings:clearAddedEmail'
 export const clearAddedPhone = 'settings:clearAddedPhone'
 export const clearAddingEmail = 'settings:clearAddingEmail'
@@ -244,10 +243,6 @@ export const createAddedEmail = (payload: {readonly email: string; readonly erro
   payload,
   type: addedEmail as typeof addedEmail,
 })
-export const createCertificatePinningToggled = (payload: {readonly toggled?: boolean} = {}) => ({
-  payload,
-  type: certificatePinningToggled as typeof certificatePinningToggled,
-})
 export const createDbNuke = (payload?: undefined) => ({payload, type: dbNuke as typeof dbNuke})
 export const createDeleteAccountForever = (payload: {readonly passphrase?: HiddenString} = {}) => ({
   payload,
@@ -462,7 +457,6 @@ export type AddEmailPayload = ReturnType<typeof createAddEmail>
 export type AddPhoneNumberPayload = ReturnType<typeof createAddPhoneNumber>
 export type AddedEmailPayload = ReturnType<typeof createAddedEmail>
 export type AddedPhoneNumberPayload = ReturnType<typeof createAddedPhoneNumber>
-export type CertificatePinningToggledPayload = ReturnType<typeof createCertificatePinningToggled>
 export type ClearAddedEmailPayload = ReturnType<typeof createClearAddedEmail>
 export type ClearAddedPhonePayload = ReturnType<typeof createClearAddedPhone>
 export type ClearAddingEmailPayload = ReturnType<typeof createClearAddingEmail>
@@ -545,7 +539,6 @@ export type Actions =
   | AddPhoneNumberPayload
   | AddedEmailPayload
   | AddedPhoneNumberPayload
-  | CertificatePinningToggledPayload
   | ClearAddedEmailPayload
   | ClearAddedPhonePayload
   | ClearAddingEmailPayload

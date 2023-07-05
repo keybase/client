@@ -218,10 +218,12 @@ export type SettingsTab =
 
 type Store = {
   checkPasswordIsCorrect?: boolean
+  didToggleCertificatePinning?: boolean
 }
 
 const initialStore: Store = {
   checkPasswordIsCorrect: undefined,
+  didToggleCertificatePinning: undefined,
 }
 
 export type State = Store & {
@@ -229,6 +231,7 @@ export type State = Store & {
     checkPassword: (password: string) => void
     resetCheckPassword: () => void
     resetState: 'default'
+    setDidToggleCertificatePinning: (t?: boolean) => void
   }
 }
 
@@ -253,6 +256,11 @@ export const useState = Z.createZustand<State>(set => {
       })
     },
     resetState: 'default',
+    setDidToggleCertificatePinning: t => {
+      set(s => {
+        s.didToggleCertificatePinning = t
+      })
+    },
   }
   return {
     ...initialStore,

@@ -142,7 +142,6 @@ export type ContactsState = {
 export type State = {
   chat: ChatState
   contacts: ContactsState
-  didToggleCertificatePinning?: boolean
   email: EmailState
   feedback: FeedbackState
   invites: InvitesState

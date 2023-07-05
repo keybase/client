@@ -292,9 +292,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [SettingsGen.loadedProxyData]: (draftState, action) => {
     draftState.proxyData = action.payload.proxyData
   },
-  [SettingsGen.certificatePinningToggled]: (draftState, action) => {
-    draftState.didToggleCertificatePinning = action.payload.toggled
-  },
   [SettingsGen.feedbackSent]: (draftState, action) => {
     draftState.feedback.error = action.payload.error
   },

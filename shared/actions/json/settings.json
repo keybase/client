@@ -231,9 +231,6 @@
     "saveProxyData": {
       "proxyData": "RPCTypes.ProxyData"
     },
-    "certificatePinningToggled": {
-      "toggled?": "boolean"
-    },
     "loadDefaultPhoneNumberCountry": {},
     "updateDefaultPhoneNumberCountry": {
       "country": "string"
