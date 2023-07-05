@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Constants from '../../constants/push'
-import * as PushGen from '../../actions/push-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -8,14 +7,16 @@ import * as Container from '../../util/container'
 
 const PushPrompt = () => {
   const dispatch = Container.useDispatch()
+  const rejectPermissions = Constants.useState(s => s.dispatch.rejectPermissions)
+  const requestPermissions = Constants.useState(s => s.dispatch.requestPermissions)
   const onNoPermissions = React.useCallback(() => {
-    dispatch(PushGen.createRejectPermissions())
+    rejectPermissions()
     dispatch(RouteTreeGen.createClearModals())
-  }, [dispatch])
+  }, [rejectPermissions, dispatch])
   const onRequestPermissions = React.useCallback(() => {
-    dispatch(PushGen.createRequestPermissions())
+    requestPermissions()
     dispatch(RouteTreeGen.createClearModals())
-  }, [dispatch])
+  }, [requestPermissions, dispatch])
   return (
     <Kb.Modal
       header={{

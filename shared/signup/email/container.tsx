@@ -6,6 +6,7 @@ import * as SignupGen from '../../actions/signup-gen'
 import * as SignupConstants from '../../constants/signup'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Platform from '../../constants/platform'
+import * as PushConstants from '../../constants/push'
 import EnterEmail, {type Props} from '.'
 
 type WatcherProps = Props & {
@@ -37,8 +38,8 @@ const WatchForSuccess = (props: WatcherProps) => {
 }
 
 const ConnectedEnterEmail = () => {
-  const _showPushPrompt = Container.useSelector(
-    state => Platform.isMobile && !state.push.hasPermissions && state.push.showPushPrompt
+  const _showPushPrompt = PushConstants.useState(
+    s => Platform.isMobile && !s.hasPermissions && s.showPushPrompt
   )
   const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
   const error = Container.useSelector(state => state.settings.email.error || '')

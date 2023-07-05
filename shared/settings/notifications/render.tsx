@@ -1,4 +1,4 @@
-import * as Container from '../../util/container'
+import * as Constants from '../../constants/push'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type * as Types from '../../constants/types/settings'
@@ -84,7 +84,7 @@ const PhoneSection = (props: Props) => (
   />
 )
 const Notifications = (props: Props) => {
-  const mobileHasPermissions = Container.useSelector(state => state.push.hasPermissions)
+  const mobileHasPermissions = Constants.useState(s => s.hasPermissions)
   return !props.groups || !props.groups.get('email')?.settings ? (
     <Kb.Box2 direction="vertical" style={styles.loading}>
       <Kb.ProgressIndicator type="Small" style={{width: Styles.globalMargins.medium}} />

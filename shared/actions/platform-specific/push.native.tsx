@@ -1,25 +1,16 @@
-import * as Chat2Gen from '../chat2-gen'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ConfigGen from '../config-gen'
-import * as Constants from '../../constants/push'
-import * as ProfileConstants from '../../constants/profile'
 import * as ConfigConstants from '../../constants/config'
-import * as WaitingConstants from '../../constants/waiting'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/push'
 import * as NotificationsGen from '../notifications-gen'
-import * as PushGen from '../push-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTreeGen from '../route-tree-gen'
-import * as Tabs from '../../constants/tabs'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
 import type * as Types from '../../constants/types/push'
 import {isIOS, isAndroid} from '../../constants/platform'
 import {
-  iosGetHasShownPushPrompt,
-  androidRequestPushPermissions,
-  androidCheckPushPermissions,
   androidGetRegistrationToken,
   androidSetApplicationIconBadgeNumber,
   androidGetInitialBundleFromNotification,
@@ -27,7 +18,6 @@ import {
   androidGetInitialShareText,
   getNativeEmitter,
 } from 'react-native-kb'
-import {isDevApplePushToken} from '../../local-debug'
 
 const setApplicationIconBadgeNumber = (n: number) => {
   if (isIOS) {
@@ -193,15 +183,18 @@ const normalizePush = (_n?: Object): Types.PushNotification | undefined => {
 // At startup the flow above can be racy, since we may not have registered the
 // event listener before the event is emitted. In that case you can always use
 // `getInitialPushAndroid`.
-const listenForNativeAndroidIntentNotifications = async (listenerApi: Container.ListenerApi) => {
+const listenForNativeAndroidIntentNotifications = async () => {
   const pushToken = await androidGetRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
-  listenerApi.dispatch(PushGen.createUpdatePushToken({token: pushToken}))
+
+  Constants.useState.getState().dispatch.setPushToken(pushToken)
 
   const RNEmitter = getNativeEmitter()
   RNEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && normalizePush(evt)
-    notification && listenerApi.dispatch(PushGen.createNotification({notification}))
+    if (notification) {
+      Constants.useState.getState().dispatch.handlePush(notification)
+    }
   })
 
   RNEmitter.addListener('onShareData', evt => {
@@ -219,10 +212,10 @@ const listenForNativeAndroidIntentNotifications = async (listenerApi: Container.
   })
 }
 
-const iosListenForPushNotificationsFromJS = (listenerApi: Container.ListenerApi) => {
+const iosListenForPushNotificationsFromJS = () => {
   const onRegister = (token: string) => {
     logger.debug('[PushToken] received new token: ', token)
-    listenerApi.dispatch(PushGen.createUpdatePushToken({token}))
+    Constants.useState.getState().dispatch.setPushToken(token)
   }
 
   const onNotification = (n: Object) => {
@@ -231,7 +224,8 @@ const iosListenForPushNotificationsFromJS = (listenerApi: Container.ListenerApi)
     if (!notification) {
       return
     }
-    listenerApi.dispatch(PushGen.createNotification({notification}))
+
+    Constants.useState.getState().dispatch.handlePush(notification)
   }
 
   isIOS && PushNotificationIOS.addEventListener('notification', onNotification)
@@ -239,300 +233,13 @@ const iosListenForPushNotificationsFromJS = (listenerApi: Container.ListenerApi)
   isIOS && PushNotificationIOS.addEventListener('register', onRegister)
 }
 
-const setupPushEventLoop = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
+const setupPushEventLoop = async () => {
   if (isAndroid) {
     try {
-      await listenForNativeAndroidIntentNotifications(listenerApi)
+      await listenForNativeAndroidIntentNotifications()
     } catch {}
   } else {
-    iosListenForPushNotificationsFromJS(listenerApi)
-  }
-}
-
-const handleLoudMessage = async (
-  notification: Types.PushNotification,
-  listenerApi: Container.ListenerApi
-) => {
-  if (notification.type !== 'chat.newmessage') {
-    return
-  }
-  // We only care if the user clicked while in session
-  if (!notification.userInteraction) {
-    logger.warn('push ignore non userInteraction')
-    return
-  }
-
-  const {conversationIDKey, unboxPayload, membersType} = notification
-
-  logger.warn('push selecting ', conversationIDKey)
-  listenerApi.dispatch(
-    Chat2Gen.createNavigateToThread({conversationIDKey, pushBody: unboxPayload, reason: 'push'})
-  )
-  if (unboxPayload && membersType && !isIOS) {
-    logger.info('[Push] unboxing message')
-    try {
-      await RPCChatTypes.localUnboxMobilePushNotificationRpcPromise({
-        convID: conversationIDKey,
-        membersType,
-        payload: unboxPayload,
-        shouldAck: false,
-      })
-    } catch (e) {
-      logger.info('[Push] failed to unbox message from payload')
-    }
-  }
-}
-
-// on iOS the go side handles a lot of push details
-const handlePush = async (
-  _: unknown,
-  action: PushGen.NotificationPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  try {
-    const notification = action.payload.notification
-    logger.info('[Push]: ' + notification.type || 'unknown')
-
-    switch (notification.type) {
-      case 'chat.readmessage':
-        logger.info('[Push] read message')
-        if (notification.badges === 0) {
-          isIOS && PushNotificationIOS.removeAllPendingNotificationRequests()
-        }
-        break
-      case 'chat.newmessageSilent_2':
-        // entirely handled by go on ios and in onNotification on Android
-        break
-      case 'chat.newmessage':
-        await handleLoudMessage(notification, listenerApi)
-        break
-      case 'follow':
-        // We only care if the user clicked while in session
-        if (notification.userInteraction) {
-          const {username} = notification
-          logger.info('[Push] follower: ', username)
-          ProfileConstants.useState.getState().dispatch.showUserProfile(username)
-        }
-        break
-      case 'chat.extension':
-        {
-          const {conversationIDKey} = notification
-          listenerApi.dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'extension'}))
-        }
-        break
-      case 'settings.contacts':
-        if (ConfigConstants.useConfigState.getState().loggedIn) {
-          listenerApi.dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
-          listenerApi.dispatch(RouteTreeGen.createNavUpToScreen({name: 'peopleRoot'}))
-        }
-        break
-    }
-  } catch (e) {
-    if (__DEV__) {
-      console.error(e)
-    }
-
-    logger.error('[Push] unhandled!!')
-  }
-}
-
-const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
-
-const uploadPushToken = async (state: Container.TypedState) => {
-  const {push} = state
-  const {deviceID, username} = ConfigConstants.useCurrentUserState.getState()
-  if (!username || !deviceID) {
-    return false
-  }
-  const {token} = push
-  if (!token) {
-    return false
-  }
-  try {
-    await RPCTypes.apiserverPostRpcPromise({
-      args: [
-        {key: 'push_token', value: token},
-        {key: 'device_id', value: deviceID},
-        {key: 'token_type', value: tokenType},
-      ],
-      endpoint: 'device/push_token',
-    })
-
-    logger.info('[PushToken] Uploaded to server')
-  } catch (e) {
-    logger.error("[PushToken] Couldn't save a push token", e)
-  }
-  return false
-}
-
-const deletePushToken = async (_: unknown, action: ConfigGen.LogoutHandshakePayload) => {
-  const {version} = action.payload
-  const waitKey = 'push:deleteToken'
-  ConfigConstants.useLogoutState.getState().dispatch.wait(waitKey, version, true)
-
-  try {
-    const deviceID = ConfigConstants.useCurrentUserState.getState().deviceID
-    if (!deviceID) {
-      logger.info('[PushToken] no device id')
-      return
-    }
-
-    await RPCTypes.apiserverDeleteRpcPromise({
-      args: [
-        {key: 'device_id', value: deviceID},
-        {key: 'token_type', value: tokenType},
-      ],
-      endpoint: 'device/push_token',
-    })
-    logger.info('[PushToken] deleted from server')
-  } catch (e) {
-    logger.error('[PushToken] delete failed', e)
-  } finally {
-    ConfigConstants.useLogoutState.getState().dispatch.wait(waitKey, version, false)
-  }
-}
-
-const requestPermissionsFromNative: () => Promise<{
-  alert: boolean
-  badge: boolean
-  sound: boolean
-}> = async () => {
-  if (isIOS) {
-    const perm = await (PushNotificationIOS.requestPermissions() as any)
-    return perm
-  } else {
-    const on = await androidRequestPushPermissions()
-    const perm = {alert: on, badge: on, sound: on}
-    return perm
-  }
-}
-
-const askNativeIfSystemPushPromptHasBeenShown = async () =>
-  isIOS ? iosGetHasShownPushPrompt() ?? Promise.resolve(false) : Promise.resolve(false)
-const checkPermissionsFromNative = async () =>
-  new Promise<{alert?: boolean; badge?: boolean; sound?: boolean}>((resolve, reject) => {
-    if (isIOS) {
-      PushNotificationIOS.checkPermissions(perms => resolve(perms))
-    } else {
-      androidCheckPushPermissions()
-        .then(on => resolve({alert: on, badge: on, sound: on}))
-        .catch(() => reject())
-    }
-  })
-const monsterStorageKey = 'shownMonsterPushPrompt'
-
-const neverShowMonsterAgain = async (
-  state: Container.TypedState,
-  action: PushGen.ShowPermissionsPromptPayload | PushGen.RejectPermissionsPayload
-) => {
-  if (state.push.showPushPrompt) {
-    return
-  }
-
-  if (action.type === PushGen.showPermissionsPrompt && !action.payload.persistSkip) {
-    return
-  }
-
-  await RPCTypes.configGuiSetValueRpcPromise({
-    path: `ui.${monsterStorageKey}`,
-    value: {b: true, isNull: false},
-  })
-}
-
-const requestPermissions = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
-  if (isIOS) {
-    const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
-    if (shownPushPrompt) {
-      // we've already shown the prompt, take them to settings
-      listenerApi.dispatch(ConfigGen.createOpenAppSettings())
-      listenerApi.dispatch(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
-      return
-    }
-  }
-  try {
-    listenerApi.dispatch(ConfigGen.createOpenAppSettings())
-    const {increment} = WaitingConstants.useWaitingState.getState().dispatch
-    increment(Constants.permissionsRequestingWaitingKey)
-    logger.info('[PushRequesting] asking native')
-    await requestPermissionsFromNative()
-    const permissions = await checkPermissionsFromNative()
-    logger.info('[PushRequesting] after prompt:', permissions)
-    if (permissions && (permissions.alert || permissions.badge)) {
-      logger.info('[PushRequesting] enabled')
-      listenerApi.dispatch(PushGen.createUpdateHasPermissions({hasPermissions: true}))
-    } else {
-      logger.info('[PushRequesting] disabled')
-      listenerApi.dispatch(PushGen.createUpdateHasPermissions({hasPermissions: false}))
-    }
-  } finally {
-    const {decrement} = WaitingConstants.useWaitingState.getState().dispatch
-    decrement(Constants.permissionsRequestingWaitingKey)
-    listenerApi.dispatch(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
-  }
-}
-
-const initialPermissionsCheck = async (listenerApi: Container.ListenerApi) => {
-  const hasPermissions = await _checkPermissions(undefined, listenerApi)
-  if (hasPermissions) {
-    // Get the token
-    await requestPermissionsFromNative()
-  } else {
-    const shownNativePushPromptTask = askNativeIfSystemPushPromptHasBeenShown
-    const shownMonsterPushPromptTask = async () => {
-      const v = await RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
-      return !!v.b
-    }
-    const [shownNativePushPrompt, shownMonsterPushPrompt] = await Promise.all([
-      Container.neverThrowPromiseFunc(shownNativePushPromptTask),
-      Container.neverThrowPromiseFunc(shownMonsterPushPromptTask),
-    ])
-    logger.info(
-      '[PushInitialCheck] shownNativePushPrompt:',
-      shownNativePushPrompt,
-      'shownMonsterPushPrompt:',
-      shownMonsterPushPrompt
-    )
-    if (!shownNativePushPrompt && !shownMonsterPushPrompt) {
-      logger.info('[PushInitialCheck] no permissions, never shown prompt, now show prompt')
-      listenerApi.dispatch(PushGen.createShowPermissionsPrompt({show: true}))
-    }
-  }
-}
-
-const checkPermissions = async (
-  _: unknown,
-  action: ConfigGen.MobileAppStatePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  await _checkPermissions(action, listenerApi)
-}
-// Call when we foreground and on app start, action is undefined on app start. Returns if you have permissions
-const _checkPermissions = async (
-  action: ConfigGen.MobileAppStatePayload | undefined,
-  listenerApi: Container.ListenerApi
-) => {
-  // Only recheck on foreground, not background
-  if (action && action.payload.nextAppState !== 'active') {
-    logger.info('[PushCheck] skip on backgrounding')
-    return false
-  }
-
-  logger.debug(`[PushCheck] checking ${action ? 'on foreground' : 'on startup'}`)
-  const permissions = await checkPermissionsFromNative()
-  if (permissions.alert || permissions.badge) {
-    const state = listenerApi.getState()
-    if (!state.push.hasPermissions) {
-      logger.info('[PushCheck] enabled: getting token')
-      listenerApi.dispatch(PushGen.createUpdateHasPermissions({hasPermissions: true}))
-      await requestPermissionsFromNative()
-    } else {
-      logger.info('[PushCheck] enabled already')
-    }
-    return true
-  } else {
-    logger.info('[PushCheck] disabled')
-    listenerApi.dispatch(PushGen.createUpdateHasPermissions({hasPermissions: false}))
-    return false
+    iosListenForPushNotificationsFromJS()
   }
 }
 
@@ -547,25 +254,23 @@ const getStartupDetailsFromInitialShare = async () => {
 }
 
 const getStartupDetailsFromInitialPush = async () => {
-  const push = await Promise.race([
+  const notification = await Promise.race([
     isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
     Container.timeoutPromise(10),
   ])
-  if (!push) {
+  if (!notification) {
     return
   }
 
-  // TODO push is any here
-  const notification = push.payload.notification
   if (notification.type === 'follow') {
     if (notification.username) {
-      return {startupFollowUser: notification.username as string}
+      return {startupFollowUser: notification.username}
     }
   } else if (notification.type === 'chat.newmessage' || notification.type === 'chat.newmessageSilent_2') {
     if (notification.conversationIDKey) {
       return {
-        startupConversation: notification.conversationIDKey as ChatTypes.ConversationIDKey,
-        startupPushPayload: notification.unboxPayload as string,
+        startupConversation: notification.conversationIDKey,
+        startupPushPayload: notification.unboxPayload,
       }
     }
   }
@@ -575,38 +280,35 @@ const getStartupDetailsFromInitialPush = async () => {
 
 const getInitialPushAndroid = async () => {
   const n = await (androidGetInitialBundleFromNotification() ?? Promise.resolve({}))
-  const notification = n && normalizePush(n)
-  return notification && PushGen.createNotification({notification})
+  return n ? normalizePush(n) : undefined
 }
 
-const getInitialPushiOS = async () =>
-  new Promise<Container.TypedActions | undefined>(resolve => {
-    isIOS &&
-      PushNotificationIOS.getInitialNotification()
-        .then((n: any) => {
-          const notification = normalizePush(n)
-          if (notification) {
-            resolve(PushGen.createNotification({notification}))
-          }
-          resolve(undefined)
-        })
-        .catch(() => {})
-  })
+const getInitialPushiOS = async () => {
+  if (!isIOS) return undefined
+  const n = await PushNotificationIOS.getInitialNotification()
+  return n ? normalizePush(n) : undefined
+}
 
 export const initPushListener = () => {
   // Permissions
-  Container.listenAction(PushGen.requestPermissions, requestPermissions)
-  Container.listenAction([PushGen.showPermissionsPrompt, PushGen.rejectPermissions], neverShowMonsterAgain)
-  Container.listenAction(ConfigGen.mobileAppState, checkPermissions)
+  Container.listenAction(ConfigGen.mobileAppState, (_, action) => {
+    // Only recheck on foreground, not background
+    if (action.payload.nextAppState !== 'active') {
+      logger.info('[PushCheck] skip on backgrounding')
+      return
+    }
+    logger.debug(`[PushCheck] checking on foreground`)
+    Constants.useState.getState().dispatch.checkPermissions()
+  })
 
   // Token handling
-  Container.listenAction([PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded], uploadPushToken)
-  Container.listenAction(ConfigGen.logoutHandshake, deletePushToken)
+  Container.listenAction(ConfigGen.logoutHandshake, (_, action) => {
+    Constants.useState.getState().dispatch.deleteToken(action.payload.version)
+  })
 
   Container.listenAction(NotificationsGen.receivedBadgeState, updateAppBadge)
-  Container.listenAction(PushGen.notification, handlePush)
   Container.listenAction(ConfigGen.daemonHandshake, setupPushEventLoop)
-  Container.spawn(initialPermissionsCheck, 'initialPermissionsCheck')
+  Constants.useState.getState().dispatch.initialPermissionsCheck()
 }
 
 export {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare}

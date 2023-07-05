@@ -1,4 +1,5 @@
 import * as Constants from '../constants/router2'
+import * as PushConstants from '../constants/push'
 import * as NotifConstants from '../constants/notifications'
 import * as DarkMode from '../constants/darkmode'
 import * as Kb from '../common-adapters'
@@ -60,17 +61,14 @@ const makeNavScreens = (rs: any, Screen: any, isModal: any) => {
 const TabBarIcon = React.memo(function TabBarIcon(props: {isFocused: boolean; routeName: Tabs.Tab}) {
   const {isFocused, routeName} = props
   const navBadges = NotifConstants.useState(s => s.navBadges)
-  const badgeNumber = Container.useSelector(state => {
-    const {hasPermissions} = state.push
-    const onSettings = routeName === Tabs.settingsTab
-    const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
-    const badgeNumber = tabsToCount.reduce(
-      (res, tab) => res + (navBadges.get(tab) || 0),
-      // notifications gets badged on native if there's no push, special case
-      onSettings && !hasPermissions ? 1 : 0
-    )
-    return badgeNumber
-  })
+  const hasPermissions = PushConstants.useState(s => s.hasPermissions)
+  const onSettings = routeName === Tabs.settingsTab
+  const tabsToCount: ReadonlyArray<Tabs.Tab> = onSettings ? settingsTabChildren : [routeName]
+  const badgeNumber = tabsToCount.reduce(
+    (res, tab) => res + (navBadges.get(tab) || 0),
+    // notifications gets badged on native if there's no push, special case
+    onSettings && !hasPermissions ? 1 : 0
+  )
 
   // @ts-ignore
   return tabToData[routeName] ? (

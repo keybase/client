@@ -8,7 +8,6 @@ import * as GregorGen from './gregor-gen'
 import * as UsersGen from './users-gen'
 import * as Constants from '../constants/config'
 import * as Platform from '../constants/platform'
-import * as PushGen from './push-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2 from '../constants/router2'
@@ -219,32 +218,6 @@ const loadDaemonAccounts = async (
   }
 }
 
-// Monster push prompt
-// We've just started up, we don't have the permissions, we're logged in and we
-// haven't just signed up. This handles the scenario where the push notifications
-// permissions checker finishes after the routeToInitialScreen is done.
-const onShowPermissionsPrompt = async (
-  state: Container.TypedState,
-  action: PushGen.ShowPermissionsPromptPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  if (
-    !Platform.isMobile ||
-    !action.payload.show ||
-    !Constants.useConfigState.getState().loggedIn ||
-    state.push.justSignedUp ||
-    state.push.hasPermissions
-  ) {
-    return
-  }
-
-  logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
-  listenerApi.dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
-  await Container.timeoutPromise(100)
-  listenerApi.dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
-  listenerApi.dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsPushPrompt']}))
-}
-
 const onAndroidShare = () => {
   // already loaded, so just go now
   if (Constants.useConfigState.getState().startup.loaded) {
@@ -442,7 +415,6 @@ const initConfig = () => {
 
   Container.listenAction(ConfigGen.loadOnStart, getFollowerInfo)
 
-  Container.listenAction(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
   Container.listenAction(ConfigGen.androidShare, onAndroidShare)
 
   // Kick off platform specific stuff

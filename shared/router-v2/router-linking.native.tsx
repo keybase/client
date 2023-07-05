@@ -1,5 +1,6 @@
 import * as ChatConstants from '../constants/chat2'
 import * as ConfigConstants from '../constants/config'
+import * as PushConstants from '../constants/push'
 import * as Container from '../util/container'
 import * as LinkingConstants from '../constants/deeplinks'
 import * as Shared from './router.shared'
@@ -148,12 +149,6 @@ const makeLinking = (options: OptionsType) => {
   }
 }
 
-const ShowMonsterSelector = (state: Container.TypedState) =>
-  ConfigConstants.useConfigState.getState().loggedIn &&
-  !state.push.justSignedUp &&
-  state.push.showPushPrompt &&
-  !state.push.hasPermissions
-
 // gets state from redux used to make the linking object
 export const useReduxToLinking = (appState: Shared.AppState) => {
   const {startup} = ConfigConstants.useConfigState.getState()
@@ -162,7 +157,10 @@ export const useReduxToLinking = (appState: Shared.AppState) => {
   if (!ChatConstants.isValidConversationIDKey(startupConversation)) {
     startupConversation = ''
   }
-  const showMonster = Container.useSelector(ShowMonsterSelector)
+  const {justSignedUp, showPushPrompt, hasPermissions} = PushConstants.useState.getState()
+  const showMonster =
+    ConfigConstants.useConfigState.getState().loggedIn && !justSignedUp && showPushPrompt && !hasPermissions
+
   const androidShare = ConfigConstants.useConfigState(s => s.androidShare)
 
   return appState === Shared.AppState.NEEDS_INIT
