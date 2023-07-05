@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import * as Constants from '../constants/team-building'
+import * as SettingsConstants from '../constants/settings'
 import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as SettingsGen from '../actions/settings-gen'
@@ -27,7 +28,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   const dispatch = Container.useDispatch()
 
   // trigger a default phone number country rpc if it's not already loaded
-  const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
+  const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
   React.useEffect(() => {
     !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
   }, [defaultCountry, dispatch])

@@ -100,12 +100,6 @@ const emailActions: Container.ActionHandler<Actions, Types.State> = {
     }
     draftState.email.addedEmail = undefined
   },
-  [EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged]: (draftState, action) => {
-    const {list} = action.payload.params
-    draftState.phoneNumbers.phones = new Map(
-      (list ?? []).map(row => [row.phoneNumber, Constants.toPhoneRow(row)])
-    )
-  },
   [SettingsGen.onChangeNewEmail]: (draftState, action) => {
     draftState.email.error = ''
     draftState.email.newEmail = action.payload.email
@@ -210,41 +204,18 @@ const chatActions: Container.ActionHandler<Actions, Types.State> = {
 }
 
 const phoneActions: Container.ActionHandler<Actions, Types.State> = {
-  [SettingsGen.addedPhoneNumber]: (draftState, action) => {
-    const {phoneNumbers} = draftState
-    phoneNumbers.error = action.payload.error || ''
-    phoneNumbers.pendingVerification = action.payload.phoneNumber
-    phoneNumbers.verificationState = undefined
-  },
-  [SettingsGen.resendVerificationForPhoneNumber]: (draftState, action) => {
-    const {phoneNumbers} = draftState
-    phoneNumbers.error = ''
-    phoneNumbers.pendingVerification = action.payload.phoneNumber
-    phoneNumbers.verificationState = undefined
-  },
-  [SettingsGen.clearPhoneNumberErrors]: draftState => {
-    draftState.phoneNumbers.error = ''
-  },
-  [SettingsGen.clearPhoneNumberAdd]: draftState => {
-    const {phoneNumbers} = draftState
-    phoneNumbers.error = ''
-    phoneNumbers.pendingVerification = ''
-    phoneNumbers.verificationState = undefined
-  },
-  [SettingsGen.verifiedPhoneNumber]: (draftState, action) => {
-    const {phoneNumber, error} = action.payload
-    if (phoneNumber !== draftState.phoneNumbers.pendingVerification) {
-      logger.warn("Got verifiedPhoneNumber but number doesn't match")
-      return
-    }
-    const {phoneNumbers} = draftState
-    phoneNumbers.addedPhone = !error
-    phoneNumbers.error = error ?? ''
-    phoneNumbers.verificationState = error ? 'error' : 'success'
-  },
-  [SettingsGen.clearAddedPhone]: draftState => {
-    draftState.phoneNumbers.addedPhone = false
-  },
+  // [SettingsGen.clearPhoneNumberErrors]: draftState => {
+  //   draftState.phoneNumbers.error = ''
+  // },
+  // [SettingsGen.clearPhoneNumberAdd]: draftState => {
+  //   const {phoneNumbers} = draftState
+  //   phoneNumbers.error = ''
+  //   phoneNumbers.pendingVerification = ''
+  //   phoneNumbers.verificationState = undefined
+  // },
+  // [SettingsGen.clearAddedPhone]: draftState => {
+  //   draftState.phoneNumbers.addedPhone = false
+  // },
 }
 
 const contactsActions: Container.ActionHandler<Actions, Types.State> = {
@@ -274,18 +245,10 @@ const contactsActions: Container.ActionHandler<Actions, Types.State> = {
       draftState.contacts.waitingToShowJoinedModal = true
     }
   },
-  [SettingsGen.updateDefaultPhoneNumberCountry]: (draftState, action) => {
-    draftState.phoneNumbers.defaultCountry = action.payload.country
-  },
 }
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [SettingsGen.resetStore]: () => initialState,
-  [SettingsGen.loadedSettings]: (draftState, action) => {
-    const {emails, phones} = action.payload
-    draftState.email.emails = emails
-    draftState.phoneNumbers.phones = phones
-  },
   [SettingsGen.feedbackSent]: (draftState, action) => {
     draftState.feedback.error = action.payload.error
   },

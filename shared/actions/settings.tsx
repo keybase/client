@@ -33,7 +33,8 @@ const onSubmitNewEmail = async (state: Container.TypedState) => {
   try {
     const newEmail = state.settings.email.newEmail
     await RPCTypes.accountEmailChangeRpcPromise({newEmail}, Constants.settingsWaitingKey)
-    return [SettingsGen.createLoadSettings(), RouteTreeGen.createNavigateUp()]
+    Constants.useState.getState().dispatch.loadSettings()
+    return RouteTreeGen.createNavigateUp()
   } catch (error) {
     if (!(error instanceof RPCError)) {
       return
@@ -340,38 +341,6 @@ const deleteAccountForever = async (_: unknown, action: SettingsGen.DeleteAccoun
   ]
 }
 
-const loadSettings = async () => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    return false
-  }
-  try {
-    const settings = await RPCTypes.userLoadMySettingsRpcPromise(undefined, Constants.loadSettingsWaitingKey)
-    const emailMap = new Map(
-      (settings.emails ?? []).map(row => [row.email, {...Constants.makeEmailRow(), ...row}])
-    )
-    const phoneMap = (settings.phoneNumbers ?? []).reduce<Map<string, Types.PhoneRow>>((map, row) => {
-      if (map.get(row.phoneNumber) && !map.get(row.phoneNumber)?.superseded) {
-        return map
-      }
-      map.set(row.phoneNumber, Constants.toPhoneRow(row))
-      return map
-    }, new Map())
-    return SettingsGen.createLoadedSettings({
-      emails: emailMap,
-      phones: phoneMap,
-    })
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    logger.warn(`Error loading settings: ${error.message}`)
-    return false
-  }
-}
-
-const visFromBoolean = (searchable: boolean): ChatTypes.Keybase1.IdentityVisibility =>
-  searchable ? ChatTypes.Keybase1.IdentityVisibility.public : ChatTypes.Keybase1.IdentityVisibility.private
-
 const editEmail = async (state: Container.TypedState, action: SettingsGen.EditEmailPayload) => {
   // TODO: consider allowing more than one action here
   // TODO: handle errors
@@ -401,37 +370,6 @@ const editEmail = async (state: Container.TypedState, action: SettingsGen.EditEm
   }
   logger.warn('Empty editEmail action')
   return false
-}
-const editPhone = async (_: unknown, action: SettingsGen.EditPhonePayload) => {
-  // TODO: handle errors
-  let acted = false
-  if (action.payload.delete) {
-    await RPCTypes.phoneNumbersDeletePhoneNumberRpcPromise({phoneNumber: action.payload.phone})
-    acted = true
-  }
-  if (action.payload.setSearchable !== undefined) {
-    await RPCTypes.phoneNumbersSetVisibilityPhoneNumberRpcPromise({
-      phoneNumber: action.payload.phone,
-      visibility: visFromBoolean(!!action.payload.setSearchable),
-    })
-    acted = true
-  }
-  if (!acted) {
-    logger.warn('Empty editPhone action')
-  }
-}
-
-const loadDefaultPhoneNumberCountry = async (state: Container.TypedState) => {
-  // noop if we've already loaded it
-  if (state.settings.phoneNumbers.defaultCountry) {
-    return
-  }
-  const country = await RPCTypes.accountGuessCurrentLocationRpcPromise({
-    defaultCountry: 'US',
-  })
-  return SettingsGen.createUpdateDefaultPhoneNumberCountry({
-    country,
-  })
 }
 
 const getRememberPassword = async () => {
@@ -629,86 +567,6 @@ const stop = async (_: unknown, action: SettingsGen.StopPayload) => {
   return false as const
 }
 
-const makePhoneError = (e: RPCError) => {
-  switch (e.code) {
-    case RPCTypes.StatusCode.scphonenumberwrongverificationcode:
-      return 'Incorrect code, please try again.'
-    case RPCTypes.StatusCode.scphonenumberunknown:
-      return e.desc
-    case RPCTypes.StatusCode.scphonenumberalreadyverified:
-      return 'This phone number is already verified.'
-    case RPCTypes.StatusCode.scphonenumberverificationcodeexpired:
-      return 'Verification code expired, resend and try again.'
-    case RPCTypes.StatusCode.scratelimit:
-      return 'Sorry, tried too many guesses in a short period of time. Please try again later.'
-    default:
-      return e.message
-  }
-}
-
-const addPhoneNumber = async (_: unknown, action: SettingsGen.AddPhoneNumberPayload) => {
-  logger.info('adding phone number')
-  const {phoneNumber, searchable} = action.payload
-  const visibility = searchable ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private
-  try {
-    await RPCTypes.phoneNumbersAddPhoneNumberRpcPromise(
-      {phoneNumber, visibility},
-      Constants.addPhoneNumberWaitingKey
-    )
-    logger.info('success')
-    return SettingsGen.createAddedPhoneNumber({phoneNumber, searchable})
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    logger.warn('error ', error.message)
-    const message = makePhoneError(error)
-    return SettingsGen.createAddedPhoneNumber({error: message, phoneNumber, searchable})
-  }
-}
-
-const resendVerificationForPhoneNumber = async (
-  _: unknown,
-  action: SettingsGen.ResendVerificationForPhoneNumberPayload
-) => {
-  const {phoneNumber} = action.payload
-  logger.info(`resending verification code for ${phoneNumber}`)
-  try {
-    await RPCTypes.phoneNumbersResendVerificationForPhoneNumberRpcPromise(
-      {phoneNumber},
-      Constants.resendVerificationForPhoneWaitingKey
-    )
-    return false
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    const message = makePhoneError(error)
-    logger.warn('error ', message)
-    return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
-  }
-}
-
-const verifyPhoneNumber = async (_: unknown, action: SettingsGen.VerifyPhoneNumberPayload) => {
-  logger.info('verifying phone number')
-  const {code, phoneNumber} = action.payload
-  try {
-    await RPCTypes.phoneNumbersVerifyPhoneNumberRpcPromise(
-      {code, phoneNumber},
-      Constants.verifyPhoneNumberWaitingKey
-    )
-    logger.info('success')
-    return SettingsGen.createVerifiedPhoneNumber({phoneNumber})
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    const message = makePhoneError(error)
-    logger.warn('error ', message)
-    return SettingsGen.createVerifiedPhoneNumber({error: message, phoneNumber})
-  }
-}
-
 const loadContactImportEnabled = async (
   _: unknown,
   action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.LoadOnStartPayload
@@ -832,7 +690,6 @@ const initSettings = () => {
   Container.listenAction(SettingsGen.notificationsToggle, toggleNotifications)
   Container.listenAction(SettingsGen.dbNuke, dbNuke)
   Container.listenAction(SettingsGen.deleteAccountForever, deleteAccountForever)
-  Container.listenAction(SettingsGen.loadSettings, loadSettings)
   Container.listenAction(SettingsGen.onSubmitNewPassword, onSubmitNewPassword)
   Container.listenAction(SettingsGen.onUpdatePGPSettings, onUpdatePGPSettings)
   Container.listenAction(SettingsGen.trace, trace)
@@ -849,13 +706,6 @@ const initSettings = () => {
 
   Container.listenAction(SettingsGen.stop, stop)
 
-  // Phone numbers
-  Container.listenAction(SettingsGen.loadDefaultPhoneNumberCountry, loadDefaultPhoneNumberCountry)
-  Container.listenAction(SettingsGen.editPhone, editPhone)
-  Container.listenAction(SettingsGen.addPhoneNumber, addPhoneNumber)
-  Container.listenAction(SettingsGen.verifyPhoneNumber, verifyPhoneNumber)
-  Container.listenAction(SettingsGen.resendVerificationForPhoneNumber, resendVerificationForPhoneNumber)
-
   // Contacts
   Container.listenAction(
     [SettingsGen.loadContactImportEnabled, ConfigGen.loadOnStart],
@@ -871,6 +721,11 @@ const initSettings = () => {
 
   Container.listenAction(RouteTreeGen.onNavChanged, maybeClearAddedEmail)
   Container.listenAction(SettingsGen.loginBrowserViaWebAuthToken, loginBrowserViaWebAuthToken)
+
+  Container.listenAction(EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged, (_, action) => {
+    const {list} = action.payload.params
+    Constants.usePhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+  })
 }
 
 export default initSettings

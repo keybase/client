@@ -4,6 +4,7 @@ import * as Tabs from './tabs'
 import * as TeamsGen from '../actions/teams-gen'
 import * as WalletsGen from '../actions/wallets-gen'
 import * as ProfileConstants from './profile'
+import * as SettingsConstants from './settings'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import URL from 'url-parse'
@@ -45,7 +46,6 @@ type State = Store & {
 
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
-  const getReduxStore = Z.getReduxStore()
 
   const handleShowUserProfileLink = (username: string) => {
     reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
@@ -132,7 +132,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         const url = new URL(link)
         const username = urlToUsername(url)
         if (username === 'phone-app') {
-          const phones = getReduxStore().settings.phoneNumbers.phones
+          const phones = SettingsConstants.usePhoneState.getState().phones
           if (!phones || phones.size > 0) {
             return
           }

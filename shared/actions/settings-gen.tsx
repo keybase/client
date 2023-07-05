@@ -8,9 +8,7 @@ import type HiddenString from '../util/hidden-string'
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
 export const addEmail = 'settings:addEmail'
-export const addPhoneNumber = 'settings:addPhoneNumber'
 export const addedEmail = 'settings:addedEmail'
-export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const clearAddedEmail = 'settings:clearAddedEmail'
 export const clearAddedPhone = 'settings:clearAddedPhone'
 export const clearAddingEmail = 'settings:clearAddingEmail'
@@ -24,7 +22,6 @@ export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const editContactImportEnabled = 'settings:editContactImportEnabled'
 export const editEmail = 'settings:editEmail'
-export const editPhone = 'settings:editPhone'
 export const emailVerified = 'settings:emailVerified'
 export const feedbackSent = 'settings:feedbackSent'
 export const importContactsLater = 'settings:importContactsLater'
@@ -39,13 +36,11 @@ export const loadDefaultPhoneNumberCountry = 'settings:loadDefaultPhoneNumberCou
 export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
 export const loadRememberPassword = 'settings:loadRememberPassword'
-export const loadSettings = 'settings:loadSettings'
 export const loadedContactImportEnabled = 'settings:loadedContactImportEnabled'
 export const loadedContactPermissions = 'settings:loadedContactPermissions'
 export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
 export const loadedRememberPassword = 'settings:loadedRememberPassword'
-export const loadedSettings = 'settings:loadedSettings'
 export const loadedUserCountryCode = 'settings:loadedUserCountryCode'
 export const loginBrowserViaWebAuthToken = 'settings:loginBrowserViaWebAuthToken'
 export const notificationsRefresh = 'settings:notificationsRefresh'
@@ -66,7 +61,6 @@ export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
-export const resendVerificationForPhoneNumber = 'settings:resendVerificationForPhoneNumber'
 export const sendFeedback = 'settings:sendFeedback'
 export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setContactImportedCount = 'settings:setContactImportedCount'
@@ -77,18 +71,9 @@ export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
 export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
-export const updateDefaultPhoneNumberCountry = 'settings:updateDefaultPhoneNumberCountry'
 export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
-export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 
 // Action Creators
-/**
- * Add a phone number and kick off a text message with a verification code.
- */
-export const createAddPhoneNumber = (payload: {
-  readonly searchable: boolean
-  readonly phoneNumber: string
-}) => ({payload, type: addPhoneNumber as typeof addPhoneNumber})
 /**
  * An email was just marked as verified
  */
@@ -176,13 +161,6 @@ export const createUnfurlSettingsRefreshed = (payload: {
   readonly whitelist: Array<string>
 }) => ({payload, type: unfurlSettingsRefreshed as typeof unfurlSettingsRefreshed})
 /**
- * Resend verification code for a phone number that's already added.
- */
-export const createResendVerificationForPhoneNumber = (payload: {readonly phoneNumber: string}) => ({
-  payload,
-  type: resendVerificationForPhoneNumber as typeof resendVerificationForPhoneNumber,
-})
-/**
  * Reset state used for adding an email.
  */
 export const createClearAddingEmail = (payload?: undefined) => ({
@@ -204,27 +182,12 @@ export const createClearAddedEmail = (payload?: undefined) => ({
   type: clearAddedEmail as typeof clearAddedEmail,
 })
 /**
- * Submit a verification code for a phone number
- */
-export const createVerifyPhoneNumber = (payload: {readonly phoneNumber: string; readonly code: string}) => ({
-  payload,
-  type: verifyPhoneNumber as typeof verifyPhoneNumber,
-})
-/**
  * Update unfurl settings from settings screen
  */
 export const createUnfurlSettingsSaved = (payload: {
   readonly mode: RPCChatTypes.UnfurlMode
   readonly whitelist: Array<string>
 }) => ({payload, type: unfurlSettingsSaved as typeof unfurlSettingsSaved})
-/**
- * We just attempted to add a phone number and either got an error or the number is pending verification.
- */
-export const createAddedPhoneNumber = (payload: {
-  readonly searchable: boolean
-  readonly error?: string
-  readonly phoneNumber: string
-}) => ({payload, type: addedPhoneNumber as typeof addedPhoneNumber})
 /**
  * We verified a phone number or hit an error.
  */
@@ -256,11 +219,6 @@ export const createEditEmail = (payload: {
   readonly makeSearchable?: boolean
   readonly verify?: boolean
 }) => ({payload, type: editEmail as typeof editEmail})
-export const createEditPhone = (payload: {
-  readonly phone: string
-  readonly delete?: boolean
-  readonly setSearchable?: boolean
-}) => ({payload, type: editPhone as typeof editPhone})
 export const createImportContactsLater = (payload?: undefined) => ({
   payload,
   type: importContactsLater as typeof importContactsLater,
@@ -305,10 +263,6 @@ export const createLoadRememberPassword = (payload?: undefined) => ({
   payload,
   type: loadRememberPassword as typeof loadRememberPassword,
 })
-export const createLoadSettings = (payload?: undefined) => ({
-  payload,
-  type: loadSettings as typeof loadSettings,
-})
 export const createLoadedContactImportEnabled = (payload: {readonly enabled: boolean}) => ({
   payload,
   type: loadedContactImportEnabled as typeof loadedContactImportEnabled,
@@ -328,9 +282,6 @@ export const createLoadedRememberPassword = (payload: {readonly remember: boolea
   payload,
   type: loadedRememberPassword as typeof loadedRememberPassword,
 })
-export const createLoadedSettings = (
-  payload: {readonly emails?: Map<string, Types.EmailRow>; readonly phones?: Map<string, Types.PhoneRow>} = {}
-) => ({payload, type: loadedSettings as typeof loadedSettings})
 export const createLoadedUserCountryCode = (payload: {readonly code?: string} = {}) => ({
   payload,
   type: loadedUserCountryCode as typeof loadedUserCountryCode,
@@ -432,16 +383,10 @@ export const createTrace = (payload: {readonly durationSeconds: number}) => ({
   payload,
   type: trace as typeof trace,
 })
-export const createUpdateDefaultPhoneNumberCountry = (payload: {readonly country: string}) => ({
-  payload,
-  type: updateDefaultPhoneNumberCountry as typeof updateDefaultPhoneNumberCountry,
-})
 
 // Action Payloads
 export type AddEmailPayload = ReturnType<typeof createAddEmail>
-export type AddPhoneNumberPayload = ReturnType<typeof createAddPhoneNumber>
 export type AddedEmailPayload = ReturnType<typeof createAddedEmail>
-export type AddedPhoneNumberPayload = ReturnType<typeof createAddedPhoneNumber>
 export type ClearAddedEmailPayload = ReturnType<typeof createClearAddedEmail>
 export type ClearAddedPhonePayload = ReturnType<typeof createClearAddedPhone>
 export type ClearAddingEmailPayload = ReturnType<typeof createClearAddingEmail>
@@ -455,7 +400,6 @@ export type DbNukePayload = ReturnType<typeof createDbNuke>
 export type DeleteAccountForeverPayload = ReturnType<typeof createDeleteAccountForever>
 export type EditContactImportEnabledPayload = ReturnType<typeof createEditContactImportEnabled>
 export type EditEmailPayload = ReturnType<typeof createEditEmail>
-export type EditPhonePayload = ReturnType<typeof createEditPhone>
 export type EmailVerifiedPayload = ReturnType<typeof createEmailVerified>
 export type FeedbackSentPayload = ReturnType<typeof createFeedbackSent>
 export type ImportContactsLaterPayload = ReturnType<typeof createImportContactsLater>
@@ -470,13 +414,11 @@ export type LoadDefaultPhoneNumberCountryPayload = ReturnType<typeof createLoadD
 export type LoadHasRandomPwPayload = ReturnType<typeof createLoadHasRandomPw>
 export type LoadLockdownModePayload = ReturnType<typeof createLoadLockdownMode>
 export type LoadRememberPasswordPayload = ReturnType<typeof createLoadRememberPassword>
-export type LoadSettingsPayload = ReturnType<typeof createLoadSettings>
 export type LoadedContactImportEnabledPayload = ReturnType<typeof createLoadedContactImportEnabled>
 export type LoadedContactPermissionsPayload = ReturnType<typeof createLoadedContactPermissions>
 export type LoadedHasRandomPwPayload = ReturnType<typeof createLoadedHasRandomPw>
 export type LoadedLockdownModePayload = ReturnType<typeof createLoadedLockdownMode>
 export type LoadedRememberPasswordPayload = ReturnType<typeof createLoadedRememberPassword>
-export type LoadedSettingsPayload = ReturnType<typeof createLoadedSettings>
 export type LoadedUserCountryCodePayload = ReturnType<typeof createLoadedUserCountryCode>
 export type LoginBrowserViaWebAuthTokenPayload = ReturnType<typeof createLoginBrowserViaWebAuthToken>
 export type NotificationsRefreshPayload = ReturnType<typeof createNotificationsRefresh>
@@ -497,9 +439,6 @@ export type OnUpdatePasswordErrorPayload = ReturnType<typeof createOnUpdatePassw
 export type OnUpdatedPGPSettingsPayload = ReturnType<typeof createOnUpdatedPGPSettings>
 export type ProcessorProfilePayload = ReturnType<typeof createProcessorProfile>
 export type RequestContactPermissionsPayload = ReturnType<typeof createRequestContactPermissions>
-export type ResendVerificationForPhoneNumberPayload = ReturnType<
-  typeof createResendVerificationForPhoneNumber
->
 export type SendFeedbackPayload = ReturnType<typeof createSendFeedback>
 export type SentVerificationEmailPayload = ReturnType<typeof createSentVerificationEmail>
 export type SetContactImportedCountPayload = ReturnType<typeof createSetContactImportedCount>
@@ -510,17 +449,13 @@ export type UnfurlSettingsErrorPayload = ReturnType<typeof createUnfurlSettingsE
 export type UnfurlSettingsRefreshPayload = ReturnType<typeof createUnfurlSettingsRefresh>
 export type UnfurlSettingsRefreshedPayload = ReturnType<typeof createUnfurlSettingsRefreshed>
 export type UnfurlSettingsSavedPayload = ReturnType<typeof createUnfurlSettingsSaved>
-export type UpdateDefaultPhoneNumberCountryPayload = ReturnType<typeof createUpdateDefaultPhoneNumberCountry>
 export type VerifiedPhoneNumberPayload = ReturnType<typeof createVerifiedPhoneNumber>
-export type VerifyPhoneNumberPayload = ReturnType<typeof createVerifyPhoneNumber>
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | AddEmailPayload
-  | AddPhoneNumberPayload
   | AddedEmailPayload
-  | AddedPhoneNumberPayload
   | ClearAddedEmailPayload
   | ClearAddedPhonePayload
   | ClearAddingEmailPayload
@@ -534,7 +469,6 @@ export type Actions =
   | DeleteAccountForeverPayload
   | EditContactImportEnabledPayload
   | EditEmailPayload
-  | EditPhonePayload
   | EmailVerifiedPayload
   | FeedbackSentPayload
   | ImportContactsLaterPayload
@@ -549,13 +483,11 @@ export type Actions =
   | LoadHasRandomPwPayload
   | LoadLockdownModePayload
   | LoadRememberPasswordPayload
-  | LoadSettingsPayload
   | LoadedContactImportEnabledPayload
   | LoadedContactPermissionsPayload
   | LoadedHasRandomPwPayload
   | LoadedLockdownModePayload
   | LoadedRememberPasswordPayload
-  | LoadedSettingsPayload
   | LoadedUserCountryCodePayload
   | LoginBrowserViaWebAuthTokenPayload
   | NotificationsRefreshPayload
@@ -576,7 +508,6 @@ export type Actions =
   | OnUpdatedPGPSettingsPayload
   | ProcessorProfilePayload
   | RequestContactPermissionsPayload
-  | ResendVerificationForPhoneNumberPayload
   | SendFeedbackPayload
   | SentVerificationEmailPayload
   | SetContactImportedCountPayload
@@ -587,7 +518,5 @@ export type Actions =
   | UnfurlSettingsRefreshPayload
   | UnfurlSettingsRefreshedPayload
   | UnfurlSettingsSavedPayload
-  | UpdateDefaultPhoneNumberCountryPayload
   | VerifiedPhoneNumberPayload
-  | VerifyPhoneNumberPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

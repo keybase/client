@@ -11,14 +11,15 @@ import {isMobile} from '../../styles'
 
 export default () => {
   const _emails = Container.useSelector(state => state.settings.email.emails)
-  const _phones = Container.useSelector(state => state.settings.phoneNumbers.phones)
+  const _phones = Constants.usePhoneState(s => s.phones)
   const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
-  const addedPhone = Container.useSelector(state => state.settings.phoneNumbers.addedPhone)
+  const addedPhone = Constants.usePhoneState(s => s.addedPhone)
+  const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
   const hasPassword = Container.useSelector(state => !state.settings.password.randomPW)
   const waiting = Container.useAnyWaiting(Constants.loadSettingsWaitingKey)
   const dispatch = Container.useDispatch()
   const _onClearSupersededPhoneNumber = (phone: string) => {
-    dispatch(SettingsGen.createEditPhone({delete: true, phone}))
+    editPhone(phone, true)
   }
   const onAddEmail = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']}))
@@ -40,8 +41,9 @@ export default () => {
   const onDeleteAccount = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']}))
   }
+  const loadSettings = Constants.useState(s => s.dispatch.loadSettings)
   const onReload = () => {
-    dispatch(SettingsGen.createLoadSettings())
+    loadSettings()
     dispatch(SettingsGen.createLoadRememberPassword())
     dispatch(SettingsGen.createLoadHasRandomPw())
   }

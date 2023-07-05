@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/provision'
+import * as SettingsConstants from '../constants/settings'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
@@ -10,7 +11,7 @@ import {SignupScreen, errorBanner} from '../signup/common'
 const ForgotUsername = () => {
   const dispatch = Container.useDispatch()
 
-  const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
+  const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
   // trigger a default phone number country rpc if it's not already loaded
   React.useEffect(() => {
     !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())

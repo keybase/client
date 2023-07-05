@@ -36,22 +36,26 @@ export class WatchForSuccess extends React.Component<WatcherProps> {
 }
 
 export default () => {
-  const error = Container.useSelector(state =>
-    state.settings.phoneNumbers.verificationState === 'error' ? state.settings.phoneNumbers.error : ''
-  )
-  const phoneNumber = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
+  const error = SettingsConstants.usePhoneState(s => (s.verificationState === 'error' ? s.error : ''))
+  const phoneNumber = SettingsConstants.usePhoneState(s => s.pendingVerification)
   const resendWaiting = Container.useAnyWaiting([
     SettingsConstants.resendVerificationForPhoneWaitingKey,
     SettingsConstants.addPhoneNumberWaitingKey,
   ])
-  const verificationStatus = Container.useSelector(state => state.settings.phoneNumbers.verificationState)
+  const verificationStatus = SettingsConstants.usePhoneState(s => s.verificationState)
   const verifyWaiting = Container.useAnyWaiting(SettingsConstants.verifyPhoneNumberWaitingKey)
   const dispatch = Container.useDispatch()
+
+  const verifyPhoneNumber = SettingsConstants.usePhoneState(s => s.dispatch.verifyPhoneNumber)
+  const resendVerificationForPhone = SettingsConstants.usePhoneState(
+    s => s.dispatch.resendVerificationForPhone
+  )
+
   const _onContinue = (phoneNumber: string, code: string) => {
-    dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber}))
+    verifyPhoneNumber(phoneNumber, code)
   }
   const _onResend = (phoneNumber: string) => {
-    dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
+    resendVerificationForPhone(phoneNumber)
   }
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())

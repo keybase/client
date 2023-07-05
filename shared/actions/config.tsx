@@ -12,6 +12,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2 from '../constants/router2'
 import * as SettingsGen from './settings-gen'
+import * as SettingsConstants from '../constants/settings'
 import * as Tabs from '../constants/tabs'
 import * as DarkMode from '../constants/darkmode'
 import * as WhatsNew from '../constants/whats-new'
@@ -227,8 +228,8 @@ const onAndroidShare = () => {
 }
 
 let maybeLoadAppLinkOnce = false
-const maybeLoadAppLink = (state: Container.TypedState) => {
-  const phones = state.settings.phoneNumbers.phones
+const maybeLoadAppLink = () => {
+  const phones = SettingsConstants.usePhoneState.getState().phones
   if (!phones || phones.size > 0) {
     return
   }

@@ -87,14 +87,6 @@ export type EmailState = {
   error: string
 }
 
-export type PhoneRow = {
-  displayNumber: string
-  e164: string
-  searchable: boolean
-  superseded: boolean
-  verified: boolean
-}
-
 export type FeedbackState = {
   error?: Error
 }
@@ -115,15 +107,6 @@ export type ContactSettingsTeamsList = {[k in RPCTypes.TeamID]: boolean}
 export type ChatState = {
   contactSettings: ContactSettingsState
   unfurl: ChatUnfurlState
-}
-
-export type PhoneNumbersState = {
-  addedPhone: boolean
-  defaultCountry?: string
-  error: string
-  pendingVerification: string
-  phones?: Map<string, PhoneRow>
-  verificationState?: 'success' | 'error'
 }
 
 export type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
@@ -147,7 +130,4 @@ export type State = {
   invites: InvitesState
   notifications: NotificationsState
   password: PasswordState
-  phoneNumbers: PhoneNumbersState
 }
-
-export type PlanLevel = string

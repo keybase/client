@@ -38,18 +38,18 @@ export class WatchForGoToVerify extends React.Component<WatcherProps> {
 }
 
 const ConnectedEnterPhoneNumber = () => {
-  const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
-  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
-  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
+  const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
+  const error = SettingsConstants.usePhoneState(s => s.error)
+  const pendingVerification = SettingsConstants.usePhoneState(s => s.pendingVerification)
   const waiting = Container.useAnyWaiting(SettingsConstants.addPhoneNumberWaitingKey)
 
   const dispatch = Container.useDispatch()
   const onClear = () => {
     dispatch(SettingsGen.createClearPhoneNumberErrors())
   }
-  const onContinue = (phoneNumber: string, searchable: boolean) => {
-    dispatch(SettingsGen.createAddPhoneNumber({phoneNumber, searchable}))
-  }
+
+  const addPhoneNumber = SettingsConstants.usePhoneState(s => s.dispatch.addPhoneNumber)
+  const onContinue = addPhoneNumber
   const onGoToVerify = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['signupVerifyPhoneNumber']}))
   }

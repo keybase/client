@@ -124,10 +124,9 @@ export const Phone = () => {
   const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !valid
 
-  const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
-
-  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
-  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
+  const defaultCountry = Constants.usePhoneState(s => s.defaultCountry)
+  const error = Constants.usePhoneState(s => s.error)
+  const pendingVerification = Constants.usePhoneState(s => s.pendingVerification)
   const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
 
   // clean only errors on unmount so verify screen still has info
@@ -153,11 +152,10 @@ export const Phone = () => {
     dispatch(nav.safeNavigateUpPayload())
   }, [dispatch, nav])
 
-  const onContinue = React.useCallback(
-    () =>
-      disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({phoneNumber, searchable})),
-    [dispatch, disabled, waiting, searchable, phoneNumber]
-  )
+  const addPhoneNumber = Constants.usePhoneState(s => s.dispatch.addPhoneNumber)
+  const onContinue = React.useCallback(() => {
+    disabled || waiting ? null : addPhoneNumber(phoneNumber, searchable)
+  }, [addPhoneNumber, disabled, waiting, searchable, phoneNumber])
 
   const onChangeNumberCb = React.useCallback((phoneNumber: string, validity: boolean) => {
     onChangeNumber(phoneNumber)
@@ -229,9 +227,9 @@ export const VerifyPhone = () => {
 
   const [code, onChangeCode] = React.useState('')
 
-  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
-  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
-  const verificationState = Container.useSelector(state => state.settings.phoneNumbers.verificationState)
+  const pendingVerification = Constants.usePhoneState(s => s.pendingVerification)
+  const error = Constants.usePhoneState(s => s.error)
+  const verificationState = Constants.usePhoneState(s => s.verificationState)
   const resendWaiting = Container.useAnyWaiting([
     Constants.addPhoneNumberWaitingKey,
     Constants.resendVerificationForPhoneWaitingKey,
@@ -252,17 +250,19 @@ export const VerifyPhone = () => {
     }
   }, [verificationState, error, dispatch])
 
-  const onResend = React.useCallback(
-    () => dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber: pendingVerification})),
-    [dispatch, pendingVerification]
-  )
+  const resendVerificationForPhone = Constants.usePhoneState(s => s.dispatch.resendVerificationForPhone)
+  const verifyPhoneNumber = Constants.usePhoneState(s => s.dispatch.verifyPhoneNumber)
+
+  const onResend = React.useCallback(() => {
+    resendVerificationForPhone(pendingVerification)
+  }, [resendVerificationForPhone, pendingVerification])
   const onClose = React.useCallback(() => {
     dispatch(SettingsGen.createClearPhoneNumberAdd())
     dispatch(RouteTreeGen.createClearModals())
   }, [dispatch])
   const onContinue = React.useCallback(
-    () => dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber: pendingVerification})),
-    [dispatch, code, pendingVerification]
+    () => verifyPhoneNumber(pendingVerification, code),
+    [verifyPhoneNumber, code, pendingVerification]
   )
   const disabled = !code
 

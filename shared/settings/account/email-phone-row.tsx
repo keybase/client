@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/settings'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -235,11 +236,7 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
   const _emailRow = Container.useSelector(
     state => (state.settings.email.emails && state.settings.email.emails.get(ownProps.contactKey)) || null
   )
-  const _phoneRow = Container.useSelector(
-    state =>
-      (state.settings.phoneNumbers.phones && state.settings.phoneNumbers.phones.get(ownProps.contactKey)) ||
-      null
-  )
+  const _phoneRow = Constants.usePhoneState(s => s.phones?.get(ownProps.contactKey) || null)
   const moreThanOneEmail = Container.useSelector(
     state => state.settings.email.emails && state.settings.email.emails.size > 1
   )
@@ -252,6 +249,9 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
   const _onMakeSearchable = () => {
     dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true}))
   }
+
+  const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
+  const resendVerificationForPhoneNumber = Constants.usePhoneState(s => s.dispatch.resendVerificationForPhone)
 
   const dispatchProps = {
     email: {
@@ -295,10 +295,10 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
           })
         ),
       _onToggleSearchable: (setSearchable: boolean) => {
-        dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, setSearchable}))
+        editPhone(ownProps.contactKey, setSearchable)
       },
       _onVerify: (phoneNumber: string) => {
-        dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
+        resendVerificationForPhoneNumber(phoneNumber)
         dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
       },
       onMakePrimary: () => {}, // this is not a supported phone action

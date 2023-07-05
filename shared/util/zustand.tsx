@@ -6,9 +6,11 @@ import {immer as immerZustand} from 'zustand/middleware/immer'
 
 type TypedDispatch = (action: TypedActions) => void
 
+// TODO remove eventually
 export const getReduxDispatch: () => TypedDispatch = () => (a: TypedActions) =>
   require('../store/configure-store').getGlobalStore().dispatch(a)
 
+// TODO remove eventually
 export const getReduxStore: () => () => TypedState = () => () =>
   require('../store/configure-store').getGlobalStore().getState()
 
