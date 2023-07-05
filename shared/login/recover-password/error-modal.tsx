@@ -1,5 +1,6 @@
 import * as Container from '../../util/container'
 import * as ConfigConstants from '../../constants/config'
+import * as Constants from '../../constants/recover-password'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
@@ -12,7 +13,7 @@ type Props = {
 
 const useConn = () => {
   const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
-  const error = Container.useSelector(state => state.recoverPassword.error.stringValue())
+  const error = Constants.useState(s => s.error)
   const dispatch = Container.useDispatch()
   const onBack = () => {
     loggedIn ? dispatch(RouteTreeGen.createNavigateUp()) : dispatch(RouteTreeGen.createPopStack())

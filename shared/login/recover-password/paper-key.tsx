@@ -1,26 +1,24 @@
 import * as Constants from '../../constants/recover-password'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import * as Styles from '../../styles'
-import HiddenString from '../../util/hidden-string'
 import type {ButtonType} from '../../common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 
 const PaperKey = () => {
-  const error = Container.useSelector(state => state.recoverPassword.paperKeyError.stringValue())
-  const dispatch = Container.useDispatch()
+  const error = Constants.useState(s => s.paperKeyError)
+  const cancel = Constants.useState(s => s.dispatch.cancel)
+  const submitPaperKey = Constants.useState(s => s.dispatch.submitPaperKey)
   const onBack = () => {
-    dispatch(RecoverPasswordGen.createAbortPaperKey())
+    cancel()
   }
   const props = {error, onBack}
   const [paperKey, setPaperKey] = React.useState('')
   const onSubmit = React.useCallback(() => {
     if (paperKey) {
-      dispatch(RecoverPasswordGen.createSubmitPaperKey({paperKey: new HiddenString(paperKey)}))
+      submitPaperKey(paperKey)
     }
-  }, [paperKey, dispatch])
+  }, [paperKey, submitPaperKey])
 
   return (
     <SignupScreen

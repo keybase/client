@@ -1,5 +1,4 @@
 import chat2 from './chat2'
-import recoverPassword from './recover-password'
 import settings from './settings'
 import signup from './signup'
 import teams from './teams'
@@ -15,7 +14,6 @@ export const reducers = {
   chat2,
   crypto,
   people,
-  recoverPassword,
   settings,
   signup,
   teams,
@@ -29,7 +27,6 @@ export type TypedState = {
   chat2: ReturnType<typeof chat2>
   crypto: ReturnType<typeof crypto>
   people: ReturnType<typeof people>
-  recoverPassword: ReturnType<typeof recoverPassword>
   settings: ReturnType<typeof settings>
   signup: ReturnType<typeof signup>
   teams: ReturnType<typeof teams>

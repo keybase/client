@@ -1,32 +1,23 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/autoreset'
-import * as RecoverPasswordGen from '../../actions/recover-password-gen'
+import * as RecoverConstants from '../../constants/recover-password'
 
 const ConfirmReset = () => {
   const hasWallet = Constants.useState(s => s.hasWallet)
   const error = Constants.useState(s => s.error)
-
-  const dispatch = Container.useDispatch()
-
-  const onContinue = React.useCallback(
-    () =>
-      dispatch(
-        RecoverPasswordGen.createSubmitResetPrompt({action: RPCTypes.ResetPromptResponse.confirmReset})
-      ),
-    [dispatch]
-  )
+  const submitResetPassword = RecoverConstants.useState(s => s.dispatch.submitResetPassword)
+  const onContinue = React.useCallback(() => {
+    submitResetPassword(RPCTypes.ResetPromptResponse.confirmReset)
+  }, [submitResetPassword])
   const onCancelReset = React.useCallback(() => {
-    dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: RPCTypes.ResetPromptResponse.cancelReset}))
-  }, [dispatch])
-  const onClose = React.useCallback(
-    () =>
-      dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: RPCTypes.ResetPromptResponse.nothing})),
-    [dispatch]
-  )
+    submitResetPassword(RPCTypes.ResetPromptResponse.cancelReset)
+  }, [submitResetPassword])
+  const onClose = React.useCallback(() => {
+    submitResetPassword(RPCTypes.ResetPromptResponse.nothing)
+  }, [submitResetPassword])
 
   const [checks, setChecks] = React.useState({
     checkData: false,

@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
-import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
 import * as Container from '../../util/container'
 import type * as ConfigTypes from '../../constants/types/config'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/provision'
+import * as RecoverConstants from '../../constants/recover-password'
 
 const needPasswordError = 'passphrase cannot be empty'
 
@@ -100,8 +100,9 @@ export default () => {
   const error = ConfigConstants.useConfigState(s => s.loginError)
   const selectedUser = ConfigConstants.useConfigState(s => s.defaultUsername)
   const dispatch = Container.useDispatch()
+  const startRecoverPassword = RecoverConstants.useState(s => s.dispatch.startRecoverPassword)
   const onForgotPassword = (username: string) => {
-    dispatch(RecoverPasswordGen.createStartRecoverPassword({username}))
+    startRecoverPassword({username})
   }
   const onFeedback = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
