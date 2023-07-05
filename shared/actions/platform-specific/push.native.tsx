@@ -11,9 +11,6 @@ import logger from '../../logger'
 import type * as Types from '../../constants/types/push'
 import {isIOS, isAndroid} from '../../constants/platform'
 import {
-  // iosGetHasShownPushPrompt,
-  // androidRequestPushPermissions,
-  // androidCheckPushPermissions,
   androidGetRegistrationToken,
   androidSetApplicationIconBadgeNumber,
   androidGetInitialBundleFromNotification,
@@ -305,8 +302,6 @@ export const initPushListener = () => {
   })
 
   // Token handling
-  // // TODO?
-  // Container.listenAction([PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded], uploadPushToken)
   Container.listenAction(ConfigGen.logoutHandshake, (_, action) => {
     Constants.useState.getState().dispatch.deleteToken(action.payload.version)
   })
