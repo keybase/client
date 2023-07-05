@@ -3,11 +3,11 @@ import * as Router2Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import * as Constants from '../constants/signup'
 import * as ConfigConstants from '../constants/config'
+import * as PushConstants from '../constants/push'
 import * as SignupGen from './signup-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as SettingsGen from './settings-gen'
-import * as PushGen from './push-gen'
 import * as Container from '../util/container'
 import {RPCError} from '../util/errors'
 
@@ -178,7 +178,7 @@ const reallySignupOnNoErrors = async (
   }
 
   try {
-    listenerApi.dispatch(PushGen.createShowPermissionsPrompt({justSignedUp: true}))
+    PushConstants.useState.getState().dispatch.showPermissionsPrompt({justSignedUp: true})
 
     await RPCTypes.signupSignupRpcListener(
       {
@@ -216,7 +216,7 @@ const reallySignupOnNoErrors = async (
   } catch (error) {
     if (error instanceof RPCError) {
       listenerApi.dispatch(SignupGen.createSignedup({error}))
-      listenerApi.dispatch(PushGen.createShowPermissionsPrompt({justSignedUp: false}))
+      PushConstants.useState.getState().dispatch.showPermissionsPrompt({justSignedUp: false})
     }
   }
 }

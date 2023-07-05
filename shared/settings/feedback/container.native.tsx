@@ -1,5 +1,6 @@
 import * as Container from '../../util/container'
 import * as ConfigConstants from '../../constants/config'
+import * as PushConstants from '../../constants/push'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import Feedback from '.'
@@ -103,13 +104,12 @@ class FeedbackContainer extends React.Component<Props, State> {
 
 // TODO really shouldn't be doing this in connect, should do this with an action
 
-const getPushTokenForLogSend = (state: Container.TypedState) => ({pushToken: state.push.token})
-
 const Connected = (ownProps: OwnProps) => {
   const feedback = ownProps.feedback ?? ''
   const chat = Container.useSelector(state => getExtraChatLogsForLogSend(state))
   const loggedOut = ConfigConstants.useConfigState(s => !s.loggedIn)
-  const push = Container.useSelector(state => getPushTokenForLogSend(state))
+  const _push = PushConstants.useState(s => s.token)
+  const push = {pushToken: _push}
 
   const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)
   const uid = ConfigConstants.useCurrentUserState(s => s.uid)

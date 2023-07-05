@@ -1,6 +1,5 @@
-import * as Container from '../../util/container'
+import * as Constants from '../../constants/push'
 import * as Kb from '../../common-adapters'
-import * as PushGen from '../../actions/push-gen'
 import * as Styles from '../../styles'
 import Notifications from './render'
 import type {Props} from '.'
@@ -15,10 +14,10 @@ const MobileNotifications = (props: Props) => {
 }
 
 const TurnOnNotifications = () => {
-  const dispatch = Container.useDispatch()
-  const mobileHasPermissions = Container.useSelector(state => state.push.hasPermissions)
+  const mobileHasPermissions = Constants.useState(s => s.hasPermissions)
+  const requestPermissions = Constants.useState(s => s.dispatch.requestPermissions)
   if (mobileHasPermissions) return null
-  const onEnable = () => dispatch(PushGen.createRequestPermissions())
+  const onEnable = requestPermissions
   return (
     <Kb.Box
       style={{

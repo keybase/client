@@ -9,7 +9,6 @@ import type * as fs from './fs-gen'
 import type * as gregor from './gregor-gen'
 import type * as notifications from './notifications-gen'
 import type * as pinentry from './pinentry-gen'
-import type * as push from './push-gen'
 import type * as recoverpassword from './recover-password-gen'
 import type * as routetree from './route-tree-gen'
 import type * as settings from './settings-gen'
@@ -32,7 +31,6 @@ export type TypedActions =
   | gregor.Actions
   | notifications.Actions
   | pinentry.Actions
-  | push.Actions
   | recoverpassword.Actions
   | routetree.Actions
   | settings.Actions

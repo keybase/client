@@ -16,6 +16,19 @@ export const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
 }
 
+export async function neverThrowPromiseFunc<T>(f: () => Promise<T>) {
+  try {
+    return await f()
+  } catch {
+    return undefined
+  }
+}
+
+export const timeoutPromise = async (timeMs: number) =>
+  new Promise<void>(resolve => {
+    setTimeout(() => resolve(), timeMs)
+  })
+
 export const dummyListenerApi = {
   delay: async () => Promise.resolve(),
   dispatch: () => {},
