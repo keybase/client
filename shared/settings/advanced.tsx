@@ -39,7 +39,7 @@ const UseNativeFrame = () => {
 const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean}) => {
   const dispatch = Container.useDispatch()
   const {hasRandomPW, settingLockdownMode} = p
-  const lockdownModeEnabled = Container.useSelector(state => !!state.settings.lockdownModeEnabled)
+  const lockdownModeEnabled = Constants.useState(s => !!s.lockdownModeEnabled)
   const onChangeLockdownMode = (enabled: boolean) =>
     dispatch(SettingsGen.createOnChangeLockdownMode({enabled}))
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')

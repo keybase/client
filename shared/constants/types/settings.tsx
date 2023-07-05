@@ -145,7 +145,6 @@ export type State = {
   email: EmailState
   feedback: FeedbackState
   invites: InvitesState
-  lockdownModeEnabled?: boolean
   notifications: NotificationsState
   password: PasswordState
   phoneNumbers: PhoneNumbersState

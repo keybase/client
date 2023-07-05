@@ -1,4 +1,5 @@
 import * as ChatConstants from './chat2'
+import {useConfigState} from './config'
 import * as Z from '../util/zustand'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -219,19 +220,23 @@ export type SettingsTab =
 type Store = {
   checkPasswordIsCorrect?: boolean
   didToggleCertificatePinning?: boolean
+  lockdownModeEnabled?: boolean
 }
 
 const initialStore: Store = {
   checkPasswordIsCorrect: undefined,
   didToggleCertificatePinning: undefined,
+  lockdownModeEnabled: undefined,
 }
 
 export type State = Store & {
   dispatch: {
     checkPassword: (password: string) => void
+    loadLockdownMode: () => void
     resetCheckPassword: () => void
     resetState: 'default'
     setDidToggleCertificatePinning: (t?: boolean) => void
+    setLockdownMode: (l: boolean) => void
   }
 }
 
@@ -250,6 +255,27 @@ export const useState = Z.createZustand<State>(set => {
       }
       Z.ignorePromise(f())
     },
+    loadLockdownMode: () => {
+      const f = async () => {
+        if (!useConfigState.getState().loggedIn) {
+          return
+        }
+        try {
+          const result = await RPCTypes.accountGetLockdownModeRpcPromise(
+            undefined,
+            loadLockdownModeWaitingKey
+          )
+          set(s => {
+            s.lockdownModeEnabled = result.status
+          })
+        } catch (_) {
+          set(s => {
+            s.lockdownModeEnabled = undefined
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
     resetCheckPassword: () => {
       set(s => {
         s.checkPasswordIsCorrect = undefined
@@ -260,6 +286,24 @@ export const useState = Z.createZustand<State>(set => {
       set(s => {
         s.didToggleCertificatePinning = t
       })
+    },
+    setLockdownMode: enabled => {
+      const f = async () => {
+        if (!useConfigState.getState().loggedIn) {
+          return
+        }
+        try {
+          await RPCTypes.accountSetLockdownModeRpcPromise({enabled}, setLockdownModeWaitingKey)
+          set(s => {
+            s.lockdownModeEnabled = enabled
+          })
+        } catch (_) {
+          set(s => {
+            s.lockdownModeEnabled = undefined
+          })
+        }
+      }
+      Z.ignorePromise(f())
     },
   }
   return {

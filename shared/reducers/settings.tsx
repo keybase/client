@@ -286,9 +286,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.email.emails = emails
     draftState.phoneNumbers.phones = phones
   },
-  [SettingsGen.loadedLockdownMode]: (draftState, action) => {
-    draftState.lockdownModeEnabled = action.payload.status
-  },
   [SettingsGen.loadedProxyData]: (draftState, action) => {
     draftState.proxyData = action.payload.proxyData
   },

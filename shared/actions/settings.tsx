@@ -473,21 +473,6 @@ const rememberPassword = async (_: unknown, action: SettingsGen.OnChangeRemember
   await RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
 }
 
-const loadLockdownMode = async () => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    return false
-  }
-  try {
-    const result = await RPCTypes.accountGetLockdownModeRpcPromise(
-      undefined,
-      Constants.loadLockdownModeWaitingKey
-    )
-    return SettingsGen.createLoadedLockdownMode({status: result.status})
-  } catch (_) {
-    return SettingsGen.createLoadedLockdownMode({})
-  }
-}
-
 const loadProxyData = async () => {
   try {
     const result = await RPCTypes.configGetProxyDataRpcPromise()
@@ -503,22 +488,6 @@ const saveProxyData = async (_: unknown, proxyDataPayload: SettingsGen.SaveProxy
     await RPCTypes.configSetProxyDataRpcPromise(proxyDataPayload.payload)
   } catch (err) {
     logger.warn('Error in saving proxy data', err)
-  }
-}
-
-const setLockdownMode = async (_: unknown, action: SettingsGen.OnChangeLockdownModePayload) => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    return false
-  }
-
-  try {
-    await RPCTypes.accountSetLockdownModeRpcPromise(
-      {enabled: action.payload.enabled},
-      Constants.setLockdownModeWaitingKey
-    )
-    return SettingsGen.createLoadedLockdownMode({status: action.payload.enabled})
-  } catch (_) {
-    return SettingsGen.createLoadLockdownMode()
   }
 }
 
@@ -888,8 +857,6 @@ const initSettings = () => {
   Container.listenAction(SettingsGen.processorProfile, processorProfile)
   Container.listenAction(SettingsGen.loadRememberPassword, getRememberPassword)
   Container.listenAction(SettingsGen.onChangeRememberPassword, rememberPassword)
-  Container.listenAction(SettingsGen.loadLockdownMode, loadLockdownMode)
-  Container.listenAction(SettingsGen.onChangeLockdownMode, setLockdownMode)
   Container.listenAction(SettingsGen.sendFeedback, sendFeedback)
   Container.listenAction(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
   Container.listenAction(SettingsGen.contactSettingsSaved, contactSettingsSaved)
