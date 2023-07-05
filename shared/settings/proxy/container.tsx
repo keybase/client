@@ -1,19 +1,16 @@
-import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/settings'
-import type * as RPCTypes from '../../constants/types/rpc-gen'
 import {ProxySettings as ProxySettingsComponent, ProxySettingsPopup} from '.'
 
 const useConnect = () => {
   const allowTlsMitmToggle = Constants.useState(s => s.didToggleCertificatePinning)
   const setDidToggleCertificatePinning = Constants.useState(s => s.dispatch.setDidToggleCertificatePinning)
-  const proxyData = Container.useSelector(state => state.settings.proxyData)
+  const proxyData = Constants.useState(s => s.proxyData)
+  const saveProxyData = Constants.useState(s => s.dispatch.setProxyData)
+  const loadProxyData = Constants.useState(s => s.dispatch.loadProxyData)
 
   const dispatch = Container.useDispatch()
-  const loadProxyData = () => {
-    dispatch(SettingsGen.createLoadProxyData())
-  }
   const resetCertPinningToggle = () => {
     setDidToggleCertificatePinning()
   }
@@ -26,10 +23,6 @@ const useConnect = () => {
   const onEnableCertPinning = () => {
     setDidToggleCertificatePinning(false)
   }
-  const saveProxyData = (proxyData: RPCTypes.ProxyData) => {
-    dispatch(SettingsGen.createSaveProxyData({proxyData}))
-  }
-
   const props = {
     allowTlsMitmToggle,
     loadProxyData,

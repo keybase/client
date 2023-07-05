@@ -473,24 +473,6 @@ const rememberPassword = async (_: unknown, action: SettingsGen.OnChangeRemember
   await RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
 }
 
-const loadProxyData = async () => {
-  try {
-    const result = await RPCTypes.configGetProxyDataRpcPromise()
-    return SettingsGen.createLoadedProxyData({proxyData: result})
-  } catch (err) {
-    logger.warn('Error in loading proxy data', err)
-    return false
-  }
-}
-
-const saveProxyData = async (_: unknown, proxyDataPayload: SettingsGen.SaveProxyDataPayload) => {
-  try {
-    await RPCTypes.configSetProxyDataRpcPromise(proxyDataPayload.payload)
-  } catch (err) {
-    logger.warn('Error in saving proxy data', err)
-  }
-}
-
 const sendFeedback = async (state: Container.TypedState, action: SettingsGen.SendFeedbackPayload) => {
   // We don't want test devices (pre-launch reports) to send us log sends.
   if (androidIsTestDevice) {
@@ -866,9 +848,6 @@ const initSettings = () => {
   Container.listenAction(EngineGen.keybase1NotifyUsersPasswordChanged, passwordChanged)
 
   Container.listenAction(SettingsGen.stop, stop)
-
-  Container.listenAction(SettingsGen.loadProxyData, loadProxyData)
-  Container.listenAction(SettingsGen.saveProxyData, saveProxyData)
 
   // Phone numbers
   Container.listenAction(SettingsGen.loadDefaultPhoneNumberCountry, loadDefaultPhoneNumberCountry)

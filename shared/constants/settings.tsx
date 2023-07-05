@@ -13,6 +13,7 @@ import type {
   ValidationResult as ValidationResultType,
   PhoneNumberFormat as PhoneNumberFormatType,
 } from '../util/phone-numbers'
+import logger from '../logger'
 
 export const makeEmailRow = (): Types.EmailRow => ({
   email: '',
@@ -221,22 +222,26 @@ type Store = {
   checkPasswordIsCorrect?: boolean
   didToggleCertificatePinning?: boolean
   lockdownModeEnabled?: boolean
+  proxyData?: RPCTypes.ProxyData
 }
 
 const initialStore: Store = {
   checkPasswordIsCorrect: undefined,
   didToggleCertificatePinning: undefined,
   lockdownModeEnabled: undefined,
+  proxyData: undefined,
 }
 
 export type State = Store & {
   dispatch: {
     checkPassword: (password: string) => void
     loadLockdownMode: () => void
+    loadProxyData: () => void
     resetCheckPassword: () => void
     resetState: 'default'
     setDidToggleCertificatePinning: (t?: boolean) => void
     setLockdownMode: (l: boolean) => void
+    setProxyData: (proxyData: RPCTypes.ProxyData) => void
   }
 }
 
@@ -276,6 +281,20 @@ export const useState = Z.createZustand<State>(set => {
       }
       Z.ignorePromise(f())
     },
+    loadProxyData: () => {
+      const f = async () => {
+        try {
+          const result = await RPCTypes.configGetProxyDataRpcPromise()
+          set(s => {
+            s.proxyData = result
+          })
+        } catch (err) {
+          logger.warn('Error in loading proxy data', err)
+          return
+        }
+      }
+      Z.ignorePromise(f())
+    },
     resetCheckPassword: () => {
       set(s => {
         s.checkPasswordIsCorrect = undefined
@@ -301,6 +320,16 @@ export const useState = Z.createZustand<State>(set => {
           set(s => {
             s.lockdownModeEnabled = undefined
           })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    setProxyData: proxyData => {
+      const f = async () => {
+        try {
+          await RPCTypes.configSetProxyDataRpcPromise({proxyData})
+        } catch (err) {
+          logger.warn('Error in saving proxy data', err)
         }
       }
       Z.ignorePromise(f())

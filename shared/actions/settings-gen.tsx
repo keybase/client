@@ -38,14 +38,12 @@ export const loadContactImportEnabled = 'settings:loadContactImportEnabled'
 export const loadDefaultPhoneNumberCountry = 'settings:loadDefaultPhoneNumberCountry'
 export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
-export const loadProxyData = 'settings:loadProxyData'
 export const loadRememberPassword = 'settings:loadRememberPassword'
 export const loadSettings = 'settings:loadSettings'
 export const loadedContactImportEnabled = 'settings:loadedContactImportEnabled'
 export const loadedContactPermissions = 'settings:loadedContactPermissions'
 export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
-export const loadedProxyData = 'settings:loadedProxyData'
 export const loadedRememberPassword = 'settings:loadedRememberPassword'
 export const loadedSettings = 'settings:loadedSettings'
 export const loadedUserCountryCode = 'settings:loadedUserCountryCode'
@@ -69,7 +67,6 @@ export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
 export const resendVerificationForPhoneNumber = 'settings:resendVerificationForPhoneNumber'
-export const saveProxyData = 'settings:saveProxyData'
 export const sendFeedback = 'settings:sendFeedback'
 export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setContactImportedCount = 'settings:setContactImportedCount'
@@ -304,10 +301,6 @@ export const createLoadLockdownMode = (payload?: undefined) => ({
   payload,
   type: loadLockdownMode as typeof loadLockdownMode,
 })
-export const createLoadProxyData = (payload?: undefined) => ({
-  payload,
-  type: loadProxyData as typeof loadProxyData,
-})
 export const createLoadRememberPassword = (payload?: undefined) => ({
   payload,
   type: loadRememberPassword as typeof loadRememberPassword,
@@ -330,10 +323,6 @@ export const createLoadedHasRandomPw = (payload: {readonly randomPW: boolean}) =
 export const createLoadedLockdownMode = (payload: {readonly status?: boolean} = {}) => ({
   payload,
   type: loadedLockdownMode as typeof loadedLockdownMode,
-})
-export const createLoadedProxyData = (payload: {readonly proxyData: RPCTypes.ProxyData}) => ({
-  payload,
-  type: loadedProxyData as typeof loadedProxyData,
 })
 export const createLoadedRememberPassword = (payload: {readonly remember: boolean}) => ({
   payload,
@@ -420,10 +409,6 @@ export const createProcessorProfile = (payload: {readonly durationSeconds: numbe
 export const createRequestContactPermissions = (
   payload: {readonly thenToggleImportOn?: boolean; readonly fromSettings?: boolean} = {}
 ) => ({payload, type: requestContactPermissions as typeof requestContactPermissions})
-export const createSaveProxyData = (payload: {readonly proxyData: RPCTypes.ProxyData}) => ({
-  payload,
-  type: saveProxyData as typeof saveProxyData,
-})
 export const createSendFeedback = (payload: {
   readonly feedback: string
   readonly sendLogs: boolean
@@ -484,14 +469,12 @@ export type LoadContactImportEnabledPayload = ReturnType<typeof createLoadContac
 export type LoadDefaultPhoneNumberCountryPayload = ReturnType<typeof createLoadDefaultPhoneNumberCountry>
 export type LoadHasRandomPwPayload = ReturnType<typeof createLoadHasRandomPw>
 export type LoadLockdownModePayload = ReturnType<typeof createLoadLockdownMode>
-export type LoadProxyDataPayload = ReturnType<typeof createLoadProxyData>
 export type LoadRememberPasswordPayload = ReturnType<typeof createLoadRememberPassword>
 export type LoadSettingsPayload = ReturnType<typeof createLoadSettings>
 export type LoadedContactImportEnabledPayload = ReturnType<typeof createLoadedContactImportEnabled>
 export type LoadedContactPermissionsPayload = ReturnType<typeof createLoadedContactPermissions>
 export type LoadedHasRandomPwPayload = ReturnType<typeof createLoadedHasRandomPw>
 export type LoadedLockdownModePayload = ReturnType<typeof createLoadedLockdownMode>
-export type LoadedProxyDataPayload = ReturnType<typeof createLoadedProxyData>
 export type LoadedRememberPasswordPayload = ReturnType<typeof createLoadedRememberPassword>
 export type LoadedSettingsPayload = ReturnType<typeof createLoadedSettings>
 export type LoadedUserCountryCodePayload = ReturnType<typeof createLoadedUserCountryCode>
@@ -517,7 +500,6 @@ export type RequestContactPermissionsPayload = ReturnType<typeof createRequestCo
 export type ResendVerificationForPhoneNumberPayload = ReturnType<
   typeof createResendVerificationForPhoneNumber
 >
-export type SaveProxyDataPayload = ReturnType<typeof createSaveProxyData>
 export type SendFeedbackPayload = ReturnType<typeof createSendFeedback>
 export type SentVerificationEmailPayload = ReturnType<typeof createSentVerificationEmail>
 export type SetContactImportedCountPayload = ReturnType<typeof createSetContactImportedCount>
@@ -566,14 +548,12 @@ export type Actions =
   | LoadDefaultPhoneNumberCountryPayload
   | LoadHasRandomPwPayload
   | LoadLockdownModePayload
-  | LoadProxyDataPayload
   | LoadRememberPasswordPayload
   | LoadSettingsPayload
   | LoadedContactImportEnabledPayload
   | LoadedContactPermissionsPayload
   | LoadedHasRandomPwPayload
   | LoadedLockdownModePayload
-  | LoadedProxyDataPayload
   | LoadedRememberPasswordPayload
   | LoadedSettingsPayload
   | LoadedUserCountryCodePayload
@@ -597,7 +577,6 @@ export type Actions =
   | ProcessorProfilePayload
   | RequestContactPermissionsPayload
   | ResendVerificationForPhoneNumberPayload
-  | SaveProxyDataPayload
   | SendFeedbackPayload
   | SentVerificationEmailPayload
   | SetContactImportedCountPayload

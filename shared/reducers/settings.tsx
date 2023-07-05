@@ -286,9 +286,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.email.emails = emails
     draftState.phoneNumbers.phones = phones
   },
-  [SettingsGen.loadedProxyData]: (draftState, action) => {
-    draftState.proxyData = action.payload.proxyData
-  },
   [SettingsGen.feedbackSent]: (draftState, action) => {
     draftState.feedback.error = action.payload.error
   },

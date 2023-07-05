@@ -148,7 +148,6 @@ export type State = {
   notifications: NotificationsState
   password: PasswordState
   phoneNumbers: PhoneNumbersState
-  proxyData?: RPCTypes.ProxyData
 }
 
 export type PlanLevel = string

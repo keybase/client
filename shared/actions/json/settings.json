@@ -224,13 +224,6 @@
       "_description": "An error occurred while trying to send feedback to Keybase",
       "error?": "Error"
     },
-    "loadProxyData": {},
-    "loadedProxyData": {
-      "proxyData": "RPCTypes.ProxyData"
-    },
-    "saveProxyData": {
-      "proxyData": "RPCTypes.ProxyData"
-    },
     "loadDefaultPhoneNumberCountry": {},
     "updateDefaultPhoneNumberCountry": {
       "country": "string"
