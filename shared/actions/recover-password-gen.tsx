@@ -1,6 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import type * as RPCTypes from '../constants/types/rpc-gen'
-import type * as Types from '../constants/types/provision'
+import {type Device} from '../constants/provision'
 import type HiddenString from '../util/hidden-string'
 
 // Constants
@@ -38,7 +38,7 @@ export const createCompleteResetPassword = (payload?: undefined) => ({
   type: completeResetPassword as typeof completeResetPassword,
 })
 export const createDisplayDeviceSelect = (payload: {
-  readonly devices: Array<Types.Device>
+  readonly devices: Array<Device>
   readonly replaceRoute?: boolean
 }) => ({payload, type: displayDeviceSelect as typeof displayDeviceSelect})
 export const createDisplayError = (payload: {readonly error: HiddenString}) => ({

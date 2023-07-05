@@ -34,7 +34,11 @@ export default function AddDevice(ownProps: OwnProps) {
   const onAddPhone = React.useCallback(() => {
     addNewDevice('mobile')
   }, [addNewDevice])
-  const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const cancel = ProvisionConstants.useState(s => s.dispatch.cancel)
+  const onCancel = React.useCallback(() => {
+    cancel()
+    dispatch(RouteTreeGen.createNavigateUp())
+  }, [cancel, dispatch])
   return (
     <Kb.PopupWrapper onCancel={onCancel}>
       <Kb.ScrollView alwaysBounceVertical={false}>

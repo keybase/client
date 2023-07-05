@@ -1,5 +1,4 @@
 import chat2 from './chat2'
-import provision from './provision'
 import push from './push'
 import recoverPassword from './recover-password'
 import settings from './settings'
@@ -17,7 +16,6 @@ export const reducers = {
   chat2,
   crypto,
   people,
-  provision,
   push,
   recoverPassword,
   settings,
@@ -33,7 +31,6 @@ export type TypedState = {
   chat2: ReturnType<typeof chat2>
   crypto: ReturnType<typeof crypto>
   people: ReturnType<typeof people>
-  provision: ReturnType<typeof provision>
   push: ReturnType<typeof push>
   recoverPassword: ReturnType<typeof recoverPassword>
   settings: ReturnType<typeof settings>

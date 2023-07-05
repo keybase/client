@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import DeviceIcon from '../devices/device-icon'
-import type * as Types from '../constants/types/provision'
+import {type Device} from '../constants/provision'
 import {SignupScreen} from '../signup/common'
 
 const SelectOtherDeviceContainer = () => {
@@ -44,14 +44,14 @@ export default SelectOtherDeviceContainer
 
 type Props = {
   passwordRecovery?: boolean
-  devices: ReadonlyArray<Types.Device>
+  devices: ReadonlyArray<Device>
   onBack: () => void
   onSelect: (name: string) => void
   onResetAccount: () => void
 }
 
 const resetSignal = 'reset'
-type DeviceOrReset = Types.Device | 'reset'
+type DeviceOrReset = Device | 'reset'
 export class SelectOtherDevice extends React.Component<Props> {
   _renderItem = (index: number, item: DeviceOrReset) => {
     if (item === resetSignal) {

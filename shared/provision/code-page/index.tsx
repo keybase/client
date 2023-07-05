@@ -6,7 +6,7 @@ import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {isAndroid} from '../../constants/platform'
 import Troubleshooting from '../troubleshooting'
-import type * as Types from '../../constants/types/provision'
+import {type Device} from '../../constants/provision'
 import type * as DeviceTypes from '../../constants/types/devices'
 
 export type DeviceType = 'mobile' | 'desktop'
@@ -20,7 +20,7 @@ type Props = {
   currentDeviceAlreadyProvisioned: boolean
   currentDeviceName: string
   iconNumber: number
-  otherDevice: Types.Device
+  otherDevice: Device
   tabOverride?: Tab
   textCode: string
   onBack: () => void

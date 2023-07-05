@@ -1,11 +1,9 @@
 import * as React from 'react'
 import * as Styles from '../styles'
-// import * as Container from '../util/container'
 import * as Constants from '../constants/provision'
 import * as Kb from '../common-adapters'
 import * as DevicesConstants from '../constants/devices'
 import type * as Types from '../constants/types/devices'
-// import * as ProvisionGen from '../actions/provision-gen'
 type Props = {
   mode: 'QR' | 'text'
   onCancel: () => void

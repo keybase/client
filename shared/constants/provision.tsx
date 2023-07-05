@@ -1,5 +1,3 @@
-/* eslint-disable sort-keys */
-// TODO remove ^
 import * as DeviceTypes from './types/devices'
 import * as WaitingConstants from './waiting'
 import * as ConfigConstants from './config'
@@ -8,12 +6,29 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import {isMobile} from './platform'
-import type * as Types from './types/provision'
 import {type CommonResponseHandler} from '../engine/types'
 import isEqual from 'lodash/isEqual'
 
+export type Device = {
+  deviceNumberOfType: number
+  id: DeviceTypes.DeviceID
+  name: string
+  type: DeviceTypes.DeviceType
+}
+
 export const waitingKey = 'provision:waiting'
 export const forgotUsernameWaitingKey = 'provision:forgotUsername'
+
+const decodeForgotUsernameError = (error: RPCError) => {
+  switch (error.code) {
+    case RPCTypes.StatusCode.scnotfound:
+      return "We couldn't find an account with that email address. Try again?"
+    case RPCTypes.StatusCode.scinputerror:
+      return "That doesn't look like a valid email address. Try again?"
+    default:
+      return error.desc
+  }
+}
 
 // Do NOT change this. These values are used by the daemon also so this way we can ignore it when they do it / when we do
 const errorCausedByUsCanceling = (e?: RPCError) =>
@@ -23,15 +38,11 @@ const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
   response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 
-export const makeDevice = (): Types.Device => ({
+export const makeDevice = (): Device => ({
   deviceNumberOfType: 0,
   id: DeviceTypes.stringToDeviceID(''),
   name: '',
   type: 'mobile',
-})
-
-export const makeState = (): Types.State => ({
-  forgotUsernameResult: '',
 })
 
 export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
@@ -70,78 +81,58 @@ type Step =
   | {type: 'username'}
   | {type: 'passphrase'}
   | {type: 'deviceName'}
-  | {type: 'chooseDevice'; devices: Array<Types.Device>}
+  | {type: 'chooseDevice'; devices: Array<Device>}
   | {type: 'promptSecret'}
 type ExtractType<T> = T extends {type: infer U} ? U : never
 type StepTypes = ExtractType<Step>
-// type Step = {type: 'username' | 'password'
 
 type Store = {
-  codePageOtherDevice: Types.Device
-  devices: Array<Types.Device>
-  gpgImportError?: string
-  error: string
-  // phase: 'stopped' | 'started'
-  username: string
-  // username: string
-  // we allow you to backtrack so we stash set values, if you submit anything in the past we'll clear future values
-  // and auto submit previous values
-  // inputValues: Array<InputValues>
   autoSubmit: Array<Step>
-  provisionStep: number
   callbackMap: Map<StepTypes, () => void>
-  passphrase: string
-  existingDevices: Array<string>
-  deviceName: string
-  // Code from the daemon
   codePageIncomingTextCode: string
-  // Code from other device
-  // codePageOutgoingTextCode: string
+  codePageOtherDevice: Device
+  deviceName: string
+  devices: Array<Device>
+  error: string
+  existingDevices: Array<string>
   finalError?: RPCError
-  inlineError?: RPCError
   forgotUsernameResult: string
+  gpgImportError?: string
+  inlineError?: RPCError
+  passphrase: string
+  provisionStep: number
+  username: string
 }
 const initialStore: Store = {
-  codePageOtherDevice: makeDevice(),
-  devices: [],
-  // shared by all errors, we only ever want one error
-  error: '',
-  gpgImportError: undefined,
-  // phase: 'stopped',
-  username: '',
-  // inputValues: [],
   autoSubmit: [],
-  provisionStep: 0,
   callbackMap: new Map(),
-  passphrase: '',
-  existingDevices: [],
-  deviceName: '',
-  // Code from the daemon
   codePageIncomingTextCode: '',
-  // Code from other device
-  // codePageOutgoingTextCode: '',
+  codePageOtherDevice: makeDevice(),
+  deviceName: '',
+  devices: [],
+  error: '',
+  existingDevices: [],
   finalError: undefined,
-  inlineError: undefined,
-  // TODO actions
   forgotUsernameResult: '',
+  gpgImportError: undefined,
+  inlineError: undefined,
+  passphrase: '',
+  provisionStep: 0,
+  username: '',
 }
 
 type State = Store & {
   dispatch: {
     addNewDevice: (otherDeviceType: 'desktop' | 'mobile') => void
-    startProvision: (name?: string, fromReset?: boolean) => void
-    // addNewDevice: (otherDeviceType: 'desktop' | 'mobile') => void
-    resetState: () => void
-    // maybe remove
-    // showDeviceListPage: (devices: Array<Types.Device>) => void
-    submitDeviceSelect: (name: string) => void
-
-    // new stuff
-    restartProvisioning: () => void
     cancel: () => void
-    setUsername: (username: string) => void
-    setPassphrase: (passphrase: string) => void
+    forgotUsername: (phone?: string, email?: string) => void
+    resetState: () => void
+    restartProvisioning: () => void
     setDeviceName: (name: string) => void
+    setPassphrase: (passphrase: string) => void
+    setUsername: (username: string) => void
+    startProvision: (name?: string, fromReset?: boolean) => void
+    submitDeviceSelect: (name: string) => void
     submitTextCode: (code: string) => void
   }
 }
@@ -149,6 +140,7 @@ type State = Store & {
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const _cancel = () => {
+    WaitingConstants.useWaitingState.getState().dispatch.clear(waitingKey)
     console.log('Provision: cancel called while not overloaded')
   }
 
@@ -201,7 +193,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     set(s => {
       s.codePageOtherDevice = selectedDevice
     })
-    _updateAutoSubmit({type: 'chooseDevice', devices})
+    _updateAutoSubmit({devices, type: 'chooseDevice'})
     if (restart) {
       get().dispatch.restartProvisioning()
     }
@@ -232,6 +224,7 @@ export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     ...dispatchOverrides,
     addNewDevice: otherDeviceType => {
+      get().dispatch.cancel()
       set(s => {
         s.codePageOtherDevice.type = otherDeviceType
       })
@@ -255,84 +248,97 @@ export const useState = Z.createZustand<State>((set, get) => {
         return false
       }
       const f = async () => {
-        await RPCTypes.deviceDeviceAddRpcListener(
-          {
-            customResponseIncomingCallMap: {
-              'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
-                if (isCanceled(response)) return
-                const {phrase, previousErr} = params
-                setupCancel(response)
-                set(s => {
-                  s.error = previousErr
-                  s.codePageIncomingTextCode = phrase
-                  s.dispatch.submitTextCode = (code: string) => {
-                    set(s => {
-                      s.dispatch.submitTextCode = _submitTextCode
-                    })
-                    resetErrorAndCancel()
-                    const good = code.replace(/\W+/g, ' ').trim()
-                    response.result({phrase: good, secret: null as any})
+        try {
+          await RPCTypes.deviceDeviceAddRpcListener(
+            {
+              customResponseIncomingCallMap: {
+                'keybase.1.provisionUi.DisplayAndPromptSecret': (params, response) => {
+                  if (isCanceled(response)) return
+                  const {phrase, previousErr} = params
+                  setupCancel(response)
+                  set(s => {
+                    s.error = previousErr
+                    s.codePageIncomingTextCode = phrase
+                    s.dispatch.submitTextCode = (code: string) => {
+                      set(s => {
+                        s.dispatch.submitTextCode = _submitTextCode
+                      })
+                      resetErrorAndCancel()
+                      const good = code.replace(/\W+/g, ' ').trim()
+                      response.result({phrase: good, secret: null as any})
+                    }
+                  })
+                  reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['codePage']}))
+                },
+                'keybase.1.provisionUi.chooseDeviceType': (_params, response) => {
+                  const {type} = get().codePageOtherDevice
+                  switch (type) {
+                    case 'mobile':
+                      response.result(RPCTypes.DeviceType.mobile)
+                      break
+                    case 'desktop':
+                      response.result(RPCTypes.DeviceType.desktop)
+                      break
+                    default:
+                      response.error()
+                      throw new Error('Tried to add a device but of unknown type' + type)
                   }
-                })
-                reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['codePage']}))
+                },
               },
-              'keybase.1.provisionUi.chooseDeviceType': (_params, response) => {
-                const {type} = get().codePageOtherDevice
-                switch (type) {
-                  case 'mobile':
-                    response.result(RPCTypes.DeviceType.mobile)
-                    break
-                  case 'desktop':
-                    response.result(RPCTypes.DeviceType.desktop)
-                    break
-                  default:
-                    response.error()
-                    throw new Error('Tried to add a device but of unknown type' + type)
-                }
+              incomingCallMap: {
+                'keybase.1.provisionUi.DisplaySecretExchanged': () => {
+                  WaitingConstants.useWaitingState.getState().dispatch.increment(waitingKey)
+                },
+                'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
+                'keybase.1.provisionUi.ProvisionerSuccess': () => {},
               },
+              params: undefined,
+              waitingKey,
             },
-            incomingCallMap: {
-              'keybase.1.provisionUi.DisplaySecretExchanged': () => {
-                WaitingConstants.useWaitingState.getState().dispatch.increment(waitingKey)
-              },
-              'keybase.1.provisionUi.ProvisioneeSuccess': () => {},
-              'keybase.1.provisionUi.ProvisionerSuccess': () => {},
-            },
-            params: undefined,
-            waitingKey,
-          },
-          Z.dummyListenerApi
-        )
-
+            Z.dummyListenerApi
+          )
+        } catch {}
         reduxDispatch(RouteTreeGen.createClearModals())
       }
       Z.ignorePromise(f())
     },
-    startProvision: (name = '', fromReset = false) => {
-      ConfigConstants.useConfigState.getState().dispatch.loginError()
-      ConfigConstants.useConfigState.getState().dispatch.resetRevokedSelf()
-
-      set(s => {
-        s.username = name
-      })
+    forgotUsername: (phone, email) => {
       const f = async () => {
-        // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-        if (ConfigConstants.useConfigState.getState().loggedIn) {
-          await RPCTypes.loginLogoutRpcPromise(
-            {force: false, keepSecrets: true},
-            ConfigConstants.loginAsOtherUserWaitingKey
-          )
+        if (email) {
+          try {
+            await RPCTypes.accountRecoverUsernameWithEmailRpcPromise({email}, forgotUsernameWaitingKey)
+            set(s => {
+              s.forgotUsernameResult = 'success'
+            })
+          } catch (error) {
+            if (error instanceof RPCError) {
+              const err = decodeForgotUsernameError(error)
+              set(s => {
+                s.forgotUsernameResult = err
+              })
+            }
+          }
         }
-        reduxDispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {fromReset}, selected: 'username'}],
-          })
-        )
+        if (phone) {
+          try {
+            await RPCTypes.accountRecoverUsernameWithPhoneRpcPromise({phone}, forgotUsernameWaitingKey)
+            set(s => {
+              s.forgotUsernameResult = 'success'
+            })
+          } catch (error) {
+            if (error instanceof RPCError) {
+              const err = decodeForgotUsernameError(error)
+              set(s => {
+                s.forgotUsernameResult = err
+              })
+              return
+            }
+          }
+        }
       }
       Z.ignorePromise(f())
     },
     resetState: () => {
-      WaitingConstants.useWaitingState.getState().dispatch.clear(waitingKey)
       get().dispatch.cancel()
       set(s => ({
         ...s,
@@ -453,7 +459,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     }
                   })
 
-                  if (shouldAutoSubmit(false, {type: 'chooseDevice', devices})) {
+                  if (shouldAutoSubmit(false, {devices, type: 'chooseDevice'})) {
                     console.log('Provision: auto submit passphrase')
                     get().dispatch.submitDeviceSelect(get().codePageOtherDevice.name)
                   } else {
@@ -521,8 +527,6 @@ export const useState = Z.createZustand<State>((set, get) => {
             },
             Z.dummyListenerApi
           )
-          // success
-          // TODO other stuff
           get().dispatch.resetState()
         } catch (_finalError) {
           if (!(_finalError instanceof RPCError)) {
@@ -544,12 +548,8 @@ export const useState = Z.createZustand<State>((set, get) => {
                 set(s => {
                   s.finalError = finalError
                 })
-                // TODO device
-                const parentPath = /*action.payload.fromDeviceAdd ? devicesRoot : */ ['login'] as const
-                const replace = true // !action.payload.fromDeviceAdd
-                const path = ['error'] as const
                 reduxDispatch(RouteTreeGen.createClearModals())
-                reduxDispatch(RouteTreeGen.createNavigateAppend({path: [...parentPath, ...path], replace}))
+                reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['login', 'error'], replace: true}))
               }
               break
           }
@@ -559,15 +559,31 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-  }
+    startProvision: (name = '', fromReset = false) => {
+      get().dispatch.cancel()
+      ConfigConstants.useConfigState.getState().dispatch.loginError()
+      ConfigConstants.useConfigState.getState().dispatch.resetRevokedSelf()
 
-  // TODO internal
-  // [ProvisionGen.switchToGPGSignOnly]: (draftState, action) => {
-  //   draftState.gpgImportError = action.payload.importError
-  // },
-  // [ProvisionGen.submitGPGSignOK]: draftState => {
-  //   draftState.gpgImportError = undefined
-  // },
+      set(s => {
+        s.username = name
+      })
+      const f = async () => {
+        // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
+        if (ConfigConstants.useConfigState.getState().loggedIn) {
+          await RPCTypes.loginLogoutRpcPromise(
+            {force: false, keepSecrets: true},
+            ConfigConstants.loginAsOtherUserWaitingKey
+          )
+        }
+        reduxDispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {fromReset}, selected: 'username'}],
+          })
+        )
+      }
+      Z.ignorePromise(f())
+    },
+  }
 
   return {
     ...initialStore,
