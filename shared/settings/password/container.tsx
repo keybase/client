@@ -1,6 +1,5 @@
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/settings'
-import * as SettingsGen from '../../actions/settings-gen'
 import UpdatePassword from '.'
 import * as Container from '../../util/container'
 
@@ -16,9 +15,6 @@ export default () => {
   const dispatch = Container.useDispatch()
   const onCancel = () => {
     dispatch(RouteTreeGen.createNavigateUp())
-  }
-  const onChangeShowPassword = () => {
-    dispatch(SettingsGen.createOnChangeShowPassword())
   }
 
   const setPassword = Constants.usePasswordState(s => s.dispatch.setPassword)
@@ -40,7 +36,6 @@ export default () => {
     newPasswordConfirmError,
     newPasswordError,
     onCancel,
-    onChangeShowPassword,
     onSave,
     onUpdatePGPSettings,
     saveLabel,
