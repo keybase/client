@@ -11,7 +11,6 @@ import * as SettingsGen from './settings-gen'
 import * as Tabs from '../constants/tabs'
 import logger from '../logger'
 import openURL from '../util/open-url'
-import trim from 'lodash/trim'
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/settings'
 import {RPCError} from '../util/errors'
@@ -83,115 +82,6 @@ const toggleNotifications = async (state: Container.TypedState) => {
   }
 
   return SettingsGen.createNotificationsSaved()
-}
-
-const reclaimInvite = async (_: unknown, action: SettingsGen.InvitesReclaimPayload) => {
-  try {
-    await RPCTypes.apiserverPostRpcPromise(
-      {
-        args: [{key: 'invitation_id', value: action.payload.inviteId}],
-        endpoint: 'cancel_invitation',
-      },
-      Constants.settingsWaitingKey
-    )
-    return [SettingsGen.createInvitesRefresh()]
-  } catch (e) {
-    logger.warn('Error reclaiming an invite:', e)
-    return [SettingsGen.createInvitesRefresh()]
-  }
-}
-
-const refreshInvites = async () => {
-  const json = await RPCTypes.apiserverGetWithSessionRpcPromise(
-    {
-      args: [],
-      endpoint: 'invitations_sent',
-    },
-    Constants.settingsWaitingKey
-  )
-  const results: {
-    invitations: Array<{
-      assertion: string | undefined
-      ctime: number
-      email: string
-      invitation_id: string
-      short_code: string
-      type: string
-      uid: string
-      username: string
-    }>
-  } = JSON.parse(json?.body ?? '')
-
-  const acceptedInvites: Array<Types.Invitation> = []
-  const pendingInvites: Array<Types.Invitation> = []
-
-  results.invitations.forEach(i => {
-    const invite: Types.Invitation = {
-      created: i.ctime,
-      email: i.email,
-      id: i.invitation_id,
-      // @ts-ignore for now
-      key: i.invitation_id,
-      // type will get filled in later
-      type: '',
-      uid: i.uid,
-      // First ten chars of invite code is sufficient
-      url: 'keybase.io/inv/' + i.invitation_id.slice(0, 10),
-      username: i.username,
-    }
-    // Here's an algorithm for interpreting invitation entries.
-    // 1: username+uid => accepted invite, else
-    // 2: email set => pending email invite, else
-    // 3: pending invitation code invite
-    if (i.username && i.uid) {
-      invite.type = 'accepted'
-      acceptedInvites.push(invite)
-    } else {
-      invite.type = 'pending'
-      pendingInvites.push(invite)
-    }
-  })
-  return SettingsGen.createInvitesRefreshed({
-    invites: {
-      acceptedInvites: acceptedInvites,
-      pendingInvites: pendingInvites,
-    },
-  })
-}
-
-const sendInvite = async (_: unknown, action: SettingsGen.InvitesSendPayload) => {
-  try {
-    const {email, message} = action.payload
-    const args = [{key: 'email', value: trim(email)}]
-    if (message) {
-      args.push({key: 'invitation_message', value: message})
-    }
-
-    const response = await RPCTypes.apiserverPostRpcPromise(
-      {args, endpoint: 'send_invitation'},
-      Constants.settingsWaitingKey
-    )
-
-    if (response) {
-      const parsedBody = JSON.parse(response.body)
-      const invitationId = parsedBody.invitation_id.slice(0, 10)
-      const link = 'keybase.io/inv/' + invitationId
-      return [
-        SettingsGen.createInvitesSent(),
-        // TODO: if the user changes their route while working, this may lead to an invalid route
-        RouteTreeGen.createNavigateAppend({path: [{props: {email, link}, selected: 'inviteSent'}]}),
-        SettingsGen.createInvitesRefresh(),
-      ]
-    } else {
-      return false
-    }
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    logger.warn('Error sending an invite:', error)
-    return [SettingsGen.createInvitesSent({error: error}), SettingsGen.createInvitesRefresh()]
-  }
 }
 
 const refreshNotifications = async (_s: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
@@ -606,9 +496,6 @@ const maybeClearAddedEmail = (state: Container.TypedState, action: RouteTreeGen.
 }
 
 const initSettings = () => {
-  Container.listenAction(SettingsGen.invitesReclaim, reclaimInvite)
-  Container.listenAction(SettingsGen.invitesRefresh, refreshInvites)
-  Container.listenAction(SettingsGen.invitesSend, sendInvite)
   Container.listenAction(SettingsGen.notificationsRefresh, refreshNotifications)
   Container.listenAction(SettingsGen.notificationsToggle, toggleNotifications)
   Container.listenAction(SettingsGen.dbNuke, dbNuke)

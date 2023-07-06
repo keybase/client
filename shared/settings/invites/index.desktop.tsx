@@ -1,6 +1,6 @@
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/settings'
+import type {AcceptedInvite, PendingInvite} from '../../constants/settings-invites'
 import * as React from 'react'
 import SubHeading from '../subheading'
 import type {Props} from '.'
@@ -51,7 +51,7 @@ class Invites extends React.Component<Props, State> {
       <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
         {!!this.props.error && (
           <Kb.Banner color="red">
-            <Kb.BannerParagraph bannerColor="red" content={this.props.error.message} />
+            <Kb.BannerParagraph bannerColor="red" content={this.props.error} />
           </Kb.Banner>
         )}
         <Kb.Box
@@ -126,9 +126,9 @@ function PendingInviteItem({
   onReclaimInvitation,
   onSelectPendingInvite,
 }: {
-  invite: Types.PendingInvite
+  invite: PendingInvite
   onReclaimInvitation: (id: string) => void
-  onSelectPendingInvite: (invite: Types.PendingInvite) => void
+  onSelectPendingInvite: (invite: PendingInvite) => void
 }) {
   return (
     <Kb.Box style={styles.inviteItem}>
@@ -153,8 +153,8 @@ function PendingEmailContent({
   invite,
   onSelectPendingInvite,
 }: {
-  invite: Types.PendingInvite
-  onSelectPendingInvite: (invite: Types.PendingInvite) => void
+  invite: PendingInvite
+  onSelectPendingInvite: (invite: PendingInvite) => void
 }) {
   return (
     <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
@@ -171,7 +171,7 @@ function PendingEmailContent({
   )
 }
 
-function PendingURLContent({invite}: {invite: Types.PendingInvite}) {
+function PendingURLContent({invite}: {invite: PendingInvite}) {
   return (
     <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Kb.Icon
@@ -194,7 +194,7 @@ function AcceptedInviteItem({
   invite,
   onClick,
 }: {
-  invite: Types.AcceptedInvite
+  invite: AcceptedInvite
   onClick: (username: string) => void
 }) {
   return (

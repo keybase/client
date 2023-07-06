@@ -1,36 +1,6 @@
 import type * as RPCChatTypes from './rpc-chat-gen'
 import type * as RPCTypes from './rpc-gen'
 
-type InviteBase = {
-  id: string
-  created: RPCTypes.Time
-}
-
-export type PendingInvite = {
-  url: string
-  email?: string
-} & InviteBase
-
-export type AcceptedInvite = {
-  username: string
-} & InviteBase
-
-export type Invitation = {
-  created: number
-  email?: string
-  id: string
-  type: string
-  username: string
-  uid?: string
-  url: string
-}
-
-export type InvitesState = {
-  pendingInvites: Array<PendingInvite>
-  acceptedInvites: Array<AcceptedInvite>
-  error?: Error
-}
-
 export type NotificationsSettingsState = {
   name: string
   subscribed: boolean
@@ -115,6 +85,5 @@ export type State = {
   contacts: ContactsState
   email: EmailState
   feedback: FeedbackState
-  invites: InvitesState
   notifications: NotificationsState
 }

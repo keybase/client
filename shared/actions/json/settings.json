@@ -75,21 +75,6 @@
     "clearAddedPhone": {
       "_description": "Reset state used for showing we just added a phone number."
     },
-    "invitesClearError": {},
-    "invitesReclaim": {
-      "inviteId": "string"
-    },
-    "invitesRefresh": {},
-    "invitesRefreshed": {
-      "invites": "Types.InvitesState"
-    },
-    "invitesSend": {
-      "email": "string",
-      "message?": "string"
-    },
-    "invitesSent": {
-      "error?": "Error"
-    },
     "loadLockdownMode": {},
     "loadedLockdownMode": {
       "status?": "boolean"

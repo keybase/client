@@ -25,12 +25,6 @@ export const editEmail = 'settings:editEmail'
 export const emailVerified = 'settings:emailVerified'
 export const feedbackSent = 'settings:feedbackSent'
 export const importContactsLater = 'settings:importContactsLater'
-export const invitesClearError = 'settings:invitesClearError'
-export const invitesReclaim = 'settings:invitesReclaim'
-export const invitesRefresh = 'settings:invitesRefresh'
-export const invitesRefreshed = 'settings:invitesRefreshed'
-export const invitesSend = 'settings:invitesSend'
-export const invitesSent = 'settings:invitesSent'
 export const loadContactImportEnabled = 'settings:loadContactImportEnabled'
 export const loadDefaultPhoneNumberCountry = 'settings:loadDefaultPhoneNumberCountry'
 export const loadLockdownMode = 'settings:loadLockdownMode'
@@ -211,30 +205,6 @@ export const createImportContactsLater = (payload?: undefined) => ({
   payload,
   type: importContactsLater as typeof importContactsLater,
 })
-export const createInvitesClearError = (payload?: undefined) => ({
-  payload,
-  type: invitesClearError as typeof invitesClearError,
-})
-export const createInvitesReclaim = (payload: {readonly inviteId: string}) => ({
-  payload,
-  type: invitesReclaim as typeof invitesReclaim,
-})
-export const createInvitesRefresh = (payload?: undefined) => ({
-  payload,
-  type: invitesRefresh as typeof invitesRefresh,
-})
-export const createInvitesRefreshed = (payload: {readonly invites: Types.InvitesState}) => ({
-  payload,
-  type: invitesRefreshed as typeof invitesRefreshed,
-})
-export const createInvitesSend = (payload: {readonly email: string; readonly message?: string}) => ({
-  payload,
-  type: invitesSend as typeof invitesSend,
-})
-export const createInvitesSent = (payload: {readonly error?: Error} = {}) => ({
-  payload,
-  type: invitesSent as typeof invitesSent,
-})
 export const createLoadDefaultPhoneNumberCountry = (payload?: undefined) => ({
   payload,
   type: loadDefaultPhoneNumberCountry as typeof loadDefaultPhoneNumberCountry,
@@ -343,12 +313,6 @@ export type EditEmailPayload = ReturnType<typeof createEditEmail>
 export type EmailVerifiedPayload = ReturnType<typeof createEmailVerified>
 export type FeedbackSentPayload = ReturnType<typeof createFeedbackSent>
 export type ImportContactsLaterPayload = ReturnType<typeof createImportContactsLater>
-export type InvitesClearErrorPayload = ReturnType<typeof createInvitesClearError>
-export type InvitesReclaimPayload = ReturnType<typeof createInvitesReclaim>
-export type InvitesRefreshPayload = ReturnType<typeof createInvitesRefresh>
-export type InvitesRefreshedPayload = ReturnType<typeof createInvitesRefreshed>
-export type InvitesSendPayload = ReturnType<typeof createInvitesSend>
-export type InvitesSentPayload = ReturnType<typeof createInvitesSent>
 export type LoadContactImportEnabledPayload = ReturnType<typeof createLoadContactImportEnabled>
 export type LoadDefaultPhoneNumberCountryPayload = ReturnType<typeof createLoadDefaultPhoneNumberCountry>
 export type LoadLockdownModePayload = ReturnType<typeof createLoadLockdownMode>
@@ -400,12 +364,6 @@ export type Actions =
   | EmailVerifiedPayload
   | FeedbackSentPayload
   | ImportContactsLaterPayload
-  | InvitesClearErrorPayload
-  | InvitesReclaimPayload
-  | InvitesRefreshPayload
-  | InvitesRefreshedPayload
-  | InvitesSendPayload
-  | InvitesSentPayload
   | LoadContactImportEnabledPayload
   | LoadDefaultPhoneNumberCountryPayload
   | LoadLockdownModePayload

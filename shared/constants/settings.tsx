@@ -11,7 +11,6 @@ import {useConfigState} from './config'
 import * as Tabs from './tabs'
 import logger from '../logger'
 import {useState as usePhoneState} from './settings-phone'
-import {useState as usePasswordState} from './settings-password'
 
 export const makeEmailRow = (): Types.EmailRow => ({
   email: '',
@@ -41,10 +40,6 @@ export const makeState = (): Types.State => ({
     newEmail: '',
   },
   feedback: {},
-  invites: {
-    acceptedInvites: [],
-    pendingInvites: [],
-  },
   notifications: {
     allowEdit: false,
     groups: new Map(),
@@ -268,6 +263,7 @@ export const useState = Z.createZustand<State>(set => {
         }
         try {
           const settings = await RPCTypes.userLoadMySettingsRpcPromise(undefined, loadSettingsWaitingKey)
+          console.log('aaaaaaaaaaaaaa TODO EMAIL!!!')
           // const emailMap = new Map(
           //   (settings.emails ?? []).map(row => [row.email, {...Constants.makeEmailRow(), ...row}])
           // )
@@ -330,7 +326,9 @@ export const useState = Z.createZustand<State>(set => {
     dispatch,
   }
 })
-export {usePhoneState, usePasswordState}
+export {usePhoneState}
+export {useState as usePasswordState} from './settings-password'
+export {useState as useInvitesState} from './settings-invites'
 export {
   verifyPhoneNumberWaitingKey,
   addPhoneNumberWaitingKey,

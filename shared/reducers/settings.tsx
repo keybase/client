@@ -70,18 +70,6 @@ const notificationActions: Container.ActionHandler<Actions, Types.State> = {
   },
 }
 
-const invitesActions: Container.ActionHandler<Actions, Types.State> = {
-  [SettingsGen.invitesRefreshed]: (draftState, action) => {
-    draftState.invites = action.payload.invites
-  },
-  [SettingsGen.invitesSent]: (draftState, action) => {
-    draftState.invites.error = action.payload.error
-  },
-  [SettingsGen.invitesClearError]: draftState => {
-    draftState.invites.error = undefined
-  },
-}
-
 const emailActions: Container.ActionHandler<Actions, Types.State> = {
   [EngineGen.keybase1NotifyEmailAddressEmailsChanged]: (draftState, action) => {
     const {list} = action.payload.params
@@ -213,7 +201,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.feedback.error = undefined
   },
   ...notificationActions,
-  ...invitesActions,
   ...emailActions,
   ...chatActions,
   ...contactsActions,
