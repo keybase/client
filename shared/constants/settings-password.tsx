@@ -31,33 +31,17 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     loadHasRandomPw: () => void
+    loadPgpSettings: () => void
     loadRememberPassword: () => void
     notifyUsersPasswordChanged: (randomPW: boolean) => void
-    setRememberPassword: (remember: boolean) => void
-    setNewPassword: (thenLogOut?: boolean) => void
-
     resetState: 'default'
+    setPassword: (password: string) => void
+    setPasswordConfirm: (confirm: string) => void
+    setRememberPassword: (remember: boolean) => void
+    submitNewPassword: (thenLogOut?: boolean) => void
   }
 }
 
-// const passwordActions: Container.ActionHandler<Actions, Types.State> = {
-//   [SettingsGen.onChangeRememberPassword]: (draftState, action) => {
-//     draftState.password.rememberPassword = action.payload.remember
-//   },
-//   [SettingsGen.onChangeNewPassword]: (draftState, action) => {
-//     const {password} = draftState
-//     password.error = undefined
-//     password.newPassword = action.payload.password
-//   },
-//   [SettingsGen.onChangeNewPasswordConfirm]: (draftState, action) => {
-//     const {password} = draftState
-//     password.error = undefined
-//     password.newPasswordConfirm = action.payload.password
-//   },
-//   [SettingsGen.onUpdatedPGPSettings]: (draftState, action) => {
-//     draftState.password.hasPGPKeyOnServer = action.payload.hasKeys
-//   },
-// }
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
@@ -85,6 +69,25 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    loadPgpSettings: () => {
+      const f = async () => {
+        try {
+          const {hasServerKeys} = await RPCTypes.accountHasServerKeysRpcPromise()
+          set(s => {
+            s.hasPGPKeyOnServer = hasServerKeys
+          })
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          const msg = error.desc
+          set(s => {
+            s.error = msg
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
     loadRememberPassword: () => {
       const f = async () => {
         const remember = await RPCTypes.configGetRememberPassphraseRpcPromise()
@@ -100,7 +103,25 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     resetState: 'default',
-    setNewPassword: (thenLogout = false) => {
+    setPassword: password => {
+      set(s => {
+        s.error = ''
+        s.newPassword = password
+      })
+    },
+    setPasswordConfirm: confirm => {
+      set(s => {
+        s.error = ''
+        s.newPasswordConfirm = confirm
+      })
+    },
+    setRememberPassword: remember => {
+      const f = async () => {
+        await RPCTypes.configSetRememberPassphraseRpcPromise({remember})
+      }
+      Z.ignorePromise(f())
+    },
+    submitNewPassword: (thenLogout = false) => {
       const f = async () => {
         try {
           const {newPassword, newPasswordConfirm} = get()
@@ -132,12 +153,6 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.error = msg
           })
         }
-      }
-      Z.ignorePromise(f())
-    },
-    setRememberPassword: remember => {
-      const f = async () => {
-        await RPCTypes.configSetRememberPassphraseRpcPromise({remember})
       }
       Z.ignorePromise(f())
     },

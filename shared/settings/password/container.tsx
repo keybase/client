@@ -3,7 +3,6 @@ import * as Constants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
 import UpdatePassword from '.'
 import * as Container from '../../util/container'
-import HiddenString from '../../util/hidden-string'
 
 export default () => {
   const error = Constants.usePasswordState(s => s.error)
@@ -21,10 +20,15 @@ export default () => {
   const onChangeShowPassword = () => {
     dispatch(SettingsGen.createOnChangeShowPassword())
   }
+
+  const setPassword = Constants.usePasswordState(s => s.dispatch.setPassword)
+  const setPasswordConfirm = Constants.usePasswordState(s => s.dispatch.setPasswordConfirm)
+  const submitNewPassword = Constants.usePasswordState(s => s.dispatch.submitNewPassword)
+
   const onSave = (password: string) => {
-    dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))
-    dispatch(SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(password)}))
-    dispatch(SettingsGen.createOnSubmitNewPassword({thenSignOut: false}))
+    setPassword(password)
+    setPasswordConfirm(password)
+    submitNewPassword(false)
   }
   const onUpdatePGPSettings = () => {
     dispatch(SettingsGen.createOnUpdatePGPSettings())

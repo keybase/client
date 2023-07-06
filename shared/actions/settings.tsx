@@ -17,18 +17,6 @@ import type * as Types from '../constants/types/settings'
 import {RPCError} from '../util/errors'
 import {isAndroidNewerThanN, androidIsTestDevice, pprofDir, version} from '../constants/platform'
 
-const onUpdatePGPSettings = async () => {
-  try {
-    const {hasServerKeys} = await RPCTypes.accountHasServerKeysRpcPromise()
-    return SettingsGen.createOnUpdatedPGPSettings({hasKeys: hasServerKeys})
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    return SettingsGen.createOnUpdatePasswordError({error})
-  }
-}
-
 const onSubmitNewEmail = async (state: Container.TypedState) => {
   try {
     const newEmail = state.settings.email.newEmail
@@ -625,7 +613,6 @@ const initSettings = () => {
   Container.listenAction(SettingsGen.notificationsToggle, toggleNotifications)
   Container.listenAction(SettingsGen.dbNuke, dbNuke)
   Container.listenAction(SettingsGen.deleteAccountForever, deleteAccountForever)
-  Container.listenAction(SettingsGen.onUpdatePGPSettings, onUpdatePGPSettings)
   Container.listenAction(SettingsGen.trace, trace)
   Container.listenAction(SettingsGen.processorProfile, processorProfile)
   Container.listenAction(SettingsGen.sendFeedback, sendFeedback)

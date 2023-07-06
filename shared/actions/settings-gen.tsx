@@ -45,15 +45,11 @@ export const notificationsSaved = 'settings:notificationsSaved'
 export const notificationsToggle = 'settings:notificationsToggle'
 export const onChangeLockdownMode = 'settings:onChangeLockdownMode'
 export const onChangeNewEmail = 'settings:onChangeNewEmail'
-export const onChangeNewPassword = 'settings:onChangeNewPassword'
-export const onChangeNewPasswordConfirm = 'settings:onChangeNewPasswordConfirm'
 export const onChangeShowPassword = 'settings:onChangeShowPassword'
 export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
-export const onSubmitNewPassword = 'settings:onSubmitNewPassword'
 export const onUpdateEmailError = 'settings:onUpdateEmailError'
 export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
-export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
 export const sendFeedback = 'settings:sendFeedback'
@@ -292,14 +288,6 @@ export const createOnChangeNewEmail = (payload: {readonly email: string}) => ({
   payload,
   type: onChangeNewEmail as typeof onChangeNewEmail,
 })
-export const createOnChangeNewPassword = (payload: {readonly password: HiddenString}) => ({
-  payload,
-  type: onChangeNewPassword as typeof onChangeNewPassword,
-})
-export const createOnChangeNewPasswordConfirm = (payload: {readonly password: HiddenString}) => ({
-  payload,
-  type: onChangeNewPasswordConfirm as typeof onChangeNewPasswordConfirm,
-})
 export const createOnChangeShowPassword = (payload?: undefined) => ({
   payload,
   type: onChangeShowPassword as typeof onChangeShowPassword,
@@ -307,10 +295,6 @@ export const createOnChangeShowPassword = (payload?: undefined) => ({
 export const createOnSubmitNewEmail = (payload?: undefined) => ({
   payload,
   type: onSubmitNewEmail as typeof onSubmitNewEmail,
-})
-export const createOnSubmitNewPassword = (payload: {readonly thenSignOut: boolean}) => ({
-  payload,
-  type: onSubmitNewPassword as typeof onSubmitNewPassword,
 })
 export const createOnUpdateEmailError = (payload: {readonly error: Error}) => ({
   payload,
@@ -323,10 +307,6 @@ export const createOnUpdatePGPSettings = (payload?: undefined) => ({
 export const createOnUpdatePasswordError = (payload: {readonly error: Error}) => ({
   payload,
   type: onUpdatePasswordError as typeof onUpdatePasswordError,
-})
-export const createOnUpdatedPGPSettings = (payload: {readonly hasKeys: boolean}) => ({
-  payload,
-  type: onUpdatedPGPSettings as typeof onUpdatedPGPSettings,
 })
 export const createProcessorProfile = (payload: {readonly durationSeconds: number}) => ({
   payload,
@@ -398,15 +378,11 @@ export type NotificationsSavedPayload = ReturnType<typeof createNotificationsSav
 export type NotificationsTogglePayload = ReturnType<typeof createNotificationsToggle>
 export type OnChangeLockdownModePayload = ReturnType<typeof createOnChangeLockdownMode>
 export type OnChangeNewEmailPayload = ReturnType<typeof createOnChangeNewEmail>
-export type OnChangeNewPasswordConfirmPayload = ReturnType<typeof createOnChangeNewPasswordConfirm>
-export type OnChangeNewPasswordPayload = ReturnType<typeof createOnChangeNewPassword>
 export type OnChangeShowPasswordPayload = ReturnType<typeof createOnChangeShowPassword>
 export type OnSubmitNewEmailPayload = ReturnType<typeof createOnSubmitNewEmail>
-export type OnSubmitNewPasswordPayload = ReturnType<typeof createOnSubmitNewPassword>
 export type OnUpdateEmailErrorPayload = ReturnType<typeof createOnUpdateEmailError>
 export type OnUpdatePGPSettingsPayload = ReturnType<typeof createOnUpdatePGPSettings>
 export type OnUpdatePasswordErrorPayload = ReturnType<typeof createOnUpdatePasswordError>
-export type OnUpdatedPGPSettingsPayload = ReturnType<typeof createOnUpdatedPGPSettings>
 export type ProcessorProfilePayload = ReturnType<typeof createProcessorProfile>
 export type RequestContactPermissionsPayload = ReturnType<typeof createRequestContactPermissions>
 export type SendFeedbackPayload = ReturnType<typeof createSendFeedback>
@@ -462,15 +438,11 @@ export type Actions =
   | NotificationsTogglePayload
   | OnChangeLockdownModePayload
   | OnChangeNewEmailPayload
-  | OnChangeNewPasswordConfirmPayload
-  | OnChangeNewPasswordPayload
   | OnChangeShowPasswordPayload
   | OnSubmitNewEmailPayload
-  | OnSubmitNewPasswordPayload
   | OnUpdateEmailErrorPayload
   | OnUpdatePGPSettingsPayload
   | OnUpdatePasswordErrorPayload
-  | OnUpdatedPGPSettingsPayload
   | ProcessorProfilePayload
   | RequestContactPermissionsPayload
   | SendFeedbackPayload

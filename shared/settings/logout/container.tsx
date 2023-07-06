@@ -3,8 +3,6 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/settings'
 import * as ConfigConstants from '../../constants/config'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SettingsGen from '../../actions/settings-gen'
-import HiddenString from '../../util/hidden-string'
 import LogOut from '.'
 
 const LogoutContainer = () => {
@@ -30,13 +28,18 @@ const LogoutContainer = () => {
     requestLogout()
     resetCheckPassword()
   }, [resetCheckPassword, requestLogout])
+
+  const submitNewPassword = Constants.usePasswordState(s => s.dispatch.submitNewPassword)
+  const setPassword = Constants.usePasswordState(s => s.dispatch.setPassword)
+  const setPasswordConfirm = Constants.usePasswordState(s => s.dispatch.setPasswordConfirm)
+
   const onSavePassword = React.useCallback(
     (password: string) => {
-      dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))
-      dispatch(SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(password)}))
-      dispatch(SettingsGen.createOnSubmitNewPassword({thenSignOut: true}))
+      setPassword(password)
+      setPasswordConfirm(password)
+      submitNewPassword(true)
     },
-    [dispatch]
+    [submitNewPassword, setPassword, setPasswordConfirm]
   )
 
   const onLogout = Container.useSafeSubmit(_onLogout, false)
