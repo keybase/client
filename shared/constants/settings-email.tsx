@@ -1,13 +1,10 @@
 import * as Z from '../util/zustand'
 import * as ChatTypes from './types/rpc-chat-gen'
-// import {isValidEmail} from '../util/simple-validators'
-// import * as RouteTreeGen from '../actions/route-tree-gen'
+import {isValidEmail} from '../util/simple-validators'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
-// import trim from 'lodash/trim'
 import * as RPCTypes from './types/rpc-gen'
 
-// const settingsWaitingKey = 'settings:generic'
 export const addEmailWaitingKey = 'settings:addEmail'
 
 const makeAddEmailError = (err: RPCError): string => {
@@ -70,9 +67,13 @@ export type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  // const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     addEmail: (email, searchable) => {
+      set(s => {
+        const emailError = isValidEmail(email)
+        s.addingEmail = email
+        s.error = emailError
+      })
       const f = async () => {
         if (get().error) {
           logger.info('email error; bailing')
@@ -192,19 +193,3 @@ export const useState = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
-// const emailActions: Container.ActionHandler<Actions, Types.State> = {
-//   [SettingsGen.onChangeNewEmail]: (draftState, action) => {
-//     draftState.email.error = ''
-//     draftState.email.newEmail = action.payload.email
-//   },
-//   [SettingsGen.onUpdateEmailError]: (draftState, action) => {
-//     draftState.email.error = action.payload.error.message
-//   },
-//   [SettingsGen.addEmail]: (draftState, action) => {
-//     const {email} = action.payload
-//     const emailError = isValidEmail(email)
-//     draftState.email.addingEmail = email
-//     draftState.email.error = emailError
-//   },
-// }
-//
