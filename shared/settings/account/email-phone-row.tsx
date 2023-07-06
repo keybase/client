@@ -295,7 +295,7 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
           })
         ),
       _onToggleSearchable: (setSearchable: boolean) => {
-        editPhone(ownProps.contactKey, setSearchable)
+        editPhone(ownProps.contactKey, undefined, setSearchable)
       },
       _onVerify: (phoneNumber: string) => {
         resendVerificationForPhoneNumber(phoneNumber)

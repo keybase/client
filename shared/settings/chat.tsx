@@ -1,5 +1,6 @@
 import * as Constants from '../constants/settings'
 import * as ConfigConstants from '../constants/config'
+import * as SettingsConstants from '../constants/settings'
 import * as PushConstants from '../constants/push'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -55,9 +56,10 @@ export default () => {
   ) => {
     dispatch(SettingsGen.createContactSettingsSaved({enabled, indirectFollowees, teamsEnabled, teamsList}))
   }
+  const loadSettings = SettingsConstants.useState(s => s.dispatch.loadSettings)
   const onRefresh = () => {
     // Security: misc
-    dispatch(SettingsGen.createLoadSettings())
+    loadSettings()
     dispatch(SettingsGen.createNotificationsRefresh())
 
     // Security: contact settings

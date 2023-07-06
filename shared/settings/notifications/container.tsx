@@ -8,8 +8,10 @@ import * as Constants from '../../constants/settings'
 const ReloadableNotifications = (props: Props) => {
   const dispatch = Container.useDispatch()
 
+  const loadSettings = Constants.useState(s => s.dispatch.loadSettings)
+
   const onRefresh = () => {
-    dispatch(SettingsGen.createLoadSettings())
+    loadSettings()
     dispatch(SettingsGen.createNotificationsRefresh())
   }
 

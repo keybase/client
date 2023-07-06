@@ -4,10 +4,12 @@ import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import HiddenString from '../util/hidden-string'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import type * as Types from './types/settings'
 import type {TypedState} from './reducer'
 import {getMeta} from './chat2/meta'
 import {useConfigState} from './config'
+import * as Tabs from './tabs'
 import type {
   e164ToDisplay as e164ToDisplayType,
   phoneUtil as phoneUtilType,
@@ -242,8 +244,27 @@ export type State = Store & {
   }
 }
 
+let maybeLoadAppLinkOnce = false
 export const useState = Z.createZustand<State>(set => {
-  // const reduxDispatch = Z.getReduxDispatch()
+  const reduxDispatch = Z.getReduxDispatch()
+  const maybeLoadAppLink = () => {
+    const phones = usePhoneState.getState().phones
+    if (!phones || phones.size > 0) {
+      return
+    }
+
+    if (
+      maybeLoadAppLinkOnce ||
+      !useConfigState.getState().startup.link ||
+      !useConfigState.getState().startup.link.endsWith('/phone-app')
+    ) {
+      return
+    }
+    maybeLoadAppLinkOnce = true
+    reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+    reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
+  }
+
   const dispatch: State['dispatch'] = {
     checkPassword: passphrase => {
       set(s => {
@@ -304,6 +325,8 @@ export const useState = Z.createZustand<State>(set => {
           // )
           // TODO email
           usePhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
+
+          maybeLoadAppLink()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

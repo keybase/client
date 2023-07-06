@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as PhoneUtil from '../../util/phone-numbers'
 
@@ -77,15 +78,16 @@ const DeleteModal = (props: OwnProps) => {
   const lastEmail = props.lastEmail ?? false
 
   const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
   const onConfirm = React.useCallback(() => {
     if (itemType === 'phone') {
-      dispatch(SettingsGen.createEditPhone({delete: true, phone: itemAddress}))
+      editPhone(itemAddress, true)
     } else {
       dispatch(SettingsGen.createEditEmail({delete: true, email: itemAddress}))
     }
 
     dispatch(nav.safeNavigateUpPayload())
-  }, [dispatch, itemAddress, itemType, nav])
+  }, [editPhone, dispatch, itemAddress, itemType, nav])
 
   return (
     <ConfirmDeleteAddress

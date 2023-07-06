@@ -11,9 +11,6 @@ import * as Platform from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2 from '../constants/router2'
-import * as SettingsGen from './settings-gen'
-import * as SettingsConstants from '../constants/settings'
-import * as Tabs from '../constants/tabs'
 import * as DarkMode from '../constants/darkmode'
 import * as WhatsNew from '../constants/whats-new'
 import * as Z from '../util/zustand'
@@ -227,28 +224,6 @@ const onAndroidShare = () => {
   return false
 }
 
-let maybeLoadAppLinkOnce = false
-const maybeLoadAppLink = () => {
-  const phones = SettingsConstants.usePhoneState.getState().phones
-  if (!phones || phones.size > 0) {
-    return
-  }
-
-  if (
-    maybeLoadAppLinkOnce ||
-    !Constants.useConfigState.getState().startup.link ||
-    !Constants.useConfigState.getState().startup.link.endsWith('/phone-app')
-  ) {
-    return
-  }
-  maybeLoadAppLinkOnce = true
-
-  return [
-    RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}),
-    RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}),
-  ]
-}
-
 const allowLogoutWaiters = async (
   _: Container.TypedState,
   action: ConfigGen.LogoutHandshakePayload,
@@ -411,8 +386,6 @@ const initConfig = () => {
     const lastSeenItem = items.find(i => i.item.category === 'whatsNewLastSeenVersion')
     WhatsNew.useState.getState().dispatch.updateLastSeen(lastSeenItem)
   })
-
-  Container.listenAction(SettingsGen.loadedSettings, maybeLoadAppLink)
 
   Container.listenAction(ConfigGen.loadOnStart, getFollowerInfo)
 
