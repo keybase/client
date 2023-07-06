@@ -30,9 +30,9 @@ export default () => {
     setPasswordConfirm(password)
     submitNewPassword(false)
   }
-  const onUpdatePGPSettings = () => {
-    dispatch(SettingsGen.createOnUpdatePGPSettings())
-  }
+
+  const loadPgpSettings = Constants.usePasswordState(s => s.dispatch.loadPgpSettings)
+  const onUpdatePGPSettings = loadPgpSettings
   const props = {
     error,
     hasPGPKeyOnServer,

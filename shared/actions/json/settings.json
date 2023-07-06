@@ -114,7 +114,6 @@
     "onUpdateEmailError": {
       "error": "Error"
     },
-    "onUpdatePGPSettings": {},
     "onUpdatePasswordError": {
       "error": "Error"
     },

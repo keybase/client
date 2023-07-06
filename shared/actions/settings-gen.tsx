@@ -48,7 +48,6 @@ export const onChangeNewEmail = 'settings:onChangeNewEmail'
 export const onChangeShowPassword = 'settings:onChangeShowPassword'
 export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
 export const onUpdateEmailError = 'settings:onUpdateEmailError'
-export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
@@ -300,10 +299,6 @@ export const createOnUpdateEmailError = (payload: {readonly error: Error}) => ({
   payload,
   type: onUpdateEmailError as typeof onUpdateEmailError,
 })
-export const createOnUpdatePGPSettings = (payload?: undefined) => ({
-  payload,
-  type: onUpdatePGPSettings as typeof onUpdatePGPSettings,
-})
 export const createOnUpdatePasswordError = (payload: {readonly error: Error}) => ({
   payload,
   type: onUpdatePasswordError as typeof onUpdatePasswordError,
@@ -381,7 +376,6 @@ export type OnChangeNewEmailPayload = ReturnType<typeof createOnChangeNewEmail>
 export type OnChangeShowPasswordPayload = ReturnType<typeof createOnChangeShowPassword>
 export type OnSubmitNewEmailPayload = ReturnType<typeof createOnSubmitNewEmail>
 export type OnUpdateEmailErrorPayload = ReturnType<typeof createOnUpdateEmailError>
-export type OnUpdatePGPSettingsPayload = ReturnType<typeof createOnUpdatePGPSettings>
 export type OnUpdatePasswordErrorPayload = ReturnType<typeof createOnUpdatePasswordError>
 export type ProcessorProfilePayload = ReturnType<typeof createProcessorProfile>
 export type RequestContactPermissionsPayload = ReturnType<typeof createRequestContactPermissions>
@@ -441,7 +435,6 @@ export type Actions =
   | OnChangeShowPasswordPayload
   | OnSubmitNewEmailPayload
   | OnUpdateEmailErrorPayload
-  | OnUpdatePGPSettingsPayload
   | OnUpdatePasswordErrorPayload
   | ProcessorProfilePayload
   | RequestContactPermissionsPayload
