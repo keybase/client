@@ -33,14 +33,10 @@ export const invitesSend = 'settings:invitesSend'
 export const invitesSent = 'settings:invitesSent'
 export const loadContactImportEnabled = 'settings:loadContactImportEnabled'
 export const loadDefaultPhoneNumberCountry = 'settings:loadDefaultPhoneNumberCountry'
-export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
-export const loadRememberPassword = 'settings:loadRememberPassword'
 export const loadedContactImportEnabled = 'settings:loadedContactImportEnabled'
 export const loadedContactPermissions = 'settings:loadedContactPermissions'
-export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
-export const loadedRememberPassword = 'settings:loadedRememberPassword'
 export const loadedUserCountryCode = 'settings:loadedUserCountryCode'
 export const loginBrowserViaWebAuthToken = 'settings:loginBrowserViaWebAuthToken'
 export const notificationsRefresh = 'settings:notificationsRefresh'
@@ -51,7 +47,6 @@ export const onChangeLockdownMode = 'settings:onChangeLockdownMode'
 export const onChangeNewEmail = 'settings:onChangeNewEmail'
 export const onChangeNewPassword = 'settings:onChangeNewPassword'
 export const onChangeNewPasswordConfirm = 'settings:onChangeNewPasswordConfirm'
-export const onChangeRememberPassword = 'settings:onChangeRememberPassword'
 export const onChangeShowPassword = 'settings:onChangeShowPassword'
 export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
 export const onSubmitNewPassword = 'settings:onSubmitNewPassword'
@@ -251,17 +246,9 @@ export const createLoadDefaultPhoneNumberCountry = (payload?: undefined) => ({
   payload,
   type: loadDefaultPhoneNumberCountry as typeof loadDefaultPhoneNumberCountry,
 })
-export const createLoadHasRandomPw = (payload?: undefined) => ({
-  payload,
-  type: loadHasRandomPw as typeof loadHasRandomPw,
-})
 export const createLoadLockdownMode = (payload?: undefined) => ({
   payload,
   type: loadLockdownMode as typeof loadLockdownMode,
-})
-export const createLoadRememberPassword = (payload?: undefined) => ({
-  payload,
-  type: loadRememberPassword as typeof loadRememberPassword,
 })
 export const createLoadedContactImportEnabled = (payload: {readonly enabled: boolean}) => ({
   payload,
@@ -270,17 +257,9 @@ export const createLoadedContactImportEnabled = (payload: {readonly enabled: boo
 export const createLoadedContactPermissions = (payload: {
   readonly status: 'granted' | 'denied' | 'undetermined'
 }) => ({payload, type: loadedContactPermissions as typeof loadedContactPermissions})
-export const createLoadedHasRandomPw = (payload: {readonly randomPW: boolean}) => ({
-  payload,
-  type: loadedHasRandomPw as typeof loadedHasRandomPw,
-})
 export const createLoadedLockdownMode = (payload: {readonly status?: boolean} = {}) => ({
   payload,
   type: loadedLockdownMode as typeof loadedLockdownMode,
-})
-export const createLoadedRememberPassword = (payload: {readonly remember: boolean}) => ({
-  payload,
-  type: loadedRememberPassword as typeof loadedRememberPassword,
 })
 export const createLoadedUserCountryCode = (payload: {readonly code?: string} = {}) => ({
   payload,
@@ -320,10 +299,6 @@ export const createOnChangeNewPassword = (payload: {readonly password: HiddenStr
 export const createOnChangeNewPasswordConfirm = (payload: {readonly password: HiddenString}) => ({
   payload,
   type: onChangeNewPasswordConfirm as typeof onChangeNewPasswordConfirm,
-})
-export const createOnChangeRememberPassword = (payload: {readonly remember: boolean}) => ({
-  payload,
-  type: onChangeRememberPassword as typeof onChangeRememberPassword,
 })
 export const createOnChangeShowPassword = (payload?: undefined) => ({
   payload,
@@ -411,14 +386,10 @@ export type InvitesSendPayload = ReturnType<typeof createInvitesSend>
 export type InvitesSentPayload = ReturnType<typeof createInvitesSent>
 export type LoadContactImportEnabledPayload = ReturnType<typeof createLoadContactImportEnabled>
 export type LoadDefaultPhoneNumberCountryPayload = ReturnType<typeof createLoadDefaultPhoneNumberCountry>
-export type LoadHasRandomPwPayload = ReturnType<typeof createLoadHasRandomPw>
 export type LoadLockdownModePayload = ReturnType<typeof createLoadLockdownMode>
-export type LoadRememberPasswordPayload = ReturnType<typeof createLoadRememberPassword>
 export type LoadedContactImportEnabledPayload = ReturnType<typeof createLoadedContactImportEnabled>
 export type LoadedContactPermissionsPayload = ReturnType<typeof createLoadedContactPermissions>
-export type LoadedHasRandomPwPayload = ReturnType<typeof createLoadedHasRandomPw>
 export type LoadedLockdownModePayload = ReturnType<typeof createLoadedLockdownMode>
-export type LoadedRememberPasswordPayload = ReturnType<typeof createLoadedRememberPassword>
 export type LoadedUserCountryCodePayload = ReturnType<typeof createLoadedUserCountryCode>
 export type LoginBrowserViaWebAuthTokenPayload = ReturnType<typeof createLoginBrowserViaWebAuthToken>
 export type NotificationsRefreshPayload = ReturnType<typeof createNotificationsRefresh>
@@ -429,7 +400,6 @@ export type OnChangeLockdownModePayload = ReturnType<typeof createOnChangeLockdo
 export type OnChangeNewEmailPayload = ReturnType<typeof createOnChangeNewEmail>
 export type OnChangeNewPasswordConfirmPayload = ReturnType<typeof createOnChangeNewPasswordConfirm>
 export type OnChangeNewPasswordPayload = ReturnType<typeof createOnChangeNewPassword>
-export type OnChangeRememberPasswordPayload = ReturnType<typeof createOnChangeRememberPassword>
 export type OnChangeShowPasswordPayload = ReturnType<typeof createOnChangeShowPassword>
 export type OnSubmitNewEmailPayload = ReturnType<typeof createOnSubmitNewEmail>
 export type OnSubmitNewPasswordPayload = ReturnType<typeof createOnSubmitNewPassword>
@@ -480,14 +450,10 @@ export type Actions =
   | InvitesSentPayload
   | LoadContactImportEnabledPayload
   | LoadDefaultPhoneNumberCountryPayload
-  | LoadHasRandomPwPayload
   | LoadLockdownModePayload
-  | LoadRememberPasswordPayload
   | LoadedContactImportEnabledPayload
   | LoadedContactPermissionsPayload
-  | LoadedHasRandomPwPayload
   | LoadedLockdownModePayload
-  | LoadedRememberPasswordPayload
   | LoadedUserCountryCodePayload
   | LoginBrowserViaWebAuthTokenPayload
   | NotificationsRefreshPayload
@@ -498,7 +464,6 @@ export type Actions =
   | OnChangeNewEmailPayload
   | OnChangeNewPasswordConfirmPayload
   | OnChangeNewPasswordPayload
-  | OnChangeRememberPasswordPayload
   | OnChangeShowPasswordPayload
   | OnSubmitNewEmailPayload
   | OnSubmitNewPasswordPayload

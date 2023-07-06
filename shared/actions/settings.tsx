@@ -43,36 +43,6 @@ const onSubmitNewEmail = async (state: Container.TypedState) => {
   }
 }
 
-const onSubmitNewPassword = async (
-  state: Container.TypedState,
-  action: SettingsGen.OnSubmitNewPasswordPayload
-) => {
-  try {
-    const {newPassword, newPasswordConfirm} = state.settings.password
-    if (newPassword.stringValue() !== newPasswordConfirm.stringValue()) {
-      return SettingsGen.createOnUpdatePasswordError({error: new Error("Passwords don't match")})
-    }
-    await RPCTypes.accountPassphraseChangeRpcPromise(
-      {
-        force: true,
-        oldPassphrase: '',
-        passphrase: newPassword.stringValue(),
-      },
-      Constants.settingsWaitingKey
-    )
-
-    if (action.payload.thenSignOut) {
-      ConfigConstants.useLogoutState.getState().dispatch.requestLogout()
-    }
-    return RouteTreeGen.createNavigateUp()
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    return SettingsGen.createOnUpdatePasswordError({error})
-  }
-}
-
 const toggleNotifications = async (state: Container.TypedState) => {
   const current = state.settings.notifications
   if (!current || !current.groups.get('email')) {
@@ -372,11 +342,6 @@ const editEmail = async (state: Container.TypedState, action: SettingsGen.EditEm
   return false
 }
 
-const getRememberPassword = async () => {
-  const remember = await RPCTypes.configGetRememberPassphraseRpcPromise()
-  return SettingsGen.createLoadedRememberPassword({remember})
-}
-
 const trace = async (
   _: Container.TypedState,
   action: SettingsGen.TracePayload,
@@ -405,10 +370,6 @@ const processorProfile = async (
   increment(Constants.processorProfileInProgressKey)
   await listenerApi.delay(durationSeconds * 1_000)
   decrement(Constants.processorProfileInProgressKey)
-}
-
-const rememberPassword = async (_: unknown, action: SettingsGen.OnChangeRememberPasswordPayload) => {
-  await RPCTypes.configSetRememberPassphraseRpcPromise({remember: action.payload.remember})
 }
 
 const sendFeedback = async (state: Container.TypedState, action: SettingsGen.SendFeedbackPayload) => {
@@ -534,32 +495,6 @@ const unfurlSettingsSaved = async (_: unknown, action: SettingsGen.UnfurlSetting
       error: 'Unable to save link preview settings, please try again.',
     })
   }
-}
-
-// Once loaded, do not issue this RPC again. This field can only go true ->
-// false (never the opposite way), and there are notifications set up when
-// this happens.
-const loadHasRandomPW = async (state: Container.TypedState) => {
-  if ((state.settings.password.randomPW ?? null) !== null) {
-    return false
-  }
-  try {
-    const passphraseState = await RPCTypes.userLoadPassphraseStateRpcPromise()
-    const randomPW = passphraseState === RPCTypes.PassphraseState.random
-    return SettingsGen.createLoadedHasRandomPw({randomPW})
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    logger.warn('Error loading hasRandomPW:', error.message)
-    return false
-  }
-}
-
-// Mark that we are not randomPW anymore if we got a password change.
-const passwordChanged = (_: unknown, action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload) => {
-  const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
-  return SettingsGen.createLoadedHasRandomPw({randomPW})
 }
 
 const stop = async (_: unknown, action: SettingsGen.StopPayload) => {
@@ -690,19 +625,18 @@ const initSettings = () => {
   Container.listenAction(SettingsGen.notificationsToggle, toggleNotifications)
   Container.listenAction(SettingsGen.dbNuke, dbNuke)
   Container.listenAction(SettingsGen.deleteAccountForever, deleteAccountForever)
-  Container.listenAction(SettingsGen.onSubmitNewPassword, onSubmitNewPassword)
   Container.listenAction(SettingsGen.onUpdatePGPSettings, onUpdatePGPSettings)
   Container.listenAction(SettingsGen.trace, trace)
   Container.listenAction(SettingsGen.processorProfile, processorProfile)
-  Container.listenAction(SettingsGen.loadRememberPassword, getRememberPassword)
-  Container.listenAction(SettingsGen.onChangeRememberPassword, rememberPassword)
   Container.listenAction(SettingsGen.sendFeedback, sendFeedback)
   Container.listenAction(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
   Container.listenAction(SettingsGen.contactSettingsSaved, contactSettingsSaved)
   Container.listenAction(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
   Container.listenAction(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
-  Container.listenAction(SettingsGen.loadHasRandomPw, loadHasRandomPW)
-  Container.listenAction(EngineGen.keybase1NotifyUsersPasswordChanged, passwordChanged)
+  Container.listenAction(EngineGen.keybase1NotifyUsersPasswordChanged, (_, action) => {
+    const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
+    Constants.usePasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
+  })
 
   Container.listenAction(SettingsGen.stop, stop)
 

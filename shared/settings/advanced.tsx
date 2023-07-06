@@ -77,12 +77,13 @@ const Advanced = () => {
   const dispatch = Container.useDispatch()
 
   const settingLockdownMode = Container.useAnyWaiting(Constants.setLockdownModeWaitingKey)
-  const hasRandomPW = Container.useSelector(state => !!state.settings.password.randomPW)
+  const hasRandomPW = Constants.usePasswordState(s => !!s.randomPW)
   const openAtLogin = ConfigConstants.useConfigState(s => s.openAtLogin)
-  const rememberPassword = Container.useSelector(state => state.settings.password.rememberPassword)
+  const rememberPassword = Constants.usePasswordState(s => s.rememberPassword)
   const setLockdownModeError = Container.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
-  const onChangeRememberPassword = (remember: boolean) =>
-    dispatch(SettingsGen.createOnChangeRememberPassword({remember}))
+
+  const setRememberPassword = Constants.usePasswordState(s => s.dispatch.setRememberPassword)
+  const onChangeRememberPassword = setRememberPassword
   const onSetOpenAtLogin = ConfigConstants.useConfigState(s => s.dispatch.setOpenAtLogin)
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
@@ -124,11 +125,14 @@ const Advanced = () => {
     )
   }
 
+  const loadHasRandomPw = Constants.usePasswordState(s => s.dispatch.loadHasRandomPw)
+  const loadRememberPassword = Constants.usePasswordState(s => s.dispatch.loadRememberPassword)
+
   React.useEffect(() => {
-    dispatch(SettingsGen.createLoadHasRandomPw())
+    loadHasRandomPw()
     dispatch(SettingsGen.createLoadLockdownMode())
-    dispatch(SettingsGen.createLoadRememberPassword())
-  }, [dispatch])
+    loadRememberPassword()
+  }, [loadRememberPassword, loadHasRandomPw, dispatch])
 
   return (
     <Kb.ScrollView style={styles.scrollview}>

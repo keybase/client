@@ -146,34 +146,6 @@ const emailActions: Container.ActionHandler<Actions, Types.State> = {
   },
 }
 
-const passwordActions: Container.ActionHandler<Actions, Types.State> = {
-  [SettingsGen.loadedRememberPassword]: (draftState, action) => {
-    draftState.password.rememberPassword = action.payload.remember
-  },
-  [SettingsGen.onChangeRememberPassword]: (draftState, action) => {
-    draftState.password.rememberPassword = action.payload.remember
-  },
-  [SettingsGen.onChangeNewPassword]: (draftState, action) => {
-    const {password} = draftState
-    password.error = undefined
-    password.newPassword = action.payload.password
-  },
-  [SettingsGen.onChangeNewPasswordConfirm]: (draftState, action) => {
-    const {password} = draftState
-    password.error = undefined
-    password.newPasswordConfirm = action.payload.password
-  },
-  [SettingsGen.onUpdatedPGPSettings]: (draftState, action) => {
-    draftState.password.hasPGPKeyOnServer = action.payload.hasKeys
-  },
-  [SettingsGen.onUpdatePasswordError]: (draftState, action) => {
-    draftState.password.error = action.payload.error
-  },
-  [SettingsGen.loadedHasRandomPw]: (draftState, action) => {
-    draftState.password.randomPW = action.payload.randomPW
-  },
-}
-
 const chatActions: Container.ActionHandler<Actions, Types.State> = {
   [SettingsGen.contactSettingsRefreshed]: (draftState, action) => {
     draftState.chat.contactSettings = {
@@ -243,7 +215,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   ...notificationActions,
   ...invitesActions,
   ...emailActions,
-  ...passwordActions,
   ...chatActions,
   ...contactsActions,
 })

@@ -11,11 +11,13 @@ const LogoutContainer = () => {
   const checkPasswordIsCorrect = Constants.useState(s => s.checkPasswordIsCorrect)
   const resetCheckPassword = Constants.useState(s => s.dispatch.resetCheckPassword)
   const checkPassword = Constants.useState(s => s.dispatch.checkPassword)
-  const hasRandomPW = Container.useSelector(state => state.settings.password.randomPW)
+  const hasRandomPW = Constants.usePasswordState(s => s.randomPW)
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
+  const loadHasRandomPw = Constants.usePasswordState(s => s.dispatch.loadHasRandomPw)
+
   const dispatch = Container.useDispatch()
-  const onBootstrap = React.useCallback(() => dispatch(SettingsGen.createLoadHasRandomPw()), [dispatch])
+  const onBootstrap = loadHasRandomPw
   const onCancel = React.useCallback(() => {
     resetCheckPassword()
     dispatch(RouteTreeGen.createNavigateUp())

@@ -1,5 +1,4 @@
 import type * as RPCChatTypes from './rpc-chat-gen'
-import type HiddenString from '../../util/hidden-string'
 import type * as RPCTypes from './rpc-gen'
 
 type InviteBase = {
@@ -64,17 +63,6 @@ export type NotificationsState = {
   groups: Map<string, NotificationsGroupState>
 }
 
-export type PasswordState = {
-  newPassword: HiddenString
-  newPasswordConfirm: HiddenString
-  error?: Error
-  newPasswordError?: HiddenString
-  newPasswordConfirmError?: HiddenString
-  hasPGPKeyOnServer?: boolean
-  rememberPassword: boolean
-  randomPW?: boolean
-}
-
 type Writeable<T> = {-readonly [P in keyof T]: T[P]}
 
 export type EmailRow = Writeable<RPCTypes.Email>
@@ -129,5 +117,4 @@ export type State = {
   feedback: FeedbackState
   invites: InvitesState
   notifications: NotificationsState
-  password: PasswordState
 }

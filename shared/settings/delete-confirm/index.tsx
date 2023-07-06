@@ -5,6 +5,7 @@ import * as Container from '../../util/container'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
+import * as Constants from '../../constants/settings'
 
 type CheckboxesProps = {
   checkData: boolean
@@ -36,7 +37,7 @@ const Checkboxes = (props: CheckboxesProps) => (
 )
 
 const DeleteConfirm = () => {
-  const hasPassword = Container.useSelector(state => !state.settings.password.randomPW)
+  const hasPassword = Constants.usePasswordState(s => !s.randomPW)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
 
   const [checkData, setCheckData] = React.useState(false)

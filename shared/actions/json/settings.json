@@ -90,10 +90,6 @@
     "invitesSent": {
       "error?": "Error"
     },
-    "loadRememberPassword": {},
-    "loadedRememberPassword": {
-      "remember": "boolean"
-    },
     "loadLockdownMode": {},
     "loadedLockdownMode": {
       "status?": "boolean"
@@ -119,14 +115,8 @@
     "onChangeNewPasswordConfirm": {
       "password": "HiddenString"
     },
-    "onChangeRememberPassword": {
-      "remember": "boolean"
-    },
     "onChangeShowPassword": {},
     "onSubmitNewEmail": {},
-    "onSubmitNewPassword": {
-      "thenSignOut": "boolean"
-    },
     "onUpdateEmailError": {
       "error": "Error"
     },
@@ -180,10 +170,6 @@
       "indirectFollowees": "boolean",
       "teamsEnabled": "boolean",
       "teamsList": "Types.ContactSettingsTeamsList"
-    },
-    "loadHasRandomPw": {},
-    "loadedHasRandomPw": {
-      "randomPW": "boolean"
     },
     "sendFeedback": {
       "feedback": "string",

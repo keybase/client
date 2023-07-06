@@ -15,7 +15,7 @@ export default () => {
   const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
   const addedPhone = Constants.usePhoneState(s => s.addedPhone)
   const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
-  const hasPassword = Container.useSelector(state => !state.settings.password.randomPW)
+  const hasPassword = Constants.usePasswordState(s => !s.randomPW)
   const waiting = Container.useAnyWaiting(Constants.loadSettingsWaitingKey)
   const dispatch = Container.useDispatch()
   const _onClearSupersededPhoneNumber = (phone: string) => {
@@ -42,10 +42,13 @@ export default () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']}))
   }
   const loadSettings = Constants.useState(s => s.dispatch.loadSettings)
+  const loadRememberPassword = Constants.usePasswordState(s => s.dispatch.loadRememberPassword)
+  const loadHasRandomPw = Constants.usePasswordState(s => s.dispatch.loadHasRandomPw)
+
   const onReload = () => {
     loadSettings()
-    dispatch(SettingsGen.createLoadRememberPassword())
-    dispatch(SettingsGen.createLoadHasRandomPw())
+    loadRememberPassword()
+    loadHasRandomPw()
   }
   const onSetPassword = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.passwordTab]}))
