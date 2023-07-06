@@ -203,21 +203,6 @@ const chatActions: Container.ActionHandler<Actions, Types.State> = {
   },
 }
 
-const phoneActions: Container.ActionHandler<Actions, Types.State> = {
-  // [SettingsGen.clearPhoneNumberErrors]: draftState => {
-  //   draftState.phoneNumbers.error = ''
-  // },
-  // [SettingsGen.clearPhoneNumberAdd]: draftState => {
-  //   const {phoneNumbers} = draftState
-  //   phoneNumbers.error = ''
-  //   phoneNumbers.pendingVerification = ''
-  //   phoneNumbers.verificationState = undefined
-  // },
-  // [SettingsGen.clearAddedPhone]: draftState => {
-  //   draftState.phoneNumbers.addedPhone = false
-  // },
-}
-
 const contactsActions: Container.ActionHandler<Actions, Types.State> = {
   [SettingsGen.loadedContactImportEnabled]: (draftState, action) => {
     draftState.contacts.importEnabled = action.payload.enabled
@@ -260,6 +245,5 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   ...emailActions,
   ...passwordActions,
   ...chatActions,
-  ...phoneActions,
   ...contactsActions,
 })
