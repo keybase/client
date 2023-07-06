@@ -10,9 +10,9 @@ import EmailPhoneRow from './email-phone-row'
 import {isMobile} from '../../styles'
 
 export default () => {
-  const _emails = Container.useSelector(state => state.settings.email.emails)
+  const _emails = Constants.useEmailState(s => s.emails)
   const _phones = Constants.usePhoneState(s => s.phones)
-  const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
+  const addedEmail = Constants.useEmailState(s => s.addedEmail)
   const addedPhone = Constants.usePhoneState(s => s.addedPhone)
   const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
   const hasPassword = Constants.usePasswordState(s => !s.randomPW)
@@ -32,9 +32,9 @@ export default () => {
         dispatch(RouteTreeGen.createNavigateUp())
       }
     : undefined
-  const onClearAddedEmail = () => {
-    dispatch(SettingsGen.createClearAddedEmail())
-  }
+
+  const resetAddedEmail = Constants.useEmailState(s => s.dispatch.resetAddedEmail)
+  const onClearAddedEmail = resetAddedEmail
   const onClearAddedPhone = () => {
     dispatch(SettingsGen.createClearAddedPhone())
   }

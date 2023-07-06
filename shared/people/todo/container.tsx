@@ -5,7 +5,6 @@ import * as ProfileConstants from '../../constants/profile'
 import * as SettingsConstants from '../../constants/settings'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
-import * as SettingsGen from '../../actions/settings-gen'
 import * as Tabs from '../../constants/tabs'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
@@ -208,11 +207,12 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
-  const addingEmail = Container.useSelector(state => state.settings.email.addingEmail)
+  const addingEmail = SettingsConstants.useEmailState(s => s.addingEmail)
   const dispatch = Container.useDispatch()
   const setResentEmail = Constants.useState(s => s.dispatch.setResentEmail)
+  const editEmail = SettingsConstants.useEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
-    dispatch(SettingsGen.createEditEmail({email, verify: true}))
+    editEmail({email, verify: true})
     setResentEmail(email)
   }
   const onManage = () => {
@@ -283,10 +283,11 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
 
 const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
+  const editEmail = SettingsConstants.useEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.accountTab]}))
-    dispatch(SettingsGen.createEditEmail({email, makeSearchable: true}))
+    editEmail({email, makeSearchable: true})
   }
   const onDismiss = useOnSkipTodo('legacyEmailVisibility')
   const buttons: Array<TaskButton> = [

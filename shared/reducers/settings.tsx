@@ -1,17 +1,12 @@
 import logger from '../logger'
 import * as SettingsGen from '../actions/settings-gen'
-import * as EngineGen from '../actions/engine-gen-gen'
 import type * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as Container from '../util/container'
-import {isValidEmail} from '../util/simple-validators'
 
 const initialState: Types.State = Constants.makeState()
 
-type Actions =
-  | SettingsGen.Actions
-  | EngineGen.Keybase1NotifyEmailAddressEmailsChangedPayload
-  | EngineGen.Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
+type Actions = SettingsGen.Actions
 
 const notificationActions: Container.ActionHandler<Actions, Types.State> = {
   [SettingsGen.notificationsToggle]: (draftState, action) => {
@@ -67,70 +62,6 @@ const notificationActions: Container.ActionHandler<Actions, Types.State> = {
     const {notifications} = draftState
     notifications.allowEdit = true
     notifications.groups = action.payload.notifications
-  },
-}
-
-const emailActions: Container.ActionHandler<Actions, Types.State> = {
-  [EngineGen.keybase1NotifyEmailAddressEmailsChanged]: (draftState, action) => {
-    const {list} = action.payload.params
-    draftState.email.emails = new Map(
-      (list || []).map(row => [row.email, {...Constants.makeEmailRow(), ...row}])
-    )
-  },
-  [SettingsGen.emailVerified]: (draftState, action) => {
-    const {email} = action.payload
-    const map = draftState.email.emails
-    const old = map?.get(email)
-    if (old) {
-      old.isVerified = true
-    } else {
-      logger.warn('emailVerified on unknown email?')
-    }
-    draftState.email.addedEmail = undefined
-  },
-  [SettingsGen.onChangeNewEmail]: (draftState, action) => {
-    draftState.email.error = ''
-    draftState.email.newEmail = action.payload.email
-  },
-  [SettingsGen.onUpdateEmailError]: (draftState, action) => {
-    draftState.email.error = action.payload.error.message
-  },
-  [SettingsGen.addEmail]: (draftState, action) => {
-    const {email} = action.payload
-    const emailError = isValidEmail(email)
-    draftState.email.addingEmail = email
-    draftState.email.error = emailError
-  },
-  [SettingsGen.addedEmail]: (draftState, action) => {
-    const {email} = draftState
-    const {error} = action.payload
-    if (action.payload.email !== email.addingEmail) {
-      logger.warn("addedEmail: doesn't match")
-      return
-    }
-    email.addedEmail = error ? undefined : action.payload.email
-    email.addingEmail = error ? email.addingEmail : undefined
-    email.error = error || ''
-  },
-  [SettingsGen.sentVerificationEmail]: (draftState, action) => {
-    const {email} = draftState
-    email.addedEmail = action.payload.email
-    const emails = email.emails || new Map<string, Types.EmailRow>()
-    const old = emails.get(action.payload.email) ?? {
-      ...Constants.makeEmailRow(),
-      email: action.payload.email,
-      isVerified: false,
-    }
-    old.lastVerifyEmailDate = new Date().getTime() / 1000
-    emails.set(action.payload.email, old)
-    email.emails = emails
-  },
-  [SettingsGen.clearAddingEmail]: draftState => {
-    draftState.email.addingEmail = undefined
-    draftState.email.error = ''
-  },
-  [SettingsGen.clearAddedEmail]: draftState => {
-    draftState.email.addedEmail = undefined
   },
 }
 
@@ -201,7 +132,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.feedback.error = undefined
   },
   ...notificationActions,
-  ...emailActions,
   ...chatActions,
   ...contactsActions,
 })

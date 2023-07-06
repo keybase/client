@@ -1,13 +1,14 @@
 import logger from '../logger'
+import * as EngineGen from './engine-gen-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import * as Constants from '../constants/signup'
 import * as ConfigConstants from '../constants/config'
+import * as SettingsConstants from '../constants/settings'
 import * as PushConstants from '../constants/push'
 import * as SignupGen from './signup-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import * as SettingsGen from './settings-gen'
 import * as Container from '../util/container'
 import {RPCError} from '../util/errors'
 
@@ -44,12 +45,13 @@ const showErrorOrCleanupAfterSignup = (state: Container.TypedState) =>
   noErrors(state)
     ? SignupGen.createRestartSignup()
     : RouteTreeGen.createNavigateAppend({path: ['signupError']})
-
 // If the email was set to be visible during signup, we need to set that with a separate RPC.
 const setEmailVisibilityAfterSignup = (state: Container.TypedState) =>
   noErrors(state) &&
   state.signup.emailVisible &&
-  SettingsGen.createEditEmail({email: state.signup.email, makeSearchable: true})
+  SettingsConstants.useEmailState
+    .getState()
+    .dispatch.editEmail({email: state.signup.email, makeSearchable: true})
 
 // Validation side effects ///////////////////////////////////////////////////////////
 const checkInviteCode = async (state: Container.TypedState) => {
@@ -260,6 +262,10 @@ const initSignup = () => {
   // actually make the signup call
   Container.listenAction(SignupGen.checkedDevicename, reallySignupOnNoErrors)
   Container.listenAction(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
+
+  Container.listenAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, () => {
+    return SignupGen.createClearJustSignedUpEmail()
+  })
 }
 
 export default initSignup

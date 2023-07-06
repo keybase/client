@@ -11,14 +11,7 @@ import {useConfigState} from './config'
 import * as Tabs from './tabs'
 import logger from '../logger'
 import {useState as usePhoneState} from './settings-phone'
-
-export const makeEmailRow = (): Types.EmailRow => ({
-  email: '',
-  isPrimary: false,
-  isVerified: false,
-  lastVerifyEmailDate: 0,
-  visibility: 0,
-})
+import {useState as useEmailState} from './settings-email'
 
 export const makeState = (): Types.State => ({
   chat: {
@@ -34,10 +27,6 @@ export const makeState = (): Types.State => ({
     importPromptDismissed: false,
     permissionStatus: 'unknown',
     waitingToShowJoinedModal: false,
-  },
-  email: {
-    error: '',
-    newEmail: '',
   },
   feedback: {},
   notifications: {
@@ -112,7 +101,6 @@ export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export const sendFeedbackWaitingKey = 'settings:sendFeedback'
 export const importContactsWaitingKey = 'settings:importContacts'
-export const addEmailWaitingKey = 'settings:addEmail'
 export const loadSettingsWaitingKey = 'settings:loadSettings'
 export const settingsWaitingKey = 'settings:generic'
 
@@ -326,7 +314,7 @@ export const useState = Z.createZustand<State>(set => {
     dispatch,
   }
 })
-export {usePhoneState}
+export {usePhoneState, useEmailState}
 export {useState as usePasswordState} from './settings-password'
 export {useState as useInvitesState} from './settings-invites'
 export {
@@ -335,3 +323,4 @@ export {
   resendVerificationForPhoneWaitingKey,
   getE164,
 } from './settings-phone'
+export {addEmailWaitingKey} from './settings-email'

@@ -20,20 +20,6 @@
     "deleteAccountForever": {
       "passphrase?": "HiddenString"
     },
-    "editEmail": {
-      "email": "string",
-      "delete?": "boolean",
-      "makePrimary?": "boolean",
-      "makeSearchable?": "boolean",
-      "verify?": "boolean"
-    },
-    "sentVerificationEmail": {
-      "email": "string"
-    },
-    "emailVerified": {
-      "_description": "An email was just marked as verified",
-      "email": "string"
-    },
     "loadContactImportEnabled": {
       "_description": "Load whether config says we've enabled contact importing and check OS contacts permission status."
     },
@@ -62,16 +48,6 @@
     "loadedUserCountryCode": {
       "code?": "string"
     },
-    "addEmail": {
-      "email": "string",
-      "searchable": "boolean"
-    },
-    "addedEmail": {
-      "email": "string",
-      "error?": "string"
-    },
-    "clearAddingEmail": {"_description": "Reset state used for adding an email."},
-    "clearAddedEmail": {"_description": "Reset state used for showing we just added an email."},
     "clearAddedPhone": {
       "_description": "Reset state used for showing we just added a phone number."
     },
@@ -90,13 +66,6 @@
     "notificationsToggle": {
       "group": "string",
       "name?": "string"
-    },
-    "onChangeNewEmail": {
-      "email": "string"
-    },
-    "onSubmitNewEmail": {},
-    "onUpdateEmailError": {
-      "error": "Error"
     },
     "stop": {
       "exitCode": "RPCTypes.ExitCode"

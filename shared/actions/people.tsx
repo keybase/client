@@ -1,5 +1,4 @@
 import * as Constants from '../constants/people'
-import * as SettingsGen from './settings-gen'
 import * as Router2Constants from '../constants/router2'
 import * as ProfileConstants from '../constants/profile'
 import * as Container from '../util/container'
@@ -63,8 +62,8 @@ const initPeople = () => {
   })
   commonListenActions('people')
   Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
-  Container.listenAction(SettingsGen.emailVerified, (_, a) => {
-    Constants.useState.getState().dispatch.setResentEmail(a.payload.email)
+  Container.listenAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, (_, action) => {
+    Constants.useState.getState().dispatch.setResentEmail(action.payload.params.emailAddress)
   })
 }
 

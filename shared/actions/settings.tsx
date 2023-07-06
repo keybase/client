@@ -16,20 +16,6 @@ import type * as Types from '../constants/types/settings'
 import {RPCError} from '../util/errors'
 import {isAndroidNewerThanN, androidIsTestDevice, pprofDir, version} from '../constants/platform'
 
-const onSubmitNewEmail = async (state: Container.TypedState) => {
-  try {
-    const newEmail = state.settings.email.newEmail
-    await RPCTypes.accountEmailChangeRpcPromise({newEmail}, Constants.settingsWaitingKey)
-    Constants.useState.getState().dispatch.loadSettings()
-    return RouteTreeGen.createNavigateUp()
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    return SettingsGen.createOnUpdateEmailError({error})
-  }
-}
-
 const toggleNotifications = async (state: Container.TypedState) => {
   const current = state.settings.notifications
   if (!current || !current.groups.get('email')) {
@@ -187,37 +173,6 @@ const deleteAccountForever = async (_: unknown, action: SettingsGen.DeleteAccoun
     RouteTreeGen.createSwitchLoggedIn({loggedIn: false}),
     RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}),
   ]
-}
-
-const editEmail = async (state: Container.TypedState, action: SettingsGen.EditEmailPayload) => {
-  // TODO: consider allowing more than one action here
-  // TODO: handle errors
-  if (action.payload.delete) {
-    await RPCTypes.emailsDeleteEmailRpcPromise({email: action.payload.email})
-    if (state.settings.email.addedEmail === action.payload.email) {
-      return SettingsGen.createClearAddedEmail()
-    }
-    return false
-  }
-  if (action.payload.makePrimary) {
-    await RPCTypes.emailsSetPrimaryEmailRpcPromise({email: action.payload.email})
-    return false
-  }
-  if (action.payload.verify) {
-    await RPCTypes.emailsSendVerificationEmailRpcPromise({email: action.payload.email})
-    return SettingsGen.createSentVerificationEmail({email: action.payload.email})
-  }
-  if (action.payload.makeSearchable !== undefined && action.payload.makeSearchable !== null) {
-    await RPCTypes.emailsSetVisibilityEmailRpcPromise({
-      email: action.payload.email,
-      visibility: action.payload.makeSearchable
-        ? ChatTypes.Keybase1.IdentityVisibility.public
-        : ChatTypes.Keybase1.IdentityVisibility.private,
-    })
-    return false
-  }
-  logger.warn('Empty editEmail action')
-  return false
 }
 
 const trace = async (
@@ -429,70 +384,9 @@ const editContactImportEnabled = async (_: unknown, action: SettingsGen.EditCont
   return SettingsGen.createLoadContactImportEnabled()
 }
 
-const makeAddEmailError = (err: RPCError): string => {
-  switch (err.code) {
-    case RPCTypes.StatusCode.scratelimit:
-      return "Sorry, you've added too many email addresses lately. Please try again later."
-    case RPCTypes.StatusCode.scemailtaken:
-      return 'This email is already claimed by another user.'
-    case RPCTypes.StatusCode.scemaillimitexceeded:
-      return 'You have too many emails, delete one and try again.'
-    case RPCTypes.StatusCode.scinputerror:
-      return 'Invalid email.'
-  }
-  return err.message
-}
-const addEmail = async (state: Container.TypedState, action: SettingsGen.AddEmailPayload) => {
-  if (state.settings.email.error) {
-    logger.info('email error; bailing')
-    return
-  }
-  const {email, searchable} = action.payload
-  try {
-    await RPCTypes.emailsAddEmailRpcPromise(
-      {
-        email,
-        visibility: searchable ? RPCTypes.IdentityVisibility.public : RPCTypes.IdentityVisibility.private,
-      },
-      Constants.addEmailWaitingKey
-    )
-    logger.info('success')
-    return SettingsGen.createAddedEmail({email})
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    logger.warn(`error: ${error.message}`)
-    return SettingsGen.createAddedEmail({email, error: makeAddEmailError(error)})
-  }
-}
-
-const emailAddressVerified = (
-  _: unknown,
-  action: EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
-) => {
-  logger.info('email verified')
-  return SettingsGen.createEmailVerified({email: action.payload.params.emailAddress})
-}
-
 const loginBrowserViaWebAuthToken = async () => {
   const link = await RPCTypes.configGenerateWebAuthTokenRpcPromise()
   openURL(link)
-}
-
-const maybeClearAddedEmail = (state: Container.TypedState, action: RouteTreeGen.OnNavChangedPayload) => {
-  const {prev, next} = action.payload
-  // Clear "check your inbox" in settings when you leave the settings tab
-  if (
-    state.settings.email.addedEmail &&
-    prev &&
-    Router2Constants.getTab(prev) === Tabs.settingsTab &&
-    next &&
-    Router2Constants.getTab(next) !== Tabs.settingsTab
-  ) {
-    return SettingsGen.createClearAddedEmail()
-  }
-  return false
 }
 
 const initSettings = () => {
@@ -521,18 +415,34 @@ const initSettings = () => {
   )
   Container.listenAction(SettingsGen.editContactImportEnabled, editContactImportEnabled)
 
-  // Emails
-  Container.listenAction(SettingsGen.editEmail, editEmail)
-  Container.listenAction(SettingsGen.addEmail, addEmail)
-  Container.listenAction(SettingsGen.onSubmitNewEmail, onSubmitNewEmail)
-  Container.listenAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, emailAddressVerified)
-
-  Container.listenAction(RouteTreeGen.onNavChanged, maybeClearAddedEmail)
+  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
+    const {prev, next} = action.payload
+    // Clear "check your inbox" in settings when you leave the settings tab
+    if (
+      Constants.useEmailState.getState().addedEmail &&
+      prev &&
+      Router2Constants.getTab(prev) === Tabs.settingsTab &&
+      next &&
+      Router2Constants.getTab(next) !== Tabs.settingsTab
+    ) {
+      Constants.useEmailState.getState().dispatch.resetAddedEmail()
+    }
+  })
   Container.listenAction(SettingsGen.loginBrowserViaWebAuthToken, loginBrowserViaWebAuthToken)
 
   Container.listenAction(EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged, (_, action) => {
     const {list} = action.payload.params
     Constants.usePhoneState.getState().dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+  })
+
+  Container.listenAction(EngineGen.keybase1NotifyEmailAddressEmailsChanged, (_, action) => {
+    const list = action.payload.params.list ?? []
+    Constants.useEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
+  })
+
+  Container.listenAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, (_, action) => {
+    logger.info('email verified')
+    Constants.useEmailState.getState().dispatch.notifyEmailVerified(action.payload.params.emailAddress)
   })
 }
 

@@ -7,11 +7,7 @@ import type HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'settings:'
-export const addEmail = 'settings:addEmail'
-export const addedEmail = 'settings:addedEmail'
-export const clearAddedEmail = 'settings:clearAddedEmail'
 export const clearAddedPhone = 'settings:clearAddedPhone'
-export const clearAddingEmail = 'settings:clearAddingEmail'
 export const clearPhoneNumberAdd = 'settings:clearPhoneNumberAdd'
 export const clearPhoneNumberErrors = 'settings:clearPhoneNumberErrors'
 export const contactSettingsError = 'settings:contactSettingsError'
@@ -21,8 +17,6 @@ export const contactSettingsSaved = 'settings:contactSettingsSaved'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const editContactImportEnabled = 'settings:editContactImportEnabled'
-export const editEmail = 'settings:editEmail'
-export const emailVerified = 'settings:emailVerified'
 export const feedbackSent = 'settings:feedbackSent'
 export const importContactsLater = 'settings:importContactsLater'
 export const loadContactImportEnabled = 'settings:loadContactImportEnabled'
@@ -38,13 +32,9 @@ export const notificationsRefreshed = 'settings:notificationsRefreshed'
 export const notificationsSaved = 'settings:notificationsSaved'
 export const notificationsToggle = 'settings:notificationsToggle'
 export const onChangeLockdownMode = 'settings:onChangeLockdownMode'
-export const onChangeNewEmail = 'settings:onChangeNewEmail'
-export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
-export const onUpdateEmailError = 'settings:onUpdateEmailError'
 export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
 export const sendFeedback = 'settings:sendFeedback'
-export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setContactImportedCount = 'settings:setContactImportedCount'
 export const showContactsJoinedModal = 'settings:showContactsJoinedModal'
 export const stop = 'settings:stop'
@@ -56,13 +46,6 @@ export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
 export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
 
 // Action Creators
-/**
- * An email was just marked as verified
- */
-export const createEmailVerified = (payload: {readonly email: string}) => ({
-  payload,
-  type: emailVerified as typeof emailVerified,
-})
 /**
  * An error occurred on the contact settings screen
  */
@@ -143,25 +126,11 @@ export const createUnfurlSettingsRefreshed = (payload: {
   readonly whitelist: Array<string>
 }) => ({payload, type: unfurlSettingsRefreshed as typeof unfurlSettingsRefreshed})
 /**
- * Reset state used for adding an email.
- */
-export const createClearAddingEmail = (payload?: undefined) => ({
-  payload,
-  type: clearAddingEmail as typeof clearAddingEmail,
-})
-/**
  * Reset state used for showing we just added a phone number.
  */
 export const createClearAddedPhone = (payload?: undefined) => ({
   payload,
   type: clearAddedPhone as typeof clearAddedPhone,
-})
-/**
- * Reset state used for showing we just added an email.
- */
-export const createClearAddedEmail = (payload?: undefined) => ({
-  payload,
-  type: clearAddedEmail as typeof clearAddedEmail,
 })
 /**
  * Update unfurl settings from settings screen
@@ -177,14 +146,6 @@ export const createVerifiedPhoneNumber = (payload: {
   readonly error?: string
   readonly phoneNumber: string
 }) => ({payload, type: verifiedPhoneNumber as typeof verifiedPhoneNumber})
-export const createAddEmail = (payload: {readonly email: string; readonly searchable: boolean}) => ({
-  payload,
-  type: addEmail as typeof addEmail,
-})
-export const createAddedEmail = (payload: {readonly email: string; readonly error?: string}) => ({
-  payload,
-  type: addedEmail as typeof addedEmail,
-})
 export const createDbNuke = (payload?: undefined) => ({payload, type: dbNuke as typeof dbNuke})
 export const createDeleteAccountForever = (payload: {readonly passphrase?: HiddenString} = {}) => ({
   payload,
@@ -194,13 +155,6 @@ export const createEditContactImportEnabled = (payload: {
   readonly enable: boolean
   readonly fromSettings?: boolean
 }) => ({payload, type: editContactImportEnabled as typeof editContactImportEnabled})
-export const createEditEmail = (payload: {
-  readonly email: string
-  readonly delete?: boolean
-  readonly makePrimary?: boolean
-  readonly makeSearchable?: boolean
-  readonly verify?: boolean
-}) => ({payload, type: editEmail as typeof editEmail})
 export const createImportContactsLater = (payload?: undefined) => ({
   payload,
   type: importContactsLater as typeof importContactsLater,
@@ -251,18 +205,6 @@ export const createOnChangeLockdownMode = (payload: {readonly enabled: boolean})
   payload,
   type: onChangeLockdownMode as typeof onChangeLockdownMode,
 })
-export const createOnChangeNewEmail = (payload: {readonly email: string}) => ({
-  payload,
-  type: onChangeNewEmail as typeof onChangeNewEmail,
-})
-export const createOnSubmitNewEmail = (payload?: undefined) => ({
-  payload,
-  type: onSubmitNewEmail as typeof onSubmitNewEmail,
-})
-export const createOnUpdateEmailError = (payload: {readonly error: Error}) => ({
-  payload,
-  type: onUpdateEmailError as typeof onUpdateEmailError,
-})
 export const createProcessorProfile = (payload: {readonly durationSeconds: number}) => ({
   payload,
   type: processorProfile as typeof processorProfile,
@@ -275,10 +217,6 @@ export const createSendFeedback = (payload: {
   readonly sendLogs: boolean
   readonly sendMaxBytes: boolean
 }) => ({payload, type: sendFeedback as typeof sendFeedback})
-export const createSentVerificationEmail = (payload: {readonly email: string}) => ({
-  payload,
-  type: sentVerificationEmail as typeof sentVerificationEmail,
-})
 export const createSetContactImportedCount = (
   payload: {readonly count?: number; readonly error?: string} = {}
 ) => ({payload, type: setContactImportedCount as typeof setContactImportedCount})
@@ -295,11 +233,7 @@ export const createTrace = (payload: {readonly durationSeconds: number}) => ({
 })
 
 // Action Payloads
-export type AddEmailPayload = ReturnType<typeof createAddEmail>
-export type AddedEmailPayload = ReturnType<typeof createAddedEmail>
-export type ClearAddedEmailPayload = ReturnType<typeof createClearAddedEmail>
 export type ClearAddedPhonePayload = ReturnType<typeof createClearAddedPhone>
-export type ClearAddingEmailPayload = ReturnType<typeof createClearAddingEmail>
 export type ClearPhoneNumberAddPayload = ReturnType<typeof createClearPhoneNumberAdd>
 export type ClearPhoneNumberErrorsPayload = ReturnType<typeof createClearPhoneNumberErrors>
 export type ContactSettingsErrorPayload = ReturnType<typeof createContactSettingsError>
@@ -309,8 +243,6 @@ export type ContactSettingsSavedPayload = ReturnType<typeof createContactSetting
 export type DbNukePayload = ReturnType<typeof createDbNuke>
 export type DeleteAccountForeverPayload = ReturnType<typeof createDeleteAccountForever>
 export type EditContactImportEnabledPayload = ReturnType<typeof createEditContactImportEnabled>
-export type EditEmailPayload = ReturnType<typeof createEditEmail>
-export type EmailVerifiedPayload = ReturnType<typeof createEmailVerified>
 export type FeedbackSentPayload = ReturnType<typeof createFeedbackSent>
 export type ImportContactsLaterPayload = ReturnType<typeof createImportContactsLater>
 export type LoadContactImportEnabledPayload = ReturnType<typeof createLoadContactImportEnabled>
@@ -326,13 +258,9 @@ export type NotificationsRefreshedPayload = ReturnType<typeof createNotification
 export type NotificationsSavedPayload = ReturnType<typeof createNotificationsSaved>
 export type NotificationsTogglePayload = ReturnType<typeof createNotificationsToggle>
 export type OnChangeLockdownModePayload = ReturnType<typeof createOnChangeLockdownMode>
-export type OnChangeNewEmailPayload = ReturnType<typeof createOnChangeNewEmail>
-export type OnSubmitNewEmailPayload = ReturnType<typeof createOnSubmitNewEmail>
-export type OnUpdateEmailErrorPayload = ReturnType<typeof createOnUpdateEmailError>
 export type ProcessorProfilePayload = ReturnType<typeof createProcessorProfile>
 export type RequestContactPermissionsPayload = ReturnType<typeof createRequestContactPermissions>
 export type SendFeedbackPayload = ReturnType<typeof createSendFeedback>
-export type SentVerificationEmailPayload = ReturnType<typeof createSentVerificationEmail>
 export type SetContactImportedCountPayload = ReturnType<typeof createSetContactImportedCount>
 export type ShowContactsJoinedModalPayload = ReturnType<typeof createShowContactsJoinedModal>
 export type StopPayload = ReturnType<typeof createStop>
@@ -346,11 +274,7 @@ export type VerifiedPhoneNumberPayload = ReturnType<typeof createVerifiedPhoneNu
 // All Actions
 // prettier-ignore
 export type Actions =
-  | AddEmailPayload
-  | AddedEmailPayload
-  | ClearAddedEmailPayload
   | ClearAddedPhonePayload
-  | ClearAddingEmailPayload
   | ClearPhoneNumberAddPayload
   | ClearPhoneNumberErrorsPayload
   | ContactSettingsErrorPayload
@@ -360,8 +284,6 @@ export type Actions =
   | DbNukePayload
   | DeleteAccountForeverPayload
   | EditContactImportEnabledPayload
-  | EditEmailPayload
-  | EmailVerifiedPayload
   | FeedbackSentPayload
   | ImportContactsLaterPayload
   | LoadContactImportEnabledPayload
@@ -377,13 +299,9 @@ export type Actions =
   | NotificationsSavedPayload
   | NotificationsTogglePayload
   | OnChangeLockdownModePayload
-  | OnChangeNewEmailPayload
-  | OnSubmitNewEmailPayload
-  | OnUpdateEmailErrorPayload
   | ProcessorProfilePayload
   | RequestContactPermissionsPayload
   | SendFeedbackPayload
-  | SentVerificationEmailPayload
   | SetContactImportedCountPayload
   | ShowContactsJoinedModalPayload
   | StopPayload

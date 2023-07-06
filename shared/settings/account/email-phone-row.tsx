@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/settings'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../constants/platform'
 
@@ -233,21 +232,18 @@ export type OwnProps = {
 }
 
 const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
-  const _emailRow = Container.useSelector(
-    state => (state.settings.email.emails && state.settings.email.emails.get(ownProps.contactKey)) || null
-  )
+  const _emailRow = Constants.useEmailState(s => s.emails.get(ownProps.contactKey) ?? null)
   const _phoneRow = Constants.usePhoneState(s => s.phones?.get(ownProps.contactKey) || null)
-  const moreThanOneEmail = Container.useSelector(
-    state => state.settings.email.emails && state.settings.email.emails.size > 1
-  )
+  const moreThanOneEmail = Constants.useEmailState(s => s.emails.size > 1)
 
+  const editEmail = Constants.useEmailState(s => s.dispatch.editEmail)
   const dispatch = Container.useDispatch()
 
   const _onMakeNotSearchable = () => {
-    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: false}))
+    editEmail({email: ownProps.contactKey, makeSearchable: false})
   }
   const _onMakeSearchable = () => {
-    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true}))
+    editEmail({email: ownProps.contactKey, makeSearchable: true})
   }
 
   const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
@@ -272,10 +268,10 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
           })
         ),
       onMakePrimary: () => {
-        dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true}))
+        editEmail({email: ownProps.contactKey, makePrimary: true})
       },
       onVerify: () => {
-        dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true}))
+        editEmail({email: ownProps.contactKey, verify: true})
       },
     },
     phone: {

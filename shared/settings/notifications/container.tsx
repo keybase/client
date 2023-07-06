@@ -30,9 +30,7 @@ const ReloadableNotifications = (props: Props) => {
 export default () => {
   const _groups = Container.useSelector(state => state.settings.notifications.groups)
   const allowEdit = Container.useSelector(state => state.settings.notifications.allowEdit)
-  const showEmailSection = Container.useSelector(
-    state => !!state.settings.email.emails && state.settings.email.emails.size > 0
-  )
+  const showEmailSection = Constants.useEmailState(s => s.emails.size > 0)
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
   const dispatch = Container.useDispatch()

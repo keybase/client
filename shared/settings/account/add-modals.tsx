@@ -21,16 +21,19 @@ export const Email = () => {
   const emailTrimmed = email.trim()
   const disabled = !emailTrimmed
 
-  const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
-  const emailError = Container.useSelector(state => state.settings.email.error)
+  const addedEmail = Constants.useEmailState(s => s.addedEmail)
+  const emailError = Constants.useEmailState(s => s.error)
   const waiting = Container.useAnyWaiting(Constants.addEmailWaitingKey)
+
+  const addEmail = Constants.useEmailState(s => s.dispatch.addEmail)
+  const resetAddingEmail = Constants.useEmailState(s => s.dispatch.resetAddingEmail)
 
   // clean on unmount
   React.useEffect(
     () => () => {
-      dispatch(SettingsGen.createClearAddingEmail())
+      resetAddingEmail()
     },
-    [dispatch]
+    [resetAddingEmail]
   )
   // watch for + nav away on success
   React.useEffect(() => {
@@ -42,9 +45,9 @@ export const Email = () => {
   // clean on edit
   React.useEffect(() => {
     if (emailTrimmed !== addEmailInProgress && emailError) {
-      dispatch(SettingsGen.createClearAddingEmail())
+      resetAddingEmail()
     }
-  }, [addEmailInProgress, dispatch, emailError, emailTrimmed])
+  }, [addEmailInProgress, resetAddingEmail, emailError, emailTrimmed])
 
   const onClose = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onContinue = React.useCallback(() => {
@@ -52,8 +55,8 @@ export const Email = () => {
       return
     }
     onAddEmailInProgress(emailTrimmed)
-    dispatch(SettingsGen.createAddEmail({email: emailTrimmed, searchable: searchable}))
-  }, [disabled, waiting, emailTrimmed, dispatch, searchable])
+    addEmail(emailTrimmed, searchable)
+  }, [addEmail, disabled, waiting, emailTrimmed, searchable])
   return (
     <Kb.Modal
       onClose={onClose}
