@@ -16,14 +16,8 @@ export const contactSettingsRefreshed = 'settings:contactSettingsRefreshed'
 export const contactSettingsSaved = 'settings:contactSettingsSaved'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
-export const editContactImportEnabled = 'settings:editContactImportEnabled'
-export const feedbackSent = 'settings:feedbackSent'
-export const importContactsLater = 'settings:importContactsLater'
-export const loadContactImportEnabled = 'settings:loadContactImportEnabled'
 export const loadDefaultPhoneNumberCountry = 'settings:loadDefaultPhoneNumberCountry'
 export const loadLockdownMode = 'settings:loadLockdownMode'
-export const loadedContactImportEnabled = 'settings:loadedContactImportEnabled'
-export const loadedContactPermissions = 'settings:loadedContactPermissions'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
 export const loadedUserCountryCode = 'settings:loadedUserCountryCode'
 export const loginBrowserViaWebAuthToken = 'settings:loginBrowserViaWebAuthToken'
@@ -33,10 +27,6 @@ export const notificationsSaved = 'settings:notificationsSaved'
 export const notificationsToggle = 'settings:notificationsToggle'
 export const onChangeLockdownMode = 'settings:onChangeLockdownMode'
 export const processorProfile = 'settings:processorProfile'
-export const requestContactPermissions = 'settings:requestContactPermissions'
-export const sendFeedback = 'settings:sendFeedback'
-export const setContactImportedCount = 'settings:setContactImportedCount'
-export const showContactsJoinedModal = 'settings:showContactsJoinedModal'
 export const stop = 'settings:stop'
 export const trace = 'settings:trace'
 export const unfurlSettingsError = 'settings:unfurlSettingsError'
@@ -61,13 +51,6 @@ export const createUnfurlSettingsError = (payload: {readonly error: string}) => 
   type: unfurlSettingsError as typeof unfurlSettingsError,
 })
 /**
- * An error occurred while trying to send feedback to Keybase
- */
-export const createFeedbackSent = (payload: {readonly error?: Error} = {}) => ({
-  payload,
-  type: feedbackSent as typeof feedbackSent,
-})
-/**
  * Cancel adding a phone number.
  */
 export const createClearPhoneNumberAdd = (payload?: undefined) => ({
@@ -80,13 +63,6 @@ export const createClearPhoneNumberAdd = (payload?: undefined) => ({
 export const createClearPhoneNumberErrors = (payload?: undefined) => ({
   payload,
   type: clearPhoneNumberErrors as typeof clearPhoneNumberErrors,
-})
-/**
- * Load whether config says we've enabled contact importing and check OS contacts permission status.
- */
-export const createLoadContactImportEnabled = (payload?: undefined) => ({
-  payload,
-  type: loadContactImportEnabled as typeof loadContactImportEnabled,
 })
 /**
  * Refresh Chat contact settings
@@ -151,14 +127,6 @@ export const createDeleteAccountForever = (payload: {readonly passphrase?: Hidde
   payload,
   type: deleteAccountForever as typeof deleteAccountForever,
 })
-export const createEditContactImportEnabled = (payload: {
-  readonly enable: boolean
-  readonly fromSettings?: boolean
-}) => ({payload, type: editContactImportEnabled as typeof editContactImportEnabled})
-export const createImportContactsLater = (payload?: undefined) => ({
-  payload,
-  type: importContactsLater as typeof importContactsLater,
-})
 export const createLoadDefaultPhoneNumberCountry = (payload?: undefined) => ({
   payload,
   type: loadDefaultPhoneNumberCountry as typeof loadDefaultPhoneNumberCountry,
@@ -167,13 +135,6 @@ export const createLoadLockdownMode = (payload?: undefined) => ({
   payload,
   type: loadLockdownMode as typeof loadLockdownMode,
 })
-export const createLoadedContactImportEnabled = (payload: {readonly enabled: boolean}) => ({
-  payload,
-  type: loadedContactImportEnabled as typeof loadedContactImportEnabled,
-})
-export const createLoadedContactPermissions = (payload: {
-  readonly status: 'granted' | 'denied' | 'undetermined'
-}) => ({payload, type: loadedContactPermissions as typeof loadedContactPermissions})
 export const createLoadedLockdownMode = (payload: {readonly status?: boolean} = {}) => ({
   payload,
   type: loadedLockdownMode as typeof loadedLockdownMode,
@@ -209,20 +170,6 @@ export const createProcessorProfile = (payload: {readonly durationSeconds: numbe
   payload,
   type: processorProfile as typeof processorProfile,
 })
-export const createRequestContactPermissions = (
-  payload: {readonly thenToggleImportOn?: boolean; readonly fromSettings?: boolean} = {}
-) => ({payload, type: requestContactPermissions as typeof requestContactPermissions})
-export const createSendFeedback = (payload: {
-  readonly feedback: string
-  readonly sendLogs: boolean
-  readonly sendMaxBytes: boolean
-}) => ({payload, type: sendFeedback as typeof sendFeedback})
-export const createSetContactImportedCount = (
-  payload: {readonly count?: number; readonly error?: string} = {}
-) => ({payload, type: setContactImportedCount as typeof setContactImportedCount})
-export const createShowContactsJoinedModal = (payload: {
-  readonly resolved: Array<RPCTypes.ProcessedContact>
-}) => ({payload, type: showContactsJoinedModal as typeof showContactsJoinedModal})
 export const createStop = (payload: {readonly exitCode: RPCTypes.ExitCode}) => ({
   payload,
   type: stop as typeof stop,
@@ -242,14 +189,8 @@ export type ContactSettingsRefreshedPayload = ReturnType<typeof createContactSet
 export type ContactSettingsSavedPayload = ReturnType<typeof createContactSettingsSaved>
 export type DbNukePayload = ReturnType<typeof createDbNuke>
 export type DeleteAccountForeverPayload = ReturnType<typeof createDeleteAccountForever>
-export type EditContactImportEnabledPayload = ReturnType<typeof createEditContactImportEnabled>
-export type FeedbackSentPayload = ReturnType<typeof createFeedbackSent>
-export type ImportContactsLaterPayload = ReturnType<typeof createImportContactsLater>
-export type LoadContactImportEnabledPayload = ReturnType<typeof createLoadContactImportEnabled>
 export type LoadDefaultPhoneNumberCountryPayload = ReturnType<typeof createLoadDefaultPhoneNumberCountry>
 export type LoadLockdownModePayload = ReturnType<typeof createLoadLockdownMode>
-export type LoadedContactImportEnabledPayload = ReturnType<typeof createLoadedContactImportEnabled>
-export type LoadedContactPermissionsPayload = ReturnType<typeof createLoadedContactPermissions>
 export type LoadedLockdownModePayload = ReturnType<typeof createLoadedLockdownMode>
 export type LoadedUserCountryCodePayload = ReturnType<typeof createLoadedUserCountryCode>
 export type LoginBrowserViaWebAuthTokenPayload = ReturnType<typeof createLoginBrowserViaWebAuthToken>
@@ -259,10 +200,6 @@ export type NotificationsSavedPayload = ReturnType<typeof createNotificationsSav
 export type NotificationsTogglePayload = ReturnType<typeof createNotificationsToggle>
 export type OnChangeLockdownModePayload = ReturnType<typeof createOnChangeLockdownMode>
 export type ProcessorProfilePayload = ReturnType<typeof createProcessorProfile>
-export type RequestContactPermissionsPayload = ReturnType<typeof createRequestContactPermissions>
-export type SendFeedbackPayload = ReturnType<typeof createSendFeedback>
-export type SetContactImportedCountPayload = ReturnType<typeof createSetContactImportedCount>
-export type ShowContactsJoinedModalPayload = ReturnType<typeof createShowContactsJoinedModal>
 export type StopPayload = ReturnType<typeof createStop>
 export type TracePayload = ReturnType<typeof createTrace>
 export type UnfurlSettingsErrorPayload = ReturnType<typeof createUnfurlSettingsError>
@@ -283,14 +220,8 @@ export type Actions =
   | ContactSettingsSavedPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
-  | EditContactImportEnabledPayload
-  | FeedbackSentPayload
-  | ImportContactsLaterPayload
-  | LoadContactImportEnabledPayload
   | LoadDefaultPhoneNumberCountryPayload
   | LoadLockdownModePayload
-  | LoadedContactImportEnabledPayload
-  | LoadedContactPermissionsPayload
   | LoadedLockdownModePayload
   | LoadedUserCountryCodePayload
   | LoginBrowserViaWebAuthTokenPayload
@@ -300,10 +231,6 @@ export type Actions =
   | NotificationsTogglePayload
   | OnChangeLockdownModePayload
   | ProcessorProfilePayload
-  | RequestContactPermissionsPayload
-  | SendFeedbackPayload
-  | SetContactImportedCountPayload
-  | ShowContactsJoinedModalPayload
   | StopPayload
   | TracePayload
   | UnfurlSettingsErrorPayload

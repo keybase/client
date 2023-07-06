@@ -1,12 +1,8 @@
-import * as ChatConstants from './chat2'
-import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import type * as Types from './types/settings'
-import type {TypedState} from './reducer'
-import {getMeta} from './chat2/meta'
 import {useConfigState} from './config'
 import * as Tabs from './tabs'
 import logger from '../logger'
@@ -21,76 +17,16 @@ export const makeState = (): Types.State => ({
     },
     unfurl: {unfurlWhitelist: []},
   },
-  contacts: {
-    alreadyOnKeybase: [],
-    importError: '',
-    importPromptDismissed: false,
-    permissionStatus: 'unknown',
-    waitingToShowJoinedModal: false,
-  },
-  feedback: {},
   notifications: {
     allowEdit: false,
     groups: new Map(),
   },
 })
 
-export const getExtraChatLogsForLogSend = (state: TypedState) => {
-  const chat = state.chat2
-  const c = ChatConstants.getSelectedConversation()
-  if (c) {
-    const metaMap = getMeta(state, c)
-    return {
-      badgeMap: chat.badgeMap.get(c),
-      editingMap: chat.editingMap.get(c),
-      messageMap: [...(chat.messageMap.get(c)?.values() ?? [])].map(m => ({
-        a: m.author,
-        i: m.id,
-        o: m.ordinal,
-        out: (m.type === 'text' || m.type === 'attachment') && m.outboxID,
-        s: (m.type === 'text' || m.type === 'attachment') && m.submitState,
-        t: m.type,
-      })),
-      messageOrdinals: chat.messageOrdinals.get(c),
-      metaMap: {
-        channelname: 'x',
-        conversationIDKey: metaMap.conversationIDKey,
-        description: 'x',
-        inboxVersion: metaMap.inboxVersion,
-        isMuted: metaMap.isMuted,
-        membershipType: metaMap.membershipType,
-        notificationsDesktop: metaMap.notificationsDesktop,
-        notificationsGlobalIgnoreMentions: metaMap.notificationsGlobalIgnoreMentions,
-        notificationsMobile: metaMap.notificationsMobile,
-        offline: metaMap.offline,
-        participants: 'x',
-        rekeyers: metaMap.rekeyers?.size,
-        resetParticipants: metaMap.resetParticipants?.size,
-        retentionPolicy: metaMap.retentionPolicy,
-        snippet: 'x',
-        snippetDecoration: RPCChatTypes.SnippetDecoration.none,
-        supersededBy: metaMap.supersededBy,
-        supersedes: metaMap.supersedes,
-        teamRetentionPolicy: metaMap.teamRetentionPolicy,
-        teamType: metaMap.teamType,
-        teamname: metaMap.teamname,
-        timestamp: metaMap.timestamp,
-        tlfname: metaMap.tlfname,
-        trustedState: metaMap.trustedState,
-        wasFinalizedBy: metaMap.wasFinalizedBy,
-      },
-      pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
-      unreadMap: chat.unreadMap.get(c),
-    }
-  }
-  return {}
-}
-
 export const securityGroup = 'security'
 export const soundGroup = 'sound'
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
-export const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
 export const contactSettingsLoadWaitingKey = 'settings:contactSettingsLoadWaitingKey'
@@ -100,7 +36,6 @@ export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
 export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export const sendFeedbackWaitingKey = 'settings:sendFeedback'
-export const importContactsWaitingKey = 'settings:importContacts'
 export const loadSettingsWaitingKey = 'settings:loadSettings'
 export const settingsWaitingKey = 'settings:generic'
 
@@ -317,6 +252,8 @@ export const useState = Z.createZustand<State>(set => {
 export {usePhoneState, useEmailState}
 export {useState as usePasswordState} from './settings-password'
 export {useState as useInvitesState} from './settings-invites'
+export {useState as useContactsState, importContactsWaitingKey} from './settings-contacts'
+
 export {
   verifyPhoneNumberWaitingKey,
   addPhoneNumberWaitingKey,

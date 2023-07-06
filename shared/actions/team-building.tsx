@@ -1,5 +1,6 @@
 import logger from '../logger'
 import * as Constants from '../constants/team-building'
+import * as SettingsConstants from '../constants/settings'
 import * as RouterConstants from '../constants/router2'
 import type * as TeamBuildingTypes from '../constants/types/team-building'
 import * as TeamBuildingGen from './team-building-gen'
@@ -186,7 +187,7 @@ const search = async (
   )
   if (selectedService === 'keybase') {
     // If we are on Keybase tab, do additional search if query is phone/email.
-    const userRegion = state.settings.contacts.userCountryCode
+    const userRegion = SettingsConstants.useContactsState.getState().userCountryCode
     users = await specialContactSearch(users, searchQuery, userRegion)
   }
   return TeamBuildingGen.createSearchResultsLoaded({
@@ -234,10 +235,7 @@ const interestingPersonToUser = (person: RPCTypes.InterestingPerson): TeamBuildi
     username: username,
   }
 }
-const fetchUserRecs = async (
-  state: Container.TypedState,
-  {payload: {namespace, includeContacts}}: SearchOrRecAction
-) => {
+const fetchUserRecs = async (_: unknown, {payload: {namespace, includeContacts}}: SearchOrRecAction) => {
   try {
     const [_suggestionRes, _contactRes] = await Promise.all([
       RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50, namespace}),
@@ -249,7 +247,7 @@ const fetchUserRecs = async (
     const contactRes = _contactRes || []
     const contacts = contactRes.map(contactToUser)
     let suggestions = suggestionRes.map(interestingPersonToUser)
-    const expectingContacts = state.settings.contacts.importEnabled && includeContacts
+    const expectingContacts = SettingsConstants.useContactsState.getState().importEnabled && includeContacts
     if (expectingContacts) {
       suggestions = suggestions.slice(0, 10)
     }

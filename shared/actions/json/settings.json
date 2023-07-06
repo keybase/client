@@ -20,31 +20,6 @@
     "deleteAccountForever": {
       "passphrase?": "HiddenString"
     },
-    "loadContactImportEnabled": {
-      "_description": "Load whether config says we've enabled contact importing and check OS contacts permission status."
-    },
-    "loadedContactImportEnabled": {
-      "enabled": "boolean"
-    },
-    "loadedContactPermissions": {
-      "status": ["'granted'", "'denied'", "'undetermined'"]
-    },
-    "requestContactPermissions": {
-      "thenToggleImportOn?": "boolean",
-      "fromSettings?": "boolean"
-    },
-    "editContactImportEnabled": {
-      "enable": "boolean",
-      "fromSettings?": "boolean"
-    },
-    "showContactsJoinedModal": {
-      "resolved": "Array<RPCTypes.ProcessedContact>"
-    },
-    "importContactsLater": {},
-    "setContactImportedCount": {
-      "count?": "number",
-      "error?": "string"
-    },
     "loadedUserCountryCode": {
       "code?": "string"
     },
@@ -110,15 +85,6 @@
       "indirectFollowees": "boolean",
       "teamsEnabled": "boolean",
       "teamsList": "Types.ContactSettingsTeamsList"
-    },
-    "sendFeedback": {
-      "feedback": "string",
-      "sendLogs": "boolean",
-      "sendMaxBytes": "boolean"
-    },
-    "feedbackSent": {
-      "_description": "An error occurred while trying to send feedback to Keybase",
-      "error?": "Error"
     },
     "loadDefaultPhoneNumberCountry": {},
     "loginBrowserViaWebAuthToken": {}

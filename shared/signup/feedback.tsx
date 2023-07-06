@@ -4,22 +4,21 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as SettingsGen from '../actions/settings-gen'
 import FeedbackForm from '../settings/feedback/index'
 import {SignupScreen, errorBanner} from './common'
+import {useSendFeedback} from '../settings/feedback/shared'
 
 export default () => {
+  const {error, sendFeedback} = useSendFeedback()
   const loggedOut = ConfigConstants.useConfigState(s => !s.loggedIn)
-  const sendError = Container.useSelector(state => state.settings.feedback.error)
+  const sendError = error
   const sending = Container.useAnyWaiting(Constants.sendFeedbackWaitingKey)
 
   const dispatch = Container.useDispatch()
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const onSendFeedback = (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
-    dispatch(SettingsGen.createSendFeedback({feedback, sendLogs, sendMaxBytes}))
-  }
+  const onSendFeedback = sendFeedback
   const props = {
     loggedOut,
     onBack,
@@ -35,7 +34,7 @@ type Props = {
   onBack: () => void
   onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
   sending: boolean
-  sendError?: Error
+  sendError: string
 }
 
 const SignupFeedback = (props: Props) => {
@@ -50,7 +49,7 @@ const SignupFeedback = (props: Props) => {
               <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
             </Kb.Banner>
           ) : null}
-          {props.sendError ? errorBanner(props.sendError.message) : null}
+          {props.sendError ? errorBanner(props.sendError) : null}
         </>
       }
       title="Send feedback"
@@ -59,6 +58,7 @@ const SignupFeedback = (props: Props) => {
       showHeaderInfoiconRow={!props.loggedOut}
     >
       <FeedbackForm
+        sendError=""
         loggedOut={props.loggedOut}
         sending={props.sending}
         onSendFeedback={props.onSendFeedback}

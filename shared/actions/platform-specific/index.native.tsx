@@ -4,7 +4,6 @@ import * as ConfigConstants from '../../constants/config'
 import * as ProfileConstants from '../../constants/profile'
 import * as ChatConstants from '../../constants/chat2'
 import * as ConfigGen from '../config-gen'
-import * as Contacts from 'expo-contacts'
 import * as Container from '../../util/container'
 import * as DarkMode from '../../constants/darkmode'
 import * as EngineGen from '../engine-gen-gen'
@@ -16,10 +15,8 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as RouterConstants from '../../constants/router2'
 import * as SettingsConstants from '../../constants/settings'
-import * as SettingsGen from '../settings-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Types from '../../constants/types/chat2'
-import * as WaitingConstants from '../../constants/waiting'
 import NetInfo from '@react-native-community/netinfo'
 import NotifyPopup from '../../util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -31,7 +28,6 @@ import {isIOS, isAndroid} from '../../constants/platform'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {setupAudioMode} from '../../util/audio.native'
 import {
-  getDefaultCountryCode,
   androidOpenSettings,
   androidShare,
   androidShareText,
@@ -45,7 +41,6 @@ import {
   getStartupDetailsFromInitialPush,
   getStartupDetailsFromInitialShare,
 } from './push.native'
-import {pluralize} from '../../util/string'
 import * as Z from '../../util/zustand'
 
 const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
@@ -396,168 +391,6 @@ const openAppStore = async () =>
       : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
   ).catch(() => {})
 
-const loadContactPermissions = async (
-  _s: unknown,
-  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload
-) => {
-  if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
-    // only reload on foreground
-    return
-  }
-  const {status} = await Contacts.getPermissionsAsync()
-  logger.info(`OS status: ${status}`)
-  return SettingsGen.createLoadedContactPermissions({status})
-}
-
-const requestContactPermissions = async (
-  _: Container.TypedState,
-  action: SettingsGen.RequestContactPermissionsPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {thenToggleImportOn} = action.payload
-  const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
-  increment(SettingsConstants.importContactsWaitingKey)
-  const {status} = await Contacts.requestPermissionsAsync()
-
-  if (status === Contacts.PermissionStatus.GRANTED && thenToggleImportOn) {
-    listenerApi.dispatch(
-      SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: action.payload.fromSettings})
-    )
-  }
-  listenerApi.dispatch(SettingsGen.createLoadedContactPermissions({status}))
-  decrement(SettingsConstants.importContactsWaitingKey)
-}
-
-// When the notif is tapped we are only passed the message, use this as a marker
-// so we can handle it correctly.
-const contactNotifMarker = 'Your contact'
-const makeContactsResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
-  if (cts.length === 0) {
-    return ''
-  }
-  switch (cts.length) {
-    case 1:
-      return `${contactNotifMarker} ${cts[0]?.contactName ?? ''} joined Keybase!`
-    case 2:
-      return `${contactNotifMarker}s ${cts[0]?.contactName ?? ''} and ${
-        cts[1]?.contactName ?? ''
-      } joined Keybase!`
-    default: {
-      const lenMinusTwo = cts.length - 2
-      return `${contactNotifMarker}s ${cts[0]?.contactName ?? ''}, ${
-        cts[1]?.contactName ?? ''
-      }, and ${lenMinusTwo} ${pluralize('other', lenMinusTwo)} joined Keybase!`
-    }
-  }
-}
-
-const nativeContactsToContacts = (contacts: Contacts.ContactResponse, countryCode: string) => {
-  return contacts.data.reduce<Array<RPCTypes.Contact>>((ret, contact) => {
-    const {name, phoneNumbers = [], emails = []} = contact
-
-    const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
-      const formatted = SettingsConstants.getE164(pn.number || '', pn.countryCode || countryCode)
-      if (formatted) {
-        res.push({
-          label: pn.label,
-          phoneNumber: formatted,
-        })
-      }
-      return res
-    }, [])
-    components.push(...emails.map(e => ({email: e.email, label: e.label})))
-    if (components.length) {
-      ret.push({components, name})
-    }
-
-    return ret
-  }, [])
-}
-
-const manageContactsCache = async (
-  state: Container.TypedState,
-  _action: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload
-) => {
-  if (state.settings.contacts.importEnabled === false) {
-    await RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
-    return SettingsGen.createSetContactImportedCount({})
-  }
-
-  // get permissions if we haven't loaded them for some reason
-  let {permissionStatus} = state.settings.contacts
-  if (permissionStatus === 'unknown') {
-    permissionStatus = (await Contacts.getPermissionsAsync()).status
-  }
-  const perm = permissionStatus === 'granted'
-
-  const enabled = state.settings.contacts.importEnabled
-  if (!enabled || !perm) {
-    if (enabled && !perm) {
-      logger.info('contact import enabled but no contact permissions')
-    }
-    if (enabled === null) {
-      logger.info("haven't loaded contact import enabled")
-    }
-    return
-  }
-
-  // feature enabled and permission granted
-  let contacts: Contacts.ContactResponse
-  try {
-    contacts = await Contacts.getContactsAsync({
-      fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
-    })
-  } catch (_error) {
-    const error = _error as any
-    logger.error(`error loading contacts: ${error.message}`)
-    return SettingsGen.createSetContactImportedCount({error: error.message})
-  }
-  let defaultCountryCode: string = ''
-  try {
-    defaultCountryCode = await getDefaultCountryCode()
-    if (__DEV__ && !defaultCountryCode) {
-      // behavior of parsing can be unexpectedly different with no country code.
-      // iOS sim + android emu don't supply country codes, so use this one.
-      defaultCountryCode = 'us'
-    }
-  } catch (_error) {
-    const error = _error as any
-    logger.warn(`Error loading default country code: ${error.message}`)
-  }
-
-  const mapped = nativeContactsToContacts(contacts, defaultCountryCode)
-  logger.info(`Importing ${mapped.length} contacts.`)
-  const actions: Array<Container.TypedActions> = []
-  try {
-    const {newlyResolved, resolved} = await RPCTypes.contactsSaveContactListRpcPromise({contacts: mapped})
-    logger.info(`Success`)
-    actions.push(
-      SettingsGen.createSetContactImportedCount({count: mapped.length}),
-      SettingsGen.createLoadedUserCountryCode({code: defaultCountryCode})
-    )
-    if (newlyResolved && newlyResolved.length) {
-      isIOS &&
-        PushNotificationIOS.addNotificationRequest({
-          body: makeContactsResolvedMessage(newlyResolved),
-          id: Math.floor(Math.random() * Math.pow(2, 32)).toString(),
-        })
-    }
-    if (state.settings.contacts.waitingToShowJoinedModal && resolved) {
-      actions.push(SettingsGen.createShowContactsJoinedModal({resolved}))
-    }
-  } catch (_error) {
-    const error = _error as any
-    logger.error('Error saving contacts list: ', error.message)
-    actions.push(SettingsGen.createSetContactImportedCount({error: error.message}))
-  }
-  return actions
-}
-
-const showContactsJoinedModal = (_: unknown, action: SettingsGen.ShowContactsJoinedModalPayload) =>
-  action.payload.resolved.length
-    ? [RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']})]
-    : []
-
 const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
   Chat2Gen.createSetCommandStatusInfo({
     conversationIDKey,
@@ -777,18 +610,16 @@ export const initPlatformListener = () => {
 
   Container.listenAction(RouteTreeGen.tabLongPress, onTabLongPress)
 
-  // Contacts
-  Container.listenAction(
-    [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
-    loadContactPermissions
-  )
+  Container.listenAction(ConfigGen.mobileAppState, (_, action) => {
+    if (action.payload.nextAppState === 'active') {
+      // only reload on foreground
+      SettingsConstants.useContactsState.getState().dispatch.loadContactPermissions()
+    }
+  })
 
-  Container.listenAction(SettingsGen.requestContactPermissions, requestContactPermissions)
-  Container.listenAction(
-    [SettingsGen.loadedContactImportEnabled, EngineGen.chat1ChatUiTriggerContactSync],
-    manageContactsCache
-  )
-  Container.listenAction(SettingsGen.showContactsJoinedModal, showContactsJoinedModal)
+  Container.listenAction(EngineGen.chat1ChatUiTriggerContactSync, () => {
+    SettingsConstants.useContactsState.getState().dispatch.manageContactsCache()
+  })
 
   // Location
   getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')

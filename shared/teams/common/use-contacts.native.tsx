@@ -2,7 +2,6 @@ import * as Contacts from 'expo-contacts'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
-import * as SettingsGen from '../../actions/settings-gen'
 import {e164ToDisplay} from '../../util/phone-numbers'
 import logger from '../../logger'
 import {getDefaultCountryCode} from 'react-native-kb'
@@ -90,8 +89,8 @@ const useContacts = () => {
   const [noAccessPermanent, setNoAccessPermanent] = React.useState(false)
   const [loading, setLoading] = React.useState(true)
 
-  const permStatus = Container.useSelector(s => s.settings.contacts.permissionStatus)
-  const savedRegion = Container.useSelector(s => s.settings.contacts.userCountryCode)
+  const permStatus = SettingsConstants.useContactsState(s => s.permissionStatus)
+  const savedRegion = SettingsConstants.useContactsState(s => s.userCountryCode)
 
   React.useEffect(() => {
     if (permStatus === 'granted') {
@@ -116,15 +115,16 @@ const useContacts = () => {
     }
   }, [dispatch, setErrorMessage, setContacts, permStatus, savedRegion])
 
+  const requestPermissions = SettingsConstants.useContactsState(s => s.dispatch.requestPermissions)
   React.useEffect(() => {
     // Use a separate effect with limited amount of dependencies when deciding
     // whether to dispatch `createRequestContactPermissions` so we never
     // dispatch more than once.
     if (permStatus === 'unknown' || permStatus === 'undetermined') {
       setNoAccessPermanent(false)
-      dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: false}))
+      requestPermissions(false)
     }
-  }, [dispatch, permStatus])
+  }, [requestPermissions, permStatus])
 
   return {contacts, errorMessage, loading, noAccessPermanent, region}
 }

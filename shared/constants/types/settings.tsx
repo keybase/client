@@ -33,10 +33,6 @@ export type NotificationsState = {
   groups: Map<string, NotificationsGroupState>
 }
 
-export type FeedbackState = {
-  error?: Error
-}
-
 export type ChatUnfurlState = {
   unfurlMode?: RPCChatTypes.UnfurlMode
   unfurlWhitelist?: Array<string>
@@ -55,22 +51,7 @@ export type ChatState = {
   unfurl: ChatUnfurlState
 }
 
-export type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unknown'
-export type ContactsState = {
-  alreadyOnKeybase: Array<RPCTypes.ProcessedContact>
-  importEnabled?: boolean
-  importError: string
-  importPromptDismissed: boolean
-  importedCount?: number
-  // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
-  permissionStatus: PermissionStatus
-  userCountryCode?: string
-  waitingToShowJoinedModal: boolean
-}
-
 export type State = {
   chat: ChatState
-  contacts: ContactsState
-  feedback: FeedbackState
   notifications: NotificationsState
 }

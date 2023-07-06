@@ -3,33 +3,33 @@ import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import * as SettingsGen from '../actions/settings-gen'
+import * as SettingsConstants from '../constants/settings'
 import type * as Types from '../constants/types/team-building'
 
 const useContactsProps = () => {
-  const contactsImported = Container.useSelector(state => state.settings.contacts.importEnabled)
-  const contactsPermissionStatus = Container.useSelector(state => state.settings.contacts.permissionStatus)
-  const isImportPromptDismissed = Container.useSelector(
-    state => state.settings.contacts.importPromptDismissed
+  const contactsImported = SettingsConstants.useContactsState(s => s.importEnabled)
+  const contactsPermissionStatus = SettingsConstants.useContactsState(s => s.permissionStatus)
+  const isImportPromptDismissed = SettingsConstants.useContactsState(s => s.importPromptDismissed)
+  const numContactsImported = SettingsConstants.useContactsState(s => s.importedCount || 0)
+
+  const importContactsLater = SettingsConstants.useContactsState(s => s.dispatch.importContactsLater)
+  const loadContactImportEnabled = SettingsConstants.useContactsState(
+    s => s.dispatch.loadContactImportEnabled
   )
-  const numContactsImported = Container.useSelector(state => state.settings.contacts.importedCount || 0)
+  const editContactImportEnabled = SettingsConstants.useContactsState(
+    s => s.dispatch.editContactImportEnabled
+  )
+  const requestPermissions = SettingsConstants.useContactsState(s => s.dispatch.requestPermissions)
 
-  const dispatch = Container.useDispatch()
-
-  const onAskForContactsLater = React.useCallback(() => {
-    dispatch(SettingsGen.createImportContactsLater())
-  }, [dispatch])
-
-  const onLoadContactsSetting = React.useCallback(() => {
-    dispatch(SettingsGen.createLoadContactImportEnabled())
-  }, [dispatch])
+  const onAskForContactsLater = importContactsLater
+  const onLoadContactsSetting = loadContactImportEnabled
 
   const onImportContactsPermissionsGranted = React.useCallback(() => {
-    dispatch(SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: false}))
-  }, [dispatch])
+    editContactImportEnabled(true, false)
+  }, [editContactImportEnabled])
   const onImportContactsPermissionsNotGranted = React.useCallback(() => {
-    dispatch(SettingsGen.createRequestContactPermissions({fromSettings: false, thenToggleImportOn: true}))
-  }, [dispatch])
+    requestPermissions(true, false)
+  }, [requestPermissions])
 
   const onImportContacts =
     contactsPermissionStatus === 'denied'

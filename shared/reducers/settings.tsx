@@ -94,44 +94,8 @@ const chatActions: Container.ActionHandler<Actions, Types.State> = {
   },
 }
 
-const contactsActions: Container.ActionHandler<Actions, Types.State> = {
-  [SettingsGen.loadedContactImportEnabled]: (draftState, action) => {
-    draftState.contacts.importEnabled = action.payload.enabled
-  },
-  [SettingsGen.loadedContactPermissions]: (draftState, action) => {
-    draftState.contacts.permissionStatus = action.payload.status
-  },
-  [SettingsGen.setContactImportedCount]: (draftState, action) => {
-    const {contacts} = draftState
-    contacts.importError = action.payload.error ?? ''
-    contacts.importedCount = action.payload.count
-  },
-  [SettingsGen.importContactsLater]: draftState => {
-    draftState.contacts.importPromptDismissed = true
-  },
-  [SettingsGen.loadedUserCountryCode]: (draftState, action) => {
-    draftState.contacts.userCountryCode = action.payload.code
-  },
-  [SettingsGen.showContactsJoinedModal]: (draftState, action) => {
-    draftState.contacts.alreadyOnKeybase = action.payload.resolved
-    draftState.contacts.waitingToShowJoinedModal = false
-  },
-  [SettingsGen.editContactImportEnabled]: (draftState, action) => {
-    if (action.payload.fromSettings) {
-      draftState.contacts.waitingToShowJoinedModal = true
-    }
-  },
-}
-
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [SettingsGen.resetStore]: () => initialState,
-  [SettingsGen.feedbackSent]: (draftState, action) => {
-    draftState.feedback.error = action.payload.error
-  },
-  [SettingsGen.sendFeedback]: draftState => {
-    draftState.feedback.error = undefined
-  },
   ...notificationActions,
   ...chatActions,
-  ...contactsActions,
 })

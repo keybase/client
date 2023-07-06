@@ -1,4 +1,5 @@
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/settings'
 import * as Followers from '../../constants/followers'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -34,7 +35,7 @@ const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
 }
 
 const ContactsJoinedModal = () => {
-  const people = Container.useSelector(state => state.settings.contacts.alreadyOnKeybase)
+  const people = Constants.useContactsState(s => s.alreadyOnKeybase)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onClose = () => dispatch(nav.safeNavigateUpPayload())

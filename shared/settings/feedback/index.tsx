@@ -3,25 +3,12 @@ import * as Kb from '../../common-adapters'
 import {isMobile} from '../../util/container'
 import * as Styles from '../../styles'
 
-export const getOtherErrorInfo = (err: Error) => {
-  const info = {}
-  // @ts-ignore
-  for (const k in err) info[k] = (err as Object)[k]
-  // @ts-ignore
-  delete info.name
-  // @ts-ignore
-  delete info.message
-  // @ts-ignore
-  delete info.stack
-  return info
-}
-
 type Props = {
   feedback?: string
   loggedOut: boolean
   onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => void
   sending: boolean
-  sendError?: Error
+  sendError: string
   showInternalSuccessBanner: boolean // if true, enables the internal success bar
   onFeedbackDone: (success: boolean) => void
 }
@@ -156,15 +143,7 @@ class Feedback extends React.Component<Props, State> {
               <Kb.Box2 direction="vertical" gap="small">
                 <Kb.Text type="BodySmallError">Could not send log</Kb.Text>
                 <Kb.Text type="BodySmall" selectable={true}>
-                  {`${sendError.name}: ${sendError.message}`}
-                </Kb.Text>
-                <Kb.Text type="BodySmallSemibold">Stack</Kb.Text>
-                <Kb.Text type="BodySmall" selectable={true}>
-                  {sendError.stack}
-                </Kb.Text>
-                <Kb.Text type="BodySmallSemibold">Error dump</Kb.Text>
-                <Kb.Text type="BodySmall" selectable={true}>
-                  {JSON.stringify(getOtherErrorInfo(sendError), null, 2)}
+                  {sendError}
                 </Kb.Text>
               </Kb.Box2>
             )}

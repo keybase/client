@@ -14,7 +14,7 @@ import openURL from '../util/open-url'
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/settings'
 import {RPCError} from '../util/errors'
-import {isAndroidNewerThanN, androidIsTestDevice, pprofDir, version} from '../constants/platform'
+import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
 
 const toggleNotifications = async (state: Container.TypedState) => {
   const current = state.settings.notifications
@@ -205,39 +205,6 @@ const processorProfile = async (
   decrement(Constants.processorProfileInProgressKey)
 }
 
-const sendFeedback = async (state: Container.TypedState, action: SettingsGen.SendFeedbackPayload) => {
-  // We don't want test devices (pre-launch reports) to send us log sends.
-  if (androidIsTestDevice) {
-    return
-  }
-  const {feedback, sendLogs, sendMaxBytes} = action.payload
-  try {
-    if (sendLogs) {
-      await logger.dump()
-    }
-    const status = {version}
-    logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
-    const extra = sendLogs ? {...status, ...Constants.getExtraChatLogsForLogSend(state)} : status
-    const logSendId = await RPCTypes.configLogSendRpcPromise(
-      {
-        feedback: feedback || '',
-        sendLogs,
-        sendMaxBytes,
-        statusJSON: JSON.stringify(extra),
-      },
-      Constants.sendFeedbackWaitingKey
-    )
-    logger.info('logSendId is', logSendId)
-    return false
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    logger.warn('err in sending logs', error)
-    return SettingsGen.createFeedbackSent({error: error as Error})
-  }
-}
-
 const contactSettingsRefresh = async () => {
   if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return false
@@ -335,55 +302,6 @@ const stop = async (_: unknown, action: SettingsGen.StopPayload) => {
   return false as const
 }
 
-const loadContactImportEnabled = async (
-  _: unknown,
-  action: SettingsGen.LoadContactImportEnabledPayload | ConfigGen.LoadOnStartPayload
-) => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    return
-  }
-  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
-    return
-  }
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  if (!username) {
-    logger.warn('no username')
-    return
-  }
-  let enabled = false
-  try {
-    const value = await RPCTypes.configGuiGetValueRpcPromise(
-      {path: Constants.importContactsConfigKey(username)},
-      Constants.importContactsWaitingKey
-    )
-    enabled = !!value.b && !value.isNull
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    if (!error.message.includes('no such key')) {
-      logger.error(`Error reading config: ${error.message}`)
-    }
-  }
-  return SettingsGen.createLoadedContactImportEnabled({enabled})
-}
-
-const editContactImportEnabled = async (_: unknown, action: SettingsGen.EditContactImportEnabledPayload) => {
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  if (!username) {
-    logger.warn('no username')
-    return false
-  }
-  await RPCTypes.configGuiSetValueRpcPromise(
-    {
-      path: Constants.importContactsConfigKey(username),
-      value: {b: action.payload.enable, isNull: false},
-    },
-    Constants.importContactsWaitingKey
-  )
-  return SettingsGen.createLoadContactImportEnabled()
-}
-
 const loginBrowserViaWebAuthToken = async () => {
   const link = await RPCTypes.configGenerateWebAuthTokenRpcPromise()
   openURL(link)
@@ -396,7 +314,6 @@ const initSettings = () => {
   Container.listenAction(SettingsGen.deleteAccountForever, deleteAccountForever)
   Container.listenAction(SettingsGen.trace, trace)
   Container.listenAction(SettingsGen.processorProfile, processorProfile)
-  Container.listenAction(SettingsGen.sendFeedback, sendFeedback)
   Container.listenAction(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
   Container.listenAction(SettingsGen.contactSettingsSaved, contactSettingsSaved)
   Container.listenAction(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
@@ -409,11 +326,9 @@ const initSettings = () => {
   Container.listenAction(SettingsGen.stop, stop)
 
   // Contacts
-  Container.listenAction(
-    [SettingsGen.loadContactImportEnabled, ConfigGen.loadOnStart],
-    loadContactImportEnabled
-  )
-  Container.listenAction(SettingsGen.editContactImportEnabled, editContactImportEnabled)
+  Container.listenAction(ConfigGen.loadOnStart, () => {
+    Constants.useContactsState.getState().dispatch.loadContactImportEnabled()
+  })
 
   Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
     const {prev, next} = action.payload
