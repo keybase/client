@@ -109,12 +109,8 @@
     "onChangeNewEmail": {
       "email": "string"
     },
-    "onChangeShowPassword": {},
     "onSubmitNewEmail": {},
     "onUpdateEmailError": {
-      "error": "Error"
-    },
-    "onUpdatePasswordError": {
       "error": "Error"
     },
     "stop": {
