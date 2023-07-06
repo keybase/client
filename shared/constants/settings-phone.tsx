@@ -110,7 +110,6 @@ export type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  // const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     addPhoneNumber: (phoneNumber, searchable) => {
       const f = async () => {
