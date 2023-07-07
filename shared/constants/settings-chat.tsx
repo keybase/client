@@ -1,9 +1,11 @@
-import type * as RPCChatTypes from './types/rpc-chat-gen'
+import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
 import {useConfigState} from './config'
 import * as Z from '../util/zustand'
 
 export const contactSettingsSaveWaitingKey = 'settings:contactSettingsSaveWaitingKey'
+export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
+export const contactSettingsLoadWaitingKey = 'settings:contactSettingsLoadWaitingKey'
 
 export type ChatUnfurlState = {
   unfurlMode?: RPCChatTypes.UnfurlMode
@@ -49,16 +51,25 @@ export type State = Store & {
 export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     contactSettingsRefresh: () => {
-      // TODO
-    },
-    unfurlSettingsRefresh: () => {
-      // TODO
-    },
-    unfurlSettingsSaved: (unfurlMode, unfurlWhitelist) => {
-      set(s => {
-        s.unfurl = {unfurlError: undefined, unfurlMode, unfurlWhitelist}
-      })
-      // TODO
+      const f = async () => {
+        if (!useConfigState.getState().loggedIn) {
+          return
+        }
+        try {
+          const settings = await RPCTypes.accountUserGetContactSettingsRpcPromise(
+            undefined,
+            contactSettingsLoadWaitingKey
+          )
+          set(s => {
+            s.contactSettings = {error: '', settings}
+          })
+        } catch (_) {
+          set(s => {
+            s.contactSettings.error = 'Unable to load contact settings, please try again.'
+          })
+        }
+      }
+      Z.ignorePromise(f())
     },
     contactSettingsSaved: (enabled, indirectFollowees, teamsEnabled, teamsList) => {
       const f = async () => {
@@ -90,54 +101,53 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     resetState: 'default',
+    unfurlSettingsRefresh: () => {
+      const f = async () => {
+        if (!useConfigState.getState().loggedIn) {
+          return
+        }
+        try {
+          const result = await RPCChatTypes.localGetUnfurlSettingsRpcPromise(undefined, chatUnfurlWaitingKey)
+          set(s => {
+            s.unfurl = {
+              unfurlError: undefined,
+              unfurlMode: result.mode,
+              unfurlWhitelist: result.whitelist ?? [],
+            }
+          })
+        } catch (_) {
+          set(s => {
+            s.unfurl.unfurlError = 'Unable to load link preview settings, please try again.'
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    unfurlSettingsSaved: (unfurlMode, unfurlWhitelist) => {
+      set(s => {
+        s.unfurl = {unfurlError: undefined, unfurlMode, unfurlWhitelist}
+      })
+      const f = async () => {
+        if (!useConfigState.getState().loggedIn) {
+          return
+        }
+        try {
+          await RPCChatTypes.localSaveUnfurlSettingsRpcPromise(
+            {mode: unfurlMode, whitelist: unfurlWhitelist},
+            chatUnfurlWaitingKey
+          )
+          get().dispatch.unfurlSettingsRefresh()
+        } catch (_) {
+          set(s => {
+            s.unfurl.unfurlError = 'Unable to save link preview settings, please try again.'
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
   }
   return {
     ...initialStore,
     dispatch,
   }
 })
-
-// const chatActions: Container.ActionHandler<Actions, Types.State> = {
-//   [SettingsGen.contactSettingsRefreshed]: (draftState, action) => {
-//     draftState.chat.contactSettings = {
-//       error: '',
-//       settings: action.payload.settings,
-//     }
-//   },
-//   [SettingsGen.unfurlSettingsRefreshed]: (draftState, action) => {
-//     draftState.chat.unfurl = {
-//       unfurlError: undefined,
-//       unfurlMode: action.payload.mode,
-//       unfurlWhitelist: action.payload.whitelist,
-//     }
-//   },
-//   [SettingsGen.unfurlSettingsError]: (draftState, action) => {
-//     draftState.chat.unfurl.unfurlError = action.payload.error
-//   },
-// }
-//
-//
-//
-// "unfurlSettingsRefresh": {
-//   "_description": "Refresh unfurl settings"
-// },
-// "unfurlSettingsRefreshed": {
-//   "_description": "Refreshed unfurl settings available",
-//   "mode": "RPCChatTypes.UnfurlMode",
-//   "whitelist": "Array<string>"
-// },
-// "unfurlSettingsError": {
-//   "_description": "An error occurred on the unfurl settings screen",
-//   "error": "string"
-// },
-// "contactSettingsRefreshed": {
-//   "_description": "Refreshed Chat contact settings available",
-//   "settings": "RPCTypes.ContactSettings"
-// },
-// "contactSettingsSaved": {
-//   "_description": "Refreshed Chat contact settings available",
-//   "enabled": "boolean",
-//   "indirectFollowees": "boolean",
-//   "teamsEnabled": "boolean",
-//   "teamsList": "Types.ContactSettingsTeamsList"
-// },

@@ -205,60 +205,6 @@ const processorProfile = async (
   decrement(Constants.processorProfileInProgressKey)
 }
 
-const contactSettingsRefresh = async () => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    return false
-  }
-  try {
-    const settings = await RPCTypes.accountUserGetContactSettingsRpcPromise(
-      undefined,
-      Constants.contactSettingsLoadWaitingKey
-    )
-    return SettingsGen.createContactSettingsRefreshed({
-      settings,
-    })
-  } catch (_) {
-    return SettingsGen.createContactSettingsError({
-      error: 'Unable to load contact settings, please try again.',
-    })
-  }
-}
-
-const unfurlSettingsRefresh = async () => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    return false
-  }
-  try {
-    const result = await ChatTypes.localGetUnfurlSettingsRpcPromise(undefined, Constants.chatUnfurlWaitingKey)
-    return SettingsGen.createUnfurlSettingsRefreshed({
-      mode: result.mode,
-      whitelist: result.whitelist ?? [],
-    })
-  } catch (_) {
-    return SettingsGen.createUnfurlSettingsError({
-      error: 'Unable to load link preview settings, please try again.',
-    })
-  }
-}
-
-const unfurlSettingsSaved = async (_: unknown, action: SettingsGen.UnfurlSettingsSavedPayload) => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    return false
-  }
-
-  try {
-    await ChatTypes.localSaveUnfurlSettingsRpcPromise(
-      {mode: action.payload.mode, whitelist: action.payload.whitelist},
-      Constants.chatUnfurlWaitingKey
-    )
-    return SettingsGen.createUnfurlSettingsRefresh()
-  } catch (_) {
-    return SettingsGen.createUnfurlSettingsError({
-      error: 'Unable to save link preview settings, please try again.',
-    })
-  }
-}
-
 const stop = async (_: unknown, action: SettingsGen.StopPayload) => {
   await RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
   return false as const
@@ -276,9 +222,6 @@ const initSettings = () => {
   Container.listenAction(SettingsGen.deleteAccountForever, deleteAccountForever)
   Container.listenAction(SettingsGen.trace, trace)
   Container.listenAction(SettingsGen.processorProfile, processorProfile)
-  Container.listenAction(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
-  Container.listenAction(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
-  Container.listenAction(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
   Container.listenAction(EngineGen.keybase1NotifyUsersPasswordChanged, (_, action) => {
     const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
     Constants.usePasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)

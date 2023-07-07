@@ -21,8 +21,6 @@ export const soundGroup = 'sound'
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
-export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
-export const contactSettingsLoadWaitingKey = 'settings:contactSettingsLoadWaitingKey'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
 export const checkPasswordWaitingKey = 'settings:checkPassword'
@@ -244,7 +242,12 @@ export const useState = Z.createZustand<State>(set => {
 export {usePhoneState, useEmailState}
 export {useState as usePasswordState} from './settings-password'
 export {useState as useInvitesState} from './settings-invites'
-export {useState as useChatState, contactSettingsSaveWaitingKey} from './settings-chat'
+export {
+  useState as useChatState,
+  contactSettingsSaveWaitingKey,
+  chatUnfurlWaitingKey,
+  contactSettingsLoadWaitingKey,
+} from './settings-chat'
 export {useState as useContactsState, importContactsWaitingKey} from './settings-contacts'
 
 export {
