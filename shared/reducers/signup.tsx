@@ -41,10 +41,4 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [SignupGen.signedup]: (draftState, action) => {
     draftState.signupError = action.payload.error
   },
-  [SignupGen.setJustSignedUpEmail]: (draftState, action) => {
-    draftState.justSignedUpEmail = action.payload.email
-  },
-  [SignupGen.clearJustSignedUpEmail]: draftState => {
-    draftState.justSignedUpEmail = ''
-  },
 })

@@ -109,24 +109,6 @@ const reallySignupOnNoErrors = async (
   }
 }
 
-const maybeClearJustSignedUpEmail = (
-  state: Container.TypedState,
-  action: RouteTreeGen.OnNavChangedPayload
-) => {
-  const {prev, next} = action.payload
-  // Clear "just signed up email" when you leave the people tab after signup
-  if (
-    state.signup.justSignedUpEmail &&
-    prev &&
-    Router2Constants.getTab(prev) === Tabs.peopleTab &&
-    next &&
-    Router2Constants.getTab(next) !== Tabs.peopleTab
-  ) {
-    return SignupGen.createClearJustSignedUpEmail()
-  }
-  return false
-}
-
 const initSignup = () => {
   // validation actions
   Container.listenAction(SignupGen.checkDevicename, checkDevicename)
@@ -135,13 +117,25 @@ const initSignup = () => {
   Container.listenAction(SignupGen.signedup, showErrorOrCleanupAfterSignup)
   Container.listenAction(SignupGen.signedup, setEmailVisibilityAfterSignup)
 
-  Container.listenAction(RouteTreeGen.onNavChanged, maybeClearJustSignedUpEmail)
+  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
+    const {prev, next} = action.payload
+    // Clear "just signed up email" when you leave the people tab after signup
+    if (
+      Constants.useState.getState().justSignedUpEmail &&
+      prev &&
+      Router2Constants.getTab(prev) === Tabs.peopleTab &&
+      next &&
+      Router2Constants.getTab(next) !== Tabs.peopleTab
+    ) {
+      Constants.useState.getState().dispatch.clearJustSignedUpEmail()
+    }
+  })
 
   // actually make the signup call
   Container.listenAction(SignupGen.checkedDevicename, reallySignupOnNoErrors)
 
   Container.listenAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, () => {
-    return SignupGen.createClearJustSignedUpEmail()
+    Constants.useState.getState().dispatch.clearJustSignedUpEmail()
   })
 }
 

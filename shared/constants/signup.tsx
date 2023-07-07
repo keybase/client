@@ -39,7 +39,6 @@ export const defaultDevicename =
 export const makeState = (): Types.State => ({
   devicename: defaultDevicename,
   devicenameError: '',
-  justSignedUpEmail: '',
   password: new HiddenString(''),
   passwordError: new HiddenString(''),
 })
@@ -50,6 +49,7 @@ type Store = {
   emailVisible: boolean
   inviteCode: string
   inviteCodeError: string
+  justSignedUpEmail: string
   name: string
   nameError: string
   username: string
@@ -63,6 +63,7 @@ const initialStore: Store = {
   emailVisible: false,
   inviteCode: '',
   inviteCodeError: '',
+  justSignedUpEmail: '',
   name: '',
   nameError: '',
   username: '',
@@ -74,11 +75,13 @@ export type State = Store & {
   dispatch: {
     checkInviteCode: (inviteCode: string) => void
     checkUsername: (username: string) => void
+    clearJustSignedUpEmail: () => void
     goBackAndClearErrors: () => void
     requestAutoInvite: (username?: string) => void
+    requestInvite: (email: string, name: string) => void
     resetState: () => void
     restartSignup: () => void
-    requestInvite: (email: string, name: string) => void
+    setJustSignedUpEmail: (email: string) => void
   }
 }
 
@@ -148,6 +151,11 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    clearJustSignedUpEmail: () => {
+      set(s => {
+        s.justSignedUpEmail = ''
+      })
     },
     goBackAndClearErrors: () => {
       set(s => {
@@ -230,6 +238,11 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     restartSignup: () => {
       get().dispatch.resetState()
+    },
+    setJustSignedUpEmail: (email: string) => {
+      set(s => {
+        s.justSignedUpEmail = email
+      })
     },
   }
   return {

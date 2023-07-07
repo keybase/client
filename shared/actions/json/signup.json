@@ -17,10 +17,6 @@
     "checkedDevicename": {
       "devicename": "string",
       "error?": "string"
-    },
-    "setJustSignedUpEmail": {
-      "email": "string"
-    },
-    "clearJustSignedUpEmail": {}
+    }
   }
 }

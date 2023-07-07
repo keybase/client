@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
-import * as SignupGen from '../../actions/signup-gen'
 import * as Constants from '../../constants/signup'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Platform from '../../constants/platform'
@@ -51,12 +50,12 @@ const ConnectedEnterEmail = () => {
   const _navToPushPrompt = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsPushPrompt'], replace: true}))
   }
+
+  const setJustSignedUpEmail = Constants.useState(s => s.dispatch.setJustSignedUpEmail)
   const _onSkip = () => {
-    dispatch(SignupGen.createSetJustSignedUpEmail({email: Constants.noEmail}))
+    setJustSignedUpEmail(Constants.noEmail)
   }
-  const _onSuccess = (email: string) => {
-    dispatch(SignupGen.createSetJustSignedUpEmail({email}))
-  }
+  const _onSuccess = setJustSignedUpEmail
 
   const addEmail = SettingsConstants.useEmailState(s => s.dispatch.addEmail)
   const onCreate = addEmail

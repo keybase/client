@@ -1,8 +1,7 @@
 import * as React from 'react'
-import * as Container from '../util/container'
 import * as Constants from '../constants/people'
+import * as SignupConstants from '../constants/signup'
 import * as Kb from '../common-adapters'
-import * as SignupGen from '../actions/signup-gen'
 import * as Styles from '../styles'
 import type * as Types from '../constants/types/people'
 import Announcement from './announcement/container'
@@ -63,15 +62,15 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
 }
 
 const EmailVerificationBanner = () => {
-  const dispatch = Container.useDispatch()
-  const signupEmail = Container.useSelector(s => s.signup.justSignedUpEmail)
+  const clearJustSignedUpEmail = SignupConstants.useState(s => s.dispatch.clearJustSignedUpEmail)
+  const signupEmail = SignupConstants.useState(s => s.justSignedUpEmail)
   React.useEffect(
     () =>
       // Only have a cleanup function
       () => {
-        signupEmail && dispatch(SignupGen.createClearJustSignedUpEmail())
+        signupEmail && clearJustSignedUpEmail()
       },
-    [dispatch, signupEmail]
+    [clearJustSignedUpEmail, signupEmail]
   )
 
   if (!signupEmail) {
