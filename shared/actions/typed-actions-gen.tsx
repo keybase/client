@@ -11,7 +11,6 @@ import type * as notifications from './notifications-gen'
 import type * as pinentry from './pinentry-gen'
 import type * as routetree from './route-tree-gen'
 import type * as settings from './settings-gen'
-import type * as signup from './signup-gen'
 import type * as teambuilding from './team-building-gen'
 import type * as teams from './teams-gen'
 import type * as tracker2 from './tracker2-gen'
@@ -32,7 +31,6 @@ export type TypedActions =
   | pinentry.Actions
   | routetree.Actions
   | settings.Actions
-  | signup.Actions
   | teambuilding.Actions
   | teams.Actions
   | tracker2.Actions

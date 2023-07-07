@@ -2,7 +2,6 @@ import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as SignupGen from './signup-gen'
 import * as Followers from '../constants/followers'
 import * as GregorGen from './gregor-gen'
 import * as UsersGen from './users-gen'
@@ -451,8 +450,6 @@ const initConfig = () => {
   Container.listenAction(EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate, (_, action) => {
     Constants.useConfigState.getState().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
   })
-
-  Container.listenAction([SignupGen.requestAutoInvite], () => {})
 }
 
 export default initConfig

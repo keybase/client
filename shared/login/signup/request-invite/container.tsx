@@ -1,17 +1,13 @@
-import * as SignupGen from '../../../actions/signup-gen'
-import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/signup'
 import RequestInvite from '.'
 
 export default () => {
-  const emailError = Container.useSelector(state => state.signup.emailError)
-  const nameError = Container.useSelector(state => state.signup.nameError)
-  const dispatch = Container.useDispatch()
-  const onBack = () => {
-    dispatch(SignupGen.createGoBackAndClearErrors())
-  }
-  const onSubmit = (email: string, name: string) => {
-    dispatch(SignupGen.createRequestInvite({email, name}))
-  }
+  const emailError = Constants.useState(s => s.emailError)
+  const nameError = Constants.useState(s => s.nameError)
+  const goBackAndClearErrors = Constants.useState(s => s.dispatch.goBackAndClearErrors)
+  const requestInvite = Constants.useState(s => s.dispatch.requestInvite)
+  const onBack = goBackAndClearErrors
+  const onSubmit = requestInvite
   const props = {emailError, nameError, onBack, onSubmit}
   return <RequestInvite {...props} />
 }

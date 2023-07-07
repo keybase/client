@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
-import * as SignupGen from '../../actions/signup-gen'
-import * as SignupConstants from '../../constants/signup'
+import * as Constants from '../../constants/signup'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Platform from '../../constants/platform'
 import * as PushConstants from '../../constants/push'
@@ -42,7 +41,7 @@ const ConnectedEnterEmail = () => {
   )
   const addedEmail = SettingsConstants.useEmailState(s => s.addedEmail)
   const error = SettingsConstants.useEmailState(s => s.error)
-  const initialEmail = Container.useSelector(state => state.signup.email)
+  const initialEmail = Constants.useState(s => s.email)
   const waiting = Container.useAnyWaiting(SettingsConstants.addEmailWaitingKey)
   const dispatch = Container.useDispatch()
   const _navClearModals = () => {
@@ -51,12 +50,12 @@ const ConnectedEnterEmail = () => {
   const _navToPushPrompt = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsPushPrompt'], replace: true}))
   }
+
+  const setJustSignedUpEmail = Constants.useState(s => s.dispatch.setJustSignedUpEmail)
   const _onSkip = () => {
-    dispatch(SignupGen.createSetJustSignedUpEmail({email: SignupConstants.noEmail}))
+    setJustSignedUpEmail(Constants.noEmail)
   }
-  const _onSuccess = (email: string) => {
-    dispatch(SignupGen.createSetJustSignedUpEmail({email}))
-  }
+  const _onSuccess = setJustSignedUpEmail
 
   const addEmail = SettingsConstants.useEmailState(s => s.dispatch.addEmail)
   const onCreate = addEmail

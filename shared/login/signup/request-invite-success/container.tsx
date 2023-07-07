@@ -1,12 +1,13 @@
-import * as SignupGen from '../../../actions/signup-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import RequestInviteSuccess from '.'
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/signup'
 
 export default () => {
   const dispatch = Container.useDispatch()
+  const restartSignup = Constants.useState(s => s.dispatch.restartSignup)
   const onBack = () => {
-    dispatch(SignupGen.createRestartSignup())
+    restartSignup()
     dispatch(RouteTreeGen.createNavigateUp())
   }
   const props = {onBack}

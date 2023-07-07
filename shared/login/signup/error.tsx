@@ -1,12 +1,12 @@
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/signup'
 import * as Kb from '../../common-adapters'
-import * as SignupGen from '../../actions/signup-gen'
 import {Wrapper, ContinueButton} from './common'
 
 const ConnectedSignupError = () => {
-  const error = Container.useSelector(state => state.signup.signupError)
-  const dispatch = Container.useDispatch()
-  const onBack = () => dispatch(SignupGen.createGoBackAndClearErrors())
+  const error = Constants.useState(s => s.signupError)
+  const goBackAndClearErrors = Constants.useState(s => s.dispatch.goBackAndClearErrors)
+  const onBack = goBackAndClearErrors
   let header = 'Ah Shoot! Something went wrong, try again?'
   let body = error ? error.desc : ''
   if (!!error && Container.isNetworkErr(error.code)) {

@@ -1,14 +1,13 @@
-import * as Constants from '../../constants/provision'
 import * as ARConstants from '../../constants/autoreset'
+import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SignupGen from '../../actions/signup-gen'
+import * as SignupConstants from '../../constants/signup'
 import Username from '.'
-import {usernameHint} from '../../constants/signup'
-import type {RPCError} from '../../util/errors'
 import shallowEqual from 'shallowequal'
+import type {RPCError} from '../../util/errors'
 
 type OwnProps = {fromReset?: boolean}
 
@@ -24,7 +23,7 @@ const decodeInlineError = (inlineRPCError: RPCError | undefined) => {
         inlineSignUpLink = true
         break
       case RPCTypes.StatusCode.scbadusername:
-        inlineError = usernameHint
+        inlineError = SignupConstants.usernameHint
         inlineSignUpLink = false
         break
     }
@@ -53,10 +52,8 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
     () => dispatch(RouteTreeGen.createNavigateAppend({path: ['forgotUsername']})),
     [dispatch]
   )
-  const onGoToSignup = React.useCallback(
-    (username: string) => dispatch(SignupGen.createRequestAutoInvite({username})),
-    [dispatch]
-  )
+  const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
+  const onGoToSignup = requestAutoInvite
   const setUsername = Constants.useState(s => s.dispatch.setUsername)
   const onSubmit = React.useCallback(
     (username: string) => {
