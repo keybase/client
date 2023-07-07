@@ -1,11 +1,13 @@
 import * as RPCTypes from './types/rpc-gen'
+import * as WaitingConstants from './waiting'
 import openURL from '../util/open-url'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import {useConfigState} from './config'
+import {useCurrentUserState, useConfigState} from './config'
 import * as Tabs from './tabs'
 import logger from '../logger'
+import {pprofDir} from '../constants/platform'
 import {useState as usePhoneState} from './settings-phone'
 import {useState as useEmailState} from './settings-email'
 
@@ -79,15 +81,20 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     checkPassword: (password: string) => void
+    dbNuke: () => void
+    deleteAccountForever: (passphrase?: string) => void
     loadLockdownMode: () => void
     loadProxyData: () => void
     loadSettings: () => void
     loginBrowserViaWebAuthToken: () => void
+    processorProfile: (durationSeconds: number) => void
     resetCheckPassword: () => void
     resetState: 'default'
     setDidToggleCertificatePinning: (t?: boolean) => void
     setLockdownMode: (l: boolean) => void
     setProxyData: (proxyData: RPCTypes.ProxyData) => void
+    stop: (exitCode: RPCTypes.ExitCode) => void
+    trace: (durationSeconds: number) => void
   }
 }
 
@@ -122,6 +129,27 @@ export const useState = Z.createZustand<State>(set => {
         set(s => {
           s.checkPasswordIsCorrect = res
         })
+      }
+      Z.ignorePromise(f())
+    },
+    dbNuke: () => {
+      const f = async () => {
+        await RPCTypes.ctlDbNukeRpcPromise(undefined, settingsWaitingKey)
+      }
+      Z.ignorePromise(f())
+    },
+    deleteAccountForever: passphrase => {
+      const f = async () => {
+        const username = useCurrentUserState.getState().username
+
+        if (!username) {
+          throw new Error('Unable to delete account: no username set')
+        }
+
+        await RPCTypes.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
+        useConfigState.getState().dispatch.setJustDeletedSelf(username)
+        reduxDispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: false}))
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
       }
       Z.ignorePromise(f())
     },
@@ -187,6 +215,19 @@ export const useState = Z.createZustand<State>(set => {
       }
       Z.ignorePromise(f())
     },
+    processorProfile: profileDurationSeconds => {
+      const f = async () => {
+        await RPCTypes.pprofLogProcessorProfileRpcPromise({
+          logDirForMobile: pprofDir,
+          profileDurationSeconds,
+        })
+        const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+        increment(processorProfileInProgressKey)
+        await Z.timeoutPromise(profileDurationSeconds * 1_000)
+        decrement(processorProfileInProgressKey)
+      }
+      Z.ignorePromise(f())
+    },
     resetCheckPassword: () => {
       set(s => {
         s.checkPasswordIsCorrect = undefined
@@ -223,6 +264,25 @@ export const useState = Z.createZustand<State>(set => {
         } catch (err) {
           logger.warn('Error in saving proxy data', err)
         }
+      }
+      Z.ignorePromise(f())
+    },
+    stop: exitCode => {
+      const f = async () => {
+        await RPCTypes.ctlStopRpcPromise({exitCode})
+      }
+      Z.ignorePromise(f())
+    },
+    trace: durationSeconds => {
+      const f = async () => {
+        await RPCTypes.pprofLogTraceRpcPromise({
+          logDirForMobile: pprofDir,
+          traceDurationSeconds: durationSeconds,
+        })
+        const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+        increment(traceInProgressKey)
+        await Z.timeoutPromise(durationSeconds * 1_000)
+        decrement(traceInProgressKey)
       }
       Z.ignorePromise(f())
     },

@@ -13,7 +13,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from '../constants/settings'
-import * as SettingsGen from '../actions/settings-gen'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as Common from './common.desktop'
@@ -51,6 +50,7 @@ const Header = () => {
   }
 
   const startProvision = ProvisionConstants.useState(s => s.dispatch.startProvision)
+  const stop = SettingsConstants.useState(s => s.dispatch.stop)
   const onAddAccount = () => {
     startProvision()
   }
@@ -58,7 +58,7 @@ const Header = () => {
   const onQuit = () => {
     if (!__DEV__) {
       if (isLinux) {
-        dispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
+        stop(RPCTypes.ExitCode.ok)
       } else {
         dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
       }

@@ -3,8 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
 import * as Container from '../../util/container'
-import * as SettingsGen from '../../actions/settings-gen'
-import HiddenString from '../../util/hidden-string'
 
 const CheckPassphraseMobile = () => {
   const [password, setPassword] = React.useState('')
@@ -17,14 +15,16 @@ const CheckPassphraseMobile = () => {
 
   const checkPassword = Constants.useState(s => s.dispatch.checkPassword)
   const resetCheckPassword = Constants.useState(s => s.dispatch.resetCheckPassword)
+  const deleteAccountForever = Constants.useState(s => s.dispatch.deleteAccountForever)
 
   const onCancel = () => {
     resetCheckPassword()
     dispatch(nav.safeNavigateUpPayload())
   }
   const onCheckPassword = checkPassword
-  const deleteForever = () =>
-    dispatch(SettingsGen.createDeleteAccountForever({passphrase: new HiddenString(password)}))
+  const deleteForever = () => {
+    deleteAccountForever(password)
+  }
 
   const waitingKey = Container.useAnyWaiting(Constants.settingsWaitingKey)
   const inputType = showTyping ? 'text' : 'password'

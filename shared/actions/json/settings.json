@@ -1,25 +1,13 @@
 {
-  "prelude": ["import type HiddenString from '../util/hidden-string'"],
+  "prelude": [],
   "actions": {
-    "dbNuke": {},
-    "deleteAccountForever": {
-      "passphrase?": "HiddenString"
-    },
+    "stop": {"exitCode": "RPCTypes.ExitCode"},
     "loadLockdownMode": {},
     "loadedLockdownMode": {
       "status?": "boolean"
     },
     "onChangeLockdownMode": {
       "enabled": "boolean"
-    },
-    "stop": {
-      "exitCode": "RPCTypes.ExitCode"
-    },
-    "trace": {
-      "durationSeconds": "number"
-    },
-    "processorProfile": {
-      "durationSeconds": "number"
     }
   }
 }

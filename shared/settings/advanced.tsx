@@ -212,10 +212,12 @@ const Developer = () => {
 
   const showPprofControls = clickCount >= clickThreshold
   const traceInProgress = Container.useAnyWaiting(Constants.traceInProgressKey)
-  const onTrace = (durationSeconds: number) => dispatch(SettingsGen.createTrace({durationSeconds}))
+
+  const trace = Constants.useState(s => s.dispatch.trace)
+  const processorProfile = Constants.useState(s => s.dispatch.processorProfile)
+  const onTrace = trace
   const processorProfileInProgress = Container.useAnyWaiting(Constants.processorProfileInProgressKey)
-  const onProcessorProfile = (durationSeconds: number) =>
-    dispatch(SettingsGen.createProcessorProfile({durationSeconds}))
+  const onProcessorProfile = processorProfile
   const onDBNuke = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']}))
 
   return (
