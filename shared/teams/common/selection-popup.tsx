@@ -51,11 +51,12 @@ const getTeamSelectedCount = (state: Container.TypedState, props: TeamProps) => 
   }
 }
 
-const getChannelSelectedCount = (state: Container.TypedState, props: ChannelProps) => {
+const getChannelSelectedCount = (props: ChannelProps) => {
   const {conversationIDKey, selectedTab} = props
   switch (selectedTab) {
-    case 'channelMembers':
-      return state.teams.channelSelectedMembers.get(conversationIDKey)?.size ?? 0
+    default:
+      //case 'channelMembers':
+      return Constants.useState.getState().channelSelectedMembers.get(conversationIDKey)?.size ?? 0
   }
 }
 
@@ -184,7 +185,7 @@ const TeamSelectionPopup = (props: TeamProps) => {
 
 const ChannelSelectionPopup = (props: ChannelProps) => {
   const {conversationIDKey, selectedTab, teamID} = props
-  const selectedCount = Container.useSelector(state => getChannelSelectedCount(state, props))
+  const selectedCount = getChannelSelectedCount(props)
   const dispatch = Container.useDispatch()
 
   const onCancel = () => {
@@ -348,8 +349,8 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
 }
 const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps) => {
   const dispatch = Container.useDispatch()
-  const membersSet = Container.useSelector(
-    s => s.teams.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
+  const membersSet = Constants.useState(
+    s => s.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
   )
   const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo

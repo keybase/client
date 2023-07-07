@@ -74,9 +74,7 @@ const ChannelMemberRow = (props: Props) => {
   const isYou = you === username
 
   const dispatch = Container.useDispatch()
-  const channelSelectedMembers = Container.useSelector(state =>
-    state.teams.channelSelectedMembers.get(conversationIDKey)
-  )
+  const channelSelectedMembers = Constants.useState(s => s.channelSelectedMembers.get(conversationIDKey))
   const anySelected = !!channelSelectedMembers?.size
   const memberSelected = !!channelSelectedMembers?.has(username)
 

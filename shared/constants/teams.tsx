@@ -10,6 +10,7 @@ import logger from '../logger'
 import type {RetentionPolicy} from './types/retention-policy'
 import type {TypedState} from './reducer'
 import {memoize} from '../util/memoize'
+import {mapGetEnsureValue} from '../util/map'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
@@ -222,7 +223,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
-  channelSelectedMembers: new Map(),
   creatingChannels: false,
   deletedTeams: [],
   errorInAddToTeam: '',
@@ -1008,6 +1008,7 @@ type Store = {
   addUserToTeamsState: Types.AddUserToTeamsState
   addUserToTeamsResults: string
   channelInfo: Map<Types.TeamID, Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>>
+  channelSelectedMembers: Map<ChatTypes.ConversationIDKey, Set<string>>
 }
 
 const initialStore: Store = {
@@ -1015,11 +1016,18 @@ const initialStore: Store = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   channelInfo: new Map(),
+  channelSelectedMembers: new Map(),
 }
 
 export type State = Store & {
   dispatch: {
     addUserToTeams: (role: Types.TeamRoleType, teams: Array<string>, user: string) => void
+    channelSetMemberSelected: (
+      conversationIDKey: ChatTypes.ConversationIDKey,
+      username: string,
+      selected: boolean,
+      clearAll?: boolean
+    ) => void
     clearAddUserToTeamsResults: () => void
     getActivityForTeams: () => void
     loadTeamChannelList: (teamID: Types.TeamID) => void
@@ -1090,6 +1098,20 @@ export const useState = Z.createZustand<State>((set, _get) => {
         })
       }
       Z.ignorePromise(f())
+    },
+    channelSetMemberSelected: (conversationIDKey, username, selected, clearAll) => {
+      set(s => {
+        if (clearAll) {
+          s.channelSelectedMembers.delete(conversationIDKey)
+        } else {
+          const membersSelected = mapGetEnsureValue(s.channelSelectedMembers, conversationIDKey, new Set())
+          if (selected) {
+            membersSelected.add(username)
+          } else {
+            membersSelected.delete(username)
+          }
+        }
+      })
     },
     clearAddUserToTeamsResults: () => {
       set(s => {
