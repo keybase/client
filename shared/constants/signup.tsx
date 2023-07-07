@@ -255,15 +255,13 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     goBackAndClearErrors: () => {
       set(s => {
-        // TODO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        // s.devicenameError = ''
+        s.devicenameError = ''
         s.emailError = ''
         s.inviteCodeError = ''
         s.nameError = ''
-        // s.passwordError = new HiddenString('')
-        // s.signupError = undefined
-        // s.usernameError = ''
-        // s.usernameTaken = ''
+        s.signupError = undefined
+        s.usernameError = ''
+        s.usernameTaken = ''
       })
       reduxDispatch(RouteTreeGen.createNavigateUp())
     },
