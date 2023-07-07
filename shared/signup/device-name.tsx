@@ -4,21 +4,18 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
 import * as React from 'react'
-import * as SignupGen from '../actions/signup-gen'
 import * as Styles from '../styles'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from './common'
 
 const ConnectedEnterDevicename = () => {
-  const error = Container.useSelector(state => state.signup.devicenameError)
-  const initialDevicename = Container.useSelector(state => state.signup.devicename)
+  const error = SignupConstants.useState(s => s.devicenameError)
+  const initialDevicename = SignupConstants.useState(s => s.devicename)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const dispatch = Container.useDispatch()
   const goBackAndClearErrors = SignupConstants.useState(s => s.dispatch.goBackAndClearErrors)
+  const checkDeviceName = SignupConstants.useState(s => s.dispatch.checkDeviceName)
   const onBack = goBackAndClearErrors
-  const onContinue = (devicename: string) => {
-    dispatch(SignupGen.createCheckDevicename({devicename}))
-  }
+  const onContinue = checkDeviceName
   const props = {
     error,
     initialDevicename,

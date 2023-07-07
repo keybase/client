@@ -1,11 +1,11 @@
 import * as Platforms from '../constants/platform'
+import * as SettingsConstants from '../constants/settings'
+import * as PushConstants from '../constants/push'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Z from '../util/zustand'
-import HiddenString from '../util/hidden-string'
 import logger from '../logger'
-import type * as Container from '../util/container' // TODO remov >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-import type * as Types from './types/signup'
+import trim from 'lodash/trim'
 import {RPCError} from '../util/errors'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import {useConfigState, createOtherAccountWaitingKey} from './config'
@@ -16,18 +16,6 @@ export const usernameHint =
 export const noEmail = 'NOEMAIL'
 export const waitingKey = 'signup:waiting'
 
-// Helpers ///////////////////////////////////////////////////////////
-// returns true if there are no errors, we check all errors at every transition just to be extra careful
-// TODO remove expot >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-export const noErrors = (state: Container.TypedState) =>
-  !state.signup.devicenameError &&
-  !useState.getState().emailError &&
-  !useState.getState().inviteCodeError &&
-  !useState.getState().nameError &&
-  !useState.getState().usernameError &&
-  !state.signup.signupError &&
-  !useState.getState().usernameTaken
-
 export const defaultDevicename =
   (Platforms.isAndroid && 'Android Device') ||
   (Platforms.isIOS && 'iOS Device') ||
@@ -36,14 +24,9 @@ export const defaultDevicename =
   (Platforms.isLinux && 'Linux Device') ||
   (Platforms.isMobile ? 'Mobile Device' : 'Home Computer')
 
-export const makeState = (): Types.State => ({
-  devicename: defaultDevicename,
-  devicenameError: '',
-  password: new HiddenString(''),
-  passwordError: new HiddenString(''),
-})
-
 type Store = {
+  devicename: string
+  devicenameError: string
   email: string
   emailError: string
   emailVisible: boolean
@@ -52,12 +35,15 @@ type Store = {
   justSignedUpEmail: string
   name: string
   nameError: string
+  signupError?: RPCError
   username: string
   usernameError: string
   usernameTaken: string
 }
 
 const initialStore: Store = {
+  devicename: defaultDevicename,
+  devicenameError: '',
   email: '',
   emailError: '',
   emailVisible: false,
@@ -66,6 +52,7 @@ const initialStore: Store = {
   justSignedUpEmail: '',
   name: '',
   nameError: '',
+  signupError: undefined,
   username: '',
   usernameError: '',
   usernameTaken: '',
@@ -73,6 +60,7 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
+    checkDeviceName: (devicename: string) => void
     checkInviteCode: (inviteCode: string) => void
     checkUsername: (username: string) => void
     clearJustSignedUpEmail: () => void
@@ -87,8 +75,116 @@ export type State = Store & {
 
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
-  const getReduxStore = Z.getReduxStore() // TODO remove >>>>>>>>>>>>>>>>>>>>>>>>>
+  const noErrors = () =>
+    !get().devicenameError &&
+    !get().emailError &&
+    !get().inviteCodeError &&
+    !get().nameError &&
+    !get().usernameError &&
+    !get().signupError &&
+    !get().usernameTaken
+
+  const reallySignupOnNoErrors = () => {
+    const f = async () => {
+      if (!noErrors()) {
+        logger.warn('Still has errors, bailing on really signing up')
+        return
+      }
+
+      const {username, inviteCode, devicename} = get()
+      if (!username || !inviteCode || !devicename) {
+        logger.warn('Missing data during signup phase', username, inviteCode, devicename)
+        throw new Error('Missing data for signup')
+      }
+
+      try {
+        PushConstants.useState.getState().dispatch.showPermissionsPrompt({justSignedUp: true})
+
+        await RPCTypes.signupSignupRpcListener(
+          {
+            customResponseIncomingCallMap: {
+              // Do not add a gpg key for now
+              'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
+                response.result(false)
+              },
+            },
+            incomingCallMap: {
+              // We dont show the paperkey anymore
+              'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
+            },
+            params: {
+              botToken: '',
+              deviceName: devicename,
+              deviceType: Platforms.isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
+              email: '',
+              genPGPBatch: false,
+              genPaper: false,
+              inviteCode,
+              passphrase: '',
+              randomPw: true,
+              skipGPG: true,
+              skipMail: true,
+              storeSecret: true,
+              username,
+              verifyEmail: true,
+            },
+            waitingKey,
+          },
+          Z.dummyListenerApi
+        )
+        set(s => {
+          s.signupError = undefined
+        })
+        if (noErrors()) {
+          get().dispatch.restartSignup()
+        } else {
+          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupError']}))
+        }
+        // If the email was set to be visible during signup, we need to set that with a separate RPC.
+        if (noErrors() && get().emailVisible) {
+          SettingsConstants.useEmailState
+            .getState()
+            .dispatch.editEmail({email: get().email, makeSearchable: true})
+        }
+      } catch (_error) {
+        if (_error instanceof RPCError) {
+          const error = _error
+          set(s => {
+            s.signupError = error
+          })
+          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupError']}))
+          PushConstants.useState.getState().dispatch.showPermissionsPrompt({justSignedUp: false})
+        }
+      }
+    }
+    Z.ignorePromise(f())
+  }
+
   const dispatch: State['dispatch'] = {
+    checkDeviceName: _devicename => {
+      const devicename = trim(_devicename)
+      set(s => {
+        s.devicename = devicename
+        s.devicenameError = devicename.length === 0 ? 'Device name must not be empty.' : ''
+      })
+      const f = async () => {
+        if (!noErrors()) {
+          return
+        }
+        try {
+          await RPCTypes.deviceCheckDeviceNameFormatRpcPromise({name: devicename}, waitingKey)
+          reallySignupOnNoErrors()
+        } catch (error) {
+          if (error instanceof RPCError) {
+            const msg = error.desc
+            set(s => {
+              s.devicenameError = msg
+            })
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
     checkInviteCode: invitationCode => {
       set(s => {
         s.inviteCode = invitationCode
@@ -99,7 +195,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.inviteCodeError = ''
           })
-          if (noErrors(getReduxStore())) {
+          if (noErrors()) {
             reduxDispatch(RouteTreeGen.createNavigateUp())
             reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupEnterUsername']}))
           }
@@ -122,7 +218,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         logger.info(`checking ${username}`)
-        if (!noErrors(getReduxStore())) {
+        if (!noErrors()) {
           return
         }
         try {
@@ -133,7 +229,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.usernameError = ''
             s.usernameTaken = ''
           })
-          if (noErrors(getReduxStore())) {
+          if (noErrors()) {
             reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupEnterDevicename']}))
           }
         } catch (error) {
@@ -208,7 +304,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.nameError = isValidName(name)
       })
       const f = async () => {
-        if (!noErrors(getReduxStore())) {
+        if (!noErrors()) {
           return
         }
         try {

@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import {Wrapper, ContinueButton} from './common'
 
 const ConnectedSignupError = () => {
-  const error = Container.useSelector(state => state.signup.signupError)
+  const error = Constants.useState(s => s.signupError)
   const goBackAndClearErrors = Constants.useState(s => s.dispatch.goBackAndClearErrors)
   const onBack = goBackAndClearErrors
   let header = 'Ah Shoot! Something went wrong, try again?'
