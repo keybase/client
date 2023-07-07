@@ -5,7 +5,6 @@ import * as Container from '../../util/container'
 import * as Platform from '../../constants/platform'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
-import * as SettingsGen from '../../actions/settings-gen'
 import {EnterEmailBody} from '../../signup/email'
 import {EnterPhoneNumberBody} from '../../signup/phone-number'
 import {VerifyBody} from '../../signup/phone-number/verify'
@@ -132,12 +131,16 @@ export const Phone = () => {
   const pendingVerification = Constants.usePhoneState(s => s.pendingVerification)
   const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
 
+  const clearPhoneNumberErrors = Constants.usePhoneState(s => s.dispatch.clearPhoneNumberErrors)
+  const clearPhoneNumberAdd = Constants.usePhoneState(s => s.dispatch.clearPhoneNumberAdd)
+  const loadDefaultPhoneCountry = Constants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
+
   // clean only errors on unmount so verify screen still has info
   React.useEffect(
     () => () => {
-      dispatch(SettingsGen.createClearPhoneNumberErrors())
+      clearPhoneNumberErrors()
     },
-    [dispatch]
+    [clearPhoneNumberErrors]
   )
   // watch for go to verify
   React.useEffect(() => {
@@ -147,13 +150,13 @@ export const Phone = () => {
   }, [dispatch, error, nav, pendingVerification])
   // trigger a default phone number country rpc if it's not already loaded
   React.useEffect(() => {
-    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
-  }, [defaultCountry, dispatch])
+    !defaultCountry && loadDefaultPhoneCountry()
+  }, [defaultCountry, loadDefaultPhoneCountry])
 
   const onClose = React.useCallback(() => {
-    dispatch(SettingsGen.createClearPhoneNumberAdd())
+    clearPhoneNumberAdd()
     dispatch(nav.safeNavigateUpPayload())
-  }, [dispatch, nav])
+  }, [clearPhoneNumberAdd, dispatch, nav])
 
   const addPhoneNumber = Constants.usePhoneState(s => s.dispatch.addPhoneNumber)
   const onContinue = React.useCallback(() => {
@@ -238,13 +241,14 @@ export const VerifyPhone = () => {
     Constants.resendVerificationForPhoneWaitingKey,
   ])
   const verifyWaiting = Container.useAnyWaiting(Constants.verifyPhoneNumberWaitingKey)
+  const clearPhoneNumberAdd = Constants.usePhoneState(s => s.dispatch.clearPhoneNumberAdd)
 
   // clean everything on unmount
   React.useEffect(
     () => () => {
-      dispatch(SettingsGen.createClearPhoneNumberAdd())
+      clearPhoneNumberAdd()
     },
-    [dispatch]
+    [clearPhoneNumberAdd]
   )
   // Clear on success
   React.useEffect(() => {
@@ -260,9 +264,9 @@ export const VerifyPhone = () => {
     resendVerificationForPhone(pendingVerification)
   }, [resendVerificationForPhone, pendingVerification])
   const onClose = React.useCallback(() => {
-    dispatch(SettingsGen.createClearPhoneNumberAdd())
+    clearPhoneNumberAdd()
     dispatch(RouteTreeGen.createClearModals())
-  }, [dispatch])
+  }, [clearPhoneNumberAdd, dispatch])
   const onContinue = React.useCallback(
     () => verifyPhoneNumber(pendingVerification, code),
     [verifyPhoneNumber, code, pendingVerification]

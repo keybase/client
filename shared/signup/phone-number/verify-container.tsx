@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SettingsGen from '../../actions/settings-gen'
 import * as SettingsConstants from '../../constants/settings'
 import VerifyPhoneNumber, {type Props} from './verify'
 
@@ -51,6 +50,8 @@ export default () => {
     s => s.dispatch.resendVerificationForPhone
   )
 
+  const clearPhoneNumberAdd = SettingsConstants.usePhoneState(s => s.dispatch.clearPhoneNumberAdd)
+
   const _onContinue = (phoneNumber: string, code: string) => {
     verifyPhoneNumber(phoneNumber, code)
   }
@@ -60,9 +61,7 @@ export default () => {
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const onCleanup = () => {
-    dispatch(SettingsGen.createClearPhoneNumberAdd())
-  }
+  const onCleanup = clearPhoneNumberAdd
   const onSuccess = () => {
     dispatch(RouteTreeGen.createClearModals())
   }

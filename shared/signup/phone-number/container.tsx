@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as SettingsGen from '../../actions/settings-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import EnterPhoneNumber, {type Props} from '.'
@@ -42,11 +41,11 @@ const ConnectedEnterPhoneNumber = () => {
   const error = SettingsConstants.usePhoneState(s => s.error)
   const pendingVerification = SettingsConstants.usePhoneState(s => s.pendingVerification)
   const waiting = Container.useAnyWaiting(SettingsConstants.addPhoneNumberWaitingKey)
+  const clearPhoneNumberErrors = SettingsConstants.usePhoneState(s => s.dispatch.clearPhoneNumberErrors)
+  const clearPhoneNumberAdd = SettingsConstants.usePhoneState(s => s.dispatch.clearPhoneNumberAdd)
 
   const dispatch = Container.useDispatch()
-  const onClear = () => {
-    dispatch(SettingsGen.createClearPhoneNumberErrors())
-  }
+  const onClear = clearPhoneNumberErrors
 
   const addPhoneNumber = SettingsConstants.usePhoneState(s => s.dispatch.addPhoneNumber)
   const onContinue = addPhoneNumber
@@ -54,7 +53,7 @@ const ConnectedEnterPhoneNumber = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['signupVerifyPhoneNumber']}))
   }
   const onSkip = () => {
-    dispatch(SettingsGen.createClearPhoneNumberAdd())
+    clearPhoneNumberAdd()
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: ['signupEnterEmail'],

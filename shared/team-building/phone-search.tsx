@@ -5,7 +5,6 @@ import * as Constants from '../constants/team-building'
 import * as SettingsConstants from '../constants/settings'
 import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import * as SettingsGen from '../actions/settings-gen'
 import type * as Types from 'constants/types/team-building'
 import type {AllowedNamespace} from '../constants/types/team-building'
 import ContinueButton from './continue-button'
@@ -27,11 +26,12 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
   const dispatch = Container.useDispatch()
 
+  const loadDefaultPhoneCountry = SettingsConstants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   // trigger a default phone number country rpc if it's not already loaded
   const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
   React.useEffect(() => {
-    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
-  }, [defaultCountry, dispatch])
+    !defaultCountry && loadDefaultPhoneCountry()
+  }, [defaultCountry, loadDefaultPhoneCountry])
 
   const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
     setPhoneValidity(validity)

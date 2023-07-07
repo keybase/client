@@ -9,7 +9,6 @@ import * as Router2Constants from '../constants/router2'
 import * as SettingsGen from './settings-gen'
 import * as Tabs from '../constants/tabs'
 import logger from '../logger'
-import openURL from '../util/open-url'
 import * as Container from '../util/container'
 import {pprofDir} from '../constants/platform'
 
@@ -72,11 +71,6 @@ const stop = async (_: unknown, action: SettingsGen.StopPayload) => {
   return false as const
 }
 
-const loginBrowserViaWebAuthToken = async () => {
-  const link = await RPCTypes.configGenerateWebAuthTokenRpcPromise()
-  openURL(link)
-}
-
 const initSettings = () => {
   Container.listenAction(SettingsGen.dbNuke, dbNuke)
   Container.listenAction(SettingsGen.deleteAccountForever, deleteAccountForever)
@@ -107,7 +101,6 @@ const initSettings = () => {
       Constants.useEmailState.getState().dispatch.resetAddedEmail()
     }
   })
-  Container.listenAction(SettingsGen.loginBrowserViaWebAuthToken, loginBrowserViaWebAuthToken)
 
   Container.listenAction(EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged, (_, action) => {
     const {list} = action.payload.params

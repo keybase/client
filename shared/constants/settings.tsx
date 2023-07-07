@@ -1,4 +1,5 @@
 import * as RPCTypes from './types/rpc-gen'
+import openURL from '../util/open-url'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -78,9 +79,10 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     checkPassword: (password: string) => void
-    loadSettings: () => void
     loadLockdownMode: () => void
     loadProxyData: () => void
+    loadSettings: () => void
+    loginBrowserViaWebAuthToken: () => void
     resetCheckPassword: () => void
     resetState: 'default'
     setDidToggleCertificatePinning: (t?: boolean) => void
@@ -175,6 +177,13 @@ export const useState = Z.createZustand<State>(set => {
           logger.warn(`Error loading settings: ${error.message}`)
           return
         }
+      }
+      Z.ignorePromise(f())
+    },
+    loginBrowserViaWebAuthToken: () => {
+      const f = async () => {
+        const link = await RPCTypes.configGenerateWebAuthTokenRpcPromise()
+        openURL(link)
       }
       Z.ignorePromise(f())
     },

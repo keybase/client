@@ -1,26 +1,9 @@
 {
   "prelude": ["import type HiddenString from '../util/hidden-string'"],
   "actions": {
-    "verifiedPhoneNumber": {
-      "_description": "We verified a phone number or hit an error.",
-      "error?": "string",
-      "phoneNumber": "string"
-    },
-    "clearPhoneNumberAdd": {
-      "_description": "Cancel adding a phone number."
-    },
-    "clearPhoneNumberErrors": {
-      "_description": "Clear only error from phone number add flow."
-    },
     "dbNuke": {},
     "deleteAccountForever": {
       "passphrase?": "HiddenString"
-    },
-    "loadedUserCountryCode": {
-      "code?": "string"
-    },
-    "clearAddedPhone": {
-      "_description": "Reset state used for showing we just added a phone number."
     },
     "loadLockdownMode": {},
     "loadedLockdownMode": {
@@ -37,8 +20,6 @@
     },
     "processorProfile": {
       "durationSeconds": "number"
-    },
-    "loadDefaultPhoneNumberCountry": {},
-    "loginBrowserViaWebAuthToken": {}
+    }
   }
 }

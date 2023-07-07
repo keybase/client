@@ -99,13 +99,16 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     addPhoneNumber: (phoneNumber: string, searchable: boolean) => void
+    clearAddedPhone: () => void
+    clearPhoneNumberAdd: () => void
+    clearPhoneNumberErrors: () => void
     editPhone: (phone: string, del?: boolean, setSearchable?: boolean) => void
     loadDefaultPhoneCountry: () => void
     notifyPhoneNumberPhoneNumbersChanged: (list?: RPCChatTypes.Keybase1.UserPhoneNumber[]) => void
+    resendVerificationForPhone: (phoneNumber: string) => void
     resetState: 'default'
     setNumbers: (phoneNumbers?: RPCChatTypes.Keybase1.UserPhoneNumber[]) => void
     verifyPhoneNumber: (phoneNumber: string, code: string) => void
-    resendVerificationForPhone: (phoneNumber: string) => void
   }
 }
 
@@ -142,6 +145,23 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    clearAddedPhone: () => {
+      set(s => {
+        s.addedPhone = false
+      })
+    },
+    clearPhoneNumberAdd: () => {
+      set(s => {
+        s.error = ''
+        s.pendingVerification = ''
+        s.verificationState = undefined
+      })
+    },
+    clearPhoneNumberErrors: () => {
+      set(s => {
+        s.error = ''
+      })
     },
     editPhone: (phoneNumber, del, setSearchable) => {
       const f = async () => {

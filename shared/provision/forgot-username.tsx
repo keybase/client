@@ -5,17 +5,17 @@ import * as SettingsConstants from '../constants/settings'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
-import * as SettingsGen from '../actions/settings-gen'
 import {SignupScreen, errorBanner} from '../signup/common'
 
 const ForgotUsername = () => {
   const dispatch = Container.useDispatch()
 
   const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
+  const loadDefaultPhoneCountry = SettingsConstants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   // trigger a default phone number country rpc if it's not already loaded
   React.useEffect(() => {
-    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
-  }, [defaultCountry, dispatch])
+    !defaultCountry && loadDefaultPhoneCountry()
+  }, [defaultCountry, loadDefaultPhoneCountry])
 
   const forgotUsernameResult = Constants.useState(s => s.forgotUsernameResult)
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
