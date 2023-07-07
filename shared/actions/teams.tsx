@@ -827,7 +827,7 @@ const createChannel = async (
     if (!(error instanceof RPCError)) {
       return
     }
-    listenerApi.dispatch(TeamsGen.createSetChannelCreationError({error: error.desc}))
+    Constants.useState.getState().dispatch.setChannelCreationError(error.desc)
   }
 }
 
@@ -1078,12 +1078,10 @@ const updateChannelname = async (state: Container.TypedState, action: TeamsGen.U
 
   try {
     await RPCChatTypes.localPostMetadataRpcPromise(param, Constants.updateChannelNameWaitingKey(teamID))
-    return false
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      Constants.useState.getState().dispatch.setChannelCreationError(error.desc)
     }
-    return TeamsGen.createSetChannelCreationError({error: error.desc})
   }
 }
 
@@ -1138,36 +1136,6 @@ const getMembers = async (_: unknown, action: TeamsGen.GetMembersPayload) => {
     logger.error(`Error updating members for ${teamID}: ${error.desc}`)
   }
   return
-}
-
-const badgeAppForTeams = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) => {
-  const loggedIn = ConfigConstants.useConfigState.getState().loggedIn
-  if (!loggedIn) {
-    // Don't make any calls we don't have permission to.
-    return
-  }
-  const {badgeState} = action.payload
-
-  const actions: Array<Container.TypedActions> = []
-  const deletedTeams = badgeState.deletedTeams || []
-  const newTeams = new Set<string>(badgeState.newTeams || [])
-
-  const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []
-  const teamsWithResetUsersMap = new Map<Types.TeamID, Set<string>>()
-  teamsWithResetUsers.forEach(entry => {
-    const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
-    existing.add(entry.username)
-  })
-
-  // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
-  actions.push(
-    TeamsGen.createSetNewTeamInfo({
-      deletedTeams,
-      newTeams,
-      teamIDToResetUsers: teamsWithResetUsersMap,
-    })
-  )
-  return actions
 }
 
 const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
@@ -1538,7 +1506,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.addTeamWithChosenChannels, addTeamWithChosenChannels)
   Container.listenAction(TeamsGen.renameTeam, renameTeam)
   Container.listenAction(TeamsGen.manageChatChannels, manageChatChannels)
-  Container.listenAction(NotificationsGen.receivedBadgeState, badgeAppForTeams)
   Container.listenAction(GregorGen.pushState, gregorPushState)
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamChangedByID, teamChangedByID)
   Container.listenAction(
@@ -1597,6 +1564,26 @@ const initTeams = () => {
     filterForNs('teams', addThemToTeamFromTeamBuilder)
   )
   Container.listenAction(TeamsGen.addedToTeam, closeTeamBuilderOrSetError)
+
+  Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {
+    const loggedIn = ConfigConstants.useConfigState.getState().loggedIn
+    if (!loggedIn) {
+      // Don't make any calls we don't have permission to.
+      return
+    }
+    const {badgeState} = action.payload
+    const deletedTeams = badgeState.deletedTeams || []
+    const newTeams = new Set<string>(badgeState.newTeams || [])
+    const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []
+    const teamsWithResetUsersMap = new Map<Types.TeamID, Set<string>>()
+    teamsWithResetUsers.forEach(entry => {
+      const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
+      existing.add(entry.username)
+    })
+
+    // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
+    Constants.useState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
+  })
 }
 
 export default initTeams

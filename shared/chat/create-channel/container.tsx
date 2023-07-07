@@ -27,8 +27,9 @@ const Wrapped = (p: OwnProps) => {
     }
   }, [navToChatOnSuccess, channelname, description, teamID, dispatch])
 
+  const setChannelCreationError = TeamsConstants.useState(s => s.dispatch.setChannelCreationError)
   Container.useOnMountOnce(() => {
-    dispatch(TeamsGen.createSetChannelCreationError({error: ''}))
+    setChannelCreationError('')
   })
 
   return (

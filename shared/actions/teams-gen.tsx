@@ -59,7 +59,6 @@ export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
-export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setChannelSelected = 'teams:setChannelSelected'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEditMemberError = 'teams:setEditMemberError'
@@ -68,7 +67,6 @@ export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersW
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setMembers = 'teams:setMembers'
-export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setNewTeamRequests = 'teams:setNewTeamRequests'
 export const setPublicity = 'teams:setPublicity'
 export const setSubteamFilter = 'teams:setSubteamFilter'
@@ -505,10 +503,6 @@ export const createSaveChannelMembership = (payload: {
   readonly oldChannelState: Types.ChannelMembershipState
   readonly newChannelState: Types.ChannelMembershipState
 }) => ({payload, type: saveChannelMembership as typeof saveChannelMembership})
-export const createSetChannelCreationError = (payload: {readonly error: string}) => ({
-  payload,
-  type: setChannelCreationError as typeof setChannelCreationError,
-})
 export const createSetEditDescriptionError = (payload: {readonly error: string}) => ({
   payload,
   type: setEditDescriptionError as typeof setEditDescriptionError,
@@ -538,11 +532,6 @@ export const createSetMembers = (payload: {
   readonly teamID: Types.TeamID
   readonly members: Map<string, Types.MemberInfo>
 }) => ({payload, type: setMembers as typeof setMembers})
-export const createSetNewTeamInfo = (payload: {
-  readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
-  readonly newTeams: Set<Types.TeamID>
-  readonly teamIDToResetUsers: Map<Types.TeamID, Set<string>>
-}) => ({payload, type: setNewTeamInfo as typeof setNewTeamInfo})
 export const createSetPublicity = (payload: {
   readonly teamID: Types.TeamID
   readonly settings: Types.PublicitySettings
@@ -746,7 +735,6 @@ export type SetAddMembersWizardIndividualRolePayload = ReturnType<
   typeof createSetAddMembersWizardIndividualRole
 >
 export type SetAddMembersWizardRolePayload = ReturnType<typeof createSetAddMembersWizardRole>
-export type SetChannelCreationErrorPayload = ReturnType<typeof createSetChannelCreationError>
 export type SetChannelSelectedPayload = ReturnType<typeof createSetChannelSelected>
 export type SetEditDescriptionErrorPayload = ReturnType<typeof createSetEditDescriptionError>
 export type SetEditMemberErrorPayload = ReturnType<typeof createSetEditMemberError>
@@ -755,7 +743,6 @@ export type SetJustFinishedAddMembersWizardPayload = ReturnType<typeof createSet
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type SetMemberPublicityPayload = ReturnType<typeof createSetMemberPublicity>
 export type SetMembersPayload = ReturnType<typeof createSetMembers>
-export type SetNewTeamInfoPayload = ReturnType<typeof createSetNewTeamInfo>
 export type SetNewTeamRequestsPayload = ReturnType<typeof createSetNewTeamRequests>
 export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
 export type SetSubteamFilterPayload = ReturnType<typeof createSetSubteamFilter>
@@ -859,7 +846,6 @@ export type Actions =
   | SaveTeamRetentionPolicyPayload
   | SetAddMembersWizardIndividualRolePayload
   | SetAddMembersWizardRolePayload
-  | SetChannelCreationErrorPayload
   | SetChannelSelectedPayload
   | SetEditDescriptionErrorPayload
   | SetEditMemberErrorPayload
@@ -868,7 +854,6 @@ export type Actions =
   | SetMemberActivityDetailsPayload
   | SetMemberPublicityPayload
   | SetMembersPayload
-  | SetNewTeamInfoPayload
   | SetNewTeamRequestsPayload
   | SetPublicityPayload
   | SetSubteamFilterPayload

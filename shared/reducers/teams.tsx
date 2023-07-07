@@ -154,11 +154,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamAccessRequestsPending]: (draftState, action) => {
     draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
   },
-  [TeamsGen.setNewTeamInfo]: (draftState, action) => {
-    draftState.deletedTeams = action.payload.deletedTeams
-    draftState.newTeams = action.payload.newTeams
-    draftState.teamIDToResetUsers = action.payload.teamIDToResetUsers
-  },
   [TeamsGen.setTeamProfileAddList]: (draftState, action) => {
     draftState.teamProfileAddList = action.payload.teamlist
   },

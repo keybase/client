@@ -40,10 +40,11 @@ const TeamRow = (props: Props) => {
   )
   const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
+  const teamIDToResetUsers = Constants.useState(s => s.teamIDToResetUsers)
   const badgeCount = Container.useSelector(s =>
-    Constants.getTeamRowBadgeCount(s.teams.newTeamRequests, s.teams.teamIDToResetUsers, teamID)
+    Constants.getTeamRowBadgeCount(s.teams.newTeamRequests, teamIDToResetUsers, teamID)
   )
-  const isNew = Container.useSelector(s => s.teams.newTeams.has(teamID))
+  const isNew = Constants.useState(s => s.newTeams.has(teamID))
 
   const crownIconType: Kb.IconType | undefined =
     teamMeta.role === 'owner'

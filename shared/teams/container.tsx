@@ -27,8 +27,8 @@ const useHeaderActions = () => {
 const orderTeamsImpl = (
   teams: Map<string, Types.TeamMeta>,
   newRequests: Types.State['newTeamRequests'],
-  teamIDToResetUsers: Types.State['teamIDToResetUsers'],
-  newTeams: Types.State['newTeams'],
+  teamIDToResetUsers: Constants.State['teamIDToResetUsers'],
+  newTeams: Constants.State['newTeams'],
   sortOrder: Types.TeamListSort,
   activityLevels: Types.ActivityLevels,
   filter: string
@@ -91,14 +91,14 @@ const Reloadable = (props: ReloadableProps) => {
 const Connected = () => {
   const _teams = Container.useSelector(state => state.teams.teamMeta)
   const activityLevels = Constants.useState(s => s.activityLevels)
-  const deletedTeams = Container.useSelector(state => state.teams.deletedTeams)
+  const deletedTeams = Constants.useState(s => s.deletedTeams)
   const filter = Container.useSelector(state => state.teams.teamListFilter)
   const loaded = !Container.useAnyWaiting(Constants.teamsLoadedWaitingKey)
   const newTeamRequests = Container.useSelector(state => state.teams.newTeamRequests)
-  const newTeams = Container.useSelector(state => state.teams.newTeams)
+  const newTeams = Constants.useState(s => s.newTeams)
   const sawChatBanner = Container.useSelector(state => state.teams.sawChatBanner || false)
   const sortOrder = Container.useSelector(state => state.teams.teamListSort)
-  const teamIDToResetUsers = Container.useSelector(state => state.teams.teamIDToResetUsers)
+  const teamIDToResetUsers = Constants.useState(s => s.teamIDToResetUsers)
   const dispatch = Container.useDispatch()
   const onHideChatBanner = () => {
     dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'}))

@@ -224,7 +224,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
-  deletedTeams: [],
   errorInAddToTeam: '',
   errorInEditDescription: '',
   errorInEditMember: emptyErrorInEditMember,
@@ -237,7 +236,6 @@ const emptyState: Types.State = {
   invitesCollapsed: new Set(),
   newTeamRequests: new Map(),
   newTeamWizard: newTeamWizardEmptyState,
-  newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
   subteamFilter: '',
@@ -247,7 +245,6 @@ const emptyState: Types.State = {
   teamDetails: new Map(),
   teamDetailsSubscriptionCount: new Map(),
   teamIDToMembers: new Map(),
-  teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamIDToWelcomeMessage: new Map(),
   teamInviteDetails: {inviteID: '', inviteKey: ''},
@@ -572,8 +569,8 @@ export const isInSomeTeam = (state: TypedState): boolean =>
 export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamAccessRequestsPending.has(teamname)
 
-export const getTeamResetUsers = (state: TypedState, teamID: Types.TeamID): Set<string> =>
-  state.teams.teamIDToResetUsers.get(teamID) || new Set()
+export const getTeamResetUsers = (_: unknown, teamID: Types.TeamID): Set<string> =>
+  useState.getState().teamIDToResetUsers.get(teamID) || new Set()
 
 export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): Map<string, boolean> =>
   state.teams.teamNameToLoadingInvites.get(teamname) || new Map()
@@ -853,7 +850,7 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
 // Don't count new team because those are shown with a 'NEW' meta instead of badge
 export const getTeamRowBadgeCount = (
   newTeamRequests: Types.State['newTeamRequests'],
-  teamIDToResetUsers: Types.State['teamIDToResetUsers'],
+  teamIDToResetUsers: Store['teamIDToResetUsers'],
   teamID: Types.TeamID
 ) => {
   return newTeamRequests.get(teamID)?.size ?? 0 + (teamIDToResetUsers.get(teamID)?.size ?? 0)
@@ -1002,14 +999,17 @@ export const countValidInviteLinks = (inviteLinks: Array<Types.InviteLink>): Num
 export const maybeGetMostRecentValidInviteLink = (inviteLinks: Array<Types.InviteLink>) =>
   inviteLinks.find(inviteLink => inviteLink.isValid)
 
-type Store = {
+export type Store = {
   activityLevels: Types.ActivityLevels
-  addUserToTeamsState: Types.AddUserToTeamsState
   addUserToTeamsResults: string
+  addUserToTeamsState: Types.AddUserToTeamsState
   channelInfo: Map<Types.TeamID, Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>>
   channelSelectedMembers: Map<ChatTypes.ConversationIDKey, Set<string>>
   creatingChannels: boolean
+  deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   errorInChannelCreation: string
+  newTeams: Set<Types.TeamID>
+  teamIDToResetUsers: Map<Types.TeamID, Set<string>>
 }
 
 const initialStore: Store = {
@@ -1019,7 +1019,10 @@ const initialStore: Store = {
   channelInfo: new Map(),
   channelSelectedMembers: new Map(),
   creatingChannels: false,
+  deletedTeams: [],
   errorInChannelCreation: '',
+  newTeams: new Set(),
+  teamIDToResetUsers: new Map(),
 }
 
 export type State = Store & {
@@ -1037,6 +1040,11 @@ export type State = Store & {
     loadTeamChannelList: (teamID: Types.TeamID) => void
     resetState: 'default'
     setChannelCreationError: (error: string) => void
+    setNewTeamInfo: (
+      deletedTeams: Array<RPCTypes.DeletedTeamInfo>,
+      newTeams: Set<Types.TeamID>,
+      teamIDToResetUsers: Map<Types.TeamID, Set<string>>
+    ) => void
   }
 }
 
@@ -1243,6 +1251,17 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.creatingChannels = false
         s.errorInChannelCreation = error
+      })
+    },
+    setNewTeamInfo: (
+      deletedTeams: Array<RPCTypes.DeletedTeamInfo>,
+      newTeams: Set<Types.TeamID>,
+      teamIDToResetUsers: Map<Types.TeamID, Set<string>>
+    ) => {
+      set(s => {
+        s.deletedTeams = deletedTeams
+        s.newTeams = newTeams
+        s.teamIDToResetUsers = teamIDToResetUsers
       })
     },
   }

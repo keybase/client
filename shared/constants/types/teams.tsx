@@ -234,7 +234,6 @@ export type TeamInviteState = {
 
 export type State = {
   addMembersWizard: AddMembersWizardState
-  deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   errorInAddToTeam: string
   errorInEditDescription: string
   errorInEditMember: {error: string; teamID: TeamID; username: string}
@@ -265,7 +264,6 @@ export type State = {
   teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
   teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
   teamVersion: Map<TeamID, TeamVersion>
-  teamIDToResetUsers: Map<TeamID, Set<string>>
   teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
   teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
 
@@ -278,7 +276,6 @@ export type State = {
   teamnames: Set<Teamname> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap
-  newTeams: Set<TeamID>
   newTeamRequests: Map<TeamID, Set<string>>
   teamBuilding: TeamBuildingSubState
   newTeamWizard: NewTeamWizardState
