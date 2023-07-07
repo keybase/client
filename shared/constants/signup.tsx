@@ -75,14 +75,19 @@ export type State = Store & {
 
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
-  const noErrors = () =>
-    !get().devicenameError &&
-    !get().emailError &&
-    !get().inviteCodeError &&
-    !get().nameError &&
-    !get().usernameError &&
-    !get().signupError &&
-    !get().usernameTaken
+  const noErrors = () => {
+    const {devicenameError, emailError, inviteCodeError} = get()
+    const {nameError, usernameError, signupError, usernameTaken} = get()
+    return !(
+      devicenameError ||
+      emailError ||
+      inviteCodeError ||
+      nameError ||
+      usernameError ||
+      signupError ||
+      usernameTaken
+    )
+  }
 
   const reallySignupOnNoErrors = () => {
     const f = async () => {
