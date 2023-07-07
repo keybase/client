@@ -233,62 +233,61 @@ export type TeamInviteState = {
 }
 
 export type State = {
-  readonly activityLevels: ActivityLevels
-  readonly addMembersWizard: AddMembersWizardState
-  readonly addUserToTeamsState: AddUserToTeamsState
-  readonly addUserToTeamsResults: string
-  readonly channelInfo: Map<TeamID, Map<ConversationIDKey, TeamChannelInfo>>
-  readonly channelSelectedMembers: Map<ConversationIDKey, Set<string>>
-  readonly creatingChannels: boolean
-  readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
-  readonly errorInAddToTeam: string
-  readonly errorInChannelCreation: string
-  readonly errorInEditDescription: string
-  readonly errorInEditMember: {error: string; teamID: TeamID; username: string}
-  readonly errorInEditWelcomeMessage: string
-  readonly errorInEmailInvite: EmailInviteError
-  readonly errorInSettings: string
-  readonly errorInTeamCreation: string
-  readonly errorInTeamInvite: string
-  readonly errorInTeamJoin: string
-  readonly invitesCollapsed: Set<TeamID>
-  readonly teamsWithChosenChannels: Set<Teamname>
-  readonly sawChatBanner: boolean
-  readonly sawSubteamsBanner: boolean
-  readonly teamSelectedChannels: Map<TeamID, Set<string>>
-  readonly teamSelectedMembers: Map<TeamID, Set<string>>
-  readonly subteamFilter: string
-  readonly subteamsFiltered: Set<TeamID> | undefined
-  readonly teamAccessRequestsPending: Set<Teamname>
-  readonly teamJoinSuccess: boolean
-  readonly teamJoinSuccessOpen: boolean
-  readonly teamJoinSuccessTeamName: string
-  readonly teamListFilter: string
-  readonly teamListSort: TeamListSort
-  readonly teamMeta: Map<TeamID, TeamMeta>
-  readonly teamMetaStale: boolean // if we've received an update since we last loaded team list
-  readonly teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
-  readonly teamDetails: Map<TeamID, TeamDetails>
-  readonly teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
-  readonly teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
-  readonly teamVersion: Map<TeamID, TeamVersion>
-  readonly teamIDToResetUsers: Map<TeamID, Set<string>>
-  readonly teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
-  readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
+  addMembersWizard: AddMembersWizardState
+  addUserToTeamsState: AddUserToTeamsState
+  addUserToTeamsResults: string
+  channelInfo: Map<TeamID, Map<ConversationIDKey, TeamChannelInfo>>
+  channelSelectedMembers: Map<ConversationIDKey, Set<string>>
+  creatingChannels: boolean
+  deletedTeams: Array<RPCTypes.DeletedTeamInfo>
+  errorInAddToTeam: string
+  errorInChannelCreation: string
+  errorInEditDescription: string
+  errorInEditMember: {error: string; teamID: TeamID; username: string}
+  errorInEditWelcomeMessage: string
+  errorInEmailInvite: EmailInviteError
+  errorInSettings: string
+  errorInTeamCreation: string
+  errorInTeamInvite: string
+  errorInTeamJoin: string
+  invitesCollapsed: Set<TeamID>
+  teamsWithChosenChannels: Set<Teamname>
+  sawChatBanner: boolean
+  sawSubteamsBanner: boolean
+  teamSelectedChannels: Map<TeamID, Set<string>>
+  teamSelectedMembers: Map<TeamID, Set<string>>
+  subteamFilter: string
+  subteamsFiltered: Set<TeamID> | undefined
+  teamAccessRequestsPending: Set<Teamname>
+  teamJoinSuccess: boolean
+  teamJoinSuccessOpen: boolean
+  teamJoinSuccessTeamName: string
+  teamListFilter: string
+  teamListSort: TeamListSort
+  teamMeta: Map<TeamID, TeamMeta>
+  teamMetaStale: boolean // if we've received an update since we last loaded team list
+  teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
+  teamDetails: Map<TeamID, TeamDetails>
+  teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
+  teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
+  teamVersion: Map<TeamID, TeamVersion>
+  teamIDToResetUsers: Map<TeamID, Set<string>>
+  teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
+  teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
 
-  readonly treeLoaderTeamIDToSparseMemberInfos: Map<TeamID, Map<string, TreeloaderSparseMemberInfo>>
-  readonly teamMemberToTreeMemberships: Map<TeamID, Map<string, TeamTreeMemberships>>
+  treeLoaderTeamIDToSparseMemberInfos: Map<TeamID, Map<string, TreeloaderSparseMemberInfo>>
+  teamMemberToTreeMemberships: Map<TeamID, Map<string, TeamTreeMemberships>>
 
-  readonly teamMemberToLastActivity: Map<TeamID, Map<string, number>>
-  readonly teamNameToID: Map<Teamname, string>
-  readonly teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
-  readonly teamnames: Set<Teamname> // TODO remove
-  readonly teamProfileAddList: Array<TeamProfileAddList>
-  readonly teamRoleMap: TeamRoleMap
-  readonly newTeams: Set<TeamID>
-  readonly newTeamRequests: Map<TeamID, Set<string>>
-  readonly teamBuilding: TeamBuildingSubState
-  readonly newTeamWizard: NewTeamWizardState
+  teamMemberToLastActivity: Map<TeamID, Map<string, number>>
+  teamNameToID: Map<Teamname, string>
+  teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
+  teamnames: Set<Teamname> // TODO remove
+  teamProfileAddList: Array<TeamProfileAddList>
+  teamRoleMap: TeamRoleMap
+  newTeams: Set<TeamID>
+  newTeamRequests: Map<TeamID, Set<string>>
+  teamBuilding: TeamBuildingSubState
+  newTeamWizard: NewTeamWizardState
 
-  readonly teamInviteDetails: TeamInviteState
+  teamInviteDetails: TeamInviteState
 }

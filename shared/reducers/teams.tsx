@@ -443,9 +443,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setNewTeamRequests]: (draftState, action) => {
     draftState.newTeamRequests = action.payload.newTeamRequests
   },
-  [TeamsGen.setActivityLevels]: (draftState, action) => {
-    draftState.activityLevels = action.payload.levels
-  },
   [TeamsGen.setTeamListFilterSort]: (draftState, action) => {
     const {filter, sortOrder} = action.payload
     if (filter !== undefined) {

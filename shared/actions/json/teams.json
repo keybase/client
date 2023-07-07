@@ -474,13 +474,6 @@
       "_description": "User has viewed this team. Clear related badges.",
       "teamID": "Types.TeamID"
     },
-    "getActivityForTeams": {
-      "_description": "Fetch activity levels."
-    },
-    "setActivityLevels": {
-      "_description": "Set map of activity levels for all teams and channels.",
-      "levels": "Types.ActivityLevels"
-    },
     "setTeamListFilterSort": {
       "_description": "Set filtering and sort order for main team list. Leaves existing for undefinted params.",
       "filter?": "string",

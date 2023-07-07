@@ -65,9 +65,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         path: [{props: {teamID}, selected: 'team'}],
       })
     )
-  const activityLevel = Container.useSelector(
-    state => state.teams.activityLevels.channels.get(conversationIDKey) || 'none'
-  )
+  const activityLevel = Constants.useState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
   const newMemberCount = useRecentJoins(conversationIDKey)
 
   const onChat = () =>

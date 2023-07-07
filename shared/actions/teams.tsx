@@ -776,35 +776,6 @@ const getTeams = async (
   return
 }
 
-const getActivityForTeams = async () => {
-  try {
-    const results = await RPCChatTypes.localGetLastActiveForTeamsRpcPromise()
-    const teams = Object.entries(results.teams).reduce<Map<Types.TeamID, Types.ActivityLevel>>(
-      (res, [teamID, status]) => {
-        if (status === RPCChatTypes.LastActiveStatus.none) {
-          return res
-        }
-        res.set(teamID, Constants.lastActiveStatusToActivityLevel[status])
-        return res
-      },
-      new Map()
-    )
-    const channels = Object.entries(results.channels).reduce<
-      Map<ChatTypes.ConversationIDKey, Types.ActivityLevel>
-    >((res, [conversationIDKey, status]) => {
-      if (status === RPCChatTypes.LastActiveStatus.none) {
-        return res
-      }
-      res.set(conversationIDKey, Constants.lastActiveStatusToActivityLevel[status])
-      return res
-    }, new Map())
-    return TeamsGen.createSetActivityLevels({levels: {channels, loaded: true, teams}})
-  } catch (e) {
-    logger.warn(e)
-  }
-  return
-}
-
 const checkRequestedAccess = async () => {
   const result = await RPCTypes.teamsTeamListMyAccessRequestsRpcPromise(
     {},
@@ -1675,7 +1646,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.getMembers, getMembers)
   Container.listenAction(TeamsGen.createNewTeamFromConversation, createNewTeamFromConversation)
   Container.listenAction([ConfigGen.loadOnStart, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams)
-  Container.listenAction(TeamsGen.getActivityForTeams, getActivityForTeams)
   Container.listenAction(TeamsGen.saveChannelMembership, saveChannelMembership)
   Container.listenAction(
     [ConfigGen.bootstrapStatusLoaded, EngineGen.keybase1NotifyTeamTeamRoleMapChanged],

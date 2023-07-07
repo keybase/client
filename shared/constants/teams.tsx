@@ -1,4 +1,5 @@
 import * as RPCChatTypes from './types/rpc-chat-gen'
+import logger from '../logger'
 import * as RPCTypes from './types/rpc-gen'
 import * as Types from './types/teams'
 import * as ConfigConstants from './config'
@@ -8,6 +9,7 @@ import type * as ChatTypes from './types/chat2'
 import type {TypedState} from './reducer'
 import type {RetentionPolicy} from './types/retention-policy'
 import {memoize} from '../util/memoize'
+import * as Z from '../util/zustand'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
@@ -219,7 +221,6 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
 export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, username: ''}
 
 const emptyState: Types.State = {
-  activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
   addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
@@ -1004,3 +1005,62 @@ export const countValidInviteLinks = (inviteLinks: Array<Types.InviteLink>): Num
 
 export const maybeGetMostRecentValidInviteLink = (inviteLinks: Array<Types.InviteLink>) =>
   inviteLinks.find(inviteLink => inviteLink.isValid)
+
+type Store = {
+  activityLevels: Types.ActivityLevels
+}
+
+const initialStore: Store = {
+  activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
+}
+
+export type State = Store & {
+  dispatch: {
+    getActivityForTeams: () => void
+    resetState: 'default'
+  }
+}
+
+export const useState = Z.createZustand<State>((set, _get) => {
+  // const reduxDispatch = Z.getReduxDispatch()
+  const dispatch: State['dispatch'] = {
+    getActivityForTeams: () => {
+      const f = async () => {
+        try {
+          const results = await RPCChatTypes.localGetLastActiveForTeamsRpcPromise()
+          const teams = Object.entries(results.teams).reduce<Map<Types.TeamID, Types.ActivityLevel>>(
+            (res, [teamID, status]) => {
+              if (status === RPCChatTypes.LastActiveStatus.none) {
+                return res
+              }
+              res.set(teamID, lastActiveStatusToActivityLevel[status])
+              return res
+            },
+            new Map()
+          )
+          const channels = Object.entries(results.channels).reduce<
+            Map<ChatTypes.ConversationIDKey, Types.ActivityLevel>
+          >((res, [conversationIDKey, status]) => {
+            if (status === RPCChatTypes.LastActiveStatus.none) {
+              return res
+            }
+            res.set(conversationIDKey, lastActiveStatusToActivityLevel[status])
+            return res
+          }, new Map())
+          set(s => {
+            s.activityLevels = {channels, loaded: true, teams}
+          })
+        } catch (e) {
+          logger.warn(e)
+        }
+        return
+      }
+      Z.ignorePromise(f())
+    },
+    resetState: 'default',
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

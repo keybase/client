@@ -71,7 +71,7 @@ export const ModalTitle = ({title, teamID}: Props) => {
  */
 export const useActivityLevels = (forceLoad?: boolean) => {
   const dispatch = Container.useDispatch()
-  const activityLevelsLoaded = Container.useSelector(s => s.teams.activityLevels.loaded)
+  const activityLevelsLoaded = Constants.useState(s => s.activityLevels.loaded)
   // keep whether we've triggered a load so we only do it once.
   const triggeredLoad = React.useRef(false)
   React.useEffect(() => {

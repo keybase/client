@@ -27,8 +27,8 @@ const ChannelRow = (props: ChannelRowProps) => {
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
   const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const hasAllMembers = details.members.size === numParticipants
-  const activityLevel = Container.useSelector(
-    state => state.teams.activityLevels.channels.get(channel.conversationIDKey) || 'none'
+  const activityLevel = Constants.useState(
+    s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none'
   )
 
   const dispatch = Container.useDispatch()

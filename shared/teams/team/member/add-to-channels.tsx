@@ -474,8 +474,8 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
     const info = ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey)
     return info.name.length ? info.name : info.all
   })
-  const activityLevel = Container.useSelector(
-    s => s.teams.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
+  const activityLevel = Constants.useState(
+    s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )
   const allInChannel = usernames.every(member => participants.includes(member))
   const onPreviewChannel = () =>

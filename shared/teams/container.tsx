@@ -90,7 +90,7 @@ const Reloadable = (props: ReloadableProps) => {
 
 const Connected = () => {
   const _teams = Container.useSelector(state => state.teams.teamMeta)
-  const activityLevels = Container.useSelector(state => state.teams.activityLevels)
+  const activityLevels = Constants.useState(s => s.activityLevels)
   const deletedTeams = Container.useSelector(state => state.teams.deletedTeams)
   const filter = Container.useSelector(state => state.teams.teamListFilter)
   const loaded = !Container.useAnyWaiting(Constants.teamsLoadedWaitingKey)
