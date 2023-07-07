@@ -10,10 +10,6 @@ export const typePrefix = 'settings:'
 export const clearAddedPhone = 'settings:clearAddedPhone'
 export const clearPhoneNumberAdd = 'settings:clearPhoneNumberAdd'
 export const clearPhoneNumberErrors = 'settings:clearPhoneNumberErrors'
-export const contactSettingsError = 'settings:contactSettingsError'
-export const contactSettingsRefresh = 'settings:contactSettingsRefresh'
-export const contactSettingsRefreshed = 'settings:contactSettingsRefreshed'
-export const contactSettingsSaved = 'settings:contactSettingsSaved'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const loadDefaultPhoneNumberCountry = 'settings:loadDefaultPhoneNumberCountry'
@@ -29,27 +25,9 @@ export const onChangeLockdownMode = 'settings:onChangeLockdownMode'
 export const processorProfile = 'settings:processorProfile'
 export const stop = 'settings:stop'
 export const trace = 'settings:trace'
-export const unfurlSettingsError = 'settings:unfurlSettingsError'
-export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
-export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
-export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
 export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
 
 // Action Creators
-/**
- * An error occurred on the contact settings screen
- */
-export const createContactSettingsError = (payload: {readonly error: string}) => ({
-  payload,
-  type: contactSettingsError as typeof contactSettingsError,
-})
-/**
- * An error occurred on the unfurl settings screen
- */
-export const createUnfurlSettingsError = (payload: {readonly error: string}) => ({
-  payload,
-  type: unfurlSettingsError as typeof unfurlSettingsError,
-})
 /**
  * Cancel adding a phone number.
  */
@@ -65,56 +43,12 @@ export const createClearPhoneNumberErrors = (payload?: undefined) => ({
   type: clearPhoneNumberErrors as typeof clearPhoneNumberErrors,
 })
 /**
- * Refresh Chat contact settings
- */
-export const createContactSettingsRefresh = (payload?: undefined) => ({
-  payload,
-  type: contactSettingsRefresh as typeof contactSettingsRefresh,
-})
-/**
- * Refresh unfurl settings
- */
-export const createUnfurlSettingsRefresh = (payload?: undefined) => ({
-  payload,
-  type: unfurlSettingsRefresh as typeof unfurlSettingsRefresh,
-})
-/**
- * Refreshed Chat contact settings available
- */
-export const createContactSettingsRefreshed = (payload: {readonly settings: RPCTypes.ContactSettings}) => ({
-  payload,
-  type: contactSettingsRefreshed as typeof contactSettingsRefreshed,
-})
-/**
- * Refreshed Chat contact settings available
- */
-export const createContactSettingsSaved = (payload: {
-  readonly enabled: boolean
-  readonly indirectFollowees: boolean
-  readonly teamsEnabled: boolean
-  readonly teamsList: Types.ContactSettingsTeamsList
-}) => ({payload, type: contactSettingsSaved as typeof contactSettingsSaved})
-/**
- * Refreshed unfurl settings available
- */
-export const createUnfurlSettingsRefreshed = (payload: {
-  readonly mode: RPCChatTypes.UnfurlMode
-  readonly whitelist: Array<string>
-}) => ({payload, type: unfurlSettingsRefreshed as typeof unfurlSettingsRefreshed})
-/**
  * Reset state used for showing we just added a phone number.
  */
 export const createClearAddedPhone = (payload?: undefined) => ({
   payload,
   type: clearAddedPhone as typeof clearAddedPhone,
 })
-/**
- * Update unfurl settings from settings screen
- */
-export const createUnfurlSettingsSaved = (payload: {
-  readonly mode: RPCChatTypes.UnfurlMode
-  readonly whitelist: Array<string>
-}) => ({payload, type: unfurlSettingsSaved as typeof unfurlSettingsSaved})
 /**
  * We verified a phone number or hit an error.
  */
@@ -183,10 +117,6 @@ export const createTrace = (payload: {readonly durationSeconds: number}) => ({
 export type ClearAddedPhonePayload = ReturnType<typeof createClearAddedPhone>
 export type ClearPhoneNumberAddPayload = ReturnType<typeof createClearPhoneNumberAdd>
 export type ClearPhoneNumberErrorsPayload = ReturnType<typeof createClearPhoneNumberErrors>
-export type ContactSettingsErrorPayload = ReturnType<typeof createContactSettingsError>
-export type ContactSettingsRefreshPayload = ReturnType<typeof createContactSettingsRefresh>
-export type ContactSettingsRefreshedPayload = ReturnType<typeof createContactSettingsRefreshed>
-export type ContactSettingsSavedPayload = ReturnType<typeof createContactSettingsSaved>
 export type DbNukePayload = ReturnType<typeof createDbNuke>
 export type DeleteAccountForeverPayload = ReturnType<typeof createDeleteAccountForever>
 export type LoadDefaultPhoneNumberCountryPayload = ReturnType<typeof createLoadDefaultPhoneNumberCountry>
@@ -202,10 +132,6 @@ export type OnChangeLockdownModePayload = ReturnType<typeof createOnChangeLockdo
 export type ProcessorProfilePayload = ReturnType<typeof createProcessorProfile>
 export type StopPayload = ReturnType<typeof createStop>
 export type TracePayload = ReturnType<typeof createTrace>
-export type UnfurlSettingsErrorPayload = ReturnType<typeof createUnfurlSettingsError>
-export type UnfurlSettingsRefreshPayload = ReturnType<typeof createUnfurlSettingsRefresh>
-export type UnfurlSettingsRefreshedPayload = ReturnType<typeof createUnfurlSettingsRefreshed>
-export type UnfurlSettingsSavedPayload = ReturnType<typeof createUnfurlSettingsSaved>
 export type VerifiedPhoneNumberPayload = ReturnType<typeof createVerifiedPhoneNumber>
 
 // All Actions
@@ -214,10 +140,6 @@ export type Actions =
   | ClearAddedPhonePayload
   | ClearPhoneNumberAddPayload
   | ClearPhoneNumberErrorsPayload
-  | ContactSettingsErrorPayload
-  | ContactSettingsRefreshPayload
-  | ContactSettingsRefreshedPayload
-  | ContactSettingsSavedPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
   | LoadDefaultPhoneNumberCountryPayload
@@ -233,9 +155,5 @@ export type Actions =
   | ProcessorProfilePayload
   | StopPayload
   | TracePayload
-  | UnfurlSettingsErrorPayload
-  | UnfurlSettingsRefreshPayload
-  | UnfurlSettingsRefreshedPayload
-  | UnfurlSettingsSavedPayload
   | VerifiedPhoneNumberPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

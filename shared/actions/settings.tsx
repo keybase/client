@@ -224,44 +224,6 @@ const contactSettingsRefresh = async () => {
   }
 }
 
-const contactSettingsSaved = async (_: unknown, action: SettingsGen.ContactSettingsSavedPayload) => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    return false
-  }
-
-  // Convert the selected teams object into the RPC format.
-  const {enabled, indirectFollowees, teamsEnabled, teamsList} = action.payload
-  const teams = Object.entries(teamsList).map(([teamID, enabled]) => ({
-    enabled,
-    teamID,
-  }))
-  const allowFolloweeDegrees = indirectFollowees ? 2 : 1
-  const settings = enabled
-    ? {
-        allowFolloweeDegrees,
-        allowGoodTeams: teamsEnabled,
-        enabled: true,
-        teams,
-      }
-    : {
-        allowFolloweeDegrees,
-        allowGoodTeams: teamsEnabled,
-        enabled: false,
-        teams,
-      }
-  try {
-    await RPCTypes.accountUserSetContactSettingsRpcPromise(
-      {settings},
-      Constants.contactSettingsSaveWaitingKey
-    )
-    return SettingsGen.createContactSettingsRefresh()
-  } catch (_) {
-    return SettingsGen.createContactSettingsError({
-      error: 'Unable to save contact settings, please try again.',
-    })
-  }
-}
-
 const unfurlSettingsRefresh = async () => {
   if (!ConfigConstants.useConfigState.getState().loggedIn) {
     return false
@@ -315,7 +277,6 @@ const initSettings = () => {
   Container.listenAction(SettingsGen.trace, trace)
   Container.listenAction(SettingsGen.processorProfile, processorProfile)
   Container.listenAction(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
-  Container.listenAction(SettingsGen.contactSettingsSaved, contactSettingsSaved)
   Container.listenAction(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
   Container.listenAction(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
   Container.listenAction(EngineGen.keybase1NotifyUsersPasswordChanged, (_, action) => {

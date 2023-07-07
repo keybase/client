@@ -18,28 +18,26 @@ import {Group} from './notifications/render'
 const emptyList = new Array<string>()
 
 export default () => {
-  const contactSettingsEnabled = Container.useSelector(
-    state => state.settings.chat.contactSettings.settings?.enabled
+  const contactSettingsEnabled = Constants.useChatState(s => s.contactSettings.settings?.enabled)
+  const contactSettingsIndirectFollowees = Constants.useChatState(
+    s => s.contactSettings.settings?.allowFolloweeDegrees === 2
   )
-  const contactSettingsIndirectFollowees = Container.useSelector(
-    state => state.settings.chat.contactSettings.settings?.allowFolloweeDegrees === 2
-  )
-  const contactSettingsTeams = Container.useSelector(
-    state => state.settings.chat.contactSettings.settings?.teams
-  )
-  const contactSettingsTeamsEnabled = Container.useSelector(
-    state => state.settings.chat.contactSettings.settings?.allowGoodTeams
-  )
-  const whitelist = Container.useSelector(state => state.settings.chat.unfurl.unfurlWhitelist)
+  const contactSettingsTeams = Constants.useChatState(s => s.contactSettings.settings?.teams)
+  const contactSettingsTeamsEnabled = Constants.useChatState(s => s.contactSettings.settings?.allowGoodTeams)
+  const whitelist = Constants.useChatState(s => s.unfurl.unfurlWhitelist)
   const unfurlWhitelist = whitelist ?? emptyList
   const allowEdit = Container.useSelector(state => state.settings.notifications.allowEdit)
-  const contactSettingsError = Container.useSelector(state => state.settings.chat.contactSettings.error)
+  const contactSettingsError = Constants.useChatState(s => s.contactSettings.error)
   const groups = Container.useSelector(state => state.settings.notifications.groups)
   const mobileHasPermissions = PushConstants.useState(s => s.hasPermissions)
   const sound = ConfigConstants.useConfigState(s => s.notifySound) // desktop
   const _teamMeta = Container.useSelector(state => state.teams.teamMeta)
-  const unfurlError = Container.useSelector(state => state.settings.chat.unfurl.unfurlError)
-  const unfurlMode = Container.useSelector(state => state.settings.chat.unfurl.unfurlMode)
+  const unfurlError = Constants.useChatState(s => s.unfurl.unfurlError)
+  const unfurlMode = Constants.useChatState(s => s.unfurl.unfurlMode)
+  const contactSettingsSaved = Constants.useChatState(s => s.dispatch.contactSettingsSaved)
+  const contactSettingsRefresh = Constants.useChatState(s => s.dispatch.contactSettingsRefresh)
+  const unfurlSettingsRefresh = Constants.useChatState(s => s.dispatch.unfurlSettingsRefresh)
+  const unfurlSettingsSaved = Constants.useChatState(s => s.dispatch.unfurlSettingsSaved)
 
   const dispatch = Container.useDispatch()
   const onBack = Container.isMobile
@@ -47,14 +45,7 @@ export default () => {
         dispatch(RouteTreeGen.createNavigateUp())
       }
     : undefined
-  const onContactSettingsSave = (
-    enabled: boolean,
-    indirectFollowees: boolean,
-    teamsEnabled: boolean,
-    teamsList: {[k in TeamTypes.TeamID]: boolean}
-  ) => {
-    dispatch(SettingsGen.createContactSettingsSaved({enabled, indirectFollowees, teamsEnabled, teamsList}))
-  }
+  const onContactSettingsSave = contactSettingsSaved
   const loadSettings = Constants.useState(s => s.dispatch.loadSettings)
   const onRefresh = () => {
     // Security: misc
@@ -62,19 +53,16 @@ export default () => {
     dispatch(SettingsGen.createNotificationsRefresh())
 
     // Security: contact settings
-    dispatch(SettingsGen.createContactSettingsRefresh())
+    contactSettingsRefresh()
 
     // Link previews
-    dispatch(SettingsGen.createUnfurlSettingsRefresh())
+    unfurlSettingsRefresh()
   }
   const onToggle = (group: string, name?: string) => {
     dispatch(SettingsGen.createNotificationsToggle({group, name}))
   }
   const onToggleSound = ConfigConstants.useConfigState(s => s.dispatch.setNotifySound)
-
-  const onUnfurlSave = (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => {
-    dispatch(SettingsGen.createUnfurlSettingsSaved({mode, whitelist: whitelist}))
-  }
+  const onUnfurlSave = unfurlSettingsSaved
 
   const teamMeta = TeamConstants.sortTeamsByName(_teamMeta)
   const serverSelectedTeams = new Map(contactSettingsTeams?.map(t => [t.teamID, {enabled: t.enabled}]))

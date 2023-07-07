@@ -51,41 +51,6 @@
     "processorProfile": {
       "durationSeconds": "number"
     },
-    "unfurlSettingsSaved": {
-      "_description": "Update unfurl settings from settings screen",
-      "mode": "RPCChatTypes.UnfurlMode",
-      "whitelist": "Array<string>"
-    },
-    "unfurlSettingsRefresh": {
-      "_description": "Refresh unfurl settings"
-    },
-    "unfurlSettingsRefreshed": {
-      "_description": "Refreshed unfurl settings available",
-      "mode": "RPCChatTypes.UnfurlMode",
-      "whitelist": "Array<string>"
-    },
-    "unfurlSettingsError": {
-      "_description": "An error occurred on the unfurl settings screen",
-      "error": "string"
-    },
-    "contactSettingsError": {
-      "_description": "An error occurred on the contact settings screen",
-      "error": "string"
-    },
-    "contactSettingsRefresh": {
-      "_description": "Refresh Chat contact settings"
-    },
-    "contactSettingsRefreshed": {
-      "_description": "Refreshed Chat contact settings available",
-      "settings": "RPCTypes.ContactSettings"
-    },
-    "contactSettingsSaved": {
-      "_description": "Refreshed Chat contact settings available",
-      "enabled": "boolean",
-      "indirectFollowees": "boolean",
-      "teamsEnabled": "boolean",
-      "teamsList": "Types.ContactSettingsTeamsList"
-    },
     "loadDefaultPhoneNumberCountry": {},
     "loginBrowserViaWebAuthToken": {}
   }

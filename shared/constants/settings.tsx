@@ -10,13 +10,6 @@ import {useState as usePhoneState} from './settings-phone'
 import {useState as useEmailState} from './settings-email'
 
 export const makeState = (): Types.State => ({
-  chat: {
-    contactSettings: {
-      error: '',
-      settings: undefined,
-    },
-    unfurl: {unfurlWhitelist: []},
-  },
   notifications: {
     allowEdit: false,
     groups: new Map(),
@@ -30,7 +23,6 @@ export const processorProfileInProgressKey = 'settings:processorProfileInProgres
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
 export const contactSettingsLoadWaitingKey = 'settings:contactSettingsLoadWaitingKey'
-export const contactSettingsSaveWaitingKey = 'settings:contactSettingsSaveWaitingKey'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
 export const checkPasswordWaitingKey = 'settings:checkPassword'
@@ -252,6 +244,7 @@ export const useState = Z.createZustand<State>(set => {
 export {usePhoneState, useEmailState}
 export {useState as usePasswordState} from './settings-password'
 export {useState as useInvitesState} from './settings-invites'
+export {useState as useChatState, contactSettingsSaveWaitingKey} from './settings-chat'
 export {useState as useContactsState, importContactsWaitingKey} from './settings-contacts'
 
 export {
