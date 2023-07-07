@@ -49,6 +49,7 @@ class LogOut extends React.Component<Props, State> {
       </Kb.Modal>
     ) : this.props.hasRandomPW ? (
       <UpdatePassword
+        error=""
         hasRandomPW={this.props.hasRandomPW}
         onCancel={this.props.onCancel}
         onSave={this.props.onSavePassword}

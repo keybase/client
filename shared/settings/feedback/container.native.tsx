@@ -1,4 +1,3 @@
-import * as Container from '../../util/container'
 import * as ConfigConstants from '../../constants/config'
 import * as PushConstants from '../../constants/push'
 import * as Kb from '../../common-adapters'
@@ -6,14 +5,14 @@ import * as React from 'react'
 import Feedback from '.'
 import logger from '../../logger'
 import {Platform} from 'react-native'
-import {getExtraChatLogsForLogSend} from '../../constants/settings'
+import {getExtraChatLogsForLogSend} from './shared'
 import {isAndroid, version, pprofDir} from '../../constants/platform'
 import {logSend, appVersionName, appVersionCode} from 'react-native-kb'
 import type {Props as OwnProps} from './container'
 
 export type State = {
   sending: boolean
-  sendError?: Error
+  sendError: string
 }
 export type Props = {
   chat: Object
@@ -30,7 +29,7 @@ class FeedbackContainer extends React.Component<Props, State> {
   private timeoutID?: ReturnType<typeof setTimeout>
 
   state = {
-    sendError: undefined,
+    sendError: '',
     sending: false,
   }
 
@@ -69,7 +68,7 @@ class FeedbackContainer extends React.Component<Props, State> {
         logger.info('logSendId is', logSendId)
         if (this.mounted) {
           this.setState({
-            sendError: undefined,
+            sendError: '',
             sending: false,
           })
         }
@@ -79,7 +78,7 @@ class FeedbackContainer extends React.Component<Props, State> {
         .catch(err => {
           logger.warn('err in sending logs', err)
           if (this.mounted) {
-            this.setState({sendError: err, sending: false})
+            this.setState({sendError: String(err), sending: false})
           }
         })
     }, 0)
@@ -106,7 +105,7 @@ class FeedbackContainer extends React.Component<Props, State> {
 
 const Connected = (ownProps: OwnProps) => {
   const feedback = ownProps.feedback ?? ''
-  const chat = Container.useSelector(state => getExtraChatLogsForLogSend(state))
+  const chat = getExtraChatLogsForLogSend()
   const loggedOut = ConfigConstants.useConfigState(s => !s.loggedIn)
   const _push = PushConstants.useState(s => s.token)
   const push = {pushToken: _push}

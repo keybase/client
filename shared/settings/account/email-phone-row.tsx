@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/settings'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../constants/platform'
 
@@ -232,26 +232,22 @@ export type OwnProps = {
 }
 
 const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
-  const _emailRow = Container.useSelector(
-    state => (state.settings.email.emails && state.settings.email.emails.get(ownProps.contactKey)) || null
-  )
-  const _phoneRow = Container.useSelector(
-    state =>
-      (state.settings.phoneNumbers.phones && state.settings.phoneNumbers.phones.get(ownProps.contactKey)) ||
-      null
-  )
-  const moreThanOneEmail = Container.useSelector(
-    state => state.settings.email.emails && state.settings.email.emails.size > 1
-  )
+  const _emailRow = Constants.useEmailState(s => s.emails.get(ownProps.contactKey) ?? null)
+  const _phoneRow = Constants.usePhoneState(s => s.phones?.get(ownProps.contactKey) || null)
+  const moreThanOneEmail = Constants.useEmailState(s => s.emails.size > 1)
 
+  const editEmail = Constants.useEmailState(s => s.dispatch.editEmail)
   const dispatch = Container.useDispatch()
 
   const _onMakeNotSearchable = () => {
-    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: false}))
+    editEmail({email: ownProps.contactKey, makeSearchable: false})
   }
   const _onMakeSearchable = () => {
-    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true}))
+    editEmail({email: ownProps.contactKey, makeSearchable: true})
   }
+
+  const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
+  const resendVerificationForPhoneNumber = Constants.usePhoneState(s => s.dispatch.resendVerificationForPhone)
 
   const dispatchProps = {
     email: {
@@ -272,10 +268,10 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
           })
         ),
       onMakePrimary: () => {
-        dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true}))
+        editEmail({email: ownProps.contactKey, makePrimary: true})
       },
       onVerify: () => {
-        dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true}))
+        editEmail({email: ownProps.contactKey, verify: true})
       },
     },
     phone: {
@@ -295,10 +291,10 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
           })
         ),
       _onToggleSearchable: (setSearchable: boolean) => {
-        dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, setSearchable}))
+        editPhone(ownProps.contactKey, undefined, setSearchable)
       },
       _onVerify: (phoneNumber: string) => {
-        dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
+        resendVerificationForPhoneNumber(phoneNumber)
         dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
       },
       onMakePrimary: () => {}, // this is not a supported phone action

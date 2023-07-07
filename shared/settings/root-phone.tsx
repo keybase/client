@@ -73,8 +73,8 @@ function SettingsNav() {
     },
     [dispatch]
   )
-  const contactsLabel = Container.useSelector(state =>
-    state.settings.contacts.importEnabled ? 'Phone contacts' : 'Import phone contacts'
+  const contactsLabel = Constants.useContactsState(s =>
+    s.importEnabled ? 'Phone contacts' : 'Import phone contacts'
   )
 
   return (

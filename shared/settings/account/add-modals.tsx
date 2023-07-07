@@ -5,7 +5,6 @@ import * as Container from '../../util/container'
 import * as Platform from '../../constants/platform'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
-import * as SettingsGen from '../../actions/settings-gen'
 import {EnterEmailBody} from '../../signup/email'
 import {EnterPhoneNumberBody} from '../../signup/phone-number'
 import {VerifyBody} from '../../signup/phone-number/verify'
@@ -21,20 +20,23 @@ export const Email = () => {
   const emailTrimmed = email.trim()
   const disabled = !emailTrimmed
 
-  const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
-  const emailError = Container.useSelector(state => state.settings.email.error)
+  const addedEmail = Constants.useEmailState(s => s.addedEmail)
+  const emailError = Constants.useEmailState(s => s.error)
   const waiting = Container.useAnyWaiting(Constants.addEmailWaitingKey)
+
+  const addEmail = Constants.useEmailState(s => s.dispatch.addEmail)
+  const resetAddingEmail = Constants.useEmailState(s => s.dispatch.resetAddingEmail)
 
   // clean on unmount
   React.useEffect(
     () => () => {
-      dispatch(SettingsGen.createClearAddingEmail())
+      resetAddingEmail()
     },
-    [dispatch]
+    [resetAddingEmail]
   )
   // watch for + nav away on success
   React.useEffect(() => {
-    if (addedEmail === addEmailInProgress) {
+    if (addedEmail && addedEmail === addEmailInProgress) {
       // success
       dispatch(RouteTreeGen.createClearModals())
     }
@@ -42,9 +44,9 @@ export const Email = () => {
   // clean on edit
   React.useEffect(() => {
     if (emailTrimmed !== addEmailInProgress && emailError) {
-      dispatch(SettingsGen.createClearAddingEmail())
+      resetAddingEmail()
     }
-  }, [addEmailInProgress, dispatch, emailError, emailTrimmed])
+  }, [addEmailInProgress, resetAddingEmail, emailError, emailTrimmed])
 
   const onClose = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onContinue = React.useCallback(() => {
@@ -52,8 +54,8 @@ export const Email = () => {
       return
     }
     onAddEmailInProgress(emailTrimmed)
-    dispatch(SettingsGen.createAddEmail({email: emailTrimmed, searchable: searchable}))
-  }, [disabled, waiting, emailTrimmed, dispatch, searchable])
+    addEmail(emailTrimmed, searchable)
+  }, [addEmail, disabled, waiting, emailTrimmed, searchable])
   return (
     <Kb.Modal
       onClose={onClose}
@@ -124,18 +126,21 @@ export const Phone = () => {
   const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !valid
 
-  const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
-
-  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
-  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
+  const defaultCountry = Constants.usePhoneState(s => s.defaultCountry)
+  const error = Constants.usePhoneState(s => s.error)
+  const pendingVerification = Constants.usePhoneState(s => s.pendingVerification)
   const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
+
+  const clearPhoneNumberErrors = Constants.usePhoneState(s => s.dispatch.clearPhoneNumberErrors)
+  const clearPhoneNumberAdd = Constants.usePhoneState(s => s.dispatch.clearPhoneNumberAdd)
+  const loadDefaultPhoneCountry = Constants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
 
   // clean only errors on unmount so verify screen still has info
   React.useEffect(
     () => () => {
-      dispatch(SettingsGen.createClearPhoneNumberErrors())
+      clearPhoneNumberErrors()
     },
-    [dispatch]
+    [clearPhoneNumberErrors]
   )
   // watch for go to verify
   React.useEffect(() => {
@@ -145,19 +150,18 @@ export const Phone = () => {
   }, [dispatch, error, nav, pendingVerification])
   // trigger a default phone number country rpc if it's not already loaded
   React.useEffect(() => {
-    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
-  }, [defaultCountry, dispatch])
+    !defaultCountry && loadDefaultPhoneCountry()
+  }, [defaultCountry, loadDefaultPhoneCountry])
 
   const onClose = React.useCallback(() => {
-    dispatch(SettingsGen.createClearPhoneNumberAdd())
+    clearPhoneNumberAdd()
     dispatch(nav.safeNavigateUpPayload())
-  }, [dispatch, nav])
+  }, [clearPhoneNumberAdd, dispatch, nav])
 
-  const onContinue = React.useCallback(
-    () =>
-      disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({phoneNumber, searchable})),
-    [dispatch, disabled, waiting, searchable, phoneNumber]
-  )
+  const addPhoneNumber = Constants.usePhoneState(s => s.dispatch.addPhoneNumber)
+  const onContinue = React.useCallback(() => {
+    disabled || waiting ? null : addPhoneNumber(phoneNumber, searchable)
+  }, [addPhoneNumber, disabled, waiting, searchable, phoneNumber])
 
   const onChangeNumberCb = React.useCallback((phoneNumber: string, validity: boolean) => {
     onChangeNumber(phoneNumber)
@@ -229,21 +233,22 @@ export const VerifyPhone = () => {
 
   const [code, onChangeCode] = React.useState('')
 
-  const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
-  const error = Container.useSelector(state => state.settings.phoneNumbers.error)
-  const verificationState = Container.useSelector(state => state.settings.phoneNumbers.verificationState)
+  const pendingVerification = Constants.usePhoneState(s => s.pendingVerification)
+  const error = Constants.usePhoneState(s => s.error)
+  const verificationState = Constants.usePhoneState(s => s.verificationState)
   const resendWaiting = Container.useAnyWaiting([
     Constants.addPhoneNumberWaitingKey,
     Constants.resendVerificationForPhoneWaitingKey,
   ])
   const verifyWaiting = Container.useAnyWaiting(Constants.verifyPhoneNumberWaitingKey)
+  const clearPhoneNumberAdd = Constants.usePhoneState(s => s.dispatch.clearPhoneNumberAdd)
 
   // clean everything on unmount
   React.useEffect(
     () => () => {
-      dispatch(SettingsGen.createClearPhoneNumberAdd())
+      clearPhoneNumberAdd()
     },
-    [dispatch]
+    [clearPhoneNumberAdd]
   )
   // Clear on success
   React.useEffect(() => {
@@ -252,17 +257,19 @@ export const VerifyPhone = () => {
     }
   }, [verificationState, error, dispatch])
 
-  const onResend = React.useCallback(
-    () => dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber: pendingVerification})),
-    [dispatch, pendingVerification]
-  )
+  const resendVerificationForPhone = Constants.usePhoneState(s => s.dispatch.resendVerificationForPhone)
+  const verifyPhoneNumber = Constants.usePhoneState(s => s.dispatch.verifyPhoneNumber)
+
+  const onResend = React.useCallback(() => {
+    resendVerificationForPhone(pendingVerification)
+  }, [resendVerificationForPhone, pendingVerification])
   const onClose = React.useCallback(() => {
-    dispatch(SettingsGen.createClearPhoneNumberAdd())
+    clearPhoneNumberAdd()
     dispatch(RouteTreeGen.createClearModals())
-  }, [dispatch])
+  }, [clearPhoneNumberAdd, dispatch])
   const onContinue = React.useCallback(
-    () => dispatch(SettingsGen.createVerifyPhoneNumber({code, phoneNumber: pendingVerification})),
-    [dispatch, code, pendingVerification]
+    () => verifyPhoneNumber(pendingVerification, code),
+    [verifyPhoneNumber, code, pendingVerification]
   )
   const disabled = !code
 

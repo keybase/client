@@ -6,7 +6,6 @@ import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as SettingsGen from '../actions/settings-gen'
 import * as Styles from '../styles'
 import {ProxySettings} from './proxy/container'
 import {isMobile, isLinux} from '../constants/platform'
@@ -37,11 +36,10 @@ const UseNativeFrame = () => {
 }
 
 const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean}) => {
-  const dispatch = Container.useDispatch()
   const {hasRandomPW, settingLockdownMode} = p
-  const lockdownModeEnabled = Container.useSelector(state => !!state.settings.lockdownModeEnabled)
-  const onChangeLockdownMode = (enabled: boolean) =>
-    dispatch(SettingsGen.createOnChangeLockdownMode({enabled}))
+  const lockdownModeEnabled = Constants.useState(s => !!s.lockdownModeEnabled)
+  const setLockdownMode = Constants.useState(s => s.dispatch.setLockdownMode)
+  const onChangeLockdownMode = setLockdownMode
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
   const checked = hasRandomPW || !!lockdownModeEnabled
   const disabled = hasRandomPW || settingLockdownMode
@@ -74,15 +72,13 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
 }
 
 const Advanced = () => {
-  const dispatch = Container.useDispatch()
-
   const settingLockdownMode = Container.useAnyWaiting(Constants.setLockdownModeWaitingKey)
-  const hasRandomPW = Container.useSelector(state => !!state.settings.password.randomPW)
+  const hasRandomPW = Constants.usePasswordState(s => !!s.randomPW)
   const openAtLogin = ConfigConstants.useConfigState(s => s.openAtLogin)
-  const rememberPassword = Container.useSelector(state => state.settings.password.rememberPassword)
+  const rememberPassword = Constants.usePasswordState(s => s.rememberPassword)
   const setLockdownModeError = Container.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
-  const onChangeRememberPassword = (remember: boolean) =>
-    dispatch(SettingsGen.createOnChangeRememberPassword({remember}))
+  const setRememberPassword = Constants.usePasswordState(s => s.dispatch.setRememberPassword)
+  const onChangeRememberPassword = setRememberPassword
   const onSetOpenAtLogin = ConfigConstants.useConfigState(s => s.dispatch.setOpenAtLogin)
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
@@ -124,11 +120,15 @@ const Advanced = () => {
     )
   }
 
+  const loadHasRandomPw = Constants.usePasswordState(s => s.dispatch.loadHasRandomPw)
+  const loadRememberPassword = Constants.usePasswordState(s => s.dispatch.loadRememberPassword)
+  const loadLockdownMode = Constants.useState(s => s.dispatch.loadLockdownMode)
+
   React.useEffect(() => {
-    dispatch(SettingsGen.createLoadHasRandomPw())
-    dispatch(SettingsGen.createLoadLockdownMode())
-    dispatch(SettingsGen.createLoadRememberPassword())
-  }, [dispatch])
+    loadHasRandomPw()
+    loadLockdownMode()
+    loadRememberPassword()
+  }, [loadRememberPassword, loadHasRandomPw, loadLockdownMode])
 
   return (
     <Kb.ScrollView style={styles.scrollview}>
@@ -208,10 +208,12 @@ const Developer = () => {
 
   const showPprofControls = clickCount >= clickThreshold
   const traceInProgress = Container.useAnyWaiting(Constants.traceInProgressKey)
-  const onTrace = (durationSeconds: number) => dispatch(SettingsGen.createTrace({durationSeconds}))
+
+  const trace = Constants.useState(s => s.dispatch.trace)
+  const processorProfile = Constants.useState(s => s.dispatch.processorProfile)
+  const onTrace = trace
   const processorProfileInProgress = Container.useAnyWaiting(Constants.processorProfileInProgressKey)
-  const onProcessorProfile = (durationSeconds: number) =>
-    dispatch(SettingsGen.createProcessorProfile({durationSeconds}))
+  const onProcessorProfile = processorProfile
   const onDBNuke = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']}))
 
   return (

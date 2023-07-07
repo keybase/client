@@ -1,19 +1,18 @@
-import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
-import type * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Constants from '../../constants/settings'
 import {ProxySettings as ProxySettingsComponent, ProxySettingsPopup} from '.'
 
 const useConnect = () => {
-  const allowTlsMitmToggle = Container.useSelector(state => state.settings.didToggleCertificatePinning)
-  const proxyData = Container.useSelector(state => state.settings.proxyData)
+  const allowTlsMitmToggle = Constants.useState(s => s.didToggleCertificatePinning)
+  const setDidToggleCertificatePinning = Constants.useState(s => s.dispatch.setDidToggleCertificatePinning)
+  const proxyData = Constants.useState(s => s.proxyData)
+  const saveProxyData = Constants.useState(s => s.dispatch.setProxyData)
+  const loadProxyData = Constants.useState(s => s.dispatch.loadProxyData)
 
   const dispatch = Container.useDispatch()
-  const _loadProxyData = () => {
-    dispatch(SettingsGen.createLoadProxyData())
-  }
-  const _resetCertPinningToggle = () => {
-    dispatch(SettingsGen.createCertificatePinningToggled({}))
+  const resetCertPinningToggle = () => {
+    setDidToggleCertificatePinning()
   }
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['login']}))
@@ -22,21 +21,17 @@ const useConnect = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']}))
   }
   const onEnableCertPinning = () => {
-    dispatch(SettingsGen.createCertificatePinningToggled({toggled: false}))
+    setDidToggleCertificatePinning(false)
   }
-  const saveProxyData = (proxyData: RPCTypes.ProxyData) => {
-    dispatch(SettingsGen.createSaveProxyData({proxyData}))
-  }
-
   const props = {
-    _loadProxyData: _loadProxyData,
-    _resetCertPinningToggle: _resetCertPinningToggle,
-    allowTlsMitmToggle: allowTlsMitmToggle,
-    onBack: onBack,
-    onDisableCertPinning: onDisableCertPinning,
-    onEnableCertPinning: onEnableCertPinning,
-    proxyData: proxyData,
-    saveProxyData: saveProxyData,
+    allowTlsMitmToggle,
+    loadProxyData,
+    onBack,
+    onDisableCertPinning,
+    onEnableCertPinning,
+    proxyData,
+    resetCertPinningToggle,
+    saveProxyData,
   }
 
   return props

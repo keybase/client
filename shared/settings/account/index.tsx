@@ -3,22 +3,23 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SettingsGen from '../../actions/settings-gen'
 import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import EmailPhoneRow from './email-phone-row'
 import {isMobile} from '../../styles'
 
 export default () => {
-  const _emails = Container.useSelector(state => state.settings.email.emails)
-  const _phones = Container.useSelector(state => state.settings.phoneNumbers.phones)
-  const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
-  const addedPhone = Container.useSelector(state => state.settings.phoneNumbers.addedPhone)
-  const hasPassword = Container.useSelector(state => !state.settings.password.randomPW)
+  const _emails = Constants.useEmailState(s => s.emails)
+  const _phones = Constants.usePhoneState(s => s.phones)
+  const addedEmail = Constants.useEmailState(s => s.addedEmail)
+  const addedPhone = Constants.usePhoneState(s => s.addedPhone)
+  const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
+  const clearAddedPhone = Constants.usePhoneState(s => s.dispatch.clearAddedPhone)
+  const hasPassword = Constants.usePasswordState(s => !s.randomPW)
   const waiting = Container.useAnyWaiting(Constants.loadSettingsWaitingKey)
   const dispatch = Container.useDispatch()
   const _onClearSupersededPhoneNumber = (phone: string) => {
-    dispatch(SettingsGen.createEditPhone({delete: true, phone}))
+    editPhone(phone, true)
   }
   const onAddEmail = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']}))
@@ -31,19 +32,21 @@ export default () => {
         dispatch(RouteTreeGen.createNavigateUp())
       }
     : undefined
-  const onClearAddedEmail = () => {
-    dispatch(SettingsGen.createClearAddedEmail())
-  }
-  const onClearAddedPhone = () => {
-    dispatch(SettingsGen.createClearAddedPhone())
-  }
+
+  const resetAddedEmail = Constants.useEmailState(s => s.dispatch.resetAddedEmail)
+  const onClearAddedEmail = resetAddedEmail
+  const onClearAddedPhone = clearAddedPhone
   const onDeleteAccount = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']}))
   }
+  const loadSettings = Constants.useState(s => s.dispatch.loadSettings)
+  const loadRememberPassword = Constants.usePasswordState(s => s.dispatch.loadRememberPassword)
+  const loadHasRandomPw = Constants.usePasswordState(s => s.dispatch.loadHasRandomPw)
+
   const onReload = () => {
-    dispatch(SettingsGen.createLoadSettings())
-    dispatch(SettingsGen.createLoadRememberPassword())
-    dispatch(SettingsGen.createLoadHasRandomPw())
+    loadSettings()
+    loadRememberPassword()
+    loadHasRandomPw()
   }
   const onSetPassword = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.passwordTab]}))
@@ -55,7 +58,7 @@ export default () => {
         path: [Constants.chatTab, {props: {namespace: 'chat2'}, selected: 'chatNewChat'}],
       })
     )
-    dispatch(SettingsGen.createClearAddedPhone())
+    clearAddedPhone()
   }
   const supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)
   const supersededKey = supersededPhoneNumber && supersededPhoneNumber.e164
@@ -199,8 +202,7 @@ const Password = (props: Props) => {
 }
 
 const WebAuthTokenLogin = (_: Props) => {
-  const dispatch = Container.useDispatch()
-
+  const loginBrowserViaWebAuthToken = Constants.useState(s => s.dispatch.loginBrowserViaWebAuthToken)
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
@@ -210,7 +212,7 @@ const WebAuthTokenLogin = (_: Props) => {
       <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
         <Kb.Button
           label={`Open keybase.io in web browser`}
-          onClick={() => dispatch(SettingsGen.createLoginBrowserViaWebAuthToken())}
+          onClick={loginBrowserViaWebAuthToken}
           mode="Secondary"
           small={true}
         />

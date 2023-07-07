@@ -1,34 +1,29 @@
 import * as Constants from '../../constants/settings'
 import * as ProfileConstants from '../../constants/profile'
-import * as SettingsGen from '../../actions/settings-gen'
-import type * as Types from '../../constants/types/settings'
+import type {PendingInvite} from '../../constants/settings-invites'
 import Invites from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 
 export default () => {
-  const acceptedInvites = Container.useSelector(state => state.settings.invites.acceptedInvites)
-  const error = Container.useSelector(state => state.settings.invites.error)
+  const acceptedInvites = Constants.useInvitesState(s => s.acceptedInvites)
+  const error = Constants.useInvitesState(s => s.error)
   const inviteEmail = ''
   const inviteMessage = ''
-  const pendingInvites = Container.useSelector(state => state.settings.invites.pendingInvites)
+  const pendingInvites = Constants.useInvitesState(s => s.pendingInvites)
   const showMessageField = false
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
+  const resetError = Constants.useInvitesState(s => s.dispatch.resetError)
+  const sendInvite = Constants.useInvitesState(s => s.dispatch.sendInvite)
+  const reclaimInvite = Constants.useInvitesState(s => s.dispatch.reclaimInvite)
+  const loadInvites = Constants.useInvitesState(s => s.dispatch.loadInvites)
   const dispatch = Container.useDispatch()
-  const onClearError = () => {
-    dispatch(SettingsGen.createInvitesClearError())
-  }
-  const onGenerateInvitation = (email: string, message: string) => {
-    dispatch(SettingsGen.createInvitesSend({email, message}))
-  }
-  const onReclaimInvitation = (inviteId: string) => {
-    dispatch(SettingsGen.createInvitesReclaim({inviteId}))
-  }
-  const onRefresh = () => {
-    dispatch(SettingsGen.createInvitesRefresh())
-  }
-  const onSelectPendingInvite = (invite: Types.PendingInvite) => {
+  const onClearError = resetError
+  const onGenerateInvitation = sendInvite
+  const onReclaimInvitation = reclaimInvite
+  const onRefresh = loadInvites
+  const onSelectPendingInvite = (invite: PendingInvite) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}],

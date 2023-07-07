@@ -2,10 +2,9 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/people'
 import * as ProfileConstants from '../../constants/profile'
+import * as SettingsConstants from '../../constants/settings'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
-import * as SettingsGen from '../../actions/settings-gen'
-import * as SettingsTabs from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
@@ -60,7 +59,7 @@ const AddEmailConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
   const onConfirm = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.accountTab]}))
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']}))
   }
   const onDismiss = useOnSkipTodo('addEmail')
@@ -72,7 +71,7 @@ const AddPhoneNumberConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
   const onConfirm = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.accountTab]}))
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
   }
   const onDismiss = useOnSkipTodo('addPhoneNumber')
@@ -174,7 +173,7 @@ const GitRepoConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
   const onConfirm = (isTeam: boolean) => {
     if (Container.isMobile) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: SettingsTabs.gitTab}]}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: SettingsConstants.gitTab}]}))
     } else {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.gitTab}))
     }
@@ -208,16 +207,17 @@ const TeamShowcaseConnector = (props: TodoOwnProps) => {
 }
 
 const VerifyAllEmailConnector = (props: TodoOwnProps) => {
-  const addingEmail = Container.useSelector(state => state.settings.email.addingEmail)
+  const addingEmail = SettingsConstants.useEmailState(s => s.addingEmail)
   const dispatch = Container.useDispatch()
   const setResentEmail = Constants.useState(s => s.dispatch.setResentEmail)
+  const editEmail = SettingsConstants.useEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
-    dispatch(SettingsGen.createEditEmail({email, verify: true}))
+    editEmail({email, verify: true})
     setResentEmail(email)
   }
   const onManage = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.accountTab]}))
   }
 
   const meta = props.metadata && props.metadata.type === 'email' ? props.metadata : undefined
@@ -248,13 +248,16 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
 
 const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
+  const resendVerificationForPhone = SettingsConstants.usePhoneState(
+    s => s.dispatch.resendVerificationForPhone
+  )
   const onConfirm = (phoneNumber: string) => {
-    dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
+    resendVerificationForPhone(phoneNumber)
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
   }
   const onManage = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.accountTab]}))
   }
   const buttons: Array<TaskButton> = [
     ...(props.metadata
@@ -280,10 +283,11 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
 
 const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
+  const editEmail = SettingsConstants.useEmailState(s => s.dispatch.editEmail)
   const onConfirm = (email: string) => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
-    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsTabs.accountTab]}))
-    dispatch(SettingsGen.createEditEmail({email, makeSearchable: true}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.accountTab]}))
+    editEmail({email, makeSearchable: true})
   }
   const onDismiss = useOnSkipTodo('legacyEmailVisibility')
   const buttons: Array<TaskButton> = [

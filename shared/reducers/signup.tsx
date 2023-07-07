@@ -1,6 +1,5 @@
 import type * as Types from '../constants/types/signup'
 import * as SignupGen from '../actions/signup-gen'
-import * as SettingsGen from '../actions/settings-gen'
 import HiddenString from '../util/hidden-string'
 import trim from 'lodash/trim'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
@@ -9,7 +8,7 @@ import * as Constants from '../constants/signup'
 
 const initialState = Constants.makeState()
 
-type Actions = SignupGen.Actions | SettingsGen.EmailVerifiedPayload
+type Actions = SignupGen.Actions
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [SignupGen.resetStore]: draftState => ({
@@ -104,9 +103,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.justSignedUpEmail = action.payload.email
   },
   [SignupGen.clearJustSignedUpEmail]: draftState => {
-    draftState.justSignedUpEmail = ''
-  },
-  [SettingsGen.emailVerified]: draftState => {
     draftState.justSignedUpEmail = ''
   },
 })

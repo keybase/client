@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as SettingsGen from '../../actions/settings-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as SignupGen from '../../actions/signup-gen'
 import * as SignupConstants from '../../constants/signup'
@@ -41,8 +40,8 @@ const ConnectedEnterEmail = () => {
   const _showPushPrompt = PushConstants.useState(
     s => Platform.isMobile && !s.hasPermissions && s.showPushPrompt
   )
-  const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
-  const error = Container.useSelector(state => state.settings.email.error || '')
+  const addedEmail = SettingsConstants.useEmailState(s => s.addedEmail)
+  const error = SettingsConstants.useEmailState(s => s.error)
   const initialEmail = Container.useSelector(state => state.signup.email)
   const waiting = Container.useAnyWaiting(SettingsConstants.addEmailWaitingKey)
   const dispatch = Container.useDispatch()
@@ -58,9 +57,9 @@ const ConnectedEnterEmail = () => {
   const _onSuccess = (email: string) => {
     dispatch(SignupGen.createSetJustSignedUpEmail({email}))
   }
-  const onCreate = (email: string, searchable: boolean) => {
-    dispatch(SettingsGen.createAddEmail({email, searchable}))
-  }
+
+  const addEmail = SettingsConstants.useEmailState(s => s.dispatch.addEmail)
+  const onCreate = addEmail
   const props = {
     addedEmail: addedEmail,
     error: error,

@@ -1,175 +1,23 @@
-import * as ChatConstants from './chat2'
-import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
-import HiddenString from '../util/hidden-string'
-import type * as Types from './types/settings'
-import type {TypedState} from './reducer'
-import {getMeta} from './chat2/meta'
-import type {
-  e164ToDisplay as e164ToDisplayType,
-  phoneUtil as phoneUtilType,
-  ValidationResult as ValidationResultType,
-  PhoneNumberFormat as PhoneNumberFormatType,
-} from '../util/phone-numbers'
+import * as WaitingConstants from './waiting'
+import openURL from '../util/open-url'
+import * as Z from '../util/zustand'
+import {RPCError} from '../util/errors'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import {useCurrentUserState, useConfigState} from './config'
+import * as Tabs from './tabs'
+import logger from '../logger'
+import {pprofDir} from '../constants/platform'
+import {useState as usePhoneState} from './settings-phone'
+import {useState as useEmailState} from './settings-email'
 
-export const makeEmailRow = (): Types.EmailRow => ({
-  email: '',
-  isPrimary: false,
-  isVerified: false,
-  lastVerifyEmailDate: 0,
-  visibility: 0,
-})
-
-export const makePhoneRow = (): Types.PhoneRow => ({
-  displayNumber: '',
-  e164: '',
-  searchable: false,
-  superseded: false,
-  verified: false,
-})
-
-export const toPhoneRow = (p: RPCTypes.UserPhoneNumber) => {
-  const {e164ToDisplay} = require('../util/phone-numbers') as {e164ToDisplay: typeof e164ToDisplayType}
-  return {
-    ...makePhoneRow(),
-    displayNumber: e164ToDisplay(p.phoneNumber),
-    e164: p.phoneNumber,
-    searchable: p.visibility === RPCTypes.IdentityVisibility.public,
-    superseded: p.superseded,
-    verified: p.verified,
-  }
-}
-
-export const makeState = (): Types.State => ({
-  allowDeleteAccount: false,
-  chat: {
-    contactSettings: {
-      error: '',
-      settings: undefined,
-    },
-    unfurl: {unfurlWhitelist: []},
-  },
-  contacts: {
-    alreadyOnKeybase: [],
-    importError: '',
-    importPromptDismissed: false,
-    permissionStatus: 'unknown',
-    waitingToShowJoinedModal: false,
-  },
-  email: {
-    error: '',
-    newEmail: '',
-  },
-  feedback: {},
-  invites: {
-    acceptedInvites: [],
-    pendingInvites: [],
-  },
-  notifications: {
-    allowEdit: false,
-    groups: new Map(),
-  },
-  password: {
-    newPassword: new HiddenString(''),
-    newPasswordConfirm: new HiddenString(''),
-    rememberPassword: true,
-  },
-  phoneNumbers: {
-    addedPhone: false,
-    error: '',
-    pendingVerification: '',
-  },
-})
-
-export const getExtraChatLogsForLogSend = (state: TypedState) => {
-  const chat = state.chat2
-  const c = ChatConstants.getSelectedConversation()
-  if (c) {
-    const metaMap = getMeta(state, c)
-    return {
-      badgeMap: chat.badgeMap.get(c),
-      editingMap: chat.editingMap.get(c),
-      messageMap: [...(chat.messageMap.get(c)?.values() ?? [])].map(m => ({
-        a: m.author,
-        i: m.id,
-        o: m.ordinal,
-        out: (m.type === 'text' || m.type === 'attachment') && m.outboxID,
-        s: (m.type === 'text' || m.type === 'attachment') && m.submitState,
-        t: m.type,
-      })),
-      messageOrdinals: chat.messageOrdinals.get(c),
-      metaMap: {
-        channelname: 'x',
-        conversationIDKey: metaMap.conversationIDKey,
-        description: 'x',
-        inboxVersion: metaMap.inboxVersion,
-        isMuted: metaMap.isMuted,
-        membershipType: metaMap.membershipType,
-        notificationsDesktop: metaMap.notificationsDesktop,
-        notificationsGlobalIgnoreMentions: metaMap.notificationsGlobalIgnoreMentions,
-        notificationsMobile: metaMap.notificationsMobile,
-        offline: metaMap.offline,
-        participants: 'x',
-        rekeyers: metaMap.rekeyers?.size,
-        resetParticipants: metaMap.resetParticipants?.size,
-        retentionPolicy: metaMap.retentionPolicy,
-        snippet: 'x',
-        snippetDecoration: RPCChatTypes.SnippetDecoration.none,
-        supersededBy: metaMap.supersededBy,
-        supersedes: metaMap.supersedes,
-        teamRetentionPolicy: metaMap.teamRetentionPolicy,
-        teamType: metaMap.teamType,
-        teamname: metaMap.teamname,
-        timestamp: metaMap.timestamp,
-        tlfname: metaMap.tlfname,
-        trustedState: metaMap.trustedState,
-        wasFinalizedBy: metaMap.wasFinalizedBy,
-      },
-      pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
-      unreadMap: chat.unreadMap.get(c),
-    }
-  }
-  return {}
-}
-
-// Get phone number in e.164, or null if we can't parse it.
-export const getE164 = (phoneNumber: string, countryCode?: string) => {
-  const {phoneUtil, ValidationResult, PhoneNumberFormat} = require('../util/phone-numbers') as {
-    phoneUtil: typeof phoneUtilType
-    ValidationResult: typeof ValidationResultType
-    PhoneNumberFormat: typeof PhoneNumberFormatType
-  }
-  try {
-    const parsed = countryCode ? phoneUtil.parse(phoneNumber, countryCode) : phoneUtil.parse(phoneNumber)
-    const reason = phoneUtil.isPossibleNumberWithReason(parsed)
-    if (reason !== ValidationResult.IS_POSSIBLE) {
-      return null
-    }
-    return phoneUtil.format(parsed, PhoneNumberFormat.E164)
-  } catch (e) {
-    return null
-  }
-}
-
-export const securityGroup = 'security'
-export const soundGroup = 'sound'
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
-export const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
-export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
-export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
-export const contactSettingsLoadWaitingKey = 'settings:contactSettingsLoadWaitingKey'
-export const contactSettingsSaveWaitingKey = 'settings:contactSettingsSaveWaitingKey'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
 export const checkPasswordWaitingKey = 'settings:checkPassword'
 export const dontUseWaitingKey = 'settings:settingsPage'
 export const sendFeedbackWaitingKey = 'settings:sendFeedback'
-export const addPhoneNumberWaitingKey = 'settings:addPhoneNumber'
-export const resendVerificationForPhoneWaitingKey = 'settings:resendVerificationForPhone'
-export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'
-export const importContactsWaitingKey = 'settings:importContacts'
-export const addEmailWaitingKey = 'settings:addEmail'
 export const loadSettingsWaitingKey = 'settings:loadSettings'
 export const settingsWaitingKey = 'settings:generic'
 
@@ -215,3 +63,251 @@ export type SettingsTab =
   | typeof cryptoTab
   | typeof contactsTab
   | typeof whatsNewTab
+
+type Store = {
+  checkPasswordIsCorrect?: boolean
+  didToggleCertificatePinning?: boolean
+  lockdownModeEnabled?: boolean
+  proxyData?: RPCTypes.ProxyData
+}
+
+const initialStore: Store = {
+  checkPasswordIsCorrect: undefined,
+  didToggleCertificatePinning: undefined,
+  lockdownModeEnabled: undefined,
+  proxyData: undefined,
+}
+
+export type State = Store & {
+  dispatch: {
+    checkPassword: (password: string) => void
+    dbNuke: () => void
+    deleteAccountForever: (passphrase?: string) => void
+    loadLockdownMode: () => void
+    loadProxyData: () => void
+    loadSettings: () => void
+    loginBrowserViaWebAuthToken: () => void
+    processorProfile: (durationSeconds: number) => void
+    resetCheckPassword: () => void
+    resetState: 'default'
+    setDidToggleCertificatePinning: (t?: boolean) => void
+    setLockdownMode: (l: boolean) => void
+    setProxyData: (proxyData: RPCTypes.ProxyData) => void
+    stop: (exitCode: RPCTypes.ExitCode) => void
+    trace: (durationSeconds: number) => void
+  }
+}
+
+let maybeLoadAppLinkOnce = false
+export const useState = Z.createZustand<State>(set => {
+  const reduxDispatch = Z.getReduxDispatch()
+  const maybeLoadAppLink = () => {
+    const phones = usePhoneState.getState().phones
+    if (!phones || phones.size > 0) {
+      return
+    }
+
+    if (
+      maybeLoadAppLinkOnce ||
+      !useConfigState.getState().startup.link ||
+      !useConfigState.getState().startup.link.endsWith('/phone-app')
+    ) {
+      return
+    }
+    maybeLoadAppLinkOnce = true
+    reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+    reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
+  }
+
+  const dispatch: State['dispatch'] = {
+    checkPassword: passphrase => {
+      set(s => {
+        s.checkPasswordIsCorrect = undefined
+      })
+      const f = async () => {
+        const res = await RPCTypes.accountPassphraseCheckRpcPromise({passphrase}, checkPasswordWaitingKey)
+        set(s => {
+          s.checkPasswordIsCorrect = res
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    dbNuke: () => {
+      const f = async () => {
+        await RPCTypes.ctlDbNukeRpcPromise(undefined, settingsWaitingKey)
+      }
+      Z.ignorePromise(f())
+    },
+    deleteAccountForever: passphrase => {
+      const f = async () => {
+        const username = useCurrentUserState.getState().username
+
+        if (!username) {
+          throw new Error('Unable to delete account: no username set')
+        }
+
+        await RPCTypes.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
+        useConfigState.getState().dispatch.setJustDeletedSelf(username)
+        reduxDispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: false}))
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
+      }
+      Z.ignorePromise(f())
+    },
+    loadLockdownMode: () => {
+      const f = async () => {
+        if (!useConfigState.getState().loggedIn) {
+          return
+        }
+        try {
+          const result = await RPCTypes.accountGetLockdownModeRpcPromise(
+            undefined,
+            loadLockdownModeWaitingKey
+          )
+          set(s => {
+            s.lockdownModeEnabled = result.status
+          })
+        } catch (_) {
+          set(s => {
+            s.lockdownModeEnabled = undefined
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loadProxyData: () => {
+      const f = async () => {
+        try {
+          const result = await RPCTypes.configGetProxyDataRpcPromise()
+          set(s => {
+            s.proxyData = result
+          })
+        } catch (err) {
+          logger.warn('Error in loading proxy data', err)
+          return
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loadSettings: () => {
+      const f = async () => {
+        if (!useConfigState.getState().loggedIn) {
+          return
+        }
+        try {
+          const settings = await RPCTypes.userLoadMySettingsRpcPromise(undefined, loadSettingsWaitingKey)
+          useEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
+          usePhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
+          maybeLoadAppLink()
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          logger.warn(`Error loading settings: ${error.message}`)
+          return
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loginBrowserViaWebAuthToken: () => {
+      const f = async () => {
+        const link = await RPCTypes.configGenerateWebAuthTokenRpcPromise()
+        openURL(link)
+      }
+      Z.ignorePromise(f())
+    },
+    processorProfile: profileDurationSeconds => {
+      const f = async () => {
+        await RPCTypes.pprofLogProcessorProfileRpcPromise({
+          logDirForMobile: pprofDir,
+          profileDurationSeconds,
+        })
+        const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+        increment(processorProfileInProgressKey)
+        await Z.timeoutPromise(profileDurationSeconds * 1_000)
+        decrement(processorProfileInProgressKey)
+      }
+      Z.ignorePromise(f())
+    },
+    resetCheckPassword: () => {
+      set(s => {
+        s.checkPasswordIsCorrect = undefined
+      })
+    },
+    resetState: 'default',
+    setDidToggleCertificatePinning: t => {
+      set(s => {
+        s.didToggleCertificatePinning = t
+      })
+    },
+    setLockdownMode: enabled => {
+      const f = async () => {
+        if (!useConfigState.getState().loggedIn) {
+          return
+        }
+        try {
+          await RPCTypes.accountSetLockdownModeRpcPromise({enabled}, setLockdownModeWaitingKey)
+          set(s => {
+            s.lockdownModeEnabled = enabled
+          })
+        } catch (_) {
+          set(s => {
+            s.lockdownModeEnabled = undefined
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    setProxyData: proxyData => {
+      const f = async () => {
+        try {
+          await RPCTypes.configSetProxyDataRpcPromise({proxyData})
+        } catch (err) {
+          logger.warn('Error in saving proxy data', err)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    stop: exitCode => {
+      const f = async () => {
+        await RPCTypes.ctlStopRpcPromise({exitCode})
+      }
+      Z.ignorePromise(f())
+    },
+    trace: durationSeconds => {
+      const f = async () => {
+        await RPCTypes.pprofLogTraceRpcPromise({
+          logDirForMobile: pprofDir,
+          traceDurationSeconds: durationSeconds,
+        })
+        const {decrement, increment} = WaitingConstants.useWaitingState.getState().dispatch
+        increment(traceInProgressKey)
+        await Z.timeoutPromise(durationSeconds * 1_000)
+        decrement(traceInProgressKey)
+      }
+      Z.ignorePromise(f())
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})
+export {usePhoneState, useEmailState}
+export {useState as usePasswordState} from './settings-password'
+export {useState as useInvitesState} from './settings-invites'
+export {useState as useNotifState, refreshNotificationsWaitingKey} from './settings-notifications'
+export {
+  useState as useChatState,
+  contactSettingsSaveWaitingKey,
+  chatUnfurlWaitingKey,
+  contactSettingsLoadWaitingKey,
+} from './settings-chat'
+export {useState as useContactsState, importContactsWaitingKey} from './settings-contacts'
+
+export {
+  verifyPhoneNumberWaitingKey,
+  addPhoneNumberWaitingKey,
+  resendVerificationForPhoneWaitingKey,
+  getE164,
+} from './settings-phone'
+export {addEmailWaitingKey} from './settings-email'

@@ -1,5 +1,4 @@
 import chat2 from './chat2'
-import settings from './settings'
 import signup from './signup'
 import teams from './teams'
 import tracker2 from './tracker2'
@@ -14,7 +13,6 @@ export const reducers = {
   chat2,
   crypto,
   people,
-  settings,
   signup,
   teams,
   tracker2,
@@ -27,7 +25,6 @@ export type TypedState = {
   chat2: ReturnType<typeof chat2>
   crypto: ReturnType<typeof crypto>
   people: ReturnType<typeof people>
-  settings: ReturnType<typeof settings>
   signup: ReturnType<typeof signup>
   teams: ReturnType<typeof teams>
   tracker2: ReturnType<typeof tracker2>

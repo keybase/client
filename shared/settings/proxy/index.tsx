@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 
 // A list so the order of the elements is fixed
-const proxyTypeList = ['noProxy', 'httpConnect', 'socks']
+const proxyTypeList = ['noProxy', 'httpConnect', 'socks'] as const
 const proxyTypeToDisplayName = {
   httpConnect: 'HTTP(s) Connect',
   noProxy: 'No proxy',
@@ -14,12 +14,12 @@ const proxyTypeToDisplayName = {
 type State = {
   address: string
   port: string
-  proxyType: string
+  proxyType: 'noProxy' | 'httpConnect' | 'socks'
 }
 
 type Props = {
-  _loadProxyData: () => void
-  _resetCertPinningToggle: () => void
+  loadProxyData: () => void
+  resetCertPinningToggle: () => void
   allowTlsMitmToggle?: boolean
   onBack: () => void
   onDisableCertPinning: () => void
@@ -32,7 +32,7 @@ class ProxySettings extends React.Component<Props, State> {
   state = {
     address: '',
     port: '',
-    proxyType: 'noProxy',
+    proxyType: 'noProxy' as const,
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -48,17 +48,17 @@ class ProxySettings extends React.Component<Props, State> {
         port = addressPort[addressPort.length - 1] ?? ''
       }
 
-      const proxyType = RPCTypes.ProxyType[this.props.proxyData.proxyType]
+      const proxyType = RPCTypes.ProxyType[this.props.proxyData.proxyType] as State['proxyType']
       this.setState({address, port, proxyType})
     }
   }
 
   componentDidMount() {
-    this.props._loadProxyData()
+    this.props.loadProxyData()
   }
 
   componentWillUnmount() {
-    this.props._resetCertPinningToggle()
+    this.props.resetCertPinningToggle()
   }
 
   toggleCertPinning = () => {
@@ -73,13 +73,13 @@ class ProxySettings extends React.Component<Props, State> {
     const proxyData = {
       addressWithPort: this.state.address + ':' + this.state.port,
       certPinning: this.certPinning(),
-      proxyType: RPCTypes.ProxyType[this.state.proxyType as any] as unknown as RPCTypes.ProxyType,
+      proxyType: RPCTypes.ProxyType[this.state.proxyType],
     }
     this.props.saveProxyData(proxyData)
   }
 
   certPinning = (): boolean => {
-    if (this.props.allowTlsMitmToggle === null) {
+    if (this.props.allowTlsMitmToggle === undefined) {
       if (this.props.proxyData) {
         return this.props.proxyData.certPinning
       } else {
@@ -90,7 +90,7 @@ class ProxySettings extends React.Component<Props, State> {
     }
   }
 
-  proxyTypeSelected = (proxyType: string) => {
+  proxyTypeSelected = (proxyType: State['proxyType']) => {
     let cb = () => {}
     if (proxyType === 'noProxy') {
       // Setting the proxy type to no proxy collapses the menu including the save button, so save immediately
@@ -110,7 +110,7 @@ class ProxySettings extends React.Component<Props, State> {
             onSelect={() => this.proxyTypeSelected(proxyType)}
             selected={this.state.proxyType === proxyType}
             key={proxyType}
-            label={proxyTypeToDisplayName[proxyType as keyof typeof proxyTypeToDisplayName] ?? ''}
+            label={proxyTypeToDisplayName[proxyType] ?? ''}
             style={styles.radioButton}
           />
         ))}

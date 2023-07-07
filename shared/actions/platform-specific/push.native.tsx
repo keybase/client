@@ -298,7 +298,11 @@ export const initPushListener = () => {
       return
     }
     logger.debug(`[PushCheck] checking on foreground`)
-    Constants.useState.getState().dispatch.checkPermissions()
+    Constants.useState
+      .getState()
+      .dispatch.checkPermissions()
+      .then(() => {})
+      .catch(() => {})
   })
 
   // Token handling

@@ -2,30 +2,29 @@ import * as Constants from '../../constants/settings'
 import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SettingsGen from '../../actions/settings-gen'
 import Feedback from '.'
 import type {Props} from './container'
+import {useSendFeedback} from './shared'
 
 export default (ownProps: Props) => {
+  const {sendFeedback, error} = useSendFeedback()
+
   const feedback = ownProps.feedback ?? ''
   const loggedOut = ConfigConstants.useConfigState(s => !s.loggedIn)
-  const sendError = Container.useSelector(state => state.settings.feedback.error)
   const sending = Container.useAnyWaiting(Constants.sendFeedbackWaitingKey)
 
   const dispatch = Container.useDispatch()
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const onSendFeedback = (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
-    dispatch(SettingsGen.createSendFeedback({feedback, sendLogs, sendMaxBytes}))
-  }
+  const onSendFeedback = sendFeedback
   const props = {
     feedback,
     loggedOut,
     onBack,
     onFeedbackDone: () => null,
     onSendFeedback,
-    sendError,
+    sendError: error,
     sending,
     showInternalSuccessBanner: true,
   }

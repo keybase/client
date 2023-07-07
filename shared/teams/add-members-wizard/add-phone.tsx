@@ -3,8 +3,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RPCGen from '../../constants/types/rpc-gen'
+import * as SettingsConstants from '../../constants/settings'
 import * as TeamsGen from '../../actions/teams-gen'
-import * as SettingsGen from '../../actions/settings-gen'
 import {ModalTitle, usePhoneNumberList} from '../common'
 
 const waitingKey = 'phoneLookup'
@@ -21,13 +21,15 @@ const AddPhone = () => {
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)
   const waiting = Container.useAnyWaiting(waitingKey)
 
-  const defaultCountry = Container.useSelector(s => s.settings.phoneNumbers.defaultCountry)
+  const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
+
+  const loadDefaultPhoneCountry = SettingsConstants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
 
   React.useEffect(() => {
     if (!defaultCountry) {
-      dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
+      loadDefaultPhoneCountry()
     }
-  }, [defaultCountry, dispatch])
+  }, [defaultCountry, loadDefaultPhoneCountry])
 
   const emailsToAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const onContinue = () => {

@@ -3,29 +3,28 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
 import * as Container from '../../util/container'
-import * as SettingsGen from '../../actions/settings-gen'
-import HiddenString from '../../util/hidden-string'
 
 const CheckPassphraseMobile = () => {
   const [password, setPassword] = React.useState('')
   const [showTyping, setShowTyping] = React.useState(false)
 
-  const checkPasswordIsCorrect = Container.useSelector(state => state.settings.checkPasswordIsCorrect)
+  const checkPasswordIsCorrect = Constants.useState(s => s.checkPasswordIsCorrect)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
+  const checkPassword = Constants.useState(s => s.dispatch.checkPassword)
+  const resetCheckPassword = Constants.useState(s => s.dispatch.resetCheckPassword)
+  const deleteAccountForever = Constants.useState(s => s.dispatch.deleteAccountForever)
+
   const onCancel = () => {
-    dispatch(SettingsGen.createResetCheckPasswordIsCorrect())
+    resetCheckPassword()
     dispatch(nav.safeNavigateUpPayload())
   }
-  const onCheckPassword = (password: string) => {
-    if (password) {
-      dispatch(SettingsGen.createCheckPassword({password: new HiddenString(password)}))
-    }
+  const onCheckPassword = checkPassword
+  const deleteForever = () => {
+    deleteAccountForever(password)
   }
-  const deleteForever = () =>
-    dispatch(SettingsGen.createDeleteAccountForever({passphrase: new HiddenString(password)}))
 
   const waitingKey = Container.useAnyWaiting(Constants.settingsWaitingKey)
   const inputType = showTyping ? 'text' : 'password'

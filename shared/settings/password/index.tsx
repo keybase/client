@@ -3,7 +3,7 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 
 type Props = {
-  error?: Error
+  error: string
   hasPGPKeyOnServer?: boolean
   hasRandomPW: boolean
   newPasswordError?: string
@@ -70,7 +70,7 @@ class UpdatePassword extends React.Component<Props, State> {
     const inputType = this.state.showTyping ? 'text' : 'password'
     const keyboardType = this.state.showTyping && Styles.isAndroid ? 'visible-password' : 'default'
     const notification = this.props.error
-      ? this.props.error.message
+      ? this.props.error
       : this.props.hasPGPKeyOnServer
       ? "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again."
       : null

@@ -1,16 +1,16 @@
 import {Reloadable} from '../../common-adapters'
-import * as SettingsGen from '../../actions/settings-gen'
 import * as Container from '../../util/container'
 import Notifications, {type Props} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/settings'
 
 const ReloadableNotifications = (props: Props) => {
-  const dispatch = Container.useDispatch()
+  const loadSettings = Constants.useState(s => s.dispatch.loadSettings)
+  const refresh = Constants.useNotifState(s => s.dispatch.refresh)
 
   const onRefresh = () => {
-    dispatch(SettingsGen.createLoadSettings())
-    dispatch(SettingsGen.createNotificationsRefresh())
+    loadSettings()
+    refresh()
   }
 
   return (
@@ -26,11 +26,10 @@ const ReloadableNotifications = (props: Props) => {
 }
 
 export default () => {
-  const _groups = Container.useSelector(state => state.settings.notifications.groups)
-  const allowEdit = Container.useSelector(state => state.settings.notifications.allowEdit)
-  const showEmailSection = Container.useSelector(
-    state => !!state.settings.email.emails && state.settings.email.emails.size > 0
-  )
+  const _groups = Constants.useNotifState(s => s.groups)
+  const allowEdit = Constants.useNotifState(s => s.allowEdit)
+  const toggle = Constants.useNotifState(s => s.dispatch.toggle)
+  const showEmailSection = Constants.useEmailState(s => s.emails.size > 0)
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
   const dispatch = Container.useDispatch()
@@ -40,12 +39,8 @@ export default () => {
   const onClickYourAccount = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.accountTab]}))
   }
-  const onToggle = (group: string, name?: string) => {
-    dispatch(SettingsGen.createNotificationsToggle({group, name}))
-  }
-  const onToggleUnsubscribeAll = (group: string) => {
-    dispatch(SettingsGen.createNotificationsToggle({group}))
-  }
+  const onToggle = toggle
+  const onToggleUnsubscribeAll = toggle
   const props = {
     allowEdit,
     groups: _groups,

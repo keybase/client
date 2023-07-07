@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import * as Constants from '../constants/settings'
 import * as Tabs from '../constants/tabs'
-import * as SettingsGen from '../actions/settings-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Kb from '../common-adapters'
@@ -14,25 +13,26 @@ const enabledDescription = 'Your phone contacts are being synced on this device.
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
 
 const ManageContacts = () => {
-  const dispatch = Container.useDispatch()
-
-  const status = Container.useSelector(s => s.settings.contacts.permissionStatus)
-  const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
+  const status = Constants.useContactsState(s => s.permissionStatus)
+  const contactsImported = Constants.useContactsState(s => s.importEnabled)
   const waiting = Container.useAnyWaiting(Constants.importContactsWaitingKey)
 
+  const loadContactImportEnabled = Constants.useContactsState(s => s.dispatch.loadContactImportEnabled)
+
   if (contactsImported === null) {
-    dispatch(SettingsGen.createLoadContactImportEnabled())
+    loadContactImportEnabled()
   }
 
-  const onToggle = React.useCallback(
-    () =>
-      dispatch(
-        status !== 'granted'
-          ? SettingsGen.createRequestContactPermissions({fromSettings: true, thenToggleImportOn: true})
-          : SettingsGen.createEditContactImportEnabled({enable: !contactsImported, fromSettings: true})
-      ),
-    [dispatch, contactsImported, status]
-  )
+  const requestPermissions = Constants.useContactsState(s => s.dispatch.requestPermissions)
+  const editContactImportEnabled = Constants.useContactsState(s => s.dispatch.editContactImportEnabled)
+
+  const onToggle = React.useCallback(() => {
+    if (status !== 'granted') {
+      requestPermissions(true, true)
+    } else {
+      editContactImportEnabled(!contactsImported, true)
+    }
+  }, [editContactImportEnabled, requestPermissions, contactsImported, status])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.positionRelative}>
@@ -65,10 +65,10 @@ const ManageContacts = () => {
 const ManageContactsBanner = () => {
   const dispatch = Container.useDispatch()
 
-  const status = Container.useSelector(s => s.settings.contacts.permissionStatus)
-  const contactsImported = Container.useSelector(s => s.settings.contacts.importEnabled)
-  const importedCount = Container.useSelector(s => s.settings.contacts.importedCount)
-  const error = Container.useSelector(s => s.settings.contacts.importError)
+  const status = Constants.useContactsState(s => s.permissionStatus)
+  const contactsImported = Constants.useContactsState(s => s.importEnabled)
+  const importedCount = Constants.useContactsState(s => s.importedCount)
+  const error = Constants.useContactsState(s => s.importError)
 
   const onOpenAppSettings = React.useCallback(() => dispatch(ConfigGen.createOpenAppSettings()), [dispatch])
   const onStartChat = React.useCallback(() => {

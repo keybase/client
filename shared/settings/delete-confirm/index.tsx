@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
+import * as Constants from '../../constants/settings'
 
 type CheckboxesProps = {
   checkData: boolean
@@ -36,7 +36,8 @@ const Checkboxes = (props: CheckboxesProps) => (
 )
 
 const DeleteConfirm = () => {
-  const hasPassword = Container.useSelector(state => !state.settings.password.randomPW)
+  const hasPassword = Constants.usePasswordState(s => !s.randomPW)
+  const deleteAccountForever = Constants.useState(s => s.dispatch.deleteAccountForever)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
 
   const [checkData, setCheckData] = React.useState(false)
@@ -47,10 +48,13 @@ const DeleteConfirm = () => {
   const nav = Container.useSafeNavigation()
 
   const onCancel = () => dispatch(nav.safeNavigateUpPayload())
-  const onDeleteForever = () =>
-    Styles.isMobile && hasPassword
-      ? dispatch(RouteTreeGen.createNavigateAppend({path: ['checkPassphraseBeforeDeleteAccount']}))
-      : dispatch(SettingsGen.createDeleteAccountForever())
+  const onDeleteForever = () => {
+    if (Styles.isMobile && hasPassword) {
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['checkPassphraseBeforeDeleteAccount']}))
+    } else {
+      deleteAccountForever()
+    }
+  }
 
   return (
     <Kb.ConfirmModal
