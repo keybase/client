@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as TeamsGen from '../../actions/teams-gen'
 
 type Props = {title: string; teamID: Types.TeamID}
 
@@ -70,16 +69,16 @@ export const ModalTitle = ({title, teamID}: Props) => {
  * @param forceLoad force a reload even if they're already loaded.
  */
 export const useActivityLevels = (forceLoad?: boolean) => {
-  const dispatch = Container.useDispatch()
   const activityLevelsLoaded = Constants.useState(s => s.activityLevels.loaded)
+  const getActivityForTeams = Constants.useState(s => s.dispatch.getActivityForTeams)
   // keep whether we've triggered a load so we only do it once.
   const triggeredLoad = React.useRef(false)
   React.useEffect(() => {
     if ((!activityLevelsLoaded || forceLoad) && !triggeredLoad.current) {
-      dispatch(TeamsGen.createGetActivityForTeams())
+      getActivityForTeams()
       triggeredLoad.current = true
     }
-  }, [dispatch, activityLevelsLoaded, forceLoad])
+  }, [getActivityForTeams, activityLevelsLoaded, forceLoad])
 }
 
 const styles = Styles.styleSheetCreate(() => ({

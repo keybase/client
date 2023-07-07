@@ -109,17 +109,14 @@ export default (ownProps: OwnProps) => {
   const _them = ownProps.username
   const _roles = Container.useSelector(state => state.teams.teamRoleMap.roles)
   const _teams = Container.useSelector(state => state.teams.teamMeta)
-  const addUserToTeamsResults = Container.useSelector(state => state.teams.addUserToTeamsResults)
-  const addUserToTeamsState = Container.useSelector(state => state.teams.addUserToTeamsState)
+  const addUserToTeamsResults = Constants.useState(s => s.addUserToTeamsResults)
+  const addUserToTeamsState = Constants.useState(s => s.addUserToTeamsState)
+  const clearAddUserToTeamsResults = Constants.useState(s => s.dispatch.clearAddUserToTeamsResults)
+  const addUserToTeams = Constants.useState(s => s.dispatch.addUserToTeams)
   const teamProfileAddList = Container.useSelector(state => state.teams.teamProfileAddList)
   const waiting = Container.useAnyWaiting(Constants.teamProfileAddListWaitingKey)
   const dispatch = Container.useDispatch()
-  const _onAddToTeams = (role: Types.TeamRoleType, teams: Array<string>, user: string) => {
-    dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
-  }
-  const clearAddUserToTeamsResults = () => {
-    dispatch(TeamsGen.createClearAddUserToTeamsResults())
-  }
+  const _onAddToTeams = addUserToTeams
   const loadTeamList = () => {
     dispatch(TeamsGen.createGetTeamProfileAddList({username: _them}))
   }

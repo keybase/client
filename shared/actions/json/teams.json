@@ -6,11 +6,6 @@
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
-    "addUserToTeams": {
-      "role": "Types.TeamRoleType",
-      "teams": "Array<string>",
-      "user": "string"
-    },
     "channelSetMemberSelected": {
       "_description": "Sets whether a member is selected on the team page",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
@@ -45,10 +40,6 @@
       "channelnames": "Array<string>"
     },
     "clearAddUserToTeamsResults": {},
-    "setAddUserToTeamsResults": {
-      "error": "boolean",
-      "results": "string"
-    },
     "setEmailInviteError": {
       "message": "string",
       "malformed": "Array<string>"

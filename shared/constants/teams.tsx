@@ -222,8 +222,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
-  addUserToTeamsResults: '',
-  addUserToTeamsState: 'notStarted',
   channelInfo: new Map(),
   channelSelectedMembers: new Map(),
   creatingChannels: false,
@@ -1008,14 +1006,20 @@ export const maybeGetMostRecentValidInviteLink = (inviteLinks: Array<Types.Invit
 
 type Store = {
   activityLevels: Types.ActivityLevels
+  addUserToTeamsState: Types.AddUserToTeamsState
+  addUserToTeamsResults: string
 }
 
 const initialStore: Store = {
   activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
+  addUserToTeamsState: 'notStarted',
+  addUserToTeamsResults: '',
 }
 
 export type State = Store & {
   dispatch: {
+    addUserToTeams: (role: Types.TeamRoleType, teams: Array<string>, user: string) => void
+    clearAddUserToTeamsResults: () => void
     getActivityForTeams: () => void
     resetState: 'default'
   }
@@ -1023,7 +1027,74 @@ export type State = Store & {
 
 export const useState = Z.createZustand<State>((set, _get) => {
   // const reduxDispatch = Z.getReduxDispatch()
+  const getReduxStore = Z.getReduxStore() // TODO remoe >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   const dispatch: State['dispatch'] = {
+    addUserToTeams: (role, teams, user) => {
+      const f = async () => {
+        const teamsAddedTo: Array<string> = []
+        const errorAddingTo: Array<string> = []
+        for (const team of teams) {
+          try {
+            const teamID = getTeamID(getReduxStore(), team)
+            if (teamID === Types.noTeamID) {
+              logger.warn(`no team ID found for ${team}`)
+              errorAddingTo.push(team)
+              continue
+            }
+            await RPCTypes.teamsTeamAddMemberRpcPromise(
+              {
+                email: '',
+                phone: '',
+                role: RPCTypes.TeamRole[role],
+                sendChatNotification: true,
+                teamID,
+                username: user,
+              },
+              [teamWaitingKey(teamID), addUserToTeamsWaitingKey(user)]
+            )
+            teamsAddedTo.push(team)
+          } catch (error) {
+            errorAddingTo.push(team)
+          }
+        }
+
+        // TODO: We should split these results into two messages, showing one in green and
+        // the other in red instead of lumping them together.
+        let result = ''
+        if (teamsAddedTo.length) {
+          result += `${user} was added to `
+          if (teamsAddedTo.length > 3) {
+            result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo.length - 2} teams.`
+          } else if (teamsAddedTo.length === 3) {
+            result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo[2]}.`
+          } else if (teamsAddedTo.length === 2) {
+            result += `${teamsAddedTo[0]} and ${teamsAddedTo[1]}.`
+          } else {
+            result += `${teamsAddedTo[0]}.`
+          }
+        }
+
+        if (errorAddingTo.length) {
+          if (result.length > 0) {
+            result += ' But we '
+          } else {
+            result += 'We '
+          }
+          result += `were unable to add ${user} to ${errorAddingTo.join(', ')}.`
+        }
+        set(s => {
+          s.addUserToTeamsResults = result
+          s.addUserToTeamsState = errorAddingTo.length > 0 ? 'failed' : 'succeeded'
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    clearAddUserToTeamsResults: () => {
+      set(s => {
+        s.addUserToTeamsResults = ''
+        s.addUserToTeamsState = 'notStarted'
+      })
+    },
     getActivityForTeams: () => {
       const f = async () => {
         try {

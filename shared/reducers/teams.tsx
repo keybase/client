@@ -52,14 +52,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamCreationError]: (draftState, action) => {
     draftState.errorInTeamCreation = action.payload.error
   },
-  [TeamsGen.clearAddUserToTeamsResults]: draftState => {
-    draftState.addUserToTeamsResults = ''
-    draftState.addUserToTeamsState = 'notStarted'
-  },
-  [TeamsGen.setAddUserToTeamsResults]: (draftState, action) => {
-    draftState.addUserToTeamsResults = action.payload.results
-    draftState.addUserToTeamsState = action.payload.error ? 'failed' : 'succeeded'
-  },
   [TeamsGen.settingsError]: (draftState, action) => {
     draftState.errorInSettings = action.payload.error
   },

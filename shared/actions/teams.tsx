@@ -664,67 +664,6 @@ const loadTeam = async (state: Container.TypedState, action: TeamsGen.LoadTeamPa
   return
 }
 
-const addUserToTeams = async (state: Container.TypedState, action: TeamsGen.AddUserToTeamsPayload) => {
-  const {role, teams, user} = action.payload
-  const teamsAddedTo: Array<string> = []
-  const errorAddingTo: Array<string> = []
-  for (const team of teams) {
-    try {
-      const teamID = Constants.getTeamID(state, team)
-      if (teamID === Types.noTeamID) {
-        logger.warn(`no team ID found for ${team}`)
-        errorAddingTo.push(team)
-        continue
-      }
-      await RPCTypes.teamsTeamAddMemberRpcPromise(
-        {
-          email: '',
-          phone: '',
-          role: RPCTypes.TeamRole[role],
-          sendChatNotification: true,
-          teamID,
-          username: user,
-        },
-        [Constants.teamWaitingKey(teamID), Constants.addUserToTeamsWaitingKey(user)]
-      )
-      teamsAddedTo.push(team)
-    } catch (error) {
-      errorAddingTo.push(team)
-    }
-  }
-
-  // TODO: We should split these results into two messages, showing one in green and
-  // the other in red instead of lumping them together.
-
-  let result = ''
-
-  if (teamsAddedTo.length) {
-    result += `${user} was added to `
-    if (teamsAddedTo.length > 3) {
-      result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo.length - 2} teams.`
-    } else if (teamsAddedTo.length === 3) {
-      result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo[2]}.`
-    } else if (teamsAddedTo.length === 2) {
-      result += `${teamsAddedTo[0]} and ${teamsAddedTo[1]}.`
-    } else {
-      result += `${teamsAddedTo[0]}.`
-    }
-  }
-
-  if (errorAddingTo.length) {
-    if (result.length > 0) {
-      result += ' But we '
-    } else {
-      result += 'We '
-    }
-    result += `were unable to add ${user} to ${errorAddingTo.join(', ')}.`
-  }
-  return TeamsGen.createSetAddUserToTeamsResults({
-    error: errorAddingTo.length > 0,
-    results: result,
-  })
-}
-
 const getTeams = async (
   state: Container.TypedState,
   action: ConfigGen.LoadOnStartPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload
@@ -1655,7 +1594,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.createChannel, createChannel)
   Container.listenAction(TeamsGen.addToTeam, addToTeam)
   Container.listenAction(TeamsGen.reAddToTeam, reAddToTeam)
-  Container.listenAction(TeamsGen.addUserToTeams, addUserToTeams)
   Container.listenAction(TeamsGen.inviteToTeamByEmail, inviteByEmail)
   Container.listenAction(TeamsGen.ignoreRequest, ignoreRequest)
   Container.listenAction(TeamsGen.editTeamDescription, editDescription)

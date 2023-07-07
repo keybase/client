@@ -234,8 +234,6 @@ export type TeamInviteState = {
 
 export type State = {
   addMembersWizard: AddMembersWizardState
-  addUserToTeamsState: AddUserToTeamsState
-  addUserToTeamsResults: string
   channelInfo: Map<TeamID, Map<ConversationIDKey, TeamChannelInfo>>
   channelSelectedMembers: Map<ConversationIDKey, Set<string>>
   creatingChannels: boolean

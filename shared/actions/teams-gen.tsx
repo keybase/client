@@ -15,7 +15,6 @@ export const addMembersWizardSetDefaultChannels = 'teams:addMembersWizardSetDefa
 export const addParticipant = 'teams:addParticipant'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
-export const addUserToTeams = 'teams:addUserToTeams'
 export const addedToTeam = 'teams:addedToTeam'
 export const cancelAddMembersWizard = 'teams:cancelAddMembersWizard'
 export const channelSetMemberSelected = 'teams:channelSetMemberSelected'
@@ -34,7 +33,6 @@ export const editTeamDescription = 'teams:editTeamDescription'
 export const finishNewTeamWizard = 'teams:finishNewTeamWizard'
 export const finishedAddMembersWizard = 'teams:finishedAddMembersWizard'
 export const finishedNewTeamWizard = 'teams:finishedNewTeamWizard'
-export const getActivityForTeams = 'teams:getActivityForTeams'
 export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
@@ -62,10 +60,8 @@ export const requestInviteLinkDetails = 'teams:requestInviteLinkDetails'
 export const respondToInviteLink = 'teams:respondToInviteLink'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
-export const setActivityLevels = 'teams:setActivityLevels'
 export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
-export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setChannelSelected = 'teams:setChannelSelected'
 export const setCreatingChannels = 'teams:setCreatingChannels'
@@ -176,13 +172,6 @@ export const createEditMembership = (payload: {
   readonly role: Types.TeamRoleType
 }) => ({payload, type: editMembership as typeof editMembership})
 /**
- * Fetch activity levels.
- */
-export const createGetActivityForTeams = (payload?: undefined) => ({
-  payload,
-  type: getActivityForTeams as typeof getActivityForTeams,
-})
-/**
  * First stage of the invite link process, opens the modal
  */
 export const createOpenInviteLink = (payload: {readonly inviteID: string; readonly inviteKey: string}) => ({
@@ -289,13 +278,6 @@ export const createSetSubteamFilter = (payload: {
   readonly filter: string
   readonly parentTeam?: Types.TeamID
 }) => ({payload, type: setSubteamFilter as typeof setSubteamFilter})
-/**
- * Set map of activity levels for all teams and channels.
- */
-export const createSetActivityLevels = (payload: {readonly levels: Types.ActivityLevels}) => ({
-  payload,
-  type: setActivityLevels as typeof setActivityLevels,
-})
 /**
  * Set the role for a pending member in the add member wizard.
  */
@@ -430,11 +412,6 @@ export const createAddToTeam = (payload: {
   readonly sendChatNotification: boolean
   readonly fromTeamBuilder?: boolean
 }) => ({payload, type: addToTeam as typeof addToTeam})
-export const createAddUserToTeams = (payload: {
-  readonly role: Types.TeamRoleType
-  readonly teams: Array<string>
-  readonly user: string
-}) => ({payload, type: addUserToTeams as typeof addUserToTeams})
 export const createAddedToTeam = (
   payload: {readonly error?: string; readonly fromTeamBuilder?: boolean} = {}
 ) => ({payload, type: addedToTeam as typeof addedToTeam})
@@ -560,10 +537,6 @@ export const createSaveChannelMembership = (payload: {
   readonly oldChannelState: Types.ChannelMembershipState
   readonly newChannelState: Types.ChannelMembershipState
 }) => ({payload, type: saveChannelMembership as typeof saveChannelMembership})
-export const createSetAddUserToTeamsResults = (payload: {
-  readonly error: boolean
-  readonly results: string
-}) => ({payload, type: setAddUserToTeamsResults as typeof setAddUserToTeamsResults})
 export const createSetChannelCreationError = (payload: {readonly error: string}) => ({
   payload,
   type: setChannelCreationError as typeof setChannelCreationError,
@@ -763,7 +736,6 @@ export type AddMembersWizardSetDefaultChannelsPayload = ReturnType<
 export type AddParticipantPayload = ReturnType<typeof createAddParticipant>
 export type AddTeamWithChosenChannelsPayload = ReturnType<typeof createAddTeamWithChosenChannels>
 export type AddToTeamPayload = ReturnType<typeof createAddToTeam>
-export type AddUserToTeamsPayload = ReturnType<typeof createAddUserToTeams>
 export type AddedToTeamPayload = ReturnType<typeof createAddedToTeam>
 export type CancelAddMembersWizardPayload = ReturnType<typeof createCancelAddMembersWizard>
 export type ChannelSetMemberSelectedPayload = ReturnType<typeof createChannelSetMemberSelected>
@@ -782,7 +754,6 @@ export type EditTeamDescriptionPayload = ReturnType<typeof createEditTeamDescrip
 export type FinishNewTeamWizardPayload = ReturnType<typeof createFinishNewTeamWizard>
 export type FinishedAddMembersWizardPayload = ReturnType<typeof createFinishedAddMembersWizard>
 export type FinishedNewTeamWizardPayload = ReturnType<typeof createFinishedNewTeamWizard>
-export type GetActivityForTeamsPayload = ReturnType<typeof createGetActivityForTeams>
 export type GetMembersPayload = ReturnType<typeof createGetMembers>
 export type GetTeamProfileAddListPayload = ReturnType<typeof createGetTeamProfileAddList>
 export type GetTeamRetentionPolicyPayload = ReturnType<typeof createGetTeamRetentionPolicy>
@@ -810,12 +781,10 @@ export type RequestInviteLinkDetailsPayload = ReturnType<typeof createRequestInv
 export type RespondToInviteLinkPayload = ReturnType<typeof createRespondToInviteLink>
 export type SaveChannelMembershipPayload = ReturnType<typeof createSaveChannelMembership>
 export type SaveTeamRetentionPolicyPayload = ReturnType<typeof createSaveTeamRetentionPolicy>
-export type SetActivityLevelsPayload = ReturnType<typeof createSetActivityLevels>
 export type SetAddMembersWizardIndividualRolePayload = ReturnType<
   typeof createSetAddMembersWizardIndividualRole
 >
 export type SetAddMembersWizardRolePayload = ReturnType<typeof createSetAddMembersWizardRole>
-export type SetAddUserToTeamsResultsPayload = ReturnType<typeof createSetAddUserToTeamsResults>
 export type SetChannelCreationErrorPayload = ReturnType<typeof createSetChannelCreationError>
 export type SetChannelSelectedPayload = ReturnType<typeof createSetChannelSelected>
 export type SetCreatingChannelsPayload = ReturnType<typeof createSetCreatingChannels>
@@ -887,7 +856,6 @@ export type Actions =
   | AddParticipantPayload
   | AddTeamWithChosenChannelsPayload
   | AddToTeamPayload
-  | AddUserToTeamsPayload
   | AddedToTeamPayload
   | CancelAddMembersWizardPayload
   | ChannelSetMemberSelectedPayload
@@ -906,7 +874,6 @@ export type Actions =
   | FinishNewTeamWizardPayload
   | FinishedAddMembersWizardPayload
   | FinishedNewTeamWizardPayload
-  | GetActivityForTeamsPayload
   | GetMembersPayload
   | GetTeamProfileAddListPayload
   | GetTeamRetentionPolicyPayload
@@ -934,10 +901,8 @@ export type Actions =
   | RespondToInviteLinkPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload
-  | SetActivityLevelsPayload
   | SetAddMembersWizardIndividualRolePayload
   | SetAddMembersWizardRolePayload
-  | SetAddUserToTeamsResultsPayload
   | SetChannelCreationErrorPayload
   | SetChannelSelectedPayload
   | SetCreatingChannelsPayload
