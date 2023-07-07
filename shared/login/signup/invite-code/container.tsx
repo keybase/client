@@ -1,5 +1,6 @@
 import * as SignupGen from '../../../actions/signup-gen'
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/signup'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import InviteCode from '.'
 
@@ -10,9 +11,8 @@ console.log(a)
 export default () => {
   const error = Container.useSelector(state => state.signup.inviteCodeError)
   const dispatch = Container.useDispatch()
-  const onBack = () => {
-    dispatch(SignupGen.createGoBackAndClearErrors())
-  }
+  const goBackAndClearErrors = Constants.useState(s => s.dispatch.goBackAndClearErrors)
+  const onBack = goBackAndClearErrors
   const onRequestInvite = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['signupRequestInvite']}))
   }

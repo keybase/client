@@ -1,4 +1,5 @@
 import * as Constants from '../constants/provision'
+import * as SignupConstants from '../constants/signup'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
@@ -13,9 +14,8 @@ const ConnectedEnterDevicename = () => {
   const initialDevicename = Container.useSelector(state => state.signup.devicename)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const dispatch = Container.useDispatch()
-  const onBack = () => {
-    dispatch(SignupGen.createGoBackAndClearErrors())
-  }
+  const goBackAndClearErrors = SignupConstants.useState(s => s.dispatch.goBackAndClearErrors)
+  const onBack = goBackAndClearErrors
   const onContinue = (devicename: string) => {
     dispatch(SignupGen.createCheckDevicename({devicename}))
   }

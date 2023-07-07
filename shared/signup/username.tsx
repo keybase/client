@@ -16,8 +16,9 @@ const ConnectedEnterUsername = () => {
   const usernameTaken = Container.useSelector(state => state.signup.usernameTaken)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const dispatch = Container.useDispatch()
+  const restartSignup = Constants.useState(s => s.dispatch.restartSignup)
   const onBack = () => {
-    dispatch(SignupGen.createRestartSignup())
+    restartSignup()
     dispatch(RouteTreeGen.createNavigateUp())
   }
   const onContinue = (username: string) => {

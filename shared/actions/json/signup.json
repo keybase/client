@@ -4,7 +4,6 @@
     "import type {RPCError} from '../util/errors'"
   ],
   "actions": {
-    "goBackAndClearErrors": {},
     "requestAutoInvite": {
       "username?": "string"
     },
@@ -29,17 +28,6 @@
       "usernameTaken?": "string",
       "error": "string"
     },
-    "requestInvite": {
-      "email": "string",
-      "name": "string"
-    },
-    "requestedInvite": {
-      "email": "string",
-      "name": "string",
-      "emailError?": "string",
-      "nameError?": "string"
-    },
-    "restartSignup": {},
     "signedup": {
       "error?": "RPCError"
     },

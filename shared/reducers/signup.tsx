@@ -2,7 +2,7 @@ import type * as Types from '../constants/types/signup'
 import * as SignupGen from '../actions/signup-gen'
 import HiddenString from '../util/hidden-string'
 import trim from 'lodash/trim'
-import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
+import {isValidUsername} from '../util/simple-validators'
 import * as Container from '../util/container'
 import * as Constants from '../constants/signup'
 
@@ -11,24 +11,9 @@ const initialState = Constants.makeState()
 type Actions = SignupGen.Actions
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
-  [SignupGen.resetStore]: draftState => ({
+  [SignupGen.resetStore]: () => ({
     ...initialState,
-    justSignedUpEmail: draftState.email,
   }),
-  [SignupGen.restartSignup]: draftState => ({
-    ...initialState,
-    justSignedUpEmail: draftState.email,
-  }),
-  [SignupGen.goBackAndClearErrors]: draftState => {
-    draftState.devicenameError = ''
-    draftState.emailError = ''
-    draftState.inviteCodeError = ''
-    draftState.nameError = ''
-    draftState.passwordError = new HiddenString('')
-    draftState.signupError = undefined
-    draftState.usernameError = ''
-    draftState.usernameTaken = ''
-  },
   [SignupGen.requestAutoInvite]: (draftState, action) => {
     if (action.payload.username) {
       draftState.username = action.payload.username
@@ -56,19 +41,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (username === draftState.username) {
       draftState.usernameError = usernameError
       draftState.usernameTaken = usernameTaken
-    }
-  },
-  [SignupGen.requestInvite]: (draftState, action) => {
-    const {email, name} = action.payload
-    draftState.email = email
-    draftState.emailError = isValidEmail(email)
-    draftState.name = name
-    draftState.nameError = isValidName(name)
-  },
-  [SignupGen.requestedInvite]: (draftState, action) => {
-    if (action.payload.email === draftState.email && action.payload.name === draftState.name) {
-      draftState.emailError = action.payload.emailError || ''
-      draftState.nameError = action.payload.nameError || ''
     }
   },
   [SignupGen.checkPassword]: (draftState, action) => {

@@ -14,12 +14,8 @@ export const checkedDevicename = 'signup:checkedDevicename'
 export const checkedInviteCode = 'signup:checkedInviteCode'
 export const checkedUsername = 'signup:checkedUsername'
 export const clearJustSignedUpEmail = 'signup:clearJustSignedUpEmail'
-export const goBackAndClearErrors = 'signup:goBackAndClearErrors'
 export const requestAutoInvite = 'signup:requestAutoInvite'
-export const requestInvite = 'signup:requestInvite'
 export const requestedAutoInvite = 'signup:requestedAutoInvite'
-export const requestedInvite = 'signup:requestedInvite'
-export const restartSignup = 'signup:restartSignup'
 export const setJustSignedUpEmail = 'signup:setJustSignedUpEmail'
 export const signedup = 'signup:signedup'
 
@@ -57,31 +53,13 @@ export const createClearJustSignedUpEmail = (payload?: undefined) => ({
   payload,
   type: clearJustSignedUpEmail as typeof clearJustSignedUpEmail,
 })
-export const createGoBackAndClearErrors = (payload?: undefined) => ({
-  payload,
-  type: goBackAndClearErrors as typeof goBackAndClearErrors,
-})
 export const createRequestAutoInvite = (payload: {readonly username?: string} = {}) => ({
   payload,
   type: requestAutoInvite as typeof requestAutoInvite,
 })
-export const createRequestInvite = (payload: {readonly email: string; readonly name: string}) => ({
-  payload,
-  type: requestInvite as typeof requestInvite,
-})
 export const createRequestedAutoInvite = (
   payload: {readonly inviteCode?: string; readonly error?: boolean} = {}
 ) => ({payload, type: requestedAutoInvite as typeof requestedAutoInvite})
-export const createRequestedInvite = (payload: {
-  readonly email: string
-  readonly name: string
-  readonly emailError?: string
-  readonly nameError?: string
-}) => ({payload, type: requestedInvite as typeof requestedInvite})
-export const createRestartSignup = (payload?: undefined) => ({
-  payload,
-  type: restartSignup as typeof restartSignup,
-})
 export const createSetJustSignedUpEmail = (payload: {readonly email: string}) => ({
   payload,
   type: setJustSignedUpEmail as typeof setJustSignedUpEmail,
@@ -100,12 +78,8 @@ export type CheckedDevicenamePayload = ReturnType<typeof createCheckedDevicename
 export type CheckedInviteCodePayload = ReturnType<typeof createCheckedInviteCode>
 export type CheckedUsernamePayload = ReturnType<typeof createCheckedUsername>
 export type ClearJustSignedUpEmailPayload = ReturnType<typeof createClearJustSignedUpEmail>
-export type GoBackAndClearErrorsPayload = ReturnType<typeof createGoBackAndClearErrors>
 export type RequestAutoInvitePayload = ReturnType<typeof createRequestAutoInvite>
-export type RequestInvitePayload = ReturnType<typeof createRequestInvite>
 export type RequestedAutoInvitePayload = ReturnType<typeof createRequestedAutoInvite>
-export type RequestedInvitePayload = ReturnType<typeof createRequestedInvite>
-export type RestartSignupPayload = ReturnType<typeof createRestartSignup>
 export type SetJustSignedUpEmailPayload = ReturnType<typeof createSetJustSignedUpEmail>
 export type SignedupPayload = ReturnType<typeof createSignedup>
 
@@ -120,12 +94,8 @@ export type Actions =
   | CheckedInviteCodePayload
   | CheckedUsernamePayload
   | ClearJustSignedUpEmailPayload
-  | GoBackAndClearErrorsPayload
   | RequestAutoInvitePayload
-  | RequestInvitePayload
   | RequestedAutoInvitePayload
-  | RequestedInvitePayload
-  | RestartSignupPayload
   | SetJustSignedUpEmailPayload
   | SignedupPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}
