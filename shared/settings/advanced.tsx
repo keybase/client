@@ -6,7 +6,6 @@ import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as SettingsGen from '../actions/settings-gen'
 import * as Styles from '../styles'
 import {ProxySettings} from './proxy/container'
 import {isMobile, isLinux} from '../constants/platform'
@@ -37,11 +36,10 @@ const UseNativeFrame = () => {
 }
 
 const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean}) => {
-  const dispatch = Container.useDispatch()
   const {hasRandomPW, settingLockdownMode} = p
   const lockdownModeEnabled = Constants.useState(s => !!s.lockdownModeEnabled)
-  const onChangeLockdownMode = (enabled: boolean) =>
-    dispatch(SettingsGen.createOnChangeLockdownMode({enabled}))
+  const setLockdownMode = Constants.useState(s => s.dispatch.setLockdownMode)
+  const onChangeLockdownMode = setLockdownMode
   const label = 'Enable account lockdown mode' + (hasRandomPW ? ' (you need to set a password first)' : '')
   const checked = hasRandomPW || !!lockdownModeEnabled
   const disabled = hasRandomPW || settingLockdownMode
@@ -74,14 +72,11 @@ const LockdownCheckbox = (p: {hasRandomPW: boolean; settingLockdownMode: boolean
 }
 
 const Advanced = () => {
-  const dispatch = Container.useDispatch()
-
   const settingLockdownMode = Container.useAnyWaiting(Constants.setLockdownModeWaitingKey)
   const hasRandomPW = Constants.usePasswordState(s => !!s.randomPW)
   const openAtLogin = ConfigConstants.useConfigState(s => s.openAtLogin)
   const rememberPassword = Constants.usePasswordState(s => s.rememberPassword)
   const setLockdownModeError = Container.useAnyErrors(Constants.setLockdownModeWaitingKey)?.message || ''
-
   const setRememberPassword = Constants.usePasswordState(s => s.dispatch.setRememberPassword)
   const onChangeRememberPassword = setRememberPassword
   const onSetOpenAtLogin = ConfigConstants.useConfigState(s => s.dispatch.setOpenAtLogin)
@@ -127,12 +122,13 @@ const Advanced = () => {
 
   const loadHasRandomPw = Constants.usePasswordState(s => s.dispatch.loadHasRandomPw)
   const loadRememberPassword = Constants.usePasswordState(s => s.dispatch.loadRememberPassword)
+  const loadLockdownMode = Constants.useState(s => s.dispatch.loadLockdownMode)
 
   React.useEffect(() => {
     loadHasRandomPw()
-    dispatch(SettingsGen.createLoadLockdownMode())
+    loadLockdownMode()
     loadRememberPassword()
-  }, [loadRememberPassword, loadHasRandomPw, dispatch])
+  }, [loadRememberPassword, loadHasRandomPw, loadLockdownMode])
 
   return (
     <Kb.ScrollView style={styles.scrollview}>

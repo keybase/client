@@ -1,13 +1,6 @@
 {
   "prelude": [],
   "actions": {
-    "stop": {"exitCode": "RPCTypes.ExitCode"},
-    "loadLockdownMode": {},
-    "loadedLockdownMode": {
-      "status?": "boolean"
-    },
-    "onChangeLockdownMode": {
-      "enabled": "boolean"
-    }
+    "stop": {"exitCode": "RPCTypes.ExitCode"}
   }
 }
