@@ -811,7 +811,7 @@ const createChannel = async (
       listenerApi.dispatch(RouteTreeGen.createClearModals())
     }
     // Reload on team page
-    listenerApi.dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+    Constants.useState.getState().dispatch.loadTeamChannelList(teamID)
     // Select the new channel, and switch to the chat tab.
     if (action.payload.navToChatOnSuccess) {
       listenerApi.dispatch(
@@ -856,10 +856,9 @@ const createChannels = async (state: Container.TypedState, action: TeamsGen.Crea
     }
     return TeamsGen.createSetChannelCreationError({error: error.desc})
   }
-  return [
-    TeamsGen.createSetCreatingChannels({creatingChannels: false}),
-    TeamsGen.createLoadTeamChannelList({teamID}),
-  ]
+
+  Constants.useState.getState().dispatch.loadTeamChannelList(teamID)
+  return TeamsGen.createSetCreatingChannels({creatingChannels: false})
 }
 
 const setMemberPublicity = async (_: unknown, action: TeamsGen.SetMemberPublicityPayload) => {
@@ -1130,7 +1129,8 @@ const deleteChannelConfirmed = async (_: unknown, action: TeamsGen.DeleteChannel
     },
     Constants.teamWaitingKey(teamID)
   )
-  return TeamsGen.createLoadTeamChannelList({teamID})
+
+  Constants.useState.getState().dispatch.loadTeamChannelList(teamID)
 }
 
 const deleteMultiChannelsConfirmed = async (
@@ -1150,7 +1150,7 @@ const deleteMultiChannelsConfirmed = async (
     )
   }
 
-  return TeamsGen.createLoadTeamChannelList({teamID})
+  Constants.useState.getState().dispatch.loadTeamChannelList(teamID)
 }
 
 const getMembers = async (_: unknown, action: TeamsGen.GetMembersPayload) => {
@@ -1522,53 +1522,6 @@ const maybeClearBadges = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) 
   return false
 }
 
-const loadTeamChannelList = async (
-  state: Container.TypedState,
-  action: TeamsGen.LoadTeamChannelListPayload
-) => {
-  const {teamID} = action.payload
-  const teamname = Constants.getTeamMeta(state, teamID).teamname
-  if (!teamname) {
-    logger.warn('bailing on no teamMeta')
-    return
-  }
-  try {
-    const {convs} = await RPCChatTypes.localGetTLFConversationsLocalRpcPromise({
-      membersType: RPCChatTypes.ConversationMembersType.team,
-      tlfName: teamname,
-      topicType: RPCChatTypes.TopicType.chat,
-    })
-    const channels =
-      (convs || []).reduce<Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>>((res, inboxUIItem) => {
-        const conversationIDKey = ChatTypes.stringToConversationIDKey(inboxUIItem.convID)
-        res.set(conversationIDKey, {
-          channelname: inboxUIItem.channel,
-          conversationIDKey,
-          description: inboxUIItem.headline,
-        })
-        return res
-      }, new Map()) ?? new Map()
-
-    // ensure we refresh participants, but don't fail the saga if this somehow fails
-    try {
-      ;[...channels.values()].forEach(({conversationIDKey}) => {
-        RPCChatTypes.localRefreshParticipantsRpcPromise({
-          convID: ChatTypes.keyToConversationID(conversationIDKey),
-        })
-          .then(() => {})
-          .catch(() => {})
-      })
-    } catch (e) {
-      logger.error('this should never happen', e)
-    }
-
-    return TeamsGen.createTeamChannelListLoaded({channels, teamID})
-  } catch (err) {
-    logger.warn(err)
-  }
-  return false
-}
-
 const initTeams = () => {
   Container.listenAction(TeamsGen.leaveTeam, leaveTeam)
   Container.listenAction(TeamsGen.deleteTeam, deleteTeam)
@@ -1667,9 +1620,6 @@ const initTeams = () => {
 
   Container.listenAction(TeamsGen.teamSeen, teamSeen)
   Container.listenAction(RouteTreeGen.onNavChanged, maybeClearBadges)
-
-  // Channels list + page
-  Container.listenAction(TeamsGen.loadTeamChannelList, loadTeamChannelList)
 
   // Hook up the team building sub saga
   commonListenActions('teams')

@@ -40,6 +40,7 @@ const useTabsState = (
   providedTab?: Types.TabKey
 ): [Types.TabKey, (t: Types.TabKey) => void] => {
   const dispatch = Container.useDispatch()
+  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
   // @ts-ignore
   const defaultSelectedTab = lastSelectedTabs[teamID] ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<Types.TabKey>(defaultSelectedTab)
@@ -51,11 +52,11 @@ const useTabsState = (
         dispatch(TeamsGen.createSettingsError({error: ''}))
       }
       if (selectedTab !== 'channels' && t === 'channels') {
-        dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+        loadTeamChannelList(teamID)
       }
       _setSelectedTab(t)
     },
-    [teamID, selectedTab, dispatch]
+    [loadTeamChannelList, teamID, selectedTab, dispatch]
   )
 
   const prevTeamID = Container.usePrevious(teamID)

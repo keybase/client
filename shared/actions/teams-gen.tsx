@@ -45,7 +45,6 @@ export const launchNewTeamWizardOrModal = 'teams:launchNewTeamWizardOrModal'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
 export const loadTeam = 'teams:loadTeam'
-export const loadTeamChannelList = 'teams:loadTeamChannelList'
 export const loadTeamTree = 'teams:loadTeamTree'
 export const loadWelcomeMessage = 'teams:loadWelcomeMessage'
 export const loadedWelcomeMessage = 'teams:loadedWelcomeMessage'
@@ -108,7 +107,6 @@ export const settingsError = 'teams:settingsError'
 export const showTeamByName = 'teams:showTeamByName'
 export const startAddMembersWizard = 'teams:startAddMembersWizard'
 export const startNewTeamWizard = 'teams:startNewTeamWizard'
-export const teamChannelListLoaded = 'teams:teamChannelListLoaded'
 export const teamCreated = 'teams:teamCreated'
 export const teamLoaded = 'teams:teamLoaded'
 export const teamSeen = 'teams:teamSeen'
@@ -186,13 +184,6 @@ export const createGetTeamRetentionPolicy = (payload: {readonly teamID: Types.Te
   type: getTeamRetentionPolicy as typeof getTeamRetentionPolicy,
 })
 /**
- * Load info for rendering the channel list on the team page.
- */
-export const createLoadTeamChannelList = (payload: {readonly teamID: Types.TeamID}) => ({
-  payload,
-  type: loadTeamChannelList as typeof loadTeamChannelList,
-})
-/**
  * Load team details if we are stale.
  *
  * `_subscribe` is for use by teams/subscriber only.
@@ -216,13 +207,6 @@ export const createLoadWelcomeMessage = (payload: {readonly teamID: Types.TeamID
   payload,
   type: loadWelcomeMessage as typeof loadWelcomeMessage,
 })
-/**
- * Loaded channel list for team.
- */
-export const createTeamChannelListLoaded = (payload: {
-  readonly teamID: Types.TeamID
-  readonly channels: Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>
-}) => ({payload, type: teamChannelListLoaded as typeof teamChannelListLoaded})
 /**
  * Loaded welcome message for new team members
  */
@@ -765,7 +749,6 @@ export type JoinTeamPayload = ReturnType<typeof createJoinTeam>
 export type LaunchNewTeamWizardOrModalPayload = ReturnType<typeof createLaunchNewTeamWizardOrModal>
 export type LeaveTeamPayload = ReturnType<typeof createLeaveTeam>
 export type LeftTeamPayload = ReturnType<typeof createLeftTeam>
-export type LoadTeamChannelListPayload = ReturnType<typeof createLoadTeamChannelList>
 export type LoadTeamPayload = ReturnType<typeof createLoadTeam>
 export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
 export type LoadWelcomeMessagePayload = ReturnType<typeof createLoadWelcomeMessage>
@@ -833,7 +816,6 @@ export type SettingsErrorPayload = ReturnType<typeof createSettingsError>
 export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
 export type StartAddMembersWizardPayload = ReturnType<typeof createStartAddMembersWizard>
 export type StartNewTeamWizardPayload = ReturnType<typeof createStartNewTeamWizard>
-export type TeamChannelListLoadedPayload = ReturnType<typeof createTeamChannelListLoaded>
 export type TeamCreatedPayload = ReturnType<typeof createTeamCreated>
 export type TeamLoadedPayload = ReturnType<typeof createTeamLoaded>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
@@ -885,7 +867,6 @@ export type Actions =
   | LaunchNewTeamWizardOrModalPayload
   | LeaveTeamPayload
   | LeftTeamPayload
-  | LoadTeamChannelListPayload
   | LoadTeamPayload
   | LoadTeamTreePayload
   | LoadWelcomeMessagePayload
@@ -949,7 +930,6 @@ export type Actions =
   | ShowTeamByNamePayload
   | StartAddMembersWizardPayload
   | StartNewTeamWizardPayload
-  | TeamChannelListLoadedPayload
   | TeamCreatedPayload
   | TeamLoadedPayload
   | TeamSeenPayload

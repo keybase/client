@@ -5,7 +5,6 @@ import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamConstants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
 import * as RPCChatGen from '../../../../constants/types/rpc-chat-gen'
-import * as TeamsGen from '../../../../actions/teams-gen'
 import type * as TeamTypes from '../../../../constants/types/teams'
 import type * as Types from '../../../../constants/types/chat2'
 import {useTeamDetailsSubscribe} from '../../../../teams/subscriber'
@@ -50,13 +49,14 @@ const AddToChannel = (props: Props) => {
   const addToChannel = Container.useRPC(RPCChatGen.localBulkAddToConvRpcPromise)
 
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const loadTeamChannelList = TeamConstants.useState(s => s.dispatch.loadTeamChannelList)
   const onAdd = () => {
     setWaiting(true)
     addToChannel(
       [{convID: ChatTypes.keyToConversationID(conversationIDKey), usernames: [...toAdd]}],
       () => {
         setWaiting(false)
-        dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+        loadTeamChannelList(teamID)
         onClose()
       },
       e => {

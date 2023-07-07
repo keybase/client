@@ -135,7 +135,7 @@ export const useChannelsSections = (
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
   const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
-  const channels = Container.useSelector(state => state.teams.channelInfo.get(teamID))
+  const channels = Constants.useState(s => s.channelInfo.get(teamID))
   const canCreate = Container.useSelector(state => Constants.getCanPerformByID(state, teamID).createChannel)
 
   if (!isBig) {

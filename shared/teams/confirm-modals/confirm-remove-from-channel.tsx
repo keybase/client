@@ -31,6 +31,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
 
+  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
   const removeFromChannel = Container.useRPC(RPCChatGen.localRemoveFromConversationLocalRpcPromise)
 
   const onRemove = () => {
@@ -49,7 +50,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
           })
         )
         dispatch(nav.safeNavigateUpPayload())
-        dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+        loadTeamChannelList(teamID)
       },
       err => {
         setWaiting(false)

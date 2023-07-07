@@ -1,15 +1,15 @@
-import * as RPCChatTypes from './types/rpc-chat-gen'
-import logger from '../logger'
-import * as RPCTypes from './types/rpc-gen'
-import * as Types from './types/teams'
+import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
+import * as RPCChatTypes from './types/rpc-chat-gen'
+import * as RPCTypes from './types/rpc-gen'
 import * as TeamBuildingConstants from './team-building'
-import invert from 'lodash/invert'
-import type * as ChatTypes from './types/chat2'
-import type {TypedState} from './reducer'
-import type {RetentionPolicy} from './types/retention-policy'
-import {memoize} from '../util/memoize'
+import * as Types from './types/teams'
 import * as Z from '../util/zustand'
+import invert from 'lodash/invert'
+import logger from '../logger'
+import type {RetentionPolicy} from './types/retention-policy'
+import type {TypedState} from './reducer'
+import {memoize} from '../util/memoize'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
@@ -109,10 +109,10 @@ const emptyTeamChannelInfo: Types.TeamChannelInfo = {
 }
 
 export const getTeamChannelInfo = (
-  state: TypedState,
+  _state: unknown,
   teamID: Types.TeamID,
   conversationIDKey: ChatTypes.ConversationIDKey
-) => state.teams.channelInfo.get(teamID)?.get(conversationIDKey) ?? emptyTeamChannelInfo
+) => useState.getState().channelInfo.get(teamID)?.get(conversationIDKey) ?? emptyTeamChannelInfo
 
 export const teamRoleByEnum = ((m: {[K in Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
   const mInv: {[K in RPCTypes.TeamRole]?: Types.MaybeTeamRoleType} = {}
@@ -222,7 +222,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
-  channelInfo: new Map(),
   channelSelectedMembers: new Map(),
   creatingChannels: false,
   deletedTeams: [],
@@ -1008,12 +1007,14 @@ type Store = {
   activityLevels: Types.ActivityLevels
   addUserToTeamsState: Types.AddUserToTeamsState
   addUserToTeamsResults: string
+  channelInfo: Map<Types.TeamID, Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>>
 }
 
 const initialStore: Store = {
   activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
-  addUserToTeamsState: 'notStarted',
   addUserToTeamsResults: '',
+  addUserToTeamsState: 'notStarted',
+  channelInfo: new Map(),
 }
 
 export type State = Store & {
@@ -1021,6 +1022,7 @@ export type State = Store & {
     addUserToTeams: (role: Types.TeamRoleType, teams: Array<string>, user: string) => void
     clearAddUserToTeamsResults: () => void
     getActivityForTeams: () => void
+    loadTeamChannelList: (teamID: Types.TeamID) => void
     resetState: 'default'
   }
 }
@@ -1125,6 +1127,51 @@ export const useState = Z.createZustand<State>((set, _get) => {
           logger.warn(e)
         }
         return
+      }
+      Z.ignorePromise(f())
+    },
+    loadTeamChannelList: teamID => {
+      const f = async () => {
+        const teamname = getTeamMeta(getReduxStore(), teamID).teamname
+        if (!teamname) {
+          logger.warn('bailing on no teamMeta')
+          return
+        }
+        try {
+          const {convs} = await RPCChatTypes.localGetTLFConversationsLocalRpcPromise({
+            membersType: RPCChatTypes.ConversationMembersType.team,
+            tlfName: teamname,
+            topicType: RPCChatTypes.TopicType.chat,
+          })
+          const channels =
+            convs?.reduce<Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>>((res, inboxUIItem) => {
+              const conversationIDKey = ChatTypes.stringToConversationIDKey(inboxUIItem.convID)
+              res.set(conversationIDKey, {
+                channelname: inboxUIItem.channel,
+                conversationIDKey,
+                description: inboxUIItem.headline,
+              })
+              return res
+            }, new Map()) ?? new Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>()
+
+          // ensure we refresh participants, but don't fail the saga if this somehow fails
+          try {
+            for (const c of channels.values()) {
+              Z.ignorePromise(
+                RPCChatTypes.localRefreshParticipantsRpcPromise({
+                  convID: ChatTypes.keyToConversationID(c.conversationIDKey),
+                })
+              )
+            }
+          } catch (e) {
+            logger.error('this should never happen', e)
+          }
+          set(s => {
+            s.channelInfo.set(teamID, channels)
+          })
+        } catch (err) {
+          logger.warn(err)
+        }
       }
       Z.ignorePromise(f())
     },

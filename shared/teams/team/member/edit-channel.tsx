@@ -46,14 +46,14 @@ const EditChannel = (props: Props) => {
   const wasWaiting = Container.usePrevious(waiting)
 
   const triggerEditUpdated = useEditState(s => s.dispatch.triggerEditUpdated)
-
+  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
       dispatch(nav.safeNavigateUpPayload())
-      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+      loadTeamChannelList(teamID)
       triggerEditUpdated()
     }
-  }, [dispatch, nav, waiting, wasWaiting, triggerEditUpdated, teamID])
+  }, [loadTeamChannelList, dispatch, nav, waiting, wasWaiting, triggerEditUpdated, teamID])
 
   return (
     <Kb.Modal

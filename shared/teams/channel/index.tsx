@@ -69,9 +69,11 @@ const useLoadDataForChannelPage = (
         .map(botUsername => dispatch(BotsGen.createSearchFeaturedBots({query: botUsername})))
     }
   }, [selectedTab, dispatch, conversationIDKey, prevSelectedTab, bots, featuredBotsMap])
+
+  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
   React.useEffect(() => {
-    dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
-  }, [dispatch, teamID])
+    loadTeamChannelList(teamID)
+  }, [loadTeamChannelList, teamID])
 }
 
 // keep track during session

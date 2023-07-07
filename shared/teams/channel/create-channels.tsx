@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/teams'
 import CreateChannelsModal from '../new-team/wizard/create-channels'
 
 type Props = {teamID: Types.TeamID}
@@ -20,11 +21,12 @@ const CreateChannels = (props: Props) => {
   const error = Container.useSelector(s => s.teams.errorInChannelCreation)
   const prevWaiting = Container.usePrevious(waiting)
 
+  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
   React.useEffect(() => {
     if (prevWaiting === true && !waiting) {
-      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+      loadTeamChannelList(teamID)
     }
-  }, [dispatch, prevWaiting, teamID, waiting])
+  }, [loadTeamChannelList, prevWaiting, teamID, waiting])
 
   const success = prevWaiting && !waiting && !error
 
