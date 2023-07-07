@@ -260,10 +260,6 @@
     "setTeamAccessRequestsPending": {
       "accessRequestsPending": "Set<Types.Teamname>"
     },
-    "setNewTeamRequests": {
-      "_description": "Set which requests we haven't seen yet for a team.",
-      "newTeamRequests": "Map<Types.TeamID, Set<string>>"
-    },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},
     "updateChannelName": {

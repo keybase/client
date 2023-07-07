@@ -400,9 +400,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       addToChannels.splice(maybeRemoveIdx, 1)
     }
   },
-  [TeamsGen.setNewTeamRequests]: (draftState, action) => {
-    draftState.newTeamRequests = action.payload.newTeamRequests
-  },
   [TeamsGen.setTeamListFilterSort]: (draftState, action) => {
     const {filter, sortOrder} = action.payload
     if (filter !== undefined) {

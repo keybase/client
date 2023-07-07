@@ -1173,7 +1173,7 @@ const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
     actions.push(TeamsGen.createSetTeamSawSubteamsBanner())
   }
 
-  actions.push(TeamsGen.createSetNewTeamRequests({newTeamRequests}))
+  Constants.useState.getState().dispatch.setNewTeamRequests(newTeamRequests)
 
   const teamsWithChosenChannels = new Set<Types.Teamname>(
     GregorConstants.bodyToJSON(chosenChannels?.item.body)

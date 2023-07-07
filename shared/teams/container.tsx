@@ -26,7 +26,7 @@ const useHeaderActions = () => {
 
 const orderTeamsImpl = (
   teams: Map<string, Types.TeamMeta>,
-  newRequests: Types.State['newTeamRequests'],
+  newRequests: Constants.State['newTeamRequests'],
   teamIDToResetUsers: Constants.State['teamIDToResetUsers'],
   newTeams: Constants.State['newTeams'],
   sortOrder: Types.TeamListSort,
@@ -94,7 +94,7 @@ const Connected = () => {
   const deletedTeams = Constants.useState(s => s.deletedTeams)
   const filter = Container.useSelector(state => state.teams.teamListFilter)
   const loaded = !Container.useAnyWaiting(Constants.teamsLoadedWaitingKey)
-  const newTeamRequests = Container.useSelector(state => state.teams.newTeamRequests)
+  const newTeamRequests = Constants.useState(s => s.newTeamRequests)
   const newTeams = Constants.useState(s => s.newTeams)
   const sawChatBanner = Container.useSelector(state => state.teams.sawChatBanner || false)
   const sortOrder = Container.useSelector(state => state.teams.teamListSort)

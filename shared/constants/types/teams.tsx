@@ -276,7 +276,6 @@ export type State = {
   teamnames: Set<Teamname> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap
-  newTeamRequests: Map<TeamID, Set<string>>
   teamBuilding: TeamBuildingSubState
   newTeamWizard: NewTeamWizardState
 

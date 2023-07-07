@@ -22,7 +22,7 @@ export default (ownProps: OwnProps) => {
     Constants.teamWaitingKey(teamID),
     Constants.teamTarsWaitingKey(teamMeta.teamname),
   ])
-  const newTeamRequests = Container.useSelector(state => state.teams.newTeamRequests)
+  const newTeamRequests = Constants.useState(s => s.newTeamRequests)
   const numInvites = teamDetails.invites?.size ?? 0
   const numRequests = teamDetails.requests?.size ?? 0
   const numSubteams = teamDetails.subteams?.size ?? 0

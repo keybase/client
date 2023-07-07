@@ -234,7 +234,6 @@ const emptyState: Types.State = {
   errorInTeamInvite: '',
   errorInTeamJoin: '',
   invitesCollapsed: new Set(),
-  newTeamRequests: new Map(),
   newTeamWizard: newTeamWizardEmptyState,
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -849,7 +848,7 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
 // Keep in sync with constants/notifications#badgeStateToBadgeCounts
 // Don't count new team because those are shown with a 'NEW' meta instead of badge
 export const getTeamRowBadgeCount = (
-  newTeamRequests: Types.State['newTeamRequests'],
+  newTeamRequests: Store['newTeamRequests'],
   teamIDToResetUsers: Store['teamIDToResetUsers'],
   teamID: Types.TeamID
 ) => {
@@ -1008,6 +1007,7 @@ export type Store = {
   creatingChannels: boolean
   deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   errorInChannelCreation: string
+  newTeamRequests: Map<Types.TeamID, Set<string>>
   newTeams: Set<Types.TeamID>
   teamIDToResetUsers: Map<Types.TeamID, Set<string>>
 }
@@ -1021,6 +1021,7 @@ const initialStore: Store = {
   creatingChannels: false,
   deletedTeams: [],
   errorInChannelCreation: '',
+  newTeamRequests: new Map(),
   newTeams: new Set(),
   teamIDToResetUsers: new Map(),
 }
@@ -1045,6 +1046,7 @@ export type State = Store & {
       newTeams: Set<Types.TeamID>,
       teamIDToResetUsers: Map<Types.TeamID, Set<string>>
     ) => void
+    setNewTeamRequests: (newTeamRequests: Map<Types.TeamID, Set<string>>) => void
   }
 }
 
@@ -1247,21 +1249,22 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     resetState: 'default',
-    setChannelCreationError: (error: string) => {
+    setChannelCreationError: error => {
       set(s => {
         s.creatingChannels = false
         s.errorInChannelCreation = error
       })
     },
-    setNewTeamInfo: (
-      deletedTeams: Array<RPCTypes.DeletedTeamInfo>,
-      newTeams: Set<Types.TeamID>,
-      teamIDToResetUsers: Map<Types.TeamID, Set<string>>
-    ) => {
+    setNewTeamInfo: (deletedTeams, newTeams, teamIDToResetUsers) => {
       set(s => {
         s.deletedTeams = deletedTeams
         s.newTeams = newTeams
         s.teamIDToResetUsers = teamIDToResetUsers
+      })
+    },
+    setNewTeamRequests: newTeamRequests => {
+      set(s => {
+        s.newTeamRequests = newTeamRequests
       })
     },
   }

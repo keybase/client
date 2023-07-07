@@ -67,7 +67,6 @@ export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersW
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setMembers = 'teams:setMembers'
-export const setNewTeamRequests = 'teams:setNewTeamRequests'
 export const setPublicity = 'teams:setPublicity'
 export const setSubteamFilter = 'teams:setSubteamFilter'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
@@ -277,12 +276,6 @@ export const createSetWelcomeMessage = (payload: {
   readonly teamID: Types.TeamID
   readonly message: RPCChatTypes.WelcomeMessage
 }) => ({payload, type: setWelcomeMessage as typeof setWelcomeMessage})
-/**
- * Set which requests we haven't seen yet for a team.
- */
-export const createSetNewTeamRequests = (payload: {
-  readonly newTeamRequests: Map<Types.TeamID, Set<string>>
-}) => ({payload, type: setNewTeamRequests as typeof setNewTeamRequests})
 /**
  * Sets the retention policy for a team. The store will be updated automatically.
  */
@@ -743,7 +736,6 @@ export type SetJustFinishedAddMembersWizardPayload = ReturnType<typeof createSet
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type SetMemberPublicityPayload = ReturnType<typeof createSetMemberPublicity>
 export type SetMembersPayload = ReturnType<typeof createSetMembers>
-export type SetNewTeamRequestsPayload = ReturnType<typeof createSetNewTeamRequests>
 export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
 export type SetSubteamFilterPayload = ReturnType<typeof createSetSubteamFilter>
 export type SetTeamAccessRequestsPendingPayload = ReturnType<typeof createSetTeamAccessRequestsPending>
@@ -854,7 +846,6 @@ export type Actions =
   | SetMemberActivityDetailsPayload
   | SetMemberPublicityPayload
   | SetMembersPayload
-  | SetNewTeamRequestsPayload
   | SetPublicityPayload
   | SetSubteamFilterPayload
   | SetTeamAccessRequestsPendingPayload

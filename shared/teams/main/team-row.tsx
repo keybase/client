@@ -41,8 +41,8 @@ const TeamRow = (props: Props) => {
   const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
   const teamIDToResetUsers = Constants.useState(s => s.teamIDToResetUsers)
-  const badgeCount = Container.useSelector(s =>
-    Constants.getTeamRowBadgeCount(s.teams.newTeamRequests, teamIDToResetUsers, teamID)
+  const badgeCount = Constants.useState(s =>
+    Constants.getTeamRowBadgeCount(s.newTeamRequests, teamIDToResetUsers, teamID)
   )
   const isNew = Constants.useState(s => s.newTeams.has(teamID))
 
