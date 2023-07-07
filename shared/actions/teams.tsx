@@ -831,36 +831,6 @@ const createChannel = async (
   }
 }
 
-const createChannels = async (state: Container.TypedState, action: TeamsGen.CreateChannelsPayload) => {
-  const {teamID, channelnames} = action.payload
-  const teamname = Constants.getTeamNameFromID(state, teamID)
-
-  if (teamname === null) {
-    return TeamsGen.createSetChannelCreationError({error: 'Invalid team name'})
-  }
-
-  try {
-    for (const c of channelnames) {
-      await RPCChatTypes.localNewConversationLocalRpcPromise({
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.ConversationMembersType.team,
-        tlfName: teamname ?? '',
-        tlfVisibility: RPCTypes.TLFVisibility.private,
-        topicName: c,
-        topicType: RPCChatTypes.TopicType.chat,
-      })
-    }
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    return TeamsGen.createSetChannelCreationError({error: error.desc})
-  }
-
-  Constants.useState.getState().dispatch.loadTeamChannelList(teamID)
-  return TeamsGen.createSetCreatingChannels({creatingChannels: false})
-}
-
 const setMemberPublicity = async (_: unknown, action: TeamsGen.SetMemberPublicityPayload) => {
   const {teamID, showcase} = action.payload
   try {
@@ -1551,7 +1521,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.ignoreRequest, ignoreRequest)
   Container.listenAction(TeamsGen.editTeamDescription, editDescription)
   Container.listenAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
-  Container.listenAction(TeamsGen.createChannels, createChannels)
   Container.listenAction(TeamsGen.editMembership, editMembership)
   Container.listenAction(TeamsGen.removeMember, removeMember)
   Container.listenAction(TeamsGen.removePendingInvite, removePendingInvite)

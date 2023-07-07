@@ -8,7 +8,6 @@ import * as Constants from '../../../constants/teams'
 import * as ProfileConstants from '../../../constants/profile'
 import * as ChatConstants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as UsersGen from '../../../actions/users-gen'
@@ -78,8 +77,10 @@ const ChannelMemberRow = (props: Props) => {
   const anySelected = !!channelSelectedMembers?.size
   const memberSelected = !!channelSelectedMembers?.has(username)
 
+  const channelSetMemberSelected = Constants.useState(s => s.dispatch.channelSetMemberSelected)
+
   const onSelect = (selected: boolean) => {
-    dispatch(TeamsGen.createChannelSetMemberSelected({conversationIDKey, selected, username: username}))
+    channelSetMemberSelected(conversationIDKey, username, selected)
   }
   const onChat = React.useCallback(() => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))

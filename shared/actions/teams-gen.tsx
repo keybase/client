@@ -17,12 +17,10 @@ export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const addToTeam = 'teams:addToTeam'
 export const addedToTeam = 'teams:addedToTeam'
 export const cancelAddMembersWizard = 'teams:cancelAddMembersWizard'
-export const channelSetMemberSelected = 'teams:channelSetMemberSelected'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearNavBadges = 'teams:clearNavBadges'
 export const createChannel = 'teams:createChannel'
-export const createChannels = 'teams:createChannels'
 export const createNewTeam = 'teams:createNewTeam'
 export const createNewTeamFromConversation = 'teams:createNewTeamFromConversation'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
@@ -63,7 +61,6 @@ export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndiv
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setChannelSelected = 'teams:setChannelSelected'
-export const setCreatingChannels = 'teams:setCreatingChannels'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEditMemberError = 'teams:setEditMemberError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
@@ -307,15 +304,6 @@ export const createSetChannelSelected = (payload: {
 /**
  * Sets whether a member is selected on the team page
  */
-export const createChannelSetMemberSelected = (payload: {
-  readonly conversationIDKey: ChatTypes.ConversationIDKey
-  readonly username: string
-  readonly selected: boolean
-  readonly clearAll?: boolean
-}) => ({payload, type: channelSetMemberSelected as typeof channelSetMemberSelected})
-/**
- * Sets whether a member is selected on the team page
- */
 export const createTeamSetMemberSelected = (payload: {
   readonly teamID: Types.TeamID
   readonly username: string
@@ -417,10 +405,6 @@ export const createCreateChannel = (payload: {
   readonly description?: string
   readonly navToChatOnSuccess: boolean
 }) => ({payload, type: createChannel as typeof createChannel})
-export const createCreateChannels = (payload: {
-  readonly teamID: Types.TeamID
-  readonly channelnames: Array<string>
-}) => ({payload, type: createChannels as typeof createChannels})
 export const createCreateNewTeam = (payload: {
   readonly fromChat?: boolean
   readonly joinSubteam: boolean
@@ -524,10 +508,6 @@ export const createSaveChannelMembership = (payload: {
 export const createSetChannelCreationError = (payload: {readonly error: string}) => ({
   payload,
   type: setChannelCreationError as typeof setChannelCreationError,
-})
-export const createSetCreatingChannels = (payload: {readonly creatingChannels: boolean}) => ({
-  payload,
-  type: setCreatingChannels as typeof setCreatingChannels,
 })
 export const createSetEditDescriptionError = (payload: {readonly error: string}) => ({
   payload,
@@ -722,12 +702,10 @@ export type AddTeamWithChosenChannelsPayload = ReturnType<typeof createAddTeamWi
 export type AddToTeamPayload = ReturnType<typeof createAddToTeam>
 export type AddedToTeamPayload = ReturnType<typeof createAddedToTeam>
 export type CancelAddMembersWizardPayload = ReturnType<typeof createCancelAddMembersWizard>
-export type ChannelSetMemberSelectedPayload = ReturnType<typeof createChannelSetMemberSelected>
 export type CheckRequestedAccessPayload = ReturnType<typeof createCheckRequestedAccess>
 export type ClearAddUserToTeamsResultsPayload = ReturnType<typeof createClearAddUserToTeamsResults>
 export type ClearNavBadgesPayload = ReturnType<typeof createClearNavBadges>
 export type CreateChannelPayload = ReturnType<typeof createCreateChannel>
-export type CreateChannelsPayload = ReturnType<typeof createCreateChannels>
 export type CreateNewTeamFromConversationPayload = ReturnType<typeof createCreateNewTeamFromConversation>
 export type CreateNewTeamPayload = ReturnType<typeof createCreateNewTeam>
 export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
@@ -770,7 +748,6 @@ export type SetAddMembersWizardIndividualRolePayload = ReturnType<
 export type SetAddMembersWizardRolePayload = ReturnType<typeof createSetAddMembersWizardRole>
 export type SetChannelCreationErrorPayload = ReturnType<typeof createSetChannelCreationError>
 export type SetChannelSelectedPayload = ReturnType<typeof createSetChannelSelected>
-export type SetCreatingChannelsPayload = ReturnType<typeof createSetCreatingChannels>
 export type SetEditDescriptionErrorPayload = ReturnType<typeof createSetEditDescriptionError>
 export type SetEditMemberErrorPayload = ReturnType<typeof createSetEditMemberError>
 export type SetEmailInviteErrorPayload = ReturnType<typeof createSetEmailInviteError>
@@ -840,12 +817,10 @@ export type Actions =
   | AddToTeamPayload
   | AddedToTeamPayload
   | CancelAddMembersWizardPayload
-  | ChannelSetMemberSelectedPayload
   | CheckRequestedAccessPayload
   | ClearAddUserToTeamsResultsPayload
   | ClearNavBadgesPayload
   | CreateChannelPayload
-  | CreateChannelsPayload
   | CreateNewTeamFromConversationPayload
   | CreateNewTeamPayload
   | DeleteChannelConfirmedPayload
@@ -886,7 +861,6 @@ export type Actions =
   | SetAddMembersWizardRolePayload
   | SetChannelCreationErrorPayload
   | SetChannelSelectedPayload
-  | SetCreatingChannelsPayload
   | SetEditDescriptionErrorPayload
   | SetEditMemberErrorPayload
   | SetEmailInviteErrorPayload

@@ -15,7 +15,7 @@ type OwnProps = {
 const Wrapped = (p: OwnProps) => {
   const teamID = p.teamID ?? TeamsTypes.noTeamID
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
-  const errorText = Container.useSelector(state => upperFirst(state.teams.errorInChannelCreation))
+  const errorText = TeamsConstants.useState(s => upperFirst(s.errorInChannelCreation))
   const teamname = Container.useSelector(state => TeamsConstants.getTeamNameFromID(state, teamID) ?? '')
   const dispatch = Container.useDispatch()
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])

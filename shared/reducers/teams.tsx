@@ -30,16 +30,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.resetStore]: () => {
     return initialState
   },
-  [TeamsGen.setChannelCreationError]: (draftState, action) => {
-    draftState.creatingChannels = false
-    draftState.errorInChannelCreation = action.payload.error
-  },
-  [TeamsGen.createChannels]: draftState => {
-    draftState.creatingChannels = true
-  },
-  [TeamsGen.setCreatingChannels]: (draftState, action) => {
-    draftState.creatingChannels = action.payload.creatingChannels
-  },
   [TeamsGen.createNewTeam]: draftState => {
     draftState.errorInTeamCreation = ''
   },

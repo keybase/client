@@ -28,10 +28,6 @@
       "description?": "string",
       "navToChatOnSuccess": "boolean"
     },
-    "createChannels": {
-      "teamID": "Types.TeamID",
-      "channelnames": "Array<string>"
-    },
     "clearAddUserToTeamsResults": {},
     "setEmailInviteError": {
       "message": "string",
@@ -213,9 +209,6 @@
       "teamID": "Types.TeamID",
       "settings": "Types.PublicitySettings"
     },
-    "setChannelCreationError": {
-      "error": "string"
-    },
     "setWelcomeMessageError": {
       "error": "string"
     },
@@ -359,9 +352,6 @@
       "_description": "Set the role for a pending member in the add member wizard.",
       "assertion": "string",
       "role": "Types.AddingMemberTeamRoleType"
-    },
-    "setCreatingChannels": {
-      "creatingChannels": "boolean"
     },
     "addMembersWizardPushMembers": {
       "_description": "Should be called when user is trying to add new assertions to the wizard",

@@ -1,4 +1,5 @@
 import * as ChatTypes from './types/chat2'
+import {RPCError} from '../util/errors'
 import * as ConfigConstants from './config'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -223,10 +224,8 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
-  creatingChannels: false,
   deletedTeams: [],
   errorInAddToTeam: '',
-  errorInChannelCreation: '',
   errorInEditDescription: '',
   errorInEditMember: emptyErrorInEditMember,
   errorInEditWelcomeMessage: '',
@@ -1009,6 +1008,8 @@ type Store = {
   addUserToTeamsResults: string
   channelInfo: Map<Types.TeamID, Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>>
   channelSelectedMembers: Map<ChatTypes.ConversationIDKey, Set<string>>
+  creatingChannels: boolean
+  errorInChannelCreation: string
 }
 
 const initialStore: Store = {
@@ -1017,6 +1018,8 @@ const initialStore: Store = {
   addUserToTeamsState: 'notStarted',
   channelInfo: new Map(),
   channelSelectedMembers: new Map(),
+  creatingChannels: false,
+  errorInChannelCreation: '',
 }
 
 export type State = Store & {
@@ -1029,13 +1032,15 @@ export type State = Store & {
       clearAll?: boolean
     ) => void
     clearAddUserToTeamsResults: () => void
+    createChannels: (teamID: Types.TeamID, channelnames: Array<string>) => void
     getActivityForTeams: () => void
     loadTeamChannelList: (teamID: Types.TeamID) => void
     resetState: 'default'
+    setChannelCreationError: (error: string) => void
   }
 }
 
-export const useState = Z.createZustand<State>((set, _get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   // const reduxDispatch = Z.getReduxDispatch()
   const getReduxStore = Z.getReduxStore() // TODO remoe >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   const dispatch: State['dispatch'] = {
@@ -1119,6 +1124,42 @@ export const useState = Z.createZustand<State>((set, _get) => {
         s.addUserToTeamsState = 'notStarted'
       })
     },
+    createChannels: (teamID, channelnames) => {
+      set(s => {
+        s.creatingChannels = true
+      })
+      const f = async () => {
+        const teamname = getTeamNameFromID(getReduxStore(), teamID)
+        if (teamname === null) {
+          get().dispatch.setChannelCreationError('Invalid team name')
+          return
+        }
+
+        try {
+          for (const c of channelnames) {
+            await RPCChatTypes.localNewConversationLocalRpcPromise({
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              membersType: RPCChatTypes.ConversationMembersType.team,
+              tlfName: teamname ?? '',
+              tlfVisibility: RPCTypes.TLFVisibility.private,
+              topicName: c,
+              topicType: RPCChatTypes.TopicType.chat,
+            })
+          }
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          get().dispatch.setChannelCreationError(error.desc)
+          return
+        }
+        get().dispatch.loadTeamChannelList(teamID)
+        set(s => {
+          s.creatingChannels = false
+        })
+      }
+      Z.ignorePromise(f())
+    },
     getActivityForTeams: () => {
       const f = async () => {
         try {
@@ -1198,6 +1239,12 @@ export const useState = Z.createZustand<State>((set, _get) => {
       Z.ignorePromise(f())
     },
     resetState: 'default',
+    setChannelCreationError: (error: string) => {
+      set(s => {
+        s.creatingChannels = false
+        s.errorInChannelCreation = error
+      })
+    },
   }
   return {
     ...initialStore,

@@ -17,11 +17,12 @@ const CreateChannels = (props: Props) => {
     },
     [teamID, dispatch]
   )
-  const waiting = Container.useSelector(s => s.teams.creatingChannels)
-  const error = Container.useSelector(s => s.teams.errorInChannelCreation)
+  const waiting = Constants.useState(s => s.creatingChannels)
+  const error = Constants.useState(s => s.errorInChannelCreation)
   const prevWaiting = Container.usePrevious(waiting)
 
   const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
+  const createChannels = Constants.useState(s => s.dispatch.createChannels)
   React.useEffect(() => {
     if (prevWaiting === true && !waiting) {
       loadTeamChannelList(teamID)
@@ -45,12 +46,7 @@ const CreateChannels = (props: Props) => {
   )
 
   const onSubmitChannels = (channels: Array<string>) => {
-    dispatch(
-      TeamsGen.createCreateChannels({
-        channelnames: channels,
-        teamID,
-      })
-    )
+    createChannels(teamID, channels)
   }
   return (
     <CreateChannelsModal

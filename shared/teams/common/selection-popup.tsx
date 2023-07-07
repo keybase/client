@@ -186,19 +186,11 @@ const TeamSelectionPopup = (props: TeamProps) => {
 const ChannelSelectionPopup = (props: ChannelProps) => {
   const {conversationIDKey, selectedTab, teamID} = props
   const selectedCount = getChannelSelectedCount(props)
-  const dispatch = Container.useDispatch()
-
+  const channelSetMemberSelected = Constants.useState(s => s.dispatch.channelSetMemberSelected)
   const onCancel = () => {
     switch (selectedTab) {
       case 'channelMembers':
-        dispatch(
-          TeamsGen.createChannelSetMemberSelected({
-            clearAll: true,
-            conversationIDKey,
-            selected: false,
-            username: '',
-          })
-        )
+        channelSetMemberSelected(conversationIDKey, '', false, true)
         return
     }
   }

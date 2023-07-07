@@ -234,10 +234,8 @@ export type TeamInviteState = {
 
 export type State = {
   addMembersWizard: AddMembersWizardState
-  creatingChannels: boolean
   deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   errorInAddToTeam: string
-  errorInChannelCreation: string
   errorInEditDescription: string
   errorInEditMember: {error: string; teamID: TeamID; username: string}
   errorInEditWelcomeMessage: string
