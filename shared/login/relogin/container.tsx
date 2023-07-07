@@ -1,13 +1,13 @@
-import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SignupGen from '../../actions/signup-gen'
-import Login from '.'
-import sortBy from 'lodash/sortBy'
-import * as Container from '../../util/container'
-import type * as ConfigTypes from '../../constants/types/config'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/provision'
+import * as SignupConstants from '../../constants/signup'
+import * as Container from '../../util/container'
+import * as React from 'react'
 import * as RecoverConstants from '../../constants/recover-password'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import Login from '.'
+import sortBy from 'lodash/sortBy'
+import type * as ConfigTypes from '../../constants/types/config'
 
 const needPasswordError = 'passphrase cannot be empty'
 
@@ -108,9 +108,8 @@ export default () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
   }
   const onLogin = ConfigConstants.useConfigState(s => s.dispatch.login)
-  const onSignup = () => {
-    dispatch(SignupGen.createRequestAutoInvite())
-  }
+  const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
+  const onSignup = requestAutoInvite
   const onSomeoneElse = Constants.useState(s => s.dispatch.startProvision)
   const props = {
     error: error?.desc || '',

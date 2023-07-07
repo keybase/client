@@ -2,7 +2,6 @@ import type * as Types from '../constants/types/signup'
 import * as SignupGen from '../actions/signup-gen'
 import HiddenString from '../util/hidden-string'
 import trim from 'lodash/trim'
-import {isValidUsername} from '../util/simple-validators'
 import * as Container from '../util/container'
 import * as Constants from '../constants/signup'
 
@@ -14,35 +13,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [SignupGen.resetStore]: () => ({
     ...initialState,
   }),
-  [SignupGen.requestAutoInvite]: (draftState, action) => {
-    if (action.payload.username) {
-      draftState.username = action.payload.username
-    }
-  },
-  [SignupGen.requestedAutoInvite]: (draftState, action) => {
-    draftState.inviteCode = action.payload.error ? '' : action.payload.inviteCode ?? ''
-  },
-  [SignupGen.checkInviteCode]: (draftState, action) => {
-    draftState.inviteCode = action.payload.inviteCode
-  },
-  [SignupGen.checkedInviteCode]: (draftState, action) => {
-    if (action.payload.inviteCode === draftState.inviteCode) {
-      draftState.inviteCodeError = action.payload.error ? action.payload.error : ''
-    }
-  },
-  [SignupGen.checkUsername]: (draftState, action) => {
-    const {username} = action.payload
-    draftState.username = username
-    draftState.usernameError = isValidUsername(username)
-    draftState.usernameTaken = ''
-  },
-  [SignupGen.checkedUsername]: (draftState, action) => {
-    const {username, usernameTaken = '', error: usernameError} = action.payload
-    if (username === draftState.username) {
-      draftState.usernameError = usernameError
-      draftState.usernameTaken = usernameTaken
-    }
-  },
   [SignupGen.checkPassword]: (draftState, action) => {
     const {pass1, pass2} = action.payload
     const p1 = pass1.stringValue()

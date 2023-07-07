@@ -1,9 +1,9 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as SignupGen from '../../actions/signup-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/provision'
-import Intro from '.'
 import * as Container from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as SignupConstants from '../../constants/signup'
+import Intro from '.'
 
 export default () => {
   const justDeletedSelf = ConfigConstants.useConfigState(s => s.justDeletedSelf)
@@ -23,9 +23,8 @@ export default () => {
   }
   const checkIsOnline = loadIsOnline
   const onLogin = Constants.useState(s => s.dispatch.startProvision)
-  const onSignup = () => {
-    dispatch(SignupGen.createRequestAutoInvite())
-  }
+  const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
+  const onSignup = requestAutoInvite
   const showProxySettings = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['proxySettingsModal']}))
   }

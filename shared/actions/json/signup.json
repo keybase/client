@@ -4,29 +4,9 @@
     "import type {RPCError} from '../util/errors'"
   ],
   "actions": {
-    "requestAutoInvite": {
-      "username?": "string"
-    },
-    "requestedAutoInvite": {
-      "inviteCode?": "string",
-      "error?": "boolean"
-    },
-    "checkInviteCode": {"inviteCode": "string"},
-    "checkedInviteCode": {
-      "inviteCode": "string",
-      "error?": "string"
-    },
     "checkPassword": {
       "pass1": "HiddenString",
       "pass2": "HiddenString"
-    },
-    "checkUsername": {
-      "username": "string"
-    },
-    "checkedUsername": {
-      "username": "string",
-      "usernameTaken?": "string",
-      "error": "string"
     },
     "signedup": {
       "error?": "RPCError"

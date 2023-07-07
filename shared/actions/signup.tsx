@@ -3,7 +3,6 @@ import * as EngineGen from './engine-gen-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import * as Constants from '../constants/signup'
-import * as ConfigConstants from '../constants/config'
 import * as SettingsConstants from '../constants/settings'
 import * as PushConstants from '../constants/push'
 import * as SignupGen from './signup-gen'
@@ -13,17 +12,6 @@ import * as Container from '../util/container'
 import {RPCError} from '../util/errors'
 
 const noErrors = Constants.noErrors
-
-const showUserOnNoErrors = (state: Container.TypedState) =>
-  noErrors(state) && [
-    RouteTreeGen.createNavigateUp(),
-    RouteTreeGen.createNavigateAppend({path: ['signupEnterUsername']}),
-  ]
-
-const showInviteScreen = () => RouteTreeGen.createNavigateAppend({path: ['signupInviteCode']})
-
-const showDeviceScreenOnNoErrors = (state: Container.TypedState) =>
-  noErrors(state) && RouteTreeGen.createNavigateAppend({path: ['signupEnterDevicename']})
 
 const showErrorOrCleanupAfterSignup = (state: Container.TypedState) =>
   noErrors(state)
@@ -36,67 +24,6 @@ const setEmailVisibilityAfterSignup = (state: Container.TypedState) =>
   SettingsConstants.useEmailState
     .getState()
     .dispatch.editEmail({email: Constants.useState.getState().email, makeSearchable: true})
-
-// Validation side effects ///////////////////////////////////////////////////////////
-const checkInviteCode = async (state: Container.TypedState) => {
-  try {
-    await RPCTypes.signupCheckInvitationCodeRpcPromise(
-      {invitationCode: state.signup.inviteCode},
-      Constants.waitingKey
-    )
-    return SignupGen.createCheckedInviteCode({inviteCode: state.signup.inviteCode})
-  } catch (error) {
-    if (error instanceof RPCError) {
-      return SignupGen.createCheckedInviteCode({error: error.desc, inviteCode: state.signup.inviteCode})
-    }
-    return
-  }
-}
-
-const requestAutoInvite = async () => {
-  // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
-  if (ConfigConstants.useConfigState.getState().loggedIn) {
-    await RPCTypes.loginLogoutRpcPromise(
-      {force: false, keepSecrets: true},
-      ConfigConstants.createOtherAccountWaitingKey
-    )
-  }
-  try {
-    const inviteCode = await RPCTypes.signupGetInvitationCodeRpcPromise(undefined, Constants.waitingKey)
-    return SignupGen.createRequestedAutoInvite({inviteCode})
-  } catch (_) {
-    return SignupGen.createRequestedAutoInvite({})
-  }
-}
-
-const checkUsername = async (state: Container.TypedState, _: SignupGen.CheckUsernamePayload) => {
-  logger.info(`checking ${state.signup.username}`)
-  if (!noErrors(state)) {
-    return false
-  }
-
-  try {
-    await RPCTypes.signupCheckUsernameAvailableRpcPromise(
-      {username: state.signup.username},
-      Constants.waitingKey
-    )
-    logger.info(`${state.signup.username} success`)
-    return SignupGen.createCheckedUsername({error: '', username: state.signup.username})
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.warn(`${state.signup.username} error: ${error.message}`)
-      const s = error.code === RPCTypes.StatusCode.scinputerror ? Constants.usernameHint : error.desc
-      return SignupGen.createCheckedUsername({
-        // Don't set error if it's 'username taken', we show a banner in that case
-        error: error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : s,
-        username: state.signup.username,
-        usernameTaken:
-          error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? state.signup.username : undefined,
-      })
-    }
-    return
-  }
-}
 
 const checkDevicename = async (state: Container.TypedState) => {
   if (!noErrors(state)) {
@@ -130,7 +57,8 @@ const reallySignupOnNoErrors = async (
     return
   }
 
-  const {username, inviteCode, devicename} = state.signup
+  const {username, inviteCode} = Constants.useState.getState()
+  const {devicename} = state.signup
 
   if (!username || !inviteCode || !devicename) {
     logger.warn('Missing data during signup phase', username, inviteCode, devicename)
@@ -201,15 +129,9 @@ const maybeClearJustSignedUpEmail = (
 
 const initSignup = () => {
   // validation actions
-  Container.listenAction(SignupGen.checkUsername, checkUsername)
-  Container.listenAction(SignupGen.requestAutoInvite, requestAutoInvite)
-  Container.listenAction([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
   Container.listenAction(SignupGen.checkDevicename, checkDevicename)
 
   // move to next screen actions
-  Container.listenAction(SignupGen.checkedUsername, showDeviceScreenOnNoErrors)
-  Container.listenAction(SignupGen.requestedAutoInvite, showInviteScreen)
-  Container.listenAction(SignupGen.checkedInviteCode, showUserOnNoErrors)
   Container.listenAction(SignupGen.signedup, showErrorOrCleanupAfterSignup)
   Container.listenAction(SignupGen.signedup, setEmailVisibilityAfterSignup)
 

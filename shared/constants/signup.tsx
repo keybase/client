@@ -1,12 +1,14 @@
+import * as Platforms from '../constants/platform'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Z from '../util/zustand'
+import HiddenString from '../util/hidden-string'
+import logger from '../logger'
+import type * as Container from '../util/container' // TODO remov >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 import type * as Types from './types/signup'
 import {RPCError} from '../util/errors'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import {isValidEmail, isValidName /*isValidUsername*/} from '../util/simple-validators'
-import * as Z from '../util/zustand'
-import type * as Container from '../util/container' // TODO remov >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Platforms from '../constants/platform'
-import HiddenString from '../util/hidden-string'
+import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
+import {useConfigState, createOtherAccountWaitingKey} from './config'
 
 export const maxUsernameLength = 16
 export const usernameHint =
@@ -20,11 +22,11 @@ export const waitingKey = 'signup:waiting'
 export const noErrors = (state: Container.TypedState) =>
   !state.signup.devicenameError &&
   !useState.getState().emailError &&
-  !state.signup.inviteCodeError &&
+  !useState.getState().inviteCodeError &&
   !useState.getState().nameError &&
-  !state.signup.usernameError &&
+  !useState.getState().usernameError &&
   !state.signup.signupError &&
-  !state.signup.usernameTaken
+  !useState.getState().usernameTaken
 
 export const defaultDevicename =
   (Platforms.isAndroid && 'Android Device') ||
@@ -37,35 +39,43 @@ export const defaultDevicename =
 export const makeState = (): Types.State => ({
   devicename: defaultDevicename,
   devicenameError: '',
-  inviteCode: '',
-  inviteCodeError: '',
   justSignedUpEmail: '',
   password: new HiddenString(''),
   passwordError: new HiddenString(''),
-  username: '',
-  usernameError: '',
-  usernameTaken: '',
 })
 
 type Store = {
   email: string
   emailError: string
   emailVisible: boolean
+  inviteCode: string
+  inviteCodeError: string
   name: string
   nameError: string
+  username: string
+  usernameError: string
+  usernameTaken: string
 }
 
 const initialStore: Store = {
   email: '',
   emailError: '',
   emailVisible: false,
+  inviteCode: '',
+  inviteCodeError: '',
   name: '',
   nameError: '',
+  username: '',
+  usernameError: '',
+  usernameTaken: '',
 }
 
 export type State = Store & {
   dispatch: {
+    checkInviteCode: (inviteCode: string) => void
+    checkUsername: (username: string) => void
     goBackAndClearErrors: () => void
+    requestAutoInvite: (username?: string) => void
     resetState: () => void
     restartSignup: () => void
     requestInvite: (email: string, name: string) => void
@@ -76,12 +86,75 @@ export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const getReduxStore = Z.getReduxStore() // TODO remove >>>>>>>>>>>>>>>>>>>>>>>>>
   const dispatch: State['dispatch'] = {
+    checkInviteCode: invitationCode => {
+      set(s => {
+        s.inviteCode = invitationCode
+      })
+      const f = async () => {
+        try {
+          await RPCTypes.signupCheckInvitationCodeRpcPromise({invitationCode}, waitingKey)
+          set(s => {
+            s.inviteCodeError = ''
+          })
+          if (noErrors(getReduxStore())) {
+            reduxDispatch(RouteTreeGen.createNavigateUp())
+            reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupEnterUsername']}))
+          }
+        } catch (error) {
+          if (error instanceof RPCError) {
+            const msg = error.desc
+            set(s => {
+              s.inviteCodeError = msg
+            })
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    checkUsername: username => {
+      set(s => {
+        s.username = username
+        s.usernameError = isValidUsername(username)
+        s.usernameTaken = ''
+      })
+      const f = async () => {
+        logger.info(`checking ${username}`)
+        if (!noErrors(getReduxStore())) {
+          return
+        }
+        try {
+          await RPCTypes.signupCheckUsernameAvailableRpcPromise({username}, waitingKey)
+          logger.info(`${username} success`)
+
+          set(s => {
+            s.usernameError = ''
+            s.usernameTaken = ''
+          })
+          if (noErrors(getReduxStore())) {
+            reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupEnterDevicename']}))
+          }
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.warn(`${username} error: ${error.message}`)
+            const msg = error.code === RPCTypes.StatusCode.scinputerror ? usernameHint : error.desc
+            // Don't set error if it's 'username taken', we show a banner in that case
+            const usernameError = error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? '' : msg
+            const usernameTaken = error.code === RPCTypes.StatusCode.scbadsignupusernametaken ? username : ''
+            set(s => {
+              s.usernameError = usernameError
+              s.usernameTaken = usernameTaken
+            })
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
     goBackAndClearErrors: () => {
       set(s => {
         // TODO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         // s.devicenameError = ''
         s.emailError = ''
-        // s.inviteCodeError = ''
+        s.inviteCodeError = ''
         s.nameError = ''
         // s.passwordError = new HiddenString('')
         // s.signupError = undefined
@@ -89,6 +162,35 @@ export const useState = Z.createZustand<State>((set, get) => {
         // s.usernameTaken = ''
       })
       reduxDispatch(RouteTreeGen.createNavigateUp())
+    },
+    requestAutoInvite: username => {
+      set(s => {
+        if (username) {
+          s.username = username
+        }
+      })
+      const f = async () => {
+        // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
+        if (useConfigState.getState().loggedIn) {
+          await RPCTypes.loginLogoutRpcPromise(
+            {force: false, keepSecrets: true},
+            createOtherAccountWaitingKey
+          )
+        }
+        try {
+          const inviteCode = await RPCTypes.signupGetInvitationCodeRpcPromise(undefined, waitingKey)
+          set(s => {
+            s.inviteCode = inviteCode
+          })
+        } catch (_) {
+          set(s => {
+            s.inviteCode = ''
+          })
+        }
+        get().dispatch.checkInviteCode(get().inviteCode)
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupInviteCode']}))
+      }
+      Z.ignorePromise(f())
     },
     requestInvite: (email, name) => {
       set(s => {
@@ -128,7 +230,6 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     restartSignup: () => {
       get().dispatch.resetState()
-      // TODO
     },
   }
   return {

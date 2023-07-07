@@ -11,9 +11,9 @@ import {SignupScreen, errorBanner} from './common'
 import {maxUsernameLength} from '../constants/signup'
 
 const ConnectedEnterUsername = () => {
-  const error = Container.useSelector(state => state.signup.usernameError)
-  const initialUsername = Container.useSelector(state => state.signup.username)
-  const usernameTaken = Container.useSelector(state => state.signup.usernameTaken)
+  const error = Constants.useState(s => s.usernameError)
+  const initialUsername = Constants.useState(s => s.username)
+  const usernameTaken = Constants.useState(s => s.usernameTaken)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const dispatch = Container.useDispatch()
   const restartSignup = Constants.useState(s => s.dispatch.restartSignup)

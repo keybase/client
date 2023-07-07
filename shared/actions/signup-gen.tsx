@@ -7,15 +7,11 @@ import type {RPCError} from '../util/errors'
 export const resetStore = 'common:resetStore' // not a part of signup but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'signup:'
 export const checkDevicename = 'signup:checkDevicename'
-export const checkInviteCode = 'signup:checkInviteCode'
 export const checkPassword = 'signup:checkPassword'
 export const checkUsername = 'signup:checkUsername'
 export const checkedDevicename = 'signup:checkedDevicename'
-export const checkedInviteCode = 'signup:checkedInviteCode'
 export const checkedUsername = 'signup:checkedUsername'
 export const clearJustSignedUpEmail = 'signup:clearJustSignedUpEmail'
-export const requestAutoInvite = 'signup:requestAutoInvite'
-export const requestedAutoInvite = 'signup:requestedAutoInvite'
 export const setJustSignedUpEmail = 'signup:setJustSignedUpEmail'
 export const signedup = 'signup:signedup'
 
@@ -23,10 +19,6 @@ export const signedup = 'signup:signedup'
 export const createCheckDevicename = (payload: {readonly devicename: string}) => ({
   payload,
   type: checkDevicename as typeof checkDevicename,
-})
-export const createCheckInviteCode = (payload: {readonly inviteCode: string}) => ({
-  payload,
-  type: checkInviteCode as typeof checkInviteCode,
 })
 export const createCheckPassword = (payload: {
   readonly pass1: HiddenString
@@ -40,10 +32,6 @@ export const createCheckedDevicename = (payload: {readonly devicename: string; r
   payload,
   type: checkedDevicename as typeof checkedDevicename,
 })
-export const createCheckedInviteCode = (payload: {readonly inviteCode: string; readonly error?: string}) => ({
-  payload,
-  type: checkedInviteCode as typeof checkedInviteCode,
-})
 export const createCheckedUsername = (payload: {
   readonly username: string
   readonly usernameTaken?: string
@@ -53,13 +41,6 @@ export const createClearJustSignedUpEmail = (payload?: undefined) => ({
   payload,
   type: clearJustSignedUpEmail as typeof clearJustSignedUpEmail,
 })
-export const createRequestAutoInvite = (payload: {readonly username?: string} = {}) => ({
-  payload,
-  type: requestAutoInvite as typeof requestAutoInvite,
-})
-export const createRequestedAutoInvite = (
-  payload: {readonly inviteCode?: string; readonly error?: boolean} = {}
-) => ({payload, type: requestedAutoInvite as typeof requestedAutoInvite})
 export const createSetJustSignedUpEmail = (payload: {readonly email: string}) => ({
   payload,
   type: setJustSignedUpEmail as typeof setJustSignedUpEmail,
@@ -71,15 +52,11 @@ export const createSignedup = (payload: {readonly error?: RPCError} = {}) => ({
 
 // Action Payloads
 export type CheckDevicenamePayload = ReturnType<typeof createCheckDevicename>
-export type CheckInviteCodePayload = ReturnType<typeof createCheckInviteCode>
 export type CheckPasswordPayload = ReturnType<typeof createCheckPassword>
 export type CheckUsernamePayload = ReturnType<typeof createCheckUsername>
 export type CheckedDevicenamePayload = ReturnType<typeof createCheckedDevicename>
-export type CheckedInviteCodePayload = ReturnType<typeof createCheckedInviteCode>
 export type CheckedUsernamePayload = ReturnType<typeof createCheckedUsername>
 export type ClearJustSignedUpEmailPayload = ReturnType<typeof createClearJustSignedUpEmail>
-export type RequestAutoInvitePayload = ReturnType<typeof createRequestAutoInvite>
-export type RequestedAutoInvitePayload = ReturnType<typeof createRequestedAutoInvite>
 export type SetJustSignedUpEmailPayload = ReturnType<typeof createSetJustSignedUpEmail>
 export type SignedupPayload = ReturnType<typeof createSignedup>
 
@@ -87,15 +64,11 @@ export type SignedupPayload = ReturnType<typeof createSignedup>
 // prettier-ignore
 export type Actions =
   | CheckDevicenamePayload
-  | CheckInviteCodePayload
   | CheckPasswordPayload
   | CheckUsernamePayload
   | CheckedDevicenamePayload
-  | CheckedInviteCodePayload
   | CheckedUsernamePayload
   | ClearJustSignedUpEmailPayload
-  | RequestAutoInvitePayload
-  | RequestedAutoInvitePayload
   | SetJustSignedUpEmailPayload
   | SignedupPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}
