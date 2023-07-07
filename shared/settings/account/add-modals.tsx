@@ -36,7 +36,7 @@ export const Email = () => {
   )
   // watch for + nav away on success
   React.useEffect(() => {
-    if (addedEmail === addEmailInProgress) {
+    if (addedEmail && addedEmail === addEmailInProgress) {
       // success
       dispatch(RouteTreeGen.createClearModals())
     }
