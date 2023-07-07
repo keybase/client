@@ -2,25 +2,14 @@ import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import type * as Types from './types/settings'
 import {useConfigState} from './config'
 import * as Tabs from './tabs'
 import logger from '../logger'
 import {useState as usePhoneState} from './settings-phone'
 import {useState as useEmailState} from './settings-email'
 
-export const makeState = (): Types.State => ({
-  notifications: {
-    allowEdit: false,
-    groups: new Map(),
-  },
-})
-
-export const securityGroup = 'security'
-export const soundGroup = 'sound'
 export const traceInProgressKey = 'settings:traceInProgress'
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
-export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
 export const checkPasswordWaitingKey = 'settings:checkPassword'
@@ -176,13 +165,8 @@ export const useState = Z.createZustand<State>(set => {
         }
         try {
           const settings = await RPCTypes.userLoadMySettingsRpcPromise(undefined, loadSettingsWaitingKey)
-          console.log('aaaaaaaaaaaaaa TODO EMAIL!!!')
-          // const emailMap = new Map(
-          //   (settings.emails ?? []).map(row => [row.email, {...Constants.makeEmailRow(), ...row}])
-          // )
-          // TODO email
+          useEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(settings.emails ?? [])
           usePhoneState.getState().dispatch.setNumbers(settings.phoneNumbers ?? undefined)
-
           maybeLoadAppLink()
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -242,6 +226,7 @@ export const useState = Z.createZustand<State>(set => {
 export {usePhoneState, useEmailState}
 export {useState as usePasswordState} from './settings-password'
 export {useState as useInvitesState} from './settings-invites'
+export {useState as useNotifState, refreshNotificationsWaitingKey} from './settings-notifications'
 export {
   useState as useChatState,
   contactSettingsSaveWaitingKey,

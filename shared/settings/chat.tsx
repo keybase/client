@@ -7,11 +7,10 @@ import * as Platform from '../constants/platform'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as SettingsGen from '../actions/settings-gen'
 import * as Styles from '../styles'
 import * as TeamConstants from '../constants/teams'
 import type * as TeamTypes from '../constants/types/teams'
-import type * as Types from '../constants/types/settings'
+import type {NotificationsGroupState} from '../constants/settings-notifications'
 import type {TeamMeta, TeamID} from '../constants/types/teams'
 import {Group} from './notifications/render'
 
@@ -26,9 +25,9 @@ export default () => {
   const contactSettingsTeamsEnabled = Constants.useChatState(s => s.contactSettings.settings?.allowGoodTeams)
   const whitelist = Constants.useChatState(s => s.unfurl.unfurlWhitelist)
   const unfurlWhitelist = whitelist ?? emptyList
-  const allowEdit = Container.useSelector(state => state.settings.notifications.allowEdit)
+  const allowEdit = Constants.useNotifState(s => s.allowEdit)
   const contactSettingsError = Constants.useChatState(s => s.contactSettings.error)
-  const groups = Container.useSelector(state => state.settings.notifications.groups)
+  const groups = Constants.useNotifState(s => s.groups)
   const mobileHasPermissions = PushConstants.useState(s => s.hasPermissions)
   const sound = ConfigConstants.useConfigState(s => s.notifySound) // desktop
   const _teamMeta = Container.useSelector(state => state.teams.teamMeta)
@@ -38,6 +37,8 @@ export default () => {
   const contactSettingsRefresh = Constants.useChatState(s => s.dispatch.contactSettingsRefresh)
   const unfurlSettingsRefresh = Constants.useChatState(s => s.dispatch.unfurlSettingsRefresh)
   const unfurlSettingsSaved = Constants.useChatState(s => s.dispatch.unfurlSettingsSaved)
+  const notifRefresh = Constants.useNotifState(s => s.dispatch.refresh)
+  const notifToggle = Constants.useNotifState(s => s.dispatch.toggle)
 
   const dispatch = Container.useDispatch()
   const onBack = Container.isMobile
@@ -50,7 +51,7 @@ export default () => {
   const onRefresh = () => {
     // Security: misc
     loadSettings()
-    dispatch(SettingsGen.createNotificationsRefresh())
+    notifRefresh()
 
     // Security: contact settings
     contactSettingsRefresh()
@@ -58,9 +59,7 @@ export default () => {
     // Link previews
     unfurlSettingsRefresh()
   }
-  const onToggle = (group: string, name?: string) => {
-    dispatch(SettingsGen.createNotificationsToggle({group, name}))
-  }
+  const onToggle = notifToggle
   const onToggleSound = ConfigConstants.useConfigState(s => s.dispatch.setNotifySound)
   const onUnfurlSave = unfurlSettingsSaved
 
@@ -107,7 +106,7 @@ export type Props = {
   contactSettingsIndirectFollowees?: boolean
   contactSettingsTeamsEnabled?: boolean
   contactSettingsSelectedTeams: {[K in TeamID]: boolean}
-  groups: Map<string, Types.NotificationsGroupState>
+  groups: Map<string, NotificationsGroupState>
   sound: boolean
   unfurlMode?: RPCChatTypes.UnfurlMode
   unfurlWhitelist?: Array<string>

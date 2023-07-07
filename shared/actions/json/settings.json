@@ -1,8 +1,5 @@
 {
-  "prelude": [
-    "import type * as Types from '../constants/types/settings'",
-    "import type HiddenString from '../util/hidden-string'"
-  ],
+  "prelude": ["import type HiddenString from '../util/hidden-string'"],
   "actions": {
     "verifiedPhoneNumber": {
       "_description": "We verified a phone number or hit an error.",
@@ -31,15 +28,6 @@
     },
     "onChangeLockdownMode": {
       "enabled": "boolean"
-    },
-    "notificationsRefresh": {},
-    "notificationsRefreshed": {
-      "notifications": "Map<string, Types.NotificationsGroupState>"
-    },
-    "notificationsSaved": {},
-    "notificationsToggle": {
-      "group": "string",
-      "name?": "string"
     },
     "stop": {
       "exitCode": "RPCTypes.ExitCode"

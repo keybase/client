@@ -1,7 +1,7 @@
 import * as Constants from '../../constants/push'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/settings'
+import type {NotificationsSettingsState} from '../../constants/settings-notifications'
 import type {Props} from './index'
 
 type GroupProps = {
@@ -10,7 +10,7 @@ type GroupProps = {
   label?: string
   onToggle: (groupName: string, name: string) => void
   onToggleUnsubscribeAll?: () => void
-  settings?: Array<Types.NotificationsSettingsState>
+  settings?: Array<NotificationsSettingsState>
   title?: string
   unsub?: string
   unsubscribedFromAll: boolean
