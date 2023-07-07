@@ -24,7 +24,9 @@ export default () => {
   const checkIsOnline = loadIsOnline
   const onLogin = Constants.useState(s => s.dispatch.startProvision)
   const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
-  const onSignup = requestAutoInvite
+  const onSignup = () => {
+    requestAutoInvite()
+  }
   const showProxySettings = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['proxySettingsModal']}))
   }

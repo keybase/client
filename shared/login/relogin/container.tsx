@@ -109,7 +109,7 @@ export default () => {
   }
   const onLogin = ConfigConstants.useConfigState(s => s.dispatch.login)
   const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
-  const onSignup = requestAutoInvite
+  const onSignup = () => requestAutoInvite()
   const onSomeoneElse = Constants.useState(s => s.dispatch.startProvision)
   const props = {
     error: error?.desc || '',

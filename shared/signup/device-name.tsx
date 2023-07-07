@@ -83,7 +83,8 @@ const EnterDevicename = (props: Props) => {
             containerStyle={styles.input}
             error={showDisabled}
             maxLength={64}
-            placeholder={Styles.isMobile ? 'Phone 1' : 'Computer 1'}
+            placeholder="Name"
+            hoverPlaceholder={Styles.isMobile ? 'Phone 1' : 'Computer 1'}
             onChangeText={_setDeviceName}
             onEnterKeyDown={onContinue}
             value={cleanDeviceName}
