@@ -32,17 +32,18 @@ const TeamInfo = (props: Props) => {
   const waiting = Container.useAnyWaiting([Constants.teamWaitingKey(teamID), Constants.teamRenameWaitingKey])
 
   const errors = {
-    desc: Container.useSelector(state => state.teams.errorInEditDescription),
+    desc: Constants.useState(s => s.errorInEditDescription),
     rename: Container.useAnyErrors(Constants.teamRenameWaitingKey)?.message,
   }
 
+  const editTeamDescription = Constants.useState(s => s.dispatch.editTeamDescription)
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onSave = () => {
     if (newName !== _leafName) {
       dispatch(TeamsGen.createRenameTeam({newName: parentTeamNameWithDot + newName, oldName: teamname}))
     }
     if (description !== teamDetails.description) {
-      dispatch(TeamsGen.createEditTeamDescription({description, teamID}))
+      editTeamDescription(teamID, description)
     }
   }
   const onEditAvatar = () =>

@@ -160,16 +160,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamsWithChosenChannels]: (draftState, action) => {
     draftState.teamsWithChosenChannels = action.payload.teamsWithChosenChannels
   },
-  [TeamsGen.setEditDescriptionError]: (draftState, action) => {
-    draftState.errorInEditDescription = action.payload.error
-  },
   [TeamsGen.setEditMemberError]: (draftState, action) => {
     draftState.errorInEditMember.error = action.payload.error
     draftState.errorInEditMember.username = action.payload.username
     draftState.errorInEditMember.teamID = action.payload.teamID
-  },
-  [TeamsGen.editTeamDescription]: draftState => {
-    draftState.errorInEditDescription = ''
   },
   [TeamsGen.setChannelSelected]: (draftState, action) => {
     const {teamID, channel, selected, clearAll} = action.payload

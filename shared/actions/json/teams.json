@@ -162,10 +162,6 @@
       "teamID": "Types.TeamID",
       "username": "string"
     },
-    "editTeamDescription": {
-      "teamID": "Types.TeamID",
-      "description": "string"
-    },
     "uploadTeamAvatar": {
       "crop?": "RPCTypes.ImageCropRect",
       "filename": "string",
@@ -200,9 +196,6 @@
       "settings": "Types.PublicitySettings"
     },
     "setWelcomeMessageError": {
-      "error": "string"
-    },
-    "setEditDescriptionError": {
       "error": "string"
     },
     "setEditMemberError": {

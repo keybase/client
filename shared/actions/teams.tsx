@@ -410,19 +410,6 @@ const reAddToTeam = async (_: unknown, action: TeamsGen.ReAddToTeamPayload) => {
   }
 }
 
-const editDescription = async (_: unknown, action: TeamsGen.EditTeamDescriptionPayload) => {
-  const {teamID, description} = action.payload
-  try {
-    await RPCTypes.teamsSetTeamShowcaseRpcPromise({description, teamID}, Constants.teamWaitingKey(teamID))
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    return TeamsGen.createSetEditDescriptionError({error: error.message})
-  }
-  return []
-}
-
 const uploadAvatar = async (_: unknown, action: TeamsGen.UploadTeamAvatarPayload) => {
   const {crop, filename, sendChatNotification, teamname} = action.payload
   try {
@@ -1430,7 +1417,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.reAddToTeam, reAddToTeam)
   Container.listenAction(TeamsGen.inviteToTeamByEmail, inviteByEmail)
   Container.listenAction(TeamsGen.ignoreRequest, ignoreRequest)
-  Container.listenAction(TeamsGen.editTeamDescription, editDescription)
   Container.listenAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
   Container.listenAction(TeamsGen.editMembership, editMembership)
   Container.listenAction(TeamsGen.removeMember, removeMember)

@@ -226,7 +226,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
-  errorInEditDescription: '',
   errorInEditMember: emptyErrorInEditMember,
   errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
@@ -1012,6 +1011,7 @@ export type Store = {
   newTeams: Set<Types.TeamID>
   teamIDToResetUsers: Map<Types.TeamID, Set<string>>
   errorInAddToTeam: string
+  errorInEditDescription: string
 }
 
 const initialStore: Store = {
@@ -1024,6 +1024,7 @@ const initialStore: Store = {
   deletedTeams: [],
   errorInAddToTeam: '',
   errorInChannelCreation: '',
+  errorInEditDescription: '',
   newTeamRequests: new Map(),
   newTeams: new Set(),
   teamIDToResetUsers: new Map(),
@@ -1046,6 +1047,7 @@ export type State = Store & {
     ) => void
     clearAddUserToTeamsResults: () => void
     createChannels: (teamID: Types.TeamID, channelnames: Array<string>) => void
+    editTeamDescription: (teamID: Types.TeamID, description: string) => void
     getActivityForTeams: () => void
     loadTeamChannelList: (teamID: Types.TeamID) => void
     resetState: 'default'
@@ -1241,6 +1243,23 @@ export const useState = Z.createZustand<State>((set, get) => {
         set(s => {
           s.creatingChannels = false
         })
+      }
+      Z.ignorePromise(f())
+    },
+    editTeamDescription: (teamID, description) => {
+      set(s => {
+        s.errorInEditDescription = ''
+      })
+      const f = async () => {
+        try {
+          await RPCTypes.teamsSetTeamShowcaseRpcPromise({description, teamID}, teamWaitingKey(teamID))
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              s.errorInEditDescription = error.message
+            }
+          })
+        }
       }
       Z.ignorePromise(f())
     },

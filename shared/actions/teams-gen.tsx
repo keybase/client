@@ -25,7 +25,6 @@ export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const deleteTeam = 'teams:deleteTeam'
 export const editMembership = 'teams:editMembership'
-export const editTeamDescription = 'teams:editTeamDescription'
 export const finishNewTeamWizard = 'teams:finishNewTeamWizard'
 export const finishedAddMembersWizard = 'teams:finishedAddMembersWizard'
 export const finishedNewTeamWizard = 'teams:finishedNewTeamWizard'
@@ -58,7 +57,6 @@ export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setChannelSelected = 'teams:setChannelSelected'
-export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEditMemberError = 'teams:setEditMemberError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
@@ -411,10 +409,6 @@ export const createDeleteTeam = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
   type: deleteTeam as typeof deleteTeam,
 })
-export const createEditTeamDescription = (payload: {
-  readonly teamID: Types.TeamID
-  readonly description: string
-}) => ({payload, type: editTeamDescription as typeof editTeamDescription})
 export const createFinishNewTeamWizard = (payload?: undefined) => ({
   payload,
   type: finishNewTeamWizard as typeof finishNewTeamWizard,
@@ -485,10 +479,6 @@ export const createSaveChannelMembership = (payload: {
   readonly oldChannelState: Types.ChannelMembershipState
   readonly newChannelState: Types.ChannelMembershipState
 }) => ({payload, type: saveChannelMembership as typeof saveChannelMembership})
-export const createSetEditDescriptionError = (payload: {readonly error: string}) => ({
-  payload,
-  type: setEditDescriptionError as typeof setEditDescriptionError,
-})
 export const createSetEditMemberError = (payload: {
   readonly error: string
   readonly teamID: Types.TeamID
@@ -681,7 +671,6 @@ export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChanne
 export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
 export type DeleteTeamPayload = ReturnType<typeof createDeleteTeam>
 export type EditMembershipPayload = ReturnType<typeof createEditMembership>
-export type EditTeamDescriptionPayload = ReturnType<typeof createEditTeamDescription>
 export type FinishNewTeamWizardPayload = ReturnType<typeof createFinishNewTeamWizard>
 export type FinishedAddMembersWizardPayload = ReturnType<typeof createFinishedAddMembersWizard>
 export type FinishedNewTeamWizardPayload = ReturnType<typeof createFinishedNewTeamWizard>
@@ -716,7 +705,6 @@ export type SetAddMembersWizardIndividualRolePayload = ReturnType<
 >
 export type SetAddMembersWizardRolePayload = ReturnType<typeof createSetAddMembersWizardRole>
 export type SetChannelSelectedPayload = ReturnType<typeof createSetChannelSelected>
-export type SetEditDescriptionErrorPayload = ReturnType<typeof createSetEditDescriptionError>
 export type SetEditMemberErrorPayload = ReturnType<typeof createSetEditMemberError>
 export type SetEmailInviteErrorPayload = ReturnType<typeof createSetEmailInviteError>
 export type SetJustFinishedAddMembersWizardPayload = ReturnType<typeof createSetJustFinishedAddMembersWizard>
@@ -791,7 +779,6 @@ export type Actions =
   | DeleteMultiChannelsConfirmedPayload
   | DeleteTeamPayload
   | EditMembershipPayload
-  | EditTeamDescriptionPayload
   | FinishNewTeamWizardPayload
   | FinishedAddMembersWizardPayload
   | FinishedNewTeamWizardPayload
@@ -824,7 +811,6 @@ export type Actions =
   | SetAddMembersWizardIndividualRolePayload
   | SetAddMembersWizardRolePayload
   | SetChannelSelectedPayload
-  | SetEditDescriptionErrorPayload
   | SetEditMemberErrorPayload
   | SetEmailInviteErrorPayload
   | SetJustFinishedAddMembersWizardPayload
