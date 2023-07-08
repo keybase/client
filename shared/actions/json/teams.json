@@ -158,16 +158,6 @@
       "teamname": "string",
       "context": "'teams' | 'chat'"
     },
-    "addToTeam": {
-      "teamID": "Types.TeamID",
-      "users": "Array<{assertion: string, role: Types.TeamRoleType}>",
-      "sendChatNotification": "boolean",
-      "fromTeamBuilder?": "boolean"
-    },
-    "addedToTeam": {
-      "error?": "string",
-      "fromTeamBuilder?": "boolean"
-    },
     "reAddToTeam": {
       "teamID": "Types.TeamID",
       "username": "string"

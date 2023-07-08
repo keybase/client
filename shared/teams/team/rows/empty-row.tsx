@@ -86,16 +86,15 @@ const EmptyRow = (props: Props) => {
 
   const dispatch = Container.useDispatch()
   const onSecondaryAction = useSecondaryAction(props)
-  const onAddSelf = () =>
-    dispatch(
-      conversationIDKey
-        ? Chat2Gen.createJoinConversation({conversationIDKey})
-        : TeamsGen.createAddToTeam({
-            sendChatNotification: false,
-            teamID,
-            users: [{assertion: you, role: 'admin'}],
-          })
-    )
+
+  const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
+  const onAddSelf = () => {
+    if (conversationIDKey) {
+      dispatch(Chat2Gen.createJoinConversation({conversationIDKey}))
+    } else {
+      addToTeam(teamID, [{assertion: you, role: 'admin'}], false)
+    }
+  }
   const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, you))
 
   const teamOrChannel = props.conversationIDKey ? 'channel' : 'team'

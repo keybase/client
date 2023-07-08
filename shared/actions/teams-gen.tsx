@@ -14,8 +14,6 @@ export const addMembersWizardRemoveMember = 'teams:addMembersWizardRemoveMember'
 export const addMembersWizardSetDefaultChannels = 'teams:addMembersWizardSetDefaultChannels'
 export const addParticipant = 'teams:addParticipant'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
-export const addToTeam = 'teams:addToTeam'
-export const addedToTeam = 'teams:addedToTeam'
 export const cancelAddMembersWizard = 'teams:cancelAddMembersWizard'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
@@ -369,15 +367,6 @@ export const createAddTeamWithChosenChannels = (payload: {readonly teamID: Types
   payload,
   type: addTeamWithChosenChannels as typeof addTeamWithChosenChannels,
 })
-export const createAddToTeam = (payload: {
-  readonly teamID: Types.TeamID
-  readonly users: Array<{assertion: string; role: Types.TeamRoleType}>
-  readonly sendChatNotification: boolean
-  readonly fromTeamBuilder?: boolean
-}) => ({payload, type: addToTeam as typeof addToTeam})
-export const createAddedToTeam = (
-  payload: {readonly error?: string; readonly fromTeamBuilder?: boolean} = {}
-) => ({payload, type: addedToTeam as typeof addedToTeam})
 export const createCheckRequestedAccess = (payload: {readonly teamname: string}) => ({
   payload,
   type: checkRequestedAccess as typeof checkRequestedAccess,
@@ -681,8 +670,6 @@ export type AddMembersWizardSetDefaultChannelsPayload = ReturnType<
 >
 export type AddParticipantPayload = ReturnType<typeof createAddParticipant>
 export type AddTeamWithChosenChannelsPayload = ReturnType<typeof createAddTeamWithChosenChannels>
-export type AddToTeamPayload = ReturnType<typeof createAddToTeam>
-export type AddedToTeamPayload = ReturnType<typeof createAddedToTeam>
 export type CancelAddMembersWizardPayload = ReturnType<typeof createCancelAddMembersWizard>
 export type CheckRequestedAccessPayload = ReturnType<typeof createCheckRequestedAccess>
 export type ClearAddUserToTeamsResultsPayload = ReturnType<typeof createClearAddUserToTeamsResults>
@@ -793,8 +780,6 @@ export type Actions =
   | AddMembersWizardSetDefaultChannelsPayload
   | AddParticipantPayload
   | AddTeamWithChosenChannelsPayload
-  | AddToTeamPayload
-  | AddedToTeamPayload
   | CancelAddMembersWizardPayload
   | CheckRequestedAccessPayload
   | ClearAddUserToTeamsResultsPayload

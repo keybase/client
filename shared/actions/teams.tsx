@@ -35,8 +35,11 @@ async function createNewTeam(_: unknown, action: TeamsGen.CreateNewTeamPayload) 
       Constants.teamCreationWaitingKey
     )
 
-    const addMembers = thenAddMembers ? [TeamsGen.createAddToTeam({...thenAddMembers, teamID})] : []
-    return [TeamsGen.createTeamCreated({fromChat: !!fromChat, teamID, teamname}), ...addMembers]
+    // TODO <<<<<<<<<<<<<<<<<< createTeamCreated happens first, bring that back
+    if (thenAddMembers) {
+      Constants.useState.getState().dispatch.addToTeam(teamID, thenAddMembers.users, false)
+    }
+    return [TeamsGen.createTeamCreated({fromChat: !!fromChat, teamID, teamname})]
   } catch (error) {
     if (!(error instanceof RPCError)) {
       return
@@ -386,65 +389,6 @@ const addReAddErrorHandler = (username: string, e: RPCError) => {
     ProfileConstants.useState.getState().dispatch.showUserProfile(username)
   }
   return undefined
-}
-
-const addToTeam = async (_: unknown, action: TeamsGen.AddToTeamPayload) => {
-  const {fromTeamBuilder, teamID, users, sendChatNotification} = action.payload
-  try {
-    const res = await RPCTypes.teamsTeamAddMembersMultiRoleRpcPromise(
-      {
-        sendChatNotification,
-        teamID,
-        users: users.map(({assertion, role}) => ({
-          assertion: assertion,
-          role: RPCTypes.TeamRole[role],
-        })),
-      },
-      [
-        Constants.teamWaitingKey(teamID),
-        Constants.addMemberWaitingKey(teamID, ...users.map(({assertion}) => assertion)),
-      ]
-    )
-    if (res.notAdded && res.notAdded.length > 0) {
-      const usernames = res.notAdded.map(elem => elem.username)
-      return [
-        TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {source: 'teamAddSomeFailed', usernames}, selected: 'contactRestricted'}],
-        }),
-      ]
-    }
-    return TeamsGen.createAddedToTeam({fromTeamBuilder})
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    // If all of the users couldn't be added due to contact settings, the RPC fails.
-    if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-      const users = (error.fields as Array<{key?: string; value?: string} | undefined> | undefined)
-        ?.filter(elem => elem?.key === 'usernames')
-        .map(elem => elem?.value)
-      const usernames = users?.[0]?.split(',') ?? []
-      return [
-        TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {source: 'teamAddAllFailed', usernames}, selected: 'contactRestricted'}],
-        }),
-      ]
-    }
-    // TODO this should not error on member already in team
-    return TeamsGen.createAddedToTeam({error: error.desc, fromTeamBuilder})
-  }
-}
-
-const closeTeamBuilderOrSetError = (_: unknown, action: TeamsGen.AddedToTeamPayload) => {
-  const {error, fromTeamBuilder} = action.payload
-  if (!fromTeamBuilder) {
-    return
-  }
-  return error
-    ? TeamBuildingGen.createSetError({error, namespace: 'teams'})
-    : TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'})
 }
 
 const reAddToTeam = async (_: unknown, action: TeamsGen.ReAddToTeamPayload) => {
@@ -1483,7 +1427,6 @@ const initTeams = () => {
   )
 
   Container.listenAction(TeamsGen.createChannel, createChannel)
-  Container.listenAction(TeamsGen.addToTeam, addToTeam)
   Container.listenAction(TeamsGen.reAddToTeam, reAddToTeam)
   Container.listenAction(TeamsGen.inviteToTeamByEmail, inviteByEmail)
   Container.listenAction(TeamsGen.ignoreRequest, ignoreRequest)
@@ -1563,7 +1506,6 @@ const initTeams = () => {
     TeamBuildingGen.finishTeamBuilding,
     filterForNs('teams', addThemToTeamFromTeamBuilder)
   )
-  Container.listenAction(TeamsGen.addedToTeam, closeTeamBuilderOrSetError)
 
   Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {
     const loggedIn = ConfigConstants.useConfigState.getState().loggedIn

@@ -16,7 +16,7 @@ export default (ownProps: OwnProps) => {
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const admin = yourOperations.manageMembers
-  const error = Container.useSelector(state => state.teams.errorInAddToTeam)
+  const error = Constants.useState(s => s.errorInAddToTeam)
   const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
   const loading = Container.useAnyWaiting([
     Constants.teamWaitingKey(teamID),

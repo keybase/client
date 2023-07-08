@@ -287,14 +287,10 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onAddWaitingKey = Constants.addMemberWaitingKey(props.node.teamID, props.username)
-  const onAdd = (role: Types.TeamRoleType) =>
-    dispatch(
-      TeamsGen.createAddToTeam({
-        sendChatNotification: true,
-        teamID: props.node.teamID,
-        users: [{assertion: props.username, role}],
-      })
-    )
+  const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
+  const onAdd = (role: Types.TeamRoleType) => {
+    addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
+  }
   const openTeam = React.useCallback(
     () =>
       dispatch(

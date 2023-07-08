@@ -76,14 +76,10 @@ export default (ownProps: OwnProps) => {
       ? dispatch(TeamsGen.createRemoveMember({teamID, username}))
       : dispatch(TeamsGen.createIgnoreRequest({teamID, teamname, username}))
   }
+
+  const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
   const letIn = (sendNotification: boolean, role: Types.TeamRoleType) => {
-    dispatch(
-      TeamsGen.createAddToTeam({
-        sendChatNotification: sendNotification,
-        teamID,
-        users: [{assertion: username, role}],
-      })
-    )
+    addToTeam(teamID, [{assertion: username, role}], sendNotification)
   }
   const onChat = () => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))

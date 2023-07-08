@@ -1,5 +1,7 @@
 import * as ChatTypes from './types/chat2'
+import * as TeamBuildingGen from '../actions/team-building-gen'
 import {RPCError} from '../util/errors'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ConfigConstants from './config'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -224,7 +226,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
-  errorInAddToTeam: '',
   errorInEditDescription: '',
   errorInEditMember: emptyErrorInEditMember,
   errorInEditWelcomeMessage: '',
@@ -1010,6 +1011,7 @@ export type Store = {
   newTeamRequests: Map<Types.TeamID, Set<string>>
   newTeams: Set<Types.TeamID>
   teamIDToResetUsers: Map<Types.TeamID, Set<string>>
+  errorInAddToTeam: string
 }
 
 const initialStore: Store = {
@@ -1020,6 +1022,7 @@ const initialStore: Store = {
   channelSelectedMembers: new Map(),
   creatingChannels: false,
   deletedTeams: [],
+  errorInAddToTeam: '',
   errorInChannelCreation: '',
   newTeamRequests: new Map(),
   newTeams: new Set(),
@@ -1028,6 +1031,12 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
+    addToTeam: (
+      teamID: Types.TeamID,
+      users: Array<{assertion: string; role: Types.TeamRoleType}>,
+      sendChatNotification: boolean,
+      fromTeamBuilder?: boolean
+    ) => void
     addUserToTeams: (role: Types.TeamRoleType, teams: Array<string>, user: string) => void
     channelSetMemberSelected: (
       conversationIDKey: ChatTypes.ConversationIDKey,
@@ -1051,9 +1060,74 @@ export type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  // const reduxDispatch = Z.getReduxDispatch()
+  const reduxDispatch = Z.getReduxDispatch()
   const getReduxStore = Z.getReduxStore() // TODO remoe >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   const dispatch: State['dispatch'] = {
+    addToTeam: (teamID, users, sendChatNotification, fromTeamBuilder) => {
+      set(s => {
+        s.errorInAddToTeam = ''
+      })
+      const f = async () => {
+        try {
+          const res = await RPCTypes.teamsTeamAddMembersMultiRoleRpcPromise(
+            {
+              sendChatNotification,
+              teamID,
+              users: users.map(({assertion, role}) => ({
+                assertion: assertion,
+                role: RPCTypes.TeamRole[role],
+              })),
+            },
+            [teamWaitingKey(teamID), addMemberWaitingKey(teamID, ...users.map(({assertion}) => assertion))]
+          )
+          if (res.notAdded && res.notAdded.length > 0) {
+            const usernames = res.notAdded.map(elem => elem.username)
+            reduxDispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}))
+            reduxDispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {source: 'teamAddSomeFailed', usernames}, selected: 'contactRestricted'}],
+              })
+            )
+            return
+          }
+
+          set(s => {
+            s.errorInAddToTeam = ''
+          })
+          if (fromTeamBuilder) {
+            reduxDispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}))
+          }
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          // If all of the users couldn't be added due to contact settings, the RPC fails.
+          if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+            const users = (error.fields as Array<{key?: string; value?: string} | undefined> | undefined)
+              ?.filter(elem => elem?.key === 'usernames')
+              .map(elem => elem?.value)
+            const usernames = users?.[0]?.split(',') ?? []
+            reduxDispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}))
+            reduxDispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {source: 'teamAddAllFailed', usernames}, selected: 'contactRestricted'}],
+              })
+            )
+            return
+          }
+
+          const msg = error.desc
+          set(s => {
+            s.errorInAddToTeam = msg
+          })
+          // TODO this should not error on member already in team
+          if (fromTeamBuilder) {
+            reduxDispatch(TeamBuildingGen.createSetError({error: msg, namespace: 'teams'}))
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
     addUserToTeams: (role, teams, user) => {
       const f = async () => {
         const teamsAddedTo: Array<string> = []
