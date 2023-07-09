@@ -19,7 +19,6 @@ const handleTeamBuilding = (draftState: Container.Draft<Types.State>, action: Te
 }
 
 type EngineActions =
-  | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload
   | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
   | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsDonePayload
 
@@ -63,7 +62,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [TeamsGen.teamLoaded]: (draftState, action) => {
     const {teamID, team} = action.payload
-    const maybeMeta = draftState.teamMeta.get(teamID)
+    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< below
+    const maybeMeta: any = undefined // draftState.teamMeta.get(teamID)
     if (maybeMeta && maybeMeta.teamname !== team.name) {
       if (team.name.includes('.')) {
         // subteam name changed. store loaded name
@@ -84,11 +84,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       Constants.ratchetTeamVersion(version, draftState.teamVersion.get(teamID))
     )
   },
-  [TeamsGen.getTeams]: (draftState, action) => {
-    if (action.payload._subscribe) {
-      draftState.teamMetaSubscribeCount++
-    }
-  },
   [TeamsGen.loadTeam]: (draftState, action) => {
     if (action.payload._subscribe) {
       const {teamID} = action.payload
@@ -104,21 +99,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       teamID,
       (draftState.teamDetailsSubscriptionCount.get(teamID) ?? 1) - 1
     )
-  },
-  [TeamsGen.unsubscribeTeamList]: draftState => {
-    if (draftState.teamMetaSubscribeCount > 0) {
-      draftState.teamMetaSubscribeCount--
-    }
-  },
-  [TeamsGen.setTeamInfo]: (draftState, action) => {
-    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    // draftState.teamNameToID = action.payload.teamNameToID
-    draftState.teamnames = action.payload.teamnames
-    draftState.teamMeta = Constants.mergeTeamMeta(draftState.teamMeta, action.payload.teamMeta)
-    draftState.teamMetaStale = false
-  },
-  [EngineGen.keybase1NotifyTeamTeamMetadataUpdate]: draftState => {
-    draftState.teamMetaStale = true
   },
   [TeamsGen.setTeamAccessRequestsPending]: (draftState, action) => {
     draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
@@ -183,19 +163,20 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       invitesCollapsed.add(teamID)
     }
   },
-  [TeamsGen.setSubteamFilter]: (draftState, action) => {
-    const {filter, parentTeam} = action.payload
-    draftState.subteamFilter = filter
-    if (parentTeam && filter) {
-      const flc = filter.toLowerCase()
-      draftState.subteamsFiltered = new Set(
-        [...(draftState.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
-          draftState.teamMeta.get(sID)?.teamname.toLowerCase().includes(flc)
-        )
-      )
-    } else {
-      draftState.subteamsFiltered = undefined
-    }
+  [TeamsGen.setSubteamFilter]: (_draftState, _action) => {
+    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    // const {filter, parentTeam} = action.payload
+    // draftState.subteamFilter = filter
+    // if (parentTeam && filter) {
+    //   const flc = filter.toLowerCase()
+    //   draftState.subteamsFiltered = new Set(
+    //     [...(draftState.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
+    //       draftState.teamMeta.get(sID)?.teamname.toLowerCase().includes(flc)
+    //     )
+    //   )
+    // } else {
+    //   draftState.subteamsFiltered = undefined
+    // }
   },
   [TeamsGen.setMemberActivityDetails]: (draftState, action) => {
     action.payload.activityMap.forEach((lastActivity, teamID) => {

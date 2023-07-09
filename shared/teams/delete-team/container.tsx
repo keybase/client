@@ -13,7 +13,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const deleteWaiting = Container.useAnyWaiting(Constants.deleteTeamWaitingKey(teamID))
-  const teamMetas = Container.useSelector(state => state.teams.teamMeta)
+  const teamMetas = Constants.useState(s => s.teamMeta)
   const subteamNames = teamDetails.subteams.size
     ? [...teamDetails.subteams]
         .map(subteamID => teamMetas.get(subteamID)?.teamname ?? '')

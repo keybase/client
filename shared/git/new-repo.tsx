@@ -1,4 +1,5 @@
 import * as Constants from '../constants/git'
+import * as TeamsConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -13,14 +14,13 @@ type OwnProps = {isTeam: boolean}
 export default (ownProps: OwnProps) => {
   const {isTeam} = ownProps
   const error = Constants.useGitState(s => s.error)
-  const teams = Container.useSelector(state => getSortedTeamnames(state))
+  const teams = getSortedTeamnames()
 
   const waitingKey = Constants.loadingWaitingKey
 
   const dispatch = Container.useDispatch()
-  const loadTeams = () => {
-    dispatch(TeamsGen.createGetTeams())
-  }
+  const getTeams = TeamsConstants.useState(s => s.dispatch.getTeams)
+  const loadTeams = getTeams
   const onClose = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }

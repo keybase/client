@@ -28,7 +28,6 @@ export const finishedNewTeamWizard = 'teams:finishedNewTeamWizard'
 export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
-export const getTeams = 'teams:getTeams'
 export const ignoreRequest = 'teams:ignoreRequest'
 export const inviteToTeamByPhone = 'teams:inviteToTeamByPhone'
 export const joinTeam = 'teams:joinTeam'
@@ -56,7 +55,6 @@ export const setMembers = 'teams:setMembers'
 export const setPublicity = 'teams:setPublicity'
 export const setSubteamFilter = 'teams:setSubteamFilter'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
-export const setTeamInfo = 'teams:setTeamInfo'
 export const setTeamInviteError = 'teams:setTeamInviteError'
 export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
@@ -87,7 +85,6 @@ export const teamSeen = 'teams:teamSeen'
 export const teamSetMemberSelected = 'teams:teamSetMemberSelected'
 export const toggleInvitesCollapsed = 'teams:toggleInvitesCollapsed'
 export const unsubscribeTeamDetails = 'teams:unsubscribeTeamDetails'
-export const unsubscribeTeamList = 'teams:unsubscribeTeamList'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateInviteLinkDetails = 'teams:updateInviteLinkDetails'
 export const updateTopic = 'teams:updateTopic'
@@ -129,13 +126,6 @@ export const createRespondToInviteLink = (payload: {readonly accept: boolean}) =
   type: respondToInviteLink as typeof respondToInviteLink,
 })
 /**
- * Don't eagerly reload team list anymore.
- */
-export const createUnsubscribeTeamList = (payload?: undefined) => ({
-  payload,
-  type: unsubscribeTeamList as typeof unsubscribeTeamList,
-})
-/**
  * First stage of the invite link process, opens the modal
  */
 export const createOpenInviteLink = (payload: {readonly inviteID: string; readonly inviteKey: string}) => ({
@@ -158,14 +148,6 @@ export const createLoadTeam = (payload: {readonly _subscribe?: boolean; readonly
   payload,
   type: loadTeam as typeof loadTeam,
 })
-/**
- * Load team list if we are stale.
- *
- * `_subscribe` is for use by teams/subscriber only.
- */
-export const createGetTeams = (
-  payload: {readonly _subscribe?: boolean; readonly forceReload?: boolean} = {}
-) => ({payload, type: getTeams as typeof getTeams})
 /**
  * Nav away from add members wizard and clear related state.
  */
@@ -429,11 +411,6 @@ export const createSetPublicity = (payload: {
 export const createSetTeamAccessRequestsPending = (payload: {
   readonly accessRequestsPending: Set<Types.Teamname>
 }) => ({payload, type: setTeamAccessRequestsPending as typeof setTeamAccessRequestsPending})
-export const createSetTeamInfo = (payload: {
-  readonly teamnames: Set<Types.Teamname>
-  readonly teamNameToID: Map<Types.Teamname, string>
-  readonly teamMeta: Map<Types.TeamID, Types.TeamMeta>
-}) => ({payload, type: setTeamInfo as typeof setTeamInfo})
 export const createSetTeamInviteError = (payload: {readonly error: string}) => ({
   payload,
   type: setTeamInviteError as typeof setTeamInviteError,
@@ -571,7 +548,6 @@ export type FinishedNewTeamWizardPayload = ReturnType<typeof createFinishedNewTe
 export type GetMembersPayload = ReturnType<typeof createGetMembers>
 export type GetTeamProfileAddListPayload = ReturnType<typeof createGetTeamProfileAddList>
 export type GetTeamRetentionPolicyPayload = ReturnType<typeof createGetTeamRetentionPolicy>
-export type GetTeamsPayload = ReturnType<typeof createGetTeams>
 export type IgnoreRequestPayload = ReturnType<typeof createIgnoreRequest>
 export type InviteToTeamByPhonePayload = ReturnType<typeof createInviteToTeamByPhone>
 export type JoinTeamPayload = ReturnType<typeof createJoinTeam>
@@ -601,7 +577,6 @@ export type SetMembersPayload = ReturnType<typeof createSetMembers>
 export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
 export type SetSubteamFilterPayload = ReturnType<typeof createSetSubteamFilter>
 export type SetTeamAccessRequestsPendingPayload = ReturnType<typeof createSetTeamAccessRequestsPending>
-export type SetTeamInfoPayload = ReturnType<typeof createSetTeamInfo>
 export type SetTeamInviteErrorPayload = ReturnType<typeof createSetTeamInviteError>
 export type SetTeamJoinErrorPayload = ReturnType<typeof createSetTeamJoinError>
 export type SetTeamJoinSuccessPayload = ReturnType<typeof createSetTeamJoinSuccess>
@@ -634,7 +609,6 @@ export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
 export type TeamSetMemberSelectedPayload = ReturnType<typeof createTeamSetMemberSelected>
 export type ToggleInvitesCollapsedPayload = ReturnType<typeof createToggleInvitesCollapsed>
 export type UnsubscribeTeamDetailsPayload = ReturnType<typeof createUnsubscribeTeamDetails>
-export type UnsubscribeTeamListPayload = ReturnType<typeof createUnsubscribeTeamList>
 export type UpdateChannelNamePayload = ReturnType<typeof createUpdateChannelName>
 export type UpdateInviteLinkDetailsPayload = ReturnType<typeof createUpdateInviteLinkDetails>
 export type UpdateTopicPayload = ReturnType<typeof createUpdateTopic>
@@ -664,7 +638,6 @@ export type Actions =
   | GetMembersPayload
   | GetTeamProfileAddListPayload
   | GetTeamRetentionPolicyPayload
-  | GetTeamsPayload
   | IgnoreRequestPayload
   | InviteToTeamByPhonePayload
   | JoinTeamPayload
@@ -692,7 +665,6 @@ export type Actions =
   | SetPublicityPayload
   | SetSubteamFilterPayload
   | SetTeamAccessRequestsPendingPayload
-  | SetTeamInfoPayload
   | SetTeamInviteErrorPayload
   | SetTeamJoinErrorPayload
   | SetTeamJoinSuccessPayload
@@ -723,7 +695,6 @@ export type Actions =
   | TeamSetMemberSelectedPayload
   | ToggleInvitesCollapsedPayload
   | UnsubscribeTeamDetailsPayload
-  | UnsubscribeTeamListPayload
   | UpdateChannelNamePayload
   | UpdateInviteLinkDetailsPayload
   | UpdateTopicPayload

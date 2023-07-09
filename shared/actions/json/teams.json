@@ -24,18 +24,6 @@
       "selected": "boolean",
       "clearAll?": "boolean"
     },
-    "getTeams": {
-      "_description": [
-        "Load team list if we are stale.",
-        "",
-        "`_subscribe` is for use by teams/subscriber only."
-      ],
-      "_subscribe?": "boolean",
-      "forceReload?": "boolean"
-    },
-    "unsubscribeTeamList": {
-      "_description": "Don't eagerly reload team list anymore."
-    },
     "loadTeam": {
       "_description": [
         "Load team details if we are stale.",
@@ -179,11 +167,6 @@
     "setTeamRetentionPolicy": {
       "teamID": "Types.TeamID",
       "retentionPolicy": "RetentionPolicy"
-    },
-    "setTeamInfo": {
-      "teamnames": "Set<Types.Teamname>",
-      "teamNameToID": "Map<Types.Teamname, string>",
-      "teamMeta": "Map<Types.TeamID, Types.TeamMeta>"
     },
     "setTeamProfileAddList": {
       "teamlist": "Array<Types.TeamProfileAddList>"

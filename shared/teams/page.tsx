@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as TeamsGen from '../actions/teams-gen'
 import * as Container from '../util/container'
+import * as Constants from '../constants/teams'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {HeaderRightActions} from './main/header'
@@ -20,7 +21,7 @@ const useHeaderActions = () => {
 const TeamsFilter = () => {
   const dispatch = Container.useDispatch()
   const filterValue = Container.useSelector(s => s.teams.teamListFilter)
-  const numTeams = Container.useSelector(s => s.teams.teamMeta.size)
+  const numTeams = Constants.useState(s => s.teamMeta.size)
   const setFilter = (filter: string) => dispatch(TeamsGen.createSetTeamListFilterSort({filter}))
   return numTeams >= 20 ? (
     <Kb.SearchFilter

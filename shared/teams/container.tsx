@@ -65,7 +65,8 @@ type ReloadableProps = Omit<MainOwnProps, 'onManageChat' | 'onViewTeam'>
 
 const Reloadable = (props: ReloadableProps) => {
   const dispatch = Container.useDispatch()
-  const loadTeams = React.useCallback(() => dispatch(TeamsGen.createGetTeams()), [dispatch])
+  const getTeams = Constants.useState(s => s.dispatch.getTeams)
+  const loadTeams = getTeams
 
   // subscribe to teams changes
   useTeamsSubscribe()
@@ -89,7 +90,7 @@ const Reloadable = (props: ReloadableProps) => {
 }
 
 const Connected = () => {
-  const _teams = Container.useSelector(state => state.teams.teamMeta)
+  const _teams = Constants.useState(s => s.teamMeta)
   const activityLevels = Constants.useState(s => s.activityLevels)
   const deletedTeams = Constants.useState(s => s.deletedTeams)
   const filter = Container.useSelector(state => state.teams.teamListFilter)

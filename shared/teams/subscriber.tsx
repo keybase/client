@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/teams'
+import * as Constants from '../constants/teams'
 import * as TeamsGen from '../actions/teams-gen'
 import {useFocusEffect} from '@react-navigation/core'
 
@@ -8,24 +9,26 @@ import {useFocusEffect} from '@react-navigation/core'
 // context, you must use `*MountOnly` variants of these helpers
 
 const useTeamsSubscribeMobile = () => {
-  const dispatch = Container.useDispatch()
+  const getTeams = Constants.useState(s => s.dispatch.getTeams)
+  const unsubscribeTeamList = Constants.useState(s => s.dispatch.unsubscribeTeamList)
   useFocusEffect(
     React.useCallback(() => {
-      dispatch(TeamsGen.createGetTeams({_subscribe: true}))
+      getTeams(true)
       return () => {
-        dispatch(TeamsGen.createUnsubscribeTeamList())
+        unsubscribeTeamList()
       }
-    }, [dispatch])
+    }, [getTeams, unsubscribeTeamList])
   )
 }
 const useTeamsSubscribeDesktop = () => {
-  const dispatch = Container.useDispatch()
+  const getTeams = Constants.useState(s => s.dispatch.getTeams)
+  const unsubscribeTeamList = Constants.useState(s => s.dispatch.unsubscribeTeamList)
   React.useEffect(() => {
-    dispatch(TeamsGen.createGetTeams({_subscribe: true}))
+    getTeams(true)
     return () => {
-      dispatch(TeamsGen.createUnsubscribeTeamList())
+      unsubscribeTeamList()
     }
-  }, [dispatch])
+  }, [getTeams, unsubscribeTeamList])
 }
 export const useTeamsSubscribe = Container.isMobile ? useTeamsSubscribeMobile : useTeamsSubscribeDesktop
 export const useTeamsSubscribeMountOnly = useTeamsSubscribeDesktop

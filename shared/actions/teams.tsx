@@ -415,56 +415,6 @@ const loadTeam = async (state: Container.TypedState, action: TeamsGen.LoadTeamPa
   return
 }
 
-const getTeams = async (
-  state: Container.TypedState,
-  action: ConfigGen.LoadOnStartPayload | TeamsGen.GetTeamsPayload | TeamsGen.LeftTeamPayload
-) => {
-  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
-    return
-  }
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  const loggedIn = ConfigConstants.useConfigState.getState().loggedIn
-  if (!username || !loggedIn) {
-    logger.warn('getTeams while logged out')
-    return
-  }
-  if (action.type === TeamsGen.getTeams) {
-    const {forceReload} = action.payload
-    if (!forceReload && !state.teams.teamMetaStale) {
-      // bail
-      return
-    }
-  }
-  try {
-    const results = await RPCTypes.teamsTeamListUnverifiedRpcPromise(
-      {includeImplicitTeams: false, userAssertion: username},
-      Constants.teamsLoadedWaitingKey
-    )
-    const teams: Array<RPCTypes.AnnotatedMemberInfo> = results.teams || []
-    const teamnames: Array<string> = []
-    const teamNameToID = new Map<string, Types.TeamID>()
-    teams.forEach(team => {
-      teamnames.push(team.fqName)
-      teamNameToID.set(team.fqName, team.teamID)
-    })
-    const teamNameSet = new Set<string>(teamnames)
-    return TeamsGen.createSetTeamInfo({
-      teamMeta: Constants.teamListToMeta(teams),
-      teamNameToID,
-      teamnames: teamNameSet,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      if (error.code === RPCTypes.StatusCode.scapinetworkerror) {
-        // Ignore API errors due to offline
-      } else {
-        logger.error(error)
-      }
-    }
-  }
-  return
-}
-
 const checkRequestedAccess = async () => {
   const result = await RPCTypes.teamsTeamListMyAccessRequestsRpcPromise(
     {},
@@ -698,16 +648,6 @@ const refreshTeamRoleMap = async (
 const teamDeletedOrExit = () => {
   if (Router2Constants.getTab() == Tabs.teamsTab) {
     return RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
-  }
-  return false
-}
-
-const reloadTeamListIfSubscribed = (state: Container.TypedState, _: unknown) => {
-  if (state.teams.teamMetaSubscribeCount > 0) {
-    logger.info('eagerly reloading')
-    return TeamsGen.createGetTeams()
-  } else {
-    logger.info('skipping')
   }
   return false
 }
@@ -1200,7 +1140,12 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.loadTeam, loadTeam)
   Container.listenAction(TeamsGen.getMembers, getMembers)
   Container.listenAction(TeamsGen.createNewTeamFromConversation, createNewTeamFromConversation)
-  Container.listenAction([ConfigGen.loadOnStart, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams)
+  Container.listenAction([ConfigGen.loadOnStart, TeamsGen.leftTeam], (_, action) => {
+    if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
+      return
+    }
+    Constants.useState.getState().dispatch.getTeams()
+  })
   Container.listenAction(TeamsGen.saveChannelMembership, saveChannelMembership)
   Container.listenAction(
     [ConfigGen.bootstrapStatusLoaded, EngineGen.keybase1NotifyTeamTeamRoleMapChanged],
@@ -1237,10 +1182,14 @@ const initTeams = () => {
     teamDeletedOrExit
   )
 
-  Container.listenAction(
-    [EngineGen.keybase1NotifyTeamTeamMetadataUpdate, GregorGen.updateReachable],
-    reloadTeamListIfSubscribed
-  )
+  Container.listenAction([EngineGen.keybase1NotifyTeamTeamMetadataUpdate, GregorGen.updateReachable], () => {
+    if (Constants.useState.getState().teamMetaSubscribeCount > 0) {
+      logger.info('eagerly reloading')
+      Constants.useState.getState().dispatch.getTeams()
+    } else {
+      logger.info('skipping')
+    }
+  })
 
   Container.listenAction(TeamsGen.clearNavBadges, clearNavBadges)
 
@@ -1303,6 +1252,10 @@ const initTeams = () => {
   Container.listenAction(EngineGen.chat1NotifyChatChatWelcomeMessageLoaded, (_, action) => {
     const {teamID, message} = action.payload.params
     Constants.useState.getState().dispatch.loadedWelcomeMessage(teamID, message)
+  })
+
+  Container.listenAction(EngineGen.keybase1NotifyTeamTeamMetadataUpdate, () => {
+    Constants.useState.getState().dispatch.resetTeamMetaStale()
   })
 }
 

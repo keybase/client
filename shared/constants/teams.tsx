@@ -250,15 +250,11 @@ const emptyState: Types.State = {
   teamListSort: 'role',
   teamMemberToLastActivity: new Map(),
   teamMemberToTreeMemberships: new Map(),
-  teamMeta: new Map(),
-  teamMetaStale: true, // start out true, we have not loaded
-  teamMetaSubscribeCount: 0,
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamSelectedChannels: new Map(),
   teamSelectedMembers: new Map(),
   teamVersion: new Map(),
-  teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
   treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
@@ -515,8 +511,8 @@ const isMultiOwnerTeam = (state: TypedState, teamID: Types.TeamID): boolean => {
 export const getTeamID = (_: unknown, teamname: Types.Teamname) =>
   useState.getState().teamNameToID.get(teamname) || Types.noTeamID
 
-export const getTeamNameFromID = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamMeta.get(teamID)?.teamname
+export const getTeamNameFromID = (_: unknown, teamID: Types.TeamID) =>
+  useState.getState().teamMeta.get(teamID)?.teamname
 
 export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamIDToRetentionPolicy.get(teamID)
@@ -574,15 +570,14 @@ function sortTeamnames(a: string, b: string) {
 }
 
 const _memoizedSorted = memoize((names: Set<Types.Teamname>) => [...names].sort(sortTeamnames))
-export const getSortedTeamnames = (state: TypedState): Types.Teamname[] =>
-  _memoizedSorted(state.teams.teamnames)
+export const getSortedTeamnames = (): Types.Teamname[] => _memoizedSorted(useState.getState().teamnames)
 
 export const sortTeamsByName = memoize((teamMeta: Map<Types.TeamID, Types.TeamMeta>) =>
   [...teamMeta.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
 )
 
 // sorted by name
-export const getSortedTeams = (state: TypedState) => sortTeamsByName(state.teams.teamMeta)
+export const getSortedTeams = () => sortTeamsByName(useState.getState().teamMeta)
 
 export const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
 export const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
@@ -669,7 +664,7 @@ export const newRequestsGregorPrefix = 'team.request_access:'
 export const newRequestsGregorKey = (teamID: Types.TeamID) => `${newRequestsGregorPrefix}${teamID}`
 
 // Merge new teamMeta objs into old ones, removing any old teams that are not in the new map
-export const mergeTeamMeta = (oldMap: Types.State['teamMeta'], newMap: Types.State['teamMeta']) => {
+export const mergeTeamMeta = (oldMap: State['teamMeta'], newMap: State['teamMeta']) => {
   const ret = new Map(newMap)
   for (const [teamID, teamMeta] of newMap.entries()) {
     ret.set(teamID, {...oldMap.get(teamID), ...teamMeta})
@@ -701,7 +696,7 @@ export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
         showcasing: state.teams.newTeamWizard.profileShowcase,
         teamname: state.teams.newTeamWizard.name == '' ? 'New team' : state.teams.newTeamWizard.name,
       })
-    : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
+    : useState.getState().teamMeta.get(teamID) ?? emptyTeamMeta
 
 export const getTeamMemberLastActivity = (
   state: TypedState,
@@ -1006,6 +1001,10 @@ export type Store = {
   teamNameToLoadingInvites: Map<Types.Teamname, Map<string, boolean>>
   errorInTeamCreation: string
   teamNameToID: Map<Types.Teamname, string>
+  teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
+  teamnames: Set<Types.Teamname> // TODO remove
+  teamMetaStale: boolean // if we've received an update since we last loaded team list
+  teamMeta: Map<Types.TeamID, Types.TeamMeta>
 }
 
 const initialStore: Store = {
@@ -1028,8 +1027,12 @@ const initialStore: Store = {
   newTeams: new Set(),
   teamIDToResetUsers: new Map(),
   teamIDToWelcomeMessage: new Map(),
+  teamMeta: new Map(),
+  teamMetaStale: true, // start out true, we have not loaded
+  teamMetaSubscribeCount: 0,
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
+  teamnames: new Set(),
 }
 
 export type State = Store & {
@@ -1062,6 +1065,7 @@ export type State = Store & {
     editTeamDescription: (teamID: Types.TeamID, description: string) => void
     editMembership: (teamID: Types.TeamID, usernames: Array<string>, role: Types.TeamRoleType) => void
     getActivityForTeams: () => void
+    getTeams: (subscribe?: boolean, forceReload?: boolean) => void
     inviteToTeamByEmail: (
       invitees: string,
       role: Types.TeamRoleType,
@@ -1076,6 +1080,7 @@ export type State = Store & {
     resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
     resetErrorInTeamCreation: () => void
+    resetTeamMetaStale: () => void
     setChannelCreationError: (error: string) => void
     setNewTeamInfo: (
       deletedTeams: Array<RPCTypes.DeletedTeamInfo>,
@@ -1086,6 +1091,7 @@ export type State = Store & {
     setMemberPublicity: (teamID: Types.TeamID, showcase: boolean) => void
     setTeamRetentionPolicy: (teamID: Types.TeamID, policy: RetentionPolicy) => void
     setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => void
+    unsubscribeTeamList: () => void
   }
 }
 
@@ -1394,6 +1400,54 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    getTeams: (subscribe, forceReload) => {
+      if (subscribe) {
+        set(s => {
+          s.teamMetaSubscribeCount++
+        })
+      }
+
+      const f = async () => {
+        const username = ConfigConstants.useCurrentUserState.getState().username
+        const loggedIn = ConfigConstants.useConfigState.getState().loggedIn
+        if (!username || !loggedIn) {
+          logger.warn('getTeams while logged out')
+          return
+        }
+        if (!forceReload && !get().teamMetaStale) {
+          // bail
+          return
+        }
+        try {
+          const results = await RPCTypes.teamsTeamListUnverifiedRpcPromise(
+            {includeImplicitTeams: false, userAssertion: username},
+            teamsLoadedWaitingKey
+          )
+          const teams: Array<RPCTypes.AnnotatedMemberInfo> = results.teams || []
+          const teamnames: Array<string> = []
+          const teamNameToID = new Map<string, Types.TeamID>()
+          teams.forEach(team => {
+            teamnames.push(team.fqName)
+            teamNameToID.set(team.fqName, team.teamID)
+          })
+          set(s => {
+            s.teamNameToID = teamNameToID
+            s.teamnames = new Set<string>(teamnames)
+            s.teamMeta = mergeTeamMeta(s.teamMeta, teamListToMeta(teams))
+            s.teamMetaStale = false
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            if (error.code === RPCTypes.StatusCode.scapinetworkerror) {
+              // Ignore API errors due to offline
+            } else {
+              logger.error(error)
+            }
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
     inviteToTeamByEmail: (invitees, role, teamID, teamname, loadingKey) => {
       const f = async () => {
         if (loadingKey) {
@@ -1540,6 +1594,11 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     resetState: 'default',
+    resetTeamMetaStale: () => {
+      set(s => {
+        s.teamMetaStale = true
+      })
+    },
     setChannelCreationError: error => {
       set(s => {
         s.creatingChannels = false
@@ -1616,6 +1675,13 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    unsubscribeTeamList: () => {
+      set(s => {
+        if (s.teamMetaSubscribeCount > 0) {
+          s.teamMetaSubscribeCount--
+        }
+      })
     },
   }
   return {

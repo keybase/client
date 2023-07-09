@@ -19,7 +19,7 @@ export default (ownProps: OwnProps) => {
   const _isYou = ConfigConstants.useCurrentUserState(s => s.username === ownProps.username)
   const _roles = Container.useSelector(state => state.teams.teamRoleMap.roles)
   const _teamNameToID = TeamsConstants.useState(s => s.teamNameToID)
-  const _youAreInTeams = Container.useSelector(state => state.teams.teamnames.size > 0)
+  const _youAreInTeams = TeamsConstants.useState(s => s.teamnames.size > 0)
   const teamShowcase = d.teamShowcase || noTeams
 
   const dispatch = Container.useDispatch()

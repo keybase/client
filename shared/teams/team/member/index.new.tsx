@@ -65,7 +65,7 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
     state.teams.teamMemberToTreeMemberships.get(targetTeamID)?.get(username)
   )
   const roleMap = Container.useSelector(state => state.teams.teamRoleMap.roles)
-  const teamMetas = Container.useSelector(state => state.teams.teamMeta)
+  const teamMetas = Constants.useState(s => s.teamMeta)
 
   // Note that we do not directly take any information directly from the TeamTree result other
   // than the **shape of the tree**. The other information is delegated to

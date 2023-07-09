@@ -249,9 +249,6 @@ export type State = {
   teamJoinSuccessTeamName: string
   teamListFilter: string
   teamListSort: TeamListSort
-  teamMeta: Map<TeamID, TeamMeta>
-  teamMetaStale: boolean // if we've received an update since we last loaded team list
-  teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamDetails: Map<TeamID, TeamDetails>
   teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
   teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
@@ -262,7 +259,6 @@ export type State = {
   teamMemberToTreeMemberships: Map<TeamID, Map<string, TeamTreeMemberships>>
 
   teamMemberToLastActivity: Map<TeamID, Map<string, number>>
-  teamnames: Set<Teamname> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap
   teamBuilding: TeamBuildingSubState
