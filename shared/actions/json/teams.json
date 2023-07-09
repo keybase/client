@@ -167,12 +167,6 @@
       "sendChatNotification": "boolean",
       "teamname": "string"
     },
-    "editMembership": {
-      "_description": "Edit the role of one or more members in a team",
-      "teamID": "Types.TeamID",
-      "usernames": "Array<string>",
-      "role": "Types.TeamRoleType"
-    },
     "removeMember": {
       "teamID": "Types.TeamID",
       "username": "string"
@@ -189,11 +183,6 @@
     "setPublicity": {
       "teamID": "Types.TeamID",
       "settings": "Types.PublicitySettings"
-    },
-    "setEditMemberError": {
-      "error": "string",
-      "teamID": "Types.TeamID",
-      "username": "string"
     },
     "setTeamsWithChosenChannels": {
       "teamsWithChosenChannels": "Set<Types.TeamID>"

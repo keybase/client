@@ -368,28 +368,6 @@ const uploadAvatar = async (_: unknown, action: TeamsGen.UploadTeamAvatarPayload
   return
 }
 
-const editMembership = async (_: unknown, action: TeamsGen.EditMembershipPayload) => {
-  const {teamID, usernames, role: _role} = action.payload
-  const role = _role ? RPCTypes.TeamRole[_role] : RPCTypes.TeamRole.none
-  try {
-    await RPCTypes.teamsTeamEditMembersRpcPromise(
-      {
-        teamID,
-        users: usernames.map(assertion => ({assertion, role})),
-      },
-      [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, ...usernames)]
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      if (usernames.length === 1) {
-        // error is shown in the member page
-        return TeamsGen.createSetEditMemberError({error: error.message, teamID, username: usernames[0] ?? ''})
-      }
-    }
-  }
-  return false
-}
-
 const removeMember = async (_: Container.TypedState, action: TeamsGen.RemoveMemberPayload) => {
   const {teamID, username} = action.payload
   try {
@@ -1233,7 +1211,7 @@ const finishNewTeamWizard = async (state: Container.TypedState) => {
       return TeamsGen.createSetTeamWizardError({error: error.message})
     }
   }
-    return
+  return
 }
 
 const finishedNewTeamWizard = (_: unknown, action: TeamsGen.FinishedNewTeamWizardPayload) => [
@@ -1332,7 +1310,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.inviteToTeamByEmail, inviteByEmail)
   Container.listenAction(TeamsGen.ignoreRequest, ignoreRequest)
   Container.listenAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
-  Container.listenAction(TeamsGen.editMembership, editMembership)
   Container.listenAction(TeamsGen.removeMember, removeMember)
   Container.listenAction(TeamsGen.removePendingInvite, removePendingInvite)
   Container.listenAction(TeamsGen.updateTopic, updateTopic)

@@ -233,7 +233,6 @@ export type TeamInviteState = {
 
 export type State = {
   addMembersWizard: AddMembersWizardState
-  errorInEditMember: {error: string; teamID: TeamID; username: string}
   errorInEmailInvite: EmailInviteError
   errorInTeamCreation: string
   errorInTeamInvite: string

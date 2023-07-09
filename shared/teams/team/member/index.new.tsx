@@ -440,9 +440,10 @@ const NodeInRow = (props: NodeInRowProps) => {
 
   const [role, setRole] = React.useState<Types.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
+  const editMembership = Constants.useState(s => s.dispatch.editMembership)
   const onChangeRole = (role: Types.TeamRoleType) => {
     setRole(role)
-    dispatch(TeamsGen.createEditMembership({role, teamID: props.node.teamID, usernames: [props.username]}))
+    editMembership(props.node.teamID, [props.username], role)
     setOpen(false)
     if (['reader, writer'].includes(role) && props.isParentTeamMe) {
       dispatch(nav.safeNavigateUpPayload())

@@ -23,7 +23,6 @@ export const createNewTeamFromConversation = 'teams:createNewTeamFromConversatio
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const deleteTeam = 'teams:deleteTeam'
-export const editMembership = 'teams:editMembership'
 export const finishNewTeamWizard = 'teams:finishNewTeamWizard'
 export const finishedAddMembersWizard = 'teams:finishedAddMembersWizard'
 export const finishedNewTeamWizard = 'teams:finishedNewTeamWizard'
@@ -53,7 +52,6 @@ export const saveChannelMembership = 'teams:saveChannelMembership'
 export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setChannelSelected = 'teams:setChannelSelected'
-export const setEditMemberError = 'teams:setEditMemberError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
@@ -143,14 +141,6 @@ export const createUnsubscribeTeamList = (payload?: undefined) => ({
   payload,
   type: unsubscribeTeamList as typeof unsubscribeTeamList,
 })
-/**
- * Edit the role of one or more members in a team
- */
-export const createEditMembership = (payload: {
-  readonly teamID: Types.TeamID
-  readonly usernames: Array<string>
-  readonly role: Types.TeamRoleType
-}) => ({payload, type: editMembership as typeof editMembership})
 /**
  * First stage of the invite link process, opens the modal
  */
@@ -443,11 +433,6 @@ export const createSaveChannelMembership = (payload: {
   readonly oldChannelState: Types.ChannelMembershipState
   readonly newChannelState: Types.ChannelMembershipState
 }) => ({payload, type: saveChannelMembership as typeof saveChannelMembership})
-export const createSetEditMemberError = (payload: {
-  readonly error: string
-  readonly teamID: Types.TeamID
-  readonly username: string
-}) => ({payload, type: setEditMemberError as typeof setEditMemberError})
 export const createSetEmailInviteError = (payload: {
   readonly message: string
   readonly malformed: Array<string>
@@ -622,7 +607,6 @@ export type CreateNewTeamPayload = ReturnType<typeof createCreateNewTeam>
 export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
 export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
 export type DeleteTeamPayload = ReturnType<typeof createDeleteTeam>
-export type EditMembershipPayload = ReturnType<typeof createEditMembership>
 export type FinishNewTeamWizardPayload = ReturnType<typeof createFinishNewTeamWizard>
 export type FinishedAddMembersWizardPayload = ReturnType<typeof createFinishedAddMembersWizard>
 export type FinishedNewTeamWizardPayload = ReturnType<typeof createFinishedNewTeamWizard>
@@ -654,7 +638,6 @@ export type SetAddMembersWizardIndividualRolePayload = ReturnType<
 >
 export type SetAddMembersWizardRolePayload = ReturnType<typeof createSetAddMembersWizardRole>
 export type SetChannelSelectedPayload = ReturnType<typeof createSetChannelSelected>
-export type SetEditMemberErrorPayload = ReturnType<typeof createSetEditMemberError>
 export type SetEmailInviteErrorPayload = ReturnType<typeof createSetEmailInviteError>
 export type SetJustFinishedAddMembersWizardPayload = ReturnType<typeof createSetJustFinishedAddMembersWizard>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
@@ -723,7 +706,6 @@ export type Actions =
   | DeleteChannelConfirmedPayload
   | DeleteMultiChannelsConfirmedPayload
   | DeleteTeamPayload
-  | EditMembershipPayload
   | FinishNewTeamWizardPayload
   | FinishedAddMembersWizardPayload
   | FinishedNewTeamWizardPayload
@@ -753,7 +735,6 @@ export type Actions =
   | SetAddMembersWizardIndividualRolePayload
   | SetAddMembersWizardRolePayload
   | SetChannelSelectedPayload
-  | SetEditMemberErrorPayload
   | SetEmailInviteErrorPayload
   | SetJustFinishedAddMembersWizardPayload
   | SetMemberActivityDetailsPayload

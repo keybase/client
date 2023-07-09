@@ -274,8 +274,6 @@ function allSameOrNull<T>(arr: T[]): T | null {
   return (arr.some(r => r !== first) ? null : first) ?? null
 }
 const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: string[]}) => {
-  const dispatch = Container.useDispatch()
-
   const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
   const roles = members.map(username => teamDetails.members.get(username)?.type)
   const currentRole = allSameOrNull(roles) ?? undefined
@@ -296,8 +294,8 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
     Constants.getDisabledReasonsForRolePicker(state, teamID, members)
   )
   const disableButton = disabledReasons.admin !== undefined
-  const onChangeRoles = (role: Types.TeamRoleType) =>
-    dispatch(TeamsGen.createEditMembership({role, teamID, usernames: members}))
+  const editMembership = Constants.useState(s => s.dispatch.editMembership)
+  const onChangeRoles = (role: Types.TeamRoleType) => editMembership(teamID, members, role)
 
   return (
     <FloatingRolePicker
