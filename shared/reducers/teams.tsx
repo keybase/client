@@ -28,10 +28,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.resetStore]: () => {
     return initialState
   },
-  [TeamsGen.createNewTeamFromConversation]: () => {
-    // /TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    // draftState.errorInTeamCreation = ''
-  },
   [TeamsGen.setMembers]: (draftState, action) => {
     draftState.teamIDToMembers.set(action.payload.teamID, action.payload.members)
   },

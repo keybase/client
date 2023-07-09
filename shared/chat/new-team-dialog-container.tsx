@@ -1,4 +1,3 @@
-import * as TeamsGen from '../actions/teams-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ChatConstants from '../constants/chat2'
 import * as TeamsConstants from '../constants/teams'
@@ -18,9 +17,10 @@ export default (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
   const resetErrorInTeamCreation = TeamsConstants.useState(s => s.dispatch.resetErrorInTeamCreation)
+  const createNewTeamFromConversation = TeamsConstants.useState(s => s.dispatch.createNewTeamFromConversation)
   const onClearError = resetErrorInTeamCreation
   const onSubmit = (teamname: string) => {
-    dispatch(TeamsGen.createCreateNewTeamFromConversation({conversationIDKey, teamname}))
+    createNewTeamFromConversation(conversationIDKey, teamname)
   }
   const props = {
     baseTeam,

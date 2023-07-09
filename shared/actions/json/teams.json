@@ -6,10 +6,6 @@
   ],
   "actions": {
     "clearNavBadges": {},
-    "createNewTeamFromConversation": {
-      "conversationIDKey": "ConversationIDKey",
-      "teamname": "string"
-    },
     "createChannel": {
       "teamID": "Types.TeamID",
       "channelname": "string",

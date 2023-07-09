@@ -17,7 +17,6 @@ export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearNavBadges = 'teams:clearNavBadges'
 export const createChannel = 'teams:createChannel'
-export const createNewTeamFromConversation = 'teams:createNewTeamFromConversation'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const deleteTeam = 'teams:deleteTeam'
@@ -76,7 +75,6 @@ export const startAddMembersWizard = 'teams:startAddMembersWizard'
 export const startNewTeamWizard = 'teams:startNewTeamWizard'
 export const teamSeen = 'teams:teamSeen'
 export const teamSetMemberSelected = 'teams:teamSetMemberSelected'
-export const unsubscribeTeamDetails = 'teams:unsubscribeTeamDetails'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateInviteLinkDetails = 'teams:updateInviteLinkDetails'
 export const updateTopic = 'teams:updateTopic'
@@ -217,13 +215,6 @@ export const createAddMembersWizardPushMembers = (payload: {
   readonly members: Array<Types.AddingMember>
 }) => ({payload, type: addMembersWizardPushMembers as typeof addMembersWizardPushMembers})
 /**
- * Stop listening for team details for this team
- */
-export const createUnsubscribeTeamDetails = (payload: {readonly teamID: Types.TeamID}) => ({
-  payload,
-  type: unsubscribeTeamDetails as typeof unsubscribeTeamDetails,
-})
-/**
  * Takes a member list and appends it to wizard state, using assertionsInTeam as a filter. When filtering, it also maintains membersAlreadyInTeam list.
  */
 export const createAddMembersWizardAddMembers = (payload: {
@@ -278,10 +269,6 @@ export const createCreateChannel = (payload: {
   readonly description?: string
   readonly navToChatOnSuccess: boolean
 }) => ({payload, type: createChannel as typeof createChannel})
-export const createCreateNewTeamFromConversation = (payload: {
-  readonly conversationIDKey: ConversationIDKey
-  readonly teamname: string
-}) => ({payload, type: createNewTeamFromConversation as typeof createNewTeamFromConversation})
 export const createDeleteChannelConfirmed = (payload: {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ConversationIDKey
@@ -487,7 +474,6 @@ export type CheckRequestedAccessPayload = ReturnType<typeof createCheckRequested
 export type ClearAddUserToTeamsResultsPayload = ReturnType<typeof createClearAddUserToTeamsResults>
 export type ClearNavBadgesPayload = ReturnType<typeof createClearNavBadges>
 export type CreateChannelPayload = ReturnType<typeof createCreateChannel>
-export type CreateNewTeamFromConversationPayload = ReturnType<typeof createCreateNewTeamFromConversation>
 export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
 export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
 export type DeleteTeamPayload = ReturnType<typeof createDeleteTeam>
@@ -550,7 +536,6 @@ export type StartAddMembersWizardPayload = ReturnType<typeof createStartAddMembe
 export type StartNewTeamWizardPayload = ReturnType<typeof createStartNewTeamWizard>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
 export type TeamSetMemberSelectedPayload = ReturnType<typeof createTeamSetMemberSelected>
-export type UnsubscribeTeamDetailsPayload = ReturnType<typeof createUnsubscribeTeamDetails>
 export type UpdateChannelNamePayload = ReturnType<typeof createUpdateChannelName>
 export type UpdateInviteLinkDetailsPayload = ReturnType<typeof createUpdateInviteLinkDetails>
 export type UpdateTopicPayload = ReturnType<typeof createUpdateTopic>
@@ -569,7 +554,6 @@ export type Actions =
   | ClearAddUserToTeamsResultsPayload
   | ClearNavBadgesPayload
   | CreateChannelPayload
-  | CreateNewTeamFromConversationPayload
   | DeleteChannelConfirmedPayload
   | DeleteMultiChannelsConfirmedPayload
   | DeleteTeamPayload
@@ -628,7 +612,6 @@ export type Actions =
   | StartNewTeamWizardPayload
   | TeamSeenPayload
   | TeamSetMemberSelectedPayload
-  | UnsubscribeTeamDetailsPayload
   | UpdateChannelNamePayload
   | UpdateInviteLinkDetailsPayload
   | UpdateTopicPayload

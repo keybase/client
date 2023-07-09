@@ -7,7 +7,6 @@ import * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
 import * as ConfigConstants from '../constants/config'
 import * as ProfileConstants from '../constants/profile'
-import * as ChatConstants from '../constants/chat2'
 import * as ChatTypes from '../constants/types/chat2'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -367,26 +366,6 @@ const ignoreRequest = async (_: unknown, action: TeamsGen.IgnoreRequestPayload) 
     // TODO handle error
   }
   return false
-}
-
-function createNewTeamFromConversation(
-  state: Container.TypedState,
-  action: TeamsGen.CreateNewTeamFromConversationPayload
-) {
-  const {conversationIDKey, teamname} = action.payload
-  const me = ConfigConstants.useCurrentUserState.getState().username
-
-  const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
-  // exclude bots from the newly created team, they can be added back later.
-  const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
-  const users = participants.map(assertion => ({
-    assertion,
-    role: assertion === me ? ('admin' as const) : ('writer' as const),
-  }))
-
-  Constants.useState
-    .getState()
-    .dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
 }
 
 const checkRequestedAccess = async () => {
@@ -1044,7 +1023,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.requestInviteLinkDetails, requestInviteLinkDetails)
 
   Container.listenAction(TeamsGen.getMembers, getMembers)
-  Container.listenAction(TeamsGen.createNewTeamFromConversation, createNewTeamFromConversation)
   Container.listenAction([ConfigGen.loadOnStart, TeamsGen.leftTeam], (_, action) => {
     if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
       return
