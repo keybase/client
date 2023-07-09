@@ -638,7 +638,7 @@ export const TeamMemberHeader = (props: Props) => {
   const leaving = useNavUpIfRemovedFromTeam(teamID, username)
 
   const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
   const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
 
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
@@ -648,7 +648,7 @@ export const TeamMemberHeader = (props: Props) => {
   const onViewTeam = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
 
-  const member = teamDetails.members.get(username)
+  const member = teamDetails?.members.get(username)
   if (!member) {
     if (!leaving) {
       // loading? should never happen.

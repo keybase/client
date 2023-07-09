@@ -38,8 +38,8 @@ const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
   const infoMap = Container.useSelector(s => s.users.infoMap)
   const participantInfo = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey))
-  const teamMemberInfo = Container.useSelector(
-    s => Constants.getTeamDetails(s, teamID)?.members?.get(username) ?? Constants.initialMemberInfo
+  const teamMemberInfo = Constants.useState(
+    s => s.teamDetails.get(teamID)?.members?.get(username) ?? Constants.initialMemberInfo
   )
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''

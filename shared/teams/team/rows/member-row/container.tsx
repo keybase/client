@@ -20,7 +20,7 @@ const blankInfo = Constants.initialMemberInfo
 
 export default (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
-  const {members} = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const {members} = Constants.useState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
   const info = members.get(username) || blankInfo
 

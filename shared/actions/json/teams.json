@@ -258,11 +258,6 @@
     "setJustFinishedAddMembersWizard": {
       "justFinished": "boolean"
     },
-    "setSubteamFilter": {
-      "_description": "Set filtering for the subteams tab.",
-      "filter": "string",
-      "parentTeam?": "Types.TeamID"
-    },
     "showTeamByName": {
       "_description": [
         "Tries to show a team with this name whether the user is in the team or not.",

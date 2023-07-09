@@ -60,22 +60,21 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamRetentionPolicy]: (draftState, action) => {
     draftState.teamIDToRetentionPolicy.set(action.payload.teamID, action.payload.retentionPolicy)
   },
-  [TeamsGen.teamLoaded]: (draftState, action) => {
-    const {teamID, team} = action.payload
-    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< below
-    const maybeMeta: any = undefined // draftState.teamMeta.get(teamID)
-    if (maybeMeta && maybeMeta.teamname !== team.name) {
-      if (team.name.includes('.')) {
-        // subteam name changed. store loaded name
-        maybeMeta.teamname = team.name
-      } else {
-        // bad. teamlist lied to us about the teamname
-        throw new Error('Team name mismatch! Please report this error.')
-      }
-    }
-
-    const details = Constants.annotatedTeamToDetails(team)
-    draftState.teamDetails.set(teamID, details)
+  [TeamsGen.teamLoaded]: (_draftState, _action) => {
+    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    // const {teamID, team} = action.payload
+    // const maybeMeta =draftState.teamMeta.get(teamID)
+    // if (maybeMeta && maybeMeta.teamname !== team.name) {
+    //   if (team.name.includes('.')) {
+    //     // subteam name changed. store loaded name
+    //     maybeMeta.teamname = team.name
+    //   } else {
+    //     // bad. teamlist lied to us about the teamname
+    //     throw new Error('Team name mismatch! Please report this error.')
+    //   }
+    // }
+    // const details = Constants.annotatedTeamToDetails(team)
+    // draftState.teamDetails.set(teamID, details)
   },
   [TeamsGen.setTeamVersion]: (draftState, action) => {
     const {teamID, version} = action.payload
@@ -144,21 +143,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       loadedVersion: action.payload.map.loadedVersion,
       roles: action.payload.map.roles,
     }
-  },
-  [TeamsGen.setSubteamFilter]: (_draftState, _action) => {
-    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    // const {filter, parentTeam} = action.payload
-    // draftState.subteamFilter = filter
-    // if (parentTeam && filter) {
-    //   const flc = filter.toLowerCase()
-    //   draftState.subteamsFiltered = new Set(
-    //     [...(draftState.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
-    //       draftState.teamMeta.get(sID)?.teamname.toLowerCase().includes(flc)
-    //     )
-    //   )
-    // } else {
-    //   draftState.subteamsFiltered = undefined
-    // }
   },
   [TeamsGen.setMemberActivityDetails]: (draftState, action) => {
     action.payload.activityMap.forEach((lastActivity, teamID) => {

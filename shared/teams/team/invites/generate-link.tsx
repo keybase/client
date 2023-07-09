@@ -75,7 +75,7 @@ const GenerateLinkModal = (props: Props) => {
 
   const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
   useTeamDetailsSubscribe(teamID)
-  const teamDetails = Container.useSelector(s => s.teams.teamDetails.get(teamID))
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
   const inviteLinks = teamDetails?.inviteLinks
   const inviteLink = [...(inviteLinks || [])].find(i => i.url == inviteLinkURL)
 

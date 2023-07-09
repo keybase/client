@@ -3,20 +3,21 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import type * as Types from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/teams'
 import * as TeamsGen from '../../../../actions/teams-gen'
 
 const AddSubteam = ({teamID}: {teamID: Types.TeamID}) => {
   const dispatch = Container.useDispatch()
-  const subteamFilter = Container.useSelector(s => s.teams.subteamFilter)
+  const subteamFilter = Constants.useState(s => s.subteamFilter)
+  const setSubteamFilter = Constants.useState(s => s.dispatch.setSubteamFilter)
   const onCreateSubteam = () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID}))
-  const onChangeFilter = (filter: string) =>
-    dispatch(TeamsGen.createSetSubteamFilter({filter, parentTeam: teamID}))
+  const onChangeFilter = (filter: string) => setSubteamFilter(filter, teamID)
   // clear filter on unmount
   React.useEffect(
     () => () => {
-      dispatch(TeamsGen.createSetSubteamFilter({filter: ''}))
+      setSubteamFilter('')
     },
-    [dispatch]
+    [setSubteamFilter]
   )
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>

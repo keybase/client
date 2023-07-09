@@ -171,7 +171,7 @@ export const useSubteamsSections = (
   details: Types.TeamDetails,
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
-  const subteamsFiltered = Container.useSelector(state => state.teams.subteamsFiltered)
+  const subteamsFiltered = Constants.useState(s => s.subteamsFiltered)
   const subteams = [...(subteamsFiltered ?? details.subteams)].sort()
   const sections: Array<Section> = []
 

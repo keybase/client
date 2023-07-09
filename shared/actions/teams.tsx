@@ -534,7 +534,9 @@ const setPublicity = async (state: Container.TypedState, action: TeamsGen.SetPub
   const {teamID, settings} = action.payload
   const waitingKey = Constants.settingsWaitingKey(teamID)
   const teamMeta = Constants.getTeamMeta(state, teamID)
-  const teamSettings = Constants.getTeamDetails(state, teamID).settings
+  const teamSettings = (Constants.useState.getState().teamDetails.get(teamID) ?? Constants.emptyTeamDetails)
+    .settings
+
   const ignoreAccessRequests = teamSettings.tarsDisabled
   const openTeam = teamSettings.open
   const openTeamRole = teamSettings.openJoinAs

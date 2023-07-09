@@ -15,7 +15,7 @@ const TeamInfo = (props: Props) => {
 
   const teamID = props.teamID ?? Types.noTeamID
   const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
 
   const teamname = teamMeta.teamname
   const lastDot = teamname.lastIndexOf('.')
@@ -25,10 +25,10 @@ const TeamInfo = (props: Props) => {
 
   const [newName, _setName] = React.useState(_leafName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
-  const [description, setDescription] = React.useState(teamDetails.description)
+  const [description, setDescription] = React.useState(teamDetails?.description ?? '')
 
   const saveDisabled =
-    (description === teamDetails.description && newName === _leafName) || newName.length < 3
+    (description === teamDetails?.description && newName === _leafName) || newName.length < 3
   const waiting = Container.useAnyWaiting([Constants.teamWaitingKey(teamID), Constants.teamRenameWaitingKey])
 
   const errors = {
@@ -42,7 +42,7 @@ const TeamInfo = (props: Props) => {
     if (newName !== _leafName) {
       dispatch(TeamsGen.createRenameTeam({newName: parentTeamNameWithDot + newName, oldName: teamname}))
     }
-    if (description !== teamDetails.description) {
+    if (description !== teamDetails?.description) {
       editTeamDescription(teamID, description)
     }
   }

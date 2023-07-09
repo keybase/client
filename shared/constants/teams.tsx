@@ -232,11 +232,8 @@ const emptyState: Types.State = {
   errorInTeamInvite: '',
   errorInTeamJoin: '',
   newTeamWizard: newTeamWizardEmptyState,
-  subteamFilter: '',
-  subteamsFiltered: undefined,
   teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  teamDetails: new Map(),
   teamDetailsSubscriptionCount: new Map(),
   teamIDToMembers: new Map(),
   teamIDToRetentionPolicy: new Map(),
@@ -382,7 +379,7 @@ export const getRoleByName = (state: TypedState, teamname: string): Types.MaybeT
   getRole(state, getTeamID(teamname))
 
 export const isLastOwner = (state: TypedState, teamID: Types.TeamID): boolean =>
-  isOwner(getRole(state, teamID)) && !isMultiOwnerTeam(state, teamID)
+  isOwner(getRole(state, teamID)) && !isMultiOwnerTeam(teamID)
 
 const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
 const onlyOwnersCanTurnTeamMembersIntoOwners = {owner: 'Only owners can turn team members into owners.'}
@@ -428,9 +425,9 @@ export const getDisabledReasonsForRolePicker = (
 ): Types.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
   const teamMeta = getTeamMeta(state, teamID)
-  const teamDetails: Types.TeamDetails = getTeamDetails(state, teamID)
+  const teamDetails = useState.getState().teamDetails.get(teamID)
   const members: Map<string, Types.MemberInfo> =
-    teamDetails.members || state.teams.teamIDToMembers.get(teamID) || new Map()
+    teamDetails?.members || state.teams.teamIDToMembers.get(teamID) || new Map<string, Types.MemberInfo>()
   const teamname = teamMeta.teamname
   let theyAreOwner = false
   if (typeof membersToModify === 'string') {
@@ -493,9 +490,10 @@ export const getDisabledReasonsForRolePicker = (
   return {}
 }
 
-const isMultiOwnerTeam = (state: TypedState, teamID: Types.TeamID): boolean => {
+const isMultiOwnerTeam = (teamID: Types.TeamID): boolean => {
   let countOfOwners = 0
-  const allTeamMembers = state.teams.teamDetails.get(teamID)?.members || new Map<string, Types.MemberInfo>()
+  const allTeamMembers =
+    useState.getState().teamDetails.get(teamID)?.members || new Map<string, Types.MemberInfo>()
   const moreThanOneOwner = [...allTeamMembers.values()].some(tm => {
     if (isOwner(tm.type)) {
       countOfOwners++
@@ -789,9 +787,6 @@ export const emptyTeamDetails: Types.TeamDetails = {
 
 export const emptyTeamSettings = Object.freeze(emptyTeamDetails.settings)
 
-export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamDetails.get(teamID) ?? emptyTeamDetails
-
 export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDetails => {
   const maybeOpenJoinAs = teamRoleByEnum[t.settings.joinAs] ?? 'reader'
   const members = new Map<string, Types.MemberInfo>()
@@ -956,7 +951,7 @@ export const consumeTeamTreeMembershipValue = (
 // in the treeloader-powered map (which can go stale) as a backup. If it returns null, it means we
 // don't know the answer (yet). If it returns type='none', that means the user is not in the team.
 export const maybeGetSparseMemberInfo = (state: TypedState, teamID: string, username: string) => {
-  const details = state.teams.teamDetails.get(teamID)
+  const details = useState.getState().teamDetails.get(teamID)
   if (details) {
     return details.members.get(username) ?? {type: 'none'}
   }
@@ -1005,6 +1000,9 @@ export type Store = {
   teamsWithChosenChannels: Set<Types.Teamname>
   sawChatBanner: boolean
   sawSubteamsBanner: boolean
+  subteamFilter: string
+  subteamsFiltered: Set<Types.TeamID> | undefined
+  teamDetails: Map<Types.TeamID, Types.TeamDetails>
 }
 
 const initialStore: Store = {
@@ -1028,6 +1026,9 @@ const initialStore: Store = {
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
+  subteamFilter: '',
+  subteamsFiltered: undefined,
+  teamDetails: new Map(),
   teamIDToResetUsers: new Map(),
   teamIDToWelcomeMessage: new Map(),
   teamMeta: new Map(),
@@ -1087,6 +1088,7 @@ export type State = Store & {
     resetErrorInTeamCreation: () => void
     resetTeamMetaStale: () => void
     setChannelCreationError: (error: string) => void
+    setSubteamFilter: (filter: string, parentTeam?: Types.TeamID) => void
     setTeamSawChatBanner: () => void
     setTeamSawSubteamsBanner: () => void
     setNewTeamInfo: (
@@ -1705,6 +1707,21 @@ export const useState = Z.createZustand<State>((set, get) => {
     setNewTeamRequests: newTeamRequests => {
       set(s => {
         s.newTeamRequests = newTeamRequests
+      })
+    },
+    setSubteamFilter: (filter, parentTeam) => {
+      set(s => {
+        s.subteamFilter = filter
+        if (parentTeam && filter) {
+          const flc = filter.toLowerCase()
+          s.subteamsFiltered = new Set(
+            [...(s.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
+              s.teamMeta.get(sID)?.teamname.toLowerCase().includes(flc)
+            )
+          )
+        } else {
+          s.subteamsFiltered = undefined
+        }
       })
     },
     setTeamRetentionPolicy: (teamID, policy) => {

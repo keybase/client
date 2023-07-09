@@ -13,7 +13,7 @@ export type OwnProps = {
 export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
-  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
   const publicityAnyMember = teamMeta.allowPromote
   const publicityMember = teamMeta.showcasing
   const publicityTeam = teamDetails.settings.teamShowcased

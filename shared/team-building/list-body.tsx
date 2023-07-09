@@ -15,7 +15,7 @@ import type * as Types from './types'
 import type {RootRouteProps} from '../router-v2/route-params'
 import {RecsAndRecos, numSectionLabel} from './recs-and-recos'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
-import {getTeamDetails} from '../constants/teams'
+import * as TeamsConstants from '../constants/teams'
 import {memoize} from '../util/memoize'
 import {useRoute} from '@react-navigation/native'
 // import {useAnimatedScrollHandler} from '../common-adapters/reanimated'
@@ -244,9 +244,7 @@ export const ListBody = (
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const following = Followers.useFollowerState(s => s.following)
 
-  const maybeTeamDetails = Container.useSelector(state =>
-    teamID ? getTeamDetails(state, teamID) : undefined
-  )
+  const maybeTeamDetails = TeamsConstants.useState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
   const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
   const teamBuildingState = Container.useSelector(state => state[namespace].teamBuilding)
   const _recommendations = deriveRecommendation(

@@ -30,8 +30,8 @@ const AddSubteamMembers = () => {
   )
   useTeamDetailsSubscribe(parentTeamID)
   const parentTeamName = Container.useSelector(state => Constants.getTeamMeta(state, parentTeamID).teamname)
-  const parentMembersMap = Container.useSelector(
-    state => Constants.getTeamDetails(state, parentTeamID).members
+  const parentMembersMap = Constants.useState(
+    s => (s.teamDetails.get(parentTeamID) ?? Constants.emptyTeamDetails).members
   )
   const parentMembers = [...parentMembersMap.values()].filter(
     m => !Constants.isBot(m.type) && m.username !== yourUsername

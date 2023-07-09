@@ -13,7 +13,7 @@ type OwnProps = {teamID: Types.TeamID}
 const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID ?? Types.noTeamID
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
-  const {settings, members} = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const {settings, members} = Constants.useState(s => s.teamDetails.get(teamID) ?? Constants.emptyTeamDetails)
   const open = settings.open
   const lastOwner = Container.useSelector(state => Constants.isLastOwner(state, teamID))
   const stillLoadingTeam = !members

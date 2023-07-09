@@ -274,8 +274,8 @@ function allSameOrNull<T>(arr: T[]): T | null {
   return (arr.some(r => r !== first) ? null : first) ?? null
 }
 const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: string[]}) => {
-  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const roles = members.map(username => teamDetails.members.get(username)?.type)
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
+  const roles = members.map(username => teamDetails?.members.get(username)?.type)
   const currentRole = allSameOrNull(roles) ?? undefined
 
   const [showingPicker, setShowingPicker] = React.useState(false)

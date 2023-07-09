@@ -237,15 +237,12 @@ export type State = {
   errorInTeamJoin: string
   teamSelectedChannels: Map<TeamID, Set<string>>
   teamSelectedMembers: Map<TeamID, Set<string>>
-  subteamFilter: string
-  subteamsFiltered: Set<TeamID> | undefined
   teamAccessRequestsPending: Set<Teamname>
   teamJoinSuccess: boolean
   teamJoinSuccessOpen: boolean
   teamJoinSuccessTeamName: string
   teamListFilter: string
   teamListSort: TeamListSort
-  teamDetails: Map<TeamID, TeamDetails>
   teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
   teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
   teamVersion: Map<TeamID, TeamVersion>

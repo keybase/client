@@ -91,7 +91,7 @@ const roleDisplay = {
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const details = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
+  const details = Constants.useState(s => s.teamDetails.get(teamID))
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
   const justFinishedAddWizard = Container.useSelector(s => s.teams.addMembersWizard.justFinished)
   useActivityLevels()
@@ -183,7 +183,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const bottomDescriptorsAndButtons = (
     <>
       <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" gapStart={!Styles.isPhone}>
-        {!!details.description && (
+        {!!details?.description && (
           <Kb.Text
             type="Body"
             lineClamp={3}

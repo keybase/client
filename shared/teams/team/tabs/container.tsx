@@ -12,7 +12,7 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const {selectedTab, setSelectedTab, teamID} = ownProps
   const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
-  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
 
   const admin = yourOperations.manageMembers
@@ -23,9 +23,9 @@ export default (ownProps: OwnProps) => {
     Constants.teamTarsWaitingKey(teamMeta.teamname),
   ])
   const newTeamRequests = Constants.useState(s => s.newTeamRequests)
-  const numInvites = teamDetails.invites?.size ?? 0
-  const numRequests = teamDetails.requests?.size ?? 0
-  const numSubteams = teamDetails.subteams?.size ?? 0
+  const numInvites = teamDetails?.invites?.size ?? 0
+  const numRequests = teamDetails?.requests?.size ?? 0
+  const numSubteams = teamDetails?.subteams?.size ?? 0
   const resetUserCount = Container.useSelector(
     state => Constants.getTeamResetUsers(state, teamMeta.teamname).size
   )

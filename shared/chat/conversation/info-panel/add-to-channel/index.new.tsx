@@ -36,7 +36,7 @@ const AddToChannel = (props: Props) => {
     TeamConstants.getTeamChannelInfo(s, teamID, conversationIDKey)
   )
   const participants = useChannelParticipants(teamID, conversationIDKey)
-  const teamDetails = Container.useSelector(s => TeamConstants.getTeamDetails(s, teamID))
+  const teamDetails = TeamConstants.useState(s => s.teamDetails.get(teamID)) ?? TeamConstants.emptyTeamDetails
   const allMembers = sortMembers(teamDetails.members)
   const membersFiltered = allMembers.filter(
     m => m.username.toLowerCase().includes(filterLCase) || m.fullName.toLowerCase().includes(filterLCase)

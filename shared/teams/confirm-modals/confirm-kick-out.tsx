@@ -15,7 +15,7 @@ type Props = {
 
 const getSubteamNames = memoize(
   (state: Container.TypedState, teamID: Types.TeamID): [string[], Types.TeamID[]] => {
-    const subteamIDs = [...Constants.getTeamDetails(state, teamID).subteams]
+    const subteamIDs = [...(Constants.useState.getState().teamDetails.get(teamID)?.subteams ?? [])]
     return [subteamIDs.map(id => Constants.getTeamMeta(state, id).teamname), subteamIDs]
   }
 )

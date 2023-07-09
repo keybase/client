@@ -20,15 +20,15 @@ const labelledInviteRegex = /^(.+?) \((.+)\)$/
 // TODO: when removing flags.teamsRedesign, move this into the component itself
 export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const _invites = teamDetails.invites
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
+  const _invites = teamDetails?.invites
   const dispatch = Container.useDispatch()
   const _onCancelInvite = (inviteID: string) => {
     dispatch(TeamsGen.createRemovePendingInvite({inviteID, teamID}))
   }
 
   const user: InviteInfo | undefined =
-    [...(_invites || [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
+    [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
 
   let label: string = ''
   let subLabel: undefined | string

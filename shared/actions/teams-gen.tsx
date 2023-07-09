@@ -52,7 +52,6 @@ export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersW
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setMembers = 'teams:setMembers'
 export const setPublicity = 'teams:setPublicity'
-export const setSubteamFilter = 'teams:setSubteamFilter'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
 export const setTeamInviteError = 'teams:setTeamInviteError'
 export const setTeamJoinError = 'teams:setTeamJoinError'
@@ -184,13 +183,6 @@ export const createUpdateInviteLinkDetails = (payload: {readonly details: RPCTyp
 export const createSetTeamListFilterSort = (
   payload: {readonly filter?: string; readonly sortOrder?: Types.TeamListSort} = {}
 ) => ({payload, type: setTeamListFilterSort as typeof setTeamListFilterSort})
-/**
- * Set filtering for the subteams tab.
- */
-export const createSetSubteamFilter = (payload: {
-  readonly filter: string
-  readonly parentTeam?: Types.TeamID
-}) => ({payload, type: setSubteamFilter as typeof setSubteamFilter})
 /**
  * Set the role for a pending member in the add member wizard.
  */
@@ -547,7 +539,6 @@ export type SetJustFinishedAddMembersWizardPayload = ReturnType<typeof createSet
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type SetMembersPayload = ReturnType<typeof createSetMembers>
 export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
-export type SetSubteamFilterPayload = ReturnType<typeof createSetSubteamFilter>
 export type SetTeamAccessRequestsPendingPayload = ReturnType<typeof createSetTeamAccessRequestsPending>
 export type SetTeamInviteErrorPayload = ReturnType<typeof createSetTeamInviteError>
 export type SetTeamJoinErrorPayload = ReturnType<typeof createSetTeamJoinError>
@@ -630,7 +621,6 @@ export type Actions =
   | SetMemberActivityDetailsPayload
   | SetMembersPayload
   | SetPublicityPayload
-  | SetSubteamFilterPayload
   | SetTeamAccessRequestsPendingPayload
   | SetTeamInviteErrorPayload
   | SetTeamJoinErrorPayload
