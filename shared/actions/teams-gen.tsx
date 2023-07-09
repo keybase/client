@@ -62,8 +62,6 @@ export const setTeamProfileAddList = 'teams:setTeamProfileAddList'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setTeamRoleMap = 'teams:setTeamRoleMap'
 export const setTeamRoleMapLatestKnownVersion = 'teams:setTeamRoleMapLatestKnownVersion'
-export const setTeamSawChatBanner = 'teams:setTeamSawChatBanner'
-export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamVersion = 'teams:setTeamVersion'
 export const setTeamWizardAvatar = 'teams:setTeamWizardAvatar'
 export const setTeamWizardChannels = 'teams:setTeamWizardChannels'
@@ -425,14 +423,6 @@ export const createSetTeamRoleMapLatestKnownVersion = (payload: {readonly versio
   payload,
   type: setTeamRoleMapLatestKnownVersion as typeof setTeamRoleMapLatestKnownVersion,
 })
-export const createSetTeamSawChatBanner = (payload?: undefined) => ({
-  payload,
-  type: setTeamSawChatBanner as typeof setTeamSawChatBanner,
-})
-export const createSetTeamSawSubteamsBanner = (payload?: undefined) => ({
-  payload,
-  type: setTeamSawSubteamsBanner as typeof setTeamSawSubteamsBanner,
-})
 export const createSetTeamVersion = (payload: {
   readonly teamID: Types.TeamID
   readonly version: Types.TeamVersion
@@ -569,8 +559,6 @@ export type SetTeamRoleMapLatestKnownVersionPayload = ReturnType<
   typeof createSetTeamRoleMapLatestKnownVersion
 >
 export type SetTeamRoleMapPayload = ReturnType<typeof createSetTeamRoleMap>
-export type SetTeamSawChatBannerPayload = ReturnType<typeof createSetTeamSawChatBanner>
-export type SetTeamSawSubteamsBannerPayload = ReturnType<typeof createSetTeamSawSubteamsBanner>
 export type SetTeamVersionPayload = ReturnType<typeof createSetTeamVersion>
 export type SetTeamWizardAvatarPayload = ReturnType<typeof createSetTeamWizardAvatar>
 export type SetTeamWizardChannelsPayload = ReturnType<typeof createSetTeamWizardChannels>
@@ -652,8 +640,6 @@ export type Actions =
   | SetTeamRetentionPolicyPayload
   | SetTeamRoleMapLatestKnownVersionPayload
   | SetTeamRoleMapPayload
-  | SetTeamSawChatBannerPayload
-  | SetTeamSawSubteamsBannerPayload
   | SetTeamVersionPayload
   | SetTeamWizardAvatarPayload
   | SetTeamWizardChannelsPayload

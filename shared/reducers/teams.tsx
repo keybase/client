@@ -106,9 +106,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamProfileAddList]: (draftState, action) => {
     draftState.teamProfileAddList = action.payload.teamlist
   },
-  [TeamsGen.setTeamSawSubteamsBanner]: draftState => {
-    draftState.sawSubteamsBanner = true
-  },
   [TeamsGen.setChannelSelected]: (draftState, action) => {
     const {teamID, channel, selected, clearAll} = action.payload
     if (clearAll) {

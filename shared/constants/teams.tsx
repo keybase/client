@@ -232,7 +232,6 @@ const emptyState: Types.State = {
   errorInTeamInvite: '',
   errorInTeamJoin: '',
   newTeamWizard: newTeamWizardEmptyState,
-  sawSubteamsBanner: false,
   subteamFilter: '',
   subteamsFiltered: undefined,
   teamAccessRequestsPending: new Set(),
@@ -1005,6 +1004,7 @@ export type Store = {
   invitesCollapsed: Set<Types.TeamID>
   teamsWithChosenChannels: Set<Types.Teamname>
   sawChatBanner: boolean
+  sawSubteamsBanner: boolean
 }
 
 const initialStore: Store = {
@@ -1027,6 +1027,7 @@ const initialStore: Store = {
   newTeamRequests: new Map(),
   newTeams: new Set(),
   sawChatBanner: false,
+  sawSubteamsBanner: false,
   teamIDToResetUsers: new Map(),
   teamIDToWelcomeMessage: new Map(),
   teamMeta: new Map(),
@@ -1087,6 +1088,7 @@ export type State = Store & {
     resetTeamMetaStale: () => void
     setChannelCreationError: (error: string) => void
     setTeamSawChatBanner: () => void
+    setTeamSawSubteamsBanner: () => void
     setNewTeamInfo: (
       deletedTeams: Array<RPCTypes.DeletedTeamInfo>,
       newTeams: Set<Types.TeamID>,
@@ -1727,6 +1729,11 @@ export const useState = Z.createZustand<State>((set, get) => {
     setTeamSawChatBanner: () => {
       set(s => {
         s.sawChatBanner = true
+      })
+    },
+    setTeamSawSubteamsBanner: () => {
+      set(s => {
+        s.sawSubteamsBanner = true
       })
     },
     setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<Types.TeamID>) => {

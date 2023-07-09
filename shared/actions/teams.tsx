@@ -765,11 +765,11 @@ const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
   })
 
   if (sawChatBanner) {
-    actions.push(TeamsGen.createSetTeamSawChatBanner())
+    Constants.useState.getState().dispatch.setTeamSawChatBanner()
   }
 
   if (sawSubteamsBanner) {
-    actions.push(TeamsGen.createSetTeamSawSubteamsBanner())
+    Constants.useState.getState().dispatch.setTeamSawSubteamsBanner()
   }
 
   Constants.useState.getState().dispatch.setNewTeamRequests(newTeamRequests)

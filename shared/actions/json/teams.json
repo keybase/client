@@ -168,8 +168,6 @@
     "setTeamAccessRequestsPending": {
       "accessRequestsPending": "Set<Types.Teamname>"
     },
-    "setTeamSawChatBanner": {},
-    "setTeamSawSubteamsBanner": {},
     "updateChannelName": {
       "teamID": "Types.TeamID",
       "conversationIDKey": "ConversationIDKey",
