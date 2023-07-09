@@ -1,4 +1,5 @@
 import * as ChatTypes from './types/chat2'
+import * as GregorConstants from './gregor'
 import * as ConfigConstants from './config'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -254,7 +255,6 @@ const emptyState: Types.State = {
   teamSelectedChannels: new Map(),
   teamSelectedMembers: new Map(),
   teamVersion: new Map(),
-  teamsWithChosenChannels: new Set(),
   treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
 
@@ -374,14 +374,14 @@ export const userInTeamNotBotWithInfo = (
   return !isBot(memb.type)
 }
 
-export const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
-  state.teams.teamsWithChosenChannels.has(teamname)
+export const isTeamWithChosenChannels = (_: unknown, teamname: string): boolean =>
+  useState.getState().teamsWithChosenChannels.has(teamname)
 
 export const getRole = (state: TypedState, teamID: Types.TeamID): Types.MaybeTeamRoleType =>
   state.teams.teamRoleMap.roles.get(teamID)?.role || 'none'
 
 export const getRoleByName = (state: TypedState, teamname: string): Types.MaybeTeamRoleType =>
-  getRole(state, getTeamID(state, teamname))
+  getRole(state, getTeamID(teamname))
 
 export const isLastOwner = (state: TypedState, teamID: Types.TeamID): boolean =>
   isOwner(getRole(state, teamID)) && !isMultiOwnerTeam(state, teamID)
@@ -507,11 +507,10 @@ const isMultiOwnerTeam = (state: TypedState, teamID: Types.TeamID): boolean => {
   return moreThanOneOwner
 }
 
-export const getTeamID = (_: unknown, teamname: Types.Teamname) =>
+export const getTeamID = (teamname: Types.Teamname) =>
   useState.getState().teamNameToID.get(teamname) || Types.noTeamID
 
-export const getTeamNameFromID = (_: unknown, teamID: Types.TeamID) =>
-  useState.getState().teamMeta.get(teamID)?.teamname
+export const getTeamNameFromID = (teamID: Types.TeamID) => useState.getState().teamMeta.get(teamID)?.teamname
 
 export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamIDToRetentionPolicy.get(teamID)
@@ -888,7 +887,7 @@ export const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Typ
 }
 
 export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Types.TeamOperations =>
-  getCanPerformByID(state, getTeamID(state, teamname))
+  getCanPerformByID(state, getTeamID(teamname))
 
 export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
   deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
@@ -1005,6 +1004,7 @@ export type Store = {
   teamMetaStale: boolean // if we've received an update since we last loaded team list
   teamMeta: Map<Types.TeamID, Types.TeamMeta>
   invitesCollapsed: Set<Types.TeamID>
+  teamsWithChosenChannels: Set<Types.Teamname>
 }
 
 const initialStore: Store = {
@@ -1034,10 +1034,12 @@ const initialStore: Store = {
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
   teamnames: new Set(),
+  teamsWithChosenChannels: new Set(),
 }
 
 export type State = Store & {
   dispatch: {
+    addTeamWithChosenChannels: (teamID: Types.TeamID) => void
     addToTeam: (
       teamID: Types.TeamID,
       users: Array<{assertion: string; role: Types.TeamRoleType}>,
@@ -1090,6 +1092,7 @@ export type State = Store & {
     ) => void
     setNewTeamRequests: (newTeamRequests: Map<Types.TeamID, Set<string>>) => void
     setMemberPublicity: (teamID: Types.TeamID, showcase: boolean) => void
+    setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<Types.TeamID>) => void
     setTeamRetentionPolicy: (teamID: Types.TeamID, policy: RetentionPolicy) => void
     setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => void
     toggleInvitesCollapsed: (teamID: Types.TeamID) => void
@@ -1101,6 +1104,69 @@ export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const getReduxStore = Z.getReduxStore() // TODO remoe >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   const dispatch: State['dispatch'] = {
+    addTeamWithChosenChannels: teamID => {
+      const f = async () => {
+        const existingTeams = get().teamsWithChosenChannels
+        const teamname = getTeamNameFromID(teamID)
+        if (!teamname) {
+          logger.warn('No team name in store for teamID:', teamID)
+          return
+        }
+        if (get().teamsWithChosenChannels.has(teamname)) {
+          // we've already dismissed for this team and we already know about it, bail
+          return
+        }
+        const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
+        try {
+          const pushState = await RPCTypes.gregorGetStateRpcPromise(undefined, teamWaitingKey(teamID))
+          const item = pushState?.items?.find(i => i.item?.category === chosenChannelsGregorKey)
+          let teams: Array<string> = []
+          let msgID: Buffer | undefined
+          if (item?.item?.body) {
+            const body = item.item.body
+            msgID = item.md?.msgID
+            teams = GregorConstants.bodyToJSON(body)
+          } else {
+            logger.info(
+              `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
+                pushState.items?.length || 0
+              }`
+            )
+          }
+          if (existingTeams.size > teams.length) {
+            // Bad - we don't have an accurate view of things. Log and bail
+            logger.warn(
+              `${logPrefix} Existing list longer than list in gregor state, got list with length ${teams.length} when we have ${existingTeams.size} already. Bailing on update.`
+            )
+            return
+          }
+          teams.push(teamname)
+          // make sure there're no dupes
+          teams = [...new Set(teams)]
+
+          const dtime = {offset: 0, time: 0}
+          // update if exists, else create
+          if (msgID) {
+            logger.info(`${logPrefix} Updating teamsWithChosenChannels`)
+          } else {
+            logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
+          }
+          await RPCTypes.gregorUpdateCategoryRpcPromise(
+            {
+              body: JSON.stringify(teams),
+              category: chosenChannelsGregorKey,
+              dtime,
+            },
+            teams.map(t => teamWaitingKey(getTeamID(t)))
+          )
+        } catch (err) {
+          // failure getting the push state, don't bother the user with an error
+          // and don't try to move forward updating the state
+          logger.error(`${logPrefix} error fetching gregor state: ${String(err)}`)
+        }
+      }
+      Z.ignorePromise(f())
+    },
     addToTeam: (teamID, users, sendChatNotification, fromTeamBuilder) => {
       set(s => {
         s.errorInAddToTeam = ''
@@ -1172,7 +1238,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         const errorAddingTo: Array<string> = []
         for (const team of teams) {
           try {
-            const teamID = getTeamID(getReduxStore(), team)
+            const teamID = getTeamID(team)
             if (teamID === Types.noTeamID) {
               logger.warn(`no team ID found for ${team}`)
               errorAddingTo.push(team)
@@ -1251,7 +1317,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.creatingChannels = true
       })
       const f = async () => {
-        const teamname = getTeamNameFromID(getReduxStore(), teamID)
+        const teamname = getTeamNameFromID(teamID)
         if (teamname === null) {
           get().dispatch.setChannelCreationError('Invalid team name')
           return
@@ -1655,6 +1721,11 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<Types.TeamID>) => {
+      set(s => {
+        s.teamsWithChosenChannels = teamsWithChosenChannels
+      })
     },
     setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => {
       set(s => {

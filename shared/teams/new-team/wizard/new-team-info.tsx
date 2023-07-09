@@ -34,11 +34,10 @@ const NewTeamInfo = () => {
   const nav = Container.useSafeNavigation()
 
   const teamWizardState = Container.useSelector(state => state.teams.newTeamWizard)
-  const parentName = Container.useSelector(state =>
-    teamWizardState.parentTeamID
-      ? Constants.getTeamNameFromID(state, teamWizardState.parentTeamID)
-      : undefined
-  )
+  const parentName = teamWizardState.parentTeamID
+    ? Constants.getTeamNameFromID(teamWizardState.parentTeamID)
+    : undefined
+
   const minLength = parentName ? 2 : 3
 
   const [name, _setName] = React.useState(

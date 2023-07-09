@@ -12,7 +12,6 @@ export const addMembersWizardPushMembers = 'teams:addMembersWizardPushMembers'
 export const addMembersWizardRemoveMember = 'teams:addMembersWizardRemoveMember'
 export const addMembersWizardSetDefaultChannels = 'teams:addMembersWizardSetDefaultChannels'
 export const addParticipant = 'teams:addParticipant'
-export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
 export const cancelAddMembersWizard = 'teams:cancelAddMembersWizard'
 export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
@@ -74,7 +73,6 @@ export const setTeamWizardSubteamMembers = 'teams:setTeamWizardSubteamMembers'
 export const setTeamWizardSubteams = 'teams:setTeamWizardSubteams'
 export const setTeamWizardTeamSize = 'teams:setTeamWizardTeamSize'
 export const setTeamWizardTeamType = 'teams:setTeamWizardTeamType'
-export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const showTeamByName = 'teams:showTeamByName'
@@ -83,7 +81,6 @@ export const startNewTeamWizard = 'teams:startNewTeamWizard'
 export const teamLoaded = 'teams:teamLoaded'
 export const teamSeen = 'teams:teamSeen'
 export const teamSetMemberSelected = 'teams:teamSetMemberSelected'
-export const toggleInvitesCollapsed = 'teams:toggleInvitesCollapsed'
 export const unsubscribeTeamDetails = 'teams:unsubscribeTeamDetails'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateInviteLinkDetails = 'teams:updateInviteLinkDetails'
@@ -255,13 +252,6 @@ export const createAddMembersWizardAddMembers = (payload: {
   readonly assertionsInTeam: Array<string>
 }) => ({payload, type: addMembersWizardAddMembers as typeof addMembersWizardAddMembers})
 /**
- * Toggle whether invites are collapsed in the member list for this team
- */
-export const createToggleInvitesCollapsed = (payload: {readonly teamID: Types.TeamID}) => ({
-  payload,
-  type: toggleInvitesCollapsed as typeof toggleInvitesCollapsed,
-})
-/**
  * Tries to show a team with this name whether the user is in the team or not.
  * For teams we are not in:
  * - with teamsRedesign on go to external team page
@@ -291,10 +281,6 @@ export const createAddParticipant = (payload: {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ConversationIDKey
 }) => ({payload, type: addParticipant as typeof addParticipant})
-export const createAddTeamWithChosenChannels = (payload: {readonly teamID: Types.TeamID}) => ({
-  payload,
-  type: addTeamWithChosenChannels as typeof addTeamWithChosenChannels,
-})
 export const createCheckRequestedAccess = (payload: {readonly teamname: string}) => ({
   payload,
   type: checkRequestedAccess as typeof checkRequestedAccess,
@@ -486,9 +472,6 @@ export const createSetTeamWizardTeamType = (payload: {readonly teamType: Types.T
   payload,
   type: setTeamWizardTeamType as typeof setTeamWizardTeamType,
 })
-export const createSetTeamsWithChosenChannels = (payload: {
-  readonly teamsWithChosenChannels: Set<Types.TeamID>
-}) => ({payload, type: setTeamsWithChosenChannels as typeof setTeamsWithChosenChannels})
 export const createSetUpdatedChannelName = (payload: {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ConversationIDKey
@@ -532,7 +515,6 @@ export type AddMembersWizardSetDefaultChannelsPayload = ReturnType<
   typeof createAddMembersWizardSetDefaultChannels
 >
 export type AddParticipantPayload = ReturnType<typeof createAddParticipant>
-export type AddTeamWithChosenChannelsPayload = ReturnType<typeof createAddTeamWithChosenChannels>
 export type CancelAddMembersWizardPayload = ReturnType<typeof createCancelAddMembersWizard>
 export type CheckRequestedAccessPayload = ReturnType<typeof createCheckRequestedAccess>
 export type ClearAddUserToTeamsResultsPayload = ReturnType<typeof createClearAddUserToTeamsResults>
@@ -598,7 +580,6 @@ export type SetTeamWizardSubteamMembersPayload = ReturnType<typeof createSetTeam
 export type SetTeamWizardSubteamsPayload = ReturnType<typeof createSetTeamWizardSubteams>
 export type SetTeamWizardTeamSizePayload = ReturnType<typeof createSetTeamWizardTeamSize>
 export type SetTeamWizardTeamTypePayload = ReturnType<typeof createSetTeamWizardTeamType>
-export type SetTeamsWithChosenChannelsPayload = ReturnType<typeof createSetTeamsWithChosenChannels>
 export type SetUpdatedChannelNamePayload = ReturnType<typeof createSetUpdatedChannelName>
 export type SetUpdatedTopicPayload = ReturnType<typeof createSetUpdatedTopic>
 export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
@@ -607,7 +588,6 @@ export type StartNewTeamWizardPayload = ReturnType<typeof createStartNewTeamWiza
 export type TeamLoadedPayload = ReturnType<typeof createTeamLoaded>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
 export type TeamSetMemberSelectedPayload = ReturnType<typeof createTeamSetMemberSelected>
-export type ToggleInvitesCollapsedPayload = ReturnType<typeof createToggleInvitesCollapsed>
 export type UnsubscribeTeamDetailsPayload = ReturnType<typeof createUnsubscribeTeamDetails>
 export type UpdateChannelNamePayload = ReturnType<typeof createUpdateChannelName>
 export type UpdateInviteLinkDetailsPayload = ReturnType<typeof createUpdateInviteLinkDetails>
@@ -622,7 +602,6 @@ export type Actions =
   | AddMembersWizardRemoveMemberPayload
   | AddMembersWizardSetDefaultChannelsPayload
   | AddParticipantPayload
-  | AddTeamWithChosenChannelsPayload
   | CancelAddMembersWizardPayload
   | CheckRequestedAccessPayload
   | ClearAddUserToTeamsResultsPayload
@@ -684,7 +663,6 @@ export type Actions =
   | SetTeamWizardSubteamsPayload
   | SetTeamWizardTeamSizePayload
   | SetTeamWizardTeamTypePayload
-  | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
   | ShowTeamByNamePayload
@@ -693,7 +671,6 @@ export type Actions =
   | TeamLoadedPayload
   | TeamSeenPayload
   | TeamSetMemberSelectedPayload
-  | ToggleInvitesCollapsedPayload
   | UnsubscribeTeamDetailsPayload
   | UpdateChannelNamePayload
   | UpdateInviteLinkDetailsPayload

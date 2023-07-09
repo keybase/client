@@ -34,7 +34,7 @@ export const useAllChannelMetas = (
 } => {
   const getConversations = Container.useRPC(RPCChatTypes.localGetTLFConversationsLocalRpcPromise)
 
-  const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
+  const teamname = Constants.getTeamNameFromID(teamID) ?? ''
   const [channelMetas, setChannelMetas] = React.useState(
     new Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>()
   )

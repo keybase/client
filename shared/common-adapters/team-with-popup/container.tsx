@@ -17,7 +17,7 @@ type OwnProps = {
 }
 
 const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
-  const teamID = Container.useSelector(state => TeamsConstants.getTeamID(state, ownProps.teamName))
+  const teamID = TeamsConstants.getTeamID(ownProps.teamName)
   const meta = Container.useSelector(state => TeamsConstants.getTeamMeta(state, teamID))
   const description = Container.useSelector(state => TeamsConstants.getTeamDetails(state, teamID).description)
   const stateProps = {

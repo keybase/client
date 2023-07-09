@@ -62,9 +62,6 @@
     "getTeamProfileAddList": {
       "username": "string"
     },
-    "addTeamWithChosenChannels": {
-      "teamID": "Types.TeamID"
-    },
     "saveChannelMembership": {
       "teamID": "Types.TeamID",
       "oldChannelState": "Types.ChannelMembershipState",
@@ -149,9 +146,6 @@
     "setPublicity": {
       "teamID": "Types.TeamID",
       "settings": "Types.PublicitySettings"
-    },
-    "setTeamsWithChosenChannels": {
-      "teamsWithChosenChannels": "Set<Types.TeamID>"
     },
     "setTeamInviteError": {
       "error": "string"

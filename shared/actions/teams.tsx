@@ -458,12 +458,12 @@ const saveChannelMembership = async (
 }
 
 const createChannel = async (
-  state: Container.TypedState,
+  _: unknown,
   action: TeamsGen.CreateChannelPayload,
   listenerApi: Container.ListenerApi
 ) => {
   const {channelname, description, teamID} = action.payload
-  const teamname = Constants.getTeamNameFromID(state, teamID)
+  const teamname = Constants.getTeamNameFromID(teamID)
 
   if (teamname === null) {
     logger.warn('Team name was not in store!')
@@ -652,13 +652,13 @@ const teamDeletedOrExit = () => {
   return false
 }
 
-const updateTopic = async (state: Container.TypedState, action: TeamsGen.UpdateTopicPayload) => {
+const updateTopic = async (_: unknown, action: TeamsGen.UpdateTopicPayload) => {
   const {teamID, conversationIDKey, newTopic} = action.payload
   const param = {
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     headline: newTopic,
     identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    tlfName: Constants.getTeamNameFromID(state, teamID) ?? '',
+    tlfName: Constants.getTeamNameFromID(teamID) ?? '',
     tlfPublic: false,
   }
 
@@ -666,83 +666,13 @@ const updateTopic = async (state: Container.TypedState, action: TeamsGen.UpdateT
   return []
 }
 
-const addTeamWithChosenChannels = async (
-  state: Container.TypedState,
-  action: TeamsGen.AddTeamWithChosenChannelsPayload
-) => {
-  const existingTeams = state.teams.teamsWithChosenChannels
-  const {teamID} = action.payload
-  const teamname = Constants.getTeamNameFromID(state, teamID)
-  if (!teamname) {
-    logger.warn('No team name in store for teamID:', teamID)
-    return
-  }
-  if (state.teams.teamsWithChosenChannels.has(teamname)) {
-    // we've already dismissed for this team and we already know about it, bail
-    return
-  }
-  const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
-  let pushState: Container.Unpacked<ReturnType<typeof RPCTypes.gregorGetStateRpcPromise>>
-  try {
-    pushState = await RPCTypes.gregorGetStateRpcPromise(undefined, Constants.teamWaitingKey(teamID))
-  } catch (err) {
-    // failure getting the push state, don't bother the user with an error
-    // and don't try to move forward updating the state
-    logger.error(`${logPrefix} error fetching gregor state: ${err}`)
-    return
-  }
-  const item = pushState?.items?.find(i => i.item?.category === Constants.chosenChannelsGregorKey)
-  let teams: Array<string> = []
-  let msgID: Buffer | undefined
-  if (item?.item?.body) {
-    const body = item.item.body
-    msgID = item.md?.msgID
-    teams = GregorConstants.bodyToJSON(body)
-  } else {
-    logger.info(
-      `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
-        pushState.items?.length || 0
-      }`
-    )
-  }
-  if (existingTeams.size > teams.length) {
-    // Bad - we don't have an accurate view of things. Log and bail
-    logger.warn(
-      `${logPrefix} Existing list longer than list in gregor state, got list with length ${teams.length} when we have ${existingTeams.size} already. Bailing on update.`
-    )
-    return
-  }
-  teams.push(teamname)
-  // make sure there're no dupes
-  teams = [...new Set(teams)]
-
-  const dtime = {
-    offset: 0,
-    time: 0,
-  }
-  // update if exists, else create
-  if (msgID) {
-    logger.info(`${logPrefix} Updating teamsWithChosenChannels`)
-  } else {
-    logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
-  }
-  await RPCTypes.gregorUpdateCategoryRpcPromise(
-    {
-      body: JSON.stringify(teams),
-      category: Constants.chosenChannelsGregorKey,
-      dtime,
-    },
-    teams.map(t => Constants.teamWaitingKey(Constants.getTeamID(state, t)))
-  )
-}
-
-const updateChannelname = async (state: Container.TypedState, action: TeamsGen.UpdateChannelNamePayload) => {
+const updateChannelname = async (_: unknown, action: TeamsGen.UpdateChannelNamePayload) => {
   const {teamID, conversationIDKey, newChannelName} = action.payload
   const param = {
     channelName: newChannelName,
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    tlfName: Constants.getTeamNameFromID(state, teamID) ?? '',
+    tlfName: Constants.getTeamNameFromID(teamID) ?? '',
     tlfPublic: false,
   }
 
@@ -848,8 +778,7 @@ const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
     GregorConstants.bodyToJSON(chosenChannels?.item.body)
   )
 
-  actions.push(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels}))
-
+  Constants.useState.getState().dispatch.setTeamsWithChosenChannels(teamsWithChosenChannels)
   return actions
 }
 
@@ -1167,7 +1096,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.checkRequestedAccess, checkRequestedAccess)
   Container.listenAction(TeamsGen.getTeamRetentionPolicy, getTeamRetentionPolicy)
   Container.listenAction(Chat2Gen.updateTeamRetentionPolicy, updateTeamRetentionPolicy)
-  Container.listenAction(TeamsGen.addTeamWithChosenChannels, addTeamWithChosenChannels)
   Container.listenAction(TeamsGen.renameTeam, renameTeam)
   Container.listenAction(TeamsGen.manageChatChannels, manageChatChannels)
   Container.listenAction(GregorGen.pushState, gregorPushState)

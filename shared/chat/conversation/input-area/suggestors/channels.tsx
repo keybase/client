@@ -54,7 +54,7 @@ const getChannelSuggestions = (
     // this is an impteam, so get mutual teams from state
     const mutualTeams = state.chat2.mutualTeamMap
       .get(convID)
-      ?.map(teamID => TeamsConstants.getTeamNameFromID(state, teamID))
+      ?.map(teamID => TeamsConstants.getTeamNameFromID(teamID))
     if (!mutualTeams?.length) {
       return noChannel
     }

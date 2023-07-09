@@ -25,9 +25,7 @@ export default (ownProps: OwnProps) => {
   const sperror = Container.useAnyErrors(Constants.uploadAvatarWaitingKey)
   const sendChatNotification = ownProps.sendChatNotification ?? false
   const submitting = Container.useAnyWaiting(Constants.uploadAvatarWaitingKey)
-  const teamname =
-    Container.useSelector(state => (teamID ? TeamsConstants.getTeamNameFromID(state, teamID) : undefined)) ??
-    ''
+  const teamname = (teamID ? TeamsConstants.getTeamNameFromID(teamID) : undefined) ?? ''
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
   const dispatch = Container.useDispatch()

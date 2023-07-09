@@ -143,10 +143,11 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       ),
     [dispatch, teamID]
   )
+  const addTeamWithChosenChannels = TeamConstants.useState(s => s.dispatch.addTeamWithChosenChannels)
   const onManageChannels = React.useCallback(() => {
     dispatch(TeamsGen.createManageChatChannels({teamID}))
-    dispatch(TeamsGen.createAddTeamWithChosenChannels({teamID}))
-  }, [dispatch, teamID])
+    addTeamWithChosenChannels(teamID)
+  }, [addTeamWithChosenChannels, dispatch, teamID])
   const onMarkAsRead = React.useCallback(() => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(ChatGen.createMarkTeamAsRead({teamID}))

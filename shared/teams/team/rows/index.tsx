@@ -7,7 +7,6 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Constants from '../../../constants/chat2'
 import type {Section as _Section} from '../../../common-adapters/section-list'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
@@ -85,9 +84,9 @@ export const useBotSections = (
 
 export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDetails): Array<Section> => {
   const invitesCollapsed = Constants.useState(s => s.invitesCollapsed)
-  const dispatch = Container.useDispatch()
   const collapsed = invitesCollapsed.has(teamID)
-  const onToggleCollapsed = () => dispatch(TeamsGen.createToggleInvitesCollapsed({teamID}))
+  const toggleInvitesCollapsed = Constants.useState(s => s.dispatch.toggleInvitesCollapsed)
+  const onToggleCollapsed = () => toggleInvitesCollapsed(teamID)
 
   const sections: Array<Section> = []
   const resetMembers = [...(details.members?.values() ?? [])].filter(m => m.status === 'reset')
