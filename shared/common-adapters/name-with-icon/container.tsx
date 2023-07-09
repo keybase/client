@@ -4,6 +4,7 @@ import * as Tracker2Gen from '../../actions/tracker2-gen'
 import NameWithIcon, {type NameWithIconProps} from '.'
 import * as Container from '../../util/container'
 import * as ProfileConstants from '../../constants/profile'
+import * as TeamsConstants from '../../constants/teams'
 
 export type ConnectedNameWithIconProps = {
   onClick?: 'tracker' | 'profile' | NameWithIconProps['onClick']
@@ -13,7 +14,7 @@ type OwnProps = ConnectedNameWithIconProps
 
 const ConnectedNameWithIcon = (p: OwnProps) => {
   const {onClick, username, teamname, ...props} = p
-  const teamID = Container.useSelector(state => state.teams.teamNameToID.get(teamname ?? ''))
+  const teamID = TeamsConstants.useState(s => s.teamNameToID.get(teamname ?? ''))
   const dispatch = Container.useDispatch()
   const onOpenTeamProfile = React.useCallback(() => {
     if (teamID) {

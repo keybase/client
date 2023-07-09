@@ -27,48 +27,6 @@ import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
 
-async function createNewTeam(_: unknown, action: TeamsGen.CreateNewTeamPayload) {
-  const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
-  try {
-    const {teamID} = await RPCTypes.teamsTeamCreateRpcPromise(
-      {joinSubteam, name: teamname},
-      Constants.teamCreationWaitingKey
-    )
-
-    // TODO <<<<<<<<<<<<<<<<<< createTeamCreated happens first, bring that back
-    if (thenAddMembers) {
-      Constants.useState.getState().dispatch.addToTeam(teamID, thenAddMembers.users, false)
-    }
-    return [TeamsGen.createTeamCreated({fromChat: !!fromChat, teamID, teamname})]
-  } catch (error) {
-    if (error instanceof RPCError) {
-      return TeamsGen.createSetTeamCreationError({error: error.desc})
-    }
-  }
-  return
-}
-const showTeamAfterCreation = (_: unknown, action: TeamsGen.TeamCreatedPayload) => {
-  const {teamID, teamname} = action.payload
-  if (action.payload.fromChat) {
-    return [
-      RouteTreeGen.createClearModals(),
-      Chat2Gen.createNavigateToInbox(),
-      Chat2Gen.createPreviewConversation({channelname: 'general', reason: 'convertAdHoc', teamname}),
-    ]
-  }
-  return [
-    RouteTreeGen.createClearModals(),
-    RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}),
-    ...(Container.isMobile
-      ? []
-      : [
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {createdTeam: true, teamID}, selected: 'profileEditAvatar'}],
-          }),
-        ]),
-  ]
-}
-
 const openInviteLink = () => {
   return RouteTreeGen.createNavigateAppend({
     path: ['teamInviteLinkJoin'],
@@ -360,14 +318,16 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
   return `Join the ${team} on Keybase. Copy this message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\ninstall: keybase.io/_/go`
 }
 
-const inviteToTeamByPhone = async (
-  _s: unknown,
-  action: TeamsGen.InviteToTeamByPhonePayload,
-  listenerApi: Container.ListenerApi
-) => {
+const inviteToTeamByPhone = async (_s: unknown, action: TeamsGen.InviteToTeamByPhonePayload) => {
   const {teamID, teamname, role, phoneNumber, fullName = '', loadingKey} = action.payload
   if (loadingKey) {
-    listenerApi.dispatch(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
+    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<o use this code below
+    // set(s => {
+    //   const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
+    //   oldLoadingInvites.set(loadingKey, true)
+    //   s.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
+    // })
+    // listenerApi.dispatch(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
   }
   try {
     const seitan = await RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
@@ -382,13 +342,15 @@ const inviteToTeamByPhone = async (
     const bodyText = generateSMSBody(teamname, seitan)
     await openSMS([phoneNumber], bodyText)
     if (loadingKey) {
-      return TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname})
+      //TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< use above
+      // return TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname})
     }
     return false
   } catch (err) {
     logger.info('Error sending SMS', err)
     if (loadingKey) {
-      return TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname})
+      //TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< use above
+      // return TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname})
     }
     return false
   }
@@ -422,12 +384,9 @@ function createNewTeamFromConversation(
     role: assertion === me ? ('admin' as const) : ('writer' as const),
   }))
 
-  return TeamsGen.createCreateNewTeam({
-    fromChat: true,
-    joinSubteam: false,
-    teamname,
-    thenAddMembers: {sendChatNotification: true, users},
-  })
+  Constants.useState
+    .getState()
+    .dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
 }
 
 const loadTeam = async (state: Container.TypedState, action: TeamsGen.LoadTeamPayload) => {
@@ -1233,8 +1192,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.deleteTeam, deleteTeam)
   Container.listenAction(TeamsGen.getTeamProfileAddList, getTeamProfileAddList)
   Container.listenAction(TeamsGen.leftTeam, leftTeam)
-  Container.listenAction(TeamsGen.createNewTeam, createNewTeam)
-  Container.listenAction(TeamsGen.teamCreated, showTeamAfterCreation)
 
   Container.listenAction(TeamsGen.joinTeam, joinTeam)
   Container.listenAction(TeamsGen.openInviteLink, openInviteLink)

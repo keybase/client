@@ -29,17 +29,9 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.resetStore]: () => {
     return initialState
   },
-  [TeamsGen.createNewTeam]: draftState => {
-    draftState.errorInTeamCreation = ''
-  },
-  [TeamsGen.createNewTeamFromConversation]: draftState => {
-    draftState.errorInTeamCreation = ''
-  },
-  [TeamsGen.teamCreated]: (draftState, action) => {
-    draftState.teamNameToID.set(action.payload.teamname, action.payload.teamID)
-  },
-  [TeamsGen.setTeamCreationError]: (draftState, action) => {
-    draftState.errorInTeamCreation = action.payload.error
+  [TeamsGen.createNewTeamFromConversation]: () => {
+    // /TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    // draftState.errorInTeamCreation = ''
   },
   [TeamsGen.setMembers]: (draftState, action) => {
     draftState.teamIDToMembers.set(action.payload.teamID, action.payload.members)
@@ -119,7 +111,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [TeamsGen.setTeamInfo]: (draftState, action) => {
-    draftState.teamNameToID = action.payload.teamNameToID
+    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    // draftState.teamNameToID = action.payload.teamNameToID
     draftState.teamnames = action.payload.teamnames
     draftState.teamMeta = Constants.mergeTeamMeta(draftState.teamMeta, action.payload.teamMeta)
     draftState.teamMetaStale = false

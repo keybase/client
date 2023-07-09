@@ -233,7 +233,6 @@ export type TeamInviteState = {
 
 export type State = {
   addMembersWizard: AddMembersWizardState
-  errorInTeamCreation: string
   errorInTeamInvite: string
   errorInTeamJoin: string
   invitesCollapsed: Set<TeamID>
@@ -263,7 +262,6 @@ export type State = {
   teamMemberToTreeMemberships: Map<TeamID, Map<string, TeamTreeMemberships>>
 
   teamMemberToLastActivity: Map<TeamID, Map<string, number>>
-  teamNameToID: Map<Teamname, string>
   teamnames: Set<Teamname> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap

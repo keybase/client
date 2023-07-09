@@ -850,12 +850,9 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
   return actions
 }
 
-const onChatShowManageChannels = (
-  state: Container.TypedState,
-  action: EngineGen.Chat1ChatUiChatShowManageChannelsPayload
-) => {
+const onChatShowManageChannels = (_: unknown, action: EngineGen.Chat1ChatUiChatShowManageChannelsPayload) => {
   const {teamname} = action.payload.params
-  const teamID = state.teams.teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
+  const teamID = TeamsConstants.useState.getState().teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
   return TeamsGen.createManageChatChannels({teamID})
 }
 

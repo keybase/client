@@ -3,6 +3,7 @@ import * as ConfigConstants from './config'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 import * as TeamBuildingConstants from './team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Types from './types/teams'
@@ -227,7 +228,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
-  errorInTeamCreation: '',
   errorInTeamInvite: '',
   errorInTeamJoin: '',
   invitesCollapsed: new Set(),
@@ -253,7 +253,6 @@ const emptyState: Types.State = {
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
   teamMetaSubscribeCount: 0,
-  teamNameToID: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamSelectedChannels: new Map(),
@@ -513,8 +512,8 @@ const isMultiOwnerTeam = (state: TypedState, teamID: Types.TeamID): boolean => {
   return moreThanOneOwner
 }
 
-export const getTeamID = (state: TypedState, teamname: Types.Teamname) =>
-  state.teams.teamNameToID.get(teamname) || Types.noTeamID
+export const getTeamID = (_: unknown, teamname: Types.Teamname) =>
+  useState.getState().teamNameToID.get(teamname) || Types.noTeamID
 
 export const getTeamNameFromID = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamMeta.get(teamID)?.teamname
@@ -1005,6 +1004,8 @@ export type Store = {
   teamIDToResetUsers: Map<Types.TeamID, Set<string>>
   teamIDToWelcomeMessage: Map<Types.TeamID, RPCChatTypes.WelcomeMessageDisplay>
   teamNameToLoadingInvites: Map<Types.Teamname, Map<string, boolean>>
+  errorInTeamCreation: string
+  teamNameToID: Map<Types.Teamname, string>
 }
 
 const initialStore: Store = {
@@ -1022,10 +1023,12 @@ const initialStore: Store = {
   errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
   errorInSettings: '',
+  errorInTeamCreation: '',
   newTeamRequests: new Map(),
   newTeams: new Set(),
   teamIDToResetUsers: new Map(),
   teamIDToWelcomeMessage: new Map(),
+  teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
 }
 
@@ -1046,6 +1049,16 @@ export type State = Store & {
     ) => void
     clearAddUserToTeamsResults: () => void
     createChannels: (teamID: Types.TeamID, channelnames: Array<string>) => void
+    createNewTeam: (
+      teamname: string,
+      joinSubteam: boolean,
+      fromChat?: boolean,
+      thenAddMembers?: {
+        users: Array<{assertion: string; role: Types.TeamRoleType}>
+        sendChatNotification: boolean
+        fromTeamBuilder?: boolean
+      }
+    ) => void
     editTeamDescription: (teamID: Types.TeamID, description: string) => void
     editMembership: (teamID: Types.TeamID, usernames: Array<string>, role: Types.TeamRoleType) => void
     getActivityForTeams: () => void
@@ -1062,6 +1075,7 @@ export type State = Store & {
     resetState: 'default'
     resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
+    resetErrorInTeamCreation: () => void
     setChannelCreationError: (error: string) => void
     setNewTeamInfo: (
       deletedTeams: Array<RPCTypes.DeletedTeamInfo>,
@@ -1257,6 +1271,50 @@ export const useState = Z.createZustand<State>((set, get) => {
         set(s => {
           s.creatingChannels = false
         })
+      }
+      Z.ignorePromise(f())
+    },
+    createNewTeam: (teamname, joinSubteam, fromChat, thenAddMembers) => {
+      set(s => {
+        s.errorInTeamCreation = ''
+      })
+      const f = async () => {
+        try {
+          const {teamID} = await RPCTypes.teamsTeamCreateRpcPromise(
+            {joinSubteam, name: teamname},
+            teamCreationWaitingKey
+          )
+          set(s => {
+            s.teamNameToID.set(teamname, teamID)
+          })
+          if (thenAddMembers) {
+            get().dispatch.addToTeam(teamID, thenAddMembers.users, false)
+          }
+
+          if (fromChat) {
+            reduxDispatch(RouteTreeGen.createClearModals())
+            reduxDispatch(Chat2Gen.createNavigateToInbox())
+            reduxDispatch(
+              Chat2Gen.createPreviewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
+            )
+          } else {
+            reduxDispatch(RouteTreeGen.createClearModals())
+            reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+            if (isMobile) {
+              reduxDispatch(
+                RouteTreeGen.createNavigateAppend({
+                  path: [{props: {createdTeam: true, teamID}, selected: 'profileEditAvatar'}],
+                })
+              )
+            }
+          }
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              s.errorInTeamCreation = error.desc
+            }
+          })
+        }
       }
       Z.ignorePromise(f())
     },
@@ -1474,6 +1532,11 @@ export const useState = Z.createZustand<State>((set, get) => {
     resetErrorInSettings: () => {
       set(s => {
         s.errorInSettings = ''
+      })
+    },
+    resetErrorInTeamCreation: () => {
+      set(s => {
+        s.errorInTeamCreation = ''
       })
     },
     resetState: 'default',

@@ -1,7 +1,6 @@
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as TeamsGen from '../../actions/teams-gen'
 import type * as Types from '../../constants/types/teams'
 import {InviteByEmailDesktop} from '.'
 
@@ -16,8 +15,9 @@ export default (ownProps: OwnProps) => {
   const name = teamname
   const waitingKey = Constants.addToTeamByEmailWaitingKey(teamname) || ''
   const dispatch = Container.useDispatch()
+  const inviteToTeamByEmail = Constants.useState(s => s.dispatch.inviteToTeamByEmail)
   const _onInvite = (teamname: string, teamID: Types.TeamID, invitees: string, role: Types.TeamRoleType) => {
-    dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamID, teamname}))
+    inviteToTeamByEmail(invitees, role, teamID, teamname)
   }
   const resetErrorInEmailInvite = Constants.useState(s => s.dispatch.resetErrorInEmailInvite)
   // should only be called on unmount

@@ -1,5 +1,4 @@
 import * as Container from '../../util/container'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import NewTeamDialog from '.'
 import upperFirst from 'lodash/upperFirst'
@@ -11,16 +10,16 @@ type OwnProps = {subteamOf?: Types.TeamID}
 export default (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? Types.noTeamID
   const baseTeam = Container.useSelector(state => Constants.getTeamMeta(state, subteamOf).teamname)
-  const errorText = Container.useSelector(state => upperFirst(state.teams.errorInTeamCreation))
+  const errorText = Constants.useState(s => upperFirst(s.errorInTeamCreation))
   const dispatch = Container.useDispatch()
   const onCancel = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const onClearError = () => {
-    dispatch(TeamsGen.createSetTeamCreationError({error: ''}))
-  }
+  const resetErrorInTeamCreation = Constants.useState(s => s.dispatch.resetErrorInTeamCreation)
+  const createNewTeam = Constants.useState(s => s.dispatch.createNewTeam)
+  const onClearError = resetErrorInTeamCreation
   const onSubmit = (teamname: string, joinSubteam: boolean) => {
-    dispatch(TeamsGen.createCreateNewTeam({joinSubteam, teamname}))
+    createNewTeam(teamname, joinSubteam)
   }
   const props = {
     baseTeam,
