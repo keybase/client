@@ -234,7 +234,6 @@ const emptyState: Types.State = {
   newTeamWizard: newTeamWizardEmptyState,
   teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  teamDetailsSubscriptionCount: new Map(),
   teamIDToMembers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamInviteDetails: {inviteID: '', inviteKey: ''},
@@ -1003,6 +1002,7 @@ export type Store = {
   subteamFilter: string
   subteamsFiltered: Set<Types.TeamID> | undefined
   teamDetails: Map<Types.TeamID, Types.TeamDetails>
+  teamDetailsSubscriptionCount: Map<Types.TeamID, number> // >0 if we are eagerly reloading a team
 }
 
 const initialStore: Store = {
@@ -1029,6 +1029,7 @@ const initialStore: Store = {
   subteamFilter: '',
   subteamsFiltered: undefined,
   teamDetails: new Map(),
+  teamDetailsSubscriptionCount: new Map(),
   teamIDToResetUsers: new Map(),
   teamIDToWelcomeMessage: new Map(),
   teamMeta: new Map(),
@@ -1079,6 +1080,7 @@ export type State = Store & {
       teamname: string,
       loadingKey?: string
     ) => void
+    loadTeam: (teamID: Types.TeamID, _subscribe?: boolean) => void
     loadTeamChannelList: (teamID: Types.TeamID) => void
     loadWelcomeMessage: (teamID: Types.TeamID) => void
     loadedWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessageDisplay) => void
@@ -1103,6 +1105,7 @@ export type State = Store & {
     setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => void
     toggleInvitesCollapsed: (teamID: Types.TeamID) => void
     unsubscribeTeamList: () => void
+    unsubscribeTeamDetails: (teamID: Types.TeamID) => void
   }
 }
 
@@ -1577,8 +1580,48 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
-      // [TeamsGen.setEmailInviteError]: (draftState, action) => {
-      // },
+    },
+    loadTeam: (teamID, subscribe) => {
+      set(s => {
+        if (subscribe) {
+          s.teamDetailsSubscriptionCount.set(teamID, (s.teamDetailsSubscriptionCount.get(teamID) ?? 0) + 1)
+        }
+      })
+      const f = async () => {
+        if (!teamID || teamID === Types.noTeamID) {
+          logger.warn(`bail on invalid team ID ${teamID}`)
+          return
+        }
+
+        // If we're already subscribed to team details for this team ID, we're already up to date
+        const subscriptions = get().teamDetailsSubscriptionCount.get(teamID) ?? 0
+        if (subscribe && subscriptions > 1) {
+          logger.info('bail on already subscribed')
+          return
+        }
+        try {
+          const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
+          set(s => {
+            const maybeMeta = s.teamMeta.get(teamID)
+            if (maybeMeta && maybeMeta.teamname !== team.name) {
+              if (team.name.includes('.')) {
+                // subteam name changed. store loaded name
+                maybeMeta.teamname = team.name
+              } else {
+                // bad. teamlist lied to us about the teamname
+                throw new Error('Team name mismatch! Please report this error.')
+              }
+            }
+            const details = annotatedTeamToDetails(team)
+            s.teamDetails.set(teamID, details)
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     loadTeamChannelList: teamID => {
       const f = async () => {
@@ -1788,6 +1831,11 @@ export const useState = Z.createZustand<State>((set, get) => {
         } else {
           invitesCollapsed.add(teamID)
         }
+      })
+    },
+    unsubscribeTeamDetails: teamID => {
+      set(s => {
+        s.teamDetailsSubscriptionCount.set(teamID, (s.teamDetailsSubscriptionCount.get(teamID) ?? 1) - 1)
       })
     },
     unsubscribeTeamList: () => {

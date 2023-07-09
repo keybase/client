@@ -33,7 +33,6 @@ export const joinTeam = 'teams:joinTeam'
 export const launchNewTeamWizardOrModal = 'teams:launchNewTeamWizardOrModal'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
-export const loadTeam = 'teams:loadTeam'
 export const loadTeamTree = 'teams:loadTeamTree'
 export const manageChatChannels = 'teams:manageChatChannels'
 export const openInviteLink = 'teams:openInviteLink'
@@ -75,7 +74,6 @@ export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const showTeamByName = 'teams:showTeamByName'
 export const startAddMembersWizard = 'teams:startAddMembersWizard'
 export const startNewTeamWizard = 'teams:startNewTeamWizard'
-export const teamLoaded = 'teams:teamLoaded'
 export const teamSeen = 'teams:teamSeen'
 export const teamSetMemberSelected = 'teams:teamSetMemberSelected'
 export const unsubscribeTeamDetails = 'teams:unsubscribeTeamDetails'
@@ -132,15 +130,6 @@ export const createOpenInviteLink = (payload: {readonly inviteID: string; readon
 export const createGetTeamRetentionPolicy = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
   type: getTeamRetentionPolicy as typeof getTeamRetentionPolicy,
-})
-/**
- * Load team details if we are stale.
- *
- * `_subscribe` is for use by teams/subscriber only.
- */
-export const createLoadTeam = (payload: {readonly _subscribe?: boolean; readonly teamID: Types.TeamID}) => ({
-  payload,
-  type: loadTeam as typeof loadTeam,
 })
 /**
  * Nav away from add members wizard and clear related state.
@@ -468,10 +457,6 @@ export const createStartNewTeamWizard = (payload?: undefined) => ({
   payload,
   type: startNewTeamWizard as typeof startNewTeamWizard,
 })
-export const createTeamLoaded = (payload: {
-  readonly teamID: Types.TeamID
-  readonly team: RPCTypes.AnnotatedTeam
-}) => ({payload, type: teamLoaded as typeof teamLoaded})
 export const createUpdateChannelName = (payload: {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ConversationIDKey
@@ -518,7 +503,6 @@ export type JoinTeamPayload = ReturnType<typeof createJoinTeam>
 export type LaunchNewTeamWizardOrModalPayload = ReturnType<typeof createLaunchNewTeamWizardOrModal>
 export type LeaveTeamPayload = ReturnType<typeof createLeaveTeam>
 export type LeftTeamPayload = ReturnType<typeof createLeftTeam>
-export type LoadTeamPayload = ReturnType<typeof createLoadTeam>
 export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
 export type ManageChatChannelsPayload = ReturnType<typeof createManageChatChannels>
 export type OpenInviteLinkPayload = ReturnType<typeof createOpenInviteLink>
@@ -564,7 +548,6 @@ export type SetUpdatedTopicPayload = ReturnType<typeof createSetUpdatedTopic>
 export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
 export type StartAddMembersWizardPayload = ReturnType<typeof createStartAddMembersWizard>
 export type StartNewTeamWizardPayload = ReturnType<typeof createStartNewTeamWizard>
-export type TeamLoadedPayload = ReturnType<typeof createTeamLoaded>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
 export type TeamSetMemberSelectedPayload = ReturnType<typeof createTeamSetMemberSelected>
 export type UnsubscribeTeamDetailsPayload = ReturnType<typeof createUnsubscribeTeamDetails>
@@ -602,7 +585,6 @@ export type Actions =
   | LaunchNewTeamWizardOrModalPayload
   | LeaveTeamPayload
   | LeftTeamPayload
-  | LoadTeamPayload
   | LoadTeamTreePayload
   | ManageChatChannelsPayload
   | OpenInviteLinkPayload
@@ -644,7 +626,6 @@ export type Actions =
   | ShowTeamByNamePayload
   | StartAddMembersWizardPayload
   | StartNewTeamWizardPayload
-  | TeamLoadedPayload
   | TeamSeenPayload
   | TeamSetMemberSelectedPayload
   | UnsubscribeTeamDetailsPayload

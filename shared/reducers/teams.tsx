@@ -60,43 +60,11 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamRetentionPolicy]: (draftState, action) => {
     draftState.teamIDToRetentionPolicy.set(action.payload.teamID, action.payload.retentionPolicy)
   },
-  [TeamsGen.teamLoaded]: (_draftState, _action) => {
-    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    // const {teamID, team} = action.payload
-    // const maybeMeta =draftState.teamMeta.get(teamID)
-    // if (maybeMeta && maybeMeta.teamname !== team.name) {
-    //   if (team.name.includes('.')) {
-    //     // subteam name changed. store loaded name
-    //     maybeMeta.teamname = team.name
-    //   } else {
-    //     // bad. teamlist lied to us about the teamname
-    //     throw new Error('Team name mismatch! Please report this error.')
-    //   }
-    // }
-    // const details = Constants.annotatedTeamToDetails(team)
-    // draftState.teamDetails.set(teamID, details)
-  },
   [TeamsGen.setTeamVersion]: (draftState, action) => {
     const {teamID, version} = action.payload
     draftState.teamVersion.set(
       teamID,
       Constants.ratchetTeamVersion(version, draftState.teamVersion.get(teamID))
-    )
-  },
-  [TeamsGen.loadTeam]: (draftState, action) => {
-    if (action.payload._subscribe) {
-      const {teamID} = action.payload
-      draftState.teamDetailsSubscriptionCount.set(
-        teamID,
-        (draftState.teamDetailsSubscriptionCount.get(teamID) ?? 0) + 1
-      )
-    }
-  },
-  [TeamsGen.unsubscribeTeamDetails]: (draftState, action) => {
-    const {teamID} = action.payload
-    draftState.teamDetailsSubscriptionCount.set(
-      teamID,
-      (draftState.teamDetailsSubscriptionCount.get(teamID) ?? 1) - 1
     )
   },
   [TeamsGen.setTeamAccessRequestsPending]: (draftState, action) => {

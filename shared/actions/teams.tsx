@@ -389,32 +389,6 @@ function createNewTeamFromConversation(
     .dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
 }
 
-const loadTeam = async (state: Container.TypedState, action: TeamsGen.LoadTeamPayload) => {
-  const {_subscribe, teamID} = action.payload
-
-  if (!teamID || teamID === Types.noTeamID) {
-    logger.warn(`bail on invalid team ID ${teamID}`)
-    return
-  }
-
-  // If we're already subscribed to team details for this team ID, we're already up to date
-  const subscriptions = state.teams.teamDetailsSubscriptionCount.get(teamID) ?? 0
-  if (_subscribe && subscriptions > 1) {
-    logger.info('bail on already subscribed')
-    return
-  }
-
-  try {
-    const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
-    return TeamsGen.createTeamLoaded({team, teamID})
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(error.message)
-    }
-  }
-  return
-}
-
 const checkRequestedAccess = async () => {
   const result = await RPCTypes.teamsTeamListMyAccessRequestsRpcPromise(
     {},
@@ -611,10 +585,11 @@ const teamChangedByID = (
       latestOffchainSeqno > version.latestOffchainSeqno ||
       latestSeqno > version.latestSeqno
   }
-  const shouldLoad = versionChanged && !!state.teams.teamDetailsSubscriptionCount.get(teamID)
+  const shouldLoad =
+    versionChanged && !!Constants.useState.getState().teamDetailsSubscriptionCount.get(teamID)
   return [
     TeamsGen.createSetTeamVersion({teamID, version: {latestHiddenSeqno, latestOffchainSeqno, latestSeqno}}),
-    shouldLoad && TeamsGen.createLoadTeam({teamID}),
+    shouldLoad && Constants.useState.getState().dispatch.loadTeam(teamID),
   ]
 }
 
@@ -1068,7 +1043,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.openInviteLink, openInviteLink)
   Container.listenAction(TeamsGen.requestInviteLinkDetails, requestInviteLinkDetails)
 
-  Container.listenAction(TeamsGen.loadTeam, loadTeam)
   Container.listenAction(TeamsGen.getMembers, getMembers)
   Container.listenAction(TeamsGen.createNewTeamFromConversation, createNewTeamFromConversation)
   Container.listenAction([ConfigGen.loadOnStart, TeamsGen.leftTeam], (_, action) => {

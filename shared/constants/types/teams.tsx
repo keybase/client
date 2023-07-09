@@ -243,7 +243,6 @@ export type State = {
   teamJoinSuccessTeamName: string
   teamListFilter: string
   teamListSort: TeamListSort
-  teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
   teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
   teamVersion: Map<TeamID, TeamVersion>
   teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>

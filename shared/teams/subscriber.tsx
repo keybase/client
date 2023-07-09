@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
-import * as TeamsGen from '../actions/teams-gen'
 import {useFocusEffect} from '@react-navigation/core'
 
 // NOTE: If you are in a floating box or otherwise outside the navigation
@@ -45,22 +44,22 @@ export const TeamsSubscriberMountOnly = () => {
 }
 
 const useTeamDetailsSubscribeMobile = (teamID: Types.TeamID) => {
-  const dispatch = Container.useDispatch()
+  const loadTeam = Constants.useState(s => s.dispatch.loadTeam)
+  const unsubscribeTeamDetails = Constants.useState(s => s.dispatch.unsubscribeTeamDetails)
   useFocusEffect(
     React.useCallback(() => {
-      dispatch(TeamsGen.createLoadTeam({_subscribe: true, teamID}))
-      return () => dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
-    }, [dispatch, teamID])
+      loadTeam(teamID, true)
+      return () => unsubscribeTeamDetails(teamID)
+    }, [loadTeam, unsubscribeTeamDetails, teamID])
   )
 }
 const useTeamDetailsSubscribeDesktop = (teamID: Types.TeamID) => {
-  const dispatch = Container.useDispatch()
+  const loadTeam = Constants.useState(s => s.dispatch.loadTeam)
+  const unsubscribeTeamDetails = Constants.useState(s => s.dispatch.unsubscribeTeamDetails)
   React.useEffect(() => {
-    dispatch(TeamsGen.createLoadTeam({_subscribe: true, teamID}))
-    return () => {
-      dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
-    }
-  }, [dispatch, teamID])
+    loadTeam(teamID, true)
+    return () => unsubscribeTeamDetails(teamID)
+  }, [loadTeam, unsubscribeTeamDetails, teamID])
 }
 export const useTeamDetailsSubscribe = Container.isMobile
   ? useTeamDetailsSubscribeMobile
