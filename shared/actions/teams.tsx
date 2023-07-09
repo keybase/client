@@ -41,11 +41,11 @@ async function createNewTeam(_: unknown, action: TeamsGen.CreateNewTeamPayload) 
     }
     return [TeamsGen.createTeamCreated({fromChat: !!fromChat, teamID, teamname})]
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      return TeamsGen.createSetTeamCreationError({error: error.desc})
     }
-    return TeamsGen.createSetTeamCreationError({error: error.desc})
   }
+  return
 }
 const showTeamAfterCreation = (_: unknown, action: TeamsGen.TeamCreatedPayload) => {
   const {teamID, teamname} = action.payload
@@ -128,16 +128,15 @@ const joinTeam = async (
       })
     )
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      const desc =
+        error.code === RPCTypes.StatusCode.scteaminvitebadtoken
+          ? 'Sorry, that team name or token is not valid.'
+          : error.code === RPCTypes.StatusCode.scnotfound
+          ? 'This invitation is no longer valid, or has expired.'
+          : error.desc
+      listenerApi.dispatch(TeamsGen.createSetTeamJoinError({error: desc}))
     }
-    const desc =
-      error.code === RPCTypes.StatusCode.scteaminvitebadtoken
-        ? 'Sorry, that team name or token is not valid.'
-        : error.code === RPCTypes.StatusCode.scnotfound
-        ? 'This invitation is no longer valid, or has expired.'
-        : error.desc
-    listenerApi.dispatch(TeamsGen.createSetTeamJoinError({error: desc}))
   }
 }
 const requestInviteLinkDetails = async (state: Container.TypedState) => {
@@ -149,18 +148,18 @@ const requestInviteLinkDetails = async (state: Container.TypedState) => {
       details,
     })
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      const desc =
+        error.code === RPCTypes.StatusCode.scteaminvitebadtoken
+          ? 'Sorry, that invite token is not valid.'
+          : error.code === RPCTypes.StatusCode.scnotfound
+          ? 'This invitation is no longer valid, or has expired.'
+          : error.desc
+      return TeamsGen.createSetTeamJoinError({
+        error: desc,
+      })
     }
-    const desc =
-      error.code === RPCTypes.StatusCode.scteaminvitebadtoken
-        ? 'Sorry, that invite token is not valid.'
-        : error.code === RPCTypes.StatusCode.scnotfound
-        ? 'This invitation is no longer valid, or has expired.'
-        : error.desc
-    return TeamsGen.createSetTeamJoinError({
-      error: desc,
-    })
+    return
   }
 }
 
@@ -201,11 +200,10 @@ const deleteTeam = async (
       listenerApi
     )
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      // handled through waiting store
+      logger.warn('error:', error.message)
     }
-    // handled through waiting store
-    logger.warn('error:', error.message)
   }
 }
 const leaveTeam = async (_: unknown, action: TeamsGen.LeaveTeamPayload) => {
@@ -219,50 +217,15 @@ const leaveTeam = async (_: unknown, action: TeamsGen.LeaveTeamPayload) => {
     logger.info(`leaveTeam: left ${teamname} successfully`)
     return TeamsGen.createLeftTeam({context, teamname})
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      // handled through waiting store
+      logger.warn('error:', error.message)
     }
-    // handled through waiting store
-    logger.warn('error:', error.message)
   }
   return
 }
 
 const leftTeam = () => RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
-
-const loadWelcomeMessage = async (_: unknown, action: TeamsGen.LoadWelcomeMessagePayload) => {
-  const {teamID} = action.payload
-  try {
-    const message = await RPCChatTypes.localGetWelcomeMessageRpcPromise(
-      {teamID},
-      Constants.loadWelcomeMessageWaitingKey(teamID)
-    )
-    return TeamsGen.createLoadedWelcomeMessage({message, teamID})
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    logger.error(error)
-    return TeamsGen.createSettingsError({error: error.desc})
-  }
-}
-
-const setWelcomeMessage = async (_: unknown, action: TeamsGen.SetWelcomeMessagePayload) => {
-  const {message, teamID} = action.payload
-  try {
-    await RPCChatTypes.localSetWelcomeMessageRpcPromise(
-      {message, teamID},
-      Constants.setWelcomeMessageWaitingKey(teamID)
-    )
-    return TeamsGen.createLoadWelcomeMessage({teamID})
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    logger.error(error)
-    return TeamsGen.createSetWelcomeMessageError({error: error.desc})
-  }
-}
 
 const getTeamRetentionPolicy = async (_: unknown, action: TeamsGen.GetTeamRetentionPolicyPayload) => {
   const {teamID} = action.payload
@@ -278,33 +241,12 @@ const getTeamRetentionPolicy = async (_: unknown, action: TeamsGen.GetTeamRetent
         throw new Error(`RPC returned retention policy of type 'inherit' for team policy`)
       }
     } catch (error) {
-      if (!(error instanceof RPCError)) {
-        throw error
+      if (error instanceof RPCError) {
+        logger.error(error.message)
       }
-      logger.error(error.message)
     }
   } catch (_) {}
   return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy, teamID})
-}
-
-const saveTeamRetentionPolicy = async (_: unknown, action: TeamsGen.SaveTeamRetentionPolicyPayload) => {
-  const {teamID, policy} = action.payload
-
-  let servicePolicy: RPCChatTypes.RetentionPolicy
-  try {
-    servicePolicy = Constants.retentionPolicyToServiceRetentionPolicy(policy)
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    logger.error(error.message)
-    return TeamsGen.createSettingsError({error: error.desc})
-  }
-  await RPCChatTypes.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
-    Constants.teamWaitingKey(teamID),
-    Constants.retentionWaitingKey(teamID),
-  ])
-  return
 }
 
 const updateTeamRetentionPolicy = (_: unknown, action: Chat2Gen.UpdateTeamRetentionPolicyPayload) => {
@@ -318,12 +260,12 @@ const updateTeamRetentionPolicy = (_: unknown, action: Chat2Gen.UpdateTeamRetent
   try {
     return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy: teamRetentionPolicy, teamID})
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      logger.error(error.message)
+      throw error
     }
-    logger.error(error.message)
-    throw error
   }
+  return
 }
 
 const inviteByEmail = async (
@@ -370,11 +312,10 @@ const inviteByEmail = async (
       }
     }
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      // other error. display messages and leave all emails in input box
+      listenerApi.dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: error.desc}))
     }
-    // other error. display messages and leave all emails in input box
-    listenerApi.dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: error.desc}))
   } finally {
     if (loadingKey) {
       listenerApi.dispatch(TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname}))
@@ -403,11 +344,11 @@ const reAddToTeam = async (_: unknown, action: TeamsGen.ReAddToTeamPayload) => {
     )
     return false
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      return addReAddErrorHandler(username, error)
     }
-    return addReAddErrorHandler(username, error)
   }
+  return
 }
 
 const uploadAvatar = async (_: unknown, action: TeamsGen.UploadTeamAvatarPayload) => {
@@ -419,11 +360,10 @@ const uploadAvatar = async (_: unknown, action: TeamsGen.UploadTeamAvatarPayload
     )
     return RouteTreeGen.createNavigateUp()
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      // error displayed in component
+      logger.warn(`Error uploading team avatar: ${error.message}`)
     }
-    // error displayed in component
-    logger.warn(`Error uploading team avatar: ${error.message}`)
   }
   return
 }
@@ -440,12 +380,11 @@ const editMembership = async (_: unknown, action: TeamsGen.EditMembershipPayload
       [Constants.teamWaitingKey(teamID), Constants.editMembershipWaitingKey(teamID, ...usernames)]
     )
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    if (usernames.length === 1) {
-      // error is shown in the member page
-      return TeamsGen.createSetEditMemberError({error: error.message, teamID, username: usernames[0] ?? ''})
+    if (error instanceof RPCError) {
+      if (usernames.length === 1) {
+        // error is shown in the member page
+        return TeamsGen.createSetEditMemberError({error: error.message, teamID, username: usernames[0] ?? ''})
+      }
     }
   }
   return false
@@ -587,10 +526,9 @@ const loadTeam = async (state: Container.TypedState, action: TeamsGen.LoadTeamPa
     const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
     return TeamsGen.createTeamLoaded({team, teamID})
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      logger.error(error.message)
     }
-    logger.error(error.message)
   }
   return
 }
@@ -634,13 +572,12 @@ const getTeams = async (
       teamnames: teamNameSet,
     })
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    if (error.code === RPCTypes.StatusCode.scapinetworkerror) {
-      // Ignore API errors due to offline
-    } else {
-      logger.error(error)
+    if (error instanceof RPCError) {
+      if (error.code === RPCTypes.StatusCode.scapinetworkerror) {
+        // Ignore API errors due to offline
+      } else {
+        logger.error(error)
+      }
     }
   }
   return
@@ -755,29 +692,9 @@ const createChannel = async (
       )
     }
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      Constants.useState.getState().dispatch.setChannelCreationError(error.desc)
     }
-    Constants.useState.getState().dispatch.setChannelCreationError(error.desc)
-  }
-}
-
-const setMemberPublicity = async (_: unknown, action: TeamsGen.SetMemberPublicityPayload) => {
-  const {teamID, showcase} = action.payload
-  try {
-    await RPCTypes.teamsSetTeamMemberShowcaseRpcPromise(
-      {
-        isShowcased: showcase,
-        teamID,
-      },
-      [Constants.teamWaitingKey(teamID), Constants.setMemberPublicityWaitingKey(teamID)]
-    )
-    return
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    return TeamsGen.createSettingsError({error: error.desc})
   }
 }
 
@@ -1061,10 +978,9 @@ const getMembers = async (_: unknown, action: TeamsGen.GetMembersPayload) => {
     const members = Constants.rpcDetailsToMemberInfos(res ?? [])
     return TeamsGen.createSetMembers({members, teamID})
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      logger.error(`Error updating members for ${teamID}: ${error.desc}`)
     }
-    logger.error(`Error updating members for ${teamID}: ${error.desc}`)
   }
   return
 }
@@ -1240,10 +1156,9 @@ const loadTeamTreeActivity = async (
       username,
     })
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${error.message}`)
     }
-    logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${error.message}`)
   }
   return
 }
@@ -1314,11 +1229,11 @@ const finishNewTeamWizard = async (state: Container.TypedState) => {
     const teamID = await RPCTypes.teamsTeamCreateFancyRpcPromise({teamInfo}, Constants.teamCreationWaitingKey)
     return TeamsGen.createFinishedNewTeamWizard({teamID})
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      return TeamsGen.createSetTeamWizardError({error: error.message})
     }
-    return TeamsGen.createSetTeamWizardError({error: error.message})
   }
+    return
 }
 
 const finishedNewTeamWizard = (_: unknown, action: TeamsGen.FinishedNewTeamWizardPayload) => [
@@ -1371,10 +1286,9 @@ const teamSeen = async (_: unknown, action: TeamsGen.TeamSeenPayload) => {
   try {
     await RPCTypes.gregorDismissCategoryRpcPromise({category: Constants.newRequestsGregorKey(teamID)})
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
+    if (error instanceof RPCError) {
+      logger.error(error.message)
     }
-    logger.error(error.message)
   }
 }
 
@@ -1421,7 +1335,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.editMembership, editMembership)
   Container.listenAction(TeamsGen.removeMember, removeMember)
   Container.listenAction(TeamsGen.removePendingInvite, removePendingInvite)
-  Container.listenAction(TeamsGen.setMemberPublicity, setMemberPublicity)
   Container.listenAction(TeamsGen.updateTopic, updateTopic)
   Container.listenAction(TeamsGen.updateChannelName, updateChannelname)
   Container.listenAction(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)
@@ -1430,7 +1343,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.setPublicity, setPublicity)
   Container.listenAction(TeamsGen.checkRequestedAccess, checkRequestedAccess)
   Container.listenAction(TeamsGen.getTeamRetentionPolicy, getTeamRetentionPolicy)
-  Container.listenAction(TeamsGen.saveTeamRetentionPolicy, saveTeamRetentionPolicy)
   Container.listenAction(Chat2Gen.updateTeamRetentionPolicy, updateTeamRetentionPolicy)
   Container.listenAction(TeamsGen.addTeamWithChosenChannels, addTeamWithChosenChannels)
   Container.listenAction(TeamsGen.renameTeam, renameTeam)
@@ -1455,9 +1367,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.clearNavBadges, clearNavBadges)
 
   Container.listenAction(TeamsGen.showTeamByName, showTeamByName)
-
-  Container.listenAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
-  Container.listenAction(TeamsGen.setWelcomeMessage, setWelcomeMessage)
 
   Container.listenAction(TeamsGen.loadTeamTree, loadTeamTree)
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial, loadTeamTreeActivity)
@@ -1511,6 +1420,11 @@ const initTeams = () => {
 
     // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
     Constants.useState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
+  })
+
+  Container.listenAction(EngineGen.chat1NotifyChatChatWelcomeMessageLoaded, (_, action) => {
+    const {teamID, message} = action.payload.params
+    Constants.useState.getState().dispatch.loadedWelcomeMessage(teamID, message)
   })
 }
 

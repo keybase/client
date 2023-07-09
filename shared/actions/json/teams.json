@@ -1,7 +1,6 @@
 {
   "prelude": [
-    "import type * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
-    "import type * as ChatTypes from '../constants/types/chat2'",
+    "import type {ConversationIDKey} from '../constants/types/chat2'",
     "import type * as Types from '../constants/types/teams'",
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
@@ -14,7 +13,7 @@
       "thenAddMembers?": "{users: Array<{assertion: string; role: Types.TeamRoleType}>; sendChatNotification: boolean; fromTeamBuilder?: boolean}"
     },
     "createNewTeamFromConversation": {
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "conversationIDKey": "ConversationIDKey",
       "teamname": "string"
     },
     "teamCreated": {
@@ -100,11 +99,11 @@
     },
     "addParticipant": {
       "teamID": "Types.TeamID",
-      "conversationIDKey": "ChatTypes.ConversationIDKey"
+      "conversationIDKey": "ConversationIDKey"
     },
     "removeParticipant": {
       "teamID": "Types.TeamID",
-      "conversationIDKey": "ChatTypes.ConversationIDKey"
+      "conversationIDKey": "ConversationIDKey"
     },
     "deleteTeam": {
       "teamID": "Types.TeamID"
@@ -187,24 +186,14 @@
       "teamname": "string",
       "username": "string"
     },
-    "setMemberPublicity": {
-      "teamID": "Types.TeamID",
-      "showcase": "boolean"
-    },
     "setPublicity": {
       "teamID": "Types.TeamID",
       "settings": "Types.PublicitySettings"
-    },
-    "setWelcomeMessageError": {
-      "error": "string"
     },
     "setEditMemberError": {
       "error": "string",
       "teamID": "Types.TeamID",
       "username": "string"
-    },
-    "settingsError": {
-      "error": "string"
     },
     "setTeamsWithChosenChannels": {
       "teamsWithChosenChannels": "Set<Types.TeamID>"
@@ -247,31 +236,31 @@
     "setTeamSawSubteamsBanner": {},
     "updateChannelName": {
       "teamID": "Types.TeamID",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "conversationIDKey": "ConversationIDKey",
       "newChannelName": "string"
     },
     "setUpdatedChannelName": {
       "teamID": "Types.TeamID",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "conversationIDKey": "ConversationIDKey",
       "newChannelName": "string"
     },
     "updateTopic": {
       "teamID": "Types.TeamID",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "conversationIDKey": "ConversationIDKey",
       "newTopic": "string"
     },
     "setUpdatedTopic": {
       "teamID": "Types.TeamID",
-      "conversationIDKey": "ChatTypes.ConversationIDKey",
+      "conversationIDKey": "ConversationIDKey",
       "newTopic": "string"
     },
     "deleteChannelConfirmed": {
       "teamID": "Types.TeamID",
-      "conversationIDKey": "ChatTypes.ConversationIDKey"
+      "conversationIDKey": "ConversationIDKey"
     },
     "deleteMultiChannelsConfirmed": {
       "teamID": "Types.TeamID",
-      "channels": "Array<ChatTypes.ConversationIDKey>"
+      "channels": "Array<ConversationIDKey>"
     },
     "checkRequestedAccess": {
       "teamname": "string"
@@ -279,11 +268,6 @@
     "getTeamRetentionPolicy": {
       "_description": "Gets the team retention policy and stores in `state.entities.teams.teamIDToRetentionPolicy`.",
       "teamID": "Types.TeamID"
-    },
-    "saveTeamRetentionPolicy": {
-      "_description": "Sets the retention policy for a team. The store will be updated automatically.",
-      "teamID": "Types.TeamID",
-      "policy": "RetentionPolicy"
     },
     "renameTeam": {
       "_description": "Rename a subteam",
@@ -299,20 +283,6 @@
     "toggleInvitesCollapsed": {
       "_description": "Toggle whether invites are collapsed in the member list for this team",
       "teamID": "Types.TeamID"
-    },
-    "setWelcomeMessage": {
-      "_description": "Set welcome message for new team members",
-      "teamID": "Types.TeamID",
-      "message": "RPCChatTypes.WelcomeMessage"
-    },
-    "loadWelcomeMessage": {
-      "_description": "Load welcome message for new team members",
-      "teamID": "Types.TeamID"
-    },
-    "loadedWelcomeMessage": {
-      "_description": "Loaded welcome message for new team members",
-      "teamID": "Types.TeamID",
-      "message": "RPCChatTypes.WelcomeMessageDisplay"
     },
     "startAddMembersWizard": {
       "_description": "Setup store and navigate to start of add members wizard.",

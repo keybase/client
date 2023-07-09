@@ -20,7 +20,6 @@ const handleTeamBuilding = (draftState: Container.Draft<Types.State>, action: Te
 
 type EngineActions =
   | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload
-  | EngineGen.Chat1NotifyChatChatWelcomeMessageLoadedPayload
   | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
   | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsDonePayload
 
@@ -41,9 +40,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [TeamsGen.setTeamCreationError]: (draftState, action) => {
     draftState.errorInTeamCreation = action.payload.error
-  },
-  [TeamsGen.settingsError]: (draftState, action) => {
-    draftState.errorInSettings = action.payload.error
   },
   [TeamsGen.setMembers]: (draftState, action) => {
     draftState.teamIDToMembers.set(action.payload.teamID, action.payload.members)
@@ -227,16 +223,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.subteamsFiltered = undefined
     }
   },
-  [TeamsGen.loadedWelcomeMessage]: (draftState, action) => {
-    const {teamID, message} = action.payload
-    draftState.teamIDToWelcomeMessage.set(teamID, message)
-  },
-  [TeamsGen.setWelcomeMessageError]: (draftState, action) => {
-    draftState.errorInEditWelcomeMessage = action.payload.error
-  },
-  [TeamsGen.setWelcomeMessage]: (draftState, _) => {
-    draftState.errorInEditWelcomeMessage = ''
-  },
   [TeamsGen.setMemberActivityDetails]: (draftState, action) => {
     action.payload.activityMap.forEach((lastActivity, teamID) => {
       if (!draftState.teamMemberToLastActivity.has(teamID)) {
@@ -396,10 +382,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (sortOrder !== undefined) {
       draftState.teamListSort = sortOrder
     }
-  },
-  [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
-    const {teamID, message} = action.payload.params
-    draftState.teamIDToWelcomeMessage.set(teamID, message)
   },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,

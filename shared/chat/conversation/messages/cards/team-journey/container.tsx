@@ -161,9 +161,11 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const _onGoToChannel = (channelname: string, teamname: string) =>
     dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname}))
   const _onManageChannels = (teamID: string) => dispatch(TeamsGen.createManageChatChannels({teamID}))
+
+  const setMemberPublicity = TeamConstants.useState(s => s.dispatch.setMemberPublicity)
   const _onPublishTeam = (teamID: string) => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']}))
-    dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
+    setMemberPublicity(teamID, true)
   }
   const _onShowTeam = (teamID: TeamTypes.TeamID) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))

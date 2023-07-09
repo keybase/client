@@ -227,9 +227,7 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
   errorInEditMember: emptyErrorInEditMember,
-  errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
-  errorInSettings: '',
   errorInTeamCreation: '',
   errorInTeamInvite: '',
   errorInTeamJoin: '',
@@ -245,7 +243,6 @@ const emptyState: Types.State = {
   teamDetailsSubscriptionCount: new Map(),
   teamIDToMembers: new Map(),
   teamIDToRetentionPolicy: new Map(),
-  teamIDToWelcomeMessage: new Map(),
   teamInviteDetails: {inviteID: '', inviteKey: ''},
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
@@ -528,9 +525,6 @@ export const getTeamNameFromID = (state: TypedState, teamID: Types.TeamID) =>
 
 export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamIDToRetentionPolicy.get(teamID)
-
-export const getTeamWelcomeMessageByID = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamIDToWelcomeMessage.get(teamID)
 
 /**
  *  Gets the number of channels you're subscribed to on a team
@@ -1006,12 +1000,15 @@ export type Store = {
   channelSelectedMembers: Map<ChatTypes.ConversationIDKey, Set<string>>
   creatingChannels: boolean
   deletedTeams: Array<RPCTypes.DeletedTeamInfo>
+  errorInAddToTeam: string
   errorInChannelCreation: string
+  errorInEditDescription: string
+  errorInEditWelcomeMessage: string
+  errorInSettings: string
   newTeamRequests: Map<Types.TeamID, Set<string>>
   newTeams: Set<Types.TeamID>
   teamIDToResetUsers: Map<Types.TeamID, Set<string>>
-  errorInAddToTeam: string
-  errorInEditDescription: string
+  teamIDToWelcomeMessage: Map<Types.TeamID, RPCChatTypes.WelcomeMessageDisplay>
 }
 
 const initialStore: Store = {
@@ -1025,9 +1022,12 @@ const initialStore: Store = {
   errorInAddToTeam: '',
   errorInChannelCreation: '',
   errorInEditDescription: '',
+  errorInEditWelcomeMessage: '',
+  errorInSettings: '',
   newTeamRequests: new Map(),
   newTeams: new Set(),
   teamIDToResetUsers: new Map(),
+  teamIDToWelcomeMessage: new Map(),
 }
 
 export type State = Store & {
@@ -1050,7 +1050,10 @@ export type State = Store & {
     editTeamDescription: (teamID: Types.TeamID, description: string) => void
     getActivityForTeams: () => void
     loadTeamChannelList: (teamID: Types.TeamID) => void
+    loadWelcomeMessage: (teamID: Types.TeamID) => void
+    loadedWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessageDisplay) => void
     resetState: 'default'
+    resetErrorInSettings: () => void
     setChannelCreationError: (error: string) => void
     setNewTeamInfo: (
       deletedTeams: Array<RPCTypes.DeletedTeamInfo>,
@@ -1058,6 +1061,9 @@ export type State = Store & {
       teamIDToResetUsers: Map<Types.TeamID, Set<string>>
     ) => void
     setNewTeamRequests: (newTeamRequests: Map<Types.TeamID, Set<string>>) => void
+    setMemberPublicity: (teamID: Types.TeamID, showcase: boolean) => void
+    setTeamRetentionPolicy: (teamID: Types.TeamID, policy: RetentionPolicy) => void
+    setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => void
   }
 }
 
@@ -1341,6 +1347,37 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    loadWelcomeMessage: teamID => {
+      const f = async () => {
+        try {
+          const message = await RPCChatTypes.localGetWelcomeMessageRpcPromise(
+            {teamID},
+            loadWelcomeMessageWaitingKey(teamID)
+          )
+          set(s => {
+            s.teamIDToWelcomeMessage.set(teamID, message)
+          })
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              logger.error(error)
+              s.errorInSettings = error.desc
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loadedWelcomeMessage: (teamID, message) => {
+      set(s => {
+        s.teamIDToWelcomeMessage.set(teamID, message)
+      })
+    },
+    resetErrorInSettings: () => {
+      set(s => {
+        s.errorInSettings = ''
+      })
+    },
     resetState: 'default',
     setChannelCreationError: error => {
       set(s => {
@@ -1359,6 +1396,65 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.newTeamRequests = newTeamRequests
       })
+    },
+    setMemberPublicity: (teamID, showcase) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsSetTeamMemberShowcaseRpcPromise({isShowcased: showcase, teamID}, [
+            teamWaitingKey(teamID),
+            setMemberPublicityWaitingKey(teamID),
+          ])
+          return
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              s.errorInSettings = error.desc
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    setTeamRetentionPolicy: (teamID, policy) => {
+      const f = async () => {
+        try {
+          const servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
+          await RPCChatTypes.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
+            teamWaitingKey(teamID),
+            retentionWaitingKey(teamID),
+          ])
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              logger.error(error.message)
+              s.errorInSettings = error.desc
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => {
+      set(s => {
+        s.errorInEditWelcomeMessage = ''
+      })
+      const f = async () => {
+        try {
+          await RPCChatTypes.localSetWelcomeMessageRpcPromise(
+            {message, teamID},
+            setWelcomeMessageWaitingKey(teamID)
+          )
+          get().dispatch.loadWelcomeMessage(teamID)
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              logger.error(error)
+              s.errorInEditWelcomeMessage = error.desc
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
     },
   }
   return {

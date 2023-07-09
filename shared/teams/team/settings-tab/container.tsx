@@ -18,10 +18,9 @@ export default (ownProps: OwnProps) => {
   const publicityMember = teamMeta.showcasing
   const publicityTeam = teamDetails.settings.teamShowcased
   const settings = teamDetails.settings || Constants.initialTeamSettings
-  const welcomeMessage =
-    Container.useSelector(state => Constants.getTeamWelcomeMessageByID(state, teamID)) ?? undefined
+  const welcomeMessage = Constants.useState(s => s.teamIDToWelcomeMessage.get(teamID))
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
-  const error = Container.useSelector(state => state.teams.errorInSettings)
+  const error = Constants.useState(s => s.errorInSettings)
   const ignoreAccessRequests = teamDetails.settings.tarsDisabled
   const isBigTeam = Container.useSelector(state => Constants.isBigTeam(state, teamID))
   const openTeam = settings.open
@@ -30,11 +29,12 @@ export default (ownProps: OwnProps) => {
   const waitingForWelcomeMessage = Container.useAnyWaiting(Constants.loadWelcomeMessageWaitingKey(teamID))
   const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
   const dispatch = Container.useDispatch()
-  const clearError = () => {
-    dispatch(TeamsGen.createSettingsError({error: ''}))
-  }
+
+  const _loadWelcomeMessage = Constants.useState(s => s.dispatch.loadWelcomeMessage)
+  const resetErrorInSettings = Constants.useState(s => s.dispatch.resetErrorInSettings)
+  const clearError = resetErrorInSettings
   const loadWelcomeMessage = () => {
-    dispatch(TeamsGen.createLoadWelcomeMessage({teamID}))
+    _loadWelcomeMessage(teamID)
   }
   const onEditWelcomeMessage = () => {
     dispatch(

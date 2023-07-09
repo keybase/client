@@ -1,7 +1,6 @@
 import type * as RPCTypes from './rpc-gen'
 import type {ConversationIDKey} from './chat2'
 import type {RetentionPolicy} from './retention-policy'
-import type * as RPCChatTypes from './rpc-chat-gen'
 import type {TeamBuildingSubState} from './team-building'
 
 export type TeamID = string
@@ -235,9 +234,7 @@ export type TeamInviteState = {
 export type State = {
   addMembersWizard: AddMembersWizardState
   errorInEditMember: {error: string; teamID: TeamID; username: string}
-  errorInEditWelcomeMessage: string
   errorInEmailInvite: EmailInviteError
-  errorInSettings: string
   errorInTeamCreation: string
   errorInTeamInvite: string
   errorInTeamJoin: string
@@ -262,7 +259,6 @@ export type State = {
   teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
   teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
   teamVersion: Map<TeamID, TeamVersion>
-  teamIDToWelcomeMessage: Map<TeamID, RPCChatTypes.WelcomeMessageDisplay>
   teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
 
   treeLoaderTeamIDToSparseMemberInfos: Map<TeamID, Map<string, TreeloaderSparseMemberInfo>>

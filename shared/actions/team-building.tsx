@@ -125,10 +125,9 @@ const apiSearch = async (
       return arr
     }, [])
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return []
+    if (error instanceof RPCError) {
+      logger.error(`Error in searching for ${query} on ${service}. ${error.message}`)
     }
-    logger.error(`Error in searching for ${query} on ${service}. ${error.message}`)
     return []
   }
 }

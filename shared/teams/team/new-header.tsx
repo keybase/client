@@ -30,7 +30,8 @@ const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
 type FeatureTeamCardProps = {teamID: Types.TeamID}
 const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
   const dispatch = Container.useDispatch()
-  const onFeature = () => dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
+  const setMemberPublicity = Constants.useState(s => s.dispatch.setMemberPublicity)
+  const onFeature = () => setMemberPublicity(teamID, true)
   const onNoThanks = React.useCallback(() => {
     dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false}))
   }, [dispatch])

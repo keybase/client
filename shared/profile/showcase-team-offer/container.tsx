@@ -2,12 +2,10 @@ import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as WaitingConstants from '../../constants/waiting'
 import Render from '.'
-import type * as TeamsTypes from '../../constants/types/teams'
 
 export default () => {
   const waiting = WaitingConstants.useWaitingState(s => s.counts)
@@ -29,9 +27,9 @@ export default () => {
     }, 500)
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const onPromote = (teamID: TeamsTypes.TeamID, showcase: boolean) => {
-    dispatch(TeamsGen.createSetMemberPublicity({showcase, teamID}))
-  }
+
+  const setMemberPublicity = Constants.useState(s => s.dispatch.setMemberPublicity)
+  const onPromote = setMemberPublicity
   const props = {
     onCancel: () => onCancel(_you),
     onPromote,
