@@ -230,7 +230,6 @@ const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
   errorInTeamInvite: '',
   errorInTeamJoin: '',
-  invitesCollapsed: new Set(),
   newTeamWizard: newTeamWizardEmptyState,
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -1005,6 +1004,7 @@ export type Store = {
   teamnames: Set<Types.Teamname> // TODO remove
   teamMetaStale: boolean // if we've received an update since we last loaded team list
   teamMeta: Map<Types.TeamID, Types.TeamMeta>
+  invitesCollapsed: Set<Types.TeamID>
 }
 
 const initialStore: Store = {
@@ -1023,6 +1023,7 @@ const initialStore: Store = {
   errorInEmailInvite: emptyEmailInviteError,
   errorInSettings: '',
   errorInTeamCreation: '',
+  invitesCollapsed: new Set(),
   newTeamRequests: new Map(),
   newTeams: new Set(),
   teamIDToResetUsers: new Map(),
@@ -1091,6 +1092,7 @@ export type State = Store & {
     setMemberPublicity: (teamID: Types.TeamID, showcase: boolean) => void
     setTeamRetentionPolicy: (teamID: Types.TeamID, policy: RetentionPolicy) => void
     setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => void
+    toggleInvitesCollapsed: (teamID: Types.TeamID) => void
     unsubscribeTeamList: () => void
   }
 }
@@ -1675,6 +1677,16 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    toggleInvitesCollapsed: teamID => {
+      set(s => {
+        const {invitesCollapsed} = s
+        if (invitesCollapsed.has(teamID)) {
+          invitesCollapsed.delete(teamID)
+        } else {
+          invitesCollapsed.add(teamID)
+        }
+      })
     },
     unsubscribeTeamList: () => {
       set(s => {

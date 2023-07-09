@@ -235,7 +235,6 @@ export type State = {
   addMembersWizard: AddMembersWizardState
   errorInTeamInvite: string
   errorInTeamJoin: string
-  invitesCollapsed: Set<TeamID>
   teamsWithChosenChannels: Set<Teamname>
   sawChatBanner: boolean
   sawSubteamsBanner: boolean

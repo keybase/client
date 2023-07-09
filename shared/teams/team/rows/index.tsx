@@ -84,7 +84,7 @@ export const useBotSections = (
 }
 
 export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDetails): Array<Section> => {
-  const invitesCollapsed = Container.useSelector(state => state.teams.invitesCollapsed)
+  const invitesCollapsed = Constants.useState(s => s.invitesCollapsed)
   const dispatch = Container.useDispatch()
   const collapsed = invitesCollapsed.has(teamID)
   const onToggleCollapsed = () => dispatch(TeamsGen.createToggleInvitesCollapsed({teamID}))
