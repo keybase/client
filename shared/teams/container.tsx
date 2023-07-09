@@ -97,7 +97,7 @@ const Connected = () => {
   const loaded = !Container.useAnyWaiting(Constants.teamsLoadedWaitingKey)
   const newTeamRequests = Constants.useState(s => s.newTeamRequests)
   const newTeams = Constants.useState(s => s.newTeams)
-  const sawChatBanner = Container.useSelector(state => state.teams.sawChatBanner || false)
+  const sawChatBanner = Constants.useState(s => s.sawChatBanner)
   const sortOrder = Container.useSelector(state => state.teams.teamListSort)
   const teamIDToResetUsers = Constants.useState(s => s.teamIDToResetUsers)
   const dispatch = Container.useDispatch()
@@ -118,7 +118,7 @@ const Connected = () => {
     onHideChatBanner,
     onOpenFolder,
     onReadMore,
-    sawChatBanner: sawChatBanner,
+    sawChatBanner,
     teamresetusers: teamIDToResetUsers, // TODO remove when teamsRedesign flag removed
     teams: orderTeams(
       _teams,

@@ -465,7 +465,7 @@ const createChannel = async (
   const {channelname, description, teamID} = action.payload
   const teamname = Constants.getTeamNameFromID(teamID)
 
-  if (teamname === null) {
+  if (teamname === undefined) {
     logger.warn('Team name was not in store!')
     return
   }
@@ -475,7 +475,7 @@ const createChannel = async (
       {
         identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
         membersType: RPCChatTypes.ConversationMembersType.team,
-        tlfName: teamname ?? '',
+        tlfName: teamname,
         tlfVisibility: RPCTypes.TLFVisibility.private,
         topicName: channelname,
         topicType: RPCChatTypes.TopicType.chat,

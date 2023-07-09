@@ -106,9 +106,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamProfileAddList]: (draftState, action) => {
     draftState.teamProfileAddList = action.payload.teamlist
   },
-  [TeamsGen.setTeamSawChatBanner]: draftState => {
-    draftState.sawChatBanner = true
-  },
   [TeamsGen.setTeamSawSubteamsBanner]: draftState => {
     draftState.sawSubteamsBanner = true
   },
