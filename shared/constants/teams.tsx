@@ -1,19 +1,20 @@
 import * as ChatTypes from './types/chat2'
-import * as TeamBuildingGen from '../actions/team-building-gen'
-import {RPCError} from '../util/errors'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ConfigConstants from './config'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as TeamBuildingConstants from './team-building'
+import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Types from './types/teams'
 import * as Z from '../util/zustand'
+import {isMobile} from './platform'
 import invert from 'lodash/invert'
 import logger from '../logger'
 import type {RetentionPolicy} from './types/retention-policy'
 import type {TypedState} from './reducer'
-import {memoize} from '../util/memoize'
+import {RPCError} from '../util/errors'
 import {mapGetEnsureValue} from '../util/map'
+import {memoize} from '../util/memoize'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
 
@@ -226,7 +227,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   addMembersWizard: addMembersWizardEmptyState,
-  errorInEmailInvite: emptyEmailInviteError,
   errorInTeamCreation: '',
   errorInTeamInvite: '',
   errorInTeamJoin: '',
@@ -254,7 +254,6 @@ const emptyState: Types.State = {
   teamMetaStale: true, // start out true, we have not loaded
   teamMetaSubscribeCount: 0,
   teamNameToID: new Map(),
-  teamNameToLoadingInvites: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamSelectedChannels: new Map(),
@@ -380,8 +379,6 @@ export const userInTeamNotBotWithInfo = (
   }
   return !isBot(memb.type)
 }
-
-export const getEmailInviteError = (state: TypedState) => state.teams.errorInEmailInvite
 
 export const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
   state.teams.teamsWithChosenChannels.has(teamname)
@@ -563,9 +560,6 @@ export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamna
 
 export const getTeamResetUsers = (_: unknown, teamID: Types.TeamID): Set<string> =>
   useState.getState().teamIDToResetUsers.get(teamID) || new Set()
-
-export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): Map<string, boolean> =>
-  state.teams.teamNameToLoadingInvites.get(teamname) || new Map()
 
 // Sorts teamnames canonically.
 function sortTeamnames(a: string, b: string) {
@@ -1004,11 +998,13 @@ export type Store = {
   errorInEditDescription: string
   errorInEditMember: {error: string; teamID: Types.TeamID; username: string}
   errorInEditWelcomeMessage: string
+  errorInEmailInvite: Types.EmailInviteError
   errorInSettings: string
   newTeamRequests: Map<Types.TeamID, Set<string>>
   newTeams: Set<Types.TeamID>
   teamIDToResetUsers: Map<Types.TeamID, Set<string>>
   teamIDToWelcomeMessage: Map<Types.TeamID, RPCChatTypes.WelcomeMessageDisplay>
+  teamNameToLoadingInvites: Map<Types.Teamname, Map<string, boolean>>
 }
 
 const initialStore: Store = {
@@ -1024,11 +1020,13 @@ const initialStore: Store = {
   errorInEditDescription: '',
   errorInEditMember: emptyErrorInEditMember,
   errorInEditWelcomeMessage: '',
+  errorInEmailInvite: emptyEmailInviteError,
   errorInSettings: '',
   newTeamRequests: new Map(),
   newTeams: new Set(),
   teamIDToResetUsers: new Map(),
   teamIDToWelcomeMessage: new Map(),
+  teamNameToLoadingInvites: new Map(),
 }
 
 export type State = Store & {
@@ -1051,10 +1049,18 @@ export type State = Store & {
     editTeamDescription: (teamID: Types.TeamID, description: string) => void
     editMembership: (teamID: Types.TeamID, usernames: Array<string>, role: Types.TeamRoleType) => void
     getActivityForTeams: () => void
+    inviteToTeamByEmail: (
+      invitees: string,
+      role: Types.TeamRoleType,
+      teamID: Types.TeamID,
+      teamname: string,
+      loadingKey?: string
+    ) => void
     loadTeamChannelList: (teamID: Types.TeamID) => void
     loadWelcomeMessage: (teamID: Types.TeamID) => void
     loadedWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessageDisplay) => void
     resetState: 'default'
+    resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
     setChannelCreationError: (error: string) => void
     setNewTeamInfo: (
@@ -1330,6 +1336,64 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    inviteToTeamByEmail: (invitees, role, teamID, teamname, loadingKey) => {
+      const f = async () => {
+        if (loadingKey) {
+          set(s => {
+            const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
+            oldLoadingInvites.set(loadingKey, true)
+            s.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
+          })
+        }
+        try {
+          const res = await RPCTypes.teamsTeamAddEmailsBulkRpcPromise(
+            {
+              emails: invitees,
+              name: teamname,
+              role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
+            },
+            [teamWaitingKey(teamID), addToTeamByEmailWaitingKey(teamname)]
+          )
+          if (res.malformed && res.malformed.length > 0) {
+            const malformed = res.malformed
+            logger.warn(`teamInviteByEmail: Unable to parse ${malformed.length} email addresses`)
+            set(s => {
+              s.errorInEmailInvite.malformed = new Set(malformed)
+              s.errorInEmailInvite.message = isMobile
+                ? `Error parsing email: ${malformed[0]}`
+                : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`
+            })
+          } else {
+            // no malformed emails, assume everything went swimmingly
+            //
+            get().dispatch.resetErrorInEmailInvite()
+            if (!isMobile) {
+              // mobile does not nav away
+              reduxDispatch(RouteTreeGen.createClearModals())
+            }
+          }
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              // other error. display messages and leave all emails in input box
+              s.errorInEmailInvite.malformed = new Set()
+              s.errorInEmailInvite.message = error.desc
+            }
+          })
+        } finally {
+          if (loadingKey) {
+            set(s => {
+              const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
+              oldLoadingInvites.set(loadingKey, false)
+              s.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
+            })
+          }
+        }
+      }
+      Z.ignorePromise(f())
+      // [TeamsGen.setEmailInviteError]: (draftState, action) => {
+      // },
+    },
     loadTeamChannelList: teamID => {
       const f = async () => {
         const teamname = getTeamMeta(getReduxStore(), teamID).teamname
@@ -1399,6 +1463,12 @@ export const useState = Z.createZustand<State>((set, get) => {
     loadedWelcomeMessage: (teamID, message) => {
       set(s => {
         s.teamIDToWelcomeMessage.set(teamID, message)
+      })
+    },
+    resetErrorInEmailInvite: () => {
+      set(s => {
+        s.errorInEmailInvite.message = ''
+        s.errorInEmailInvite.malformed = new Set()
       })
     },
     resetErrorInSettings: () => {

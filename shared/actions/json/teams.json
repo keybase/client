@@ -28,10 +28,6 @@
       "navToChatOnSuccess": "boolean"
     },
     "clearAddUserToTeamsResults": {},
-    "setEmailInviteError": {
-      "message": "string",
-      "malformed": "Array<string>"
-    },
     "setChannelSelected": {
       "_description": "Sets whether a channel is selected on the team page",
       "teamID": "Types.TeamID",
@@ -107,13 +103,6 @@
     },
     "deleteTeam": {
       "teamID": "Types.TeamID"
-    },
-    "inviteToTeamByEmail": {
-      "invitees": "string",
-      "role": "Types.TeamRoleType",
-      "teamID": "Types.TeamID",
-      "teamname": "string",
-      "loadingKey?": "string"
     },
     "inviteToTeamByPhone": {
       "teamID": "Types.TeamID",
@@ -204,11 +193,6 @@
     "setTeamRetentionPolicy": {
       "teamID": "Types.TeamID",
       "retentionPolicy": "RetentionPolicy"
-    },
-    "setTeamLoadingInvites": {
-      "teamname": "string",
-      "loadingKey": "string",
-      "isLoading": "boolean"
     },
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",

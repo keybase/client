@@ -69,12 +69,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamRetentionPolicy]: (draftState, action) => {
     draftState.teamIDToRetentionPolicy.set(action.payload.teamID, action.payload.retentionPolicy)
   },
-  [TeamsGen.setTeamLoadingInvites]: (draftState, action) => {
-    const {teamname, loadingKey, isLoading} = action.payload
-    const oldLoadingInvites = mapGetEnsureValue(draftState.teamNameToLoadingInvites, teamname, new Map())
-    oldLoadingInvites.set(loadingKey, isLoading)
-    draftState.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
-  },
   [TeamsGen.teamLoaded]: (draftState, action) => {
     const {teamID, team} = action.payload
     const maybeMeta = draftState.teamMeta.get(teamID)
@@ -97,14 +91,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       teamID,
       Constants.ratchetTeamVersion(version, draftState.teamVersion.get(teamID))
     )
-  },
-  [TeamsGen.setEmailInviteError]: (draftState, action) => {
-    if (!action.payload.malformed.length && !action.payload.message) {
-      draftState.errorInEmailInvite = Constants.emptyEmailInviteError
-      return
-    }
-    draftState.errorInEmailInvite.malformed = new Set(action.payload.malformed)
-    draftState.errorInEmailInvite.message = action.payload.message
   },
   [TeamsGen.getTeams]: (draftState, action) => {
     if (action.payload._subscribe) {

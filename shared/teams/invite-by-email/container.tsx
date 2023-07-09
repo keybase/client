@@ -10,7 +10,7 @@ type OwnProps = {teamID: string}
 export default (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
   const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
-  const inviteError = Container.useSelector(state => Constants.getEmailInviteError(state))
+  const inviteError = Constants.useState(s => s.errorInEmailInvite)
   const errorMessage = inviteError.message
   const malformedEmails = inviteError.malformed
   const name = teamname
@@ -19,9 +19,9 @@ export default (ownProps: OwnProps) => {
   const _onInvite = (teamname: string, teamID: Types.TeamID, invitees: string, role: Types.TeamRoleType) => {
     dispatch(TeamsGen.createInviteToTeamByEmail({invitees, role, teamID, teamname}))
   }
-  const onClearInviteError = () => {
-    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
-  } // should only be called on unmount
+  const resetErrorInEmailInvite = Constants.useState(s => s.dispatch.resetErrorInEmailInvite)
+  // should only be called on unmount
+  const onClearInviteError = resetErrorInEmailInvite
   const onClose = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }

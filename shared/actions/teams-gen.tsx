@@ -52,7 +52,6 @@ export const saveChannelMembership = 'teams:saveChannelMembership'
 export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setChannelSelected = 'teams:setChannelSelected'
-export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setMembers = 'teams:setMembers'
@@ -433,10 +432,6 @@ export const createSaveChannelMembership = (payload: {
   readonly oldChannelState: Types.ChannelMembershipState
   readonly newChannelState: Types.ChannelMembershipState
 }) => ({payload, type: saveChannelMembership as typeof saveChannelMembership})
-export const createSetEmailInviteError = (payload: {
-  readonly message: string
-  readonly malformed: Array<string>
-}) => ({payload, type: setEmailInviteError as typeof setEmailInviteError})
 export const createSetJustFinishedAddMembersWizard = (payload: {readonly justFinished: boolean}) => ({
   payload,
   type: setJustFinishedAddMembersWizard as typeof setJustFinishedAddMembersWizard,
@@ -638,7 +633,6 @@ export type SetAddMembersWizardIndividualRolePayload = ReturnType<
 >
 export type SetAddMembersWizardRolePayload = ReturnType<typeof createSetAddMembersWizardRole>
 export type SetChannelSelectedPayload = ReturnType<typeof createSetChannelSelected>
-export type SetEmailInviteErrorPayload = ReturnType<typeof createSetEmailInviteError>
 export type SetJustFinishedAddMembersWizardPayload = ReturnType<typeof createSetJustFinishedAddMembersWizard>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type SetMembersPayload = ReturnType<typeof createSetMembers>
@@ -735,7 +729,6 @@ export type Actions =
   | SetAddMembersWizardIndividualRolePayload
   | SetAddMembersWizardRolePayload
   | SetChannelSelectedPayload
-  | SetEmailInviteErrorPayload
   | SetJustFinishedAddMembersWizardPayload
   | SetMemberActivityDetailsPayload
   | SetMembersPayload

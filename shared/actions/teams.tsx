@@ -268,61 +268,6 @@ const updateTeamRetentionPolicy = (_: unknown, action: Chat2Gen.UpdateTeamRetent
   return
 }
 
-const inviteByEmail = async (
-  _: Container.TypedState,
-  action: TeamsGen.InviteToTeamByEmailPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {invitees, role, teamID, teamname, loadingKey} = action.payload
-  if (loadingKey) {
-    listenerApi.dispatch(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
-  }
-  try {
-    const res = await RPCTypes.teamsTeamAddEmailsBulkRpcPromise(
-      {
-        emails: invitees,
-        name: teamname,
-        role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
-      },
-      [Constants.teamWaitingKey(teamID), Constants.addToTeamByEmailWaitingKey(teamname)]
-    )
-    if (res.malformed && res.malformed.length > 0) {
-      const malformed = res.malformed
-      logger.warn(`teamInviteByEmail: Unable to parse ${malformed.length} email addresses`)
-      listenerApi.dispatch(
-        TeamsGen.createSetEmailInviteError({
-          malformed,
-          // mobile can only invite one at a time, show bad email in error message
-          message: Container.isMobile
-            ? `Error parsing email: ${malformed[0]}`
-            : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`,
-        })
-      )
-    } else {
-      // no malformed emails, assume everything went swimmingly
-      listenerApi.dispatch(
-        TeamsGen.createSetEmailInviteError({
-          malformed: [],
-          message: '',
-        })
-      )
-      if (!Container.isMobile) {
-        // mobile does not nav away
-        listenerApi.dispatch(RouteTreeGen.createClearModals())
-      }
-    }
-  } catch (error) {
-    if (error instanceof RPCError) {
-      // other error. display messages and leave all emails in input box
-      listenerApi.dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: error.desc}))
-    }
-  } finally {
-    if (loadingKey) {
-      listenerApi.dispatch(TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname}))
-    }
-  }
-}
-
 const addReAddErrorHandler = (username: string, e: RPCError) => {
   // identify error
   if (e.code === RPCTypes.StatusCode.scidentifysummaryerror) {
@@ -1307,7 +1252,6 @@ const initTeams = () => {
 
   Container.listenAction(TeamsGen.createChannel, createChannel)
   Container.listenAction(TeamsGen.reAddToTeam, reAddToTeam)
-  Container.listenAction(TeamsGen.inviteToTeamByEmail, inviteByEmail)
   Container.listenAction(TeamsGen.ignoreRequest, ignoreRequest)
   Container.listenAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
   Container.listenAction(TeamsGen.removeMember, removeMember)

@@ -57,12 +57,12 @@ const TeamInviteByContact = (props: Props) => {
 
   const [selectedRole, setSelectedRole] = React.useState('writer' as Types.TeamRoleType)
 
-  const loadingInvites = Container.useSelector(s => Constants.getTeamLoadingInvites(s, teamname))
-
+  const loadingInvites = Constants.useState(s => s.teamNameToLoadingInvites.get(teamname))
+  const resetErrorInEmailInvite = Constants.useState(s => s.dispatch.resetErrorInEmailInvite)
   const onBack = React.useCallback(() => {
     dispatch(nav.safeNavigateUpPayload())
-    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
-  }, [dispatch, nav])
+    resetErrorInEmailInvite()
+  }, [resetErrorInEmailInvite, dispatch, nav])
 
   const onRoleChange = React.useCallback(
     (role: Types.TeamRoleType) => {
@@ -73,7 +73,7 @@ const TeamInviteByContact = (props: Props) => {
 
   const onInviteContact = React.useCallback(
     (contact: Contact) => {
-      dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
+      resetErrorInEmailInvite()
       if (contact.type === 'email') {
         dispatch(
           TeamsGen.createInviteToTeamByEmail({
@@ -97,12 +97,12 @@ const TeamInviteByContact = (props: Props) => {
         )
       }
     },
-    [dispatch, selectedRole, teamID, teamname]
+    [resetErrorInEmailInvite, dispatch, selectedRole, teamID, teamname]
   )
 
   const onCancelInvite = React.useCallback(
     (inviteID: string) => {
-      dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
+      resetErrorInEmailInvite()
       dispatch(
         TeamsGen.createRemovePendingInvite({
           inviteID,
@@ -110,7 +110,7 @@ const TeamInviteByContact = (props: Props) => {
         })
       )
     },
-    [dispatch, teamID]
+    [resetErrorInEmailInvite, dispatch, teamID]
   )
 
   // ----
@@ -125,7 +125,7 @@ const TeamInviteByContact = (props: Props) => {
     // `loadingKey` is inviteID when invite already (so loading is canceling the
     // invite), or contact.value when loading is adding an invite.
     const loadingKey = inviteID || contact.value
-    const loading = loadingInvites.get(loadingKey) ?? false
+    const loading = loadingInvites?.get(loadingKey) ?? false
 
     const onClick = inviteID ? () => onCancelInvite(inviteID) : () => onInviteContact(contact)
 
