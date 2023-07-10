@@ -26,9 +26,8 @@ export default (ownProps: OwnProps) => {
   const onEdit = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']}))
   }
-  const onJoinTeam = (teamname: string) => {
-    dispatch(TeamsGen.createJoinTeam({teamname}))
-  }
+  const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
+  const onJoinTeam = joinTeam
   const onViewTeam = (teamname: string) => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(TeamsGen.createShowTeamByName({teamname}))

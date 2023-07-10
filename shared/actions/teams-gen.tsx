@@ -19,26 +19,19 @@ export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
 export const ignoreRequest = 'teams:ignoreRequest'
 export const inviteToTeamByPhone = 'teams:inviteToTeamByPhone'
-export const joinTeam = 'teams:joinTeam'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
 export const loadTeamTree = 'teams:loadTeamTree'
 export const manageChatChannels = 'teams:manageChatChannels'
-export const openInviteLink = 'teams:openInviteLink'
 export const reAddToTeam = 'teams:reAddToTeam'
 export const removeMember = 'teams:removeMember'
 export const removeParticipant = 'teams:removeParticipant'
 export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
-export const requestInviteLinkDetails = 'teams:requestInviteLinkDetails'
-export const respondToInviteLink = 'teams:respondToInviteLink'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setMembers = 'teams:setMembers'
 export const setPublicity = 'teams:setPublicity'
-export const setTeamInviteError = 'teams:setTeamInviteError'
-export const setTeamJoinError = 'teams:setTeamJoinError'
-export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
 export const setTeamProfileAddList = 'teams:setTeamProfileAddList'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setTeamVersion = 'teams:setTeamVersion'
@@ -47,39 +40,10 @@ export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const showTeamByName = 'teams:showTeamByName'
 export const teamSeen = 'teams:teamSeen'
 export const updateChannelName = 'teams:updateChannelName'
-export const updateInviteLinkDetails = 'teams:updateInviteLinkDetails'
 export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Action Creators
-/**
- * Called by the modal if the key is missing
- */
-export const createRequestInviteLinkDetails = (payload?: undefined) => ({
-  payload,
-  type: requestInviteLinkDetails as typeof requestInviteLinkDetails,
-})
-/**
- * Called either by the join team UI or invite links when the modal appears
- */
-export const createJoinTeam = (payload: {readonly teamname: string; readonly deeplink?: boolean}) => ({
-  payload,
-  type: joinTeam as typeof joinTeam,
-})
-/**
- * Completes the invite link decision flow, processed by joinTeam
- */
-export const createRespondToInviteLink = (payload: {readonly accept: boolean}) => ({
-  payload,
-  type: respondToInviteLink as typeof respondToInviteLink,
-})
-/**
- * First stage of the invite link process, opens the modal
- */
-export const createOpenInviteLink = (payload: {readonly inviteID: string; readonly inviteKey: string}) => ({
-  payload,
-  type: openInviteLink as typeof openInviteLink,
-})
 /**
  * Gets the team retention policy and stores in `state.entities.teams.teamIDToRetentionPolicy`.
  */
@@ -93,13 +57,6 @@ export const createGetTeamRetentionPolicy = (payload: {readonly teamID: Types.Te
 export const createRenameTeam = (payload: {readonly oldName: string; readonly newName: string}) => ({
   payload,
   type: renameTeam as typeof renameTeam,
-})
-/**
- * Saves the details from the API in the store, prompting the user to make a decision
- */
-export const createUpdateInviteLinkDetails = (payload: {readonly details: RPCTypes.InviteLinkDetails}) => ({
-  payload,
-  type: updateInviteLinkDetails as typeof updateInviteLinkDetails,
 })
 /**
  * Tries to show a team with this name whether the user is in the team or not.
@@ -224,19 +181,6 @@ export const createSetPublicity = (payload: {
   readonly teamID: Types.TeamID
   readonly settings: Types.PublicitySettings
 }) => ({payload, type: setPublicity as typeof setPublicity})
-export const createSetTeamInviteError = (payload: {readonly error: string}) => ({
-  payload,
-  type: setTeamInviteError as typeof setTeamInviteError,
-})
-export const createSetTeamJoinError = (payload: {readonly error: string}) => ({
-  payload,
-  type: setTeamJoinError as typeof setTeamJoinError,
-})
-export const createSetTeamJoinSuccess = (payload: {
-  readonly open: boolean
-  readonly success: boolean
-  readonly teamname: string
-}) => ({payload, type: setTeamJoinSuccess as typeof setTeamJoinSuccess})
 export const createSetTeamProfileAddList = (payload: {
   readonly teamlist: Array<Types.TeamProfileAddList>
 }) => ({payload, type: setTeamProfileAddList as typeof setTeamProfileAddList})
@@ -288,26 +232,19 @@ export type GetTeamProfileAddListPayload = ReturnType<typeof createGetTeamProfil
 export type GetTeamRetentionPolicyPayload = ReturnType<typeof createGetTeamRetentionPolicy>
 export type IgnoreRequestPayload = ReturnType<typeof createIgnoreRequest>
 export type InviteToTeamByPhonePayload = ReturnType<typeof createInviteToTeamByPhone>
-export type JoinTeamPayload = ReturnType<typeof createJoinTeam>
 export type LeaveTeamPayload = ReturnType<typeof createLeaveTeam>
 export type LeftTeamPayload = ReturnType<typeof createLeftTeam>
 export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
 export type ManageChatChannelsPayload = ReturnType<typeof createManageChatChannels>
-export type OpenInviteLinkPayload = ReturnType<typeof createOpenInviteLink>
 export type ReAddToTeamPayload = ReturnType<typeof createReAddToTeam>
 export type RemoveMemberPayload = ReturnType<typeof createRemoveMember>
 export type RemoveParticipantPayload = ReturnType<typeof createRemoveParticipant>
 export type RemovePendingInvitePayload = ReturnType<typeof createRemovePendingInvite>
 export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
-export type RequestInviteLinkDetailsPayload = ReturnType<typeof createRequestInviteLinkDetails>
-export type RespondToInviteLinkPayload = ReturnType<typeof createRespondToInviteLink>
 export type SaveChannelMembershipPayload = ReturnType<typeof createSaveChannelMembership>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type SetMembersPayload = ReturnType<typeof createSetMembers>
 export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
-export type SetTeamInviteErrorPayload = ReturnType<typeof createSetTeamInviteError>
-export type SetTeamJoinErrorPayload = ReturnType<typeof createSetTeamJoinError>
-export type SetTeamJoinSuccessPayload = ReturnType<typeof createSetTeamJoinSuccess>
 export type SetTeamProfileAddListPayload = ReturnType<typeof createSetTeamProfileAddList>
 export type SetTeamRetentionPolicyPayload = ReturnType<typeof createSetTeamRetentionPolicy>
 export type SetTeamVersionPayload = ReturnType<typeof createSetTeamVersion>
@@ -316,7 +253,6 @@ export type SetUpdatedTopicPayload = ReturnType<typeof createSetUpdatedTopic>
 export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
 export type UpdateChannelNamePayload = ReturnType<typeof createUpdateChannelName>
-export type UpdateInviteLinkDetailsPayload = ReturnType<typeof createUpdateInviteLinkDetails>
 export type UpdateTopicPayload = ReturnType<typeof createUpdateTopic>
 export type UploadTeamAvatarPayload = ReturnType<typeof createUploadTeamAvatar>
 
@@ -335,26 +271,19 @@ export type Actions =
   | GetTeamRetentionPolicyPayload
   | IgnoreRequestPayload
   | InviteToTeamByPhonePayload
-  | JoinTeamPayload
   | LeaveTeamPayload
   | LeftTeamPayload
   | LoadTeamTreePayload
   | ManageChatChannelsPayload
-  | OpenInviteLinkPayload
   | ReAddToTeamPayload
   | RemoveMemberPayload
   | RemoveParticipantPayload
   | RemovePendingInvitePayload
   | RenameTeamPayload
-  | RequestInviteLinkDetailsPayload
-  | RespondToInviteLinkPayload
   | SaveChannelMembershipPayload
   | SetMemberActivityDetailsPayload
   | SetMembersPayload
   | SetPublicityPayload
-  | SetTeamInviteErrorPayload
-  | SetTeamJoinErrorPayload
-  | SetTeamJoinSuccessPayload
   | SetTeamProfileAddListPayload
   | SetTeamRetentionPolicyPayload
   | SetTeamVersionPayload
@@ -363,7 +292,6 @@ export type Actions =
   | ShowTeamByNamePayload
   | TeamSeenPayload
   | UpdateChannelNamePayload
-  | UpdateInviteLinkDetailsPayload
   | UpdateTopicPayload
   | UploadTeamAvatarPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

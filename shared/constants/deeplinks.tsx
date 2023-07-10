@@ -5,6 +5,7 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as WalletsGen from '../actions/wallets-gen'
 import * as ProfileConstants from './profile'
 import * as SettingsConstants from './settings'
+import * as TeamsConstants from './teams'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import URL from 'url-parse'
@@ -256,7 +257,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']}))
           return
         case 'team-invite-link':
-          reduxDispatch(TeamsGen.createOpenInviteLink({inviteID: parts[1] ?? '', inviteKey: parts[2] || ''}))
+          TeamsConstants.useState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
           return
         default:
         // Fall through to the error return below.

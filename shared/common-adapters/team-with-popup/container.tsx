@@ -1,11 +1,10 @@
 import * as Container from '../../util/container'
 import * as React from 'react'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsConstants from '../../constants/teams'
 import type * as TeamsTypes from '../../constants/types/teams'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as TeamsGen from '../../actions/teams-gen'
-import {TeamWithPopup} from './'
 import type {TextType} from '../text'
+import {TeamWithPopup} from './'
 
 type OwnProps = {
   inline?: boolean
@@ -29,10 +28,8 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
   }
 
   const dispatch = Container.useDispatch()
-  const _onJoinTeam = React.useCallback(
-    (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
-    [dispatch]
-  )
+  const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
+  const _onJoinTeam = joinTeam
   const _onViewTeam = React.useCallback(
     (teamID: TeamsTypes.TeamID) => {
       dispatch(RouteTreeGen.createClearModals())

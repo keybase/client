@@ -51,27 +51,6 @@
       "fullName": "string",
       "loadingKey?": "string"
     },
-    "joinTeam": {
-      "_description": "Called either by the join team UI or invite links when the modal appears",
-      "teamname": "string",
-      "deeplink?": "boolean"
-    },
-    "openInviteLink": {
-      "_description": "First stage of the invite link process, opens the modal",
-      "inviteID": "string",
-      "inviteKey": "string"
-    },
-    "requestInviteLinkDetails": {
-      "_description": "Called by the modal if the key is missing"
-    },
-    "updateInviteLinkDetails": {
-      "_description": "Saves the details from the API in the store, prompting the user to make a decision",
-      "details": "RPCTypes.InviteLinkDetails"
-    },
-    "respondToInviteLink": {
-      "_description": "Completes the invite link decision flow, processed by joinTeam",
-      "accept": "boolean"
-    },
     "leaveTeam": {
       "teamname": "string",
       "permanent": "boolean",
@@ -108,17 +87,6 @@
     "setPublicity": {
       "teamID": "Types.TeamID",
       "settings": "Types.PublicitySettings"
-    },
-    "setTeamInviteError": {
-      "error": "string"
-    },
-    "setTeamJoinError": {
-      "error": "string"
-    },
-    "setTeamJoinSuccess": {
-      "open": "boolean",
-      "success": "boolean",
-      "teamname": "string"
     },
     "setTeamRetentionPolicy": {
       "teamID": "Types.TeamID",

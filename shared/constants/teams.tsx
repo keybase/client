@@ -228,15 +228,9 @@ export const newTeamWizardEmptyState: State['newTeamWizard'] = {
 export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, username: ''}
 
 const emptyState: Types.State = {
-  errorInTeamInvite: '',
-  errorInTeamJoin: '',
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamIDToMembers: new Map(),
   teamIDToRetentionPolicy: new Map(),
-  teamInviteDetails: {inviteID: '', inviteKey: ''},
-  teamJoinSuccess: false,
-  teamJoinSuccessOpen: false,
-  teamJoinSuccessTeamName: '',
   teamMemberToLastActivity: new Map(),
   teamMemberToTreeMemberships: new Map(),
   teamProfileAddList: [],
@@ -999,6 +993,11 @@ export type Store = {
   teamListSort: Types.TeamListSort
   newTeamWizard: Types.NewTeamWizardState
   addMembersWizard: Types.AddMembersWizardState
+  errorInTeamJoin: string
+  teamInviteDetails: Types.TeamInviteState
+  teamJoinSuccess: boolean
+  teamJoinSuccessOpen: boolean
+  teamJoinSuccessTeamName: string
 }
 
 const initialStore: Store = {
@@ -1018,6 +1017,7 @@ const initialStore: Store = {
   errorInEmailInvite: emptyEmailInviteError,
   errorInSettings: '',
   errorInTeamCreation: '',
+  errorInTeamJoin: '',
   invitesCollapsed: new Set(),
   newTeamRequests: new Map(),
   newTeamWizard: newTeamWizardEmptyState,
@@ -1031,6 +1031,10 @@ const initialStore: Store = {
   teamDetailsSubscriptionCount: new Map(),
   teamIDToResetUsers: new Map(),
   teamIDToWelcomeMessage: new Map(),
+  teamInviteDetails: {inviteID: '', inviteKey: ''},
+  teamJoinSuccess: false,
+  teamJoinSuccessOpen: false,
+  teamJoinSuccessTeamName: '',
   teamListFilter: '',
   teamListSort: 'role',
   teamMeta: new Map(),
@@ -1095,17 +1099,22 @@ export type State = Store & {
       teamname: string,
       loadingKey?: string
     ) => void
+    joinTeam: (teamname: string, deeplink?: boolean) => void
     launchNewTeamWizardOrModal: (subteamOf?: Types.TeamID) => void
     loadTeam: (teamID: Types.TeamID, _subscribe?: boolean) => void
     loadTeamChannelList: (teamID: Types.TeamID) => void
     loadWelcomeMessage: (teamID: Types.TeamID) => void
     loadedWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessageDisplay) => void
+    openInviteLink: (inviteID: string, inviteKey: string) => void
     refreshTeamRoleMap: () => void
+    requestInviteLinkDetails: () => void
     resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
     resetErrorInTeamCreation: () => void
     resetState: 'default'
     resetTeamMetaStale: () => void
+    resetTeamJoin: () => void
+    respondToInviteLink: (accept: boolean) => void
     setAddMembersWizardIndividualRole: (assertion: string, role: Types.AddingMemberTeamRoleType) => void
     setAddMembersWizardRole: (role: Types.AddingMemberTeamRoleType | 'setIndividually') => void
     setChannelCreationError: (error: string) => void
@@ -1151,6 +1160,9 @@ export type State = Store & {
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const getReduxStore = Z.getReduxStore() // TODO remoe >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  const _respondToInviteLink = () => {
+    // should be overridden
+  }
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {
@@ -1564,9 +1576,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    editMembership: (teamID, usernames, _role) => {
+    editMembership: (teamID, usernames, r) => {
       const f = async () => {
-        const role = RPCTypes.TeamRole[_role]
+        const role = RPCTypes.TeamRole[r]
         try {
           await RPCTypes.teamsTeamEditMembersRpcPromise(
             {
@@ -1789,6 +1801,74 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    joinTeam: (teamname, deeplink) => {
+      set(s => {
+        s.teamInviteDetails.inviteDetails = undefined
+      })
+
+      const f = async () => {
+        // In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
+        // alternative flow, but we're not concerned with that here). In that case,
+        // we can fully manage the UX from inside of this handler.
+        // In the "Join team" flow, user pastes their link into the input box, which
+        // then calls `joinTeam` on its own. Since we need to switch to another modal,
+        // we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
+        // do the nav in the modal.
+        get().dispatch.resetTeamJoin()
+        try {
+          const result = await RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcListener(
+            {
+              customResponseIncomingCallMap: {
+                'keybase.1.teamsUi.confirmInviteLinkAccept': async (params, response) => {
+                  set(s => {
+                    s.teamInviteDetails.inviteDetails = params.details
+                  })
+                  if (!deeplink) {
+                    reduxDispatch(
+                      RouteTreeGen.createNavigateAppend({path: ['teamInviteLinkJoin'], replace: true})
+                    )
+                  }
+                  set(s => {
+                    s.dispatch.respondToInviteLink = accept => {
+                      response.result(accept)
+                      set(s => {
+                        s.dispatch.respondToInviteLink = _respondToInviteLink
+                      })
+                    }
+                  })
+                },
+              },
+              incomingCallMap: {},
+              params: {tokenOrName: teamname},
+              waitingKey: joinTeamWaitingKey,
+            },
+            Z.dummyListenerApi
+          )
+          set(s => {
+            s.teamJoinSuccess = true
+            s.teamJoinSuccessOpen = result?.wasOpenTeam ?? false
+            s.teamJoinSuccessTeamName = result?.wasTeamName ? teamname : ''
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            const desc =
+              error.code === RPCTypes.StatusCode.scteaminvitebadtoken
+                ? 'Sorry, that team name or token is not valid.'
+                : error.code === RPCTypes.StatusCode.scnotfound
+                ? 'This invitation is no longer valid, or has expired.'
+                : error.desc
+            set(s => {
+              s.errorInTeamJoin = desc
+            })
+          }
+        } finally {
+          set(s => {
+            s.dispatch.respondToInviteLink = _respondToInviteLink
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
     launchNewTeamWizardOrModal: subteamOf => {
       set(s => {
         s.newTeamWizard = {
@@ -1917,6 +1997,14 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.teamIDToWelcomeMessage.set(teamID, message)
       })
     },
+    openInviteLink: (inviteID, inviteKey) => {
+      set(s => {
+        s.teamInviteDetails.inviteDetails = undefined
+        s.teamInviteDetails.inviteID = inviteID
+        s.teamInviteDetails.inviteKey = inviteKey
+      })
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamInviteLinkJoin']}))
+    },
     refreshTeamRoleMap: () => {
       const f = async () => {
         try {
@@ -1931,6 +2019,31 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
         } catch {
           logger.info(`Failed to refresh TeamRoleMap; service will retry`)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    requestInviteLinkDetails: () => {
+      const f = async () => {
+        try {
+          const details = await RPCTypes.teamsGetInviteLinkDetailsRpcPromise({
+            inviteID: get().teamInviteDetails.inviteID,
+          })
+          set(s => {
+            s.teamInviteDetails.inviteDetails = details
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            const desc =
+              error.code === RPCTypes.StatusCode.scteaminvitebadtoken
+                ? 'Sorry, that invite token is not valid.'
+                : error.code === RPCTypes.StatusCode.scnotfound
+                ? 'This invitation is no longer valid, or has expired.'
+                : error.desc
+            set(s => {
+              s.errorInTeamJoin = desc
+            })
+          }
         }
       }
       Z.ignorePromise(f())
@@ -1957,6 +2070,15 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.teamMetaStale = true
       })
     },
+    resetTeamJoin: () => {
+      set(s => {
+        s.errorInTeamJoin = ''
+        s.teamJoinSuccess = false
+        s.teamJoinSuccessOpen = false
+        s.teamJoinSuccessTeamName = ''
+      })
+    },
+    respondToInviteLink: _respondToInviteLink,
     setAddMembersWizardIndividualRole: (assertion, role) => {
       set(s => {
         const maybeMember = s.addMembersWizard.addingMembers.find(m => m.assertion === assertion)
@@ -1996,7 +2118,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    setJustFinishedAddMembersWizard: (justFinished: boolean) => {
+    setJustFinishedAddMembersWizard: justFinished => {
       set(s => {
         s.addMembersWizard.justFinished = justFinished
       })
@@ -2170,13 +2292,13 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
       reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}))
     },
-    setTeamWizardSubteams: (subteams: Array<string>) => {
+    setTeamWizardSubteams: subteams => {
       set(s => {
         s.newTeamWizard.subteams = subteams
       })
       get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
     },
-    setTeamWizardTeamSize: (isBig: boolean) => {
+    setTeamWizardTeamSize: isBig => {
       set(s => {
         s.newTeamWizard.isBig = isBig
       })

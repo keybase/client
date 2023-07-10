@@ -30,28 +30,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setMembers]: (draftState, action) => {
     draftState.teamIDToMembers.set(action.payload.teamID, action.payload.members)
   },
-  [TeamsGen.setTeamInviteError]: (draftState, action) => {
-    draftState.errorInTeamInvite = action.payload.error
-  },
-  [TeamsGen.setTeamJoinError]: (draftState, action) => {
-    draftState.errorInTeamJoin = action.payload.error
-  },
-  [TeamsGen.setTeamJoinSuccess]: (draftState, action) => {
-    draftState.teamJoinSuccess = action.payload.success
-    draftState.teamJoinSuccessOpen = action.payload.open
-    draftState.teamJoinSuccessTeamName = action.payload.teamname
-  },
-  [TeamsGen.joinTeam]: draftState => {
-    draftState.teamInviteDetails.inviteDetails = undefined
-  },
-  [TeamsGen.openInviteLink]: (draftState, action) => {
-    draftState.teamInviteDetails.inviteDetails = undefined
-    draftState.teamInviteDetails.inviteID = action.payload.inviteID
-    draftState.teamInviteDetails.inviteKey = action.payload.inviteKey
-  },
-  [TeamsGen.updateInviteLinkDetails]: (draftState, action) => {
-    draftState.teamInviteDetails.inviteDetails = action.payload.details
-  },
   [TeamsGen.setTeamRetentionPolicy]: (draftState, action) => {
     draftState.teamIDToRetentionPolicy.set(action.payload.teamID, action.payload.retentionPolicy)
   },

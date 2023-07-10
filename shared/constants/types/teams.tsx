@@ -232,11 +232,6 @@ export type TeamInviteState = {
 }
 
 export type State = {
-  errorInTeamInvite: string
-  errorInTeamJoin: string
-  teamJoinSuccess: boolean
-  teamJoinSuccessOpen: boolean
-  teamJoinSuccessTeamName: string
   teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
   teamVersion: Map<TeamID, TeamVersion>
   teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
@@ -247,6 +242,4 @@ export type State = {
   teamMemberToLastActivity: Map<TeamID, Map<string, number>>
   teamProfileAddList: Array<TeamProfileAddList>
   teamBuilding: TeamBuildingSubState
-
-  teamInviteDetails: TeamInviteState
 }

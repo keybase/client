@@ -1,24 +1,23 @@
-import * as TeamsGen from '../../actions/teams-gen'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/teams'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import JoinTeam from '.'
 import upperFirst from 'lodash/upperFirst'
-import * as Container from '../../util/container'
 
 type OwnProps = {initialTeamname?: string}
 
 export default (ownProps: OwnProps) => {
   const initialTeamname = ownProps.initialTeamname
-  const errorText = Container.useSelector(state => upperFirst(state.teams.errorInTeamJoin))
-  const open = Container.useSelector(state => state.teams.teamJoinSuccessOpen)
-  const success = Container.useSelector(state => state.teams.teamJoinSuccess)
-  const successTeamName = Container.useSelector(state => state.teams.teamJoinSuccessTeamName)
+  const errorText = Constants.useState(s => upperFirst(s.errorInTeamJoin))
+  const open = Constants.useState(s => s.teamJoinSuccessOpen)
+  const success = Constants.useState(s => s.teamJoinSuccess)
+  const successTeamName = Constants.useState(s => s.teamJoinSuccessTeamName)
   const dispatch = Container.useDispatch()
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const onJoinTeam = (teamname: string) => {
-    dispatch(TeamsGen.createJoinTeam({teamname}))
-  }
+  const joinTeam = Constants.useState(s => s.dispatch.joinTeam)
+  const onJoinTeam = joinTeam
   const props = {
     errorText,
     initialTeamname,

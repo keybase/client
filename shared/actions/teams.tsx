@@ -26,100 +26,6 @@ import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
 
-const openInviteLink = () => {
-  return RouteTreeGen.createNavigateAppend({
-    path: ['teamInviteLinkJoin'],
-  })
-}
-const joinTeam = async (
-  _: Container.TypedState,
-  action: TeamsGen.JoinTeamPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {teamname} = action.payload
-
-  /*
-                                In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
-                                alternative flow, but we're not concerned with that here). In that case,
-                                we can fully manage the UX from inside of this handler.
-
-                                In the "Join team" flow, user pastes their link into the input box, which
-                                then calls `joinTeam` on its own. Since we need to switch to another modal,
-                                we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
-                                do the nav in the modal.
-                              */
-
-  listenerApi.dispatch(TeamsGen.createSetTeamJoinError({error: ''}))
-  listenerApi.dispatch(TeamsGen.createSetTeamJoinSuccess({open: false, success: false, teamname: ''}))
-  try {
-    const result = await RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcListener(
-      {
-        customResponseIncomingCallMap: {
-          'keybase.1.teamsUi.confirmInviteLinkAccept': async (params, response) => {
-            const deeplink = action.payload.deeplink || false
-            listenerApi.dispatch(TeamsGen.createUpdateInviteLinkDetails({details: params.details}))
-            if (!deeplink) {
-              listenerApi.dispatch(
-                RouteTreeGen.createNavigateAppend({path: ['teamInviteLinkJoin'], replace: true})
-              )
-            }
-            const [act] = await listenerApi.take<TeamsGen.RespondToInviteLinkPayload>(
-              action => action.type === TeamsGen.respondToInviteLink
-            )
-            response.result(act.payload.accept)
-          },
-        },
-        incomingCallMap: {},
-        params: {tokenOrName: teamname},
-        waitingKey: Constants.joinTeamWaitingKey,
-      },
-      listenerApi
-    )
-
-    // Success
-    listenerApi.dispatch(
-      TeamsGen.createSetTeamJoinSuccess({
-        open: result?.wasOpenTeam ?? false,
-        success: true,
-        teamname: result?.wasTeamName ? teamname : '',
-      })
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      const desc =
-        error.code === RPCTypes.StatusCode.scteaminvitebadtoken
-          ? 'Sorry, that team name or token is not valid.'
-          : error.code === RPCTypes.StatusCode.scnotfound
-          ? 'This invitation is no longer valid, or has expired.'
-          : error.desc
-      listenerApi.dispatch(TeamsGen.createSetTeamJoinError({error: desc}))
-    }
-  }
-}
-const requestInviteLinkDetails = async (state: Container.TypedState) => {
-  try {
-    const details = await RPCTypes.teamsGetInviteLinkDetailsRpcPromise({
-      inviteID: state.teams.teamInviteDetails.inviteID,
-    })
-    return TeamsGen.createUpdateInviteLinkDetails({
-      details,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      const desc =
-        error.code === RPCTypes.StatusCode.scteaminvitebadtoken
-          ? 'Sorry, that invite token is not valid.'
-          : error.code === RPCTypes.StatusCode.scnotfound
-          ? 'This invitation is no longer valid, or has expired.'
-          : error.desc
-      return TeamsGen.createSetTeamJoinError({
-        error: desc,
-      })
-    }
-    return
-  }
-}
-
 const getTeamProfileAddList = async (_: unknown, action: TeamsGen.GetTeamProfileAddListPayload) => {
   const r = await RPCTypes.teamsTeamProfileAddListRpcPromise(
     {username: action.payload.username},
@@ -871,10 +777,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.deleteTeam, deleteTeam)
   Container.listenAction(TeamsGen.getTeamProfileAddList, getTeamProfileAddList)
   Container.listenAction(TeamsGen.leftTeam, leftTeam)
-
-  Container.listenAction(TeamsGen.joinTeam, joinTeam)
-  Container.listenAction(TeamsGen.openInviteLink, openInviteLink)
-  Container.listenAction(TeamsGen.requestInviteLinkDetails, requestInviteLinkDetails)
 
   Container.listenAction(TeamsGen.getMembers, getMembers)
   Container.listenAction([ConfigGen.loadOnStart, TeamsGen.leftTeam], (_, action) => {
