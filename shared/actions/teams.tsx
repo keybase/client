@@ -368,15 +368,6 @@ const ignoreRequest = async (_: unknown, action: TeamsGen.IgnoreRequestPayload) 
   return false
 }
 
-const checkRequestedAccess = async () => {
-  const result = await RPCTypes.teamsTeamListMyAccessRequestsRpcPromise(
-    {},
-    Constants.teamsAccessRequestWaitingKey
-  )
-  const teams = (result || []).map(row => (row?.parts ? row.parts.join('.') : ''))
-  return TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: new Set<Types.Teamname>(teams)})
-}
-
 const saveChannelMembership = async (
   _s: unknown,
   action: TeamsGen.SaveChannelMembershipPayload,
@@ -1047,7 +1038,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
   Container.listenAction(TeamsGen.inviteToTeamByPhone, inviteToTeamByPhone)
   Container.listenAction(TeamsGen.setPublicity, setPublicity)
-  Container.listenAction(TeamsGen.checkRequestedAccess, checkRequestedAccess)
   Container.listenAction(TeamsGen.getTeamRetentionPolicy, getTeamRetentionPolicy)
   Container.listenAction(Chat2Gen.updateTeamRetentionPolicy, updateTeamRetentionPolicy)
   Container.listenAction(TeamsGen.renameTeam, renameTeam)

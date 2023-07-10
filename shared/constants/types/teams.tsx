@@ -235,7 +235,6 @@ export type State = {
   addMembersWizard: AddMembersWizardState
   errorInTeamInvite: string
   errorInTeamJoin: string
-  teamAccessRequestsPending: Set<Teamname>
   teamJoinSuccess: boolean
   teamJoinSuccessOpen: boolean
   teamJoinSuccessTeamName: string

@@ -63,9 +63,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       Constants.ratchetTeamVersion(version, draftState.teamVersion.get(teamID))
     )
   },
-  [TeamsGen.setTeamAccessRequestsPending]: (draftState, action) => {
-    draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
-  },
   [TeamsGen.setTeamProfileAddList]: (draftState, action) => {
     draftState.teamProfileAddList = action.payload.teamlist
   },

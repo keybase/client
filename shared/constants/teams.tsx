@@ -233,7 +233,6 @@ const emptyState: Types.State = {
   errorInTeamInvite: '',
   errorInTeamJoin: '',
   newTeamWizard: newTeamWizardEmptyState,
-  teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamIDToMembers: new Map(),
   teamIDToRetentionPolicy: new Map(),
@@ -541,9 +540,6 @@ export const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean =
 
 export const isInSomeTeam = (state: TypedState): boolean =>
   [...state.teams.teamRoleMap.roles.values()].some(rd => rd.role !== 'none')
-
-export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.teamAccessRequestsPending.has(teamname)
 
 export const getTeamResetUsers = (_: unknown, teamID: Types.TeamID): Set<string> =>
   useState.getState().teamIDToResetUsers.get(teamID) || new Set()
@@ -1004,6 +1000,7 @@ export type Store = {
   teamDetailsSubscriptionCount: Map<Types.TeamID, number> // >0 if we are eagerly reloading a team
   teamSelectedChannels: Map<Types.TeamID, Set<string>>
   teamSelectedMembers: Map<Types.TeamID, Set<string>>
+  teamAccessRequestsPending: Set<Types.Teamname>
 }
 
 const initialStore: Store = {
@@ -1029,6 +1026,7 @@ const initialStore: Store = {
   sawSubteamsBanner: false,
   subteamFilter: '',
   subteamsFiltered: undefined,
+  teamAccessRequestsPending: new Set(),
   teamDetails: new Map(),
   teamDetailsSubscriptionCount: new Map(),
   teamIDToResetUsers: new Map(),
@@ -1060,6 +1058,7 @@ export type State = Store & {
       selected: boolean,
       clearAll?: boolean
     ) => void
+    checkRequestedAccess: (teamname: string) => void
     clearAddUserToTeamsResults: () => void
     createChannels: (teamID: Types.TeamID, channelnames: Array<string>) => void
     createNewTeam: (
@@ -1320,6 +1319,21 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         }
       })
+    },
+    checkRequestedAccess: (_teamname: string) => {
+      // we never use teamname?
+      const f = async () => {
+        const result = await RPCTypes.teamsTeamListMyAccessRequestsRpcPromise(
+          {},
+          teamsAccessRequestWaitingKey
+        )
+        set(s => {
+          s.teamAccessRequestsPending = new Set<Types.Teamname>(
+            result?.map(row => row.parts?.join('.') ?? '')
+          )
+        })
+      }
+      Z.ignorePromise(f())
     },
     clearAddUserToTeamsResults: () => {
       set(s => {

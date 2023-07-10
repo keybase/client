@@ -13,7 +13,6 @@ export const addMembersWizardRemoveMember = 'teams:addMembersWizardRemoveMember'
 export const addMembersWizardSetDefaultChannels = 'teams:addMembersWizardSetDefaultChannels'
 export const addParticipant = 'teams:addParticipant'
 export const cancelAddMembersWizard = 'teams:cancelAddMembersWizard'
-export const checkRequestedAccess = 'teams:checkRequestedAccess'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearNavBadges = 'teams:clearNavBadges'
 export const createChannel = 'teams:createChannel'
@@ -49,7 +48,6 @@ export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersW
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setMembers = 'teams:setMembers'
 export const setPublicity = 'teams:setPublicity'
-export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
 export const setTeamInviteError = 'teams:setTeamInviteError'
 export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
@@ -231,10 +229,6 @@ export const createAddParticipant = (payload: {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ConversationIDKey
 }) => ({payload, type: addParticipant as typeof addParticipant})
-export const createCheckRequestedAccess = (payload: {readonly teamname: string}) => ({
-  payload,
-  type: checkRequestedAccess as typeof checkRequestedAccess,
-})
 export const createClearAddUserToTeamsResults = (payload?: undefined) => ({
   payload,
   type: clearAddUserToTeamsResults as typeof clearAddUserToTeamsResults,
@@ -340,9 +334,6 @@ export const createSetPublicity = (payload: {
   readonly teamID: Types.TeamID
   readonly settings: Types.PublicitySettings
 }) => ({payload, type: setPublicity as typeof setPublicity})
-export const createSetTeamAccessRequestsPending = (payload: {
-  readonly accessRequestsPending: Set<Types.Teamname>
-}) => ({payload, type: setTeamAccessRequestsPending as typeof setTeamAccessRequestsPending})
 export const createSetTeamInviteError = (payload: {readonly error: string}) => ({
   payload,
   type: setTeamInviteError as typeof setTeamInviteError,
@@ -450,7 +441,6 @@ export type AddMembersWizardSetDefaultChannelsPayload = ReturnType<
 >
 export type AddParticipantPayload = ReturnType<typeof createAddParticipant>
 export type CancelAddMembersWizardPayload = ReturnType<typeof createCancelAddMembersWizard>
-export type CheckRequestedAccessPayload = ReturnType<typeof createCheckRequestedAccess>
 export type ClearAddUserToTeamsResultsPayload = ReturnType<typeof createClearAddUserToTeamsResults>
 export type ClearNavBadgesPayload = ReturnType<typeof createClearNavBadges>
 export type CreateChannelPayload = ReturnType<typeof createCreateChannel>
@@ -488,7 +478,6 @@ export type SetJustFinishedAddMembersWizardPayload = ReturnType<typeof createSet
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type SetMembersPayload = ReturnType<typeof createSetMembers>
 export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
-export type SetTeamAccessRequestsPendingPayload = ReturnType<typeof createSetTeamAccessRequestsPending>
 export type SetTeamInviteErrorPayload = ReturnType<typeof createSetTeamInviteError>
 export type SetTeamJoinErrorPayload = ReturnType<typeof createSetTeamJoinError>
 export type SetTeamJoinSuccessPayload = ReturnType<typeof createSetTeamJoinSuccess>
@@ -528,7 +517,6 @@ export type Actions =
   | AddMembersWizardSetDefaultChannelsPayload
   | AddParticipantPayload
   | CancelAddMembersWizardPayload
-  | CheckRequestedAccessPayload
   | ClearAddUserToTeamsResultsPayload
   | ClearNavBadgesPayload
   | CreateChannelPayload
@@ -564,7 +552,6 @@ export type Actions =
   | SetMemberActivityDetailsPayload
   | SetMembersPayload
   | SetPublicityPayload
-  | SetTeamAccessRequestsPendingPayload
   | SetTeamInviteErrorPayload
   | SetTeamJoinErrorPayload
   | SetTeamJoinSuccessPayload

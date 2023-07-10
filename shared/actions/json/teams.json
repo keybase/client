@@ -130,9 +130,6 @@
     "setTeamProfileAddList": {
       "teamlist": "Array<Types.TeamProfileAddList>"
     },
-    "setTeamAccessRequestsPending": {
-      "accessRequestsPending": "Set<Types.Teamname>"
-    },
     "updateChannelName": {
       "teamID": "Types.TeamID",
       "conversationIDKey": "ConversationIDKey",
@@ -160,9 +157,6 @@
     "deleteMultiChannelsConfirmed": {
       "teamID": "Types.TeamID",
       "channels": "Array<ConversationIDKey>"
-    },
-    "checkRequestedAccess": {
-      "teamname": "string"
     },
     "getTeamRetentionPolicy": {
       "_description": "Gets the team retention policy and stores in `state.entities.teams.teamIDToRetentionPolicy`.",
