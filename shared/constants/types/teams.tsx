@@ -233,7 +233,6 @@ export type TeamInviteState = {
 
 export type State = {
   teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
-  teamVersion: Map<TeamID, TeamVersion>
   teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
 
   treeLoaderTeamIDToSparseMemberInfos: Map<TeamID, Map<string, TreeloaderSparseMemberInfo>>

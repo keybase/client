@@ -1,4 +1,5 @@
 import * as ChatTypes from './types/chat2'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as GregorConstants from './gregor'
 import * as ConfigConstants from './config'
 import * as RPCChatTypes from './types/rpc-chat-gen'
@@ -234,7 +235,6 @@ const emptyState: Types.State = {
   teamMemberToLastActivity: new Map(),
   teamMemberToTreeMemberships: new Map(),
   teamProfileAddList: [],
-  teamVersion: new Map(),
   treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
 
@@ -998,6 +998,7 @@ export type Store = {
   teamJoinSuccess: boolean
   teamJoinSuccessOpen: boolean
   teamJoinSuccessTeamName: string
+  teamVersion: Map<Types.TeamID, Types.TeamVersion>
 }
 
 const initialStore: Store = {
@@ -1045,6 +1046,7 @@ const initialStore: Store = {
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamSelectedChannels: new Map(),
   teamSelectedMembers: new Map(),
+  teamVersion: new Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
 }
@@ -1151,6 +1153,7 @@ export type State = Store & {
     setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<Types.TeamID>) => void
     setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => void
     startAddMembersWizard: (teamID: Types.TeamID) => void
+    teamChangedByID: (c: EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload['payload']['params']) => void
     toggleInvitesCollapsed: (teamID: Types.TeamID) => void
     unsubscribeTeamDetails: (teamID: Types.TeamID) => void
     unsubscribeTeamList: () => void
@@ -1819,7 +1822,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           const result = await RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcListener(
             {
               customResponseIncomingCallMap: {
-                'keybase.1.teamsUi.confirmInviteLinkAccept': async (params, response) => {
+                'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
                   set(s => {
                     s.teamInviteDetails.inviteDetails = params.details
                   })
@@ -2065,17 +2068,17 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     resetState: 'default',
-    resetTeamMetaStale: () => {
-      set(s => {
-        s.teamMetaStale = true
-      })
-    },
     resetTeamJoin: () => {
       set(s => {
         s.errorInTeamJoin = ''
         s.teamJoinSuccess = false
         s.teamJoinSuccessOpen = false
         s.teamJoinSuccessTeamName = ''
+      })
+    },
+    resetTeamMetaStale: () => {
+      set(s => {
+        s.teamMetaStale = true
       })
     },
     respondToInviteLink: _respondToInviteLink,
@@ -2346,6 +2349,29 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.addMembersWizard = {...addMembersWizardEmptyState, teamID}
       })
       reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamFromWhere']}))
+    },
+    teamChangedByID: c => {
+      const {teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = c
+      // Any of the Seqnos can be 0, which means that it was unknown at the source
+      // at the time when this notification was generated.
+      const version = get().teamVersion.get(teamID)
+      let versionChanged = true
+      if (version) {
+        versionChanged =
+          latestHiddenSeqno > version.latestHiddenSeqno ||
+          latestOffchainSeqno > version.latestOffchainSeqno ||
+          latestSeqno > version.latestSeqno
+      }
+      const shouldLoad = versionChanged && !!get().teamDetailsSubscriptionCount.get(teamID)
+      set(s => {
+        s.teamVersion.set(
+          teamID,
+          ratchetTeamVersion({latestHiddenSeqno, latestOffchainSeqno, latestSeqno}, s.teamVersion.get(teamID))
+        )
+      })
+      if (shouldLoad) {
+        get().dispatch.loadTeam(teamID)
+      }
     },
     toggleInvitesCollapsed: teamID => {
       set(s => {

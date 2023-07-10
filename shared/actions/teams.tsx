@@ -446,29 +446,6 @@ const setPublicity = async (_: unknown, action: TeamsGen.SetPublicityPayload) =>
   }
 }
 
-const teamChangedByID = (
-  state: Container.TypedState,
-  action: EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload
-) => {
-  const {teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = action.payload.params
-  // Any of the Seqnos can be 0, which means that it was unknown at the source
-  // at the time when this notification was generated.
-  const version = state.teams.teamVersion.get(teamID)
-  let versionChanged = true
-  if (version) {
-    versionChanged =
-      latestHiddenSeqno > version.latestHiddenSeqno ||
-      latestOffchainSeqno > version.latestOffchainSeqno ||
-      latestSeqno > version.latestSeqno
-  }
-  const shouldLoad =
-    versionChanged && !!Constants.useState.getState().teamDetailsSubscriptionCount.get(teamID)
-  return [
-    TeamsGen.createSetTeamVersion({teamID, version: {latestHiddenSeqno, latestOffchainSeqno, latestSeqno}}),
-    shouldLoad && Constants.useState.getState().dispatch.loadTeam(teamID),
-  ]
-}
-
 const teamDeletedOrExit = () => {
   if (Router2Constants.getTab() == Tabs.teamsTab) {
     return RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
@@ -818,7 +795,9 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.renameTeam, renameTeam)
   Container.listenAction(TeamsGen.manageChatChannels, manageChatChannels)
   Container.listenAction(GregorGen.pushState, gregorPushState)
-  Container.listenAction(EngineGen.keybase1NotifyTeamTeamChangedByID, teamChangedByID)
+  Container.listenAction(EngineGen.keybase1NotifyTeamTeamChangedByID, (_, action) => {
+    Constants.useState.getState().dispatch.teamChangedByID(action.payload.params)
+  })
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamRoleMapChanged, (_, action) => {
     Constants.useState.getState().dispatch.setTeamRoleMapLatestKnownVersion(action.payload.params.newVersion)
   })

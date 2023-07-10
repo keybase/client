@@ -33,13 +33,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamRetentionPolicy]: (draftState, action) => {
     draftState.teamIDToRetentionPolicy.set(action.payload.teamID, action.payload.retentionPolicy)
   },
-  [TeamsGen.setTeamVersion]: (draftState, action) => {
-    const {teamID, version} = action.payload
-    draftState.teamVersion.set(
-      teamID,
-      Constants.ratchetTeamVersion(version, draftState.teamVersion.get(teamID))
-    )
-  },
   [TeamsGen.setTeamProfileAddList]: (draftState, action) => {
     draftState.teamProfileAddList = action.payload.teamlist
   },

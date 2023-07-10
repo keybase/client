@@ -1,4 +1,3 @@
-import * as TeamsGen from '../../actions/teams-gen'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -34,7 +33,8 @@ const JoinFromInvite = () => {
   const nav = Container.useSafeNavigation()
 
   const onNavUp = () => dispatch(nav.safeNavigateUpPayload())
-  const onDecide = (accept: boolean) => dispatch(TeamsGen.createRespondToInviteLink({accept}))
+  const respondToInviteLink = Constants.useState(s => s.dispatch.respondToInviteLink)
+  const onDecide = respondToInviteLink
   const onJoinTeam = () => {
     setClickedJoin(true)
     onDecide(true)
