@@ -45,7 +45,7 @@ const ChannelMemberRow = (props: Props) => {
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
-  const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
   const crown = React.useMemo(() => {
     return active && roleType && showCrown[roleType] ? (
       <Kb.Icon

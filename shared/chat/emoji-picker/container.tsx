@@ -135,7 +135,8 @@ const goToAddEmoji = (dispatch: Container.TypedDispatch, conversationIDKey: Type
 const useCanManageEmoji = (conversationIDKey: Types.ConversationIDKey) => {
   const canManageEmoji = Container.useSelector(s => {
     const meta = Constants.getMeta(s, conversationIDKey)
-    return !meta.teamname || Teams.getCanPerformByID(s, meta.teamID).manageEmojis
+    // TODO not reactive
+    return !meta.teamname || Teams.getCanPerformByID(Teams.useState.getState(), meta.teamID).manageEmojis
   })
   return canManageEmoji
 }

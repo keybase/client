@@ -16,7 +16,7 @@ const Wrapped = (p: OwnProps) => {
   const teamID = p.teamID ?? TeamsTypes.noTeamID
   const navToChatOnSuccess = p.navToChatOnSuccess ?? true
   const errorText = TeamsConstants.useState(s => upperFirst(s.errorInChannelCreation))
-  const teamname = TeamsConstants.getTeamNameFromID(teamID) ?? ''
+  const teamname = TeamsConstants.useState(s => TeamsConstants.getTeamNameFromID(s, teamID) ?? '')
   const dispatch = Container.useDispatch()
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const [channelname, onChannelnameChange] = React.useState<string>('')

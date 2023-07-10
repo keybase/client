@@ -62,12 +62,12 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
 
 export default (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
-  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const _notifLabel = Container.useSelector(state =>
     Constants.isBigTeam(state, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )
-  const disabledReasonsForRolePicker = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, teamID, username)
+  const disabledReasonsForRolePicker = Constants.useState(s =>
+    Constants.getDisabledReasonsForRolePicker(s, teamID, username)
   )
   const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const dispatch = Container.useDispatch()

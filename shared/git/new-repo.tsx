@@ -5,7 +5,6 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
-import * as TeamsGen from '../actions/teams-gen'
 import {getSortedTeamnames} from '../constants/teams'
 import {teamsTab} from '../constants/tabs'
 
@@ -35,9 +34,10 @@ export default (ownProps: OwnProps) => {
     }
     dispatch(RouteTreeGen.createNavigateUp())
   }
+  const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onNewTeam = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
-    dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
+    launchNewTeamWizardOrModal()
   }
   const props = {
     error,

@@ -135,7 +135,7 @@ export const useChannelsSections = (
 ): Array<Section> => {
   const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
   const channels = Constants.useState(s => s.channelInfo.get(teamID))
-  const canCreate = Container.useSelector(state => Constants.getCanPerformByID(state, teamID).createChannel)
+  const canCreate = Constants.useState(s => Constants.getCanPerformByID(s, teamID).createChannel)
 
   if (!isBig) {
     return [makeSingleRow('channel-empty', () => <EmptyRow type="channelsEmpty" teamID={teamID} />)]

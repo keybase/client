@@ -73,7 +73,7 @@ const GenerateLinkModal = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
+  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
   useTeamDetailsSubscribe(teamID)
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
   const inviteLinks = teamDetails?.inviteLinks

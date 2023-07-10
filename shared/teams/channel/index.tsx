@@ -121,7 +121,7 @@ const Channel = (props: OwnProps) => {
     isEqual // do a deep comparison so as to not render thrash
   )
   const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
-  const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
   const teamMembers = Container.useSelector(
     state => state.teams.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector

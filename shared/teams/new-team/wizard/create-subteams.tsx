@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
 
@@ -14,8 +14,8 @@ const CreateSubteams = () => {
   const nav = Container.useSafeNavigation()
 
   const teamID = Types.newTeamWizardTeamID
-  const teamname = Container.useSelector(s => s.teams.newTeamWizard.name)
-  const initialSubteams = Container.useSelector(s => s.teams.newTeamWizard.subteams) ?? ['', '', '']
+  const teamname = Constants.useState(s => s.newTeamWizard.name)
+  const initialSubteams = Constants.useState(s => s.newTeamWizard.subteams) ?? ['', '', '']
 
   const [subteams, setSubteams] = React.useState<Array<string>>([...initialSubteams])
   const setSubteam = (i: number, value: string) => {
@@ -30,9 +30,8 @@ const CreateSubteams = () => {
     subteams.push('')
     setSubteams([...subteams])
   }
-
-  const onContinue = () =>
-    dispatch(TeamsGen.createSetTeamWizardSubteams({subteams: subteams.filter(s => !!s)}))
+  const setTeamWizardSubteams = Constants.useState(s => s.dispatch.setTeamWizardSubteams)
+  const onContinue = () => setTeamWizardSubteams(subteams.filter(s => !!s))
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
 
   const numSubteams = subteams.filter(c => !!c.trim()).length

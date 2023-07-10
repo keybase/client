@@ -12,7 +12,7 @@ export type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
   const publicityAnyMember = teamMeta.allowPromote
   const publicityMember = teamMeta.showcasing
@@ -27,7 +27,7 @@ export default (ownProps: OwnProps) => {
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname
   const waitingForWelcomeMessage = Container.useAnyWaiting(Constants.loadWelcomeMessageWaitingKey(teamID))
-  const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
   const dispatch = Container.useDispatch()
 
   const _loadWelcomeMessage = Constants.useState(s => s.dispatch.loadWelcomeMessage)

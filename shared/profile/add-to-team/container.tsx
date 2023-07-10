@@ -107,7 +107,7 @@ export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTea
 type OwnProps = {username: string}
 export default (ownProps: OwnProps) => {
   const _them = ownProps.username
-  const _roles = Container.useSelector(state => state.teams.teamRoleMap.roles)
+  const _roles = Constants.useState(s => s.teamRoleMap.roles)
   const _teams = Constants.useState(s => s.teamMeta)
   const addUserToTeamsResults = Constants.useState(s => s.addUserToTeamsResults)
   const addUserToTeamsState = Constants.useState(s => s.addUserToTeamsState)

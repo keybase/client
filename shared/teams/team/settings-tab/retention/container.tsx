@@ -42,8 +42,8 @@ export default (ownProps: OwnProps) => {
     }
   }
 
-  const canSetPolicy = Container.useSelector(
-    state => entityType === 'adhoc' || Constants.getCanPerformByID(state, teamID).setRetentionPolicy
+  const canSetPolicy = Constants.useState(
+    s => entityType === 'adhoc' || Constants.getCanPerformByID(s, teamID).setRetentionPolicy
   )
   if (!policy) return null
   const policyIsExploding =

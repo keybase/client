@@ -88,8 +88,8 @@ const InstallBotPopup = (props: Props) => {
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
 
-  const readOnly = Container.useSelector(state =>
-    meta?.teamname ? !TeamConstants.getCanPerformByID(state, meta.teamID).manageBots : false
+  const readOnly = TeamConstants.useState(s =>
+    meta?.teamname ? !TeamConstants.getCanPerformByID(s, meta.teamID).manageBots : false
   )
   const settings = Container.useSelector(state =>
     conversationIDKey

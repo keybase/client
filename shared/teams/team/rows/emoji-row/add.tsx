@@ -1,7 +1,7 @@
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import type * as Types from '../../../../constants/types/teams'
-import * as Teams from '../../../../constants/teams'
+import * as Constants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 
@@ -14,7 +14,7 @@ type OwnProps = {
 const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
   const nav = Container.useSafeNavigation()
   const dispatch = Container.useDispatch()
-  const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
+  const canManageEmoji = Constants.useState(s => Constants.getCanPerformByID(s, teamID).manageEmojis)
   const onAddEmoji = () =>
     dispatch(
       nav.safeNavigateAppendPayload({

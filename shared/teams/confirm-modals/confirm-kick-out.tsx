@@ -14,7 +14,7 @@ type Props = {
 }
 
 const getSubteamNames = memoize(
-  (state: Container.TypedState, teamID: Types.TeamID): [string[], Types.TeamID[]] => {
+  (state: Constants.State, teamID: Types.TeamID): [string[], Types.TeamID[]] => {
     const subteamIDs = [...(Constants.useState.getState().teamDetails.get(teamID)?.subteams ?? [])]
     return [subteamIDs.map(id => Constants.getTeamMeta(state, id).teamname), subteamIDs]
   }
@@ -25,8 +25,8 @@ const ConfirmKickOut = (props: Props) => {
   const teamID = props.teamID ?? Types.noTeamID
   const [subteamsToo, setSubteamsToo] = React.useState(false)
 
-  const [subteams, subteamIDs] = Container.useSelector(state => getSubteamNames(state, teamID))
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
+  const [subteams, subteamIDs] = Constants.useState(s => getSubteamNames(s, teamID))
+  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
   const waitingKeys = ([] as string[]).concat.apply(
     members.map(member => Constants.removeMemberWaitingKey(teamID, member)),
     members.map(member => subteamIDs.map(subteamID => Constants.removeMemberWaitingKey(subteamID, member)))

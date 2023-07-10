@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as TeamsGen from '../actions/teams-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/teams'
 import * as Kb from '../common-adapters'
@@ -11,18 +10,19 @@ const Root = React.lazy(async () => import('./container'))
 const useHeaderActions = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
-    onCreateTeam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal()),
+    onCreateTeam: () => launchNewTeamWizardOrModal(),
     onJoinTeam: () =>
       dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamJoinTeamDialog'}]})),
   }
 }
 
 const TeamsFilter = () => {
-  const dispatch = Container.useDispatch()
   const filterValue = Constants.useState(s => s.teamListFilter)
   const numTeams = Constants.useState(s => s.teamMeta.size)
-  const setFilter = (filter: string) => dispatch(TeamsGen.createSetTeamListFilterSort({filter}))
+  const setTeamListFilterSort = Constants.useState(s => s.dispatch.setTeamListFilterSort)
+  const setFilter = (filter: string) => setTeamListFilterSort(filter)
   return numTeams >= 20 ? (
     <Kb.SearchFilter
       value={filterValue}

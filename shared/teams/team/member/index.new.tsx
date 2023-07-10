@@ -64,7 +64,7 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   const memberships = Container.useSelector(state =>
     state.teams.teamMemberToTreeMemberships.get(targetTeamID)?.get(username)
   )
-  const roleMap = Container.useSelector(state => state.teams.teamRoleMap.roles)
+  const roleMap = Constants.useState(s => s.teamRoleMap.roles)
   const teamMetas = Constants.useState(s => s.teamMeta)
 
   // Note that we do not directly take any information directly from the TeamTree result other
@@ -301,8 +301,8 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
     [props.node.teamID, dispatch, nav]
   )
 
-  const disabledRoles = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
+  const disabledRoles = Constants.useState(s =>
+    Constants.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
 
   const [open, setOpen] = React.useState(false)
@@ -449,10 +449,10 @@ const NodeInRow = (props: NodeInRowProps) => {
       dispatch(nav.safeNavigateUpPayload())
     }
   }
-  const disabledRoles = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
+  const disabledRoles = Constants.useState(s =>
+    Constants.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
-  const amLastOwner = Container.useSelector(state => Constants.isLastOwner(state, props.node.teamID))
+  const amLastOwner = Constants.useState(s => Constants.isLastOwner(s, props.node.teamID))
   const isMe = props.username == ConfigConstants.useCurrentUserState(s => s.username)
   const changingRole = Container.useAnyWaiting(
     Constants.editMembershipWaitingKey(props.node.teamID, props.username)
@@ -480,7 +480,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     <></>
   )
 
-  const myRole = Container.useSelector(s => Constants.getRole(s, props.node.teamID))
+  const myRole = Constants.useState(s => Constants.getRole(s, props.node.teamID))
   const cantKickOut = props.node.canAdminister && props.node.role === 'owner' && myRole !== 'admin'
 
   return (
@@ -637,7 +637,7 @@ export const TeamMemberHeader = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const leaving = useNavUpIfRemovedFromTeam(teamID, username)
 
-  const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
   const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
 

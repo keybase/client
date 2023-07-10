@@ -30,14 +30,14 @@ const disabledRolesSubteam = {
 const AddMembersConfirm = () => {
   const dispatch = Container.useDispatch()
 
-  const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = Container.useSelector(
-    s => s.teams.addMembersWizard
+  const {teamID, addingMembers, addToChannels, membersAlreadyInTeam} = Constants.useState(
+    s => s.addMembersWizard
   )
-  const isSubteam = Container.useSelector(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
+  const isSubteam = Constants.useState(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
   const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
   const noun = addingMembers.length === 1 ? 'person' : 'people'
-  const isInTeam = Container.useSelector(s => Constants.getRole(s, teamID) !== 'none')
+  const isInTeam = Constants.useState(s => Constants.getRole(s, teamID) !== 'none')
 
   // TODO: consider useMemoing these
   const anyNonKeybase = addingMembers.some(m => m.assertion.includes('@'))
@@ -49,14 +49,13 @@ const AddMembersConfirm = () => {
 
   const [emailMessage, setEmailMessage] = React.useState<string>('')
 
-  const onLeave = () => dispatch(TeamsGen.createCancelAddMembersWizard())
+  const cancelAddMembersWizard = Constants.useState(s => s.dispatch.cancelAddMembersWizard)
+  const onLeave = () => cancelAddMembersWizard()
   const onBack = () => dispatch(RouteTreeGen.createNavUpToScreen({name: 'teamAddToTeamFromWhere'}))
 
   const [_waiting, setWaiting] = React.useState(false)
   const [_error, setError] = React.useState('')
-  const newTeamWizErr = Container.useSelector(s =>
-    fromNewTeamWizard ? s.teams.newTeamWizard.error : undefined
-  )
+  const newTeamWizErr = Constants.useState(s => (fromNewTeamWizard ? s.newTeamWizard.error : undefined))
   const error = _error || newTeamWizErr
   const newTeamWaiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
   const waiting = _waiting || newTeamWaiting
@@ -205,7 +204,7 @@ const AlreadyInTeam = ({assertions}: {assertions: string[]}) => {
 const AddMoreMembers = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
+  const teamID = Constants.useState(s => s.addMembersWizard.teamID)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
@@ -253,14 +252,14 @@ type RoleSelectorProps = {
   memberCount: number
 }
 const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
-  const dispatch = Container.useDispatch()
   const [showingMenu, setShowingMenu] = React.useState(false)
-  const storeRole = Container.useSelector(s => s.teams.addMembersWizard.role)
+  const storeRole = Constants.useState(s => s.addMembersWizard.role)
+  const setAddMembersWizardRole = Constants.useState(s => s.dispatch.setAddMembersWizardRole)
   const [role, setRole] = React.useState<RoleType>(storeRole)
   const onConfirmRole = (newRole: RoleType) => {
     setRole(newRole)
     setShowingMenu(false)
-    dispatch(TeamsGen.createSetAddMembersWizardRole({role: newRole}))
+    setAddMembersWizardRole(newRole)
   }
   return (
     <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
@@ -289,7 +288,7 @@ const RoleSelector = ({disabledRoles, memberCount}: RoleSelectorProps) => {
 }
 
 const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
-  const addingMembers = Container.useSelector(s => s.teams.addMembersWizard.addingMembers)
+  const addingMembers = Constants.useState(s => s.addMembersWizard.addingMembers)
   const [expanded, setExpanded] = React.useState(false)
   const showDivider = Styles.isMobile && addingMembers.length > 4
   const aboveDivider = Container.isMobile ? addingMembers.slice(0, 4) : addingMembers
@@ -342,16 +341,17 @@ const AddingMembers = ({disabledRoles}: {disabledRoles: DisabledRoles}) => {
 
 const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles; lastMember?: boolean}) => {
   const dispatch = Container.useDispatch()
+  const addMembersWizardRemoveMember = Constants.useState(s => s.dispatch.addMembersWizardRemoveMember)
   const onRemove = () => {
-    dispatch(TeamsGen.createAddMembersWizardRemoveMember({assertion: props.assertion}))
+    addMembersWizardRemoveMember(props.assertion)
     if (props.lastMember) {
       dispatch(RouteTreeGen.createNavUpToScreen({name: 'teamAddToTeamFromWhere'}))
     }
   }
-  const role = Container.useSelector(s => s.teams.addMembersWizard.role)
-  const individualRole: Types.MaybeTeamRoleType = Container.useSelector(
+  const role = Constants.useState(s => s.addMembersWizard.role)
+  const individualRole: Types.MaybeTeamRoleType = Constants.useState(
     s =>
-      s.teams.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ??
+      s.addMembersWizard.addingMembers.find(m => m.assertion === props.assertion)?.role ??
       (role === 'setIndividually' ? 'writer' : role)
   )
   const isPhoneEmail = props.assertion.endsWith('@phone') || props.assertion.endsWith('@email')
@@ -362,10 +362,14 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
     setRole(individualRole)
     setShowingMenu(true)
   }
+
+  const setAddMembersWizardIndividualRole = Constants.useState(
+    s => s.dispatch.setAddMembersWizardIndividualRole
+  )
   const onConfirmRole = (newRole: typeof rolePickerRole) => {
     setRole(newRole)
     setShowingMenu(false)
-    dispatch(TeamsGen.createSetAddMembersWizardIndividualRole({assertion: props.assertion, role: newRole}))
+    setAddMembersWizardIndividualRole(props.assertion, newRole)
   }
   return (
     <Kb.Box2 direction="horizontal" alignSelf="stretch" alignItems="center" style={styles.addingMember}>
@@ -411,9 +415,9 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
 const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
   const dispatch = Container.useDispatch()
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
-  const addToChannels = Container.useSelector(s => s.teams.addMembersWizard.addToChannels)
-  const allKeybaseUsers = Container.useSelector(
-    s => !s.teams.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
+  const addToChannels = Constants.useState(s => s.addMembersWizard.addToChannels)
+  const allKeybaseUsers = Constants.useState(
+    s => !s.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
   )
   const onChangeFromDefault = () => dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: []}))
   const onAdd = React.useCallback(

@@ -10,7 +10,7 @@ type OwnProps = {teamID: Types.TeamID}
 
 const DeleteTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID ?? Types.noTeamID
-  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
   const deleteWaiting = Container.useAnyWaiting(Constants.deleteTeamWaitingKey(teamID))
   const teamMetas = Constants.useState(s => s.teamMeta)

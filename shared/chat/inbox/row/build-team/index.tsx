@@ -2,17 +2,17 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
+import * as TeamsConstants from '../../../../constants/teams'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as TeamsGen from '../../../../actions/teams-gen'
 import {teamsTab} from '../../../../constants/tabs'
 
 const BuildTeam = React.memo(function BuildTeam() {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
+  const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onCreateTeam = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
-    dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
+    launchNewTeamWizardOrModal()
   }
   const onJoinTeam = () => {
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamJoinTeamDialog'}]}))

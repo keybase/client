@@ -11,7 +11,7 @@ export type Props = {
 }
 
 const Banner = ({teamID}: Props) => {
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
+  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
   const shouldRender = Constants.useState(s => !s.sawSubteamsBanner)
   const dispatch = Container.useDispatch()
   const onHide = React.useCallback(

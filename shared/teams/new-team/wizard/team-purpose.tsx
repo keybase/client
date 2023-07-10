@@ -1,16 +1,16 @@
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/teams'
 import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Types from '../../../constants/types/teams'
 
 const TeamPurpose = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onSubmit = (teamType: Types.TeamWizardTeamType) =>
-    dispatch(TeamsGen.createSetTeamWizardTeamType({teamType}))
+  const setTeamWizardTeamType = Constants.useState(s => s.dispatch.setTeamWizardTeamType)
+  const onSubmit = (teamType: Types.TeamWizardTeamType) => setTeamWizardTeamType(teamType)
 
   return (
     <Kb.Modal

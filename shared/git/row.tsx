@@ -25,7 +25,9 @@ const noGit = Constants.makeGitInfo()
 const ConnectedRow = (ownProps: OwnProps) => {
   const {id, expanded} = ownProps
   const git = Constants.useGitState(s => s.idToInfo.get(id) || noGit)
-  const teamID = git.teamname ? TeamConstants.getTeamID(git.teamname) : undefined
+  const teamID = TeamConstants.useState(s =>
+    git.teamname ? TeamConstants.getTeamID(s, git.teamname) : undefined
+  )
 
   const isNew = React.useContext(NewContext).has(id)
 

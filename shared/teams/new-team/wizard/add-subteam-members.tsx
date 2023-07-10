@@ -4,7 +4,6 @@ import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Types from '../../../constants/types/teams'
 import {ModalTitle} from '../../common'
 import {pluralize} from '../../../util/string'
@@ -19,17 +18,18 @@ const AddSubteamMembers = () => {
   const filterL = filter.toLowerCase()
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
+
+  const setTeamWizardSubteamMembers = Constants.useState(s => s.dispatch.setTeamWizardSubteamMembers)
+  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
   const onContinue = () =>
     selectedMembers.size
-      ? dispatch(TeamsGen.createSetTeamWizardSubteamMembers({members: [...selectedMembers]}))
-      : dispatch(TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID}))
+      ? setTeamWizardSubteamMembers([...selectedMembers])
+      : startAddMembersWizard(Types.newTeamWizardTeamID)
 
   const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
-  const parentTeamID = Container.useSelector(
-    state => state.teams.newTeamWizard.parentTeamID ?? Types.noTeamID
-  )
+  const parentTeamID = Constants.useState(s => s.newTeamWizard.parentTeamID ?? Types.noTeamID)
   useTeamDetailsSubscribe(parentTeamID)
-  const parentTeamName = Container.useSelector(state => Constants.getTeamMeta(state, parentTeamID).teamname)
+  const parentTeamName = Constants.useState(s => Constants.getTeamMeta(s, parentTeamID).teamname)
   const parentMembersMap = Constants.useState(
     s => (s.teamDetails.get(parentTeamID) ?? Constants.emptyTeamDetails).members
   )

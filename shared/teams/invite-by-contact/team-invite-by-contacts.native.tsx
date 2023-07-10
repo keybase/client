@@ -47,7 +47,7 @@ type Props = {
 const TeamInviteByContact = (props: Props) => {
   const {teamID} = props
   const {contacts, region, errorMessage} = useContacts()
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
+  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
   const invites = Constants.useState(s => s.teamDetails.get(teamID) ?? Constants.emptyTeamDetails).invites
 
   useTeamDetailsSubscribe(teamID)

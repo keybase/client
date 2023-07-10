@@ -48,13 +48,12 @@ const noChannel: Array<{channelname: string}> = []
 const getChannelSuggestions = (
   state: Container.TypedState,
   teamname: string,
-  convID: Types.ConversationIDKey
+  convID: Types.ConversationIDKey,
+  teamMeta: TeamsConstants.State['teamMeta']
 ) => {
   if (!teamname) {
     // this is an impteam, so get mutual teams from state
-    const mutualTeams = state.chat2.mutualTeamMap
-      .get(convID)
-      ?.map(teamID => TeamsConstants.getTeamNameFromID(teamID))
+    const mutualTeams = state.chat2.mutualTeamMap.get(convID)?.map(teamID => teamMeta.get(teamID)?.teamname)
     if (!mutualTeams?.length) {
       return noChannel
     }
@@ -100,13 +99,13 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
     TeamsConstants.getChannelsWaitingKey(teamID),
     Constants.waitingKeyMutualTeams(conversationIDKey),
   ])
-
+  const teamMeta = TeamsConstants.useState(s => s.teamMeta)
   return Container.useSelector(state => {
     const fil = filter.toLowerCase()
     const meta = Constants.getMeta(state, conversationIDKey)
     // don't include 'small' here to ditch the single #general suggestion
     const teamname = meta.teamType === 'big' ? meta.teamname : ''
-    const suggestChannels = getChannelSuggestions(state, teamname, conversationIDKey)
+    const suggestChannels = getChannelSuggestions(state, teamname, conversationIDKey, teamMeta)
 
     // TODO this will thrash always
     return {

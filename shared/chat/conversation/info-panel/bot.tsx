@@ -1,14 +1,14 @@
 import * as BotConstants from '../../../constants/bots'
-import * as React from 'react'
-import * as TeamConstants from '../../../constants/teams'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import type * as Types from '../../../constants/types/chat2'
-import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import type * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Styles from '../../../styles'
+import * as TeamConstants from '../../../constants/teams'
+import type * as RPCTypes from '../../../constants/types/rpc-gen'
+import type * as Types from '../../../constants/types/chat2'
 import type {Section as _Section} from '../../../common-adapters/section-list'
 
 type AddToChannelProps = {
@@ -199,8 +199,8 @@ const BotTab = (props: Props) => {
   const dispatch = Container.useDispatch()
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {teamID, teamname, teamType, botAliases} = meta
-  const yourOperations = Container.useSelector(state =>
-    teamname ? TeamConstants.getCanPerformByID(state, teamID) : undefined
+  const yourOperations = TeamConstants.useState(s =>
+    teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
   )
   let canManageBots = false
   if (teamname) {

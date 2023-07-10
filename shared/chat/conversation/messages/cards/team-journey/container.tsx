@@ -142,13 +142,13 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const _teamID = teamID
-  const canShowcase = Container.useSelector(state => TeamConstants.canShowcase(state, teamID))
+  const canShowcase = TeamConstants.useState(s => TeamConstants.canShowcase(s, teamID))
   const isBigTeam = Container.useSelector(state => TeamConstants.isBigTeam(state, teamID))
 
   const dispatch = Container.useDispatch()
 
-  const _onAddPeopleToTeam = (teamID: TeamTypes.TeamID) =>
-    dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
+  const startAddMembersWizard = TeamConstants.useState(s => s.dispatch.startAddMembersWizard)
+  const _onAddPeopleToTeam = (teamID: TeamTypes.TeamID) => startAddMembersWizard(teamID)
   const _onAuthorClick = (teamID: TeamTypes.TeamID) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))
   const _onCreateChannel = (teamID: string) =>

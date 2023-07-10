@@ -205,8 +205,8 @@ const TeamBuilding = (p: OwnProps) => {
     [search, incFocusInputCounter, setSelectedService, searchString]
   )
 
-  const title = Container.useSelector(state =>
-    namespace === 'teams' ? `Add to ${getTeamMeta(state, teamID ?? '').teamname}` : p.title ?? ''
+  const title = TeamConstants.useState(s =>
+    namespace === 'teams' ? `Add to ${getTeamMeta(s, teamID ?? '').teamname}` : p.title ?? ''
   )
 
   const waitingForCreate = Container.useAnyWaiting(ChatConstants.waitingKeyCreating)

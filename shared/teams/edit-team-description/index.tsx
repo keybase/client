@@ -11,7 +11,7 @@ type Props = {teamID: Types.TeamID}
 const EditTeamDescription = (props: Props) => {
   const teamID = props.teamID ?? Types.noTeamID
 
-  const teamname = Constants.getTeamNameFromID(teamID)
+  const teamname = Constants.useState(s => Constants.getTeamNameFromID(s, teamID))
   const waitingKey = Constants.teamWaitingKey(teamID)
   const waiting = Container.useAnyWaiting(waitingKey)
   const error = Constants.useState(s => s.errorInEditDescription)

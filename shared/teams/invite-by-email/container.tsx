@@ -8,7 +8,7 @@ type OwnProps = {teamID: string}
 
 export default (ownProps: OwnProps) => {
   const teamID = ownProps.teamID
-  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const inviteError = Constants.useState(s => s.errorInEmailInvite)
   const errorMessage = inviteError.message
   const malformedEmails = inviteError.malformed

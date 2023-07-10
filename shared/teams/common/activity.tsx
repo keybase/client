@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
-import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 
 type Props = {title: string; teamID: Types.TeamID}
@@ -30,9 +29,9 @@ const Activity = ({level, style}: {level: Types.ActivityLevel; style?: Styles.St
   )
 
 export const ModalTitle = ({title, teamID}: Props) => {
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
-  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
-  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
+  const teamname = Constants.useState(state => Constants.getTeamMeta(state, teamID).teamname)
+  const avatarFilepath = Constants.useState(state => state.newTeamWizard.avatarFilename)
+  const avatarCrop = Constants.useState(state => state.newTeamWizard.avatarCrop)
   const isNewTeamWizard = teamID == Types.newTeamWizardTeamID
 
   return Styles.isMobile ? (

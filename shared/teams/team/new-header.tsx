@@ -14,8 +14,8 @@ import * as TeamsGen from '../../actions/teams-gen'
 import type * as Types from '../../constants/types/teams'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
-  const dispatch = Container.useDispatch()
-  const onAdd = () => dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
+  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
+  const onAdd = () => startAddMembersWizard(teamID)
   return (
     <Kb.Button
       label="Add/Invite people"
@@ -90,10 +90,10 @@ const roleDisplay = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID} = props
-  const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const meta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const details = Constants.useState(s => s.teamDetails.get(teamID))
-  const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
-  const justFinishedAddWizard = Container.useSelector(s => s.teams.addMembersWizard.justFinished)
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
+  const justFinishedAddWizard = Constants.useState(s => s.addMembersWizard.justFinished)
   useActivityLevels()
   const activityLevel = Constants.useState(s => s.activityLevels.teams.get(teamID) || 'none')
   const newMemberCount = 0 // TODO plumbing
@@ -292,15 +292,15 @@ export default HeaderTitle
 const useHeaderCallbacks = (teamID: TeamID) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const meta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
-  const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
+  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
+  const addMembersWizardPushMembers = Constants.useState(s => s.dispatch.addMembersWizardPushMembers)
 
   const onAddSelf = () => {
-    dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
-    dispatch(
-      TeamsGen.createAddMembersWizardPushMembers({members: [{assertion: yourUsername, role: 'writer'}]})
-    )
+    startAddMembersWizard(teamID)
+    addMembersWizardPushMembers([{assertion: yourUsername, role: 'writer'}])
   }
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname: meta.teamname}))

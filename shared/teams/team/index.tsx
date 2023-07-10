@@ -95,8 +95,8 @@ const Team = (props: Props) => {
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
-  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID), isEqual)
-  const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
+  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID), isEqual)
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
 
   const dispatch = Container.useDispatch()
 

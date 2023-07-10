@@ -271,8 +271,8 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
     }
   }, [showingPicker, teamWaiting])
 
-  const disabledReasons = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, teamID, members)
+  const disabledReasons = Constants.useState(s =>
+    Constants.getDisabledReasonsForRolePicker(s, teamID, members)
   )
   const disableButton = disabledReasons.admin !== undefined
   const editMembership = Constants.useState(s => s.dispatch.editMembership)

@@ -32,8 +32,8 @@ const TeamHeader = (props: SmallProps) => {
     const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
     return {channelname, descriptionDecorated: description, membershipType, teamID, teamType, teamname}
   }, shallowEqual)
-  const yourOperations = Container.useSelector(state =>
-    teamname ? TeamConstants.getCanPerformByID(state, teamID) : undefined
+  const yourOperations = TeamConstants.useState(s =>
+    teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
   )
   const admin = yourOperations?.manageMembers ?? false
   const isPreview = membershipType === 'youArePreviewing'

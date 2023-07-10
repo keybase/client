@@ -25,7 +25,9 @@ export default (ownProps: OwnProps) => {
   const sperror = Container.useAnyErrors(Constants.uploadAvatarWaitingKey)
   const sendChatNotification = ownProps.sendChatNotification ?? false
   const submitting = Container.useAnyWaiting(Constants.uploadAvatarWaitingKey)
-  const teamname = (teamID ? TeamsConstants.getTeamNameFromID(teamID) : undefined) ?? ''
+  const teamname = TeamsConstants.useState(
+    s => (teamID ? TeamsConstants.getTeamNameFromID(s, teamID) : undefined) ?? ''
+  )
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
   const dispatch = Container.useDispatch()
@@ -60,12 +62,13 @@ export default (ownProps: OwnProps) => {
     const filename = Styles.unnormalizePath(_filename)
     uploadAvatar(filename, crop)
   }
+  const setTeamWizardAvatar = TeamsConstants.useState(s => s.dispatch.setTeamWizardAvatar)
   const onSaveWizardAvatar = (_filename: string, crop?: Types.AvatarCrop) => {
     const filename = Styles.unnormalizePath(_filename)
-    dispatch(TeamsGen.createSetTeamWizardAvatar({crop, filename}))
+    setTeamWizardAvatar(crop, filename)
   }
   const onSkip = () => {
-    dispatch(TeamsGen.createSetTeamWizardAvatar({}))
+    setTeamWizardAvatar()
   }
 
   let error = ''

@@ -29,12 +29,13 @@ const AddFromWhere = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
+  const teamID = Constants.useState(s => s.addMembersWizard.teamID)
+  const cancelAddMembersWizard = Constants.useState(s => s.dispatch.cancelAddMembersWizard)
   const newTeam: boolean = teamID === Types.newTeamWizardTeamID
   // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
-  const createTeamError = Container.useSelector(s => (newTeam ? s.teams.newTeamWizard.error : undefined))
+  const createTeamError = Constants.useState(s => (newTeam ? s.newTeamWizard.error : undefined))
 
-  const onClose = () => dispatch(TeamsGen.createCancelAddMembersWizard())
+  const onClose = () => cancelAddMembersWizard()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
   const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))

@@ -23,7 +23,11 @@ const Header = (props: Props) => {
     const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
     const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     const infoPanelShowing = state.chat2.infoPanelShowing
-    const canEditDesc = TeamConstants.getCanPerform(state, teamname).editChannelDescription
+    // TODO not reactive
+    const canEditDesc = TeamConstants.getCanPerform(
+      TeamConstants.useState.getState(),
+      teamname
+    ).editChannelDescription
     return {
       canEditDesc,
       channelname,

@@ -9,7 +9,7 @@ type OwnProps = {subteamOf?: Types.TeamID}
 
 export default (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? Types.noTeamID
-  const baseTeam = Container.useSelector(state => Constants.getTeamMeta(state, subteamOf).teamname)
+  const baseTeam = Constants.useState(s => Constants.getTeamMeta(s, subteamOf).teamname)
   const errorText = Constants.useState(s => upperFirst(s.errorInTeamCreation))
   const dispatch = Container.useDispatch()
   const onCancel = () => {

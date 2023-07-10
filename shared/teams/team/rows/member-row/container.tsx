@@ -21,7 +21,7 @@ const blankInfo = Constants.initialMemberInfo
 export default (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
   const {members} = Constants.useState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
-  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const info = members.get(username) || blankInfo
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
@@ -31,9 +31,7 @@ export default (ownProps: OwnProps) => {
   const status = info.status
   const waitingForAdd = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const waitingForRemove = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
-  const youCanManageMembers = Container.useSelector(
-    state => Constants.getCanPerform(state, teamname).manageMembers
-  )
+  const youCanManageMembers = Constants.useState(s => Constants.getCanPerform(s, teamname).manageMembers)
   const dispatch = Container.useDispatch()
   const onBlock = () => {
     username &&

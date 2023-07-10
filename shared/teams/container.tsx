@@ -17,8 +17,9 @@ import {useActivityLevels} from './common'
 const useHeaderActions = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
-    onCreateTeam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal()),
+    onCreateTeam: () => launchNewTeamWizardOrModal(),
     onJoinTeam: () =>
       dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamJoinTeamDialog'}]})),
   }

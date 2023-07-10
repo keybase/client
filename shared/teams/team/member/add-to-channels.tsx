@@ -297,7 +297,7 @@ const SelfChannelActions = ({
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, meta.teamID))
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, meta.teamID))
   const isAdmin = yourOperations.deleteChannel
   const canEdit = yourOperations.editChannelDescription
   const inChannel = meta.membershipType === 'active'

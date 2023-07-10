@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/people'
+import * as TeamsConstants from '../../constants/teams'
 import * as ProfileConstants from '../../constants/profile'
 import * as SettingsConstants from '../../constants/settings'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Tabs from '../../constants/tabs'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import openURL from '../../util/open-url'
 import type * as Types from '../../constants/types/people'
@@ -152,9 +152,10 @@ const PaperKeyConnector = (props: TodoOwnProps) => {
 
 const TeamConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
+  const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onConfirm = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
-    dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
+    launchNewTeamWizardOrModal()
   }
   const onDismiss = useOnSkipTodo('team')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)

@@ -22,8 +22,8 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {status, teamname, teamType, channelname, teamID} = meta
-  const yourOperations = Container.useSelector(state =>
-    teamname ? TeamConstants.getCanPerformByID(state, teamID) : undefined
+  const yourOperations = TeamConstants.useState(s =>
+    teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
   )
   const ignored = status === RPCChatTypes.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'

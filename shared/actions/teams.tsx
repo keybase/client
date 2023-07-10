@@ -407,7 +407,7 @@ const createChannel = async (
   listenerApi: Container.ListenerApi
 ) => {
   const {channelname, description, teamID} = action.payload
-  const teamname = Constants.getTeamNameFromID(teamID)
+  const teamname = Constants.getTeamNameFromID(Constants.useState.getState(), teamID)
 
   if (teamname === undefined) {
     logger.warn('Team name was not in store!')
@@ -576,7 +576,7 @@ const updateTopic = async (_: unknown, action: TeamsGen.UpdateTopicPayload) => {
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     headline: newTopic,
     identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    tlfName: Constants.getTeamNameFromID(teamID) ?? '',
+    tlfName: Constants.getTeamNameFromID(Constants.useState.getState(), teamID) ?? '',
     tlfPublic: false,
   }
 
@@ -590,7 +590,7 @@ const updateChannelname = async (_: unknown, action: TeamsGen.UpdateChannelNameP
     channelName: newChannelName,
     conversationID: ChatTypes.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    tlfName: Constants.getTeamNameFromID(teamID) ?? '',
+    tlfName: Constants.getTeamNameFromID(Constants.useState.getState(), teamID) ?? '',
     tlfPublic: false,
   }
 

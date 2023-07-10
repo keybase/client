@@ -1,8 +1,8 @@
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
 import {ModalTitle} from '../../common'
 
 const MakeBigTeam = () => {
@@ -10,7 +10,8 @@ const MakeBigTeam = () => {
   const nav = Container.useSafeNavigation()
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onSubmit = (isBig: boolean) => dispatch(TeamsGen.createSetTeamWizardTeamSize({isBig}))
+  const setTeamWizardTeamSize = Constants.useState(s => s.dispatch.setTeamWizardTeamSize)
+  const onSubmit = (isBig: boolean) => setTeamWizardTeamSize(isBig)
 
   const teamID = Types.newTeamWizardTeamID
 

@@ -11,9 +11,9 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {selectedTab, setSelectedTab, teamID} = ownProps
-  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
-  const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
 
   const admin = yourOperations.manageMembers
   const error = Constants.useState(s => s.errorInAddToTeam)
@@ -26,9 +26,7 @@ export default (ownProps: OwnProps) => {
   const numInvites = teamDetails?.invites?.size ?? 0
   const numRequests = teamDetails?.requests?.size ?? 0
   const numSubteams = teamDetails?.subteams?.size ?? 0
-  const resetUserCount = Container.useSelector(
-    state => Constants.getTeamResetUsers(state, teamMeta.teamname).size
-  )
+  const resetUserCount = Constants.useState(s => Constants.getTeamResetUsers(s, teamMeta.teamname).size)
   const showSubteams = yourOperations.manageSubteams
   const props = {
     admin: admin,

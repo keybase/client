@@ -23,7 +23,7 @@ const InfoPanelConnector = (props: Props) => {
 
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const shouldNavigateOut = meta.conversationIDKey === Constants.noConversationIDKey
-  const yourRole = Container.useSelector(state => TeamConstants.getRole(state, meta.teamID))
+  const yourRole = TeamConstants.useState(s => TeamConstants.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'
   const channelname = meta.channelname
   const smallTeam = meta.teamType !== 'big'

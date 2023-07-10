@@ -14,7 +14,7 @@ const TeamInfo = (props: Props) => {
   const nav = Container.useSafeNavigation()
 
   const teamID = props.teamID ?? Types.noTeamID
-  const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
 
   const teamname = teamMeta.teamname

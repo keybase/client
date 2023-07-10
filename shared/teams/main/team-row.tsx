@@ -19,7 +19,7 @@ const TeamRow = (props: Props) => {
   const {firstItem, showChat = true, teamID} = props
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   // useActivityLevels in ../container ensures these are loaded
   const activityLevel = Constants.useState(s => s.activityLevels.teams.get(teamID) || 'none')
 

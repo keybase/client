@@ -368,7 +368,7 @@ export const getRole = (state: State, teamID: Types.TeamID): Types.MaybeTeamRole
   state.teamRoleMap.roles.get(teamID)?.role || 'none'
 
 export const getRoleByName = (state: State, teamname: string): Types.MaybeTeamRoleType =>
-  getRole(state, getTeamID(teamname))
+  getRole(state, getTeamID(state, teamname))
 
 export const isLastOwner = (state: State, teamID: Types.TeamID): boolean =>
   isOwner(getRole(state, teamID)) && !isMultiOwnerTeam(teamID)
@@ -497,10 +497,10 @@ const isMultiOwnerTeam = (teamID: Types.TeamID): boolean => {
   return moreThanOneOwner
 }
 
-export const getTeamID = (teamname: Types.Teamname) =>
-  useState.getState().teamNameToID.get(teamname) || Types.noTeamID
+export const getTeamID = (state: State, teamname: Types.Teamname) =>
+  state.teamNameToID.get(teamname) || Types.noTeamID
 
-export const getTeamNameFromID = (teamID: Types.TeamID) => useState.getState().teamMeta.get(teamID)?.teamname
+export const getTeamNameFromID = (state: State, teamID: Types.TeamID) => state.teamMeta.get(teamID)?.teamname
 
 export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamIDToRetentionPolicy.get(teamID)
@@ -818,10 +818,10 @@ export const getTeamRowBadgeCount = (
   return newTeamRequests.get(teamID)?.size ?? 0 + (teamIDToResetUsers.get(teamID)?.size ?? 0)
 }
 
-// export const canShowcase = (state: TypedState, teamID: Types.TeamID) => {
-//   const role = getRole(state, teamID)
-//   return getTeamMeta(state, teamID).allowPromote || role === 'admin' || role === 'owner'
-// }
+export const canShowcase = (state: State, teamID: Types.TeamID) => {
+  const role = getRole(state, teamID)
+  return getTeamMeta(state, teamID).allowPromote || role === 'admin' || role === 'owner'
+}
 
 const _canUserPerformCache: {[key: string]: Types.TeamOperations} = {}
 const _canUserPerformCacheKey = (t: Types.TeamRoleAndDetails) => t.role + t.implicitAdmin
@@ -871,7 +871,7 @@ export const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Typ
 }
 
 export const getCanPerform = (state: State, teamname: Types.Teamname): Types.TeamOperations =>
-  getCanPerformByID(state, getTeamID(teamname))
+  getCanPerformByID(state, getTeamID(state, teamname))
 
 export const getCanPerformByID = (state: State, teamID: Types.TeamID): Types.TeamOperations =>
   deriveCanPerform(state.teamRoleMap.roles.get(teamID))
@@ -1244,7 +1244,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     addTeamWithChosenChannels: teamID => {
       const f = async () => {
         const existingTeams = get().teamsWithChosenChannels
-        const teamname = getTeamNameFromID(teamID)
+        const teamname = getTeamNameFromID(get(), teamID)
         if (!teamname) {
           logger.warn('No team name in store for teamID:', teamID)
           return
@@ -1294,7 +1294,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               category: chosenChannelsGregorKey,
               dtime,
             },
-            teams.map(t => teamWaitingKey(getTeamID(t)))
+            teams.map(t => teamWaitingKey(getTeamID(get(), t)))
           )
         } catch (err) {
           // failure getting the push state, don't bother the user with an error
@@ -1375,7 +1375,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         const errorAddingTo: Array<string> = []
         for (const team of teams) {
           try {
-            const teamID = getTeamID(team)
+            const teamID = getTeamID(get(), team)
             if (teamID === Types.noTeamID) {
               logger.warn(`no team ID found for ${team}`)
               errorAddingTo.push(team)
@@ -1475,7 +1475,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.creatingChannels = true
       })
       const f = async () => {
-        const teamname = getTeamNameFromID(teamID)
+        const teamname = getTeamNameFromID(get(), teamID)
         if (teamname === null) {
           get().dispatch.setChannelCreationError('Invalid team name')
           return

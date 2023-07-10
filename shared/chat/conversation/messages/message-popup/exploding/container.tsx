@@ -41,9 +41,8 @@ export default (ownProps: OwnProps) => {
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, message.conversationIDKey)
   )
-  const _canDeleteHistory = Container.useSelector(
-    state =>
-      meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(state, meta.teamID).deleteChatHistory
+  const _canDeleteHistory = TeamConstants.useState(
+    s => meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(s, meta.teamID).deleteChatHistory
   )
   const _canExplodeNow = (yourMessage || _canDeleteHistory) && message.isDeleteable
   const _canEdit = yourMessage && message.isEditable

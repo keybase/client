@@ -65,7 +65,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
           (state.users.infoMap.get(participants[0]!) || {fullname: ''}).fullname) ||
         ''
       const {teamID, teamname, channelname, membershipType, status, isMuted, teamType} = meta
-      const yourOperations = TeamConstants.getCanPerformByID(state, teamID)
+      // TODO getCanPerformByID not reactive here
+      const yourOperations = TeamConstants.getCanPerformByID(TeamConstants.useState.getState(), teamID)
       const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(state, teamname)
       const canAddPeople = yourOperations.manageMembers
       const isInChannel = membershipType !== 'youArePreviewing'
@@ -83,12 +84,13 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
         teamID,
         teamType,
         teamname,
-        yourOperations,
       }
     } else if (pteamID) {
       const teamID = pteamID
-      const teamMeta = TeamConstants.getTeamMeta(state, teamID)
-      const yourOperations = TeamConstants.getCanPerformByID(state, teamID)
+      //TODO not reactive
+      const teamMeta = TeamConstants.getTeamMeta(TeamConstants.useState.getState(), teamID)
+      //TODO not reactive
+      const yourOperations = TeamConstants.getCanPerformByID(TeamConstants.useState.getState(), teamID)
       const canAddPeople = yourOperations.manageMembers
       const {teamname} = teamMeta
       const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(state, teamname)
@@ -102,9 +104,10 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
 
   const dispatch = Container.useDispatch()
 
+  const startAddMembersWizard = TeamConstants.useState(s => s.dispatch.startAddMembersWizard)
   const onAddPeople = React.useCallback(() => {
-    teamID && dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
-  }, [dispatch, teamID])
+    teamID && startAddMembersWizard(teamID)
+  }, [startAddMembersWizard, teamID])
   const onBlockConv = React.useCallback(() => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
