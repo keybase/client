@@ -5,7 +5,6 @@ import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
-import {getSortedTeamnames} from '../constants/teams'
 import {teamsTab} from '../constants/tabs'
 
 type OwnProps = {isTeam: boolean}
@@ -13,7 +12,8 @@ type OwnProps = {isTeam: boolean}
 export default (ownProps: OwnProps) => {
   const {isTeam} = ownProps
   const error = Constants.useGitState(s => s.error)
-  const teams = getSortedTeamnames()
+  const teamnames = TeamsConstants.useState(s => s.teamnames)
+  const teams = [...teamnames].sort(TeamsConstants.sortTeamnames)
 
   const waitingKey = Constants.loadingWaitingKey
 

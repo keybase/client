@@ -541,7 +541,7 @@ export const getTeamResetUsers = (state: State, teamID: Types.TeamID): Set<strin
   state.teamIDToResetUsers.get(teamID) || new Set()
 
 // Sorts teamnames canonically.
-function sortTeamnames(a: string, b: string) {
+export function sortTeamnames(a: string, b: string) {
   const aName = a.toUpperCase()
   const bName = b.toUpperCase()
   if (aName < bName) {
@@ -552,9 +552,6 @@ function sortTeamnames(a: string, b: string) {
     return 0
   }
 }
-
-const _memoizedSorted = memoize((names: Set<Types.Teamname>) => [...names].sort(sortTeamnames))
-export const getSortedTeamnames = (): Types.Teamname[] => _memoizedSorted(useState.getState().teamnames)
 
 export const sortTeamsByName = memoize((teamMeta: Map<Types.TeamID, Types.TeamMeta>) =>
   [...teamMeta.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
