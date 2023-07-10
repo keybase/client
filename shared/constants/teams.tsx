@@ -240,8 +240,6 @@ const emptyState: Types.State = {
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
-  teamListFilter: '',
-  teamListSort: 'role',
   teamMemberToLastActivity: new Map(),
   teamMemberToTreeMemberships: new Map(),
   teamProfileAddList: [],
@@ -1001,6 +999,8 @@ export type Store = {
   teamSelectedChannels: Map<Types.TeamID, Set<string>>
   teamSelectedMembers: Map<Types.TeamID, Set<string>>
   teamAccessRequestsPending: Set<Types.Teamname>
+  teamListFilter: string
+  teamListSort: Types.TeamListSort
 }
 
 const initialStore: Store = {
@@ -1031,6 +1031,8 @@ const initialStore: Store = {
   teamDetailsSubscriptionCount: new Map(),
   teamIDToResetUsers: new Map(),
   teamIDToWelcomeMessage: new Map(),
+  teamListFilter: '',
+  teamListSort: 'role',
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
   teamMetaSubscribeCount: 0,
@@ -1106,6 +1108,7 @@ export type State = Store & {
     setMemberPublicity: (teamID: Types.TeamID, showcase: boolean) => void
     setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<Types.TeamID>) => void
     setTeamRetentionPolicy: (teamID: Types.TeamID, policy: RetentionPolicy) => void
+    setTeamListFilterSort: (filter?: string, sortOrder?: Types.TeamListSort) => void
     setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => void
     toggleInvitesCollapsed: (teamID: Types.TeamID) => void
     unsubscribeTeamList: () => void
@@ -1884,6 +1887,16 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    setTeamListFilterSort: (filter, sortOrder) => {
+      set(s => {
+        if (filter !== undefined) {
+          s.teamListFilter = filter
+        }
+        if (sortOrder !== undefined) {
+          s.teamListSort = sortOrder
+        }
+      })
     },
     toggleInvitesCollapsed: teamID => {
       set(s => {

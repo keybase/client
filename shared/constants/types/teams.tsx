@@ -238,8 +238,6 @@ export type State = {
   teamJoinSuccess: boolean
   teamJoinSuccessOpen: boolean
   teamJoinSuccessTeamName: string
-  teamListFilter: string
-  teamListSort: TeamListSort
   teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
   teamVersion: Map<TeamID, TeamVersion>
   teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>

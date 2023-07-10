@@ -230,15 +230,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       addToChannels.splice(maybeRemoveIdx, 1)
     }
   },
-  [TeamsGen.setTeamListFilterSort]: (draftState, action) => {
-    const {filter, sortOrder} = action.payload
-    if (filter !== undefined) {
-      draftState.teamListFilter = filter
-    }
-    if (sortOrder !== undefined) {
-      draftState.teamListSort = sortOrder
-    }
-  },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,
   [TeamBuildingGen.addUsersToTeamSoFar]: handleTeamBuilding,

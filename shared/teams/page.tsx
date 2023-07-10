@@ -20,7 +20,7 @@ const useHeaderActions = () => {
 
 const TeamsFilter = () => {
   const dispatch = Container.useDispatch()
-  const filterValue = Container.useSelector(s => s.teams.teamListFilter)
+  const filterValue = Constants.useState(s => s.teamListFilter)
   const numTeams = Constants.useState(s => s.teamMeta.size)
   const setFilter = (filter: string) => dispatch(TeamsGen.createSetTeamListFilterSort({filter}))
   return numTeams >= 20 ? (
