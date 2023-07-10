@@ -7,12 +7,8 @@ import type {RetentionPolicy} from '../constants/types/retention-policy'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'teams:'
-export const addMembersWizardAddMembers = 'teams:addMembersWizardAddMembers'
-export const addMembersWizardPushMembers = 'teams:addMembersWizardPushMembers'
-export const addMembersWizardRemoveMember = 'teams:addMembersWizardRemoveMember'
 export const addMembersWizardSetDefaultChannels = 'teams:addMembersWizardSetDefaultChannels'
 export const addParticipant = 'teams:addParticipant'
-export const cancelAddMembersWizard = 'teams:cancelAddMembersWizard'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearNavBadges = 'teams:clearNavBadges'
 export const createChannel = 'teams:createChannel'
@@ -28,7 +24,6 @@ export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
 export const ignoreRequest = 'teams:ignoreRequest'
 export const inviteToTeamByPhone = 'teams:inviteToTeamByPhone'
 export const joinTeam = 'teams:joinTeam'
-export const launchNewTeamWizardOrModal = 'teams:launchNewTeamWizardOrModal'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
 export const loadTeamTree = 'teams:loadTeamTree'
@@ -42,8 +37,6 @@ export const renameTeam = 'teams:renameTeam'
 export const requestInviteLinkDetails = 'teams:requestInviteLinkDetails'
 export const respondToInviteLink = 'teams:respondToInviteLink'
 export const saveChannelMembership = 'teams:saveChannelMembership'
-export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
-export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
 export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setMembers = 'teams:setMembers'
@@ -51,25 +44,13 @@ export const setPublicity = 'teams:setPublicity'
 export const setTeamInviteError = 'teams:setTeamInviteError'
 export const setTeamJoinError = 'teams:setTeamJoinError'
 export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
-export const setTeamListFilterSort = 'teams:setTeamListFilterSort'
 export const setTeamProfileAddList = 'teams:setTeamProfileAddList'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
-export const setTeamRoleMap = 'teams:setTeamRoleMap'
-export const setTeamRoleMapLatestKnownVersion = 'teams:setTeamRoleMapLatestKnownVersion'
 export const setTeamVersion = 'teams:setTeamVersion'
-export const setTeamWizardAvatar = 'teams:setTeamWizardAvatar'
-export const setTeamWizardChannels = 'teams:setTeamWizardChannels'
 export const setTeamWizardError = 'teams:setTeamWizardError'
-export const setTeamWizardNameDescription = 'teams:setTeamWizardNameDescription'
-export const setTeamWizardSubteamMembers = 'teams:setTeamWizardSubteamMembers'
-export const setTeamWizardSubteams = 'teams:setTeamWizardSubteams'
-export const setTeamWizardTeamSize = 'teams:setTeamWizardTeamSize'
-export const setTeamWizardTeamType = 'teams:setTeamWizardTeamType'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const showTeamByName = 'teams:showTeamByName'
-export const startAddMembersWizard = 'teams:startAddMembersWizard'
-export const startNewTeamWizard = 'teams:startNewTeamWizard'
 export const teamSeen = 'teams:teamSeen'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateInviteLinkDetails = 'teams:updateInviteLinkDetails'
@@ -128,23 +109,9 @@ export const createGetTeamRetentionPolicy = (payload: {readonly teamID: Types.Te
 /**
  * Nav away from add members wizard and clear related state.
  */
-export const createCancelAddMembersWizard = (payload?: undefined) => ({
-  payload,
-  type: cancelAddMembersWizard as typeof cancelAddMembersWizard,
-})
-/**
- * Nav away from add members wizard and clear related state.
- */
 export const createFinishedAddMembersWizard = (payload?: undefined) => ({
   payload,
   type: finishedAddMembersWizard as typeof finishedAddMembersWizard,
-})
-/**
- * Remove a pending member from the add members wizard.
- */
-export const createAddMembersWizardRemoveMember = (payload: {readonly assertion: string}) => ({
-  payload,
-  type: addMembersWizardRemoveMember as typeof addMembersWizardRemoveMember,
 })
 /**
  * Rename a subteam
@@ -160,45 +127,6 @@ export const createUpdateInviteLinkDetails = (payload: {readonly details: RPCTyp
   payload,
   type: updateInviteLinkDetails as typeof updateInviteLinkDetails,
 })
-/**
- * Set filtering and sort order for main team list. Leaves existing for undefinted params.
- */
-export const createSetTeamListFilterSort = (
-  payload: {readonly filter?: string; readonly sortOrder?: Types.TeamListSort} = {}
-) => ({payload, type: setTeamListFilterSort as typeof setTeamListFilterSort})
-/**
- * Set the role for a pending member in the add member wizard.
- */
-export const createSetAddMembersWizardIndividualRole = (payload: {
-  readonly assertion: string
-  readonly role: Types.AddingMemberTeamRoleType
-}) => ({payload, type: setAddMembersWizardIndividualRole as typeof setAddMembersWizardIndividualRole})
-/**
- * Set the role for the add members wizard.
- */
-export const createSetAddMembersWizardRole = (payload: {
-  readonly role: Types.AddingMemberTeamRoleType | 'setIndividually'
-}) => ({payload, type: setAddMembersWizardRole as typeof setAddMembersWizardRole})
-/**
- * Setup store and navigate to start of add members wizard.
- */
-export const createStartAddMembersWizard = (payload: {readonly teamID: Types.TeamID}) => ({
-  payload,
-  type: startAddMembersWizard as typeof startAddMembersWizard,
-})
-/**
- * Should be called when user is trying to add new assertions to the wizard
- */
-export const createAddMembersWizardPushMembers = (payload: {
-  readonly members: Array<Types.AddingMember>
-}) => ({payload, type: addMembersWizardPushMembers as typeof addMembersWizardPushMembers})
-/**
- * Takes a member list and appends it to wizard state, using assertionsInTeam as a filter. When filtering, it also maintains membersAlreadyInTeam list.
- */
-export const createAddMembersWizardAddMembers = (payload: {
-  readonly members: Array<Types.AddingMember>
-  readonly assertionsInTeam: Array<string>
-}) => ({payload, type: addMembersWizardAddMembers as typeof addMembersWizardAddMembers})
 /**
  * Tries to show a team with this name whether the user is in the team or not.
  * For teams we are not in:
@@ -280,10 +208,6 @@ export const createInviteToTeamByPhone = (payload: {
   readonly fullName: string
   readonly loadingKey?: string
 }) => ({payload, type: inviteToTeamByPhone as typeof inviteToTeamByPhone})
-export const createLaunchNewTeamWizardOrModal = (payload: {readonly subteamOf?: Types.TeamID} = {}) => ({
-  payload,
-  type: launchNewTeamWizardOrModal as typeof launchNewTeamWizardOrModal,
-})
 export const createLeaveTeam = (payload: {
   readonly teamname: string
   readonly permanent: boolean
@@ -354,52 +278,13 @@ export const createSetTeamRetentionPolicy = (payload: {
   readonly teamID: Types.TeamID
   readonly retentionPolicy: RetentionPolicy
 }) => ({payload, type: setTeamRetentionPolicy as typeof setTeamRetentionPolicy})
-export const createSetTeamRoleMap = (payload: {readonly map: Types.TeamRoleMap}) => ({
-  payload,
-  type: setTeamRoleMap as typeof setTeamRoleMap,
-})
-export const createSetTeamRoleMapLatestKnownVersion = (payload: {readonly version: number}) => ({
-  payload,
-  type: setTeamRoleMapLatestKnownVersion as typeof setTeamRoleMapLatestKnownVersion,
-})
 export const createSetTeamVersion = (payload: {
   readonly teamID: Types.TeamID
   readonly version: Types.TeamVersion
 }) => ({payload, type: setTeamVersion as typeof setTeamVersion})
-export const createSetTeamWizardAvatar = (
-  payload: {readonly crop?: Types.AvatarCrop; readonly filename?: string} = {}
-) => ({payload, type: setTeamWizardAvatar as typeof setTeamWizardAvatar})
-export const createSetTeamWizardChannels = (payload: {readonly channels: Array<string>}) => ({
-  payload,
-  type: setTeamWizardChannels as typeof setTeamWizardChannels,
-})
 export const createSetTeamWizardError = (payload: {readonly error: string}) => ({
   payload,
   type: setTeamWizardError as typeof setTeamWizardError,
-})
-export const createSetTeamWizardNameDescription = (payload: {
-  readonly teamname: string
-  readonly description: string
-  readonly openTeam: boolean
-  readonly openTeamJoinRole: Types.TeamRoleType
-  readonly profileShowcase: boolean
-  readonly addYourself: boolean
-}) => ({payload, type: setTeamWizardNameDescription as typeof setTeamWizardNameDescription})
-export const createSetTeamWizardSubteamMembers = (payload: {readonly members: Array<string>}) => ({
-  payload,
-  type: setTeamWizardSubteamMembers as typeof setTeamWizardSubteamMembers,
-})
-export const createSetTeamWizardSubteams = (payload: {readonly subteams: Array<string>}) => ({
-  payload,
-  type: setTeamWizardSubteams as typeof setTeamWizardSubteams,
-})
-export const createSetTeamWizardTeamSize = (payload: {readonly isBig: boolean}) => ({
-  payload,
-  type: setTeamWizardTeamSize as typeof setTeamWizardTeamSize,
-})
-export const createSetTeamWizardTeamType = (payload: {readonly teamType: Types.TeamWizardTeamType}) => ({
-  payload,
-  type: setTeamWizardTeamType as typeof setTeamWizardTeamType,
 })
 export const createSetUpdatedChannelName = (payload: {
   readonly teamID: Types.TeamID
@@ -411,10 +296,6 @@ export const createSetUpdatedTopic = (payload: {
   readonly conversationIDKey: ConversationIDKey
   readonly newTopic: string
 }) => ({payload, type: setUpdatedTopic as typeof setUpdatedTopic})
-export const createStartNewTeamWizard = (payload?: undefined) => ({
-  payload,
-  type: startNewTeamWizard as typeof startNewTeamWizard,
-})
 export const createUpdateChannelName = (payload: {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ConversationIDKey
@@ -433,14 +314,10 @@ export const createUploadTeamAvatar = (payload: {
 }) => ({payload, type: uploadTeamAvatar as typeof uploadTeamAvatar})
 
 // Action Payloads
-export type AddMembersWizardAddMembersPayload = ReturnType<typeof createAddMembersWizardAddMembers>
-export type AddMembersWizardPushMembersPayload = ReturnType<typeof createAddMembersWizardPushMembers>
-export type AddMembersWizardRemoveMemberPayload = ReturnType<typeof createAddMembersWizardRemoveMember>
 export type AddMembersWizardSetDefaultChannelsPayload = ReturnType<
   typeof createAddMembersWizardSetDefaultChannels
 >
 export type AddParticipantPayload = ReturnType<typeof createAddParticipant>
-export type CancelAddMembersWizardPayload = ReturnType<typeof createCancelAddMembersWizard>
 export type ClearAddUserToTeamsResultsPayload = ReturnType<typeof createClearAddUserToTeamsResults>
 export type ClearNavBadgesPayload = ReturnType<typeof createClearNavBadges>
 export type CreateChannelPayload = ReturnType<typeof createCreateChannel>
@@ -456,7 +333,6 @@ export type GetTeamRetentionPolicyPayload = ReturnType<typeof createGetTeamReten
 export type IgnoreRequestPayload = ReturnType<typeof createIgnoreRequest>
 export type InviteToTeamByPhonePayload = ReturnType<typeof createInviteToTeamByPhone>
 export type JoinTeamPayload = ReturnType<typeof createJoinTeam>
-export type LaunchNewTeamWizardOrModalPayload = ReturnType<typeof createLaunchNewTeamWizardOrModal>
 export type LeaveTeamPayload = ReturnType<typeof createLeaveTeam>
 export type LeftTeamPayload = ReturnType<typeof createLeftTeam>
 export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
@@ -470,10 +346,6 @@ export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
 export type RequestInviteLinkDetailsPayload = ReturnType<typeof createRequestInviteLinkDetails>
 export type RespondToInviteLinkPayload = ReturnType<typeof createRespondToInviteLink>
 export type SaveChannelMembershipPayload = ReturnType<typeof createSaveChannelMembership>
-export type SetAddMembersWizardIndividualRolePayload = ReturnType<
-  typeof createSetAddMembersWizardIndividualRole
->
-export type SetAddMembersWizardRolePayload = ReturnType<typeof createSetAddMembersWizardRole>
 export type SetJustFinishedAddMembersWizardPayload = ReturnType<typeof createSetJustFinishedAddMembersWizard>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type SetMembersPayload = ReturnType<typeof createSetMembers>
@@ -481,27 +353,13 @@ export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
 export type SetTeamInviteErrorPayload = ReturnType<typeof createSetTeamInviteError>
 export type SetTeamJoinErrorPayload = ReturnType<typeof createSetTeamJoinError>
 export type SetTeamJoinSuccessPayload = ReturnType<typeof createSetTeamJoinSuccess>
-export type SetTeamListFilterSortPayload = ReturnType<typeof createSetTeamListFilterSort>
 export type SetTeamProfileAddListPayload = ReturnType<typeof createSetTeamProfileAddList>
 export type SetTeamRetentionPolicyPayload = ReturnType<typeof createSetTeamRetentionPolicy>
-export type SetTeamRoleMapLatestKnownVersionPayload = ReturnType<
-  typeof createSetTeamRoleMapLatestKnownVersion
->
-export type SetTeamRoleMapPayload = ReturnType<typeof createSetTeamRoleMap>
 export type SetTeamVersionPayload = ReturnType<typeof createSetTeamVersion>
-export type SetTeamWizardAvatarPayload = ReturnType<typeof createSetTeamWizardAvatar>
-export type SetTeamWizardChannelsPayload = ReturnType<typeof createSetTeamWizardChannels>
 export type SetTeamWizardErrorPayload = ReturnType<typeof createSetTeamWizardError>
-export type SetTeamWizardNameDescriptionPayload = ReturnType<typeof createSetTeamWizardNameDescription>
-export type SetTeamWizardSubteamMembersPayload = ReturnType<typeof createSetTeamWizardSubteamMembers>
-export type SetTeamWizardSubteamsPayload = ReturnType<typeof createSetTeamWizardSubteams>
-export type SetTeamWizardTeamSizePayload = ReturnType<typeof createSetTeamWizardTeamSize>
-export type SetTeamWizardTeamTypePayload = ReturnType<typeof createSetTeamWizardTeamType>
 export type SetUpdatedChannelNamePayload = ReturnType<typeof createSetUpdatedChannelName>
 export type SetUpdatedTopicPayload = ReturnType<typeof createSetUpdatedTopic>
 export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
-export type StartAddMembersWizardPayload = ReturnType<typeof createStartAddMembersWizard>
-export type StartNewTeamWizardPayload = ReturnType<typeof createStartNewTeamWizard>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
 export type UpdateChannelNamePayload = ReturnType<typeof createUpdateChannelName>
 export type UpdateInviteLinkDetailsPayload = ReturnType<typeof createUpdateInviteLinkDetails>
@@ -511,12 +369,8 @@ export type UploadTeamAvatarPayload = ReturnType<typeof createUploadTeamAvatar>
 // All Actions
 // prettier-ignore
 export type Actions =
-  | AddMembersWizardAddMembersPayload
-  | AddMembersWizardPushMembersPayload
-  | AddMembersWizardRemoveMemberPayload
   | AddMembersWizardSetDefaultChannelsPayload
   | AddParticipantPayload
-  | CancelAddMembersWizardPayload
   | ClearAddUserToTeamsResultsPayload
   | ClearNavBadgesPayload
   | CreateChannelPayload
@@ -532,7 +386,6 @@ export type Actions =
   | IgnoreRequestPayload
   | InviteToTeamByPhonePayload
   | JoinTeamPayload
-  | LaunchNewTeamWizardOrModalPayload
   | LeaveTeamPayload
   | LeftTeamPayload
   | LoadTeamTreePayload
@@ -546,8 +399,6 @@ export type Actions =
   | RequestInviteLinkDetailsPayload
   | RespondToInviteLinkPayload
   | SaveChannelMembershipPayload
-  | SetAddMembersWizardIndividualRolePayload
-  | SetAddMembersWizardRolePayload
   | SetJustFinishedAddMembersWizardPayload
   | SetMemberActivityDetailsPayload
   | SetMembersPayload
@@ -555,25 +406,13 @@ export type Actions =
   | SetTeamInviteErrorPayload
   | SetTeamJoinErrorPayload
   | SetTeamJoinSuccessPayload
-  | SetTeamListFilterSortPayload
   | SetTeamProfileAddListPayload
   | SetTeamRetentionPolicyPayload
-  | SetTeamRoleMapLatestKnownVersionPayload
-  | SetTeamRoleMapPayload
   | SetTeamVersionPayload
-  | SetTeamWizardAvatarPayload
-  | SetTeamWizardChannelsPayload
   | SetTeamWizardErrorPayload
-  | SetTeamWizardNameDescriptionPayload
-  | SetTeamWizardSubteamMembersPayload
-  | SetTeamWizardSubteamsPayload
-  | SetTeamWizardTeamSizePayload
-  | SetTeamWizardTeamTypePayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
   | ShowTeamByNamePayload
-  | StartAddMembersWizardPayload
-  | StartNewTeamWizardPayload
   | TeamSeenPayload
   | UpdateChannelNamePayload
   | UpdateInviteLinkDetailsPayload

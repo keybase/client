@@ -44,7 +44,6 @@ const getChannelSelectedCount = (props: ChannelProps) => {
   const {conversationIDKey, selectedTab} = props
   switch (selectedTab) {
     default:
-      //case 'channelMembers':
       return Constants.useState.getState().channelSelectedMembers.get(conversationIDKey)?.size ?? 0
   }
 }

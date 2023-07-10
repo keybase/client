@@ -474,10 +474,10 @@ const createChannel = async (
   }
 }
 
-const setPublicity = async (state: Container.TypedState, action: TeamsGen.SetPublicityPayload) => {
+const setPublicity = async (_: unknown, action: TeamsGen.SetPublicityPayload) => {
   const {teamID, settings} = action.payload
   const waitingKey = Constants.settingsWaitingKey(teamID)
-  const teamMeta = Constants.getTeamMeta(state, teamID)
+  const teamMeta = Constants.getTeamMeta(Constants.useState.getState(), teamID)
   const teamSettings = (Constants.useState.getState().teamDetails.get(teamID) ?? Constants.emptyTeamDetails)
     .settings
 
@@ -561,35 +561,6 @@ const teamChangedByID = (
     TeamsGen.createSetTeamVersion({teamID, version: {latestHiddenSeqno, latestOffchainSeqno, latestSeqno}}),
     shouldLoad && Constants.useState.getState().dispatch.loadTeam(teamID),
   ]
-}
-
-const teamRoleMapChangedUpdateLatestKnownVersion = (
-  _: unknown,
-  action: EngineGen.Keybase1NotifyTeamTeamRoleMapChangedPayload
-) => {
-  const {newVersion} = action.payload.params
-  return TeamsGen.createSetTeamRoleMapLatestKnownVersion({version: newVersion})
-}
-
-const refreshTeamRoleMap = async (
-  state: Container.TypedState,
-  action: EngineGen.Keybase1NotifyTeamTeamRoleMapChangedPayload | ConfigGen.BootstrapStatusLoadedPayload
-) => {
-  if (action.type === EngineGen.keybase1NotifyTeamTeamRoleMapChanged) {
-    const {newVersion} = action.payload.params
-    const loadedVersion = state.teams.teamRoleMap.loadedVersion
-    logger.info(`Got teamRoleMapChanged with version ${newVersion}, loadedVersion is ${loadedVersion}`)
-    if (loadedVersion >= newVersion) {
-      return
-    }
-  }
-  try {
-    const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
-    return TeamsGen.createSetTeamRoleMap({map: Constants.rpcTeamRoleMapAndVersionToTeamRoleMap(map)})
-  } catch {
-    logger.info(`Failed to refresh TeamRoleMap; service will retry`)
-    return
-  }
 }
 
 const teamDeletedOrExit = () => {
@@ -757,12 +728,12 @@ function addThemToTeamFromTeamBuilder(
     logger.error("Trying to add them to a team, but I don't know what the teamID is.")
     return
   }
-  return [
-    TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
-    TeamsGen.createAddMembersWizardPushMembers({
-      members: [...state.teams.teamBuilding.teamSoFar].map(user => ({assertion: user.id, role: 'writer'})),
-    }),
-  ]
+  Constants.useState
+    .getState()
+    .dispatch.addMembersWizardPushMembers(
+      [...state.teams.teamBuilding.teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
+    )
+  return TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'})
 }
 
 async function showTeamByName(_: unknown, action: TeamsGen.ShowTeamByNamePayload) {
@@ -861,114 +832,6 @@ const loadTeamTreeActivity = async (
   return
 }
 
-const launchNewTeamWizardOrModal = (_: unknown, action: TeamsGen.LaunchNewTeamWizardOrModalPayload) => {
-  return action.payload.subteamOf
-    ? RouteTreeGen.createNavigateAppend({path: ['teamWizard2TeamInfo']})
-    : TeamsGen.createStartNewTeamWizard()
-}
-const startNewTeamWizard = () => RouteTreeGen.createNavigateAppend({path: ['teamWizard1TeamPurpose']})
-const setTeamWizardTeamType = () => RouteTreeGen.createNavigateAppend({path: ['teamWizard2TeamInfo']})
-const setTeamWizardNameDescription = () =>
-  RouteTreeGen.createNavigateAppend({
-    path: [
-      {
-        props: {createdTeam: true, teamID: Types.newTeamWizardTeamID, wizard: true},
-        selected: 'profileEditAvatar',
-      },
-    ],
-  })
-const setTeamWizardAvatar = (state: Container.TypedState) => {
-  switch (state.teams.newTeamWizard.teamType) {
-    case 'subteam': {
-      const parentTeamID = state.teams.newTeamWizard.parentTeamID
-      const parentTeamMeta = Constants.getTeamMeta(state, parentTeamID ?? '')
-      // If it's just you, don't show the subteam members screen empty
-      if (parentTeamMeta.memberCount > 1) {
-        return RouteTreeGen.createNavigateAppend({path: ['teamWizardSubteamMembers']})
-      } else {
-        return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
-      }
-    }
-    case 'friends':
-    case 'other':
-      return TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
-    case 'project':
-      return RouteTreeGen.createNavigateAppend({path: ['teamWizard5Channels']})
-    case 'community':
-      return RouteTreeGen.createNavigateAppend({path: ['teamWizard4TeamSize']})
-  }
-}
-const setTeamWizardSubteamMembers = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']})
-const setTeamWizardTeamSize = (_: unknown, action: TeamsGen.SetTeamWizardTeamSizePayload) =>
-  action.payload.isBig
-    ? RouteTreeGen.createNavigateAppend({path: ['teamWizard5Channels']})
-    : TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
-const setTeamWizardChannels = () => RouteTreeGen.createNavigateAppend({path: ['teamWizard6Subteams']})
-const setTeamWizardSubteams = () => TeamsGen.createStartAddMembersWizard({teamID: Types.newTeamWizardTeamID})
-const startAddMembersWizard = () => RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamFromWhere']})
-const finishNewTeamWizard = async (state: Container.TypedState) => {
-  const {name, description, open, openTeamJoinRole, profileShowcase, addYourself} = state.teams.newTeamWizard
-  const {avatarFilename, avatarCrop, channels, subteams} = state.teams.newTeamWizard
-  const teamInfo: RPCTypes.TeamCreateFancyInfo = {
-    avatar: avatarFilename ? {avatarFilename, crop: avatarCrop?.crop} : null,
-    chatChannels: channels,
-    description,
-    joinSubteam: addYourself,
-    name,
-    openSettings: {joinAs: RPCTypes.TeamRole[openTeamJoinRole], open},
-    profileShowcase,
-    subteams,
-    users: state.teams.addMembersWizard.addingMembers.map(member => ({
-      assertion: member.assertion,
-      role: RPCTypes.TeamRole[member.role],
-    })),
-  }
-  try {
-    const teamID = await RPCTypes.teamsTeamCreateFancyRpcPromise({teamInfo}, Constants.teamCreationWaitingKey)
-    return TeamsGen.createFinishedNewTeamWizard({teamID})
-  } catch (error) {
-    if (error instanceof RPCError) {
-      return TeamsGen.createSetTeamWizardError({error: error.message})
-    }
-  }
-  return
-}
-
-const finishedNewTeamWizard = (_: unknown, action: TeamsGen.FinishedNewTeamWizardPayload) => [
-  RouteTreeGen.createClearModals(),
-  RouteTreeGen.createNavigateAppend({path: [{props: {teamID: action.payload.teamID}, selected: 'team'}]}),
-]
-
-const addMembersWizardPushMembers = async (
-  state: Container.TypedState,
-  action: TeamsGen.AddMembersWizardPushMembersPayload
-) => {
-  // Call FindAssertionsInTeamNoResolve RPC and pass the results along with the
-  // members to addMembersWizardSetMembers action.
-  const {teamID} = state.teams.addMembersWizard
-  const assertions = action.payload.members
-    .filter(member => member.assertion.includes('@') || !!member.resolvedFrom)
-    .map(({assertion}) => assertion)
-
-  const existingAssertions =
-    teamID === Types.newTeamWizardTeamID
-      ? []
-      : await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
-          assertions,
-          teamID,
-        })
-
-  return [
-    TeamsGen.createAddMembersWizardAddMembers({
-      assertionsInTeam: existingAssertions ?? [],
-      members: action.payload.members,
-    }),
-    RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}),
-  ]
-}
-
-const navAwayFromAddMembersWizard = () => RouteTreeGen.createClearModals()
-
 const manageChatChannels = (_: unknown, action: TeamsGen.ManageChatChannelsPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [
@@ -1023,7 +886,17 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.saveChannelMembership, saveChannelMembership)
   Container.listenAction(
     [ConfigGen.bootstrapStatusLoaded, EngineGen.keybase1NotifyTeamTeamRoleMapChanged],
-    refreshTeamRoleMap
+    (_, action) => {
+      if (action.type === EngineGen.keybase1NotifyTeamTeamRoleMapChanged) {
+        const {newVersion} = action.payload.params
+        const loadedVersion = Constants.useState.getState().teamRoleMap.loadedVersion
+        logger.info(`Got teamRoleMapChanged with version ${newVersion}, loadedVersion is ${loadedVersion}`)
+        if (loadedVersion >= newVersion) {
+          return
+        }
+      }
+      Constants.useState.getState().dispatch.refreshTeamRoleMap()
+    }
   )
 
   Container.listenAction(TeamsGen.createChannel, createChannel)
@@ -1044,10 +917,9 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.manageChatChannels, manageChatChannels)
   Container.listenAction(GregorGen.pushState, gregorPushState)
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamChangedByID, teamChangedByID)
-  Container.listenAction(
-    EngineGen.keybase1NotifyTeamTeamRoleMapChanged,
-    teamRoleMapChangedUpdateLatestKnownVersion
-  )
+  Container.listenAction(EngineGen.keybase1NotifyTeamTeamRoleMapChanged, (_, action) => {
+    Constants.useState.getState().dispatch.setTeamRoleMapLatestKnownVersion(action.payload.params.newVersion)
+  })
 
   Container.listenAction(
     [EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit],
@@ -1069,27 +941,6 @@ const initTeams = () => {
 
   Container.listenAction(TeamsGen.loadTeamTree, loadTeamTree)
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial, loadTeamTreeActivity)
-
-  // New team wizard
-  Container.listenAction(TeamsGen.launchNewTeamWizardOrModal, launchNewTeamWizardOrModal)
-  Container.listenAction(TeamsGen.startNewTeamWizard, startNewTeamWizard)
-  Container.listenAction(TeamsGen.setTeamWizardTeamType, setTeamWizardTeamType)
-  Container.listenAction(TeamsGen.setTeamWizardNameDescription, setTeamWizardNameDescription)
-  Container.listenAction(TeamsGen.setTeamWizardAvatar, setTeamWizardAvatar)
-  Container.listenAction(TeamsGen.setTeamWizardTeamSize, setTeamWizardTeamSize)
-  Container.listenAction(TeamsGen.setTeamWizardChannels, setTeamWizardChannels)
-  Container.listenAction(TeamsGen.setTeamWizardSubteams, setTeamWizardSubteams)
-  Container.listenAction(TeamsGen.setTeamWizardSubteamMembers, setTeamWizardSubteamMembers)
-  Container.listenAction(TeamsGen.finishNewTeamWizard, finishNewTeamWizard)
-  Container.listenAction(TeamsGen.finishedNewTeamWizard, finishedNewTeamWizard)
-
-  // Add members wizard
-  Container.listenAction(TeamsGen.startAddMembersWizard, startAddMembersWizard)
-  Container.listenAction(TeamsGen.addMembersWizardPushMembers, addMembersWizardPushMembers)
-  Container.listenAction(
-    [TeamsGen.cancelAddMembersWizard, TeamsGen.finishedAddMembersWizard],
-    navAwayFromAddMembersWizard
-  )
 
   Container.listenAction(TeamsGen.teamSeen, teamSeen)
   Container.listenAction(RouteTreeGen.onNavChanged, maybeClearBadges)

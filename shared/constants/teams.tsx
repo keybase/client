@@ -10,7 +10,7 @@ import * as TeamBuildingConstants from './team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Types from './types/teams'
 import * as Z from '../util/zustand'
-import {isMobile} from './platform'
+import {isMobile, isPhone} from './platform'
 import invert from 'lodash/invert'
 import logger from '../logger'
 import type {RetentionPolicy} from './types/retention-policy'
@@ -206,7 +206,7 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
   ...(r || {}),
 })
 
-export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
+export const addMembersWizardEmptyState: State['addMembersWizard'] = {
   addToChannels: undefined,
   addingMembers: [],
   justFinished: false,
@@ -215,7 +215,7 @@ export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
   teamID: Types.noTeamID,
 }
 
-export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
+export const newTeamWizardEmptyState: State['newTeamWizard'] = {
   addYourself: true,
   description: '',
   isBig: false,
@@ -229,10 +229,8 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
 export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, username: ''}
 
 const emptyState: Types.State = {
-  addMembersWizard: addMembersWizardEmptyState,
   errorInTeamInvite: '',
   errorInTeamJoin: '',
-  newTeamWizard: newTeamWizardEmptyState,
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamIDToMembers: new Map(),
   teamIDToRetentionPolicy: new Map(),
@@ -243,7 +241,6 @@ const emptyState: Types.State = {
   teamMemberToLastActivity: new Map(),
   teamMemberToTreeMemberships: new Map(),
   teamProfileAddList: [],
-  teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamVersion: new Map(),
   treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
@@ -367,13 +364,13 @@ export const userInTeamNotBotWithInfo = (
 export const isTeamWithChosenChannels = (_: unknown, teamname: string): boolean =>
   useState.getState().teamsWithChosenChannels.has(teamname)
 
-export const getRole = (state: TypedState, teamID: Types.TeamID): Types.MaybeTeamRoleType =>
-  state.teams.teamRoleMap.roles.get(teamID)?.role || 'none'
+export const getRole = (state: State, teamID: Types.TeamID): Types.MaybeTeamRoleType =>
+  state.teamRoleMap.roles.get(teamID)?.role || 'none'
 
-export const getRoleByName = (state: TypedState, teamname: string): Types.MaybeTeamRoleType =>
+export const getRoleByName = (state: State, teamname: string): Types.MaybeTeamRoleType =>
   getRole(state, getTeamID(teamname))
 
-export const isLastOwner = (state: TypedState, teamID: Types.TeamID): boolean =>
+export const isLastOwner = (state: State, teamID: Types.TeamID): boolean =>
   isOwner(getRole(state, teamID)) && !isMultiOwnerTeam(teamID)
 
 const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
@@ -414,7 +411,7 @@ const noRemoveLastOwner = {
 }
 
 export const getDisabledReasonsForRolePicker = (
-  state: TypedState,
+  state: State,
   teamID: Types.TeamID,
   membersToModify?: string | string[]
 ): Types.DisabledReasonsForRolePicker => {
@@ -422,7 +419,9 @@ export const getDisabledReasonsForRolePicker = (
   const teamMeta = getTeamMeta(state, teamID)
   const teamDetails = useState.getState().teamDetails.get(teamID)
   const members: Map<string, Types.MemberInfo> =
-    teamDetails?.members || state.teams.teamIDToMembers.get(teamID) || new Map<string, Types.MemberInfo>()
+    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    teamDetails?.members ||
+    /*state.teams.teamIDToMembers.get(teamID) || */ new Map<string, Types.MemberInfo>()
   const teamname = teamMeta.teamname
   let theyAreOwner = false
   if (typeof membersToModify === 'string') {
@@ -533,14 +532,14 @@ export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>(
 // Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
 // since that may contain subteams you're not a member of.
 
-export const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
+export const isInTeam = (state: State, teamname: Types.Teamname): boolean =>
   getRoleByName(state, teamname) !== 'none'
 
-export const isInSomeTeam = (state: TypedState): boolean =>
-  [...state.teams.teamRoleMap.roles.values()].some(rd => rd.role !== 'none')
+export const isInSomeTeam = (state: State): boolean =>
+  [...state.teamRoleMap.roles.values()].some(rd => rd.role !== 'none')
 
-export const getTeamResetUsers = (_: unknown, teamID: Types.TeamID): Set<string> =>
-  useState.getState().teamIDToResetUsers.get(teamID) || new Set()
+export const getTeamResetUsers = (state: State, teamID: Types.TeamID): Set<string> =>
+  state.teamIDToResetUsers.get(teamID) || new Set()
 
 // Sorts teamnames canonically.
 function sortTeamnames(a: string, b: string) {
@@ -672,17 +671,17 @@ export const emptyTeamMeta = Object.freeze<Types.TeamMeta>({
 export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
   td ? Object.assign({...emptyTeamMeta}, td) : emptyTeamMeta
 
-export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
+export const getTeamMeta = (state: State, teamID: Types.TeamID) =>
   teamID === Types.newTeamWizardTeamID
     ? makeTeamMeta({
         id: teamID,
         isMember: true,
-        isOpen: state.teams.newTeamWizard.open,
+        isOpen: state.newTeamWizard.open,
         memberCount: 0,
-        showcasing: state.teams.newTeamWizard.profileShowcase,
-        teamname: state.teams.newTeamWizard.name == '' ? 'New team' : state.teams.newTeamWizard.name,
+        showcasing: state.newTeamWizard.profileShowcase,
+        teamname: state.newTeamWizard.name == '' ? 'New team' : state.newTeamWizard.name,
       })
-    : useState.getState().teamMeta.get(teamID) ?? emptyTeamMeta
+    : state.teamMeta.get(teamID) ?? emptyTeamMeta
 
 export const getTeamMemberLastActivity = (
   state: TypedState,
@@ -819,10 +818,10 @@ export const getTeamRowBadgeCount = (
   return newTeamRequests.get(teamID)?.size ?? 0 + (teamIDToResetUsers.get(teamID)?.size ?? 0)
 }
 
-export const canShowcase = (state: TypedState, teamID: Types.TeamID) => {
-  const role = getRole(state, teamID)
-  return getTeamMeta(state, teamID).allowPromote || role === 'admin' || role === 'owner'
-}
+// export const canShowcase = (state: TypedState, teamID: Types.TeamID) => {
+//   const role = getRole(state, teamID)
+//   return getTeamMeta(state, teamID).allowPromote || role === 'admin' || role === 'owner'
+// }
 
 const _canUserPerformCache: {[key: string]: Types.TeamOperations} = {}
 const _canUserPerformCacheKey = (t: Types.TeamRoleAndDetails) => t.role + t.implicitAdmin
@@ -871,11 +870,11 @@ export const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Typ
   return canPerform
 }
 
-export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Types.TeamOperations =>
+export const getCanPerform = (state: State, teamname: Types.Teamname): Types.TeamOperations =>
   getCanPerformByID(state, getTeamID(teamname))
 
-export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
-  deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
+export const getCanPerformByID = (state: State, teamID: Types.TeamID): Types.TeamOperations =>
+  deriveCanPerform(state.teamRoleMap.roles.get(teamID))
 
 // Don't allow version to roll back
 export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: Types.TeamVersion) =>
@@ -990,6 +989,7 @@ export type Store = {
   teamMeta: Map<Types.TeamID, Types.TeamMeta>
   invitesCollapsed: Set<Types.TeamID>
   teamsWithChosenChannels: Set<Types.Teamname>
+  teamRoleMap: Types.TeamRoleMap
   sawChatBanner: boolean
   sawSubteamsBanner: boolean
   subteamFilter: string
@@ -1001,10 +1001,13 @@ export type Store = {
   teamAccessRequestsPending: Set<Types.Teamname>
   teamListFilter: string
   teamListSort: Types.TeamListSort
+  newTeamWizard: Types.NewTeamWizardState
+  addMembersWizard: Types.AddMembersWizardState
 }
 
 const initialStore: Store = {
   activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
+  addMembersWizard: addMembersWizardEmptyState,
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   channelInfo: new Map(),
@@ -1021,6 +1024,7 @@ const initialStore: Store = {
   errorInTeamCreation: '',
   invitesCollapsed: new Set(),
   newTeamRequests: new Map(),
+  newTeamWizard: newTeamWizardEmptyState,
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
@@ -1038,6 +1042,7 @@ const initialStore: Store = {
   teamMetaSubscribeCount: 0,
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
+  teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamSelectedChannels: new Map(),
   teamSelectedMembers: new Map(),
   teamnames: new Set(),
@@ -1046,6 +1051,12 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
+    addMembersWizardPushMembers: (members: Array<Types.AddingMember>) => void
+    addMembersWizardRemoveMember: (assertion: string) => void
+    addMembersWizardSetDefaultChannels: (
+      toAdd?: Array<Types.ChannelNameID>,
+      toRemove?: Types.ChannelNameID
+    ) => void
     addTeamWithChosenChannels: (teamID: Types.TeamID) => void
     addToTeam: (
       teamID: Types.TeamID,
@@ -1054,6 +1065,7 @@ export type State = Store & {
       fromTeamBuilder?: boolean
     ) => void
     addUserToTeams: (role: Types.TeamRoleType, teams: Array<string>, user: string) => void
+    cancelAddMembersWizard: () => void
     channelSetMemberSelected: (
       conversationIDKey: ChatTypes.ConversationIDKey,
       username: string,
@@ -1074,8 +1086,10 @@ export type State = Store & {
       }
     ) => void
     createNewTeamFromConversation: (conversationIDKey: ChatTypes.ConversationIDKey, teamname: string) => void
-    editTeamDescription: (teamID: Types.TeamID, description: string) => void
     editMembership: (teamID: Types.TeamID, usernames: Array<string>, role: Types.TeamRoleType) => void
+    editTeamDescription: (teamID: Types.TeamID, description: string) => void
+    finishedAddMembersWizard: () => void
+    finishNewTeamWizard: () => void
     getActivityForTeams: () => void
     getTeams: (subscribe?: boolean, forceReload?: boolean) => void
     inviteToTeamByEmail: (
@@ -1085,35 +1099,56 @@ export type State = Store & {
       teamname: string,
       loadingKey?: string
     ) => void
+    launchNewTeamWizardOrModal: (subteamOf?: Types.TeamID) => void
     loadTeam: (teamID: Types.TeamID, _subscribe?: boolean) => void
     loadTeamChannelList: (teamID: Types.TeamID) => void
     loadWelcomeMessage: (teamID: Types.TeamID) => void
     loadedWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessageDisplay) => void
-    resetState: 'default'
+    refreshTeamRoleMap: () => void
     resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
     resetErrorInTeamCreation: () => void
+    resetState: 'default'
     resetTeamMetaStale: () => void
+    setAddMembersWizardIndividualRole: (assertion: string, role: Types.AddingMemberTeamRoleType) => void
+    setAddMembersWizardRole: (role: Types.AddingMemberTeamRoleType | 'setIndividually') => void
     setChannelCreationError: (error: string) => void
     setChannelSelected: (teamID: Types.TeamID, channel: string, selected: boolean, clearAll?: boolean) => void
-    setSubteamFilter: (filter: string, parentTeam?: Types.TeamID) => void
-    setTeamSawChatBanner: () => void
-    setTeamSawSubteamsBanner: () => void
+    setJustFinishedAddMembersWizard: (justFinished: boolean) => void
+    setMemberPublicity: (teamID: Types.TeamID, showcase: boolean) => void
+    setMemberSelected: (teamID: Types.TeamID, username: string, selected: boolean, clearAll?: boolean) => void
     setNewTeamInfo: (
       deletedTeams: Array<RPCTypes.DeletedTeamInfo>,
       newTeams: Set<Types.TeamID>,
       teamIDToResetUsers: Map<Types.TeamID, Set<string>>
     ) => void
     setNewTeamRequests: (newTeamRequests: Map<Types.TeamID, Set<string>>) => void
-    setMemberPublicity: (teamID: Types.TeamID, showcase: boolean) => void
-    setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<Types.TeamID>) => void
-    setTeamRetentionPolicy: (teamID: Types.TeamID, policy: RetentionPolicy) => void
+    setSubteamFilter: (filter: string, parentTeam?: Types.TeamID) => void
     setTeamListFilterSort: (filter?: string, sortOrder?: Types.TeamListSort) => void
+    setTeamRetentionPolicy: (teamID: Types.TeamID, policy: RetentionPolicy) => void
+    setTeamRoleMapLatestKnownVersion: (version: number) => void
+    setTeamSawChatBanner: () => void
+    setTeamSawSubteamsBanner: () => void
+    setTeamWizardAvatar: (crop?: Types.AvatarCrop, filename?: string) => void
+    setTeamWizardChannels: (channels: Array<string>) => void
+    setTeamWizardNameDescription: (p: {
+      teamname: string
+      description: string
+      openTeam: boolean
+      openTeamJoinRole: Types.TeamRoleType
+      profileShowcase: boolean
+      addYourself: boolean
+    }) => void
+    setTeamWizardSubteams: (subteams: Array<string>) => void
+    setTeamWizardSubteamMembers: (members: Array<string>) => void
+    setTeamWizardTeamSize: (isBig: boolean) => void
+    setTeamWizardTeamType: (teamType: Types.TeamWizardTeamType) => void
+    setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<Types.TeamID>) => void
     setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => void
+    startAddMembersWizard: (teamID: Types.TeamID) => void
     toggleInvitesCollapsed: (teamID: Types.TeamID) => void
-    unsubscribeTeamList: () => void
     unsubscribeTeamDetails: (teamID: Types.TeamID) => void
-    setMemberSelected: (teamID: Types.TeamID, username: string, selected: boolean, clearAll?: boolean) => void
+    unsubscribeTeamList: () => void
   }
 }
 
@@ -1121,6 +1156,91 @@ export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const getReduxStore = Z.getReduxStore() // TODO remoe >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   const dispatch: State['dispatch'] = {
+    addMembersWizardPushMembers: members => {
+      const f = async () => {
+        // Call FindAssertionsInTeamNoResolve RPC and pass the results along with the
+        // members to addMembersWizardSetMembers action.
+        const {teamID} = get().addMembersWizard
+        const assertions = members
+          .filter(member => member.assertion.includes('@') || !!member.resolvedFrom)
+          .map(({assertion}) => assertion)
+
+        const existingAssertions =
+          teamID === Types.newTeamWizardTeamID
+            ? []
+            : await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
+                assertions,
+                teamID,
+              })
+
+        set(s => {
+          const assertionsInTeam = new Set(existingAssertions ?? [])
+          // Set `membersAlreadyInTeam` first. It's only shown for last add, so
+          // just overwrite the list.
+          //
+          // Prefer to show "resolvedFrom" which will contain the original assertion
+          // that user tried to add (e.g. phone number or email) in case it resolved
+          // to a user that's already in the team.
+          s.addMembersWizard.membersAlreadyInTeam = members
+            .filter(m => assertionsInTeam.has(m.assertion))
+            .map(m => m.resolvedFrom ?? m.assertion)
+          // - Filter out all members that are already in team as team members or
+          //   team invites.
+          // - De-duplicate with current addingMembers list
+          // - Coerce assertion role (ensures it's no higher than 'writer' for
+          //   non-usernames).
+          const filteredMembers = members.filter(m => !assertionsInTeam.has(m.assertion))
+          s.addMembersWizard.addingMembers = dedupAddingMembeers(
+            s.addMembersWizard.addingMembers,
+            filteredMembers.map(coerceAssertionRole)
+          )
+          // Check if after adding the new batch of members we are not violating the
+          // "only Keybase users can be added as admins" contract.
+          if (
+            ['admin', 'owner'].includes(s.addMembersWizard.role) &&
+            filteredMembers.some(m => m.assertion.includes('@'))
+          ) {
+            if (isPhone) {
+              s.addMembersWizard.role = 'writer'
+              s.addMembersWizard.addingMembers.forEach(member => (member.role = 'writer'))
+            } else {
+              s.addMembersWizard.role = 'setIndividually'
+            }
+          }
+        })
+
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}))
+      }
+      Z.ignorePromise(f())
+    },
+    addMembersWizardRemoveMember: assertion => {
+      set(s => {
+        const idx = s.addMembersWizard.addingMembers.findIndex(member => member.assertion === assertion)
+        if (idx >= 0) {
+          s.addMembersWizard.addingMembers.splice(idx, 1)
+        }
+      })
+    },
+    addMembersWizardSetDefaultChannels: (toAdd, toRemove) => {
+      set(s => {
+        if (!s.addMembersWizard.addToChannels) {
+          // we're definitely setting these manually now
+          s.addMembersWizard.addToChannels = []
+        }
+        const addToChannels = s.addMembersWizard.addToChannels
+        toAdd?.forEach(channel => {
+          if (!addToChannels.find(dc => dc.conversationIDKey === channel.conversationIDKey)) {
+            addToChannels.push(channel)
+          }
+        })
+        const maybeRemoveIdx =
+          (toRemove && addToChannels.findIndex(dc => dc.conversationIDKey === toRemove.conversationIDKey)) ??
+          -1
+        if (maybeRemoveIdx >= 0) {
+          addToChannels.splice(maybeRemoveIdx, 1)
+        }
+      })
+    },
     addTeamWithChosenChannels: teamID => {
       const f = async () => {
         const existingTeams = get().teamsWithChosenChannels
@@ -1309,6 +1429,12 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    cancelAddMembersWizard: () => {
+      set(s => {
+        s.addMembersWizard = {...addMembersWizardEmptyState}
+      })
+      reduxDispatch(RouteTreeGen.createClearModals())
+    },
     channelSetMemberSelected: (conversationIDKey, username, selected, clearAll) => {
       set(s => {
         if (clearAll) {
@@ -1323,7 +1449,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    checkRequestedAccess: (_teamname: string) => {
+    checkRequestedAccess: _teamname => {
       // we never use teamname?
       const f = async () => {
         const result = await RPCTypes.teamsTeamListMyAccessRequestsRpcPromise(
@@ -1481,6 +1607,51 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    finishNewTeamWizard: () => {
+      set(s => {
+        s.newTeamWizard.error = undefined
+      })
+      const f = async () => {
+        const {name, description, open, openTeamJoinRole, profileShowcase, addYourself} = get().newTeamWizard
+        const {avatarFilename, avatarCrop, channels, subteams} = get().newTeamWizard
+        const teamInfo: RPCTypes.TeamCreateFancyInfo = {
+          avatar: avatarFilename ? {avatarFilename, crop: avatarCrop?.crop} : null,
+          chatChannels: channels,
+          description,
+          joinSubteam: addYourself,
+          name,
+          openSettings: {joinAs: RPCTypes.TeamRole[openTeamJoinRole], open},
+          profileShowcase,
+          subteams,
+          users: get().addMembersWizard.addingMembers.map(member => ({
+            assertion: member.assertion,
+            role: RPCTypes.TeamRole[member.role],
+          })),
+        }
+        try {
+          const teamID = await RPCTypes.teamsTeamCreateFancyRpcPromise({teamInfo}, teamCreationWaitingKey)
+          set(s => {
+            s.newTeamWizard = newTeamWizardEmptyState
+            s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
+          })
+          reduxDispatch(RouteTreeGen.createClearModals())
+          reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              s.newTeamWizard.error = error.desc
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    finishedAddMembersWizard: () => {
+      set(s => {
+        s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
+      })
+      reduxDispatch(RouteTreeGen.createClearModals())
+    },
     getActivityForTeams: () => {
       const f = async () => {
         try {
@@ -1618,6 +1789,21 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    launchNewTeamWizardOrModal: subteamOf => {
+      set(s => {
+        s.newTeamWizard = {
+          ...newTeamWizardEmptyState,
+          parentTeamID: subteamOf,
+          teamType: 'subteam',
+        }
+      })
+
+      if (subteamOf) {
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard2TeamInfo']}))
+      } else {
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard1TeamPurpose']}))
+      }
+    },
     loadTeam: (teamID, subscribe) => {
       set(s => {
         if (subscribe) {
@@ -1662,7 +1848,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     loadTeamChannelList: teamID => {
       const f = async () => {
-        const teamname = getTeamMeta(getReduxStore(), teamID).teamname
+        const teamname = getTeamMeta(get(), teamID).teamname
         if (!teamname) {
           logger.warn('bailing on no teamMeta')
           return
@@ -1731,6 +1917,24 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.teamIDToWelcomeMessage.set(teamID, message)
       })
     },
+    refreshTeamRoleMap: () => {
+      const f = async () => {
+        try {
+          const _map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
+          const map = rpcTeamRoleMapAndVersionToTeamRoleMap(_map)
+          set(s => {
+            s.teamRoleMap = {
+              latestKnownVersion: Math.max(map.latestKnownVersion, s.teamRoleMap.latestKnownVersion),
+              loadedVersion: map.loadedVersion,
+              roles: map.roles,
+            }
+          })
+        } catch {
+          logger.info(`Failed to refresh TeamRoleMap; service will retry`)
+        }
+      }
+      Z.ignorePromise(f())
+    },
     resetErrorInEmailInvite: () => {
       set(s => {
         s.errorInEmailInvite.message = ''
@@ -1753,6 +1957,25 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.teamMetaStale = true
       })
     },
+    setAddMembersWizardIndividualRole: (assertion, role) => {
+      set(s => {
+        const maybeMember = s.addMembersWizard.addingMembers.find(m => m.assertion === assertion)
+        if (maybeMember) {
+          maybeMember.role = role
+        }
+      })
+    },
+    setAddMembersWizardRole: role => {
+      set(s => {
+        s.addMembersWizard.role = role
+        if (role !== 'setIndividually') {
+          // keep roles stored with indiv members in sync with top level one
+          s.addMembersWizard.addingMembers.forEach(member => {
+            member.role = role
+          })
+        }
+      })
+    },
     setChannelCreationError: error => {
       set(s => {
         s.creatingChannels = false
@@ -1771,6 +1994,11 @@ export const useState = Z.createZustand<State>((set, get) => {
             channelsSelected.delete(channel)
           }
         }
+      })
+    },
+    setJustFinishedAddMembersWizard: (justFinished: boolean) => {
+      set(s => {
+        s.addMembersWizard.justFinished = justFinished
       })
     },
     setMemberPublicity: (teamID, showcase) => {
@@ -1832,6 +2060,16 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
+    setTeamListFilterSort: (filter, sortOrder) => {
+      set(s => {
+        if (filter !== undefined) {
+          s.teamListFilter = filter
+        }
+        if (sortOrder !== undefined) {
+          s.teamListSort = sortOrder
+        }
+      })
+    },
     setTeamRetentionPolicy: (teamID, policy) => {
       const f = async () => {
         try {
@@ -1851,6 +2089,11 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    setTeamRoleMapLatestKnownVersion: version => {
+      set(s => {
+        s.teamRoleMap.latestKnownVersion = version
+      })
+    },
     setTeamSawChatBanner: () => {
       set(s => {
         s.sawChatBanner = true
@@ -1861,12 +2104,100 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.sawSubteamsBanner = true
       })
     },
-    setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<Types.TeamID>) => {
+    setTeamWizardAvatar: (crop, filename) => {
+      set(s => {
+        s.newTeamWizard.avatarCrop = crop
+        s.newTeamWizard.avatarFilename = filename
+      })
+      switch (get().newTeamWizard.teamType) {
+        case 'subteam': {
+          const parentTeamID = get().newTeamWizard.parentTeamID
+          const parentTeamMeta = getTeamMeta(get(), parentTeamID ?? '')
+          // If it's just you, don't show the subteam members screen empty
+          if (parentTeamMeta.memberCount > 1) {
+            reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizardSubteamMembers']}))
+            return
+          } else {
+            get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
+            return
+          }
+        }
+        case 'friends':
+        case 'other':
+          get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
+          return
+        case 'project':
+          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard5Channels']}))
+          return
+        case 'community':
+          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard4TeamSize']}))
+          return
+      }
+    },
+    setTeamWizardChannels: channels => {
+      set(s => {
+        s.newTeamWizard.channels = channels
+      })
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard6Subteams']}))
+    },
+    setTeamWizardNameDescription: p => {
+      set(s => {
+        s.newTeamWizard.name = p.teamname
+        s.newTeamWizard.description = p.description
+        s.newTeamWizard.open = p.openTeam
+        s.newTeamWizard.openTeamJoinRole = p.openTeamJoinRole
+        s.newTeamWizard.profileShowcase = p.profileShowcase
+        s.newTeamWizard.addYourself = p.addYourself
+      })
+      reduxDispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {createdTeam: true, teamID: Types.newTeamWizardTeamID, wizard: true},
+              selected: 'profileEditAvatar',
+            },
+          ],
+        })
+      )
+    },
+    setTeamWizardSubteamMembers: members => {
+      set(s => {
+        s.addMembersWizard = {
+          ...addMembersWizardEmptyState,
+          addingMembers: members.map(m => ({assertion: m, role: 'writer'})),
+          teamID: Types.newTeamWizardTeamID,
+        }
+      })
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}))
+    },
+    setTeamWizardSubteams: (subteams: Array<string>) => {
+      set(s => {
+        s.newTeamWizard.subteams = subteams
+      })
+      get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
+    },
+    setTeamWizardTeamSize: (isBig: boolean) => {
+      set(s => {
+        s.newTeamWizard.isBig = isBig
+      })
+      if (isBig) {
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard5Channels']}))
+      } else {
+        get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
+      }
+    },
+    setTeamWizardTeamType: teamType => {
+      set(s => {
+        s.newTeamWizard.teamType = teamType
+      })
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard2TeamInfo']}))
+    },
+    setTeamsWithChosenChannels: teamsWithChosenChannels => {
       set(s => {
         s.teamsWithChosenChannels = teamsWithChosenChannels
       })
     },
-    setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => {
+    setWelcomeMessage: (teamID, message) => {
       set(s => {
         s.errorInEditWelcomeMessage = ''
       })
@@ -1888,15 +2219,11 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    setTeamListFilterSort: (filter, sortOrder) => {
+    startAddMembersWizard: teamID => {
       set(s => {
-        if (filter !== undefined) {
-          s.teamListFilter = filter
-        }
-        if (sortOrder !== undefined) {
-          s.teamListSort = sortOrder
-        }
+        s.addMembersWizard = {...addMembersWizardEmptyState, teamID}
       })
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamFromWhere']}))
     },
     toggleInvitesCollapsed: teamID => {
       set(s => {

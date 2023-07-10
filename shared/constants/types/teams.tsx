@@ -232,7 +232,6 @@ export type TeamInviteState = {
 }
 
 export type State = {
-  addMembersWizard: AddMembersWizardState
   errorInTeamInvite: string
   errorInTeamJoin: string
   teamJoinSuccess: boolean
@@ -247,9 +246,7 @@ export type State = {
 
   teamMemberToLastActivity: Map<TeamID, Map<string, number>>
   teamProfileAddList: Array<TeamProfileAddList>
-  teamRoleMap: TeamRoleMap
   teamBuilding: TeamBuildingSubState
-  newTeamWizard: NewTeamWizardState
 
   teamInviteDetails: TeamInviteState
 }
