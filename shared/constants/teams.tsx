@@ -1,5 +1,4 @@
 import * as ChatTypes from './types/chat2'
-import * as ChatConstants from './chat2'
 import * as GregorConstants from './gregor'
 import * as ConfigConstants from './config'
 import * as RPCChatTypes from './types/rpc-chat-gen'
@@ -1554,15 +1553,19 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.errorInTeamCreation = ''
       })
-      const me = ConfigConstants.useCurrentUserState.getState().username
-      const participantInfo = ChatConstants.getParticipantInfo(getReduxStore(), conversationIDKey)
-      // exclude bots from the newly created team, they can be added back later.
-      const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
-      const users = participants.map(assertion => ({
-        assertion,
-        role: assertion === me ? ('admin' as const) : ('writer' as const),
-      }))
-      get().dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
+      const f = async () => {
+        const ChatConstants = await import('./chat2')
+        const me = ConfigConstants.useCurrentUserState.getState().username
+        const participantInfo = ChatConstants.getParticipantInfo(getReduxStore(), conversationIDKey)
+        // exclude bots from the newly created team, they can be added back later.
+        const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
+        const users = participants.map(assertion => ({
+          assertion,
+          role: assertion === me ? ('admin' as const) : ('writer' as const),
+        }))
+        get().dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
+      }
+      Z.ignorePromise(f())
     },
     editMembership: (teamID, usernames, _role) => {
       const f = async () => {

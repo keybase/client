@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
@@ -61,8 +60,11 @@ const AddMembersConfirm = () => {
   const waiting = _waiting || newTeamWaiting
 
   const addMembers = Container.useRPC(RPCGen.teamsTeamAddMembersMultiRoleRpcPromise)
+  const finishNewTeamWizard = Constants.useState(s => s.dispatch.finishNewTeamWizard)
+  const finishedAddMembersWizard = Constants.useState(s => s.dispatch.finishedAddMembersWizard)
+
   const onComplete = fromNewTeamWizard
-    ? () => dispatch(TeamsGen.createFinishNewTeamWizard())
+    ? () => finishNewTeamWizard()
     : () => {
         setWaiting(true)
         addMembers(
@@ -82,7 +84,7 @@ const AddMembersConfirm = () => {
           ],
           _ => {
             // TODO handle users not added?
-            dispatch(TeamsGen.createFinishedAddMembersWizard())
+            finishedAddMembersWizard()
           },
           err => {
             setWaiting(false)
@@ -413,24 +415,26 @@ const AddingMember = (props: Types.AddingMember & {disabledRoles: DisabledRoles;
 }
 
 const DefaultChannels = ({teamID}: {teamID: Types.TeamID}) => {
-  const dispatch = Container.useDispatch()
   const {defaultChannels, defaultChannelsWaiting} = useDefaultChannels(teamID)
   const addToChannels = Constants.useState(s => s.addMembersWizard.addToChannels)
   const allKeybaseUsers = Constants.useState(
     s => !s.addMembersWizard.addingMembers.some(member => member.assertion.includes('@'))
   )
-  const onChangeFromDefault = () => dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd: []}))
+  const addMembersWizardSetDefaultChannels = Constants.useState(
+    s => s.dispatch.addMembersWizardSetDefaultChannels
+  )
+  const onChangeFromDefault = () => addMembersWizardSetDefaultChannels([])
   const onAdd = React.useCallback(
     (toAdd: Array<Types.ChannelNameID>) => {
-      dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toAdd}))
+      addMembersWizardSetDefaultChannels(toAdd)
     },
-    [dispatch]
+    [addMembersWizardSetDefaultChannels]
   )
   const onRemove = React.useCallback(
     (toRemove: Types.ChannelNameID) => {
-      dispatch(TeamsGen.createAddMembersWizardSetDefaultChannels({toRemove}))
+      addMembersWizardSetDefaultChannels(undefined, toRemove)
     },
-    [dispatch]
+    [addMembersWizardSetDefaultChannels]
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">

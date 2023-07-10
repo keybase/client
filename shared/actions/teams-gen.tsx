@@ -7,7 +7,6 @@ import type {RetentionPolicy} from '../constants/types/retention-policy'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'teams:'
-export const addMembersWizardSetDefaultChannels = 'teams:addMembersWizardSetDefaultChannels'
 export const addParticipant = 'teams:addParticipant'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const clearNavBadges = 'teams:clearNavBadges'
@@ -15,9 +14,6 @@ export const createChannel = 'teams:createChannel'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const deleteTeam = 'teams:deleteTeam'
-export const finishNewTeamWizard = 'teams:finishNewTeamWizard'
-export const finishedAddMembersWizard = 'teams:finishedAddMembersWizard'
-export const finishedNewTeamWizard = 'teams:finishedNewTeamWizard'
 export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
@@ -37,7 +33,6 @@ export const renameTeam = 'teams:renameTeam'
 export const requestInviteLinkDetails = 'teams:requestInviteLinkDetails'
 export const respondToInviteLink = 'teams:respondToInviteLink'
 export const saveChannelMembership = 'teams:saveChannelMembership'
-export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setMembers = 'teams:setMembers'
 export const setPublicity = 'teams:setPublicity'
@@ -47,7 +42,6 @@ export const setTeamJoinSuccess = 'teams:setTeamJoinSuccess'
 export const setTeamProfileAddList = 'teams:setTeamProfileAddList'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setTeamVersion = 'teams:setTeamVersion'
-export const setTeamWizardError = 'teams:setTeamWizardError'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const showTeamByName = 'teams:showTeamByName'
@@ -73,19 +67,6 @@ export const createJoinTeam = (payload: {readonly teamname: string; readonly dee
   type: joinTeam as typeof joinTeam,
 })
 /**
- * Change the set of default channels we're adding these users to.
- */
-export const createAddMembersWizardSetDefaultChannels = (
-  payload: {readonly toAdd?: Array<Types.ChannelNameID>; readonly toRemove?: Types.ChannelNameID} = {}
-) => ({payload, type: addMembersWizardSetDefaultChannels as typeof addMembersWizardSetDefaultChannels})
-/**
- * Clear new team wizard state and nav to team.
- */
-export const createFinishedNewTeamWizard = (payload: {readonly teamID: Types.TeamID}) => ({
-  payload,
-  type: finishedNewTeamWizard as typeof finishedNewTeamWizard,
-})
-/**
  * Completes the invite link decision flow, processed by joinTeam
  */
 export const createRespondToInviteLink = (payload: {readonly accept: boolean}) => ({
@@ -105,13 +86,6 @@ export const createOpenInviteLink = (payload: {readonly inviteID: string; readon
 export const createGetTeamRetentionPolicy = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
   type: getTeamRetentionPolicy as typeof getTeamRetentionPolicy,
-})
-/**
- * Nav away from add members wizard and clear related state.
- */
-export const createFinishedAddMembersWizard = (payload?: undefined) => ({
-  payload,
-  type: finishedAddMembersWizard as typeof finishedAddMembersWizard,
 })
 /**
  * Rename a subteam
@@ -183,10 +157,6 @@ export const createDeleteTeam = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
   type: deleteTeam as typeof deleteTeam,
 })
-export const createFinishNewTeamWizard = (payload?: undefined) => ({
-  payload,
-  type: finishNewTeamWizard as typeof finishNewTeamWizard,
-})
 export const createGetMembers = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
   type: getMembers as typeof getMembers,
@@ -242,10 +212,6 @@ export const createSaveChannelMembership = (payload: {
   readonly oldChannelState: Types.ChannelMembershipState
   readonly newChannelState: Types.ChannelMembershipState
 }) => ({payload, type: saveChannelMembership as typeof saveChannelMembership})
-export const createSetJustFinishedAddMembersWizard = (payload: {readonly justFinished: boolean}) => ({
-  payload,
-  type: setJustFinishedAddMembersWizard as typeof setJustFinishedAddMembersWizard,
-})
 export const createSetMemberActivityDetails = (payload: {
   readonly activityMap: Map<Types.TeamID, number>
   readonly username: string
@@ -282,10 +248,6 @@ export const createSetTeamVersion = (payload: {
   readonly teamID: Types.TeamID
   readonly version: Types.TeamVersion
 }) => ({payload, type: setTeamVersion as typeof setTeamVersion})
-export const createSetTeamWizardError = (payload: {readonly error: string}) => ({
-  payload,
-  type: setTeamWizardError as typeof setTeamWizardError,
-})
 export const createSetUpdatedChannelName = (payload: {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ConversationIDKey
@@ -314,9 +276,6 @@ export const createUploadTeamAvatar = (payload: {
 }) => ({payload, type: uploadTeamAvatar as typeof uploadTeamAvatar})
 
 // Action Payloads
-export type AddMembersWizardSetDefaultChannelsPayload = ReturnType<
-  typeof createAddMembersWizardSetDefaultChannels
->
 export type AddParticipantPayload = ReturnType<typeof createAddParticipant>
 export type ClearAddUserToTeamsResultsPayload = ReturnType<typeof createClearAddUserToTeamsResults>
 export type ClearNavBadgesPayload = ReturnType<typeof createClearNavBadges>
@@ -324,9 +283,6 @@ export type CreateChannelPayload = ReturnType<typeof createCreateChannel>
 export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
 export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
 export type DeleteTeamPayload = ReturnType<typeof createDeleteTeam>
-export type FinishNewTeamWizardPayload = ReturnType<typeof createFinishNewTeamWizard>
-export type FinishedAddMembersWizardPayload = ReturnType<typeof createFinishedAddMembersWizard>
-export type FinishedNewTeamWizardPayload = ReturnType<typeof createFinishedNewTeamWizard>
 export type GetMembersPayload = ReturnType<typeof createGetMembers>
 export type GetTeamProfileAddListPayload = ReturnType<typeof createGetTeamProfileAddList>
 export type GetTeamRetentionPolicyPayload = ReturnType<typeof createGetTeamRetentionPolicy>
@@ -346,7 +302,6 @@ export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
 export type RequestInviteLinkDetailsPayload = ReturnType<typeof createRequestInviteLinkDetails>
 export type RespondToInviteLinkPayload = ReturnType<typeof createRespondToInviteLink>
 export type SaveChannelMembershipPayload = ReturnType<typeof createSaveChannelMembership>
-export type SetJustFinishedAddMembersWizardPayload = ReturnType<typeof createSetJustFinishedAddMembersWizard>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type SetMembersPayload = ReturnType<typeof createSetMembers>
 export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
@@ -356,7 +311,6 @@ export type SetTeamJoinSuccessPayload = ReturnType<typeof createSetTeamJoinSucce
 export type SetTeamProfileAddListPayload = ReturnType<typeof createSetTeamProfileAddList>
 export type SetTeamRetentionPolicyPayload = ReturnType<typeof createSetTeamRetentionPolicy>
 export type SetTeamVersionPayload = ReturnType<typeof createSetTeamVersion>
-export type SetTeamWizardErrorPayload = ReturnType<typeof createSetTeamWizardError>
 export type SetUpdatedChannelNamePayload = ReturnType<typeof createSetUpdatedChannelName>
 export type SetUpdatedTopicPayload = ReturnType<typeof createSetUpdatedTopic>
 export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
@@ -369,7 +323,6 @@ export type UploadTeamAvatarPayload = ReturnType<typeof createUploadTeamAvatar>
 // All Actions
 // prettier-ignore
 export type Actions =
-  | AddMembersWizardSetDefaultChannelsPayload
   | AddParticipantPayload
   | ClearAddUserToTeamsResultsPayload
   | ClearNavBadgesPayload
@@ -377,9 +330,6 @@ export type Actions =
   | DeleteChannelConfirmedPayload
   | DeleteMultiChannelsConfirmedPayload
   | DeleteTeamPayload
-  | FinishNewTeamWizardPayload
-  | FinishedAddMembersWizardPayload
-  | FinishedNewTeamWizardPayload
   | GetMembersPayload
   | GetTeamProfileAddListPayload
   | GetTeamRetentionPolicyPayload
@@ -399,7 +349,6 @@ export type Actions =
   | RequestInviteLinkDetailsPayload
   | RespondToInviteLinkPayload
   | SaveChannelMembershipPayload
-  | SetJustFinishedAddMembersWizardPayload
   | SetMemberActivityDetailsPayload
   | SetMembersPayload
   | SetPublicityPayload
@@ -409,7 +358,6 @@ export type Actions =
   | SetTeamProfileAddListPayload
   | SetTeamRetentionPolicyPayload
   | SetTeamVersionPayload
-  | SetTeamWizardErrorPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
   | ShowTeamByNamePayload

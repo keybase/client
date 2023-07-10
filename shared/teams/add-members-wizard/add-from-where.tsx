@@ -3,13 +3,12 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import * as Constants from '../../constants/teams'
-import * as TeamsGen from '../../actions/teams-gen'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
 const Skip = () => {
-  const dispatch = Container.useDispatch()
-  const onSkip = () => dispatch(TeamsGen.createFinishNewTeamWizard())
+  const finishNewTeamWizard = Constants.useState(s => s.dispatch.finishNewTeamWizard)
+  const onSkip = () => finishNewTeamWizard()
   const waiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
 
   if (Styles.isMobile) {

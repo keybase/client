@@ -10,7 +10,6 @@ import type {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import capitalize from 'lodash/capitalize'
 import {Activity, useActivityLevels, useTeamLinkPopup} from '../common'
-import * as TeamsGen from '../../actions/teams-gen'
 import type * as Types from '../../constants/types/teams'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
@@ -29,12 +28,12 @@ const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
 }
 type FeatureTeamCardProps = {teamID: Types.TeamID}
 const FeatureTeamCard = ({teamID}: FeatureTeamCardProps) => {
-  const dispatch = Container.useDispatch()
   const setMemberPublicity = Constants.useState(s => s.dispatch.setMemberPublicity)
   const onFeature = () => setMemberPublicity(teamID, true)
+  const setJustFinishedAddMembersWizard = Constants.useState(s => s.dispatch.setJustFinishedAddMembersWizard)
   const onNoThanks = React.useCallback(() => {
-    dispatch(TeamsGen.createSetJustFinishedAddMembersWizard({justFinished: false}))
-  }, [dispatch])
+    setJustFinishedAddMembersWizard(false)
+  }, [setJustFinishedAddMembersWizard])
   // Automatically dismisses this when the user navigates away
   React.useEffect(() => onNoThanks, [onNoThanks])
   const waiting = Container.useAnyWaiting(Constants.setMemberPublicityWaitingKey(teamID))

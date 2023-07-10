@@ -151,7 +151,9 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.xsmall,
           width: '100%',
         },
-        isElectron: {},
+        isElectron: {
+          marginTop: Styles.globalMargins.small,
+        },
         isMobile: {},
       }),
       inputMultiline: Styles.platformStyles({
@@ -172,6 +174,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       labelFocused: {color: Styles.globalColors.blueDark},
+
       labelLarge: {color: Styles.globalColors.black_50},
       labelSmall: Styles.platformStyles({
         common: {color: Styles.globalColors.black},
