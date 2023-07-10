@@ -23,14 +23,10 @@ const Header = () => (
   </>
 )
 
-const getTeamSelectedCount = (state: Container.TypedState, teamID: Types.TeamID) => {
-  return state.teams.teamSelectedChannels.get(teamID)
-}
-
 const DeleteChannel = (props: Props) => {
   const teamID = props.teamID ?? Types.noTeamID
   const routePropChannel = props.conversationIDKey
-  const storeSelectedChannels = Container.useSelector(state => getTeamSelectedCount(state, teamID))
+  const storeSelectedChannels = Constants.useState(s => s.teamSelectedChannels.get(teamID))
 
   // When the channels get deleted, the values in the store are gone but we should keep displaying the same thing.
   const [channelIDs] = React.useState<ChatTypes.ConversationIDKey[]>(
@@ -61,6 +57,8 @@ const DeleteChannel = (props: Props) => {
 
   const dispatch = Container.useDispatch()
 
+  const setChannelSelected = Constants.useState(s => s.dispatch.setChannelSelected)
+
   const onDelete = () => {
     dispatch(
       TeamsGen.createDeleteMultiChannelsConfirmed({
@@ -68,14 +66,7 @@ const DeleteChannel = (props: Props) => {
         teamID,
       })
     )
-    dispatch(
-      TeamsGen.createSetChannelSelected({
-        channel: '',
-        clearAll: true,
-        selected: false,
-        teamID: teamID,
-      })
-    )
+    setChannelSelected(teamID, '', false, true)
   }
 
   const onCancel = () => {

@@ -2,7 +2,7 @@ import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import * as TeamsGen from '../../../../actions/teams-gen'
+import * as Constants from '../../../../constants/teams'
 import type * as Types from '../../../../constants/types/teams'
 import {typeToLabel} from '../../../../constants/teams'
 import type {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
@@ -83,15 +83,17 @@ export const TeamMemberRow = (props: Props) => {
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const teamSelectedMembers = Container.useSelector(state => state.teams.teamSelectedMembers.get(teamID))
+  const teamSelectedMembers = Constants.useState(s => s.teamSelectedMembers.get(teamID))
   const anySelected = !!teamSelectedMembers?.size
   const selected = !!teamSelectedMembers?.has(props.username)
 
+  const setMemberSelected = Constants.useState(s => s.dispatch.setMemberSelected)
+
   const onSelect = React.useCallback(
     (selected: boolean) => {
-      dispatch(TeamsGen.createTeamSetMemberSelected({selected, teamID, username: props.username}))
+      setMemberSelected(teamID, props.username, selected)
     },
-    [dispatch, teamID, props.username]
+    [setMemberSelected, teamID, props.username]
   )
 
   const canEnterMemberPage = props.youCanManageMembers && active && !props.needsPUK

@@ -18,8 +18,8 @@ const ChannelRow = (props: ChannelRowProps) => {
   const channel = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const isGeneral = channel.channelname === 'general'
 
-  const selected = Container.useSelector(
-    state => !!state.teams.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey)
+  const selected = Constants.useState(
+    s => !!s.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey)
   )
   const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
   const canDelete = canPerform.deleteChannel && !isGeneral
@@ -33,10 +33,10 @@ const ChannelRow = (props: ChannelRowProps) => {
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+
+  const setChannelSelected = Constants.useState(s => s.dispatch.setChannelSelected)
   const onSelect = (newSelected: boolean) => {
-    dispatch(
-      TeamsGen.createSetChannelSelected({channel: channel.conversationIDKey, selected: newSelected, teamID})
-    )
+    setChannelSelected(teamID, channel.conversationIDKey, newSelected)
   }
 
   const onEditChannel = React.useCallback(() => {

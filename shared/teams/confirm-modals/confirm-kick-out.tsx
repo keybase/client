@@ -37,16 +37,10 @@ const ConfirmKickOut = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
 
+  const setMemberSelected = Constants.useState(s => s.dispatch.setMemberSelected)
   // TODO(Y2K-1592): do this in one RPC
   const onRemove = () => {
-    dispatch(
-      TeamsGen.createTeamSetMemberSelected({
-        clearAll: true,
-        selected: false,
-        teamID: teamID,
-        username: '',
-      })
-    )
+    setMemberSelected(teamID, '', false, true)
 
     members.forEach(member =>
       dispatch(

@@ -247,8 +247,6 @@ const emptyState: Types.State = {
   teamMemberToTreeMemberships: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
-  teamSelectedChannels: new Map(),
-  teamSelectedMembers: new Map(),
   teamVersion: new Map(),
   treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
@@ -1004,6 +1002,8 @@ export type Store = {
   subteamsFiltered: Set<Types.TeamID> | undefined
   teamDetails: Map<Types.TeamID, Types.TeamDetails>
   teamDetailsSubscriptionCount: Map<Types.TeamID, number> // >0 if we are eagerly reloading a team
+  teamSelectedChannels: Map<Types.TeamID, Set<string>>
+  teamSelectedMembers: Map<Types.TeamID, Set<string>>
 }
 
 const initialStore: Store = {
@@ -1038,6 +1038,8 @@ const initialStore: Store = {
   teamMetaSubscribeCount: 0,
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
+  teamSelectedChannels: new Map(),
+  teamSelectedMembers: new Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
 }
@@ -1092,6 +1094,7 @@ export type State = Store & {
     resetErrorInTeamCreation: () => void
     resetTeamMetaStale: () => void
     setChannelCreationError: (error: string) => void
+    setChannelSelected: (teamID: Types.TeamID, channel: string, selected: boolean, clearAll?: boolean) => void
     setSubteamFilter: (filter: string, parentTeam?: Types.TeamID) => void
     setTeamSawChatBanner: () => void
     setTeamSawSubteamsBanner: () => void
@@ -1108,6 +1111,7 @@ export type State = Store & {
     toggleInvitesCollapsed: (teamID: Types.TeamID) => void
     unsubscribeTeamList: () => void
     unsubscribeTeamDetails: (teamID: Types.TeamID) => void
+    setMemberSelected: (teamID: Types.TeamID, username: string, selected: boolean, clearAll?: boolean) => void
   }
 }
 
@@ -1738,6 +1742,20 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.errorInChannelCreation = error
       })
     },
+    setChannelSelected: (teamID, channel, selected, clearAll) => {
+      set(s => {
+        if (clearAll) {
+          s.teamSelectedChannels.delete(teamID)
+        } else {
+          const channelsSelected = mapGetEnsureValue(s.teamSelectedChannels, teamID, new Set())
+          if (selected) {
+            channelsSelected.add(channel)
+          } else {
+            channelsSelected.delete(channel)
+          }
+        }
+      })
+    },
     setMemberPublicity: (teamID, showcase) => {
       const f = async () => {
         try {
@@ -1755,6 +1773,20 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    setMemberSelected: (teamID, username, selected, clearAll) => {
+      set(s => {
+        if (clearAll) {
+          s.teamSelectedMembers.delete(teamID)
+        } else {
+          const membersSelected = mapGetEnsureValue(s.teamSelectedMembers, teamID, new Set())
+          if (selected) {
+            membersSelected.add(username)
+          } else {
+            membersSelected.delete(username)
+          }
+        }
+      })
     },
     setNewTeamInfo: (deletedTeams, newTeams, teamIDToResetUsers) => {
       set(s => {

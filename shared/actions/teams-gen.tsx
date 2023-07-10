@@ -45,7 +45,6 @@ export const respondToInviteLink = 'teams:respondToInviteLink'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const setAddMembersWizardIndividualRole = 'teams:setAddMembersWizardIndividualRole'
 export const setAddMembersWizardRole = 'teams:setAddMembersWizardRole'
-export const setChannelSelected = 'teams:setChannelSelected'
 export const setJustFinishedAddMembersWizard = 'teams:setJustFinishedAddMembersWizard'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setMembers = 'teams:setMembers'
@@ -74,7 +73,6 @@ export const showTeamByName = 'teams:showTeamByName'
 export const startAddMembersWizard = 'teams:startAddMembersWizard'
 export const startNewTeamWizard = 'teams:startNewTeamWizard'
 export const teamSeen = 'teams:teamSeen'
-export const teamSetMemberSelected = 'teams:teamSetMemberSelected'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateInviteLinkDetails = 'teams:updateInviteLinkDetails'
 export const updateTopic = 'teams:updateTopic'
@@ -183,24 +181,6 @@ export const createSetAddMembersWizardIndividualRole = (payload: {
 export const createSetAddMembersWizardRole = (payload: {
   readonly role: Types.AddingMemberTeamRoleType | 'setIndividually'
 }) => ({payload, type: setAddMembersWizardRole as typeof setAddMembersWizardRole})
-/**
- * Sets whether a channel is selected on the team page
- */
-export const createSetChannelSelected = (payload: {
-  readonly teamID: Types.TeamID
-  readonly channel: string
-  readonly selected: boolean
-  readonly clearAll?: boolean
-}) => ({payload, type: setChannelSelected as typeof setChannelSelected})
-/**
- * Sets whether a member is selected on the team page
- */
-export const createTeamSetMemberSelected = (payload: {
-  readonly teamID: Types.TeamID
-  readonly username: string
-  readonly selected: boolean
-  readonly clearAll?: boolean
-}) => ({payload, type: teamSetMemberSelected as typeof teamSetMemberSelected})
 /**
  * Setup store and navigate to start of add members wizard.
  */
@@ -504,7 +484,6 @@ export type SetAddMembersWizardIndividualRolePayload = ReturnType<
   typeof createSetAddMembersWizardIndividualRole
 >
 export type SetAddMembersWizardRolePayload = ReturnType<typeof createSetAddMembersWizardRole>
-export type SetChannelSelectedPayload = ReturnType<typeof createSetChannelSelected>
 export type SetJustFinishedAddMembersWizardPayload = ReturnType<typeof createSetJustFinishedAddMembersWizard>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type SetMembersPayload = ReturnType<typeof createSetMembers>
@@ -535,7 +514,6 @@ export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
 export type StartAddMembersWizardPayload = ReturnType<typeof createStartAddMembersWizard>
 export type StartNewTeamWizardPayload = ReturnType<typeof createStartNewTeamWizard>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
-export type TeamSetMemberSelectedPayload = ReturnType<typeof createTeamSetMemberSelected>
 export type UpdateChannelNamePayload = ReturnType<typeof createUpdateChannelName>
 export type UpdateInviteLinkDetailsPayload = ReturnType<typeof createUpdateInviteLinkDetails>
 export type UpdateTopicPayload = ReturnType<typeof createUpdateTopic>
@@ -582,7 +560,6 @@ export type Actions =
   | SaveChannelMembershipPayload
   | SetAddMembersWizardIndividualRolePayload
   | SetAddMembersWizardRolePayload
-  | SetChannelSelectedPayload
   | SetJustFinishedAddMembersWizardPayload
   | SetMemberActivityDetailsPayload
   | SetMembersPayload
@@ -611,7 +588,6 @@ export type Actions =
   | StartAddMembersWizardPayload
   | StartNewTeamWizardPayload
   | TeamSeenPayload
-  | TeamSetMemberSelectedPayload
   | UpdateChannelNamePayload
   | UpdateInviteLinkDetailsPayload
   | UpdateTopicPayload

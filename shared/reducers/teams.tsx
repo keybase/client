@@ -69,32 +69,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamProfileAddList]: (draftState, action) => {
     draftState.teamProfileAddList = action.payload.teamlist
   },
-  [TeamsGen.setChannelSelected]: (draftState, action) => {
-    const {teamID, channel, selected, clearAll} = action.payload
-    if (clearAll) {
-      draftState.teamSelectedChannels.delete(teamID)
-    } else {
-      const channelsSelected = mapGetEnsureValue(draftState.teamSelectedChannels, teamID, new Set())
-      if (selected) {
-        channelsSelected.add(channel)
-      } else {
-        channelsSelected.delete(channel)
-      }
-    }
-  },
-  [TeamsGen.teamSetMemberSelected]: (draftState, action) => {
-    const {teamID, username, selected, clearAll} = action.payload
-    if (clearAll) {
-      draftState.teamSelectedMembers.delete(teamID)
-    } else {
-      const membersSelected = mapGetEnsureValue(draftState.teamSelectedMembers, teamID, new Set())
-      if (selected) {
-        membersSelected.add(username)
-      } else {
-        membersSelected.delete(username)
-      }
-    }
-  },
   [TeamsGen.setTeamRoleMapLatestKnownVersion]: (draftState, action) => {
     draftState.teamRoleMap.latestKnownVersion = action.payload.version
   },

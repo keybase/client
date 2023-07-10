@@ -5,7 +5,6 @@ import type * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {pluralize} from '../../util/string'
 import {FloatingRolePicker} from '../role-picker'
@@ -40,16 +39,6 @@ type Props = TeamProps | ChannelProps | UnselectableProps
 const isChannel = (props: Props): props is ChannelProps => ['channelMembers'].includes(props.selectedTab)
 const isTeam = (props: Props): props is TeamProps =>
   ['teamChannels', 'teamMembers'].includes(props.selectedTab)
-
-const getTeamSelectedCount = (state: Container.TypedState, props: TeamProps) => {
-  const {selectedTab, teamID} = props
-  switch (selectedTab) {
-    case 'teamChannels':
-      return state.teams.teamSelectedChannels.get(teamID)?.size ?? 0
-    case 'teamMembers':
-      return state.teams.teamSelectedMembers.get(teamID)?.size ?? 0
-  }
-}
 
 const getChannelSelectedCount = (props: ChannelProps) => {
   const {conversationIDKey, selectedTab} = props
@@ -142,30 +131,23 @@ const JointSelectionPopup = (props: JointSelectionPopupProps) => {
 
 const TeamSelectionPopup = (props: TeamProps) => {
   const {selectedTab, teamID} = props
-  const selectedCount = Container.useSelector(state => getTeamSelectedCount(state, props))
-  const dispatch = Container.useDispatch()
+
+  const selectedCount = Constants.useState(s =>
+    selectedTab === 'teamChannels'
+      ? s.teamSelectedChannels.get(teamID)?.size ?? 0
+      : s.teamSelectedMembers.get(teamID)?.size ?? 0
+  )
+
+  const setChannelSelected = Constants.useState(s => s.dispatch.setChannelSelected)
+  const setMemberSelected = Constants.useState(s => s.dispatch.setMemberSelected)
 
   const onCancel = () => {
     switch (selectedTab) {
       case 'teamChannels':
-        dispatch(
-          TeamsGen.createSetChannelSelected({
-            channel: '',
-            clearAll: true,
-            selected: false,
-            teamID: teamID,
-          })
-        )
+        setChannelSelected(teamID, '', false, true)
         return
       case 'teamMembers':
-        dispatch(
-          TeamsGen.createTeamSetMemberSelected({
-            clearAll: true,
-            selected: false,
-            teamID: teamID,
-            username: '',
-          })
-        )
+        setMemberSelected(teamID, '', false, true)
         return
     }
   }
@@ -222,7 +204,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const dispatch = Container.useDispatch()
-  const membersSet = Container.useSelector(s => s.teams.teamSelectedMembers.get(teamID))
+  const membersSet = Constants.useState(s => s.teamSelectedMembers.get(teamID))
   const isBigTeam = Container.useSelector(s => Constants.isBigTeam(s, teamID))
   if (!membersSet) {
     // we shouldn't be rendered
