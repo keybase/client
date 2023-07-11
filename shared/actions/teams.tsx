@@ -90,47 +90,6 @@ const leaveTeam = async (_: unknown, action: TeamsGen.LeaveTeamPayload) => {
 
 const leftTeam = () => RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
 
-const getTeamRetentionPolicy = async (_: unknown, action: TeamsGen.GetTeamRetentionPolicyPayload) => {
-  const {teamID} = action.payload
-  let retentionPolicy = Constants.makeRetentionPolicy()
-  try {
-    const policy = await RPCChatTypes.localGetTeamRetentionLocalRpcPromise(
-      {teamID},
-      Constants.teamWaitingKey(teamID)
-    )
-    try {
-      retentionPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(policy)
-      if (retentionPolicy.type === 'inherit') {
-        throw new Error(`RPC returned retention policy of type 'inherit' for team policy`)
-      }
-    } catch (error) {
-      if (error instanceof RPCError) {
-        logger.error(error.message)
-      }
-    }
-  } catch (_) {}
-  return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy, teamID})
-}
-
-const updateTeamRetentionPolicy = (_: unknown, action: Chat2Gen.UpdateTeamRetentionPolicyPayload) => {
-  const {metas} = action.payload
-  const first = metas[0]
-  if (!first) {
-    logger.warn('Got updateTeamRetentionPolicy with no convs; aborting. Local copy may be out of date')
-    return
-  }
-  const {teamRetentionPolicy, teamID} = first
-  try {
-    return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy: teamRetentionPolicy, teamID})
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(error.message)
-      throw error
-    }
-  }
-  return
-}
-
 const addReAddErrorHandler = (username: string, e: RPCError) => {
   // identify error
   if (e.code === RPCTypes.StatusCode.scidentifysummaryerror) {
@@ -773,8 +732,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
   Container.listenAction(TeamsGen.inviteToTeamByPhone, inviteToTeamByPhone)
   Container.listenAction(TeamsGen.setPublicity, setPublicity)
-  Container.listenAction(TeamsGen.getTeamRetentionPolicy, getTeamRetentionPolicy)
-  Container.listenAction(Chat2Gen.updateTeamRetentionPolicy, updateTeamRetentionPolicy)
   Container.listenAction(TeamsGen.renameTeam, renameTeam)
   Container.listenAction(TeamsGen.manageChatChannels, manageChatChannels)
   Container.listenAction(GregorGen.pushState, gregorPushState)

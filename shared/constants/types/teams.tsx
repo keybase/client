@@ -1,6 +1,5 @@
 import type * as RPCTypes from './rpc-gen'
 import type {ConversationIDKey} from './chat2'
-import type {RetentionPolicy} from './retention-policy'
 import type {TeamBuildingSubState} from './team-building'
 
 export type TeamID = string
@@ -232,8 +231,6 @@ export type TeamInviteState = {
 }
 
 export type State = {
-  teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
-
   treeLoaderTeamIDToSparseMemberInfos: Map<TeamID, Map<string, TreeloaderSparseMemberInfo>>
   teamMemberToTreeMemberships: Map<TeamID, Map<string, TeamTreeMemberships>>
 

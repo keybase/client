@@ -2,7 +2,6 @@
 import type * as RPCTypes from '../constants/types/rpc-gen'
 import type {ConversationIDKey} from '../constants/types/chat2'
 import type * as Types from '../constants/types/teams'
-import type {RetentionPolicy} from '../constants/types/retention-policy'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
@@ -15,7 +14,6 @@ export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const deleteTeam = 'teams:deleteTeam'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
-export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
 export const ignoreRequest = 'teams:ignoreRequest'
 export const inviteToTeamByPhone = 'teams:inviteToTeamByPhone'
 export const leaveTeam = 'teams:leaveTeam'
@@ -31,7 +29,6 @@ export const saveChannelMembership = 'teams:saveChannelMembership'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setPublicity = 'teams:setPublicity'
 export const setTeamProfileAddList = 'teams:setTeamProfileAddList'
-export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
 export const setTeamVersion = 'teams:setTeamVersion'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
@@ -42,13 +39,6 @@ export const updateTopic = 'teams:updateTopic'
 export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Action Creators
-/**
- * Gets the team retention policy and stores in `state.entities.teams.teamIDToRetentionPolicy`.
- */
-export const createGetTeamRetentionPolicy = (payload: {readonly teamID: Types.TeamID}) => ({
-  payload,
-  type: getTeamRetentionPolicy as typeof getTeamRetentionPolicy,
-})
 /**
  * Rename a subteam
  */
@@ -174,10 +164,6 @@ export const createSetPublicity = (payload: {
 export const createSetTeamProfileAddList = (payload: {
   readonly teamlist: Array<Types.TeamProfileAddList>
 }) => ({payload, type: setTeamProfileAddList as typeof setTeamProfileAddList})
-export const createSetTeamRetentionPolicy = (payload: {
-  readonly teamID: Types.TeamID
-  readonly retentionPolicy: RetentionPolicy
-}) => ({payload, type: setTeamRetentionPolicy as typeof setTeamRetentionPolicy})
 export const createSetTeamVersion = (payload: {
   readonly teamID: Types.TeamID
   readonly version: Types.TeamVersion
@@ -218,7 +204,6 @@ export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChanne
 export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
 export type DeleteTeamPayload = ReturnType<typeof createDeleteTeam>
 export type GetTeamProfileAddListPayload = ReturnType<typeof createGetTeamProfileAddList>
-export type GetTeamRetentionPolicyPayload = ReturnType<typeof createGetTeamRetentionPolicy>
 export type IgnoreRequestPayload = ReturnType<typeof createIgnoreRequest>
 export type InviteToTeamByPhonePayload = ReturnType<typeof createInviteToTeamByPhone>
 export type LeaveTeamPayload = ReturnType<typeof createLeaveTeam>
@@ -234,7 +219,6 @@ export type SaveChannelMembershipPayload = ReturnType<typeof createSaveChannelMe
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
 export type SetTeamProfileAddListPayload = ReturnType<typeof createSetTeamProfileAddList>
-export type SetTeamRetentionPolicyPayload = ReturnType<typeof createSetTeamRetentionPolicy>
 export type SetTeamVersionPayload = ReturnType<typeof createSetTeamVersion>
 export type SetUpdatedChannelNamePayload = ReturnType<typeof createSetUpdatedChannelName>
 export type SetUpdatedTopicPayload = ReturnType<typeof createSetUpdatedTopic>
@@ -255,7 +239,6 @@ export type Actions =
   | DeleteMultiChannelsConfirmedPayload
   | DeleteTeamPayload
   | GetTeamProfileAddListPayload
-  | GetTeamRetentionPolicyPayload
   | IgnoreRequestPayload
   | InviteToTeamByPhonePayload
   | LeaveTeamPayload
@@ -271,7 +254,6 @@ export type Actions =
   | SetMemberActivityDetailsPayload
   | SetPublicityPayload
   | SetTeamProfileAddListPayload
-  | SetTeamRetentionPolicyPayload
   | SetTeamVersionPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload

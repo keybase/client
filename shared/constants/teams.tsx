@@ -230,7 +230,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  teamIDToRetentionPolicy: new Map(),
   teamMemberToLastActivity: new Map(),
   teamMemberToTreeMemberships: new Map(),
   teamProfileAddList: [],
@@ -492,8 +491,8 @@ export const getTeamID = (state: State, teamname: Types.Teamname) =>
 
 export const getTeamNameFromID = (state: State, teamID: Types.TeamID) => state.teamMeta.get(teamID)?.teamname
 
-export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamIDToRetentionPolicy.get(teamID)
+export const getTeamRetentionPolicyByID = (state: State, teamID: Types.TeamID) =>
+  state.teamIDToRetentionPolicy.get(teamID)
 
 /**
  *  Gets the number of channels you're subscribed to on a team
@@ -997,6 +996,7 @@ export type Store = {
   teamJoinSuccessTeamName: string
   teamVersion: Map<Types.TeamID, Types.TeamVersion>
   teamIDToMembers: Map<Types.TeamID, Map<string, Types.MemberInfo>> // Used by chat sidebar until team loading gets easier
+  teamIDToRetentionPolicy: Map<Types.TeamID, RetentionPolicy>
 }
 
 const initialStore: Store = {
@@ -1030,6 +1030,7 @@ const initialStore: Store = {
   teamDetailsSubscriptionCount: new Map(),
   teamIDToMembers: new Map(),
   teamIDToResetUsers: new Map(),
+  teamIDToRetentionPolicy: new Map(),
   teamIDToWelcomeMessage: new Map(),
   teamInviteDetails: {inviteID: '', inviteKey: ''},
   teamJoinSuccess: false,
@@ -1089,10 +1090,11 @@ export type State = Store & {
     createNewTeamFromConversation: (conversationIDKey: ChatTypes.ConversationIDKey, teamname: string) => void
     editMembership: (teamID: Types.TeamID, usernames: Array<string>, role: Types.TeamRoleType) => void
     editTeamDescription: (teamID: Types.TeamID, description: string) => void
-    finishedAddMembersWizard: () => void
     finishNewTeamWizard: () => void
+    finishedAddMembersWizard: () => void
     getActivityForTeams: () => void
     getMembers: (teamID: Types.TeamID) => void
+    getTeamRetentionPolicy: (teamID: Types.TeamID) => void
     getTeams: (subscribe?: boolean, forceReload?: boolean) => void
     inviteToTeamByEmail: (
       invitees: string,
@@ -1146,8 +1148,8 @@ export type State = Store & {
       profileShowcase: boolean
       addYourself: boolean
     }) => void
-    setTeamWizardSubteams: (subteams: Array<string>) => void
     setTeamWizardSubteamMembers: (members: Array<string>) => void
+    setTeamWizardSubteams: (subteams: Array<string>) => void
     setTeamWizardTeamSize: (isBig: boolean) => void
     setTeamWizardTeamType: (teamType: Types.TeamWizardTeamType) => void
     setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<Types.TeamID>) => void
@@ -1157,6 +1159,7 @@ export type State = Store & {
     toggleInvitesCollapsed: (teamID: Types.TeamID) => void
     unsubscribeTeamDetails: (teamID: Types.TeamID) => void
     unsubscribeTeamList: () => void
+    updateTeamRetentionPolicy: (metas: Array<ChatTypes.ConversationMeta>) => void
   }
 }
 
@@ -1724,6 +1727,31 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         }
         return
+      }
+      Z.ignorePromise(f())
+    },
+    getTeamRetentionPolicy: teamID => {
+      const f = async () => {
+        let retentionPolicy = makeRetentionPolicy()
+        try {
+          const policy = await RPCChatTypes.localGetTeamRetentionLocalRpcPromise(
+            {teamID},
+            teamWaitingKey(teamID)
+          )
+          try {
+            retentionPolicy = serviceRetentionPolicyToRetentionPolicy(policy)
+            if (retentionPolicy.type === 'inherit') {
+              throw new Error(`RPC returned retention policy of type 'inherit' for team policy`)
+            }
+          } catch (error) {
+            if (error instanceof RPCError) {
+              logger.error(error.message)
+            }
+          }
+        } catch (_) {}
+        set(s => {
+          s.teamIDToRetentionPolicy.set(teamID, retentionPolicy)
+        })
       }
       Z.ignorePromise(f())
     },
@@ -2420,6 +2448,17 @@ export const useState = Z.createZustand<State>((set, get) => {
         if (s.teamMetaSubscribeCount > 0) {
           s.teamMetaSubscribeCount--
         }
+      })
+    },
+    updateTeamRetentionPolicy: metas => {
+      const first = metas[0]
+      if (!first) {
+        logger.warn('Got updateTeamRetentionPolicy with no convs; aborting. Local copy may be out of date')
+        return
+      }
+      const {teamRetentionPolicy, teamID} = first
+      set(s => {
+        s.teamIDToRetentionPolicy.set(teamID, teamRetentionPolicy)
       })
     },
   }

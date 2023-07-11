@@ -30,7 +30,7 @@ export default (ownProps: OwnProps) => {
   } else if (!entityType.endsWith('team')) {
     throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
   }
-  const tempPolicy = Container.useSelector(state => Constants.getTeamRetentionPolicyByID(state, teamID))
+  const tempPolicy = Constants.useState(s => Constants.getTeamRetentionPolicyByID(s, teamID))
   if (entityType !== 'adhoc') {
     loading = !tempPolicy
     if (tempPolicy) {
