@@ -1,98 +1,28 @@
-/// TODO the relationships here are often inverted. we want to clear actions when a bunch of actions happen
-// not have every handler clear it themselves. this reduces the number of actionChains
-import * as EngineGen from './engine-gen-gen'
-import * as TeamBuildingGen from './team-building-gen'
-import type * as Types from '../constants/types/teams'
-import * as Constants from '../constants/teams'
 import * as ConfigConstants from '../constants/config'
-import type * as RPCTypes from '../constants/types/rpc-gen'
-import * as Tabs from '../constants/tabs'
-import * as RouteTreeGen from './route-tree-gen'
-import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
-import * as GregorGen from './gregor-gen'
-import * as GregorConstants from '../constants/gregor'
-import * as Router2Constants from '../constants/router2'
-import {commonListenActions, filterForNs} from './team-building'
+import * as Constants from '../constants/teams'
 import * as Container from '../util/container'
-import {mapGetEnsureValue} from '../util/map'
+import * as EngineGen from './engine-gen-gen'
+import * as GregorGen from './gregor-gen'
+import * as NotificationsGen from './notifications-gen'
+import * as RouteTreeGen from './route-tree-gen'
+import * as Router2Constants from '../constants/router2'
+import * as Tabs from '../constants/tabs'
+import * as TeamBuildingGen from './team-building-gen'
 import logger from '../logger'
-
-const teamDeletedOrExit = () => {
-  if (Router2Constants.getTab() == Tabs.teamsTab) {
-    return RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
-  }
-  return false
-}
-
-const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
-  const actions: Array<Container.TypedActions> = []
-  const items = action.payload.state
-  let sawChatBanner = false
-  let sawSubteamsBanner = false
-  let chosenChannels: undefined | (typeof items)[0]
-  const newTeamRequests = new Map<Types.TeamID, Set<string>>()
-  items.forEach(i => {
-    if (i.item.category === 'sawChatBanner') {
-      sawChatBanner = true
-    }
-    if (i.item.category === 'sawSubteamsBanner') {
-      sawSubteamsBanner = true
-    }
-    if (i.item.category === Constants.chosenChannelsGregorKey) {
-      chosenChannels = i
-    }
-    if (i.item.category.startsWith(Constants.newRequestsGregorPrefix)) {
-      const body = GregorConstants.bodyToJSON(i.item.body)
-      if (body) {
-        const request: {id: Types.TeamID; username: string} = body
-        const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
-        requests.add(request.username)
-      }
-    }
-  })
-
-  if (sawChatBanner) {
-    Constants.useState.getState().dispatch.setTeamSawChatBanner()
-  }
-
-  if (sawSubteamsBanner) {
-    Constants.useState.getState().dispatch.setTeamSawSubteamsBanner()
-  }
-
-  Constants.useState.getState().dispatch.setNewTeamRequests(newTeamRequests)
-
-  const teamsWithChosenChannels = new Set<Types.Teamname>(
-    GregorConstants.bodyToJSON(chosenChannels?.item.body)
-  )
-
-  Constants.useState.getState().dispatch.setTeamsWithChosenChannels(teamsWithChosenChannels)
-  return actions
-}
-
-function addThemToTeamFromTeamBuilder(
-  state: Container.TypedState,
-  {payload: {teamID}}: TeamBuildingGen.FinishTeamBuildingPayload
-) {
-  if (!teamID) {
-    logger.error("Trying to add them to a team, but I don't know what the teamID is.")
-    return
-  }
-  Constants.useState
-    .getState()
-    .dispatch.addMembersWizardPushMembers(
-      [...state.teams.teamBuilding.teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
-    )
-  return TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'})
-}
+import type * as RPCTypes from '../constants/types/rpc-gen'
+import type * as Types from '../constants/types/teams'
+import {commonListenActions, filterForNs} from './team-building'
+import {mapGetEnsureValue} from '../util/map'
 
 const initTeams = () => {
   Container.listenAction(ConfigGen.loadOnStart, (_, action) => {
-    if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
+    if (action.payload.phase !== 'startupOrReloginButNotInARush') {
       return
     }
     Constants.useState.getState().dispatch.getTeams()
   })
+
   Container.listenAction(
     [ConfigGen.bootstrapStatusLoaded, EngineGen.keybase1NotifyTeamTeamRoleMapChanged],
     (_, action) => {
@@ -108,7 +38,9 @@ const initTeams = () => {
     }
   )
 
-  Container.listenAction(GregorGen.pushState, gregorPushState)
+  Container.listenAction(GregorGen.pushState, (_, action) => {
+    Constants.useState.getState().dispatch.onGregorPushState(action.payload.state)
+  })
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamChangedByID, (_, action) => {
     Constants.useState.getState().dispatch.teamChangedByID(action.payload.params)
   })
@@ -118,7 +50,9 @@ const initTeams = () => {
 
   Container.listenAction(
     [EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit],
-    teamDeletedOrExit
+    () => {
+      return Router2Constants.getTab() ? RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'}) : false
+    }
   )
 
   Container.listenAction([EngineGen.keybase1NotifyTeamTeamMetadataUpdate, GregorGen.updateReachable], () => {
@@ -146,7 +80,18 @@ const initTeams = () => {
   commonListenActions('teams')
   Container.listenAction(
     TeamBuildingGen.finishTeamBuilding,
-    filterForNs('teams', addThemToTeamFromTeamBuilder)
+    filterForNs('teams', (state, {payload: {teamID}}) => {
+      if (!teamID) {
+        logger.error("Trying to add them to a team, but I don't know what the teamID is.")
+        return
+      }
+      Constants.useState
+        .getState()
+        .dispatch.addMembersWizardPushMembers(
+          [...state.teams.teamBuilding.teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
+        )
+      return TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'})
+    })
   )
 
   Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {

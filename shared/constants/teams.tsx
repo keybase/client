@@ -1143,6 +1143,7 @@ export type State = Store & {
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => void
     notifyTreeMembershipsPartial: (membership: RPCChatTypes.Keybase1.TeamTreeMembership) => void
     openInviteLink: (inviteID: string, inviteKey: string) => void
+    onGregorPushState: (gs: Array<{md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}>) => void
     reAddToTeam: (teamID: Types.TeamID, username: string) => void
     refreshTeamRoleMap: () => void
     removeMember: (teamID: Types.TeamID, username: string) => void
@@ -2448,6 +2449,37 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    onGregorPushState: items => {
+      let sawChatBanner = false
+      let sawSubteamsBanner = false
+      let chosenChannels: undefined | (typeof items)[0]
+      const newTeamRequests = new Map<Types.TeamID, Set<string>>()
+      items.forEach(i => {
+        if (i.item.category === 'sawChatBanner') {
+          sawChatBanner = true
+        }
+        if (i.item.category === 'sawSubteamsBanner') {
+          sawSubteamsBanner = true
+        }
+        if (i.item.category === chosenChannelsGregorKey) {
+          chosenChannels = i
+        }
+        if (i.item.category.startsWith(newRequestsGregorPrefix)) {
+          const body = GregorConstants.bodyToJSON(i.item.body)
+          if (body) {
+            const request: {id: Types.TeamID; username: string} = body
+            const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
+            requests.add(request.username)
+          }
+        }
+      })
+      sawChatBanner && get().dispatch.setTeamSawChatBanner()
+      sawSubteamsBanner && get().dispatch.setTeamSawSubteamsBanner()
+      get().dispatch.setNewTeamRequests(newTeamRequests)
+      get().dispatch.setTeamsWithChosenChannels(
+        new Set<Types.Teamname>(GregorConstants.bodyToJSON(chosenChannels?.item.body))
+      )
     },
     openInviteLink: (inviteID, inviteKey) => {
       set(s => {
