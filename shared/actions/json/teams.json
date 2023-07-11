@@ -4,12 +4,6 @@
     "import type * as Types from '../constants/types/teams'"
   ],
   "actions": {
-    "uploadTeamAvatar": {
-      "crop?": "RPCTypes.ImageCropRect",
-      "filename": "string",
-      "sendChatNotification": "boolean",
-      "teamname": "string"
-    },
     "removeMember": {
       "teamID": "Types.TeamID",
       "username": "string"

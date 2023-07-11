@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import type * as RPCTypes from '../constants/types/rpc-gen'
+
 import type {ConversationIDKey} from '../constants/types/chat2'
 import type * as Types from '../constants/types/teams'
 
@@ -22,7 +22,6 @@ export const showTeamByName = 'teams:showTeamByName'
 export const teamSeen = 'teams:teamSeen'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
-export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Action Creators
 /**
@@ -108,12 +107,6 @@ export const createUpdateTopic = (payload: {
   readonly conversationIDKey: ConversationIDKey
   readonly newTopic: string
 }) => ({payload, type: updateTopic as typeof updateTopic})
-export const createUploadTeamAvatar = (payload: {
-  readonly crop?: RPCTypes.ImageCropRect
-  readonly filename: string
-  readonly sendChatNotification: boolean
-  readonly teamname: string
-}) => ({payload, type: uploadTeamAvatar as typeof uploadTeamAvatar})
 
 // Action Payloads
 export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
@@ -132,7 +125,6 @@ export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
 export type UpdateChannelNamePayload = ReturnType<typeof createUpdateChannelName>
 export type UpdateTopicPayload = ReturnType<typeof createUpdateTopic>
-export type UploadTeamAvatarPayload = ReturnType<typeof createUploadTeamAvatar>
 
 // All Actions
 // prettier-ignore
@@ -153,5 +145,4 @@ export type Actions =
   | TeamSeenPayload
   | UpdateChannelNamePayload
   | UpdateTopicPayload
-  | UploadTeamAvatarPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

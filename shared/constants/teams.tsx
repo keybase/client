@@ -1193,6 +1193,12 @@ export type State = Store & {
     toggleInvitesCollapsed: (teamID: Types.TeamID) => void
     unsubscribeTeamDetails: (teamID: Types.TeamID) => void
     unsubscribeTeamList: () => void
+    uploadTeamAvatar: (
+      teamname: string,
+      filename: string,
+      sendChatNotification: boolean,
+      crop?: RPCTypes.ImageCropRect
+    ) => void
     updateTeamRetentionPolicy: (metas: Array<ChatTypes.ConversationMeta>) => void
   }
 }
@@ -2820,6 +2826,23 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.teamIDToRetentionPolicy.set(teamID, teamRetentionPolicy)
       })
+    },
+    uploadTeamAvatar: (teamname, filename, sendChatNotification, crop) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsUploadTeamAvatarRpcPromise(
+            {crop, filename, sendChatNotification, teamname},
+            ProfileConstants.uploadAvatarWaitingKey
+          )
+          reduxDispatch(RouteTreeGen.createNavigateUp())
+        } catch (error) {
+          if (error instanceof RPCError) {
+            // error displayed in component
+            logger.warn(`Error uploading team avatar: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
   }
   return {

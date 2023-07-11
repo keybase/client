@@ -1,5 +1,4 @@
 import EditAvatar from '.'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
 import * as TeamsConstants from '../../constants/teams'
@@ -39,6 +38,7 @@ export default (ownProps: OwnProps) => {
     dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
     dispatch(RouteTreeGen.createClearModals())
   }
+  const uploadTeamAvatar = TeamsConstants.useState(s => s.dispatch.uploadTeamAvatar)
   const onSaveTeamAvatar = (
     _filename: string,
     teamname: string,
@@ -46,14 +46,7 @@ export default (ownProps: OwnProps) => {
     crop?: RPCTypes.ImageCropRect
   ) => {
     const filename = Styles.unnormalizePath(_filename)
-    dispatch(
-      TeamsGen.createUploadTeamAvatar({
-        crop,
-        filename,
-        sendChatNotification,
-        teamname,
-      })
-    )
+    uploadTeamAvatar(teamname, filename, sendChatNotification, crop)
   }
 
   const uploadAvatar = Constants.useState(s => s.dispatch.uploadAvatar)

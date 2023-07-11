@@ -17,28 +17,10 @@ import * as GregorGen from './gregor-gen'
 import * as GregorConstants from '../constants/gregor'
 import * as Router2Constants from '../constants/router2'
 import {commonListenActions, filterForNs} from './team-building'
-import {uploadAvatarWaitingKey} from '../constants/profile'
 import {RPCError} from '../util/errors'
 import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
-
-const uploadAvatar = async (_: unknown, action: TeamsGen.UploadTeamAvatarPayload) => {
-  const {crop, filename, sendChatNotification, teamname} = action.payload
-  try {
-    await RPCTypes.teamsUploadTeamAvatarRpcPromise(
-      {crop, filename, sendChatNotification, teamname},
-      uploadAvatarWaitingKey
-    )
-    return RouteTreeGen.createNavigateUp()
-  } catch (error) {
-    if (error instanceof RPCError) {
-      // error displayed in component
-      logger.warn(`Error uploading team avatar: ${error.message}`)
-    }
-  }
-  return
-}
 
 const removeMember = async (_: Container.TypedState, action: TeamsGen.RemoveMemberPayload) => {
   const {teamID, username} = action.payload
@@ -409,7 +391,6 @@ const initTeams = () => {
   )
 
   Container.listenAction(TeamsGen.ignoreRequest, ignoreRequest)
-  Container.listenAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
   Container.listenAction(TeamsGen.removeMember, removeMember)
   Container.listenAction(TeamsGen.removePendingInvite, removePendingInvite)
   Container.listenAction(TeamsGen.updateTopic, updateTopic)
