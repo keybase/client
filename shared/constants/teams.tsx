@@ -231,9 +231,7 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 const emptyState: Types.State = {
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamMemberToLastActivity: new Map(),
-  teamMemberToTreeMemberships: new Map(),
   teamProfileAddList: [],
-  treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
 
 export const makeState = (s?: Partial<Types.State>): Types.State =>
@@ -927,12 +925,12 @@ export const consumeTeamTreeMembershipValue = (
 // maybeGetSparseMemberInfo first looks in the details, which should be kept up-to-date, then looks
 // in the treeloader-powered map (which can go stale) as a backup. If it returns null, it means we
 // don't know the answer (yet). If it returns type='none', that means the user is not in the team.
-export const maybeGetSparseMemberInfo = (state: TypedState, teamID: string, username: string) => {
+export const maybeGetSparseMemberInfo = (state: State, teamID: string, username: string) => {
   const details = useState.getState().teamDetails.get(teamID)
   if (details) {
     return details.members.get(username) ?? {type: 'none'}
   }
-  return state.teams.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
+  return state.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
 }
 
 export const countValidInviteLinks = (inviteLinks: Array<Types.InviteLink>): Number => {
@@ -997,6 +995,8 @@ export type Store = {
   teamVersion: Map<Types.TeamID, Types.TeamVersion>
   teamIDToMembers: Map<Types.TeamID, Map<string, Types.MemberInfo>> // Used by chat sidebar until team loading gets easier
   teamIDToRetentionPolicy: Map<Types.TeamID, RetentionPolicy>
+  treeLoaderTeamIDToSparseMemberInfos: Map<Types.TeamID, Map<string, Types.TreeloaderSparseMemberInfo>>
+  teamMemberToTreeMemberships: Map<Types.TeamID, Map<string, Types.TeamTreeMemberships>>
 }
 
 const initialStore: Store = {
@@ -1038,6 +1038,7 @@ const initialStore: Store = {
   teamJoinSuccessTeamName: '',
   teamListFilter: '',
   teamListSort: 'role',
+  teamMemberToTreeMemberships: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
   teamMetaSubscribeCount: 0,
@@ -1049,6 +1050,7 @@ const initialStore: Store = {
   teamVersion: new Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
+  treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
 
 export type State = Store & {
@@ -1109,6 +1111,8 @@ export type State = Store & {
     loadTeamChannelList: (teamID: Types.TeamID) => void
     loadWelcomeMessage: (teamID: Types.TeamID) => void
     loadedWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessageDisplay) => void
+    notifyTreeMembershipsPartial: (membership: RPCChatTypes.Keybase1.TeamTreeMembership) => void
+    notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => void
     openInviteLink: (inviteID: string, inviteKey: string) => void
     refreshTeamRoleMap: () => void
     requestInviteLinkDetails: () => void
@@ -2053,6 +2057,59 @@ export const useState = Z.createZustand<State>((set, get) => {
     loadedWelcomeMessage: (teamID, message) => {
       set(s => {
         s.teamIDToWelcomeMessage.set(teamID, message)
+      })
+    },
+    notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => {
+      const {guid, targetTeamID, targetUsername, expectedCount} = result
+      set(s => {
+        const usernameMemberships = mapGetEnsureValue(s.teamMemberToTreeMemberships, targetTeamID, new Map())
+        let memberships = usernameMemberships.get(targetUsername)
+        if (memberships && guid < memberships.guid) {
+          // noop
+          return
+        }
+        if (!memberships || guid > memberships.guid) {
+          // start over
+          memberships = {
+            guid,
+            memberships: [],
+            targetTeamID,
+            targetUsername,
+          }
+          usernameMemberships.set(targetUsername, memberships)
+        }
+        memberships.expectedCount = expectedCount
+      })
+    },
+    notifyTreeMembershipsPartial: membership => {
+      const {guid, targetTeamID, targetUsername} = membership
+      set(s => {
+        const usernameMemberships = mapGetEnsureValue(s.teamMemberToTreeMemberships, targetTeamID, new Map())
+        let memberships = usernameMemberships.get(targetUsername)
+        if (memberships && guid < memberships.guid) {
+          // noop
+          return
+        }
+        if (!memberships || guid > memberships.guid) {
+          // start over
+          memberships = {
+            guid,
+            memberships: [],
+            targetTeamID,
+            targetUsername,
+          }
+          usernameMemberships.set(targetUsername, memberships)
+        }
+        memberships.memberships.push(membership)
+        if (RPCTypes.TeamTreeMembershipStatus.ok == membership.result.s) {
+          const value = membership.result.ok
+          const sparseMemberInfos = mapGetEnsureValue(
+            s.treeLoaderTeamIDToSparseMemberInfos,
+            value.teamID,
+            new Map()
+          )
+          sparseMemberInfos.set(targetUsername, consumeTeamTreeMembershipValue(value))
+        }
       })
     },
     openInviteLink: (inviteID, inviteKey) => {

@@ -801,6 +801,16 @@ const initTeams = () => {
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamMetadataUpdate, () => {
     Constants.useState.getState().dispatch.resetTeamMetaStale()
   })
+
+  Container.listenAction(EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial, (_, action) => {
+    const {membership} = action.payload.params
+    Constants.useState.getState().dispatch.notifyTreeMembershipsPartial(membership)
+  })
+
+  Container.listenAction(EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone, (_, action) => {
+    const {result} = action.payload.params
+    Constants.useState.getState().dispatch.notifyTreeMembershipsDone(result)
+  })
 }
 
 export default initTeams

@@ -231,9 +231,6 @@ export type TeamInviteState = {
 }
 
 export type State = {
-  treeLoaderTeamIDToSparseMemberInfos: Map<TeamID, Map<string, TreeloaderSparseMemberInfo>>
-  teamMemberToTreeMemberships: Map<TeamID, Map<string, TeamTreeMemberships>>
-
   teamMemberToLastActivity: Map<TeamID, Map<string, number>>
   teamProfileAddList: Array<TeamProfileAddList>
   teamBuilding: TeamBuildingSubState

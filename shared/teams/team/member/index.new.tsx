@@ -41,7 +41,7 @@ type TeamTreeRowIn = {
 } & TeamTreeRowNotIn
 
 const getMemberships = (
-  state: Container.TypedState,
+  state: Constants.State,
   teamIDs: Array<Types.TeamID>,
   username: string
 ): Map<Types.TeamID, Types.TreeloaderSparseMemberInfo> => {
@@ -61,9 +61,7 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
   const nodesIn: Array<TeamTreeRowIn> = []
 
-  const memberships = Container.useSelector(state =>
-    state.teams.teamMemberToTreeMemberships.get(targetTeamID)?.get(username)
-  )
+  const memberships = Constants.useState(s => s.teamMemberToTreeMemberships.get(targetTeamID)?.get(username))
   const roleMap = Constants.useState(s => s.teamRoleMap.roles)
   const teamMetas = Constants.useState(s => s.teamMeta)
 
@@ -75,8 +73,8 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
     memberships?.memberships
       .filter(m => m.result.s === RPCTypes.TeamTreeMembershipStatus.ok)
       .map(m => (m.result as TreeMembershipOK).ok.teamID) ?? []
-  const upToDateSparseMemberInfos = Container.useSelector(
-    state => getMemberships(state, teamIDs, username),
+  const upToDateSparseMemberInfos = Constants.useState(
+    s => getMemberships(s, teamIDs, username),
     isEqual // Since this makes a new map every time, do a deep equality comparison to see if it actually changed
   )
 
@@ -149,8 +147,8 @@ const TeamMember = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
 
   const isMe = username === ConfigConstants.useCurrentUserState(s => s.username)
-  const loading = Container.useSelector(state => {
-    const memberships = state.teams.teamMemberToTreeMemberships.get(teamID)?.get(username)
+  const loading = Constants.useState(s => {
+    const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
     if (!memberships || !memberships.expectedCount) {
       return true
     }
