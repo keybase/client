@@ -4,7 +4,6 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Types from '../../../constants/types/teams'
 import type * as ChatTypes from '../../../constants/types/chat2'
 import {pluralize} from '../../../util/string'
@@ -58,14 +57,10 @@ const DeleteChannel = (props: Props) => {
   const dispatch = Container.useDispatch()
 
   const setChannelSelected = Constants.useState(s => s.dispatch.setChannelSelected)
+  const deleteMultiChannelsConfirmed = Constants.useState(s => s.dispatch.deleteMultiChannelsConfirmed)
 
   const onDelete = () => {
-    dispatch(
-      TeamsGen.createDeleteMultiChannelsConfirmed({
-        channels: Array.from(channelIDs.values()),
-        teamID,
-      })
-    )
+    deleteMultiChannelsConfirmed(teamID, Array.from(channelIDs.values()))
     setChannelSelected(teamID, '', false, true)
   }
 

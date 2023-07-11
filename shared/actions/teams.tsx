@@ -6,8 +6,6 @@ import * as TeamsGen from './teams-gen'
 import type * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
 import * as ConfigConstants from '../constants/config'
-import * as ChatTypes from '../constants/types/chat2'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
 import * as RouteTreeGen from './route-tree-gen'
@@ -27,26 +25,6 @@ const teamDeletedOrExit = () => {
     return RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
   }
   return false
-}
-
-const deleteMultiChannelsConfirmed = async (
-  _: unknown,
-  action: TeamsGen.DeleteMultiChannelsConfirmedPayload
-) => {
-  const {teamID, channels} = action.payload
-
-  for (const conversationIDKey of channels) {
-    await RPCChatTypes.localDeleteConversationLocalRpcPromise(
-      {
-        channelName: '',
-        confirmed: true,
-        convID: ChatTypes.keyToConversationID(conversationIDKey),
-      },
-      Constants.deleteChannelWaitingKey(teamID)
-    )
-  }
-
-  Constants.useState.getState().dispatch.loadTeamChannelList(teamID)
 }
 
 const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
@@ -228,7 +206,6 @@ const initTeams = () => {
     }
   )
 
-  Container.listenAction(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
   Container.listenAction(TeamsGen.renameTeam, renameTeam)
   Container.listenAction(TeamsGen.manageChatChannels, manageChatChannels)
   Container.listenAction(GregorGen.pushState, gregorPushState)

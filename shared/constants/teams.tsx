@@ -1103,6 +1103,7 @@ export type State = Store & {
     ) => void
     createNewTeamFromConversation: (conversationIDKey: ChatTypes.ConversationIDKey, teamname: string) => void
     deleteChannelConfirmed: (teamID: Types.TeamID, conversationIDKey: ChatTypes.ConversationIDKey) => void
+    deleteMultiChannelsConfirmed: (teamID: Types.TeamID, channels: Array<ChatTypes.ConversationIDKey>) => void
     deleteTeam: (teamID: Types.TeamID) => void
     editMembership: (teamID: Types.TeamID, usernames: Array<string>, role: Types.TeamRoleType) => void
     editTeamDescription: (teamID: Types.TeamID, description: string) => void
@@ -1727,6 +1728,23 @@ export const useState = Z.createZustand<State>((set, get) => {
           },
           teamWaitingKey(teamID)
         )
+        get().dispatch.loadTeamChannelList(teamID)
+        reduxDispatch(RouteTreeGen.createClearModals())
+      }
+      Z.ignorePromise(f())
+    },
+    deleteMultiChannelsConfirmed: (teamID, channels) => {
+      const f = async () => {
+        for (const conversationIDKey of channels) {
+          await RPCChatTypes.localDeleteConversationLocalRpcPromise(
+            {
+              channelName: '',
+              confirmed: true,
+              convID: ChatTypes.keyToConversationID(conversationIDKey),
+            },
+            deleteChannelWaitingKey(teamID)
+          )
+        }
         get().dispatch.loadTeamChannelList(teamID)
         reduxDispatch(RouteTreeGen.createClearModals())
       }

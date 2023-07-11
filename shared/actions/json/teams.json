@@ -1,13 +1,6 @@
 {
-  "prelude": [
-    "import type {ConversationIDKey} from '../constants/types/chat2'",
-    "import type * as Types from '../constants/types/teams'"
-  ],
+  "prelude": ["import type * as Types from '../constants/types/teams'"],
   "actions": {
-    "deleteMultiChannelsConfirmed": {
-      "teamID": "Types.TeamID",
-      "channels": "Array<ConversationIDKey>"
-    },
     "renameTeam": {
       "_description": "Rename a subteam",
       "oldName": "string",

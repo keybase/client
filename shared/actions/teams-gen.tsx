@@ -1,12 +1,10 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import type {ConversationIDKey} from '../constants/types/chat2'
 import type * as Types from '../constants/types/teams'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'teams:'
-export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const loadTeamTree = 'teams:loadTeamTree'
 export const manageChatChannels = 'teams:manageChatChannels'
 export const renameTeam = 'teams:renameTeam'
@@ -41,10 +39,6 @@ export const createTeamSeen = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
   type: teamSeen as typeof teamSeen,
 })
-export const createDeleteMultiChannelsConfirmed = (payload: {
-  readonly teamID: Types.TeamID
-  readonly channels: Array<ConversationIDKey>
-}) => ({payload, type: deleteMultiChannelsConfirmed as typeof deleteMultiChannelsConfirmed})
 export const createLoadTeamTree = (payload: {readonly teamID: Types.TeamID; readonly username: string}) => ({
   payload,
   type: loadTeamTree as typeof loadTeamTree,
@@ -59,7 +53,6 @@ export const createSetMemberActivityDetails = (payload: {
 }) => ({payload, type: setMemberActivityDetails as typeof setMemberActivityDetails})
 
 // Action Payloads
-export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
 export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
 export type ManageChatChannelsPayload = ReturnType<typeof createManageChatChannels>
 export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
@@ -70,7 +63,6 @@ export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
 // All Actions
 // prettier-ignore
 export type Actions =
-  | DeleteMultiChannelsConfirmedPayload
   | LoadTeamTreePayload
   | ManageChatChannelsPayload
   | RenameTeamPayload
