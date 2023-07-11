@@ -1,11 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/teams'"],
   "actions": {
-    "renameTeam": {
-      "_description": "Rename a subteam",
-      "oldName": "string",
-      "newName": "string"
-    },
     "showTeamByName": {
       "_description": [
         "Tries to show a team with this name whether the user is in the team or not.",

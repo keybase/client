@@ -1,5 +1,4 @@
 import * as Container from '../../util/container'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as WaitConstants from '../../constants/waiting'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
@@ -13,9 +12,8 @@ export default (ownProps: OwnProps) => {
   const waiting = WaitConstants.useAnyWaiting(Constants.teamRenameWaitingKey)
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
   const dispatch = Container.useDispatch()
-  const _onRename = (oldName: string, newName: string) => {
-    dispatch(TeamsGen.createRenameTeam({newName, oldName}))
-  }
+  const renameTeam = Constants.useState(s => s.dispatch.renameTeam)
+  const _onRename = renameTeam
   const onCancel = () => {
     dispatchClearWaiting(Constants.teamRenameWaitingKey)
     dispatch(RouteTreeGen.createNavigateUp())

@@ -7,19 +7,11 @@ export const resetStore = 'common:resetStore' // not a part of teams but is hand
 export const typePrefix = 'teams:'
 export const loadTeamTree = 'teams:loadTeamTree'
 export const manageChatChannels = 'teams:manageChatChannels'
-export const renameTeam = 'teams:renameTeam'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const showTeamByName = 'teams:showTeamByName'
 export const teamSeen = 'teams:teamSeen'
 
 // Action Creators
-/**
- * Rename a subteam
- */
-export const createRenameTeam = (payload: {readonly oldName: string; readonly newName: string}) => ({
-  payload,
-  type: renameTeam as typeof renameTeam,
-})
 /**
  * Tries to show a team with this name whether the user is in the team or not.
  * For teams we are not in:
@@ -55,7 +47,6 @@ export const createSetMemberActivityDetails = (payload: {
 // Action Payloads
 export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
 export type ManageChatChannelsPayload = ReturnType<typeof createManageChatChannels>
-export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
@@ -65,7 +56,6 @@ export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
 export type Actions =
   | LoadTeamTreePayload
   | ManageChatChannelsPayload
-  | RenameTeamPayload
   | SetMemberActivityDetailsPayload
   | ShowTeamByNamePayload
   | TeamSeenPayload

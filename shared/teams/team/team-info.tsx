@@ -3,9 +3,8 @@ import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Styles from '../../styles'
-import {ModalTitle} from '../common'
 import * as Types from '../../constants/types/teams'
-import * as TeamsGen from '../../actions/teams-gen'
+import {ModalTitle} from '../common'
 
 type Props = {teamID: Types.TeamID}
 
@@ -37,10 +36,12 @@ const TeamInfo = (props: Props) => {
   }
 
   const editTeamDescription = Constants.useState(s => s.dispatch.editTeamDescription)
+  const renameTeam = Constants.useState(s => s.dispatch.renameTeam)
+
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onSave = () => {
     if (newName !== _leafName) {
-      dispatch(TeamsGen.createRenameTeam({newName: parentTeamNameWithDot + newName, oldName: teamname}))
+      renameTeam(teamname, parentTeamNameWithDot + newName)
     }
     if (description !== teamDetails?.description) {
       editTeamDescription(teamID, description)

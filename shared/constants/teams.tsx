@@ -1137,21 +1137,22 @@ export type State = Store & {
     loadTeamChannelList: (teamID: Types.TeamID) => void
     loadWelcomeMessage: (teamID: Types.TeamID) => void
     loadedWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessageDisplay) => void
-    notifyTreeMembershipsPartial: (membership: RPCChatTypes.Keybase1.TeamTreeMembership) => void
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => void
+    notifyTreeMembershipsPartial: (membership: RPCChatTypes.Keybase1.TeamTreeMembership) => void
     openInviteLink: (inviteID: string, inviteKey: string) => void
     reAddToTeam: (teamID: Types.TeamID, username: string) => void
     refreshTeamRoleMap: () => void
-    requestInviteLinkDetails: () => void
     removeMember: (teamID: Types.TeamID, username: string) => void
     removePendingInvite: (teamID: Types.TeamID, inviteID: string) => void
+    renameTeam: (oldName: string, newName: string) => void
+    requestInviteLinkDetails: () => void
     resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
     resetErrorInTeamCreation: () => void
-    resetTeamProfileAddList: () => void
     resetState: 'default'
-    resetTeamMetaStale: () => void
     resetTeamJoin: () => void
+    resetTeamMetaStale: () => void
+    resetTeamProfileAddList: () => void
     respondToInviteLink: (accept: boolean) => void
     saveChannelMembership: (
       teamID: Types.TeamID,
@@ -2501,6 +2502,18 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
         } catch (err) {
           logger.error('Failed to remove pending invite', err)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    renameTeam: (oldName, _newName) => {
+      const f = async () => {
+        const prevName = {parts: oldName.split('.')}
+        const newName = {parts: _newName.split('.')}
+        try {
+          await RPCTypes.teamsTeamRenameRpcPromise({newName, prevName}, teamRenameWaitingKey)
+        } catch (_) {
+          // err displayed from waiting store in component
         }
       }
       Z.ignorePromise(f())

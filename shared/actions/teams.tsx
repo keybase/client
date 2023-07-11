@@ -72,17 +72,6 @@ const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
   return actions
 }
 
-const renameTeam = async (_: unknown, action: TeamsGen.RenameTeamPayload) => {
-  const {newName: _newName, oldName} = action.payload
-  const prevName = {parts: oldName.split('.')}
-  const newName = {parts: _newName.split('.')}
-  try {
-    await RPCTypes.teamsTeamRenameRpcPromise({newName, prevName}, Constants.teamRenameWaitingKey)
-  } catch (_) {
-    // err displayed from waiting store in component
-  }
-}
-
 function addThemToTeamFromTeamBuilder(
   state: Container.TypedState,
   {payload: {teamID}}: TeamBuildingGen.FinishTeamBuildingPayload
@@ -206,7 +195,6 @@ const initTeams = () => {
     }
   )
 
-  Container.listenAction(TeamsGen.renameTeam, renameTeam)
   Container.listenAction(TeamsGen.manageChatChannels, manageChatChannels)
   Container.listenAction(GregorGen.pushState, gregorPushState)
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamChangedByID, (_, action) => {
