@@ -8,7 +8,6 @@ export const resetStore = 'common:resetStore' // not a part of teams but is hand
 export const typePrefix = 'teams:'
 export const addParticipant = 'teams:addParticipant'
 export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
-export const clearNavBadges = 'teams:clearNavBadges'
 export const createChannel = 'teams:createChannel'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
@@ -77,10 +76,6 @@ export const createAddParticipant = (payload: {
 export const createClearAddUserToTeamsResults = (payload?: undefined) => ({
   payload,
   type: clearAddUserToTeamsResults as typeof clearAddUserToTeamsResults,
-})
-export const createClearNavBadges = (payload?: undefined) => ({
-  payload,
-  type: clearNavBadges as typeof clearNavBadges,
 })
 export const createCreateChannel = (payload: {
   readonly teamID: Types.TeamID
@@ -189,7 +184,6 @@ export const createUploadTeamAvatar = (payload: {
 // Action Payloads
 export type AddParticipantPayload = ReturnType<typeof createAddParticipant>
 export type ClearAddUserToTeamsResultsPayload = ReturnType<typeof createClearAddUserToTeamsResults>
-export type ClearNavBadgesPayload = ReturnType<typeof createClearNavBadges>
 export type CreateChannelPayload = ReturnType<typeof createCreateChannel>
 export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
 export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
@@ -222,7 +216,6 @@ export type UploadTeamAvatarPayload = ReturnType<typeof createUploadTeamAvatar>
 export type Actions =
   | AddParticipantPayload
   | ClearAddUserToTeamsResultsPayload
-  | ClearNavBadgesPayload
   | CreateChannelPayload
   | DeleteChannelConfirmedPayload
   | DeleteMultiChannelsConfirmedPayload

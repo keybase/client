@@ -3,7 +3,7 @@
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsGen from './teams-gen'
-import * as Types from '../constants/types/teams'
+import type * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
 import * as ConfigConstants from '../constants/config'
 import * as ProfileConstants from '../constants/profile'
@@ -21,7 +21,7 @@ import * as Router2Constants from '../constants/router2'
 import {commonListenActions, filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
 import openSMS from '../util/sms'
-import {RPCError, logError} from '../util/errors'
+import {RPCError} from '../util/errors'
 import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
@@ -519,15 +519,6 @@ const renameTeam = async (_: unknown, action: TeamsGen.RenameTeamPayload) => {
   }
 }
 
-const clearNavBadges = async () => {
-  try {
-    await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.newly_added_to_team'})
-    await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'})
-  } catch (err) {
-    logError(err)
-  }
-}
-
 function addThemToTeamFromTeamBuilder(
   state: Container.TypedState,
   {payload: {teamID}}: TeamBuildingGen.FinishTeamBuildingPayload
@@ -629,19 +620,6 @@ const teamSeen = async (_: unknown, action: TeamsGen.TeamSeenPayload) => {
   }
 }
 
-const maybeClearBadges = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
-  const {prev, next} = action.payload
-  if (
-    prev &&
-    Router2Constants.getTab(prev) === Tabs.teamsTab &&
-    next &&
-    Router2Constants.getTab(next) !== Tabs.teamsTab
-  ) {
-    return TeamsGen.createClearNavBadges()
-  }
-  return false
-}
-
 const initTeams = () => {
   Container.listenAction(TeamsGen.leaveTeam, leaveTeam)
   Container.listenAction(TeamsGen.deleteTeam, deleteTeam)
@@ -705,14 +683,22 @@ const initTeams = () => {
     }
   })
 
-  Container.listenAction(TeamsGen.clearNavBadges, clearNavBadges)
-
   Container.listenAction(TeamsGen.showTeamByName, showTeamByName)
 
   Container.listenAction(TeamsGen.loadTeamTree, loadTeamTree)
 
   Container.listenAction(TeamsGen.teamSeen, teamSeen)
-  Container.listenAction(RouteTreeGen.onNavChanged, maybeClearBadges)
+  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
+    const {prev, next} = action.payload
+    if (
+      prev &&
+      Router2Constants.getTab(prev) === Tabs.teamsTab &&
+      next &&
+      Router2Constants.getTab(next) !== Tabs.teamsTab
+    ) {
+      Constants.useState.getState().dispatch.clearNavBadges()
+    }
+  })
 
   // Hook up the team building sub saga
   commonListenActions('teams')

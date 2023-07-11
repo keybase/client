@@ -4,7 +4,6 @@
     "import type * as Types from '../constants/types/teams'"
   ],
   "actions": {
-    "clearNavBadges": {},
     "createChannel": {
       "teamID": "Types.TeamID",
       "channelname": "string",

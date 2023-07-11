@@ -15,7 +15,7 @@ import invert from 'lodash/invert'
 import logger from '../logger'
 import type {RetentionPolicy} from './types/retention-policy'
 import type {TypedState} from './reducer'
-import {RPCError} from '../util/errors'
+import {RPCError, logError} from '../util/errors'
 import {mapGetEnsureValue} from '../util/map'
 import {memoize} from '../util/memoize'
 
@@ -1080,6 +1080,7 @@ export type State = Store & {
     ) => void
     checkRequestedAccess: (teamname: string) => void
     clearAddUserToTeamsResults: () => void
+    clearNavBadges: () => void
     createChannels: (teamID: Types.TeamID, channelnames: Array<string>) => void
     createNewTeam: (
       teamname: string,
@@ -1491,6 +1492,17 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.addUserToTeamsResults = ''
         s.addUserToTeamsState = 'notStarted'
       })
+    },
+    clearNavBadges: () => {
+      const f = async () => {
+        try {
+          await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.newly_added_to_team'})
+          await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'})
+        } catch (err) {
+          logError(err)
+        }
+      }
+      Z.ignorePromise(f())
     },
     createChannels: (teamID, channelnames) => {
       set(s => {
