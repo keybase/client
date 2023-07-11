@@ -9,7 +9,6 @@ export type ProvablePlatformsType =
   | 'rooter'
   | 'twitter'
   | 'web'
-  | 'rooter'
 
 export const ProvablePlatforms: ReadonlyArray<ProvablePlatformsType> = [
   'dns',

@@ -99,7 +99,7 @@ function genEmojiData() {
   return {emojiIndexByChar, emojiIndexByName, emojiLiterals}
 }
 
-function buildEmojiFile() {
+async function buildEmojiFile() {
   const p = path.join(__dirname, 'emoji-gen.tsx')
   const {emojiLiterals, emojiIndexByName, emojiIndexByChar} = genEmojiData()
   const regLiterals = emojiLiterals.map((s: string) => escapeRegExp(s).replace(/\\/g, '\\')).join('|')
@@ -120,12 +120,14 @@ export const emojiIndexByChar: {[key: string]: string}  = JSON.parse(\`${JSON.st
   )}\`)
 export const commonTlds = ${JSON.stringify(commonTlds)}
 `
-
-  const formatted = prettier.format(data, {
-    ...prettier.resolveConfig.sync(p),
+  const options = await prettier.resolveConfig(p)
+  const formatted = await prettier.format(data, {
+    ...options,
     parser: 'typescript',
   })
   fs.writeFileSync(p, formatted, {encoding: 'utf8'})
 }
 
 buildEmojiFile()
+  .then(() => {})
+  .catch(() => {})
