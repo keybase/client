@@ -1,4 +1,5 @@
 import * as ChatTypes from './types/chat2'
+import * as Router2Constants from './router2'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as GregorConstants from './gregor'
 import * as ConfigConstants from './config'
@@ -1081,6 +1082,12 @@ export type State = Store & {
     checkRequestedAccess: (teamname: string) => void
     clearAddUserToTeamsResults: () => void
     clearNavBadges: () => void
+    createChannel: (p: {
+      teamID: Types.TeamID
+      channelname: string
+      description?: string
+      navToChatOnSuccess: boolean
+    }) => void
     createChannels: (teamID: Types.TeamID, channelnames: Array<string>) => void
     createNewTeam: (
       teamname: string,
@@ -1500,6 +1507,73 @@ export const useState = Z.createZustand<State>((set, get) => {
           await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'})
         } catch (err) {
           logError(err)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    createChannel: p => {
+      const f = async () => {
+        const {channelname, description, teamID, navToChatOnSuccess} = p
+        const teamname = getTeamNameFromID(get(), teamID)
+        if (teamname === undefined) {
+          logger.warn('Team name was not in store!')
+          return
+        }
+        try {
+          const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
+            {
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              membersType: RPCChatTypes.ConversationMembersType.team,
+              tlfName: teamname,
+              tlfVisibility: RPCTypes.TLFVisibility.private,
+              topicName: channelname,
+              topicType: RPCChatTypes.TopicType.chat,
+            },
+            createChannelWaitingKey(teamID)
+          )
+          // No error if we get here.
+          const newConversationIDKey = result ? ChatTypes.conversationIDToKey(result.conv.info.id) : null
+          if (!newConversationIDKey) {
+            logger.warn('No convoid from newConvoRPC')
+            return
+          }
+          // If we were given a description, set it
+          if (description) {
+            await RPCChatTypes.localPostHeadlineNonblockRpcPromise(
+              {
+                clientPrev: 0,
+                conversationID: result.conv.info.id,
+                headline: description,
+                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+                tlfName: teamname ?? '',
+                tlfPublic: false,
+              },
+              createChannelWaitingKey(teamID)
+            )
+          }
+
+          // Dismiss the create channel dialog.
+          const visibleScreen = Router2Constants.getVisibleScreen()
+          if (visibleScreen && visibleScreen.name === 'chatCreateChannel') {
+            reduxDispatch(RouteTreeGen.createClearModals())
+          }
+          // Reload on team page
+          get().dispatch.loadTeamChannelList(teamID)
+          // Select the new channel, and switch to the chat tab.
+          if (navToChatOnSuccess) {
+            reduxDispatch(
+              Chat2Gen.createPreviewConversation({
+                channelname,
+                conversationIDKey: newConversationIDKey,
+                reason: 'newChannel',
+                teamname,
+              })
+            )
+          }
+        } catch (error) {
+          if (error instanceof RPCError) {
+            get().dispatch.setChannelCreationError(error.desc)
+          }
         }
       }
       Z.ignorePromise(f())

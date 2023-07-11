@@ -4,12 +4,6 @@
     "import type * as Types from '../constants/types/teams'"
   ],
   "actions": {
-    "createChannel": {
-      "teamID": "Types.TeamID",
-      "channelname": "string",
-      "description?": "string",
-      "navToChatOnSuccess": "boolean"
-    },
     "clearAddUserToTeamsResults": {},
     "setTeamVersion": {
       "teamID": "Types.TeamID",

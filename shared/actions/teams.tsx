@@ -14,7 +14,6 @@ import * as Tabs from '../constants/tabs'
 import * as RouteTreeGen from './route-tree-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
-import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
 import * as GregorConstants from '../constants/gregor'
 import * as Router2Constants from '../constants/router2'
@@ -244,79 +243,6 @@ const saveChannelMembership = async (
       } catch (error) {
         ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
       }
-    }
-  }
-}
-
-const createChannel = async (
-  _: unknown,
-  action: TeamsGen.CreateChannelPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {channelname, description, teamID} = action.payload
-  const teamname = Constants.getTeamNameFromID(Constants.useState.getState(), teamID)
-
-  if (teamname === undefined) {
-    logger.warn('Team name was not in store!')
-    return
-  }
-
-  try {
-    const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
-      {
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.ConversationMembersType.team,
-        tlfName: teamname,
-        tlfVisibility: RPCTypes.TLFVisibility.private,
-        topicName: channelname,
-        topicType: RPCChatTypes.TopicType.chat,
-      },
-      Constants.createChannelWaitingKey(teamID)
-    )
-
-    // No error if we get here.
-    const newConversationIDKey = result ? ChatTypes.conversationIDToKey(result.conv.info.id) : null
-    if (!newConversationIDKey) {
-      logger.warn('No convoid from newConvoRPC')
-      return
-    }
-
-    // If we were given a description, set it
-    if (description) {
-      await RPCChatTypes.localPostHeadlineNonblockRpcPromise(
-        {
-          clientPrev: 0,
-          conversationID: result.conv.info.id,
-          headline: description,
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          tlfName: teamname ?? '',
-          tlfPublic: false,
-        },
-        Constants.createChannelWaitingKey(teamID)
-      )
-    }
-
-    // Dismiss the create channel dialog.
-    const visibleScreen = Router2Constants.getVisibleScreen()
-    if (visibleScreen && visibleScreen.name === 'chatCreateChannel') {
-      listenerApi.dispatch(RouteTreeGen.createClearModals())
-    }
-    // Reload on team page
-    Constants.useState.getState().dispatch.loadTeamChannelList(teamID)
-    // Select the new channel, and switch to the chat tab.
-    if (action.payload.navToChatOnSuccess) {
-      listenerApi.dispatch(
-        Chat2Gen.createPreviewConversation({
-          channelname,
-          conversationIDKey: newConversationIDKey,
-          reason: 'newChannel',
-          teamname,
-        })
-      )
-    }
-  } catch (error) {
-    if (error instanceof RPCError) {
-      Constants.useState.getState().dispatch.setChannelCreationError(error.desc)
     }
   }
 }
@@ -647,7 +573,6 @@ const initTeams = () => {
     }
   )
 
-  Container.listenAction(TeamsGen.createChannel, createChannel)
   Container.listenAction(TeamsGen.reAddToTeam, reAddToTeam)
   Container.listenAction(TeamsGen.ignoreRequest, ignoreRequest)
   Container.listenAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
