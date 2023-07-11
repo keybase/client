@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
@@ -29,17 +28,12 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
       })
     )
   }, [dispatch, teamID])
+  const leaveTeam = Constants.useState(s => s.dispatch.leaveTeam)
   const _onLeave = React.useCallback(
     (permanent: boolean) => {
-      dispatch(
-        TeamsGen.createLeaveTeam({
-          context: 'teams',
-          permanent,
-          teamname,
-        })
-      )
+      leaveTeam(teamname, permanent, 'teams')
     },
-    [dispatch, teamname]
+    [leaveTeam, teamname]
   )
   const _onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onBack = leaving ? () => {} : _onBack

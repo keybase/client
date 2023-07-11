@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
@@ -23,10 +22,8 @@ const DeleteTeamContainer = (op: OwnProps) => {
   const dispatch = Container.useDispatch()
   const _onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onBack = deleteWaiting ? () => {} : _onBack
-  const _onDelete = React.useCallback(
-    () => () => dispatch(TeamsGen.createDeleteTeam({teamID})),
-    [dispatch, teamID]
-  )
+  const deleteTeam = Constants.useState(s => s.dispatch.deleteTeam)
+  const _onDelete = React.useCallback(() => () => deleteTeam(teamID), [deleteTeam, teamID])
   const onDelete = Container.useSafeSubmit(_onDelete, !deleteWaiting)
 
   return (

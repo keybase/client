@@ -4,27 +4,6 @@
     "import type * as Types from '../constants/types/teams'"
   ],
   "actions": {
-    "deleteTeam": {
-      "teamID": "Types.TeamID"
-    },
-    "inviteToTeamByPhone": {
-      "teamID": "Types.TeamID",
-      "teamname": "string",
-      "role": "Types.TeamRoleType",
-      "phoneNumber": "string",
-      "fullName": "string",
-      "loadingKey?": "string"
-    },
-    "leaveTeam": {
-      "teamname": "string",
-      "permanent": "boolean",
-      "context": "'teams' | 'chat'"
-    },
-    "leftTeam": {
-      "_description": "We successfully left a team",
-      "teamname": "string",
-      "context": "'teams' | 'chat'"
-    },
     "reAddToTeam": {
       "teamID": "Types.TeamID",
       "username": "string"

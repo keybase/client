@@ -19,57 +19,10 @@ import * as GregorConstants from '../constants/gregor'
 import * as Router2Constants from '../constants/router2'
 import {commonListenActions, filterForNs} from './team-building'
 import {uploadAvatarWaitingKey} from '../constants/profile'
-import openSMS from '../util/sms'
 import {RPCError} from '../util/errors'
 import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
-
-const deleteTeam = async (
-  _: Container.TypedState,
-  action: TeamsGen.DeleteTeamPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  try {
-    await RPCTypes.teamsTeamDeleteRpcListener(
-      {
-        customResponseIncomingCallMap: {
-          'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
-          'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
-        },
-        incomingCallMap: {},
-        params: {teamID: action.payload.teamID},
-        waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamID),
-      },
-      listenerApi
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      // handled through waiting store
-      logger.warn('error:', error.message)
-    }
-  }
-}
-const leaveTeam = async (_: unknown, action: TeamsGen.LeaveTeamPayload) => {
-  const {context, teamname, permanent} = action.payload
-  logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
-  try {
-    await RPCTypes.teamsTeamLeaveRpcPromise(
-      {name: teamname, permanent},
-      Constants.leaveTeamWaitingKey(teamname)
-    )
-    logger.info(`leaveTeam: left ${teamname} successfully`)
-    return TeamsGen.createLeftTeam({context, teamname})
-  } catch (error) {
-    if (error instanceof RPCError) {
-      // handled through waiting store
-      logger.warn('error:', error.message)
-    }
-  }
-  return
-}
-
-const leftTeam = () => RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
 
 const addReAddErrorHandler = (username: string, e: RPCError) => {
   // identify error
@@ -147,57 +100,6 @@ const removePendingInvite = async (_: Container.TypedState, action: TeamsGen.Rem
     )
   } catch (err) {
     logger.error('Failed to remove pending invite', err)
-  }
-}
-
-const generateSMSBody = (teamname: string, seitan: string): string => {
-  // seitan is 18chars
-  // message sans teamname is 118chars. Teamname can be 33 chars before we truncate to 25 and pre-ellipsize
-  let team: string
-  const teamOrSubteam = teamname.includes('.') ? 'subteam' : 'team'
-  if (teamname.length <= 33) {
-    team = `${teamname} ${teamOrSubteam}`
-  } else {
-    team = `..${teamname.substring(teamname.length - 30)} subteam`
-  }
-  return `Join the ${team} on Keybase. Copy this message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\ninstall: keybase.io/_/go`
-}
-
-const inviteToTeamByPhone = async (_s: unknown, action: TeamsGen.InviteToTeamByPhonePayload) => {
-  const {teamID, teamname, role, phoneNumber, fullName = '', loadingKey} = action.payload
-  if (loadingKey) {
-    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<o use this code below
-    // set(s => {
-    //   const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
-    //   oldLoadingInvites.set(loadingKey, true)
-    //   s.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
-    // })
-    // listenerApi.dispatch(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
-  }
-  try {
-    const seitan = await RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
-      {
-        label: {sms: {f: fullName || '', n: phoneNumber} as RPCTypes.SeitanKeyLabelSms, t: 1},
-        role: (!!role && RPCTypes.TeamRole[role]) || RPCTypes.TeamRole.none,
-        teamname: teamname,
-      },
-      [Constants.teamWaitingKey(teamID)]
-    )
-    /* Open SMS */
-    const bodyText = generateSMSBody(teamname, seitan)
-    await openSMS([phoneNumber], bodyText)
-    if (loadingKey) {
-      //TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< use above
-      // return TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname})
-    }
-    return false
-  } catch (err) {
-    logger.info('Error sending SMS', err)
-    if (loadingKey) {
-      //TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< use above
-      // return TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname})
-    }
-    return false
   }
 }
 
@@ -514,11 +416,7 @@ const teamSeen = async (_: unknown, action: TeamsGen.TeamSeenPayload) => {
 }
 
 const initTeams = () => {
-  Container.listenAction(TeamsGen.leaveTeam, leaveTeam)
-  Container.listenAction(TeamsGen.deleteTeam, deleteTeam)
-  Container.listenAction(TeamsGen.leftTeam, leftTeam)
-
-  Container.listenAction([ConfigGen.loadOnStart, TeamsGen.leftTeam], (_, action) => {
+  Container.listenAction(ConfigGen.loadOnStart, (_, action) => {
     if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
       return
     }
@@ -548,7 +446,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.updateChannelName, updateChannelname)
   Container.listenAction(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)
   Container.listenAction(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
-  Container.listenAction(TeamsGen.inviteToTeamByPhone, inviteToTeamByPhone)
   Container.listenAction(TeamsGen.setPublicity, setPublicity)
   Container.listenAction(TeamsGen.renameTeam, renameTeam)
   Container.listenAction(TeamsGen.manageChatChannels, manageChatChannels)

@@ -2610,13 +2610,9 @@ const navigateToInbox = (
   action:
     | Chat2Gen.NavigateToInboxPayload
     | Chat2Gen.LeaveConversationPayload
-    | TeamsGen.LeftTeamPayload
     | TeamsGen.DeleteChannelConfirmedPayload
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
-    return
-  }
-  if (action.type === TeamsGen.leftTeam && action.payload.context !== 'chat') {
     return
   }
   return [
@@ -3997,18 +3993,10 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.markAsUnread, markAsUnread)
   Container.listenAction(Chat2Gen.messagesAdd, messagesAdd)
   Container.listenAction(
-    [
-      Chat2Gen.leaveConversation,
-      TeamsGen.leftTeam,
-      TeamsGen.deleteChannelConfirmed,
-      TeamsGen.deleteMultiChannelsConfirmed,
-    ],
+    [Chat2Gen.leaveConversation, TeamsGen.deleteChannelConfirmed, TeamsGen.deleteMultiChannelsConfirmed],
     clearModalsFromConvEvent
   )
-  Container.listenAction(
-    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leftTeam],
-    navigateToInbox
-  )
+  Container.listenAction([Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation], navigateToInbox)
   Container.listenAction(Chat2Gen.navigateToThread, navigateToThread)
 
   Container.listenAction(Chat2Gen.joinConversation, joinConversation)

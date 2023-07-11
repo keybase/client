@@ -1,22 +1,23 @@
+import * as Chat2Gen from '../actions/chat2-gen'
 import * as ChatTypes from './types/chat2'
-import * as Router2Constants from './router2'
-import * as EngineGen from '../actions/engine-gen-gen'
-import * as GregorConstants from './gregor'
 import * as ConfigConstants from './config'
+import * as GregorConstants from './gregor'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Chat2Gen from '../actions/chat2-gen'
+import * as Router2Constants from './router2'
 import * as TeamBuildingConstants from './team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Types from './types/teams'
 import * as Z from '../util/zustand'
-import {isMobile, isPhone} from './platform'
 import invert from 'lodash/invert'
 import logger from '../logger'
+import openSMS from '../util/sms'
+import type * as EngineGen from '../actions/engine-gen-gen'
 import type {RetentionPolicy} from './types/retention-policy'
 import type {TypedState} from './reducer'
 import {RPCError, logError} from '../util/errors'
+import {isMobile, isPhone} from './platform'
 import {mapGetEnsureValue} from '../util/map'
 import {memoize} from '../util/memoize'
 
@@ -1100,6 +1101,7 @@ export type State = Store & {
       }
     ) => void
     createNewTeamFromConversation: (conversationIDKey: ChatTypes.ConversationIDKey, teamname: string) => void
+    deleteTeam: (teamID: Types.TeamID) => void
     editMembership: (teamID: Types.TeamID, usernames: Array<string>, role: Types.TeamRoleType) => void
     editTeamDescription: (teamID: Types.TeamID, description: string) => void
     finishNewTeamWizard: () => void
@@ -1116,8 +1118,17 @@ export type State = Store & {
       teamname: string,
       loadingKey?: string
     ) => void
+    inviteToTeamByPhone: (
+      teamID: Types.TeamID,
+      teamname: string,
+      role: Types.TeamRoleType,
+      phoneNumber: string,
+      fullName: string,
+      loadingKey?: string
+    ) => void
     joinTeam: (teamname: string, deeplink?: boolean) => void
     launchNewTeamWizardOrModal: (subteamOf?: Types.TeamID) => void
+    leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
     loadTeam: (teamID: Types.TeamID, _subscribe?: boolean) => void
     loadTeamChannelList: (teamID: Types.TeamID) => void
     loadWelcomeMessage: (teamID: Types.TeamID) => void
@@ -1681,6 +1692,30 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    deleteTeam: teamID => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamDeleteRpcListener(
+            {
+              customResponseIncomingCallMap: {
+                'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
+                'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
+              },
+              incomingCallMap: {},
+              params: {teamID},
+              waitingKey: deleteTeamWaitingKey(teamID),
+            },
+            Z.dummyListenerApi
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            // handled through waiting store
+            logger.warn('error:', error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
     editMembership: (teamID, usernames, r) => {
       const f = async () => {
         const role = RPCTypes.TeamRole[r]
@@ -1977,6 +2012,51 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    inviteToTeamByPhone: (teamID, teamname, role, phoneNumber, fullName = '', loadingKey) => {
+      const f = async () => {
+        const generateSMSBody = (teamname: string, seitan: string): string => {
+          // seitan is 18chars
+          // message sans teamname is 118chars. Teamname can be 33 chars before we truncate to 25 and pre-ellipsize
+          let team: string
+          const teamOrSubteam = teamname.includes('.') ? 'subteam' : 'team'
+          if (teamname.length <= 33) {
+            team = `${teamname} ${teamOrSubteam}`
+          } else {
+            team = `..${teamname.substring(teamname.length - 30)} subteam`
+          }
+          return `Join the ${team} on Keybase. Copy this message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\ninstall: keybase.io/_/go`
+        }
+        if (loadingKey) {
+          set(s => {
+            const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
+            oldLoadingInvites.set(loadingKey, true)
+          })
+        }
+        try {
+          const seitan = await RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
+            {
+              label: {sms: {f: fullName || '', n: phoneNumber} as RPCTypes.SeitanKeyLabelSms, t: 1},
+              role: (!!role && RPCTypes.TeamRole[role]) || RPCTypes.TeamRole.none,
+              teamname,
+            },
+            teamWaitingKey(teamID)
+          )
+          /* Open SMS */
+          const bodyText = generateSMSBody(teamname, seitan)
+          await openSMS([phoneNumber], bodyText)
+        } catch (err) {
+          logger.info('Error sending SMS', err)
+        } finally {
+          if (loadingKey) {
+            set(s => {
+              const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
+              oldLoadingInvites.set(loadingKey, false)
+            })
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
     joinTeam: (teamname, deeplink) => {
       set(s => {
         s.teamInviteDetails.inviteDetails = undefined
@@ -2059,6 +2139,27 @@ export const useState = Z.createZustand<State>((set, get) => {
       } else {
         reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard1TeamPurpose']}))
       }
+    },
+    leaveTeam: (teamname, permanent, context) => {
+      const f = async () => {
+        logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
+        try {
+          await RPCTypes.teamsTeamLeaveRpcPromise({name: teamname, permanent}, leaveTeamWaitingKey(teamname))
+          logger.info(`leaveTeam: left ${teamname} successfully`)
+          reduxDispatch(RouteTreeGen.createClearModals())
+          reduxDispatch(
+            RouteTreeGen.createNavUpToScreen({name: context === 'chat' ? 'chatRoot' : 'teamsRoot'})
+          )
+
+          get().dispatch.getTeams()
+        } catch (error) {
+          if (error instanceof RPCError) {
+            // handled through waiting store
+            logger.warn('error:', error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     loadTeam: (teamID, subscribe) => {
       set(s => {
