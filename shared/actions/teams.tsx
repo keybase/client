@@ -6,7 +6,6 @@ import * as TeamsGen from './teams-gen'
 import type * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
 import * as ConfigConstants from '../constants/config'
-import * as ProfileConstants from '../constants/profile'
 import * as ChatTypes from '../constants/types/chat2'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -23,34 +22,6 @@ import {RPCError} from '../util/errors'
 import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
-
-const addReAddErrorHandler = (username: string, e: RPCError) => {
-  // identify error
-  if (e.code === RPCTypes.StatusCode.scidentifysummaryerror) {
-    // show profile card
-    ProfileConstants.useState.getState().dispatch.showUserProfile(username)
-  }
-  return undefined
-}
-
-const reAddToTeam = async (_: unknown, action: TeamsGen.ReAddToTeamPayload) => {
-  const {teamID, username} = action.payload
-  try {
-    await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise(
-      {
-        id: teamID,
-        username,
-      },
-      Constants.addMemberWaitingKey(teamID, username)
-    )
-    return false
-  } catch (error) {
-    if (error instanceof RPCError) {
-      return addReAddErrorHandler(username, error)
-    }
-  }
-  return
-}
 
 const uploadAvatar = async (_: unknown, action: TeamsGen.UploadTeamAvatarPayload) => {
   const {crop, filename, sendChatNotification, teamname} = action.payload
@@ -437,7 +408,6 @@ const initTeams = () => {
     }
   )
 
-  Container.listenAction(TeamsGen.reAddToTeam, reAddToTeam)
   Container.listenAction(TeamsGen.ignoreRequest, ignoreRequest)
   Container.listenAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
   Container.listenAction(TeamsGen.removeMember, removeMember)

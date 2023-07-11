@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
+import * as ProfileConstants from './profile'
 import * as GregorConstants from './gregor'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -1136,6 +1137,7 @@ export type State = Store & {
     notifyTreeMembershipsPartial: (membership: RPCChatTypes.Keybase1.TeamTreeMembership) => void
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => void
     openInviteLink: (inviteID: string, inviteKey: string) => void
+    reAddToTeam: (teamID: Types.TeamID, username: string) => void
     refreshTeamRoleMap: () => void
     requestInviteLinkDetails: () => void
     resetErrorInEmailInvite: () => void
@@ -2365,6 +2367,25 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.teamInviteDetails.inviteKey = inviteKey
       })
       reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamInviteLinkJoin']}))
+    },
+    reAddToTeam: (teamID, username) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise(
+            {id: teamID, username},
+            addMemberWaitingKey(teamID, username)
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            // identify error
+            if (error.code === RPCTypes.StatusCode.scidentifysummaryerror) {
+              // show profile card
+              ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+            }
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     refreshTeamRoleMap: () => {
       const f = async () => {

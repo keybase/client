@@ -71,25 +71,25 @@ const TeamInviteByContact = (props: Props) => {
     [setSelectedRole]
   )
   const inviteToTeamByEmail = Constants.useState(s => s.dispatch.inviteToTeamByEmail)
+  const inviteToTeamByPhone = Constants.useState(s => s.dispatch.inviteToTeamByPhone)
+
   const onInviteContact = React.useCallback(
     (contact: Contact) => {
       resetErrorInEmailInvite()
       if (contact.type === 'email') {
         inviteToTeamByEmail(contact.value, selectedRole, teamID, teamname, contact.value)
       } else if (contact.type === 'phone') {
-        dispatch(
-          TeamsGen.createInviteToTeamByPhone({
-            fullName: contact.name,
-            loadingKey: contact.value,
-            phoneNumber: contact.valueFormatted || contact.value,
-            role: selectedRole,
-            teamID,
-            teamname,
-          })
+        inviteToTeamByPhone(
+          teamID,
+          teamname,
+          selectedRole,
+          contact.valueFormatted || contact.value,
+          contact.name,
+          contact.value
         )
       }
     },
-    [inviteToTeamByEmail, resetErrorInEmailInvite, dispatch, selectedRole, teamID, teamname]
+    [inviteToTeamByPhone, inviteToTeamByEmail, resetErrorInEmailInvite, selectedRole, teamID, teamname]
   )
 
   const onCancelInvite = React.useCallback(

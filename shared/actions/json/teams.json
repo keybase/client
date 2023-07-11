@@ -4,10 +4,6 @@
     "import type * as Types from '../constants/types/teams'"
   ],
   "actions": {
-    "reAddToTeam": {
-      "teamID": "Types.TeamID",
-      "username": "string"
-    },
     "uploadTeamAvatar": {
       "crop?": "RPCTypes.ImageCropRect",
       "filename": "string",

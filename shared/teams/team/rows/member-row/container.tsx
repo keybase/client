@@ -57,13 +57,9 @@ export default (ownProps: OwnProps) => {
   const onOpenProfile = () => {
     username && showUserProfile(username)
   }
+  const reAddToTeam = Constants.useState(s => s.dispatch.reAddToTeam)
   const onReAddToTeam = () => {
-    dispatch(
-      TeamsGen.createReAddToTeam({
-        teamID,
-        username,
-      })
-    )
+    reAddToTeam(teamID, username)
   }
   const onRemoveFromTeam = () => {
     dispatch(TeamsGen.createRemoveMember({teamID, username}))
