@@ -1139,6 +1139,7 @@ export type State = Store & {
     loadTeamTree: (teamID: Types.TeamID, username: string) => void
     loadWelcomeMessage: (teamID: Types.TeamID) => void
     loadedWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessageDisplay) => void
+    manageChatChannels: (teamID: Types.TeamID) => void
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => void
     notifyTreeMembershipsPartial: (membership: RPCChatTypes.Keybase1.TeamTreeMembership) => void
     openInviteLink: (inviteID: string, inviteKey: string) => void
@@ -2355,6 +2356,13 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.teamIDToWelcomeMessage.set(teamID, message)
       })
+    },
+    manageChatChannels: teamID => {
+      reduxDispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {teamID}, selected: 'teamAddToChannels'}],
+        })
+      )
     },
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => {
       const {guid, targetTeamID, targetUsername, expectedCount} = result

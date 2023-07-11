@@ -8,7 +8,6 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
 import * as TeamTypes from '../../../../constants/types/teams'
-import * as TeamsGen from '../../../../actions/teams-gen'
 import shallowEqual from 'shallowequal'
 import {InfoPanelMenu} from '.'
 import {ConvoIDContext} from '../../messages/ids-context'
@@ -147,10 +146,11 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     [dispatch, teamID]
   )
   const addTeamWithChosenChannels = TeamConstants.useState(s => s.dispatch.addTeamWithChosenChannels)
+  const manageChatChannels = TeamConstants.useState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {
-    dispatch(TeamsGen.createManageChatChannels({teamID}))
+    manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)
-  }, [addTeamWithChosenChannels, dispatch, teamID])
+  }, [manageChatChannels, addTeamWithChosenChannels, teamID])
   const onMarkAsRead = React.useCallback(() => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(ChatGen.createMarkTeamAsRead({teamID}))

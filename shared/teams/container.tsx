@@ -4,7 +4,6 @@ import * as Kb from '../common-adapters'
 import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
-import * as TeamsGen from '../actions/teams-gen'
 import Teams, {type OwnProps as MainOwnProps} from './main'
 import openURL from '../util/open-url'
 import * as Constants from '../constants/teams'
@@ -77,8 +76,9 @@ const Reloadable = (props: ReloadableProps) => {
   const headerActions = useHeaderActions()
 
   const nav = Container.useSafeNavigation()
+  const manageChatChannels = Constants.useState(s => s.dispatch.manageChatChannels)
   const otherActions = {
-    onManageChat: (teamID: Types.TeamID) => dispatch(TeamsGen.createManageChatChannels({teamID})),
+    onManageChat: (teamID: Types.TeamID) => manageChatChannels(teamID),
     onViewTeam: (teamID: Types.TeamID) =>
       dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]})),
   }

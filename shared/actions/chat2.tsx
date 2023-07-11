@@ -20,7 +20,6 @@ import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsConstants from '../constants/teams'
-import * as TeamsGen from './teams-gen'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
 import * as UsersGen from './users-gen'
@@ -848,12 +847,6 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
     }
   })
   return actions
-}
-
-const onChatShowManageChannels = (_: unknown, action: EngineGen.Chat1ChatUiChatShowManageChannelsPayload) => {
-  const {teamname} = action.payload.params
-  const teamID = TeamsConstants.useState.getState().teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
-  return TeamsGen.createManageChatChannels({teamID})
 }
 
 const onNewChatActivity = (
@@ -4044,7 +4037,11 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1NotifyChatNewChatActivity, onNewChatActivity)
   Container.listenAction(EngineGen.chat1ChatUiChatGiphySearchResults, onGiphyResults)
   Container.listenAction(EngineGen.chat1ChatUiChatGiphyToggleResultWindow, onGiphyToggleWindow)
-  Container.listenAction(EngineGen.chat1ChatUiChatShowManageChannels, onChatShowManageChannels)
+  Container.listenAction(EngineGen.chat1ChatUiChatShowManageChannels, (_, action) => {
+    const {teamname} = action.payload.params
+    const teamID = TeamsConstants.useState.getState().teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
+    TeamsConstants.useState.getState().dispatch.manageChatChannels(teamID)
+  })
   Container.listenAction(EngineGen.chat1ChatUiChatCoinFlipStatus, onChatCoinFlipStatus)
   Container.listenAction(EngineGen.chat1ChatUiChatCommandMarkdown, onChatCommandMarkdown)
   Container.listenAction(EngineGen.chat1ChatUiChatCommandStatus, onChatCommandStatus)

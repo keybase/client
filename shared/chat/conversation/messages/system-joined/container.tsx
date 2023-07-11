@@ -1,10 +1,10 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
+import * as TeamsConstants from '../../../../constants/teams'
 import * as ProfileConstants from '../../../../constants/profile'
 import * as Container from '../../../../util/container'
 import * as React from 'react'
-import * as TeamsGen from '../../../../actions/teams-gen'
 import Joined from '.'
 import type * as Types from '../../../../constants/types/chat2'
 
@@ -21,9 +21,10 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const authorIsYou = you === author
 
   const dispatch = Container.useDispatch()
+  const manageChatChannels = TeamsConstants.useState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {
-    dispatch(TeamsGen.createManageChatChannels({teamID}))
-  }, [dispatch, teamID])
+    manageChatChannels(teamID)
+  }, [manageChatChannels, teamID])
   const onManageNotifications = React.useCallback(() => {
     dispatch(
       Chat2Gen.createShowInfoPanel({

@@ -88,16 +88,6 @@ function addThemToTeamFromTeamBuilder(
   return TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'})
 }
 
-const manageChatChannels = (_: unknown, action: TeamsGen.ManageChatChannelsPayload) =>
-  RouteTreeGen.createNavigateAppend({
-    path: [
-      {
-        props: {teamID: action.payload.teamID},
-        selected: 'teamAddToChannels',
-      },
-    ],
-  })
-
 const teamSeen = async (_: unknown, action: TeamsGen.TeamSeenPayload) => {
   const {teamID} = action.payload
   try {
@@ -131,7 +121,6 @@ const initTeams = () => {
     }
   )
 
-  Container.listenAction(TeamsGen.manageChatChannels, manageChatChannels)
   Container.listenAction(GregorGen.pushState, gregorPushState)
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamChangedByID, (_, action) => {
     Constants.useState.getState().dispatch.teamChangedByID(action.payload.params)

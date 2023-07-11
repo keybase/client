@@ -6,7 +6,6 @@ import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as TeamConstants from '../../../../../constants/teams'
-import * as TeamsGen from '../../../../../actions/teams-gen'
 import type * as ChatTypes from '../../../../../constants/types/chat2'
 import type * as MessageTypes from '../../../../../constants/types/chat2/message'
 import type * as TeamTypes from '../../../../../constants/types/teams'
@@ -160,7 +159,8 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal}))
   const _onGoToChannel = (channelname: string, teamname: string) =>
     dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname}))
-  const _onManageChannels = (teamID: string) => dispatch(TeamsGen.createManageChatChannels({teamID}))
+  const manageChatChannels = TeamConstants.useState(s => s.dispatch.manageChatChannels)
+  const _onManageChannels = (teamID: string) => manageChatChannels(teamID)
 
   const setMemberPublicity = TeamConstants.useState(s => s.dispatch.setMemberPublicity)
   const _onPublishTeam = (teamID: string) => {

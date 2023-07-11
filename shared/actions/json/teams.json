@@ -1,9 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/teams'"],
   "actions": {
-    "manageChatChannels": {
-      "teamID": "Types.TeamID"
-    },
     "teamSeen": {
       "_description": "User has viewed this team. Clear related badges.",
       "teamID": "Types.TeamID"
