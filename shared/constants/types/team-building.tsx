@@ -2,7 +2,7 @@ import type {TeamRoleType} from './teams'
 import type {ServiceId as _ServiceId} from '../../util/platforms'
 
 export const allowedNamespace = ['chat2', 'crypto', 'teams', 'people', 'wallets'] as const
-export type AllowedNamespace = typeof allowedNamespace[number]
+export type AllowedNamespace = (typeof allowedNamespace)[number]
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 export type ServiceId = _ServiceId
 
@@ -31,7 +31,7 @@ export type User = {
 }
 
 // Treating this as a tuple
-export type SearchKey = Array<SearchString | ServiceIdWithContact>
+export type SearchKey = Array<SearchString /*| ServiceIdWithContact*/>
 
 // This is what should be kept in the reducer
 // Keyed so that we never get results that don't match the user's input (e.g. outdated results)

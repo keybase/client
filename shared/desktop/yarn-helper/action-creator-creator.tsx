@@ -149,34 +149,37 @@ function makeTypedActions(created: Array<string>) {
 `
 }
 
-function main() {
+async function main() {
   const root = path.join(__dirname, '../../actions/json')
   const files = fs.readdirSync(root)
   const created: Array<string> = []
-  files
+  const proms = files
     .filter(file => path.extname(file) === '.json')
-    .forEach(file => {
+    .map(async file => {
       const ns = path.basename(file, '.json')
       created.push(ns)
       console.log(`Generating ${ns}`)
       const desc: FileDesc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
       const outPath = path.join(root, '..', ns + '-gen.tsx')
-      const generated: string = prettier.format(compile(ns, desc), {
-        ...prettier.resolveConfig.sync(outPath),
+      const generated: string = await prettier.format(compile(ns, desc), {
+        ...(await prettier.resolveConfig(outPath)),
         parser: 'typescript',
       })
       fs.writeFileSync(outPath, generated)
       compileActionMap(ns, desc.actions)
     })
+  await Promise.all(proms)
 
   console.log(`Generating typed-actions-gen`)
   const outPath = path.join(root, '..', 'typed-actions-gen.tsx')
   const typedActions = makeTypedActions(created)
-  const generated: string = prettier.format(typedActions, {
-    ...prettier.resolveConfig.sync(outPath),
+  const generated: string = await prettier.format(typedActions, {
+    ...(await prettier.resolveConfig(outPath)),
     parser: 'typescript',
   })
   fs.writeFileSync(outPath, generated)
 }
 
 main()
+  .then(() => {})
+  .catch(() => {})

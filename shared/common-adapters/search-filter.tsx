@@ -56,7 +56,7 @@ type Props = {
   onKeyUp?: (event: React.KeyboardEvent) => void
   onKeyPress?: (event: {
     nativeEvent: {
-      key: 'Enter' | 'Backspace' | string
+      key: string
     }
   }) => void
 }

@@ -97,7 +97,7 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
         return
       }
       let routeName: string | undefined
-      let params: any | undefined
+      let params: any
 
       if (typeof p === 'string') {
         routeName = p

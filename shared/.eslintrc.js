@@ -1,7 +1,7 @@
 const isFixMode = process.argv.includes('--fix')
 module.exports = {
   env: {es6: true},
-  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking'],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended-type-checked'],
   globals: {
     __DEV__: false,
     __HOT__: false,
@@ -183,7 +183,6 @@ module.exports = {
     '@typescript-eslint/no-non-null-asserted-nullish-coalescing': 'error',
     '@typescript-eslint/no-non-null-asserted-optional-chain': 'error',
     '@typescript-eslint/no-non-null-assertion': 'off',
-    '@typescript-eslint/no-parameter-properties': 'error',
     '@typescript-eslint/no-require-imports': 'off',
     '@typescript-eslint/no-this-alias': 'error',
     '@typescript-eslint/no-type-alias': 'off',
@@ -240,8 +239,8 @@ module.exports = {
     '@typescript-eslint/lines-between-class-members': 'off',
     '@typescript-eslint/no-array-constructor': 'error',
     '@typescript-eslint/no-dupe-class-members': 'error',
-    '@typescript-eslint/no-duplicate-imports': 'error',
     '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
     '@typescript-eslint/no-extra-parens': 'off',
     '@typescript-eslint/no-extra-semi': 'off',
     '@typescript-eslint/no-implied-eval': 'error',
