@@ -32,7 +32,7 @@ type HeaderTitleProps = {
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
   const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
-  const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname, description} = channelInfo
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
   const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))

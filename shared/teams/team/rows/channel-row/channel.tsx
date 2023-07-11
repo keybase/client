@@ -14,7 +14,7 @@ type ChannelRowProps = {
 }
 const ChannelRow = (props: ChannelRowProps) => {
   const {conversationIDKey, teamID} = props
-  const channel = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channel = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const isGeneral = channel.channelname === 'general'
 
   const selected = Constants.useState(

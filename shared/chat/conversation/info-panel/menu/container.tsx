@@ -66,7 +66,10 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       const {teamID, teamname, channelname, membershipType, status, isMuted, teamType} = meta
       // TODO getCanPerformByID not reactive here
       const yourOperations = TeamConstants.getCanPerformByID(TeamConstants.useState.getState(), teamID)
-      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(state, teamname)
+      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(
+        TeamConstants.useState.getState(),
+        teamname
+      )
       const canAddPeople = yourOperations.manageMembers
       const isInChannel = membershipType !== 'youArePreviewing'
       const ignored = status === RPCChatTypes.ConversationStatus.ignored
@@ -92,7 +95,10 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       const yourOperations = TeamConstants.getCanPerformByID(TeamConstants.useState.getState(), teamID)
       const canAddPeople = yourOperations.manageMembers
       const {teamname} = teamMeta
-      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(state, teamname)
+      const badgeSubscribe = !TeamConstants.isTeamWithChosenChannels(
+        TeamConstants.useState.getState(),
+        teamname
+      )
       return {...common, badgeSubscribe, canAddPeople, teamID, teamname, yourOperations}
     }
     return {...common}

@@ -32,7 +32,7 @@ const AddToChannel = (props: Props) => {
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.toLowerCase()
 
-  const {channelname} = Container.useSelector(s =>
+  const {channelname} = TeamConstants.useState(s =>
     TeamConstants.getTeamChannelInfo(s, teamID, conversationIDKey)
   )
   const participants = useChannelParticipants(teamID, conversationIDKey)

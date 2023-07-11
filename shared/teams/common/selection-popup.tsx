@@ -323,7 +323,7 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
   const membersSet = Constants.useState(
     s => s.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
   )
-  const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
 
   if (!membersSet) {

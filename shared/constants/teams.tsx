@@ -121,10 +121,10 @@ const emptyTeamChannelInfo: Types.TeamChannelInfo = {
 }
 
 export const getTeamChannelInfo = (
-  _state: unknown,
+  state: State,
   teamID: Types.TeamID,
   conversationIDKey: ChatTypes.ConversationIDKey
-) => useState.getState().channelInfo.get(teamID)?.get(conversationIDKey) ?? emptyTeamChannelInfo
+) => state.channelInfo.get(teamID)?.get(conversationIDKey) ?? emptyTeamChannelInfo
 
 export const teamRoleByEnum = ((m: {[K in Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
   const mInv: {[K in RPCTypes.TeamRole]?: Types.MaybeTeamRoleType} = {}
@@ -352,8 +352,8 @@ export const userInTeamNotBotWithInfo = (
   return !isBot(memb.type)
 }
 
-export const isTeamWithChosenChannels = (_: unknown, teamname: string): boolean =>
-  useState.getState().teamsWithChosenChannels.has(teamname)
+export const isTeamWithChosenChannels = (state: State, teamname: string): boolean =>
+  state.teamsWithChosenChannels.has(teamname)
 
 export const getRole = (state: State, teamID: Types.TeamID): Types.MaybeTeamRoleType =>
   state.teamRoleMap.roles.get(teamID)?.role || 'none'
@@ -362,7 +362,7 @@ export const getRoleByName = (state: State, teamname: string): Types.MaybeTeamRo
   getRole(state, getTeamID(state, teamname))
 
 export const isLastOwner = (state: State, teamID: Types.TeamID): boolean =>
-  isOwner(getRole(state, teamID)) && !isMultiOwnerTeam(teamID)
+  isOwner(getRole(state, teamID)) && !isMultiOwnerTeam(state, teamID)
 
 const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
 const onlyOwnersCanTurnTeamMembersIntoOwners = {owner: 'Only owners can turn team members into owners.'}
@@ -473,10 +473,9 @@ export const getDisabledReasonsForRolePicker = (
   return {}
 }
 
-const isMultiOwnerTeam = (teamID: Types.TeamID): boolean => {
+const isMultiOwnerTeam = (state: State, teamID: Types.TeamID): boolean => {
   let countOfOwners = 0
-  const allTeamMembers =
-    useState.getState().teamDetails.get(teamID)?.members || new Map<string, Types.MemberInfo>()
+  const allTeamMembers = state.teamDetails.get(teamID)?.members || new Map<string, Types.MemberInfo>()
   const moreThanOneOwner = [...allTeamMembers.values()].some(tm => {
     if (isOwner(tm.type)) {
       countOfOwners++
@@ -2064,7 +2063,6 @@ export const useState = Z.createZustand<State>((set, get) => {
             })
           } else {
             // no malformed emails, assume everything went swimmingly
-            //
             get().dispatch.resetErrorInEmailInvite()
             if (!isMobile) {
               // mobile does not nav away

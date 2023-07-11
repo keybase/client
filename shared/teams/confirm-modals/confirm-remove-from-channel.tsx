@@ -21,9 +21,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const channelInfo = Container.useSelector(state =>
-    Constants.getTeamChannelInfo(state, teamID, conversationIDKey)
-  )
+  const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
 
   const dispatch = Container.useDispatch()
