@@ -1,9 +1,8 @@
 import * as Constants from '../../../constants/teams'
-import type * as Types from '../../../constants/types/teams'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Container from '../../../util/container'
-import {Settings} from '.'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import type * as Types from '../../../constants/types/teams'
+import {Settings} from '.'
 import {useSettingsState} from './use-settings'
 
 export type OwnProps = {
@@ -32,6 +31,7 @@ export default (ownProps: OwnProps) => {
 
   const _loadWelcomeMessage = Constants.useState(s => s.dispatch.loadWelcomeMessage)
   const resetErrorInSettings = Constants.useState(s => s.dispatch.resetErrorInSettings)
+  const setPublicity = Constants.useState(s => s.dispatch.setPublicity)
   const clearError = resetErrorInSettings
   const loadWelcomeMessage = () => {
     _loadWelcomeMessage(teamID)
@@ -42,7 +42,7 @@ export default (ownProps: OwnProps) => {
     )
   }
   const savePublicity = (settings: Types.PublicitySettings) => {
-    dispatch(TeamsGen.createSetPublicity({settings, teamID}))
+    setPublicity(teamID, settings)
   }
   const showOpenTeamWarning = (isOpenTeam: boolean, teamname: string) => {
     dispatch(

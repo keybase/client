@@ -22,72 +22,6 @@ import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
 
-const setPublicity = async (_: unknown, action: TeamsGen.SetPublicityPayload) => {
-  const {teamID, settings} = action.payload
-  const waitingKey = Constants.settingsWaitingKey(teamID)
-  const teamMeta = Constants.getTeamMeta(Constants.useState.getState(), teamID)
-  const teamSettings = (Constants.useState.getState().teamDetails.get(teamID) ?? Constants.emptyTeamDetails)
-    .settings
-
-  const ignoreAccessRequests = teamSettings.tarsDisabled
-  const openTeam = teamSettings.open
-  const openTeamRole = teamSettings.openJoinAs
-  const publicityAnyMember = teamMeta.allowPromote
-  const publicityMember = teamMeta.showcasing
-  const publicityTeam = teamSettings.teamShowcased
-
-  if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
-    try {
-      await RPCTypes.teamsTeamSetSettingsRpcPromise(
-        {
-          settings: {joinAs: RPCTypes.TeamRole[settings.openTeamRole], open: settings.openTeam},
-          teamID,
-        },
-        waitingKey
-      )
-    } catch (payload) {
-      ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
-    }
-  }
-  if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
-    try {
-      await RPCTypes.teamsSetTarsDisabledRpcPromise(
-        {disabled: settings.ignoreAccessRequests, teamID},
-        waitingKey
-      )
-    } catch (payload) {
-      ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
-    }
-  }
-  if (publicityAnyMember !== settings.publicityAnyMember) {
-    try {
-      await RPCTypes.teamsSetTeamShowcaseRpcPromise(
-        {anyMemberShowcase: settings.publicityAnyMember, teamID},
-        waitingKey
-      )
-    } catch (payload) {
-      ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
-    }
-  }
-  if (publicityMember !== settings.publicityMember) {
-    try {
-      await RPCTypes.teamsSetTeamMemberShowcaseRpcPromise(
-        {isShowcased: settings.publicityMember, teamID},
-        waitingKey
-      )
-    } catch (payload) {
-      ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
-    }
-  }
-  if (publicityTeam !== settings.publicityTeam) {
-    try {
-      await RPCTypes.teamsSetTeamShowcaseRpcPromise({isShowcased: settings.publicityTeam, teamID}, waitingKey)
-    } catch (payload) {
-      ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
-    }
-  }
-}
-
 const teamDeletedOrExit = () => {
   if (Router2Constants.getTab() == Tabs.teamsTab) {
     return RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'})
@@ -347,7 +281,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.updateChannelName, updateChannelname)
   Container.listenAction(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)
   Container.listenAction(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
-  Container.listenAction(TeamsGen.setPublicity, setPublicity)
   Container.listenAction(TeamsGen.renameTeam, renameTeam)
   Container.listenAction(TeamsGen.manageChatChannels, manageChatChannels)
   Container.listenAction(GregorGen.pushState, gregorPushState)

@@ -1169,6 +1169,7 @@ export type State = Store & {
       teamIDToResetUsers: Map<Types.TeamID, Set<string>>
     ) => void
     setNewTeamRequests: (newTeamRequests: Map<Types.TeamID, Set<string>>) => void
+    setPublicity: (teamID: Types.TeamID, settings: Types.PublicitySettings) => void
     setSubteamFilter: (filter: string, parentTeam?: Types.TeamID) => void
     setTeamListFilterSort: (filter?: string, sortOrder?: Types.TeamListSort) => void
     setTeamRetentionPolicy: (teamID: Types.TeamID, policy: RetentionPolicy) => void
@@ -2637,6 +2638,74 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.newTeamRequests = newTeamRequests
       })
+    },
+    setPublicity: (teamID, settings) => {
+      const f = async () => {
+        const waitingKey = settingsWaitingKey(teamID)
+        const teamMeta = getTeamMeta(get(), teamID)
+        const teamSettings = (get().teamDetails.get(teamID) ?? emptyTeamDetails).settings
+        const ignoreAccessRequests = teamSettings.tarsDisabled
+        const openTeam = teamSettings.open
+        const openTeamRole = teamSettings.openJoinAs
+        const publicityAnyMember = teamMeta.allowPromote
+        const publicityMember = teamMeta.showcasing
+        const publicityTeam = teamSettings.teamShowcased
+
+        if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
+          try {
+            await RPCTypes.teamsTeamSetSettingsRpcPromise(
+              {
+                settings: {joinAs: RPCTypes.TeamRole[settings.openTeamRole], open: settings.openTeam},
+                teamID,
+              },
+              waitingKey
+            )
+          } catch (payload) {
+            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+          }
+        }
+        if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
+          try {
+            await RPCTypes.teamsSetTarsDisabledRpcPromise(
+              {disabled: settings.ignoreAccessRequests, teamID},
+              waitingKey
+            )
+          } catch (payload) {
+            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+          }
+        }
+        if (publicityAnyMember !== settings.publicityAnyMember) {
+          try {
+            await RPCTypes.teamsSetTeamShowcaseRpcPromise(
+              {anyMemberShowcase: settings.publicityAnyMember, teamID},
+              waitingKey
+            )
+          } catch (payload) {
+            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+          }
+        }
+        if (publicityMember !== settings.publicityMember) {
+          try {
+            await RPCTypes.teamsSetTeamMemberShowcaseRpcPromise(
+              {isShowcased: settings.publicityMember, teamID},
+              waitingKey
+            )
+          } catch (payload) {
+            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+          }
+        }
+        if (publicityTeam !== settings.publicityTeam) {
+          try {
+            await RPCTypes.teamsSetTeamShowcaseRpcPromise(
+              {isShowcased: settings.publicityTeam, teamID},
+              waitingKey
+            )
+          } catch (payload) {
+            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     setSubteamFilter: (filter, parentTeam) => {
       set(s => {

@@ -4,10 +4,6 @@
     "import type * as Types from '../constants/types/teams'"
   ],
   "actions": {
-    "setPublicity": {
-      "teamID": "Types.TeamID",
-      "settings": "Types.PublicitySettings"
-    },
     "updateChannelName": {
       "teamID": "Types.TeamID",
       "conversationIDKey": "ConversationIDKey",
