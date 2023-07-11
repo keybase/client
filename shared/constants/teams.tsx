@@ -1206,6 +1206,7 @@ export type State = Store & {
     ) => void
     startAddMembersWizard: (teamID: Types.TeamID) => void
     teamChangedByID: (c: EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload['payload']['params']) => void
+    teamSeen: (teamID: Types.TeamID) => void
     toggleInvitesCollapsed: (teamID: Types.TeamID) => void
     unsubscribeTeamDetails: (teamID: Types.TeamID) => void
     unsubscribeTeamList: () => void
@@ -3044,6 +3045,18 @@ export const useState = Z.createZustand<State>((set, get) => {
       if (shouldLoad) {
         get().dispatch.loadTeam(teamID)
       }
+    },
+    teamSeen: teamID => {
+      const f = async () => {
+        try {
+          await RPCTypes.gregorDismissCategoryRpcPromise({category: newRequestsGregorKey(teamID)})
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     toggleInvitesCollapsed: teamID => {
       set(s => {

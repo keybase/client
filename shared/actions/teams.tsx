@@ -2,11 +2,10 @@
 // not have every handler clear it themselves. this reduces the number of actionChains
 import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
-import * as TeamsGen from './teams-gen'
 import type * as Types from '../constants/types/teams'
 import * as Constants from '../constants/teams'
 import * as ConfigConstants from '../constants/config'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
 import * as RouteTreeGen from './route-tree-gen'
 import * as NotificationsGen from './notifications-gen'
@@ -15,7 +14,6 @@ import * as GregorGen from './gregor-gen'
 import * as GregorConstants from '../constants/gregor'
 import * as Router2Constants from '../constants/router2'
 import {commonListenActions, filterForNs} from './team-building'
-import {RPCError} from '../util/errors'
 import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
@@ -88,17 +86,6 @@ function addThemToTeamFromTeamBuilder(
   return TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'})
 }
 
-const teamSeen = async (_: unknown, action: TeamsGen.TeamSeenPayload) => {
-  const {teamID} = action.payload
-  try {
-    await RPCTypes.gregorDismissCategoryRpcPromise({category: Constants.newRequestsGregorKey(teamID)})
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(error.message)
-    }
-  }
-}
-
 const initTeams = () => {
   Container.listenAction(ConfigGen.loadOnStart, (_, action) => {
     if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
@@ -143,7 +130,6 @@ const initTeams = () => {
     }
   })
 
-  Container.listenAction(TeamsGen.teamSeen, teamSeen)
   Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
     const {prev, next} = action.payload
     if (

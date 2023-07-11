@@ -1,9 +1,0 @@
-{
-  "prelude": ["import type * as Types from '../constants/types/teams'"],
-  "actions": {
-    "teamSeen": {
-      "_description": "User has viewed this team. Clear related badges.",
-      "teamID": "Types.TeamID"
-    }
-  }
-}

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as BotsGen from '../../actions/bots-gen'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
@@ -97,13 +96,12 @@ const Team = (props: Props) => {
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
   const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID), isEqual)
   const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
-
-  const dispatch = Container.useDispatch()
+  const teamSeen = Constants.useState(s => s.dispatch.teamSeen)
 
   useFocusEffect(
     React.useCallback(() => {
-      return () => dispatch(TeamsGen.createTeamSeen({teamID}))
-    }, [dispatch, teamID])
+      return () => teamSeen(teamID)
+    }, [teamSeen, teamID])
   )
 
   useTeamsSubscribe()
