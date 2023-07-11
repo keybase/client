@@ -23,14 +23,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.setTeamProfileAddList]: (draftState, action) => {
     draftState.teamProfileAddList = action.payload.teamlist
   },
-  [TeamsGen.setMemberActivityDetails]: (draftState, action) => {
-    action.payload.activityMap.forEach((lastActivity, teamID) => {
-      if (!draftState.teamMemberToLastActivity.has(teamID)) {
-        draftState.teamMemberToLastActivity.set(teamID, new Map())
-      }
-      draftState.teamMemberToLastActivity.get(teamID)?.set(action.payload.username, lastActivity)
-    })
-  },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,
   [TeamBuildingGen.addUsersToTeamSoFar]: handleTeamBuilding,

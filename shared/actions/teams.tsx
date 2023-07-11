@@ -626,38 +626,6 @@ const loadTeamTree = async (_: unknown, action: TeamsGen.LoadTeamTreePayload) =>
   await RPCTypes.teamsLoadTeamTreeMembershipsAsyncRpcPromise(action.payload)
 }
 
-const loadTeamTreeActivity = async (
-  _: unknown,
-  action: EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
-) => {
-  const {membership} = action.payload.params
-  if (RPCTypes.TeamTreeMembershipStatus.ok !== membership.result.s) {
-    return
-  }
-  const teamID = membership.result.ok.teamID
-  const username = membership.targetUsername
-  const waitingKey = Constants.loadTeamTreeActivityWaitingKey(teamID, username)
-
-  try {
-    const activityMap = await RPCChatTypes.localGetLastActiveAtMultiLocalRpcPromise(
-      {
-        teamIDs: [teamID],
-        username,
-      },
-      waitingKey
-    )
-    return TeamsGen.createSetMemberActivityDetails({
-      activityMap: new Map(Object.entries(activityMap)),
-      username,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info(`loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${error.message}`)
-    }
-  }
-  return
-}
-
 const manageChatChannels = (_: unknown, action: TeamsGen.ManageChatChannelsPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [
@@ -761,7 +729,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.showTeamByName, showTeamByName)
 
   Container.listenAction(TeamsGen.loadTeamTree, loadTeamTree)
-  Container.listenAction(EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial, loadTeamTreeActivity)
 
   Container.listenAction(TeamsGen.teamSeen, teamSeen)
   Container.listenAction(RouteTreeGen.onNavChanged, maybeClearBadges)

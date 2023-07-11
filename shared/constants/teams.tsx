@@ -230,7 +230,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  teamMemberToLastActivity: new Map(),
   teamProfileAddList: [],
 }
 
@@ -668,10 +667,10 @@ export const getTeamMeta = (state: State, teamID: Types.TeamID) =>
     : state.teamMeta.get(teamID) ?? emptyTeamMeta
 
 export const getTeamMemberLastActivity = (
-  state: TypedState,
+  state: State,
   teamID: Types.TeamID,
   username: string
-): number | null => state.teams.teamMemberToLastActivity.get(teamID)?.get(username) ?? null
+): number | null => state.teamMemberToLastActivity.get(teamID)?.get(username) ?? null
 
 export const teamListToMeta = (
   list: Array<RPCTypes.AnnotatedMemberInfo>
@@ -997,6 +996,7 @@ export type Store = {
   teamIDToRetentionPolicy: Map<Types.TeamID, RetentionPolicy>
   treeLoaderTeamIDToSparseMemberInfos: Map<Types.TeamID, Map<string, Types.TreeloaderSparseMemberInfo>>
   teamMemberToTreeMemberships: Map<Types.TeamID, Map<string, Types.TeamTreeMemberships>>
+  teamMemberToLastActivity: Map<Types.TeamID, Map<string, number>>
 }
 
 const initialStore: Store = {
@@ -1038,6 +1038,7 @@ const initialStore: Store = {
   teamJoinSuccessTeamName: '',
   teamListFilter: '',
   teamListSort: 'role',
+  teamMemberToLastActivity: new Map(),
   teamMemberToTreeMemberships: new Map(),
   teamMeta: new Map(),
   teamMetaStale: true, // start out true, we have not loaded
@@ -2111,6 +2112,37 @@ export const useState = Z.createZustand<State>((set, get) => {
           sparseMemberInfos.set(targetUsername, consumeTeamTreeMembershipValue(value))
         }
       })
+
+      const f = async () => {
+        if (RPCTypes.TeamTreeMembershipStatus.ok !== membership.result.s) {
+          return
+        }
+        const teamID = membership.result.ok.teamID
+        const username = membership.targetUsername
+        const waitingKey = loadTeamTreeActivityWaitingKey(teamID, username)
+        try {
+          const _activityMap = await RPCChatTypes.localGetLastActiveAtMultiLocalRpcPromise(
+            {teamIDs: [teamID], username},
+            waitingKey
+          )
+          const activityMap = new Map(Object.entries(_activityMap))
+          set(s => {
+            activityMap.forEach((lastActivity, teamID) => {
+              if (!s.teamMemberToLastActivity.has(teamID)) {
+                s.teamMemberToLastActivity.set(teamID, new Map())
+              }
+              s.teamMemberToLastActivity.get(teamID)?.set(username, lastActivity)
+            })
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info(
+              `loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${error.message}`
+            )
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     openInviteLink: (inviteID, inviteKey) => {
       set(s => {

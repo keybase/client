@@ -374,8 +374,8 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
 }
 
 const LastActivity = (props: {loading: boolean; teamID: Types.TeamID; username: string}) => {
-  const lastActivity = Container.useSelector(state =>
-    Constants.getTeamMemberLastActivity(state, props.teamID, props.username)
+  const lastActivity = Constants.useState(s =>
+    Constants.getTeamMemberLastActivity(s, props.teamID, props.username)
   )
 
   return (

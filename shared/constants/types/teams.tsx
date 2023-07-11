@@ -231,7 +231,6 @@ export type TeamInviteState = {
 }
 
 export type State = {
-  teamMemberToLastActivity: Map<TeamID, Map<string, number>>
   teamProfileAddList: Array<TeamProfileAddList>
   teamBuilding: TeamBuildingSubState
 }
