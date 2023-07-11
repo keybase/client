@@ -1233,7 +1233,7 @@ export type State = Store & {
 
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
-  const getReduxStore = Z.getReduxStore() // TODO remoe >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  const getReduxStore = Z.getReduxStore() // TODO remove when chat is done
   const _respondToInviteLink = () => {
     // should be overridden
   }
@@ -1918,6 +1918,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.teamIDToMembers.set(teamID, members)
           })
           // TODO update users members >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+          // from users reducer
           // [TeamsGen.setMembers]: (draftState, action) => {
           //   const {members} = action.payload
           //   const {infoMap} = draftState
