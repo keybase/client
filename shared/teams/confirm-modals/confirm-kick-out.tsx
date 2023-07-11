@@ -4,7 +4,6 @@ import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {memoize} from '../../util/memoize'
 
@@ -14,8 +13,8 @@ type Props = {
 }
 
 const getSubteamNames = memoize(
-  (state: Container.TypedState, teamID: Types.TeamID): [string[], Types.TeamID[]] => {
-    const subteamIDs = [...Constants.getTeamDetails(state, teamID).subteams]
+  (state: Constants.State, teamID: Types.TeamID): [string[], Types.TeamID[]] => {
+    const subteamIDs = [...(Constants.useState.getState().teamDetails.get(teamID)?.subteams ?? [])]
     return [subteamIDs.map(id => Constants.getTeamMeta(state, id).teamname), subteamIDs]
   }
 )
@@ -25,8 +24,8 @@ const ConfirmKickOut = (props: Props) => {
   const teamID = props.teamID ?? Types.noTeamID
   const [subteamsToo, setSubteamsToo] = React.useState(false)
 
-  const [subteams, subteamIDs] = Container.useSelector(state => getSubteamNames(state, teamID))
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
+  const [subteams, subteamIDs] = Constants.useState(s => getSubteamNames(s, teamID))
+  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
   const waitingKeys = ([] as string[]).concat.apply(
     members.map(member => Constants.removeMemberWaitingKey(teamID, member)),
     members.map(member => subteamIDs.map(subteamID => Constants.removeMemberWaitingKey(subteamID, member)))
@@ -37,31 +36,15 @@ const ConfirmKickOut = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
 
+  const setMemberSelected = Constants.useState(s => s.dispatch.setMemberSelected)
+  const removeMember = Constants.useState(s => s.dispatch.removeMember)
   // TODO(Y2K-1592): do this in one RPC
   const onRemove = () => {
-    dispatch(
-      TeamsGen.createTeamSetMemberSelected({
-        clearAll: true,
-        selected: false,
-        teamID: teamID,
-        username: '',
-      })
-    )
+    setMemberSelected(teamID, '', false, true)
 
-    members.forEach(member =>
-      dispatch(
-        TeamsGen.createRemoveMember({
-          teamID,
-          username: member,
-        })
-      )
-    )
+    members.forEach(member => removeMember(teamID, member))
     if (subteamsToo) {
-      subteamIDs.forEach(subteamID =>
-        members.forEach(member =>
-          dispatch(TeamsGen.createRemoveMember({teamID: subteamID, username: member}))
-        )
-      )
+      subteamIDs.forEach(subteamID => members.forEach(member => removeMember(subteamID, member)))
     }
   }
 

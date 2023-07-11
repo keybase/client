@@ -5,7 +5,6 @@ import * as Constants from '../../../constants/teams'
 import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
 import * as Types from '../../../constants/types/teams'
-import * as TeamsGen from '../../../actions/teams-gen'
 import {pluralize} from '../../../util/string'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
@@ -33,12 +32,11 @@ const NewTeamInfo = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const teamWizardState = Container.useSelector(state => state.teams.newTeamWizard)
-  const parentName = Container.useSelector(state =>
-    teamWizardState.parentTeamID
-      ? Constants.getTeamNameFromID(state, teamWizardState.parentTeamID)
-      : undefined
+  const teamWizardState = Constants.useState(s => s.newTeamWizard)
+  const parentName = Constants.useState(s =>
+    teamWizardState.parentTeamID ? Constants.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
   )
+
   const minLength = parentName ? 2 : 3
 
   const [name, _setName] = React.useState(
@@ -95,17 +93,18 @@ const NewTeamInfo = () => {
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
+
+  const setTeamWizardNameDescription = Constants.useState(s => s.dispatch.setTeamWizardNameDescription)
+
   const onContinue = () =>
-    dispatch(
-      TeamsGen.createSetTeamWizardNameDescription({
-        addYourself,
-        description,
-        openTeam,
-        openTeamJoinRole: realRole,
-        profileShowcase: showcase,
-        teamname,
-      })
-    )
+    setTeamWizardNameDescription({
+      addYourself,
+      description,
+      openTeam,
+      openTeamJoinRole: realRole,
+      profileShowcase: showcase,
+      teamname,
+    })
 
   return (
     <Kb.Modal

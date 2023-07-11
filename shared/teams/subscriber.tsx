@@ -1,31 +1,33 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/teams'
-import * as TeamsGen from '../actions/teams-gen'
+import * as Constants from '../constants/teams'
 import {useFocusEffect} from '@react-navigation/core'
 
 // NOTE: If you are in a floating box or otherwise outside the navigation
 // context, you must use `*MountOnly` variants of these helpers
 
 const useTeamsSubscribeMobile = () => {
-  const dispatch = Container.useDispatch()
+  const getTeams = Constants.useState(s => s.dispatch.getTeams)
+  const unsubscribeTeamList = Constants.useState(s => s.dispatch.unsubscribeTeamList)
   useFocusEffect(
     React.useCallback(() => {
-      dispatch(TeamsGen.createGetTeams({_subscribe: true}))
+      getTeams(true)
       return () => {
-        dispatch(TeamsGen.createUnsubscribeTeamList())
+        unsubscribeTeamList()
       }
-    }, [dispatch])
+    }, [getTeams, unsubscribeTeamList])
   )
 }
 const useTeamsSubscribeDesktop = () => {
-  const dispatch = Container.useDispatch()
+  const getTeams = Constants.useState(s => s.dispatch.getTeams)
+  const unsubscribeTeamList = Constants.useState(s => s.dispatch.unsubscribeTeamList)
   React.useEffect(() => {
-    dispatch(TeamsGen.createGetTeams({_subscribe: true}))
+    getTeams(true)
     return () => {
-      dispatch(TeamsGen.createUnsubscribeTeamList())
+      unsubscribeTeamList()
     }
-  }, [dispatch])
+  }, [getTeams, unsubscribeTeamList])
 }
 export const useTeamsSubscribe = Container.isMobile ? useTeamsSubscribeMobile : useTeamsSubscribeDesktop
 export const useTeamsSubscribeMountOnly = useTeamsSubscribeDesktop
@@ -42,22 +44,22 @@ export const TeamsSubscriberMountOnly = () => {
 }
 
 const useTeamDetailsSubscribeMobile = (teamID: Types.TeamID) => {
-  const dispatch = Container.useDispatch()
+  const loadTeam = Constants.useState(s => s.dispatch.loadTeam)
+  const unsubscribeTeamDetails = Constants.useState(s => s.dispatch.unsubscribeTeamDetails)
   useFocusEffect(
     React.useCallback(() => {
-      dispatch(TeamsGen.createLoadTeam({_subscribe: true, teamID}))
-      return () => dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
-    }, [dispatch, teamID])
+      loadTeam(teamID, true)
+      return () => unsubscribeTeamDetails(teamID)
+    }, [loadTeam, unsubscribeTeamDetails, teamID])
   )
 }
 const useTeamDetailsSubscribeDesktop = (teamID: Types.TeamID) => {
-  const dispatch = Container.useDispatch()
+  const loadTeam = Constants.useState(s => s.dispatch.loadTeam)
+  const unsubscribeTeamDetails = Constants.useState(s => s.dispatch.unsubscribeTeamDetails)
   React.useEffect(() => {
-    dispatch(TeamsGen.createLoadTeam({_subscribe: true, teamID}))
-    return () => {
-      dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
-    }
-  }, [dispatch, teamID])
+    loadTeam(teamID, true)
+    return () => unsubscribeTeamDetails(teamID)
+  }, [loadTeam, unsubscribeTeamDetails, teamID])
 }
 export const useTeamDetailsSubscribe = Container.isMobile
   ? useTeamDetailsSubscribeMobile

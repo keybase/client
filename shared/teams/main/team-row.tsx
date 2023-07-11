@@ -19,9 +19,9 @@ const TeamRow = (props: Props) => {
   const {firstItem, showChat = true, teamID} = props
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   // useActivityLevels in ../container ensures these are loaded
-  const activityLevel = Container.useSelector(s => s.teams.activityLevels.teams.get(teamID) || 'none')
+  const activityLevel = Constants.useState(s => s.activityLevels.teams.get(teamID) || 'none')
 
   const onViewTeam = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
@@ -40,10 +40,11 @@ const TeamRow = (props: Props) => {
   )
   const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
-  const badgeCount = Container.useSelector(s =>
-    Constants.getTeamRowBadgeCount(s.teams.newTeamRequests, s.teams.teamIDToResetUsers, teamID)
+  const teamIDToResetUsers = Constants.useState(s => s.teamIDToResetUsers)
+  const badgeCount = Constants.useState(s =>
+    Constants.getTeamRowBadgeCount(s.newTeamRequests, teamIDToResetUsers, teamID)
   )
-  const isNew = Container.useSelector(s => s.teams.newTeams.has(teamID))
+  const isNew = Constants.useState(s => s.newTeams.has(teamID))
 
   const crownIconType: Kb.IconType | undefined =
     teamMeta.role === 'owner'

@@ -1,8 +1,8 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/users'
+import * as TeamsConstants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as UsersGen from '../../../actions/users-gen'
 import * as React from 'react'
 import BlockModal, {type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings} from '.'
@@ -50,17 +50,12 @@ export default (ownProps: OwnProps) => {
   const onClose = React.useCallback(() => {
     dispatch(RouteTreeGen.createNavigateUp())
   }, [dispatch])
+  const leaveTeam = TeamsConstants.useState(s => s.dispatch.leaveTeam)
   const leaveTeamAndBlock = React.useCallback(
     (teamname: string) => {
-      dispatch(
-        TeamsGen.createLeaveTeam({
-          context: 'chat',
-          permanent: true,
-          teamname,
-        })
-      )
+      leaveTeam(teamname, true, 'chat')
     },
-    [dispatch]
+    [leaveTeam]
   )
   const refreshBlocksFor = React.useCallback(
     (usernames: Array<string>) => {

@@ -1,6 +1,6 @@
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/chat2'
+import * as TeamsConstants from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
@@ -38,13 +38,13 @@ export default (ownProps: OwnProps) => {
   const _onChat = (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'teamMention'}))
   }
+  const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
   const _onViewTeam = (teamname: string) => {
     dispatch(RouteTreeGen.createClearModals())
-    dispatch(TeamsGen.createShowTeamByName({teamname}))
+    showTeamByName(teamname)
   }
-  const onJoinTeam = (teamname: string) => {
-    dispatch(TeamsGen.createJoinTeam({teamname}))
-  }
+  const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
+  const onJoinTeam = joinTeam
 
   const convID = _convID ? Types.stringToConversationIDKey(_convID) : undefined
   const props = {

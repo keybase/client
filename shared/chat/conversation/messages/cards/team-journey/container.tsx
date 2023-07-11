@@ -6,7 +6,6 @@ import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as TeamConstants from '../../../../../constants/teams'
-import * as TeamsGen from '../../../../../actions/teams-gen'
 import type * as ChatTypes from '../../../../../constants/types/chat2'
 import type * as MessageTypes from '../../../../../constants/types/chat2/message'
 import type * as TeamTypes from '../../../../../constants/types/teams'
@@ -142,13 +141,13 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const _teamID = teamID
-  const canShowcase = Container.useSelector(state => TeamConstants.canShowcase(state, teamID))
+  const canShowcase = TeamConstants.useState(s => TeamConstants.canShowcase(s, teamID))
   const isBigTeam = Container.useSelector(state => TeamConstants.isBigTeam(state, teamID))
 
   const dispatch = Container.useDispatch()
 
-  const _onAddPeopleToTeam = (teamID: TeamTypes.TeamID) =>
-    dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
+  const startAddMembersWizard = TeamConstants.useState(s => s.dispatch.startAddMembersWizard)
+  const _onAddPeopleToTeam = (teamID: TeamTypes.TeamID) => startAddMembersWizard(teamID)
   const _onAuthorClick = (teamID: TeamTypes.TeamID) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))
   const _onCreateChannel = (teamID: string) =>
@@ -160,10 +159,13 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal}))
   const _onGoToChannel = (channelname: string, teamname: string) =>
     dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname}))
-  const _onManageChannels = (teamID: string) => dispatch(TeamsGen.createManageChatChannels({teamID}))
+  const manageChatChannels = TeamConstants.useState(s => s.dispatch.manageChatChannels)
+  const _onManageChannels = (teamID: string) => manageChatChannels(teamID)
+
+  const setMemberPublicity = TeamConstants.useState(s => s.dispatch.setMemberPublicity)
   const _onPublishTeam = (teamID: string) => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']}))
-    dispatch(TeamsGen.createSetMemberPublicity({showcase: true, teamID}))
+    setMemberPublicity(teamID, true)
   }
   const _onShowTeam = (teamID: TeamTypes.TeamID) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))

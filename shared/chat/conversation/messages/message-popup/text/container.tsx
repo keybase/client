@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Constants from '../../../../../constants/chat2'
+import * as TeamsConstants from '../../../../../constants/teams'
 import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
 import * as DeeplinksConstants from '../../../../../constants/deeplinks'
@@ -35,7 +36,7 @@ export default (ownProps: OwnProps) => {
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, message.conversationIDKey)
   )
-  const yourOperations = Container.useSelector(state => getCanPerformByID(state, meta.teamID))
+  const yourOperations = TeamsConstants.useState(s => getCanPerformByID(s, meta.teamID))
   const _canDeleteHistory = yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations.deleteOtherMessages
   const _label = Container.useSelector(state => Constants.getConversationLabel(state, meta, true))
@@ -46,10 +47,10 @@ export default (ownProps: OwnProps) => {
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const _canReplyPrivately =
     message.type === 'text' && (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
-  const authorIsBot = Container.useSelector(state =>
-    Constants.messageAuthorIsBot(state, meta, message, participantInfo)
+  const authorIsBot = TeamsConstants.useState(s =>
+    Constants.messageAuthorIsBot(s, meta, message, participantInfo)
   )
-  const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
+  const _teamMembers = TeamsConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
   const _authorIsBot = authorIsBot
   const _isDeleteable = message.isDeleteable
   const _isEditable = message.isEditable

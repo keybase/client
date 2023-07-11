@@ -2,6 +2,7 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as BotsGen from '../actions/bots-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
+import * as TeamsConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
@@ -1457,6 +1458,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         metaMap.set(meta.conversationIDKey, meta)
       }
     })
+    TeamsConstants.useState.getState().dispatch.updateTeamRetentionPolicy(metas)
   },
   [Chat2Gen.messagesExploded]: (draftState, action) => {
     const {conversationIDKey, messageIDs, explodedBy} = action.payload

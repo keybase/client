@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/chat2'
+import * as TeamsConstants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as React from 'react'
 import PinnedMessage from '.'
@@ -18,7 +19,7 @@ const PinnedMessageContainer = React.memo(function PinnedMessageContainer(p: Own
     return {pinnedMsg: meta?.pinnedMsg, teamname: meta?.teamname}
   }, shallowEqual)
   const message = pinnedMsg?.message
-  const yourOperations = Container.useSelector(state => getCanPerform(state, teamname))
+  const yourOperations = TeamsConstants.useState(s => getCanPerform(s, teamname))
   const unpinning = Container.useAnyWaiting(Constants.waitingKeyUnpin(conversationIDKey))
   const messageID = message?.id
   const dispatch = Container.useDispatch()

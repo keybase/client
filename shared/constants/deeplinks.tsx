@@ -1,10 +1,10 @@
 import * as ChatGen from '../actions/chat2-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Tabs from './tabs'
-import * as TeamsGen from '../actions/teams-gen'
 import * as WalletsGen from '../actions/wallets-gen'
 import * as ProfileConstants from './profile'
 import * as SettingsConstants from './settings'
+import * as TeamsConstants from './teams'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import URL from 'url-parse'
@@ -109,14 +109,14 @@ export const useState = Z.createZustand<State>((set, get) => {
   }
 
   const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
-    reduxDispatch(
-      TeamsGen.createShowTeamByName({
-        addMembers: action === 'add_or_invite' ? true : undefined,
-        initialTab: action === 'manage_settings' ? 'settings' : undefined,
-        join: action === 'join' ? true : undefined,
+    TeamsConstants.useState
+      .getState()
+      .dispatch.showTeamByName(
         teamname,
-      })
-    )
+        action === 'manage_settings' ? 'settings' : undefined,
+        action === 'join' ? true : undefined,
+        action === 'add_or_invite' ? true : undefined
+      )
   }
 
   const dispatch: State['dispatch'] = {
@@ -256,7 +256,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']}))
           return
         case 'team-invite-link':
-          reduxDispatch(TeamsGen.createOpenInviteLink({inviteID: parts[1] ?? '', inviteKey: parts[2] || ''}))
+          TeamsConstants.useState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
           return
         default:
         // Fall through to the error return below.

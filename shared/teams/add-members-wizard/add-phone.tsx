@@ -2,15 +2,15 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/teams'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import * as SettingsConstants from '../../constants/settings'
-import * as TeamsGen from '../../actions/teams-gen'
 import {ModalTitle, usePhoneNumberList} from '../common'
 
 const waitingKey = 'phoneLookup'
 
 const AddPhone = () => {
-  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
+  const teamID = Constants.useState(s => s.addMembersWizard.teamID)
   const [error, setError] = React.useState('')
 
   const dispatch = Container.useDispatch()
@@ -32,21 +32,20 @@ const AddPhone = () => {
   }, [defaultCountry, loadDefaultPhoneCountry])
 
   const emailsToAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+  const addMembersWizardPushMembers = Constants.useState(s => s.dispatch.addMembersWizardPushMembers)
   const onContinue = () => {
     setError('')
     emailsToAssertionsRPC(
       [{emails: '', phoneNumbers: phoneNumbers.map(pn => pn.phoneNumber)}, waitingKey],
       r =>
         r?.length
-          ? dispatch(
-              TeamsGen.createAddMembersWizardPushMembers({
-                members: r.map(m => ({
-                  ...(m.foundUser
-                    ? {assertion: m.username, resolvedFrom: m.assertion}
-                    : {assertion: m.assertion}),
-                  role: 'writer',
-                })),
-              })
+          ? addMembersWizardPushMembers(
+              r.map(m => ({
+                ...(m.foundUser
+                  ? {assertion: m.username, resolvedFrom: m.assertion}
+                  : {assertion: m.assertion}),
+                role: 'writer',
+              }))
             )
           : setError('You must enter at least one valid phone number.'),
       err => setError(err.message)

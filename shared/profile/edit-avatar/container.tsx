@@ -1,5 +1,4 @@
 import EditAvatar from '.'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
 import * as TeamsConstants from '../../constants/teams'
@@ -25,9 +24,9 @@ export default (ownProps: OwnProps) => {
   const sperror = Container.useAnyErrors(Constants.uploadAvatarWaitingKey)
   const sendChatNotification = ownProps.sendChatNotification ?? false
   const submitting = Container.useAnyWaiting(Constants.uploadAvatarWaitingKey)
-  const teamname =
-    Container.useSelector(state => (teamID ? TeamsConstants.getTeamNameFromID(state, teamID) : undefined)) ??
-    ''
+  const teamname = TeamsConstants.useState(
+    s => (teamID ? TeamsConstants.getTeamNameFromID(s, teamID) : undefined) ?? ''
+  )
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
   const dispatch = Container.useDispatch()
@@ -39,6 +38,7 @@ export default (ownProps: OwnProps) => {
     dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
     dispatch(RouteTreeGen.createClearModals())
   }
+  const uploadTeamAvatar = TeamsConstants.useState(s => s.dispatch.uploadTeamAvatar)
   const onSaveTeamAvatar = (
     _filename: string,
     teamname: string,
@@ -46,14 +46,7 @@ export default (ownProps: OwnProps) => {
     crop?: RPCTypes.ImageCropRect
   ) => {
     const filename = Styles.unnormalizePath(_filename)
-    dispatch(
-      TeamsGen.createUploadTeamAvatar({
-        crop,
-        filename,
-        sendChatNotification,
-        teamname,
-      })
-    )
+    uploadTeamAvatar(teamname, filename, sendChatNotification, crop)
   }
 
   const uploadAvatar = Constants.useState(s => s.dispatch.uploadAvatar)
@@ -62,12 +55,13 @@ export default (ownProps: OwnProps) => {
     const filename = Styles.unnormalizePath(_filename)
     uploadAvatar(filename, crop)
   }
+  const setTeamWizardAvatar = TeamsConstants.useState(s => s.dispatch.setTeamWizardAvatar)
   const onSaveWizardAvatar = (_filename: string, crop?: Types.AvatarCrop) => {
     const filename = Styles.unnormalizePath(_filename)
-    dispatch(TeamsGen.createSetTeamWizardAvatar({crop, filename}))
+    setTeamWizardAvatar(crop, filename)
   }
   const onSkip = () => {
-    dispatch(TeamsGen.createSetTeamWizardAvatar({}))
+    setTeamWizardAvatar()
   }
 
   let error = ''

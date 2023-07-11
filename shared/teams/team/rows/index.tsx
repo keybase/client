@@ -7,7 +7,6 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Constants from '../../../constants/chat2'
 import type {Section as _Section} from '../../../common-adapters/section-list'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
@@ -84,10 +83,10 @@ export const useBotSections = (
 }
 
 export const useInvitesSections = (teamID: Types.TeamID, details: Types.TeamDetails): Array<Section> => {
-  const invitesCollapsed = Container.useSelector(state => state.teams.invitesCollapsed)
-  const dispatch = Container.useDispatch()
+  const invitesCollapsed = Constants.useState(s => s.invitesCollapsed)
   const collapsed = invitesCollapsed.has(teamID)
-  const onToggleCollapsed = () => dispatch(TeamsGen.createToggleInvitesCollapsed({teamID}))
+  const toggleInvitesCollapsed = Constants.useState(s => s.dispatch.toggleInvitesCollapsed)
+  const onToggleCollapsed = () => toggleInvitesCollapsed(teamID)
 
   const sections: Array<Section> = []
   const resetMembers = [...(details.members?.values() ?? [])].filter(m => m.status === 'reset')
@@ -135,8 +134,8 @@ export const useChannelsSections = (
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
   const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
-  const channels = Container.useSelector(state => state.teams.channelInfo.get(teamID))
-  const canCreate = Container.useSelector(state => Constants.getCanPerformByID(state, teamID).createChannel)
+  const channels = Constants.useState(s => s.channelInfo.get(teamID))
+  const canCreate = Constants.useState(s => Constants.getCanPerformByID(s, teamID).createChannel)
 
   if (!isBig) {
     return [makeSingleRow('channel-empty', () => <EmptyRow type="channelsEmpty" teamID={teamID} />)]
@@ -172,7 +171,7 @@ export const useSubteamsSections = (
   details: Types.TeamDetails,
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
-  const subteamsFiltered = Container.useSelector(state => state.teams.subteamsFiltered)
+  const subteamsFiltered = Constants.useState(s => s.subteamsFiltered)
   const subteams = [...(subteamsFiltered ?? details.subteams)].sort()
   const sections: Array<Section> = []
 

@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
+import * as TeamsConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
 import type * as TeamTypes from '../../../constants/types/teams'
 import type * as Types from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
@@ -81,9 +81,9 @@ const AddPeople = (ownProps: OwnProps) => {
   const teamID = meta.teamID
 
   const dispatch = Container.useDispatch()
-
+  const startAddMembersWizard = TeamsConstants.useState(s => s.dispatch.startAddMembersWizard)
   const _onAddPeople = (teamID: TeamTypes.TeamID) => {
-    dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
+    startAddMembersWizard(teamID)
   }
   const _onAddToChannel = (conversationIDKey: Types.ConversationIDKey, teamID: TeamTypes.TeamID) => {
     dispatch(

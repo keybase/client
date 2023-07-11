@@ -7,7 +7,6 @@ import * as Kb from '../../../common-adapters'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Types from '../../../constants/types/teams'
 import RoleButton from '../../role-button'
 import isEqual from 'lodash/isEqual'
@@ -41,7 +40,7 @@ type TeamTreeRowIn = {
 } & TeamTreeRowNotIn
 
 const getMemberships = (
-  state: Container.TypedState,
+  state: Constants.State,
   teamIDs: Array<Types.TeamID>,
   username: string
 ): Map<Types.TeamID, Types.TreeloaderSparseMemberInfo> => {
@@ -61,11 +60,9 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
   const nodesNotIn: Array<TeamTreeRowNotIn> = []
   const nodesIn: Array<TeamTreeRowIn> = []
 
-  const memberships = Container.useSelector(state =>
-    state.teams.teamMemberToTreeMemberships.get(targetTeamID)?.get(username)
-  )
-  const roleMap = Container.useSelector(state => state.teams.teamRoleMap.roles)
-  const teamMetas = Container.useSelector(state => state.teams.teamMeta)
+  const memberships = Constants.useState(s => s.teamMemberToTreeMemberships.get(targetTeamID)?.get(username))
+  const roleMap = Constants.useState(s => s.teamRoleMap.roles)
+  const teamMetas = Constants.useState(s => s.teamMeta)
 
   // Note that we do not directly take any information directly from the TeamTree result other
   // than the **shape of the tree**. The other information is delegated to
@@ -75,8 +72,8 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
     memberships?.memberships
       .filter(m => m.result.s === RPCTypes.TeamTreeMembershipStatus.ok)
       .map(m => (m.result as TreeMembershipOK).ok.teamID) ?? []
-  const upToDateSparseMemberInfos = Container.useSelector(
-    state => getMemberships(state, teamIDs, username),
+  const upToDateSparseMemberInfos = Constants.useState(
+    s => getMemberships(s, teamIDs, username),
     isEqual // Since this makes a new map every time, do a deep equality comparison to see if it actually changed
   )
 
@@ -146,11 +143,9 @@ const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.Sectio
 const TeamMember = (props: OwnProps) => {
   const username = props.username
   const teamID = props.teamID ?? Types.noTeamID
-  const dispatch = Container.useDispatch()
-
   const isMe = username === ConfigConstants.useCurrentUserState(s => s.username)
-  const loading = Container.useSelector(state => {
-    const memberships = state.teams.teamMemberToTreeMemberships.get(teamID)?.get(username)
+  const loading = Constants.useState(s => {
+    const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
     if (!memberships || !memberships.expectedCount) {
       return true
     }
@@ -162,10 +157,12 @@ const TeamMember = (props: OwnProps) => {
     return got < want
   })
 
+  const loadTeamTree = Constants.useState(s => s.dispatch.loadTeamTree)
+
   // Load up the memberships when the page is opened
   React.useEffect(() => {
-    dispatch(TeamsGen.createLoadTeamTree({teamID, username}))
-  }, [teamID, username, dispatch])
+    loadTeamTree(teamID, username)
+  }, [loadTeamTree, teamID, username])
 
   const {nodesIn, nodesNotIn, errors} = useMemberships(teamID, username)
 
@@ -229,7 +226,7 @@ const TeamMember = (props: OwnProps) => {
             content={[
               'The following teams could not be loaded. ',
               {
-                onClick: () => dispatch(TeamsGen.createLoadTeamTree({teamID, username})),
+                onClick: () => loadTeamTree(teamID, username),
                 text: 'Click to reload.',
               },
             ]}
@@ -287,14 +284,10 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onAddWaitingKey = Constants.addMemberWaitingKey(props.node.teamID, props.username)
-  const onAdd = (role: Types.TeamRoleType) =>
-    dispatch(
-      TeamsGen.createAddToTeam({
-        sendChatNotification: true,
-        teamID: props.node.teamID,
-        users: [{assertion: props.username, role}],
-      })
-    )
+  const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
+  const onAdd = (role: Types.TeamRoleType) => {
+    addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
+  }
   const openTeam = React.useCallback(
     () =>
       dispatch(
@@ -305,8 +298,8 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
     [props.node.teamID, dispatch, nav]
   )
 
-  const disabledRoles = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
+  const disabledRoles = Constants.useState(s =>
+    Constants.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
 
   const [open, setOpen] = React.useState(false)
@@ -380,8 +373,8 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
 }
 
 const LastActivity = (props: {loading: boolean; teamID: Types.TeamID; username: string}) => {
-  const lastActivity = Container.useSelector(state =>
-    Constants.getTeamMemberLastActivity(state, props.teamID, props.username)
+  const lastActivity = Constants.useState(s =>
+    Constants.getTeamMemberLastActivity(s, props.teamID, props.username)
   )
 
   return (
@@ -423,8 +416,9 @@ const NodeInRow = (props: NodeInRowProps) => {
       })
     )
   const onKickOutWaitingKey = Constants.removeMemberWaitingKey(props.node.teamID, props.username)
+  const removeMember = Constants.useState(s => s.dispatch.removeMember)
   const onKickOut = () => {
-    dispatch(TeamsGen.createRemoveMember({teamID: props.node.teamID, username: props.username}))
+    removeMember(props.node.teamID, props.username)
     if (props.isParentTeamMe) {
       dispatch(nav.safeNavigateUpPayload())
     }
@@ -444,18 +438,19 @@ const NodeInRow = (props: NodeInRowProps) => {
 
   const [role, setRole] = React.useState<Types.TeamRoleType>(props.node.role)
   const [open, setOpen] = React.useState(false)
+  const editMembership = Constants.useState(s => s.dispatch.editMembership)
   const onChangeRole = (role: Types.TeamRoleType) => {
     setRole(role)
-    dispatch(TeamsGen.createEditMembership({role, teamID: props.node.teamID, usernames: [props.username]}))
+    editMembership(props.node.teamID, [props.username], role)
     setOpen(false)
     if (['reader, writer'].includes(role) && props.isParentTeamMe) {
       dispatch(nav.safeNavigateUpPayload())
     }
   }
-  const disabledRoles = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, props.node.teamID, props.username)
+  const disabledRoles = Constants.useState(s =>
+    Constants.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
-  const amLastOwner = Container.useSelector(state => Constants.isLastOwner(state, props.node.teamID))
+  const amLastOwner = Constants.useState(s => Constants.isLastOwner(s, props.node.teamID))
   const isMe = props.username == ConfigConstants.useCurrentUserState(s => s.username)
   const changingRole = Container.useAnyWaiting(
     Constants.editMembershipWaitingKey(props.node.teamID, props.username)
@@ -483,7 +478,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     <></>
   )
 
-  const myRole = Container.useSelector(s => Constants.getRole(s, props.node.teamID))
+  const myRole = Constants.useState(s => Constants.getRole(s, props.node.teamID))
   const cantKickOut = props.node.canAdminister && props.node.role === 'owner' && myRole !== 'admin'
 
   return (
@@ -640,8 +635,8 @@ export const TeamMemberHeader = (props: Props) => {
   const nav = Container.useSafeNavigation()
   const leaving = useNavUpIfRemovedFromTeam(teamID, username)
 
-  const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
+  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
   const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
 
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
@@ -651,7 +646,7 @@ export const TeamMemberHeader = (props: Props) => {
   const onViewTeam = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
 
-  const member = teamDetails.members.get(username)
+  const member = teamDetails?.members.get(username)
   if (!member) {
     if (!leaving) {
       // loading? should never happen.

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
@@ -12,10 +11,10 @@ type OwnProps = {teamID: Types.TeamID}
 
 const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const teamID = op.teamID ?? Types.noTeamID
-  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
-  const {settings, members} = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
+  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
+  const {settings, members} = Constants.useState(s => s.teamDetails.get(teamID) ?? Constants.emptyTeamDetails)
   const open = settings.open
-  const lastOwner = Container.useSelector(state => Constants.isLastOwner(state, teamID))
+  const lastOwner = Constants.useState(s => Constants.isLastOwner(s, teamID))
   const stillLoadingTeam = !members
   const leaving = Container.useAnyWaiting(Constants.leaveTeamWaitingKey(teamname))
   const error = Container.useAnyErrors(Constants.leaveTeamWaitingKey(teamname))
@@ -29,17 +28,12 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
       })
     )
   }, [dispatch, teamID])
+  const leaveTeam = Constants.useState(s => s.dispatch.leaveTeam)
   const _onLeave = React.useCallback(
     (permanent: boolean) => {
-      dispatch(
-        TeamsGen.createLeaveTeam({
-          context: 'teams',
-          permanent,
-          teamname,
-        })
-      )
+      leaveTeam(teamname, permanent, 'teams')
     },
-    [dispatch, teamname]
+    [leaveTeam, teamname]
   )
   const _onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onBack = leaving ? () => {} : _onBack

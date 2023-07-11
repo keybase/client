@@ -6,7 +6,6 @@ import * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 
 type Props = {
@@ -22,15 +21,15 @@ const ConfirmRemoveFromChannel = (props: Props) => {
 
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
-  const channelInfo = Container.useSelector(state =>
-    Constants.getTeamChannelInfo(state, teamID, conversationIDKey)
-  )
+  const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
 
+  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
+  const channelSetMemberSelected = Constants.useState(s => s.dispatch.channelSetMemberSelected)
   const removeFromChannel = Container.useRPC(RPCChatGen.localRemoveFromConversationLocalRpcPromise)
 
   const onRemove = () => {
@@ -40,16 +39,9 @@ const ConfirmRemoveFromChannel = (props: Props) => {
       [{convID: ChatTypes.keyToConversationID(conversationIDKey), usernames: members}],
       _ => {
         setWaiting(false)
-        dispatch(
-          TeamsGen.createChannelSetMemberSelected({
-            clearAll: true,
-            conversationIDKey,
-            selected: false,
-            username: '',
-          })
-        )
+        channelSetMemberSelected(conversationIDKey, '', false, true)
         dispatch(nav.safeNavigateUpPayload())
-        dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+        loadTeamChannelList(teamID)
       },
       err => {
         setWaiting(false)

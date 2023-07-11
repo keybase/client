@@ -1,5 +1,6 @@
 import * as Common from './common'
 import * as Constants from '../../../../constants/chat2'
+import * as TeamConstants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
@@ -142,7 +143,8 @@ const getTeams = (layout?: RPCChatTypes.UIInboxLayout) => {
 const useDataUsers = (conversationIDKey: Types.ConversationIDKey) => {
   return Container.useSelector(state => {
     const {teamID, teamType} = Constants.getMeta(state, conversationIDKey)
-    const teamMembers = state.teams.teamIDToMembers.get(teamID)
+    // TODO not reactive
+    const teamMembers = TeamConstants.useState.getState().teamIDToMembers.get(teamID)
     const infoMap = state.users.infoMap
     const usernames = teamMembers
       ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))

@@ -2,7 +2,6 @@ import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as TeamsGen from '../../actions/teams-gen'
 import AddToTeam, {type AddToTeamProps} from './index'
 import type * as Types from '../../constants/types/teams'
 import {memoize} from '../../util/memoize'
@@ -107,25 +106,24 @@ export class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTea
 type OwnProps = {username: string}
 export default (ownProps: OwnProps) => {
   const _them = ownProps.username
-  const _roles = Container.useSelector(state => state.teams.teamRoleMap.roles)
-  const _teams = Container.useSelector(state => state.teams.teamMeta)
-  const addUserToTeamsResults = Container.useSelector(state => state.teams.addUserToTeamsResults)
-  const addUserToTeamsState = Container.useSelector(state => state.teams.addUserToTeamsState)
-  const teamProfileAddList = Container.useSelector(state => state.teams.teamProfileAddList)
+  const _roles = Constants.useState(s => s.teamRoleMap.roles)
+  const _teams = Constants.useState(s => s.teamMeta)
+  const addUserToTeamsResults = Constants.useState(s => s.addUserToTeamsResults)
+  const addUserToTeamsState = Constants.useState(s => s.addUserToTeamsState)
+  const clearAddUserToTeamsResults = Constants.useState(s => s.dispatch.clearAddUserToTeamsResults)
+  const addUserToTeams = Constants.useState(s => s.dispatch.addUserToTeams)
+  const teamProfileAddList = Constants.useState(s => s.teamProfileAddList)
   const waiting = Container.useAnyWaiting(Constants.teamProfileAddListWaitingKey)
   const dispatch = Container.useDispatch()
-  const _onAddToTeams = (role: Types.TeamRoleType, teams: Array<string>, user: string) => {
-    dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
-  }
-  const clearAddUserToTeamsResults = () => {
-    dispatch(TeamsGen.createClearAddUserToTeamsResults())
-  }
+  const _onAddToTeams = addUserToTeams
+  const getTeamProfileAddList = Constants.useState(s => s.dispatch.getTeamProfileAddList)
+  const resetTeamProfileAddList = Constants.useState(s => s.dispatch.resetTeamProfileAddList)
   const loadTeamList = () => {
-    dispatch(TeamsGen.createGetTeamProfileAddList({username: _them}))
+    getTeamProfileAddList(_them)
   }
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: []}))
+    resetTeamProfileAddList()
   }
 
   const title = `Add ${_them} to...`

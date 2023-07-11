@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
@@ -22,20 +21,19 @@ const EditTeamWelcomeMessage = (props: Props) => {
 
   const waitingKey = Constants.setWelcomeMessageWaitingKey(teamID)
   const waiting = Container.useAnyWaiting(waitingKey)
-  const error = Container.useSelector(state => state.teams.errorInEditWelcomeMessage)
-  const origWelcomeMessage = Container.useSelector(
-    state => Constants.getTeamWelcomeMessageByID(state, teamID)!
-  )
+  const error = Constants.useState(s => s.errorInEditWelcomeMessage)
+  const origWelcomeMessage = Constants.useState(s => s.teamIDToWelcomeMessage.get(teamID))
 
   const [welcomeMessage, setWelcomeMessage] = React.useState({
-    raw: origWelcomeMessage.raw,
-    set: origWelcomeMessage.set,
+    raw: origWelcomeMessage?.raw ?? '',
+    set: origWelcomeMessage?.set ?? true,
   })
   const showNoWelcomeMessage = welcomeMessage.set && welcomeMessage.raw.length === 0
 
+  const _setWelcomeMessage = Constants.useState(s => s.dispatch.setWelcomeMessage)
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onSave = () => dispatch(TeamsGen.createSetWelcomeMessage({message: welcomeMessage, teamID}))
+  const onSave = () => _setWelcomeMessage(teamID, welcomeMessage)
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
 
   const wasWaiting = Container.usePrevious(waiting)
@@ -61,7 +59,8 @@ const EditTeamWelcomeMessage = (props: Props) => {
             <Kb.Button
               style={styles.button}
               disabled={
-                welcomeMessage.raw === origWelcomeMessage.raw && welcomeMessage.set === origWelcomeMessage.set
+                welcomeMessage.raw === origWelcomeMessage?.raw &&
+                welcomeMessage.set === origWelcomeMessage.set
               }
               label="Save"
               onClick={onSave}

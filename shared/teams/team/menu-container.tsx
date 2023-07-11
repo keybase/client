@@ -1,14 +1,13 @@
-import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import type * as Types from '../../constants/types/teams'
+import * as Container from '../../util/container'
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as Kb from '../../common-adapters'
-import capitalize from 'lodash/capitalize'
+import * as React from 'react'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
+import capitalize from 'lodash/capitalize'
+import type * as Types from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 
 type OwnProps = {
@@ -84,18 +83,18 @@ const styles = Styles.styleSheetCreate(() => ({
 
 export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const {teamname, role, memberCount} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
-  const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
+  const {teamname, role, memberCount} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
   const canDeleteTeam = yourOperations.deleteTeam
   const canInvite = yourOperations.manageMembers
-  const canLeaveTeam = Container.useSelector(
-    state => !Constants.isLastOwner(state, teamID) && role !== 'none'
-  )
+  const canLeaveTeam = Constants.useState(s => !Constants.isLastOwner(s, teamID) && role !== 'none')
   const canViewFolder = !yourOperations.joinTeam
 
   const dispatch = Container.useDispatch()
+
+  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
   const onAddOrInvitePeople = () => {
-    dispatch(TeamsGen.createStartAddMembersWizard({teamID}))
+    startAddMembersWizard(teamID)
   }
   const onDeleteTeam = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamDeleteTeam'}]}))

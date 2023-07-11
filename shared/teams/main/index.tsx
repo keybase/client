@@ -2,8 +2,7 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import type * as Types from '../../constants/types/teams'
-import * as TeamsGen from '../../actions/teams-gen'
-import * as Container from '../../util/container'
+import * as Constants from '../../constants/teams'
 import Banner from './banner'
 import TeamsFooter from './footer'
 import TeamRowNew from './team-row'
@@ -142,13 +141,11 @@ const sortOrderToTitle = {
   role: 'Your role',
 }
 const SortHeader = () => {
-  const dispatch = Container.useDispatch()
-
+  const setTeamListFilterSort = Constants.useState(s => s.dispatch.setTeamListFilterSort)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
-      const onChangeSort = (sortOrder: Types.TeamListSort) =>
-        dispatch(TeamsGen.createSetTeamListFilterSort({sortOrder}))
+      const onChangeSort = (sortOrder: Types.TeamListSort) => setTeamListFilterSort(sortOrder)
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
@@ -172,11 +169,11 @@ const SortHeader = () => {
         />
       )
     },
-    [dispatch]
+    [setTeamListFilterSort]
   )
 
   const {popup, toggleShowingPopup, popupAnchor} = Kb.usePopup2(makePopup)
-  const sortOrder = Container.useSelector(s => s.teams.teamListSort)
+  const sortOrder = Constants.useState(s => s.teamListSort)
   return (
     <Kb.Box2 direction="horizontal" style={styles.sortHeader} alignItems="center" fullWidth={true}>
       <Kb.ClickableBox onClick={toggleShowingPopup} ref={popupAnchor}>

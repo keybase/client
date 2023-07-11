@@ -13,11 +13,11 @@ export const useChannelParticipants = (
   conversationIDKey: ChatTypes.ConversationIDKey
 ) => {
   const participants = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey).all)
-  const teamMembers = Container.useSelector(s => Constants.getTeamDetails(s, teamID).members)
+  const teamMembers = Constants.useState(s => s.teamDetails.get(teamID)?.members)
   return React.useMemo(
     () =>
       participants.filter(username => {
-        const maybeMember = teamMembers.get(username)
+        const maybeMember = teamMembers?.get(username)
         return maybeMember && maybeMember.type !== 'bot' && maybeMember.type !== 'restrictedbot'
       }),
     [participants, teamMembers]
@@ -34,7 +34,7 @@ export const useAllChannelMetas = (
 } => {
   const getConversations = Container.useRPC(RPCChatTypes.localGetTLFConversationsLocalRpcPromise)
 
-  const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID) ?? '')
+  const teamname = Constants.useState(s => Constants.getTeamNameFromID(s, teamID) ?? '')
   const [channelMetas, setChannelMetas] = React.useState(
     new Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>()
   )

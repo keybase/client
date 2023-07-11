@@ -5,7 +5,6 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Types from '../../../constants/types/teams'
 import {ModalTitle} from '../../common'
 import {useEditState} from './use-edit'
@@ -34,26 +33,29 @@ const EditChannel = (props: Props) => {
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
+  const updateChannelName = Constants.useState(s => s.dispatch.updateChannelName)
+  const updateTopic = Constants.useState(s => s.dispatch.updateTopic)
+
   const onSave = () => {
     if (oldName !== name) {
-      dispatch(TeamsGen.createUpdateChannelName({conversationIDKey, newChannelName: name, teamID}))
+      updateChannelName(teamID, conversationIDKey, name)
     }
     if (oldDescription !== description) {
-      dispatch(TeamsGen.createUpdateTopic({conversationIDKey, newTopic: description, teamID}))
+      updateTopic(teamID, conversationIDKey, description)
     }
   }
   const waiting = Container.useAnyWaiting(Constants.updateChannelNameWaitingKey(teamID))
   const wasWaiting = Container.usePrevious(waiting)
 
   const triggerEditUpdated = useEditState(s => s.dispatch.triggerEditUpdated)
-
+  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
       dispatch(nav.safeNavigateUpPayload())
-      dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+      loadTeamChannelList(teamID)
       triggerEditUpdated()
     }
-  }, [dispatch, nav, waiting, wasWaiting, triggerEditUpdated, teamID])
+  }, [loadTeamChannelList, dispatch, nav, waiting, wasWaiting, triggerEditUpdated, teamID])
 
   return (
     <Kb.Modal

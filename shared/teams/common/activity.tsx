@@ -2,9 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/teams'
-import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as TeamsGen from '../../actions/teams-gen'
 
 type Props = {title: string; teamID: Types.TeamID}
 
@@ -31,9 +29,9 @@ const Activity = ({level, style}: {level: Types.ActivityLevel; style?: Styles.St
   )
 
 export const ModalTitle = ({title, teamID}: Props) => {
-  const teamname = Container.useSelector(state => Constants.getTeamMeta(state, teamID).teamname)
-  const avatarFilepath = Container.useSelector(state => state.teams.newTeamWizard.avatarFilename)
-  const avatarCrop = Container.useSelector(state => state.teams.newTeamWizard.avatarCrop)
+  const teamname = Constants.useState(state => Constants.getTeamMeta(state, teamID).teamname)
+  const avatarFilepath = Constants.useState(state => state.newTeamWizard.avatarFilename)
+  const avatarCrop = Constants.useState(state => state.newTeamWizard.avatarCrop)
   const isNewTeamWizard = teamID == Types.newTeamWizardTeamID
 
   return Styles.isMobile ? (
@@ -70,16 +68,16 @@ export const ModalTitle = ({title, teamID}: Props) => {
  * @param forceLoad force a reload even if they're already loaded.
  */
 export const useActivityLevels = (forceLoad?: boolean) => {
-  const dispatch = Container.useDispatch()
-  const activityLevelsLoaded = Container.useSelector(s => s.teams.activityLevels.loaded)
+  const activityLevelsLoaded = Constants.useState(s => s.activityLevels.loaded)
+  const getActivityForTeams = Constants.useState(s => s.dispatch.getActivityForTeams)
   // keep whether we've triggered a load so we only do it once.
   const triggeredLoad = React.useRef(false)
   React.useEffect(() => {
     if ((!activityLevelsLoaded || forceLoad) && !triggeredLoad.current) {
-      dispatch(TeamsGen.createGetActivityForTeams())
+      getActivityForTeams()
       triggeredLoad.current = true
     }
-  }, [dispatch, activityLevelsLoaded, forceLoad])
+  }, [getActivityForTeams, activityLevelsLoaded, forceLoad])
 }
 
 const styles = Styles.styleSheetCreate(() => ({

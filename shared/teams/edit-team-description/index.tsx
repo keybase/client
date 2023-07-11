@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
@@ -12,11 +11,11 @@ type Props = {teamID: Types.TeamID}
 const EditTeamDescription = (props: Props) => {
   const teamID = props.teamID ?? Types.noTeamID
 
-  const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID))
+  const teamname = Constants.useState(s => Constants.getTeamNameFromID(s, teamID))
   const waitingKey = Constants.teamWaitingKey(teamID)
   const waiting = Container.useAnyWaiting(waitingKey)
-  const error = Container.useSelector(state => state.teams.errorInEditDescription)
-  const origDescription = Container.useSelector(state => Constants.getTeamDetails(state, teamID).description)
+  const error = Constants.useState(s => s.errorInEditDescription)
+  const origDescription = Constants.useState(s => s.teamDetails.get(teamID))?.description ?? ''
 
   if (teamID === Types.noTeamID || teamname === null) {
     throw new Error(
@@ -25,10 +24,11 @@ const EditTeamDescription = (props: Props) => {
   }
 
   const [description, setDescription] = React.useState(origDescription)
+  const editTeamDescription = Constants.useState(s => s.dispatch.editTeamDescription)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onSave = () => dispatch(TeamsGen.createEditTeamDescription({description, teamID}))
+  const onSave = () => editTeamDescription(teamID, description)
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
 
   const wasWaiting = Container.usePrevious(waiting)

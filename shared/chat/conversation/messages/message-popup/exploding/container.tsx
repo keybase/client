@@ -41,9 +41,8 @@ export default (ownProps: OwnProps) => {
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, message.conversationIDKey)
   )
-  const _canDeleteHistory = Container.useSelector(
-    state =>
-      meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(state, meta.teamID).deleteChatHistory
+  const _canDeleteHistory = TeamConstants.useState(
+    s => meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(s, meta.teamID).deleteChatHistory
   )
   const _canExplodeNow = (yourMessage || _canDeleteHistory) && message.isDeleteable
   const _canEdit = yourMessage && message.isEditable
@@ -53,10 +52,10 @@ export default (ownProps: OwnProps) => {
     !yourMessage &&
     message.type === 'text' &&
     (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
-  const authorIsBot = Container.useSelector(state =>
-    Constants.messageAuthorIsBot(state, meta, message, participantInfo)
+  const authorIsBot = TeamConstants.useState(s =>
+    Constants.messageAuthorIsBot(s, meta, message, participantInfo)
   )
-  const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
+  const _teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
 
   const _authorIsBot = authorIsBot
   const _participants = participantInfo.all

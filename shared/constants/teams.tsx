@@ -1,12 +1,26 @@
+import * as Chat2Gen from '../actions/chat2-gen'
+import * as ChatTypes from './types/chat2'
+import * as ConfigConstants from './config'
+import * as GregorConstants from './gregor'
+import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
-import * as Types from './types/teams'
-import * as ConfigConstants from './config'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Router2Constants from './router2'
+import * as Tabs from './tabs'
 import * as TeamBuildingConstants from './team-building'
+import * as TeamBuildingGen from '../actions/team-building-gen'
+import * as Types from './types/teams'
+import * as Z from '../util/zustand'
 import invert from 'lodash/invert'
-import type * as ChatTypes from './types/chat2'
-import type {TypedState} from './reducer'
+import logger from '../logger'
+import openSMS from '../util/sms'
+import type * as EngineGen from '../actions/engine-gen-gen'
 import type {RetentionPolicy} from './types/retention-policy'
+import type {TypedState} from './reducer'
+import {RPCError, logError} from '../util/errors'
+import {isMobile, isPhone} from './platform'
+import {mapGetEnsureValue} from '../util/map'
 import {memoize} from '../util/memoize'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner'] as const
@@ -107,10 +121,10 @@ const emptyTeamChannelInfo: Types.TeamChannelInfo = {
 }
 
 export const getTeamChannelInfo = (
-  state: TypedState,
+  state: State,
   teamID: Types.TeamID,
   conversationIDKey: ChatTypes.ConversationIDKey
-) => state.teams.channelInfo.get(teamID)?.get(conversationIDKey) ?? emptyTeamChannelInfo
+) => state.channelInfo.get(teamID)?.get(conversationIDKey) ?? emptyTeamChannelInfo
 
 export const teamRoleByEnum = ((m: {[K in Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
   const mInv: {[K in RPCTypes.TeamRole]?: Types.MaybeTeamRoleType} = {}
@@ -196,7 +210,7 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
   ...(r || {}),
 })
 
-export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
+export const addMembersWizardEmptyState: State['addMembersWizard'] = {
   addToChannels: undefined,
   addingMembers: [],
   justFinished: false,
@@ -205,7 +219,7 @@ export const addMembersWizardEmptyState: Types.State['addMembersWizard'] = {
   teamID: Types.noTeamID,
 }
 
-export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
+export const newTeamWizardEmptyState: State['newTeamWizard'] = {
   addYourself: true,
   description: '',
   isBig: false,
@@ -219,61 +233,7 @@ export const newTeamWizardEmptyState: Types.State['newTeamWizard'] = {
 export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, username: ''}
 
 const emptyState: Types.State = {
-  activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
-  addMembersWizard: addMembersWizardEmptyState,
-  addUserToTeamsResults: '',
-  addUserToTeamsState: 'notStarted',
-  channelInfo: new Map(),
-  channelSelectedMembers: new Map(),
-  creatingChannels: false,
-  deletedTeams: [],
-  errorInAddToTeam: '',
-  errorInChannelCreation: '',
-  errorInEditDescription: '',
-  errorInEditMember: emptyErrorInEditMember,
-  errorInEditWelcomeMessage: '',
-  errorInEmailInvite: emptyEmailInviteError,
-  errorInSettings: '',
-  errorInTeamCreation: '',
-  errorInTeamInvite: '',
-  errorInTeamJoin: '',
-  invitesCollapsed: new Set(),
-  newTeamRequests: new Map(),
-  newTeamWizard: newTeamWizardEmptyState,
-  newTeams: new Set(),
-  sawChatBanner: false,
-  sawSubteamsBanner: false,
-  subteamFilter: '',
-  subteamsFiltered: undefined,
-  teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  teamDetails: new Map(),
-  teamDetailsSubscriptionCount: new Map(),
-  teamIDToMembers: new Map(),
-  teamIDToResetUsers: new Map(),
-  teamIDToRetentionPolicy: new Map(),
-  teamIDToWelcomeMessage: new Map(),
-  teamInviteDetails: {inviteID: '', inviteKey: ''},
-  teamJoinSuccess: false,
-  teamJoinSuccessOpen: false,
-  teamJoinSuccessTeamName: '',
-  teamListFilter: '',
-  teamListSort: 'role',
-  teamMemberToLastActivity: new Map(),
-  teamMemberToTreeMemberships: new Map(),
-  teamMeta: new Map(),
-  teamMetaStale: true, // start out true, we have not loaded
-  teamMetaSubscribeCount: 0,
-  teamNameToID: new Map(),
-  teamNameToLoadingInvites: new Map(),
-  teamProfileAddList: [],
-  teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
-  teamSelectedChannels: new Map(),
-  teamSelectedMembers: new Map(),
-  teamVersion: new Map(),
-  teamnames: new Set(),
-  teamsWithChosenChannels: new Set(),
-  treeLoaderTeamIDToSparseMemberInfos: new Map(),
 }
 
 export const makeState = (s?: Partial<Types.State>): Types.State =>
@@ -369,13 +329,13 @@ export const userIsRoleInTeamWithInfo = (
 }
 
 export const userIsRoleInTeam = (
-  state: TypedState,
+  state: State,
   teamID: Types.TeamID,
   username: string,
   role: Types.TeamRoleType
 ): boolean => {
   return userIsRoleInTeamWithInfo(
-    state.teams.teamIDToMembers.get(teamID) || new Map<string, Types.MemberInfo>(),
+    state.teamIDToMembers.get(teamID) || new Map<string, Types.MemberInfo>(),
     username,
     role
   )
@@ -392,18 +352,16 @@ export const userInTeamNotBotWithInfo = (
   return !isBot(memb.type)
 }
 
-export const getEmailInviteError = (state: TypedState) => state.teams.errorInEmailInvite
+export const isTeamWithChosenChannels = (state: State, teamname: string): boolean =>
+  state.teamsWithChosenChannels.has(teamname)
 
-export const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
-  state.teams.teamsWithChosenChannels.has(teamname)
+export const getRole = (state: State, teamID: Types.TeamID): Types.MaybeTeamRoleType =>
+  state.teamRoleMap.roles.get(teamID)?.role || 'none'
 
-export const getRole = (state: TypedState, teamID: Types.TeamID): Types.MaybeTeamRoleType =>
-  state.teams.teamRoleMap.roles.get(teamID)?.role || 'none'
-
-export const getRoleByName = (state: TypedState, teamname: string): Types.MaybeTeamRoleType =>
+export const getRoleByName = (state: State, teamname: string): Types.MaybeTeamRoleType =>
   getRole(state, getTeamID(state, teamname))
 
-export const isLastOwner = (state: TypedState, teamID: Types.TeamID): boolean =>
+export const isLastOwner = (state: State, teamID: Types.TeamID): boolean =>
   isOwner(getRole(state, teamID)) && !isMultiOwnerTeam(state, teamID)
 
 const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
@@ -444,15 +402,15 @@ const noRemoveLastOwner = {
 }
 
 export const getDisabledReasonsForRolePicker = (
-  state: TypedState,
+  state: State,
   teamID: Types.TeamID,
   membersToModify?: string | string[]
 ): Types.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
   const teamMeta = getTeamMeta(state, teamID)
-  const teamDetails: Types.TeamDetails = getTeamDetails(state, teamID)
+  const teamDetails = useState.getState().teamDetails.get(teamID)
   const members: Map<string, Types.MemberInfo> =
-    teamDetails.members || state.teams.teamIDToMembers.get(teamID) || new Map()
+    teamDetails?.members || state.teamIDToMembers.get(teamID) || new Map<string, Types.MemberInfo>()
   const teamname = teamMeta.teamname
   let theyAreOwner = false
   if (typeof membersToModify === 'string') {
@@ -515,9 +473,9 @@ export const getDisabledReasonsForRolePicker = (
   return {}
 }
 
-const isMultiOwnerTeam = (state: TypedState, teamID: Types.TeamID): boolean => {
+const isMultiOwnerTeam = (state: State, teamID: Types.TeamID): boolean => {
   let countOfOwners = 0
-  const allTeamMembers = state.teams.teamDetails.get(teamID)?.members || new Map<string, Types.MemberInfo>()
+  const allTeamMembers = state.teamDetails.get(teamID)?.members || new Map<string, Types.MemberInfo>()
   const moreThanOneOwner = [...allTeamMembers.values()].some(tm => {
     if (isOwner(tm.type)) {
       countOfOwners++
@@ -527,17 +485,13 @@ const isMultiOwnerTeam = (state: TypedState, teamID: Types.TeamID): boolean => {
   return moreThanOneOwner
 }
 
-export const getTeamID = (state: TypedState, teamname: Types.Teamname) =>
-  state.teams.teamNameToID.get(teamname) || Types.noTeamID
+export const getTeamID = (state: State, teamname: Types.Teamname) =>
+  state.teamNameToID.get(teamname) || Types.noTeamID
 
-export const getTeamNameFromID = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamMeta.get(teamID)?.teamname
+export const getTeamNameFromID = (state: State, teamID: Types.TeamID) => state.teamMeta.get(teamID)?.teamname
 
-export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamIDToRetentionPolicy.get(teamID)
-
-export const getTeamWelcomeMessageByID = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamIDToWelcomeMessage.get(teamID)
+export const getTeamRetentionPolicyByID = (state: State, teamID: Types.TeamID) =>
+  state.teamIDToRetentionPolicy.get(teamID)
 
 /**
  *  Gets the number of channels you're subscribed to on a team
@@ -566,23 +520,17 @@ export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>(
 // Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
 // since that may contain subteams you're not a member of.
 
-export const isInTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
+export const isInTeam = (state: State, teamname: Types.Teamname): boolean =>
   getRoleByName(state, teamname) !== 'none'
 
-export const isInSomeTeam = (state: TypedState): boolean =>
-  [...state.teams.teamRoleMap.roles.values()].some(rd => rd.role !== 'none')
+export const isInSomeTeam = (state: State): boolean =>
+  [...state.teamRoleMap.roles.values()].some(rd => rd.role !== 'none')
 
-export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.teamAccessRequestsPending.has(teamname)
-
-export const getTeamResetUsers = (state: TypedState, teamID: Types.TeamID): Set<string> =>
-  state.teams.teamIDToResetUsers.get(teamID) || new Set()
-
-export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): Map<string, boolean> =>
-  state.teams.teamNameToLoadingInvites.get(teamname) || new Map()
+export const getTeamResetUsers = (state: State, teamID: Types.TeamID): Set<string> =>
+  state.teamIDToResetUsers.get(teamID) || new Set()
 
 // Sorts teamnames canonically.
-function sortTeamnames(a: string, b: string) {
+export function sortTeamnames(a: string, b: string) {
   const aName = a.toUpperCase()
   const bName = b.toUpperCase()
   if (aName < bName) {
@@ -594,16 +542,12 @@ function sortTeamnames(a: string, b: string) {
   }
 }
 
-const _memoizedSorted = memoize((names: Set<Types.Teamname>) => [...names].sort(sortTeamnames))
-export const getSortedTeamnames = (state: TypedState): Types.Teamname[] =>
-  _memoizedSorted(state.teams.teamnames)
-
 export const sortTeamsByName = memoize((teamMeta: Map<Types.TeamID, Types.TeamMeta>) =>
   [...teamMeta.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
 )
 
 // sorted by name
-export const getSortedTeams = (state: TypedState) => sortTeamsByName(state.teams.teamMeta)
+export const getSortedTeams = () => sortTeamsByName(useState.getState().teamMeta)
 
 export const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
 export const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
@@ -690,7 +634,7 @@ export const newRequestsGregorPrefix = 'team.request_access:'
 export const newRequestsGregorKey = (teamID: Types.TeamID) => `${newRequestsGregorPrefix}${teamID}`
 
 // Merge new teamMeta objs into old ones, removing any old teams that are not in the new map
-export const mergeTeamMeta = (oldMap: Types.State['teamMeta'], newMap: Types.State['teamMeta']) => {
+export const mergeTeamMeta = (oldMap: State['teamMeta'], newMap: State['teamMeta']) => {
   const ret = new Map(newMap)
   for (const [teamID, teamMeta] of newMap.entries()) {
     ret.set(teamID, {...oldMap.get(teamID), ...teamMeta})
@@ -712,23 +656,23 @@ export const emptyTeamMeta = Object.freeze<Types.TeamMeta>({
 export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
   td ? Object.assign({...emptyTeamMeta}, td) : emptyTeamMeta
 
-export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
+export const getTeamMeta = (state: State, teamID: Types.TeamID) =>
   teamID === Types.newTeamWizardTeamID
     ? makeTeamMeta({
         id: teamID,
         isMember: true,
-        isOpen: state.teams.newTeamWizard.open,
+        isOpen: state.newTeamWizard.open,
         memberCount: 0,
-        showcasing: state.teams.newTeamWizard.profileShowcase,
-        teamname: state.teams.newTeamWizard.name == '' ? 'New team' : state.teams.newTeamWizard.name,
+        showcasing: state.newTeamWizard.profileShowcase,
+        teamname: state.newTeamWizard.name == '' ? 'New team' : state.newTeamWizard.name,
       })
-    : state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
+    : state.teamMeta.get(teamID) ?? emptyTeamMeta
 
 export const getTeamMemberLastActivity = (
-  state: TypedState,
+  state: State,
   teamID: Types.TeamID,
   username: string
-): number | null => state.teams.teamMemberToLastActivity.get(teamID)?.get(username) ?? null
+): number | null => state.teamMemberToLastActivity.get(teamID)?.get(username) ?? null
 
 export const teamListToMeta = (
   list: Array<RPCTypes.AnnotatedMemberInfo>
@@ -819,9 +763,6 @@ export const emptyTeamDetails: Types.TeamDetails = {
 
 export const emptyTeamSettings = Object.freeze(emptyTeamDetails.settings)
 
-export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamDetails.get(teamID) ?? emptyTeamDetails
-
 export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDetails => {
   const maybeOpenJoinAs = teamRoleByEnum[t.settings.joinAs] ?? 'reader'
   const members = new Map<string, Types.MemberInfo>()
@@ -855,14 +796,14 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
 // Keep in sync with constants/notifications#badgeStateToBadgeCounts
 // Don't count new team because those are shown with a 'NEW' meta instead of badge
 export const getTeamRowBadgeCount = (
-  newTeamRequests: Types.State['newTeamRequests'],
-  teamIDToResetUsers: Types.State['teamIDToResetUsers'],
+  newTeamRequests: Store['newTeamRequests'],
+  teamIDToResetUsers: Store['teamIDToResetUsers'],
   teamID: Types.TeamID
 ) => {
   return newTeamRequests.get(teamID)?.size ?? 0 + (teamIDToResetUsers.get(teamID)?.size ?? 0)
 }
 
-export const canShowcase = (state: TypedState, teamID: Types.TeamID) => {
+export const canShowcase = (state: State, teamID: Types.TeamID) => {
   const role = getRole(state, teamID)
   return getTeamMeta(state, teamID).allowPromote || role === 'admin' || role === 'owner'
 }
@@ -914,11 +855,11 @@ export const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Typ
   return canPerform
 }
 
-export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Types.TeamOperations =>
+export const getCanPerform = (state: State, teamname: Types.Teamname): Types.TeamOperations =>
   getCanPerformByID(state, getTeamID(state, teamname))
 
-export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
-  deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
+export const getCanPerformByID = (state: State, teamID: Types.TeamID): Types.TeamOperations =>
+  deriveCanPerform(state.teamRoleMap.roles.get(teamID))
 
 // Don't allow version to roll back
 export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: Types.TeamVersion) =>
@@ -985,12 +926,12 @@ export const consumeTeamTreeMembershipValue = (
 // maybeGetSparseMemberInfo first looks in the details, which should be kept up-to-date, then looks
 // in the treeloader-powered map (which can go stale) as a backup. If it returns null, it means we
 // don't know the answer (yet). If it returns type='none', that means the user is not in the team.
-export const maybeGetSparseMemberInfo = (state: TypedState, teamID: string, username: string) => {
-  const details = state.teams.teamDetails.get(teamID)
+export const maybeGetSparseMemberInfo = (state: State, teamID: string, username: string) => {
+  const details = useState.getState().teamDetails.get(teamID)
   if (details) {
     return details.members.get(username) ?? {type: 'none'}
   }
-  return state.teams.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
+  return state.treeLoaderTeamIDToSparseMemberInfos.get(teamID)?.get(username)
 }
 
 export const countValidInviteLinks = (inviteLinks: Array<Types.InviteLink>): Number => {
@@ -1004,3 +945,2236 @@ export const countValidInviteLinks = (inviteLinks: Array<Types.InviteLink>): Num
 
 export const maybeGetMostRecentValidInviteLink = (inviteLinks: Array<Types.InviteLink>) =>
   inviteLinks.find(inviteLink => inviteLink.isValid)
+
+export type Store = {
+  activityLevels: Types.ActivityLevels
+  addUserToTeamsResults: string
+  addUserToTeamsState: Types.AddUserToTeamsState
+  channelInfo: Map<Types.TeamID, Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>>
+  channelSelectedMembers: Map<ChatTypes.ConversationIDKey, Set<string>>
+  creatingChannels: boolean
+  deletedTeams: Array<RPCTypes.DeletedTeamInfo>
+  errorInAddToTeam: string
+  errorInChannelCreation: string
+  errorInEditDescription: string
+  errorInEditMember: {error: string; teamID: Types.TeamID; username: string}
+  errorInEditWelcomeMessage: string
+  errorInEmailInvite: Types.EmailInviteError
+  errorInSettings: string
+  newTeamRequests: Map<Types.TeamID, Set<string>>
+  newTeams: Set<Types.TeamID>
+  teamIDToResetUsers: Map<Types.TeamID, Set<string>>
+  teamIDToWelcomeMessage: Map<Types.TeamID, RPCChatTypes.WelcomeMessageDisplay>
+  teamNameToLoadingInvites: Map<Types.Teamname, Map<string, boolean>>
+  errorInTeamCreation: string
+  teamNameToID: Map<Types.Teamname, string>
+  teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
+  teamnames: Set<Types.Teamname> // TODO remove
+  teamMetaStale: boolean // if we've received an update since we last loaded team list
+  teamMeta: Map<Types.TeamID, Types.TeamMeta>
+  invitesCollapsed: Set<Types.TeamID>
+  teamsWithChosenChannels: Set<Types.Teamname>
+  teamRoleMap: Types.TeamRoleMap
+  sawChatBanner: boolean
+  sawSubteamsBanner: boolean
+  subteamFilter: string
+  subteamsFiltered: Set<Types.TeamID> | undefined
+  teamDetails: Map<Types.TeamID, Types.TeamDetails>
+  teamDetailsSubscriptionCount: Map<Types.TeamID, number> // >0 if we are eagerly reloading a team
+  teamSelectedChannels: Map<Types.TeamID, Set<string>>
+  teamSelectedMembers: Map<Types.TeamID, Set<string>>
+  teamAccessRequestsPending: Set<Types.Teamname>
+  teamListFilter: string
+  teamListSort: Types.TeamListSort
+  newTeamWizard: Types.NewTeamWizardState
+  addMembersWizard: Types.AddMembersWizardState
+  errorInTeamJoin: string
+  teamInviteDetails: Types.TeamInviteState
+  teamJoinSuccess: boolean
+  teamJoinSuccessOpen: boolean
+  teamJoinSuccessTeamName: string
+  teamVersion: Map<Types.TeamID, Types.TeamVersion>
+  teamIDToMembers: Map<Types.TeamID, Map<string, Types.MemberInfo>> // Used by chat sidebar until team loading gets easier
+  teamIDToRetentionPolicy: Map<Types.TeamID, RetentionPolicy>
+  treeLoaderTeamIDToSparseMemberInfos: Map<Types.TeamID, Map<string, Types.TreeloaderSparseMemberInfo>>
+  teamMemberToTreeMemberships: Map<Types.TeamID, Map<string, Types.TeamTreeMemberships>>
+  teamMemberToLastActivity: Map<Types.TeamID, Map<string, number>>
+  teamProfileAddList: Array<Types.TeamProfileAddList>
+}
+
+const initialStore: Store = {
+  activityLevels: {channels: new Map(), loaded: false, teams: new Map()},
+  addMembersWizard: addMembersWizardEmptyState,
+  addUserToTeamsResults: '',
+  addUserToTeamsState: 'notStarted',
+  channelInfo: new Map(),
+  channelSelectedMembers: new Map(),
+  creatingChannels: false,
+  deletedTeams: [],
+  errorInAddToTeam: '',
+  errorInChannelCreation: '',
+  errorInEditDescription: '',
+  errorInEditMember: emptyErrorInEditMember,
+  errorInEditWelcomeMessage: '',
+  errorInEmailInvite: emptyEmailInviteError,
+  errorInSettings: '',
+  errorInTeamCreation: '',
+  errorInTeamJoin: '',
+  invitesCollapsed: new Set(),
+  newTeamRequests: new Map(),
+  newTeamWizard: newTeamWizardEmptyState,
+  newTeams: new Set(),
+  sawChatBanner: false,
+  sawSubteamsBanner: false,
+  subteamFilter: '',
+  subteamsFiltered: undefined,
+  teamAccessRequestsPending: new Set(),
+  teamDetails: new Map(),
+  teamDetailsSubscriptionCount: new Map(),
+  teamIDToMembers: new Map(),
+  teamIDToResetUsers: new Map(),
+  teamIDToRetentionPolicy: new Map(),
+  teamIDToWelcomeMessage: new Map(),
+  teamInviteDetails: {inviteID: '', inviteKey: ''},
+  teamJoinSuccess: false,
+  teamJoinSuccessOpen: false,
+  teamJoinSuccessTeamName: '',
+  teamListFilter: '',
+  teamListSort: 'role',
+  teamMemberToLastActivity: new Map(),
+  teamMemberToTreeMemberships: new Map(),
+  teamMeta: new Map(),
+  teamMetaStale: true, // start out true, we have not loaded
+  teamMetaSubscribeCount: 0,
+  teamNameToID: new Map(),
+  teamNameToLoadingInvites: new Map(),
+  teamProfileAddList: [],
+  teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
+  teamSelectedChannels: new Map(),
+  teamSelectedMembers: new Map(),
+  teamVersion: new Map(),
+  teamnames: new Set(),
+  teamsWithChosenChannels: new Set(),
+  treeLoaderTeamIDToSparseMemberInfos: new Map(),
+}
+
+export type State = Store & {
+  dispatch: {
+    addMembersWizardPushMembers: (members: Array<Types.AddingMember>) => void
+    addMembersWizardRemoveMember: (assertion: string) => void
+    addMembersWizardSetDefaultChannels: (
+      toAdd?: Array<Types.ChannelNameID>,
+      toRemove?: Types.ChannelNameID
+    ) => void
+    addTeamWithChosenChannels: (teamID: Types.TeamID) => void
+    addToTeam: (
+      teamID: Types.TeamID,
+      users: Array<{assertion: string; role: Types.TeamRoleType}>,
+      sendChatNotification: boolean,
+      fromTeamBuilder?: boolean
+    ) => void
+    addUserToTeams: (role: Types.TeamRoleType, teams: Array<string>, user: string) => void
+    cancelAddMembersWizard: () => void
+    channelSetMemberSelected: (
+      conversationIDKey: ChatTypes.ConversationIDKey,
+      username: string,
+      selected: boolean,
+      clearAll?: boolean
+    ) => void
+    checkRequestedAccess: (teamname: string) => void
+    clearAddUserToTeamsResults: () => void
+    clearNavBadges: () => void
+    createChannel: (p: {
+      teamID: Types.TeamID
+      channelname: string
+      description?: string
+      navToChatOnSuccess: boolean
+    }) => void
+    createChannels: (teamID: Types.TeamID, channelnames: Array<string>) => void
+    createNewTeam: (
+      teamname: string,
+      joinSubteam: boolean,
+      fromChat?: boolean,
+      thenAddMembers?: {
+        users: Array<{assertion: string; role: Types.TeamRoleType}>
+        sendChatNotification: boolean
+        fromTeamBuilder?: boolean
+      }
+    ) => void
+    createNewTeamFromConversation: (conversationIDKey: ChatTypes.ConversationIDKey, teamname: string) => void
+    deleteChannelConfirmed: (teamID: Types.TeamID, conversationIDKey: ChatTypes.ConversationIDKey) => void
+    deleteMultiChannelsConfirmed: (teamID: Types.TeamID, channels: Array<ChatTypes.ConversationIDKey>) => void
+    deleteTeam: (teamID: Types.TeamID) => void
+    editMembership: (teamID: Types.TeamID, usernames: Array<string>, role: Types.TeamRoleType) => void
+    editTeamDescription: (teamID: Types.TeamID, description: string) => void
+    finishNewTeamWizard: () => void
+    finishedAddMembersWizard: () => void
+    getActivityForTeams: () => void
+    getMembers: (teamID: Types.TeamID) => void
+    getTeamRetentionPolicy: (teamID: Types.TeamID) => void
+    getTeams: (subscribe?: boolean, forceReload?: boolean) => void
+    getTeamProfileAddList: (username: string) => void
+    ignoreRequest: (teamID: Types.TeamID, teamname: string, username: string) => void
+    inviteToTeamByEmail: (
+      invitees: string,
+      role: Types.TeamRoleType,
+      teamID: Types.TeamID,
+      teamname: string,
+      loadingKey?: string
+    ) => void
+    inviteToTeamByPhone: (
+      teamID: Types.TeamID,
+      teamname: string,
+      role: Types.TeamRoleType,
+      phoneNumber: string,
+      fullName: string,
+      loadingKey?: string
+    ) => void
+    joinTeam: (teamname: string, deeplink?: boolean) => void
+    launchNewTeamWizardOrModal: (subteamOf?: Types.TeamID) => void
+    leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
+    loadTeam: (teamID: Types.TeamID, _subscribe?: boolean) => void
+    loadTeamChannelList: (teamID: Types.TeamID) => void
+    loadTeamTree: (teamID: Types.TeamID, username: string) => void
+    loadWelcomeMessage: (teamID: Types.TeamID) => void
+    loadedWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessageDisplay) => void
+    manageChatChannels: (teamID: Types.TeamID) => void
+    notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => void
+    notifyTreeMembershipsPartial: (membership: RPCChatTypes.Keybase1.TeamTreeMembership) => void
+    openInviteLink: (inviteID: string, inviteKey: string) => void
+    onGregorPushState: (gs: Array<{md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}>) => void
+    reAddToTeam: (teamID: Types.TeamID, username: string) => void
+    refreshTeamRoleMap: () => void
+    removeMember: (teamID: Types.TeamID, username: string) => void
+    removePendingInvite: (teamID: Types.TeamID, inviteID: string) => void
+    renameTeam: (oldName: string, newName: string) => void
+    requestInviteLinkDetails: () => void
+    resetErrorInEmailInvite: () => void
+    resetErrorInSettings: () => void
+    resetErrorInTeamCreation: () => void
+    resetState: 'default'
+    resetTeamJoin: () => void
+    resetTeamMetaStale: () => void
+    resetTeamProfileAddList: () => void
+    respondToInviteLink: (accept: boolean) => void
+    saveChannelMembership: (
+      teamID: Types.TeamID,
+      oldChannelState: Types.ChannelMembershipState,
+      newChannelState: Types.ChannelMembershipState
+    ) => void
+    setAddMembersWizardIndividualRole: (assertion: string, role: Types.AddingMemberTeamRoleType) => void
+    setAddMembersWizardRole: (role: Types.AddingMemberTeamRoleType | 'setIndividually') => void
+    setChannelCreationError: (error: string) => void
+    setChannelSelected: (teamID: Types.TeamID, channel: string, selected: boolean, clearAll?: boolean) => void
+    setJustFinishedAddMembersWizard: (justFinished: boolean) => void
+    setMemberPublicity: (teamID: Types.TeamID, showcase: boolean) => void
+    setMemberSelected: (teamID: Types.TeamID, username: string, selected: boolean, clearAll?: boolean) => void
+    setNewTeamInfo: (
+      deletedTeams: Array<RPCTypes.DeletedTeamInfo>,
+      newTeams: Set<Types.TeamID>,
+      teamIDToResetUsers: Map<Types.TeamID, Set<string>>
+    ) => void
+    setNewTeamRequests: (newTeamRequests: Map<Types.TeamID, Set<string>>) => void
+    setPublicity: (teamID: Types.TeamID, settings: Types.PublicitySettings) => void
+    setSubteamFilter: (filter: string, parentTeam?: Types.TeamID) => void
+    setTeamListFilterSort: (filter?: string, sortOrder?: Types.TeamListSort) => void
+    setTeamRetentionPolicy: (teamID: Types.TeamID, policy: RetentionPolicy) => void
+    setTeamRoleMapLatestKnownVersion: (version: number) => void
+    setTeamSawChatBanner: () => void
+    setTeamSawSubteamsBanner: () => void
+    setTeamWizardAvatar: (crop?: Types.AvatarCrop, filename?: string) => void
+    setTeamWizardChannels: (channels: Array<string>) => void
+    setTeamWizardNameDescription: (p: {
+      teamname: string
+      description: string
+      openTeam: boolean
+      openTeamJoinRole: Types.TeamRoleType
+      profileShowcase: boolean
+      addYourself: boolean
+    }) => void
+    setTeamWizardSubteamMembers: (members: Array<string>) => void
+    setTeamWizardSubteams: (subteams: Array<string>) => void
+    setTeamWizardTeamSize: (isBig: boolean) => void
+    setTeamWizardTeamType: (teamType: Types.TeamWizardTeamType) => void
+    setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<Types.TeamID>) => void
+    setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => void
+    showTeamByName: (
+      teamname: string,
+      initialTab?: Types.TabKey,
+      join?: boolean,
+      addMembers?: boolean
+    ) => void
+    startAddMembersWizard: (teamID: Types.TeamID) => void
+    teamChangedByID: (c: EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload['payload']['params']) => void
+    teamSeen: (teamID: Types.TeamID) => void
+    toggleInvitesCollapsed: (teamID: Types.TeamID) => void
+    unsubscribeTeamDetails: (teamID: Types.TeamID) => void
+    unsubscribeTeamList: () => void
+    updateChannelName: (
+      teamID: Types.TeamID,
+      conversationIDKey: ChatTypes.ConversationIDKey,
+      newChannelName: string
+    ) => void
+    updateTopic: (
+      teamID: Types.TeamID,
+      conversationIDKey: ChatTypes.ConversationIDKey,
+      newTopic: string
+    ) => void
+    uploadTeamAvatar: (
+      teamname: string,
+      filename: string,
+      sendChatNotification: boolean,
+      crop?: RPCTypes.ImageCropRect
+    ) => void
+    updateTeamRetentionPolicy: (metas: Array<ChatTypes.ConversationMeta>) => void
+  }
+}
+
+export const useState = Z.createZustand<State>((set, get) => {
+  const reduxDispatch = Z.getReduxDispatch()
+  const getReduxStore = Z.getReduxStore() // TODO remove when chat is done
+  const _respondToInviteLink = () => {
+    // should be overridden
+  }
+  const dispatch: State['dispatch'] = {
+    addMembersWizardPushMembers: members => {
+      const f = async () => {
+        // Call FindAssertionsInTeamNoResolve RPC and pass the results along with the
+        // members to addMembersWizardSetMembers action.
+        const {teamID} = get().addMembersWizard
+        const assertions = members
+          .filter(member => member.assertion.includes('@') || !!member.resolvedFrom)
+          .map(({assertion}) => assertion)
+
+        const existingAssertions =
+          teamID === Types.newTeamWizardTeamID
+            ? []
+            : await RPCTypes.teamsFindAssertionsInTeamNoResolveRpcPromise({
+                assertions,
+                teamID,
+              })
+
+        set(s => {
+          const assertionsInTeam = new Set(existingAssertions ?? [])
+          // Set `membersAlreadyInTeam` first. It's only shown for last add, so
+          // just overwrite the list.
+          //
+          // Prefer to show "resolvedFrom" which will contain the original assertion
+          // that user tried to add (e.g. phone number or email) in case it resolved
+          // to a user that's already in the team.
+          s.addMembersWizard.membersAlreadyInTeam = members
+            .filter(m => assertionsInTeam.has(m.assertion))
+            .map(m => m.resolvedFrom ?? m.assertion)
+          // - Filter out all members that are already in team as team members or
+          //   team invites.
+          // - De-duplicate with current addingMembers list
+          // - Coerce assertion role (ensures it's no higher than 'writer' for
+          //   non-usernames).
+          const filteredMembers = members.filter(m => !assertionsInTeam.has(m.assertion))
+          s.addMembersWizard.addingMembers = dedupAddingMembeers(
+            s.addMembersWizard.addingMembers,
+            filteredMembers.map(coerceAssertionRole)
+          )
+          // Check if after adding the new batch of members we are not violating the
+          // "only Keybase users can be added as admins" contract.
+          if (
+            ['admin', 'owner'].includes(s.addMembersWizard.role) &&
+            filteredMembers.some(m => m.assertion.includes('@'))
+          ) {
+            if (isPhone) {
+              s.addMembersWizard.role = 'writer'
+              s.addMembersWizard.addingMembers.forEach(member => (member.role = 'writer'))
+            } else {
+              s.addMembersWizard.role = 'setIndividually'
+            }
+          }
+        })
+
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}))
+      }
+      Z.ignorePromise(f())
+    },
+    addMembersWizardRemoveMember: assertion => {
+      set(s => {
+        const idx = s.addMembersWizard.addingMembers.findIndex(member => member.assertion === assertion)
+        if (idx >= 0) {
+          s.addMembersWizard.addingMembers.splice(idx, 1)
+        }
+      })
+    },
+    addMembersWizardSetDefaultChannels: (toAdd, toRemove) => {
+      set(s => {
+        if (!s.addMembersWizard.addToChannels) {
+          // we're definitely setting these manually now
+          s.addMembersWizard.addToChannels = []
+        }
+        const addToChannels = s.addMembersWizard.addToChannels
+        toAdd?.forEach(channel => {
+          if (!addToChannels.find(dc => dc.conversationIDKey === channel.conversationIDKey)) {
+            addToChannels.push(channel)
+          }
+        })
+        const maybeRemoveIdx =
+          (toRemove && addToChannels.findIndex(dc => dc.conversationIDKey === toRemove.conversationIDKey)) ??
+          -1
+        if (maybeRemoveIdx >= 0) {
+          addToChannels.splice(maybeRemoveIdx, 1)
+        }
+      })
+    },
+    addTeamWithChosenChannels: teamID => {
+      const f = async () => {
+        const existingTeams = get().teamsWithChosenChannels
+        const teamname = getTeamNameFromID(get(), teamID)
+        if (!teamname) {
+          logger.warn('No team name in store for teamID:', teamID)
+          return
+        }
+        if (get().teamsWithChosenChannels.has(teamname)) {
+          // we've already dismissed for this team and we already know about it, bail
+          return
+        }
+        const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
+        try {
+          const pushState = await RPCTypes.gregorGetStateRpcPromise(undefined, teamWaitingKey(teamID))
+          const item = pushState?.items?.find(i => i.item?.category === chosenChannelsGregorKey)
+          let teams: Array<string> = []
+          let msgID: Buffer | undefined
+          if (item?.item?.body) {
+            const body = item.item.body
+            msgID = item.md?.msgID
+            teams = GregorConstants.bodyToJSON(body)
+          } else {
+            logger.info(
+              `${logPrefix} No item in gregor state found, making new item. Total # of items: ${
+                pushState.items?.length || 0
+              }`
+            )
+          }
+          if (existingTeams.size > teams.length) {
+            // Bad - we don't have an accurate view of things. Log and bail
+            logger.warn(
+              `${logPrefix} Existing list longer than list in gregor state, got list with length ${teams.length} when we have ${existingTeams.size} already. Bailing on update.`
+            )
+            return
+          }
+          teams.push(teamname)
+          // make sure there're no dupes
+          teams = [...new Set(teams)]
+
+          const dtime = {offset: 0, time: 0}
+          // update if exists, else create
+          if (msgID) {
+            logger.info(`${logPrefix} Updating teamsWithChosenChannels`)
+          } else {
+            logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
+          }
+          await RPCTypes.gregorUpdateCategoryRpcPromise(
+            {
+              body: JSON.stringify(teams),
+              category: chosenChannelsGregorKey,
+              dtime,
+            },
+            teams.map(t => teamWaitingKey(getTeamID(get(), t)))
+          )
+        } catch (err) {
+          // failure getting the push state, don't bother the user with an error
+          // and don't try to move forward updating the state
+          logger.error(`${logPrefix} error fetching gregor state: ${String(err)}`)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    addToTeam: (teamID, users, sendChatNotification, fromTeamBuilder) => {
+      set(s => {
+        s.errorInAddToTeam = ''
+      })
+      const f = async () => {
+        try {
+          const res = await RPCTypes.teamsTeamAddMembersMultiRoleRpcPromise(
+            {
+              sendChatNotification,
+              teamID,
+              users: users.map(({assertion, role}) => ({
+                assertion: assertion,
+                role: RPCTypes.TeamRole[role],
+              })),
+            },
+            [teamWaitingKey(teamID), addMemberWaitingKey(teamID, ...users.map(({assertion}) => assertion))]
+          )
+          if (res.notAdded && res.notAdded.length > 0) {
+            const usernames = res.notAdded.map(elem => elem.username)
+            reduxDispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}))
+            reduxDispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {source: 'teamAddSomeFailed', usernames}, selected: 'contactRestricted'}],
+              })
+            )
+            return
+          }
+
+          set(s => {
+            s.errorInAddToTeam = ''
+          })
+          if (fromTeamBuilder) {
+            reduxDispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}))
+          }
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          // If all of the users couldn't be added due to contact settings, the RPC fails.
+          if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+            const users = (error.fields as Array<{key?: string; value?: string} | undefined> | undefined)
+              ?.filter(elem => elem?.key === 'usernames')
+              .map(elem => elem?.value)
+            const usernames = users?.[0]?.split(',') ?? []
+            reduxDispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}))
+            reduxDispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {source: 'teamAddAllFailed', usernames}, selected: 'contactRestricted'}],
+              })
+            )
+            return
+          }
+
+          const msg = error.desc
+          set(s => {
+            s.errorInAddToTeam = msg
+          })
+          // TODO this should not error on member already in team
+          if (fromTeamBuilder) {
+            reduxDispatch(TeamBuildingGen.createSetError({error: msg, namespace: 'teams'}))
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    addUserToTeams: (role, teams, user) => {
+      const f = async () => {
+        const teamsAddedTo: Array<string> = []
+        const errorAddingTo: Array<string> = []
+        for (const team of teams) {
+          try {
+            const teamID = getTeamID(get(), team)
+            if (teamID === Types.noTeamID) {
+              logger.warn(`no team ID found for ${team}`)
+              errorAddingTo.push(team)
+              continue
+            }
+            await RPCTypes.teamsTeamAddMemberRpcPromise(
+              {
+                email: '',
+                phone: '',
+                role: RPCTypes.TeamRole[role],
+                sendChatNotification: true,
+                teamID,
+                username: user,
+              },
+              [teamWaitingKey(teamID), addUserToTeamsWaitingKey(user)]
+            )
+            teamsAddedTo.push(team)
+          } catch (error) {
+            errorAddingTo.push(team)
+          }
+        }
+
+        // TODO: We should split these results into two messages, showing one in green and
+        // the other in red instead of lumping them together.
+        let result = ''
+        if (teamsAddedTo.length) {
+          result += `${user} was added to `
+          if (teamsAddedTo.length > 3) {
+            result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo.length - 2} teams.`
+          } else if (teamsAddedTo.length === 3) {
+            result += `${teamsAddedTo[0]}, ${teamsAddedTo[1]}, and ${teamsAddedTo[2]}.`
+          } else if (teamsAddedTo.length === 2) {
+            result += `${teamsAddedTo[0]} and ${teamsAddedTo[1]}.`
+          } else {
+            result += `${teamsAddedTo[0]}.`
+          }
+        }
+
+        if (errorAddingTo.length) {
+          if (result.length > 0) {
+            result += ' But we '
+          } else {
+            result += 'We '
+          }
+          result += `were unable to add ${user} to ${errorAddingTo.join(', ')}.`
+        }
+        set(s => {
+          s.addUserToTeamsResults = result
+          s.addUserToTeamsState = errorAddingTo.length > 0 ? 'failed' : 'succeeded'
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    cancelAddMembersWizard: () => {
+      set(s => {
+        s.addMembersWizard = {...addMembersWizardEmptyState}
+      })
+      reduxDispatch(RouteTreeGen.createClearModals())
+    },
+    channelSetMemberSelected: (conversationIDKey, username, selected, clearAll) => {
+      set(s => {
+        if (clearAll) {
+          s.channelSelectedMembers.delete(conversationIDKey)
+        } else {
+          const membersSelected = mapGetEnsureValue(s.channelSelectedMembers, conversationIDKey, new Set())
+          if (selected) {
+            membersSelected.add(username)
+          } else {
+            membersSelected.delete(username)
+          }
+        }
+      })
+    },
+    checkRequestedAccess: _teamname => {
+      // we never use teamname?
+      const f = async () => {
+        const result = await RPCTypes.teamsTeamListMyAccessRequestsRpcPromise(
+          {},
+          teamsAccessRequestWaitingKey
+        )
+        set(s => {
+          s.teamAccessRequestsPending = new Set<Types.Teamname>(
+            result?.map(row => row.parts?.join('.') ?? '')
+          )
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    clearAddUserToTeamsResults: () => {
+      set(s => {
+        s.addUserToTeamsResults = ''
+        s.addUserToTeamsState = 'notStarted'
+      })
+    },
+    clearNavBadges: () => {
+      const f = async () => {
+        try {
+          await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.newly_added_to_team'})
+          await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'})
+        } catch (err) {
+          logError(err)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    createChannel: p => {
+      const f = async () => {
+        const {channelname, description, teamID, navToChatOnSuccess} = p
+        const teamname = getTeamNameFromID(get(), teamID)
+        if (teamname === undefined) {
+          logger.warn('Team name was not in store!')
+          return
+        }
+        try {
+          const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
+            {
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              membersType: RPCChatTypes.ConversationMembersType.team,
+              tlfName: teamname,
+              tlfVisibility: RPCTypes.TLFVisibility.private,
+              topicName: channelname,
+              topicType: RPCChatTypes.TopicType.chat,
+            },
+            createChannelWaitingKey(teamID)
+          )
+          // No error if we get here.
+          const newConversationIDKey = result ? ChatTypes.conversationIDToKey(result.conv.info.id) : null
+          if (!newConversationIDKey) {
+            logger.warn('No convoid from newConvoRPC')
+            return
+          }
+          // If we were given a description, set it
+          if (description) {
+            await RPCChatTypes.localPostHeadlineNonblockRpcPromise(
+              {
+                clientPrev: 0,
+                conversationID: result.conv.info.id,
+                headline: description,
+                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+                tlfName: teamname ?? '',
+                tlfPublic: false,
+              },
+              createChannelWaitingKey(teamID)
+            )
+          }
+
+          // Dismiss the create channel dialog.
+          const visibleScreen = Router2Constants.getVisibleScreen()
+          if (visibleScreen && visibleScreen.name === 'chatCreateChannel') {
+            reduxDispatch(RouteTreeGen.createClearModals())
+          }
+          // Reload on team page
+          get().dispatch.loadTeamChannelList(teamID)
+          // Select the new channel, and switch to the chat tab.
+          if (navToChatOnSuccess) {
+            reduxDispatch(
+              Chat2Gen.createPreviewConversation({
+                channelname,
+                conversationIDKey: newConversationIDKey,
+                reason: 'newChannel',
+                teamname,
+              })
+            )
+          }
+        } catch (error) {
+          if (error instanceof RPCError) {
+            get().dispatch.setChannelCreationError(error.desc)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    createChannels: (teamID, channelnames) => {
+      set(s => {
+        s.creatingChannels = true
+      })
+      const f = async () => {
+        const teamname = getTeamNameFromID(get(), teamID)
+        if (teamname === null) {
+          get().dispatch.setChannelCreationError('Invalid team name')
+          return
+        }
+
+        try {
+          for (const c of channelnames) {
+            await RPCChatTypes.localNewConversationLocalRpcPromise({
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              membersType: RPCChatTypes.ConversationMembersType.team,
+              tlfName: teamname ?? '',
+              tlfVisibility: RPCTypes.TLFVisibility.private,
+              topicName: c,
+              topicType: RPCChatTypes.TopicType.chat,
+            })
+          }
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          get().dispatch.setChannelCreationError(error.desc)
+          return
+        }
+        get().dispatch.loadTeamChannelList(teamID)
+        set(s => {
+          s.creatingChannels = false
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    createNewTeam: (teamname, joinSubteam, fromChat, thenAddMembers) => {
+      set(s => {
+        s.errorInTeamCreation = ''
+      })
+      const f = async () => {
+        try {
+          const {teamID} = await RPCTypes.teamsTeamCreateRpcPromise(
+            {joinSubteam, name: teamname},
+            teamCreationWaitingKey
+          )
+          set(s => {
+            s.teamNameToID.set(teamname, teamID)
+          })
+          if (thenAddMembers) {
+            get().dispatch.addToTeam(teamID, thenAddMembers.users, false)
+          }
+
+          if (fromChat) {
+            reduxDispatch(RouteTreeGen.createClearModals())
+            reduxDispatch(Chat2Gen.createNavigateToInbox())
+            reduxDispatch(
+              Chat2Gen.createPreviewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
+            )
+          } else {
+            reduxDispatch(RouteTreeGen.createClearModals())
+            reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+            if (isMobile) {
+              reduxDispatch(
+                RouteTreeGen.createNavigateAppend({
+                  path: [{props: {createdTeam: true, teamID}, selected: 'profileEditAvatar'}],
+                })
+              )
+            }
+          }
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              s.errorInTeamCreation = error.desc
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    createNewTeamFromConversation: (conversationIDKey, teamname) => {
+      set(s => {
+        s.errorInTeamCreation = ''
+      })
+      const f = async () => {
+        const ChatConstants = await import('./chat2')
+        const me = ConfigConstants.useCurrentUserState.getState().username
+        const participantInfo = ChatConstants.getParticipantInfo(getReduxStore(), conversationIDKey)
+        // exclude bots from the newly created team, they can be added back later.
+        const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
+        const users = participants.map(assertion => ({
+          assertion,
+          role: assertion === me ? ('admin' as const) : ('writer' as const),
+        }))
+        get().dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
+      }
+      Z.ignorePromise(f())
+    },
+    deleteChannelConfirmed: (teamID, conversationIDKey) => {
+      const f = async () => {
+        // channelName is only needed for confirmation, so since we handle
+        // confirmation ourselves we don't need to plumb it through.
+        await RPCChatTypes.localDeleteConversationLocalRpcPromise(
+          {
+            channelName: '',
+            confirmed: true,
+            convID: ChatTypes.keyToConversationID(conversationIDKey),
+          },
+          teamWaitingKey(teamID)
+        )
+        get().dispatch.loadTeamChannelList(teamID)
+        reduxDispatch(RouteTreeGen.createClearModals())
+      }
+      Z.ignorePromise(f())
+    },
+    deleteMultiChannelsConfirmed: (teamID, channels) => {
+      const f = async () => {
+        for (const conversationIDKey of channels) {
+          await RPCChatTypes.localDeleteConversationLocalRpcPromise(
+            {
+              channelName: '',
+              confirmed: true,
+              convID: ChatTypes.keyToConversationID(conversationIDKey),
+            },
+            deleteChannelWaitingKey(teamID)
+          )
+        }
+        get().dispatch.loadTeamChannelList(teamID)
+        reduxDispatch(RouteTreeGen.createClearModals())
+      }
+      Z.ignorePromise(f())
+    },
+    deleteTeam: teamID => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamDeleteRpcListener(
+            {
+              customResponseIncomingCallMap: {
+                'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
+                'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
+              },
+              incomingCallMap: {},
+              params: {teamID},
+              waitingKey: deleteTeamWaitingKey(teamID),
+            },
+            Z.dummyListenerApi
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            // handled through waiting store
+            logger.warn('error:', error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    editMembership: (teamID, usernames, r) => {
+      const f = async () => {
+        const role = RPCTypes.TeamRole[r]
+        try {
+          await RPCTypes.teamsTeamEditMembersRpcPromise(
+            {
+              teamID,
+              users: usernames.map(assertion => ({assertion, role})),
+            },
+            [teamWaitingKey(teamID), editMembershipWaitingKey(teamID, ...usernames)]
+          )
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              if (usernames.length === 1) {
+                // error is shown in the member page
+                s.errorInEditMember.error = error.message
+                s.errorInEditMember.username = usernames[0] ?? ''
+                s.errorInEditMember.teamID = teamID
+              }
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    editTeamDescription: (teamID, description) => {
+      set(s => {
+        s.errorInEditDescription = ''
+      })
+      const f = async () => {
+        try {
+          await RPCTypes.teamsSetTeamShowcaseRpcPromise({description, teamID}, teamWaitingKey(teamID))
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              s.errorInEditDescription = error.message
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    finishNewTeamWizard: () => {
+      set(s => {
+        s.newTeamWizard.error = undefined
+      })
+      const f = async () => {
+        const {name, description, open, openTeamJoinRole, profileShowcase, addYourself} = get().newTeamWizard
+        const {avatarFilename, avatarCrop, channels, subteams} = get().newTeamWizard
+        const teamInfo: RPCTypes.TeamCreateFancyInfo = {
+          avatar: avatarFilename ? {avatarFilename, crop: avatarCrop?.crop} : null,
+          chatChannels: channels,
+          description,
+          joinSubteam: addYourself,
+          name,
+          openSettings: {joinAs: RPCTypes.TeamRole[openTeamJoinRole], open},
+          profileShowcase,
+          subteams,
+          users: get().addMembersWizard.addingMembers.map(member => ({
+            assertion: member.assertion,
+            role: RPCTypes.TeamRole[member.role],
+          })),
+        }
+        try {
+          const teamID = await RPCTypes.teamsTeamCreateFancyRpcPromise({teamInfo}, teamCreationWaitingKey)
+          set(s => {
+            s.newTeamWizard = newTeamWizardEmptyState
+            s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
+          })
+          reduxDispatch(RouteTreeGen.createClearModals())
+          reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              s.newTeamWizard.error = error.desc
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    finishedAddMembersWizard: () => {
+      set(s => {
+        s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
+      })
+      reduxDispatch(RouteTreeGen.createClearModals())
+    },
+    getActivityForTeams: () => {
+      const f = async () => {
+        try {
+          const results = await RPCChatTypes.localGetLastActiveForTeamsRpcPromise()
+          const teams = Object.entries(results.teams).reduce<Map<Types.TeamID, Types.ActivityLevel>>(
+            (res, [teamID, status]) => {
+              if (status === RPCChatTypes.LastActiveStatus.none) {
+                return res
+              }
+              res.set(teamID, lastActiveStatusToActivityLevel[status])
+              return res
+            },
+            new Map()
+          )
+          const channels = Object.entries(results.channels).reduce<
+            Map<ChatTypes.ConversationIDKey, Types.ActivityLevel>
+          >((res, [conversationIDKey, status]) => {
+            if (status === RPCChatTypes.LastActiveStatus.none) {
+              return res
+            }
+            res.set(conversationIDKey, lastActiveStatusToActivityLevel[status])
+            return res
+          }, new Map())
+          set(s => {
+            s.activityLevels = {channels, loaded: true, teams}
+          })
+        } catch (e) {
+          logger.warn(e)
+        }
+        return
+      }
+      Z.ignorePromise(f())
+    },
+    getMembers: (teamID: Types.TeamID) => {
+      const f = async () => {
+        try {
+          const res = await RPCTypes.teamsTeamGetMembersByIDRpcPromise({
+            id: teamID,
+          })
+          const members = rpcDetailsToMemberInfos(res ?? [])
+          set(s => {
+            s.teamIDToMembers.set(teamID, members)
+          })
+          // TODO update users members >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+          // from users reducer
+          // [TeamsGen.setMembers]: (draftState, action) => {
+          //   const {members} = action.payload
+          //   const {infoMap} = draftState
+          //   members.forEach((v, username) => {
+          //     updateInfo(infoMap, username, {fullname: v.fullName})
+          //   })
+          // },
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Error updating members for ${teamID}: ${error.desc}`)
+          }
+        }
+        return
+      }
+      Z.ignorePromise(f())
+    },
+    getTeamProfileAddList: username => {
+      const f = async () => {
+        const r = await RPCTypes.teamsTeamProfileAddListRpcPromise({username}, teamProfileAddListWaitingKey)
+        const res = (r || []).reduce<Array<RPCTypes.TeamProfileAddEntry>>((arr, t) => {
+          t && arr.push(t)
+          return arr
+        }, [])
+        const teamlist = res.map(team => ({
+          disabledReason: team.disabledReason,
+          open: team.open,
+          teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
+        }))
+        teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
+        set(s => {
+          s.teamProfileAddList = teamlist
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    getTeamRetentionPolicy: teamID => {
+      const f = async () => {
+        let retentionPolicy = makeRetentionPolicy()
+        try {
+          const policy = await RPCChatTypes.localGetTeamRetentionLocalRpcPromise(
+            {teamID},
+            teamWaitingKey(teamID)
+          )
+          try {
+            retentionPolicy = serviceRetentionPolicyToRetentionPolicy(policy)
+            if (retentionPolicy.type === 'inherit') {
+              throw new Error(`RPC returned retention policy of type 'inherit' for team policy`)
+            }
+          } catch (error) {
+            if (error instanceof RPCError) {
+              logger.error(error.message)
+            }
+          }
+        } catch (_) {}
+        set(s => {
+          s.teamIDToRetentionPolicy.set(teamID, retentionPolicy)
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    getTeams: (subscribe, forceReload) => {
+      if (subscribe) {
+        set(s => {
+          s.teamMetaSubscribeCount++
+        })
+      }
+
+      const f = async () => {
+        const username = ConfigConstants.useCurrentUserState.getState().username
+        const loggedIn = ConfigConstants.useConfigState.getState().loggedIn
+        if (!username || !loggedIn) {
+          logger.warn('getTeams while logged out')
+          return
+        }
+        if (!forceReload && !get().teamMetaStale) {
+          // bail
+          return
+        }
+        try {
+          const results = await RPCTypes.teamsTeamListUnverifiedRpcPromise(
+            {includeImplicitTeams: false, userAssertion: username},
+            teamsLoadedWaitingKey
+          )
+          const teams: Array<RPCTypes.AnnotatedMemberInfo> = results.teams || []
+          const teamnames: Array<string> = []
+          const teamNameToID = new Map<string, Types.TeamID>()
+          teams.forEach(team => {
+            teamnames.push(team.fqName)
+            teamNameToID.set(team.fqName, team.teamID)
+          })
+          set(s => {
+            s.teamNameToID = teamNameToID
+            s.teamnames = new Set<string>(teamnames)
+            s.teamMeta = mergeTeamMeta(s.teamMeta, teamListToMeta(teams))
+            s.teamMetaStale = false
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            if (error.code === RPCTypes.StatusCode.scapinetworkerror) {
+              // Ignore API errors due to offline
+            } else {
+              logger.error(error)
+            }
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    ignoreRequest: (teamID, teamname, username) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamIgnoreRequestRpcPromise({name: teamname, username}, teamWaitingKey(teamID))
+        } catch (_) {}
+      }
+      Z.ignorePromise(f())
+    },
+    inviteToTeamByEmail: (invitees, role, teamID, teamname, loadingKey) => {
+      const f = async () => {
+        if (loadingKey) {
+          set(s => {
+            const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
+            oldLoadingInvites.set(loadingKey, true)
+            s.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
+          })
+        }
+        try {
+          const res = await RPCTypes.teamsTeamAddEmailsBulkRpcPromise(
+            {
+              emails: invitees,
+              name: teamname,
+              role: role ? RPCTypes.TeamRole[role] : RPCTypes.TeamRole.none,
+            },
+            [teamWaitingKey(teamID), addToTeamByEmailWaitingKey(teamname)]
+          )
+          if (res.malformed && res.malformed.length > 0) {
+            const malformed = res.malformed
+            logger.warn(`teamInviteByEmail: Unable to parse ${malformed.length} email addresses`)
+            set(s => {
+              s.errorInEmailInvite.malformed = new Set(malformed)
+              s.errorInEmailInvite.message = isMobile
+                ? `Error parsing email: ${malformed[0]}`
+                : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`
+            })
+          } else {
+            // no malformed emails, assume everything went swimmingly
+            get().dispatch.resetErrorInEmailInvite()
+            if (!isMobile) {
+              // mobile does not nav away
+              reduxDispatch(RouteTreeGen.createClearModals())
+            }
+          }
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              // other error. display messages and leave all emails in input box
+              s.errorInEmailInvite.malformed = new Set()
+              s.errorInEmailInvite.message = error.desc
+            }
+          })
+        } finally {
+          if (loadingKey) {
+            set(s => {
+              const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
+              oldLoadingInvites.set(loadingKey, false)
+              s.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
+            })
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    inviteToTeamByPhone: (teamID, teamname, role, phoneNumber, fullName = '', loadingKey) => {
+      const f = async () => {
+        const generateSMSBody = (teamname: string, seitan: string): string => {
+          // seitan is 18chars
+          // message sans teamname is 118chars. Teamname can be 33 chars before we truncate to 25 and pre-ellipsize
+          let team: string
+          const teamOrSubteam = teamname.includes('.') ? 'subteam' : 'team'
+          if (teamname.length <= 33) {
+            team = `${teamname} ${teamOrSubteam}`
+          } else {
+            team = `..${teamname.substring(teamname.length - 30)} subteam`
+          }
+          return `Join the ${team} on Keybase. Copy this message into the "Teams" tab.\n\ntoken: ${seitan.toLowerCase()}\n\ninstall: keybase.io/_/go`
+        }
+        if (loadingKey) {
+          set(s => {
+            const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
+            oldLoadingInvites.set(loadingKey, true)
+          })
+        }
+        try {
+          const seitan = await RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
+            {
+              label: {sms: {f: fullName || '', n: phoneNumber} as RPCTypes.SeitanKeyLabelSms, t: 1},
+              role: (!!role && RPCTypes.TeamRole[role]) || RPCTypes.TeamRole.none,
+              teamname,
+            },
+            teamWaitingKey(teamID)
+          )
+          /* Open SMS */
+          const bodyText = generateSMSBody(teamname, seitan)
+          await openSMS([phoneNumber], bodyText)
+        } catch (err) {
+          logger.info('Error sending SMS', err)
+        } finally {
+          if (loadingKey) {
+            set(s => {
+              const oldLoadingInvites = mapGetEnsureValue(s.teamNameToLoadingInvites, teamname, new Map())
+              oldLoadingInvites.set(loadingKey, false)
+            })
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    joinTeam: (teamname, deeplink) => {
+      set(s => {
+        s.teamInviteDetails.inviteDetails = undefined
+      })
+
+      const f = async () => {
+        // In the deeplink flow, a modal is displayed which runs `joinTeam` (or an
+        // alternative flow, but we're not concerned with that here). In that case,
+        // we can fully manage the UX from inside of this handler.
+        // In the "Join team" flow, user pastes their link into the input box, which
+        // then calls `joinTeam` on its own. Since we need to switch to another modal,
+        // we simply plumb `deeplink` into the `promptInviteLinkJoin` handler and
+        // do the nav in the modal.
+        get().dispatch.resetTeamJoin()
+        try {
+          const result = await RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcListener(
+            {
+              customResponseIncomingCallMap: {
+                'keybase.1.teamsUi.confirmInviteLinkAccept': (params, response) => {
+                  set(s => {
+                    s.teamInviteDetails.inviteDetails = params.details
+                  })
+                  if (!deeplink) {
+                    reduxDispatch(
+                      RouteTreeGen.createNavigateAppend({path: ['teamInviteLinkJoin'], replace: true})
+                    )
+                  }
+                  set(s => {
+                    s.dispatch.respondToInviteLink = accept => {
+                      response.result(accept)
+                      set(s => {
+                        s.dispatch.respondToInviteLink = _respondToInviteLink
+                      })
+                    }
+                  })
+                },
+              },
+              incomingCallMap: {},
+              params: {tokenOrName: teamname},
+              waitingKey: joinTeamWaitingKey,
+            },
+            Z.dummyListenerApi
+          )
+          set(s => {
+            s.teamJoinSuccess = true
+            s.teamJoinSuccessOpen = result?.wasOpenTeam ?? false
+            s.teamJoinSuccessTeamName = result?.wasTeamName ? teamname : ''
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            const desc =
+              error.code === RPCTypes.StatusCode.scteaminvitebadtoken
+                ? 'Sorry, that team name or token is not valid.'
+                : error.code === RPCTypes.StatusCode.scnotfound
+                ? 'This invitation is no longer valid, or has expired.'
+                : error.desc
+            set(s => {
+              s.errorInTeamJoin = desc
+            })
+          }
+        } finally {
+          set(s => {
+            s.dispatch.respondToInviteLink = _respondToInviteLink
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    launchNewTeamWizardOrModal: subteamOf => {
+      set(s => {
+        s.newTeamWizard = {
+          ...newTeamWizardEmptyState,
+          parentTeamID: subteamOf,
+          teamType: 'subteam',
+        }
+      })
+
+      if (subteamOf) {
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard2TeamInfo']}))
+      } else {
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard1TeamPurpose']}))
+      }
+    },
+    leaveTeam: (teamname, permanent, context) => {
+      const f = async () => {
+        logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
+        try {
+          await RPCTypes.teamsTeamLeaveRpcPromise({name: teamname, permanent}, leaveTeamWaitingKey(teamname))
+          logger.info(`leaveTeam: left ${teamname} successfully`)
+          reduxDispatch(RouteTreeGen.createClearModals())
+          reduxDispatch(
+            RouteTreeGen.createNavUpToScreen({name: context === 'chat' ? 'chatRoot' : 'teamsRoot'})
+          )
+
+          get().dispatch.getTeams()
+        } catch (error) {
+          if (error instanceof RPCError) {
+            // handled through waiting store
+            logger.warn('error:', error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loadTeam: (teamID, subscribe) => {
+      set(s => {
+        if (subscribe) {
+          s.teamDetailsSubscriptionCount.set(teamID, (s.teamDetailsSubscriptionCount.get(teamID) ?? 0) + 1)
+        }
+      })
+      const f = async () => {
+        if (!teamID || teamID === Types.noTeamID) {
+          logger.warn(`bail on invalid team ID ${teamID}`)
+          return
+        }
+
+        // If we're already subscribed to team details for this team ID, we're already up to date
+        const subscriptions = get().teamDetailsSubscriptionCount.get(teamID) ?? 0
+        if (subscribe && subscriptions > 1) {
+          logger.info('bail on already subscribed')
+          return
+        }
+        try {
+          const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
+          set(s => {
+            const maybeMeta = s.teamMeta.get(teamID)
+            if (maybeMeta && maybeMeta.teamname !== team.name) {
+              if (team.name.includes('.')) {
+                // subteam name changed. store loaded name
+                maybeMeta.teamname = team.name
+              } else {
+                // bad. teamlist lied to us about the teamname
+                throw new Error('Team name mismatch! Please report this error.')
+              }
+            }
+            const details = annotatedTeamToDetails(team)
+            s.teamDetails.set(teamID, details)
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loadTeamChannelList: teamID => {
+      const f = async () => {
+        const teamname = getTeamMeta(get(), teamID).teamname
+        if (!teamname) {
+          logger.warn('bailing on no teamMeta')
+          return
+        }
+        try {
+          const {convs} = await RPCChatTypes.localGetTLFConversationsLocalRpcPromise({
+            membersType: RPCChatTypes.ConversationMembersType.team,
+            tlfName: teamname,
+            topicType: RPCChatTypes.TopicType.chat,
+          })
+          const channels =
+            convs?.reduce<Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>>((res, inboxUIItem) => {
+              const conversationIDKey = ChatTypes.stringToConversationIDKey(inboxUIItem.convID)
+              res.set(conversationIDKey, {
+                channelname: inboxUIItem.channel,
+                conversationIDKey,
+                description: inboxUIItem.headline,
+              })
+              return res
+            }, new Map()) ?? new Map<ChatTypes.ConversationIDKey, Types.TeamChannelInfo>()
+
+          // ensure we refresh participants, but don't fail the saga if this somehow fails
+          try {
+            for (const c of channels.values()) {
+              Z.ignorePromise(
+                RPCChatTypes.localRefreshParticipantsRpcPromise({
+                  convID: ChatTypes.keyToConversationID(c.conversationIDKey),
+                })
+              )
+            }
+          } catch (e) {
+            logger.error('this should never happen', e)
+          }
+          set(s => {
+            s.channelInfo.set(teamID, channels)
+          })
+        } catch (err) {
+          logger.warn(err)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loadTeamTree: (teamID, username) => {
+      // See protocol/avdl/keybase1/teams.avdl:loadTeamTreeAsync for a description of this RPC.
+      const f = async () => {
+        await RPCTypes.teamsLoadTeamTreeMembershipsAsyncRpcPromise({teamID, username})
+      }
+      Z.ignorePromise(f())
+    },
+    loadWelcomeMessage: teamID => {
+      const f = async () => {
+        try {
+          const message = await RPCChatTypes.localGetWelcomeMessageRpcPromise(
+            {teamID},
+            loadWelcomeMessageWaitingKey(teamID)
+          )
+          set(s => {
+            s.teamIDToWelcomeMessage.set(teamID, message)
+          })
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              logger.error(error)
+              s.errorInSettings = error.desc
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loadedWelcomeMessage: (teamID, message) => {
+      set(s => {
+        s.teamIDToWelcomeMessage.set(teamID, message)
+      })
+    },
+    manageChatChannels: teamID => {
+      reduxDispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {teamID}, selected: 'teamAddToChannels'}],
+        })
+      )
+    },
+    notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => {
+      const {guid, targetTeamID, targetUsername, expectedCount} = result
+      set(s => {
+        const usernameMemberships = mapGetEnsureValue(s.teamMemberToTreeMemberships, targetTeamID, new Map())
+        let memberships = usernameMemberships.get(targetUsername)
+        if (memberships && guid < memberships.guid) {
+          // noop
+          return
+        }
+        if (!memberships || guid > memberships.guid) {
+          // start over
+          memberships = {
+            guid,
+            memberships: [],
+            targetTeamID,
+            targetUsername,
+          }
+          usernameMemberships.set(targetUsername, memberships)
+        }
+        memberships.expectedCount = expectedCount
+      })
+    },
+    notifyTreeMembershipsPartial: membership => {
+      const {guid, targetTeamID, targetUsername} = membership
+      set(s => {
+        const usernameMemberships = mapGetEnsureValue(s.teamMemberToTreeMemberships, targetTeamID, new Map())
+        let memberships = usernameMemberships.get(targetUsername)
+        if (memberships && guid < memberships.guid) {
+          // noop
+          return
+        }
+        if (!memberships || guid > memberships.guid) {
+          // start over
+          memberships = {
+            guid,
+            memberships: [],
+            targetTeamID,
+            targetUsername,
+          }
+          usernameMemberships.set(targetUsername, memberships)
+        }
+        memberships.memberships.push(membership)
+        if (RPCTypes.TeamTreeMembershipStatus.ok == membership.result.s) {
+          const value = membership.result.ok
+          const sparseMemberInfos = mapGetEnsureValue(
+            s.treeLoaderTeamIDToSparseMemberInfos,
+            value.teamID,
+            new Map()
+          )
+          sparseMemberInfos.set(targetUsername, consumeTeamTreeMembershipValue(value))
+        }
+      })
+
+      const f = async () => {
+        if (RPCTypes.TeamTreeMembershipStatus.ok !== membership.result.s) {
+          return
+        }
+        const teamID = membership.result.ok.teamID
+        const username = membership.targetUsername
+        const waitingKey = loadTeamTreeActivityWaitingKey(teamID, username)
+        try {
+          const _activityMap = await RPCChatTypes.localGetLastActiveAtMultiLocalRpcPromise(
+            {teamIDs: [teamID], username},
+            waitingKey
+          )
+          const activityMap = new Map(Object.entries(_activityMap))
+          set(s => {
+            activityMap.forEach((lastActivity, teamID) => {
+              if (!s.teamMemberToLastActivity.has(teamID)) {
+                s.teamMemberToLastActivity.set(teamID, new Map())
+              }
+              s.teamMemberToLastActivity.get(teamID)?.set(username, lastActivity)
+            })
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info(
+              `loadTeamTreeActivity: unable to get activity for ${teamID}:${username}: ${error.message}`
+            )
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    onGregorPushState: items => {
+      let sawChatBanner = false
+      let sawSubteamsBanner = false
+      let chosenChannels: undefined | (typeof items)[0]
+      const newTeamRequests = new Map<Types.TeamID, Set<string>>()
+      items.forEach(i => {
+        if (i.item.category === 'sawChatBanner') {
+          sawChatBanner = true
+        }
+        if (i.item.category === 'sawSubteamsBanner') {
+          sawSubteamsBanner = true
+        }
+        if (i.item.category === chosenChannelsGregorKey) {
+          chosenChannels = i
+        }
+        if (i.item.category.startsWith(newRequestsGregorPrefix)) {
+          const body = GregorConstants.bodyToJSON(i.item.body)
+          if (body) {
+            const request: {id: Types.TeamID; username: string} = body
+            const requests = mapGetEnsureValue(newTeamRequests, request.id, new Set())
+            requests.add(request.username)
+          }
+        }
+      })
+      sawChatBanner && get().dispatch.setTeamSawChatBanner()
+      sawSubteamsBanner && get().dispatch.setTeamSawSubteamsBanner()
+      get().dispatch.setNewTeamRequests(newTeamRequests)
+      get().dispatch.setTeamsWithChosenChannels(
+        new Set<Types.Teamname>(GregorConstants.bodyToJSON(chosenChannels?.item.body))
+      )
+    },
+    openInviteLink: (inviteID, inviteKey) => {
+      set(s => {
+        s.teamInviteDetails.inviteDetails = undefined
+        s.teamInviteDetails.inviteID = inviteID
+        s.teamInviteDetails.inviteKey = inviteKey
+      })
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamInviteLinkJoin']}))
+    },
+    reAddToTeam: (teamID, username) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise(
+            {id: teamID, username},
+            addMemberWaitingKey(teamID, username)
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            // identify error
+            if (error.code === RPCTypes.StatusCode.scidentifysummaryerror) {
+              // show profile card
+              ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+            }
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    refreshTeamRoleMap: () => {
+      const f = async () => {
+        try {
+          const _map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
+          const map = rpcTeamRoleMapAndVersionToTeamRoleMap(_map)
+          set(s => {
+            s.teamRoleMap = {
+              latestKnownVersion: Math.max(map.latestKnownVersion, s.teamRoleMap.latestKnownVersion),
+              loadedVersion: map.loadedVersion,
+              roles: map.roles,
+            }
+          })
+        } catch {
+          logger.info(`Failed to refresh TeamRoleMap; service will retry`)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    removeMember: (teamID, username) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamRemoveMemberRpcPromise(
+            {
+              member: {
+                assertion: {assertion: username, removeFromSubtree: false},
+                type: RPCTypes.TeamMemberToRemoveType.assertion,
+              },
+              teamID,
+            },
+            [teamWaitingKey(teamID), removeMemberWaitingKey(teamID, username)]
+          )
+        } catch (err) {
+          logger.error('Failed to remove member', err)
+          // TODO: create setEmailInviteError?`
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    removePendingInvite: (teamID, inviteID) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamRemoveMemberRpcPromise(
+            {
+              member: {inviteid: {inviteID}, type: RPCTypes.TeamMemberToRemoveType.inviteid},
+              teamID,
+            },
+            [teamWaitingKey(teamID), removeMemberWaitingKey(teamID, inviteID)]
+          )
+        } catch (err) {
+          logger.error('Failed to remove pending invite', err)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    renameTeam: (oldName, _newName) => {
+      const f = async () => {
+        const prevName = {parts: oldName.split('.')}
+        const newName = {parts: _newName.split('.')}
+        try {
+          await RPCTypes.teamsTeamRenameRpcPromise({newName, prevName}, teamRenameWaitingKey)
+        } catch (_) {
+          // err displayed from waiting store in component
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    requestInviteLinkDetails: () => {
+      const f = async () => {
+        try {
+          const details = await RPCTypes.teamsGetInviteLinkDetailsRpcPromise({
+            inviteID: get().teamInviteDetails.inviteID,
+          })
+          set(s => {
+            s.teamInviteDetails.inviteDetails = details
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            const desc =
+              error.code === RPCTypes.StatusCode.scteaminvitebadtoken
+                ? 'Sorry, that invite token is not valid.'
+                : error.code === RPCTypes.StatusCode.scnotfound
+                ? 'This invitation is no longer valid, or has expired.'
+                : error.desc
+            set(s => {
+              s.errorInTeamJoin = desc
+            })
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    resetErrorInEmailInvite: () => {
+      set(s => {
+        s.errorInEmailInvite.message = ''
+        s.errorInEmailInvite.malformed = new Set()
+      })
+    },
+    resetErrorInSettings: () => {
+      set(s => {
+        s.errorInSettings = ''
+      })
+    },
+    resetErrorInTeamCreation: () => {
+      set(s => {
+        s.errorInTeamCreation = ''
+      })
+    },
+    resetState: 'default',
+    resetTeamJoin: () => {
+      set(s => {
+        s.errorInTeamJoin = ''
+        s.teamJoinSuccess = false
+        s.teamJoinSuccessOpen = false
+        s.teamJoinSuccessTeamName = ''
+      })
+    },
+    resetTeamMetaStale: () => {
+      set(s => {
+        s.teamMetaStale = true
+      })
+    },
+    resetTeamProfileAddList: () => {
+      set(s => {
+        s.teamProfileAddList = []
+      })
+    },
+    respondToInviteLink: _respondToInviteLink,
+    saveChannelMembership: (teamID, oldChannelState, newChannelState) => {
+      const f = async () => {
+        const waitingKey = teamWaitingKey(teamID)
+        for (const convIDKeyStr in newChannelState) {
+          const conversationIDKey = ChatTypes.stringToConversationIDKey(convIDKeyStr)
+          if (oldChannelState[conversationIDKey] === newChannelState[conversationIDKey]) {
+            continue
+          }
+          if (newChannelState[conversationIDKey]) {
+            try {
+              const convID = ChatTypes.keyToConversationID(conversationIDKey)
+              await RPCChatTypes.localJoinConversationByIDLocalRpcPromise({convID}, waitingKey)
+              // nothing is hooked up to this???
+              // reduxDispatch(TeamsGen.createAddParticipant({conversationIDKey, teamID}))
+            } catch (error) {
+              ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
+            }
+          } else {
+            try {
+              const convID = ChatTypes.keyToConversationID(conversationIDKey)
+              await RPCChatTypes.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
+              // nothing is hooked up to this???
+              // reduxDispatch(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
+            } catch (error) {
+              ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
+            }
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    setAddMembersWizardIndividualRole: (assertion, role) => {
+      set(s => {
+        const maybeMember = s.addMembersWizard.addingMembers.find(m => m.assertion === assertion)
+        if (maybeMember) {
+          maybeMember.role = role
+        }
+      })
+    },
+    setAddMembersWizardRole: role => {
+      set(s => {
+        s.addMembersWizard.role = role
+        if (role !== 'setIndividually') {
+          // keep roles stored with indiv members in sync with top level one
+          s.addMembersWizard.addingMembers.forEach(member => {
+            member.role = role
+          })
+        }
+      })
+    },
+    setChannelCreationError: error => {
+      set(s => {
+        s.creatingChannels = false
+        s.errorInChannelCreation = error
+      })
+    },
+    setChannelSelected: (teamID, channel, selected, clearAll) => {
+      set(s => {
+        if (clearAll) {
+          s.teamSelectedChannels.delete(teamID)
+        } else {
+          const channelsSelected = mapGetEnsureValue(s.teamSelectedChannels, teamID, new Set())
+          if (selected) {
+            channelsSelected.add(channel)
+          } else {
+            channelsSelected.delete(channel)
+          }
+        }
+      })
+    },
+    setJustFinishedAddMembersWizard: justFinished => {
+      set(s => {
+        s.addMembersWizard.justFinished = justFinished
+      })
+    },
+    setMemberPublicity: (teamID, showcase) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsSetTeamMemberShowcaseRpcPromise({isShowcased: showcase, teamID}, [
+            teamWaitingKey(teamID),
+            setMemberPublicityWaitingKey(teamID),
+          ])
+          return
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              s.errorInSettings = error.desc
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    setMemberSelected: (teamID, username, selected, clearAll) => {
+      set(s => {
+        if (clearAll) {
+          s.teamSelectedMembers.delete(teamID)
+        } else {
+          const membersSelected = mapGetEnsureValue(s.teamSelectedMembers, teamID, new Set())
+          if (selected) {
+            membersSelected.add(username)
+          } else {
+            membersSelected.delete(username)
+          }
+        }
+      })
+    },
+    setNewTeamInfo: (deletedTeams, newTeams, teamIDToResetUsers) => {
+      set(s => {
+        s.deletedTeams = deletedTeams
+        s.newTeams = newTeams
+        s.teamIDToResetUsers = teamIDToResetUsers
+      })
+    },
+    setNewTeamRequests: newTeamRequests => {
+      set(s => {
+        s.newTeamRequests = newTeamRequests
+      })
+    },
+    setPublicity: (teamID, settings) => {
+      const f = async () => {
+        const waitingKey = settingsWaitingKey(teamID)
+        const teamMeta = getTeamMeta(get(), teamID)
+        const teamSettings = (get().teamDetails.get(teamID) ?? emptyTeamDetails).settings
+        const ignoreAccessRequests = teamSettings.tarsDisabled
+        const openTeam = teamSettings.open
+        const openTeamRole = teamSettings.openJoinAs
+        const publicityAnyMember = teamMeta.allowPromote
+        const publicityMember = teamMeta.showcasing
+        const publicityTeam = teamSettings.teamShowcased
+
+        if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
+          try {
+            await RPCTypes.teamsTeamSetSettingsRpcPromise(
+              {
+                settings: {joinAs: RPCTypes.TeamRole[settings.openTeamRole], open: settings.openTeam},
+                teamID,
+              },
+              waitingKey
+            )
+          } catch (payload) {
+            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+          }
+        }
+        if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
+          try {
+            await RPCTypes.teamsSetTarsDisabledRpcPromise(
+              {disabled: settings.ignoreAccessRequests, teamID},
+              waitingKey
+            )
+          } catch (payload) {
+            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+          }
+        }
+        if (publicityAnyMember !== settings.publicityAnyMember) {
+          try {
+            await RPCTypes.teamsSetTeamShowcaseRpcPromise(
+              {anyMemberShowcase: settings.publicityAnyMember, teamID},
+              waitingKey
+            )
+          } catch (payload) {
+            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+          }
+        }
+        if (publicityMember !== settings.publicityMember) {
+          try {
+            await RPCTypes.teamsSetTeamMemberShowcaseRpcPromise(
+              {isShowcased: settings.publicityMember, teamID},
+              waitingKey
+            )
+          } catch (payload) {
+            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+          }
+        }
+        if (publicityTeam !== settings.publicityTeam) {
+          try {
+            await RPCTypes.teamsSetTeamShowcaseRpcPromise(
+              {isShowcased: settings.publicityTeam, teamID},
+              waitingKey
+            )
+          } catch (payload) {
+            ConfigConstants.useConfigState.getState().dispatch.setGlobalError(payload)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    setSubteamFilter: (filter, parentTeam) => {
+      set(s => {
+        s.subteamFilter = filter
+        if (parentTeam && filter) {
+          const flc = filter.toLowerCase()
+          s.subteamsFiltered = new Set(
+            [...(s.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
+              s.teamMeta.get(sID)?.teamname.toLowerCase().includes(flc)
+            )
+          )
+        } else {
+          s.subteamsFiltered = undefined
+        }
+      })
+    },
+    setTeamListFilterSort: (filter, sortOrder) => {
+      set(s => {
+        if (filter !== undefined) {
+          s.teamListFilter = filter
+        }
+        if (sortOrder !== undefined) {
+          s.teamListSort = sortOrder
+        }
+      })
+    },
+    setTeamRetentionPolicy: (teamID, policy) => {
+      const f = async () => {
+        try {
+          const servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
+          await RPCChatTypes.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
+            teamWaitingKey(teamID),
+            retentionWaitingKey(teamID),
+          ])
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              logger.error(error.message)
+              s.errorInSettings = error.desc
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    setTeamRoleMapLatestKnownVersion: version => {
+      set(s => {
+        s.teamRoleMap.latestKnownVersion = version
+      })
+    },
+    setTeamSawChatBanner: () => {
+      set(s => {
+        s.sawChatBanner = true
+      })
+    },
+    setTeamSawSubteamsBanner: () => {
+      set(s => {
+        s.sawSubteamsBanner = true
+      })
+    },
+    setTeamWizardAvatar: (crop, filename) => {
+      set(s => {
+        s.newTeamWizard.avatarCrop = crop
+        s.newTeamWizard.avatarFilename = filename
+      })
+      switch (get().newTeamWizard.teamType) {
+        case 'subteam': {
+          const parentTeamID = get().newTeamWizard.parentTeamID
+          const parentTeamMeta = getTeamMeta(get(), parentTeamID ?? '')
+          // If it's just you, don't show the subteam members screen empty
+          if (parentTeamMeta.memberCount > 1) {
+            reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizardSubteamMembers']}))
+            return
+          } else {
+            get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
+            return
+          }
+        }
+        case 'friends':
+        case 'other':
+          get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
+          return
+        case 'project':
+          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard5Channels']}))
+          return
+        case 'community':
+          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard4TeamSize']}))
+          return
+      }
+    },
+    setTeamWizardChannels: channels => {
+      set(s => {
+        s.newTeamWizard.channels = channels
+      })
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard6Subteams']}))
+    },
+    setTeamWizardNameDescription: p => {
+      set(s => {
+        s.newTeamWizard.name = p.teamname
+        s.newTeamWizard.description = p.description
+        s.newTeamWizard.open = p.openTeam
+        s.newTeamWizard.openTeamJoinRole = p.openTeamJoinRole
+        s.newTeamWizard.profileShowcase = p.profileShowcase
+        s.newTeamWizard.addYourself = p.addYourself
+      })
+      reduxDispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {createdTeam: true, teamID: Types.newTeamWizardTeamID, wizard: true},
+              selected: 'profileEditAvatar',
+            },
+          ],
+        })
+      )
+    },
+    setTeamWizardSubteamMembers: members => {
+      set(s => {
+        s.addMembersWizard = {
+          ...addMembersWizardEmptyState,
+          addingMembers: members.map(m => ({assertion: m, role: 'writer'})),
+          teamID: Types.newTeamWizardTeamID,
+        }
+      })
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}))
+    },
+    setTeamWizardSubteams: subteams => {
+      set(s => {
+        s.newTeamWizard.subteams = subteams
+      })
+      get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
+    },
+    setTeamWizardTeamSize: isBig => {
+      set(s => {
+        s.newTeamWizard.isBig = isBig
+      })
+      if (isBig) {
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard5Channels']}))
+      } else {
+        get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
+      }
+    },
+    setTeamWizardTeamType: teamType => {
+      set(s => {
+        s.newTeamWizard.teamType = teamType
+      })
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard2TeamInfo']}))
+    },
+    setTeamsWithChosenChannels: teamsWithChosenChannels => {
+      set(s => {
+        s.teamsWithChosenChannels = teamsWithChosenChannels
+      })
+    },
+    setWelcomeMessage: (teamID, message) => {
+      set(s => {
+        s.errorInEditWelcomeMessage = ''
+      })
+      const f = async () => {
+        try {
+          await RPCChatTypes.localSetWelcomeMessageRpcPromise(
+            {message, teamID},
+            setWelcomeMessageWaitingKey(teamID)
+          )
+          get().dispatch.loadWelcomeMessage(teamID)
+        } catch (error) {
+          set(s => {
+            if (error instanceof RPCError) {
+              logger.error(error)
+              s.errorInEditWelcomeMessage = error.desc
+            }
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    showTeamByName: (teamname, initialTab, join, addMembers) => {
+      const f = async () => {
+        let teamID: string
+        try {
+          teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
+        } catch (err) {
+          logger.info(`team="${teamname}" cannot be loaded:`, err)
+          // navigate to team page for team we're not in
+          logger.info(`showing external team page, join=${join}`)
+          reduxDispatch(
+            RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]})
+          )
+          if (join) {
+            reduxDispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'}],
+              })
+            )
+          }
+          return
+        }
+
+        if (addMembers) {
+          // Check if we have the right role to be adding members, otherwise don't
+          // show the team builder.
+          try {
+            // Get (hopefully fresh) role map. The app might have just started so it's
+            // not enough to just look in the react store.
+            const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
+            const role = map.teams[teamID]?.role || map.teams[teamID]?.implicitRole
+            if (role !== RPCTypes.TeamRole.admin && role !== RPCTypes.TeamRole.owner) {
+              logger.info(`ignoring team="${teamname}" with addMember, user is not an admin but role=${role}`)
+              return
+            }
+          } catch (err) {
+            logger.info(`team="${teamname}" failed to check if user is an admin:`, err)
+            return
+          }
+        }
+        reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
+        reduxDispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {initialTab, teamID}, selected: 'team'}]})
+        )
+        if (addMembers) {
+          reduxDispatch(
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}],
+            })
+          )
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    startAddMembersWizard: teamID => {
+      set(s => {
+        s.addMembersWizard = {...addMembersWizardEmptyState, teamID}
+      })
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamFromWhere']}))
+    },
+    teamChangedByID: c => {
+      const {teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = c
+      // Any of the Seqnos can be 0, which means that it was unknown at the source
+      // at the time when this notification was generated.
+      const version = get().teamVersion.get(teamID)
+      let versionChanged = true
+      if (version) {
+        versionChanged =
+          latestHiddenSeqno > version.latestHiddenSeqno ||
+          latestOffchainSeqno > version.latestOffchainSeqno ||
+          latestSeqno > version.latestSeqno
+      }
+      const shouldLoad = versionChanged && !!get().teamDetailsSubscriptionCount.get(teamID)
+      set(s => {
+        s.teamVersion.set(
+          teamID,
+          ratchetTeamVersion({latestHiddenSeqno, latestOffchainSeqno, latestSeqno}, s.teamVersion.get(teamID))
+        )
+      })
+      if (shouldLoad) {
+        get().dispatch.loadTeam(teamID)
+      }
+    },
+    teamSeen: teamID => {
+      const f = async () => {
+        try {
+          await RPCTypes.gregorDismissCategoryRpcPromise({category: newRequestsGregorKey(teamID)})
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(error.message)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    toggleInvitesCollapsed: teamID => {
+      set(s => {
+        const {invitesCollapsed} = s
+        if (invitesCollapsed.has(teamID)) {
+          invitesCollapsed.delete(teamID)
+        } else {
+          invitesCollapsed.add(teamID)
+        }
+      })
+    },
+    unsubscribeTeamDetails: teamID => {
+      set(s => {
+        s.teamDetailsSubscriptionCount.set(teamID, (s.teamDetailsSubscriptionCount.get(teamID) ?? 1) - 1)
+      })
+    },
+    unsubscribeTeamList: () => {
+      set(s => {
+        if (s.teamMetaSubscribeCount > 0) {
+          s.teamMetaSubscribeCount--
+        }
+      })
+    },
+    updateChannelName: (teamID, conversationIDKey, newChannelName) => {
+      const f = async () => {
+        const param = {
+          channelName: newChannelName,
+          conversationID: ChatTypes.keyToConversationID(conversationIDKey),
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          tlfName: getTeamNameFromID(get(), teamID) ?? '',
+          tlfPublic: false,
+        }
+
+        try {
+          await RPCChatTypes.localPostMetadataRpcPromise(param, updateChannelNameWaitingKey(teamID))
+        } catch (error) {
+          if (error instanceof RPCError) {
+            get().dispatch.setChannelCreationError(error.desc)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    updateTeamRetentionPolicy: metas => {
+      const first = metas[0]
+      if (!first) {
+        logger.warn('Got updateTeamRetentionPolicy with no convs; aborting. Local copy may be out of date')
+        return
+      }
+      const {teamRetentionPolicy, teamID} = first
+      set(s => {
+        s.teamIDToRetentionPolicy.set(teamID, teamRetentionPolicy)
+      })
+    },
+    updateTopic: (teamID, conversationIDKey, newTopic) => {
+      const f = async () => {
+        const param = {
+          conversationID: ChatTypes.keyToConversationID(conversationIDKey),
+          headline: newTopic,
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          tlfName: getTeamNameFromID(get(), teamID) ?? '',
+          tlfPublic: false,
+        }
+        await RPCChatTypes.localPostHeadlineRpcPromise(param, updateChannelNameWaitingKey(teamID))
+      }
+      Z.ignorePromise(f())
+    },
+    uploadTeamAvatar: (teamname, filename, sendChatNotification, crop) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsUploadTeamAvatarRpcPromise(
+            {crop, filename, sendChatNotification, teamname},
+            ProfileConstants.uploadAvatarWaitingKey
+          )
+          reduxDispatch(RouteTreeGen.createNavigateUp())
+        } catch (error) {
+          if (error instanceof RPCError) {
+            // error displayed in component
+            logger.warn(`Error uploading team avatar: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

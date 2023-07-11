@@ -1,8 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/teams'
 import * as Styles from '../../styles'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {pluralize} from '../../util/string'
 import {ModalTitle} from '../common'
@@ -12,7 +12,7 @@ const AddContacts = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
+  const teamID = Constants.useState(s => s.addMembersWizard.teamID)
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
   const [selectedEmails, setSelectedEmails] = React.useState(new Set<string>())
@@ -31,6 +31,9 @@ const AddContacts = () => {
 
   const [waiting, setWaiting] = React.useState(false)
   const toAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
+
+  const addMembersWizardPushMembers = Constants.useState(s => s.dispatch.addMembersWizardPushMembers)
+
   const onDone = () => {
     if (waiting) {
       return
@@ -40,15 +43,13 @@ const AddContacts = () => {
       [{emails: [...selectedEmails].join(','), phoneNumbers: [...selectedPhones]}],
       r => {
         if (r?.length) {
-          dispatch(
-            TeamsGen.createAddMembersWizardPushMembers({
-              members: r.map(m => ({
-                ...(m.foundUser
-                  ? {assertion: m.username, resolvedFrom: m.assertion}
-                  : {assertion: m.assertion}),
-                role: 'writer',
-              })),
-            })
+          addMembersWizardPushMembers(
+            r.map(m => ({
+              ...(m.foundUser
+                ? {assertion: m.username, resolvedFrom: m.assertion}
+                : {assertion: m.assertion}),
+              role: 'writer',
+            }))
           )
         }
       },

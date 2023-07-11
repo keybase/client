@@ -3,7 +3,6 @@ import * as Constants from '../../../../../constants/teams'
 import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
-import * as TeamsGen from '../../../../../actions/teams-gen'
 import type * as Types from '../../../../../constants/types/teams'
 import type {RowProps} from '.'
 import {TeamRequestRow} from '.'
@@ -62,28 +61,29 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
 
 export default (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
-  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const _notifLabel = Container.useSelector(state =>
     Constants.isBigTeam(state, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )
-  const disabledReasonsForRolePicker = Container.useSelector(state =>
-    Constants.getDisabledReasonsForRolePicker(state, teamID, username)
+  const disabledReasonsForRolePicker = Constants.useState(s =>
+    Constants.getDisabledReasonsForRolePicker(s, teamID, username)
   )
   const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const dispatch = Container.useDispatch()
+  const removeMember = Constants.useState(s => s.dispatch.removeMember)
+  const ignoreRequest = Constants.useState(s => s.dispatch.ignoreRequest)
+
   const _onIgnoreRequest = (teamname: string) => {
-    reset
-      ? dispatch(TeamsGen.createRemoveMember({teamID, username}))
-      : dispatch(TeamsGen.createIgnoreRequest({teamID, teamname, username}))
+    if (reset) {
+      removeMember(teamID, username)
+    } else {
+      ignoreRequest(teamID, teamname, username)
+    }
   }
+
+  const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
   const letIn = (sendNotification: boolean, role: Types.TeamRoleType) => {
-    dispatch(
-      TeamsGen.createAddToTeam({
-        sendChatNotification: sendNotification,
-        teamID,
-        users: [{assertion: username, role}],
-      })
-    )
+    addToTeam(teamID, [{assertion: username, role}], sendNotification)
   }
   const onChat = () => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
+import * as TeamsConstants from '../../../../constants/teams'
 import * as ConfigConstants from '../../../../constants/config'
 import * as ProfileConstants from '../../../../constants/profile'
 import * as Container from '../../../../util/container'
@@ -19,8 +20,8 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const canManage = Container.useSelector(state =>
-    meta.teamType === 'adhoc' ? true : getCanPerform(state, meta.teamname).setRetentionPolicy
+  const canManage = TeamsConstants.useState(s =>
+    meta.teamType === 'adhoc' ? true : getCanPerform(s, meta.teamname).setRetentionPolicy
   )
 
   const dispatch = Container.useDispatch()

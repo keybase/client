@@ -12,7 +12,6 @@ import type * as pinentry from './pinentry-gen'
 import type * as routetree from './route-tree-gen'
 import type * as settings from './settings-gen'
 import type * as teambuilding from './team-building-gen'
-import type * as teams from './teams-gen'
 import type * as tracker2 from './tracker2-gen'
 import type * as unlockfolders from './unlock-folders-gen'
 import type * as users from './users-gen'
@@ -32,7 +31,6 @@ export type TypedActions =
   | routetree.Actions
   | settings.Actions
   | teambuilding.Actions
-  | teams.Actions
   | tracker2.Actions
   | unlockfolders.Actions
   | users.Actions

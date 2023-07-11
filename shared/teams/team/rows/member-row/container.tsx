@@ -1,5 +1,4 @@
 import * as Constants from '../../../../constants/teams'
-import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as ProfileConstants from '../../../../constants/profile'
@@ -20,8 +19,8 @@ const blankInfo = Constants.initialMemberInfo
 
 export default (ownProps: OwnProps) => {
   const {teamID, firstItem, username} = ownProps
-  const {members} = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const {members} = Constants.useState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
+  const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const info = members.get(username) || blankInfo
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
@@ -31,9 +30,7 @@ export default (ownProps: OwnProps) => {
   const status = info.status
   const waitingForAdd = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const waitingForRemove = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
-  const youCanManageMembers = Container.useSelector(
-    state => Constants.getCanPerform(state, teamname).manageMembers
-  )
+  const youCanManageMembers = Constants.useState(s => Constants.getCanPerform(s, teamname).manageMembers)
   const dispatch = Container.useDispatch()
   const onBlock = () => {
     username &&
@@ -59,16 +56,13 @@ export default (ownProps: OwnProps) => {
   const onOpenProfile = () => {
     username && showUserProfile(username)
   }
+  const reAddToTeam = Constants.useState(s => s.dispatch.reAddToTeam)
+  const removeMember = Constants.useState(s => s.dispatch.removeMember)
   const onReAddToTeam = () => {
-    dispatch(
-      TeamsGen.createReAddToTeam({
-        teamID,
-        username,
-      })
-    )
+    reAddToTeam(teamID, username)
   }
   const onRemoveFromTeam = () => {
-    dispatch(TeamsGen.createRemoveMember({teamID, username}))
+    removeMember(teamID, username)
   }
   const onShowTracker = () => {
     if (Container.isMobile) {

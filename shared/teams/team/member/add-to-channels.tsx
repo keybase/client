@@ -297,7 +297,7 @@ const SelfChannelActions = ({
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, meta.teamID))
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, meta.teamID))
   const isAdmin = yourOperations.deleteChannel
   const canEdit = yourOperations.editChannelDescription
   const inChannel = meta.membershipType === 'active'
@@ -474,8 +474,8 @@ const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, user
     const info = ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey)
     return info.name.length ? info.name : info.all
   })
-  const activityLevel = Container.useSelector(
-    s => s.teams.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
+  const activityLevel = Constants.useState(
+    s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )
   const allInChannel = usernames.every(member => participants.includes(member))
   const onPreviewChannel = () =>

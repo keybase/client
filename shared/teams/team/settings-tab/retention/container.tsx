@@ -1,6 +1,5 @@
 import * as Constants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
-import * as TeamsGen from '../../../../actions/teams-gen'
 import type * as TeamsTypes from '../../../../constants/types/teams'
 import RetentionPicker, {type RetentionEntityType} from '.'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
@@ -31,7 +30,7 @@ export default (ownProps: OwnProps) => {
   } else if (!entityType.endsWith('team')) {
     throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)
   }
-  const tempPolicy = Container.useSelector(state => Constants.getTeamRetentionPolicyByID(state, teamID))
+  const tempPolicy = Constants.useState(s => Constants.getTeamRetentionPolicyByID(s, teamID))
   if (entityType !== 'adhoc') {
     loading = !tempPolicy
     if (tempPolicy) {
@@ -43,8 +42,8 @@ export default (ownProps: OwnProps) => {
     }
   }
 
-  const canSetPolicy = Container.useSelector(
-    state => entityType === 'adhoc' || Constants.getCanPerformByID(state, teamID).setRetentionPolicy
+  const canSetPolicy = Constants.useState(
+    s => entityType === 'adhoc' || Constants.getCanPerformByID(s, teamID).setRetentionPolicy
   )
   if (!policy) return null
   const policyIsExploding =
@@ -52,9 +51,10 @@ export default (ownProps: OwnProps) => {
   const showInheritOption = entityType === 'channel'
   const showOverrideNotice = entityType === 'big team'
   const dispatch = Container.useDispatch()
+  const setTeamRetentionPolicy = Constants.useState(s => s.dispatch.setTeamRetentionPolicy)
   const saveRetentionPolicy = (policy: RetentionPolicy) => {
     if (['small team', 'big team'].includes(entityType)) {
-      dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamID}))
+      setTeamRetentionPolicy(teamID, policy)
     } else if (['adhoc', 'channel'].includes(entityType)) {
       // we couldn't get here without throwing an error for !conversationIDKey
       dispatch(createSetConvRetentionPolicy({conversationIDKey: conversationIDKey!, policy}))

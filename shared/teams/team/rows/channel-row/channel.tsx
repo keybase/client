@@ -1,11 +1,10 @@
-import * as React from 'react'
-import type * as Types from '../../../../constants/types/teams'
-import type * as ChatTypes from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/teams'
-import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
-import * as TeamsGen from '../../../../actions/teams-gen'
+import * as Kb from '../../../../common-adapters'
+import * as React from 'react'
 import * as Styles from '../../../../styles'
+import type * as ChatTypes from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/teams'
 import {Activity, useChannelParticipants} from '../../../common'
 import {pluralize} from '../../../../util/string'
 
@@ -15,28 +14,28 @@ type ChannelRowProps = {
 }
 const ChannelRow = (props: ChannelRowProps) => {
   const {conversationIDKey, teamID} = props
-  const channel = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const channel = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const isGeneral = channel.channelname === 'general'
 
-  const selected = Container.useSelector(
-    state => !!state.teams.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey)
+  const selected = Constants.useState(
+    s => !!s.teamSelectedChannels.get(teamID)?.has(channel.conversationIDKey)
   )
-  const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
+  const canPerform = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
   const canDelete = canPerform.deleteChannel && !isGeneral
 
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const details = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const hasAllMembers = details.members.size === numParticipants
-  const activityLevel = Container.useSelector(
-    state => state.teams.activityLevels.channels.get(channel.conversationIDKey) || 'none'
+  const details = Constants.useState(s => s.teamDetails.get(teamID))
+  const hasAllMembers = details?.members.size === numParticipants
+  const activityLevel = Constants.useState(
+    s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none'
   )
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+
+  const setChannelSelected = Constants.useState(s => s.dispatch.setChannelSelected)
   const onSelect = (newSelected: boolean) => {
-    dispatch(
-      TeamsGen.createSetChannelSelected({channel: channel.conversationIDKey, selected: newSelected, teamID})
-    )
+    setChannelSelected(teamID, channel.conversationIDKey, newSelected)
   }
 
   const onEditChannel = React.useCallback(() => {
@@ -88,9 +87,11 @@ const ChannelRow = (props: ChannelRowProps) => {
     )
   }, [channel, props, nav, dispatch])
 
+  const deleteChannelConfirmed = Constants.useState(s => s.dispatch.deleteChannelConfirmed)
+
   const onDeleteChannel = React.useCallback(() => {
-    dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey: channel.conversationIDKey, teamID}))
-  }, [dispatch, channel, teamID])
+    deleteChannelConfirmed(teamID, channel.conversationIDKey)
+  }, [deleteChannelConfirmed, channel, teamID])
   const checkCircle = (
     <Kb.CheckCircle
       checked={selected}

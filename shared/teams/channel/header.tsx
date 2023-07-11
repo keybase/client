@@ -9,7 +9,6 @@ import {type ConversationIDKey, keyToConversationID} from '../../constants/types
 import type {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import {Activity, useChannelParticipants} from '../common'
-import * as TeamsGen from '../../actions/teams-gen'
 
 const useRecentJoins = (conversationIDKey: ConversationIDKey) => {
   const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
@@ -32,11 +31,11 @@ type HeaderTitleProps = {
 
 const HeaderTitle = (props: HeaderTitleProps) => {
   const {teamID, conversationIDKey} = props
-  const teamname = Container.useSelector(s => Constants.getTeamMeta(s, teamID).teamname)
-  const channelInfo = Container.useSelector(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
+  const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
+  const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname, description} = channelInfo
   const numParticipants = useChannelParticipants(teamID, conversationIDKey).length
-  const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
   const canDelete = yourOperations.deleteChannel && channelname !== 'general'
 
   const editChannelProps = {
@@ -65,9 +64,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
         path: [{props: {teamID}, selected: 'team'}],
       })
     )
-  const activityLevel = Container.useSelector(
-    state => state.teams.activityLevels.channels.get(conversationIDKey) || 'none'
-  )
+  const activityLevel = Constants.useState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
   const newMemberCount = useRecentJoins(conversationIDKey)
 
   const onChat = () =>
@@ -87,6 +84,8 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
+  const deleteChannelConfirmed = Constants.useState(s => s.dispatch.deleteChannelConfirmed)
+
   const menuItems: Array<Kb.MenuItem> = React.useMemo(
     () => [
       // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
@@ -97,14 +96,14 @@ const HeaderTitle = (props: HeaderTitleProps) => {
               danger: true,
               onClick: () => {
                 dispatch(nav.safeNavigateUpPayload())
-                dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
+                deleteChannelConfirmed(teamID, conversationIDKey)
               },
               title: 'Delete channel',
             },
           ]
         : []),
     ],
-    [dispatch, nav, teamID, conversationIDKey, canDelete]
+    [deleteChannelConfirmed, dispatch, nav, teamID, conversationIDKey, canDelete]
   )
 
   const makePopup = React.useCallback(

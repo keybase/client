@@ -16,7 +16,7 @@ type OwnProps = {
 const SelectChannel = (ownProps: OwnProps) => {
   const {teamID, repoID} = ownProps
   const _selected = ownProps.selected
-  const teamname = Container.useSelector(state => TConstants.getTeamNameFromID(state, teamID) ?? '')
+  const teamname = TConstants.useState(s => TConstants.getTeamNameFromID(s, teamID) ?? '')
 
   const {channelMetas} = useAllChannelMetas(teamID)
   const waiting = channelMetas === null

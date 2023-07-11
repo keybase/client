@@ -1,12 +1,11 @@
-import * as Styles from '../../../styles'
-import * as Kb from '../../../common-adapters'
-import type * as Types from '../../../constants/types/teams'
-import type * as ChatTypes from '../../../constants/types/chat2'
-import * as ConfigConstants from '../../../constants/config'
-import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/teams'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as ConfigConstants from '../../../constants/config'
+import * as Constants from '../../../constants/teams'
+import * as Container from '../../../util/container'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import type * as ChatTypes from '../../../constants/types/chat2'
+import type * as Types from '../../../constants/types/teams'
 
 type Props = {
   type: 'channelsEmpty' | 'channelsFew' | 'members' | 'subteams'
@@ -32,19 +31,23 @@ const useSecondaryAction = (props: Props) => {
   const {teamID, conversationIDKey} = props
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
+  const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onSecondaryAction = () => {
     switch (props.type) {
       case 'members':
-        dispatch(
-          conversationIDKey
-            ? nav.safeNavigateAppendPayload({
-                path: [{props: {conversationIDKey: conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
-              })
-            : TeamsGen.createStartAddMembersWizard({teamID})
-        )
+        if (conversationIDKey) {
+          dispatch(
+            nav.safeNavigateAppendPayload({
+              path: [{props: {conversationIDKey: conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
+            })
+          )
+        } else {
+          startAddMembersWizard(teamID)
+        }
         break
       case 'subteams':
-        dispatch(TeamsGen.createLaunchNewTeamWizardOrModal({subteamOf: teamID}))
+        launchNewTeamWizardOrModal(teamID)
         break
       case 'channelsFew':
         dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
@@ -80,22 +83,21 @@ Make it a big team by creating chat channels.`
 
 const EmptyRow = (props: Props) => {
   const {conversationIDKey, teamID} = props
-  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const notIn = teamMeta.role === 'none' || props.notChannelMember
   const you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const dispatch = Container.useDispatch()
   const onSecondaryAction = useSecondaryAction(props)
-  const onAddSelf = () =>
-    dispatch(
-      conversationIDKey
-        ? Chat2Gen.createJoinConversation({conversationIDKey})
-        : TeamsGen.createAddToTeam({
-            sendChatNotification: false,
-            teamID,
-            users: [{assertion: you, role: 'admin'}],
-          })
-    )
+
+  const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
+  const onAddSelf = () => {
+    if (conversationIDKey) {
+      dispatch(Chat2Gen.createJoinConversation({conversationIDKey}))
+    } else {
+      addToTeam(teamID, [{assertion: you, role: 'admin'}], false)
+    }
+  }
   const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, you))
 
   const teamOrChannel = props.conversationIDKey ? 'channel' : 'team'

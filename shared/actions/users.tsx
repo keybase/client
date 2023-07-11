@@ -32,13 +32,12 @@ const getBio = async (state: Container.TypedState, action: UsersGen.GetBioPayloa
 
     return UsersGen.createUpdateBio({userCard, username}) // set bio in user infomap
   } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    if (Container.isNetworkErr(error.code)) {
-      logger.info('Network error getting userCard')
-    } else {
-      logger.info(error.message)
+    if (error instanceof RPCError) {
+      if (Container.isNetworkErr(error.code)) {
+        logger.info('Network error getting userCard')
+      } else {
+        logger.info(error.message)
+      }
     }
   }
   return

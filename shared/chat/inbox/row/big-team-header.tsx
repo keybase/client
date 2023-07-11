@@ -19,9 +19,7 @@ const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
   const {navKey, teamID, teamname} = props
   const dispatch = Container.useDispatch()
 
-  const badgeSubscribe = Container.useSelector(
-    state => !TeamConstants.isTeamWithChosenChannels(state, teamname)
-  )
+  const badgeSubscribe = TeamConstants.useState(s => !TeamConstants.isTeamWithChosenChannels(s, teamname))
 
   const onClick = () =>
     dispatch(

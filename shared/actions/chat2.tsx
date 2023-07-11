@@ -20,7 +20,6 @@ import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsConstants from '../constants/teams'
-import * as TeamsGen from './teams-gen'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
 import * as UsersGen from './users-gen'
@@ -848,15 +847,6 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
     }
   })
   return actions
-}
-
-const onChatShowManageChannels = (
-  state: Container.TypedState,
-  action: EngineGen.Chat1ChatUiChatShowManageChannelsPayload
-) => {
-  const {teamname} = action.payload.params
-  const teamID = state.teams.teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
-  return TeamsGen.createManageChatChannels({teamID})
 }
 
 const onNewChatActivity = (
@@ -2605,21 +2595,12 @@ const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload
   return Chat2Gen.createLoadedUserEmoji({results})
 }
 
-const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()
-
 // Helpers to nav you to the right place
 const navigateToInbox = (
   _: unknown,
-  action:
-    | Chat2Gen.NavigateToInboxPayload
-    | Chat2Gen.LeaveConversationPayload
-    | TeamsGen.LeftTeamPayload
-    | TeamsGen.DeleteChannelConfirmedPayload
+  action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
-    return
-  }
-  if (action.type === TeamsGen.leftTeam && action.payload.context !== 'chat') {
     return
   }
   return [
@@ -2675,7 +2656,9 @@ const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) 
 
 const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
   const {teamID} = meta
-  return meta.teamname ? TeamsGen.createGetMembers({teamID}) : false
+  if (meta.teamname) {
+    TeamsConstants.useState.getState().dispatch.getMembers(teamID)
+  }
 }
 
 const ensureSelectedTeamLoaded = (
@@ -2685,7 +2668,8 @@ const ensureSelectedTeamLoaded = (
   const selectedConversation = Constants.getSelectedConversation()
   const meta = state.chat2.metaMap.get(selectedConversation)
   return meta
-    ? action.type === Chat2Gen.selectedConversation || !state.teams.teamIDToMembers.get(meta.teamID)
+    ? action.type === Chat2Gen.selectedConversation ||
+      !TeamsConstants.useState.getState().teamIDToMembers.get(meta.teamID)
       ? maybeLoadTeamFromMeta(meta)
       : false
     : false
@@ -3703,7 +3687,7 @@ const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.Con
   const actions: Array<Container.TypedActions> = [RouteTreeGen.createClearModals()]
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (meta?.teamname) {
-    actions.push(TeamsGen.createGetMembers({teamID: meta.teamID}))
+    TeamsConstants.useState.getState().dispatch.getMembers(meta.teamID)
   }
   return actions
 }
@@ -3996,19 +3980,8 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.markTeamAsRead, markTeamAsRead)
   Container.listenAction(Chat2Gen.markAsUnread, markAsUnread)
   Container.listenAction(Chat2Gen.messagesAdd, messagesAdd)
-  Container.listenAction(
-    [
-      Chat2Gen.leaveConversation,
-      TeamsGen.leftTeam,
-      TeamsGen.deleteChannelConfirmed,
-      TeamsGen.deleteMultiChannelsConfirmed,
-    ],
-    clearModalsFromConvEvent
-  )
-  Container.listenAction(
-    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leftTeam],
-    navigateToInbox
-  )
+  Container.listenAction(Chat2Gen.leaveConversation, () => RouteTreeGen.createClearModals())
+  Container.listenAction([Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation], navigateToInbox)
   Container.listenAction(Chat2Gen.navigateToThread, navigateToThread)
 
   Container.listenAction(Chat2Gen.joinConversation, joinConversation)
@@ -4064,7 +4037,11 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1NotifyChatNewChatActivity, onNewChatActivity)
   Container.listenAction(EngineGen.chat1ChatUiChatGiphySearchResults, onGiphyResults)
   Container.listenAction(EngineGen.chat1ChatUiChatGiphyToggleResultWindow, onGiphyToggleWindow)
-  Container.listenAction(EngineGen.chat1ChatUiChatShowManageChannels, onChatShowManageChannels)
+  Container.listenAction(EngineGen.chat1ChatUiChatShowManageChannels, (_, action) => {
+    const {teamname} = action.payload.params
+    const teamID = TeamsConstants.useState.getState().teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
+    TeamsConstants.useState.getState().dispatch.manageChatChannels(teamID)
+  })
   Container.listenAction(EngineGen.chat1ChatUiChatCoinFlipStatus, onChatCoinFlipStatus)
   Container.listenAction(EngineGen.chat1ChatUiChatCommandMarkdown, onChatCommandMarkdown)
   Container.listenAction(EngineGen.chat1ChatUiChatCommandStatus, onChatCommandStatus)

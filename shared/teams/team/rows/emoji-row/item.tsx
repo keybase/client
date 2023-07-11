@@ -3,8 +3,8 @@ import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/teams'
 import * as Kb from '../../../../common-adapters'
-import * as Teams from '../../../../constants/teams'
 import * as ConfigConstants from '../../../../constants/config'
 import * as dateFns from 'date-fns'
 import type * as TeamTypes from '../../../../constants/types/teams'
@@ -25,8 +25,8 @@ const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const canManageEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).manageEmojis)
-  const deleteOtherEmoji = Container.useSelector(s => Teams.getCanPerformByID(s, teamID).deleteOtherEmojis)
+  const canManageEmoji = Constants.useState(s => Constants.getCanPerformByID(s, teamID).manageEmojis)
+  const deleteOtherEmoji = Constants.useState(s => Constants.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
   const onAddAlias = Container.useEvent(() => {
     dispatch(

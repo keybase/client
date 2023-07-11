@@ -3,13 +3,12 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import * as Constants from '../../constants/teams'
-import * as TeamsGen from '../../actions/teams-gen'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import {ModalTitle} from '../common'
 
 const Skip = () => {
-  const dispatch = Container.useDispatch()
-  const onSkip = () => dispatch(TeamsGen.createFinishNewTeamWizard())
+  const finishNewTeamWizard = Constants.useState(s => s.dispatch.finishNewTeamWizard)
+  const onSkip = () => finishNewTeamWizard()
   const waiting = Container.useAnyWaiting(Constants.teamCreationWaitingKey)
 
   if (Styles.isMobile) {
@@ -29,12 +28,13 @@ const AddFromWhere = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
+  const teamID = Constants.useState(s => s.addMembersWizard.teamID)
+  const cancelAddMembersWizard = Constants.useState(s => s.dispatch.cancelAddMembersWizard)
   const newTeam: boolean = teamID === Types.newTeamWizardTeamID
   // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
-  const createTeamError = Container.useSelector(s => (newTeam ? s.teams.newTeamWizard.error : undefined))
+  const createTeamError = Constants.useState(s => (newTeam ? s.newTeamWizard.error : undefined))
 
-  const onClose = () => dispatch(TeamsGen.createCancelAddMembersWizard())
+  const onClose = () => cancelAddMembersWizard()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
   const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))

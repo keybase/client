@@ -1,11 +1,10 @@
 import * as Constants from '../constants/git'
+import * as TeamsConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
-import * as TeamsGen from '../actions/teams-gen'
-import {getSortedTeamnames} from '../constants/teams'
 import {teamsTab} from '../constants/tabs'
 
 type OwnProps = {isTeam: boolean}
@@ -13,14 +12,14 @@ type OwnProps = {isTeam: boolean}
 export default (ownProps: OwnProps) => {
   const {isTeam} = ownProps
   const error = Constants.useGitState(s => s.error)
-  const teams = Container.useSelector(state => getSortedTeamnames(state))
+  const teamnames = TeamsConstants.useState(s => s.teamnames)
+  const teams = [...teamnames].sort(TeamsConstants.sortTeamnames)
 
   const waitingKey = Constants.loadingWaitingKey
 
   const dispatch = Container.useDispatch()
-  const loadTeams = () => {
-    dispatch(TeamsGen.createGetTeams())
-  }
+  const getTeams = TeamsConstants.useState(s => s.dispatch.getTeams)
+  const loadTeams = getTeams
   const onClose = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
@@ -35,9 +34,10 @@ export default (ownProps: OwnProps) => {
     }
     dispatch(RouteTreeGen.createNavigateUp())
   }
+  const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onNewTeam = () => {
     dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
-    dispatch(TeamsGen.createLaunchNewTeamWizardOrModal())
+    launchNewTeamWizardOrModal()
   }
   const props = {
     error,

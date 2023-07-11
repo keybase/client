@@ -1,5 +1,4 @@
 import chat2 from './chat2'
-import teams from './teams'
 import tracker2 from './tracker2'
 import unlockFolders from './unlock-folders'
 import users from './users'
@@ -7,6 +6,7 @@ import wallets from './wallets'
 // team building leftovers, TODO remove
 import crypto from './crypto'
 import people from './people'
+import teams from './teams'
 
 export const reducers = {
   chat2,

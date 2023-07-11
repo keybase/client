@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as TeamsGen from '../../actions/teams-gen'
+import * as Constants from '../../constants/teams'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {ModalTitle} from '../common'
 
@@ -23,7 +23,8 @@ const AddEmail = (props: Props) => {
   const disabled = invitees.length < 1
   const waiting = Container.useAnyWaiting(waitingKey)
 
-  const teamID = Container.useSelector(s => s.teams.addMembersWizard.teamID)
+  const teamID = Constants.useState(s => s.addMembersWizard.teamID)
+  const addMembersWizardPushMembers = Constants.useState(s => s.dispatch.addMembersWizardPushMembers)
 
   const emailsToAssertionsRPC = Container.useRPC(RPCGen.userSearchBulkEmailOrPhoneSearchRpcPromise)
   const onContinue = () => {
@@ -32,15 +33,13 @@ const AddEmail = (props: Props) => {
       [{emails: invitees}, waitingKey],
       r =>
         r?.length
-          ? dispatch(
-              TeamsGen.createAddMembersWizardPushMembers({
-                members: r.map(m => ({
-                  ...(m.foundUser
-                    ? {assertion: m.username, resolvedFrom: m.assertion}
-                    : {assertion: m.assertion}),
-                  role: 'writer',
-                })),
-              })
+          ? addMembersWizardPushMembers(
+              r.map(m => ({
+                ...(m.foundUser
+                  ? {assertion: m.username, resolvedFrom: m.assertion}
+                  : {assertion: m.assertion}),
+                role: 'writer',
+              }))
             )
           : setError('You must enter at least one valid email address.'),
       err => setError(err.message)

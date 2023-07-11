@@ -16,10 +16,10 @@ const blankInfo = Constants.initialMemberInfo
 
 export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const canManageBots = Container.useSelector(state => Constants.getCanPerformByID(state, teamID).manageBots)
-  const {members: map = new Map<string, Types.MemberInfo>()} = teamDetails
-  const info: Types.MemberInfo = map.get(ownProps.username) || blankInfo
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
+  const canManageBots = Constants.useState(s => Constants.getCanPerformByID(s, teamID).manageBots)
+  const map = teamDetails?.members
+  const info: Types.MemberInfo = map?.get(ownProps.username) || blankInfo
   const bot: RPCTypes.FeaturedBot = Container.useSelector(
     state =>
       state.chat2.featuredBotsMap.get(ownProps.username) ?? {

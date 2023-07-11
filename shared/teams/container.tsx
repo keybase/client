@@ -4,7 +4,6 @@ import * as Kb from '../common-adapters'
 import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
-import * as TeamsGen from '../actions/teams-gen'
 import Teams, {type OwnProps as MainOwnProps} from './main'
 import openURL from '../util/open-url'
 import * as Constants from '../constants/teams'
@@ -17,8 +16,9 @@ import {useActivityLevels} from './common'
 const useHeaderActions = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
+  const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
-    onCreateTeam: () => dispatch(TeamsGen.createLaunchNewTeamWizardOrModal()),
+    onCreateTeam: () => launchNewTeamWizardOrModal(),
     onJoinTeam: () =>
       dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamJoinTeamDialog'}]})),
   }
@@ -26,9 +26,9 @@ const useHeaderActions = () => {
 
 const orderTeamsImpl = (
   teams: Map<string, Types.TeamMeta>,
-  newRequests: Types.State['newTeamRequests'],
-  teamIDToResetUsers: Types.State['teamIDToResetUsers'],
-  newTeams: Types.State['newTeams'],
+  newRequests: Constants.State['newTeamRequests'],
+  teamIDToResetUsers: Constants.State['teamIDToResetUsers'],
+  newTeams: Constants.State['newTeams'],
   sortOrder: Types.TeamListSort,
   activityLevels: Types.ActivityLevels,
   filter: string
@@ -65,7 +65,8 @@ type ReloadableProps = Omit<MainOwnProps, 'onManageChat' | 'onViewTeam'>
 
 const Reloadable = (props: ReloadableProps) => {
   const dispatch = Container.useDispatch()
-  const loadTeams = React.useCallback(() => dispatch(TeamsGen.createGetTeams()), [dispatch])
+  const getTeams = Constants.useState(s => s.dispatch.getTeams)
+  const loadTeams = getTeams
 
   // subscribe to teams changes
   useTeamsSubscribe()
@@ -75,8 +76,9 @@ const Reloadable = (props: ReloadableProps) => {
   const headerActions = useHeaderActions()
 
   const nav = Container.useSafeNavigation()
+  const manageChatChannels = Constants.useState(s => s.dispatch.manageChatChannels)
   const otherActions = {
-    onManageChat: (teamID: Types.TeamID) => dispatch(TeamsGen.createManageChatChannels({teamID})),
+    onManageChat: (teamID: Types.TeamID) => manageChatChannels(teamID),
     onViewTeam: (teamID: Types.TeamID) =>
       dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]})),
   }
@@ -89,16 +91,16 @@ const Reloadable = (props: ReloadableProps) => {
 }
 
 const Connected = () => {
-  const _teams = Container.useSelector(state => state.teams.teamMeta)
-  const activityLevels = Container.useSelector(state => state.teams.activityLevels)
-  const deletedTeams = Container.useSelector(state => state.teams.deletedTeams)
-  const filter = Container.useSelector(state => state.teams.teamListFilter)
+  const _teams = Constants.useState(s => s.teamMeta)
+  const activityLevels = Constants.useState(s => s.activityLevels)
+  const deletedTeams = Constants.useState(s => s.deletedTeams)
+  const filter = Constants.useState(s => s.teamListFilter)
   const loaded = !Container.useAnyWaiting(Constants.teamsLoadedWaitingKey)
-  const newTeamRequests = Container.useSelector(state => state.teams.newTeamRequests)
-  const newTeams = Container.useSelector(state => state.teams.newTeams)
-  const sawChatBanner = Container.useSelector(state => state.teams.sawChatBanner || false)
-  const sortOrder = Container.useSelector(state => state.teams.teamListSort)
-  const teamIDToResetUsers = Container.useSelector(state => state.teams.teamIDToResetUsers)
+  const newTeamRequests = Constants.useState(s => s.newTeamRequests)
+  const newTeams = Constants.useState(s => s.newTeams)
+  const sawChatBanner = Constants.useState(s => s.sawChatBanner)
+  const sortOrder = Constants.useState(s => s.teamListSort)
+  const teamIDToResetUsers = Constants.useState(s => s.teamIDToResetUsers)
   const dispatch = Container.useDispatch()
   const onHideChatBanner = () => {
     dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'}))
@@ -117,7 +119,7 @@ const Connected = () => {
     onHideChatBanner,
     onOpenFolder,
     onReadMore,
-    sawChatBanner: sawChatBanner,
+    sawChatBanner,
     teamresetusers: teamIDToResetUsers, // TODO remove when teamsRedesign flag removed
     teams: orderTeams(
       _teams,

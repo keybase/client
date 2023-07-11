@@ -18,8 +18,8 @@ const MinWriterRole = (props: Props) => {
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {teamname} = meta
 
-  const canPerform = Container.useSelector(state =>
-    teamname ? TeamConstants.getCanPerform(state, teamname) : undefined
+  const canPerform = TeamConstants.useState(s =>
+    teamname ? TeamConstants.getCanPerform(s, teamname) : undefined
   )
   const canSetMinWriterRole = canPerform ? canPerform.setMinWriterRole : false
   const minWriterRole = meta.minWriterRole ?? 'reader'

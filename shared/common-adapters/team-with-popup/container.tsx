@@ -1,11 +1,10 @@
 import * as Container from '../../util/container'
 import * as React from 'react'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsConstants from '../../constants/teams'
 import type * as TeamsTypes from '../../constants/types/teams'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as TeamsGen from '../../actions/teams-gen'
-import {TeamWithPopup} from './'
 import type {TextType} from '../text'
+import {TeamWithPopup} from './'
 
 type OwnProps = {
   inline?: boolean
@@ -17,9 +16,9 @@ type OwnProps = {
 }
 
 const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
-  const teamID = Container.useSelector(state => TeamsConstants.getTeamID(state, ownProps.teamName))
-  const meta = Container.useSelector(state => TeamsConstants.getTeamMeta(state, teamID))
-  const description = Container.useSelector(state => TeamsConstants.getTeamDetails(state, teamID).description)
+  const teamID = TeamsConstants.useState(s => TeamsConstants.getTeamID(s, ownProps.teamName))
+  const meta = TeamsConstants.useState(s => TeamsConstants.getTeamMeta(s, teamID))
+  const description = TeamsConstants.useState(s => s.teamDetails.get(teamID)?.description) ?? ''
   const stateProps = {
     description,
     isMember: meta.isMember,
@@ -29,10 +28,8 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
   }
 
   const dispatch = Container.useDispatch()
-  const _onJoinTeam = React.useCallback(
-    (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
-    [dispatch]
-  )
+  const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
+  const _onJoinTeam = joinTeam
   const _onViewTeam = React.useCallback(
     (teamID: TeamsTypes.TeamID) => {
       dispatch(RouteTreeGen.createClearModals())

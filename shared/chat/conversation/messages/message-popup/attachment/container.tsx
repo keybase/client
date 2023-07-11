@@ -1,13 +1,14 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Constants from '../../../../../constants/chat2'
+import * as TeamsConstants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import * as ConfigConstants from '../../../../../constants/config'
 import * as DeeplinksConstants from '../../../../../constants/deeplinks'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import Attachment from '.'
-import type * as React from 'react'
+import * as React from 'react'
 import type * as TeamTypes from '../../../../../constants/types/teams'
 import type * as Types from '../../../../../constants/types/chat2'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
@@ -36,13 +37,13 @@ export default (ownProps: OwnProps) => {
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, message.conversationIDKey)
   )
-  const yourOperations = Container.useSelector(state => getCanPerformByID(state, meta.teamID))
+  const yourOperations = TeamsConstants.useState(s => getCanPerformByID(s, meta.teamID))
   const _canAdminDelete = yourOperations.deleteOtherMessages
   const _canPinMessage = !isTeam || yourOperations.pinMessage
-  const _authorIsBot = Container.useSelector(state =>
-    Constants.messageAuthorIsBot(state, meta, message, participantInfo)
+  const _authorIsBot = TeamsConstants.useState(s =>
+    Constants.messageAuthorIsBot(s, meta, message, participantInfo)
   )
-  const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
+  const _teamMembers = TeamsConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
   const _label = Container.useSelector(state => Constants.getConversationLabel(state, meta, true))
   const _teamID = meta.teamID
   const _you = ConfigConstants.useCurrentUserState(s => s.username)

@@ -3,9 +3,8 @@ import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Styles from '../../styles'
-import {ModalTitle} from '../common'
 import * as Types from '../../constants/types/teams'
-import * as TeamsGen from '../../actions/teams-gen'
+import {ModalTitle} from '../common'
 
 type Props = {teamID: Types.TeamID}
 
@@ -14,8 +13,8 @@ const TeamInfo = (props: Props) => {
   const nav = Container.useSafeNavigation()
 
   const teamID = props.teamID ?? Types.noTeamID
-  const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
+  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
 
   const teamname = teamMeta.teamname
   const lastDot = teamname.lastIndexOf('.')
@@ -25,24 +24,27 @@ const TeamInfo = (props: Props) => {
 
   const [newName, _setName] = React.useState(_leafName)
   const setName = (newName: string) => _setName(newName.replace(/[^a-zA-Z0-9_]/, ''))
-  const [description, setDescription] = React.useState(teamDetails.description)
+  const [description, setDescription] = React.useState(teamDetails?.description ?? '')
 
   const saveDisabled =
-    (description === teamDetails.description && newName === _leafName) || newName.length < 3
+    (description === teamDetails?.description && newName === _leafName) || newName.length < 3
   const waiting = Container.useAnyWaiting([Constants.teamWaitingKey(teamID), Constants.teamRenameWaitingKey])
 
   const errors = {
-    desc: Container.useSelector(state => state.teams.errorInEditDescription),
+    desc: Constants.useState(s => s.errorInEditDescription),
     rename: Container.useAnyErrors(Constants.teamRenameWaitingKey)?.message,
   }
+
+  const editTeamDescription = Constants.useState(s => s.dispatch.editTeamDescription)
+  const renameTeam = Constants.useState(s => s.dispatch.renameTeam)
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onSave = () => {
     if (newName !== _leafName) {
-      dispatch(TeamsGen.createRenameTeam({newName: parentTeamNameWithDot + newName, oldName: teamname}))
+      renameTeam(teamname, parentTeamNameWithDot + newName)
     }
-    if (description !== teamDetails.description) {
-      dispatch(TeamsGen.createEditTeamDescription({description, teamID}))
+    if (description !== teamDetails?.description) {
+      editTeamDescription(teamID, description)
     }
   }
   const onEditAvatar = () =>

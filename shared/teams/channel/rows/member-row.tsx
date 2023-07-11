@@ -8,7 +8,6 @@ import * as Constants from '../../../constants/teams'
 import * as ProfileConstants from '../../../constants/profile'
 import * as ChatConstants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as UsersGen from '../../../actions/users-gen'
@@ -39,14 +38,14 @@ const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
   const infoMap = Container.useSelector(s => s.users.infoMap)
   const participantInfo = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey))
-  const teamMemberInfo = Container.useSelector(
-    s => Constants.getTeamDetails(s, teamID)?.members?.get(username) ?? Constants.initialMemberInfo
+  const teamMemberInfo = Constants.useState(
+    s => s.teamDetails.get(teamID)?.members?.get(username) ?? Constants.initialMemberInfo
   )
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const fullname = infoMap.get(username)?.fullname ?? participantInfo.contactName.get(username) ?? ''
   const active = teamMemberInfo.status === 'active'
   const roleType = teamMemberInfo.type
-  const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
   const crown = React.useMemo(() => {
     return active && roleType && showCrown[roleType] ? (
       <Kb.Icon
@@ -74,14 +73,14 @@ const ChannelMemberRow = (props: Props) => {
   const isYou = you === username
 
   const dispatch = Container.useDispatch()
-  const channelSelectedMembers = Container.useSelector(state =>
-    state.teams.channelSelectedMembers.get(conversationIDKey)
-  )
+  const channelSelectedMembers = Constants.useState(s => s.channelSelectedMembers.get(conversationIDKey))
   const anySelected = !!channelSelectedMembers?.size
   const memberSelected = !!channelSelectedMembers?.has(username)
 
+  const channelSetMemberSelected = Constants.useState(s => s.dispatch.channelSetMemberSelected)
+
   const onSelect = (selected: boolean) => {
-    dispatch(TeamsGen.createChannelSetMemberSelected({conversationIDKey, selected, username: username}))
+    channelSetMemberSelected(conversationIDKey, username, selected)
   }
   const onChat = React.useCallback(() => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))

@@ -1,6 +1,4 @@
-import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Constants from '../../../../../constants/teams'
-import * as Container from '../../../../../util/container'
 import {TeamInviteRow} from '.'
 import type {InviteInfo, TeamID, TeamRoleType} from '../../../../../constants/types/teams'
 import {formatPhoneNumber} from '../../../../../util/phone-numbers'
@@ -20,15 +18,16 @@ const labelledInviteRegex = /^(.+?) \((.+)\)$/
 // TODO: when removing flags.teamsRedesign, move this into the component itself
 export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
-  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const _invites = teamDetails.invites
-  const dispatch = Container.useDispatch()
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
+  const _invites = teamDetails?.invites
+
+  const removePendingInvite = Constants.useState(s => s.dispatch.removePendingInvite)
   const _onCancelInvite = (inviteID: string) => {
-    dispatch(TeamsGen.createRemovePendingInvite({inviteID, teamID}))
+    removePendingInvite(teamID, inviteID)
   }
 
   const user: InviteInfo | undefined =
-    [...(_invites || [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
+    [...(_invites ?? [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
 
   let label: string = ''
   let subLabel: undefined | string

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as BotsGen from '../../actions/bots-gen'
 import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
@@ -39,23 +38,24 @@ const useTabsState = (
   teamID: Types.TeamID,
   providedTab?: Types.TabKey
 ): [Types.TabKey, (t: Types.TabKey) => void] => {
-  const dispatch = Container.useDispatch()
+  const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
   // @ts-ignore
   const defaultSelectedTab = lastSelectedTabs[teamID] ?? providedTab ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<Types.TabKey>(defaultSelectedTab)
+  const resetErrorInSettings = Constants.useState(s => s.dispatch.resetErrorInSettings)
   const setSelectedTab = React.useCallback(
     (t: Types.TabKey) => {
       // @ts-ignore
       lastSelectedTabs[teamID] = t
       if (selectedTab !== 'settings' && t === 'settings') {
-        dispatch(TeamsGen.createSettingsError({error: ''}))
+        resetErrorInSettings()
       }
       if (selectedTab !== 'channels' && t === 'channels') {
-        dispatch(TeamsGen.createLoadTeamChannelList({teamID}))
+        loadTeamChannelList(teamID)
       }
       _setSelectedTab(t)
     },
-    [teamID, selectedTab, dispatch]
+    [resetErrorInSettings, loadTeamChannelList, teamID, selectedTab]
   )
 
   const prevTeamID = Container.usePrevious(teamID)
@@ -93,16 +93,15 @@ const Team = (props: Props) => {
   const initialTab = props.initialTab
   const [selectedTab, setSelectedTab] = useTabsState(teamID, initialTab)
 
-  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const teamMeta = Container.useSelector(state => Constants.getTeamMeta(state, teamID), isEqual)
-  const yourOperations = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
-
-  const dispatch = Container.useDispatch()
+  const teamDetails = Constants.useState(s => s.teamDetails.get(teamID)) ?? Constants.emptyTeamDetails
+  const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID), isEqual)
+  const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
+  const teamSeen = Constants.useState(s => s.dispatch.teamSeen)
 
   useFocusEffect(
     React.useCallback(() => {
-      return () => dispatch(TeamsGen.createTeamSeen({teamID}))
-    }, [dispatch, teamID])
+      return () => teamSeen(teamID)
+    }, [teamSeen, teamID])
   )
 
   useTeamsSubscribe()
