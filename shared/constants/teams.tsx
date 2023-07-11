@@ -1197,6 +1197,11 @@ export type State = Store & {
     toggleInvitesCollapsed: (teamID: Types.TeamID) => void
     unsubscribeTeamDetails: (teamID: Types.TeamID) => void
     unsubscribeTeamList: () => void
+    updateChannelName: (
+      teamID: Types.TeamID,
+      conversationIDKey: ChatTypes.ConversationIDKey,
+      newChannelName: string
+    ) => void
     uploadTeamAvatar: (
       teamname: string,
       filename: string,
@@ -2931,6 +2936,26 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.teamMetaSubscribeCount--
         }
       })
+    },
+    updateChannelName: (teamID, conversationIDKey, newChannelName) => {
+      const f = async () => {
+        const param = {
+          channelName: newChannelName,
+          conversationID: ChatTypes.keyToConversationID(conversationIDKey),
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          tlfName: getTeamNameFromID(get(), teamID) ?? '',
+          tlfPublic: false,
+        }
+
+        try {
+          await RPCChatTypes.localPostMetadataRpcPromise(param, updateChannelNameWaitingKey(teamID))
+        } catch (error) {
+          if (error instanceof RPCError) {
+            get().dispatch.setChannelCreationError(error.desc)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     updateTeamRetentionPolicy: metas => {
       const first = metas[0]

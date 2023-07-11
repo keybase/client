@@ -12,11 +12,9 @@ export const loadTeamTree = 'teams:loadTeamTree'
 export const manageChatChannels = 'teams:manageChatChannels'
 export const renameTeam = 'teams:renameTeam'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
-export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const showTeamByName = 'teams:showTeamByName'
 export const teamSeen = 'teams:teamSeen'
-export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
 
 // Action Creators
@@ -66,21 +64,11 @@ export const createSetMemberActivityDetails = (payload: {
   readonly activityMap: Map<Types.TeamID, number>
   readonly username: string
 }) => ({payload, type: setMemberActivityDetails as typeof setMemberActivityDetails})
-export const createSetUpdatedChannelName = (payload: {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ConversationIDKey
-  readonly newChannelName: string
-}) => ({payload, type: setUpdatedChannelName as typeof setUpdatedChannelName})
 export const createSetUpdatedTopic = (payload: {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ConversationIDKey
   readonly newTopic: string
 }) => ({payload, type: setUpdatedTopic as typeof setUpdatedTopic})
-export const createUpdateChannelName = (payload: {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ConversationIDKey
-  readonly newChannelName: string
-}) => ({payload, type: updateChannelName as typeof updateChannelName})
 export const createUpdateTopic = (payload: {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ConversationIDKey
@@ -94,11 +82,9 @@ export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
 export type ManageChatChannelsPayload = ReturnType<typeof createManageChatChannels>
 export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
-export type SetUpdatedChannelNamePayload = ReturnType<typeof createSetUpdatedChannelName>
 export type SetUpdatedTopicPayload = ReturnType<typeof createSetUpdatedTopic>
 export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
-export type UpdateChannelNamePayload = ReturnType<typeof createUpdateChannelName>
 export type UpdateTopicPayload = ReturnType<typeof createUpdateTopic>
 
 // All Actions
@@ -110,10 +96,8 @@ export type Actions =
   | ManageChatChannelsPayload
   | RenameTeamPayload
   | SetMemberActivityDetailsPayload
-  | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
   | ShowTeamByNamePayload
   | TeamSeenPayload
-  | UpdateChannelNamePayload
   | UpdateTopicPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

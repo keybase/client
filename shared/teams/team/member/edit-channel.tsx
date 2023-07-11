@@ -34,9 +34,11 @@ const EditChannel = (props: Props) => {
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
+  const updateChannelName = Constants.useState(s => s.dispatch.updateChannelName)
+
   const onSave = () => {
     if (oldName !== name) {
-      dispatch(TeamsGen.createUpdateChannelName({conversationIDKey, newChannelName: name, teamID}))
+      updateChannelName(teamID, conversationIDKey, name)
     }
     if (oldDescription !== description) {
       dispatch(TeamsGen.createUpdateTopic({conversationIDKey, newTopic: description, teamID}))

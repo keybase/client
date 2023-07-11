@@ -43,25 +43,6 @@ const updateTopic = async (_: unknown, action: TeamsGen.UpdateTopicPayload) => {
   return []
 }
 
-const updateChannelname = async (_: unknown, action: TeamsGen.UpdateChannelNamePayload) => {
-  const {teamID, conversationIDKey, newChannelName} = action.payload
-  const param = {
-    channelName: newChannelName,
-    conversationID: ChatTypes.keyToConversationID(conversationIDKey),
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    tlfName: Constants.getTeamNameFromID(Constants.useState.getState(), teamID) ?? '',
-    tlfPublic: false,
-  }
-
-  try {
-    await RPCChatTypes.localPostMetadataRpcPromise(param, Constants.updateChannelNameWaitingKey(teamID))
-  } catch (error) {
-    if (error instanceof RPCError) {
-      Constants.useState.getState().dispatch.setChannelCreationError(error.desc)
-    }
-  }
-}
-
 const deleteChannelConfirmed = async (_: unknown, action: TeamsGen.DeleteChannelConfirmedPayload) => {
   const {teamID, conversationIDKey} = action.payload
   // channelName is only needed for confirmation, so since we handle
@@ -278,7 +259,6 @@ const initTeams = () => {
   )
 
   Container.listenAction(TeamsGen.updateTopic, updateTopic)
-  Container.listenAction(TeamsGen.updateChannelName, updateChannelname)
   Container.listenAction(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)
   Container.listenAction(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
   Container.listenAction(TeamsGen.renameTeam, renameTeam)
