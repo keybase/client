@@ -8,22 +8,9 @@ export const typePrefix = 'teams:'
 export const loadTeamTree = 'teams:loadTeamTree'
 export const manageChatChannels = 'teams:manageChatChannels'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
-export const showTeamByName = 'teams:showTeamByName'
 export const teamSeen = 'teams:teamSeen'
 
 // Action Creators
-/**
- * Tries to show a team with this name whether the user is in the team or not.
- * For teams we are not in:
- * - with teamsRedesign on go to external team page
- * - with teamsRedesign off noop
- */
-export const createShowTeamByName = (payload: {
-  readonly teamname: string
-  readonly initialTab?: Types.TabKey
-  readonly join?: boolean
-  readonly addMembers?: boolean
-}) => ({payload, type: showTeamByName as typeof showTeamByName})
 /**
  * User has viewed this team. Clear related badges.
  */
@@ -48,7 +35,6 @@ export const createSetMemberActivityDetails = (payload: {
 export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
 export type ManageChatChannelsPayload = ReturnType<typeof createManageChatChannels>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
-export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
 
 // All Actions
@@ -57,6 +43,5 @@ export type Actions =
   | LoadTeamTreePayload
   | ManageChatChannelsPayload
   | SetMemberActivityDetailsPayload
-  | ShowTeamByNamePayload
   | TeamSeenPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

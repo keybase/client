@@ -1,21 +1,20 @@
-import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import type * as Types from '../../constants/types/chat2'
-import type * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Container from '../../util/container'
 import * as Constants from '../../constants/chat2'
-import * as TeamsConstants from '../../constants/teams'
-import * as TeamsGen from '../../actions/teams-gen'
+import * as Container from '../../util/container'
+import * as Kb from '../../common-adapters'
+import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
-import SelectableSmallTeam from '../selectable-small-team-container'
-import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
-import {inboxWidth} from '../inbox/row/sizes'
-import {TeamAvatar} from '../avatars'
+import * as TeamsConstants from '../../constants/teams'
 import Rover from './background'
+import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
+import SelectableSmallTeam from '../selectable-small-team-container'
 import TeamInfo from '../../profile/user/teams/teaminfo'
+import type * as RPCTypes from '../../constants/types/rpc-gen'
+import type * as Types from '../../constants/types/chat2'
 import type {Section as _Section} from '../../common-adapters/section-list'
 import {Bot} from '../conversation/info-panel/bot'
+import {TeamAvatar} from '../avatars'
+import {inboxWidth} from '../inbox/row/sizes'
 
 type NameResult = {
   conversationIDKey: Types.ConversationIDKey
@@ -392,6 +391,8 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   const dispatch = Container.useDispatch()
   const showingDueToSelect = React.useRef(false)
   const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
+  const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
+
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
@@ -409,14 +410,14 @@ const OpenTeamRow = (p: OpenTeamProps) => {
           onJoinTeam={() => joinTeam(name)}
           onViewTeam={() => {
             dispatch(RouteTreeGen.createClearModals())
-            dispatch(TeamsGen.createShowTeamByName({teamname: name}))
+            showTeamByName(name)
           }}
           publicAdmins={publicAdmins ?? []}
           visible={true}
         />
       )
     },
-    [joinTeam, description, dispatch, inTeam, memberCount, name, publicAdmins]
+    [showTeamByName, joinTeam, description, dispatch, inTeam, memberCount, name, publicAdmins]
   )
   const {showingPopup, setShowingPopup, popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
 

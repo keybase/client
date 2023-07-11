@@ -1,12 +1,13 @@
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
-import * as ProfileConstants from './profile'
 import * as GregorConstants from './gregor'
+import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Router2Constants from './router2'
+import * as Tabs from './tabs'
 import * as TeamBuildingConstants from './team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Types from './types/teams'
@@ -1195,6 +1196,12 @@ export type State = Store & {
     setTeamWizardTeamType: (teamType: Types.TeamWizardTeamType) => void
     setTeamsWithChosenChannels: (teamsWithChosenChannels: Set<Types.TeamID>) => void
     setWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessage) => void
+    showTeamByName: (
+      teamname: string,
+      initialTab?: Types.TabKey,
+      join?: boolean,
+      addMembers?: boolean
+    ) => void
     startAddMembersWizard: (teamID: Types.TeamID) => void
     teamChangedByID: (c: EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload['payload']['params']) => void
     toggleInvitesCollapsed: (teamID: Types.TeamID) => void
@@ -2936,6 +2943,59 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.errorInEditWelcomeMessage = error.desc
             }
           })
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    showTeamByName: (teamname, initialTab, join, addMembers) => {
+      const f = async () => {
+        let teamID: string
+        try {
+          teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
+        } catch (err) {
+          logger.info(`team="${teamname}" cannot be loaded:`, err)
+          // navigate to team page for team we're not in
+          logger.info(`showing external team page, join=${join}`)
+          reduxDispatch(
+            RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]})
+          )
+          if (join) {
+            reduxDispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'}],
+              })
+            )
+          }
+          return
+        }
+
+        if (addMembers) {
+          // Check if we have the right role to be adding members, otherwise don't
+          // show the team builder.
+          try {
+            // Get (hopefully fresh) role map. The app might have just started so it's
+            // not enough to just look in the react store.
+            const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
+            const role = map.teams[teamID]?.role || map.teams[teamID]?.implicitRole
+            if (role !== RPCTypes.TeamRole.admin && role !== RPCTypes.TeamRole.owner) {
+              logger.info(`ignoring team="${teamname}" with addMember, user is not an admin but role=${role}`)
+              return
+            }
+          } catch (err) {
+            logger.info(`team="${teamname}" failed to check if user is an admin:`, err)
+            return
+          }
+        }
+        reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
+        reduxDispatch(
+          RouteTreeGen.createNavigateAppend({path: [{props: {initialTab, teamID}, selected: 'team'}]})
+        )
+        if (addMembers) {
+          reduxDispatch(
+            RouteTreeGen.createNavigateAppend({
+              path: [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}],
+            })
+          )
         }
       }
       Z.ignorePromise(f())

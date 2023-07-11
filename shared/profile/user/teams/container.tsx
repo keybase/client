@@ -1,6 +1,5 @@
 import * as Container from '../../../util/container'
 import * as ConfigConstants from '../../../constants/config'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/tracker2'
 import * as TeamsConstants from '../../../constants/teams'
@@ -27,10 +26,11 @@ export default (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']}))
   }
   const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
+  const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
   const onJoinTeam = joinTeam
   const onViewTeam = (teamname: string) => {
     dispatch(RouteTreeGen.createClearModals())
-    dispatch(TeamsGen.createShowTeamByName({teamname}))
+    showTeamByName(teamname)
   }
   const props = {
     onEdit: _isYou && _youAreInTeams ? onEdit : undefined,

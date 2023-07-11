@@ -1,18 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/teams'"],
   "actions": {
-    "showTeamByName": {
-      "_description": [
-        "Tries to show a team with this name whether the user is in the team or not.",
-        "For teams we are not in:",
-        "- with teamsRedesign on go to external team page",
-        "- with teamsRedesign off noop"
-      ],
-      "teamname": "string",
-      "initialTab?": "Types.TabKey",
-      "join?": "boolean",
-      "addMembers?": "boolean"
-    },
     "setMemberActivityDetails": {
       "activityMap": "Map<Types.TeamID, number>",
       "username": "string"

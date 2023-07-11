@@ -88,65 +88,6 @@ function addThemToTeamFromTeamBuilder(
   return TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'})
 }
 
-async function showTeamByName(_: unknown, action: TeamsGen.ShowTeamByNamePayload) {
-  const {teamname, initialTab, addMembers, join} = action.payload
-  let teamID: string
-  try {
-    teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
-  } catch (err) {
-    logger.info(`team="${teamname}" cannot be loaded:`, err)
-    // navigate to team page for team we're not in
-    logger.info(`showing external team page, join=${join}`)
-    return [
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]}),
-      ...(join
-        ? [
-            RouteTreeGen.createNavigateAppend({
-              path: [
-                {
-                  props: {initialTeamname: teamname},
-                  selected: 'teamJoinTeamDialog',
-                },
-              ],
-            }),
-          ]
-        : []),
-    ]
-  }
-
-  if (addMembers) {
-    // Check if we have the right role to be adding members, otherwise don't
-    // show the team builder.
-    try {
-      // Get (hopefully fresh) role map. The app might have just started so it's
-      // not enough to just look in the react store.
-      const map = await RPCTypes.teamsGetTeamRoleMapRpcPromise()
-      const role = map.teams[teamID]?.role || map.teams[teamID]?.implicitRole
-      if (role !== RPCTypes.TeamRole.admin && role !== RPCTypes.TeamRole.owner) {
-        logger.info(`ignoring team="${teamname}" with addMember, user is not an admin but role=${role}`)
-        return null
-      }
-    } catch (err) {
-      logger.info(`team="${teamname}" failed to check if user is an admin:`, err)
-      return null
-    }
-  }
-
-  return [
-    RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
-    RouteTreeGen.createNavigateAppend({
-      path: [{props: {initialTab, teamID}, selected: 'team'}],
-    }),
-    ...(addMembers
-      ? [
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}],
-          }),
-        ]
-      : []),
-  ]
-}
-
 // See protocol/avdl/keybase1/teams.avdl:loadTeamTreeAsync for a description of this RPC.
 const loadTeamTree = async (_: unknown, action: TeamsGen.LoadTeamTreePayload) => {
   await RPCTypes.teamsLoadTeamTreeMembershipsAsyncRpcPromise(action.payload)
@@ -217,8 +158,6 @@ const initTeams = () => {
       logger.info('skipping')
     }
   })
-
-  Container.listenAction(TeamsGen.showTeamByName, showTeamByName)
 
   Container.listenAction(TeamsGen.loadTeamTree, loadTeamTree)
 

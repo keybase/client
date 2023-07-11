@@ -1,7 +1,6 @@
 import * as ChatGen from '../actions/chat2-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Tabs from './tabs'
-import * as TeamsGen from '../actions/teams-gen'
 import * as WalletsGen from '../actions/wallets-gen'
 import * as ProfileConstants from './profile'
 import * as SettingsConstants from './settings'
@@ -110,14 +109,14 @@ export const useState = Z.createZustand<State>((set, get) => {
   }
 
   const handleTeamPageLink = (teamname: string, action?: TeamPageAction) => {
-    reduxDispatch(
-      TeamsGen.createShowTeamByName({
-        addMembers: action === 'add_or_invite' ? true : undefined,
-        initialTab: action === 'manage_settings' ? 'settings' : undefined,
-        join: action === 'join' ? true : undefined,
+    TeamsConstants.useState
+      .getState()
+      .dispatch.showTeamByName(
         teamname,
-      })
-    )
+        action === 'manage_settings' ? 'settings' : undefined,
+        action === 'join' ? true : undefined,
+        action === 'add_or_invite' ? true : undefined
+      )
   }
 
   const dispatch: State['dispatch'] = {
