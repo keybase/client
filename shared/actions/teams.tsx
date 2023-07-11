@@ -26,24 +26,6 @@ import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
 
-const getTeamProfileAddList = async (_: unknown, action: TeamsGen.GetTeamProfileAddListPayload) => {
-  const r = await RPCTypes.teamsTeamProfileAddListRpcPromise(
-    {username: action.payload.username},
-    Constants.teamProfileAddListWaitingKey
-  )
-  const res = (r || []).reduce<Array<RPCTypes.TeamProfileAddEntry>>((arr, t) => {
-    t && arr.push(t)
-    return arr
-  }, [])
-  const teamlist = res.map(team => ({
-    disabledReason: team.disabledReason,
-    open: team.open,
-    teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
-  }))
-  teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
-  return TeamsGen.createSetTeamProfileAddList({teamlist})
-}
-
 const deleteTeam = async (
   _: Container.TypedState,
   action: TeamsGen.DeleteTeamPayload,
@@ -663,7 +645,6 @@ const maybeClearBadges = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) 
 const initTeams = () => {
   Container.listenAction(TeamsGen.leaveTeam, leaveTeam)
   Container.listenAction(TeamsGen.deleteTeam, deleteTeam)
-  Container.listenAction(TeamsGen.getTeamProfileAddList, getTeamProfileAddList)
   Container.listenAction(TeamsGen.leftTeam, leftTeam)
 
   Container.listenAction([ConfigGen.loadOnStart, TeamsGen.leftTeam], (_, action) => {

@@ -1,4 +1,3 @@
-import * as TeamsGen from '../actions/teams-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Constants from '../constants/teams'
 import type * as Types from '../constants/types/teams'
@@ -14,15 +13,10 @@ const handleTeamBuilding = (draftState: Container.Draft<Types.State>, action: Te
   }
 }
 
-type Actions = TeamsGen.Actions | TeamBuildingGen.Actions
+type Actions = TeamBuildingGen.Actions
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {
-  [TeamsGen.resetStore]: () => {
-    return initialState
-  },
-  [TeamsGen.setTeamProfileAddList]: (draftState, action) => {
-    draftState.teamProfileAddList = action.payload.teamlist
-  },
+  ['common:resetStore']: () => {},
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,
   [TeamBuildingGen.addUsersToTeamSoFar]: handleTeamBuilding,

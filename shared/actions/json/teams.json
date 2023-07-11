@@ -16,9 +16,6 @@
       "teamID": "Types.TeamID",
       "version": "Types.TeamVersion"
     },
-    "getTeamProfileAddList": {
-      "username": "string"
-    },
     "saveChannelMembership": {
       "teamID": "Types.TeamID",
       "oldChannelState": "Types.ChannelMembershipState",
@@ -79,9 +76,6 @@
     "setPublicity": {
       "teamID": "Types.TeamID",
       "settings": "Types.PublicitySettings"
-    },
-    "setTeamProfileAddList": {
-      "teamlist": "Array<Types.TeamProfileAddList>"
     },
     "updateChannelName": {
       "teamID": "Types.TeamID",

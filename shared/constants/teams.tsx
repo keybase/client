@@ -230,7 +230,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  teamProfileAddList: [],
 }
 
 export const makeState = (s?: Partial<Types.State>): Types.State =>
@@ -997,6 +996,7 @@ export type Store = {
   treeLoaderTeamIDToSparseMemberInfos: Map<Types.TeamID, Map<string, Types.TreeloaderSparseMemberInfo>>
   teamMemberToTreeMemberships: Map<Types.TeamID, Map<string, Types.TeamTreeMemberships>>
   teamMemberToLastActivity: Map<Types.TeamID, Map<string, number>>
+  teamProfileAddList: Array<Types.TeamProfileAddList>
 }
 
 const initialStore: Store = {
@@ -1045,6 +1045,7 @@ const initialStore: Store = {
   teamMetaSubscribeCount: 0,
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
+  teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
   teamSelectedChannels: new Map(),
   teamSelectedMembers: new Map(),
@@ -1099,6 +1100,7 @@ export type State = Store & {
     getMembers: (teamID: Types.TeamID) => void
     getTeamRetentionPolicy: (teamID: Types.TeamID) => void
     getTeams: (subscribe?: boolean, forceReload?: boolean) => void
+    getTeamProfileAddList: (username: string) => void
     inviteToTeamByEmail: (
       invitees: string,
       role: Types.TeamRoleType,
@@ -1120,6 +1122,7 @@ export type State = Store & {
     resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
     resetErrorInTeamCreation: () => void
+    resetTeamProfileAddList: () => void
     resetState: 'default'
     resetTeamMetaStale: () => void
     resetTeamJoin: () => void
@@ -1735,6 +1738,25 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    getTeamProfileAddList: username => {
+      const f = async () => {
+        const r = await RPCTypes.teamsTeamProfileAddListRpcPromise({username}, teamProfileAddListWaitingKey)
+        const res = (r || []).reduce<Array<RPCTypes.TeamProfileAddEntry>>((arr, t) => {
+          t && arr.push(t)
+          return arr
+        }, [])
+        const teamlist = res.map(team => ({
+          disabledReason: team.disabledReason,
+          open: team.open,
+          teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
+        }))
+        teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
+        set(s => {
+          s.teamProfileAddList = teamlist
+        })
+      }
+      Z.ignorePromise(f())
+    },
     getTeamRetentionPolicy: teamID => {
       const f = async () => {
         let retentionPolicy = makeRetentionPolicy()
@@ -2223,6 +2245,11 @@ export const useState = Z.createZustand<State>((set, get) => {
     resetTeamMetaStale: () => {
       set(s => {
         s.teamMetaStale = true
+      })
+    },
+    resetTeamProfileAddList: () => {
+      set(s => {
+        s.teamProfileAddList = []
       })
     },
     respondToInviteLink: _respondToInviteLink,

@@ -231,6 +231,5 @@ export type TeamInviteState = {
 }
 
 export type State = {
-  teamProfileAddList: Array<TeamProfileAddList>
   teamBuilding: TeamBuildingSubState
 }
