@@ -1,14 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/teams'"],
   "actions": {
-    "setMemberActivityDetails": {
-      "activityMap": "Map<Types.TeamID, number>",
-      "username": "string"
-    },
-    "loadTeamTree": {
-      "teamID": "Types.TeamID",
-      "username": "string"
-    },
     "manageChatChannels": {
       "teamID": "Types.TeamID"
     },

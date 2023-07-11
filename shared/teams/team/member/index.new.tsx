@@ -7,7 +7,6 @@ import * as Kb from '../../../common-adapters'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Types from '../../../constants/types/teams'
 import RoleButton from '../../role-button'
 import isEqual from 'lodash/isEqual'
@@ -144,8 +143,6 @@ const SectionList = createAnimatedComponent<SectionListProps<Section>>(Kb.Sectio
 const TeamMember = (props: OwnProps) => {
   const username = props.username
   const teamID = props.teamID ?? Types.noTeamID
-  const dispatch = Container.useDispatch()
-
   const isMe = username === ConfigConstants.useCurrentUserState(s => s.username)
   const loading = Constants.useState(s => {
     const memberships = s.teamMemberToTreeMemberships.get(teamID)?.get(username)
@@ -160,10 +157,12 @@ const TeamMember = (props: OwnProps) => {
     return got < want
   })
 
+  const loadTeamTree = Constants.useState(s => s.dispatch.loadTeamTree)
+
   // Load up the memberships when the page is opened
   React.useEffect(() => {
-    dispatch(TeamsGen.createLoadTeamTree({teamID, username}))
-  }, [teamID, username, dispatch])
+    loadTeamTree(teamID, username)
+  }, [loadTeamTree, teamID, username])
 
   const {nodesIn, nodesNotIn, errors} = useMemberships(teamID, username)
 
@@ -227,7 +226,7 @@ const TeamMember = (props: OwnProps) => {
             content={[
               'The following teams could not be loaded. ',
               {
-                onClick: () => dispatch(TeamsGen.createLoadTeamTree({teamID, username})),
+                onClick: () => loadTeamTree(teamID, username),
                 text: 'Click to reload.',
               },
             ]}

@@ -88,11 +88,6 @@ function addThemToTeamFromTeamBuilder(
   return TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'})
 }
 
-// See protocol/avdl/keybase1/teams.avdl:loadTeamTreeAsync for a description of this RPC.
-const loadTeamTree = async (_: unknown, action: TeamsGen.LoadTeamTreePayload) => {
-  await RPCTypes.teamsLoadTeamTreeMembershipsAsyncRpcPromise(action.payload)
-}
-
 const manageChatChannels = (_: unknown, action: TeamsGen.ManageChatChannelsPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [
@@ -158,8 +153,6 @@ const initTeams = () => {
       logger.info('skipping')
     }
   })
-
-  Container.listenAction(TeamsGen.loadTeamTree, loadTeamTree)
 
   Container.listenAction(TeamsGen.teamSeen, teamSeen)
   Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {

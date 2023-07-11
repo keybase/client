@@ -1136,6 +1136,7 @@ export type State = Store & {
     leaveTeam: (teamname: string, permanent: boolean, context: 'teams' | 'chat') => void
     loadTeam: (teamID: Types.TeamID, _subscribe?: boolean) => void
     loadTeamChannelList: (teamID: Types.TeamID) => void
+    loadTeamTree: (teamID: Types.TeamID, username: string) => void
     loadWelcomeMessage: (teamID: Types.TeamID) => void
     loadedWelcomeMessage: (teamID: Types.TeamID, message: RPCChatTypes.WelcomeMessageDisplay) => void
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => void
@@ -2319,6 +2320,13 @@ export const useState = Z.createZustand<State>((set, get) => {
         } catch (err) {
           logger.warn(err)
         }
+      }
+      Z.ignorePromise(f())
+    },
+    loadTeamTree: (teamID, username) => {
+      // See protocol/avdl/keybase1/teams.avdl:loadTeamTreeAsync for a description of this RPC.
+      const f = async () => {
+        await RPCTypes.teamsLoadTeamTreeMembershipsAsyncRpcPromise({teamID, username})
       }
       Z.ignorePromise(f())
     },
