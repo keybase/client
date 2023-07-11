@@ -22,19 +22,6 @@ import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
 
-const ignoreRequest = async (_: unknown, action: TeamsGen.IgnoreRequestPayload) => {
-  const {teamID, teamname, username} = action.payload
-  try {
-    await RPCTypes.teamsTeamIgnoreRequestRpcPromise(
-      {name: teamname, username},
-      Constants.teamWaitingKey(teamID)
-    )
-  } catch (_) {
-    // TODO handle error
-  }
-  return false
-}
-
 const setPublicity = async (_: unknown, action: TeamsGen.SetPublicityPayload) => {
   const {teamID, settings} = action.payload
   const waitingKey = Constants.settingsWaitingKey(teamID)
@@ -356,7 +343,6 @@ const initTeams = () => {
     }
   )
 
-  Container.listenAction(TeamsGen.ignoreRequest, ignoreRequest)
   Container.listenAction(TeamsGen.updateTopic, updateTopic)
   Container.listenAction(TeamsGen.updateChannelName, updateChannelname)
   Container.listenAction(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)

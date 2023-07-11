@@ -8,7 +8,6 @@ export const resetStore = 'common:resetStore' // not a part of teams but is hand
 export const typePrefix = 'teams:'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
-export const ignoreRequest = 'teams:ignoreRequest'
 export const loadTeamTree = 'teams:loadTeamTree'
 export const manageChatChannels = 'teams:manageChatChannels'
 export const renameTeam = 'teams:renameTeam'
@@ -56,11 +55,6 @@ export const createDeleteMultiChannelsConfirmed = (payload: {
   readonly teamID: Types.TeamID
   readonly channels: Array<ConversationIDKey>
 }) => ({payload, type: deleteMultiChannelsConfirmed as typeof deleteMultiChannelsConfirmed})
-export const createIgnoreRequest = (payload: {
-  readonly teamID: Types.TeamID
-  readonly teamname: string
-  readonly username: string
-}) => ({payload, type: ignoreRequest as typeof ignoreRequest})
 export const createLoadTeamTree = (payload: {readonly teamID: Types.TeamID; readonly username: string}) => ({
   payload,
   type: loadTeamTree as typeof loadTeamTree,
@@ -101,7 +95,6 @@ export const createUpdateTopic = (payload: {
 // Action Payloads
 export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
 export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
-export type IgnoreRequestPayload = ReturnType<typeof createIgnoreRequest>
 export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
 export type ManageChatChannelsPayload = ReturnType<typeof createManageChatChannels>
 export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
@@ -119,7 +112,6 @@ export type UpdateTopicPayload = ReturnType<typeof createUpdateTopic>
 export type Actions =
   | DeleteChannelConfirmedPayload
   | DeleteMultiChannelsConfirmedPayload
-  | IgnoreRequestPayload
   | LoadTeamTreePayload
   | ManageChatChannelsPayload
   | RenameTeamPayload

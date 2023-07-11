@@ -4,11 +4,6 @@
     "import type * as Types from '../constants/types/teams'"
   ],
   "actions": {
-    "ignoreRequest": {
-      "teamID": "Types.TeamID",
-      "teamname": "string",
-      "username": "string"
-    },
     "setPublicity": {
       "teamID": "Types.TeamID",
       "settings": "Types.PublicitySettings"

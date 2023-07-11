@@ -1112,6 +1112,7 @@ export type State = Store & {
     getTeamRetentionPolicy: (teamID: Types.TeamID) => void
     getTeams: (subscribe?: boolean, forceReload?: boolean) => void
     getTeamProfileAddList: (username: string) => void
+    ignoreRequest: (teamID: Types.TeamID, teamname: string, username: string) => void
     inviteToTeamByEmail: (
       invitees: string,
       role: Types.TeamRoleType,
@@ -1963,6 +1964,14 @@ export const useState = Z.createZustand<State>((set, get) => {
             }
           }
         }
+      }
+      Z.ignorePromise(f())
+    },
+    ignoreRequest: (teamID, teamname, username) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamIgnoreRequestRpcPromise({name: teamname, username}, teamWaitingKey(teamID))
+        } catch (_) {}
       }
       Z.ignorePromise(f())
     },

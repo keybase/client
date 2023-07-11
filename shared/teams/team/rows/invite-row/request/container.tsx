@@ -3,7 +3,6 @@ import * as Constants from '../../../../../constants/teams'
 import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
-import * as TeamsGen from '../../../../../actions/teams-gen'
 import type * as Types from '../../../../../constants/types/teams'
 import type {RowProps} from '.'
 import {TeamRequestRow} from '.'
@@ -72,10 +71,14 @@ export default (ownProps: OwnProps) => {
   const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const dispatch = Container.useDispatch()
   const removeMember = Constants.useState(s => s.dispatch.removeMember)
+  const ignoreRequest = Constants.useState(s => s.dispatch.ignoreRequest)
+
   const _onIgnoreRequest = (teamname: string) => {
-    reset
-      ? removeMember(teamID, username)
-      : dispatch(TeamsGen.createIgnoreRequest({teamID, teamname, username}))
+    if (reset) {
+      removeMember(teamID, username)
+    } else {
+      ignoreRequest(teamID, teamname, username)
+    }
   }
 
   const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
