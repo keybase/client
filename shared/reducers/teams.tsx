@@ -27,9 +27,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [TeamsGen.resetStore]: () => {
     return initialState
   },
-  [TeamsGen.setMembers]: (draftState, action) => {
-    draftState.teamIDToMembers.set(action.payload.teamID, action.payload.members)
-  },
   [TeamsGen.setTeamRetentionPolicy]: (draftState, action) => {
     draftState.teamIDToRetentionPolicy.set(action.payload.teamID, action.payload.retentionPolicy)
   },

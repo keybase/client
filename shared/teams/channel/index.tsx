@@ -6,7 +6,6 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as UsersGen from '../../actions/users-gen'
 import * as BotsGen from '../../actions/bots-gen'
 import type * as ChatTypes from '../../constants/types/chat2'
@@ -39,6 +38,7 @@ const useLoadDataForChannelPage = (
   const dispatch = Container.useDispatch()
   const prevSelectedTab = Container.usePrevious(selectedTab)
   const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
+  const getMembers = Constants.useState(s => s.dispatch.getMembers)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTab && selectedTab === 'members') {
       if (meta.conversationIDKey === 'EMPTY') {
@@ -49,10 +49,11 @@ const useLoadDataForChannelPage = (
           })
         )
       }
-      dispatch(TeamsGen.createGetMembers({teamID}))
+      getMembers(teamID)
       dispatch(UsersGen.createGetBlockState({usernames: participants}))
     }
   }, [
+    getMembers,
     selectedTab,
     dispatch,
     conversationIDKey,
@@ -123,9 +124,7 @@ const Channel = (props: OwnProps) => {
   const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
   const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
-  const teamMembers = Container.useSelector(
-    state => state.teams.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector
-  )
+  const teamMembers = Constants.useState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)
   const [selectedTab, setSelectedTab] = useTabsState(conversationIDKey, providedTab)
   useLoadDataForChannelPage(teamID, conversationIDKey, selectedTab, meta, _participants, bots)
   const participants = useChannelParticipants(teamID, conversationIDKey)

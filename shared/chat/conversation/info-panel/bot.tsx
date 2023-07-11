@@ -212,7 +212,7 @@ const BotTab = (props: Props) => {
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
-  const teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(teamID)) ?? new Map()
+  const teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(teamID)) ?? new Map()
   const participantsAll = participantInfo.all
 
   let botUsernames: Array<string> = []

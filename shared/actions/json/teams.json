@@ -17,13 +17,6 @@
       "teamID": "Types.TeamID",
       "version": "Types.TeamVersion"
     },
-    "getMembers": {
-      "teamID": "Types.TeamID"
-    },
-    "setMembers": {
-      "teamID": "Types.TeamID",
-      "members": "Map<string, Types.MemberInfo>"
-    },
     "getTeamProfileAddList": {
       "username": "string"
     },

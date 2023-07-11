@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as ChatConstants from '../../../constants/chat2'
+import * as TeamsConstants from '../../../constants/teams'
 import type * as ChatTypes from '../../../constants/types/chat2'
 import type * as TeamTypes from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
-import * as TeamsGen from '../../../actions/teams-gen'
 import shallowEqual from 'shallowequal'
 
 export const infoPanelWidthElectron = 320
@@ -25,13 +25,13 @@ const emptyMap = new Map()
 const isBot = (type: TeamTypes.TeamRoleType) => type === 'bot' || type === 'restrictedbot'
 
 export const useTeamHumans = (teamID: TeamTypes.TeamID) => {
-  const dispatch = Container.useDispatch()
   const [lastTID, setLastTID] = React.useState('')
+  const getMembers = TeamsConstants.useState(s => s.dispatch.getMembers)
   if (lastTID !== teamID) {
     setLastTID(teamID)
-    dispatch(TeamsGen.createGetMembers({teamID}))
+    getMembers(teamID)
   }
-  const teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(teamID)) || emptyMap
+  const teamMembers = TeamsConstants.useState(s => s.teamIDToMembers.get(teamID)) || emptyMap
   const bots = React.useMemo(() => {
     const ret = new Set<string>()
     teamMembers.forEach(({type}, username) => isBot(type) && ret.add(username))

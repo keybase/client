@@ -230,7 +230,6 @@ export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, userna
 
 const emptyState: Types.State = {
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  teamIDToMembers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamMemberToLastActivity: new Map(),
   teamMemberToTreeMemberships: new Map(),
@@ -331,13 +330,13 @@ export const userIsRoleInTeamWithInfo = (
 }
 
 export const userIsRoleInTeam = (
-  state: TypedState,
+  state: State,
   teamID: Types.TeamID,
   username: string,
   role: Types.TeamRoleType
 ): boolean => {
   return userIsRoleInTeamWithInfo(
-    state.teams.teamIDToMembers.get(teamID) || new Map<string, Types.MemberInfo>(),
+    state.teamIDToMembers.get(teamID) || new Map<string, Types.MemberInfo>(),
     username,
     role
   )
@@ -412,9 +411,7 @@ export const getDisabledReasonsForRolePicker = (
   const teamMeta = getTeamMeta(state, teamID)
   const teamDetails = useState.getState().teamDetails.get(teamID)
   const members: Map<string, Types.MemberInfo> =
-    // TODO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    teamDetails?.members ||
-    /*state.teams.teamIDToMembers.get(teamID) || */ new Map<string, Types.MemberInfo>()
+    teamDetails?.members || state.teamIDToMembers.get(teamID) || new Map<string, Types.MemberInfo>()
   const teamname = teamMeta.teamname
   let theyAreOwner = false
   if (typeof membersToModify === 'string') {
@@ -999,6 +996,7 @@ export type Store = {
   teamJoinSuccessOpen: boolean
   teamJoinSuccessTeamName: string
   teamVersion: Map<Types.TeamID, Types.TeamVersion>
+  teamIDToMembers: Map<Types.TeamID, Map<string, Types.MemberInfo>> // Used by chat sidebar until team loading gets easier
 }
 
 const initialStore: Store = {
@@ -1030,6 +1028,7 @@ const initialStore: Store = {
   teamAccessRequestsPending: new Set(),
   teamDetails: new Map(),
   teamDetailsSubscriptionCount: new Map(),
+  teamIDToMembers: new Map(),
   teamIDToResetUsers: new Map(),
   teamIDToWelcomeMessage: new Map(),
   teamInviteDetails: {inviteID: '', inviteKey: ''},
@@ -1093,6 +1092,7 @@ export type State = Store & {
     finishedAddMembersWizard: () => void
     finishNewTeamWizard: () => void
     getActivityForTeams: () => void
+    getMembers: (teamID: Types.TeamID) => void
     getTeams: (subscribe?: boolean, forceReload?: boolean) => void
     inviteToTeamByEmail: (
       invitees: string,
@@ -1695,6 +1695,33 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
         } catch (e) {
           logger.warn(e)
+        }
+        return
+      }
+      Z.ignorePromise(f())
+    },
+    getMembers: (teamID: Types.TeamID) => {
+      const f = async () => {
+        try {
+          const res = await RPCTypes.teamsTeamGetMembersByIDRpcPromise({
+            id: teamID,
+          })
+          const members = rpcDetailsToMemberInfos(res ?? [])
+          set(s => {
+            s.teamIDToMembers.set(teamID, members)
+          })
+          // TODO update users members >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+          // [TeamsGen.setMembers]: (draftState, action) => {
+          //   const {members} = action.payload
+          //   const {infoMap} = draftState
+          //   members.forEach((v, username) => {
+          //     updateInfo(infoMap, username, {fullname: v.fullName})
+          //   })
+          // },
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Error updating members for ${teamID}: ${error.desc}`)
+          }
         }
         return
       }

@@ -40,10 +40,10 @@ export default (ownProps: OwnProps) => {
   const yourOperations = TeamsConstants.useState(s => getCanPerformByID(s, meta.teamID))
   const _canAdminDelete = yourOperations.deleteOtherMessages
   const _canPinMessage = !isTeam || yourOperations.pinMessage
-  const _authorIsBot = Container.useSelector(state =>
-    Constants.messageAuthorIsBot(state, meta, message, participantInfo)
+  const _authorIsBot = TeamsConstants.useState(s =>
+    Constants.messageAuthorIsBot(s, meta, message, participantInfo)
   )
-  const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
+  const _teamMembers = TeamsConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
   const _label = Container.useSelector(state => Constants.getConversationLabel(state, meta, true))
   const _teamID = meta.teamID
   const _you = ConfigConstants.useCurrentUserState(s => s.username)

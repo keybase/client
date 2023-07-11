@@ -40,7 +40,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     entityType = 'adhoc'
   }
 
-  const teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(teamID))
+  const teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(teamID))
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )

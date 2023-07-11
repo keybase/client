@@ -522,22 +522,6 @@ const deleteMultiChannelsConfirmed = async (
   Constants.useState.getState().dispatch.loadTeamChannelList(teamID)
 }
 
-const getMembers = async (_: unknown, action: TeamsGen.GetMembersPayload) => {
-  const {teamID} = action.payload
-  try {
-    const res = await RPCTypes.teamsTeamGetMembersByIDRpcPromise({
-      id: teamID,
-    })
-    const members = Constants.rpcDetailsToMemberInfos(res ?? [])
-    return TeamsGen.createSetMembers({members, teamID})
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error(`Error updating members for ${teamID}: ${error.desc}`)
-    }
-  }
-  return
-}
-
 const gregorPushState = (_: unknown, action: GregorGen.PushStatePayload) => {
   const actions: Array<Container.TypedActions> = []
   const items = action.payload.state
@@ -755,7 +739,6 @@ const initTeams = () => {
   Container.listenAction(TeamsGen.getTeamProfileAddList, getTeamProfileAddList)
   Container.listenAction(TeamsGen.leftTeam, leftTeam)
 
-  Container.listenAction(TeamsGen.getMembers, getMembers)
   Container.listenAction([ConfigGen.loadOnStart, TeamsGen.leftTeam], (_, action) => {
     if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
       return

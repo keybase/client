@@ -2,7 +2,6 @@ import * as Constants from '../constants/users'
 import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
-import * as TeamsGen from '../actions/teams-gen'
 import * as UsersGen from '../actions/users-gen'
 import type * as Types from '../constants/types/users'
 import type {Draft} from 'immer'
@@ -18,7 +17,6 @@ type Actions =
   | Tracker2Gen.UpdateFollowsPayload
   | Tracker2Gen.UpdatedDetailsPayload
   | TeamBuildingGen.SearchResultsLoadedPayload
-  | TeamsGen.SetMembersPayload
 
 const updateInfo = (
   map: Map<string, WritableDraft<Types.UserInfo>>,
@@ -80,13 +78,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       if (!old || !old.fullname) {
         updateInfo(infoMap, keybase, {fullname: prettyName})
       }
-    })
-  },
-  [TeamsGen.setMembers]: (draftState, action) => {
-    const {members} = action.payload
-    const {infoMap} = draftState
-    members.forEach((v, username) => {
-      updateInfo(infoMap, username, {fullname: v.fullName})
     })
   },
   [UsersGen.updateBlockState]: (draftState, action) => {

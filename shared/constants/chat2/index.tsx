@@ -332,7 +332,7 @@ export const getBotsAndParticipants = (
   const meta = getMeta(state, conversationIDKey)
   const isAdhocTeam = meta.teamType === 'adhoc'
   const participantInfo = getParticipantInfo(state, conversationIDKey)
-  const teamMembers = state.teams.teamIDToMembers.get(meta.teamID) ?? new Map()
+  const teamMembers = TeamConstants.useState.getState().teamIDToMembers.get(meta.teamID) ?? new Map()
   let bots: Array<string> = []
   if (isAdhocTeam) {
     bots = participantInfo.all.filter(p => !participantInfo.name.includes(p))
@@ -529,7 +529,7 @@ export const getParticipantInfo = (
 }
 
 export const messageAuthorIsBot = (
-  state: TypedState,
+  state: TeamConstants.State,
   meta: Types.ConversationMeta,
   message: Types.Message,
   participantInfo: Types.ParticipantInfo

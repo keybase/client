@@ -14,7 +14,6 @@ export const createChannel = 'teams:createChannel'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const deleteTeam = 'teams:deleteTeam'
-export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamRetentionPolicy = 'teams:getTeamRetentionPolicy'
 export const ignoreRequest = 'teams:ignoreRequest'
@@ -30,7 +29,6 @@ export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
-export const setMembers = 'teams:setMembers'
 export const setPublicity = 'teams:setPublicity'
 export const setTeamProfileAddList = 'teams:setTeamProfileAddList'
 export const setTeamRetentionPolicy = 'teams:setTeamRetentionPolicy'
@@ -114,10 +112,6 @@ export const createDeleteTeam = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
   type: deleteTeam as typeof deleteTeam,
 })
-export const createGetMembers = (payload: {readonly teamID: Types.TeamID}) => ({
-  payload,
-  type: getMembers as typeof getMembers,
-})
 export const createGetTeamProfileAddList = (payload: {readonly username: string}) => ({
   payload,
   type: getTeamProfileAddList as typeof getTeamProfileAddList,
@@ -173,10 +167,6 @@ export const createSetMemberActivityDetails = (payload: {
   readonly activityMap: Map<Types.TeamID, number>
   readonly username: string
 }) => ({payload, type: setMemberActivityDetails as typeof setMemberActivityDetails})
-export const createSetMembers = (payload: {
-  readonly teamID: Types.TeamID
-  readonly members: Map<string, Types.MemberInfo>
-}) => ({payload, type: setMembers as typeof setMembers})
 export const createSetPublicity = (payload: {
   readonly teamID: Types.TeamID
   readonly settings: Types.PublicitySettings
@@ -227,7 +217,6 @@ export type CreateChannelPayload = ReturnType<typeof createCreateChannel>
 export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
 export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
 export type DeleteTeamPayload = ReturnType<typeof createDeleteTeam>
-export type GetMembersPayload = ReturnType<typeof createGetMembers>
 export type GetTeamProfileAddListPayload = ReturnType<typeof createGetTeamProfileAddList>
 export type GetTeamRetentionPolicyPayload = ReturnType<typeof createGetTeamRetentionPolicy>
 export type IgnoreRequestPayload = ReturnType<typeof createIgnoreRequest>
@@ -243,7 +232,6 @@ export type RemovePendingInvitePayload = ReturnType<typeof createRemovePendingIn
 export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
 export type SaveChannelMembershipPayload = ReturnType<typeof createSaveChannelMembership>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
-export type SetMembersPayload = ReturnType<typeof createSetMembers>
 export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
 export type SetTeamProfileAddListPayload = ReturnType<typeof createSetTeamProfileAddList>
 export type SetTeamRetentionPolicyPayload = ReturnType<typeof createSetTeamRetentionPolicy>
@@ -266,7 +254,6 @@ export type Actions =
   | DeleteChannelConfirmedPayload
   | DeleteMultiChannelsConfirmedPayload
   | DeleteTeamPayload
-  | GetMembersPayload
   | GetTeamProfileAddListPayload
   | GetTeamRetentionPolicyPayload
   | IgnoreRequestPayload
@@ -282,7 +269,6 @@ export type Actions =
   | RenameTeamPayload
   | SaveChannelMembershipPayload
   | SetMemberActivityDetailsPayload
-  | SetMembersPayload
   | SetPublicityPayload
   | SetTeamProfileAddListPayload
   | SetTeamRetentionPolicyPayload

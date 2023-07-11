@@ -47,10 +47,10 @@ export default (ownProps: OwnProps) => {
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const _canReplyPrivately =
     message.type === 'text' && (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
-  const authorIsBot = Container.useSelector(state =>
-    Constants.messageAuthorIsBot(state, meta, message, participantInfo)
+  const authorIsBot = TeamsConstants.useState(s =>
+    Constants.messageAuthorIsBot(s, meta, message, participantInfo)
   )
-  const _teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(meta.teamID))
+  const _teamMembers = TeamsConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
   const _authorIsBot = authorIsBot
   const _isDeleteable = message.isDeleteable
   const _isEditable = message.isEditable

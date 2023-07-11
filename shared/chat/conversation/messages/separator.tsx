@@ -4,6 +4,7 @@ import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as ConfigConstants from '../../../constants/config'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Constants from '../../../constants/chat2'
+import * as TeamsConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as Types from '../../../constants/types/chat2'
@@ -216,7 +217,11 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const {author, timestamp} = m
     const meta = Constants.getMeta(state, conversationIDKey)
     const {teamID, botAliases, teamType} = meta
-    const authorRoleInTeam = state.teams.teamIDToMembers.get(teamID ?? '')?.get(author)?.type
+    // TODO not reactive
+    const authorRoleInTeam = TeamsConstants.useState
+      .getState()
+      .teamIDToMembers.get(teamID ?? '')
+      ?.get(author)?.type
     const botAlias = botAliases[author] ?? ''
     const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
     const authorIsBot = meta.teamname
