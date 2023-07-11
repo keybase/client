@@ -775,7 +775,7 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
   return 'conversation'
 }
 
-export const getSharePathArrayDescription = (paths: Array<Types.LocalPath | string>): string => {
+export const getSharePathArrayDescription = (paths: Array<Types.LocalPath>): string => {
   return !paths.length ? '' : paths.length === 1 ? Types.getPathName(paths[0]) : `${paths.length} items`
 }
 

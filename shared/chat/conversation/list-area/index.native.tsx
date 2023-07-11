@@ -153,7 +153,7 @@ const ConversationList = React.memo(function ConversationList(p: {
   }, [])
 
   const renderItem = React.useCallback(
-    (info: /*ListRenderItemInfo<ItemType>*/ any | null | undefined) => {
+    (info: /*ListRenderItemInfo<ItemType>*/ any) => {
       const index = info?.index ?? 0
       const ordinal = messageOrdinals[index]
       if (!ordinal) {

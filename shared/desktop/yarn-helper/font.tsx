@@ -184,6 +184,8 @@ const fontsGeneratedSuccess = (web: boolean, result: FontResult) => {
     fs.writeFileSync(path.join(paths.fonts, 'kb.ttf'), result.ttf)
     setFontMetrics()
     updateIconConstants()
+      .then(() => {})
+      .catch(() => {})
   }
 }
 
@@ -345,7 +347,7 @@ function insertReleaseAssets(releaseFiles: Array<string>) {
   }, {})
 }
 
-function updateIconConstants() {
+async function updateIconConstants() {
   console.log('Generating icon constants (from the following directories)')
   console.log('\t*' + pngAssetDirPaths.map(({assetDirPath}) => assetDirPath).join('\n\t*'))
 
@@ -447,8 +449,8 @@ ${Object.keys(icons).reduce(
   try {
     fs.writeFileSync(
       paths.iconConstants,
-      prettier.format(iconConstants, {
-        ...prettier.resolveConfig.sync(paths.iconConstants),
+      await prettier.format(iconConstants, {
+        ...(await prettier.resolveConfig(paths.iconConstants)),
         parser: 'typescript',
       }),
       'utf8'
