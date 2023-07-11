@@ -29,20 +29,6 @@ const teamDeletedOrExit = () => {
   return false
 }
 
-const updateTopic = async (_: unknown, action: TeamsGen.UpdateTopicPayload) => {
-  const {teamID, conversationIDKey, newTopic} = action.payload
-  const param = {
-    conversationID: ChatTypes.keyToConversationID(conversationIDKey),
-    headline: newTopic,
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    tlfName: Constants.getTeamNameFromID(Constants.useState.getState(), teamID) ?? '',
-    tlfPublic: false,
-  }
-
-  await RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.updateChannelNameWaitingKey(teamID))
-  return []
-}
-
 const deleteChannelConfirmed = async (_: unknown, action: TeamsGen.DeleteChannelConfirmedPayload) => {
   const {teamID, conversationIDKey} = action.payload
   // channelName is only needed for confirmation, so since we handle
@@ -258,7 +244,6 @@ const initTeams = () => {
     }
   )
 
-  Container.listenAction(TeamsGen.updateTopic, updateTopic)
   Container.listenAction(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)
   Container.listenAction(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
   Container.listenAction(TeamsGen.renameTeam, renameTeam)

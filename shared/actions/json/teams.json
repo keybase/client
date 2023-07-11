@@ -4,11 +4,6 @@
     "import type * as Types from '../constants/types/teams'"
   ],
   "actions": {
-    "updateTopic": {
-      "teamID": "Types.TeamID",
-      "conversationIDKey": "ConversationIDKey",
-      "newTopic": "string"
-    },
     "setUpdatedTopic": {
       "teamID": "Types.TeamID",
       "conversationIDKey": "ConversationIDKey",

@@ -1202,6 +1202,11 @@ export type State = Store & {
       conversationIDKey: ChatTypes.ConversationIDKey,
       newChannelName: string
     ) => void
+    updateTopic: (
+      teamID: Types.TeamID,
+      conversationIDKey: ChatTypes.ConversationIDKey,
+      newTopic: string
+    ) => void
     uploadTeamAvatar: (
       teamname: string,
       filename: string,
@@ -2967,6 +2972,19 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.teamIDToRetentionPolicy.set(teamID, teamRetentionPolicy)
       })
+    },
+    updateTopic: (teamID, conversationIDKey, newTopic) => {
+      const f = async () => {
+        const param = {
+          conversationID: ChatTypes.keyToConversationID(conversationIDKey),
+          headline: newTopic,
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          tlfName: getTeamNameFromID(get(), teamID) ?? '',
+          tlfPublic: false,
+        }
+        await RPCChatTypes.localPostHeadlineRpcPromise(param, updateChannelNameWaitingKey(teamID))
+      }
+      Z.ignorePromise(f())
     },
     uploadTeamAvatar: (teamname, filename, sendChatNotification, crop) => {
       const f = async () => {

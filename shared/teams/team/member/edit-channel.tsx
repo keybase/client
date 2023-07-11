@@ -5,7 +5,6 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
-import * as TeamsGen from '../../../actions/teams-gen'
 import * as Types from '../../../constants/types/teams'
 import {ModalTitle} from '../../common'
 import {useEditState} from './use-edit'
@@ -35,13 +34,14 @@ const EditChannel = (props: Props) => {
   const onClose = () => dispatch(RouteTreeGen.createClearModals())
 
   const updateChannelName = Constants.useState(s => s.dispatch.updateChannelName)
+  const updateTopic = Constants.useState(s => s.dispatch.updateTopic)
 
   const onSave = () => {
     if (oldName !== name) {
       updateChannelName(teamID, conversationIDKey, name)
     }
     if (oldDescription !== description) {
-      dispatch(TeamsGen.createUpdateTopic({conversationIDKey, newTopic: description, teamID}))
+      updateTopic(teamID, conversationIDKey, description)
     }
   }
   const waiting = Container.useAnyWaiting(Constants.updateChannelNameWaitingKey(teamID))

@@ -15,7 +15,6 @@ export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const showTeamByName = 'teams:showTeamByName'
 export const teamSeen = 'teams:teamSeen'
-export const updateTopic = 'teams:updateTopic'
 
 // Action Creators
 /**
@@ -69,11 +68,6 @@ export const createSetUpdatedTopic = (payload: {
   readonly conversationIDKey: ConversationIDKey
   readonly newTopic: string
 }) => ({payload, type: setUpdatedTopic as typeof setUpdatedTopic})
-export const createUpdateTopic = (payload: {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ConversationIDKey
-  readonly newTopic: string
-}) => ({payload, type: updateTopic as typeof updateTopic})
 
 // Action Payloads
 export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
@@ -85,7 +79,6 @@ export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberA
 export type SetUpdatedTopicPayload = ReturnType<typeof createSetUpdatedTopic>
 export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
-export type UpdateTopicPayload = ReturnType<typeof createUpdateTopic>
 
 // All Actions
 // prettier-ignore
@@ -99,5 +92,4 @@ export type Actions =
   | SetUpdatedTopicPayload
   | ShowTeamByNamePayload
   | TeamSeenPayload
-  | UpdateTopicPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}
