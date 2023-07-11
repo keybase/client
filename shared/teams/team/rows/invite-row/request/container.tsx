@@ -71,9 +71,10 @@ export default (ownProps: OwnProps) => {
   )
   const waiting = Container.useAnyWaiting(Constants.addMemberWaitingKey(teamID, username))
   const dispatch = Container.useDispatch()
+  const removeMember = Constants.useState(s => s.dispatch.removeMember)
   const _onIgnoreRequest = (teamname: string) => {
     reset
-      ? dispatch(TeamsGen.createRemoveMember({teamID, username}))
+      ? removeMember(teamID, username)
       : dispatch(TeamsGen.createIgnoreRequest({teamID, teamname, username}))
   }
 

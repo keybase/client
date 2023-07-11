@@ -1140,6 +1140,7 @@ export type State = Store & {
     reAddToTeam: (teamID: Types.TeamID, username: string) => void
     refreshTeamRoleMap: () => void
     requestInviteLinkDetails: () => void
+    removeMember: (teamID: Types.TeamID, username: string) => void
     resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
     resetErrorInTeamCreation: () => void
@@ -2407,6 +2408,26 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
         } catch {
           logger.info(`Failed to refresh TeamRoleMap; service will retry`)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    removeMember: (teamID, username) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamRemoveMemberRpcPromise(
+            {
+              member: {
+                assertion: {assertion: username, removeFromSubtree: false},
+                type: RPCTypes.TeamMemberToRemoveType.assertion,
+              },
+              teamID,
+            },
+            [teamWaitingKey(teamID), removeMemberWaitingKey(teamID, username)]
+          )
+        } catch (err) {
+          logger.error('Failed to remove member', err)
+          // TODO: create setEmailInviteError?`
         }
       }
       Z.ignorePromise(f())

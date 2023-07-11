@@ -22,25 +22,6 @@ import * as Container from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
 import logger from '../logger'
 
-const removeMember = async (_: Container.TypedState, action: TeamsGen.RemoveMemberPayload) => {
-  const {teamID, username} = action.payload
-  try {
-    await RPCTypes.teamsTeamRemoveMemberRpcPromise(
-      {
-        member: {
-          assertion: {assertion: username, removeFromSubtree: false},
-          type: RPCTypes.TeamMemberToRemoveType.assertion,
-        },
-        teamID,
-      },
-      [Constants.teamWaitingKey(teamID), Constants.removeMemberWaitingKey(teamID, username)]
-    )
-  } catch (err) {
-    logger.error('Failed to remove member', err)
-    // TODO: create setEmailInviteError?`
-  }
-}
-
 const removePendingInvite = async (_: Container.TypedState, action: TeamsGen.RemovePendingInvitePayload) => {
   const {teamID, inviteID} = action.payload
   try {
@@ -391,7 +372,6 @@ const initTeams = () => {
   )
 
   Container.listenAction(TeamsGen.ignoreRequest, ignoreRequest)
-  Container.listenAction(TeamsGen.removeMember, removeMember)
   Container.listenAction(TeamsGen.removePendingInvite, removePendingInvite)
   Container.listenAction(TeamsGen.updateTopic, updateTopic)
   Container.listenAction(TeamsGen.updateChannelName, updateChannelname)

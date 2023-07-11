@@ -4,7 +4,6 @@ import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {memoize} from '../../util/memoize'
 
@@ -38,24 +37,14 @@ const ConfirmKickOut = (props: Props) => {
   const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
 
   const setMemberSelected = Constants.useState(s => s.dispatch.setMemberSelected)
+  const removeMember = Constants.useState(s => s.dispatch.removeMember)
   // TODO(Y2K-1592): do this in one RPC
   const onRemove = () => {
     setMemberSelected(teamID, '', false, true)
 
-    members.forEach(member =>
-      dispatch(
-        TeamsGen.createRemoveMember({
-          teamID,
-          username: member,
-        })
-      )
-    )
+    members.forEach(member => removeMember(teamID, member))
     if (subteamsToo) {
-      subteamIDs.forEach(subteamID =>
-        members.forEach(member =>
-          dispatch(TeamsGen.createRemoveMember({teamID: subteamID, username: member}))
-        )
-      )
+      subteamIDs.forEach(subteamID => members.forEach(member => removeMember(subteamID, member)))
     }
   }
 

@@ -417,8 +417,9 @@ const NodeInRow = (props: NodeInRowProps) => {
       })
     )
   const onKickOutWaitingKey = Constants.removeMemberWaitingKey(props.node.teamID, props.username)
+  const removeMember = Constants.useState(s => s.dispatch.removeMember)
   const onKickOut = () => {
-    dispatch(TeamsGen.createRemoveMember({teamID: props.node.teamID, username: props.username}))
+    removeMember(props.node.teamID, props.username)
     if (props.isParentTeamMe) {
       dispatch(nav.safeNavigateUpPayload())
     }

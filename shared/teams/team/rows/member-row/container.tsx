@@ -1,5 +1,4 @@
 import * as Constants from '../../../../constants/teams'
-import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as ProfileConstants from '../../../../constants/profile'
@@ -58,11 +57,12 @@ export default (ownProps: OwnProps) => {
     username && showUserProfile(username)
   }
   const reAddToTeam = Constants.useState(s => s.dispatch.reAddToTeam)
+  const removeMember = Constants.useState(s => s.dispatch.removeMember)
   const onReAddToTeam = () => {
     reAddToTeam(teamID, username)
   }
   const onRemoveFromTeam = () => {
-    dispatch(TeamsGen.createRemoveMember({teamID, username}))
+    removeMember(teamID, username)
   }
   const onShowTracker = () => {
     if (Container.isMobile) {

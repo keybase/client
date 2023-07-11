@@ -4,10 +4,6 @@
     "import type * as Types from '../constants/types/teams'"
   ],
   "actions": {
-    "removeMember": {
-      "teamID": "Types.TeamID",
-      "username": "string"
-    },
     "removePendingInvite": {
       "teamID": "Types.TeamID",
       "inviteID": "string"

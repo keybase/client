@@ -11,7 +11,6 @@ export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const ignoreRequest = 'teams:ignoreRequest'
 export const loadTeamTree = 'teams:loadTeamTree'
 export const manageChatChannels = 'teams:manageChatChannels'
-export const removeMember = 'teams:removeMember'
 export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
@@ -71,10 +70,6 @@ export const createManageChatChannels = (payload: {readonly teamID: Types.TeamID
   payload,
   type: manageChatChannels as typeof manageChatChannels,
 })
-export const createRemoveMember = (payload: {readonly teamID: Types.TeamID; readonly username: string}) => ({
-  payload,
-  type: removeMember as typeof removeMember,
-})
 export const createRemovePendingInvite = (payload: {
   readonly teamID: Types.TeamID
   readonly inviteID: string
@@ -114,7 +109,6 @@ export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDelete
 export type IgnoreRequestPayload = ReturnType<typeof createIgnoreRequest>
 export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
 export type ManageChatChannelsPayload = ReturnType<typeof createManageChatChannels>
-export type RemoveMemberPayload = ReturnType<typeof createRemoveMember>
 export type RemovePendingInvitePayload = ReturnType<typeof createRemovePendingInvite>
 export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
@@ -134,7 +128,6 @@ export type Actions =
   | IgnoreRequestPayload
   | LoadTeamTreePayload
   | ManageChatChannelsPayload
-  | RemoveMemberPayload
   | RemovePendingInvitePayload
   | RenameTeamPayload
   | SetMemberActivityDetailsPayload
