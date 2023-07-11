@@ -1102,6 +1102,7 @@ export type State = Store & {
       }
     ) => void
     createNewTeamFromConversation: (conversationIDKey: ChatTypes.ConversationIDKey, teamname: string) => void
+    deleteChannelConfirmed: (teamID: Types.TeamID, conversationIDKey: ChatTypes.ConversationIDKey) => void
     deleteTeam: (teamID: Types.TeamID) => void
     editMembership: (teamID: Types.TeamID, usernames: Array<string>, role: Types.TeamRoleType) => void
     editTeamDescription: (teamID: Types.TeamID, description: string) => void
@@ -1711,6 +1712,23 @@ export const useState = Z.createZustand<State>((set, get) => {
           role: assertion === me ? ('admin' as const) : ('writer' as const),
         }))
         get().dispatch.createNewTeam(teamname, false, true, {sendChatNotification: true, users})
+      }
+      Z.ignorePromise(f())
+    },
+    deleteChannelConfirmed: (teamID, conversationIDKey) => {
+      const f = async () => {
+        // channelName is only needed for confirmation, so since we handle
+        // confirmation ourselves we don't need to plumb it through.
+        await RPCChatTypes.localDeleteConversationLocalRpcPromise(
+          {
+            channelName: '',
+            confirmed: true,
+            convID: ChatTypes.keyToConversationID(conversationIDKey),
+          },
+          teamWaitingKey(teamID)
+        )
+        get().dispatch.loadTeamChannelList(teamID)
+        reduxDispatch(RouteTreeGen.createClearModals())
       }
       Z.ignorePromise(f())
     },

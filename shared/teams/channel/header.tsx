@@ -9,7 +9,6 @@ import {type ConversationIDKey, keyToConversationID} from '../../constants/types
 import type {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import {Activity, useChannelParticipants} from '../common'
-import * as TeamsGen from '../../actions/teams-gen'
 
 const useRecentJoins = (conversationIDKey: ConversationIDKey) => {
   const [recentJoins, setRecentJoins] = React.useState<number | undefined>(undefined)
@@ -85,6 +84,8 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
+  const deleteChannelConfirmed = Constants.useState(s => s.dispatch.deleteChannelConfirmed)
+
   const menuItems: Array<Kb.MenuItem> = React.useMemo(
     () => [
       // Not including settings here because there's already a settings tab below and plumbing the tab selection logic to here would be a real pain.
@@ -95,14 +96,14 @@ const HeaderTitle = (props: HeaderTitleProps) => {
               danger: true,
               onClick: () => {
                 dispatch(nav.safeNavigateUpPayload())
-                dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
+                deleteChannelConfirmed(teamID, conversationIDKey)
               },
               title: 'Delete channel',
             },
           ]
         : []),
     ],
-    [dispatch, nav, teamID, conversationIDKey, canDelete]
+    [deleteChannelConfirmed, dispatch, nav, teamID, conversationIDKey, canDelete]
   )
 
   const makePopup = React.useCallback(

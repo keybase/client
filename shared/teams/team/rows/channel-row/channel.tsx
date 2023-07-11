@@ -1,11 +1,10 @@
-import * as React from 'react'
-import type * as Types from '../../../../constants/types/teams'
-import type * as ChatTypes from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/teams'
-import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
-import * as TeamsGen from '../../../../actions/teams-gen'
+import * as Kb from '../../../../common-adapters'
+import * as React from 'react'
 import * as Styles from '../../../../styles'
+import type * as ChatTypes from '../../../../constants/types/chat2'
+import type * as Types from '../../../../constants/types/teams'
 import {Activity, useChannelParticipants} from '../../../common'
 import {pluralize} from '../../../../util/string'
 
@@ -88,9 +87,11 @@ const ChannelRow = (props: ChannelRowProps) => {
     )
   }, [channel, props, nav, dispatch])
 
+  const deleteChannelConfirmed = Constants.useState(s => s.dispatch.deleteChannelConfirmed)
+
   const onDeleteChannel = React.useCallback(() => {
-    dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey: channel.conversationIDKey, teamID}))
-  }, [dispatch, channel, teamID])
+    deleteChannelConfirmed(teamID, channel.conversationIDKey)
+  }, [deleteChannelConfirmed, channel, teamID])
   const checkCircle = (
     <Kb.CheckCircle
       checked={selected}

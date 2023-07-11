@@ -29,22 +29,6 @@ const teamDeletedOrExit = () => {
   return false
 }
 
-const deleteChannelConfirmed = async (_: unknown, action: TeamsGen.DeleteChannelConfirmedPayload) => {
-  const {teamID, conversationIDKey} = action.payload
-  // channelName is only needed for confirmation, so since we handle
-  // confirmation ourselves we don't need to plumb it through.
-  await RPCChatTypes.localDeleteConversationLocalRpcPromise(
-    {
-      channelName: '',
-      confirmed: true,
-      convID: ChatTypes.keyToConversationID(conversationIDKey),
-    },
-    Constants.teamWaitingKey(teamID)
-  )
-
-  Constants.useState.getState().dispatch.loadTeamChannelList(teamID)
-}
-
 const deleteMultiChannelsConfirmed = async (
   _: unknown,
   action: TeamsGen.DeleteMultiChannelsConfirmedPayload
@@ -244,7 +228,6 @@ const initTeams = () => {
     }
   )
 
-  Container.listenAction(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)
   Container.listenAction(TeamsGen.deleteMultiChannelsConfirmed, deleteMultiChannelsConfirmed)
   Container.listenAction(TeamsGen.renameTeam, renameTeam)
   Container.listenAction(TeamsGen.manageChatChannels, manageChatChannels)

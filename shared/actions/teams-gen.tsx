@@ -6,13 +6,11 @@ import type * as Types from '../constants/types/teams'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'teams:'
-export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const loadTeamTree = 'teams:loadTeamTree'
 export const manageChatChannels = 'teams:manageChatChannels'
 export const renameTeam = 'teams:renameTeam'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
-export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const showTeamByName = 'teams:showTeamByName'
 export const teamSeen = 'teams:teamSeen'
 
@@ -43,10 +41,6 @@ export const createTeamSeen = (payload: {readonly teamID: Types.TeamID}) => ({
   payload,
   type: teamSeen as typeof teamSeen,
 })
-export const createDeleteChannelConfirmed = (payload: {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ConversationIDKey
-}) => ({payload, type: deleteChannelConfirmed as typeof deleteChannelConfirmed})
 export const createDeleteMultiChannelsConfirmed = (payload: {
   readonly teamID: Types.TeamID
   readonly channels: Array<ConversationIDKey>
@@ -63,33 +57,24 @@ export const createSetMemberActivityDetails = (payload: {
   readonly activityMap: Map<Types.TeamID, number>
   readonly username: string
 }) => ({payload, type: setMemberActivityDetails as typeof setMemberActivityDetails})
-export const createSetUpdatedTopic = (payload: {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ConversationIDKey
-  readonly newTopic: string
-}) => ({payload, type: setUpdatedTopic as typeof setUpdatedTopic})
 
 // Action Payloads
-export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
 export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
 export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
 export type ManageChatChannelsPayload = ReturnType<typeof createManageChatChannels>
 export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
-export type SetUpdatedTopicPayload = ReturnType<typeof createSetUpdatedTopic>
 export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
 export type TeamSeenPayload = ReturnType<typeof createTeamSeen>
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | DeleteChannelConfirmedPayload
   | DeleteMultiChannelsConfirmedPayload
   | LoadTeamTreePayload
   | ManageChatChannelsPayload
   | RenameTeamPayload
   | SetMemberActivityDetailsPayload
-  | SetUpdatedTopicPayload
   | ShowTeamByNamePayload
   | TeamSeenPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

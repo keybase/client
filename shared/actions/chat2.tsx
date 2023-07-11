@@ -2607,10 +2607,7 @@ const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()
 // Helpers to nav you to the right place
 const navigateToInbox = (
   _: unknown,
-  action:
-    | Chat2Gen.NavigateToInboxPayload
-    | Chat2Gen.LeaveConversationPayload
-    | TeamsGen.DeleteChannelConfirmedPayload
+  action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
@@ -3993,7 +3990,7 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.markAsUnread, markAsUnread)
   Container.listenAction(Chat2Gen.messagesAdd, messagesAdd)
   Container.listenAction(
-    [Chat2Gen.leaveConversation, TeamsGen.deleteChannelConfirmed, TeamsGen.deleteMultiChannelsConfirmed],
+    [Chat2Gen.leaveConversation, TeamsGen.deleteMultiChannelsConfirmed],
     clearModalsFromConvEvent
   )
   Container.listenAction([Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation], navigateToInbox)
