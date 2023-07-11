@@ -16,41 +16,38 @@ import trim from 'lodash/trim'
 import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
 import {getTeamMeta} from '../constants/teams'
-import {memoize} from '../util/memoize'
 import {requestIdleCallback} from '../util/idle-callback'
 import {serviceIdToSearchPlaceholder} from './shared'
 import {FilteredServiceTabBar} from './filtered-service-tab-bar'
 import {modalHeaderProps} from './modal-header-props'
 import {useSharedValue} from '../common-adapters/reanimated'
 
-const deriveTeamSoFar = memoize(
-  (teamSoFar: Set<TeamBuildingTypes.User>): Array<TeamBuildingTypes.SelectedUser> =>
-    [...teamSoFar].map(userInfo => {
-      let username = ''
-      let serviceId: TeamBuildingTypes.ServiceIdWithContact
-      if (userInfo.contact && userInfo.serviceMap.keybase) {
-        // resolved contact - pass username @ 'keybase' to teambox
-        // so keybase avatar is rendered.
-        username = userInfo.serviceMap.keybase
-        serviceId = 'keybase'
-      } else if (userInfo.serviceId !== 'keybase' && userInfo.serviceMap.keybase) {
-        // Not a keybase result but has Keybase username. Id will be compound assertion,
-        // but we want to display Keybase username and profile pic in teambox.
-        username = userInfo.serviceMap.keybase
-        serviceId = 'keybase'
-      } else {
-        username = userInfo.username
-        serviceId = userInfo.serviceId
-      }
-      return {
-        pictureUrl: userInfo.pictureUrl,
-        prettyName: userInfo.prettyName !== username ? userInfo.prettyName : '',
-        service: serviceId,
-        userId: userInfo.id,
-        username,
-      }
-    })
-)
+const deriveTeamSoFar = (teamSoFar: Set<TeamBuildingTypes.User>): Array<TeamBuildingTypes.SelectedUser> =>
+  [...teamSoFar].map(userInfo => {
+    let username = ''
+    let serviceId: TeamBuildingTypes.ServiceIdWithContact
+    if (userInfo.contact && userInfo.serviceMap.keybase) {
+      // resolved contact - pass username @ 'keybase' to teambox
+      // so keybase avatar is rendered.
+      username = userInfo.serviceMap.keybase
+      serviceId = 'keybase'
+    } else if (userInfo.serviceId !== 'keybase' && userInfo.serviceMap.keybase) {
+      // Not a keybase result but has Keybase username. Id will be compound assertion,
+      // but we want to display Keybase username and profile pic in teambox.
+      username = userInfo.serviceMap.keybase
+      serviceId = 'keybase'
+    } else {
+      username = userInfo.username
+      serviceId = userInfo.serviceId
+    }
+    return {
+      pictureUrl: userInfo.pictureUrl,
+      prettyName: userInfo.prettyName !== username ? userInfo.prettyName : '',
+      service: serviceId,
+      userId: userInfo.id,
+      username,
+    }
+  })
 
 const makeDebouncedSearch = (time: number) =>
   debounce(

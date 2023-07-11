@@ -30,11 +30,19 @@ export const editTeambuildingDraft = (
       draftState.sendNotification = action.payload.sendNotification
     },
     [TeamBuildingGen.addUsersToTeamSoFar]: (draftState, action) => {
-      draftState.teamSoFar = new Set([...draftState.teamSoFar, ...action.payload.users])
+      action.payload.users.forEach(u => {
+        draftState.teamSoFar.add(u)
+      })
     },
     [TeamBuildingGen.removeUsersFromTeamSoFar]: (draftState, action) => {
-      const setToRemove = new Set(action.payload.users)
-      draftState.teamSoFar = new Set([...draftState.teamSoFar].filter(u => !setToRemove.has(u.id)))
+      action.payload.users.forEach(u => {
+        for (const t of draftState.teamSoFar.values()) {
+          if (t.id === u) {
+            draftState.teamSoFar.delete(t)
+            break
+          }
+        }
+      })
     },
     [TeamBuildingGen.searchResultsLoaded]: (draftState, action) => {
       const {query, service, users} = action.payload
