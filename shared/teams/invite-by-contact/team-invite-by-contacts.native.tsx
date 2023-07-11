@@ -2,7 +2,6 @@ import * as Constants from '../../constants/teams'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
-import * as TeamsGen from '../../actions/teams-gen'
 import type * as Types from '../../constants/types/teams'
 import useContacts, {type Contact} from '../common/use-contacts.native'
 import {InviteByContact, type ContactRowProps} from './index.native'
@@ -92,17 +91,13 @@ const TeamInviteByContact = (props: Props) => {
     [inviteToTeamByPhone, inviteToTeamByEmail, resetErrorInEmailInvite, selectedRole, teamID, teamname]
   )
 
+  const removePendingInvite = Constants.useState(s => s.dispatch.removePendingInvite)
   const onCancelInvite = React.useCallback(
     (inviteID: string) => {
       resetErrorInEmailInvite()
-      dispatch(
-        TeamsGen.createRemovePendingInvite({
-          inviteID,
-          teamID,
-        })
-      )
+      removePendingInvite(teamID, inviteID)
     },
-    [resetErrorInEmailInvite, dispatch, teamID]
+    [resetErrorInEmailInvite, removePendingInvite, teamID]
   )
 
   // ----

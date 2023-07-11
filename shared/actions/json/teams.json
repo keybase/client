@@ -4,10 +4,6 @@
     "import type * as Types from '../constants/types/teams'"
   ],
   "actions": {
-    "removePendingInvite": {
-      "teamID": "Types.TeamID",
-      "inviteID": "string"
-    },
     "ignoreRequest": {
       "teamID": "Types.TeamID",
       "teamname": "string",

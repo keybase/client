@@ -1141,6 +1141,7 @@ export type State = Store & {
     refreshTeamRoleMap: () => void
     requestInviteLinkDetails: () => void
     removeMember: (teamID: Types.TeamID, username: string) => void
+    removePendingInvite: (teamID: Types.TeamID, inviteID: string) => void
     resetErrorInEmailInvite: () => void
     resetErrorInSettings: () => void
     resetErrorInTeamCreation: () => void
@@ -2428,6 +2429,22 @@ export const useState = Z.createZustand<State>((set, get) => {
         } catch (err) {
           logger.error('Failed to remove member', err)
           // TODO: create setEmailInviteError?`
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    removePendingInvite: (teamID, inviteID) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamRemoveMemberRpcPromise(
+            {
+              member: {inviteid: {inviteID}, type: RPCTypes.TeamMemberToRemoveType.inviteid},
+              teamID,
+            },
+            [teamWaitingKey(teamID), removeMemberWaitingKey(teamID, inviteID)]
+          )
+        } catch (err) {
+          logger.error('Failed to remove pending invite', err)
         }
       }
       Z.ignorePromise(f())

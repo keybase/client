@@ -1,10 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
 import * as ConfigConstants from '../../../constants/config'
+import * as Constants from '../../../constants/teams'
 import type * as Types from '../../../constants/types/teams'
-import * as TeamsGen from '../../../actions/teams-gen'
 
 export const InviteItem = ({
   alignSelf,
@@ -21,11 +20,11 @@ export const InviteItem = ({
   style?: Styles.StylesCrossPlatform
   teamID: Types.TeamID
 }) => {
-  const dispatch = Container.useDispatch()
   const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const [waitingForExpire, setWaitingForExpire] = React.useState(false)
+  const removePendingInvite = Constants.useState(s => s.dispatch.removePendingInvite)
   const onExpire = () => {
-    dispatch(TeamsGen.createRemovePendingInvite({inviteID: inviteLink.id, teamID}))
+    removePendingInvite(teamID, inviteLink.id)
 
     // wait until reload happens due to MetadataUpdate notification; otherwise it flashes
     // active in between the rpc finish and the team reload

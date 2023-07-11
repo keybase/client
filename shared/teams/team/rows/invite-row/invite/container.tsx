@@ -1,6 +1,4 @@
-import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Constants from '../../../../../constants/teams'
-import * as Container from '../../../../../util/container'
 import {TeamInviteRow} from '.'
 import type {InviteInfo, TeamID, TeamRoleType} from '../../../../../constants/types/teams'
 import {formatPhoneNumber} from '../../../../../util/phone-numbers'
@@ -22,9 +20,10 @@ export default (ownProps: OwnProps) => {
   const {teamID} = ownProps
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
   const _invites = teamDetails?.invites
-  const dispatch = Container.useDispatch()
+
+  const removePendingInvite = Constants.useState(s => s.dispatch.removePendingInvite)
   const _onCancelInvite = (inviteID: string) => {
-    dispatch(TeamsGen.createRemovePendingInvite({inviteID, teamID}))
+    removePendingInvite(teamID, inviteID)
   }
 
   const user: InviteInfo | undefined =
