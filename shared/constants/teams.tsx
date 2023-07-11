@@ -1135,6 +1135,11 @@ export type State = Store & {
     resetTeamMetaStale: () => void
     resetTeamJoin: () => void
     respondToInviteLink: (accept: boolean) => void
+    saveChannelMembership: (
+      teamID: Types.TeamID,
+      oldChannelState: Types.ChannelMembershipState,
+      newChannelState: Types.ChannelMembershipState
+    ) => void
     setAddMembersWizardIndividualRole: (assertion: string, role: Types.AddingMemberTeamRoleType) => void
     setAddMembersWizardRole: (role: Types.AddingMemberTeamRoleType | 'setIndividually') => void
     setChannelCreationError: (error: string) => void
@@ -2339,6 +2344,37 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     respondToInviteLink: _respondToInviteLink,
+    saveChannelMembership: (teamID, oldChannelState, newChannelState) => {
+      const f = async () => {
+        const waitingKey = teamWaitingKey(teamID)
+        for (const convIDKeyStr in newChannelState) {
+          const conversationIDKey = ChatTypes.stringToConversationIDKey(convIDKeyStr)
+          if (oldChannelState[conversationIDKey] === newChannelState[conversationIDKey]) {
+            continue
+          }
+          if (newChannelState[conversationIDKey]) {
+            try {
+              const convID = ChatTypes.keyToConversationID(conversationIDKey)
+              await RPCChatTypes.localJoinConversationByIDLocalRpcPromise({convID}, waitingKey)
+              // nothing is hooked up to this???
+              // reduxDispatch(TeamsGen.createAddParticipant({conversationIDKey, teamID}))
+            } catch (error) {
+              ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
+            }
+          } else {
+            try {
+              const convID = ChatTypes.keyToConversationID(conversationIDKey)
+              await RPCChatTypes.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
+              // nothing is hooked up to this???
+              // reduxDispatch(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
+            } catch (error) {
+              ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
+            }
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
     setAddMembersWizardIndividualRole: (assertion, role) => {
       set(s => {
         const maybeMember = s.addMembersWizard.addingMembers.find(m => m.assertion === assertion)

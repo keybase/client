@@ -214,39 +214,6 @@ const ignoreRequest = async (_: unknown, action: TeamsGen.IgnoreRequestPayload) 
   return false
 }
 
-const saveChannelMembership = async (
-  _s: unknown,
-  action: TeamsGen.SaveChannelMembershipPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {teamID, oldChannelState, newChannelState} = action.payload
-  const waitingKey = Constants.teamWaitingKey(teamID)
-
-  for (const convIDKeyStr in newChannelState) {
-    const conversationIDKey = ChatTypes.stringToConversationIDKey(convIDKeyStr)
-    if (oldChannelState[conversationIDKey] === newChannelState[conversationIDKey]) {
-      continue
-    }
-    if (newChannelState[conversationIDKey]) {
-      try {
-        const convID = ChatTypes.keyToConversationID(conversationIDKey)
-        await RPCChatTypes.localJoinConversationByIDLocalRpcPromise({convID}, waitingKey)
-        listenerApi.dispatch(TeamsGen.createAddParticipant({conversationIDKey, teamID}))
-      } catch (error) {
-        ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
-      }
-    } else {
-      try {
-        const convID = ChatTypes.keyToConversationID(conversationIDKey)
-        await RPCChatTypes.localLeaveConversationLocalRpcPromise({convID}, waitingKey)
-        listenerApi.dispatch(TeamsGen.createRemoveParticipant({conversationIDKey, teamID}))
-      } catch (error) {
-        ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
-      }
-    }
-  }
-}
-
 const setPublicity = async (_: unknown, action: TeamsGen.SetPublicityPayload) => {
   const {teamID, settings} = action.payload
   const waitingKey = Constants.settingsWaitingKey(teamID)
@@ -557,7 +524,6 @@ const initTeams = () => {
     }
     Constants.useState.getState().dispatch.getTeams()
   })
-  Container.listenAction(TeamsGen.saveChannelMembership, saveChannelMembership)
   Container.listenAction(
     [ConfigGen.bootstrapStatusLoaded, EngineGen.keybase1NotifyTeamTeamRoleMapChanged],
     (_, action) => {

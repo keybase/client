@@ -4,24 +4,6 @@
     "import type * as Types from '../constants/types/teams'"
   ],
   "actions": {
-    "clearAddUserToTeamsResults": {},
-    "setTeamVersion": {
-      "teamID": "Types.TeamID",
-      "version": "Types.TeamVersion"
-    },
-    "saveChannelMembership": {
-      "teamID": "Types.TeamID",
-      "oldChannelState": "Types.ChannelMembershipState",
-      "newChannelState": "Types.ChannelMembershipState"
-    },
-    "addParticipant": {
-      "teamID": "Types.TeamID",
-      "conversationIDKey": "ConversationIDKey"
-    },
-    "removeParticipant": {
-      "teamID": "Types.TeamID",
-      "conversationIDKey": "ConversationIDKey"
-    },
     "deleteTeam": {
       "teamID": "Types.TeamID"
     },

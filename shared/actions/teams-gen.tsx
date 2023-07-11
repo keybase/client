@@ -6,8 +6,6 @@ import type * as Types from '../constants/types/teams'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'teams:'
-export const addParticipant = 'teams:addParticipant'
-export const clearAddUserToTeamsResults = 'teams:clearAddUserToTeamsResults'
 export const deleteChannelConfirmed = 'teams:deleteChannelConfirmed'
 export const deleteMultiChannelsConfirmed = 'teams:deleteMultiChannelsConfirmed'
 export const deleteTeam = 'teams:deleteTeam'
@@ -19,13 +17,10 @@ export const loadTeamTree = 'teams:loadTeamTree'
 export const manageChatChannels = 'teams:manageChatChannels'
 export const reAddToTeam = 'teams:reAddToTeam'
 export const removeMember = 'teams:removeMember'
-export const removeParticipant = 'teams:removeParticipant'
 export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
-export const saveChannelMembership = 'teams:saveChannelMembership'
 export const setMemberActivityDetails = 'teams:setMemberActivityDetails'
 export const setPublicity = 'teams:setPublicity'
-export const setTeamVersion = 'teams:setTeamVersion'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const showTeamByName = 'teams:showTeamByName'
@@ -67,14 +62,6 @@ export const createTeamSeen = (payload: {readonly teamID: Types.TeamID}) => ({
 export const createLeftTeam = (payload: {readonly teamname: string; readonly context: 'teams' | 'chat'}) => ({
   payload,
   type: leftTeam as typeof leftTeam,
-})
-export const createAddParticipant = (payload: {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ConversationIDKey
-}) => ({payload, type: addParticipant as typeof addParticipant})
-export const createClearAddUserToTeamsResults = (payload?: undefined) => ({
-  payload,
-  type: clearAddUserToTeamsResults as typeof clearAddUserToTeamsResults,
 })
 export const createDeleteChannelConfirmed = (payload: {
   readonly teamID: Types.TeamID
@@ -122,19 +109,10 @@ export const createRemoveMember = (payload: {readonly teamID: Types.TeamID; read
   payload,
   type: removeMember as typeof removeMember,
 })
-export const createRemoveParticipant = (payload: {
-  readonly teamID: Types.TeamID
-  readonly conversationIDKey: ConversationIDKey
-}) => ({payload, type: removeParticipant as typeof removeParticipant})
 export const createRemovePendingInvite = (payload: {
   readonly teamID: Types.TeamID
   readonly inviteID: string
 }) => ({payload, type: removePendingInvite as typeof removePendingInvite})
-export const createSaveChannelMembership = (payload: {
-  readonly teamID: Types.TeamID
-  readonly oldChannelState: Types.ChannelMembershipState
-  readonly newChannelState: Types.ChannelMembershipState
-}) => ({payload, type: saveChannelMembership as typeof saveChannelMembership})
 export const createSetMemberActivityDetails = (payload: {
   readonly activityMap: Map<Types.TeamID, number>
   readonly username: string
@@ -143,10 +121,6 @@ export const createSetPublicity = (payload: {
   readonly teamID: Types.TeamID
   readonly settings: Types.PublicitySettings
 }) => ({payload, type: setPublicity as typeof setPublicity})
-export const createSetTeamVersion = (payload: {
-  readonly teamID: Types.TeamID
-  readonly version: Types.TeamVersion
-}) => ({payload, type: setTeamVersion as typeof setTeamVersion})
 export const createSetUpdatedChannelName = (payload: {
   readonly teamID: Types.TeamID
   readonly conversationIDKey: ConversationIDKey
@@ -175,8 +149,6 @@ export const createUploadTeamAvatar = (payload: {
 }) => ({payload, type: uploadTeamAvatar as typeof uploadTeamAvatar})
 
 // Action Payloads
-export type AddParticipantPayload = ReturnType<typeof createAddParticipant>
-export type ClearAddUserToTeamsResultsPayload = ReturnType<typeof createClearAddUserToTeamsResults>
 export type DeleteChannelConfirmedPayload = ReturnType<typeof createDeleteChannelConfirmed>
 export type DeleteMultiChannelsConfirmedPayload = ReturnType<typeof createDeleteMultiChannelsConfirmed>
 export type DeleteTeamPayload = ReturnType<typeof createDeleteTeam>
@@ -188,13 +160,10 @@ export type LoadTeamTreePayload = ReturnType<typeof createLoadTeamTree>
 export type ManageChatChannelsPayload = ReturnType<typeof createManageChatChannels>
 export type ReAddToTeamPayload = ReturnType<typeof createReAddToTeam>
 export type RemoveMemberPayload = ReturnType<typeof createRemoveMember>
-export type RemoveParticipantPayload = ReturnType<typeof createRemoveParticipant>
 export type RemovePendingInvitePayload = ReturnType<typeof createRemovePendingInvite>
 export type RenameTeamPayload = ReturnType<typeof createRenameTeam>
-export type SaveChannelMembershipPayload = ReturnType<typeof createSaveChannelMembership>
 export type SetMemberActivityDetailsPayload = ReturnType<typeof createSetMemberActivityDetails>
 export type SetPublicityPayload = ReturnType<typeof createSetPublicity>
-export type SetTeamVersionPayload = ReturnType<typeof createSetTeamVersion>
 export type SetUpdatedChannelNamePayload = ReturnType<typeof createSetUpdatedChannelName>
 export type SetUpdatedTopicPayload = ReturnType<typeof createSetUpdatedTopic>
 export type ShowTeamByNamePayload = ReturnType<typeof createShowTeamByName>
@@ -206,8 +175,6 @@ export type UploadTeamAvatarPayload = ReturnType<typeof createUploadTeamAvatar>
 // All Actions
 // prettier-ignore
 export type Actions =
-  | AddParticipantPayload
-  | ClearAddUserToTeamsResultsPayload
   | DeleteChannelConfirmedPayload
   | DeleteMultiChannelsConfirmedPayload
   | DeleteTeamPayload
@@ -219,13 +186,10 @@ export type Actions =
   | ManageChatChannelsPayload
   | ReAddToTeamPayload
   | RemoveMemberPayload
-  | RemoveParticipantPayload
   | RemovePendingInvitePayload
   | RenameTeamPayload
-  | SaveChannelMembershipPayload
   | SetMemberActivityDetailsPayload
   | SetPublicityPayload
-  | SetTeamVersionPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
   | ShowTeamByNamePayload
