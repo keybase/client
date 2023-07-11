@@ -1,4 +1,5 @@
 import * as RPCTypes from './types/rpc-gen'
+import * as Z from '../util/zustand'
 import type * as Types from './types/tracker2'
 import type {TypedState} from './reducer'
 
@@ -201,3 +202,25 @@ export const guiIDToUsername = (state: Types.State, guiID: string) => {
 // when suggestions are implemented, we'll probably want to show rejected entries if they have a suggestion
 export const showableWotEntry = (entry: Types.WebOfTrustEntry): boolean =>
   entry.status === RPCTypes.WotStatusType.accepted || entry.status === RPCTypes.WotStatusType.proposed
+
+export type Store = {}
+
+const initialStore: Store = {}
+
+export type State = Store & {
+  dispatch: {
+    resetState: 'default'
+  }
+}
+
+export const useState = Z.createZustand<State>((_set, _get) => {
+  // const reduxDispatch = Z.getReduxDispatch()
+  // const getReduxStore = Z.getReduxStore() // TODO remove
+  const dispatch: State['dispatch'] = {
+    resetState: 'default',
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})
