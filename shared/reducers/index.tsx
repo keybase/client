@@ -1,5 +1,4 @@
 import chat2 from './chat2'
-import tracker2 from './tracker2'
 import unlockFolders from './unlock-folders'
 import users from './users'
 import wallets from './wallets'
@@ -13,7 +12,6 @@ export const reducers = {
   crypto,
   people,
   teams,
-  tracker2,
   unlockFolders,
   users,
   wallets,
@@ -24,7 +22,6 @@ export type TypedState = {
   crypto: ReturnType<typeof crypto>
   people: ReturnType<typeof people>
   teams: ReturnType<typeof teams>
-  tracker2: ReturnType<typeof tracker2>
   unlockFolders: ReturnType<typeof unlockFolders>
   users: ReturnType<typeof users>
   wallets: ReturnType<typeof wallets>

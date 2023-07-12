@@ -37,6 +37,7 @@ const RemoteContainer = () => {
   Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
   ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
+  Constants.useState(s => s.dispatch.replace)(tracker2.usernameToDetails)
   return (
     <Tracker
       assertionKeys={assertions ? [...assertions.keys()] : undefined}

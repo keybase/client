@@ -1,7 +1,7 @@
 import * as Followers from '../constants/followers'
 import * as ConfigConstants from '../constants/config'
 import * as ProfileConstants from '../constants/profile'
-import * as Tracker2Gen from '../actions/tracker2-gen'
+import * as TrackerConstants from '../constants/tracker2'
 import Mention, {type OwnProps} from './mention'
 import {isSpecialMention} from '../constants/chat2'
 import * as Container from '../util/container'
@@ -24,14 +24,13 @@ export default (ownProps: OwnProps) => {
     }
   })()
 
-  const dispatch = Container.useDispatch()
-
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const _onClick = () => {
     if (Container.isMobile) {
       showUserProfile(username)
     } else {
-      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+      showUser(username, true)
     }
   }
   const onClick = isSpecialMention(username) ? undefined : _onClick

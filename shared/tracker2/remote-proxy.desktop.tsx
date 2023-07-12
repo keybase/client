@@ -18,7 +18,7 @@ const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320
 
 const RemoteTracker = (props: {trackerUsername: string}) => {
   const {trackerUsername} = props
-  const details = Container.useSelector(state => Constants.getDetails(state, trackerUsername))
+  const details = Constants.useState(s => Constants.getDetails(s, trackerUsername))
   const users = Container.useSelector(state => state.users)
   const followers = Followers.useFollowerState(s => s.followers)
   const following = Followers.useFollowerState(s => s.following)
@@ -88,7 +88,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
 }
 
 const RemoteTrackers = () => {
-  const showTrackerSet = Container.useSelector(s => s.tracker2.showTrackerSet)
+  const showTrackerSet = Constants.useState(s => s.showTrackerSet)
   return (
     <>
       {[...showTrackerSet].reduce<Array<React.ReactNode>>((arr, username) => {

@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/people'
+import * as TrackerConstants from '../../constants/tracker2'
 import * as TeamsConstants from '../../constants/teams'
 import * as ProfileConstants from '../../constants/profile'
 import * as SettingsConstants from '../../constants/settings'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Tabs from '../../constants/tabs'
-import * as Tracker2Gen from '../../actions/tracker2-gen'
 import openURL from '../../util/open-url'
 import type * as Types from '../../constants/types/people'
 import type {IconType} from '../../common-adapters/icon.constants-gen'
@@ -95,10 +95,10 @@ const AvatarUserConnector = (props: TodoOwnProps) => {
 
 const BioConnector = (props: TodoOwnProps) => {
   const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
-  const dispatch = Container.useDispatch()
+  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onConfirm = (username: string) => {
     // make sure we have tracker state & profile is up to date
-    dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
+    showUser(username, false)
   }
   const buttons = makeDefaultButtons(() => onConfirm(myUsername), props.confirmLabel)
   return <Task {...props} buttons={buttons} />

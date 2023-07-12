@@ -17,7 +17,7 @@ export default () => {
   const _fullnames = Container.useSelector(state => state.users.infoMap)
   const _accountRows = ConfigConstants.useConfigState(s => s.configuredAccounts)
   const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const fullname = Container.useSelector(state => TrackerConstants.getDetails(state, you).fullname || '')
+  const fullname = TrackerConstants.useState(s => TrackerConstants.getDetails(s, you).fullname || '')
   const waiting = Container.useAnyWaiting(ConfigConstants.loginWaitingKey)
 
   const dispatch = Container.useDispatch()

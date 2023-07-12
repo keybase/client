@@ -1,11 +1,12 @@
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/profile'
+import * as TrackerConstants from '../../../constants/tracker2'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
 import * as Styles from '../../../styles'
 
 export default () => {
-  const _proofSuggestions = Container.useSelector(state => state.tracker2.proofSuggestions)
+  const _proofSuggestions = TrackerConstants.useState(s => s.proofSuggestions)
   const dispatch = Container.useDispatch()
   const onCancel = () => {
     dispatch(RouteTreeGen.createNavigateUp())

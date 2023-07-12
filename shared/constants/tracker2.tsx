@@ -1,29 +1,32 @@
+import * as LinksConstants from './deeplinks'
+import * as ProfileConstants from './profile'
 import * as RPCTypes from './types/rpc-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Z from '../util/zustand'
+import logger from '../logger'
 import type * as Types from './types/tracker2'
-import type {TypedState} from './reducer'
+import {RPCError} from '../util/errors'
+import {mapGetEnsureValue} from '../util/map'
 
-export const makeState = (): Types.State => ({
-  proofSuggestions: [],
-  showTrackerSet: new Set(),
-  usernameToDetails: new Map(),
-  usernameToNonUserDetails: new Map(),
-})
-
-export const noDetails = Object.freeze<Types.Details>({
+export const noDetails: Types.Details = {
   assertions: new Map(),
   blocked: false,
+  followers: undefined,
+  followersCount: undefined,
+  following: undefined,
+  followingCount: undefined,
   guiID: '',
   hidFromFollowers: false,
   reason: '',
   resetBrokeTrack: false,
-  state: 'unknown',
+  state: 'unknown' as const,
   stellarHidden: false,
   teamShowcase: [],
   username: '',
   webOfTrustEntries: [],
-})
+}
 
-export const noNonUserDetails = Object.freeze<Types.NonUserDetails>({
+export const noNonUserDetails: Types.NonUserDetails = {
   assertionKey: '',
   assertionValue: '',
   description: '',
@@ -32,7 +35,7 @@ export const noNonUserDetails = Object.freeze<Types.NonUserDetails>({
   siteIconFull: [],
   siteIconFullDarkmode: [],
   siteURL: '',
-})
+}
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
@@ -188,12 +191,12 @@ export const waitingKey = 'tracker2:waitingKey'
 export const profileLoadWaitingKey = 'tracker2:profileLoad'
 export const nonUserProfileLoadWaitingKey = 'tracker2:nonUserProfileLoad'
 
-export const getDetails = (state: TypedState, username: string) =>
-  state.tracker2.usernameToDetails.get(username) || noDetails
-export const getNonUserDetails = (state: TypedState, username: string) =>
-  state.tracker2.usernameToNonUserDetails.get(username) || noNonUserDetails
+export const getDetails = (state: State, username: string) =>
+  state.usernameToDetails.get(username) || noDetails
+export const getNonUserDetails = (state: State, username: string) =>
+  state.usernameToNonUserDetails.get(username) || noNonUserDetails
 
-export const guiIDToUsername = (state: Types.State, guiID: string) => {
+export const guiIDToUsername = (state: State, guiID: string) => {
   const det = [...state.usernameToDetails.values()].find(d => d.guiID === guiID)
   return det ? det.username : null
 }
@@ -201,3 +204,381 @@ export const guiIDToUsername = (state: Types.State, guiID: string) => {
 // when suggestions are implemented, we'll probably want to show rejected entries if they have a suggestion
 export const showableWotEntry = (entry: Types.WebOfTrustEntry): boolean =>
   entry.status === RPCTypes.WotStatusType.accepted || entry.status === RPCTypes.WotStatusType.proposed
+
+export type Store = {
+  showTrackerSet: Set<string>
+  usernameToDetails: Map<string, Types.Details>
+  proofSuggestions: Array<Types.Assertion>
+  usernameToNonUserDetails: Map<string, Types.NonUserDetails>
+}
+
+const initialStore: Store = {
+  proofSuggestions: [],
+  showTrackerSet: new Set(),
+  usernameToDetails: new Map(),
+  usernameToNonUserDetails: new Map(),
+}
+
+export type State = Store & {
+  dispatch: {
+    changeFollow: (guiID: string, follow: boolean) => void
+    closeTracker: (guiID: string) => void
+    getProofSuggestions: () => void
+    ignore: (guiID: string) => void
+    load: (p: {
+      assertion: string
+      forceDisplay?: boolean
+      fromDaemon?: boolean
+      guiID: string
+      ignoreCache?: boolean
+      reason: string
+      inTracker: boolean
+    }) => void
+    loadNonUserProfile: (assertion: string) => void
+    notifyCard: (guiID: string, card: RPCTypes.UserCard) => void
+    notifyReset: (guiID: string) => void
+    notifyRow: (row: RPCTypes.Identify3Row) => void
+    notifySummary: (summary: RPCTypes.Identify3Summary) => void
+    notifyUserBlocked: (b: RPCTypes.UserBlockedSummary) => void
+    replace: (usernameToDetails: Map<string, Types.Details>) => void
+    resetState: 'default'
+    showUser: (username: string, asTracker: boolean, skipNav?: boolean) => void
+    updateResult: (guiID: string, result: Types.DetailsState, reason?: string) => void
+  }
+}
+
+export const useState = Z.createZustand<State>((set, get) => {
+  const reduxDispatch = Z.getReduxDispatch()
+  const dispatch: State['dispatch'] = {
+    changeFollow: (guiID, follow) => {
+      const f = async () => {
+        try {
+          await RPCTypes.identify3Identify3FollowUserRpcPromise({follow, guiID}, waitingKey)
+          get().dispatch.updateResult(guiID, 'valid', `Successfully ${follow ? 'followed' : 'unfollowed'}!`)
+        } catch (_) {
+          get().dispatch.updateResult(guiID, 'error', `Failed to ${follow ? 'follow' : 'unfollow'}`)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    closeTracker: guiID => {
+      set(s => {
+        const username = guiIDToUsername(s, guiID)
+        if (!username) {
+          return
+        }
+        logger.info(`Closing tracker for assertion: ${username}`)
+        s.showTrackerSet.delete(username)
+      })
+    },
+    getProofSuggestions: () => {
+      const f = async () => {
+        try {
+          const {suggestions} = await RPCTypes.userProofSuggestionsRpcPromise(
+            undefined,
+            profileLoadWaitingKey
+          )
+          set(s => {
+            s.proofSuggestions = suggestions?.map(rpcSuggestionToAssertion) ?? []
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Error loading proof suggestions: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    ignore: guiID => {
+      const f = async () => {
+        try {
+          await RPCTypes.identify3Identify3IgnoreUserRpcPromise({guiID}, waitingKey)
+          get().dispatch.updateResult(guiID, 'valid', `Successfully ignored`)
+        } catch (_) {
+          get().dispatch.updateResult(guiID, 'error', `Failed to ignore`)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    load: p => {
+      const {guiID, forceDisplay, assertion, reason, ignoreCache = false, inTracker} = p
+      set(s => {
+        const username = assertion
+        if (forceDisplay) {
+          logger.info(`Showing tracker for assertion: ${assertion}`)
+          s.showTrackerSet.add(username)
+        }
+        const d = mapGetEnsureValue(s.usernameToDetails, username, {...noDetails})
+        d.assertions = new Map() // just remove for now, maybe keep them
+        d.guiID = guiID
+        d.reason = reason
+        d.state = 'checking'
+        d.username = username
+      })
+      const f = async () => {
+        if (p.fromDaemon) return
+        const d = getDetails(get(), assertion)
+        if (!d.guiID) {
+          throw new Error('No guid on profile 2 load? ' + assertion || '')
+        }
+        try {
+          await RPCTypes.identify3Identify3RpcListener(
+            {
+              incomingCallMap: {},
+              params: {assertion, guiID, ignoreCache},
+              waitingKey: profileLoadWaitingKey,
+            },
+            Z.dummyListenerApi
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            if (error.code === RPCTypes.StatusCode.scresolutionfailed) {
+              get().dispatch.updateResult(guiID, 'notAUserYet')
+            } else if (error.code === RPCTypes.StatusCode.scnotfound) {
+              // we're on the profile page for a user that does not exist. Currently the only way
+              // to get here is with an invalid link or deeplink.
+              LinksConstants.useState
+                .getState()
+                .dispatch.setLinkError(
+                  `You followed a profile link for a user (${assertion}) that does not exist.`
+                )
+              reduxDispatch(RouteTreeGen.createNavigateUp())
+              reduxDispatch(
+                RouteTreeGen.createNavigateAppend({
+                  path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+                })
+              )
+            }
+            // hooked into reloadable
+            logger.error(`Error loading profile: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+
+      const loadFollowers = async () => {
+        if (inTracker) return
+        try {
+          const fs = await RPCTypes.userListTrackersUnverifiedRpcPromise({assertion}, profileLoadWaitingKey)
+          set(s => {
+            const d = getDetails(s, assertion)
+            d.followers = new Set(fs.users?.map(f => f.username))
+            d.followersCount = d.followers.size
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Error loading follower info: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(loadFollowers())
+
+      const loadFollowing = async () => {
+        if (inTracker) return
+        try {
+          const fs = await RPCTypes.userListTrackingRpcPromise({assertion, filter: ''}, profileLoadWaitingKey)
+          set(s => {
+            const d = getDetails(s, assertion)
+            d.following = new Set(fs.users?.map(f => f.username))
+            d.followingCount = d.following.size
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error(`Error loading following info: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(loadFollowing())
+    },
+    loadNonUserProfile: assertion => {
+      const f = async () => {
+        try {
+          const res = await RPCTypes.userSearchGetNonUserDetailsRpcPromise(
+            {assertion},
+            nonUserProfileLoadWaitingKey
+          )
+          if (res.isNonUser) {
+            const common = {
+              assertion,
+              assertionKey: res.assertionKey,
+              assertionValue: res.assertionValue,
+              description: res.description,
+              siteIcon: res.siteIcon || [],
+              siteIconDarkmode: res.siteIconDarkmode || [],
+              siteIconFull: res.siteIconFull || [],
+              siteIconFullDarkmode: res.siteIconFullDarkmode || [],
+            }
+            if (res.service) {
+              const p = {
+                ...common,
+                ...res.service,
+              }
+              set(s => {
+                const {assertion, ...rest} = p
+                const {usernameToNonUserDetails} = s
+                const old = usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
+                usernameToNonUserDetails.set(assertion, {...old, ...rest})
+              })
+              return
+            } else {
+              const formatPhoneNumberInternational = (await import('../util/phone-numbers'))
+                .formatPhoneNumberInternational
+              const formattedName =
+                res.assertionKey === 'phone'
+                  ? formatPhoneNumberInternational('+' + res.assertionValue)
+                  : undefined
+              const fullName = res.contact ? res.contact.contactName : ''
+              const p = {...common, formattedName, fullName}
+              set(s => {
+                const {assertion, ...rest} = p
+                const {usernameToNonUserDetails} = s
+                const old = usernameToNonUserDetails.get(assertion) ?? noNonUserDetails
+                usernameToNonUserDetails.set(assertion, {...old, ...rest})
+              })
+            }
+          }
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.warn(`Error loading non user profile: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    notifyCard: (guiID, card) => {
+      set(s => {
+        const username = guiIDToUsername(s, guiID)
+        if (!username) return
+        const {bio, blocked, fullName, hidFromFollowers, location, stellarHidden, teamShowcase} = card
+        const {unverifiedNumFollowers, unverifiedNumFollowing} = card
+        const d = getDetails(s, username)
+        d.bio = bio
+        d.blocked = blocked
+        // These will be overridden by a later updateFollows, if it happens (will
+        // happen when viewing profile, but not in tracker pop up.
+        d.followersCount = unverifiedNumFollowers
+        d.followingCount = unverifiedNumFollowing
+        d.fullname = fullName
+        d.location = location
+        d.stellarHidden = stellarHidden
+        d.teamShowcase =
+          teamShowcase?.map(t => ({
+            description: t.description,
+            isOpen: t.open,
+            membersCount: t.numMembers,
+            name: t.fqName,
+            publicAdmins: t.publicAdmins ?? [],
+          })) ?? []
+        d.hidFromFollowers = hidFromFollowers
+      })
+    },
+    notifyReset: guiID => {
+      set(s => {
+        const username = guiIDToUsername(s, guiID)
+        if (!username) return
+        const d = getDetails(s, username)
+        d.resetBrokeTrack = true
+        d.reason = `${username} reset their account since you last followed them.`
+      })
+    },
+    notifyRow: row => {
+      set(s => {
+        const {guiID} = row
+        const username = guiIDToUsername(s, guiID)
+        if (!username) return
+        const d = getDetails(s, username)
+        const assertions = d.assertions ?? new Map()
+        d.assertions = assertions
+        const assertion = rpcAssertionToAssertion(row)
+        assertions.set(assertion.assertionKey, assertion)
+      })
+    },
+    notifySummary: summary => {
+      set(s => {
+        const {numProofsToCheck, guiID} = summary
+        const username = guiIDToUsername(s, guiID)
+        if (!username) return
+        const d = getDetails(s, username)
+        d.numAssertionsExpected = numProofsToCheck
+      })
+    },
+    notifyUserBlocked: b => {
+      set(s => {
+        const {blocker, blocks} = b
+        const d = getDetails(s, blocker)
+        const toProcess = Object.entries(blocks ?? {}).map(
+          ([username, userBlocks]) => [username, getDetails(s, username), userBlocks || []] as const
+        )
+        toProcess.forEach(([username, det, userBlocks]) => {
+          userBlocks.forEach(blockState => {
+            if (blockState.blockType === RPCTypes.UserBlockType.chat) {
+              det.blocked = blockState.blocked
+            } else if (blockState.blockType === RPCTypes.UserBlockType.follow) {
+              det.hidFromFollowers = blockState.blocked
+              blockState.blocked && d.followers && d.followers.delete(username)
+            }
+          })
+        })
+        d.followersCount = d.followers?.size
+      })
+    },
+    replace: usernameToDetails => {
+      set(s => {
+        s.usernameToDetails = usernameToDetails
+      })
+    },
+    resetState: 'default',
+    showUser: (username, asTracker, skipNav) => {
+      get().dispatch.load({
+        assertion: username,
+        // with new nav we never show trackers from inside the app
+        forceDisplay: false,
+        fromDaemon: false,
+        guiID: generateGUIID(),
+        ignoreCache: true,
+        inTracker: asTracker,
+        reason: '',
+      })
+      if (!skipNav) {
+        // go to profile page
+        ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+      }
+    },
+    updateResult: (guiID, result, reason) => {
+      set(s => {
+        const username = guiIDToUsername(s, guiID)
+        if (!username) return
+        const newReason =
+          reason ||
+          (result === 'broken' && `Some of ${username}'s proofs have changed since you last followed them.`)
+        const d = getDetails(s, username)
+        // Don't overwrite the old reason if the user reset.
+        if (!d.resetBrokeTrack || d.reason.length === 0) {
+          d.reason = newReason || d.reason
+        }
+        if (result === 'valid') {
+          d.resetBrokeTrack = false
+        }
+        d.state = result
+      })
+    },
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})
+
+// TODO inject into users store
+// [Tracker2Gen.updatedDetails]: (draftState, action) => {
+//   const {username, fullname} = action.payload
+//   const {infoMap} = draftState
+//   updateInfo(infoMap, username, {fullname})
+// },
+// [Tracker2Gen.updateFollows]: (draftState, action) => {
+//   // Use new follower information to update full names
+//   const {followers, following} = action.payload
+//   const all = [...(followers || []), ...(following || [])]
+//   const {infoMap} = draftState
+//   all.forEach(({username, fullname}) => updateInfo(infoMap, username, {fullname}))
+// },

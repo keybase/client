@@ -1,7 +1,7 @@
 import * as Constants from '../../../../../constants/teams'
+import * as TrackerConstants from '../../../../../constants/tracker2'
 import * as ProfileConstants from '../../../../../constants/profile'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import * as Tracker2Gen from '../../../../../actions/tracker2-gen'
 import * as Container from '../../../../../util/container'
 import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import type * as Types from '../../../../../constants/types/teams'
@@ -43,11 +43,12 @@ export default (ownProps: OwnProps) => {
 
   const dispatch = Container.useDispatch()
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const _onShowTracker = (username: string) => {
     if (Container.isMobile) {
       showUserProfile(username)
     } else {
-      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+      showUser(username, true)
     }
   }
   const onClick = () => {

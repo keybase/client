@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as ConfigConstants from '../constants/config'
 import * as ProfileConstants from '../constants/profile'
+import * as TrackerConstants from '../constants/tracker2'
 import * as Followers from '../constants/followers'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
-import * as Tracker2Gen from '../actions/tracker2-gen'
 import Text, {
   type TextType,
   type Background,
@@ -93,8 +93,6 @@ const Username = React.memo(function Username(p: UsernameProps) {
     state => (colorBroken && state.users.infoMap.get(username)?.broken) ?? false
   )
 
-  const dispatch = Container.useDispatch()
-
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onOpenProfile = React.useCallback(
     (evt: any) => {
@@ -103,12 +101,13 @@ const Username = React.memo(function Username(p: UsernameProps) {
     },
     [showUserProfile, username]
   )
+  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(
     (evt: any) => {
       evt?.stopPropagation()
-      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+      showUser(username, true)
     },
-    [dispatch, username]
+    [showUser, username]
   )
   const onPassThrough = React.useCallback(() => {
     if (typeof onUsernameClicked === 'function') {

@@ -1,19 +1,18 @@
-import * as Z from '../util/zustand'
-import * as LinksConstants from '../constants/deeplinks'
-import openURL from '../util/open-url'
-import {peopleTab} from './tabs'
-import {RPCError} from '../util/errors'
-import * as More from './types/more'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Tracker2Gen from '../actions/tracker2-gen'
-import logger from '../logger'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Validators from '../util/simple-validators'
-import * as TrackerConstants from './tracker2'
 import * as ConfigConstants from './config'
-import {isMobile} from './platform'
+import * as LinksConstants from '../constants/deeplinks'
+import * as More from './types/more'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as TrackerConstants from './tracker2'
+import * as Validators from '../util/simple-validators'
+import * as Z from '../util/zustand'
+import logger from '../logger'
+import openURL from '../util/open-url'
 import type * as RPCGen from './types/rpc-gen'
 import type {SiteIconSet} from './types/tracker2'
+import {RPCError} from '../util/errors'
+import {isMobile} from './platform'
+import {peopleTab} from './tabs'
 
 type ProveGenericParams = {
   logoBlack: SiteIconSet
@@ -160,7 +159,6 @@ type State = Store & {
 
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
-  const getReduxStore = Z.getReduxStore()
   const clearErrors = (s: Store) => {
     s.errorCode = undefined
     s.errorText = ''
@@ -338,12 +336,13 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         })
 
-        const loadAfter = Tracker2Gen.createLoad({
-          assertion: ConfigConstants.useCurrentUserState.getState().username,
-          guiID: TrackerConstants.generateGUIID(),
-          inTracker: false,
-          reason: '',
-        })
+        const loadAfter = () =>
+          TrackerConstants.useState.getState().dispatch.load({
+            assertion: ConfigConstants.useCurrentUserState.getState().username,
+            guiID: TrackerConstants.generateGUIID(),
+            inTracker: false,
+            reason: '',
+          })
         try {
           const {sigID} = await RPCTypes.proveStartProofRpcListener(
             {
@@ -447,7 +446,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (!genericService) {
             get().dispatch.checkProof()
           }
-          reduxDispatch(loadAfter)
+          loadAfter()
           if (genericService) {
             set(s => {
               s.platformGenericChecking = false
@@ -457,7 +456,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (_error instanceof RPCError) {
             const error = _error
             logger.warn('Error making proof')
-            reduxDispatch(loadAfter)
+            loadAfter()
             set(s => {
               s.errorText = error.desc
               s.errorCode = error.code
@@ -561,14 +560,12 @@ export const useState = Z.createZustand<State>((set, get) => {
     finishRevoking: () => {
       const username = ConfigConstants.useCurrentUserState.getState().username
       get().dispatch.showUserProfile(username)
-      reduxDispatch(
-        Tracker2Gen.createLoad({
-          assertion: ConfigConstants.useCurrentUserState.getState().username,
-          guiID: TrackerConstants.generateGUIID(),
-          inTracker: false,
-          reason: '',
-        })
-      )
+      TrackerConstants.useState.getState().dispatch.load({
+        assertion: ConfigConstants.useCurrentUserState.getState().username,
+        guiID: TrackerConstants.generateGUIID(),
+        inTracker: false,
+        reason: '',
+      })
       set(s => {
         s.revokeError = ''
       })
@@ -687,12 +684,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
       const f = async () => {
         await RPCTypes.proveCheckProofRpcPromise({sigID}, waitingKey)
-        reduxDispatch(
-          Tracker2Gen.createShowUser({
-            asTracker: false,
-            username: ConfigConstants.useCurrentUserState.getState().username,
-          })
-        )
+        TrackerConstants.useState
+          .getState()
+          .dispatch.showUser(ConfigConstants.useCurrentUserState.getState().username, false)
       }
       Z.ignorePromise(f())
     },
@@ -724,14 +718,12 @@ export const useState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.blockUserModal = undefined
           })
-          reduxDispatch(
-            Tracker2Gen.createLoad({
-              assertion: username,
-              guiID: TrackerConstants.generateGUIID(),
-              inTracker: false,
-              reason: '',
-            })
-          )
+          TrackerConstants.useState.getState().dispatch.load({
+            assertion: username,
+            guiID: TrackerConstants.generateGUIID(),
+            inTracker: false,
+            reason: '',
+          })
         } catch (_error) {
           if (!(_error instanceof RPCError)) {
             return
@@ -748,7 +740,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     submitRevokeProof: proofId => {
       const f = async () => {
         const you = TrackerConstants.getDetails(
-          getReduxStore(),
+          TrackerConstants.useState.getState(),
           ConfigConstants.useCurrentUserState.getState().username
         )
         if (!you.assertions) return
@@ -782,27 +774,21 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await RPCTypes.userUnblockUserRpcPromise({username}, blockUserWaitingKey)
-          reduxDispatch(
-            Tracker2Gen.createLoad({
-              assertion: username,
-              guiID: TrackerConstants.generateGUIID(),
-              inTracker: false,
-              reason: '',
-            })
-          )
+          TrackerConstants.useState.getState().dispatch.load({
+            assertion: username,
+            guiID: TrackerConstants.generateGUIID(),
+            inTracker: false,
+            reason: '',
+          })
         } catch (_error) {
           if (!(_error instanceof RPCError)) {
             return
           }
           const error = _error
           logger.warn(`Error unblocking user ${username}`, error)
-          reduxDispatch(
-            Tracker2Gen.createUpdateResult({
-              guiID,
-              reason: `Failed to unblock ${username}: ${error.desc}`,
-              result: 'error',
-            })
-          )
+          TrackerConstants.useState
+            .getState()
+            .dispatch.updateResult(guiID, 'error', `Failed to unblock ${username}: ${error.desc}`)
         }
       }
       Z.ignorePromise(f())

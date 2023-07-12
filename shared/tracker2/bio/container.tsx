@@ -12,15 +12,15 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {inTracker, username} = ownProps
-  const stateProps = Container.useSelector(state => {
-    const d = Constants.getDetails(state, username)
+  const stateProps = Constants.useState(s => {
+    const d = Constants.getDetails(s, username)
     const common = {
       blocked: d.blocked,
       hidFromFollowers: d.hidFromFollowers,
     }
 
     if (d.state === 'notAUserYet') {
-      const nonUser = Constants.getNonUserDetails(state, username)
+      const nonUser = Constants.getNonUserDetails(s, username)
       return {
         ...common,
         bio: nonUser.bio,
