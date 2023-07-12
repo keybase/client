@@ -39,19 +39,17 @@ export default (ownProps: OwnProps) => {
   let notAUser = false
   let stellarHidden = false
   const isYours = ConfigConstants.useCurrentUserState(s => ownProps.username === s.username)
-  a = Container.useSelector(state => {
+  a = Constants.useState(s => {
     if (ownProps.isSuggestion) {
-      a =
-        state.tracker2.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) ||
-        Constants.noAssertion
+      a = s.proofSuggestions.find(s => s.assertionKey === ownProps.assertionKey) || Constants.noAssertion
     } else {
-      const d = Constants.getDetails(state, ownProps.username)
+      const d = Constants.getDetails(s, ownProps.username)
       if (isYours && d.stellarHidden) {
         stellarHidden = true
       }
       notAUser = d.state === 'notAUserYet'
       if (notAUser) {
-        const nonUserDetails = Constants.getNonUserDetails(state, ownProps.username)
+        const nonUserDetails = Constants.getNonUserDetails(s, ownProps.username)
         a = {
           ...notAUserAssertion,
           siteIcon: nonUserDetails.siteIcon,

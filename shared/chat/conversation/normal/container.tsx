@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
+import * as TrackerConstants from '../../../constants/tracker2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Container from '../../../util/container'
 import Normal from '.'
@@ -73,11 +73,12 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
     dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
   }, [conversationIDKey, dispatch])
 
+  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onShowTracker = React.useCallback(
     (username: string) => {
-      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+      showUser(username, true)
     },
-    [dispatch]
+    [showUser]
   )
 
   const onAttach = React.useCallback(

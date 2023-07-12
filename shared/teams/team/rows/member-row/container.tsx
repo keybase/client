@@ -2,7 +2,7 @@ import * as Constants from '../../../../constants/teams'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as ProfileConstants from '../../../../constants/profile'
-import * as Tracker2Gen from '../../../../actions/tracker2-gen'
+import * as TrackerConstants from '../../../../constants/tracker2'
 import * as UsersGen from '../../../../actions/users-gen'
 import type * as Types from '../../../../constants/types/teams'
 import {TeamMemberRow} from '.'
@@ -64,11 +64,12 @@ export default (ownProps: OwnProps) => {
   const onRemoveFromTeam = () => {
     removeMember(teamID, username)
   }
+  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onShowTracker = () => {
     if (Container.isMobile) {
       showUserProfile(username)
     } else {
-      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+      showUser(username, true)
     }
   }
   const props = {

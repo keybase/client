@@ -1,34 +1,25 @@
 import * as React from 'react'
-import * as Container from '../util/container'
 import * as ProfileConstants from '../constants/profile'
-import * as Tracker2Gen from '../actions/tracker2-gen'
+import * as TrackerConstants from '../constants/tracker2'
 import {isMobile} from '../constants/platform'
 import {Banner, BannerParagraph} from './banner'
 
-const Kb = {
-  Banner,
-}
-
-type Props = {
-  users?: Array<string>
-}
-
-type ProofBrokenBannerNonEmptyProps = {
-  users: Array<string>
-}
+const Kb = {Banner}
+type Props = {users?: Array<string>}
+type ProofBrokenBannerNonEmptyProps = {users: Array<string>}
 
 const ProofBrokenBannerNonEmpty = (props: ProofBrokenBannerNonEmptyProps) => {
-  const dispatch = Container.useDispatch()
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onClickUsername = React.useCallback(
     (username: string) => {
       if (isMobile) {
         showUserProfile(username)
       } else {
-        dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+        showUser(username, true)
       }
     },
-    [dispatch, showUserProfile]
+    [showUser, showUserProfile]
   )
   const content: Array<string | {text: string; onClick: () => void}> =
     props.users.length === 1

@@ -1,7 +1,6 @@
 import * as Constants from '../constants/users'
 import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as UsersGen from '../actions/users-gen'
 import type * as Types from '../constants/types/users'
 import type {Draft} from 'immer'
@@ -12,11 +11,7 @@ type WritableDraft<T> = {
 
 const initialState: Types.State = Constants.makeState()
 
-type Actions =
-  | UsersGen.Actions
-  | Tracker2Gen.UpdateFollowsPayload
-  | Tracker2Gen.UpdatedDetailsPayload
-  | TeamBuildingGen.SearchResultsLoadedPayload
+type Actions = UsersGen.Actions | TeamBuildingGen.SearchResultsLoadedPayload
 
 const updateInfo = (
   map: Map<string, WritableDraft<Types.UserInfo>>,
@@ -54,18 +49,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const {bioDecorated} = userCard // using bioDecorated to make links clickable and shruggies whole
     const {infoMap} = draftState
     updateInfo(infoMap, username, {bio: bioDecorated})
-  },
-  [Tracker2Gen.updatedDetails]: (draftState, action) => {
-    const {username, fullname} = action.payload
-    const {infoMap} = draftState
-    updateInfo(infoMap, username, {fullname})
-  },
-  [Tracker2Gen.updateFollows]: (draftState, action) => {
-    // Use new follower information to update full names
-    const {followers, following} = action.payload
-    const all = [...(followers || []), ...(following || [])]
-    const {infoMap} = draftState
-    all.forEach(({username, fullname}) => updateInfo(infoMap, username, {fullname}))
   },
   [TeamBuildingGen.searchResultsLoaded]: (draftState, action) => {
     const {users} = action.payload

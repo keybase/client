@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Tracker2Gen from '../../../actions/tracker2-gen'
+import * as TrackerConstants from '../../../constants/tracker2'
 import * as Constants from '../../../constants/fs'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Types from '../../../constants/types/fs'
@@ -35,13 +35,13 @@ const ConnectedBanner = (ownProps: OwnProps) => {
     [dispatch]
   )
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+
+  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onViewProfile = React.useCallback(
     (username: string) => () => {
-      Container.isMobile
-        ? showUserProfile(username)
-        : dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+      Container.isMobile ? showUserProfile(username) : showUser(username, true)
     },
-    [dispatch, showUserProfile]
+    [showUser, showUserProfile]
   )
   const props = {
     onOpenWithoutResetUsers: () =>

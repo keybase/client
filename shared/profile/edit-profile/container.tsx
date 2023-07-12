@@ -7,7 +7,7 @@ import EditProfile from '.'
 
 export default () => {
   const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const d = Container.useSelector(state => Constants.getDetails(state, username))
+  const d = Constants.useState(s => Constants.getDetails(s, username))
   const bio = d.bio || ''
   const fullname = d.fullname || ''
   const location = d.location || ''

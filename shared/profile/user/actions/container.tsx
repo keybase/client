@@ -6,7 +6,6 @@ import * as ConfigConstants from '../../../constants/config'
 import * as FsConstants from '../../../constants/fs'
 import * as FsTypes from '../../../constants/types/fs'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as WalletsType from '../../../constants/types/wallets'
 import Actions from '.'
@@ -17,7 +16,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const username = ownProps.username
-  const d = Container.useSelector(state => Constants.getDetails(state, username))
+  const d = Constants.useState(s => Constants.getDetails(s, username))
   const followThem = Followers.useFollowerState(s => s.following.has(username))
   const followsYou = Followers.useFollowerState(s => s.followers.has(username))
   const isBot = Container.useSelector(state => state.chat2.featuredBotsMap.has(username))
@@ -34,9 +33,11 @@ export default (ownProps: OwnProps) => {
   const _onBrowsePublicFolder = (username: string) =>
     dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`)))
   const _onEditProfile = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileEdit']}))
-  const _onFollow = (guiID: string, follow: boolean) =>
-    dispatch(Tracker2Gen.createChangeFollow({follow, guiID}))
-  const _onIgnoreFor24Hours = (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID}))
+
+  const changeFollow = Constants.useState(s => s.dispatch.changeFollow)
+  const ignore = Constants.useState(s => s.dispatch.ignore)
+  const _onFollow = changeFollow
+  const _onIgnoreFor24Hours = ignore
   const _onInstallBot = (username: string) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -52,8 +53,9 @@ export default (ownProps: OwnProps) => {
         FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`)
       )
     )
+  const showUser = Constants.useState(s => s.dispatch.showUser)
   const _onReload = (username: string) => {
-    dispatch(Tracker2Gen.createShowUser({asTracker: false, username}))
+    showUser(username, false)
   }
   const _onSendOrRequestLumens = (
     to: string,

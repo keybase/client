@@ -2,11 +2,9 @@ import * as React from 'react'
 import * as Followers from '../constants/followers'
 import * as Styles from '../styles'
 import * as Platforms from '../util/platforms'
-import * as Container from '../util/container'
-import * as Tracker2Constants from '../constants/tracker2'
+import * as TrackerConstants from '../constants/tracker2'
 import * as ProfileConstants from '../constants/profile'
 import * as ConfigConstants from '../constants/config'
-import * as Tracker2Gen from '../actions/tracker2-gen'
 import type * as Tracker2Types from '../constants/types/tracker2'
 import capitalize from 'lodash/capitalize'
 import Box, {Box2} from './box'
@@ -87,7 +85,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
       centerChildren={true}
     >
       {serviceIdsShowing.map(serviceId => {
-        const assertion = services.get(serviceId) || Tracker2Constants.noAssertion
+        const assertion = services.get(serviceId) || TrackerConstants.noAssertion
         return (
           <Kb.WithTooltip
             key={serviceId}
@@ -132,7 +130,7 @@ const ProfileCard = ({
   onLayoutChange,
   username,
 }: Props) => {
-  const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
+  const userDetails = TrackerConstants.useState(s => TrackerConstants.getDetails(s, username))
   const followThem = Followers.useFollowerState(s => s.following.has(username))
   const followsYou = Followers.useFollowerState(s => s.followers.has(username))
   const isSelf = ConfigConstants.useCurrentUserState(s => s.username === username)
@@ -150,18 +148,16 @@ const ProfileCard = ({
     }
   }
 
-  const dispatch = Container.useDispatch()
-
   const {
     state: userDetailsState,
     assertions: userDetailsAssertions,
     bio: userDetailsBio,
     fullname: userDetailsFullname,
   } = userDetails
+  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   React.useEffect(() => {
-    userDetailsState === 'unknown' &&
-      dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
-  }, [dispatch, username, userDetailsState])
+    userDetailsState === 'unknown' && showUser(username, false, true)
+  }, [showUser, username, userDetailsState])
   // signal layout change when it happens, to prevent popup cutoff.
   React.useEffect(() => {
     onLayoutChange?.()
@@ -174,9 +170,10 @@ const ProfileCard = ({
     showFollowButton,
   ])
 
+  const changeFollow = TrackerConstants.useState(s => s.dispatch.changeFollow)
   const _changeFollow = React.useCallback(
-    (follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID: userDetails.guiID})),
-    [dispatch, userDetails]
+    (follow: boolean) => changeFollow(userDetails.guiID, follow),
+    [changeFollow, userDetails]
   )
 
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
@@ -220,7 +217,7 @@ const ProfileCard = ({
             key="unfollow"
             following={true}
             onUnfollow={() => _changeFollow(false)}
-            waitingKey={Tracker2Constants.waitingKey}
+            waitingKey={TrackerConstants.waitingKey}
             small={true}
             style={styles.button}
           />
@@ -230,7 +227,7 @@ const ProfileCard = ({
             following={false}
             followsYou={followsYou}
             onFollow={() => _changeFollow(true)}
-            waitingKey={Tracker2Constants.waitingKey}
+            waitingKey={TrackerConstants.waitingKey}
             small={true}
             style={styles.button}
           />

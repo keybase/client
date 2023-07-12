@@ -1,6 +1,5 @@
 import Profile2, {type BackgroundColorType} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/tracker2'
 import * as ProfileConstants from '../../constants/profile'
@@ -29,7 +28,7 @@ const filterWebOfTrustEntries = memoize(
 
 const Connected = (ownProps: OwnProps) => {
   const {username} = ownProps
-  const d = Container.useSelector(state => Constants.getDetails(state, username))
+  const d = Constants.useState(s => Constants.getDetails(s, username))
   const myName = ConfigConstants.useCurrentUserState(s => s.username)
   const notAUser = d.state === 'notAUserYet'
   const userIsYou = username === myName
@@ -58,11 +57,8 @@ const Connected = (ownProps: OwnProps) => {
   const followThem = Followers.useFollowerState(s => s.following.has(username))
   const followsYou = Followers.useFollowerState(s => s.followers.has(username))
   const mutualFollow = followThem && followsYou
-  const _suggestionKeys = Container.useSelector(state =>
-    userIsYou ? state.tracker2.proofSuggestions : undefined
-  )
-
-  const nonUserDetails = Container.useSelector(state => Constants.getNonUserDetails(state, username))
+  const _suggestionKeys = Constants.useState(s => (userIsYou ? s.proofSuggestions : undefined))
+  const nonUserDetails = Constants.useState(s => Constants.getNonUserDetails(s, username))
   const stateProps = (() => {
     if (!notAUser) {
       // Keybase user
@@ -125,16 +121,19 @@ const Connected = (ownProps: OwnProps) => {
   //     RouteTreeGen.createNavigateAppend({path: [{props: {guiID, username}, selected: 'profileWotAuthor'}]})
   //   )
   // }
+  const showUser = Constants.useState(s => s.dispatch.showUser)
+  const getProofSuggestions = Constants.useState(s => s.dispatch.getProofSuggestions)
+  const loadNonUserProfile = Constants.useState(s => s.dispatch.loadNonUserProfile)
   const _onReload = (username: string, isYou: boolean, state: Types.DetailsState) => {
     if (state !== 'valid' && !isYou) {
       // Might be a Keybase user or not, launch non-user profile fetch.
-      dispatch(Tracker2Gen.createLoadNonUserProfile({assertion: username}))
+      loadNonUserProfile(username)
     }
     if (state !== 'notAUserYet') {
-      dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
+      showUser(username, false, true)
 
       if (isYou) {
-        dispatch(Tracker2Gen.createGetProofSuggestions())
+        getProofSuggestions()
       }
     }
   }

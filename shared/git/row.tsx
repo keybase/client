@@ -9,7 +9,7 @@ import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as TeamConstants from '../constants/teams'
-import * as Tracker2Gen from '../actions/tracker2-gen'
+import * as TrackerConstants from '../constants/tracker2'
 import openURL from '../util/open-url'
 
 export const NewContext = React.createContext(new Set())
@@ -59,8 +59,9 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const copyToClipboard = (text: string) => {
     dispatch(ConfigGen.createCopyToClipboard({text}))
   }
+  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const openUserTracker = (username: string) => {
-    dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+    showUser(username, true)
   }
 
   const chatDisabled = git.chatDisabled

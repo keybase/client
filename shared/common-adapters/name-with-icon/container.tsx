@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Tracker2Gen from '../../actions/tracker2-gen'
-import NameWithIcon, {type NameWithIconProps} from '.'
 import * as Container from '../../util/container'
 import * as ProfileConstants from '../../constants/profile'
 import * as TeamsConstants from '../../constants/teams'
+import * as TrackerConstants from '../../constants/tracker2'
+import NameWithIcon, {type NameWithIconProps} from '.'
 
 export type ConnectedNameWithIconProps = {
   onClick?: 'tracker' | 'profile' | NameWithIconProps['onClick']
@@ -22,9 +22,10 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
     }
   }, [dispatch, teamID])
+  const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(() => {
-    username && dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
-  }, [dispatch, username])
+    username && showUser(username, true)
+  }, [showUser, username])
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onOpenUserProfile = React.useCallback(() => {
     username && showUserProfile(username)
