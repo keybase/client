@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
+import * as UsersConstants from './users'
 import * as GregorConstants from './gregor'
 import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
@@ -1916,15 +1917,9 @@ export const useState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.teamIDToMembers.set(teamID, members)
           })
-          // TODO update users members >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-          // from users reducer
-          // [TeamsGen.setMembers]: (draftState, action) => {
-          //   const {members} = action.payload
-          //   const {infoMap} = draftState
-          //   members.forEach((v, username) => {
-          //     updateInfo(infoMap, username, {fullname: v.fullName})
-          //   })
-          // },
+          for (const [, m] of members) {
+            UsersConstants.useState.getState().dispatch.update(m.username, {fullname: m.fullName})
+          }
         } catch (error) {
           if (error instanceof RPCError) {
             logger.error(`Error updating members for ${teamID}: ${error.desc}`)

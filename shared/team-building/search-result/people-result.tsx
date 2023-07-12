@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigConstants from '../../constants/config'
 import * as FsConstants from '../../constants/fs'
+import * as UsersConstants from '../../constants/users'
 import * as FsTypes from '../../constants/types/fs'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
@@ -26,7 +27,7 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   // action button specific definitions
   const dispatch = Container.useDispatch()
   const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
-  const blocked = Container.useSelector(state => state.users.blockMap.get(keybaseUsername || '')?.chatBlocked)
+  const blocked = UsersConstants.useState(s => s.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
   const onMenuAddToTeam = React.useCallback(() => {

@@ -5,8 +5,8 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat2'
+import * as UsersConstants from '../../constants/users'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as UsersGen from '../../actions/users-gen'
 import * as BotsGen from '../../actions/bots-gen'
 import type * as ChatTypes from '../../constants/types/chat2'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
@@ -39,6 +39,7 @@ const useLoadDataForChannelPage = (
   const prevSelectedTab = Container.usePrevious(selectedTab)
   const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
   const getMembers = Constants.useState(s => s.dispatch.getMembers)
+  const getBlockState = UsersConstants.useState(s => s.dispatch.getBlockState)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTab && selectedTab === 'members') {
       if (meta.conversationIDKey === 'EMPTY') {
@@ -50,9 +51,10 @@ const useLoadDataForChannelPage = (
         )
       }
       getMembers(teamID)
-      dispatch(UsersGen.createGetBlockState({usernames: participants}))
+      getBlockState(participants)
     }
   }, [
+    getBlockState,
     getMembers,
     selectedTab,
     dispatch,

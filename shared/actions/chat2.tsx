@@ -1,6 +1,7 @@
 import * as BotsGen from './bots-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
+import * as UsersConstants from '../constants/users'
 import * as LinksConstants from '../constants/deeplinks'
 import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/chat2'
@@ -22,7 +23,6 @@ import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsConstants from '../constants/teams'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
-import * as UsersGen from './users-gen'
 import * as WaitingConstants from '../constants/waiting'
 import * as WalletTypes from '../constants/types/wallets'
 import * as WalletsGen from './wallets-gen'
@@ -174,7 +174,8 @@ const onGetInboxConvsUnboxed = (
   state: Container.TypedState,
   action: EngineGen.Chat1ChatUiChatInboxConversationPayload
 ) => {
-  const {infoMap} = state.users
+  // TODO not reactive
+  const {infoMap} = UsersConstants.useState.getState()
   const actions: Array<Container.TypedActions> = []
   const {convs} = action.payload.params
   const inboxUIItems = JSON.parse(convs) as Array<RPCChatTypes.InboxUIItem>
@@ -208,7 +209,10 @@ const onGetInboxConvsUnboxed = (
     })
   })
   if (added) {
-    actions.push(UsersGen.createUpdateFullnames({usernameToFullname}))
+    Object.keys(usernameToFullname).forEach(username => {
+      const fullname = usernameToFullname[username]
+      UsersConstants.useState.getState().dispatch.update(username, {fullname})
+    })
   }
   if (metas.length > 0) {
     actions.push(Chat2Gen.createMetasReceived({metas}))
@@ -459,7 +463,7 @@ const chatActivityToMetasAction = (
   payload: {
     readonly conv?: RPCChatTypes.InboxUIItem | null
   }
-): Array<Container.TypedActions> => {
+) => {
   const conv = payload?.conv
   if (!conv) {
     return []
@@ -471,9 +475,13 @@ const chatActivityToMetasAction = (
     }
     return map
   }, {})
-  return meta
-    ? [Chat2Gen.createMetasReceived({metas: [meta]}), UsersGen.createUpdateFullnames({usernameToFullname})]
-    : []
+
+  Object.keys(usernameToFullname).forEach(username => {
+    const fullname = usernameToFullname[username]
+    UsersConstants.useState.getState().dispatch.update(username, {fullname})
+  })
+
+  return meta ? Chat2Gen.createMetasReceived({metas: [meta]}) : false
 }
 
 // We got errors from the service
@@ -495,7 +503,7 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
       }
       arr.push(Chat2Gen.createMessageErrored({conversationIDKey, errorTyp: error.typ, outboxID, reason}))
       if (tempForceRedBox) {
-        arr.push(UsersGen.createUpdateBrokenState({newlyBroken: [tempForceRedBox], newlyFixed: []}))
+        UsersConstants.useState.getState().dispatch.updateBroken([tempForceRedBox], true)
       }
     }
     return arr
@@ -520,7 +528,8 @@ const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatI
     }
   })
 
-  return UsersGen.createUpdateBrokenState({newlyBroken, newlyFixed})
+  UsersConstants.useState.getState().dispatch.updateBroken(newlyBroken, true)
+  UsersConstants.useState.getState().dispatch.updateBroken(newlyFixed, false)
 }
 
 // Get actions to update messagemap / metamap when retention policy expunge happens
@@ -855,7 +864,7 @@ const onNewChatActivity = (
 ) => {
   const {activity} = action.payload.params
   logger.info(`Got new chat activity of type: ${activity.activityType}`)
-  let actions: Array<Container.TypedActions> = []
+  let actions: Container.ListenActionReturn = []
   switch (activity.activityType) {
     case RPCChatTypes.ChatActivityType.incomingMessage: {
       const {incomingMessage} = activity
@@ -2804,9 +2813,8 @@ const fetchConversationBio = (state: Container.TypedState, action: Chat2Gen.Sele
       return
     }
 
-    return UsersGen.createGetBio({username})
+    UsersConstants.useState.getState().dispatch.getBio(username)
   }
-  return false
 }
 
 const leaveConversation = async (_: unknown, action: Chat2Gen.LeaveConversationPayload) => {

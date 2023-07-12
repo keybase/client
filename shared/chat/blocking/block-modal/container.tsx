@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/users'
 import * as TeamsConstants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as UsersGen from '../../../actions/users-gen'
 import * as React from 'react'
 import BlockModal, {type BlockModalContext, type BlockType, type NewBlocksMap, type ReportSettings} from '.'
 import {leaveTeamWaitingKey} from '../../../constants/teams'
@@ -31,7 +30,7 @@ export default (ownProps: OwnProps) => {
     others = undefined
   }
 
-  const _allKnownBlocks = Container.useSelector(state => state.users.blockMap)
+  const _allKnownBlocks = Constants.useState(s => s.blockMap)
   const loadingWaiting = Container.useAnyWaiting(Constants.getUserBlocksWaitingKey)
   const stateProps = {
     _allKnownBlocks,
@@ -57,25 +56,20 @@ export default (ownProps: OwnProps) => {
     },
     [leaveTeam]
   )
-  const refreshBlocksFor = React.useCallback(
-    (usernames: Array<string>) => {
-      dispatch(UsersGen.createGetBlockState({usernames}))
-    },
-    [dispatch]
-  )
+  const getBlockState = Constants.useState(s => s.dispatch.getBlockState)
+  const _reportUser = Constants.useState(s => s.dispatch.reportUser)
+  const refreshBlocksFor = getBlockState
   const reportUser = React.useCallback(
     (username: string, convID: string | undefined, report: ReportSettings) => {
-      dispatch(
-        UsersGen.createReportUser({
-          comment: report.extraNotes,
-          convID,
-          includeTranscript: report.includeTranscript && !!convID,
-          reason: report.reason,
-          username,
-        })
-      )
+      _reportUser({
+        comment: report.extraNotes,
+        convID,
+        includeTranscript: report.includeTranscript && !!convID,
+        reason: report.reason,
+        username,
+      })
     },
-    [dispatch]
+    [_reportUser]
   )
   const setConversationStatus = React.useCallback(
     (conversationIDKey: string, reportUser: boolean) => {
@@ -88,6 +82,7 @@ export default (ownProps: OwnProps) => {
     },
     [dispatch]
   )
+  const _setUserBlocks = Constants.useState(s => s.dispatch.setUserBlocks)
   const setUserBlocks = React.useCallback(
     (newBlocks: NewBlocksMap) => {
       // Convert our state block array to action payload.
@@ -101,10 +96,10 @@ export default (ownProps: OwnProps) => {
           username,
         }))
       if (blocks.length) {
-        dispatch(UsersGen.createSetUserBlocks({blocks}))
+        _setUserBlocks(blocks)
       }
     },
-    [dispatch]
+    [_setUserBlocks]
   )
 
   const props = {

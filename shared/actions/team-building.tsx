@@ -1,5 +1,6 @@
 import logger from '../logger'
 import * as Constants from '../constants/team-building'
+import * as UsersConstants from '../constants/users'
 import * as SettingsConstants from '../constants/settings'
 import * as RouterConstants from '../constants/router2'
 import type * as TeamBuildingTypes from '../constants/types/team-building'
@@ -302,4 +303,21 @@ export const commonListenActions = (namespace: TeamBuildingTypes.AllowedNamespac
     [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],
     filterForNs(namespace, closeTeamBuilding)
   )
+
+  Container.listenAction(TeamBuildingGen.searchResultsLoaded, (_, action) => {
+    const {users} = action.payload
+    users.forEach(({serviceMap, prettyName}) => {
+      const {keybase} = serviceMap
+      if (keybase) {
+        UsersConstants.useState.getState().dispatch.update(keybase, {fullname: prettyName})
+      }
+    })
+  })
+
+  Container.listenAction(TeamBuildingGen.searchResultsLoaded, (_, action) => {
+    if (action.payload.namespace === 'people') {
+      const names = action.payload.users.map(u => u.serviceMap['keybase'] || '').filter(Boolean)
+      UsersConstants.useState.getState().dispatch.getBlockState(names)
+    }
+  })
 }

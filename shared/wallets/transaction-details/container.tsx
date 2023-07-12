@@ -6,7 +6,7 @@ import * as ConfigConstants from '../../constants/config'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {getFullname} from '../../constants/users'
+import * as UsersConstants from '../../constants/users'
 import openURL from '../../util/open-url'
 import TransactionDetails, {type NotLoadingProps} from '.'
 
@@ -25,12 +25,11 @@ export default (ownProps: OwnProps) => {
   const waiting = Container.useAnyWaiting(Constants.getRequestDetailsWaitingKey(paymentID))
   const loading = waiting || _transaction.id === Types.noPaymentID
 
-  const counterpartyMeta = Container.useSelector(state =>
+  const counterpartyMeta = UsersConstants.useState(s =>
     yourInfoAndCounterparty.counterpartyType === 'keybaseUser'
-      ? getFullname(
-          state,
+      ? s.infoMap.get(
           yourInfoAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
-        )
+        )?.fullname
       : null
   )
   const transactionURL = _transaction.externalTxURL

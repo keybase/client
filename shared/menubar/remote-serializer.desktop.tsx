@@ -2,7 +2,7 @@ import * as FSTypes from '../constants/types/fs'
 import type * as Tabs from '../constants/tabs'
 import type * as ChatTypes from '../constants/types/chat2'
 import type {DaemonHandshakeState, OutOfDate} from '../constants/types/config'
-import type {State as UsersState, UserInfo} from '../constants/types/users'
+import type {UserInfo} from '../constants/types/users'
 import type {Tab} from '../constants/tabs'
 import {produce} from 'immer'
 
@@ -14,9 +14,6 @@ export type RemoteTlfUpdates = {
   updates: Array<{path: FSTypes.Path; uploading: boolean}>
   writer: string
 }
-
-// for convenience we flatten the props we send over the wire
-type UsersHoistedProps = 'infoMap'
 
 type Conversation = {
   conversationIDKey: string
@@ -59,7 +56,8 @@ export type ProxyProps = {
   httpSrvToken: string
   windowShownCountNum: number
   navBadges: Map<Tabs.Tab, number>
-} & Pick<UsersState, UsersHoistedProps>
+  infoMap: Map<string, UserInfo>
+}
 
 type SerializeProps = Omit<
   ProxyProps,
@@ -76,7 +74,7 @@ type SerializeProps = Omit<
 // props we don't send at all if they're falsey
 type RemovedEmpties = 'darkMode' | 'fileName' | 'files' | 'totalSyncingBytes' | 'showingDiskSpaceBanner'
 
-export type DeserializeProps = Omit<ProxyProps, UsersHoistedProps | RemovedEmpties> & {
+export type DeserializeProps = Omit<ProxyProps, RemovedEmpties> & {
   avatarRefreshCounter: Map<string, number>
   darkMode: boolean
   daemonHandshakeState: DaemonHandshakeState
@@ -110,7 +108,7 @@ export type DeserializeProps = Omit<ProxyProps, UsersHoistedProps | RemovedEmpti
   }
   loggedIn: boolean
   outOfDate: OutOfDate
-  users: Pick<UsersState, UsersHoistedProps>
+  infoMap: Map<string, UserInfo>
   username: string
   windowShownCountNum: number
 }
@@ -136,6 +134,7 @@ const initialState: DeserializeProps = {
   following: new Set(),
   httpSrvAddress: '',
   httpSrvToken: '',
+  infoMap: new Map(),
   kbfsDaemonStatus: {
     onlineStatus: FSTypes.KbfsDaemonOnlineStatus.Unknown,
     rpcStatus: FSTypes.KbfsDaemonRpcStatus.Connected,
@@ -153,7 +152,6 @@ const initialState: DeserializeProps = {
   showingDiskSpaceBanner: false,
   totalSyncingBytes: 0,
   username: '',
-  users: {infoMap: new Map()},
   windowShownCountNum: 0,
 }
 
@@ -247,7 +245,7 @@ export const deserialize = (
       s.totalSyncingBytes = totalSyncingBytes
     }
     if (infoMapArr !== undefined) {
-      s.users.infoMap = new Map(infoMapArr)
+      s.infoMap = new Map(infoMapArr)
     }
 
     conversationsToSend?.forEach(c => {

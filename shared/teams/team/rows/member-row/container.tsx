@@ -1,9 +1,9 @@
 import * as Constants from '../../../../constants/teams'
+import * as UsersConstants from '../../../../constants/users'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as ProfileConstants from '../../../../constants/profile'
 import * as TrackerConstants from '../../../../constants/tracker2'
-import * as UsersGen from '../../../../actions/users-gen'
 import type * as Types from '../../../../constants/types/teams'
 import {TeamMemberRow} from '.'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
@@ -32,19 +32,9 @@ export default (ownProps: OwnProps) => {
   const waitingForRemove = Container.useAnyWaiting(Constants.removeMemberWaitingKey(teamID, username))
   const youCanManageMembers = Constants.useState(s => Constants.getCanPerform(s, teamname).manageMembers)
   const dispatch = Container.useDispatch()
+  const setUserBlocks = UsersConstants.useState(s => s.dispatch.setUserBlocks)
   const onBlock = () => {
-    username &&
-      dispatch(
-        UsersGen.createSetUserBlocks({
-          blocks: [
-            {
-              setChatBlock: true,
-              setFollowBlock: true,
-              username,
-            },
-          ],
-        })
-      )
+    username && setUserBlocks([{setChatBlock: true, setFollowBlock: true, username}])
   }
   const onChat = () => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))

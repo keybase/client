@@ -1,8 +1,8 @@
 // A mirror of the remote tracker windows.
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import * as React from 'react'
-import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
+import * as UsersConstants from '../constants/users'
 import * as WaitConstants from '../constants/waiting'
 import * as ConfigConstants from '../constants/config'
 import * as DarkMode from '../constants/darkmode'
@@ -19,10 +19,10 @@ const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320
 const RemoteTracker = (props: {trackerUsername: string}) => {
   const {trackerUsername} = props
   const details = Constants.useState(s => Constants.getDetails(s, trackerUsername))
-  const users = Container.useSelector(state => state.users)
+  const infoMap = UsersConstants.useState(s => s.infoMap)
+  const blockMap = UsersConstants.useState(s => s.blockMap)
   const followers = Followers.useFollowerState(s => s.followers)
   const following = Followers.useFollowerState(s => s.following)
-  const {blockMap, infoMap} = users
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
   const {assertions, bio, followersCount, followingCount, fullname, guiID} = details

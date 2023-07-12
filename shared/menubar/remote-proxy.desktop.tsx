@@ -3,6 +3,7 @@ import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
 import * as FSConstants from '../constants/fs'
+import * as UsersConstants from '../constants/users'
 import * as NotifConstants from '../constants/notifications'
 import * as FSTypes from '../constants/types/fs'
 import * as Followers from '../constants/followers'
@@ -82,15 +83,14 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     const {desktopAppBadgeCount, navBadges, widgetBadge} = s
     return {desktopAppBadgeCount, navBadges, widgetBadge}
   }, shallowEqual)
+  const infoMap = UsersConstants.useState(s => s.infoMap)
   const s = Container.useSelector(state => {
-    const {chat2, users} = state
+    const {chat2} = state
     const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = chat2
     const widgetList = inboxLayout?.widgetList
-    const {infoMap} = users
 
     return {
       badgeMap,
-      infoMap,
       metaMap,
       navBadges,
       participantMap,
@@ -100,7 +100,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     }
   }, shallowEqual)
 
-  const {unreadMap, badgeMap, widgetList, infoMap, metaMap, participantMap} = s
+  const {unreadMap, badgeMap, widgetList, metaMap, participantMap} = s
 
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
