@@ -1,10 +1,9 @@
 import type {Details, Assertion} from '../constants/types/tracker2'
-import type {State as UsersState, UserInfo, BlockState} from '../constants/types/users'
+import type {UserInfo, BlockState} from '../constants/types/users'
 import type {State as WaitingState} from '../constants/types/waiting'
 import type {RPCError} from '../util/errors'
 
 // for convenience we flatten the props we send over the wire
-type UsersHoistedProps = 'infoMap' | 'blockMap'
 type WaitingHoistedProps = 'counts' | 'errors'
 
 export type ProxyProps = {
@@ -16,8 +15,9 @@ export type ProxyProps = {
   username: string
   httpSrvAddress: string
   httpSrvToken: string
+  infoMap: Map<string, UserInfo>
+  blockMap: Map<string, BlockState>
 } & Details &
-  Pick<UsersState, UsersHoistedProps> &
   Pick<WaitingState, WaitingHoistedProps>
 
 type SerializeProps = Omit<
@@ -45,7 +45,8 @@ export type DeserializeProps = {
   darkMode: boolean
   followers: Set<string>
   following: Set<string>
-  users: Pick<UsersState, UsersHoistedProps>
+  infoMap: Map<string, UserInfo>
+  blockMap: Map<string, BlockState>
   teams: {teamNameToID: Map<string, string>}
   tracker2: {usernameToDetails: Map<string, Details>}
   trackerUsername: string
@@ -57,19 +58,17 @@ export type DeserializeProps = {
 
 const initialState: DeserializeProps = {
   avatarRefreshCounter: new Map(),
+  blockMap: new Map(),
   darkMode: false,
   followers: new Set(),
   following: new Set(),
   httpSrvAddress: '',
   httpSrvToken: '',
+  infoMap: new Map(),
   teams: {teamNameToID: new Map()},
   tracker2: {usernameToDetails: new Map()},
   trackerUsername: '',
   username: '',
-  users: {
-    blockMap: new Map(),
-    infoMap: new Map(),
-  },
   waiting: {counts: new Map(), errors: new Map()},
 }
 
@@ -132,12 +131,12 @@ export const deserialize = (
     username,
     ...rest
   } = props
-  const infoMap = props.infoMap ? new Map(props.infoMap) : state.users.infoMap
-  const blockMap = props.blockMap ? new Map(props.blockMap) : state.users.blockMap
+  const infoMap = props.infoMap ? new Map(props.infoMap) : state.infoMap
+  const blockMap = props.blockMap ? new Map(props.blockMap) : state.blockMap
 
   const trackerUsername = _trackerUsername ?? state.trackerUsername
   const oldDetails = state.tracker2.usernameToDetails.get(trackerUsername)
-  const oldBlocked = state.users.blockMap.get(trackerUsername)?.chatBlocked ?? false
+  const oldBlocked = state.blockMap.get(trackerUsername)?.chatBlocked ?? false
 
   const details: Details = {
     assertions: assertions ? new Map(assertions) : oldDetails?.assertions,
@@ -163,17 +162,15 @@ export const deserialize = (
     avatarRefreshCounter: avatarRefreshCounterArr
       ? new Map(avatarRefreshCounterArr)
       : state.avatarRefreshCounter,
+    blockMap,
     followers: followersArr ? new Set(followersArr) : state.followers,
     following: followingArr ? new Set(followingArr) : state.following,
     httpSrvAddress: httpSrvAddress ?? state.httpSrvAddress,
     httpSrvToken: httpSrvToken ?? state.httpSrvToken,
+    infoMap,
     tracker2: {usernameToDetails: new Map([[trackerUsername, details]])},
     trackerUsername,
     username: username ?? state.username,
-    users: {
-      blockMap,
-      infoMap,
-    },
     waiting: {
       counts: counts ? new Map(counts) : state.waiting.counts,
       errors: errors ? new Map(errors) : state.waiting.errors,

@@ -1,4 +1,3 @@
-Injections into user store
 electron bridge not using redux (all of unlock folders left as its pure remote)
 engine notifications actions
 leftover actions

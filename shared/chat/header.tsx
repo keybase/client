@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/chat2'
+import * as UsersConstants from '../constants/users'
 import * as TeamConstants from '../constants/teams'
 import * as ConfigConstants from '../constants/config'
 import * as Platforms from '../constants/platform'
@@ -44,7 +45,7 @@ const Header = (props: Props) => {
   const {participantInfo, teamType, teamname} = data
   const otherParticipants = Constants.getRowParticipants(participantInfo, username)
   const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
-  const otherInfo = Container.useSelector(state => state.users.infoMap.get(first))
+  const otherInfo = UsersConstants.useState(s => s.infoMap.get(first))
   // If it's a one-on-one chat, use the user's fullname as the description
   const desc = (otherInfo?.bio && otherInfo.bio.replace(/(\r\n|\n|\r)/gm, ' ')) || descriptionDecorated
   const fullName = otherInfo?.fullname

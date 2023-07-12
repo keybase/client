@@ -1,7 +1,8 @@
-import ConfirmSend from '.'
-import * as Container from '../../../util/container'
-import {getAccount} from '../../../constants/wallets'
 import * as ConfigConstants from '../../../constants/config'
+import * as UsersConstants from '../../../constants/users'
+import * as Container from '../../../util/container'
+import ConfirmSend from '.'
+import {getAccount} from '../../../constants/wallets'
 import {stringToAccountID} from '../../../constants/types/wallets'
 
 export default () => {
@@ -10,7 +11,7 @@ export default () => {
 
   const recipientType = build.recipientType
   const recipientUsername = (recipientType === 'keybaseUser' && build.to) || ''
-  const userInfo = Container.useSelector(state => state.users.infoMap.get(recipientUsername))
+  const userInfo = UsersConstants.useState(s => s.infoMap.get(recipientUsername))
   const recipientFullName = userInfo?.fullname || ''
   const fromAccount = Container.useSelector(state => getAccount(state, built.from))
 

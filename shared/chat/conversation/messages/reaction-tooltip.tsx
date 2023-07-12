@@ -1,4 +1,5 @@
 import * as Constants from '../../../constants/chat2'
+import * as UsersConstants from '../../../constants/users'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -46,15 +47,17 @@ const emptyStateProps = {
 
 const ReactionTooltip = (p: OwnProps) => {
   const {conversationIDKey, ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
-  const {_reactions, _usersInfo} = Container.useSelector(state => {
+
+  const infoMap = UsersConstants.useState(s => s.infoMap)
+  const {_reactions, good} = Container.useSelector(state => {
     const message = Constants.getMessage(state, conversationIDKey, ordinal)
     if (message && Constants.isMessageWithReactions(message)) {
       const _reactions = message.reactions
-      const _usersInfo = state.users.infoMap
-      return {_reactions, _usersInfo}
+      return {_reactions, good: true}
     }
-    return emptyStateProps
+    return {...emptyStateProps, good: false}
   }, shallowEqual)
+  const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
   const dispatch = Container.useDispatch()
   const onAddReaction = React.useCallback(() => {

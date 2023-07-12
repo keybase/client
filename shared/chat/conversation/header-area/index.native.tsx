@@ -10,7 +10,7 @@ import * as Styles from '../../../styles'
 import shallowEqual from 'shallowequal'
 import type * as Types from '../../../constants/types/chat2'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
-import {getFullname} from '../../../constants/users'
+import * as UsersConstants from '../../../constants/users'
 
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
@@ -85,13 +85,16 @@ const emptyArray = new Array<string>()
 const UsernameHeader = (p: Props) => {
   const {conversationIDKey} = p
   const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const infoMap = UsersConstants.useState(s => s.infoMap)
   const {participants, theirFullname} = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const participants =
       (meta.teamname ? null : Constants.getParticipantInfo(state, conversationIDKey).name) || emptyArray
     const theirFullname =
       participants?.length === 2
-        ? participants.filter(username => username !== you).map(username => getFullname(state, username))[0]
+        ? participants
+            .filter(username => username !== you)
+            .map(username => infoMap.get(username)?.fullname)[0]
         : undefined
 
     return {participants, theirFullname}

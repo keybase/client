@@ -13,7 +13,7 @@ import {useNavigation} from '@react-navigation/core'
 import {type RouteKeys} from '../router-v2/route-params'
 export type ListenerMiddleware = ReturnType<typeof createListenerMiddleware>
 export {getRouteParams, getRouteParamsFromRoute} from '../router-v2/route-params'
-export {listenAction, type ListenerApi, spawn} from './redux-toolkit'
+export {listenAction, type ListenerApi, spawn, type ListenActionReturn} from './redux-toolkit'
 export {useDebounce, useDebouncedCallback, useThrottledCallback, type DebouncedState} from 'use-debounce'
 import USH from './use-selector'
 export {useAnyWaiting, useAnyErrors, useDispatchClearWaiting} from '../constants/waiting'

@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as ConfigConstants from '../constants/config'
 import * as ProfileConstants from '../constants/profile'
 import * as TrackerConstants from '../constants/tracker2'
+import * as UsersConstants from '../constants/users'
 import * as Followers from '../constants/followers'
-import * as Container from '../util/container'
 import * as Styles from '../styles'
 import Text, {
   type TextType,
@@ -89,9 +89,7 @@ const Username = React.memo(function Username(p: UsernameProps) {
   const you = p.you === username
 
   const following = Followers.useFollowerState(s => colorFollowing && s.following.has(username))
-  const broken = Container.useSelector(
-    state => (colorBroken && state.users.infoMap.get(username)?.broken) ?? false
-  )
+  const broken = UsersConstants.useState(s => (colorBroken && s.infoMap.get(username)?.broken) ?? false)
 
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onOpenProfile = React.useCallback(

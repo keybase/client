@@ -2,11 +2,11 @@
 import * as React from 'react'
 import Avatar from './avatar.render'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type IconStyle} from './icon'
-import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as AvatarZus from './avatar-zus'
 import * as Followers from '../constants/followers'
 import * as ConfigConstants from '../constants/config'
+import * as UsersConstants from '../constants/users'
 import * as ProfileConstants from '../constants/profile'
 import type * as Types from '../constants/types/teams'
 import './avatar.css'
@@ -121,9 +121,7 @@ const ConnectedAvatar = (ownProps: OwnProps) => {
     showFollowingStatus && username ? s.followers.has(username) : false
   )
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
-  const blocked = Container.useSelector(
-    state => state.users?.blockMap?.get(username || teamname || '')?.chatBlocked
-  )
+  const blocked = UsersConstants.useState(s => s.blockMap?.get(username || teamname || '')?.chatBlocked)
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const goToProfile = React.useCallback(
     () => username && showUserProfile(username),

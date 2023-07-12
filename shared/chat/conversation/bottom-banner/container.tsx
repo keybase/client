@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as UsersConstants from '../../../constants/users'
 import * as Container from '../../../util/container'
 import * as Followers from '../../../constants/followers'
 import * as Kb from '../../../common-adapters'
@@ -58,8 +59,8 @@ const Broken = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   const {conversationIDKey} = p
 
   const following = Followers.useFollowerState(s => s.following)
+  const infoMap = UsersConstants.useState(s => s.infoMap)
   const users = Container.useSelector(state => {
-    const {infoMap} = state.users
     const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
     return participantInfoAll.filter(p => following.has(p) && infoMap.get(p)?.broken)
   }, shallowEqual)
@@ -69,13 +70,13 @@ const Broken = (p: {conversationIDKey: Types.ConversationIDKey}) => {
 const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKey: Types.ConversationIDKey}) {
   const {conversationIDKey} = p
   const following = Followers.useFollowerState(s => s.following)
+  const infoMap = UsersConstants.useState(s => s.infoMap)
   const type = Container.useSelector(state => {
     const teamType = Constants.getMeta(state, conversationIDKey).teamType
     if (teamType !== 'adhoc') {
       return 'none'
     }
     const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
-    const {infoMap} = state.users
     const broken = participantInfoAll.some(p => following.has(p) && infoMap.get(p)?.broken)
     if (broken) {
       return 'broken'

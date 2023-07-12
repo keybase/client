@@ -4,7 +4,6 @@ import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as Followers from '../constants/followers'
 import * as GregorGen from './gregor-gen'
-import * as UsersGen from './users-gen'
 import * as Constants from '../constants/config'
 import * as Platform from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -141,8 +140,7 @@ const getAccountsWaitKey = 'config.getAccounts'
 
 const loadDaemonAccounts = async (
   _: unknown,
-  action: ConfigGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedInChangedPayload,
-  listenerApi: Container.ListenerApi
+  action: ConfigGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedInChangedPayload
 ) => {
   // ignore since we handle handshake
   if (
@@ -195,7 +193,11 @@ const loadDaemonAccounts = async (
       setDefaultUsername(currentName)
     }
     setAccounts(nextConfiguredAccounts)
-    listenerApi.dispatch(UsersGen.createUpdateFullnames({usernameToFullname}))
+    const UsersConstants = await import('../constants/users')
+    Object.keys(usernameToFullname).forEach(username => {
+      const fullname = usernameToFullname[username]
+      UsersConstants.useState.getState().dispatch.update(username, {fullname})
+    })
 
     if (handshakeWait) {
       // someone dismissed this already?

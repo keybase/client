@@ -2,6 +2,7 @@
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/tracker2'
+import * as UsersConstants from '../constants/users'
 import * as ConfigConstants from '../constants/config'
 import * as Followers from '../constants/followers'
 import * as Container from '../util/container'
@@ -28,13 +29,14 @@ const RemoteContainer = () => {
   const state = Container.useRemoteStore<DeserializeProps>()
   const dispatch = Container.useDispatch()
   const {avatarRefreshCounter, darkMode, trackerUsername, tracker2, followers, following, username} = state
-  const {httpSrvToken, httpSrvAddress} = state
+  const {httpSrvToken, httpSrvAddress, infoMap, blockMap} = state
   const {usernameToDetails} = tracker2
   const details = usernameToDetails.get(trackerUsername) ?? noDetails
   const {assertions, bio, followersCount, followingCount} = details
   const {guiID, location, reason, state: trackerState, teamShowcase} = details
   useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
   Followers.useFollowerState(s => s.dispatch.replace)(followers, following)
+  UsersConstants.useState(s => s.dispatch.replace)(infoMap, blockMap)
   ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
   Constants.useState(s => s.dispatch.replace)(tracker2.usernameToDetails)

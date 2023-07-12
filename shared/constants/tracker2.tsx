@@ -1,5 +1,6 @@
 import * as LinksConstants from './deeplinks'
 import * as ProfileConstants from './profile'
+import * as UsersConstants from './users'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Z from '../util/zustand'
@@ -365,6 +366,9 @@ export const useState = Z.createZustand<State>((set, get) => {
             d.followers = new Set(fs.users?.map(f => f.username))
             d.followersCount = d.followers.size
           })
+          for (const u of fs.users ?? []) {
+            UsersConstants.useState.getState().dispatch.update(u.username, {fullname: u.fullName})
+          }
         } catch (error) {
           if (error instanceof RPCError) {
             logger.error(`Error loading follower info: ${error.message}`)
@@ -382,6 +386,9 @@ export const useState = Z.createZustand<State>((set, get) => {
             d.following = new Set(fs.users?.map(f => f.username))
             d.followingCount = d.following.size
           })
+          for (const u of fs.users ?? []) {
+            UsersConstants.useState.getState().dispatch.update(u.username, {fullname: u.fullName})
+          }
         } catch (error) {
           if (error instanceof RPCError) {
             logger.error(`Error loading following info: ${error.message}`)
@@ -446,8 +453,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     notifyCard: (guiID, card) => {
+      const username = guiIDToUsername(get(), guiID)
       set(s => {
-        const username = guiIDToUsername(s, guiID)
         if (!username) return
         const {bio, blocked, fullName, hidFromFollowers, location, stellarHidden, teamShowcase} = card
         const {unverifiedNumFollowers, unverifiedNumFollowing} = card
@@ -471,6 +478,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           })) ?? []
         d.hidFromFollowers = hidFromFollowers
       })
+      username && UsersConstants.useState.getState().dispatch.update(username, {fullname: card.fullName})
     },
     notifyReset: guiID => {
       set(s => {
@@ -568,17 +576,3 @@ export const useState = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
-
-// TODO inject into users store
-// [Tracker2Gen.updatedDetails]: (draftState, action) => {
-//   const {username, fullname} = action.payload
-//   const {infoMap} = draftState
-//   updateInfo(infoMap, username, {fullname})
-// },
-// [Tracker2Gen.updateFollows]: (draftState, action) => {
-//   // Use new follower information to update full names
-//   const {followers, following} = action.payload
-//   const all = [...(followers || []), ...(following || [])]
-//   const {infoMap} = draftState
-//   all.forEach(({username, fullname}) => updateInfo(infoMap, username, {fullname}))
-// },

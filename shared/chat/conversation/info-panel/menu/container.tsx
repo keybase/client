@@ -1,4 +1,5 @@
 import * as ChatConstants from '../../../../constants/chat2'
+import * as UsersConstants from '../../../../constants/users'
 import * as ConfigConstants from '../../../../constants/config'
 import * as ChatGen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
@@ -35,6 +36,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
 
   const username = ConfigConstants.useCurrentUserState(s => s.username)
 
+  const infoMap = UsersConstants.useState(s => s.infoMap)
   const data = Container.useSelector(state => {
     const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
@@ -60,9 +62,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       const participants = ChatConstants.getRowParticipants(participantInfo, username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =
-        (participants.length === 1 &&
-          (state.users.infoMap.get(participants[0]!) || {fullname: ''}).fullname) ||
-        ''
+        (participants.length === 1 && (infoMap.get(participants[0]!) || {fullname: ''}).fullname) || ''
       const {teamID, teamname, channelname, membershipType, status, isMuted, teamType} = meta
       // TODO getCanPerformByID not reactive here
       const yourOperations = TeamConstants.getCanPerformByID(TeamConstants.useState.getState(), teamID)

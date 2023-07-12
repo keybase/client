@@ -1,6 +1,7 @@
 import * as BotConstants from '../../../constants/bots'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as UsersConstants from '../../../constants/users'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -237,7 +238,7 @@ const BotTab = (props: Props) => {
         !(!adhocTeam && TeamConstants.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
     )
     .map((bot, index) => ({...bot, index}))
-  const infoMap = Container.useSelector(state => state.users.infoMap)
+  const infoMap = UsersConstants.useState(s => s.infoMap)
   const loadedAllBots = Container.useSelector(state => state.chat2.featuredBotsLoaded)
 
   const usernamesToFeaturedBots = (usernames: string[]) =>

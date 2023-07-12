@@ -1,6 +1,7 @@
 import * as Container from '../../../util/container'
 import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
+import * as UsersConstants from '../../../constants/users'
 import * as ProfileConstants from '../../../constants/profile'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
@@ -21,11 +22,11 @@ const spinnerItem = 'spinner item'
 
 const MembersTab = (props: Props) => {
   const {conversationIDKey} = props
-  const {channelname, infoMap, teamID, teamname} = Container.useSelector(state => {
+  const infoMap = UsersConstants.useState(s => s.infoMap)
+  const {channelname, teamID, teamname} = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const {teamID, channelname, teamname} = meta
-    const infoMap = state.users.infoMap
-    return {channelname, infoMap, teamID, teamname}
+    return {channelname, teamID, teamname}
   }, shallowEqual)
 
   const teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(teamID))

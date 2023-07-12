@@ -5,12 +5,12 @@ import type * as Types from '../../../constants/types/teams'
 import type * as ChatTypes from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
+import * as UsersConstants from '../../../constants/users'
 import * as ProfileConstants from '../../../constants/profile'
 import * as ChatConstants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as UsersGen from '../../../actions/users-gen'
 import MenuHeader from '../../team/rows/menu-header.new'
 
 type Props = {
@@ -36,7 +36,7 @@ const showCrown: Types.BoolTypeMap = {
 
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
-  const infoMap = Container.useSelector(s => s.users.infoMap)
+  const infoMap = UsersConstants.useState(s => s.infoMap)
   const participantInfo = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey))
   const teamMemberInfo = Constants.useState(
     s => s.teamDetails.get(teamID)?.members?.get(username) ?? Constants.initialMemberInfo
@@ -129,6 +129,7 @@ const ChannelMemberRow = (props: Props) => {
   )
 
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
+  const setUserBlocks = UsersConstants.useState(s => s.dispatch.setUserBlocks)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
@@ -144,19 +145,16 @@ const ChannelMemberRow = (props: Props) => {
             ],
           })
         )
-      const onBlock = () =>
+      const onBlock = () => {
         username &&
-        dispatch(
-          UsersGen.createSetUserBlocks({
-            blocks: [
-              {
-                setChatBlock: true,
-                setFollowBlock: true,
-                username,
-              },
-            ],
-          })
-        )
+          setUserBlocks([
+            {
+              setChatBlock: true,
+              setFollowBlock: true,
+              username,
+            },
+          ])
+      }
 
       const menuItems: Kb.MenuItems = [
         'Divider',
@@ -224,6 +222,7 @@ const ChannelMemberRow = (props: Props) => {
       )
     },
     [
+      setUserBlocks,
       fullname,
       roleLabel,
       teamID,
