@@ -8,10 +8,10 @@ export type Device = {
 }
 
 export type State = {
-  readonly popupOpen: boolean
-  readonly devices: Array<Device>
-  readonly paperkeyError?: string
-  readonly phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success'
-  readonly sessionID?: number
-  readonly waiting: boolean
+  popupOpen: boolean
+  devices: Array<Device>
+  paperkeyError?: string
+  phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success'
+  sessionID?: number
+  waiting: boolean
 }
