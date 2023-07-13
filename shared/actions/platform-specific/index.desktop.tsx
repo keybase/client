@@ -203,15 +203,6 @@ const maybePauseVideos = () => {
   })
 }
 
-const editAvatar = () => {
-  const reduxDispatch = Z.getReduxDispatch()
-  reduxDispatch(
-    RouteTreeGen.createNavigateAppend({
-      path: [{props: {image: undefined}, selected: 'profileEditAvatar'}],
-    })
-  )
-}
-
 export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.showMain, () => showMainWindow?.())
   Container.listenAction(ConfigGen.dumpLogs, dumpLogs)
@@ -288,7 +279,16 @@ export const initPlatformListener = () => {
     FsConstants.useState.getState().dispatch.userFileEditsLoad()
   })
 
-  ProfileConstants.useState.getState().dispatch.setEditAvatar(editAvatar)
+  ProfileConstants.useState.setState(s => {
+    s.dispatch.editAvatar = () => {
+      const reduxDispatch = Z.getReduxDispatch()
+      reduxDispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {image: undefined}, selected: 'profileEditAvatar'}],
+        })
+      )
+    }
+  })
 
   initializeInputMonitor()
 

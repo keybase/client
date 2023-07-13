@@ -153,6 +153,7 @@ type State = Store & {
   dispatch: {
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
+    filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
     initNotifySound: () => void
     initOpenAtLogin: () => void
@@ -160,6 +161,7 @@ type State = Store & {
     loadIsOnline: () => void
     login: (username: string, password: string) => void
     loginError: (error?: RPCError) => void
+    onFilePickerErrorNative: (error: Error) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
@@ -231,6 +233,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         await _checkForUpdate()
       }
       ignorePromise(f())
+    },
+    filePickerError: error => {
+      get().dispatch.onFilePickerErrorNative(error)
     },
     initAppUpdateLoop: () => {
       const f = async () => {
@@ -373,6 +378,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       // hidden and the user can see and respond to the error.
       get().dispatch.setUserSwitching(false)
     },
+    onFilePickerErrorNative: () => {
+      // override this
+    },
     remoteWindowNeedsProps: (component, params) => {
       set(s => {
         const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
@@ -392,6 +400,10 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         appFocused: s.appFocused,
         configuredAccounts: s.configuredAccounts,
         defaultUsername: s.defaultUsername,
+        dispatch: {
+          ...s.dispatch,
+          onFilePickerErrorNative: s.dispatch.onFilePickerErrorNative,
+        },
         startup: {loaded: s.startup.loaded},
         useNativeFrame: s.useNativeFrame,
         userSwitching: s.userSwitching,

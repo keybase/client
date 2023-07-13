@@ -47,7 +47,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
 
   const restartHandshake = () => {
-    reduxDispatch(ConfigGen.createRestartHandshake())
+    get().dispatch.onRestartHandshakeNative()
     get().dispatch.setState('starting')
     get().dispatch.setFailed('')
     set(s => {

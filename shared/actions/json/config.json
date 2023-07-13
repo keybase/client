@@ -1,9 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
-    "restartHandshake": {
-      "_description": "internal to config. should restart the handshake process"
-    },
     "daemonHandshake": {
       "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
       "firstTimeConnecting": "boolean",
@@ -11,10 +8,6 @@
     },
     "daemonHandshakeDone": {
       "_description": "ready to show the app"
-    },
-    "filePickerError": {
-      "_description": "Sent whenever the mobile file picker encounters an error.",
-      "error": "Error"
     },
     "logoutAndTryToLogInAs": {
       "_description": [

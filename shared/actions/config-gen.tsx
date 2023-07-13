@@ -13,7 +13,6 @@ export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const dumpLogs = 'config:dumpLogs'
-export const filePickerError = 'config:filePickerError'
 export const initListenerLoops = 'config:initListenerLoops'
 export const installerRan = 'config:installerRan'
 export const loadOnStart = 'config:loadOnStart'
@@ -28,7 +27,6 @@ export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const persistRoute = 'config:persistRoute'
 export const powerMonitorEvent = 'config:powerMonitorEvent'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
-export const restartHandshake = 'config:restartHandshake'
 export const revoked = 'config:revoked'
 export const setNavigator = 'config:setNavigator'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
@@ -78,13 +76,6 @@ export const createPowerMonitorEvent = (payload: {readonly event: string}) => ({
   type: powerMonitorEvent as typeof powerMonitorEvent,
 })
 /**
- * Sent whenever the mobile file picker encounters an error.
- */
-export const createFilePickerError = (payload: {readonly error: Error}) => ({
-  payload,
-  type: filePickerError as typeof filePickerError,
-})
-/**
  * This action is dispatched multiple times with various flags.
  * If you want to do something as a result of startup or login listen to this.
  */
@@ -108,13 +99,6 @@ export const createUpdateWindowShown = (payload: {readonly component: string}) =
 export const createInstallerRan = (payload?: undefined) => ({
   payload,
   type: installerRan as typeof installerRan,
-})
-/**
- * internal to config. should restart the handshake process
- */
-export const createRestartHandshake = (payload?: undefined) => ({
-  payload,
-  type: restartHandshake as typeof restartHandshake,
 })
 /**
  * main electron window changed max/min
@@ -242,7 +226,6 @@ export type DaemonHandshakeDonePayload = ReturnType<typeof createDaemonHandshake
 export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
-export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
@@ -257,7 +240,6 @@ export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkSta
 export type PersistRoutePayload = ReturnType<typeof createPersistRoute>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
-export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
 export type RevokedPayload = ReturnType<typeof createRevoked>
 export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
@@ -280,7 +262,6 @@ export type Actions =
   | DaemonHandshakePayload
   | DarkModePreferenceChangedPayload
   | DumpLogsPayload
-  | FilePickerErrorPayload
   | InitListenerLoopsPayload
   | InstallerRanPayload
   | LoadOnStartPayload
@@ -295,7 +276,6 @@ export type Actions =
   | PersistRoutePayload
   | PowerMonitorEventPayload
   | RemoteWindowWantsPropsPayload
-  | RestartHandshakePayload
   | RevokedPayload
   | SetNavigatorPayload
   | SetSystemDarkModePayload

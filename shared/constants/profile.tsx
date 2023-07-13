@@ -137,7 +137,6 @@ type State = Store & {
     hideStellar: (h: boolean) => void
     recheckProof: (sigID: string) => void
     resetState: () => void
-    setEditAvatar: (f: () => void) => void
     showUserProfile: (username: string) => void
     submitBlockUser: (username: string) => void
     submitBTCAddress: () => void
@@ -692,12 +691,13 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     resetState: () => {
       // keep our injected callbacks
-      set(s => ({...s, ...initialStore}))
-    },
-    setEditAvatar: (f: () => void) => {
-      set(s => {
-        s.dispatch.editAvatar = f
-      })
+      set(s => ({
+        ...s,
+        ...initialStore,
+        dispatch: {
+          editAvatar: s.dispatch.editAvatar,
+        },
+      }))
     },
     showUserProfile: username => {
       if (isMobile) {
