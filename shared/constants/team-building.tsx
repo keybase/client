@@ -1,4 +1,5 @@
 import * as RPCTypes from './types/rpc-gen'
+import {serviceIdFromString} from '../util/platforms'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterConstants from './router2'
@@ -35,6 +36,7 @@ export const selfToUser = (you: string): Types.User => ({
 export const searchWaitingKey = 'teamBuilding:search'
 
 export type Store = {
+  namespace: Types.AllowedNamespace
   error: string
   teamSoFar: Set<Types.User>
   searchResults: Types.SearchResults
@@ -54,6 +56,7 @@ export const initialStore: Store = {
   finishedSelectedRole: 'writer',
   finishedSendNotification: true,
   finishedTeam: new Set(),
+  namespace: 'crypto',
   searchLimit: 11,
   searchQuery: '',
   searchResults: new Map(),
@@ -70,7 +73,9 @@ export type State = Store & {
     cancelTeamBuilding: () => void
     changeSendNotification: (sendNotification: boolean) => void
     closeTeamBuilding: () => void
+    fetchUserRecs: (includeContacts: boolean) => void
     finishTeamBuilding: () => void
+    finishedTeamBuilding: () => void
     removeUsersFromTeamSoFar: (users: Array<Types.UserID>) => void
     resetState: () => void
     search: (
@@ -80,6 +85,7 @@ export type State = Store & {
       limit?: number
     ) => void
     selectRole: (role: TeamRoleType) => void
+    setError: (error: string) => void
   }
 }
 
@@ -229,7 +235,45 @@ async function specialContactSearch(users: Types.User[], query: string, region?:
   return users
 }
 
-export const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
+type HasServiceMap = {
+  username: string
+  serviceMap: {[key: string]: string}
+}
+
+const pluckServiceMap = (contact: HasServiceMap) =>
+  Object.entries(contact.serviceMap || {})
+    .concat([['keybase', contact.username]])
+    .reduce<Types.ServiceMap>((acc, [service, username]) => {
+      if (serviceIdFromString(service) === service) {
+        // Service can also give us proof values like "https" or "dns" that
+        // we don't want here.
+        acc[service] = username
+      }
+      return acc
+    }, {})
+
+const contactToUser = (contact: RPCTypes.ProcessedContact): Types.User => ({
+  contact: true,
+  id: contact.assertion,
+  label: contact.displayLabel,
+  prettyName: contact.displayName,
+  serviceId: contact.component.phoneNumber ? 'phone' : 'email',
+  serviceMap: pluckServiceMap(contact),
+  username: contact.component.email || contact.component.phoneNumber || '',
+})
+
+const interestingPersonToUser = (person: RPCTypes.InterestingPerson): Types.User => {
+  const {username, fullname} = person
+  return {
+    id: username,
+    prettyName: fullname,
+    serviceId: 'keybase' as const,
+    serviceMap: pluckServiceMap(person),
+    username: username,
+  }
+}
+
+const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
 
   const dispatch: State['dispatch'] = {
@@ -257,11 +301,54 @@ export const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         reduxDispatch(RouteTreeGen.createNavigateUp())
       }
     },
+    fetchUserRecs: includeContacts => {
+      const f = async () => {
+        try {
+          const [_suggestionRes, _contactRes] = await Promise.all([
+            RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50, namespace: get().namespace}),
+            includeContacts
+              ? RPCTypes.contactsGetContactsForUserRecommendationsRpcPromise()
+              : Promise.resolve([] as RPCTypes.ProcessedContact[]),
+          ])
+          const suggestionRes = _suggestionRes || []
+          const contactRes = _contactRes || []
+          const contacts = contactRes.map(contactToUser)
+          let suggestions = suggestionRes.map(interestingPersonToUser)
+          const expectingContacts =
+            SettingsConstants.useContactsState.getState().importEnabled && includeContacts
+          if (expectingContacts) {
+            suggestions = suggestions.slice(0, 10)
+          }
+          set(s => {
+            s.userRecs = suggestions.concat(contacts)
+          })
+        } catch (err) {
+          logger.error(`Error in fetching recs: ${String(err)}`)
+          set(s => {
+            s.userRecs = []
+          })
+        }
+      }
+      Z.ignorePromise(f())
+    },
     finishTeamBuilding: () => {
       set(s => {
         s.error = ''
       })
       get().dispatch.closeTeamBuilding()
+    },
+    finishedTeamBuilding: () => {
+      set(s => {
+        return {
+          ...initialStore,
+          finishedSelectedRole: s.selectedRole,
+          finishedSendNotification: s.sendNotification,
+          finishedTeam: s.teamSoFar,
+          selectedRole: s.selectedRole,
+          sendNotification: s.sendNotification,
+          teamSoFar: s.teamSoFar,
+        }
+      })
     },
     removeUsersFromTeamSoFar: users => {
       set(s => {
@@ -279,6 +366,7 @@ export const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       set(s => ({
         ...s,
         ...initialStore,
+        namespace: s.namespace,
       }))
     },
     search: (includeContacts, query, service, limit) => {
@@ -329,32 +417,17 @@ export const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         s.selectedRole = role
       })
     },
+    setError: error => {
+      set(s => {
+        s.error = error
+      })
+    },
   }
   return {
     ...initialStore,
     dispatch,
   }
 }
-
-// [TeamBuildingGen.setError]: (draftState, action) => {
-//   draftState.error = action.payload.error
-// },
-// [TeamBuildingGen.finishedTeamBuilding]: draftState => {
-//   return {
-//     ...Constants.makeSubState(),
-//     finishedSelectedRole: draftState.selectedRole,
-//     finishedSendNotification: draftState.sendNotification,
-//     finishedTeam: draftState.teamSoFar,
-//     selectedRole: initialState.selectedRole,
-//     sendNotification: initialState.sendNotification,
-//     teamSoFar: initialState.teamSoFar,
-//   }
-// },
-// [TeamBuildingGen.fetchedUserRecs]: (draftState, action) => {
-//   draftState.userRecs = action.payload.users
-// },
-// }
-// }
 
 type MadeStore = UseBoundStore<StoreApi<State>>
 export const stores = new Map<Types.AllowedNamespace, MadeStore>()
@@ -363,6 +436,7 @@ const createTBStore = (namespace: Types.AllowedNamespace) => {
   const existing = stores.get(namespace)
   if (existing) return existing
   const next = Z.createZustand<State>(createSlice)
+  next.setState({namespace})
   stores.set(namespace, next)
   return next
 }
