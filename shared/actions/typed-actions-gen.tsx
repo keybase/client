@@ -3,7 +3,6 @@ import type * as bots from './bots-gen'
 import type * as chat2 from './chat2-gen'
 import type * as config from './config-gen'
 import type * as deeplinks from './deeplinks-gen'
-import type * as dev from './dev-gen'
 import type * as enginegen from './engine-gen-gen'
 import type * as fs from './fs-gen'
 import type * as gregor from './gregor-gen'
@@ -20,7 +19,6 @@ export type TypedActions =
   | chat2.Actions
   | config.Actions
   | deeplinks.Actions
-  | dev.Actions
   | enginegen.Actions
   | fs.Actions
   | gregor.Actions
