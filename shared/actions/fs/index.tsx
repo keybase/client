@@ -594,7 +594,7 @@ const initFS = () => {
   Container.listenAction(FsGen.deleteFile, deleteFile)
   Container.listenAction(FsGen.pollJournalStatus, pollJournalFlushStatusUntilDone)
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
-  Container.listenAction([ConfigGen.installerRan, ConfigGen.loggedInChanged, FsGen.userIn], (_, a) => {
+  Container.listenAction([ConfigGen.REMOTEinstallerRan, ConfigGen.loggedInChanged, FsGen.userIn], (_, a) => {
     if (a.type === ConfigGen.loggedInChanged && !ConfigConstants.useConfigState.getState().loggedIn) {
       return
     }

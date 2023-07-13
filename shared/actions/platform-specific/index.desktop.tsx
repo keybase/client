@@ -68,15 +68,6 @@ const initializeInputMonitor = () => {
   }
 }
 
-export const dumpLogs = async (_?: unknown, action?: ConfigGen.DumpLogsPayload) => {
-  await logger.dump()
-  await (dumpNodeLogger?.() ?? Promise.resolve([]))
-  // quit as soon as possible
-  if (action && action.payload.reason === 'quitting through menu') {
-    ctlQuit?.()
-  }
-}
-
 const checkRPCOwnership = async (_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) => {
   const waitKey = 'pipeCheckFail'
   const {version} = action.payload
@@ -133,15 +124,6 @@ const onShutdown = (_: unknown, action: EngineGen.Keybase1NotifyServiceShutdownP
 const onConnected = () => {
   // Introduce ourselves to the service
   RPCTypes.configHelloIAmRpcPromise({details: KB2.constants.helloDetails}).catch(() => {})
-}
-
-const prepareLogSend = async (_: unknown, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
-  const response = action.payload.response
-  try {
-    await dumpLogs()
-  } finally {
-    response?.result()
-  }
 }
 
 const onCopyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) => {
@@ -203,11 +185,29 @@ const maybePauseVideos = () => {
   })
 }
 
+export const dumpLogs = async (action?: ConfigGen.REMOTEdumpLogsPayload) => {
+  await logger.dump()
+  await (dumpNodeLogger?.() ?? Promise.resolve([]))
+  // quit as soon as possible
+  if (action?.payload.reason === 'quitting through menu') {
+    ctlQuit?.()
+  }
+}
+
 export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.showMain, () => showMainWindow?.())
-  Container.listenAction(ConfigGen.dumpLogs, dumpLogs)
+  Container.listenAction(ConfigGen.REMOTEdumpLogs, async (_, a) => {
+    await dumpLogs(a)
+  })
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
-  Container.listenAction(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
+  Container.listenAction(EngineGen.keybase1LogsendPrepareLogsend, async (_, action) => {
+    const response = action.payload.response
+    try {
+      await dumpLogs()
+    } finally {
+      response?.result()
+    }
+  })
   Container.listenAction(EngineGen.connected, onConnected)
   Container.listenAction(EngineGen.keybase1NotifyAppExit, onExit)
   Container.listenAction(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
@@ -277,6 +277,10 @@ export const initPlatformListener = () => {
   ConfigConstants.useConfigState.getState().dispatch.initAppUpdateLoop()
   Container.listenAction(FsGen.userFileEditsLoad, () => {
     FsConstants.useState.getState().dispatch.userFileEditsLoad()
+  })
+
+  Container.listenAction(ConfigGen.REMOTEinstallerRan, () => {
+    ConfigConstants.useConfigState.getState().dispatch.installerRan()
   })
 
   ProfileConstants.useState.setState(s => {

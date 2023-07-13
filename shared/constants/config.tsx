@@ -158,6 +158,7 @@ type State = Store & {
     initNotifySound: () => void
     initOpenAtLogin: () => void
     initUseNativeFrame: () => void
+    installerRan: () => void
     loadIsOnline: () => void
     login: (username: string, password: string) => void
     loginError: (error?: RPCError) => void
@@ -282,6 +283,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
+    installerRan: () => {},
     loadIsOnline: () => {
       const f = async () => {
         try {

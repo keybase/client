@@ -5,6 +5,8 @@ import type * as Types from '../constants/types/config'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
+export const REMOTEdumpLogs = 'config:REMOTEdumpLogs'
+export const REMOTEinstallerRan = 'config:REMOTEinstallerRan'
 export const androidShare = 'config:androidShare'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
@@ -12,9 +14,7 @@ export const copyToClipboard = 'config:copyToClipboard'
 export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
-export const dumpLogs = 'config:dumpLogs'
 export const initListenerLoops = 'config:initListenerLoops'
-export const installerRan = 'config:installerRan'
 export const loadOnStart = 'config:loadOnStart'
 export const loggedInChanged = 'config:loggedInChanged'
 export const logoutHandshake = 'config:logoutHandshake'
@@ -87,9 +87,9 @@ export const createUpdateWindowShown = (payload: {readonly component: string}) =
 /**
  * desktop only: the installer ran and we can start up
  */
-export const createInstallerRan = (payload?: undefined) => ({
+export const createREMOTEinstallerRan = (payload?: undefined) => ({
   payload,
-  type: installerRan as typeof installerRan,
+  type: REMOTEinstallerRan as typeof REMOTEinstallerRan,
 })
 /**
  * main electron window changed max/min
@@ -163,10 +163,6 @@ export const createDarkModePreferenceChanged = (payload?: undefined) => ({
   payload,
   type: darkModePreferenceChanged as typeof darkModePreferenceChanged,
 })
-export const createDumpLogs = (payload: {readonly reason: 'quitting through menu'}) => ({
-  payload,
-  type: dumpLogs as typeof dumpLogs,
-})
 export const createLoggedInChanged = (payload: {readonly causedByStartup: boolean}) => ({
   payload,
   type: loggedInChanged as typeof loggedInChanged,
@@ -186,6 +182,10 @@ export const createOsNetworkStatusChanged = (payload: {
 export const createPersistRoute = (payload: {readonly path?: Array<any>} = {}) => ({
   payload,
   type: persistRoute as typeof persistRoute,
+})
+export const createREMOTEdumpLogs = (payload: {readonly reason: 'quitting through menu'}) => ({
+  payload,
+  type: REMOTEdumpLogs as typeof REMOTEdumpLogs,
 })
 export const createRevoked = (payload?: undefined) => ({payload, type: revoked as typeof revoked})
 export const createSetNavigator = (payload: {readonly navigator: any}) => ({
@@ -216,9 +216,7 @@ export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
 export type DaemonHandshakeDonePayload = ReturnType<typeof createDaemonHandshakeDone>
 export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
-export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
-export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type LoggedInChangedPayload = ReturnType<typeof createLoggedInChanged>
 export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
@@ -229,6 +227,8 @@ export type OpenAtLoginChangedPayload = ReturnType<typeof createOpenAtLoginChang
 export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
 export type PersistRoutePayload = ReturnType<typeof createPersistRoute>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
+export type REMOTEdumpLogsPayload = ReturnType<typeof createREMOTEdumpLogs>
+export type REMOTEinstallerRanPayload = ReturnType<typeof createREMOTEinstallerRan>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type RevokedPayload = ReturnType<typeof createRevoked>
 export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
@@ -251,9 +251,7 @@ export type Actions =
   | DaemonHandshakeDonePayload
   | DaemonHandshakePayload
   | DarkModePreferenceChangedPayload
-  | DumpLogsPayload
   | InitListenerLoopsPayload
-  | InstallerRanPayload
   | LoadOnStartPayload
   | LoggedInChangedPayload
   | LogoutHandshakePayload
@@ -264,6 +262,8 @@ export type Actions =
   | OsNetworkStatusChangedPayload
   | PersistRoutePayload
   | PowerMonitorEventPayload
+  | REMOTEdumpLogsPayload
+  | REMOTEinstallerRanPayload
   | RemoteWindowWantsPropsPayload
   | RevokedPayload
   | SetNavigatorPayload

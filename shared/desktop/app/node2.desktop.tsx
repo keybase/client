@@ -744,7 +744,7 @@ const plumbEvents = () => {
         // run installer
         installer(mainWindowDispatch, err => {
           err && console.log('Error: ', err)
-          mainWindowDispatch(ConfigGen.createInstallerRan())
+          mainWindowDispatch(ConfigGen.createREMOTEinstallerRan())
         })
         break
       case 'requestWindowsStartService':
