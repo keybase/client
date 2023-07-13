@@ -3846,7 +3846,9 @@ const updateTyping = (action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) 
   typingUpdates?.forEach(u => {
     typingMap.set(Types.conversationIDToKey(u.convID), new Set(u.typers?.map(t => t.username)))
   })
-  Constants.useState.setState({typingMap})
+  Constants.useState.setState(s => {
+    s.typingMap = typingMap
+  })
 }
 
 const initChat = () => {

@@ -4,6 +4,7 @@ import * as ProfileConstants from '../../constants/profile'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as FsConstants from '../../constants/fs'
+import * as DaemonConstants from '../../constants/daemon'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -147,13 +148,6 @@ const onCopyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload)
   copyToClipboard?.(action.payload.text)
 }
 
-const sendWindowsKBServiceCheck = () => {
-  const {handshakeFailedReason} = ConfigConstants.useDaemonState.getState()
-  if (isWindows && handshakeFailedReason === ConfigConstants.noKBFSFailReason) {
-    requestWindowsStartService?.()
-  }
-}
-
 export const requestLocationPermission = async () => Promise.resolve()
 export const watchPositionForMap = async () => Promise.resolve(() => {})
 
@@ -229,7 +223,6 @@ export const initPlatformListener = () => {
   Container.listenAction(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
   Container.listenAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
   Container.listenAction(ConfigGen.copyToClipboard, onCopyToClipboard)
-  Container.listenAction(ConfigGen.restartHandshake, sendWindowsKBServiceCheck)
   Container.listenAction(ConfigGen.loggedInChanged, initOsNetworkStatus)
 
   ConfigConstants.useConfigState.subscribe((s, prev) => {
@@ -298,4 +291,13 @@ export const initPlatformListener = () => {
   ProfileConstants.useState.getState().dispatch.setEditAvatar(editAvatar)
 
   initializeInputMonitor()
+
+  DaemonConstants.useDaemonState.setState(s => {
+    s.dispatch.onRestartHandshakeNative = () => {
+      const {handshakeFailedReason} = ConfigConstants.useDaemonState.getState()
+      if (isWindows && handshakeFailedReason === ConfigConstants.noKBFSFailReason) {
+        requestWindowsStartService?.()
+      }
+    }
+  })
 }

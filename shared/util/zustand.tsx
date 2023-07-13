@@ -1,7 +1,7 @@
 // helpers for redux / zustand
 import type {TypedActions} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
-import {create as _create, type StateCreator, type StoreMutatorIdentifier} from 'zustand'
+import {create as _create, type StateCreator} from 'zustand'
 import {immer as immerZustand} from 'zustand/middleware/immer'
 
 type TypedDispatch = (action: TypedActions) => void
@@ -49,15 +49,11 @@ type HasReset = {dispatch: {resetState: 'default' | (() => void)}}
 
 const resetters: (() => void)[] = []
 // Auto adds immer and keeps track of resets
-export const createZustand = <
-  T extends HasReset,
-  Mps extends [StoreMutatorIdentifier, unknown][] = [],
-  Mcs extends [StoreMutatorIdentifier, unknown][] = []
->(
-  initializer: StateCreator<T, [...Mps, ['zustand/immer', never]], Mcs>
+export const createZustand = <T extends HasReset>(
+  initializer: StateCreator<T, [['zustand/immer', never]]>
 ) => {
   const f = immerZustand(initializer)
-  const store = _create<T>(f as StateCreator<T>)
+  const store = _create<T, [['zustand/immer', never]]>(f)
   const initialState = store.getState()
   const reset = initialState.dispatch.resetState
   if (reset === 'default') {
@@ -76,8 +72,4 @@ export const resetAllStores = () => {
   }
 }
 
-export type ImmerStateCreator<
-  T,
-  Mps extends [StoreMutatorIdentifier, unknown][] = [],
-  Mcs extends [StoreMutatorIdentifier, unknown][] = []
-> = StateCreator<T, [...Mps, ['zustand/immer', never]], Mcs>
+export type ImmerStateCreator<T> = StateCreator<T, [['zustand/immer', never]]>
