@@ -1,5 +1,4 @@
 import * as ConfigConstants from './config'
-// import * as TeamBuildingConstants from './team-building'
 import * as Followers from './followers'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
@@ -533,11 +532,3 @@ export const useState = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
-// import {create} from 'zustand'
-// import {immer as immerZustand} from 'zustand/middleware/immer'
-// export const useState = create<State & TeamBuildingConstants.State>()(
-//   immerZustand((...a) => ({
-//     ...createSlice(...a),
-//     ...TeamBuildingConstants.createSlice(...a),
-//   }))
-// )
