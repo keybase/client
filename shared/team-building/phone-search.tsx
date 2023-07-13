@@ -17,9 +17,7 @@ type PhoneSearchProps = {
 
 const PhoneSearch = (props: PhoneSearchProps) => {
   const {namespace} = props
-  const teamBuildingSearchResults = Container.useSelector(
-    state => state[namespace].teamBuilding.searchResults
-  )
+  const teamBuildingSearchResults = Constants.useContext(s => s.searchResults)
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
   const [phoneNumber, setPhoneNumber] = React.useState('')
   const [phoneInputKey, setPhoneInputKey] = React.useState(0)

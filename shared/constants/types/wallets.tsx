@@ -1,6 +1,6 @@
 import type HiddenString from '../../util/hidden-string'
 import type * as StellarRPCTypes from './rpc-stellar-gen'
-import type * as TeamBuildingTypes from './team-building'
+// import type * as TeamBuildingTypes from './team-building'
 
 // When accepting the Stellar disclaimer, next path after acceptance
 export type NextScreenAfterAcceptance = 'airdrop' | 'openWallet'
@@ -338,7 +338,7 @@ export type State = {
   readonly sep7ConfirmURI: string
   readonly sep7SendError: string
   readonly staticConfig?: StaticConfig
-  readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  // readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   readonly trustline: Trustline
   readonly unreadPaymentsMap: Map<string, number>
 }

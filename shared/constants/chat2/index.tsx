@@ -1,6 +1,6 @@
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
-import * as TeamBuildingConstants from '../team-building'
+// import * as TeamBuildingConstants from '../team-building'
 import * as Types from '../types/chat2'
 import * as Router2 from '../router2'
 import * as ConfigConstants from '../config'
@@ -135,7 +135,7 @@ export const makeState = (): Types.State => ({
   smallTeamBadgeCount: 0,
   smallTeamsExpanded: false,
   staticConfig: undefined,
-  teamBuilding: TeamBuildingConstants.makeSubState(),
+  // teamBuilding: TeamBuildingConstants.makeSubState(),
   teamIDToGeneralConvID: new Map(),
   threadLoadStatus: new Map(),
   threadSearchInfoMap: new Map(),

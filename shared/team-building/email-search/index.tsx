@@ -17,9 +17,7 @@ type EmailSearchProps = {
 }
 
 const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
-  const teamBuildingSearchResults = Container.useSelector(
-    state => state[namespace].teamBuilding.searchResults
-  )
+  const teamBuildingSearchResults = Constants.useContext(s => s.searchResults)
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)

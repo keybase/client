@@ -1,4 +1,3 @@
-import type {TeamRoleType} from './teams'
 import type {ServiceId as _ServiceId} from '../../util/platforms'
 
 export const allowedNamespace = ['chat2', 'crypto', 'teams', 'people', 'wallets'] as const
@@ -35,26 +34,10 @@ export type SearchKey = Array<SearchString /*| ServiceIdWithContact*/>
 
 // This is what should be kept in the reducer
 // Keyed so that we never get results that don't match the user's input (e.g. outdated results)
-type Query = string
+export type Query = string
 
 export type SearchResults = Map<Query, Map<ServiceIdWithContact, Array<User>>>
 export type ServiceResultCount = Map<SearchString, Map<ServiceIdWithContact, number>>
-
-export type TeamBuildingSubState = {
-  readonly error: string
-  readonly teamSoFar: Set<User>
-  readonly searchResults: SearchResults
-  readonly serviceResultCount: ServiceResultCount
-  readonly finishedTeam: Set<User>
-  readonly finishedSelectedRole: TeamRoleType
-  readonly finishedSendNotification: boolean
-  readonly searchQuery: Query
-  readonly selectedService: ServiceIdWithContact
-  readonly searchLimit: number
-  readonly userRecs?: Array<User>
-  readonly selectedRole: TeamRoleType
-  readonly sendNotification: boolean
-}
 
 export type SelectedUser = {
   userId: string

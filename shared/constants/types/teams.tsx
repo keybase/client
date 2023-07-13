@@ -1,6 +1,6 @@
 import type * as RPCTypes from './rpc-gen'
 import type {ConversationIDKey} from './chat2'
-import type {TeamBuildingSubState} from './team-building'
+// import type {TeamBuildingSubState} from './team-building'
 
 export type TeamID = string
 export const stringToTeamID = (s: string): TeamID => s
@@ -230,6 +230,6 @@ export type TeamInviteState = {
   inviteDetails?: RPCTypes.InviteLinkDetails
 }
 
-export type State = {
-  teamBuilding: TeamBuildingSubState
-}
+// export type State = {
+// teamBuilding: TeamBuildingSubState
+// }

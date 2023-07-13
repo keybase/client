@@ -1,13 +1,13 @@
 import * as Constants from '../constants/people'
 import * as Router2Constants from '../constants/router2'
-import * as ProfileConstants from '../constants/profile'
+// import * as ProfileConstants from '../constants/profile'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
-import * as TeamBuildingGen from './team-building-gen'
-import {commonListenActions, filterForNs} from './team-building'
+// import * as TeamBuildingGen from './team-building-gen'
+// import {commonListenActions, filterForNs} from './team-building'
 
 // const dismissWotNotifications = async (_: unknown, action: PeopleGen.DismissWotNotificationsPayload) => {
 //   try {
@@ -25,16 +25,16 @@ import {commonListenActions, filterForNs} from './team-building'
 //     updates: new Map<string, Types.WotUpdate>(Object.entries(action.payload.badgeState.wotUpdates || {})),
 //   })
 
-const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.AddUsersToTeamSoFarPayload) => {
-  const {users} = action.payload
-  const user = users[0]
-  if (!user) return false
+// const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.AddUsersToTeamSoFarPayload) => {
+//   const {users} = action.payload
+//   const user = users[0]
+//   if (!user) return false
 
-  // keybase username is in serviceMap.keybase, otherwise assertion is id
-  const username = user.serviceMap.keybase || user.id
-  ProfileConstants.useState.getState().dispatch.showUserProfile(username)
-  return TeamBuildingGen.createCancelTeamBuilding({namespace: 'people'})
-}
+//   // keybase username is in serviceMap.keybase, otherwise assertion is id
+//   const username = user.serviceMap.keybase || user.id
+//   ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+//   return TeamBuildingGen.createCancelTeamBuilding({namespace: 'people'})
+// }
 
 const initPeople = () => {
   // Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
@@ -60,8 +60,9 @@ const initPeople = () => {
       Constants.useState.getState().dispatch.markViewed()
     }
   })
-  commonListenActions('people')
-  Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
+  // TODO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  // commonListenActions('people')
+  // Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
   Container.listenAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, (_, action) => {
     Constants.useState.getState().dispatch.setResentEmail(action.payload.params.emailAddress)
   })

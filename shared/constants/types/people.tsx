@@ -1,5 +1,4 @@
 import type * as RPCTypes from './rpc-gen'
-import type * as TeamBuildingTypes from './team-building'
 import type {IconType} from '../../common-adapters/icon.constants-gen'
 
 export type ItemTypeEnum = RPCTypes.HomeScreenItemType
@@ -70,8 +69,4 @@ export type FollowSuggestion = {
   fullName?: string
   iFollow: boolean
   username: string
-}
-
-export type State = {
-  teamBuilding: TeamBuildingTypes.TeamBuildingSubState
 }

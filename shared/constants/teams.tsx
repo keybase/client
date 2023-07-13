@@ -9,7 +9,7 @@ import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Router2Constants from './router2'
 import * as Tabs from './tabs'
-import * as TeamBuildingConstants from './team-building'
+// import * as TeamBuildingConstants from './team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Types from './types/teams'
 import * as Z from '../util/zustand'
@@ -233,12 +233,12 @@ export const newTeamWizardEmptyState: State['newTeamWizard'] = {
 
 export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, username: ''}
 
-const emptyState: Types.State = {
-  teamBuilding: TeamBuildingConstants.makeSubState(),
-}
+// const emptyState: Types.State = {
+// teamBuilding: TeamBuildingConstants.makeSubState(),
+// }
 
-export const makeState = (s?: Partial<Types.State>): Types.State =>
-  s ? Object.assign({...emptyState}, s) : emptyState
+// export const makeState = (s?: Partial<Types.State>): Types.State =>
+//   s ? Object.assign({...emptyState}, s) : emptyState
 
 export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
   changeOpenTeam: false,

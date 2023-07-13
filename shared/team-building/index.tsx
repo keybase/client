@@ -1,4 +1,5 @@
 import * as ChatConstants from '../constants/chat2'
+import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -108,13 +109,16 @@ const TeamBuilding = (p: OwnProps) => {
     setEnterInputCounter(old => old + 1)
   }, [setEnterInputCounter])
 
-  const teamBuildingState = Container.useSelector(state => state[namespace].teamBuilding)
-  const userResults: Array<TeamBuildingTypes.User> | undefined = teamBuildingState.searchResults
+  const searchResults = Constants.useContext(s => s.searchResults)
+  const error = Constants.useContext(s => s.error)
+  const _teamSoFar = Constants.useContext(s => s.teamSoFar)
+  const userRecs = Constants.useContext(s => s.userRecs)
+
+  const userResults: Array<TeamBuildingTypes.User> | undefined = searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 
-  const error = teamBuildingState.error
-  const teamSoFar = deriveTeamSoFar(teamBuildingState.teamSoFar)
+  const teamSoFar = deriveTeamSoFar(_teamSoFar)
 
   const onClose = React.useCallback(() => {
     dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace}))
@@ -167,8 +171,7 @@ const TeamBuilding = (p: OwnProps) => {
   const onAdd = React.useCallback(
     (userId: string) => {
       const user =
-        userResults?.filter(u => u.id === userId)?.[0] ??
-        teamBuildingState.userRecs?.filter(u => u.id === userId)?.[0]
+        userResults?.filter(u => u.id === userId)?.[0] ?? userRecs?.filter(u => u.id === userId)?.[0]
 
       if (!user) {
         logger.error(`Couldn't find Types.User to add for ${userId}`)
@@ -180,15 +183,7 @@ const TeamBuilding = (p: OwnProps) => {
       setHighlightedIndex(-1)
       incFocusInputCounter()
     },
-    [
-      dispatch,
-      onChangeText,
-      namespace,
-      setHighlightedIndex,
-      incFocusInputCounter,
-      userResults,
-      teamBuildingState,
-    ]
+    [dispatch, onChangeText, namespace, setHighlightedIndex, incFocusInputCounter, userResults]
   )
 
   const onChangeService = React.useCallback(

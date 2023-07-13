@@ -3,7 +3,7 @@ import * as SettingsConstants from './settings'
 import * as ConfigConstants from './config'
 import * as Styles from '../styles'
 import * as Tabs from './tabs'
-import * as TeamBuildingConstants from './team-building'
+// import * as TeamBuildingConstants from './team-building'
 import * as Types from './types/wallets'
 import HiddenString from '../util/hidden-string'
 import invert from 'lodash/invert'
@@ -223,7 +223,7 @@ export const makeState = (): Types.State => ({
   sep7ConfirmPath: emptyBuiltPaymentAdvanced,
   sep7ConfirmURI: '',
   sep7SendError: '',
-  teamBuilding: TeamBuildingConstants.makeSubState(),
+  // teamBuilding: TeamBuildingConstants.makeSubState(),
   trustline: emptyTrustline,
   unreadPaymentsMap: new Map(),
 })
