@@ -5,7 +5,6 @@ import type * as ChatInboxRowTypes from './rowitem'
 import type * as Meta from './meta'
 import type * as RPCChatTypes from '../rpc-chat-gen'
 import type * as Team from '../teams'
-// import type * as TeamBuildingTypes from '../team-building'
 import type * as Wallet from '../wallets'
 import type HiddenString from '../../../util/hidden-string'
 
@@ -272,7 +271,6 @@ export type State = {
   readonly replyToMap: Map<Common.ConversationIDKey, _Message.Ordinal>
   readonly smallTeamsExpanded: boolean // if we're showing all small teams,
   readonly staticConfig?: StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
-  // readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   readonly teamIDToGeneralConvID: Map<Team.TeamID, Common.ConversationIDKey>
   readonly threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
   readonly threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
