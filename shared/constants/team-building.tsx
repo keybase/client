@@ -1,17 +1,18 @@
 import * as RPCTypes from './types/rpc-gen'
-import {serviceIdFromString} from '../util/platforms'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterConstants from './router2'
 import * as SettingsConstants from './settings'
 import * as UsersConstants from './users'
+import * as ProfileConstants from './profile'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import trim from 'lodash/trim'
 import type * as Types from './types/team-building'
-import type {TeamRoleType /*TeamID*/} from './types/teams'
+import type {TeamRoleType} from './types/teams'
 import {RPCError} from '../util/errors'
 import {mapGetEnsureValue} from '../util/map'
+import {serviceIdFromString} from '../util/platforms'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {validateEmailAddress} from '../util/email-address'
 
@@ -73,15 +74,15 @@ export type State = Store & {
     cancelTeamBuilding: () => void
     changeSendNotification: (sendNotification: boolean) => void
     closeTeamBuilding: () => void
-    fetchUserRecs: (includeContacts: boolean) => void
+    fetchUserRecs: () => void
     finishTeamBuilding: () => void
     finishedTeamBuilding: () => void
     removeUsersFromTeamSoFar: (users: Array<Types.UserID>) => void
     resetState: () => void
     search: (
-      includeContacts: boolean,
       query: string,
       service: Types.ServiceIdWithContact,
+      includeContacts: boolean,
       limit?: number
     ) => void
     selectRole: (role: TeamRoleType) => void
@@ -283,6 +284,15 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           s.teamSoFar.add(u)
         })
       })
+
+      if (get().namespace === 'people' && get().teamSoFar.size) {
+        for (const user of get().teamSoFar) {
+          const username = user.serviceMap.keybase || user.id
+          ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+          break
+        }
+        get().dispatch.cancelTeamBuilding()
+      }
     },
     cancelTeamBuilding: () => {
       get().dispatch.resetState()
@@ -301,7 +311,8 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         reduxDispatch(RouteTreeGen.createNavigateUp())
       }
     },
-    fetchUserRecs: includeContacts => {
+    fetchUserRecs: () => {
+      const includeContacts = get().namespace === 'chat2'
       const f = async () => {
         try {
           const [_suggestionRes, _contactRes] = await Promise.all([
@@ -336,6 +347,18 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         s.error = ''
       })
       get().dispatch.closeTeamBuilding()
+      const f = async () => {
+        const TeamsConstants = await import('./teams')
+        if (get().namespace === 'teams') {
+          TeamsConstants.useState
+            .getState()
+            .dispatch.addMembersWizardPushMembers(
+              [...get().teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
+            )
+          get().dispatch.finishedTeamBuilding()
+        }
+      }
+      Z.ignorePromise(f())
     },
     finishedTeamBuilding: () => {
       set(s => {
@@ -349,6 +372,22 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           teamSoFar: s.teamSoFar,
         }
       })
+      const f = async () => {
+        switch (get().namespace) {
+          case 'crypto': {
+            const CryptoConstants = await import('./crypto')
+            CryptoConstants.useState.getState().dispatch.onTeamBuildingFinished(get().finishedTeam)
+            break
+          }
+          case 'chat2': {
+            const ChatConstants = await import('./chat2')
+            ChatConstants.useState.getState().dispatch.onTeamBuildingFinished(get().finishedTeam)
+            break
+          }
+          default:
+        }
+      }
+      Z.ignorePromise(f())
     },
     removeUsersFromTeamSoFar: users => {
       set(s => {
@@ -369,7 +408,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         namespace: s.namespace,
       }))
     },
-    search: (includeContacts, query, service, limit) => {
+    search: (query, service, includeContacts, limit) => {
       set(s => {
         s.searchLimit = limit ?? 11
         s.searchQuery = trim(query)

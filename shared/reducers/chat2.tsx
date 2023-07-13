@@ -6,7 +6,6 @@ import * as TeamsConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
-import type * as TeamBuildingGen from '../actions/team-building-gen'
 import type * as RPCTypes from '../constants/types/rpc-gen'
 import type * as TeamTypes from '../constants/types/teams'
 // import {editTeambuildingDraft} from './team-building'
@@ -28,7 +27,6 @@ type EngineActions =
 
 type Actions =
   | Chat2Gen.Actions
-  | TeamBuildingGen.Actions
   | EngineActions
   | BotsGen.UpdateFeaturedBotsPayload
   | BotsGen.SetLoadedAllBotsPayload

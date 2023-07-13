@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import type * as Container from '../util/container'
+import * as Constants from '../constants/team-building'
 
 const Building = React.lazy(async () => import('./container'))
 type OwnProps = Container.ViewPropsToPageProps<typeof Building>
@@ -32,9 +33,11 @@ const getOptions = ({route}: OwnProps) => {
 }
 
 const Screen = (p: OwnProps) => (
-  <React.Suspense>
-    <Building {...p.route.params} />
-  </React.Suspense>
+  <Constants.Provider namespace={p.route.params.namespace}>
+    <React.Suspense>
+      <Building {...p.route.params} />
+    </React.Suspense>
+  </Constants.Provider>
 )
 
 export default {getOptions, getScreen: () => Screen}

@@ -1,9 +1,9 @@
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
-// import * as TeamBuildingConstants from '../team-building'
 import * as Types from '../types/chat2'
 import * as Router2 from '../router2'
 import * as ConfigConstants from '../config'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamConstants from '../teams'
 import {isMobile, isTablet} from '../platform'
 import {
@@ -15,6 +15,7 @@ import {
 } from '../types/chat2/common'
 import HiddenString from '../../util/hidden-string'
 import {getEffectiveRetentionPolicy, getMeta} from './meta'
+import type * as TeamBuildingTypes from '../types/team-building'
 import type {TypedState} from '../reducer'
 import * as Z from '../../util/zustand'
 
@@ -28,12 +29,32 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
+    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     resetState: 'default'
   }
 }
 
-export const useChatState = Z.createZustand<State>(() => {
+export const useState = Z.createZustand<State>(() => {
+  const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
+    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {
+      const f = async () => {
+        // need to let the mdoal hide first else its thrashy
+        await Z.timeoutPromise(500)
+        reduxDispatch(
+          Chat2Gen.createNavigateToThread({
+            conversationIDKey: pendingWaitingConversationIDKey,
+            reason: 'justCreated',
+          })
+        )
+        reduxDispatch(
+          Chat2Gen.createCreateConversation({
+            participants: [...users].map(u => u.id),
+          })
+        )
+      }
+      Z.ignorePromise(f())
+    },
     resetState: 'default',
   }
   return {

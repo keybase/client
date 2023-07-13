@@ -1,7 +1,6 @@
 import initAutoReset from '../actions/autoreset'
 import initBots from '../actions/bots'
 import initChat from '../actions/chat2'
-import initCrypto from '../actions/crypto'
 import initConfig from '../actions/config'
 import initDeeplinks from '../actions/deeplinks'
 import initDevice from '../actions/devices'
@@ -15,6 +14,7 @@ import initTracker from '../actions/tracker2'
 import initSettings from '../actions/settings'
 import initSignup from '../actions/signup'
 import initTeams from '../actions/teams'
+import initTeamBuilding from '../actions/team-building'
 import initUnlockFolders from '../actions/unlock-folders'
 import initUsers from '../actions/users'
 import initWallets from '../actions/wallets'
@@ -23,7 +23,6 @@ export const initListeners = () => {
   initAutoReset()
   initBots()
   initChat()
-  initCrypto()
   initConfig()
   initDeeplinks()
   initDevice()
@@ -34,6 +33,7 @@ export const initListeners = () => {
   initTracker()
   initSettings()
   initTeams()
+  initTeamBuilding()
   initUnlockFolders()
   initUsers()
   initGit()

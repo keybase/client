@@ -9,8 +9,7 @@ import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Router2Constants from './router2'
 import * as Tabs from './tabs'
-// import * as TeamBuildingConstants from './team-building'
-import * as TeamBuildingGen from '../actions/team-building-gen'
+import * as TeamBuildingConstants from './team-building'
 import * as Types from './types/teams'
 import * as Z from '../util/zustand'
 import invert from 'lodash/invert'
@@ -1405,7 +1404,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
           if (res.notAdded && res.notAdded.length > 0) {
             const usernames = res.notAdded.map(elem => elem.username)
-            reduxDispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}))
+            TeamBuildingConstants.stores.get('teams')?.getState().dispatch.finishedTeamBuilding()
             reduxDispatch(
               RouteTreeGen.createNavigateAppend({
                 path: [{props: {source: 'teamAddSomeFailed', usernames}, selected: 'contactRestricted'}],
@@ -1418,7 +1417,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.errorInAddToTeam = ''
           })
           if (fromTeamBuilder) {
-            reduxDispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}))
+            TeamBuildingConstants.stores.get('teams')?.getState().dispatch.finishedTeamBuilding()
           }
         } catch (error) {
           if (!(error instanceof RPCError)) {
@@ -1430,7 +1429,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               ?.filter(elem => elem?.key === 'usernames')
               .map(elem => elem?.value)
             const usernames = users?.[0]?.split(',') ?? []
-            reduxDispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}))
+            TeamBuildingConstants.stores.get('teams')?.getState().dispatch.finishedTeamBuilding()
             reduxDispatch(
               RouteTreeGen.createNavigateAppend({
                 path: [{props: {source: 'teamAddAllFailed', usernames}, selected: 'contactRestricted'}],
@@ -1445,7 +1444,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
           // TODO this should not error on member already in team
           if (fromTeamBuilder) {
-            reduxDispatch(TeamBuildingGen.createSetError({error: msg, namespace: 'teams'}))
+            TeamBuildingConstants.stores.get('teams')?.getState().dispatch.setError(msg)
           }
         }
       }

@@ -8,11 +8,9 @@ import * as NotificationsGen from './notifications-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
-// import * as TeamBuildingGen from './team-building-gen'
 import logger from '../logger'
 import type * as RPCTypes from '../constants/types/rpc-gen'
 import type * as Types from '../constants/types/teams'
-// import {commonListenActions, filterForNs} from './team-building'
 import {mapGetEnsureValue} from '../util/map'
 
 const initTeams = () => {
@@ -75,25 +73,6 @@ const initTeams = () => {
       Constants.useState.getState().dispatch.clearNavBadges()
     }
   })
-
-  // Hook up the team building sub saga
-  // // TODO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  // commonListenActions('teams')
-  // Container.listenAction(
-  //   TeamBuildingGen.finishTeamBuilding,
-  //   filterForNs('teams', (state, {payload: {teamID}}) => {
-  //     if (!teamID) {
-  //       logger.error("Trying to add them to a team, but I don't know what the teamID is.")
-  //       return
-  //     }
-  //     Constants.useState
-  //       .getState()
-  //       .dispatch.addMembersWizardPushMembers(
-  //         [...state.teams.teamBuilding.teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
-  //       )
-  //     return TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'})
-  //   })
-  // )
 
   Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {
     const loggedIn = ConfigConstants.useConfigState.getState().loggedIn

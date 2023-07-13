@@ -1,5 +1,4 @@
 import logger from '../logger'
-import type * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Constants from '../constants/wallets'
 import * as Container from '../util/container'
 import * as Types from '../constants/types/wallets'
@@ -24,7 +23,7 @@ const updateAssetMap = (
     }
   })
 
-type Actions = WalletsGen.Actions | TeamBuildingGen.Actions
+type Actions = WalletsGen.Actions
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [WalletsGen.resetStore]: draftState => {
     return {...initialState, staticConfig: draftState.staticConfig} as Types.State

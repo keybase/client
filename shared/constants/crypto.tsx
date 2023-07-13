@@ -6,6 +6,8 @@ import * as Z from '../util/zustand'
 import HiddenString from '../util/hidden-string'
 import logger from '../logger'
 import type * as Types from './types/crypto'
+import type * as TeamBuildingTypes from './types/team-building'
+import * as ConfigConstants from './config'
 import {RPCError} from '../util/errors'
 
 export const saltpackDocumentation = 'https://saltpack.org'
@@ -216,6 +218,7 @@ type State = Store & {
     onSaltpackStart: (op: Types.Operations) => void
     onSaltpackProgress: (op: Types.Operations, bytesComplete: number, bytesTotal: number) => void
     onSaltpackOpenFile: (op: Types.Operations, path: string) => void
+    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     setEncryptOptions: (options: EncryptOptions, hideIncludeSelf?: boolean) => void
     setInput: (op: Types.Operations, type: Types.InputTypes, value: string) => void
     setRecipients: (recipients: Array<string>, hasSBS: boolean) => void
@@ -555,6 +558,32 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s[op].inProgress = true
       })
+    },
+    onTeamBuildingFinished: (_users: Set<TeamBuildingTypes.User>) => {
+      const users = [..._users]
+      let hasSBS = false
+      const usernames = users.map(user => {
+        // If we're encrypting to service account that is not proven on keybase set
+        // (SBS) then we *must* encrypt to ourselves
+        if (user.serviceId == 'email') {
+          hasSBS = true
+          return `[${user.username}]@email`
+        }
+        if (user.serviceId !== 'keybase') {
+          hasSBS = true
+          return `${user.username}@${user.serviceId}`
+        }
+        return user.username
+      })
+
+      // User set themselves as a recipient, so don't show 'includeSelf' option
+      // However we don't want to set hideIncludeSelf if we are also encrypting to an SBS user (since we must force includeSelf)
+      const currentUser = ConfigConstants.useCurrentUserState.getState().username
+      const {options} = get().encrypt
+      if (usernames.includes(currentUser) && !hasSBS) {
+        get().dispatch.setEncryptOptions(options, true)
+      }
+      get().dispatch.setRecipients(usernames, hasSBS)
     },
     resetOperation: op => {
       set(s => {

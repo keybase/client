@@ -6,8 +6,6 @@ import * as EngineGen from './engine-gen-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
-// import * as TeamBuildingGen from './team-building-gen'
-// import {commonListenActions, filterForNs} from './team-building'
 
 // const dismissWotNotifications = async (_: unknown, action: PeopleGen.DismissWotNotificationsPayload) => {
 //   try {
@@ -25,19 +23,7 @@ import * as Tabs from '../constants/tabs'
 //     updates: new Map<string, Types.WotUpdate>(Object.entries(action.payload.badgeState.wotUpdates || {})),
 //   })
 
-// const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.AddUsersToTeamSoFarPayload) => {
-//   const {users} = action.payload
-//   const user = users[0]
-//   if (!user) return false
-
-//   // keybase username is in serviceMap.keybase, otherwise assertion is id
-//   const username = user.serviceMap.keybase || user.id
-//   ProfileConstants.useState.getState().dispatch.showUserProfile(username)
-//   return TeamBuildingGen.createCancelTeamBuilding({namespace: 'people'})
-// }
-
 const initPeople = () => {
-  // Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, () => {
     Constants.useState.getState().dispatch.loadPeople(false)
   })
@@ -60,9 +46,6 @@ const initPeople = () => {
       Constants.useState.getState().dispatch.markViewed()
     }
   })
-  // TODO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  // commonListenActions('people')
-  // Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
   Container.listenAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, (_, action) => {
     Constants.useState.getState().dispatch.setResentEmail(action.payload.params.emailAddress)
   })

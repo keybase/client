@@ -12,7 +12,7 @@ const namespaceToRoute = new Map([
   ['wallets', 'walletTeamBuilder'],
 ])
 
-export const initTeamBuilding = () => {
+const initTeamBuilding = () => {
   Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
     const {prev, next} = action.payload
     const namespaces: Array<Types.AllowedNamespace> = ['chat2', 'crypto', 'teams', 'people', 'wallets']
@@ -29,3 +29,4 @@ export const initTeamBuilding = () => {
     }
   })
 }
+export default initTeamBuilding
