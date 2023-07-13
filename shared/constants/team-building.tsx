@@ -57,7 +57,7 @@ export const initialStore: Store = {
   finishedSelectedRole: 'writer',
   finishedSendNotification: true,
   finishedTeam: new Set(),
-  namespace: 'crypto',
+  namespace: 'invalid',
   searchLimit: 11,
   searchQuery: '',
   searchResults: new Map(),
@@ -347,13 +347,14 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         s.error = ''
       })
       get().dispatch.closeTeamBuilding()
+      const {teamSoFar} = get()
       const f = async () => {
         const TeamsConstants = await import('./teams')
         if (get().namespace === 'teams') {
           TeamsConstants.useState
             .getState()
             .dispatch.addMembersWizardPushMembers(
-              [...get().teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
+              [...teamSoFar].map(user => ({assertion: user.id, role: 'writer'}))
             )
           get().dispatch.finishedTeamBuilding()
         }
@@ -367,27 +368,30 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           finishedSelectedRole: s.selectedRole,
           finishedSendNotification: s.sendNotification,
           finishedTeam: s.teamSoFar,
+          namespace: s.namespace,
           selectedRole: s.selectedRole,
           sendNotification: s.sendNotification,
           teamSoFar: s.teamSoFar,
         }
       })
+      const {finishedTeam, namespace} = get()
       const f = async () => {
-        switch (get().namespace) {
+        switch (namespace) {
           case 'crypto': {
             const CryptoConstants = await import('./crypto')
-            CryptoConstants.useState.getState().dispatch.onTeamBuildingFinished(get().finishedTeam)
+            CryptoConstants.useState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
             break
           }
           case 'chat2': {
             const ChatConstants = await import('./chat2')
-            ChatConstants.useState.getState().dispatch.onTeamBuildingFinished(get().finishedTeam)
+            ChatConstants.useState.getState().dispatch.onTeamBuildingFinished(finishedTeam)
             break
           }
           default:
         }
       }
       Z.ignorePromise(f())
+      get().dispatch.closeTeamBuilding()
     },
     removeUsersFromTeamSoFar: users => {
       set(s => {
