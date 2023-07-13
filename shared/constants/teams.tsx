@@ -232,13 +232,6 @@ export const newTeamWizardEmptyState: State['newTeamWizard'] = {
 
 export const emptyErrorInEditMember = {error: '', teamID: Types.noTeamID, username: ''}
 
-// const emptyState: Types.State = {
-// teamBuilding: TeamBuildingConstants.makeSubState(),
-// }
-
-// export const makeState = (s?: Partial<Types.State>): Types.State =>
-//   s ? Object.assign({...emptyState}, s) : emptyState
-
 export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
   changeOpenTeam: false,
   changeTarsDisabled: false,
