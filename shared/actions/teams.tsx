@@ -21,20 +21,18 @@ const initTeams = () => {
     Constants.useState.getState().dispatch.getTeams()
   })
 
-  Container.listenAction(
-    [ConfigGen.bootstrapStatusLoaded, EngineGen.keybase1NotifyTeamTeamRoleMapChanged],
-    (_, action) => {
-      if (action.type === EngineGen.keybase1NotifyTeamTeamRoleMapChanged) {
-        const {newVersion} = action.payload.params
-        const loadedVersion = Constants.useState.getState().teamRoleMap.loadedVersion
-        logger.info(`Got teamRoleMapChanged with version ${newVersion}, loadedVersion is ${loadedVersion}`)
-        if (loadedVersion >= newVersion) {
-          return
-        }
-      }
-      Constants.useState.getState().dispatch.refreshTeamRoleMap()
+  Container.listenAction(ConfigGen.loadOnStart, () => {
+    Constants.useState.getState().dispatch.refreshTeamRoleMap()
+  })
+  Container.listenAction(EngineGen.keybase1NotifyTeamTeamRoleMapChanged, (_, action) => {
+    const {newVersion} = action.payload.params
+    const loadedVersion = Constants.useState.getState().teamRoleMap.loadedVersion
+    logger.info(`Got teamRoleMapChanged with version ${newVersion}, loadedVersion is ${loadedVersion}`)
+    if (loadedVersion >= newVersion) {
+      return
     }
-  )
+    Constants.useState.getState().dispatch.refreshTeamRoleMap()
+  })
 
   Container.listenAction(GregorGen.pushState, (_, action) => {
     Constants.useState.getState().dispatch.onGregorPushState(action.payload.state)

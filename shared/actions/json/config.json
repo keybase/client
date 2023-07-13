@@ -1,7 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
-    "bootstrapStatusLoaded": {},
     "restartHandshake": {
       "_description": "internal to config. should restart the handshake process"
     },

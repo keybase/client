@@ -6,7 +6,6 @@ import type * as Types from '../constants/types/config'
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
 export const androidShare = 'config:androidShare'
-export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
 export const copyToClipboard = 'config:copyToClipboard'
@@ -173,10 +172,6 @@ export const createLogoutHandshake = (payload: {readonly version: number}) => ({
   payload,
   type: logoutHandshake as typeof logoutHandshake,
 })
-export const createBootstrapStatusLoaded = (payload?: undefined) => ({
-  payload,
-  type: bootstrapStatusLoaded as typeof bootstrapStatusLoaded,
-})
 export const createChangedActive = (payload: {readonly userActive: boolean}) => ({
   payload,
   type: changedActive as typeof changedActive,
@@ -240,7 +235,6 @@ export const createUpdateNow = (payload?: undefined) => ({payload, type: updateN
 
 // Action Payloads
 export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
-export type BootstrapStatusLoadedPayload = ReturnType<typeof createBootstrapStatusLoaded>
 export type ChangedActivePayload = ReturnType<typeof createChangedActive>
 export type ChangedFocusPayload = ReturnType<typeof createChangedFocus>
 export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
@@ -279,7 +273,6 @@ export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState
 // prettier-ignore
 export type Actions =
   | AndroidSharePayload
-  | BootstrapStatusLoadedPayload
   | ChangedActivePayload
   | ChangedFocusPayload
   | CopyToClipboardPayload

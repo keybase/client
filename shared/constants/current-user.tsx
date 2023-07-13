@@ -1,5 +1,4 @@
 import type * as RPCTypes from './types/rpc-gen'
-import * as ConfigGen from '../actions/config-gen'
 import * as Z from '../util/zustand'
 
 export type Store = {
@@ -33,7 +32,6 @@ type State = Store & {
 }
 
 export const useCurrentUserState = Z.createZustand<State>(set => {
-  const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     replaceUsername: u => {
       set(s => {
@@ -49,7 +47,6 @@ export const useCurrentUserState = Z.createZustand<State>(set => {
         s.uid = uid
         s.username = username
       })
-      reduxDispatch(ConfigGen.createBootstrapStatusLoaded())
     },
   }
 
