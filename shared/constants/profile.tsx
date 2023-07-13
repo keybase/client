@@ -695,6 +695,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         ...s,
         ...initialStore,
         dispatch: {
+          ...s.dispatch,
           editAvatar: s.dispatch.editAvatar,
         },
       }))
