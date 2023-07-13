@@ -11,11 +11,9 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Router2Constants from '../constants/router2'
 import * as SettingsConstants from '../constants/settings'
 import * as Tabs from '../constants/tabs'
-import * as TeamBuildingGen from './team-building-gen'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from './wallets-gen'
 import HiddenString from '../util/hidden-string'
-import {commonListenActions, filterForNs} from './team-building'
 import logger from '../logger'
 import openURL from '../util/open-url'
 import {RPCError} from '../util/errors'
@@ -1621,18 +1619,6 @@ const loadStaticConfig = async (
   return false
 }
 
-const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.AddUsersToTeamSoFarPayload) => {
-  const {users} = action.payload
-  const user = users[0]
-  if (!user) return false
-
-  const username = user.id
-  return [
-    TeamBuildingGen.createCancelTeamBuilding({namespace: 'wallets'}),
-    WalletsGen.createSetBuildingTo({to: username}),
-  ]
-}
-
 const initWallets = () => {
   Container.listenAction(WalletsGen.createNewAccount, createNewAccount)
   Container.listenAction(
@@ -1772,8 +1758,6 @@ const initWallets = () => {
   Container.listenAction(ConfigGen.daemonHandshake, loadStaticConfig)
   Container.listenAction(WalletsGen.assetDeposit, assetDeposit)
   Container.listenAction(WalletsGen.assetWithdraw, assetWithdraw)
-  commonListenActions('wallets')
-  Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('wallets', onTeamBuildingAdded))
 }
 
 export default initWallets

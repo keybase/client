@@ -19,7 +19,6 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
-import * as TeamBuildingGen from './team-building-gen'
 import * as TeamsConstants from '../constants/teams'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
@@ -31,7 +30,6 @@ import KB2 from '../util/electron'
 import NotifyPopup from '../util/notify-popup'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
-import {commonListenActions, filterForNs} from './team-building'
 import {isIOS} from '../constants/platform'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from './platform-specific'
 import {getEngine} from '../engine'
@@ -3588,23 +3586,6 @@ const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButt
   }
 }
 
-const createConversationFromTeamBuilder = async (
-  state: Container.TypedState,
-  {payload: {namespace}}: TeamBuildingGen.FinishedTeamBuildingPayload
-) => {
-  // need to let the mdoal hide first else its thrashy
-  await Container.timeoutPromise(500)
-  return [
-    Chat2Gen.createNavigateToThread({
-      conversationIDKey: Constants.pendingWaitingConversationIDKey,
-      reason: 'justCreated',
-    }),
-    Chat2Gen.createCreateConversation({
-      participants: [...state[namespace].teamBuilding.finishedTeam].map(u => u.id),
-    }),
-  ]
-}
-
 const setInboxNumSmallRows = async (
   state: Container.TypedState,
   action: Chat2Gen.SetInboxNumSmallRowsPayload
@@ -3880,7 +3861,7 @@ const updateTyping = (action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) 
   typingUpdates?.forEach(u => {
     typingMap.set(Types.conversationIDToKey(u.convID), new Set(u.typers?.map(t => t.username)))
   })
-  Constants.useChatState.setState({typingMap})
+  Constants.useState.setState({typingMap})
 }
 
 const initChat = () => {
@@ -4090,12 +4071,6 @@ const initChat = () => {
   Container.listenAction(ConfigGen.bootstrapStatusLoaded, getInboxNumSmallRows)
 
   Container.listenAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
-
-  commonListenActions('chat2')
-  Container.listenAction(
-    TeamBuildingGen.finishedTeamBuilding,
-    filterForNs('chat2', createConversationFromTeamBuilder)
-  )
 
   Container.listenAction(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
 

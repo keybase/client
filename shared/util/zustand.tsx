@@ -75,3 +75,9 @@ export const resetAllStores = () => {
     resetter()
   }
 }
+
+export type ImmerStateCreator<
+  T,
+  Mps extends [StoreMutatorIdentifier, unknown][] = [],
+  Mcs extends [StoreMutatorIdentifier, unknown][] = []
+> = StateCreator<T, [...Mps, ['zustand/immer', never]], Mcs>

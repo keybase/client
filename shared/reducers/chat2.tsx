@@ -6,11 +6,8 @@ import * as TeamsConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
-import type * as TeamBuildingGen from '../actions/team-building-gen'
 import type * as RPCTypes from '../constants/types/rpc-gen'
 import type * as TeamTypes from '../constants/types/teams'
-import {editTeambuildingDraft} from './team-building'
-import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
@@ -28,7 +25,6 @@ type EngineActions =
 
 type Actions =
   | Chat2Gen.Actions
-  | TeamBuildingGen.Actions
   | EngineActions
   | BotsGen.UpdateFeaturedBotsPayload
   | BotsGen.SetLoadedAllBotsPayload
@@ -1598,14 +1594,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   ...paymentActions,
   ...searchActions,
   ...attachmentActions,
-  ...teamBuilderReducerCreator<Types.State>(
-    (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
-      const val = editTeambuildingDraft('chat2', draftState.teamBuilding, action)
-      if (val !== undefined) {
-        draftState.teamBuilding = val
-      }
-    }
-  ),
 })
 
 export default reducer

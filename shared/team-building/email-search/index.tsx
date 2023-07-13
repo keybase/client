@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as TeamBuildingGen from '../../actions/team-building-gen'
 import * as Constants from '../../constants/team-building'
 import type * as Types from '../../constants/types/team-building'
 import type {AllowedNamespace} from '../../constants/types/team-building'
@@ -17,14 +16,10 @@ type EmailSearchProps = {
 }
 
 const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
-  const teamBuildingSearchResults = Container.useSelector(
-    state => state[namespace].teamBuilding.searchResults
-  )
+  const teamBuildingSearchResults = Constants.useContext(s => s.searchResults)
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
-  const dispatch = Container.useDispatch()
-
   const user: Types.User | undefined = teamBuildingSearchResults.get(emailString)?.get('email')?.[0]
   const canSubmit = !!user && !waiting && isEmailValid
 
@@ -42,15 +37,16 @@ const EmailSearch = ({continueLabel, namespace, search}: EmailSearchProps) => {
     [search]
   )
 
+  const addUsersToTeamSoFar = Constants.useContext(s => s.dispatch.addUsersToTeamSoFar)
+
   const onSubmit = React.useCallback(() => {
     if (!user || !canSubmit) {
       return
     }
-
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
+    addUsersToTeamSoFar([user])
     // Clear input
     onChange('')
-  }, [dispatch, canSubmit, user, namespace, onChange])
+  }, [addUsersToTeamSoFar, canSubmit, user, onChange])
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>

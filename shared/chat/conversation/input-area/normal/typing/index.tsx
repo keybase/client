@@ -49,7 +49,7 @@ const Names = (props: {names?: Set<string>}) => {
 
 const Typing = React.memo(function Typing(props: Props) {
   const {conversationIDKey} = props
-  const names = Constants.useChatState(s => s.typingMap.get(conversationIDKey))
+  const names = Constants.useState(s => s.typingMap.get(conversationIDKey))
 
   return (
     <Kb.Box style={styles.isTypingContainer}>

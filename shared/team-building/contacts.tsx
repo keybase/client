@@ -1,9 +1,9 @@
 import * as React from 'react'
-import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as SettingsConstants from '../constants/settings'
+import * as Constants from '../constants/team-building'
 import type * as Types from '../constants/types/team-building'
 
 const useContactsProps = () => {
@@ -54,7 +54,7 @@ export const ContactsBanner = (props: {
   selectedService: Types.ServiceIdWithContact
   onRedoSearch: () => void
 }) => {
-  const {onRedoSearch, namespace, selectedService} = props
+  const {onRedoSearch, selectedService} = props
   const {
     contactsImported,
     contactsPermissionStatus,
@@ -65,11 +65,8 @@ export const ContactsBanner = (props: {
     onLoadContactsSetting,
   } = useContactsProps()
 
-  const dispatch = Container.useDispatch()
-
-  const onRedoRecs = React.useCallback(() => {
-    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace}))
-  }, [dispatch, namespace])
+  const fetchUserRecs = Constants.useContext(s => s.dispatch.fetchUserRecs)
+  const onRedoRecs = fetchUserRecs
   const prevNumContactsImported = Container.usePrevious(numContactsImported)
 
   // Redo search if # of imported contacts changes

@@ -2,6 +2,7 @@ import * as Container from '../util/container'
 import * as Followers from '../constants/followers'
 import * as Kb from '../common-adapters'
 import * as ConfigConstants from '../constants/config'
+import * as Constants from '../constants/team-building'
 import * as SettingsConstants from '../constants/settings'
 import * as Shared from './shared'
 import * as Styles from '../styles'
@@ -246,22 +247,24 @@ export const ListBody = (
 
   const maybeTeamDetails = TeamsConstants.useState(s => (teamID ? s.teamDetails.get(teamID) : undefined))
   const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
-  const teamBuildingState = Container.useSelector(state => state[namespace].teamBuilding)
+  const userRecs = Constants.useContext(s => s.userRecs)
+  const _teamSoFar = Constants.useContext(s => s.teamSoFar)
+  const _searchResults = Constants.useContext(s => s.searchResults)
   const _recommendations = deriveRecommendation(
-    teamBuildingState.userRecs,
-    teamBuildingState.teamSoFar,
+    userRecs,
+    _teamSoFar,
     username,
     following,
     preExistingTeamMembers
   )
 
-  const userResults: Array<TeamBuildingTypes.User> | undefined = teamBuildingState.searchResults
+  const userResults: Array<TeamBuildingTypes.User> | undefined = _searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 
   const searchResults = deriveSearchResults(
     userResults,
-    teamBuildingState.teamSoFar,
+    _teamSoFar,
     username,
     following,
     preExistingTeamMembers

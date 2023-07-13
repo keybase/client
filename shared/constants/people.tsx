@@ -1,14 +1,14 @@
 import * as ConfigConstants from './config'
-import {isNetworkErr, RPCError} from '../util/errors'
 import * as Followers from './followers'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
-import {isMobile} from './platform'
-import logger from '../logger'
 import invert from 'lodash/invert'
 import isEqual from 'lodash/isEqual'
+import logger from '../logger'
 import type * as Types from './types/people'
 import type {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
+import {isMobile} from './platform'
+import {isNetworkErr, RPCError} from '../util/errors'
 
 // set this to true to have all todo items + a contact joined notification show up all the time
 const debugTodo = false
@@ -356,7 +356,7 @@ type State = Store & {
     setResentEmail: (email: string) => void
     skipTodo: (type: Types.TodoType) => void
     markViewed: () => void
-    resetState: 'default'
+    resetState: () => void
   }
 }
 
@@ -502,7 +502,12 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    resetState: 'default',
+    resetState: () => {
+      set(s => ({
+        ...s,
+        ...initialStore,
+      }))
+    },
     setResentEmail: email => {
       set(s => {
         s.resentEmail = email

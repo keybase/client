@@ -38,7 +38,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   const {layoutName, layoutIsTeam, layoutSnippet, isSelected, layoutTime} = p
   const {conversationIDKey, isInWidget, swipeCloseRef} = p
 
-  const typingSnippet = Constants.useChatState(s => {
+  const typingSnippet = Constants.useState(s => {
     const typers = !isInWidget ? s.typingMap.get(conversationIDKey) : undefined
     if (!typers?.size) return undefined
     return typers.size === 1

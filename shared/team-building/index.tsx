@@ -1,22 +1,20 @@
 import * as ChatConstants from '../constants/chat2'
+import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as TeamConstants from '../constants/teams'
 import * as TeamBuildingTypes from '../constants/types/team-building'
 import EmailSearch from './email-search'
 import Input from './input'
 import PhoneSearch from './phone-search'
 import TeamBox from './team-box'
-import debounce from 'lodash/debounce'
 import logger from '../logger'
 import trim from 'lodash/trim'
 import {ContactsBanner} from './contacts'
 import {ListBody} from './list-body'
 import {getTeamMeta} from '../constants/teams'
-import {requestIdleCallback} from '../util/idle-callback'
 import {serviceIdToSearchPlaceholder} from './shared'
 import {FilteredServiceTabBar} from './filtered-service-tab-bar'
 import {modalHeaderProps} from './modal-header-props'
@@ -49,25 +47,6 @@ const deriveTeamSoFar = (teamSoFar: Set<TeamBuildingTypes.User>): Array<TeamBuil
     }
   })
 
-const makeDebouncedSearch = (time: number) =>
-  debounce(
-    (
-      dispatch: Container.TypedDispatch,
-      namespace: TeamBuildingTypes.AllowedNamespace,
-      query: string,
-      service: TeamBuildingTypes.ServiceIdWithContact,
-      includeContacts: boolean,
-      limit?: number
-    ) => {
-      requestIdleCallback(() => {
-        dispatch(TeamBuildingGen.createSearch({includeContacts, limit, namespace, query, service}))
-      })
-    },
-    time
-  )
-const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
-const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
-
 type OwnProps = {
   namespace: TeamBuildingTypes.AllowedNamespace
   teamID?: string
@@ -82,8 +61,6 @@ const TeamBuilding = (p: OwnProps) => {
   const teamID = p.teamID
   const filterServices = p.filterServices
   const goButtonLabel = p.goButtonLabel ?? 'Start'
-
-  const dispatch = Container.useDispatch()
 
   const [focusInputCounter, setFocusInputCounter] = React.useState(0)
   const [enterInputCounter, setEnterInputCounter] = React.useState(0)
@@ -108,42 +85,39 @@ const TeamBuilding = (p: OwnProps) => {
     setEnterInputCounter(old => old + 1)
   }, [setEnterInputCounter])
 
-  const teamBuildingState = Container.useSelector(state => state[namespace].teamBuilding)
-  const userResults: Array<TeamBuildingTypes.User> | undefined = teamBuildingState.searchResults
+  const searchResults = Constants.useContext(s => s.searchResults)
+  const error = Constants.useContext(s => s.error)
+  const _teamSoFar = Constants.useContext(s => s.teamSoFar)
+  const userRecs = Constants.useContext(s => s.userRecs)
+
+  const userResults: Array<TeamBuildingTypes.User> | undefined = searchResults
     .get(trim(searchString))
     ?.get(selectedService)
 
-  const error = teamBuildingState.error
-  const teamSoFar = deriveTeamSoFar(teamBuildingState.teamSoFar)
+  const teamSoFar = deriveTeamSoFar(_teamSoFar)
 
-  const onClose = React.useCallback(() => {
-    dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace}))
-  }, [dispatch, namespace])
+  const cancelTeamBuilding = Constants.useContext(s => s.dispatch.cancelTeamBuilding)
+  const finishTeamBuilding = Constants.useContext(s => s.dispatch.finishTeamBuilding)
+  const finishedTeamBuilding = Constants.useContext(s => s.dispatch.finishedTeamBuilding)
+  const removeUsersFromTeamSoFar = Constants.useContext(s => s.dispatch.removeUsersFromTeamSoFar)
+  const addUsersToTeamSoFar = Constants.useContext(s => s.dispatch.addUsersToTeamSoFar)
+  const fetchUserRecs = Constants.useContext(s => s.dispatch.fetchUserRecs)
 
-  const search = React.useCallback(
+  const _search = Constants.useContext(s => s.dispatch.search)
+  const search = Container.useThrottledCallback(
     (query: string, service: TeamBuildingTypes.ServiceIdWithContact, limit?: number) => {
-      if (service === 'keybase') {
-        debouncedSearchKeybase(dispatch, namespace, query, service, namespace === 'chat2', limit)
-      } else {
-        debouncedSearch(dispatch, namespace, query, service, namespace === 'chat2', limit)
-      }
+      _search(query, service, namespace === 'chat2', limit)
     },
-    [dispatch, namespace]
+    500
   )
 
-  const onFinishTeamBuilding = React.useCallback(() => {
-    dispatch(
-      namespace === 'teams'
-        ? TeamBuildingGen.createFinishTeamBuilding({namespace, teamID})
-        : TeamBuildingGen.createFinishedTeamBuilding({namespace})
-    )
-  }, [dispatch, namespace, teamID])
-
+  const onClose = cancelTeamBuilding
+  const onFinishTeamBuilding = namespace === 'teams' ? finishTeamBuilding : finishedTeamBuilding
   const onRemove = React.useCallback(
     (userId: string) => {
-      dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]}))
+      removeUsersFromTeamSoFar([userId])
     },
-    [dispatch, namespace]
+    [removeUsersFromTeamSoFar]
   )
 
   const onChangeText = React.useCallback(
@@ -167,8 +141,7 @@ const TeamBuilding = (p: OwnProps) => {
   const onAdd = React.useCallback(
     (userId: string) => {
       const user =
-        userResults?.filter(u => u.id === userId)?.[0] ??
-        teamBuildingState.userRecs?.filter(u => u.id === userId)?.[0]
+        userResults?.filter(u => u.id === userId)?.[0] ?? userRecs?.filter(u => u.id === userId)?.[0]
 
       if (!user) {
         logger.error(`Couldn't find Types.User to add for ${userId}`)
@@ -176,19 +149,11 @@ const TeamBuilding = (p: OwnProps) => {
         return
       }
       onChangeText('')
-      dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
+      addUsersToTeamSoFar([user])
       setHighlightedIndex(-1)
       incFocusInputCounter()
     },
-    [
-      dispatch,
-      onChangeText,
-      namespace,
-      setHighlightedIndex,
-      incFocusInputCounter,
-      userResults,
-      teamBuildingState,
-    ]
+    [userRecs, addUsersToTeamSoFar, onChangeText, setHighlightedIndex, incFocusInputCounter, userResults]
   )
 
   const onChangeService = React.useCallback(
@@ -211,7 +176,7 @@ const TeamBuilding = (p: OwnProps) => {
   const offset = useSharedValue(0)
 
   Container.useOnMountOnce(() => {
-    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace}))
+    fetchUserRecs()
   })
 
   let content: React.ReactNode

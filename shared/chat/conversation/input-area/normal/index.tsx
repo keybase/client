@@ -376,7 +376,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     }
   }
 
-  const isTyping = Constants.useChatState(s => !!s.typingMap.get(conversationIDKey)?.size)
+  const isTyping = Constants.useState(s => !!s.typingMap.get(conversationIDKey)?.size)
 
   const data = Container.useSelector(state => {
     const isActiveForFocus = state.chat2.focus === null

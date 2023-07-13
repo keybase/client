@@ -4,7 +4,6 @@ import * as Styles from '../styles'
 import * as Constants from '../constants/team-building'
 import * as SettingsConstants from '../constants/settings'
 import * as Container from '../util/container'
-import * as TeamBuildingGen from '../actions/team-building-gen'
 import type * as Types from 'constants/types/team-building'
 import type {AllowedNamespace} from '../constants/types/team-building'
 import ContinueButton from './continue-button'
@@ -17,15 +16,11 @@ type PhoneSearchProps = {
 
 const PhoneSearch = (props: PhoneSearchProps) => {
   const {namespace} = props
-  const teamBuildingSearchResults = Container.useSelector(
-    state => state[namespace].teamBuilding.searchResults
-  )
+  const teamBuildingSearchResults = Constants.useContext(s => s.searchResults)
   const [isPhoneValid, setPhoneValidity] = React.useState(false)
   const [phoneNumber, setPhoneNumber] = React.useState('')
   const [phoneInputKey, setPhoneInputKey] = React.useState(0)
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
-  const dispatch = Container.useDispatch()
-
   const loadDefaultPhoneCountry = SettingsConstants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   // trigger a default phone number country rpc if it's not already loaded
   const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
@@ -41,6 +36,8 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     }
   }
 
+  const addUsersToTeamSoFar = Constants.useContext(s => s.dispatch.addUsersToTeamSoFar)
+
   const user: Types.User | undefined = isPhoneValid
     ? teamBuildingSearchResults.get(phoneNumber)?.get('phone')?.[0]
     : undefined
@@ -51,12 +48,12 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     if (!canSubmit || !user) {
       return
     }
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
+    addUsersToTeamSoFar([user])
     // Clear input
     setPhoneNumber('')
     setPhoneInputKey(old => old + 1)
     setPhoneValidity(false)
-  }, [dispatch, namespace, user, setPhoneNumber, canSubmit, setPhoneInputKey, setPhoneValidity])
+  }, [addUsersToTeamSoFar, user, setPhoneNumber, canSubmit, setPhoneInputKey, setPhoneValidity])
 
   return (
     <>

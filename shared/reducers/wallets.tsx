@@ -1,12 +1,9 @@
 import logger from '../logger'
-import type * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Constants from '../constants/wallets'
 import * as Container from '../util/container'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
 import HiddenString from '../util/hidden-string'
-import {editTeambuildingDraft} from './team-building'
-import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import shallowEqual from 'shallowequal'
 import {mapEqual} from '../util/map'
 
@@ -24,7 +21,7 @@ const updateAssetMap = (
     }
   })
 
-type Actions = WalletsGen.Actions | TeamBuildingGen.Actions
+type Actions = WalletsGen.Actions
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [WalletsGen.resetStore]: draftState => {
     return {...initialState, staticConfig: draftState.staticConfig} as Types.State
@@ -510,12 +507,4 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.sep6Error = action.payload.error
     draftState.sep6Message = action.payload.message
   },
-  ...teamBuilderReducerCreator<Types.State>(
-    (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
-      const val = editTeambuildingDraft('wallets', draftState.teamBuilding, action)
-      if (val !== undefined) {
-        draftState.teamBuilding = val
-      }
-    }
-  ),
 })
