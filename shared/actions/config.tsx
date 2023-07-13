@@ -261,15 +261,6 @@ const newNavigation = (
   Router2.dispatchOldAction(action)
 }
 
-const logoutAndTryToLogInAs = async (_: unknown, action: ConfigGen.LogoutAndTryToLogInAsPayload) => {
-  if (Constants.useConfigState.getState().loggedIn) {
-    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true}, Constants.loginWaitingKey)
-  }
-
-  const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
-  setDefaultUsername(action.payload.username)
-}
-
 const emitStartupOnLoadNotInARush = async () => {
   await Container.timeoutPromise(1000)
   return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
@@ -330,8 +321,6 @@ const initConfig = () => {
       })
     })
   })
-
-  Container.listenAction(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs)
 
   Container.listenAction(
     [

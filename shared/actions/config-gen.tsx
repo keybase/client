@@ -17,7 +17,6 @@ export const initListenerLoops = 'config:initListenerLoops'
 export const installerRan = 'config:installerRan'
 export const loadOnStart = 'config:loadOnStart'
 export const loggedInChanged = 'config:loggedInChanged'
-export const logoutAndTryToLogInAs = 'config:logoutAndTryToLogInAs'
 export const logoutHandshake = 'config:logoutHandshake'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
@@ -52,14 +51,6 @@ export const createAndroidShare = (payload: {readonly url?: string; readonly tex
 export const createInitListenerLoops = (payload?: undefined) => ({
   payload,
   type: initListenerLoops as typeof initListenerLoops,
-})
-/**
- * Log out the current user, keeping secrets stored.
- * Then prefill the username for provisioned another user to log in.
- */
-export const createLogoutAndTryToLogInAs = (payload: {readonly username: string}) => ({
-  payload,
-  type: logoutAndTryToLogInAs as typeof logoutAndTryToLogInAs,
 })
 /**
  * Open a link to the app store
@@ -230,7 +221,6 @@ export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type LoggedInChangedPayload = ReturnType<typeof createLoggedInChanged>
-export type LogoutAndTryToLogInAsPayload = ReturnType<typeof createLogoutAndTryToLogInAs>
 export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
 export type MobileAppStatePayload = ReturnType<typeof createMobileAppState>
 export type OpenAppSettingsPayload = ReturnType<typeof createOpenAppSettings>
@@ -266,7 +256,6 @@ export type Actions =
   | InstallerRanPayload
   | LoadOnStartPayload
   | LoggedInChangedPayload
-  | LogoutAndTryToLogInAsPayload
   | LogoutHandshakePayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload

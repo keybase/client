@@ -9,13 +9,6 @@
     "daemonHandshakeDone": {
       "_description": "ready to show the app"
     },
-    "logoutAndTryToLogInAs": {
-      "_description": [
-        "Log out the current user, keeping secrets stored.",
-        "Then prefill the username for provisioned another user to log in."
-      ],
-      "username": "string"
-    },
     "logoutHandshake": {
       "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
       "version": "number"

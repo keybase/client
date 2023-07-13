@@ -161,6 +161,7 @@ type State = Store & {
     loadIsOnline: () => void
     login: (username: string, password: string) => void
     loginError: (error?: RPCError) => void
+    logoutAndTryToLogInAs: (username: string) => void
     onFilePickerErrorNative: (error: Error) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
@@ -377,6 +378,15 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       // On login error, turn off the user switching flag, so that the login screen is not
       // hidden and the user can see and respond to the error.
       get().dispatch.setUserSwitching(false)
+    },
+    logoutAndTryToLogInAs: username => {
+      const f = async () => {
+        if (get().loggedIn) {
+          await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true}, loginWaitingKey)
+        }
+        get().dispatch.setDefaultUsername(username)
+      }
+      Z.ignorePromise(f())
     },
     onFilePickerErrorNative: () => {
       // override this

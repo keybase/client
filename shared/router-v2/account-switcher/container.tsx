@@ -1,4 +1,3 @@
-import * as ConfigGen from '../../actions/config-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as UsersConstants from '../../constants/users'
 import * as ProfileConstants from '../../constants/profile'
@@ -35,9 +34,7 @@ export default () => {
     setUserSwitching(true)
     login(username, '')
   }
-  const onSelectAccountLoggedOut = (username: string) => {
-    dispatch(ConfigGen.createLogoutAndTryToLogInAs({username}))
-  }
+  const onSelectAccountLoggedOut = ConfigConstants.useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
   const onSignOut = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]}))
   }
