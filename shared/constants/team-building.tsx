@@ -1,6 +1,7 @@
 import * as RPCTypes from './types/rpc-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as WalletsGen from '../actions/wallets-gen'
 import * as RouterConstants from './router2'
 import * as SettingsConstants from './settings'
 import * as UsersConstants from './users'
@@ -285,13 +286,29 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
         })
       })
 
-      if (get().namespace === 'people' && get().teamSoFar.size) {
-        for (const user of get().teamSoFar) {
-          const username = user.serviceMap.keybase || user.id
-          ProfileConstants.useState.getState().dispatch.showUserProfile(username)
-          break
+      const {teamSoFar, namespace} = get()
+      if (teamSoFar.size) {
+        switch (namespace) {
+          case 'people': {
+            for (const user of teamSoFar) {
+              const username = user.serviceMap.keybase || user.id
+              ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+              break
+            }
+            get().dispatch.cancelTeamBuilding()
+            break
+          }
+          case 'wallets': {
+            for (const user of teamSoFar) {
+              const username = user.id
+              reduxDispatch(WalletsGen.createSetBuildingTo({to: username}))
+              break
+            }
+            get().dispatch.cancelTeamBuilding()
+            break
+          }
+          default:
         }
-        get().dispatch.cancelTeamBuilding()
       }
     },
     cancelTeamBuilding: () => {
