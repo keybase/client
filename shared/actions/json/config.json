@@ -18,7 +18,6 @@
       "version": "number"
     },
     "changedFocus": {"appFocused": "boolean"},
-    "changedActive": {"userActive": "boolean"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
     "openAtLoginChanged": {},

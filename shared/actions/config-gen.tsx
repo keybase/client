@@ -6,7 +6,6 @@ import type * as Types from '../constants/types/config'
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
 export const androidShare = 'config:androidShare'
-export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
 export const copyToClipboard = 'config:copyToClipboard'
 export const daemonHandshake = 'config:daemonHandshake'
@@ -139,10 +138,6 @@ export const createLogoutHandshake = (payload: {readonly version: number}) => ({
   payload,
   type: logoutHandshake as typeof logoutHandshake,
 })
-export const createChangedActive = (payload: {readonly userActive: boolean}) => ({
-  payload,
-  type: changedActive as typeof changedActive,
-})
 export const createChangedFocus = (payload: {readonly appFocused: boolean}) => ({
   payload,
   type: changedFocus as typeof changedFocus,
@@ -202,7 +197,6 @@ export const createUpdateNow = (payload?: undefined) => ({payload, type: updateN
 
 // Action Payloads
 export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
-export type ChangedActivePayload = ReturnType<typeof createChangedActive>
 export type ChangedFocusPayload = ReturnType<typeof createChangedFocus>
 export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
 export type DaemonHandshakeDonePayload = ReturnType<typeof createDaemonHandshakeDone>
@@ -236,7 +230,6 @@ export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState
 // prettier-ignore
 export type Actions =
   | AndroidSharePayload
-  | ChangedActivePayload
   | ChangedFocusPayload
   | CopyToClipboardPayload
   | DaemonHandshakeDonePayload

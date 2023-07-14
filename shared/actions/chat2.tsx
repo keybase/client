@@ -2323,7 +2323,6 @@ const markThreadAsRead = async (
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | Chat2Gen.UpdateReactionsPayload
     | ConfigGen.ChangedFocusPayload
-    | ConfigGen.ChangedActivePayload
     | Chat2Gen.TabSelectedPayload
 ) => {
   if (!ConfigConstants.useConfigState.getState().loggedIn) {
@@ -3966,7 +3965,6 @@ const initChat = () => {
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       Chat2Gen.updateReactions,
       ConfigGen.changedFocus,
-      ConfigGen.changedActive,
       Chat2Gen.tabSelected,
     ],
     markThreadAsRead
