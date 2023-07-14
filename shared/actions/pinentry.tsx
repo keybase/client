@@ -1,5 +1,4 @@
 import logger from '../logger'
-import * as ConfigConstants from '../constants/config'
 import * as EngineGen from './engine-gen-gen'
 import * as PinentryGen from './pinentry-gen'
 import * as Container from '../util/container'
@@ -13,21 +12,7 @@ const initPinentry = () => {
   Container.listenAction(EngineGen.keybase1SecretUiGetPassphrase, (_, action) => {
     const {response, params} = action.payload
     const {pinentry} = params
-    const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
-    let {retryLabel} = pinentry
-    if (retryLabel === ConfigConstants.invalidPasswordErrorString) {
-      retryLabel = 'Incorrect password.'
-    }
-    Constants.useState.getState().dispatch.onGetPassword({
-      cancelLabel,
-      prompt,
-      response,
-      retryLabel,
-      showTyping: features.showTyping,
-      submitLabel,
-      type,
-      windowTitle,
-    })
+    Constants.useState.getState().dispatch.secretUIWantsPassphrase(pinentry, response)
   })
   Container.listenAction(EngineGen.connected, async () => {
     try {
@@ -38,10 +23,10 @@ const initPinentry = () => {
     }
   })
   Container.listenAction(PinentryGen.onCancel, () => {
-    Constants.useState.getState().dispatch.onCancel()
+    Constants.useState.getState().dispatch.dynamic.onCancel?.()
   })
   Container.listenAction(PinentryGen.onSubmit, (_, action) => {
-    Constants.useState.getState().dispatch.onSubmit(action.payload.password)
+    Constants.useState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
   })
 }
 

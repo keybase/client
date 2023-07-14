@@ -25,12 +25,12 @@ export default () => {
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const onSubmit = Constants.useState(s => s.dispatch.setPassphrase)
+  const onSubmit = Constants.useState(s => s.dispatch.dynamic.setPassphrase)
   const props = {
     error,
     onBack,
     onForgotPassword: () => _onForgotPassword(username),
-    onSubmit: (password: string) => !waiting && onSubmit(password),
+    onSubmit: (password: string) => !waiting && onSubmit?.(password),
     resetEmailSent,
     username,
     waiting,

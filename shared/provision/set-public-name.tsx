@@ -18,10 +18,10 @@ const PublicNameContainer = () => {
 
   const _onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
   const onBack = Container.useSafeSubmit(_onBack, !!error)
-  const setDeviceName = Constants.useState(s => s.dispatch.setDeviceName)
+  const setDeviceName = Constants.useState(s => s.dispatch.dynamic.setDeviceName)
   const onSubmit = React.useCallback(
     (name: string) => {
-      !waiting && setDeviceName(name)
+      !waiting && setDeviceName?.(name)
     },
     [waiting, setDeviceName]
   )

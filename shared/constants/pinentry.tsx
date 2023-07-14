@@ -1,6 +1,7 @@
 import * as Z from '../util/zustand'
 import * as RPCTypes from './types/rpc-gen'
 import logger from '../logger'
+import * as ConfigConstants from './config'
 
 export type Store = {
   cancelLabel?: string
@@ -21,36 +22,40 @@ const initialStore: Store = {
   windowTitle: '',
 }
 
-type GetPasswordParams = {
-  response: {
-    error: RPCTypes.IncomingErrorCallback
-    result: (param: RPCTypes.GetPassphraseRes) => void
-  }
-  showTyping: RPCTypes.Feature
-  type: RPCTypes.PassphraseType
-  prompt: string
-  windowTitle: string
-  submitLabel?: string
-  cancelLabel?: string
-  retryLabel?: string
-}
-
 type State = Store & {
   dispatch: {
-    onGetPassword: (p: GetPasswordParams) => void
-    onCancel: () => void
-    onSubmit: (password: string) => void
+    dynamic: {
+      onCancel?: () => void
+      onSubmit?: (password: string) => void
+    }
+    secretUIWantsPassphrase: (
+      pinentry: RPCTypes.GUIEntryArg,
+      response: {
+        error: RPCTypes.IncomingErrorCallback
+        result: (param: RPCTypes.GetPassphraseRes) => void
+      }
+    ) => void
     resetState: () => void
   }
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
-    onCancel: () => {},
-    onGetPassword: p => {
+    dynamic: {
+      onCancel: undefined,
+      onSubmit: undefined,
+    },
+    resetState: () => {
+      set(s => ({...s, ...initialStore, dispatch: s.dispatch}))
+    },
+    secretUIWantsPassphrase: (pinentry, response) => {
+      const {prompt, submitLabel, cancelLabel, windowTitle, features, type} = pinentry
+      const showTyping = features.showTyping
+      let {retryLabel} = pinentry
+      if (retryLabel === ConfigConstants.invalidPasswordErrorString) {
+        retryLabel = 'Incorrect password.'
+      }
       logger.info('Asked for password')
-      const {response, showTyping, type, prompt, windowTitle, submitLabel, cancelLabel, retryLabel} = p
-
       set(s => {
         s.cancelLabel = cancelLabel
         s.prompt = prompt
@@ -59,25 +64,21 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.submitLabel = submitLabel
         s.type = type
         s.windowTitle = windowTitle
-        s.dispatch.onSubmit = (password: string) => {
-          response.result({passphrase: password, storeSecret: false})
+        s.dispatch.dynamic.onSubmit = (password: string) => {
           set(s => {
-            s.dispatch.onSubmit = (_p: string) => {}
+            s.dispatch.dynamic.onSubmit = undefined
           })
+          response.result({passphrase: password, storeSecret: false})
           get().dispatch.resetState()
         }
-        s.dispatch.onCancel = () => {
-          response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+        s.dispatch.dynamic.onCancel = () => {
           set(s => {
-            s.dispatch.onCancel = () => {}
+            s.dispatch.dynamic.onCancel = undefined
           })
+          response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
           get().dispatch.resetState()
         }
       })
-    },
-    onSubmit: () => {},
-    resetState: () => {
-      set(s => ({...s, ...initialStore}))
     },
   }
   return {

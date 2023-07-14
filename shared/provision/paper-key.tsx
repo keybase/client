@@ -16,12 +16,12 @@ export default () => {
   const onBack = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const onSubmit = Constants.useState(s => s.dispatch.setPassphrase)
+  const onSubmit = Constants.useState(s => s.dispatch.dynamic.setPassphrase)
   const props = {
     error: error,
     hint: hint,
     onBack: onBack,
-    onSubmit: (paperkey: string) => !waiting && onSubmit(paperkey),
+    onSubmit: (paperkey: string) => !waiting && onSubmit?.(paperkey),
     waiting: waiting,
   }
   return <PaperKey {...props} />

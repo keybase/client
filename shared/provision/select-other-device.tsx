@@ -11,7 +11,7 @@ import {SignupScreen} from '../signup/common'
 
 const SelectOtherDeviceContainer = () => {
   const devices = Constants.useState(s => s.devices)
-  const submitDeviceSelect = Constants.useState(s => s.dispatch.submitDeviceSelect)
+  const submitDeviceSelect = Constants.useState(s => s.dispatch.dynamic.submitDeviceSelect)
   const username = Constants.useState(s => s.username)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
@@ -26,7 +26,7 @@ const SelectOtherDeviceContainer = () => {
   }, [startAccountReset, username])
   const onSelect = React.useCallback(
     (name: string) => {
-      !waiting && submitDeviceSelect(name)
+      !waiting && submitDeviceSelect?.(name)
     },
     [submitDeviceSelect, waiting]
   )

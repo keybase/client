@@ -54,10 +54,10 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   )
   const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
   const onGoToSignup = requestAutoInvite
-  const setUsername = Constants.useState(s => s.dispatch.setUsername)
+  const setUsername = Constants.useState(s => s.dispatch.dynamic.setUsername)
   const onSubmit = React.useCallback(
     (username: string) => {
-      !waiting && setUsername(username)
+      !waiting && setUsername?.(username)
     },
     [setUsername, waiting]
   )

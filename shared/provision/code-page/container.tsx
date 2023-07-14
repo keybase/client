@@ -21,15 +21,16 @@ const CodePageContainer = () => {
   const iconNumber = DevicesConstants.useDeviceIconNumber(otherDevice.id)
   const textCode = Constants.useState(s => s.codePageIncomingTextCode)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const submitTextCode = Constants.useState(s => s.dispatch.submitTextCode)
+  const submitTextCode = Constants.useState(s => s.dispatch.dynamic.submitTextCode)
 
   const dispatch = Container.useDispatch()
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
 
-  const onClose = Constants.useState(s => s.dispatch.cancel)
+  const cancel = Constants.useState(s => s.dispatch.dynamic.cancel)
+  const onClose = () => cancel?.()
   const onSubmitTextCode = React.useCallback(
     (code: string) => {
-      !waiting && submitTextCode(code)
+      !waiting && submitTextCode?.(code)
     },
     [submitTextCode, waiting]
   )

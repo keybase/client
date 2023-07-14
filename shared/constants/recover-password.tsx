@@ -76,7 +76,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         if (p.abortProvisioning) {
-          ProvisionConstants.useState.getState().dispatch.cancel()
+          ProvisionConstants.useState.getState().dispatch.dynamic.cancel?.()
         }
         let hadError = false
         try {

@@ -123,17 +123,19 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
+    dynamic: {
+      cancel?: () => void
+      setDeviceName?: (name: string) => void
+      setPassphrase?: (passphrase: string) => void
+      setUsername?: (username: string) => void
+      submitDeviceSelect?: (name: string) => void
+      submitTextCode?: (code: string) => void
+    }
     addNewDevice: (otherDeviceType: 'desktop' | 'mobile') => void
-    cancel: () => void
     forgotUsername: (phone?: string, email?: string) => void
     resetState: () => void
     restartProvisioning: () => void
-    setDeviceName: (name: string) => void
-    setPassphrase: (passphrase: string) => void
-    setUsername: (username: string) => void
     startProvision: (name?: string, fromReset?: boolean) => void
-    submitDeviceSelect: (name: string) => void
-    submitTextCode: (code: string) => void
   }
 }
 
@@ -207,36 +209,25 @@ export const useState = Z.createZustand<State>((set, get) => {
   const resetErrorAndCancel = () => {
     set(s => {
       s.error = ''
-      s.dispatch.cancel = _cancel
+      s.dispatch.dynamic.cancel = _cancel
     })
   }
 
-  // calls we dynamically override while waiting for responses
-  const dispatchOverrides = {
-    cancel: _cancel,
-    setDeviceName: _setDeviceName,
-    setPassphrase: _setPassphrase,
-    setUsername: _setUsername,
-    submitDeviceSelect: _submitDeviceSelect,
-    submitTextCode: _submitTextCode,
-  } as const
-
   const dispatch: State['dispatch'] = {
-    ...dispatchOverrides,
     addNewDevice: otherDeviceType => {
-      get().dispatch.cancel()
+      get().dispatch.dynamic.cancel?.()
       set(s => {
         s.codePageOtherDevice.type = otherDeviceType
       })
       let cancelled = false
       const setupCancel = (response: CommonResponseHandler) => {
         set(s => {
-          s.dispatch.cancel = () => {
+          s.dispatch.dynamic.cancel = () => {
+            set(s => {
+              s.dispatch.dynamic.cancel = _cancel
+            })
             cancelled = true
             cancelOnCallback(undefined, response)
-            set(s => {
-              s.dispatch.cancel = _cancel
-            })
           }
         })
       }
@@ -259,9 +250,9 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = previousErr
                     s.codePageIncomingTextCode = phrase
-                    s.dispatch.submitTextCode = (code: string) => {
+                    s.dispatch.dynamic.submitTextCode = (code: string) => {
                       set(s => {
-                        s.dispatch.submitTextCode = _submitTextCode
+                        s.dispatch.dynamic.submitTextCode = _submitTextCode
                       })
                       resetErrorAndCancel()
                       const good = code.replace(/\W+/g, ' ').trim()
@@ -297,10 +288,28 @@ export const useState = Z.createZustand<State>((set, get) => {
             },
             Z.dummyListenerApi
           )
-        } catch {}
+        } catch {
+        } finally {
+          set(s => {
+            s.dispatch.dynamic.cancel = _cancel
+            s.dispatch.dynamic.setDeviceName = _setDeviceName
+            s.dispatch.dynamic.setPassphrase = _setPassphrase
+            s.dispatch.dynamic.setUsername = _setUsername
+            s.dispatch.dynamic.submitDeviceSelect = _submitDeviceSelect
+            s.dispatch.dynamic.submitTextCode = _submitTextCode
+          })
+        }
         reduxDispatch(RouteTreeGen.createClearModals())
       }
       Z.ignorePromise(f())
+    },
+    dynamic: {
+      cancel: _cancel,
+      setDeviceName: _setDeviceName,
+      setPassphrase: _setPassphrase,
+      setUsername: _setUsername,
+      submitDeviceSelect: _submitDeviceSelect,
+      submitTextCode: _submitTextCode,
     },
     forgotUsername: (phone, email) => {
       const f = async () => {
@@ -339,15 +348,15 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     resetState: () => {
-      get().dispatch.cancel()
+      get().dispatch.dynamic.cancel?.()
       set(s => ({
         ...s,
         ...initialStore,
-        ...dispatchOverrides,
+        dispatch: s.dispatch,
       }))
     },
     restartProvisioning: () => {
-      get().dispatch.cancel()
+      get().dispatch.dynamic.cancel?.()
 
       const {username} = get()
       if (!username) {
@@ -370,12 +379,12 @@ export const useState = Z.createZustand<State>((set, get) => {
         // Make cancel set the flag and cancel the current rpc
         const setupCancel = (response: CommonResponseHandler) => {
           set(s => {
-            s.dispatch.cancel = () => {
+            s.dispatch.dynamic.cancel = () => {
+              set(s => {
+                s.dispatch.dynamic.cancel = _cancel
+              })
               cancelled = true
               cancelOnCallback(undefined, response)
-              set(s => {
-                s.dispatch.cancel = _cancel
-              })
             }
           })
         }
@@ -402,9 +411,9 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = previousErr
                     s.codePageIncomingTextCode = phrase
-                    s.dispatch.submitTextCode = (code: string) => {
+                    s.dispatch.dynamic.submitTextCode = (code: string) => {
                       set(s => {
-                        s.dispatch.submitTextCode = _submitTextCode
+                        s.dispatch.dynamic.submitTextCode = _submitTextCode
                       })
                       resetErrorAndCancel()
                       const good = code.replace(/\W+/g, ' ').trim()
@@ -423,11 +432,11 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = errorMessage
                     s.existingDevices = existingDevices ?? []
-                    s.dispatch.setDeviceName = (name: string) => {
-                      _setDeviceName(name, false)
+                    s.dispatch.dynamic.setDeviceName = (name: string) => {
                       set(s => {
-                        s.dispatch.setDeviceName = _setDeviceName
+                        s.dispatch.dynamic.setDeviceName = _setDeviceName
                       })
+                      _setDeviceName(name, false)
                       resetErrorAndCancel()
                       response.result(name)
                     }
@@ -435,7 +444,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
                   if (shouldAutoSubmit(!!errorMessage, {type: 'deviceName'})) {
                     console.log('Provision: auto submit device name')
-                    get().dispatch.setDeviceName(get().deviceName)
+                    get().dispatch.dynamic.setDeviceName?.(get().deviceName)
                   } else {
                     reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['setPublicName']}))
                   }
@@ -448,12 +457,12 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.error = ''
                     s.devices = devices
-                    s.dispatch.submitDeviceSelect = (device: string) => {
+                    s.dispatch.dynamic.submitDeviceSelect = (device: string) => {
+                      set(s => {
+                        s.dispatch.dynamic.submitDeviceSelect = _submitDeviceSelect
+                      })
                       _submitDeviceSelect(device, false)
                       const id = get().codePageOtherDevice.id
-                      set(s => {
-                        s.dispatch.submitDeviceSelect = _submitDeviceSelect
-                      })
                       resetErrorAndCancel()
                       response.result(id)
                     }
@@ -461,7 +470,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
                   if (shouldAutoSubmit(false, {devices, type: 'chooseDevice'})) {
                     console.log('Provision: auto submit passphrase')
-                    get().dispatch.submitDeviceSelect(get().codePageOtherDevice.name)
+                    get().dispatch.dynamic.submitDeviceSelect?.(get().codePageOtherDevice.name)
                   } else {
                     reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice']}))
                   }
@@ -480,11 +489,11 @@ export const useState = Z.createZustand<State>((set, get) => {
                       retryLabel === ConfigConstants.invalidPasswordErrorString
                         ? 'Incorrect password.'
                         : retryLabel
-                    s.dispatch.setPassphrase = (passphrase: string) => {
-                      _setPassphrase(passphrase, false)
+                    s.dispatch.dynamic.setPassphrase = (passphrase: string) => {
                       set(s => {
-                        s.dispatch.setPassphrase = _setPassphrase
+                        s.dispatch.dynamic.setPassphrase = _setPassphrase
                       })
+                      _setPassphrase(passphrase, false)
                       resetErrorAndCancel()
                       response.result({passphrase, storeSecret: false})
                     }
@@ -492,7 +501,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
                   if (shouldAutoSubmit(!!retryLabel, {type: 'passphrase'})) {
                     console.log('Provision: auto submit passphrase')
-                    get().dispatch.setPassphrase(get().passphrase)
+                    get().dispatch.dynamic.setPassphrase?.(get().passphrase)
                   } else {
                     switch (type) {
                       case RPCTypes.PassphraseType.passPhrase:
@@ -560,7 +569,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     startProvision: (name = '', fromReset = false) => {
-      get().dispatch.cancel()
+      get().dispatch.dynamic.cancel?.()
       ConfigConstants.useConfigState.getState().dispatch.loginError()
       ConfigConstants.useConfigState.getState().dispatch.resetRevokedSelf()
 
