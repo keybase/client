@@ -23,23 +23,6 @@ type ProveGenericParams = {
   buttonLabel: string
 }
 
-// type WotAuthorQuestion = 'question1' | 'question2'
-
-type ValidCallback =
-  | 'keybase.1.proveUi.checking'
-  | 'keybase.1.proveUi.continueChecking'
-  | 'keybase.1.proveUi.okToCheck'
-  | 'keybase.1.proveUi.outputInstructions'
-  | 'keybase.1.proveUi.preProofWarning'
-  | 'keybase.1.proveUi.promptOverwrite'
-  | 'keybase.1.proveUi.promptUsername'
-type CustomResp<T extends ValidCallback> = {
-  error: RPCTypes.IncomingErrorCallback
-  result: RPCTypes.MessageTypes[T]['outParam'] extends undefined
-    ? () => void
-    : (res: RPCTypes.MessageTypes[T]['outParam']) => void
-}
-
 export const makeProveGenericParams = (): ProveGenericParams => ({
   buttonLabel: '',
   logoBlack: [],
@@ -123,10 +106,14 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
+    dynamic: {
+      afterCheckProof?: () => void
+      cancelAddProof?: () => void
+      cancelPgpGen?: () => void
+      submitUsername?: () => void
+    }
     addProof: (platform: string, reason: 'appLink' | 'profile') => void
     backToProfile: () => void
-    cancelAddProof: () => void
-    cancelPgpGen: () => void
     checkProof: () => void
     clearPlatformGeneric: () => void
     editAvatar: () => void
@@ -141,7 +128,6 @@ type State = Store & {
     submitBlockUser: (username: string) => void
     submitBTCAddress: () => void
     submitRevokeProof: (proofId: string) => void
-    submitUsername: () => void
     submitUnblockUser: (username: string, guiID: string) => void
     submitZcashAddress: () => void
     updatePgpInfo: (p: {
@@ -206,8 +192,6 @@ export const useState = Z.createZustand<State>((set, get) => {
       clearErrors(s)
     })
   }
-
-  let afterCheckProof = () => {}
 
   const submitCryptoAddress = (wantedFamily: 'bitcoin' | 'zcash') => {
     set(s => {
@@ -280,8 +264,6 @@ export const useState = Z.createZustand<State>((set, get) => {
           return
         }
         addProofInProgress = true
-        let _promptUsernameResponse: CustomResp<'keybase.1.proveUi.promptUsername'> | undefined
-        let _outputInstructionsResponse: CustomResp<'keybase.1.proveUi.outputInstructions'> | undefined
 
         const inputCancelError = {
           code: RPCTypes.StatusCode.scinputcanceled,
@@ -291,49 +273,6 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.sigID = undefined
         })
         let canceled = false
-        // Setup cancelling
-        set(s => {
-          s.dispatch.cancelAddProof = () => {
-            _cancelAddProof()
-            canceled = true
-            if (_promptUsernameResponse) {
-              _promptUsernameResponse.error(inputCancelError)
-              _promptUsernameResponse = undefined
-            }
-            if (_outputInstructionsResponse) {
-              _outputInstructionsResponse.error(inputCancelError)
-              _outputInstructionsResponse = undefined
-            }
-            set(s => {
-              s.dispatch.cancelAddProof = _cancelAddProof
-            })
-          }
-        })
-
-        afterCheckProof = () => {
-          if (_outputInstructionsResponse) {
-            _outputInstructionsResponse.result()
-            _outputInstructionsResponse = undefined
-          }
-          afterCheckProof = () => {}
-        }
-
-        set(s => {
-          s.dispatch.submitUsername = () => {
-            set(s => {
-              updateUsername(s)
-            })
-            if (_promptUsernameResponse) {
-              set(s => {
-                s.errorText = ''
-                s.errorCode = undefined
-              })
-              _promptUsernameResponse.result(get().username)
-              _promptUsernameResponse = undefined
-            }
-            // don't clear this as we can get multiple calls due to errors
-          }
-        })
 
         const loadAfter = () =>
           TrackerConstants.useState.getState().dispatch.load({
@@ -365,8 +304,22 @@ export const useState = Z.createZustand<State>((set, get) => {
                     response.error(inputCancelError)
                     return
                   }
-
-                  _outputInstructionsResponse = response
+                  set(s => {
+                    s.dispatch.dynamic.afterCheckProof = () => {
+                      set(s => {
+                        s.dispatch.dynamic.afterCheckProof = undefined
+                      })
+                      response.result()
+                    }
+                    s.dispatch.dynamic.cancelAddProof = () => {
+                      set(s => {
+                        s.dispatch.dynamic.cancelAddProof = _cancelAddProof
+                      })
+                      _cancelAddProof()
+                      canceled = true
+                      response.error(inputCancelError)
+                    }
+                  })
                   // @ts-ignore propbably a real thing
                   if (service === 'dnsOrGenericWebSite') {
                     // We don't get this directly (yet) so we parse this out
@@ -405,8 +358,31 @@ export const useState = Z.createZustand<State>((set, get) => {
                     response.error(inputCancelError)
                     return
                   }
-
-                  _promptUsernameResponse = response
+                  const clear = () => {
+                    set(s => {
+                      s.errorText = ''
+                      s.errorCode = undefined
+                    })
+                  }
+                  set(s => {
+                    s.dispatch.dynamic.cancelAddProof = () => {
+                      clear()
+                      set(s => {
+                        s.dispatch.dynamic.cancelAddProof = _cancelAddProof
+                      })
+                      _cancelAddProof()
+                      canceled = true
+                      response.error(inputCancelError)
+                    }
+                    s.dispatch.dynamic.submitUsername = () => {
+                      clear()
+                      set(s => {
+                        updateUsername(s)
+                        s.dispatch.dynamic.submitUsername = undefined
+                      })
+                      response.result(get().username)
+                    }
+                  })
                   if (prevError) {
                     set(s => {
                       s.errorText = prevError.desc
@@ -440,6 +416,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
           set(s => {
             s.sigID = sigID
+            s.dispatch.dynamic.cancelAddProof = _cancelAddProof
+            s.dispatch.dynamic.afterCheckProof = undefined
+            s.dispatch.dynamic.cancelPgpGen = undefined
+            s.dispatch.dynamic.submitUsername = undefined
           })
           logger.info('Start Proof done: ', sigID)
           if (!genericService) {
@@ -479,12 +459,10 @@ export const useState = Z.createZustand<State>((set, get) => {
             })
           }
         }
-
         set(s => {
-          s.dispatch.cancelAddProof = () => {}
-          s.dispatch.submitUsername = () => {}
+          s.dispatch.dynamic.cancelAddProof = _cancelAddProof
+          s.dispatch.dynamic.submitUsername = undefined
         })
-        afterCheckProof = () => {}
         addProofInProgress = false
       }
       Z.ignorePromise(f())
@@ -492,10 +470,6 @@ export const useState = Z.createZustand<State>((set, get) => {
     backToProfile: () => {
       reduxDispatch(RouteTreeGen.createClearModals())
       get().dispatch.showUserProfile(ConfigConstants.useCurrentUserState.getState().username)
-    },
-    cancelAddProof: _cancelAddProof,
-    cancelPgpGen: () => {
-      // overloaded while generating pgp
     },
     checkProof: () => {
       set(s => {
@@ -539,12 +513,16 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
-      afterCheckProof()
+      get().dispatch.dynamic.afterCheckProof?.()
     },
     clearPlatformGeneric: () => {
       set(s => {
         clearErrors(s)
       })
+    },
+    dynamic: {
+      cancelAddProof: _cancelAddProof,
+      cancelPgpGen: undefined,
     },
     editAvatar: () => {
       throw new Error('This is overloaded by platform specific')
@@ -596,7 +574,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         )
         // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
         set(s => {
-          s.dispatch.cancelPgpGen = () => {
+          s.dispatch.dynamic.cancelPgpGen = () => {
             canceled = true
           }
         })
@@ -655,7 +633,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
 
         set(s => {
-          s.dispatch.cancelPgpGen = () => {}
+          s.dispatch.dynamic.cancelPgpGen = undefined
         })
       }
       Z.ignorePromise(f())
@@ -696,7 +674,6 @@ export const useState = Z.createZustand<State>((set, get) => {
         ...initialStore,
         dispatch: {
           ...s.dispatch,
-          editAvatar: s.dispatch.editAvatar,
         },
       }))
     },
@@ -793,9 +770,6 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
-    },
-    submitUsername: () => {
-      // overriden while making a proof
     },
     submitZcashAddress: () => {
       submitCryptoAddress('zcash')

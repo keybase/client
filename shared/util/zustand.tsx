@@ -54,6 +54,7 @@ export const createZustand = <T extends HasReset>(
 ) => {
   const f = immerZustand(initializer)
   const store = _create<T, [['zustand/immer', never]]>(f)
+  // includes dispatch, custom overrides typically don't
   const initialState = store.getState()
   const reset = initialState.dispatch.resetState
   if (reset === 'default') {

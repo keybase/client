@@ -103,7 +103,7 @@ const useMenuItems = (
             if (isLinux) {
               dispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
             } else {
-              dispatch(ConfigGen.createREMOTEdumpLogs({reason: 'quitting through menu'}))
+              dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
             }
           }
           // In case dump log doesn't exit for us

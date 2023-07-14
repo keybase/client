@@ -15,7 +15,7 @@ const reallyQuit = () => {
   if (isLinux) {
     mainWindowDispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
   } else {
-    mainWindowDispatch(ConfigGen.createREMOTEdumpLogs({reason: 'quitting through menu'}))
+    mainWindowDispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
   }
   setTimeout(() => {
     ctlQuit()

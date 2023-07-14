@@ -579,7 +579,7 @@ export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.openAppStore, openAppStore)
 
   ConfigConstants.useConfigState.setState(s => {
-    s.dispatch.onFilePickerErrorNative = error => {
+    s.dispatch.dynamic.onFilePickerError = error => {
       Alert.alert('Error', String(error))
     }
   })

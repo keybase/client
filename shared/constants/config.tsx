@@ -151,6 +151,9 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
+    dynamic: {
+      onFilePickerError?: (error: Error) => void
+    }
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
     filePickerError: (error: Error) => void
@@ -163,7 +166,6 @@ type State = Store & {
     login: (username: string, password: string) => void
     loginError: (error?: RPCError) => void
     logoutAndTryToLogInAs: (username: string) => void
-    onFilePickerErrorNative: (error: Error) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
@@ -236,8 +238,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
+    dynamic: {
+      onFilePickerError: undefined,
+    },
     filePickerError: error => {
-      get().dispatch.onFilePickerErrorNative(error)
+      get().dispatch.dynamic.onFilePickerError?.(error)
     },
     initAppUpdateLoop: () => {
       const f = async () => {
@@ -390,9 +395,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    onFilePickerErrorNative: () => {
-      // override this
-    },
     remoteWindowNeedsProps: (component, params) => {
       set(s => {
         const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
@@ -414,7 +416,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         defaultUsername: s.defaultUsername,
         dispatch: {
           ...s.dispatch,
-          onFilePickerErrorNative: s.dispatch.onFilePickerErrorNative,
         },
         startup: {loaded: s.startup.loaded},
         useNativeFrame: s.useNativeFrame,

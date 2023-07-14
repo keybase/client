@@ -3,17 +3,26 @@ import {SelectOtherDevice} from '../../../provision/select-other-device'
 
 const ConnectedDeviceSelector = () => {
   const devices = Constants.useState(s => s.devices)
-  const submitDeviceSelect = Constants.useState(s => s.dispatch.submitDeviceSelect)
-  const cancel = Constants.useState(s => s.dispatch.cancel)
-  const onBack = cancel
+  const submitDeviceSelect = Constants.useState(s => s.dispatch.dynamic.submitDeviceSelect)
+  const cancel = Constants.useState(s => s.dispatch.dynamic.cancel)
+  const onBack = () => {
+    cancel?.()
+  }
   const onResetAccount = () => {
-    submitDeviceSelect('')
+    submitDeviceSelect?.('')
+  }
+  const onSelect = (name: string) => {
+    if (submitDeviceSelect) {
+      submitDeviceSelect(name)
+    } else {
+      console.log('Missing device select?')
+    }
   }
   const props = {
     devices,
     onBack,
     onResetAccount,
-    onSelect: submitDeviceSelect,
+    onSelect,
     passwordRecovery: true,
   }
   return <SelectOtherDevice {...props} />

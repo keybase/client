@@ -5,10 +5,10 @@ import * as Constants from '../../constants/profile'
 
 export default () => {
   const dispatch = Container.useDispatch()
-  const cancelAddProof = Constants.useState(s => s.dispatch.cancelAddProof)
+  const cancelAddProof = Constants.useState(s => s.dispatch.dynamic.cancelAddProof)
   const addProof = Constants.useState(s => s.dispatch.addProof)
   const onCancel = () => {
-    cancelAddProof()
+    cancelAddProof?.()
     dispatch(RouteTreeGen.createClearModals())
   }
   const onDNS = () => {

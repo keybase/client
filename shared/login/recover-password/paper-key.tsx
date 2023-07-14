@@ -7,16 +7,16 @@ import {SignupScreen} from '../../signup/common'
 
 const PaperKey = () => {
   const error = Constants.useState(s => s.paperKeyError)
-  const cancel = Constants.useState(s => s.dispatch.cancel)
-  const submitPaperKey = Constants.useState(s => s.dispatch.submitPaperKey)
+  const cancel = Constants.useState(s => s.dispatch.dynamic.cancel)
+  const submitPaperKey = Constants.useState(s => s.dispatch.dynamic.submitPaperKey)
   const onBack = () => {
-    cancel()
+    cancel?.()
   }
   const props = {error, onBack}
   const [paperKey, setPaperKey] = React.useState('')
   const onSubmit = React.useCallback(() => {
     if (paperKey) {
-      submitPaperKey(paperKey)
+      submitPaperKey?.(paperKey)
     }
   }, [paperKey, submitPaperKey])
 

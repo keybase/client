@@ -20,13 +20,13 @@ const PromptReset = (props: Props) => {
   const resetAccount = AutoresetConstants.useState(s => s.dispatch.resetAccount)
   const {resetPassword} = props
 
-  const submitResetPassword = Constants.useState(s => s.dispatch.submitResetPassword)
+  const submitResetPassword = Constants.useState(s => s.dispatch.dynamic.submitResetPassword)
   const startRecoverPassword = Constants.useState(s => s.dispatch.startRecoverPassword)
   const username = Constants.useState(s => s.username)
 
   const onContinue = React.useCallback(() => {
     if (resetPassword) {
-      submitResetPassword(RPCTypes.ResetPromptResponse.confirmReset)
+      submitResetPassword?.(RPCTypes.ResetPromptResponse.confirmReset)
     }
     if (skipPassword) {
       resetAccount()

@@ -185,19 +185,19 @@ const maybePauseVideos = () => {
   })
 }
 
-export const dumpLogs = async (action?: ConfigGen.REMOTEdumpLogsPayload) => {
+export const dumpLogs = async (reason?: string) => {
   await logger.dump()
   await (dumpNodeLogger?.() ?? Promise.resolve([]))
   // quit as soon as possible
-  if (action?.payload.reason === 'quitting through menu') {
+  if (reason === 'quitting through menu') {
     ctlQuit?.()
   }
 }
 
 export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.showMain, () => showMainWindow?.())
-  Container.listenAction(ConfigGen.REMOTEdumpLogs, async (_, a) => {
-    await dumpLogs(a)
+  Container.listenAction(ConfigGen.dumpLogs, async (_, a) => {
+    await dumpLogs(a.payload.reason)
   })
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   Container.listenAction(EngineGen.keybase1LogsendPrepareLogsend, async (_, action) => {
@@ -279,7 +279,7 @@ export const initPlatformListener = () => {
     FsConstants.useState.getState().dispatch.userFileEditsLoad()
   })
 
-  Container.listenAction(ConfigGen.REMOTEinstallerRan, () => {
+  Container.listenAction(ConfigGen.installerRan, () => {
     ConfigConstants.useConfigState.getState().dispatch.installerRan()
   })
 

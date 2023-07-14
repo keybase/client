@@ -237,17 +237,16 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
         )
       }
 
-      const onFilePickerError = filePickerError
       switch (location) {
         case 'camera':
           launchCameraAsync(mediaType)
             .then(handleSelection)
-            .catch(error => onFilePickerError(new Error(error)))
+            .catch(error => filePickerError(new Error(error)))
           break
         case 'library':
           launchImageLibraryAsync(mediaType, true, true)
             .then(handleSelection)
-            .catch(error => onFilePickerError(new Error(error)))
+            .catch(error => filePickerError(new Error(error)))
           break
       }
     },

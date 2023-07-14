@@ -6,9 +6,9 @@ import Modal from '../../modal'
 
 export default function Generate() {
   const dispatch = Container.useDispatch()
-  const cancelPgpGen = Constants.useState(s => s.dispatch.cancelPgpGen)
+  const cancelPgpGen = Constants.useState(s => s.dispatch.dynamic.cancelPgpGen)
   const onCancel = () => {
-    cancelPgpGen()
+    cancelPgpGen?.()
     dispatch(RouteTreeGen.createClearModals())
   }
   return (
