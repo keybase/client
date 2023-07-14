@@ -17,9 +17,6 @@
       "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
       "version": "number"
     },
-    "openAppSettings": {
-      "_description": "mobile only: open the settings page"
-    },
     "changedFocus": {"appFocused": "boolean"},
     "changedActive": {"userActive": "boolean"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},

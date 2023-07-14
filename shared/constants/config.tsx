@@ -153,6 +153,7 @@ type State = Store & {
   dispatch: {
     dynamic: {
       onFilePickerError?: (error: Error) => void
+      openAppSettings?: () => void
     }
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
@@ -240,6 +241,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     },
     dynamic: {
       onFilePickerError: undefined,
+      openAppSettings: undefined,
     },
     filePickerError: error => {
       get().dispatch.dynamic.onFilePickerError?.(error)

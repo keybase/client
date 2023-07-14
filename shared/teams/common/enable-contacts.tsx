@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Container from '../../util/container'
-import * as ConfigGen from '../../actions/config-gen'
+import * as ConfigConstants from '../../constants/config'
 
 /**
  * Popup explaining that Keybase doesn't have contact permissions with a link to
@@ -13,8 +12,7 @@ import * as ConfigGen from '../../actions/config-gen'
  * popup.
  */
 const EnableContactsPopup = ({noAccess, onClose}: {noAccess: boolean; onClose: () => void}) => {
-  const dispatch = Container.useDispatch()
-  const onOpenSettings = () => dispatch(ConfigGen.createOpenAppSettings())
+  const onOpenSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
 
   const [showingPopup, setShowingPopup] = React.useState(noAccess)
   React.useEffect(() => {

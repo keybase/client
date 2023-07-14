@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Constants from '../constants/settings'
+import * as ConfigConstants from '../constants/config'
 import * as Tabs from '../constants/tabs'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as ConfigGen from '../actions/config-gen'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {appendNewChatBuilder} from '../actions/typed-routes'
@@ -70,7 +70,7 @@ const ManageContactsBanner = () => {
   const importedCount = Constants.useContactsState(s => s.importedCount)
   const error = Constants.useContactsState(s => s.importError)
 
-  const onOpenAppSettings = React.useCallback(() => dispatch(ConfigGen.createOpenAppSettings()), [dispatch])
+  const onOpenAppSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const onStartChat = React.useCallback(() => {
     dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
     dispatch(appendNewChatBuilder())

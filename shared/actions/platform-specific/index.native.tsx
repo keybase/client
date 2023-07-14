@@ -160,20 +160,6 @@ export const showShareActionSheet = async (options: {
   }
 }
 
-const openAppSettings = async () => {
-  if (isAndroid) {
-    androidOpenSettings()
-  } else {
-    const settingsURL = 'app-settings:'
-    const can = await Linking.canOpenURL(settingsURL)
-    if (can) {
-      return Linking.openURL(settingsURL)
-    } else {
-      logger.warn('Unable to open app settings')
-    }
-  }
-}
-
 const updateChangedFocus = (_: unknown, action: ConfigGen.MobileAppStatePayload) => {
   let appFocused: boolean
   let logState: RPCTypes.MobileAppState
@@ -559,7 +545,6 @@ let afterStartupDetails = (_done: boolean) => {}
 export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.persistRoute, persistRoute)
   Container.listenAction(ConfigGen.mobileAppState, updateChangedFocus)
-  Container.listenAction(ConfigGen.openAppSettings, openAppSettings)
   Container.listenAction(ConfigGen.copyToClipboard, copyToClipboard)
   Container.listenAction(ConfigGen.daemonHandshake, (_, action) => {
     // loadStartupDetails finished already
@@ -647,4 +632,23 @@ export const initPlatformListener = () => {
   initPushListener()
   Container.spawn(setupNetInfoWatcher, 'setupNetInfoWatcher')
   Container.spawn(initAudioModes, 'initAudioModes')
+
+  ConfigConstants.useConfigState.setState(s => {
+    s.dispatch.dynamic.openAppSettings = () => {
+      const f = async () => {
+        if (isAndroid) {
+          androidOpenSettings()
+        } else {
+          const settingsURL = 'app-settings:'
+          const can = await Linking.canOpenURL(settingsURL)
+          if (can) {
+            await Linking.openURL(settingsURL)
+          } else {
+            logger.warn('Unable to open app settings')
+          }
+        }
+      }
+      Container.ignorePromise(f())
+    }
+  })
 }

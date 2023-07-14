@@ -19,7 +19,6 @@ export const loadOnStart = 'config:loadOnStart'
 export const loggedInChanged = 'config:loggedInChanged'
 export const logoutHandshake = 'config:logoutHandshake'
 export const mobileAppState = 'config:mobileAppState'
-export const openAppSettings = 'config:openAppSettings'
 export const openAppStore = 'config:openAppStore'
 export const openAtLoginChanged = 'config:openAtLoginChanged'
 export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
@@ -112,13 +111,6 @@ export const createUpdateWindowState = (payload: {
     y: number
   }
 }) => ({payload, type: updateWindowState as typeof updateWindowState})
-/**
- * mobile only: open the settings page
- */
-export const createOpenAppSettings = (payload?: undefined) => ({
-  payload,
-  type: openAppSettings as typeof openAppSettings,
-})
 /**
  * ready to show the app
  */
@@ -223,7 +215,6 @@ export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type LoggedInChangedPayload = ReturnType<typeof createLoggedInChanged>
 export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
 export type MobileAppStatePayload = ReturnType<typeof createMobileAppState>
-export type OpenAppSettingsPayload = ReturnType<typeof createOpenAppSettings>
 export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
 export type OpenAtLoginChangedPayload = ReturnType<typeof createOpenAtLoginChanged>
 export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
@@ -258,7 +249,6 @@ export type Actions =
   | LoggedInChangedPayload
   | LogoutHandshakePayload
   | MobileAppStatePayload
-  | OpenAppSettingsPayload
   | OpenAppStorePayload
   | OpenAtLoginChangedPayload
   | OsNetworkStatusChangedPayload
