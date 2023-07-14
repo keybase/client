@@ -63,7 +63,7 @@ export default class extends React.PureComponent<Props, State> {
                 src={this.props.url}
                 style={Styles.collapseStyles([styles.container, getVideoSize(this.state)])}
                 muted={this.props.muted ?? true}
-                autoPlay={true}
+                autoPlay={this.props.autoPlay ?? true}
                 preload="metadata"
                 onLoadedMetadata={this._onVideoLoadedmetadata}
                 onError={onUrlError && (() => onUrlError('video loading error'))}
