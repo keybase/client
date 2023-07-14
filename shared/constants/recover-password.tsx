@@ -251,14 +251,15 @@ export const useState = Z.createZustand<State>((set, get) => {
               })
             )
           }
+        } finally {
+          set(s => {
+            s.dispatch.dynamic.submitPassword = undefined
+            s.dispatch.dynamic.cancel = undefined
+            s.dispatch.dynamic.submitPaperKey = undefined
+            s.dispatch.dynamic.submitResetPassword = undefined
+            s.dispatch.dynamic.submitDeviceSelect = undefined
+          })
         }
-        set(s => {
-          s.dispatch.dynamic.submitPassword = undefined
-          s.dispatch.dynamic.cancel = undefined
-          s.dispatch.dynamic.submitPaperKey = undefined
-          s.dispatch.dynamic.submitResetPassword = undefined
-          s.dispatch.dynamic.submitDeviceSelect = undefined
-        })
         logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
         if (!hadError) {
           reduxDispatch(RouteTreeGen.createClearModals())

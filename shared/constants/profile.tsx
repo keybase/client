@@ -110,6 +110,7 @@ type State = Store & {
       afterCheckProof?: () => void
       cancelAddProof?: () => void
       cancelPgpGen?: () => void
+      finishedWithKeyGen?: (shouldStoreKeyOnServer: boolean) => void
       submitUsername?: () => void
     }
     addProof: (platform: string, reason: 'appLink' | 'profile') => void
@@ -119,7 +120,6 @@ type State = Store & {
     editAvatar: () => void
     editProfile: (bio: string, fullname: string, location: string) => void
     finishRevoking: () => void
-    finishedWithKeyGen: (shouldStoreKeyOnServer: boolean) => void
     generatePgp: () => void
     hideStellar: (h: boolean) => void
     recheckProof: (sigID: string) => void
@@ -416,10 +416,6 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
           set(s => {
             s.sigID = sigID
-            s.dispatch.dynamic.cancelAddProof = _cancelAddProof
-            s.dispatch.dynamic.afterCheckProof = undefined
-            s.dispatch.dynamic.cancelPgpGen = undefined
-            s.dispatch.dynamic.submitUsername = undefined
           })
           logger.info('Start Proof done: ', sigID)
           if (!genericService) {
@@ -458,12 +454,15 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.platformGenericChecking = false
             })
           }
+        } finally {
+          addProofInProgress = false
+          set(s => {
+            s.dispatch.dynamic.cancelAddProof = _cancelAddProof
+            s.dispatch.dynamic.afterCheckProof = undefined
+            s.dispatch.dynamic.cancelPgpGen = undefined
+            s.dispatch.dynamic.submitUsername = undefined
+          })
         }
-        set(s => {
-          s.dispatch.dynamic.cancelAddProof = _cancelAddProof
-          s.dispatch.dynamic.submitUsername = undefined
-        })
-        addProofInProgress = false
       }
       Z.ignorePromise(f())
     },
@@ -523,6 +522,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     dynamic: {
       cancelAddProof: _cancelAddProof,
       cancelPgpGen: undefined,
+      finishedWithKeyGen: undefined,
     },
     editAvatar: () => {
       throw new Error('This is overloaded by platform specific')
@@ -546,9 +546,6 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.revokeError = ''
       })
-    },
-    finishedWithKeyGen: _shouldStoreKeyOnServer => {
-      // overloaded while generating pgp
     },
     generatePgp: () => {
       const f = async () => {
@@ -608,11 +605,11 @@ export const useState = Z.createZustand<State>((set, get) => {
                   )
                   set(s => {
                     s.promptShouldStoreKeyOnServer = prompt
-                    s.dispatch.finishedWithKeyGen = (shouldStoreKeyOnServer: boolean) => {
-                      response.result(shouldStoreKeyOnServer)
+                    s.dispatch.dynamic.finishedWithKeyGen = (shouldStoreKeyOnServer: boolean) => {
                       set(s => {
-                        s.dispatch.finishedWithKeyGen = () => {}
+                        s.dispatch.dynamic.finishedWithKeyGen = undefined
                       })
+                      response.result(shouldStoreKeyOnServer)
                     }
                   })
                 },
@@ -631,9 +628,9 @@ export const useState = Z.createZustand<State>((set, get) => {
             throw error
           }
         }
-
         set(s => {
           s.dispatch.dynamic.cancelPgpGen = undefined
+          s.dispatch.dynamic.finishedWithKeyGen = undefined
         })
       }
       Z.ignorePromise(f())
@@ -668,13 +665,10 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     resetState: () => {
-      // keep our injected callbacks
       set(s => ({
         ...s,
         ...initialStore,
-        dispatch: {
-          ...s.dispatch,
-        },
+        dispatch: s.dispatch,
       }))
     },
     showUserProfile: username => {

@@ -33,14 +33,13 @@ const JoinFromInvite = () => {
   const nav = Container.useSafeNavigation()
 
   const onNavUp = () => dispatch(nav.safeNavigateUpPayload())
-  const respondToInviteLink = Constants.useState(s => s.dispatch.respondToInviteLink)
-  const onDecide = respondToInviteLink
+  const respondToInviteLink = Constants.useState(s => s.dispatch.dynamic.respondToInviteLink)
   const onJoinTeam = () => {
     setClickedJoin(true)
-    onDecide(true)
+    respondToInviteLink?.(true)
   }
   const onClose = () => {
-    onDecide(true)
+    respondToInviteLink?.(true)
     onNavUp()
   }
 
