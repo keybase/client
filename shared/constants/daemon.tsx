@@ -27,6 +27,7 @@ type State = Store & {
   dispatch: {
     resetState: () => void
     setError: (e?: Error) => void
+    setFailed: (r: string) => void
     setState: (s: Types.DaemonHandshakeState) => void
     wait: (
       name: string,
@@ -38,50 +39,24 @@ type State = Store & {
     startHandshake: () => void
     daemonHandshake: (firstTimeConnecting: boolean, version: number) => void
     daemonHandshakeDone: () => void
+    onRestartHandshakeNative: () => void
   }
 }
 
 export const useDaemonState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
 
-  const setFailed = (r: string) => {
-    set(s => {
-      s.handshakeFailedReason = r
-    })
-  }
-  const setState = (ds: Types.DaemonHandshakeState) => {
-    set(s => {
-      s.handshakeState = ds
-    })
-  }
-  const daemonHandshake = (firstTimeConnecting: boolean, version: number) => {
-    setState('waitingForWaiters')
-    set(s => {
-      s.handshakeVersion = version
-      s.handshakeWaiters = new Map()
-    })
-    reduxDispatch(ConfigGen.createDaemonHandshake({firstTimeConnecting, version}))
-  }
-  const setError = (e?: Error) => {
-    if (e) {
-      logger.error('Error (daemon):', e)
-    }
-    set(s => {
-      s.error = e
-    })
-  }
-  const daemonHandshakeDone = () => {
-    setState('done')
-    reduxDispatch(ConfigGen.createDaemonHandshakeDone())
-  }
-
   const restartHandshake = () => {
-    reduxDispatch(ConfigGen.createRestartHandshake())
-    setState('starting')
-    setFailed('')
+    get().dispatch.onRestartHandshakeNative()
+    get().dispatch.setState('starting')
+    get().dispatch.setFailed('')
     set(s => {
       s.handshakeRetriesLeft = maxHandshakeTries
     })
+  }
+
+  const _onRestartHandshakeNative = () => {
+    // overriden on desktop
   }
 
   let _firstTimeBootstrapDone = true
@@ -103,7 +78,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
           _firstTimeBootstrapDone = false
           logger.info('First bootstrap ended')
         }
-        daemonHandshakeDone()
+        get().dispatch.daemonHandshakeDone()
       }
     }
     return
@@ -113,22 +88,53 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
 
   let _firstTimeConnecting = true
   const dispatch: State['dispatch'] = {
-    daemonHandshake,
-    daemonHandshakeDone,
+    daemonHandshake: (firstTimeConnecting, version) => {
+      get().dispatch.setState('waitingForWaiters')
+      set(s => {
+        s.handshakeVersion = version
+        s.handshakeWaiters = new Map()
+      })
+      reduxDispatch(ConfigGen.createDaemonHandshake({firstTimeConnecting, version}))
+    },
+    daemonHandshakeDone: () => {
+      get().dispatch.setState('done')
+      reduxDispatch(ConfigGen.createDaemonHandshakeDone())
+    },
+    onRestartHandshakeNative: _onRestartHandshakeNative,
     resetState: () => {
       set(s => ({
         ...s,
         ...initialStore,
+        dispatch: {
+          ...s.dispatch,
+          onRestartHandshakeNative: s.dispatch.onRestartHandshakeNative,
+        },
         handshakeState: s.handshakeState,
         handshakeVersion: s.handshakeVersion,
       }))
     },
-    setError,
-    setState,
+    setError: e => {
+      if (e) {
+        logger.error('Error (daemon):', e)
+      }
+      set(s => {
+        s.error = e
+      })
+    },
+    setFailed: r => {
+      set(s => {
+        s.handshakeFailedReason = r
+      })
+    },
+    setState: ds => {
+      set(s => {
+        s.handshakeState = ds
+      })
+    },
     startHandshake: () => {
-      setError()
-      setState('starting')
-      setFailed('')
+      get().dispatch.setError()
+      get().dispatch.setState('starting')
+      get().dispatch.setFailed('')
       set(s => {
         s.handshakeRetriesLeft = Math.max(0, s.handshakeRetriesLeft - 1)
       })
@@ -138,20 +144,17 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       if (firstTimeConnecting) {
         logger.info('First bootstrap started')
       }
-
-      daemonHandshake(firstTimeConnecting, get().handshakeVersion + 1)
+      get().dispatch.daemonHandshake(firstTimeConnecting, get().handshakeVersion + 1)
     },
     wait: (name, version, increment, failedReason, failedFatal) => {
       const {handshakeState, handshakeFailedReason, handshakeVersion} = get()
       if (handshakeState !== 'waitingForWaiters') {
         throw new Error("Should only get a wait while we're waiting")
       }
-
       if (version !== handshakeVersion) {
         logger.info('Ignoring handshake wait due to version mismatch', version, handshakeVersion)
         return
       }
-
       set(s => {
         const oldCount = s.handshakeWaiters.get(name) || 0
         const newCount = oldCount + (increment ? 1 : -1)
@@ -163,7 +166,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       })
 
       if (failedFatal) {
-        setFailed(failedReason || '')
+        get().dispatch.setFailed(failedReason || '')
         set(s => {
           s.handshakeRetriesLeft = 0
         })
@@ -171,10 +174,9 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         // Keep the first error
         const f = failedReason || ''
         if (f && !handshakeFailedReason) {
-          setFailed(f)
+          get().dispatch.setFailed(f)
         }
       }
-
       maybeDoneWithDaemonHandshake(version)
     },
   }

@@ -1,6 +1,7 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as Styles from '../styles'
 import * as WaitingConstants from '../constants/waiting'
+import * as ConfigConstants from '../constants/config'
 import * as LinkingConstants from '../constants/deeplinks'
 import * as React from 'react'
 import * as DarkMode from '../constants/darkmode'
@@ -107,7 +108,7 @@ const ensureStore = () => {
   eng.listenersAreReady()
 
   // On mobile there is no installer
-  _store.store.dispatch(ConfigGen.createInstallerRan())
+  ConfigConstants.useConfigState.getState().dispatch.installerRan()
 }
 
 // on android this can be recreated a bunch so our engine/store / etc should live outside

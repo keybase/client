@@ -1053,6 +1053,9 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
+    dynamic: {
+      respondToInviteLink?: (accept: boolean) => void
+    }
     addMembersWizardPushMembers: (members: Array<Types.AddingMember>) => void
     addMembersWizardRemoveMember: (assertion: string) => void
     addMembersWizardSetDefaultChannels: (
@@ -1149,7 +1152,6 @@ export type State = Store & {
     resetTeamJoin: () => void
     resetTeamMetaStale: () => void
     resetTeamProfileAddList: () => void
-    respondToInviteLink: (accept: boolean) => void
     saveChannelMembership: (
       teamID: Types.TeamID,
       oldChannelState: Types.ChannelMembershipState,
@@ -1226,9 +1228,6 @@ export type State = Store & {
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const getReduxStore = Z.getReduxStore() // TODO remove when chat is done
-  const _respondToInviteLink = () => {
-    // should be overridden
-  }
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {
@@ -1778,6 +1777,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    dynamic: {
+      respondToInviteLink: undefined,
+    },
     editMembership: (teamID, usernames, r) => {
       const f = async () => {
         const role = RPCTypes.TeamRole[r]
@@ -2149,11 +2151,11 @@ export const useState = Z.createZustand<State>((set, get) => {
                     )
                   }
                   set(s => {
-                    s.dispatch.respondToInviteLink = accept => {
-                      response.result(accept)
+                    s.dispatch.dynamic.respondToInviteLink = accept => {
                       set(s => {
-                        s.dispatch.respondToInviteLink = _respondToInviteLink
+                        s.dispatch.dynamic.respondToInviteLink = undefined
                       })
+                      response.result(accept)
                     }
                   })
                 },
@@ -2183,7 +2185,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         } finally {
           set(s => {
-            s.dispatch.respondToInviteLink = _respondToInviteLink
+            s.dispatch.dynamic.respondToInviteLink = undefined
           })
         }
       }
@@ -2620,7 +2622,6 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.teamProfileAddList = []
       })
     },
-    respondToInviteLink: _respondToInviteLink,
     saveChannelMembership: (teamID, oldChannelState, newChannelState) => {
       const f = async () => {
         const waitingKey = teamWaitingKey(teamID)

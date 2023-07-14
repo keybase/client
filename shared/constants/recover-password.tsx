@@ -35,48 +35,37 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    cancel: () => void
+    dynamic: {
+      cancel?: () => void
+      submitDeviceSelect?: (name: string) => void
+      submitPaperKey?: (key: string) => void
+      submitPassword?: (pw: string) => void
+      submitResetPassword?: (action: RPCTypes.ResetPromptResponse) => void
+    }
     resetState: () => void
-    submitDeviceSelect: (name: string) => void
-    submitPaperKey: (key: string) => void
-    submitPassword: (pw: string) => void
-    submitResetPassword: (action: RPCTypes.ResetPromptResponse) => void
     startRecoverPassword: (p: {username: string; abortProvisioning?: boolean; replaceRoute?: boolean}) => void
   }
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
-  const _cancel = () => {}
-  const _submitDeviceSelect = () => {
-    console.log('RecoverPassword: submit with no call')
-  }
-  const _submitResetPassword = () => {
-    console.log('RecoverPassword: submit reset with no call')
-  }
-  const _submitPaperKey = () => {
-    console.log('RecoverPassword: submit paperkey with no call')
-  }
-
-  const _submitPassword = () => {
-    console.log('RecoverPassword: submit password with no call')
-  }
-  const dispatchOverrides = {
-    cancel: _cancel,
-    submitDeviceSelect: _submitDeviceSelect,
-    submitPaperKey: _submitPaperKey,
-    submitPassword: _submitPassword,
-    submitResetPassword: _submitResetPassword,
-  }
-
   const dispatch: State['dispatch'] = {
-    ...dispatchOverrides,
+    dynamic: {
+      cancel: undefined,
+      submitDeviceSelect: undefined,
+      submitPaperKey: undefined,
+      submitPassword: undefined,
+      submitResetPassword: undefined,
+    },
     resetState: () => {
       // we do not cancel as we'll get logouts etc and don't want to lose our state
       set(s => ({
         ...s,
         ...initialStore,
-        ...dispatchOverrides,
+        dispatch: {
+          ...s.dispatch,
+          dynamic: {},
+        },
       }))
     },
     startRecoverPassword: p => {
@@ -87,7 +76,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       const f = async () => {
         if (p.abortProvisioning) {
-          ProvisionConstants.useState.getState().dispatch.cancel()
+          ProvisionConstants.useState.getState().dispatch.dynamic.cancel?.()
         }
         let hadError = false
         try {
@@ -98,26 +87,26 @@ export const useState = Z.createZustand<State>((set, get) => {
                   const replaceRoute = !!p.replaceRoute
                   const devices = (params.devices || []).map(d => ProvisionConstants.rpcDeviceToDevice(d))
                   set(s => {
-                    s.devices = devices
-                    s.dispatch.cancel = () => {
+                    const clear = () => {
                       set(s => {
-                        s.dispatch.cancel = _cancel
+                        s.dispatch.dynamic.cancel = undefined
+                        s.dispatch.dynamic.submitDeviceSelect = undefined
                       })
+                    }
+                    const cancel = () => {
+                      clear()
                       response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
                       reduxDispatch(RouteTreeGen.createNavigateUp())
                     }
-                    s.dispatch.submitDeviceSelect = (name: string) => {
-                      set(s => {
-                        s.dispatch.submitDeviceSelect = _submitDeviceSelect
-                      })
+                    s.devices = devices
+                    s.dispatch.dynamic.cancel = cancel
+                    s.dispatch.dynamic.submitDeviceSelect = (name: string) => {
+                      clear()
                       const d = get().devices.find(d => d.name === name)
                       if (d) {
-                        set(s => {
-                          s.dispatch.cancel = _cancel
-                        })
                         response.result(d.id)
                       } else {
-                        get().dispatch.cancel()
+                        cancel()
                       }
                     }
                   })
@@ -137,22 +126,23 @@ export const useState = Z.createZustand<State>((set, get) => {
                         path: ['recoverPasswordPromptResetPassword'],
                       })
                     )
+                    const clear = () => {
+                      set(s => {
+                        s.dispatch.dynamic.submitResetPassword = undefined
+                        s.dispatch.dynamic.cancel = undefined
+                      })
+                    }
                     set(s => {
-                      s.dispatch.submitResetPassword = action => {
-                        set(s => {
-                          s.dispatch.submitResetPassword = _submitResetPassword
-                          s.dispatch.cancel = _cancel
-                        })
+                      s.dispatch.dynamic.submitResetPassword = action => {
+                        clear()
                         response.result(action)
                         set(s => {
                           s.resetEmailSent = true
                         })
                         reduxDispatch(RouteTreeGen.createNavigateUp())
                       }
-                      s.dispatch.cancel = () => {
-                        set(s => {
-                          s.dispatch.cancel = _cancel
-                        })
+                      s.dispatch.dynamic.cancel = () => {
+                        clear()
                         response.result(RPCTypes.ResetPromptResponse.nothing)
                         reduxDispatch(RouteTreeGen.createNavigateUp())
                       }
@@ -165,26 +155,24 @@ export const useState = Z.createZustand<State>((set, get) => {
                 },
                 'keybase.1.secretUi.getPassphrase': (params, response) => {
                   if (params.pinentry.type === RPCTypes.PassphraseType.paperKey) {
+                    const clear = () => {
+                      set(s => {
+                        s.dispatch.dynamic.submitPaperKey = undefined
+                        s.dispatch.dynamic.cancel = undefined
+                      })
+                    }
                     set(s => {
-                      s.paperKeyError = ''
-                      if (params.pinentry.retryLabel) {
-                        s.paperKeyError = params.pinentry.retryLabel
-                      }
-                      s.dispatch.cancel = () => {
-                        set(s => {
-                          s.dispatch.cancel = _cancel
-                        })
+                      s.paperKeyError = params.pinentry.retryLabel
+                      s.dispatch.dynamic.cancel = () => {
+                        clear()
                         response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
                         get().dispatch.startRecoverPassword({
                           replaceRoute: true,
                           username: get().username,
                         })
                       }
-                      s.dispatch.submitPaperKey = passphrase => {
-                        set(s => {
-                          s.dispatch.submitPaperKey = _submitPaperKey
-                          s.dispatch.cancel = _cancel
-                        })
+                      s.dispatch.dynamic.submitPaperKey = passphrase => {
+                        clear()
                         response.result({passphrase, storeSecret: false})
                       }
                     })
@@ -192,26 +180,23 @@ export const useState = Z.createZustand<State>((set, get) => {
                       RouteTreeGen.createNavigateAppend({path: ['recoverPasswordPaperKey'], replace: true})
                     )
                   } else {
+                    const clear = () => {
+                      set(s => {
+                        s.dispatch.dynamic.submitPassword = undefined
+                        s.dispatch.dynamic.cancel = undefined
+                      })
+                    }
                     set(s => {
-                      s.passwordError = ''
-                      if (params.pinentry.retryLabel) {
-                        s.passwordError = params.pinentry.retryLabel
-                      }
-                      s.dispatch.cancel = () => {
-                        set(s => {
-                          s.dispatch.cancel = _cancel
-                        })
+                      s.passwordError = params.pinentry.retryLabel
+                      s.dispatch.dynamic.cancel = () => {
+                        clear()
                         response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
                       }
                     })
-
                     if (!params.pinentry.retryLabel) {
                       set(s => {
-                        s.dispatch.submitPassword = (passphrase: string) => {
-                          set(s => {
-                            s.dispatch.submitPassword = _submitPassword
-                            s.dispatch.cancel = _cancel
-                          })
+                        s.dispatch.dynamic.submitPassword = (passphrase: string) => {
+                          clear()
                           response.result({passphrase, storeSecret: true})
                         }
                       })
@@ -266,6 +251,14 @@ export const useState = Z.createZustand<State>((set, get) => {
               })
             )
           }
+        } finally {
+          set(s => {
+            s.dispatch.dynamic.submitPassword = undefined
+            s.dispatch.dynamic.cancel = undefined
+            s.dispatch.dynamic.submitPaperKey = undefined
+            s.dispatch.dynamic.submitResetPassword = undefined
+            s.dispatch.dynamic.submitDeviceSelect = undefined
+          })
         }
         logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
         if (!hadError) {

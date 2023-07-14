@@ -8,10 +8,10 @@ export default () => {
   const username = Constants.useState(s => s.username)
   const _errorText = Constants.useState(s => s.errorText)
   const updateUsername = Constants.useState(s => s.dispatch.updateUsername)
-  const cancelAddProof = Constants.useState(s => s.dispatch.cancelAddProof)
+  const cancelAddProof = Constants.useState(s => s.dispatch.dynamic.cancelAddProof)
   const submitBTCAddress = Constants.useState(s => s.dispatch.submitBTCAddress)
   const submitZcashAddress = Constants.useState(s => s.dispatch.submitZcashAddress)
-  const submitUsername = Constants.useState(s => s.dispatch.submitUsername)
+  const submitUsername = Constants.useState(s => s.dispatch.dynamic.submitUsername)
 
   if (!platform) {
     throw new Error('No platform passed to prove enter username')
@@ -28,11 +28,11 @@ export default () => {
     } else if (platform === 'zcash') {
       submitZcashAddress()
     } else {
-      submitUsername()
+      submitUsername?.()
     }
   }
   const onCancel = () => {
-    cancelAddProof()
+    cancelAddProof?.()
     dispatch(RouteTreeGen.createClearModals())
   }
   const props = {

@@ -4,6 +4,7 @@ import * as ProfileConstants from '../../constants/profile'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as FsConstants from '../../constants/fs'
+import * as DaemonConstants from '../../constants/daemon'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -67,15 +68,6 @@ const initializeInputMonitor = () => {
   }
 }
 
-export const dumpLogs = async (_?: unknown, action?: ConfigGen.DumpLogsPayload) => {
-  await logger.dump()
-  await (dumpNodeLogger?.() ?? Promise.resolve([]))
-  // quit as soon as possible
-  if (action && action.payload.reason === 'quitting through menu') {
-    ctlQuit?.()
-  }
-}
-
 const checkRPCOwnership = async (_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) => {
   const waitKey = 'pipeCheckFail'
   const {version} = action.payload
@@ -134,24 +126,8 @@ const onConnected = () => {
   RPCTypes.configHelloIAmRpcPromise({details: KB2.constants.helloDetails}).catch(() => {})
 }
 
-const prepareLogSend = async (_: unknown, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
-  const response = action.payload.response
-  try {
-    await dumpLogs()
-  } finally {
-    response?.result()
-  }
-}
-
 const onCopyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) => {
   copyToClipboard?.(action.payload.text)
-}
-
-const sendWindowsKBServiceCheck = () => {
-  const {handshakeFailedReason} = ConfigConstants.useDaemonState.getState()
-  if (isWindows && handshakeFailedReason === ConfigConstants.noKBFSFailReason) {
-    requestWindowsStartService?.()
-  }
 }
 
 export const requestLocationPermission = async () => Promise.resolve()
@@ -209,27 +185,35 @@ const maybePauseVideos = () => {
   })
 }
 
-const editAvatar = () => {
-  const reduxDispatch = Z.getReduxDispatch()
-  reduxDispatch(
-    RouteTreeGen.createNavigateAppend({
-      path: [{props: {image: undefined}, selected: 'profileEditAvatar'}],
-    })
-  )
+export const dumpLogs = async (reason?: string) => {
+  await logger.dump()
+  await (dumpNodeLogger?.() ?? Promise.resolve([]))
+  // quit as soon as possible
+  if (reason === 'quitting through menu') {
+    ctlQuit?.()
+  }
 }
 
 export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.showMain, () => showMainWindow?.())
-  Container.listenAction(ConfigGen.dumpLogs, dumpLogs)
+  Container.listenAction(ConfigGen.dumpLogs, async (_, a) => {
+    await dumpLogs(a.payload.reason)
+  })
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
-  Container.listenAction(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
+  Container.listenAction(EngineGen.keybase1LogsendPrepareLogsend, async (_, action) => {
+    const response = action.payload.response
+    try {
+      await dumpLogs()
+    } finally {
+      response?.result()
+    }
+  })
   Container.listenAction(EngineGen.connected, onConnected)
   Container.listenAction(EngineGen.keybase1NotifyAppExit, onExit)
   Container.listenAction(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
   Container.listenAction(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
   Container.listenAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
   Container.listenAction(ConfigGen.copyToClipboard, onCopyToClipboard)
-  Container.listenAction(ConfigGen.restartHandshake, sendWindowsKBServiceCheck)
   Container.listenAction(ConfigGen.loggedInChanged, initOsNetworkStatus)
 
   ConfigConstants.useConfigState.subscribe((s, prev) => {
@@ -295,7 +279,29 @@ export const initPlatformListener = () => {
     FsConstants.useState.getState().dispatch.userFileEditsLoad()
   })
 
-  ProfileConstants.useState.getState().dispatch.setEditAvatar(editAvatar)
+  Container.listenAction(ConfigGen.installerRan, () => {
+    ConfigConstants.useConfigState.getState().dispatch.installerRan()
+  })
+
+  ProfileConstants.useState.setState(s => {
+    s.dispatch.editAvatar = () => {
+      const reduxDispatch = Z.getReduxDispatch()
+      reduxDispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {image: undefined}, selected: 'profileEditAvatar'}],
+        })
+      )
+    }
+  })
 
   initializeInputMonitor()
+
+  DaemonConstants.useDaemonState.setState(s => {
+    s.dispatch.onRestartHandshakeNative = () => {
+      const {handshakeFailedReason} = ConfigConstants.useDaemonState.getState()
+      if (isWindows && handshakeFailedReason === ConfigConstants.noKBFSFailReason) {
+        requestWindowsStartService?.()
+      }
+    }
+  })
 }

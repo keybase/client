@@ -10,7 +10,7 @@ export default () => {
   const username = Constants.useState(s => s.username)
   let proofText = Constants.useState(s => s.proofText)
 
-  const cancelAddProof = Constants.useState(s => s.dispatch.cancelAddProof)
+  const cancelAddProof = Constants.useState(s => s.dispatch.dynamic.cancelAddProof)
   const checkProof = Constants.useState(s => s.dispatch.checkProof)
 
   if (
@@ -56,7 +56,7 @@ export default () => {
   }
   const onCancel = () => {
     dispatch(RouteTreeGen.createClearModals())
-    cancelAddProof()
+    cancelAddProof?.()
   }
   const onSubmit = checkProof
   const props = {

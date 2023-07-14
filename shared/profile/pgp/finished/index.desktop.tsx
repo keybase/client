@@ -88,11 +88,11 @@ const styles = Styles.styleSheetCreate(
 export default () => {
   const pgpKeyString = Constants.useState(s => s.pgpPublicKey || 'Error getting public key...')
   const promptShouldStoreKeyOnServer = Constants.useState(s => s.promptShouldStoreKeyOnServer)
-  const finishedWithKeyGen = Constants.useState(s => s.dispatch.finishedWithKeyGen)
+  const finishedWithKeyGen = Constants.useState(s => s.dispatch.dynamic.finishedWithKeyGen)
 
   const dispatch = Container.useDispatch()
   const onDone = (shouldStoreKeyOnServer: boolean) => {
-    finishedWithKeyGen(shouldStoreKeyOnServer)
+    finishedWithKeyGen?.(shouldStoreKeyOnServer)
     dispatch(RouteTreeGen.createClearModals())
   }
   const props = {

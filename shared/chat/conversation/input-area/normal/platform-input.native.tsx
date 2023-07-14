@@ -1,5 +1,5 @@
-import * as ConfigGen from '../../../../actions/config-gen'
 import * as Container from '../../../../util/container'
+import * as ConfigConstants from '../../../../constants/config'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
@@ -220,6 +220,7 @@ type ChatFilePickerProps = {
 const ChatFilePicker = (p: ChatFilePickerProps) => {
   const {attachTo, showingPopup, toggleShowingPopup, conversationIDKey} = p
   const dispatch = Container.useDispatch()
+  const filePickerError = ConfigConstants.useConfigState(s => s.dispatch.filePickerError)
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
       const handleSelection = (result: ImagePicker.ImagePickerResult) => {
@@ -236,23 +237,20 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
         )
       }
 
-      const onFilePickerError = (error: Error) => {
-        dispatch(ConfigGen.createFilePickerError({error}))
-      }
       switch (location) {
         case 'camera':
           launchCameraAsync(mediaType)
             .then(handleSelection)
-            .catch(error => onFilePickerError(new Error(error)))
+            .catch(error => filePickerError(new Error(error)))
           break
         case 'library':
           launchImageLibraryAsync(mediaType, true, true)
             .then(handleSelection)
-            .catch(error => onFilePickerError(new Error(error)))
+            .catch(error => filePickerError(new Error(error)))
           break
       }
     },
-    [dispatch, conversationIDKey]
+    [dispatch, conversationIDKey, filePickerError]
   )
 
   return (

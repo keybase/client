@@ -6,7 +6,6 @@ import type * as Types from '../constants/types/config'
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
 export const androidShare = 'config:androidShare'
-export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
 export const copyToClipboard = 'config:copyToClipboard'
@@ -14,12 +13,10 @@ export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const dumpLogs = 'config:dumpLogs'
-export const filePickerError = 'config:filePickerError'
 export const initListenerLoops = 'config:initListenerLoops'
 export const installerRan = 'config:installerRan'
 export const loadOnStart = 'config:loadOnStart'
 export const loggedInChanged = 'config:loggedInChanged'
-export const logoutAndTryToLogInAs = 'config:logoutAndTryToLogInAs'
 export const logoutHandshake = 'config:logoutHandshake'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
@@ -29,7 +26,6 @@ export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const persistRoute = 'config:persistRoute'
 export const powerMonitorEvent = 'config:powerMonitorEvent'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
-export const restartHandshake = 'config:restartHandshake'
 export const revoked = 'config:revoked'
 export const setNavigator = 'config:setNavigator'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
@@ -57,14 +53,6 @@ export const createInitListenerLoops = (payload?: undefined) => ({
   type: initListenerLoops as typeof initListenerLoops,
 })
 /**
- * Log out the current user, keeping secrets stored.
- * Then prefill the username for provisioned another user to log in.
- */
-export const createLogoutAndTryToLogInAs = (payload: {readonly username: string}) => ({
-  payload,
-  type: logoutAndTryToLogInAs as typeof logoutAndTryToLogInAs,
-})
-/**
  * Open a link to the app store
  */
 export const createOpenAppStore = (payload?: undefined) => ({
@@ -77,13 +65,6 @@ export const createOpenAppStore = (payload?: undefined) => ({
 export const createPowerMonitorEvent = (payload: {readonly event: string}) => ({
   payload,
   type: powerMonitorEvent as typeof powerMonitorEvent,
-})
-/**
- * Sent whenever the mobile file picker encounters an error.
- */
-export const createFilePickerError = (payload: {readonly error: Error}) => ({
-  payload,
-  type: filePickerError as typeof filePickerError,
 })
 /**
  * This action is dispatched multiple times with various flags.
@@ -109,13 +90,6 @@ export const createUpdateWindowShown = (payload: {readonly component: string}) =
 export const createInstallerRan = (payload?: undefined) => ({
   payload,
   type: installerRan as typeof installerRan,
-})
-/**
- * internal to config. should restart the handshake process
- */
-export const createRestartHandshake = (payload?: undefined) => ({
-  payload,
-  type: restartHandshake as typeof restartHandshake,
 })
 /**
  * main electron window changed max/min
@@ -172,10 +146,6 @@ export const createDaemonHandshake = (payload: {
 export const createLogoutHandshake = (payload: {readonly version: number}) => ({
   payload,
   type: logoutHandshake as typeof logoutHandshake,
-})
-export const createBootstrapStatusLoaded = (payload?: undefined) => ({
-  payload,
-  type: bootstrapStatusLoaded as typeof bootstrapStatusLoaded,
 })
 export const createChangedActive = (payload: {readonly userActive: boolean}) => ({
   payload,
@@ -240,7 +210,6 @@ export const createUpdateNow = (payload?: undefined) => ({payload, type: updateN
 
 // Action Payloads
 export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
-export type BootstrapStatusLoadedPayload = ReturnType<typeof createBootstrapStatusLoaded>
 export type ChangedActivePayload = ReturnType<typeof createChangedActive>
 export type ChangedFocusPayload = ReturnType<typeof createChangedFocus>
 export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
@@ -248,12 +217,10 @@ export type DaemonHandshakeDonePayload = ReturnType<typeof createDaemonHandshake
 export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
-export type FilePickerErrorPayload = ReturnType<typeof createFilePickerError>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type LoggedInChangedPayload = ReturnType<typeof createLoggedInChanged>
-export type LogoutAndTryToLogInAsPayload = ReturnType<typeof createLogoutAndTryToLogInAs>
 export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
 export type MobileAppStatePayload = ReturnType<typeof createMobileAppState>
 export type OpenAppSettingsPayload = ReturnType<typeof createOpenAppSettings>
@@ -263,7 +230,6 @@ export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkSta
 export type PersistRoutePayload = ReturnType<typeof createPersistRoute>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
-export type RestartHandshakePayload = ReturnType<typeof createRestartHandshake>
 export type RevokedPayload = ReturnType<typeof createRevoked>
 export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
@@ -279,7 +245,6 @@ export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState
 // prettier-ignore
 export type Actions =
   | AndroidSharePayload
-  | BootstrapStatusLoadedPayload
   | ChangedActivePayload
   | ChangedFocusPayload
   | CopyToClipboardPayload
@@ -287,12 +252,10 @@ export type Actions =
   | DaemonHandshakePayload
   | DarkModePreferenceChangedPayload
   | DumpLogsPayload
-  | FilePickerErrorPayload
   | InitListenerLoopsPayload
   | InstallerRanPayload
   | LoadOnStartPayload
   | LoggedInChangedPayload
-  | LogoutAndTryToLogInAsPayload
   | LogoutHandshakePayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload
@@ -302,7 +265,6 @@ export type Actions =
   | PersistRoutePayload
   | PowerMonitorEventPayload
   | RemoteWindowWantsPropsPayload
-  | RestartHandshakePayload
   | RevokedPayload
   | SetNavigatorPayload
   | SetSystemDarkModePayload

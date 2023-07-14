@@ -25,20 +25,20 @@ const ConnectedEnterUsername = () => {
   const unreachable = !!platformGenericURL
   const waiting = platformGenericChecking
 
-  const cancelAddProof = Constants.useState(s => s.dispatch.cancelAddProof)
+  const cancelAddProof = Constants.useState(s => s.dispatch.dynamic.cancelAddProof)
   const updateUsername = Constants.useState(s => s.dispatch.updateUsername)
-  const submitUsername = Constants.useState(s => s.dispatch.submitUsername)
+  const submitUsername = Constants.useState(s => s.dispatch.dynamic.submitUsername)
 
   const dispatch = Container.useDispatch()
   const onBack = () => {
-    cancelAddProof()
+    cancelAddProof?.()
     dispatch(RouteTreeGen.createClearModals())
   }
   const onChangeUsername = updateUsername
   const onContinue = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['profileGenericProofResult']}))
   }
-  const onSubmit = submitUsername
+  const onSubmit = () => submitUsername?.()
   const props = {
     error: error,
     onBack: onBack,

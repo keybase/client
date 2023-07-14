@@ -151,15 +151,21 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
+    dynamic: {
+      onFilePickerError?: (error: Error) => void
+    }
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
+    filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
     initNotifySound: () => void
     initOpenAtLogin: () => void
     initUseNativeFrame: () => void
+    installerRan: () => void
     loadIsOnline: () => void
     login: (username: string, password: string) => void
     loginError: (error?: RPCError) => void
+    logoutAndTryToLogInAs: (username: string) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
@@ -232,6 +238,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
+    dynamic: {
+      onFilePickerError: undefined,
+    },
+    filePickerError: error => {
+      get().dispatch.dynamic.onFilePickerError?.(error)
+    },
     initAppUpdateLoop: () => {
       const f = async () => {
         // eslint-disable-next-line
@@ -276,6 +288,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
+    installerRan: () => {},
     loadIsOnline: () => {
       const f = async () => {
         try {
@@ -305,7 +318,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
                 'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
                 'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
                   cancelOnCallback(undefined, response)
-                  ProvisionConstants.useState.getState().dispatch.setUsername(username)
+                  ProvisionConstants.useState.getState().dispatch.dynamic.setUsername?.(username)
                 },
                 'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
                 'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
@@ -373,6 +386,15 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       // hidden and the user can see and respond to the error.
       get().dispatch.setUserSwitching(false)
     },
+    logoutAndTryToLogInAs: username => {
+      const f = async () => {
+        if (get().loggedIn) {
+          await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true}, loginWaitingKey)
+        }
+        get().dispatch.setDefaultUsername(username)
+      }
+      Z.ignorePromise(f())
+    },
     remoteWindowNeedsProps: (component, params) => {
       set(s => {
         const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
@@ -392,6 +414,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         appFocused: s.appFocused,
         configuredAccounts: s.configuredAccounts,
         defaultUsername: s.defaultUsername,
+        dispatch: s.dispatch,
         startup: {loaded: s.startup.loaded},
         useNativeFrame: s.useNativeFrame,
         userSwitching: s.userSwitching,

@@ -361,29 +361,6 @@ const copyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) =
     .catch(() => {})
 }
 
-const handleFilePickerError = (_: unknown, action: ConfigGen.FilePickerErrorPayload) => {
-  Alert.alert('Error', action.payload.error.message)
-}
-
-const editAvatar = () => {
-  const reduxDispatch = Z.getReduxDispatch()
-  const f = async () => {
-    try {
-      const result = await launchImageLibraryAsync('photo')
-      if (!result.canceled) {
-        reduxDispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {image: result.assets[0]}, selected: 'profileEditAvatar'}],
-          })
-        )
-      }
-    } catch (error) {
-      reduxDispatch(ConfigGen.createFilePickerError({error: new Error(String(error))}))
-    }
-  }
-  Z.ignorePromise(f())
-}
-
 const openAppStore = async () =>
   Linking.openURL(
     isAndroid
@@ -600,9 +577,33 @@ export const initPlatformListener = () => {
     }
   })
   Container.listenAction(ConfigGen.openAppStore, openAppStore)
-  Container.listenAction(ConfigGen.filePickerError, handleFilePickerError)
 
-  ProfileConstants.useState.getState().dispatch.setEditAvatar(editAvatar)
+  ConfigConstants.useConfigState.setState(s => {
+    s.dispatch.dynamic.onFilePickerError = error => {
+      Alert.alert('Error', String(error))
+    }
+  })
+
+  ProfileConstants.useState.setState(s => {
+    s.dispatch.editAvatar = () => {
+      const reduxDispatch = Z.getReduxDispatch()
+      const f = async () => {
+        try {
+          const result = await launchImageLibraryAsync('photo')
+          if (!result.canceled) {
+            reduxDispatch(
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {image: result.assets[0]}, selected: 'profileEditAvatar'}],
+              })
+            )
+          }
+        } catch (error) {
+          ConfigConstants.useConfigState.getState().dispatch.filePickerError(new Error(String(error)))
+        }
+      }
+      Z.ignorePromise(f())
+    }
+  })
   Container.listenAction(ConfigGen.loggedInChanged, initOsNetworkStatus)
   Container.listenAction(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
 

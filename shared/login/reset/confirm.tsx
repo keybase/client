@@ -8,15 +8,15 @@ import * as RecoverConstants from '../../constants/recover-password'
 const ConfirmReset = () => {
   const hasWallet = Constants.useState(s => s.hasWallet)
   const error = Constants.useState(s => s.error)
-  const submitResetPassword = RecoverConstants.useState(s => s.dispatch.submitResetPassword)
+  const submitResetPassword = RecoverConstants.useState(s => s.dispatch.dynamic.submitResetPassword)
   const onContinue = React.useCallback(() => {
-    submitResetPassword(RPCTypes.ResetPromptResponse.confirmReset)
+    submitResetPassword?.(RPCTypes.ResetPromptResponse.confirmReset)
   }, [submitResetPassword])
   const onCancelReset = React.useCallback(() => {
-    submitResetPassword(RPCTypes.ResetPromptResponse.cancelReset)
+    submitResetPassword?.(RPCTypes.ResetPromptResponse.cancelReset)
   }, [submitResetPassword])
   const onClose = React.useCallback(() => {
-    submitResetPassword(RPCTypes.ResetPromptResponse.nothing)
+    submitResetPassword?.(RPCTypes.ResetPromptResponse.nothing)
   }, [submitResetPassword])
 
   const [checks, setChecks] = React.useState({

@@ -2075,10 +2075,6 @@ const previewConversationTeam = async (
   }
 }
 
-const startupInboxLoad = () =>
-  !!ConfigConstants.useCurrentUserState.getState().username &&
-  Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
-
 const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
   const participantInfo = Constants.getParticipantInfo(state, action.payload.conversationIDKey)
@@ -3607,17 +3603,6 @@ const setInboxNumSmallRows = async (
   return false
 }
 
-const getInboxNumSmallRows = async () => {
-  try {
-    const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-    const ri = rows?.i ?? -1
-    if (ri > 0) {
-      return Chat2Gen.createSetInboxNumSmallRows({ignoreWrite: true, rows: ri})
-    }
-  } catch (_) {}
-  return false
-}
-
 const loadNextBotPage = (state: Container.TypedState, action: Chat2Gen.LoadNextBotPagePayload) =>
   BotsGen.createGetFeaturedBots({
     limit: action.payload.pageSize,
@@ -3861,7 +3846,9 @@ const updateTyping = (action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) 
   typingUpdates?.forEach(u => {
     typingMap.set(Types.conversationIDToKey(u.convID), new Set(u.typers?.map(t => t.username)))
   })
-  Constants.useState.setState({typingMap})
+  Constants.useState.setState(s => {
+    s.typingMap = typingMap
+  })
 }
 
 const initChat = () => {
@@ -3940,7 +3927,25 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.refreshBotRoleInConv, refreshBotRoleInConv)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
-  Container.listenAction(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)
+  Container.listenAction(ConfigGen.loadOnStart, (_, action) => {
+    if (action.payload.phase !== 'startupOrReloginButNotInARush') return
+    return (
+      !!ConfigConstants.useCurrentUserState.getState().username &&
+      Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
+    )
+  })
+
+  Container.listenAction(ConfigGen.loadOnStart, async (_, action) => {
+    if (action.payload.phase !== 'startupOrReloginButNotInARush') return
+    try {
+      const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+      const ri = rows?.i ?? -1
+      if (ri > 0) {
+        return Chat2Gen.createSetInboxNumSmallRows({ignoreWrite: true, rows: ri})
+      }
+    } catch (_) {}
+    return false
+  })
 
   // Search handling
   Container.listenAction(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
@@ -4068,7 +4073,6 @@ const initChat = () => {
 
   Container.listenAction(EngineGen.connected, onConnect)
   Container.listenAction(Chat2Gen.setInboxNumSmallRows, setInboxNumSmallRows)
-  Container.listenAction(ConfigGen.bootstrapStatusLoaded, getInboxNumSmallRows)
 
   Container.listenAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
 

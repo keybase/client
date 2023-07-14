@@ -34,9 +34,9 @@ export default function AddDevice(ownProps: OwnProps) {
   const onAddPhone = React.useCallback(() => {
     addNewDevice('mobile')
   }, [addNewDevice])
-  const cancel = ProvisionConstants.useState(s => s.dispatch.cancel)
+  const cancel = ProvisionConstants.useState(s => s.dispatch.dynamic.cancel)
   const onCancel = React.useCallback(() => {
-    cancel()
+    cancel?.()
     dispatch(RouteTreeGen.createNavigateUp())
   }, [cancel, dispatch])
   return (

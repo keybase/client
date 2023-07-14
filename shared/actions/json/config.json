@@ -1,10 +1,10 @@
 {
   "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
-    "bootstrapStatusLoaded": {},
-    "restartHandshake": {
-      "_description": "internal to config. should restart the handshake process"
+    "installerRan": {
+      "_description": "desktop only: the installer ran and we can start up"
     },
+    "dumpLogs": {"reason": ["'quitting through menu'"]},
     "daemonHandshake": {
       "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
       "firstTimeConnecting": "boolean",
@@ -13,25 +13,10 @@
     "daemonHandshakeDone": {
       "_description": "ready to show the app"
     },
-    "filePickerError": {
-      "_description": "Sent whenever the mobile file picker encounters an error.",
-      "error": "Error"
-    },
-    "logoutAndTryToLogInAs": {
-      "_description": [
-        "Log out the current user, keeping secrets stored.",
-        "Then prefill the username for provisioned another user to log in."
-      ],
-      "username": "string"
-    },
     "logoutHandshake": {
       "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
       "version": "number"
     },
-    "installerRan": {
-      "_description": "desktop only: the installer ran and we can start up"
-    },
-    "dumpLogs": {"reason": ["'quitting through menu'"]},
     "openAppSettings": {
       "_description": "mobile only: open the settings page"
     },

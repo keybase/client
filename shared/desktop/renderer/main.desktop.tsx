@@ -9,5 +9,5 @@ waitOnKB2Loaded(() => {
   const {setSystemSupported, setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
   setSystemDarkMode(KB2.constants.startDarkMode)
   setSystemSupported(isDarwin || isWindows)
-  require('./main2.desktop')
+  import('./main2.desktop').then(() => {}).catch(() => {})
 })
