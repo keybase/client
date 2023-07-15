@@ -1,4 +1,5 @@
 import * as ConfigGen from '../actions/config-gen'
+import type {TypedActions} from '../actions/typed-actions-gen'
 import * as ProvisionConstants from './provision'
 import * as RPCTypes from './types/rpc-gen'
 import * as Stats from '../engine/stats'
@@ -63,6 +64,7 @@ export type Store = {
     token: string
   }
   incomingShareUseOriginal?: boolean
+  installerRanCount: number
   isOnline: boolean
   justDeletedSelf: string
   justRevokedSelf: string
@@ -110,6 +112,7 @@ const initialStore: Store = {
     token: '',
   },
   incomingShareUseOriginal: undefined,
+  installerRanCount: 0,
   isOnline: false,
   justDeletedSelf: '',
   justRevokedSelf: '',
@@ -161,6 +164,7 @@ type State = Store & {
     checkForUpdate: () => void
     dumpLogs: (reason: string) => Promise<void>
     emitMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
+    eventFromRemoteWindows: (action: TypedActions) => void
     filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
     initNotifySound: () => void
@@ -256,6 +260,14 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     emitMobileAppState: nextAppState => {
       reduxDispatch(ConfigGen.createMobileAppState({nextAppState}))
     },
+    eventFromRemoteWindows: (action: TypedActions) => {
+      switch (action.type) {
+        case ConfigGen.installerRan:
+          get().dispatch.installerRan()
+          break
+        default:
+      }
+    },
     filePickerError: error => {
       get().dispatch.dynamic.onFilePickerError?.(error)
     },
@@ -303,7 +315,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
-    installerRan: () => {},
+    installerRan: () => {
+      set(s => {
+        s.installerRanCount++
+      })
+    },
     loadIsOnline: () => {
       const f = async () => {
         try {

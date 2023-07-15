@@ -594,12 +594,19 @@ const initFS = () => {
   Container.listenAction(FsGen.deleteFile, deleteFile)
   Container.listenAction(FsGen.pollJournalStatus, pollJournalFlushStatusUntilDone)
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
-  Container.listenAction([ConfigGen.installerRan, ConfigGen.loggedInChanged, FsGen.userIn], (_, a) => {
+  Container.listenAction([ConfigGen.loggedInChanged, FsGen.userIn], (_, a) => {
     if (a.type === ConfigGen.loggedInChanged && !ConfigConstants.useConfigState.getState().loggedIn) {
       return
     }
     Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
   })
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.installerRanCount !== old.installerRanCount) {
+      Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+    }
+  })
+
   Container.listenAction(FsGen.setTlfSyncConfig, setTlfSyncConfig)
   Container.listenAction([FsGen.getOnlineStatus], getOnlineStatus)
   Container.listenAction(ConfigGen.osNetworkStatusChanged, checkKbfsServerReachabilityIfNeeded)

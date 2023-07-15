@@ -279,10 +279,6 @@ export const initPlatformListener = () => {
     FsConstants.useState.getState().dispatch.userFileEditsLoad()
   })
 
-  Container.listenAction(ConfigGen.installerRan, () => {
-    ConfigConstants.useConfigState.getState().dispatch.installerRan()
-  })
-
   ProfileConstants.useState.setState(s => {
     s.dispatch.editAvatar = () => {
       const reduxDispatch = Z.getReduxDispatch()
