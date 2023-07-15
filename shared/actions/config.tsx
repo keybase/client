@@ -264,13 +264,15 @@ const newNavigation = (
   Router2.dispatchOldAction(action)
 }
 
-const emitStartupOnLoadNotInARush = async () => {
-  await Container.timeoutPromise(1000)
-  return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
+const emitStartupOnLoadNotInARush = () => {
+  const reduxDispatch = Z.getReduxDispatch()
+  const f = async () => {
+    await Container.timeoutPromise(1000)
     requestAnimationFrame(() => {
-      resolve(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
+      reduxDispatch(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
     })
-  })
+  }
+  Z.ignorePromise(f())
 }
 
 const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEventPayload) => {
@@ -288,16 +290,6 @@ const initConfig = () => {
   // Load the known accounts if you revoke / handshake / logout
   Container.listenAction([ConfigGen.revoked, ConfigGen.loggedInChanged], (_, a) => loadDaemonAccounts(a))
 
-  Container.listenAction(ConfigGen.daemonHandshakeDone, emitStartupOnLoadNotInARush)
-
-  let _emitStartupOnLoadDaemonConnectedOnce = false
-  Container.listenAction(ConfigGen.daemonHandshakeDone, () => {
-    if (!_emitStartupOnLoadDaemonConnectedOnce) {
-      _emitStartupOnLoadDaemonConnectedOnce = true
-      return ConfigGen.createLoadOnStart({phase: 'connectedToDaemonForFirstTime'})
-    }
-    return false
-  })
   Container.listenAction(ConfigGen.loggedInChanged, (_, action) => {
     return Constants.useConfigState.getState().loggedIn && !action.payload.causedByStartup
       ? ConfigGen.createLoadOnStart({phase: 'reloggedIn'})
@@ -446,6 +438,18 @@ const initConfig = () => {
     loadDaemonBootstrapStatus()
     loadDaemonAccounts()
     DarkMode.useDarkModeState.getState().dispatch.loadDarkPrefs()
+  })
+
+  let _emitStartupOnLoadDaemonConnectedOnce = false
+  Constants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
+    const reduxDispatch = Z.getReduxDispatch()
+    emitStartupOnLoadNotInARush()
+
+    if (!_emitStartupOnLoadDaemonConnectedOnce) {
+      _emitStartupOnLoadDaemonConnectedOnce = true
+      reduxDispatch(ConfigGen.createLoadOnStart({phase: 'connectedToDaemonForFirstTime'}))
+    }
   })
 }
 

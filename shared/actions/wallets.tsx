@@ -1172,22 +1172,26 @@ const writeLastSentXLM = async (state: Container.TypedState, action: WalletsGen.
   return
 }
 
-const readLastSentXLM = async () => {
-  logger.info(`Reading config`)
-  try {
-    const result = await RPCTypes.configGuiGetValueRpcPromise({path: 'stellar.lastSentXLM'})
-    const value = !result.isNull && !!result.b
-    logger.info(`Successfully read config: ${String(value)}`)
-    return WalletsGen.createSetLastSentXLM({lastSentXLM: value, writeFile: false})
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
+const readLastSentXLM = () => {
+  const reduxDispatch = Z.getReduxDispatch()
+  const f = async () => {
+    logger.info(`Reading config`)
+    try {
+      const result = await RPCTypes.configGuiGetValueRpcPromise({path: 'stellar.lastSentXLM'})
+      const value = !result.isNull && !!result.b
+      logger.info(`Successfully read config: ${String(value)}`)
+      reduxDispatch(WalletsGen.createSetLastSentXLM({lastSentXLM: value, writeFile: false}))
+    } catch (error) {
+      if (!(error instanceof RPCError)) {
+        return
+      }
+      if (!error.message.includes('no such key')) {
+        logger.error(`Error reading config: ${error.message}`)
+      }
       return
     }
-    if (!error.message.includes('no such key')) {
-      logger.error(`Error reading config: ${error.message}`)
-    }
-    return false
   }
+  Z.ignorePromise(f())
 }
 
 const exitFailedPayment = (state: Container.TypedState) => {
@@ -1710,7 +1714,12 @@ const initWallets = () => {
   Container.listenAction([WalletsGen.loadMobileOnlyMode, WalletsGen.selectAccount], loadMobileOnlyMode)
   Container.listenAction(WalletsGen.changeMobileOnlyMode, changeMobileOnlyMode)
   Container.listenAction(WalletsGen.setLastSentXLM, writeLastSentXLM)
-  Container.listenAction(ConfigGen.daemonHandshakeDone, readLastSentXLM)
+
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
+    readLastSentXLM()
+  })
+
   Container.listenAction(EngineGen.stellar1NotifyAccountDetailsUpdate, accountDetailsUpdate)
   Container.listenAction(EngineGen.stellar1NotifyAccountsUpdate, accountsUpdate)
   Container.listenAction(EngineGen.stellar1NotifyPendingPaymentsUpdate, pendingPaymentsUpdate)

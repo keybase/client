@@ -1,5 +1,4 @@
 import logger from '../logger'
-import * as ConfigGen from '../actions/config-gen'
 import type * as Types from './types/config'
 import * as Z from '../util/zustand'
 
@@ -44,8 +43,6 @@ type State = Store & {
 }
 
 export const useDaemonState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
-
   const restartHandshake = () => {
     get().dispatch.onRestartHandshakeNative()
     get().dispatch.setState('starting')
@@ -96,7 +93,6 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
     },
     daemonHandshakeDone: () => {
       get().dispatch.setState('done')
-      reduxDispatch(ConfigGen.createDaemonHandshakeDone())
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
     resetState: () => {

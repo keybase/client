@@ -233,7 +233,8 @@ export const initPlatformListener = () => {
       .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
   })
 
-  Container.listenAction(ConfigGen.daemonHandshakeDone, () => {
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
     ConfigConstants.useConfigState.getState().dispatch.setStartupDetailsLoaded()
   })
 

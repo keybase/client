@@ -8,7 +8,6 @@ export const typePrefix = 'config:'
 export const androidShare = 'config:androidShare'
 export const changedFocus = 'config:changedFocus'
 export const copyToClipboard = 'config:copyToClipboard'
-export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const initListenerLoops = 'config:initListenerLoops'
 export const loadOnStart = 'config:loadOnStart'
@@ -99,13 +98,6 @@ export const createUpdateWindowState = (payload: {
   }
 }) => ({payload, type: updateWindowState as typeof updateWindowState})
 /**
- * ready to show the app
- */
-export const createDaemonHandshakeDone = (payload?: undefined) => ({
-  payload,
-  type: daemonHandshakeDone as typeof daemonHandshakeDone,
-})
-/**
  * remote electron window wants props sent
  */
 export const createRemoteWindowWantsProps = (payload: {
@@ -171,7 +163,6 @@ export const createUpdateNow = (payload?: undefined) => ({payload, type: updateN
 export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
 export type ChangedFocusPayload = ReturnType<typeof createChangedFocus>
 export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
-export type DaemonHandshakeDonePayload = ReturnType<typeof createDaemonHandshakeDone>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
@@ -199,7 +190,6 @@ export type Actions =
   | AndroidSharePayload
   | ChangedFocusPayload
   | CopyToClipboardPayload
-  | DaemonHandshakeDonePayload
   | DarkModePreferenceChangedPayload
   | InitListenerLoopsPayload
   | LoadOnStartPayload

@@ -1,9 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
-    "daemonHandshakeDone": {
-      "_description": "ready to show the app"
-    },
     "logoutHandshake": {
       "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
       "version": "number"
