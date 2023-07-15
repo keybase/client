@@ -71,8 +71,6 @@ export type Store = {
   justDeletedSelf: string
   justRevokedSelf: string
   loggedIn: boolean
-  logoutHandshakeVersion: number
-  logoutHandshakeWaiters: Map<string, number>
   notifySound: boolean
   openAtLogin: boolean
   outOfDate: Types.OutOfDate
@@ -120,8 +118,6 @@ const initialStore: Store = {
   justRevokedSelf: '',
   loggedIn: false,
   loginError: undefined,
-  logoutHandshakeVersion: 1,
-  logoutHandshakeWaiters: new Map(),
   notifySound: false,
   openAtLogin: true,
   outOfDate: {

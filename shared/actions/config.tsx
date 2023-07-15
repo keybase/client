@@ -228,18 +228,6 @@ const onAndroidShare = () => {
   return false
 }
 
-const allowLogoutWaiters = async (
-  _: Container.TypedState,
-  action: ConfigGen.LogoutHandshakePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const waitKey = 'nullhandshake'
-  const {version} = action.payload
-  Constants.useLogoutState.getState().dispatch.wait(waitKey, version, true)
-  await listenerApi.delay(10)
-  Constants.useLogoutState.getState().dispatch.wait(waitKey, version, false)
-}
-
 const updateServerConfig = async (_: unknown, action: ConfigGen.LoadOnStartPayload) =>
   action.payload.phase === 'startupOrReloginButNotInARush' &&
   Constants.useConfigState.getState().loggedIn &&
@@ -325,7 +313,17 @@ const initConfig = () => {
   )
 
   // Give time for all waiters to register and allow the case where there are no waiters
-  Container.listenAction(ConfigGen.logoutHandshake, allowLogoutWaiters)
+  Constants.useLogoutState.subscribe((s, old) => {
+    if (s.version === old.version) return
+    const version = s.version
+    const f = async () => {
+      const waitKey = 'nullhandshake'
+      Constants.useLogoutState.getState().dispatch.wait(waitKey, version, true)
+      await Z.timeoutPromise(10)
+      Constants.useLogoutState.getState().dispatch.wait(waitKey, version, false)
+    }
+    Z.ignorePromise(f())
+  })
   // When we're all done lets clean up
   Container.listenAction(ConfigGen.loggedInChanged, () => {
     return !Constants.useConfigState.getState().loggedIn

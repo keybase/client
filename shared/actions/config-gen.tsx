@@ -12,7 +12,6 @@ export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const initListenerLoops = 'config:initListenerLoops'
 export const loadOnStart = 'config:loadOnStart'
 export const loggedInChanged = 'config:loggedInChanged'
-export const logoutHandshake = 'config:logoutHandshake'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppStore = 'config:openAppStore'
 export const openAtLoginChanged = 'config:openAtLoginChanged'
@@ -104,13 +103,6 @@ export const createRemoteWindowWantsProps = (payload: {
   readonly component: string
   readonly param: string
 }) => ({payload, type: remoteWindowWantsProps as typeof remoteWindowWantsProps})
-/**
- * starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait
- */
-export const createLogoutHandshake = (payload: {readonly version: number}) => ({
-  payload,
-  type: logoutHandshake as typeof logoutHandshake,
-})
 export const createChangedFocus = (payload: {readonly appFocused: boolean}) => ({
   payload,
   type: changedFocus as typeof changedFocus,
@@ -167,7 +159,6 @@ export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModeP
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type LoggedInChangedPayload = ReturnType<typeof createLoggedInChanged>
-export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
 export type MobileAppStatePayload = ReturnType<typeof createMobileAppState>
 export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
 export type OpenAtLoginChangedPayload = ReturnType<typeof createOpenAtLoginChanged>
@@ -194,7 +185,6 @@ export type Actions =
   | InitListenerLoopsPayload
   | LoadOnStartPayload
   | LoggedInChangedPayload
-  | LogoutHandshakePayload
   | MobileAppStatePayload
   | OpenAppStorePayload
   | OpenAtLoginChangedPayload

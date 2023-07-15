@@ -296,8 +296,9 @@ export const initPushListener = () => {
   })
 
   // Token handling
-  Container.listenAction(ConfigGen.logoutHandshake, (_, action) => {
-    Constants.useState.getState().dispatch.deleteToken(action.payload.version)
+  ConfigConstants.useLogoutState.subscribe((s, old) => {
+    if (s.version === old.version) return
+    Constants.useState.getState().dispatch.deleteToken(s.version)
   })
 
   Container.listenAction(NotificationsGen.receivedBadgeState, updateAppBadge)

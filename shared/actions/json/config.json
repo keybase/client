@@ -1,10 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
-    "logoutHandshake": {
-      "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
-      "version": "number"
-    },
     "changedFocus": {"appFocused": "boolean"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "openAtLoginChanged": {},

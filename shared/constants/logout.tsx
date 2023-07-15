@@ -1,5 +1,4 @@
 import logger from '../logger'
-import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 // normally util.container but it re-exports from us so break the cycle
@@ -73,7 +72,6 @@ export const useLogoutState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.version = version
       })
-      reduxDispatch(ConfigGen.createLogoutHandshake({version}))
     },
     wait: (name, _version, increment) => {
       const {version} = get()
