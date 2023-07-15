@@ -1,4 +1,3 @@
-import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
@@ -298,8 +297,10 @@ const initPlatformSpecific = () => {
     Container.listenAction(FsGen.driverDisabling, uninstallKBFS)
   }
   Container.listenAction(FsGen.openSecurityPreferences, openSecurityPreferences)
-  Container.listenAction(ConfigGen.changedFocus, (_, a) => {
-    Constants.useState.getState().dispatch.onChangedFocus(a.payload.appFocused)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.appFocused === old.appFocused) return
+    Constants.useState.getState().dispatch.onChangedFocus(s.appFocused)
   })
   Container.listenAction(
     [FsGen.setSfmiBannerDismissed, FsGen.driverEnable, FsGen.driverDisable],

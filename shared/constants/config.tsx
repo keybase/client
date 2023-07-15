@@ -240,7 +240,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.appFocused = f
       })
-      reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
     },
     checkForUpdate: () => {
       const f = async () => {

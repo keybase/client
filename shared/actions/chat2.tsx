@@ -1005,18 +1005,17 @@ const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad
 // we get a thread-is-stale notification, or when you scroll up and want more
 // messages
 const loadMoreMessages = async (
-  state: Container.TypedState,
-  action:
+  action?:
     | Chat2Gen.NavigateToThreadPayload
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
     | Chat2Gen.LoadMessagesCenteredPayload
     | Chat2Gen.MarkConversationsStalePayload
-    | ConfigGen.ChangedFocusPayload
-    | Chat2Gen.TabSelectedPayload,
-  listenerApi: Container.ListenerApi
+    | Chat2Gen.TabSelectedPayload
 ) => {
+  const getReduxStore = Z.getReduxStore()
+  const reduxDispatch = Z.getReduxDispatch()
   // Get the conversationIDKey
   let key: Types.ConversationIDKey | undefined
   let reason: string = ''
@@ -1031,9 +1030,9 @@ const loadMoreMessages = async (
     highlightMode: Types.CenterOrdinalHighlightMode
   }> = []
 
-  switch (action.type) {
-    case ConfigGen.changedFocus:
-      if (!Container.isMobile || !action.payload.appFocused) {
+  switch (action?.type) {
+    case undefined:
+      if (!Container.isMobile || !ConfigConstants.useConfigState.getState().appFocused) {
         return
       }
       key = Constants.getSelectedConversation()
@@ -1113,21 +1112,21 @@ const loadMoreMessages = async (
   const conversationID = Types.keyToConversationID(conversationIDKey)
   let numberOfMessagesToLoad: number
 
-  const meta = Constants.getMeta(state, conversationIDKey)
+  const meta = Constants.getMeta(getReduxStore(), conversationIDKey)
 
   if (meta.membershipType === 'youAreReset' || meta.rekeyers.size > 0) {
     logger.info('bail: we are reset')
     return
   }
 
-  if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
-    if (!state.chat2.moreToLoadMap.get(conversationIDKey)) {
+  if (action?.type === Chat2Gen.loadOlderMessagesDueToScroll) {
+    if (!getReduxStore().chat2.moreToLoadMap.get(conversationIDKey)) {
       logger.info('bail: scrolling back and at the end')
       return
     }
     sd = 'back'
     numberOfMessagesToLoad = Constants.numMessagesOnScrollback
-  } else if (action.type === Chat2Gen.loadNewerMessagesDueToScroll) {
+  } else if (action?.type === Chat2Gen.loadNewerMessagesDueToScroll) {
     sd = 'forward'
     numberOfMessagesToLoad = Constants.numMessagesOnScrollback
   } else {
@@ -1143,8 +1142,10 @@ const loadMoreMessages = async (
       return
     }
 
-    const state = listenerApi.getState()
-    const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
+    const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(
+      getReduxStore(),
+      conversationIDKey
+    )
     const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
     let shouldClearOthers = false
     if ((forceClear || sd === 'none') && !calledClear) {
@@ -1164,10 +1165,10 @@ const loadMoreMessages = async (
     // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
 
     const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-    listenerApi.dispatch(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad}))
+    reduxDispatch(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad}))
 
     if (messages.length) {
-      listenerApi.dispatch(
+      reduxDispatch(
         Chat2Gen.createMessagesAdd({
           centeredMessageIDs,
           context: {conversationIDKey, type: 'threadLoad'},
@@ -1193,9 +1194,11 @@ const loadMoreMessages = async (
             if (p.status.typ === RPCChatTypes.UIChatThreadStatusTyp.validated) {
               validated = true
             } else if (validated) {
-              return false
+              return
             }
-            return !!p && Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status: p.status})
+            if (!!p) {
+              reduxDispatch(Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status: p.status}))
+            }
           },
         },
         params: {
@@ -1217,9 +1220,9 @@ const loadMoreMessages = async (
         },
         waitingKey: loadingKey,
       },
-      listenerApi
+      Z.dummyListenerApi
     )
-    listenerApi.dispatch(
+    reduxDispatch(
       Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
     )
   } catch (error) {
@@ -1227,10 +1230,8 @@ const loadMoreMessages = async (
       logger.warn(error.desc)
       // no longer in team
       if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-        return [
-          Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}),
-          Chat2Gen.createNavigateToInbox(),
-        ]
+        reduxDispatch(Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}))
+        reduxDispatch(Chat2Gen.createNavigateToInbox())
       }
       if (error.code !== RPCTypes.StatusCode.scteamreaderror) {
         // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
@@ -1238,7 +1239,6 @@ const loadMoreMessages = async (
       }
     }
   }
-  return
 }
 
 const getUnreadline = async (
@@ -2317,15 +2317,14 @@ const resetLetThemIn = async (_: unknown, action: Chat2Gen.ResetLetThemInPayload
 }
 
 const markThreadAsRead = async (
-  state: Container.TypedState,
-  action:
+  action?:
     | Chat2Gen.MessagesAddPayload
     | Chat2Gen.UpdateUnreadlinePayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | Chat2Gen.UpdateReactionsPayload
-    | ConfigGen.ChangedFocusPayload
     | Chat2Gen.TabSelectedPayload
 ) => {
+  const getReduxStore = Z.getReduxStore()
   if (!ConfigConstants.useConfigState.getState().loggedIn) {
     logger.info('bail on not logged in')
     return
@@ -2337,10 +2336,10 @@ const markThreadAsRead = async (
     return
   }
 
-  const meta = state.chat2.metaMap.get(conversationIDKey)
+  const meta = getReduxStore().chat2.metaMap.get(conversationIDKey)
 
-  if (action.type === Chat2Gen.markInitiallyLoadedThreadAsRead) {
-    if (action.payload.conversationIDKey !== conversationIDKey) {
+  if (action?.type === Chat2Gen.markInitiallyLoadedThreadAsRead) {
+    if (action?.payload.conversationIDKey !== conversationIDKey) {
       logger.info('bail on not looking at this thread anymore?')
       return
     }
@@ -2354,17 +2353,17 @@ const markThreadAsRead = async (
   // Check to see if we do not have the latest message, and don't mark anything as read in that case
   // If we have no information at all, then just mark as read
   if (
-    !state.chat2.containsLatestMessageMap.has(conversationIDKey) ||
-    !state.chat2.containsLatestMessageMap.get(conversationIDKey)
+    !getReduxStore().chat2.containsLatestMessageMap.has(conversationIDKey) ||
+    !getReduxStore().chat2.containsLatestMessageMap.get(conversationIDKey)
   ) {
     logger.info('bail on not containing latest message')
     return
   }
 
   let message: Types.Message | undefined
-  const mmap = state.chat2.messageMap.get(conversationIDKey)
+  const mmap = getReduxStore().chat2.messageMap.get(conversationIDKey)
   if (mmap) {
-    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
+    const ordinals = Constants.getMessageOrdinals(getReduxStore(), conversationIDKey)
     const ordinal =
       ordinals &&
       findLast([...ordinals], (o: Types.Ordinal) => {
@@ -2378,12 +2377,12 @@ const markThreadAsRead = async (
   if (meta) {
     readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
   }
-  if (action.type === Chat2Gen.updateUnreadline && readMsgID && readMsgID >= action.payload.messageID) {
+  if (action?.type === Chat2Gen.updateUnreadline && readMsgID && readMsgID >= action?.payload.messageID) {
     // If we are marking as unread, don't send the local RPC.
     return
   }
 
-  logger.info(`marking read messages ${conversationIDKey} ${readMsgID} for ${action.type}`)
+  logger.info(`marking read messages ${conversationIDKey} ${readMsgID} for ${action?.type ?? ''}`)
   await RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     forceUnread: false,
@@ -3888,11 +3887,16 @@ const initChat = () => {
       Chat2Gen.loadNewerMessagesDueToScroll,
       Chat2Gen.loadMessagesCentered,
       Chat2Gen.markConversationsStale,
-      ConfigGen.changedFocus,
       Chat2Gen.tabSelected,
     ],
-    loadMoreMessages
+    (_, a) => loadMoreMessages(a)
   )
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.appFocused === old.appFocused) return
+    loadMoreMessages()
+    markThreadAsRead()
+  })
 
   // get the unread (orange) line
   Container.listenAction(Chat2Gen.selectedConversation, getUnreadline)
@@ -3968,10 +3972,9 @@ const initChat = () => {
       Chat2Gen.updateUnreadline,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       Chat2Gen.updateReactions,
-      ConfigGen.changedFocus,
       Chat2Gen.tabSelected,
     ],
-    markThreadAsRead
+    (_, a) => markThreadAsRead(a)
   )
   Container.listenAction(Chat2Gen.markTeamAsRead, markTeamAsRead)
   Container.listenAction(Chat2Gen.markAsUnread, markAsUnread)

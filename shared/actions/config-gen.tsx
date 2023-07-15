@@ -6,7 +6,6 @@ import type * as Types from '../constants/types/config'
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
 export const androidShare = 'config:androidShare'
-export const changedFocus = 'config:changedFocus'
 export const copyToClipboard = 'config:copyToClipboard'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const initListenerLoops = 'config:initListenerLoops'
@@ -103,10 +102,6 @@ export const createRemoteWindowWantsProps = (payload: {
   readonly component: string
   readonly param: string
 }) => ({payload, type: remoteWindowWantsProps as typeof remoteWindowWantsProps})
-export const createChangedFocus = (payload: {readonly appFocused: boolean}) => ({
-  payload,
-  type: changedFocus as typeof changedFocus,
-})
 export const createCopyToClipboard = (payload: {readonly text: string}) => ({
   payload,
   type: copyToClipboard as typeof copyToClipboard,
@@ -153,7 +148,6 @@ export const createUpdateNow = (payload?: undefined) => ({payload, type: updateN
 
 // Action Payloads
 export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
-export type ChangedFocusPayload = ReturnType<typeof createChangedFocus>
 export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
@@ -179,7 +173,6 @@ export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState
 // prettier-ignore
 export type Actions =
   | AndroidSharePayload
-  | ChangedFocusPayload
   | CopyToClipboardPayload
   | DarkModePreferenceChangedPayload
   | InitListenerLoopsPayload

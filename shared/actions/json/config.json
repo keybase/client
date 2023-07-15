@@ -1,7 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
-    "changedFocus": {"appFocused": "boolean"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "openAtLoginChanged": {},
     "persistRoute": {"path?": "Array<any>"},
