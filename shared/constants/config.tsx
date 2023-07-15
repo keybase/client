@@ -160,6 +160,7 @@ type State = Store & {
       openAppSettings?: () => void
       showMainNative?: () => void
       setNavigatorExistsNative?: () => void
+      persistRoute?: (path?: Array<any>) => void
     }
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
@@ -256,6 +257,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       dumpLogsNative: undefined,
       onFilePickerError: undefined,
       openAppSettings: undefined,
+      persistRoute: undefined,
       setNavigatorExistsNative: undefined,
       showMainNative: undefined,
     },

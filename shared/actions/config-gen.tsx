@@ -13,7 +13,6 @@ export const loadOnStart = 'config:loadOnStart'
 export const loggedInChanged = 'config:loggedInChanged'
 export const openAppStore = 'config:openAppStore'
 export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
-export const persistRoute = 'config:persistRoute'
 export const powerMonitorEvent = 'config:powerMonitorEvent'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const revoked = 'config:revoked'
@@ -117,10 +116,6 @@ export const createOsNetworkStatusChanged = (payload: {
   readonly type: Types.ConnectionType
   readonly isInit?: boolean
 }) => ({payload, type: osNetworkStatusChanged as typeof osNetworkStatusChanged})
-export const createPersistRoute = (payload: {readonly path?: Array<any>} = {}) => ({
-  payload,
-  type: persistRoute as typeof persistRoute,
-})
 export const createRevoked = (payload?: undefined) => ({payload, type: revoked as typeof revoked})
 export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   payload,
@@ -146,7 +141,6 @@ export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type LoggedInChangedPayload = ReturnType<typeof createLoggedInChanged>
 export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
 export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
-export type PersistRoutePayload = ReturnType<typeof createPersistRoute>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type RevokedPayload = ReturnType<typeof createRevoked>
@@ -169,7 +163,6 @@ export type Actions =
   | LoggedInChangedPayload
   | OpenAppStorePayload
   | OsNetworkStatusChangedPayload
-  | PersistRoutePayload
   | PowerMonitorEventPayload
   | RemoteWindowWantsPropsPayload
   | RevokedPayload

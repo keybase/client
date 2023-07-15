@@ -159,43 +159,6 @@ export const showShareActionSheet = async (options: {
   }
 }
 
-let _lastPersist = ''
-const persistRoute = async (_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) => {
-  const {path} = action.payload
-  let param = {}
-  let routeName = Tabs.peopleTab
-
-  if (path) {
-    const cur = RouterConstants.getTab()
-    if (cur) {
-      routeName = cur
-    }
-
-    const ap = RouterConstants.getVisiblePath()
-    ap.some(r => {
-      if (r.name == 'chatConversation') {
-        param = {
-          // @ts-ignore TODO better param typing
-          selectedConversationIDKey: r.params?.conversationIDKey as Types.ConversationIDKey | undefined,
-        }
-        return true
-      }
-      return false
-    })
-  }
-
-  const s = JSON.stringify({param, routeName})
-  // don't keep rewriting
-  if (_lastPersist === s) {
-    return
-  }
-  await RPCTypes.configGuiSetValueRpcPromise({
-    path: 'ui.routeState2',
-    value: {isNull: false, s},
-  })
-  _lastPersist = s
-}
-
 // only send when different, we get called a bunch where this doesn't actually change
 let _lastNetworkType: ConfigGen.OsNetworkStatusChangedPayload['payload']['type'] | undefined
 const updateMobileNetState = async (_: unknown, action: ConfigGen.OsNetworkStatusChangedPayload) => {
@@ -464,12 +427,6 @@ const onTabLongPress = (_: unknown, action: RouteTreeGen.TabLongPressPayload) =>
   return
 }
 
-const onPersistRoute = async () => {
-  await Container.timeoutPromise(1000)
-  const path = RouterConstants.getVisiblePath()
-  return ConfigGen.createPersistRoute({path})
-}
-
 const initAudioModes = () => {
   setupAudioMode(false)
     .then(() => {})
@@ -480,7 +437,43 @@ const initAudioModes = () => {
 let afterStartupDetails = (_done: boolean) => {}
 
 export const initPlatformListener = () => {
-  Container.listenAction(ConfigGen.persistRoute, persistRoute)
+  let _lastPersist = ''
+  ConfigConstants.useConfigState.setState(s => {
+    s.dispatch.dynamic.persistRoute = (path?: Array<any>) => {
+      const f = async () => {
+        let param = {}
+        let routeName = Tabs.peopleTab
+        if (path) {
+          const cur = RouterConstants.getTab()
+          if (cur) {
+            routeName = cur
+          }
+          const ap = RouterConstants.getVisiblePath()
+          ap.some(r => {
+            if (r.name == 'chatConversation') {
+              param = {
+                // @ts-ignore TODO better param typing
+                selectedConversationIDKey: r.params?.conversationIDKey as Types.ConversationIDKey | undefined,
+              }
+              return true
+            }
+            return false
+          })
+        }
+        const s = JSON.stringify({param, routeName})
+        // don't keep rewriting
+        if (_lastPersist === s) {
+          return
+        }
+        await RPCTypes.configGuiSetValueRpcPromise({
+          path: 'ui.routeState2',
+          value: {isNull: false, s},
+        })
+        _lastPersist = s
+      }
+      Z.ignorePromise(f())
+    }
+  })
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
@@ -596,7 +589,11 @@ export const initPlatformListener = () => {
     }
   })
 
-  Container.listenAction(RouteTreeGen.onNavChanged, onPersistRoute)
+  Container.listenAction(RouteTreeGen.onNavChanged, async () => {
+    await Container.timeoutPromise(1000)
+    const path = RouterConstants.getVisiblePath()
+    ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
+  })
 
   Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
 
