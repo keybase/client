@@ -3,6 +3,7 @@ import * as FsGen from '../fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
+import * as ConfigConstants from '../../constants/config'
 import * as Tabs from '../../constants/tabs'
 import * as Container from '../../util/container'
 import {isWindows, isLinux, pathSep} from '../../constants/platform.desktop'
@@ -224,12 +225,14 @@ const openAndUpload = async (_: unknown, action: FsGen.OpenAndUploadPayload) => 
   return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 }
 
-const openFilesFromWidget = (_: unknown, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => [
-  ConfigGen.createShowMain(),
-  ...(path
-    ? [Constants.makeActionForOpenPathInFilesTab(path)]
-    : ([RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]})] as any)),
-]
+const openFilesFromWidget = (_: unknown, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
+  ConfigConstants.useConfigState.getState().dispatch.showMain()
+  return [
+    ...(path
+      ? [Constants.makeActionForOpenPathInFilesTab(path)]
+      : ([RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]})] as any)),
+  ]
+}
 
 const refreshMountDirs = async (
   _: unknown,

@@ -441,6 +441,13 @@ const initConfig = () => {
   Container.listenAction(EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate, (_, action) => {
     Constants.useConfigState.getState().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
   })
+
+  Container.listenAction(ConfigGen.showMain, () => {
+    Constants.useConfigState.getState().dispatch.showMain()
+  })
+  Container.listenAction(ConfigGen.dumpLogs, async (_, a) => {
+    return Constants.useConfigState.getState().dispatch.dumpLogs(a.payload.reason)
+  })
 }
 
 export default initConfig

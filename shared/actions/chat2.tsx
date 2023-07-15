@@ -1322,10 +1322,10 @@ const desktopNotify = async (state: Container.TypedState, action: Chat2Gen.Deskt
 
   const actions = await new Promise<Array<Container.TypedActions>>(resolve => {
     const onClick = () => {
+      ConfigConstants.useConfigState.getState().dispatch.showMain()
       resolve([
         Chat2Gen.createNavigateToInbox(),
         Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'desktopNotification'}),
-        ConfigGen.createShowMain(),
       ])
     }
     const onClose = () => {
@@ -3425,13 +3425,15 @@ const onUpdateLastCoord = async (_: unknown, action: Chat2Gen.UpdateLastCoordPay
 const openChatFromWidget = (
   _: unknown,
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
-) => [
-  ConfigGen.createShowMain(),
-  Chat2Gen.createNavigateToThread({
-    conversationIDKey: conversationIDKey ?? Constants.noConversationIDKey,
-    reason: 'inboxSmall',
-  }),
-]
+) => {
+  ConfigConstants.useConfigState.getState().dispatch.showMain()
+  return [
+    Chat2Gen.createNavigateToThread({
+      conversationIDKey: conversationIDKey ?? Constants.noConversationIDKey,
+      reason: 'inboxSmall',
+    }),
+  ]
+}
 
 const gregorPushState = (state: Container.TypedState, action: GregorGen.PushStatePayload) => {
   const actions: Array<Container.TypedActions> = []

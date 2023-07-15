@@ -152,12 +152,15 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     dynamic: {
-      dumpLogs?: (reason: string) => Promise<void>
+      dumpLogsNative?: (reason: string) => Promise<void>
       onFilePickerError?: (error: Error) => void
       openAppSettings?: () => void
+      showMainNative?: () => void
     }
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
+    dumpLogs: (reason: string) => Promise<void>
+    emitMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
     filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
     initNotifySound: () => void
@@ -189,6 +192,7 @@ type State = Store & {
     setUserSwitching: (sw: boolean) => void
     setUseNativeFrame: (use: boolean) => void
     setWindowIsMax: (m: boolean) => void
+    showMain: () => void
     toggleRuntimeStats: () => void
     updateApp: () => void
     updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => void
@@ -240,10 +244,17 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
+    dumpLogs: async reason => {
+      await get().dispatch.dynamic.dumpLogsNative?.(reason)
+    },
     dynamic: {
-      dumpLogs: undefined,
+      dumpLogsNative: undefined,
       onFilePickerError: undefined,
       openAppSettings: undefined,
+      showMainNative: undefined,
+    },
+    emitMobileAppState: nextAppState => {
+      reduxDispatch(ConfigGen.createMobileAppState({nextAppState}))
     },
     filePickerError: error => {
       get().dispatch.dynamic.onFilePickerError?.(error)
@@ -580,6 +591,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.windowState.isMaximized = m
       })
+    },
+    showMain: () => {
+      get().dispatch.dynamic.showMainNative?.()
     },
     toggleRuntimeStats: () => {
       const f = async () => {

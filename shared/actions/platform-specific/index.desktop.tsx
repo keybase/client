@@ -195,16 +195,9 @@ export const dumpLogs = async (reason?: string) => {
 }
 
 export const initPlatformListener = () => {
-  Container.listenAction(ConfigGen.showMain, () => showMainWindow?.())
-
   ConfigConstants.useConfigState.setState(s => {
-    s.dispatch.dynamic.dumpLogs = dumpLogs
-  })
-  Container.listenAction(ConfigGen.dumpLogs, (_, a) => {
-    Container.ignorePromise(
-      ConfigConstants.useConfigState.getState().dispatch.dynamic.dumpLogs?.(a.payload.reason) ??
-        Promise.resolve()
-    )
+    s.dispatch.dynamic.dumpLogsNative = dumpLogs
+    s.dispatch.dynamic.showMainNative = () => showMainWindow?.()
   })
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   Container.listenAction(EngineGen.keybase1LogsendPrepareLogsend, async (_, action) => {

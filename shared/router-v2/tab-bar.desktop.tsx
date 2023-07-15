@@ -54,7 +54,7 @@ const Header = () => {
     startProvision()
   }
   const onHelp = () => openURL('https://book.keybase.io')
-  const dumpLogs = ConfigConstants.useConfigState(s => s.dispatch.dynamic.dumpLogs)
+  const dumpLogs = ConfigConstants.useConfigState(s => s.dispatch.dumpLogs)
   const onQuit = () => {
     if (!__DEV__) {
       if (isLinux) {
@@ -349,7 +349,7 @@ const styles = Styles.styleSheetCreate(
       username: Styles.platformStyles({
         isElectron: {color: Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
       }),
-    } as const)
+    }) as const
 )
 
 export default TabBar
