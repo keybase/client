@@ -152,6 +152,7 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     dynamic: {
+      dumpLogs?: (reason: string) => Promise<void>
       onFilePickerError?: (error: Error) => void
       openAppSettings?: () => void
     }
@@ -240,6 +241,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       ignorePromise(f())
     },
     dynamic: {
+      dumpLogs: undefined,
       onFilePickerError: undefined,
       openAppSettings: undefined,
     },
