@@ -207,12 +207,12 @@ type State = Store & {
   }
 }
 
+export const openAtLoginKey = 'openAtLogin'
 export const useConfigState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
 
   const nativeFrameKey = 'useNativeFrame'
   const notifySoundKey = 'notifySound'
-  const openAtLoginKey = 'openAtLogin'
 
   const _checkForUpdate = async () => {
     try {
@@ -578,18 +578,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.openAtLogin = open
       })
-      const f = async () => {
-        await RPCTypes.configGuiSetValueRpcPromise({
-          path: openAtLoginKey,
-          value: {b: open, isNull: false},
-        })
-        if (__DEV__) {
-          console.log('onSetOpenAtLogin disabled for dev mode')
-          return
-        }
-        reduxDispatch(ConfigGen.createOpenAtLoginChanged())
-      }
-      ignorePromise(f())
     },
     setOutOfDate: outOfDate => {
       set(s => {

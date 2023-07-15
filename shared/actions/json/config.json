@@ -1,7 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
-    "openAtLoginChanged": {},
     "persistRoute": {"path?": "Array<any>"},
     "loggedInChanged": {"causedByStartup": "boolean"},
     "updateMenubarWindowID": {"id": "number"},

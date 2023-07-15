@@ -12,7 +12,6 @@ export const initListenerLoops = 'config:initListenerLoops'
 export const loadOnStart = 'config:loadOnStart'
 export const loggedInChanged = 'config:loggedInChanged'
 export const openAppStore = 'config:openAppStore'
-export const openAtLoginChanged = 'config:openAtLoginChanged'
 export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const persistRoute = 'config:persistRoute'
 export const powerMonitorEvent = 'config:powerMonitorEvent'
@@ -113,10 +112,6 @@ export const createLoggedInChanged = (payload: {readonly causedByStartup: boolea
   payload,
   type: loggedInChanged as typeof loggedInChanged,
 })
-export const createOpenAtLoginChanged = (payload?: undefined) => ({
-  payload,
-  type: openAtLoginChanged as typeof openAtLoginChanged,
-})
 export const createOsNetworkStatusChanged = (payload: {
   readonly online: boolean
   readonly type: Types.ConnectionType
@@ -150,7 +145,6 @@ export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type LoggedInChangedPayload = ReturnType<typeof createLoggedInChanged>
 export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
-export type OpenAtLoginChangedPayload = ReturnType<typeof createOpenAtLoginChanged>
 export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
 export type PersistRoutePayload = ReturnType<typeof createPersistRoute>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
@@ -174,7 +168,6 @@ export type Actions =
   | LoadOnStartPayload
   | LoggedInChangedPayload
   | OpenAppStorePayload
-  | OpenAtLoginChangedPayload
   | OsNetworkStatusChangedPayload
   | PersistRoutePayload
   | PowerMonitorEventPayload

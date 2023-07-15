@@ -204,9 +204,18 @@ export const initPlatformListener = () => {
   Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')
   Container.spawn(setupReachabilityWatcher, 'setupReachabilityWatcher')
 
-  Container.listenAction(ConfigGen.openAtLoginChanged, () => {
-    const {openAtLogin} = ConfigConstants.useConfigState.getState()
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.openAtLogin === old.openAtLogin) return
+    const {openAtLogin} = s
     const f = async () => {
+      if (__DEV__) {
+        console.log('onSetOpenAtLogin disabled for dev mode')
+      } else {
+        await RPCTypes.configGuiSetValueRpcPromise({
+          path: ConfigConstants.openAtLoginKey,
+          value: {b: openAtLogin, isNull: false},
+        })
+      }
       if (isLinux || isWindows) {
         const enabled =
           (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
