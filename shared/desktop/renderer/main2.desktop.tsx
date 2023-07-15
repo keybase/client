@@ -3,6 +3,7 @@ import Main from '../../app/main.desktop'
 // order of the above 2 must NOT change. needed for patching / hot loading to be correct
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as WaitingConstants from '../../constants/waiting'
+import * as ConfigConstants from '../../constants/config'
 import * as DarkMode from '../../constants/darkmode'
 import * as React from 'react'
 import * as ReactDOM from 'react-dom/client'
@@ -78,6 +79,7 @@ const setupApp = (store: any, initListeners: any) => {
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
     setTimeout(() => {
       try {
+        ConfigConstants.useConfigState.getState().dispatch.eventFromRemoteWindows(action)
         store.dispatch({
           payload: action.payload,
           type: action.type,

@@ -1,0 +1,10 @@
+{
+  "prelude": [],
+  "actions": {
+    "installerRan": {
+      "_description": "desktop only: the installer ran and we can start up"
+    },
+    "dumpLogs": {"reason": ["'quitting through menu'"]},
+    "showMain": {}
+  }
+}

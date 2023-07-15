@@ -1,5 +1,6 @@
 import * as ConfigGen from '../actions/config-gen'
-import type {TypedActions} from '../actions/typed-actions-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
+import * as RemoteGen from '../actions/remote-gen'
 import * as ProvisionConstants from './provision'
 import * as RPCTypes from './types/rpc-gen'
 import * as Stats from '../engine/stats'
@@ -7,13 +8,14 @@ import * as Z from '../util/zustand'
 import logger from '../logger'
 import type * as Types from './types/config'
 import type {ConversationIDKey} from './types/chat2'
-import {type CommonResponseHandler} from '../engine/types'
 import type {Tab} from './tabs'
+import type {TypedActions} from '../actions/typed-actions-gen'
 import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
 import {defaultUseNativeFrame, runMode, isMobile} from './platform'
 import {enableActionLogging} from '../local-debug'
 import {noConversationIDKey} from './types/chat2/common'
+import {type CommonResponseHandler} from '../engine/types'
 import {useCurrentUserState} from './current-user'
 
 const ignorePromise = (f: Promise<void>) => {
@@ -262,8 +264,29 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     },
     eventFromRemoteWindows: (action: TypedActions) => {
       switch (action.type) {
-        case ConfigGen.installerRan:
+        case RemoteGen.installerRan:
           get().dispatch.installerRan()
+          break
+        case RemoteGen.showMain:
+          get().dispatch.showMain()
+          break
+        case RemoteGen.dumpLogs:
+          Z.ignorePromise(get().dispatch.dumpLogs(action.payload.reason))
+          break
+        case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
+          get().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
+          break
+        case ConfigGen.remoteWindowWantsProps:
+          get().dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
+          break
+        case ConfigGen.updateWindowMaxState:
+          get().dispatch.setWindowIsMax(action.payload.max)
+          break
+        case ConfigGen.updateWindowState:
+          get().dispatch.updateWindowState(action.payload.windowState)
+          break
+        case ConfigGen.updateWindowShown:
+          get().dispatch.windowShown(action.payload.component)
           break
         default:
       }

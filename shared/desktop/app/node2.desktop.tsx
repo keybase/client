@@ -11,6 +11,7 @@ import path from 'path'
 import fse from 'fs-extra'
 import {spawn, execFile, exec} from 'child_process'
 import * as ConfigGen from '../../actions/config-gen'
+import * as RemoteGen from '../../actions/remote-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import startWinService from './start-win-service.desktop'
 import {
@@ -744,7 +745,7 @@ const plumbEvents = () => {
         // run installer
         installer(mainWindowDispatch, err => {
           err && console.log('Error: ', err)
-          mainWindowDispatch(ConfigGen.createInstallerRan())
+          mainWindowDispatch(RemoteGen.createInstallerRan())
         })
         break
       case 'requestWindowsStartService':

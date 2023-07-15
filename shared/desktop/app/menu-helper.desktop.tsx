@@ -1,4 +1,4 @@
-import * as ConfigGen from '../../actions/config-gen'
+import * as RemoteGen from '../../actions/remote-gen'
 import * as Electron from 'electron'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
@@ -15,7 +15,7 @@ const reallyQuit = () => {
   if (isLinux) {
     mainWindowDispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
   } else {
-    mainWindowDispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
+    mainWindowDispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
   }
   setTimeout(() => {
     ctlQuit()

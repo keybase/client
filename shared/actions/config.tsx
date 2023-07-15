@@ -420,34 +420,6 @@ const initConfig = () => {
     const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
     dispatch.replace(followers, following)
   })
-
-  Container.listenAction(ConfigGen.updateWindowMaxState, (_, action) => {
-    Constants.useConfigState.getState().dispatch.setWindowIsMax(action.payload.max)
-  })
-
-  Container.listenAction(ConfigGen.updateWindowState, (_, action) => {
-    Constants.useConfigState.getState().dispatch.updateWindowState(action.payload.windowState)
-  })
-
-  Container.listenAction(ConfigGen.updateWindowShown, (_, action) => {
-    Constants.useConfigState.getState().dispatch.windowShown(action.payload.component)
-  })
-
-  Container.listenAction(ConfigGen.remoteWindowWantsProps, (_, action) => {
-    const {component, param} = action.payload
-    Constants.useConfigState.getState().dispatch.remoteWindowNeedsProps(component, param)
-  })
-
-  Container.listenAction(EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate, (_, action) => {
-    Constants.useConfigState.getState().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
-  })
-
-  Container.listenAction(ConfigGen.showMain, () => {
-    Constants.useConfigState.getState().dispatch.showMain()
-  })
-  Container.listenAction(ConfigGen.dumpLogs, async (_, a) => {
-    return Constants.useConfigState.getState().dispatch.dumpLogs(a.payload.reason)
-  })
 }
 
 export default initConfig

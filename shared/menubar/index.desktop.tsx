@@ -1,4 +1,4 @@
-import * as ConfigGen from '../actions/config-gen'
+import * as RemoteGen from '../actions/remote-gen'
 import * as Container from '../util/container'
 import * as FsConstants from '../constants/fs'
 import * as DarkMode from '../constants/darkmode'
@@ -103,7 +103,7 @@ const useMenuItems = (
             if (isLinux) {
               dispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
             } else {
-              dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
+              dispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
             }
           }
           // In case dump log doesn't exit for us
@@ -184,7 +184,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   const dispatch = Container.useDispatch()
   const openApp = React.useCallback(
     (tab?: Tabs.AppTab) => {
-      dispatch(ConfigGen.createShowMain())
+      dispatch(RemoteGen.createShowMain())
       tab && dispatch(RouteTreeGen.createSwitchTab({tab}))
     },
     [dispatch]
@@ -300,7 +300,7 @@ const LoggedOut = (p: {daemonHandshakeState: ConfigTypes.DaemonHandshakeState; l
 
   const dispatch = Container.useDispatch()
   const logIn = () => {
-    dispatch(ConfigGen.createShowMain())
+    dispatch(RemoteGen.createShowMain())
     dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
   }
   return (

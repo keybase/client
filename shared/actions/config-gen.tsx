@@ -11,9 +11,7 @@ export const copyToClipboard = 'config:copyToClipboard'
 export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
-export const dumpLogs = 'config:dumpLogs'
 export const initListenerLoops = 'config:initListenerLoops'
-export const installerRan = 'config:installerRan'
 export const loadOnStart = 'config:loadOnStart'
 export const loggedInChanged = 'config:loggedInChanged'
 export const logoutHandshake = 'config:logoutHandshake'
@@ -27,7 +25,6 @@ export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const revoked = 'config:revoked'
 export const setNavigator = 'config:setNavigator'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
-export const showMain = 'config:showMain'
 export const showShareActionSheet = 'config:showShareActionSheet'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
@@ -81,13 +78,6 @@ export const createLoadOnStart = (payload: {
 export const createUpdateWindowShown = (payload: {readonly component: string}) => ({
   payload,
   type: updateWindowShown as typeof updateWindowShown,
-})
-/**
- * desktop only: the installer ran and we can start up
- */
-export const createInstallerRan = (payload?: undefined) => ({
-  payload,
-  type: installerRan as typeof installerRan,
 })
 /**
  * main electron window changed max/min
@@ -150,10 +140,6 @@ export const createDarkModePreferenceChanged = (payload?: undefined) => ({
   payload,
   type: darkModePreferenceChanged as typeof darkModePreferenceChanged,
 })
-export const createDumpLogs = (payload: {readonly reason: 'quitting through menu'}) => ({
-  payload,
-  type: dumpLogs as typeof dumpLogs,
-})
 export const createLoggedInChanged = (payload: {readonly causedByStartup: boolean}) => ({
   payload,
   type: loggedInChanged as typeof loggedInChanged,
@@ -183,7 +169,6 @@ export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   payload,
   type: setSystemDarkMode as typeof setSystemDarkMode,
 })
-export const createShowMain = (payload?: undefined) => ({payload, type: showMain as typeof showMain})
 export const createShowShareActionSheet = (payload: {
   readonly filePath?: string
   readonly message?: string
@@ -202,9 +187,7 @@ export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
 export type DaemonHandshakeDonePayload = ReturnType<typeof createDaemonHandshakeDone>
 export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
-export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
-export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type LoggedInChangedPayload = ReturnType<typeof createLoggedInChanged>
 export type LogoutHandshakePayload = ReturnType<typeof createLogoutHandshake>
@@ -218,7 +201,6 @@ export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindow
 export type RevokedPayload = ReturnType<typeof createRevoked>
 export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
-export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
 export type UpdateMenubarWindowIDPayload = ReturnType<typeof createUpdateMenubarWindowID>
 export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
@@ -235,9 +217,7 @@ export type Actions =
   | DaemonHandshakeDonePayload
   | DaemonHandshakePayload
   | DarkModePreferenceChangedPayload
-  | DumpLogsPayload
   | InitListenerLoopsPayload
-  | InstallerRanPayload
   | LoadOnStartPayload
   | LoggedInChangedPayload
   | LogoutHandshakePayload
@@ -251,7 +231,6 @@ export type Actions =
   | RevokedPayload
   | SetNavigatorPayload
   | SetSystemDarkModePayload
-  | ShowMainPayload
   | ShowShareActionSheetPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload

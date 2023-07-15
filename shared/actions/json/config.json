@@ -1,10 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
-    "installerRan": {
-      "_description": "desktop only: the installer ran and we can start up"
-    },
-    "dumpLogs": {"reason": ["'quitting through menu'"]},
     "daemonHandshake": {
       "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
       "firstTimeConnecting": "boolean",
@@ -19,7 +15,6 @@
     },
     "changedFocus": {"appFocused": "boolean"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
-    "showMain": {},
     "openAtLoginChanged": {},
     "persistRoute": {"path?": "Array<any>"},
     "setNavigator": {"navigator": "any"},
