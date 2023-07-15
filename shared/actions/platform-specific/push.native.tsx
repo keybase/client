@@ -1,5 +1,4 @@
 import * as ChatTypes from '../../constants/types/chat2'
-import * as ConfigGen from '../config-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/push'
@@ -281,9 +280,10 @@ const getInitialPushiOS = async () => {
 
 export const initPushListener = () => {
   // Permissions
-  Container.listenAction(ConfigGen.mobileAppState, (_, action) => {
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.mobileAppState === old.mobileAppState) return
     // Only recheck on foreground, not background
-    if (action.payload.nextAppState !== 'active') {
+    if (s.mobileAppState !== 'active') {
       logger.info('[PushCheck] skip on backgrounding')
       return
     }

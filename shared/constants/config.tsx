@@ -71,6 +71,7 @@ export type Store = {
   justDeletedSelf: string
   justRevokedSelf: string
   loggedIn: boolean
+  mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
   notifySound: boolean
   openAtLogin: boolean
   outOfDate: Types.OutOfDate
@@ -118,6 +119,7 @@ const initialStore: Store = {
   justRevokedSelf: '',
   loggedIn: false,
   loginError: undefined,
+  mobileAppState: 'unknown',
   notifySound: false,
   openAtLogin: true,
   outOfDate: {
@@ -162,7 +164,6 @@ type State = Store & {
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
     dumpLogs: (reason: string) => Promise<void>
-    emitMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
     eventFromRemoteWindows: (action: TypedActions) => void
     filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
@@ -187,6 +188,7 @@ type State = Store & {
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean, causedByStartup?: boolean, skipSideEffect?: boolean) => void
+    setMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
     setNavigatorExists: () => void
     setNotifySound: (n: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
@@ -256,9 +258,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       openAppSettings: undefined,
       setNavigatorExistsNative: undefined,
       showMainNative: undefined,
-    },
-    emitMobileAppState: nextAppState => {
-      reduxDispatch(ConfigGen.createMobileAppState({nextAppState}))
     },
     eventFromRemoteWindows: (action: TypedActions) => {
       switch (action.type) {
@@ -552,6 +551,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       if (!skipSideEffect) {
         reduxDispatch(ConfigGen.createLoggedInChanged({causedByStartup}))
       }
+    },
+    setMobileAppState: nextAppState => {
+      set(s => {
+        s.mobileAppState = nextAppState
+      })
     },
     setNavigatorExists: () => {
       get().dispatch.dynamic.setNavigatorExistsNative?.()

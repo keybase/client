@@ -1670,17 +1670,6 @@ const onInboxSearchNameResults = (
   return false
 }
 
-const maybeCancelInboxSearchOnFocusChanged = (
-  state: Container.TypedState,
-  action: ConfigGen.MobileAppStatePayload
-) => {
-  const {inboxSearch} = state.chat2
-  if (action.payload.nextAppState === 'background' && inboxSearch) {
-    return Chat2Gen.createToggleInboxSearch({enabled: false})
-  }
-  return false
-}
-
 const inboxSearch = async (
   _: Container.TypedState,
   action: Chat2Gen.InboxSearchPayload,
@@ -4052,7 +4041,15 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.inboxSearchSelect, onInboxSearchSelect)
   Container.listenAction(Chat2Gen.inboxSearchNameResults, onInboxSearchNameResults)
   Container.listenAction(Chat2Gen.inboxSearchTextResult, onInboxSearchTextResult)
-  Container.listenAction(ConfigGen.mobileAppState, maybeCancelInboxSearchOnFocusChanged)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.mobileAppState === old.mobileAppState) return
+    const getReduxStore = Z.getReduxStore()
+    const reduxDispatch = Z.getReduxDispatch()
+    if (s.mobileAppState === 'background' && getReduxStore().chat2.inboxSearch) {
+      reduxDispatch(Chat2Gen.createToggleInboxSearch({enabled: false}))
+    }
+  })
 
   Container.listenAction(Chat2Gen.threadSearch, threadSearch)
   Container.listenAction(Chat2Gen.toggleThreadSearch, onToggleThreadSearch)

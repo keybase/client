@@ -11,7 +11,6 @@ export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const initListenerLoops = 'config:initListenerLoops'
 export const loadOnStart = 'config:loadOnStart'
 export const loggedInChanged = 'config:loggedInChanged'
-export const mobileAppState = 'config:mobileAppState'
 export const openAppStore = 'config:openAppStore'
 export const openAtLoginChanged = 'config:openAtLoginChanged'
 export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
@@ -114,9 +113,6 @@ export const createLoggedInChanged = (payload: {readonly causedByStartup: boolea
   payload,
   type: loggedInChanged as typeof loggedInChanged,
 })
-export const createMobileAppState = (payload: {
-  readonly nextAppState: 'active' | 'background' | 'inactive'
-}) => ({payload, type: mobileAppState as typeof mobileAppState})
 export const createOpenAtLoginChanged = (payload?: undefined) => ({
   payload,
   type: openAtLoginChanged as typeof openAtLoginChanged,
@@ -153,7 +149,6 @@ export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModeP
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type LoggedInChangedPayload = ReturnType<typeof createLoggedInChanged>
-export type MobileAppStatePayload = ReturnType<typeof createMobileAppState>
 export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
 export type OpenAtLoginChangedPayload = ReturnType<typeof createOpenAtLoginChanged>
 export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
@@ -178,7 +173,6 @@ export type Actions =
   | InitListenerLoopsPayload
   | LoadOnStartPayload
   | LoggedInChangedPayload
-  | MobileAppStatePayload
   | OpenAppStorePayload
   | OpenAtLoginChangedPayload
   | OsNetworkStatusChangedPayload

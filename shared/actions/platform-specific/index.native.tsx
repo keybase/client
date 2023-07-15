@@ -159,31 +159,6 @@ export const showShareActionSheet = async (options: {
   }
 }
 
-const updateChangedFocus = (_: unknown, action: ConfigGen.MobileAppStatePayload) => {
-  let appFocused: boolean
-  let logState: RPCTypes.MobileAppState
-  switch (action.payload.nextAppState) {
-    case 'active':
-      appFocused = true
-      logState = RPCTypes.MobileAppState.foreground
-      break
-    case 'background':
-      appFocused = false
-      logState = RPCTypes.MobileAppState.background
-      break
-    case 'inactive':
-      appFocused = false
-      logState = RPCTypes.MobileAppState.inactive
-      break
-    default:
-      appFocused = false
-      logState = RPCTypes.MobileAppState.foreground
-  }
-
-  logger.info(`setting app state on service to: ${logState}`)
-  ConfigConstants.useConfigState.getState().dispatch.changedFocus(appFocused)
-}
-
 let _lastPersist = ''
 const persistRoute = async (_state: Container.TypedState, action: ConfigGen.PersistRoutePayload) => {
   const {path} = action.payload
@@ -506,7 +481,33 @@ let afterStartupDetails = (_done: boolean) => {}
 
 export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.persistRoute, persistRoute)
-  Container.listenAction(ConfigGen.mobileAppState, updateChangedFocus)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.mobileAppState === old.mobileAppState) return
+    let appFocused: boolean
+    let logState: RPCTypes.MobileAppState
+    switch (s.mobileAppState) {
+      case 'active':
+        appFocused = true
+        logState = RPCTypes.MobileAppState.foreground
+        break
+      case 'background':
+        appFocused = false
+        logState = RPCTypes.MobileAppState.background
+        break
+      case 'inactive':
+        appFocused = false
+        logState = RPCTypes.MobileAppState.inactive
+        break
+      default:
+        appFocused = false
+        logState = RPCTypes.MobileAppState.foreground
+    }
+
+    logger.info(`setting app state on service to: ${logState}`)
+    ConfigConstants.useConfigState.getState().dispatch.changedFocus(appFocused)
+  })
+
   Container.listenAction(ConfigGen.copyToClipboard, copyToClipboard)
 
   ConfigConstants.useDaemonState.subscribe((s, old) => {
@@ -572,8 +573,9 @@ export const initPlatformListener = () => {
 
   Container.listenAction(RouteTreeGen.tabLongPress, onTabLongPress)
 
-  Container.listenAction(ConfigGen.mobileAppState, (_, action) => {
-    if (action.payload.nextAppState === 'active') {
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.mobileAppState === old.mobileAppState) return
+    if (s.mobileAppState === 'active') {
       // only reload on foreground
       SettingsConstants.useContactsState.getState().dispatch.loadContactPermissions()
     }
