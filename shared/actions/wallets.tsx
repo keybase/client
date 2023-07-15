@@ -1,3 +1,4 @@
+import * as Z from '../util/zustand'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as ConfigConstants from '../constants/config'
@@ -1597,28 +1598,6 @@ const assetWithdraw = async (_: unknown, action: WalletsGen.AssetWithdrawPayload
   }
 }
 
-const loadStaticConfig = async (
-  state: Container.TypedState,
-  action: ConfigGen.DaemonHandshakePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  if (state.wallets.staticConfig) {
-    return false
-  }
-  const {version} = action.payload
-  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-  const name = 'wallets.loadStatic'
-  wait(name, version, true)
-
-  try {
-    const res = await RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
-    listenerApi.dispatch(WalletsGen.createStaticConfigLoaded({staticConfig: res}))
-  } finally {
-    wait(name, version, false)
-  }
-  return false
-}
-
 const initWallets = () => {
   Container.listenAction(WalletsGen.createNewAccount, createNewAccount)
   Container.listenAction(
@@ -1755,7 +1734,27 @@ const initWallets = () => {
   Container.listenAction(WalletsGen.setTrustlineSearchText, searchTrustlineAssets)
   Container.listenAction(WalletsGen.calculateBuildingAdvanced, calculateBuildingAdvanced)
   Container.listenAction(WalletsGen.sendPaymentAdvanced, sendPaymentAdvanced)
-  Container.listenAction(ConfigGen.daemonHandshake, loadStaticConfig)
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion === old.handshakeVersion) return
+    const getReduxStore = Z.getReduxStore()
+    const reduxDispatch = Z.getReduxDispatch()
+    if (getReduxStore().wallets.staticConfig) {
+      return
+    }
+    const version = s.handshakeVersion
+    const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+    const name = 'wallets.loadStatic'
+    wait(name, version, true)
+    const f = async () => {
+      try {
+        const res = await RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
+        reduxDispatch(WalletsGen.createStaticConfigLoaded({staticConfig: res}))
+      } finally {
+        wait(name, version, false)
+      }
+    }
+    Z.ignorePromise(f())
+  })
   Container.listenAction(WalletsGen.assetDeposit, assetDeposit)
   Container.listenAction(WalletsGen.assetWithdraw, assetWithdraw)
 }

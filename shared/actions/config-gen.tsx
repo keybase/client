@@ -8,7 +8,6 @@ export const typePrefix = 'config:'
 export const androidShare = 'config:androidShare'
 export const changedFocus = 'config:changedFocus'
 export const copyToClipboard = 'config:copyToClipboard'
-export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const initListenerLoops = 'config:initListenerLoops'
@@ -23,7 +22,6 @@ export const persistRoute = 'config:persistRoute'
 export const powerMonitorEvent = 'config:powerMonitorEvent'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const revoked = 'config:revoked'
-export const setNavigator = 'config:setNavigator'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const showShareActionSheet = 'config:showShareActionSheet'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
@@ -115,13 +113,6 @@ export const createRemoteWindowWantsProps = (payload: {
   readonly param: string
 }) => ({payload, type: remoteWindowWantsProps as typeof remoteWindowWantsProps})
 /**
- * starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait
- */
-export const createDaemonHandshake = (payload: {
-  readonly firstTimeConnecting: boolean
-  readonly version: number
-}) => ({payload, type: daemonHandshake as typeof daemonHandshake})
-/**
  * starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait
  */
 export const createLogoutHandshake = (payload: {readonly version: number}) => ({
@@ -161,10 +152,6 @@ export const createPersistRoute = (payload: {readonly path?: Array<any>} = {}) =
   type: persistRoute as typeof persistRoute,
 })
 export const createRevoked = (payload?: undefined) => ({payload, type: revoked as typeof revoked})
-export const createSetNavigator = (payload: {readonly navigator: any}) => ({
-  payload,
-  type: setNavigator as typeof setNavigator,
-})
 export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   payload,
   type: setSystemDarkMode as typeof setSystemDarkMode,
@@ -185,7 +172,6 @@ export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
 export type ChangedFocusPayload = ReturnType<typeof createChangedFocus>
 export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
 export type DaemonHandshakeDonePayload = ReturnType<typeof createDaemonHandshakeDone>
-export type DaemonHandshakePayload = ReturnType<typeof createDaemonHandshake>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
@@ -199,7 +185,6 @@ export type PersistRoutePayload = ReturnType<typeof createPersistRoute>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type RevokedPayload = ReturnType<typeof createRevoked>
-export type SetNavigatorPayload = ReturnType<typeof createSetNavigator>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
 export type UpdateMenubarWindowIDPayload = ReturnType<typeof createUpdateMenubarWindowID>
@@ -215,7 +200,6 @@ export type Actions =
   | ChangedFocusPayload
   | CopyToClipboardPayload
   | DaemonHandshakeDonePayload
-  | DaemonHandshakePayload
   | DarkModePreferenceChangedPayload
   | InitListenerLoopsPayload
   | LoadOnStartPayload
@@ -229,7 +213,6 @@ export type Actions =
   | PowerMonitorEventPayload
   | RemoteWindowWantsPropsPayload
   | RevokedPayload
-  | SetNavigatorPayload
   | SetSystemDarkModePayload
   | ShowShareActionSheetPayload
   | UpdateMenubarWindowIDPayload

@@ -13,7 +13,6 @@ import InputMonitor from './input-monitor.desktop'
 import KB2 from '../../util/electron.desktop'
 import logger from '../../logger'
 import type {RPCError} from '../../util/errors'
-import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine'
 import {isLinux, isWindows} from '../../constants/platform.desktop'
 import {kbfsNotification} from './kbfs-notifications'
@@ -68,25 +67,6 @@ const initializeInputMonitor = () => {
   }
 }
 
-const checkRPCOwnership = async (_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) => {
-  const waitKey = 'pipeCheckFail'
-  const {version} = action.payload
-  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-  wait(waitKey, version, true)
-  try {
-    logger.info('Checking RPC ownership')
-    if (KB2.functions.winCheckRPCOwnership) {
-      await KB2.functions.winCheckRPCOwnership()
-    }
-    wait(waitKey, version, false)
-  } catch (error_) {
-    // error will be logged in bootstrap check
-    getEngine().reset()
-    const error = error_ as RPCError
-    wait(waitKey, version, false, error.message || 'windows pipe owner fail', true)
-  }
-}
-
 const initOsNetworkStatus = () =>
   ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine, type: 'notavailable'})
 
@@ -132,34 +112,6 @@ const onCopyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload)
 
 export const requestLocationPermission = async () => Promise.resolve()
 export const watchPositionForMap = async () => Promise.resolve(() => {})
-
-const checkNav = async (
-  _state: Container.TypedState,
-  action: ConfigGen.DaemonHandshakePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  // have one
-  if (_getNavigator()) {
-    return
-  }
-
-  const name = 'desktopNav'
-  const {version} = action.payload
-  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-  wait(name, version, true)
-  try {
-    // eslint-disable-next-line
-    while (true) {
-      logger.info('Waiting on nav')
-      await listenerApi.take(a => a.type === ConfigGen.setNavigator)
-      if (_getNavigator()) {
-        break
-      }
-    }
-  } finally {
-    wait(name, version, false)
-  }
-}
 
 const maybePauseVideos = () => {
   const {appFocused} = ConfigConstants.useConfigState.getState()
@@ -224,10 +176,30 @@ export const initPlatformListener = () => {
 
   Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
 
-  if (isWindows) {
-    Container.listenAction(ConfigGen.daemonHandshake, checkRPCOwnership)
-  }
-  Container.listenAction(ConfigGen.daemonHandshake, checkNav)
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion === old.handshakeVersion) return
+    if (!isWindows) return
+
+    const f = async () => {
+      const waitKey = 'pipeCheckFail'
+      const version = s.handshakeVersion
+      const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+      wait(waitKey, version, true)
+      try {
+        logger.info('Checking RPC ownership')
+        if (KB2.functions.winCheckRPCOwnership) {
+          await KB2.functions.winCheckRPCOwnership()
+        }
+        wait(waitKey, version, false)
+      } catch (error_) {
+        // error will be logged in bootstrap check
+        getEngine().reset()
+        const error = error_ as RPCError
+        wait(waitKey, version, false, error.message || 'windows pipe owner fail', true)
+      }
+    }
+    Z.ignorePromise(f())
+  })
 
   Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')
   Container.spawn(setupReachabilityWatcher, 'setupReachabilityWatcher')

@@ -1,5 +1,4 @@
 import * as ConfigConstants from '../constants/config'
-import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/router2'
 import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
@@ -21,13 +20,13 @@ export enum AppState {
 }
 
 const useConnectNavToRedux = () => {
-  const dispatch = Container.useDispatch()
   const setNavOnce = React.useRef(false)
+  const setNavigatorExists = ConfigConstants.useConfigState(s => s.dispatch.setNavigatorExists)
   React.useEffect(() => {
     if (!setNavOnce.current) {
       if (Constants.navigationRef_.isReady()) {
         setNavOnce.current = true
-        dispatch(ConfigGen.createSetNavigator({navigator}))
+        setNavigatorExists()
 
         if (__DEV__) {
           // @ts-ignore
@@ -37,7 +36,7 @@ const useConnectNavToRedux = () => {
         }
       }
     }
-  }, [setNavOnce, dispatch])
+  }, [setNavigatorExists, setNavOnce])
 }
 
 // if dark mode changes we should redraw

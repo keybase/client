@@ -12,6 +12,7 @@ import * as Router2 from '../constants/router2'
 import * as DarkMode from '../constants/darkmode'
 import * as WhatsNew from '../constants/whats-new'
 import * as Z from '../util/zustand'
+import {_getNavigator} from '../constants/router2'
 import {useAvatarState} from '../common-adapters/avatar-zus'
 import logger from '../logger'
 import {initPlatformListener} from './platform-specific'
@@ -54,167 +55,169 @@ const getFollowerInfo = (_: unknown, action: ConfigGen.LoadOnStartPayload) => {
 
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
-const loadDaemonBootstrapStatus = async (
-  _: Container.TypedState,
-  action:
-    | ConfigGen.LoggedInChangedPayload
-    | ConfigGen.DaemonHandshakePayload
-    | GregorGen.UpdateReachablePayload,
-  listenerApi: Container.ListenerApi
+const loadDaemonBootstrapStatus = (
+  action?: ConfigGen.LoggedInChangedPayload | GregorGen.UpdateReachablePayload
 ) => {
-  // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
-  if (
-    action.type === ConfigGen.loggedInChanged &&
-    action.payload.causedByStartup &&
-    Constants.useConfigState.getState().loggedIn
-  ) {
-    return
-  }
-
-  if (action.type === GregorGen.updateReachable && action.payload.reachable === RPCTypes.Reachable.no) {
-    wasUnreachable = true
-  }
-
-  const {wait} = Constants.useDaemonState.getState().dispatch
-  const {setBootstrap} = Constants.useCurrentUserState.getState().dispatch
-  const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
-
-  const makeCall = async () => {
-    const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
-    const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
-    setBootstrap({deviceID, deviceName, uid, username})
-    if (username) {
-      setDefaultUsername(username)
-    }
-    if (loggedIn) {
-      Constants.useConfigState.getState().dispatch.setUserSwitching(false)
+  const f = async () => {
+    const version = Constants.useDaemonState.getState().handshakeVersion
+    // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
+    if (
+      action?.type === ConfigGen.loggedInChanged &&
+      action.payload.causedByStartup &&
+      Constants.useConfigState.getState().loggedIn
+    ) {
+      return
     }
 
-    logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
-    Constants.useConfigState.getState().dispatch.setLoggedIn(loggedIn)
-    listenerApi.dispatch(Chat2Gen.createUpdateUserReacjis({userReacjis}))
-
-    // set HTTP srv info
-    if (s.httpSrvInfo) {
-      logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
-      Constants.useConfigState.getState().dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
-    } else {
-      logger.info(`[Bootstrap] http server: no info given`)
+    if (action?.type === GregorGen.updateReachable && action.payload.reachable === RPCTypes.Reachable.no) {
+      wasUnreachable = true
     }
 
-    // if we're logged in act like getAccounts is done already
-    if (action.type === ConfigGen.daemonHandshake && loggedIn) {
-      const {handshakeWaiters} = Constants.useDaemonState.getState()
-      const {version} = action.payload
-      if (handshakeWaiters.get(getAccountsWaitKey)) {
-        wait(getAccountsWaitKey, version, false)
+    const reduxDispatch = Z.getReduxDispatch()
+
+    const {wait} = Constants.useDaemonState.getState().dispatch
+    const {setBootstrap} = Constants.useCurrentUserState.getState().dispatch
+    const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
+
+    const makeCall = async () => {
+      const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
+      const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
+      setBootstrap({deviceID, deviceName, uid, username})
+      if (username) {
+        setDefaultUsername(username)
+      }
+      if (loggedIn) {
+        Constants.useConfigState.getState().dispatch.setUserSwitching(false)
+      }
+
+      logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
+      Constants.useConfigState.getState().dispatch.setLoggedIn(loggedIn)
+      reduxDispatch(Chat2Gen.createUpdateUserReacjis({userReacjis}))
+
+      // set HTTP srv info
+      if (s.httpSrvInfo) {
+        logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
+        Constants.useConfigState
+          .getState()
+          .dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
+      } else {
+        logger.info(`[Bootstrap] http server: no info given`)
+      }
+
+      // if we're logged in act like getAccounts is done already
+      if (!action && loggedIn) {
+        const {handshakeWaiters} = Constants.useDaemonState.getState()
+        if (handshakeWaiters.get(getAccountsWaitKey)) {
+          wait(getAccountsWaitKey, version, false)
+        }
       }
     }
-  }
 
-  switch (action.type) {
-    case ConfigGen.daemonHandshake:
-      {
-        const {version} = action.payload
-        const name = 'config.getBootstrapStatus'
-        wait(name, version, true)
+    switch (action?.type) {
+      case undefined:
+        {
+          const name = 'config.getBootstrapStatus'
+          wait(name, version, true)
+          await makeCall()
+          wait(name, version, false)
+        }
+        break
+      case GregorGen.updateReachable:
+        if (action.payload.reachable === RPCTypes.Reachable.yes && wasUnreachable) {
+          wasUnreachable = false // reset it
+          await makeCall()
+        }
+        break
+      case ConfigGen.loggedInChanged:
         await makeCall()
-        wait(name, version, false)
-      }
-      break
-    case GregorGen.updateReachable:
-      if (action.payload.reachable === RPCTypes.Reachable.yes && wasUnreachable) {
-        wasUnreachable = false // reset it
-        await makeCall()
-      }
-      break
-    case ConfigGen.loggedInChanged:
-      await makeCall()
-      break
+        break
+    }
   }
+  Container.ignorePromise(f())
 }
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
 // normally this wouldn't be worth it but this is startup
 const getAccountsWaitKey = 'config.getAccounts'
 
-const loadDaemonAccounts = async (
-  _: unknown,
-  action: ConfigGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedInChangedPayload
-) => {
-  // ignore since we handle handshake
-  if (
-    action.type === ConfigGen.loggedInChanged &&
-    Constants.useConfigState.getState().loggedIn &&
-    action.payload.causedByStartup
-  ) {
-    return
+const loadDaemonAccounts = (action?: ConfigGen.RevokedPayload | ConfigGen.LoggedInChangedPayload) => {
+  const f = async () => {
+    const version = Constants.useDaemonState.getState().handshakeVersion
+    // ignore since we handle handshake
+    if (
+      action?.type === ConfigGen.loggedInChanged &&
+      Constants.useConfigState.getState().loggedIn &&
+      action.payload.causedByStartup
+    ) {
+      return
+    }
+
+    let handshakeWait = false
+    let handshakeVersion = 0
+
+    if (action === undefined) {
+      handshakeVersion = version
+      // did we beat getBootstrapStatus?
+      if (!Constants.useConfigState.getState().loggedIn) {
+        handshakeWait = true
+      }
+    }
+
+    const {wait} = Constants.useDaemonState.getState().dispatch
+    try {
+      if (handshakeWait) {
+        wait(getAccountsWaitKey, handshakeVersion, true)
+      }
+
+      const configuredAccounts = (await RPCTypes.loginGetConfiguredAccountsRpcPromise()) ?? []
+      // already have one?
+      const {defaultUsername} = Constants.useConfigState.getState()
+      const {setAccounts, setDefaultUsername} = Constants.useConfigState.getState().dispatch
+
+      let existingDefaultFound = false
+      let currentName = ''
+      const nextConfiguredAccounts: Constants.Store['configuredAccounts'] = []
+      const usernameToFullname: {[username: string]: string} = {}
+
+      configuredAccounts.forEach(account => {
+        const {username, isCurrent, fullname, hasStoredSecret} = account
+        if (username === defaultUsername) {
+          existingDefaultFound = true
+        }
+        if (isCurrent) {
+          currentName = account.username
+        }
+        nextConfiguredAccounts.push({hasStoredSecret, username})
+        usernameToFullname[username] = fullname
+      })
+      if (!existingDefaultFound) {
+        setDefaultUsername(currentName)
+      }
+      setAccounts(nextConfiguredAccounts)
+      const UsersConstants = await import('../constants/users')
+      Object.keys(usernameToFullname).forEach(username => {
+        const fullname = usernameToFullname[username]
+        UsersConstants.useState.getState().dispatch.update(username, {fullname})
+      })
+
+      if (handshakeWait) {
+        // someone dismissed this already?
+        const {handshakeWaiters} = Constants.useDaemonState.getState()
+        if (handshakeWaiters.get(getAccountsWaitKey)) {
+          wait(getAccountsWaitKey, handshakeVersion, false)
+        }
+      }
+    } catch (error) {
+      if (handshakeWait) {
+        // someone dismissed this already?
+        const {handshakeWaiters} = Constants.useDaemonState.getState()
+        if (handshakeWaiters.get(getAccountsWaitKey)) {
+          wait(getAccountsWaitKey, handshakeVersion, false, "Can't get accounts")
+        }
+      }
+    }
   }
-
-  let handshakeWait = false
-  let handshakeVersion = 0
-
-  if (action.type === ConfigGen.daemonHandshake) {
-    handshakeVersion = action.payload.version
-    // did we beat getBootstrapStatus?
-    if (!Constants.useConfigState.getState().loggedIn) {
-      handshakeWait = true
-    }
-  }
-
-  const {wait} = Constants.useDaemonState.getState().dispatch
-  try {
-    if (handshakeWait) {
-      wait(getAccountsWaitKey, handshakeVersion, true)
-    }
-
-    const configuredAccounts = (await RPCTypes.loginGetConfiguredAccountsRpcPromise()) ?? []
-    // already have one?
-    const {defaultUsername} = Constants.useConfigState.getState()
-    const {setAccounts, setDefaultUsername} = Constants.useConfigState.getState().dispatch
-
-    let existingDefaultFound = false
-    let currentName = ''
-    const nextConfiguredAccounts: Constants.Store['configuredAccounts'] = []
-    const usernameToFullname: {[username: string]: string} = {}
-
-    configuredAccounts.forEach(account => {
-      const {username, isCurrent, fullname, hasStoredSecret} = account
-      if (username === defaultUsername) {
-        existingDefaultFound = true
-      }
-      if (isCurrent) {
-        currentName = account.username
-      }
-      nextConfiguredAccounts.push({hasStoredSecret, username})
-      usernameToFullname[username] = fullname
-    })
-    if (!existingDefaultFound) {
-      setDefaultUsername(currentName)
-    }
-    setAccounts(nextConfiguredAccounts)
-    const UsersConstants = await import('../constants/users')
-    Object.keys(usernameToFullname).forEach(username => {
-      const fullname = usernameToFullname[username]
-      UsersConstants.useState.getState().dispatch.update(username, {fullname})
-    })
-
-    if (handshakeWait) {
-      // someone dismissed this already?
-      const {handshakeWaiters} = Constants.useDaemonState.getState()
-      if (handshakeWaiters.get(getAccountsWaitKey)) {
-        wait(getAccountsWaitKey, handshakeVersion, false)
-      }
-    }
-  } catch (error) {
-    if (handshakeWait) {
-      // someone dismissed this already?
-      const {handshakeWaiters} = Constants.useDaemonState.getState()
-      if (handshakeWaiters.get(getAccountsWaitKey)) {
-        wait(getAccountsWaitKey, handshakeVersion, false, "Can't get accounts")
-      }
-    }
-  }
+  Container.ignorePromise(f())
 }
 
 const onAndroidShare = () => {
@@ -278,19 +281,12 @@ const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEv
 }
 
 const initConfig = () => {
-  Container.listenAction(ConfigGen.daemonHandshake, () => {
-    DarkMode.useDarkModeState.getState().dispatch.loadDarkPrefs()
-  })
   // Re-get info about our account if you log in/we're done handshaking/became reachable
-  Container.listenAction(
-    [ConfigGen.loggedInChanged, ConfigGen.daemonHandshake, GregorGen.updateReachable],
-    loadDaemonBootstrapStatus
+  Container.listenAction([ConfigGen.loggedInChanged, GregorGen.updateReachable], (_, a) =>
+    loadDaemonBootstrapStatus(a)
   )
   // Load the known accounts if you revoke / handshake / logout
-  Container.listenAction(
-    [ConfigGen.revoked, ConfigGen.daemonHandshake, ConfigGen.loggedInChanged],
-    loadDaemonAccounts
-  )
+  Container.listenAction([ConfigGen.revoked, ConfigGen.loggedInChanged], (_, a) => loadDaemonAccounts(a))
 
   Container.listenAction(ConfigGen.daemonHandshakeDone, emitStartupOnLoadNotInARush)
 
@@ -419,6 +415,37 @@ const initConfig = () => {
     const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
     const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
     dispatch.replace(followers, following)
+  })
+
+  const checkNav = (version: number) => {
+    // have one
+    if (_getNavigator()) return
+
+    const name = 'nav'
+    const {wait} = Constants.useDaemonState.getState().dispatch
+    wait(name, version, true)
+    logger.info('Waiting on nav')
+    Constants.useConfigState.setState(s => {
+      s.dispatch.dynamic.setNavigatorExistsNative = () => {
+        if (_getNavigator()) {
+          Constants.useConfigState.setState(s => {
+            s.dispatch.dynamic.setNavigatorExistsNative = undefined
+          })
+          wait(name, version, false)
+        } else {
+          logger.info('Waiting on nav, got setNavigator but nothing in constants?')
+        }
+      }
+    })
+  }
+
+  Constants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion === old.handshakeVersion) return
+    const version = s.handshakeVersion
+    checkNav(version)
+    loadDaemonBootstrapStatus()
+    loadDaemonAccounts()
+    DarkMode.useDarkModeState.getState().dispatch.loadDarkPrefs()
   })
 }
 

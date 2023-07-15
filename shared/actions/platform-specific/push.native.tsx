@@ -233,16 +233,6 @@ const iosListenForPushNotificationsFromJS = () => {
   isIOS && PushNotificationIOS.addEventListener('register', onRegister)
 }
 
-const setupPushEventLoop = async () => {
-  if (isAndroid) {
-    try {
-      await listenForNativeAndroidIntentNotifications()
-    } catch {}
-  } else {
-    iosListenForPushNotificationsFromJS()
-  }
-}
-
 const getStartupDetailsFromInitialShare = async () => {
   if (isAndroid) {
     const fileUrl = await (androidGetInitialShareFileUrl() ?? Promise.resolve(''))
@@ -311,8 +301,22 @@ export const initPushListener = () => {
   })
 
   Container.listenAction(NotificationsGen.receivedBadgeState, updateAppBadge)
-  Container.listenAction(ConfigGen.daemonHandshake, setupPushEventLoop)
   Constants.useState.getState().dispatch.initialPermissionsCheck()
+
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion === old.handshakeVersion) return
+
+    const f = async () => {
+      if (isAndroid) {
+        try {
+          await listenForNativeAndroidIntentNotifications()
+        } catch {}
+      } else {
+        iosListenForPushNotificationsFromJS()
+      }
+    }
+    Container.ignorePromise(f())
+  })
 }
 
 export {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare}

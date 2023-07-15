@@ -1,11 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
-    "daemonHandshake": {
-      "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
-      "firstTimeConnecting": "boolean",
-      "version": "number"
-    },
     "daemonHandshakeDone": {
       "_description": "ready to show the app"
     },
@@ -17,7 +12,6 @@
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "openAtLoginChanged": {},
     "persistRoute": {"path?": "Array<any>"},
-    "setNavigator": {"navigator": "any"},
     "loggedInChanged": {"causedByStartup": "boolean"},
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},

@@ -1,3 +1,4 @@
+import * as Z from '../util/zustand'
 import * as BotsGen from './bots-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
@@ -3153,58 +3154,59 @@ const setConvExplodingMode = async (
   }
 }
 
-const loadStaticConfig = async (
-  state: Container.TypedState,
-  action: ConfigGen.DaemonHandshakePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  if (state.chat2.staticConfig) {
+const loadStaticConfig = () => {
+  const getReduxStore = Z.getReduxStore()
+  const reduxDispatch = Z.getReduxDispatch()
+  if (getReduxStore().chat2.staticConfig) {
     return
   }
-  const {version} = action.payload
+  const version = ConfigConstants.useDaemonState.getState().handshakeVersion
   const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-  const name = 'chat.loadStatic'
-  wait(name, version, true)
-  try {
-    const res = await RPCChatTypes.localGetStaticConfigRpcPromise()
-    if (!res.deletableByDeleteHistory) {
-      logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
-      return
-    }
+  const f = async () => {
+    const name = 'chat.loadStatic'
+    wait(name, version, true)
+    try {
+      const res = await RPCChatTypes.localGetStaticConfigRpcPromise()
+      if (!res.deletableByDeleteHistory) {
+        logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+        return
+      }
 
-    const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce<Array<Types.MessageType>>(
-      (res, type) => {
-        const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
-        if (ourTypes) {
-          res.push(...ourTypes)
-        }
-        return res
-      },
-      []
-    )
-    listenerApi.dispatch(
-      Chat2Gen.createStaticConfigLoaded({
-        staticConfig: {
-          builtinCommands: (res.builtinCommands || []).reduce<Types.StaticConfig['builtinCommands']>(
-            (map, c) => {
-              map[c.typ] = c.commands || []
-              return map
-            },
-            {
-              [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
-              [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
-              [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
-              [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
-              [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
-            }
-          ),
-          deletableByDeleteHistory: new Set(deletableByDeleteHistory),
+      const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce<Array<Types.MessageType>>(
+        (res, type) => {
+          const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
+          if (ourTypes) {
+            res.push(...ourTypes)
+          }
+          return res
         },
-      })
-    )
-  } finally {
-    wait(name, version, false)
+        []
+      )
+      reduxDispatch(
+        Chat2Gen.createStaticConfigLoaded({
+          staticConfig: {
+            builtinCommands: (res.builtinCommands || []).reduce<Types.StaticConfig['builtinCommands']>(
+              (map, c) => {
+                map[c.typ] = c.commands || []
+                return map
+              },
+              {
+                [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
+                [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
+                [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
+                [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
+                [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
+              }
+            ),
+            deletableByDeleteHistory: new Set(deletableByDeleteHistory),
+          },
+        })
+      )
+    } finally {
+      wait(name, version, false)
+    }
   }
+  Z.ignorePromise(f())
 }
 
 const toggleMessageReaction = async (
@@ -3996,7 +3998,6 @@ const initChat = () => {
   // Exploding things
   Container.listenAction(Chat2Gen.setConvExplodingMode, setConvExplodingMode)
   Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
-  Container.listenAction(ConfigGen.daemonHandshake, loadStaticConfig)
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)
   Container.listenAction(GregorGen.pushState, gregorPushState)
@@ -4085,6 +4086,11 @@ const initChat = () => {
     EngineGen.chat1NotifyChatChatTypingUpdate,
     updateTyping
   )
+
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion === old.handshakeVersion) return
+    loadStaticConfig()
+  })
 }
 
 export default initChat

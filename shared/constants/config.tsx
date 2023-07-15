@@ -161,6 +161,7 @@ type State = Store & {
       onFilePickerError?: (error: Error) => void
       openAppSettings?: () => void
       showMainNative?: () => void
+      setNavigatorExistsNative?: () => void
     }
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
@@ -190,6 +191,7 @@ type State = Store & {
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
     setLoggedIn: (l: boolean, causedByStartup?: boolean, skipSideEffect?: boolean) => void
+    setNavigatorExists: () => void
     setNotifySound: (n: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
     setStartupDetailsLoaded: () => void
@@ -257,6 +259,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       dumpLogsNative: undefined,
       onFilePickerError: undefined,
       openAppSettings: undefined,
+      setNavigatorExistsNative: undefined,
       showMainNative: undefined,
     },
     emitMobileAppState: nextAppState => {
@@ -554,6 +557,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       if (!skipSideEffect) {
         reduxDispatch(ConfigGen.createLoggedInChanged({causedByStartup}))
       }
+    },
+    setNavigatorExists: () => {
+      get().dispatch.dynamic.setNavigatorExistsNative?.()
     },
     setNotifySound: n => {
       set(s => {

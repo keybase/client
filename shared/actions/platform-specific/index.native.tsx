@@ -22,7 +22,6 @@ import NotifyPopup from '../../util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
 import {Alert, Linking, ActionSheetIOS} from 'react-native'
-import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine/require'
 import {isIOS, isAndroid} from '../../constants/platform'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
@@ -478,14 +477,6 @@ export const watchPositionForMap = async (
   }
 }
 
-const configureFileAttachmentDownloadForAndroid = async () =>
-  RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
-    // Android's cache dir is (when I tried) [app]/cache but Go side uses
-    // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: fsCacheDir,
-    downloadDirOverride: fsDownloadDir,
-  })
-
 const onTabLongPress = (_: unknown, action: RouteTreeGen.TabLongPressPayload) => {
   if (action.payload.tab !== Tabs.peopleTab) return
   const accountRows = ConfigConstants.useConfigState.getState().configuredAccounts
@@ -504,35 +495,6 @@ const onPersistRoute = async () => {
   return ConfigGen.createPersistRoute({path})
 }
 
-const checkNav = async (
-  _state: Container.TypedState,
-  action: ConfigGen.DaemonHandshakePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  // have one
-  if (_getNavigator()) {
-    return
-  }
-
-  const name = 'mobileNav'
-  const {version} = action.payload
-  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-  wait(name, version, true)
-  try {
-    // eslint-disable-next-line
-    while (true) {
-      logger.info('Waiting on nav')
-      await listenerApi.take(action => action.type === ConfigGen.setNavigator)
-      if (_getNavigator()) {
-        break
-      }
-      logger.info('Waiting on nav, got setNavigator but nothing in constants?')
-    }
-  } finally {
-    wait(name, version, false)
-  }
-}
-
 const initAudioModes = () => {
   setupAudioMode(false)
     .then(() => {})
@@ -546,19 +508,33 @@ export const initPlatformListener = () => {
   Container.listenAction(ConfigGen.persistRoute, persistRoute)
   Container.listenAction(ConfigGen.mobileAppState, updateChangedFocus)
   Container.listenAction(ConfigGen.copyToClipboard, copyToClipboard)
-  Container.listenAction(ConfigGen.daemonHandshake, (_, action) => {
+
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion === old.handshakeVersion) return
+
     // loadStartupDetails finished already
     if (ConfigConstants.useConfigState.getState().startup.loaded) {
       afterStartupDetails = (_done: boolean) => {}
     } else {
       // Else we have to wait for the loadStartupDetails to finish
       const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-      const {version} = action.payload
+      const version = s.handshakeVersion
       const startupDetailsWaiting = 'platform.native-waitStartupDetails'
       afterStartupDetails = (done: boolean) => {
         wait(startupDetailsWaiting, version, done ? false : true)
       }
       afterStartupDetails(false)
+    }
+
+    if (isAndroid) {
+      Container.ignorePromise(
+        RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
+          // Android's cache dir is (when I tried) [app]/cache but Go side uses
+          // [app]/.cache by default, which can't be used for sharing to other apps.
+          cacheDirOverride: fsCacheDir,
+          downloadDirOverride: fsDownloadDir,
+        })
+      )
     }
   })
   Container.listenAction(ConfigGen.openAppStore, openAppStore)
@@ -611,11 +587,6 @@ export const initPlatformListener = () => {
   getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
   Container.listenAction(EngineGen.chat1ChatUiChatWatchPosition, onChatWatchPosition)
   Container.listenAction(EngineGen.chat1ChatUiChatClearWatch, onChatClearWatch)
-  if (isAndroid) {
-    Container.listenAction(ConfigGen.daemonHandshake, configureFileAttachmentDownloadForAndroid)
-  }
-
-  Container.listenAction(ConfigGen.daemonHandshake, checkNav)
   Container.listenAction(ConfigGen.darkModePreferenceChanged, () => {
     if (isAndroid) {
       const {darkModePreference} = DarkMode.useDarkModeState.getState()
