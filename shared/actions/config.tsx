@@ -48,15 +48,9 @@ const getFollowerInfo = () => {
 }
 
 // set to true so we reget status when we're reachable again
-let wasUnreachable = false
-const loadDaemonBootstrapStatus = async (action?: GregorGen.UpdateReachablePayload) => {
+const loadDaemonBootstrapStatus = async (fromGregor: boolean) => {
   const version = Constants.useDaemonState.getState().handshakeVersion
-  if (action?.type === GregorGen.updateReachable && action.payload.reachable === RPCTypes.Reachable.no) {
-    wasUnreachable = true
-  }
-
   const reduxDispatch = Z.getReduxDispatch()
-
   const {wait} = Constants.useDaemonState.getState().dispatch
   const {setBootstrap} = Constants.useCurrentUserState.getState().dispatch
   const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
@@ -85,7 +79,7 @@ const loadDaemonBootstrapStatus = async (action?: GregorGen.UpdateReachablePaylo
     }
 
     // if we're logged in act like getAccounts is done already
-    if (!action && loggedIn) {
+    if (!fromGregor && loggedIn) {
       const {handshakeWaiters} = Constants.useDaemonState.getState()
       if (handshakeWaiters.get(getAccountsWaitKey)) {
         wait(getAccountsWaitKey, version, false)
@@ -93,19 +87,7 @@ const loadDaemonBootstrapStatus = async (action?: GregorGen.UpdateReachablePaylo
     }
   }
 
-  switch (action?.type) {
-    case undefined:
-      {
-        await makeCall()
-      }
-      break
-    case GregorGen.updateReachable:
-      if (action.payload.reachable === RPCTypes.Reachable.yes && wasUnreachable) {
-        wasUnreachable = false // reset it
-        await makeCall()
-      }
-      break
-  }
+  await makeCall()
 }
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
@@ -222,7 +204,13 @@ const emitStartupOnLoadNotInARush = () => {
 
 const initConfig = () => {
   // Re-get info about our account if you log in/we're done handshaking/became reachable
-  Container.listenAction(GregorGen.updateReachable, (_, a) => Z.ignorePromise(loadDaemonBootstrapStatus(a)))
+  Constants.useConfigState.subscribe((s, old) => {
+    if (s.gregorReachable === old.gregorReachable) return
+
+    if (s.gregorReachable === RPCTypes.Reachable.yes) {
+      Z.ignorePromise(loadDaemonBootstrapStatus(true))
+    }
+  })
 
   Constants.useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
@@ -230,7 +218,7 @@ const initConfig = () => {
 
     // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
     if (!s.loggedInCausedbyStartup || !s.loggedIn) {
-      Z.ignorePromise(loadDaemonBootstrapStatus())
+      Z.ignorePromise(loadDaemonBootstrapStatus(false))
       loadDaemonAccounts()
     }
 
@@ -385,7 +373,7 @@ const initConfig = () => {
       const name = 'config.getBootstrapStatus'
       const {wait} = Constants.useDaemonState.getState().dispatch
       wait(name, version, true)
-      await loadDaemonBootstrapStatus()
+      await loadDaemonBootstrapStatus(false)
       wait(name, version, false)
     }
     Z.ignorePromise(f())

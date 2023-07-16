@@ -51,13 +51,21 @@ const initTeams = () => {
     }
   )
 
-  Container.listenAction([EngineGen.keybase1NotifyTeamTeamMetadataUpdate, GregorGen.updateReachable], () => {
+  const eagerLoadTeams = () => {
     if (Constants.useState.getState().teamMetaSubscribeCount > 0) {
       logger.info('eagerly reloading')
       Constants.useState.getState().dispatch.getTeams()
     } else {
       logger.info('skipping')
     }
+  }
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.gregorReachable === old.gregorReachable) return
+    eagerLoadTeams()
+  })
+
+  Container.listenAction(EngineGen.keybase1NotifyTeamTeamMetadataUpdate, () => {
+    eagerLoadTeams()
   })
 
   Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {

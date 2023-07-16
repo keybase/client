@@ -62,6 +62,7 @@ export type Store = {
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
+  gregorReachable?: RPCTypes.Reachable
   loginError?: RPCError
   httpSrv: {
     address: string
@@ -118,6 +119,7 @@ const initialStore: Store = {
   configuredAccounts: [],
   defaultUsername: '',
   globalError: undefined,
+  gregorReachable: undefined,
   httpSrv: {
     address: '',
     token: '',
@@ -204,6 +206,7 @@ type State = Store & {
     setAndroidShare: (s: Store['androidShare']) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: any) => void
+    setGregorReachable: (r: Store['gregorReachable']) => void
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
@@ -593,6 +596,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       set(s => {
         s.globalError = e
+      })
+    },
+    setGregorReachable: (r: Store['gregorReachable']) => {
+      set(s => {
+        s.gregorReachable = r
       })
     },
     setHTTPSrvInfo: (address, token) => {
