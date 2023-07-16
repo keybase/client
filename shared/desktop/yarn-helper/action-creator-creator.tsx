@@ -156,17 +156,21 @@ async function main() {
   const proms = files
     .filter(file => path.extname(file) === '.json')
     .map(async file => {
-      const ns = path.basename(file, '.json')
-      created.push(ns)
-      console.log(`Generating ${ns}`)
-      const desc: FileDesc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
-      const outPath = path.join(root, '..', ns + '-gen.tsx')
-      const generated: string = await prettier.format(compile(ns, desc), {
-        ...(await prettier.resolveConfig(outPath)),
-        parser: 'typescript',
-      })
-      fs.writeFileSync(outPath, generated)
-      compileActionMap(ns, desc.actions)
+      try {
+        const ns = path.basename(file, '.json')
+        created.push(ns)
+        console.log(`Generating ${ns}`)
+        const desc: FileDesc = json5.parse(fs.readFileSync(path.join(root, file), {encoding: 'utf8'}))
+        const outPath = path.join(root, '..', ns + '-gen.tsx')
+        const generated: string = await prettier.format(compile(ns, desc), {
+          ...(await prettier.resolveConfig(outPath)),
+          parser: 'typescript',
+        })
+        fs.writeFileSync(outPath, generated)
+        compileActionMap(ns, desc.actions)
+      } catch (e) {
+        console.error('Error generating', file, e)
+      }
     })
   await Promise.all(proms)
 
@@ -182,4 +186,6 @@ async function main() {
 
 main()
   .then(() => {})
-  .catch(() => {})
+  .catch(e => {
+    console.error('Error generating', e)
+  })

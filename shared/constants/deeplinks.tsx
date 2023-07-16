@@ -1,13 +1,17 @@
 import * as ChatGen from '../actions/chat2-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Tabs from './tabs'
-import * as WalletsGen from '../actions/wallets-gen'
+import * as ConfigConstants from './config'
+import * as CryptoConstants from './crypto'
 import * as ProfileConstants from './profile'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from './settings'
+import * as Tabs from './tabs'
 import * as TeamsConstants from './teams'
+import * as WalletsGen from '../actions/wallets-gen'
 import * as Z from '../util/zustand'
-import logger from '../logger'
+import HiddenString from '../util/hidden-string'
 import URL from 'url-parse'
+import logger from '../logger'
+import type * as CryptoTypes from '../constants/types/crypto'
 
 const prefix = 'keybase://'
 type Store = {
@@ -39,6 +43,7 @@ type State = Store & {
   dispatch: {
     handleAppLink: (link: string) => void
     handleKeybaseLink: (link: string) => void
+    handleSaltPackOpen: (_path: string | HiddenString) => void
     resetState: 'default'
     setLinkError: (e: string) => void
   }
@@ -267,6 +272,28 @@ export const useState = Z.createZustand<State>((set, get) => {
           path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
         })
       )
+    },
+    handleSaltPackOpen: _path => {
+      const path = typeof _path === 'string' ? _path : _path.stringValue()
+
+      if (!ConfigConstants.useConfigState.getState().loggedIn) {
+        console.warn('Tried to open a saltpack file before being logged in')
+        return
+      }
+      let operation: CryptoTypes.Operations | undefined
+      if (CryptoConstants.isPathSaltpackEncrypted(path)) {
+        operation = CryptoConstants.Operations.Decrypt
+      } else if (CryptoConstants.isPathSaltpackSigned(path)) {
+        operation = CryptoConstants.Operations.Verify
+      } else {
+        logger.warn(
+          'Deeplink received saltpack file path not ending in ".encrypted.saltpack" or ".signed.saltpack"'
+        )
+        return
+      }
+      const {onSaltpackOpenFile} = CryptoConstants.useState.getState().dispatch
+      onSaltpackOpenFile(operation, path)
+      return RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab})
     },
     resetState: 'default',
     setLinkError: e => {

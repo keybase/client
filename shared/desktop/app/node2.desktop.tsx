@@ -11,7 +11,6 @@ import path from 'path'
 import fse from 'fs-extra'
 import {spawn, execFile, exec} from 'child_process'
 import * as RemoteGen from '../../actions/remote-gen'
-import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import startWinService from './start-win-service.desktop'
 import {
   isDarwin,
@@ -103,10 +102,10 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
     // ["Keybase.exe", "--somearg", "--someotherarg", "actuallink"]
     for (const link of commandLine.slice(1)) {
       if (isRelevantDeepLink(link)) {
-        mainWindowDispatch(DeeplinksGen.createLink({link}))
+        mainWindowDispatch(RemoteGen.createLink({link}))
         return
       } else if (isValidSaltpackFilePath(link)) {
-        mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: link}))
+        mainWindowDispatch(RemoteGen.createSaltpackFileOpen({path: link}))
         return
       }
     }
@@ -216,9 +215,9 @@ const getStartupProcessArgs = () => {
   }
 
   if (isRelevantDeepLink(arg)) {
-    mainWindowDispatch(DeeplinksGen.createLink({link: arg}))
+    mainWindowDispatch(RemoteGen.createLink({link: arg}))
   } else if (isValidSaltpackFilePath(arg)) {
-    mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: arg}))
+    mainWindowDispatch(RemoteGen.createSaltpackFileOpen({path: arg}))
   }
 }
 
@@ -243,7 +242,7 @@ const willFinishLaunching = () => {
     if (!appStartedUp) {
       saltpackFilePath = path
     } else {
-      mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path}))
+      mainWindowDispatch(RemoteGen.createSaltpackFileOpen({path}))
     }
   })
 
@@ -252,7 +251,7 @@ const willFinishLaunching = () => {
     if (!appStartedUp) {
       startupURL = link
     } else {
-      mainWindowDispatch(DeeplinksGen.createLink({link}))
+      mainWindowDispatch(RemoteGen.createLink({link}))
     }
   })
 }
@@ -732,10 +731,10 @@ const plumbEvents = () => {
         if (startupURL) {
           // Mac calls open-url for a launch URL before redux is up, so we
           // stash a startupURL to be dispatched when we're ready for it.
-          mainWindowDispatch(DeeplinksGen.createLink({link: startupURL}))
+          mainWindowDispatch(RemoteGen.createLink({link: startupURL}))
           startupURL = undefined
         } else if (saltpackFilePath) {
-          mainWindowDispatch(DeeplinksGen.createSaltpackFileOpen({path: saltpackFilePath}))
+          mainWindowDispatch(RemoteGen.createSaltpackFileOpen({path: saltpackFilePath}))
           saltpackFilePath = undefined
         } else if (!isDarwin) {
           getStartupProcessArgs()

@@ -1,12 +1,16 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
+import type HiddenString from '../util/hidden-string'
+
 // Constants
 export const resetStore = 'common:resetStore' // not a part of remote but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'remote:'
 export const dumpLogs = 'remote:dumpLogs'
 export const installerRan = 'remote:installerRan'
+export const link = 'remote:link'
 export const powerMonitorEvent = 'remote:powerMonitorEvent'
 export const remoteWindowWantsProps = 'remote:remoteWindowWantsProps'
+export const saltpackFileOpen = 'remote:saltpackFileOpen'
 export const setSystemDarkMode = 'remote:setSystemDarkMode'
 export const showMain = 'remote:showMain'
 export const updateNow = 'remote:updateNow'
@@ -15,6 +19,15 @@ export const updateWindowShown = 'remote:updateWindowShown'
 export const updateWindowState = 'remote:updateWindowState'
 
 // Action Creators
+/**
+ * Fired after OS notifies Electron that an associated Saltpack file has been opened.
+ *
+ * Path is a string when coming from Electron open-file event and HiddenString when coming from state.config.startupFile.
+ */
+export const createSaltpackFileOpen = (payload: {readonly path: string | HiddenString}) => ({
+  payload,
+  type: saltpackFileOpen as typeof saltpackFileOpen,
+})
 /**
  * Plumb power monitor events from node
  */
@@ -68,6 +81,7 @@ export const createDumpLogs = (payload: {readonly reason: 'quitting through menu
   payload,
   type: dumpLogs as typeof dumpLogs,
 })
+export const createLink = (payload: {readonly link: string}) => ({payload, type: link as typeof link})
 export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   payload,
   type: setSystemDarkMode as typeof setSystemDarkMode,
@@ -78,8 +92,10 @@ export const createUpdateNow = (payload?: undefined) => ({payload, type: updateN
 // Action Payloads
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
+export type LinkPayload = ReturnType<typeof createLink>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
+export type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
@@ -92,8 +108,10 @@ export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState
 export type Actions =
   | DumpLogsPayload
   | InstallerRanPayload
+  | LinkPayload
   | PowerMonitorEventPayload
   | RemoteWindowWantsPropsPayload
+  | SaltpackFileOpenPayload
   | SetSystemDarkModePayload
   | ShowMainPayload
   | UpdateNowPayload

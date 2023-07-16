@@ -287,6 +287,16 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     },
     eventFromRemoteWindows: (action: TypedActions) => {
       switch (action.type) {
+        case RemoteGen.link:
+          {
+            const {link} = action.payload
+            const f = async () => {
+              const DeepLinkConstants = await import('./deeplinks')
+              DeepLinkConstants.useState.getState().dispatch.handleAppLink(link)
+            }
+            Z.ignorePromise(f())
+          }
+          break
         case RemoteGen.installerRan:
           get().dispatch.installerRan()
           break
