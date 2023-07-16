@@ -2,7 +2,6 @@
   "prelude": [],
   "actions": {
     "updateNow": {},
-    "darkModePreferenceChanged": {},
     "setSystemDarkMode": {"dark": "boolean"},
     "remoteWindowWantsProps": {
       "_description": "remote electron window wants props sent",

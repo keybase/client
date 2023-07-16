@@ -4,7 +4,6 @@
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
 export const androidShare = 'config:androidShare'
-export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const initListenerLoops = 'config:initListenerLoops'
 export const loadOnStart = 'config:loadOnStart'
 export const powerMonitorEvent = 'config:powerMonitorEvent'
@@ -85,10 +84,6 @@ export const createRemoteWindowWantsProps = (payload: {
   readonly component: string
   readonly param: string
 }) => ({payload, type: remoteWindowWantsProps as typeof remoteWindowWantsProps})
-export const createDarkModePreferenceChanged = (payload?: undefined) => ({
-  payload,
-  type: darkModePreferenceChanged as typeof darkModePreferenceChanged,
-})
 export const createRevoked = (payload?: undefined) => ({payload, type: revoked as typeof revoked})
 export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   payload,
@@ -103,7 +98,6 @@ export const createUpdateNow = (payload?: undefined) => ({payload, type: updateN
 
 // Action Payloads
 export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
-export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
@@ -120,7 +114,6 @@ export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState
 // prettier-ignore
 export type Actions =
   | AndroidSharePayload
-  | DarkModePreferenceChangedPayload
   | InitListenerLoopsPayload
   | LoadOnStartPayload
   | PowerMonitorEventPayload

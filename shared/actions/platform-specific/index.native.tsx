@@ -575,12 +575,13 @@ export const initPlatformListener = () => {
   getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
   Container.listenAction(EngineGen.chat1ChatUiChatWatchPosition, onChatWatchPosition)
   Container.listenAction(EngineGen.chat1ChatUiChatClearWatch, onChatClearWatch)
-  Container.listenAction(ConfigGen.darkModePreferenceChanged, () => {
-    if (isAndroid) {
+  if (isAndroid) {
+    DarkMode.useDarkModeState.subscribe((s, old) => {
+      if (s.darkModePreference === old.darkModePreference) return
       const {darkModePreference} = DarkMode.useDarkModeState.getState()
-      androidAppColorSchemeChanged?.(darkModePreference ?? '')
-    }
-  })
+      androidAppColorSchemeChanged?.(darkModePreference)
+    })
+  }
 
   Container.listenAction(RouteTreeGen.onNavChanged, async () => {
     await Container.timeoutPromise(1000)
