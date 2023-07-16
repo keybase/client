@@ -67,14 +67,6 @@ const initializeInputMonitor = () => {
   }
 }
 
-const setupReachabilityWatcher = (listenerApi: Container.ListenerApi) => {
-  const handler = (online: boolean) => {
-    listenerApi.dispatch(ConfigGen.createOsNetworkStatusChanged({online, type: 'notavailable'}))
-  }
-  window.addEventListener('online', () => handler(true))
-  window.addEventListener('offline', () => handler(false))
-}
-
 const onExit = () => {
   console.log('App exit requested')
   exitApp?.(0)
@@ -165,10 +157,9 @@ export const initPlatformListener = () => {
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
-    const reduxDispatch = Z.getReduxDispatch()
-    reduxDispatch(
-      ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine, type: 'notavailable'})
-    )
+    ConfigConstants.useConfigState
+      .getState()
+      .dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)
   })
 
   ConfigConstants.useConfigState.subscribe((s, prev) => {
@@ -205,7 +196,16 @@ export const initPlatformListener = () => {
   })
 
   Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')
-  Container.spawn(setupReachabilityWatcher, 'setupReachabilityWatcher')
+
+  const setupReachabilityWatcher = () => {
+    window.addEventListener('online', () =>
+      ConfigConstants.useConfigState.getState().dispatch.osNetworkStatusChanged(true, 'notavailable')
+    )
+    window.addEventListener('offline', () =>
+      ConfigConstants.useConfigState.getState().dispatch.osNetworkStatusChanged(false, 'notavailable')
+    )
+  }
+  setupReachabilityWatcher()
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.openAtLogin === old.openAtLogin) return

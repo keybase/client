@@ -73,6 +73,7 @@ export type Store = {
   loggedIn: boolean
   loggedInCausedbyStartup: boolean
   mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
+  networkStatus?: {online: boolean; type: Types.ConnectionType; isInit?: boolean}
   notifySound: boolean
   openAtLogin: boolean
   outOfDate: Types.OutOfDate
@@ -122,6 +123,7 @@ const initialStore: Store = {
   loggedInCausedbyStartup: false,
   loginError: undefined,
   mobileAppState: 'unknown',
+  networkStatus: undefined,
   notifySound: false,
   openAtLogin: true,
   outOfDate: {
@@ -180,6 +182,7 @@ type State = Store & {
     login: (username: string, password: string) => void
     loginError: (error?: RPCError) => void
     logoutAndTryToLogInAs: (username: string) => void
+    osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
@@ -455,6 +458,15 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         get().dispatch.setDefaultUsername(username)
       }
       Z.ignorePromise(f())
+    },
+    osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => {
+      set(s => {
+        s.networkStatus = {
+          isInit,
+          online,
+          type,
+        }
+      })
     },
     remoteWindowNeedsProps: (component, params) => {
       set(s => {

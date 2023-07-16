@@ -1,7 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
-import type * as Types from '../constants/types/config'
-
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
@@ -9,7 +7,6 @@ export const androidShare = 'config:androidShare'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const initListenerLoops = 'config:initListenerLoops'
 export const loadOnStart = 'config:loadOnStart'
-export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const powerMonitorEvent = 'config:powerMonitorEvent'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const revoked = 'config:revoked'
@@ -92,11 +89,6 @@ export const createDarkModePreferenceChanged = (payload?: undefined) => ({
   payload,
   type: darkModePreferenceChanged as typeof darkModePreferenceChanged,
 })
-export const createOsNetworkStatusChanged = (payload: {
-  readonly online: boolean
-  readonly type: Types.ConnectionType
-  readonly isInit?: boolean
-}) => ({payload, type: osNetworkStatusChanged as typeof osNetworkStatusChanged})
 export const createRevoked = (payload?: undefined) => ({payload, type: revoked as typeof revoked})
 export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   payload,
@@ -114,7 +106,6 @@ export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
-export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type RevokedPayload = ReturnType<typeof createRevoked>
@@ -132,7 +123,6 @@ export type Actions =
   | DarkModePreferenceChangedPayload
   | InitListenerLoopsPayload
   | LoadOnStartPayload
-  | OsNetworkStatusChangedPayload
   | PowerMonitorEventPayload
   | RemoteWindowWantsPropsPayload
   | RevokedPayload

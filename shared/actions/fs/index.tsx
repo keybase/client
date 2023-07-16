@@ -4,11 +4,11 @@ import * as ConfigConstants from '../../constants/config'
 import * as Router2Constants from '../../constants/router2'
 import * as EngineGen from '../engine-gen-gen'
 import * as FsGen from '../fs-gen'
-import * as ConfigGen from '../config-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Types from '../../constants/types/fs'
 import * as Container from '../../util/container'
+import * as Z from '../../util/zustand'
 import logger from '../../logger'
 import initPlatformSpecific from './platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -282,28 +282,6 @@ const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<void
       throw error
     }
   }
-}
-
-// We don't trigger the reachability check at init. Reachability checks cause
-// any pending "reconnect" fire right away, and overrides any random back-off
-// timer we have at process restart (which is there to avoid surging server
-// load around app releases). So only do that when OS network status changes
-// after we're up.
-const checkKbfsServerReachabilityIfNeeded = async (
-  _: unknown,
-  action: ConfigGen.OsNetworkStatusChangedPayload
-) => {
-  if (!action.payload.isInit) {
-    try {
-      await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
-    } catch (error) {
-      if (!(error instanceof RPCError)) {
-        return
-      }
-      logger.warn(`failed to check KBFS reachability: ${error.message}`)
-    }
-  }
-  return null
 }
 
 const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = () => {
@@ -613,7 +591,29 @@ const initFS = () => {
 
   Container.listenAction(FsGen.setTlfSyncConfig, setTlfSyncConfig)
   Container.listenAction([FsGen.getOnlineStatus], getOnlineStatus)
-  Container.listenAction(ConfigGen.osNetworkStatusChanged, checkKbfsServerReachabilityIfNeeded)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.networkStatus === old.networkStatus) return
+    // We don't trigger the reachability check at init. Reachability checks cause
+    // any pending "reconnect" fire right away, and overrides any random back-off
+    // timer we have at process restart (which is there to avoid surging server
+    // load around app releases). So only do that when OS network status changes
+    // after we're up.
+    const isInit = s.networkStatus?.isInit
+    const f = async () => {
+      if (!isInit) {
+        try {
+          await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          logger.warn(`failed to check KBFS reachability: ${error.message}`)
+        }
+      }
+    }
+    Z.ignorePromise(f())
+  })
   Container.listenAction(EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged, (_, a) => {
     a.payload.params.status
   })

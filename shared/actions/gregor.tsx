@@ -1,10 +1,10 @@
 import logger from '../logger'
-import * as ConfigGen from './config-gen'
 import * as ConfigConstants from '../constants/config'
 import * as GregorGen from './gregor-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
+import * as Z from '../util/zustand'
 
 const pushOutOfBandMessages = (
   _: unknown,
@@ -65,24 +65,15 @@ const startReachability = async () => {
   }
 }
 
-let _lastOnline: undefined | boolean
-const checkReachability = async (
-  _: unknown,
-  action: GregorGen.CheckReachabilityPayload | ConfigGen.OsNetworkStatusChangedPayload
-) => {
-  try {
-    if (action.type === ConfigGen.osNetworkStatusChanged) {
-      if (action.payload.online === _lastOnline) {
-        return false
-      }
-      _lastOnline = action.payload.online
-    }
-
-    const reachability = await RPCTypes.reachabilityCheckReachabilityRpcPromise()
-    return GregorGen.createUpdateReachable({reachable: reachability.reachable})
-  } catch (_) {
-    return false
+const checkReachability = () => {
+  const f = async () => {
+    const reduxDispatch = Z.getReduxDispatch()
+    try {
+      const reachability = await RPCTypes.reachabilityCheckReachabilityRpcPromise()
+      reduxDispatch(GregorGen.createUpdateReachable({reachable: reachability.reachable}))
+    } catch (_) {}
   }
+  Z.ignorePromise(f())
 }
 
 const updateCategory = async (_: unknown, action: GregorGen.UpdateCategoryPayload) => {
@@ -97,7 +88,13 @@ const updateCategory = async (_: unknown, action: GregorGen.UpdateCategoryPayloa
 
 const initGregor = () => {
   Container.listenAction(GregorGen.updateCategory, updateCategory)
-  Container.listenAction([GregorGen.checkReachability, ConfigGen.osNetworkStatusChanged], checkReachability)
+  Container.listenAction(GregorGen.checkReachability, checkReachability)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.networkStatus === old.networkStatus) return
+    checkReachability()
+  })
+
   Container.listenAction(EngineGen.connected, registerForGregorNotifications)
   Container.listenAction(EngineGen.connected, startReachability)
   Container.listenAction(EngineGen.keybase1GregorUIPushOutOfBandMessages, pushOutOfBandMessages)

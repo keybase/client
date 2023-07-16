@@ -159,28 +159,6 @@ export const showShareActionSheet = async (options: {
   }
 }
 
-// only send when different, we get called a bunch where this doesn't actually change
-let _lastNetworkType: ConfigGen.OsNetworkStatusChangedPayload['payload']['type'] | undefined
-const updateMobileNetState = async (_: unknown, action: ConfigGen.OsNetworkStatusChangedPayload) => {
-  try {
-    const {type} = action.payload
-    if (type === _lastNetworkType) {
-      return false as const
-    }
-    _lastNetworkType = type
-    await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: type})
-  } catch (err) {
-    console.warn('Error sending mobileNetStateUpdate', err)
-  }
-  return false as const
-}
-
-const setupNetInfoWatcher = (listenerApi: Container.ListenerApi) => {
-  NetInfo.addEventListener(({type}) => {
-    listenerApi.dispatch(ConfigGen.createOsNetworkStatusChanged({online: type !== 'none', type}))
-  })
-}
-
 // TODO rewrite this, v slow
 const loadStartupDetails = async () => {
   const [routeState, initialUrl, push, share] = await Promise.all([
@@ -556,15 +534,26 @@ export const initPlatformListener = () => {
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
-    const reduxDispatch = Z.getReduxDispatch()
     const f = async () => {
       const {type} = await NetInfo.fetch()
-      reduxDispatch(ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type}))
+      ConfigConstants.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type, true)
     }
     Z.ignorePromise(f())
   })
 
-  Container.listenAction(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.networkStatus === old.networkStatus) return
+    const type = s.networkStatus?.type
+    if (!type) return
+    const f = async () => {
+      try {
+        await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: type})
+      } catch (err) {
+        console.warn('Error sending mobileNetStateUpdate', err)
+      }
+    }
+    Z.ignorePromise(f())
+  })
 
   Container.listenAction(ConfigGen.showShareActionSheet, onShareAction)
 
@@ -604,7 +593,10 @@ export const initPlatformListener = () => {
   // Start this immediately instead of waiting so we can do more things in parallel
   Container.spawn(loadStartupDetails, 'loadStartupDetails')
   initPushListener()
-  Container.spawn(setupNetInfoWatcher, 'setupNetInfoWatcher')
+
+  NetInfo.addEventListener(({type}) => {
+    ConfigConstants.useConfigState.getState().dispatch.osNetworkStatusChanged(type !== 'none', type)
+  })
   Container.spawn(initAudioModes, 'initAudioModes')
 
   ConfigConstants.useConfigState.setState(s => {

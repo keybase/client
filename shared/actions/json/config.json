@@ -1,12 +1,7 @@
 {
-  "prelude": ["import type * as Types from '../constants/types/config'"],
+  "prelude": [],
   "actions": {
     "updateNow": {},
-    "osNetworkStatusChanged": {
-      "online": "boolean",
-      "type": "Types.ConnectionType",
-      "isInit?": "boolean"
-    },
     "darkModePreferenceChanged": {},
     "setSystemDarkMode": {"dark": "boolean"},
     "remoteWindowWantsProps": {
