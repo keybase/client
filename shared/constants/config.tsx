@@ -158,6 +158,7 @@ type State = Store & {
   dispatch: {
     dynamic: {
       copyToClipboard: (s: string) => void
+      openAppStore?: () => void
       dumpLogsNative?: (reason: string) => Promise<void>
       onFilePickerError?: (error: Error) => void
       openAppSettings?: () => void
@@ -263,6 +264,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       dumpLogsNative: undefined,
       onFilePickerError: undefined,
       openAppSettings: undefined,
+      openAppStore: undefined,
       persistRoute: undefined,
       setNavigatorExistsNative: undefined,
       showMainNative: undefined,

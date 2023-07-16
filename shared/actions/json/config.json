@@ -2,9 +2,6 @@
   "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
     "updateNow": {},
-    "openAppStore": {
-      "_description": "Open a link to the app store"
-    },
     "osNetworkStatusChanged": {
       "online": "boolean",
       "type": "Types.ConnectionType",

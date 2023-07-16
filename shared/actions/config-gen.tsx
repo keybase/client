@@ -9,7 +9,6 @@ export const androidShare = 'config:androidShare'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const initListenerLoops = 'config:initListenerLoops'
 export const loadOnStart = 'config:loadOnStart'
-export const openAppStore = 'config:openAppStore'
 export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const powerMonitorEvent = 'config:powerMonitorEvent'
 export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
@@ -35,13 +34,6 @@ export const createAndroidShare = (payload: {readonly url?: string; readonly tex
 export const createInitListenerLoops = (payload?: undefined) => ({
   payload,
   type: initListenerLoops as typeof initListenerLoops,
-})
-/**
- * Open a link to the app store
- */
-export const createOpenAppStore = (payload?: undefined) => ({
-  payload,
-  type: openAppStore as typeof openAppStore,
 })
 /**
  * Plumb power monitor events from node
@@ -122,7 +114,6 @@ export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
-export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
 export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
@@ -141,7 +132,6 @@ export type Actions =
   | DarkModePreferenceChangedPayload
   | InitListenerLoopsPayload
   | LoadOnStartPayload
-  | OpenAppStorePayload
   | OsNetworkStatusChangedPayload
   | PowerMonitorEventPayload
   | RemoteWindowWantsPropsPayload

@@ -273,13 +273,6 @@ const loadStartupDetails = async () => {
   afterStartupDetails(true)
 }
 
-const openAppStore = async () =>
-  Linking.openURL(
-    isAndroid
-      ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
-      : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
-  ).catch(() => {})
-
 const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
   Chat2Gen.createSetCommandStatusInfo({
     conversationIDKey,
@@ -526,11 +519,17 @@ export const initPlatformListener = () => {
       )
     }
   })
-  Container.listenAction(ConfigGen.openAppStore, openAppStore)
 
   ConfigConstants.useConfigState.setState(s => {
     s.dispatch.dynamic.onFilePickerError = error => {
       Alert.alert('Error', String(error))
+    }
+    s.dispatch.dynamic.openAppStore = () => {
+      Linking.openURL(
+        isAndroid
+          ? 'http://play.google.com/store/apps/details?id=io.keybase.ossifrage'
+          : 'https://itunes.apple.com/us/app/keybase-crypto-for-everyone/id1044461770?mt=8'
+      ).catch(() => {})
     }
   })
 
