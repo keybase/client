@@ -1,7 +1,6 @@
 import * as ConfigConstants from '../../constants/config'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as ProfileConstants from '../../constants/profile'
-import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as FsConstants from '../../constants/fs'
 import * as DaemonConstants from '../../constants/daemon'
@@ -248,10 +247,6 @@ export const initPlatformListener = () => {
   ConfigConstants.useDaemonState.subscribe((s, old) => {
     if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
     ConfigConstants.useConfigState.getState().dispatch.setStartupDetailsLoaded()
-  })
-
-  Container.listenAction(ConfigGen.updateNow, () => {
-    ConfigConstants.useConfigState.getState().dispatch.updateApp()
   })
 
   if (isLinux) {

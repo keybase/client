@@ -10,7 +10,6 @@ import fs from 'fs'
 import path from 'path'
 import fse from 'fs-extra'
 import {spawn, execFile, exec} from 'child_process'
-import * as ConfigGen from '../../actions/config-gen'
 import * as RemoteGen from '../../actions/remote-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import startWinService from './start-win-service.desktop'
@@ -366,22 +365,22 @@ const darwinCopyToChatTempUploadFile = async (options: {originalFilePath: string
 
 const plumbEvents = () => {
   Electron.nativeTheme.on('updated', () => {
-    mainWindowDispatch(ConfigGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
+    mainWindowDispatch(RemoteGen.createSetSystemDarkMode({dark: Electron.nativeTheme.shouldUseDarkColors}))
   })
   Electron.powerMonitor.on('suspend', () => {
-    mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'suspend'}))
+    mainWindowDispatch(RemoteGen.createPowerMonitorEvent({event: 'suspend'}))
   })
   Electron.powerMonitor.on('resume', () => {
-    mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'resume'}))
+    mainWindowDispatch(RemoteGen.createPowerMonitorEvent({event: 'resume'}))
   })
   Electron.powerMonitor.on('shutdown', () => {
-    mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'shutdown'}))
+    mainWindowDispatch(RemoteGen.createPowerMonitorEvent({event: 'shutdown'}))
   })
   Electron.powerMonitor.on('lock-screen', () => {
-    mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'lock-screen'}))
+    mainWindowDispatch(RemoteGen.createPowerMonitorEvent({event: 'lock-screen'}))
   })
   Electron.powerMonitor.on('unlock-screen', () => {
-    mainWindowDispatch(ConfigGen.createPowerMonitorEvent({event: 'unlock-screen'}))
+    mainWindowDispatch(RemoteGen.createPowerMonitorEvent({event: 'unlock-screen'}))
   })
 
   Electron.ipcMain.handle('KBdispatchAction', (_: any, action: any) => {
@@ -787,7 +786,7 @@ const plumbEvents = () => {
         const remoteWindow = new Electron.BrowserWindow(opts)
 
         remoteWindow.on('show', () => {
-          mainWindowDispatch(ConfigGen.createUpdateWindowShown({component: action.payload.windowComponent}))
+          mainWindowDispatch(RemoteGen.createUpdateWindowShown({component: action.payload.windowComponent}))
         })
 
         if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {

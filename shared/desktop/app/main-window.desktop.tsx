@@ -1,6 +1,6 @@
 import URL from 'url-parse'
 import * as Electron from 'electron'
-import * as ConfigGen from '../../actions/config-gen'
+import * as RemoteGen from '../../actions/remote-gen'
 import * as fs from 'fs'
 import menuHelper from './menu-helper.desktop'
 import {showDevTools} from '../../local-debug'
@@ -62,7 +62,7 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
     windowState.height = winBounds.height
     windowState.isFullScreen = win.isFullScreen()
     windowState.windowHidden = !win.isVisible()
-    mainWindowDispatch(ConfigGen.createUpdateWindowState({windowState}))
+    mainWindowDispatch(RemoteGen.createUpdateWindowState({windowState}))
   }, 5000)
 
   win.on('show', saveWindowState)
@@ -80,7 +80,7 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
 
   if (!isDarwin) {
     const emitMaxChange = () => {
-      mainWindowDispatch(ConfigGen.createUpdateWindowMaxState({max: win.isMaximized()}))
+      mainWindowDispatch(RemoteGen.createUpdateWindowMaxState({max: win.isMaximized()}))
     }
 
     win.on('maximize', emitMaxChange)
@@ -102,7 +102,7 @@ const changeDock = (show: boolean) => {
   }
 
   windowState.dockHidden = !show
-  mainWindowDispatch(ConfigGen.createUpdateWindowState({windowState}))
+  mainWindowDispatch(RemoteGen.createUpdateWindowState({windowState}))
 }
 
 export const showDockIcon = () => changeDock(true)

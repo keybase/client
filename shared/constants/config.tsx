@@ -5,6 +5,7 @@ import * as ProvisionConstants from './provision'
 import * as RPCTypes from './types/rpc-gen'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
+import * as DarkMode from './darkmode'
 import logger from '../logger'
 import type * as Types from './types/config'
 import type {ConversationIDKey} from './types/chat2'
@@ -171,7 +172,7 @@ type State = Store & {
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
     dumpLogs: (reason: string) => Promise<void>
-    eventFromRemoteWindows: (action: TypedActions) => void
+    eventFromRemoteWindows: (action: TypedActions) => boolean
     filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
     initNotifySound: () => void
@@ -183,6 +184,7 @@ type State = Store & {
     loginError: (error?: RPCError) => void
     logoutAndTryToLogInAs: (username: string) => void
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
+    powerMonitorEvent: (event: string) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
@@ -277,6 +279,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         case RemoteGen.installerRan:
           get().dispatch.installerRan()
           break
+        case RemoteGen.updateNow:
+          get().dispatch.updateApp()
+          break
+        case RemoteGen.powerMonitorEvent:
+          get().dispatch.powerMonitorEvent(action.payload.event)
+          break
         case RemoteGen.showMain:
           get().dispatch.showMain()
           break
@@ -286,20 +294,25 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
           get().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
           break
-        case ConfigGen.remoteWindowWantsProps:
+        case RemoteGen.remoteWindowWantsProps:
           get().dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
           break
-        case ConfigGen.updateWindowMaxState:
+        case RemoteGen.updateWindowMaxState:
           get().dispatch.setWindowIsMax(action.payload.max)
           break
-        case ConfigGen.updateWindowState:
+        case RemoteGen.updateWindowState:
           get().dispatch.updateWindowState(action.payload.windowState)
           break
-        case ConfigGen.updateWindowShown:
+        case RemoteGen.updateWindowShown:
           get().dispatch.windowShown(action.payload.component)
           break
+        case RemoteGen.setSystemDarkMode:
+          DarkMode.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
+          break
         default:
+          return false
       }
+      return true
     },
     filePickerError: error => {
       get().dispatch.dynamic.onFilePickerError?.(error)
@@ -479,6 +492,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.justRevokedSelf = ''
       })
+    },
+    powerMonitorEvent: event => {
+      const f = async () => {
+        await RPCTypes.appStatePowerMonitorEventRpcPromise({event})
+      }
+      Z.ignorePromise(f())
     },
     resetState: () => {
       set(s => ({

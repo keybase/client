@@ -4,7 +4,7 @@
 // We start up and send an action to the main window which then sends us 'props'
 import {createStore, applyMiddleware, type Store} from 'redux'
 import type {TypedActions} from '../../actions/typed-actions-gen'
-import * as ConfigGen from '../../actions/config-gen'
+import * as RemoteGen from '../../actions/remote-gen'
 import KB2 from '../../util/electron.desktop'
 
 const {mainWindowDispatch, ipcRendererOn} = KB2.functions
@@ -77,7 +77,7 @@ class RemoteStore {
 
     // Search for the main window and ask it directly for our props
     mainWindowDispatch(
-      ConfigGen.createRemoteWindowWantsProps({
+      RemoteGen.createRemoteWindowWantsProps({
         component: props.windowComponent,
         param: props.windowParam,
       })

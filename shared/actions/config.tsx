@@ -233,13 +233,6 @@ const emitStartupOnLoadNotInARush = () => {
   Z.ignorePromise(f())
 }
 
-const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEventPayload) => {
-  const {event} = action.payload
-  try {
-    await RPCTypes.appStatePowerMonitorEventRpcPromise({event})
-  } catch {}
-}
-
 const initConfig = () => {
   // Re-get info about our account if you log in/we're done handshaking/became reachable
   Container.listenAction(GregorGen.updateReachable, (_, a) => Z.ignorePromise(loadDaemonBootstrapStatus(a)))
@@ -338,8 +331,6 @@ const initConfig = () => {
   // Kick off platform specific stuff
   initPlatformListener()
 
-  Container.listenAction(ConfigGen.powerMonitorEvent, onPowerMonitorEvent)
-
   Container.listenAction(ConfigGen.resetStore, () => {
     Z.resetAllStores()
   })
@@ -347,14 +338,6 @@ const initConfig = () => {
   Container.listenAction(EngineGen.keybase1NotifyTeamAvatarUpdated, (_, action) => {
     const {name} = action.payload.params
     useAvatarState.getState().dispatch.updated(name)
-  })
-
-  Container.listenAction(ConfigGen.setSystemDarkMode, (_, action) => {
-    // only to bridge electron bridge, todo remove this
-    if (!Container.isMobile) {
-      const {setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
-      setSystemDarkMode(action.payload.dark)
-    }
   })
 
   Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingChanged, (_, action) => {

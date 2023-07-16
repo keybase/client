@@ -79,7 +79,7 @@ const setupApp = (store: any, initListeners: any) => {
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
     setTimeout(() => {
       try {
-        ConfigConstants.useConfigState.getState().dispatch.eventFromRemoteWindows(action)
+        if (ConfigConstants.useConfigState.getState().dispatch.eventFromRemoteWindows(action)) return
         store.dispatch({
           payload: action.payload,
           type: action.type,
