@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as FsConstants from '../constants/fs'
+import * as ConfigConstants from '../constants/config'
 import * as FsTypes from '../constants/types/fs'
-import * as GregorGen from '../actions/gregor-gen'
 import Teams, {type OwnProps as MainOwnProps} from './main'
 import openURL from '../util/open-url'
 import * as Constants from '../constants/teams'
@@ -102,8 +102,10 @@ const Connected = () => {
   const sortOrder = Constants.useState(s => s.teamListSort)
   const teamIDToResetUsers = Constants.useState(s => s.teamIDToResetUsers)
   const dispatch = Container.useDispatch()
+
+  const updateGregorCategory = ConfigConstants.useConfigState(s => s.dispatch.updateGregorCategory)
   const onHideChatBanner = () => {
-    dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'}))
+    updateGregorCategory('sawChatBanner', 'true')
   }
   const onOpenFolder = (teamname: Types.Teamname) => {
     dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`)))

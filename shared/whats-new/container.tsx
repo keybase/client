@@ -1,6 +1,6 @@
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Container from '../util/container'
-import * as GregorGen from '../actions/gregor-gen'
+import * as ConfigConstants from '../constants/config'
 import type * as Tabs from '../constants/tabs'
 import openURL from '../util/open-url'
 import {currentVersion, useState} from '../constants/whats-new'
@@ -27,12 +27,9 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createSwitchTab({tab}))
   }
 
+  const updateGregorCategory = ConfigConstants.useConfigState(s => s.dispatch.updateGregorCategory)
   const _onUpdateLastSeenVersion = (lastSeenVersion: string) => {
-    const action = GregorGen.createUpdateCategory({
-      body: lastSeenVersion,
-      category: 'whatsNewLastSeenVersion',
-    })
-    dispatch(action)
+    updateGregorCategory('whatsNewLastSeenVersion', lastSeenVersion)
   }
   const seenVersions = useState(s => s.getSeenVersions())
   const newRelease = useState(s => s.anyVersionsUnseen())

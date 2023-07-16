@@ -69,19 +69,7 @@ const checkReachability = () => {
   Z.ignorePromise(f())
 }
 
-const updateCategory = async (_: unknown, action: GregorGen.UpdateCategoryPayload) => {
-  try {
-    await RPCTypes.gregorUpdateCategoryRpcPromise({
-      body: action.payload.body,
-      category: action.payload.category,
-      dtime: action.payload.dtime || {offset: 0, time: 0},
-    })
-  } catch (_) {}
-}
-
 const initGregor = () => {
-  Container.listenAction(GregorGen.updateCategory, updateCategory)
-
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.networkStatus === old.networkStatus) return
     checkReachability()

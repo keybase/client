@@ -4,11 +4,6 @@
     "pushState": {
       "state": "Array<{md: RPCTypesGregor.Metadata, item: RPCTypesGregor.Item}>",
       "reason": "RPCTypes.PushReason"
-    },
-    "updateCategory": {
-      "category": "string",
-      "body": "string",
-      "dtime?": "{offset: number, time: number}"
     }
   }
 }

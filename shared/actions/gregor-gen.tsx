@@ -6,26 +6,18 @@ import type * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
 export const resetStore = 'common:resetStore' // not a part of gregor but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'gregor:'
 export const pushState = 'gregor:pushState'
-export const updateCategory = 'gregor:updateCategory'
 
 // Action Creators
 export const createPushState = (payload: {
   readonly state: Array<{md: RPCTypesGregor.Metadata; item: RPCTypesGregor.Item}>
   readonly reason: RPCTypes.PushReason
 }) => ({payload, type: pushState as typeof pushState})
-export const createUpdateCategory = (payload: {
-  readonly category: string
-  readonly body: string
-  readonly dtime?: {offset: number; time: number}
-}) => ({payload, type: updateCategory as typeof updateCategory})
 
 // Action Payloads
 export type PushStatePayload = ReturnType<typeof createPushState>
-export type UpdateCategoryPayload = ReturnType<typeof createUpdateCategory>
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | PushStatePayload
-  | UpdateCategoryPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

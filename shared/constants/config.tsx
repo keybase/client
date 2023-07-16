@@ -224,6 +224,7 @@ type State = Store & {
     showMain: () => void
     toggleRuntimeStats: () => void
     updateApp: () => void
+    updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
     updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => void
     updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => void
     windowShown: (win: string) => void
@@ -725,6 +726,18 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.outOfDate.updating = true
       })
+    },
+    updateGregorCategory: (category, body, dtime) => {
+      const f = async () => {
+        try {
+          await RPCTypes.gregorUpdateCategoryRpcPromise({
+            body,
+            category,
+            dtime: dtime || {offset: 0, time: 0},
+          })
+        } catch (_) {}
+      }
+      Z.ignorePromise(f())
     },
     updateRuntimeStats: stats => {
       set(s => {
