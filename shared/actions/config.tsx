@@ -36,15 +36,9 @@ const onLoggedOut = () => {
   }
 }
 
-const getFollowerInfo = (_: unknown, action: ConfigGen.LoadOnStartPayload) => {
+const getFollowerInfo = () => {
   const {uid} = Constants.useCurrentUserState.getState()
   logger.info(`getFollowerInfo: init; uid=${uid}`)
-  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
-    logger.info(
-      `getFollowerInfo: bailing out early due to type=${action.type}; phase=${action.payload.phase}`
-    )
-    return
-  }
   if (uid) {
     // request follower info in the background
     RPCTypes.configRequestFollowingAndUnverifiedFollowersRpcPromise()
@@ -190,14 +184,16 @@ const loadDaemonAccounts = (action?: ConfigGen.RevokedPayload) => {
   Container.ignorePromise(f())
 }
 
-const updateServerConfig = async (_: unknown, action: ConfigGen.LoadOnStartPayload) =>
-  action.payload.phase === 'startupOrReloginButNotInARush' &&
-  Constants.useConfigState.getState().loggedIn &&
-  RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
-    serverConfigPath: Platform.serverConfigFileName,
-  }).catch(e => {
-    logger.warn("Can't call UpdateLastLoggedInAndServerConfig", e)
-  })
+const updateServerConfig = () => {
+  const f = async () => {
+    if (Constants.useConfigState.getState().loggedIn) {
+      await RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
+        serverConfigPath: Platform.serverConfigFileName,
+      })
+    }
+  }
+  Z.ignorePromise(f())
+}
 
 const newNavigation = (
   _: unknown,
@@ -215,11 +211,10 @@ const newNavigation = (
 }
 
 const emitStartupOnLoadNotInARush = () => {
-  const reduxDispatch = Z.getReduxDispatch()
   const f = async () => {
     await Container.timeoutPromise(1000)
     requestAnimationFrame(() => {
-      reduxDispatch(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
+      Constants.useConfigState.getState().dispatch.loadOnStart('startupOrReloginButNotInARush')
     })
   }
   Z.ignorePromise(f())
@@ -239,13 +234,15 @@ const initConfig = () => {
       loadDaemonAccounts()
     }
 
+    const {loadOnStart} = Constants.useConfigState.getState().dispatch
+
     if (s.loggedIn) {
       if (!s.loggedInCausedbyStartup) {
-        reduxDispatch(ConfigGen.createLoadOnStart({phase: 'reloggedIn'}))
+        loadOnStart('reloggedIn')
         const f = async () => {
           await Container.timeoutPromise(1000)
           requestAnimationFrame(() => {
-            reduxDispatch(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
+            loadOnStart('startupOrReloginButNotInARush')
           })
         }
         Z.ignorePromise(f())
@@ -284,8 +281,6 @@ const initConfig = () => {
     }
     Z.ignorePromise(f())
   })
-  // Store per user server config info
-  Container.listenAction(ConfigGen.loadOnStart, updateServerConfig)
 
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
@@ -317,7 +312,17 @@ const initConfig = () => {
     WhatsNew.useState.getState().dispatch.updateLastSeen(lastSeenItem)
   })
 
-  Container.listenAction(ConfigGen.loadOnStart, getFollowerInfo)
+  Constants.useConfigState.subscribe((s, old) => {
+    if (s.loadOnStartPhase === old.loadOnStartPhase) return
+
+    switch (s.loadOnStartPhase) {
+      case 'startupOrReloginButNotInARush':
+        getFollowerInfo()
+        updateServerConfig()
+        break
+      default:
+    }
+  })
 
   // Kick off platform specific stuff
   initPlatformListener()
@@ -391,12 +396,11 @@ const initConfig = () => {
   let _emitStartupOnLoadDaemonConnectedOnce = false
   Constants.useDaemonState.subscribe((s, old) => {
     if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
-    const reduxDispatch = Z.getReduxDispatch()
     emitStartupOnLoadNotInARush()
 
     if (!_emitStartupOnLoadDaemonConnectedOnce) {
       _emitStartupOnLoadDaemonConnectedOnce = true
-      reduxDispatch(ConfigGen.createLoadOnStart({phase: 'connectedToDaemonForFirstTime'}))
+      Constants.useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
     }
   })
 }

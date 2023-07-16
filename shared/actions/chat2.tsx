@@ -4,7 +4,6 @@ import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
 import * as UsersConstants from '../constants/users'
 import * as LinksConstants from '../constants/deeplinks'
-import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
@@ -3928,25 +3927,27 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.findGeneralConvIDFromTeamID, findGeneralConvIDFromTeamID)
   Container.listenAction(Chat2Gen.refreshBotRoleInConv, refreshBotRoleInConv)
 
-  // On login lets load the untrusted inbox. This helps make some flows easier
-  Container.listenAction(ConfigGen.loadOnStart, (_, action) => {
-    if (action.payload.phase !== 'startupOrReloginButNotInARush') return
-    return (
-      !!ConfigConstants.useCurrentUserState.getState().username &&
-      Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
-    )
-  })
-
-  Container.listenAction(ConfigGen.loadOnStart, async (_, action) => {
-    if (action.payload.phase !== 'startupOrReloginButNotInARush') return
-    try {
-      const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-      const ri = rows?.i ?? -1
-      if (ri > 0) {
-        return Chat2Gen.createSetInboxNumSmallRows({ignoreWrite: true, rows: ri})
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.loadOnStartPhase === old.loadOnStartPhase) return
+    const reduxDispatch = Z.getReduxDispatch()
+    switch (s.loadOnStartPhase) {
+      case 'startupOrReloginButNotInARush': {
+        // On login lets load the untrusted inbox. This helps make some flows easier
+        if (ConfigConstants.useCurrentUserState.getState().username) {
+          reduxDispatch(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
+        }
+        const f = async () => {
+          const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+          const ri = rows?.i ?? -1
+          if (ri > 0) {
+            reduxDispatch(Chat2Gen.createSetInboxNumSmallRows({ignoreWrite: true, rows: ri}))
+          }
+        }
+        Z.ignorePromise(f())
+        break
       }
-    } catch (_) {}
-    return false
+      default:
+    }
   })
 
   // Search handling

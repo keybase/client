@@ -1,6 +1,5 @@
 import * as Z from '../util/zustand'
 import * as Chat2Gen from './chat2-gen'
-import * as ConfigGen from './config-gen'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/wallets'
 import * as Container from '../util/container'
@@ -395,30 +394,24 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 
 const clearErrors = () => WalletsGen.createClearErrors()
 
-const loadWalletDisclaimer = async (
-  _state: unknown,
-  action:
-    | ConfigGen.LoadOnStartPayload
-    | WalletsGen.LoadAccountsPayload
-    | WalletsGen.LoadWalletDisclaimerPayload
-) => {
-  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
-    return false
+const loadWalletDisclaimer = () => {
+  const f = async () => {
+    const username = ConfigConstants.useCurrentUserState.getState().username
+    if (!username) {
+      return
+    }
+    const reduxDispatch = Z.getReduxDispatch()
+    try {
+      const accepted = await RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(
+        undefined,
+        Constants.checkOnlineWaitingKey
+      )
+      reduxDispatch(WalletsGen.createWalletDisclaimerReceived({accepted}))
+    } catch (_) {
+      return // handled by reloadable
+    }
   }
-
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  if (!username) {
-    return false
-  }
-  try {
-    const accepted = await RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(
-      undefined,
-      Constants.checkOnlineWaitingKey
-    )
-    return WalletsGen.createWalletDisclaimerReceived({accepted})
-  } catch (_) {
-    return false // handled by reloadable
-  }
+  Z.ignorePromise(f())
 }
 
 const loadAccounts = async (
@@ -1703,10 +1696,18 @@ const initWallets = () => {
 
   Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
 
-  Container.listenAction(
-    [ConfigGen.loadOnStart, WalletsGen.loadAccounts, WalletsGen.loadWalletDisclaimer],
-    loadWalletDisclaimer
-  )
+  Container.listenAction([WalletsGen.loadAccounts, WalletsGen.loadWalletDisclaimer], loadWalletDisclaimer)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.loadOnStartPhase === old.loadOnStartPhase) return
+    switch (s.loadOnStartPhase) {
+      case 'startupOrReloginButNotInARush':
+        loadWalletDisclaimer()
+        break
+      default:
+    }
+  })
+
   Container.listenAction(WalletsGen.acceptDisclaimer, acceptDisclaimer)
   Container.listenAction(WalletsGen.checkDisclaimer, checkDisclaimer)
   Container.listenAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)

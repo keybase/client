@@ -74,6 +74,12 @@ export type Store = {
   justRevokedSelf: string
   loggedIn: boolean
   loggedInCausedbyStartup: boolean
+  loadOnStartPhase:
+    | 'notStarted'
+    | 'initialStartupAsEarlyAsPossible'
+    | 'connectedToDaemonForFirstTime'
+    | 'reloggedIn'
+    | 'startupOrReloginButNotInARush'
   mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
   networkStatus?: {online: boolean; type: Types.ConnectionType; isInit?: boolean}
   notifySound: boolean
@@ -121,6 +127,7 @@ const initialStore: Store = {
   isOnline: false,
   justDeletedSelf: '',
   justRevokedSelf: '',
+  loadOnStartPhase: 'notStarted',
   loggedIn: false,
   loggedInCausedbyStartup: false,
   loginError: undefined,
@@ -182,6 +189,7 @@ type State = Store & {
     initUseNativeFrame: () => void
     installerRan: () => void
     loadIsOnline: () => void
+    loadOnStart: (phase: State['loadOnStartPhase']) => void
     login: (username: string, password: string) => void
     loginError: (error?: RPCError) => void
     logoutAndTryToLogInAs: (username: string) => void
@@ -381,6 +389,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    loadOnStart: phase => {
+      set(s => {
+        s.loadOnStartPhase = phase
+      })
     },
     login: (username, passphrase) => {
       const cancelDesc = 'Canceling RPC'

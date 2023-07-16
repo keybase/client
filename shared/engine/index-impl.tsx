@@ -111,7 +111,14 @@ class Engine {
       // dispatch the action version
       this._dispatch({payload: undefined, type: 'engine-gen:connected'})
     }
-    this._dispatch({payload: {phase: 'initialStartupAsEarlyAsPossible'}, type: 'config:loadOnStart'})
+
+    const f = async () => {
+      const ConfigConstants = await import('../constants/config')
+      ConfigConstants.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
+    }
+    f()
+      .then(() => {})
+      .catch(() => {})
   }
 
   // Called when we reconnect to the server
@@ -133,8 +140,8 @@ class Engine {
 
   // Got a cancelled sequence id
   _handleCancel(seqid: number) {
-    const cancelledSessionID = Object.keys(this._sessionsMap).find(key =>
-      this._sessionsMap[key]?.hasSeqID(seqid)
+    const cancelledSessionID = Object.keys(this._sessionsMap).find(
+      key => this._sessionsMap[key]?.hasSeqID(seqid)
     )
     if (cancelledSessionID) {
       const s = this._sessionsMap[cancelledSessionID]

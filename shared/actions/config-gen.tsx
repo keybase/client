@@ -4,7 +4,6 @@
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
 export const initListenerLoops = 'config:initListenerLoops'
-export const loadOnStart = 'config:loadOnStart'
 export const revoked = 'config:revoked'
 
 // Action Creators
@@ -15,28 +14,15 @@ export const createInitListenerLoops = (payload?: undefined) => ({
   payload,
   type: initListenerLoops as typeof initListenerLoops,
 })
-/**
- * This action is dispatched multiple times with various flags.
- * If you want to do something as a result of startup or login listen to this.
- */
-export const createLoadOnStart = (payload: {
-  readonly phase:
-    | 'initialStartupAsEarlyAsPossible'
-    | 'connectedToDaemonForFirstTime'
-    | 'reloggedIn'
-    | 'startupOrReloginButNotInARush'
-}) => ({payload, type: loadOnStart as typeof loadOnStart})
 export const createRevoked = (payload?: undefined) => ({payload, type: revoked as typeof revoked})
 
 // Action Payloads
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
-export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type RevokedPayload = ReturnType<typeof createRevoked>
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | InitListenerLoopsPayload
-  | LoadOnStartPayload
   | RevokedPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

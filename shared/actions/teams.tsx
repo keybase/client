@@ -1,5 +1,4 @@
 import * as ConfigConstants from '../constants/config'
-import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/teams'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
@@ -14,16 +13,17 @@ import type * as Types from '../constants/types/teams'
 import {mapGetEnsureValue} from '../util/map'
 
 const initTeams = () => {
-  Container.listenAction(ConfigGen.loadOnStart, (_, action) => {
-    if (action.payload.phase !== 'startupOrReloginButNotInARush') {
-      return
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.loadOnStartPhase === old.loadOnStartPhase) return
+    switch (s.loadOnStartPhase) {
+      case 'startupOrReloginButNotInARush':
+        Constants.useState.getState().dispatch.getTeams()
+        Constants.useState.getState().dispatch.refreshTeamRoleMap()
+        break
+      default:
     }
-    Constants.useState.getState().dispatch.getTeams()
   })
 
-  Container.listenAction(ConfigGen.loadOnStart, () => {
-    Constants.useState.getState().dispatch.refreshTeamRoleMap()
-  })
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamRoleMapChanged, (_, action) => {
     const {newVersion} = action.payload.params
     const loadedVersion = Constants.useState.getState().teamRoleMap.loadedVersion
