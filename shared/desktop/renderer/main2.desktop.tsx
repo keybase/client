@@ -1,7 +1,6 @@
 // Entry point to the chrome part of the app
 import Main from '../../app/main.desktop'
 // order of the above 2 must NOT change. needed for patching / hot loading to be correct
-import * as NotificationsGen from '../../actions/notifications-gen'
 import * as WaitingConstants from '../../constants/waiting'
 import * as ConfigConstants from '../../constants/config'
 import * as DarkMode from '../../constants/darkmode'
@@ -101,9 +100,6 @@ const setupApp = (store: any, initListeners: any) => {
       .then(() => {})
       .catch(() => {})
   }, 5 * 1000)
-
-  // Handle notifications from the service
-  store.dispatch(NotificationsGen.createListenForNotifications())
 
   appStartedUp?.()
 }

@@ -1,7 +1,0 @@
-{
-  "prelude": [],
-  "actions": {
-    "listenForNotifications": {},
-    "listenForKBFSNotifications": {}
-  }
-}
