@@ -8,7 +8,6 @@ import type * as gregor from './gregor-gen'
 import type * as remote from './remote-gen'
 import type * as routetree from './route-tree-gen'
 import type * as settings from './settings-gen'
-import type * as tracker2 from './tracker2-gen'
 import type * as unlockfolders from './unlock-folders-gen'
 import type * as wallets from './wallets-gen'
 
@@ -22,7 +21,6 @@ export type TypedActions =
   | remote.Actions
   | routetree.Actions
   | settings.Actions
-  | tracker2.Actions
   | unlockfolders.Actions
   | wallets.Actions
 

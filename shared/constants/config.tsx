@@ -294,6 +294,41 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     },
     eventFromRemoteWindows: (action: TypedActions) => {
       switch (action.type) {
+        // only used by remote tracker, TODO this will change
+        case RemoteGen.trackerChangeFollow: {
+          const f = async () => {
+            const TrackerConstants = await import('./tracker2')
+            TrackerConstants.useState
+              .getState()
+              .dispatch.changeFollow(action.payload.guiID, action.payload.follow)
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case RemoteGen.trackerIgnore: {
+          const f = async () => {
+            const TrackerConstants = await import('./tracker2')
+            TrackerConstants.useState.getState().dispatch.ignore(action.payload.guiID)
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case RemoteGen.trackerCloseTracker: {
+          const f = async () => {
+            const TrackerConstants = await import('./tracker2')
+            TrackerConstants.useState.getState().dispatch.closeTracker(action.payload.guiID)
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case RemoteGen.trackerLoad: {
+          const f = async () => {
+            const TrackerConstants = await import('./tracker2')
+            TrackerConstants.useState.getState().dispatch.load(action.payload)
+          }
+          Z.ignorePromise(f())
+          break
+        }
         case RemoteGen.link:
           {
             const {link} = action.payload

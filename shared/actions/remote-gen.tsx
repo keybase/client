@@ -15,6 +15,10 @@ export const remoteWindowWantsProps = 'remote:remoteWindowWantsProps'
 export const saltpackFileOpen = 'remote:saltpackFileOpen'
 export const setSystemDarkMode = 'remote:setSystemDarkMode'
 export const showMain = 'remote:showMain'
+export const trackerChangeFollow = 'remote:trackerChangeFollow'
+export const trackerCloseTracker = 'remote:trackerCloseTracker'
+export const trackerIgnore = 'remote:trackerIgnore'
+export const trackerLoad = 'remote:trackerLoad'
 export const updateNow = 'remote:updateNow'
 export const updateWindowMaxState = 'remote:updateWindowMaxState'
 export const updateWindowShown = 'remote:updateWindowShown'
@@ -97,6 +101,27 @@ export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   type: setSystemDarkMode as typeof setSystemDarkMode,
 })
 export const createShowMain = (payload?: undefined) => ({payload, type: showMain as typeof showMain})
+export const createTrackerChangeFollow = (payload: {readonly guiID: string; readonly follow: boolean}) => ({
+  payload,
+  type: trackerChangeFollow as typeof trackerChangeFollow,
+})
+export const createTrackerCloseTracker = (payload: {readonly guiID: string}) => ({
+  payload,
+  type: trackerCloseTracker as typeof trackerCloseTracker,
+})
+export const createTrackerIgnore = (payload: {readonly guiID: string}) => ({
+  payload,
+  type: trackerIgnore as typeof trackerIgnore,
+})
+export const createTrackerLoad = (payload: {
+  readonly assertion: string
+  readonly forceDisplay?: boolean
+  readonly fromDaemon?: boolean
+  readonly guiID: string
+  readonly ignoreCache?: boolean
+  readonly reason: string
+  readonly inTracker: boolean
+}) => ({payload, type: trackerLoad as typeof trackerLoad})
 export const createUpdateNow = (payload?: undefined) => ({payload, type: updateNow as typeof updateNow})
 
 // Action Payloads
@@ -110,6 +135,10 @@ export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindow
 export type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
+export type TrackerChangeFollowPayload = ReturnType<typeof createTrackerChangeFollow>
+export type TrackerCloseTrackerPayload = ReturnType<typeof createTrackerCloseTracker>
+export type TrackerIgnorePayload = ReturnType<typeof createTrackerIgnore>
+export type TrackerLoadPayload = ReturnType<typeof createTrackerLoad>
 export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
 export type UpdateWindowMaxStatePayload = ReturnType<typeof createUpdateWindowMaxState>
 export type UpdateWindowShownPayload = ReturnType<typeof createUpdateWindowShown>
@@ -128,6 +157,10 @@ export type Actions =
   | SaltpackFileOpenPayload
   | SetSystemDarkModePayload
   | ShowMainPayload
+  | TrackerChangeFollowPayload
+  | TrackerCloseTrackerPayload
+  | TrackerIgnorePayload
+  | TrackerLoadPayload
   | UpdateNowPayload
   | UpdateWindowMaxStatePayload
   | UpdateWindowShownPayload

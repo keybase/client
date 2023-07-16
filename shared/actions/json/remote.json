@@ -41,6 +41,25 @@
     "pinentryOnSubmit": {
       "password": "string"
     },
-    "pinentryOnCancel": {}
+    "pinentryOnCancel": {},
+    "trackerChangeFollow": {
+      "guiID": "string",
+      "follow": "boolean"
+    },
+    "trackerIgnore": {
+      "guiID": "string"
+    },
+    "trackerCloseTracker": {
+      "guiID": "string"
+    },
+    "trackerLoad": {
+      "assertion": "string",
+      "forceDisplay?": "boolean",
+      "fromDaemon?": "boolean",
+      "guiID": "string",
+      "ignoreCache?": "boolean",
+      "reason": "string",
+      "inTracker": "boolean"
+    }
   }
 }

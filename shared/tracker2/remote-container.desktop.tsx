@@ -6,7 +6,6 @@ import * as UsersConstants from '../constants/users'
 import * as ConfigConstants from '../constants/config'
 import * as Followers from '../constants/followers'
 import * as Container from '../util/container'
-import * as Tracker2Gen from '../actions/tracker2-gen'
 import type * as Types from '../constants/types/tracker2'
 import Tracker from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
@@ -50,21 +49,21 @@ const RemoteContainer = () => {
       guiID={guiID}
       isYou={username === trackerUsername}
       location={location}
-      onAccept={() => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID}))}
+      onAccept={() => dispatch(RemoteGen.createTrackerChangeFollow({follow: true, guiID}))}
       onChat={() => {
         dispatch(RemoteGen.createShowMain())
         dispatch(Chat2Gen.createPreviewConversation({participants: [trackerUsername], reason: 'tracker'}))
       }}
       onClose={() => {
-        dispatch(Tracker2Gen.createCloseTracker({guiID}))
+        dispatch(RemoteGen.createTrackerCloseTracker({guiID}))
         // close immediately
         closeWindow?.()
       }}
-      onFollow={() => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID}))}
-      onIgnoreFor24Hours={() => dispatch(Tracker2Gen.createIgnore({guiID}))}
+      onFollow={() => dispatch(RemoteGen.createTrackerChangeFollow({follow: true, guiID}))}
+      onIgnoreFor24Hours={() => dispatch(RemoteGen.createTrackerIgnore({guiID}))}
       onReload={() =>
         dispatch(
-          Tracker2Gen.createLoad({
+          RemoteGen.createTrackerLoad({
             assertion: trackerUsername,
             forceDisplay: true,
             fromDaemon: false,
