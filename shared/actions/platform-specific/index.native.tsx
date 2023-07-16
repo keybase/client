@@ -3,7 +3,6 @@ import * as Clipboard from 'expo-clipboard'
 import * as ConfigConstants from '../../constants/config'
 import * as ProfileConstants from '../../constants/profile'
 import * as ChatConstants from '../../constants/chat2'
-import * as ConfigGen from '../config-gen'
 import * as Container from '../../util/container'
 import * as DarkMode from '../../constants/darkmode'
 import * as EngineGen from '../engine-gen-gen'
@@ -117,11 +116,6 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
       logger.warn('failed to unlink')
     }
   }
-}
-
-const onShareAction = async (_: unknown, action: ConfigGen.ShowShareActionSheetPayload) => {
-  const {filePath, message, mimeType} = action.payload
-  await showShareActionSheet({filePath, message, mimeType})
 }
 
 export const showShareActionSheet = async (options: {
@@ -555,7 +549,14 @@ export const initPlatformListener = () => {
     Z.ignorePromise(f())
   })
 
-  Container.listenAction(ConfigGen.showShareActionSheet, onShareAction)
+  ConfigConstants.useConfigState.setState(s => {
+    s.dispatch.dynamic.showShareActionSheet = (filePath: string, message: string, mimeType: string) => {
+      const f = async () => {
+        await showShareActionSheet({filePath, message, mimeType})
+      }
+      Z.ignorePromise(f())
+    }
+  })
 
   Container.listenAction(RouteTreeGen.tabLongPress, onTabLongPress)
 

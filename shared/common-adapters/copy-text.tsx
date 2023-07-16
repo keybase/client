@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as ConfigGen from '../actions/config-gen'
 import * as ConfigConstants from '../constants/config'
 import {Box2} from './box'
 import Icon from './icon'
@@ -8,7 +7,6 @@ import Text, {type LineClampType, type TextType} from './text'
 import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '../styles'
-import * as Container from '../util/container'
 import logger from '../logger'
 
 type Props = {
@@ -54,10 +52,8 @@ const CopyText = (props: Props) => {
 
   const attachmentRef = React.useRef<Box2>(null)
   const textRef = React.useRef<Text>(null)
-
-  const dispatch = Container.useDispatch()
-
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const showShareActionSheet = ConfigConstants.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
   const copy = React.useCallback(() => {
     if (!text) {
       if (!loadText) {
@@ -67,7 +63,7 @@ const CopyText = (props: Props) => {
       setRequestedCopy(true)
     } else {
       if (shareSheet) {
-        dispatch(ConfigGen.createShowShareActionSheet({message: text, mimeType: 'text/plain'}))
+        showShareActionSheet?.('', text, 'text/plain')
       } else {
         setShowingToast(true)
         textRef.current && textRef.current.highlightText()
@@ -78,7 +74,7 @@ const CopyText = (props: Props) => {
         setRevealed(false)
       }
     }
-  }, [copyToClipboard, text, loadText, shareSheet, dispatch, onCopy, hideOnCopy])
+  }, [showShareActionSheet, copyToClipboard, text, loadText, shareSheet, onCopy, hideOnCopy])
 
   React.useEffect(() => {
     if (requestedCopy && loadText) {

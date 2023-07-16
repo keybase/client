@@ -161,13 +161,14 @@ type State = Store & {
   dispatch: {
     dynamic: {
       copyToClipboard: (s: string) => void
-      openAppStore?: () => void
       dumpLogsNative?: (reason: string) => Promise<void>
       onFilePickerError?: (error: Error) => void
       openAppSettings?: () => void
-      showMainNative?: () => void
-      setNavigatorExistsNative?: () => void
+      openAppStore?: () => void
       persistRoute?: (path?: Array<any>) => void
+      setNavigatorExistsNative?: () => void
+      showMainNative?: () => void
+      showShareActionSheet?: (filePath: string, message: string, mimeType: string) => void
     }
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
@@ -273,6 +274,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       persistRoute: undefined,
       setNavigatorExistsNative: undefined,
       showMainNative: undefined,
+      showShareActionSheet: undefined,
     },
     eventFromRemoteWindows: (action: TypedActions) => {
       switch (action.type) {

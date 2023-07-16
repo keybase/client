@@ -8,11 +8,6 @@
       ],
       "phase": "'initialStartupAsEarlyAsPossible' | 'connectedToDaemonForFirstTime' | 'reloggedIn' | 'startupOrReloginButNotInARush'"
     },
-    "showShareActionSheet": {
-      "filePath?": "string",
-      "message?": "string",
-      "mimeType": "string"
-    },
     "androidShare": {
       "_description": "Intent fired with a share url",
       "url?": "string",

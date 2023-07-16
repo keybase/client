@@ -7,7 +7,6 @@ export const androidShare = 'config:androidShare'
 export const initListenerLoops = 'config:initListenerLoops'
 export const loadOnStart = 'config:loadOnStart'
 export const revoked = 'config:revoked'
-export const showShareActionSheet = 'config:showShareActionSheet'
 
 // Action Creators
 /**
@@ -36,18 +35,12 @@ export const createLoadOnStart = (payload: {
     | 'startupOrReloginButNotInARush'
 }) => ({payload, type: loadOnStart as typeof loadOnStart})
 export const createRevoked = (payload?: undefined) => ({payload, type: revoked as typeof revoked})
-export const createShowShareActionSheet = (payload: {
-  readonly filePath?: string
-  readonly message?: string
-  readonly mimeType: string
-}) => ({payload, type: showShareActionSheet as typeof showShareActionSheet})
 
 // Action Payloads
 export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type RevokedPayload = ReturnType<typeof createRevoked>
-export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
 
 // All Actions
 // prettier-ignore
@@ -56,5 +49,4 @@ export type Actions =
   | InitListenerLoopsPayload
   | LoadOnStartPayload
   | RevokedPayload
-  | ShowShareActionSheetPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}
