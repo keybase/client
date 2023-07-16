@@ -8,6 +8,8 @@ export const typePrefix = 'remote:'
 export const dumpLogs = 'remote:dumpLogs'
 export const installerRan = 'remote:installerRan'
 export const link = 'remote:link'
+export const pinentryOnCancel = 'remote:pinentryOnCancel'
+export const pinentryOnSubmit = 'remote:pinentryOnSubmit'
 export const powerMonitorEvent = 'remote:powerMonitorEvent'
 export const remoteWindowWantsProps = 'remote:remoteWindowWantsProps'
 export const saltpackFileOpen = 'remote:saltpackFileOpen'
@@ -82,6 +84,14 @@ export const createDumpLogs = (payload: {readonly reason: 'quitting through menu
   type: dumpLogs as typeof dumpLogs,
 })
 export const createLink = (payload: {readonly link: string}) => ({payload, type: link as typeof link})
+export const createPinentryOnCancel = (payload?: undefined) => ({
+  payload,
+  type: pinentryOnCancel as typeof pinentryOnCancel,
+})
+export const createPinentryOnSubmit = (payload: {readonly password: string}) => ({
+  payload,
+  type: pinentryOnSubmit as typeof pinentryOnSubmit,
+})
 export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   payload,
   type: setSystemDarkMode as typeof setSystemDarkMode,
@@ -93,6 +103,8 @@ export const createUpdateNow = (payload?: undefined) => ({payload, type: updateN
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LinkPayload = ReturnType<typeof createLink>
+export type PinentryOnCancelPayload = ReturnType<typeof createPinentryOnCancel>
+export type PinentryOnSubmitPayload = ReturnType<typeof createPinentryOnSubmit>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
@@ -109,6 +121,8 @@ export type Actions =
   | DumpLogsPayload
   | InstallerRanPayload
   | LinkPayload
+  | PinentryOnCancelPayload
+  | PinentryOnSubmitPayload
   | PowerMonitorEventPayload
   | RemoteWindowWantsPropsPayload
   | SaltpackFileOpenPayload

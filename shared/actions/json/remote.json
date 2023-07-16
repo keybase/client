@@ -37,6 +37,10 @@
     "powerMonitorEvent": {
       "_description": "Plumb power monitor events from node",
       "event": "string"
-    }
+    },
+    "pinentryOnSubmit": {
+      "password": "string"
+    },
+    "pinentryOnCancel": {}
   }
 }

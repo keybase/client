@@ -5,7 +5,6 @@ import type * as config from './config-gen'
 import type * as enginegen from './engine-gen-gen'
 import type * as fs from './fs-gen'
 import type * as gregor from './gregor-gen'
-import type * as pinentry from './pinentry-gen'
 import type * as remote from './remote-gen'
 import type * as routetree from './route-tree-gen'
 import type * as settings from './settings-gen'
@@ -20,7 +19,6 @@ export type TypedActions =
   | enginegen.Actions
   | fs.Actions
   | gregor.Actions
-  | pinentry.Actions
   | remote.Actions
   | routetree.Actions
   | settings.Actions
