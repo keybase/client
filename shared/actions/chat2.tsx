@@ -11,7 +11,6 @@ import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorConstants from '../constants/gregor'
 import * as GregorGen from './gregor-gen'
-import * as NotificationsGen from './notifications-gen'
 import * as Platform from '../constants/platform'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
@@ -3245,13 +3244,6 @@ const toggleMessageReaction = async (
   }
 }
 
-const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
-  Chat2Gen.createBadgesUpdated({
-    bigTeamBadgeCount: action.payload.badgeState.bigTeamBadgeCount,
-    conversations: action.payload.badgeState.conversations || [],
-    smallTeamBadgeCount: action.payload.badgeState.smallTeamBadgeCount,
-  })
-
 const setMinWriterRole = async (_: unknown, action: Chat2Gen.SetMinWriterRolePayload) => {
   const {conversationIDKey, role} = action.payload
   logger.info(`Setting minWriterRole to ${role} for convID ${conversationIDKey}`)
@@ -3997,7 +3989,20 @@ const initChat = () => {
   // Exploding things
   Container.listenAction(Chat2Gen.setConvExplodingMode, setConvExplodingMode)
   Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
-  Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.badgeState === old.badgeState) return
+    if (!s.badgeState) return
+    const reduxDispatch = Z.getReduxDispatch()
+    reduxDispatch(
+      Chat2Gen.createBadgesUpdated({
+        bigTeamBadgeCount: s.badgeState.bigTeamBadgeCount,
+        conversations: s.badgeState.conversations || [],
+        smallTeamBadgeCount: s.badgeState.smallTeamBadgeCount,
+      })
+    )
+  })
+
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)
   Container.listenAction(GregorGen.pushState, gregorPushState)
   Container.listenAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)

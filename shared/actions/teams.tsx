@@ -3,7 +3,6 @@ import * as Constants from '../constants/teams'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as GregorGen from './gregor-gen'
-import * as NotificationsGen from './notifications-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
@@ -80,13 +79,15 @@ const initTeams = () => {
     }
   })
 
-  Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.badgeState === old.badgeState) return
     const loggedIn = ConfigConstants.useConfigState.getState().loggedIn
     if (!loggedIn) {
       // Don't make any calls we don't have permission to.
       return
     }
-    const {badgeState} = action.payload
+    const {badgeState} = s
+    if (!badgeState) return
     const deletedTeams = badgeState.deletedTeams || []
     const newTeams = new Set<string>(badgeState.newTeams || [])
     const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []

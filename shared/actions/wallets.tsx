@@ -4,7 +4,6 @@ import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/wallets'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as NotificationsGen from './notifications-gen'
 import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -1061,9 +1060,6 @@ const paymentReviewed = (_: unknown, action: EngineGen.Stellar1UiPaymentReviewed
 // maybe just clear always?
 const maybeClearErrors = () => WalletsGen.createClearErrors()
 
-const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
-  WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []})
-
 const acceptDisclaimer = async () =>
   RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).catch(
     () => {
@@ -1694,7 +1690,11 @@ const initWallets = () => {
   // Clear some errors on navigateUp, clear new txs on switchTab
   Container.listenAction(RouteTreeGen.navigateUp, maybeClearErrors)
 
-  Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.badgeState === old.badgeState) return
+    const reduxDispatch = Z.getReduxDispatch()
+    reduxDispatch(WalletsGen.createBadgesUpdated({accounts: s.badgeState?.unreadWalletAccounts || []}))
+  })
 
   Container.listenAction([WalletsGen.loadAccounts, WalletsGen.loadWalletDisclaimer], loadWalletDisclaimer)
 

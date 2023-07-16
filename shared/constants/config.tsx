@@ -59,6 +59,7 @@ export type Store = {
         text: string
       }
   appFocused: boolean
+  badgeState?: RPCTypes.BadgeState
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
@@ -116,6 +117,7 @@ const initialStore: Store = {
   allowAnimatedEmojis: true,
   androidShare: undefined,
   appFocused: true,
+  badgeState: undefined,
   configuredAccounts: [],
   defaultUsername: '',
   globalError: undefined,
@@ -204,6 +206,7 @@ type State = Store & {
     setAccounts: (a: Store['configuredAccounts']) => void
     setAllowAnimatedEmojis: (a: boolean) => void
     setAndroidShare: (s: Store['androidShare']) => void
+    setBadgeState: (b: State['badgeState']) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: any) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
@@ -573,6 +576,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       if (get().startup.loaded) {
         reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']}))
       }
+    },
+    setBadgeState: b => {
+      set(s => {
+        s.badgeState = b
+      })
     },
     setDefaultUsername: u => {
       set(s => {

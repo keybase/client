@@ -2,7 +2,6 @@ import * as ChatTypes from '../../constants/types/chat2'
 import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/push'
-import * as NotificationsGen from '../notifications-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -24,17 +23,6 @@ const setApplicationIconBadgeNumber = (n: number) => {
   } else {
     androidSetApplicationIconBadgeNumber(n)
   }
-}
-
-let lastCount = -1
-const updateAppBadge = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) => {
-  const count = action.payload.badgeState.bigTeamBadgeCount + action.payload.badgeState.smallTeamBadgeCount
-  setApplicationIconBadgeNumber(count)
-  // Only do this native call if the count actually changed, not over and over if its zero
-  if (isIOS && count === 0 && lastCount !== 0) {
-    PushNotificationIOS.removeAllPendingNotificationRequests()
-  }
-  lastCount = count
 }
 
 type DataCommon = {
@@ -301,7 +289,19 @@ export const initPushListener = () => {
     Constants.useState.getState().dispatch.deleteToken(s.version)
   })
 
-  Container.listenAction(NotificationsGen.receivedBadgeState, updateAppBadge)
+  let lastCount = -1
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.badgeState === old.badgeState) return
+    if (!s.badgeState) return
+    const count = s.badgeState.bigTeamBadgeCount + s.badgeState.smallTeamBadgeCount
+    setApplicationIconBadgeNumber(count)
+    // Only do this native call if the count actually changed, not over and over if its zero
+    if (isIOS && count === 0 && lastCount !== 0) {
+      PushNotificationIOS.removeAllPendingNotificationRequests()
+    }
+    lastCount = count
+  })
+
   Constants.useState.getState().dispatch.initialPermissionsCheck()
 
   ConfigConstants.useDaemonState.subscribe((s, old) => {

@@ -1,11 +1,11 @@
 import * as Constants from '../constants/git'
-import * as Container from '../util/container'
-import * as NotificationsGen from './notifications-gen'
+import * as ConfigConstants from '../constants/config'
 
 const initGit = () => {
-  Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.badgeState === old.badgeState) return
     const {setBadges} = Constants.useGitState.getState().dispatch
-    setBadges(new Set(action.payload.badgeState.newGitRepoGlobalUniqueIDs))
+    setBadges(new Set(s.badgeState?.newGitRepoGlobalUniqueIDs))
   })
 }
 

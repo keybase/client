@@ -1,6 +1,5 @@
 import * as Tabs from '../constants/tabs'
 import * as EngineGen from './engine-gen-gen'
-import * as NotificationsGen from './notifications-gen'
 import * as FsConstants from '../constants/fs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
@@ -54,10 +53,7 @@ const setupNotifications = async () => {
   }
 }
 
-const createBadgeState = (_: unknown, action: EngineGen.Keybase1NotifyBadgesBadgeStatePayload) =>
-  NotificationsGen.createReceivedBadgeState({badgeState: action.payload.params.badgeState})
-
-const badgeStateToBadgeCounts = (_: unknown, bs: RPCTypes.BadgeState) => {
+const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState) => {
   const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
   const deletedTeams = bs.deletedTeams ?? []
   const newDevices = bs.newDevices ?? []
@@ -107,19 +103,6 @@ const shouldTriggerTlfLoad = (bs: RPCTypes.BadgeState) => {
   return !same
 }
 
-const receivedBadgeState = (
-  state: Container.TypedState,
-  action: NotificationsGen.ReceivedBadgeStatePayload
-) => {
-  const counts = badgeStateToBadgeCounts(state, action.payload.badgeState)
-  if (!isMobile && shouldTriggerTlfLoad(action.payload.badgeState)) {
-    FsConstants.useState.getState().dispatch.favoritesLoad()
-  }
-  if (counts) {
-    Constants.useState.getState().dispatch.setBadgeCounts(counts)
-  }
-}
-
 const receivedRootAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAuditRootAuditErrorPayload) => {
   ConfigConstants.useConfigState
     .getState()
@@ -139,11 +122,21 @@ const receivedBoxAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAudit
 }
 
 const initNotifications = () => {
-  Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   Container.listenAction(EngineGen.keybase1NotifyAuditRootAuditError, receivedRootAuditError)
   Container.listenAction(EngineGen.keybase1NotifyAuditBoxAuditError, receivedBoxAuditError)
   Container.listenAction(EngineGen.connected, setupNotifications)
-  Container.listenAction(EngineGen.keybase1NotifyBadgesBadgeState, createBadgeState)
+  Container.listenAction(EngineGen.keybase1NotifyBadgesBadgeState, (_, action) => {
+    const badgeState = action.payload.params.badgeState
+    ConfigConstants.useConfigState.getState().dispatch.setBadgeState(badgeState)
+
+    const counts = badgeStateToBadgeCounts(badgeState)
+    if (!isMobile && shouldTriggerTlfLoad(badgeState)) {
+      FsConstants.useState.getState().dispatch.favoritesLoad()
+    }
+    if (counts) {
+      Constants.useState.getState().dispatch.setBadgeCounts(counts)
+    }
+  })
 }
 
 export default initNotifications
