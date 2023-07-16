@@ -71,6 +71,7 @@ export type Store = {
   justDeletedSelf: string
   justRevokedSelf: string
   loggedIn: boolean
+  loggedInCausedbyStartup: boolean
   mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
   notifySound: boolean
   openAtLogin: boolean
@@ -118,6 +119,7 @@ const initialStore: Store = {
   justDeletedSelf: '',
   justRevokedSelf: '',
   loggedIn: false,
+  loggedInCausedbyStartup: false,
   loginError: undefined,
   mobileAppState: 'unknown',
   notifySound: false,
@@ -188,7 +190,7 @@ type State = Store & {
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
-    setLoggedIn: (l: boolean, causedByStartup?: boolean, skipSideEffect?: boolean) => void
+    setLoggedIn: (l: boolean, causedByStartup: boolean) => void
     setMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
     setNavigatorExists: () => void
     setNotifySound: (n: boolean) => void
@@ -543,16 +545,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.justDeletedSelf = self
       })
     },
-    setLoggedIn: (l, causedByStartup = false, skipSideEffect = false) => {
-      if (l === get().loggedIn) {
-        return
-      }
+    setLoggedIn: (l, causedByStartup) => {
       set(s => {
         s.loggedIn = l
+        s.loggedInCausedbyStartup = causedByStartup
       })
-      if (!skipSideEffect) {
-        reduxDispatch(ConfigGen.createLoggedInChanged({causedByStartup}))
-      }
     },
     setMobileAppState: nextAppState => {
       set(s => {

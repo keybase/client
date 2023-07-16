@@ -67,9 +67,6 @@ const initializeInputMonitor = () => {
   }
 }
 
-const initOsNetworkStatus = () =>
-  ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine, type: 'notavailable'})
-
 const setupReachabilityWatcher = (listenerApi: Container.ListenerApi) => {
   const handler = (online: boolean) => {
     listenerApi.dispatch(ConfigGen.createOsNetworkStatusChanged({online, type: 'notavailable'}))
@@ -166,7 +163,14 @@ export const initPlatformListener = () => {
   Container.listenAction(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
   Container.listenAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
   Container.listenAction(ConfigGen.copyToClipboard, onCopyToClipboard)
-  Container.listenAction(ConfigGen.loggedInChanged, initOsNetworkStatus)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.loggedIn === old.loggedIn) return
+    const reduxDispatch = Z.getReduxDispatch()
+    reduxDispatch(
+      ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine, type: 'notavailable'})
+    )
+  })
 
   ConfigConstants.useConfigState.subscribe((s, prev) => {
     if (s.appFocused !== prev.appFocused) {

@@ -175,11 +175,6 @@ const updateMobileNetState = async (_: unknown, action: ConfigGen.OsNetworkStatu
   return false as const
 }
 
-const initOsNetworkStatus = async () => {
-  const {type} = await NetInfo.fetch()
-  return ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
-}
-
 const setupNetInfoWatcher = (listenerApi: Container.ListenerApi) => {
   NetInfo.addEventListener(({type}) => {
     listenerApi.dispatch(ConfigGen.createOsNetworkStatusChanged({online: type !== 'none', type}))
@@ -559,7 +554,17 @@ export const initPlatformListener = () => {
       Z.ignorePromise(f())
     }
   })
-  Container.listenAction(ConfigGen.loggedInChanged, initOsNetworkStatus)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.loggedIn === old.loggedIn) return
+    const reduxDispatch = Z.getReduxDispatch()
+    const f = async () => {
+      const {type} = await NetInfo.fetch()
+      reduxDispatch(ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type}))
+    }
+    Z.ignorePromise(f())
+  })
+
   Container.listenAction(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
 
   Container.listenAction(ConfigGen.showShareActionSheet, onShareAction)

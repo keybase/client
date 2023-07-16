@@ -594,11 +594,15 @@ const initFS = () => {
   Container.listenAction(FsGen.deleteFile, deleteFile)
   Container.listenAction(FsGen.pollJournalStatus, pollJournalFlushStatusUntilDone)
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
-  Container.listenAction([ConfigGen.loggedInChanged, FsGen.userIn], (_, a) => {
-    if (a.type === ConfigGen.loggedInChanged && !ConfigConstants.useConfigState.getState().loggedIn) {
-      return
-    }
+  Container.listenAction(FsGen.userIn, () => {
     Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+  })
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.loggedIn === old.loggedIn) return
+    if (ConfigConstants.useConfigState.getState().loggedIn) {
+      Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+    }
   })
 
   ConfigConstants.useConfigState.subscribe((s, old) => {

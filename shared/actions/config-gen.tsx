@@ -10,7 +10,6 @@ export const copyToClipboard = 'config:copyToClipboard'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const initListenerLoops = 'config:initListenerLoops'
 export const loadOnStart = 'config:loadOnStart'
-export const loggedInChanged = 'config:loggedInChanged'
 export const openAppStore = 'config:openAppStore'
 export const osNetworkStatusChanged = 'config:osNetworkStatusChanged'
 export const powerMonitorEvent = 'config:powerMonitorEvent'
@@ -107,10 +106,6 @@ export const createDarkModePreferenceChanged = (payload?: undefined) => ({
   payload,
   type: darkModePreferenceChanged as typeof darkModePreferenceChanged,
 })
-export const createLoggedInChanged = (payload: {readonly causedByStartup: boolean}) => ({
-  payload,
-  type: loggedInChanged as typeof loggedInChanged,
-})
 export const createOsNetworkStatusChanged = (payload: {
   readonly online: boolean
   readonly type: Types.ConnectionType
@@ -138,7 +133,6 @@ export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
-export type LoggedInChangedPayload = ReturnType<typeof createLoggedInChanged>
 export type OpenAppStorePayload = ReturnType<typeof createOpenAppStore>
 export type OsNetworkStatusChangedPayload = ReturnType<typeof createOsNetworkStatusChanged>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
@@ -160,7 +154,6 @@ export type Actions =
   | DarkModePreferenceChangedPayload
   | InitListenerLoopsPayload
   | LoadOnStartPayload
-  | LoggedInChangedPayload
   | OpenAppStorePayload
   | OsNetworkStatusChangedPayload
   | PowerMonitorEventPayload

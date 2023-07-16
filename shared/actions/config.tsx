@@ -32,7 +32,7 @@ const onLoggedOut = () => {
   const {loggedIn, dispatch} = Constants.useConfigState.getState()
   // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
   if (loggedIn) {
-    dispatch.setLoggedIn(false)
+    dispatch.setLoggedIn(false, false)
   }
 }
 
@@ -55,102 +55,72 @@ const getFollowerInfo = (_: unknown, action: ConfigGen.LoadOnStartPayload) => {
 
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
-const loadDaemonBootstrapStatus = (
-  action?: ConfigGen.LoggedInChangedPayload | GregorGen.UpdateReachablePayload
-) => {
-  const f = async () => {
-    const version = Constants.useDaemonState.getState().handshakeVersion
-    // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
-    if (
-      action?.type === ConfigGen.loggedInChanged &&
-      action.payload.causedByStartup &&
-      Constants.useConfigState.getState().loggedIn
-    ) {
-      return
+const loadDaemonBootstrapStatus = async (action?: GregorGen.UpdateReachablePayload) => {
+  const version = Constants.useDaemonState.getState().handshakeVersion
+  if (action?.type === GregorGen.updateReachable && action.payload.reachable === RPCTypes.Reachable.no) {
+    wasUnreachable = true
+  }
+
+  const reduxDispatch = Z.getReduxDispatch()
+
+  const {wait} = Constants.useDaemonState.getState().dispatch
+  const {setBootstrap} = Constants.useCurrentUserState.getState().dispatch
+  const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
+
+  const makeCall = async () => {
+    const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
+    const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
+    setBootstrap({deviceID, deviceName, uid, username})
+    if (username) {
+      setDefaultUsername(username)
+    }
+    if (loggedIn) {
+      Constants.useConfigState.getState().dispatch.setUserSwitching(false)
     }
 
-    if (action?.type === GregorGen.updateReachable && action.payload.reachable === RPCTypes.Reachable.no) {
-      wasUnreachable = true
+    logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
+    Constants.useConfigState.getState().dispatch.setLoggedIn(loggedIn, false)
+    reduxDispatch(Chat2Gen.createUpdateUserReacjis({userReacjis}))
+
+    // set HTTP srv info
+    if (s.httpSrvInfo) {
+      logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
+      Constants.useConfigState.getState().dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
+    } else {
+      logger.info(`[Bootstrap] http server: no info given`)
     }
 
-    const reduxDispatch = Z.getReduxDispatch()
-
-    const {wait} = Constants.useDaemonState.getState().dispatch
-    const {setBootstrap} = Constants.useCurrentUserState.getState().dispatch
-    const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
-
-    const makeCall = async () => {
-      const s = await RPCTypes.configGetBootstrapStatusRpcPromise()
-      const {userReacjis, deviceName, deviceID, uid, loggedIn, username} = s
-      setBootstrap({deviceID, deviceName, uid, username})
-      if (username) {
-        setDefaultUsername(username)
+    // if we're logged in act like getAccounts is done already
+    if (!action && loggedIn) {
+      const {handshakeWaiters} = Constants.useDaemonState.getState()
+      if (handshakeWaiters.get(getAccountsWaitKey)) {
+        wait(getAccountsWaitKey, version, false)
       }
-      if (loggedIn) {
-        Constants.useConfigState.getState().dispatch.setUserSwitching(false)
-      }
-
-      logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
-      Constants.useConfigState.getState().dispatch.setLoggedIn(loggedIn)
-      reduxDispatch(Chat2Gen.createUpdateUserReacjis({userReacjis}))
-
-      // set HTTP srv info
-      if (s.httpSrvInfo) {
-        logger.info(`[Bootstrap] http server: addr: ${s.httpSrvInfo.address} token: ${s.httpSrvInfo.token}`)
-        Constants.useConfigState
-          .getState()
-          .dispatch.setHTTPSrvInfo(s.httpSrvInfo.address, s.httpSrvInfo.token)
-      } else {
-        logger.info(`[Bootstrap] http server: no info given`)
-      }
-
-      // if we're logged in act like getAccounts is done already
-      if (!action && loggedIn) {
-        const {handshakeWaiters} = Constants.useDaemonState.getState()
-        if (handshakeWaiters.get(getAccountsWaitKey)) {
-          wait(getAccountsWaitKey, version, false)
-        }
-      }
-    }
-
-    switch (action?.type) {
-      case undefined:
-        {
-          const name = 'config.getBootstrapStatus'
-          wait(name, version, true)
-          await makeCall()
-          wait(name, version, false)
-        }
-        break
-      case GregorGen.updateReachable:
-        if (action.payload.reachable === RPCTypes.Reachable.yes && wasUnreachable) {
-          wasUnreachable = false // reset it
-          await makeCall()
-        }
-        break
-      case ConfigGen.loggedInChanged:
-        await makeCall()
-        break
     }
   }
-  Container.ignorePromise(f())
+
+  switch (action?.type) {
+    case undefined:
+      {
+        await makeCall()
+      }
+      break
+    case GregorGen.updateReachable:
+      if (action.payload.reachable === RPCTypes.Reachable.yes && wasUnreachable) {
+        wasUnreachable = false // reset it
+        await makeCall()
+      }
+      break
+  }
 }
 
 // Load accounts, this call can be slow so we attempt to continue w/o waiting if we determine we're logged in
 // normally this wouldn't be worth it but this is startup
 const getAccountsWaitKey = 'config.getAccounts'
 
-const loadDaemonAccounts = (action?: ConfigGen.RevokedPayload | ConfigGen.LoggedInChangedPayload) => {
+const loadDaemonAccounts = (action?: ConfigGen.RevokedPayload) => {
   const f = async () => {
     const version = Constants.useDaemonState.getState().handshakeVersion
-    // ignore since we handle handshake
-    if (
-      action?.type === ConfigGen.loggedInChanged &&
-      Constants.useConfigState.getState().loggedIn &&
-      action.payload.causedByStartup
-    ) {
-      return
-    }
 
     let handshakeWait = false
     let handshakeVersion = 0
@@ -272,31 +242,36 @@ const onPowerMonitorEvent = async (_s: unknown, action: ConfigGen.PowerMonitorEv
 
 const initConfig = () => {
   // Re-get info about our account if you log in/we're done handshaking/became reachable
-  Container.listenAction([ConfigGen.loggedInChanged, GregorGen.updateReachable], (_, a) =>
-    loadDaemonBootstrapStatus(a)
-  )
-  // Load the known accounts if you revoke / handshake / logout
-  Container.listenAction([ConfigGen.revoked, ConfigGen.loggedInChanged], (_, a) => loadDaemonAccounts(a))
+  Container.listenAction(GregorGen.updateReachable, (_, a) => Z.ignorePromise(loadDaemonBootstrapStatus(a)))
 
-  Container.listenAction(ConfigGen.loggedInChanged, (_, action) => {
-    return Constants.useConfigState.getState().loggedIn && !action.payload.causedByStartup
-      ? ConfigGen.createLoadOnStart({phase: 'reloggedIn'})
-      : false
-  })
-  Container.listenAction(ConfigGen.loggedInChanged, async (_, action) => {
-    if (!Constants.useConfigState.getState().loggedIn) {
-      return false
+  Constants.useConfigState.subscribe((s, old) => {
+    if (s.loggedIn === old.loggedIn) return
+    const reduxDispatch = Z.getReduxDispatch()
+
+    // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
+    if (!s.loggedInCausedbyStartup || !s.loggedIn) {
+      Z.ignorePromise(loadDaemonBootstrapStatus())
+      loadDaemonAccounts()
     }
-    if (action.payload.causedByStartup) {
-      return false
+
+    if (s.loggedIn) {
+      if (!s.loggedInCausedbyStartup) {
+        reduxDispatch(ConfigGen.createLoadOnStart({phase: 'reloggedIn'}))
+        const f = async () => {
+          await Container.timeoutPromise(1000)
+          requestAnimationFrame(() => {
+            reduxDispatch(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
+          })
+        }
+        Z.ignorePromise(f())
+      }
+    } else {
+      reduxDispatch({payload: {}, type: 'common:resetStore'} as any)
     }
-    await Container.timeoutPromise(1000)
-    return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
-      requestAnimationFrame(() => {
-        resolve(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
-      })
-    })
   })
+
+  // Load the known accounts if you revoke / handshake / logout
+  Container.listenAction(ConfigGen.revoked, (_, a) => loadDaemonAccounts(a))
 
   Container.listenAction(
     [
@@ -323,12 +298,6 @@ const initConfig = () => {
       Constants.useLogoutState.getState().dispatch.wait(waitKey, version, false)
     }
     Z.ignorePromise(f())
-  })
-  // When we're all done lets clean up
-  Container.listenAction(ConfigGen.loggedInChanged, () => {
-    return !Constants.useConfigState.getState().loggedIn
-      ? ({payload: {}, type: 'common:resetStore'} as any)
-      : null
   })
   // Store per user server config info
   Container.listenAction(ConfigGen.loadOnStart, updateServerConfig)
@@ -364,7 +333,6 @@ const initConfig = () => {
   })
 
   Container.listenAction(ConfigGen.loadOnStart, getFollowerInfo)
-
   Container.listenAction(ConfigGen.androidShare, onAndroidShare)
 
   // Kick off platform specific stuff
@@ -433,7 +401,15 @@ const initConfig = () => {
     if (s.handshakeVersion === old.handshakeVersion) return
     const version = s.handshakeVersion
     checkNav(version)
-    loadDaemonBootstrapStatus()
+
+    const f = async () => {
+      const name = 'config.getBootstrapStatus'
+      const {wait} = Constants.useDaemonState.getState().dispatch
+      wait(name, version, true)
+      await loadDaemonBootstrapStatus()
+      wait(name, version, false)
+    }
+    Z.ignorePromise(f())
     loadDaemonAccounts()
     DarkMode.useDarkModeState.getState().dispatch.loadDarkPrefs()
   })
