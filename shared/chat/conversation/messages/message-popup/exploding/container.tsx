@@ -1,5 +1,4 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as ConfigConstants from '../../../../../constants/config'
@@ -96,8 +95,9 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
+  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopy = (h: Container.HiddenString) => {
-    dispatch(ConfigGen.createCopyToClipboard({text: h.stringValue()}))
+    copyToClipboard(h.stringValue())
   }
   const _onDownload = (message: Types.Message) => {
     dispatch(

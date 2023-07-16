@@ -1,7 +1,7 @@
 /* eslint-env browser */
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as ConfigGen from '../../../actions/config-gen'
 import * as Constants from '../../../constants/chat2'
+import * as ConfigConstants from '../../../constants/config'
 import * as Container from '../../../util/container'
 import * as Hooks from './hooks'
 import * as React from 'react'
@@ -537,13 +537,7 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
       const editingOrdinal = state.chat2.editingMap.get(conversationIDKey)
       return {centeredOrdinal, containsLatestMessage, editingOrdinal, messageOrdinals, messageTypeMap}
     }, shallowEqual)
-  const dispatch = Container.useDispatch()
-  const copyToClipboard = React.useCallback(
-    (text: string) => {
-      dispatch(ConfigGen.createCopyToClipboard({text}))
-    },
-    [dispatch]
-  )
+  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const {isLockedToBottom, scrollToBottom, setListRef, pointerWrapperRef} = useScrolling({
     centeredOrdinal,
@@ -816,7 +810,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       listContents: {width: '100%'},
-    } as const)
+    }) as const
 )
 
 export default ThreadWrapper

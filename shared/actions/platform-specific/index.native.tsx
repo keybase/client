@@ -273,12 +273,6 @@ const loadStartupDetails = async () => {
   afterStartupDetails(true)
 }
 
-const copyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) => {
-  Clipboard.setStringAsync(action.payload.text)
-    .then(() => {})
-    .catch(() => {})
-}
-
 const openAppStore = async () =>
   Linking.openURL(
     isAndroid
@@ -496,7 +490,13 @@ export const initPlatformListener = () => {
     ConfigConstants.useConfigState.getState().dispatch.changedFocus(appFocused)
   })
 
-  Container.listenAction(ConfigGen.copyToClipboard, copyToClipboard)
+  ConfigConstants.useConfigState.setState(s => {
+    s.dispatch.dynamic.copyToClipboard = s => {
+      Clipboard.setStringAsync(s)
+        .then(() => {})
+        .catch(() => {})
+    }
+  })
 
   ConfigConstants.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return

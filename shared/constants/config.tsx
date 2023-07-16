@@ -157,6 +157,7 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     dynamic: {
+      copyToClipboard: (s: string) => void
       dumpLogsNative?: (reason: string) => Promise<void>
       onFilePickerError?: (error: Error) => void
       openAppSettings?: () => void
@@ -256,6 +257,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       await get().dispatch.dynamic.dumpLogsNative?.(reason)
     },
     dynamic: {
+      copyToClipboard: () => {
+        throw new Error('copyToClipboard not implemented?????')
+      },
       dumpLogsNative: undefined,
       onFilePickerError: undefined,
       openAppSettings: undefined,

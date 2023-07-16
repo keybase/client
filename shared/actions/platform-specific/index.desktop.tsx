@@ -103,10 +103,6 @@ const onConnected = () => {
   RPCTypes.configHelloIAmRpcPromise({details: KB2.constants.helloDetails}).catch(() => {})
 }
 
-const onCopyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) => {
-  copyToClipboard?.(action.payload.text)
-}
-
 export const requestLocationPermission = async () => Promise.resolve()
 export const watchPositionForMap = async () => Promise.resolve(() => {})
 
@@ -162,7 +158,10 @@ export const initPlatformListener = () => {
   Container.listenAction(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
   Container.listenAction(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
   Container.listenAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
-  Container.listenAction(ConfigGen.copyToClipboard, onCopyToClipboard)
+
+  ConfigConstants.useConfigState.setState(s => {
+    s.dispatch.dynamic.copyToClipboard = s => copyToClipboard?.(s)
+  })
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return

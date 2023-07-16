@@ -1,4 +1,3 @@
-import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/git'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
@@ -56,9 +55,7 @@ const ConnectedRow = (ownProps: OwnProps) => {
   const _setDisableChat = (disabled: boolean, repoID: string, teamname: string) => {
     setTeamRepoSettings('', teamname, repoID, disabled)
   }
-  const copyToClipboard = (text: string) => {
-    dispatch(ConfigGen.createCopyToClipboard({text}))
-  }
+  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const openUserTracker = (username: string) => {
     showUser(username, true)
@@ -394,5 +391,5 @@ const styles = Styles.styleSheetCreate(
           paddingLeft: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )

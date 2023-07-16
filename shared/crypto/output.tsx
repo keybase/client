@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Constants from '../constants/crypto'
+import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/crypto'
 import * as FSGen from '../actions/fs-gen'
-import * as ConfigGen from '../actions/config-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Kb from '../common-adapters'
@@ -207,8 +207,9 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     dispatch(Chat2Gen.createPreviewConversation({participants: [username.stringValue()], reason: 'search'}))
   }
 
+  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyOutput = () => {
-    dispatch(ConfigGen.createCopyToClipboard({text: output.stringValue()}))
+    copyToClipboard(output.stringValue())
   }
 
   const downloadSignedText = Constants.useState(s => s.dispatch.downloadSignedText)
@@ -557,5 +558,5 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.white,
         textAlign: 'center',
       },
-    } as const)
+    }) as const
 )

@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as ConfigGen from '../../actions/config-gen'
 import * as Container from '../../util/container'
 import * as WalletsType from '../../constants/types/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type * as Types from '../../constants/types/tracker2'
@@ -136,9 +136,10 @@ const StellarValue = (p: Props) => {
   const {value, color} = p
   const dispatch = Container.useDispatch()
 
+  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyAddress = React.useCallback(() => {
-    dispatch(ConfigGen.createCopyToClipboard({text: value}))
-  }, [dispatch, value])
+    copyToClipboard(value)
+  }, [copyToClipboard, value])
 
   const onWhatIsStellar = React.useCallback(() => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']}))
@@ -516,7 +517,7 @@ const styles = Styles.styleSheetCreate(
         common: {letterSpacing: 0.2},
         isElectron: {wordBreak: 'break-all'},
       }),
-    } as const)
+    }) as const
 )
 
 export default Assertion

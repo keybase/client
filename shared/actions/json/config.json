@@ -1,8 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/config'"],
   "actions": {
-    "updateMenubarWindowID": {"id": "number"},
-    "copyToClipboard": {"text": "string"},
     "updateNow": {},
     "openAppStore": {
       "_description": "Open a link to the app store"

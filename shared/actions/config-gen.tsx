@@ -6,7 +6,6 @@ import type * as Types from '../constants/types/config'
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
 export const androidShare = 'config:androidShare'
-export const copyToClipboard = 'config:copyToClipboard'
 export const darkModePreferenceChanged = 'config:darkModePreferenceChanged'
 export const initListenerLoops = 'config:initListenerLoops'
 export const loadOnStart = 'config:loadOnStart'
@@ -17,7 +16,6 @@ export const remoteWindowWantsProps = 'config:remoteWindowWantsProps'
 export const revoked = 'config:revoked'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const showShareActionSheet = 'config:showShareActionSheet'
-export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
 export const updateWindowMaxState = 'config:updateWindowMaxState'
 export const updateWindowShown = 'config:updateWindowShown'
@@ -98,10 +96,6 @@ export const createRemoteWindowWantsProps = (payload: {
   readonly component: string
   readonly param: string
 }) => ({payload, type: remoteWindowWantsProps as typeof remoteWindowWantsProps})
-export const createCopyToClipboard = (payload: {readonly text: string}) => ({
-  payload,
-  type: copyToClipboard as typeof copyToClipboard,
-})
 export const createDarkModePreferenceChanged = (payload?: undefined) => ({
   payload,
   type: darkModePreferenceChanged as typeof darkModePreferenceChanged,
@@ -121,15 +115,10 @@ export const createShowShareActionSheet = (payload: {
   readonly message?: string
   readonly mimeType: string
 }) => ({payload, type: showShareActionSheet as typeof showShareActionSheet})
-export const createUpdateMenubarWindowID = (payload: {readonly id: number}) => ({
-  payload,
-  type: updateMenubarWindowID as typeof updateMenubarWindowID,
-})
 export const createUpdateNow = (payload?: undefined) => ({payload, type: updateNow as typeof updateNow})
 
 // Action Payloads
 export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
-export type CopyToClipboardPayload = ReturnType<typeof createCopyToClipboard>
 export type DarkModePreferenceChangedPayload = ReturnType<typeof createDarkModePreferenceChanged>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
@@ -140,7 +129,6 @@ export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindow
 export type RevokedPayload = ReturnType<typeof createRevoked>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type ShowShareActionSheetPayload = ReturnType<typeof createShowShareActionSheet>
-export type UpdateMenubarWindowIDPayload = ReturnType<typeof createUpdateMenubarWindowID>
 export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
 export type UpdateWindowMaxStatePayload = ReturnType<typeof createUpdateWindowMaxState>
 export type UpdateWindowShownPayload = ReturnType<typeof createUpdateWindowShown>
@@ -150,7 +138,6 @@ export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState
 // prettier-ignore
 export type Actions =
   | AndroidSharePayload
-  | CopyToClipboardPayload
   | DarkModePreferenceChangedPayload
   | InitListenerLoopsPayload
   | LoadOnStartPayload
@@ -161,7 +148,6 @@ export type Actions =
   | RevokedPayload
   | SetSystemDarkModePayload
   | ShowShareActionSheetPayload
-  | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
   | UpdateWindowMaxStatePayload
   | UpdateWindowShownPayload

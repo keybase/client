@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
+import * as ConfigConstants from '../constants/config'
 import {Box2} from './box'
 import Icon from './icon'
 import Button, {type Props as ButtonProps} from './button'
@@ -56,6 +57,7 @@ const CopyText = (props: Props) => {
 
   const dispatch = Container.useDispatch()
 
+  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const copy = React.useCallback(() => {
     if (!text) {
       if (!loadText) {
@@ -69,14 +71,14 @@ const CopyText = (props: Props) => {
       } else {
         setShowingToast(true)
         textRef.current && textRef.current.highlightText()
-        dispatch(ConfigGen.createCopyToClipboard({text}))
+        copyToClipboard(text)
       }
       onCopy && onCopy()
       if (hideOnCopy) {
         setRevealed(false)
       }
     }
-  }, [text, loadText, shareSheet, dispatch, onCopy, hideOnCopy])
+  }, [copyToClipboard, text, loadText, shareSheet, dispatch, onCopy, hideOnCopy])
 
   React.useEffect(() => {
     if (requestedCopy && loadText) {
@@ -252,7 +254,7 @@ const styles = Styles.styleSheetCreate(
           paddingTop: 5,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default CopyText

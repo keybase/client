@@ -1,4 +1,3 @@
-import * as ConfigGen from '../../actions/config-gen'
 import * as Constants from '../../constants/config'
 import * as Container from '../../util/container'
 import * as Platform from '../../constants/platform'
@@ -37,10 +36,7 @@ const Connected = () => {
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
     }
   }, [loggedIn, dispatch, setGlobalError])
-  const copyToClipboard = React.useCallback(
-    (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
-    [dispatch]
-  )
+  const copyToClipboard = Constants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onDismiss = setGlobalError
 
   if (daemonError || error) {

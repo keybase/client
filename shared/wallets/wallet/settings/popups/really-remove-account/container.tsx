@@ -1,6 +1,6 @@
 import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
-import * as ConfigGen from '../../../../../actions/config-gen'
+import * as ConfigConstants from '../../../../../constants/config'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Types from '../../../../../constants/types/wallets'
@@ -18,9 +18,7 @@ export default (ownProps: OwnProps) => {
   const _onClose = () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
-  const _onCopyKey = (secretKey: string) => {
-    dispatch(ConfigGen.createCopyToClipboard({text: secretKey}))
-  }
+  const _onCopyKey = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onFinish = (accountID: Types.AccountID) => {
     dispatch(WalletsGen.createDeleteAccount({accountID}))
   }
