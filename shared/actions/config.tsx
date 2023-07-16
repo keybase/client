@@ -190,14 +190,6 @@ const loadDaemonAccounts = (action?: ConfigGen.RevokedPayload) => {
   Container.ignorePromise(f())
 }
 
-const onAndroidShare = () => {
-  // already loaded, so just go now
-  if (Constants.useConfigState.getState().startup.loaded) {
-    return RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']})
-  }
-  return false
-}
-
 const updateServerConfig = async (_: unknown, action: ConfigGen.LoadOnStartPayload) =>
   action.payload.phase === 'startupOrReloginButNotInARush' &&
   Constants.useConfigState.getState().loggedIn &&
@@ -326,7 +318,6 @@ const initConfig = () => {
   })
 
   Container.listenAction(ConfigGen.loadOnStart, getFollowerInfo)
-  Container.listenAction(ConfigGen.androidShare, onAndroidShare)
 
   // Kick off platform specific stuff
   initPlatformListener()

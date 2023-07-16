@@ -3,19 +3,11 @@
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
-export const androidShare = 'config:androidShare'
 export const initListenerLoops = 'config:initListenerLoops'
 export const loadOnStart = 'config:loadOnStart'
 export const revoked = 'config:revoked'
 
 // Action Creators
-/**
- * Intent fired with a share url
- */
-export const createAndroidShare = (payload: {readonly url?: string; readonly text?: string} = {}) => ({
-  payload,
-  type: androidShare as typeof androidShare,
-})
 /**
  * Internal action just to start saga-like spawn processes
  */
@@ -37,7 +29,6 @@ export const createLoadOnStart = (payload: {
 export const createRevoked = (payload?: undefined) => ({payload, type: revoked as typeof revoked})
 
 // Action Payloads
-export type AndroidSharePayload = ReturnType<typeof createAndroidShare>
 export type InitListenerLoopsPayload = ReturnType<typeof createInitListenerLoops>
 export type LoadOnStartPayload = ReturnType<typeof createLoadOnStart>
 export type RevokedPayload = ReturnType<typeof createRevoked>
@@ -45,7 +36,6 @@ export type RevokedPayload = ReturnType<typeof createRevoked>
 // All Actions
 // prettier-ignore
 export type Actions =
-  | AndroidSharePayload
   | InitListenerLoopsPayload
   | LoadOnStartPayload
   | RevokedPayload

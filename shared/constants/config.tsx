@@ -1,6 +1,7 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as RemoteGen from '../actions/remote-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ProvisionConstants from './provision'
 import * as RPCTypes from './types/rpc-gen'
 import * as Stats from '../engine/stats'
@@ -483,6 +484,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
       })
     },
+    powerMonitorEvent: event => {
+      const f = async () => {
+        await RPCTypes.appStatePowerMonitorEventRpcPromise({event})
+      }
+      Z.ignorePromise(f())
+    },
     remoteWindowNeedsProps: (component, params) => {
       set(s => {
         const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
@@ -494,12 +501,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.justRevokedSelf = ''
       })
-    },
-    powerMonitorEvent: event => {
-      const f = async () => {
-        await RPCTypes.appStatePowerMonitorEventRpcPromise({event})
-      }
-      Z.ignorePromise(f())
     },
     resetState: () => {
       set(s => ({
@@ -541,6 +542,10 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.androidShare = share
       })
+      // already loaded, so just go now
+      if (get().startup.loaded) {
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']}))
+      }
     },
     setDefaultUsername: u => {
       set(s => {

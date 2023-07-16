@@ -8,11 +8,6 @@
       ],
       "phase": "'initialStartupAsEarlyAsPossible' | 'connectedToDaemonForFirstTime' | 'reloggedIn' | 'startupOrReloginButNotInARush'"
     },
-    "androidShare": {
-      "_description": "Intent fired with a share url",
-      "url?": "string",
-      "text?": "string"
-    },
     "initListenerLoops": {
       "_description": "Internal action just to start saga-like spawn processes"
     },
