@@ -5,6 +5,7 @@ import type HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of remote but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'remote:'
+export const closeUnlockFolders = 'remote:closeUnlockFolders'
 export const dumpLogs = 'remote:dumpLogs'
 export const installerRan = 'remote:installerRan'
 export const link = 'remote:link'
@@ -20,6 +21,7 @@ export const trackerChangeFollow = 'remote:trackerChangeFollow'
 export const trackerCloseTracker = 'remote:trackerCloseTracker'
 export const trackerIgnore = 'remote:trackerIgnore'
 export const trackerLoad = 'remote:trackerLoad'
+export const unlockFoldersSubmitPaperKey = 'remote:unlockFoldersSubmitPaperKey'
 export const updateNow = 'remote:updateNow'
 export const updateWindowMaxState = 'remote:updateWindowMaxState'
 export const updateWindowShown = 'remote:updateWindowShown'
@@ -84,6 +86,10 @@ export const createRemoteWindowWantsProps = (payload: {
   readonly component: string
   readonly param: string
 }) => ({payload, type: remoteWindowWantsProps as typeof remoteWindowWantsProps})
+export const createCloseUnlockFolders = (payload?: undefined) => ({
+  payload,
+  type: closeUnlockFolders as typeof closeUnlockFolders,
+})
 export const createDumpLogs = (payload: {readonly reason: 'quitting through menu'}) => ({
   payload,
   type: dumpLogs as typeof dumpLogs,
@@ -127,9 +133,14 @@ export const createTrackerLoad = (payload: {
   readonly reason: string
   readonly inTracker: boolean
 }) => ({payload, type: trackerLoad as typeof trackerLoad})
+export const createUnlockFoldersSubmitPaperKey = (payload: {readonly paperKey: string}) => ({
+  payload,
+  type: unlockFoldersSubmitPaperKey as typeof unlockFoldersSubmitPaperKey,
+})
 export const createUpdateNow = (payload?: undefined) => ({payload, type: updateNow as typeof updateNow})
 
 // Action Payloads
+export type CloseUnlockFoldersPayload = ReturnType<typeof createCloseUnlockFolders>
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LinkPayload = ReturnType<typeof createLink>
@@ -145,6 +156,7 @@ export type TrackerChangeFollowPayload = ReturnType<typeof createTrackerChangeFo
 export type TrackerCloseTrackerPayload = ReturnType<typeof createTrackerCloseTracker>
 export type TrackerIgnorePayload = ReturnType<typeof createTrackerIgnore>
 export type TrackerLoadPayload = ReturnType<typeof createTrackerLoad>
+export type UnlockFoldersSubmitPaperKeyPayload = ReturnType<typeof createUnlockFoldersSubmitPaperKey>
 export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
 export type UpdateWindowMaxStatePayload = ReturnType<typeof createUpdateWindowMaxState>
 export type UpdateWindowShownPayload = ReturnType<typeof createUpdateWindowShown>
@@ -153,6 +165,7 @@ export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState
 // All Actions
 // prettier-ignore
 export type Actions =
+  | CloseUnlockFoldersPayload
   | DumpLogsPayload
   | InstallerRanPayload
   | LinkPayload
@@ -168,6 +181,7 @@ export type Actions =
   | TrackerCloseTrackerPayload
   | TrackerIgnorePayload
   | TrackerLoadPayload
+  | UnlockFoldersSubmitPaperKeyPayload
   | UpdateNowPayload
   | UpdateWindowMaxStatePayload
   | UpdateWindowShownPayload

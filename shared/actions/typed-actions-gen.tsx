@@ -6,7 +6,6 @@ import type * as enginegen from './engine-gen-gen'
 import type * as fs from './fs-gen'
 import type * as remote from './remote-gen'
 import type * as routetree from './route-tree-gen'
-import type * as unlockfolders from './unlock-folders-gen'
 import type * as wallets from './wallets-gen'
 
 export type TypedActions =
@@ -17,7 +16,6 @@ export type TypedActions =
   | fs.Actions
   | remote.Actions
   | routetree.Actions
-  | unlockfolders.Actions
   | wallets.Actions
 
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never

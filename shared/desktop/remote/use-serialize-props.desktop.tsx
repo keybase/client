@@ -25,7 +25,6 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
   const currentForceUpdate = ConfigConstants.useConfigState(
     s => s.remoteWindowNeedsProps.get(windowComponent)?.get(windowParam) ?? 0
   )
-
   const throttledSend = React.useRef(
     throttle(
       (p: ProxyProps, forceUpdate: boolean) => {

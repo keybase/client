@@ -1,11 +1,12 @@
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
-import type {Device} from '../constants/types/unlock-folders'
+import type * as ConfigConstants from '../constants/config'
 
 export type Props = {
-  devices?: Array<Device>
+  devices: ConfigConstants.Store['unlockFoldersDevices']
   toPaperKeyInput: () => void
 }
+type Device = ConfigConstants.Store['unlockFoldersDevices'][0]
 
 const DeviceRow = ({device}: {device: Device}) => {
   const icon = (
@@ -35,9 +36,7 @@ const DeviceList = (props: Props) => (
       please turn on one of the devices below:
     </Kb.Text>
     <div style={styles.devicesContainer as any}>
-      {props.devices?.map(d => (
-        <DeviceRow key={d.deviceID} device={d} />
-      ))}
+      {props.devices?.map(d => <DeviceRow key={d.deviceID} device={d} />)}
     </div>
     <div style={styles.buttonsContainer}>
       <Kb.Button
@@ -88,7 +87,7 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: 55,
         paddingRight: 55,
       },
-    } as const)
+    }) as const
 )
 
 export default DeviceList

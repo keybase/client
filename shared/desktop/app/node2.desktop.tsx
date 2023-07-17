@@ -438,6 +438,11 @@ const plumbEvents = () => {
   // we use this engine to proxy calls to the service from the renderer
   const nodeEngine = makeEngine(mainWindowDispatch, () => {})
 
+  const timeoutPromise = async (timeMs: number) =>
+    new Promise<void>(resolve => {
+      setTimeout(() => resolve(), timeMs)
+    })
+
   Electron.ipcMain.handle('KBkeybase', async (event, action: Action) => {
     switch (action.type) {
       case 'engineSend': {
@@ -757,8 +762,18 @@ const plumbEvents = () => {
         break
       }
       case 'rendererNewProps': {
-        const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
-        w?.webContents.send('KBprops', action.payload.propsStr)
+        // this can be racy so we try a few
+        let count = 0
+        while (count < 5) {
+          const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
+          if (w) {
+            w.webContents.send('KBprops', action.payload.propsStr)
+            break
+          } else {
+            await timeoutPromise(500)
+          }
+          ++count
+        }
         break
       }
       case 'closeRenderer': {

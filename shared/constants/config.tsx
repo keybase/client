@@ -1,6 +1,7 @@
 import * as DarkMode from './darkmode'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ProvisionConstants from './provision'
+import * as DeviceTypes from './types/devices'
 import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -50,14 +51,8 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export type Store = {
   allowAnimatedEmojis: boolean
   androidShare?:
-    | {
-        type: RPCTypes.IncomingShareType.file
-        url: string
-      }
-    | {
-        type: RPCTypes.IncomingShareType.text
-        text: string
-      }
+    | {type: RPCTypes.IncomingShareType.file; url: string}
+    | {type: RPCTypes.IncomingShareType.text; text: string}
   appFocused: boolean
   badgeState?: RPCTypes.BadgeState
   configuredAccounts: Array<Types.ConfiguredAccount>
@@ -100,6 +95,12 @@ export type Store = {
     link: string
     tab?: Tab
   }
+  unlockFoldersDevices: Array<{
+    type: DeviceTypes.DeviceType
+    name: string
+    deviceID: DeviceTypes.DeviceID
+  }>
+  unlockFoldersError: string
   useNativeFrame: boolean
   userSwitching: boolean
   windowShownCount: Map<string, number>
@@ -158,6 +159,12 @@ const initialStore: Store = {
     pushPayload: '',
     wasFromPush: false,
   },
+  unlockFoldersDevices: [
+    {deviceID: 'one', name: 'one', type: 'desktop'},
+    {deviceID: 'two', name: 'two', type: 'mobile'},
+    {deviceID: 'three', name: 'three', type: 'desktop'},
+  ],
+  unlockFoldersError: '',
   useNativeFrame: defaultUseNativeFrame,
   userSwitching: false,
   windowShownCount: new Map(),
@@ -202,6 +209,7 @@ type State = Store & {
     loginError: (error?: RPCError) => void
     logoutAndTryToLogInAs: (username: string) => void
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
+    openUnlockFolders: (devices: Array<RPCTypes.Device>) => void
     powerMonitorEvent: (event: string) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
@@ -299,6 +307,28 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     },
     eventFromRemoteWindows: (action: TypedActions) => {
       switch (action.type) {
+        case RemoteGen.unlockFoldersSubmitPaperKey: {
+          RPCTypes.loginPaperKeySubmitRpcPromise(
+            {paperPhrase: action.payload.paperKey},
+            'unlock-folders:waiting'
+          )
+            .then(() => {
+              get().dispatch.openUnlockFolders([])
+            })
+            .catch(e => {
+              set(s => {
+                s.unlockFoldersError = e.desc
+              })
+            })
+          break
+        }
+        case RemoteGen.closeUnlockFolders: {
+          RPCTypes.rekeyRekeyStatusFinishRpcPromise()
+            .then(() => {})
+            .catch(() => {})
+          get().dispatch.openUnlockFolders([])
+          break
+        }
         case RemoteGen.stop: {
           const f = async () => {
             const SettingsConstants = await import('./settings')
@@ -551,6 +581,15 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         get().dispatch.setDefaultUsername(username)
       }
       Z.ignorePromise(f())
+    },
+    openUnlockFolders: devices => {
+      set(s => {
+        s.unlockFoldersDevices = devices.map(({name, type, deviceID}) => ({
+          deviceID,
+          name,
+          type: DeviceTypes.stringToDeviceType(type),
+        }))
+      })
     },
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => {
       set(s => {

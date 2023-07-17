@@ -1,6 +1,8 @@
 {
   "prelude": ["import type HiddenString from '../util/hidden-string'"],
   "actions": {
+    "closeUnlockFolders": {},
+    "unlockFoldersSubmitPaperKey": {"paperKey": "string"},
     "stop": {"exitCode": "RPCTypes.ExitCode"},
     "link": {"link": "string"},
     "saltpackFileOpen": {
