@@ -1,13 +1,14 @@
-import * as ConfigGen from '../actions/config-gen'
+import * as DarkMode from './darkmode'
 import * as EngineGen from '../actions/engine-gen-gen'
+import * as ProvisionConstants from './provision'
+import * as DeviceTypes from './types/devices'
+import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as ProvisionConstants from './provision'
-import * as RPCTypes from './types/rpc-gen'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
-import * as DarkMode from './darkmode'
 import logger from '../logger'
+import type * as RPCTypesGregor from './types/rpc-gregor-gen'
 import type * as Types from './types/config'
 import type {ConversationIDKey} from './types/chat2'
 import type {Tab} from './tabs'
@@ -50,20 +51,15 @@ export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPref
 export type Store = {
   allowAnimatedEmojis: boolean
   androidShare?:
-    | {
-        type: RPCTypes.IncomingShareType.file
-        url: string
-      }
-    | {
-        type: RPCTypes.IncomingShareType.text
-        text: string
-      }
+    | {type: RPCTypes.IncomingShareType.file; url: string}
+    | {type: RPCTypes.IncomingShareType.text; text: string}
   appFocused: boolean
   badgeState?: RPCTypes.BadgeState
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
   gregorReachable?: RPCTypes.Reachable
+  gregorPushState: Array<{md: RPCTypesGregor.Metadata; item: RPCTypesGregor.Item}>
   loginError?: RPCError
   httpSrv: {
     address: string
@@ -88,6 +84,7 @@ export type Store = {
   openAtLogin: boolean
   outOfDate: Types.OutOfDate
   remoteWindowNeedsProps: Map<string, Map<string, number>>
+  revokedTrigger: number
   runtimeStats?: RPCTypes.RuntimeStats
   startup: {
     loaded: boolean
@@ -98,6 +95,12 @@ export type Store = {
     link: string
     tab?: Tab
   }
+  unlockFoldersDevices: Array<{
+    type: DeviceTypes.DeviceType
+    name: string
+    deviceID: DeviceTypes.DeviceID
+  }>
+  unlockFoldersError: string
   useNativeFrame: boolean
   userSwitching: boolean
   windowShownCount: Map<string, number>
@@ -121,6 +124,7 @@ const initialStore: Store = {
   configuredAccounts: [],
   defaultUsername: '',
   globalError: undefined,
+  gregorPushState: [],
   gregorReachable: undefined,
   httpSrv: {
     address: '',
@@ -146,6 +150,7 @@ const initialStore: Store = {
     updating: false,
   },
   remoteWindowNeedsProps: new Map(),
+  revokedTrigger: 0,
   startup: {
     conversation: noConversationIDKey,
     followUser: '',
@@ -154,6 +159,8 @@ const initialStore: Store = {
     pushPayload: '',
     wasFromPush: false,
   },
+  unlockFoldersDevices: [],
+  unlockFoldersError: '',
   useNativeFrame: defaultUseNativeFrame,
   userSwitching: false,
   windowShownCount: new Map(),
@@ -198,6 +205,7 @@ type State = Store & {
     loginError: (error?: RPCError) => void
     logoutAndTryToLogInAs: (username: string) => void
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
+    openUnlockFolders: (devices: Array<RPCTypes.Device>) => void
     powerMonitorEvent: (event: string) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
@@ -210,6 +218,7 @@ type State = Store & {
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: any) => void
     setGregorReachable: (r: Store['gregorReachable']) => void
+    setGregorPushState: (state: RPCTypes.Gregor1.State) => void
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
@@ -294,7 +303,36 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     },
     eventFromRemoteWindows: (action: TypedActions) => {
       switch (action.type) {
-        // only used by remote tracker, TODO this will change
+        case RemoteGen.unlockFoldersSubmitPaperKey: {
+          RPCTypes.loginPaperKeySubmitRpcPromise(
+            {paperPhrase: action.payload.paperKey},
+            'unlock-folders:waiting'
+          )
+            .then(() => {
+              get().dispatch.openUnlockFolders([])
+            })
+            .catch(e => {
+              set(s => {
+                s.unlockFoldersError = e.desc
+              })
+            })
+          break
+        }
+        case RemoteGen.closeUnlockFolders: {
+          RPCTypes.rekeyRekeyStatusFinishRpcPromise()
+            .then(() => {})
+            .catch(() => {})
+          get().dispatch.openUnlockFolders([])
+          break
+        }
+        case RemoteGen.stop: {
+          const f = async () => {
+            const SettingsConstants = await import('./settings')
+            SettingsConstants.useState.getState().dispatch.stop(action.payload.exitCode)
+          }
+          Z.ignorePromise(f())
+          break
+        }
         case RemoteGen.trackerChangeFollow: {
           const f = async () => {
             const TrackerConstants = await import('./tracker2')
@@ -540,6 +578,15 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    openUnlockFolders: devices => {
+      set(s => {
+        s.unlockFoldersDevices = devices.map(({name, type, deviceID}) => ({
+          deviceID,
+          name,
+          type: DeviceTypes.stringToDeviceType(type),
+        }))
+      })
+    },
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => {
       set(s => {
         s.networkStatus = {
@@ -589,9 +636,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         set(s => {
           s.defaultUsername = du
           s.justRevokedSelf = name
+          s.revokedTrigger++
         })
       }
-      reduxDispatch(ConfigGen.createRevoked())
     },
     setAccounts: a => {
       set(s => {
@@ -640,6 +687,19 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       set(s => {
         s.globalError = e
+      })
+    },
+    setGregorPushState: state => {
+      const items = state.items || []
+      const goodState = items.reduce<State['gregorPushState']>((arr, {md, item}) => {
+        md && item && arr.push({item, md})
+        return arr
+      }, [])
+      if (goodState.length !== items.length) {
+        logger.warn('Lost some messages in filtering out nonNull gregor items')
+      }
+      set(s => {
+        s.gregorPushState = goodState
       })
     },
     setGregorReachable: (r: Store['gregorReachable']) => {

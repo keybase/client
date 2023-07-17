@@ -1,9 +1,0 @@
-{
-  "prelude": ["import type * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'"],
-  "actions": {
-    "pushState": {
-      "state": "Array<{md: RPCTypesGregor.Metadata, item: RPCTypesGregor.Item}>",
-      "reason": "RPCTypes.PushReason"
-    }
-  }
-}

@@ -10,7 +10,6 @@ import * as EngineGen from './engine-gen-gen'
 import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorConstants from '../constants/gregor'
-import * as GregorGen from './gregor-gen'
 import * as Platform from '../constants/platform'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
@@ -3422,9 +3421,9 @@ const openChatFromWidget = (
   ]
 }
 
-const gregorPushState = (state: Container.TypedState, action: GregorGen.PushStatePayload) => {
+const gregorPushState = (items: ConfigConstants.Store['gregorPushState']) => {
   const actions: Array<Container.TypedActions> = []
-  const items = action.payload.state
+  const getReduxStore = Z.getReduxStore()
 
   const explodingItems = items.filter(i => i.item.category.startsWith(Constants.explodingModeGregorKeyPrefix))
   if (!explodingItems.length) {
@@ -3456,9 +3455,9 @@ const gregorPushState = (state: Container.TypedState, action: GregorGen.PushStat
   }
 
   const blockButtons = items.some(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
-  if (blockButtons || state.chat2.blockButtonsMap.size > 0) {
+  if (blockButtons || getReduxStore().chat2.blockButtonsMap.size > 0) {
     const shouldKeepExistingBlockButtons = new Map<string, boolean>()
-    state.chat2.blockButtonsMap.forEach((_, teamID: string) =>
+    getReduxStore().chat2.blockButtonsMap.forEach((_, teamID: string) =>
       shouldKeepExistingBlockButtons.set(teamID, false)
     )
     items
@@ -3466,7 +3465,7 @@ const gregorPushState = (state: Container.TypedState, action: GregorGen.PushStat
       .forEach(i => {
         try {
           const teamID = i.item.category.substring(Constants.blockButtonsGregorPrefix.length)
-          if (!state.chat2.blockButtonsMap.get(teamID)) {
+          if (!getReduxStore().chat2.blockButtonsMap.get(teamID)) {
             const body = GregorConstants.bodyToJSON(i.item.body) as {adder: string}
             const adder = body.adder
             actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
@@ -4004,7 +4003,11 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)
-  Container.listenAction(GregorGen.pushState, gregorPushState)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.gregorPushState === old.gregorPushState) return
+    gregorPushState(s.gregorPushState)
+  })
   Container.listenAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 
   Container.listenAction(Chat2Gen.channelSuggestionsTriggered, loadSuggestionData)

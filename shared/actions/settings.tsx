@@ -1,7 +1,6 @@
 import * as Constants from '../constants/settings'
 import * as ConfigConstants from '../constants/config'
 import * as EngineGen from './engine-gen-gen'
-import * as SettingsGen from './settings-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2Constants from '../constants/router2'
@@ -10,9 +9,6 @@ import logger from '../logger'
 import * as Container from '../util/container'
 
 const initSettings = () => {
-  Container.listenAction(SettingsGen.stop, (_, action) => {
-    Constants.useState.getState().dispatch.stop(action.payload.exitCode)
-  })
   Container.listenAction(EngineGen.keybase1NotifyUsersPasswordChanged, (_, action) => {
     const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
     Constants.usePasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)

@@ -1,7 +1,6 @@
 import * as RemoteGen from '../../actions/remote-gen'
 import * as Electron from 'electron'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SettingsGen from '../../actions/settings-gen'
 import flags from '../../util/feature-flags'
 import {closeWindows} from './main-window.desktop'
 import {isDarwin, isLinux} from '../../constants/platform'
@@ -13,7 +12,7 @@ const {mainWindowDispatch} = KB2.functions
 const reallyQuit = () => {
   closeWindows()
   if (isLinux) {
-    mainWindowDispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
+    mainWindowDispatch(RemoteGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
   } else {
     mainWindowDispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
   }

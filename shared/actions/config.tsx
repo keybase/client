@@ -3,7 +3,6 @@ import * as Chat2Gen from './chat2-gen'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as Followers from '../constants/followers'
-import * as GregorGen from './gregor-gen'
 import * as Constants from '../constants/config'
 import * as Platform from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -94,19 +93,17 @@ const loadDaemonBootstrapStatus = async (fromGregor: boolean) => {
 // normally this wouldn't be worth it but this is startup
 const getAccountsWaitKey = 'config.getAccounts'
 
-const loadDaemonAccounts = (action?: ConfigGen.RevokedPayload) => {
+const loadDaemonAccounts = () => {
   const f = async () => {
     const version = Constants.useDaemonState.getState().handshakeVersion
 
     let handshakeWait = false
     let handshakeVersion = 0
 
-    if (action === undefined) {
-      handshakeVersion = version
-      // did we beat getBootstrapStatus?
-      if (!Constants.useConfigState.getState().loggedIn) {
-        handshakeWait = true
-      }
+    handshakeVersion = version
+    // did we beat getBootstrapStatus?
+    if (!Constants.useConfigState.getState().loggedIn) {
+      handshakeWait = true
     }
 
     const {wait} = Constants.useDaemonState.getState().dispatch
@@ -213,6 +210,11 @@ const initConfig = () => {
   })
 
   Constants.useConfigState.subscribe((s, old) => {
+    if (s.revokedTrigger === old.revokedTrigger) return
+    loadDaemonAccounts()
+  })
+
+  Constants.useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     const reduxDispatch = Z.getReduxDispatch()
 
@@ -239,9 +241,6 @@ const initConfig = () => {
       reduxDispatch({payload: {}, type: 'common:resetStore'} as any)
     }
   })
-
-  // Load the known accounts if you revoke / handshake / logout
-  Container.listenAction(ConfigGen.revoked, (_, a) => loadDaemonAccounts(a))
 
   Container.listenAction(
     [
@@ -291,8 +290,9 @@ const initConfig = () => {
       .dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
   })
 
-  Container.listenAction(GregorGen.pushState, (_, action) => {
-    const items = action.payload.state
+  Constants.useConfigState.subscribe((s, old) => {
+    if (s.gregorPushState === old.gregorPushState) return
+    const items = s.gregorPushState
     const allowAnimatedEmojis = !items.find(i => i.item.category === 'emojianimations')
     Constants.useConfigState.getState().dispatch.setAllowAnimatedEmojis(allowAnimatedEmojis)
 
@@ -390,6 +390,11 @@ const initConfig = () => {
       _emitStartupOnLoadDaemonConnectedOnce = true
       Constants.useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
     }
+  })
+
+  Container.listenAction(EngineGen.keybase1GregorUIPushState, (_, action) => {
+    const {state} = action.payload.params
+    Constants.useConfigState.getState().dispatch.setGregorPushState(state)
   })
 }
 

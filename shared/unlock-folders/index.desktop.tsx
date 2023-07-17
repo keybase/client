@@ -5,17 +5,18 @@ import DeviceList from './device-list.desktop'
 import DragHeader from '../desktop/remote/drag-header.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
-import type {State, Device} from '../constants/types/unlock-folders'
+import type * as Constants from '../constants/unlock-folders'
+import type * as ConfigConstants from '../constants/config'
 
 export type Props = {
   darkMode: boolean
-  phase: State['phase']
-  devices: Array<Device>
+  phase: Constants.State['phase']
+  devices: ConfigConstants.Store['unlockFoldersDevices']
   onClose: () => void
   toPaperKeyInput: () => void
   onBackFromPaperKey: () => void
   onContinueFromPaperKey: (paperkey: string) => void
-  paperkeyError?: string
+  paperkeyError: string
   waiting: boolean
   onFinish: () => void
 }
@@ -77,7 +78,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         width: '100%',
       },
-    } as const)
+    }) as const
 )
 
 export default UnlockFolders

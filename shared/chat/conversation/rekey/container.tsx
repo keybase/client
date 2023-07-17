@@ -1,4 +1,5 @@
 import * as ConfigConstants from '../../../constants/config'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Constants from '../../../constants/chat2'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
@@ -6,7 +7,6 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 import type * as Types from '../../../constants/types/chat2'
-import {createOpenPopup} from '../../../actions/unlock-folders-gen'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -39,8 +39,15 @@ export default (ownProps: OwnProps) => {
   const onEnterPaperkey = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['chatEnterPaperkey']}))
   }
+
+  const rekeyShowPendingRekeyStatus = Container.useRPC(RPCTypes.rekeyShowPendingRekeyStatusRpcPromise)
+
   const onRekey = () => {
-    dispatch(createOpenPopup())
+    rekeyShowPendingRekeyStatus(
+      [],
+      () => {},
+      () => {}
+    )
   }
 
   const onShowProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
