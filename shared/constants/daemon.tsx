@@ -1,5 +1,4 @@
 import logger from '../logger'
-import * as ConfigGen from '../actions/config-gen'
 import type * as Types from './types/config'
 import * as Z from '../util/zustand'
 
@@ -37,15 +36,13 @@ type State = Store & {
       failedFatal?: true
     ) => void
     startHandshake: () => void
-    daemonHandshake: (firstTimeConnecting: boolean, version: number) => void
+    daemonHandshake: (version: number) => void
     daemonHandshakeDone: () => void
     onRestartHandshakeNative: () => void
   }
 }
 
 export const useDaemonState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
-
   const restartHandshake = () => {
     get().dispatch.onRestartHandshakeNative()
     get().dispatch.setState('starting')
@@ -86,19 +83,16 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
 
   // When there are no more waiters, we can show the actual app
 
-  let _firstTimeConnecting = true
   const dispatch: State['dispatch'] = {
-    daemonHandshake: (firstTimeConnecting, version) => {
+    daemonHandshake: version => {
       get().dispatch.setState('waitingForWaiters')
       set(s => {
         s.handshakeVersion = version
         s.handshakeWaiters = new Map()
       })
-      reduxDispatch(ConfigGen.createDaemonHandshake({firstTimeConnecting, version}))
     },
     daemonHandshakeDone: () => {
       get().dispatch.setState('done')
-      reduxDispatch(ConfigGen.createDaemonHandshakeDone())
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
     resetState: () => {
@@ -138,13 +132,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.handshakeRetriesLeft = Math.max(0, s.handshakeRetriesLeft - 1)
       })
-
-      const firstTimeConnecting = _firstTimeConnecting
-      _firstTimeConnecting = false
-      if (firstTimeConnecting) {
-        logger.info('First bootstrap started')
-      }
-      get().dispatch.daemonHandshake(firstTimeConnecting, get().handshakeVersion + 1)
+      get().dispatch.daemonHandshake(get().handshakeVersion + 1)
     },
     wait: (name, version, increment, failedReason, failedFatal) => {
       const {handshakeState, handshakeFailedReason, handshakeVersion} = get()

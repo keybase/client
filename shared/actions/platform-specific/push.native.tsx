@@ -1,9 +1,7 @@
 import * as ChatTypes from '../../constants/types/chat2'
-import * as ConfigGen from '../config-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/push'
-import * as NotificationsGen from '../notifications-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
@@ -25,17 +23,6 @@ const setApplicationIconBadgeNumber = (n: number) => {
   } else {
     androidSetApplicationIconBadgeNumber(n)
   }
-}
-
-let lastCount = -1
-const updateAppBadge = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) => {
-  const count = action.payload.badgeState.bigTeamBadgeCount + action.payload.badgeState.smallTeamBadgeCount
-  setApplicationIconBadgeNumber(count)
-  // Only do this native call if the count actually changed, not over and over if its zero
-  if (isIOS && count === 0 && lastCount !== 0) {
-    PushNotificationIOS.removeAllPendingNotificationRequests()
-  }
-  lastCount = count
 }
 
 type DataCommon = {
@@ -233,16 +220,6 @@ const iosListenForPushNotificationsFromJS = () => {
   isIOS && PushNotificationIOS.addEventListener('register', onRegister)
 }
 
-const setupPushEventLoop = async () => {
-  if (isAndroid) {
-    try {
-      await listenForNativeAndroidIntentNotifications()
-    } catch {}
-  } else {
-    iosListenForPushNotificationsFromJS()
-  }
-}
-
 const getStartupDetailsFromInitialShare = async () => {
   if (isAndroid) {
     const fileUrl = await (androidGetInitialShareFileUrl() ?? Promise.resolve(''))
@@ -291,9 +268,10 @@ const getInitialPushiOS = async () => {
 
 export const initPushListener = () => {
   // Permissions
-  Container.listenAction(ConfigGen.mobileAppState, (_, action) => {
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.mobileAppState === old.mobileAppState) return
     // Only recheck on foreground, not background
-    if (action.payload.nextAppState !== 'active') {
+    if (s.mobileAppState !== 'active') {
       logger.info('[PushCheck] skip on backgrounding')
       return
     }
@@ -306,13 +284,40 @@ export const initPushListener = () => {
   })
 
   // Token handling
-  Container.listenAction(ConfigGen.logoutHandshake, (_, action) => {
-    Constants.useState.getState().dispatch.deleteToken(action.payload.version)
+  ConfigConstants.useLogoutState.subscribe((s, old) => {
+    if (s.version === old.version) return
+    Constants.useState.getState().dispatch.deleteToken(s.version)
   })
 
-  Container.listenAction(NotificationsGen.receivedBadgeState, updateAppBadge)
-  Container.listenAction(ConfigGen.daemonHandshake, setupPushEventLoop)
+  let lastCount = -1
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.badgeState === old.badgeState) return
+    if (!s.badgeState) return
+    const count = s.badgeState.bigTeamBadgeCount + s.badgeState.smallTeamBadgeCount
+    setApplicationIconBadgeNumber(count)
+    // Only do this native call if the count actually changed, not over and over if its zero
+    if (isIOS && count === 0 && lastCount !== 0) {
+      PushNotificationIOS.removeAllPendingNotificationRequests()
+    }
+    lastCount = count
+  })
+
   Constants.useState.getState().dispatch.initialPermissionsCheck()
+
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion === old.handshakeVersion) return
+
+    const f = async () => {
+      if (isAndroid) {
+        try {
+          await listenForNativeAndroidIntentNotifications()
+        } catch {}
+      } else {
+        iosListenForPushNotificationsFromJS()
+      }
+    }
+    Container.ignorePromise(f())
+  })
 }
 
 export {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare}

@@ -1,5 +1,5 @@
-import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/settings'
+import * as ConfigConstants from '../constants/config'
 import * as EngineGen from './engine-gen-gen'
 import * as SettingsGen from './settings-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -18,8 +18,14 @@ const initSettings = () => {
     Constants.usePasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
   })
 
-  Container.listenAction(ConfigGen.loadOnStart, () => {
-    Constants.useContactsState.getState().dispatch.loadContactImportEnabled()
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.loadOnStartPhase === old.loadOnStartPhase) return
+    switch (s.loadOnStartPhase) {
+      case 'startupOrReloginButNotInARush':
+        Constants.useContactsState.getState().dispatch.loadContactImportEnabled()
+        break
+      default:
+    }
   })
 
   Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {

@@ -1,7 +1,0 @@
-{
-  "prelude": [],
-  "actions": {
-    "onSubmit": {"password": "string"},
-    "onCancel": {}
-  }
-}

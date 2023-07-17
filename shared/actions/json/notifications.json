@@ -1,8 +1,0 @@
-{
-  "prelude": [],
-  "actions": {
-    "receivedBadgeState": {"badgeState": "RPCTypes.BadgeState"},
-    "listenForNotifications": {},
-    "listenForKBFSNotifications": {}
-  }
-}

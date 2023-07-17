@@ -1,5 +1,4 @@
 import './tab-bar.css'
-import * as ConfigGen from '../actions/config-gen'
 import * as ConfigConstants from '../constants/config'
 import * as ProvisionConstants from '../constants/provision'
 import * as Container from '../util/container'
@@ -55,12 +54,13 @@ const Header = () => {
     startProvision()
   }
   const onHelp = () => openURL('https://book.keybase.io')
+  const dumpLogs = ConfigConstants.useConfigState(s => s.dispatch.dumpLogs)
   const onQuit = () => {
     if (!__DEV__) {
       if (isLinux) {
         stop(RPCTypes.ExitCode.ok)
       } else {
-        dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
+        Container.ignorePromise(dumpLogs?.('quitting through menu') ?? Promise.resolve())
       }
     }
     // In case dump log doesn't exit for us
@@ -349,7 +349,7 @@ const styles = Styles.styleSheetCreate(
       username: Styles.platformStyles({
         isElectron: {color: Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
       }),
-    } as const)
+    }) as const
 )
 
 export default TabBar

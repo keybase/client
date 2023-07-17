@@ -1,5 +1,4 @@
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as ConfigGen from '../actions/config-gen'
 import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -239,17 +238,18 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     requestPermissions: () => {
       const f = async () => {
+        const ConfigConstants = await import('./config')
         if (isIOS) {
           const shownPushPrompt = await askNativeIfSystemPushPromptHasBeenShown()
           if (shownPushPrompt) {
             // we've already shown the prompt, take them to settings
-            reduxDispatch(ConfigGen.createOpenAppSettings())
+            ConfigConstants.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
             get().dispatch.showPermissionsPrompt({persistSkip: true, show: false})
             return
           }
         }
         try {
-          reduxDispatch(ConfigGen.createOpenAppSettings())
+          ConfigConstants.useConfigState.getState().dispatch.dynamic.openAppSettings?.()
           const {increment} = WaitingConstants.useWaitingState.getState().dispatch
           increment(permissionsRequestingWaitingKey)
           logger.info('[PushRequesting] asking native')

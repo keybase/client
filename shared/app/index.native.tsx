@@ -1,4 +1,3 @@
-import * as ConfigGen from '../actions/config-gen'
 import * as Styles from '../styles'
 import * as WaitingConstants from '../constants/waiting'
 import * as ConfigConstants from '../constants/config'
@@ -31,12 +30,11 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
   const appStateRef = React.useRef('active')
   const {setSystemDarkMode} = DarkMode.useDarkModeState.getState().dispatch
   const handleAppLink = LinkingConstants.useState(s => s.dispatch.handleAppLink)
+  const setMobileAppState = ConfigConstants.useConfigState(s => s.dispatch.setMobileAppState)
   React.useEffect(() => {
     const appStateChangeSub = AppState.addEventListener('change', nextAppState => {
       appStateRef.current = nextAppState
-      nextAppState !== 'unknown' &&
-        nextAppState !== 'extension' &&
-        dispatch(ConfigGen.createMobileAppState({nextAppState}))
+      nextAppState !== 'unknown' && nextAppState !== 'extension' && setMobileAppState(nextAppState)
 
       if (nextAppState === 'active') {
         setSystemDarkMode(Appearance.getColorScheme() === 'dark')
@@ -75,7 +73,7 @@ const ReduxHelper = (p: {children: React.ReactNode}) => {
       kbSubWH.remove()
       kbSubDH.remove()
     }
-  }, [dispatch, setSystemDarkMode, handleAppLink])
+  }, [dispatch, setSystemDarkMode, handleAppLink, setMobileAppState])
 
   const darkMode = DarkMode.useDarkModeState(s => s.isDarkMode())
   return <Styles.DarkModeContext.Provider value={darkMode}>{children}</Styles.DarkModeContext.Provider>

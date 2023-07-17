@@ -1,9 +1,9 @@
+import * as Z from '../util/zustand'
 import * as BotsGen from './bots-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
 import * as UsersConstants from '../constants/users'
 import * as LinksConstants from '../constants/deeplinks'
-import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
@@ -11,7 +11,6 @@ import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorConstants from '../constants/gregor'
 import * as GregorGen from './gregor-gen'
-import * as NotificationsGen from './notifications-gen'
 import * as Platform from '../constants/platform'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
@@ -1003,241 +1002,244 @@ const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad
 // Load new messages on a thread. We call this when you select a conversation,
 // we get a thread-is-stale notification, or when you scroll up and want more
 // messages
-const loadMoreMessages = async (
-  state: Container.TypedState,
-  action:
+const loadMoreMessages = (
+  action?:
     | Chat2Gen.NavigateToThreadPayload
     | Chat2Gen.JumpToRecentPayload
     | Chat2Gen.LoadOlderMessagesDueToScrollPayload
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
     | Chat2Gen.LoadMessagesCenteredPayload
     | Chat2Gen.MarkConversationsStalePayload
-    | ConfigGen.ChangedFocusPayload
-    | Chat2Gen.TabSelectedPayload,
-  listenerApi: Container.ListenerApi
+    | Chat2Gen.TabSelectedPayload
 ) => {
-  // Get the conversationIDKey
-  let key: Types.ConversationIDKey | undefined
-  let reason: string = ''
-  let sd: ScrollDirection = 'none'
-  let messageIDControl: RPCChatTypes.MessageIDControl | undefined
-  let forceClear = false
-  let forceContainsLatestCalc = false
-  const knownRemotes: Array<string> = []
-  const centeredMessageIDs: Array<{
-    conversationIDKey: Types.ConversationIDKey
-    messageID: Types.MessageID
-    highlightMode: Types.CenterOrdinalHighlightMode
-  }> = []
+  const f = async () => {
+    const getReduxStore = Z.getReduxStore()
+    const reduxDispatch = Z.getReduxDispatch()
+    // Get the conversationIDKey
+    let key: Types.ConversationIDKey | undefined
+    let reason: string = ''
+    let sd: ScrollDirection = 'none'
+    let messageIDControl: RPCChatTypes.MessageIDControl | undefined
+    let forceClear = false
+    let forceContainsLatestCalc = false
+    const knownRemotes: Array<string> = []
+    const centeredMessageIDs: Array<{
+      conversationIDKey: Types.ConversationIDKey
+      messageID: Types.MessageID
+      highlightMode: Types.CenterOrdinalHighlightMode
+    }> = []
 
-  switch (action.type) {
-    case ConfigGen.changedFocus:
-      if (!Container.isMobile || !action.payload.appFocused) {
-        return
-      }
-      key = Constants.getSelectedConversation()
-      reason = 'foregrounding'
-      break
-    case Chat2Gen.markConversationsStale:
-      key = Constants.getSelectedConversation()
-      // not mentioned?
-      if (!action.payload.conversationIDKeys.includes(key)) {
-        return
-      }
-      reason = 'got stale'
-      break
-    case Chat2Gen.tabSelected:
-      key = Constants.getSelectedConversation()
-      reason = 'tab selected'
-      break
-    case Chat2Gen.navigateToThread:
-      key = action.payload.conversationIDKey
-      reason = action.payload.reason || 'navigated'
-      if (action.payload.pushBody && action.payload.pushBody.length > 0) {
-        knownRemotes.push(action.payload.pushBody)
-      }
-      if (action.payload.highlightMessageID) {
+    switch (action?.type) {
+      case undefined:
+        if (!Container.isMobile || !ConfigConstants.useConfigState.getState().appFocused) {
+          return
+        }
+        key = Constants.getSelectedConversation()
+        reason = 'foregrounding'
+        break
+      case Chat2Gen.markConversationsStale:
+        key = Constants.getSelectedConversation()
+        // not mentioned?
+        if (!action.payload.conversationIDKeys.includes(key)) {
+          return
+        }
+        reason = 'got stale'
+        break
+      case Chat2Gen.tabSelected:
+        key = Constants.getSelectedConversation()
+        reason = 'tab selected'
+        break
+      case Chat2Gen.navigateToThread:
+        key = action.payload.conversationIDKey
+        reason = action.payload.reason || 'navigated'
+        if (action.payload.pushBody && action.payload.pushBody.length > 0) {
+          knownRemotes.push(action.payload.pushBody)
+        }
+        if (action.payload.highlightMessageID) {
+          reason = 'centered'
+          messageIDControl = {
+            mode: RPCChatTypes.MessageIDControlMode.centered,
+            num: Constants.numMessagesOnInitialLoad,
+            pivot: action.payload.highlightMessageID,
+          }
+          forceClear = true
+          forceContainsLatestCalc = true
+          centeredMessageIDs.push({
+            conversationIDKey: key,
+            highlightMode: 'flash',
+            messageID: action.payload.highlightMessageID,
+          })
+        }
+        break
+      case Chat2Gen.loadOlderMessagesDueToScroll:
+        key = action.payload.conversationIDKey
+        break
+      case Chat2Gen.loadNewerMessagesDueToScroll:
+        key = action.payload.conversationIDKey
+        reason = 'scroll forward'
+        break
+      case Chat2Gen.loadMessagesCentered:
+        key = action.payload.conversationIDKey
         reason = 'centered'
         messageIDControl = {
           mode: RPCChatTypes.MessageIDControlMode.centered,
           num: Constants.numMessagesOnInitialLoad,
-          pivot: action.payload.highlightMessageID,
+          pivot: action.payload.messageID,
         }
         forceClear = true
         forceContainsLatestCalc = true
         centeredMessageIDs.push({
           conversationIDKey: key,
-          highlightMode: 'flash',
-          messageID: action.payload.highlightMessageID,
+          highlightMode: action.payload.highlightMode,
+          messageID: action.payload.messageID,
         })
-      }
-      break
-    case Chat2Gen.loadOlderMessagesDueToScroll:
-      key = action.payload.conversationIDKey
-      break
-    case Chat2Gen.loadNewerMessagesDueToScroll:
-      key = action.payload.conversationIDKey
-      reason = 'scroll forward'
-      break
-    case Chat2Gen.loadMessagesCentered:
-      key = action.payload.conversationIDKey
-      reason = 'centered'
-      messageIDControl = {
-        mode: RPCChatTypes.MessageIDControlMode.centered,
-        num: Constants.numMessagesOnInitialLoad,
-        pivot: action.payload.messageID,
-      }
-      forceClear = true
-      forceContainsLatestCalc = true
-      centeredMessageIDs.push({
-        conversationIDKey: key,
-        highlightMode: action.payload.highlightMode,
-        messageID: action.payload.messageID,
-      })
-      break
-    case Chat2Gen.jumpToRecent:
-      key = action.payload.conversationIDKey
-      reason = 'jump to recent'
-      forceClear = true
-      break
-    default:
-  }
-
-  if (!key || !Constants.isValidConversationIDKey(key)) {
-    logger.info('bail: no conversationIDKey')
-    return
-  }
-
-  const conversationIDKey = key
-  const conversationID = Types.keyToConversationID(conversationIDKey)
-  let numberOfMessagesToLoad: number
-
-  const meta = Constants.getMeta(state, conversationIDKey)
-
-  if (meta.membershipType === 'youAreReset' || meta.rekeyers.size > 0) {
-    logger.info('bail: we are reset')
-    return
-  }
-
-  if (action.type === Chat2Gen.loadOlderMessagesDueToScroll) {
-    if (!state.chat2.moreToLoadMap.get(conversationIDKey)) {
-      logger.info('bail: scrolling back and at the end')
-      return
+        break
+      case Chat2Gen.jumpToRecent:
+        key = action.payload.conversationIDKey
+        reason = 'jump to recent'
+        forceClear = true
+        break
+      default:
     }
-    sd = 'back'
-    numberOfMessagesToLoad = Constants.numMessagesOnScrollback
-  } else if (action.type === Chat2Gen.loadNewerMessagesDueToScroll) {
-    sd = 'forward'
-    numberOfMessagesToLoad = Constants.numMessagesOnScrollback
-  } else {
-    numberOfMessagesToLoad = Constants.numMessagesOnInitialLoad
-  }
 
-  logger.info(`calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`)
-
-  const loadingKey = Constants.waitingKeyThreadLoad(conversationIDKey)
-  let calledClear = false
-  const onGotThread = (thread: string) => {
-    if (!thread) {
+    if (!key || !Constants.isValidConversationIDKey(key)) {
+      logger.info('bail: no conversationIDKey')
       return
     }
 
-    const state = listenerApi.getState()
-    const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
-    const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
-    let shouldClearOthers = false
-    if ((forceClear || sd === 'none') && !calledClear) {
-      shouldClearOthers = true
-      calledClear = true
+    const conversationIDKey = key
+    const conversationID = Types.keyToConversationID(conversationIDKey)
+    let numberOfMessagesToLoad: number
+
+    const meta = Constants.getMeta(getReduxStore(), conversationIDKey)
+
+    if (meta.membershipType === 'youAreReset' || meta.rekeyers.size > 0) {
+      logger.info('bail: we are reset')
+      return
     }
-    const messages = (uiMessages.messages ?? []).reduce<Array<Types.Message>>((arr, m) => {
-      const message = conversationIDKey
-        ? Constants.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
-        : undefined
-      if (message) {
-        arr.push(message)
+
+    if (action?.type === Chat2Gen.loadOlderMessagesDueToScroll) {
+      if (!getReduxStore().chat2.moreToLoadMap.get(conversationIDKey)) {
+        logger.info('bail: scrolling back and at the end')
+        return
       }
-      return arr
-    }, [])
+      sd = 'back'
+      numberOfMessagesToLoad = Constants.numMessagesOnScrollback
+    } else if (action?.type === Chat2Gen.loadNewerMessagesDueToScroll) {
+      sd = 'forward'
+      numberOfMessagesToLoad = Constants.numMessagesOnScrollback
+    } else {
+      numberOfMessagesToLoad = Constants.numMessagesOnInitialLoad
+    }
 
-    // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
+    logger.info(`calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`)
 
-    const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-    listenerApi.dispatch(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad}))
+    const loadingKey = Constants.waitingKeyThreadLoad(conversationIDKey)
+    let calledClear = false
+    const onGotThread = (thread: string) => {
+      if (!thread) {
+        return
+      }
 
-    if (messages.length) {
-      listenerApi.dispatch(
-        Chat2Gen.createMessagesAdd({
-          centeredMessageIDs,
-          context: {conversationIDKey, type: 'threadLoad'},
-          conversationIDKey,
-          forceContainsLatestCalc,
-          messages,
-          shouldClearOthers,
-        })
+      const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(
+        getReduxStore(),
+        conversationIDKey
       )
-    }
-  }
+      const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
+      let shouldClearOthers = false
+      if ((forceClear || sd === 'none') && !calledClear) {
+        shouldClearOthers = true
+        calledClear = true
+      }
+      const messages = (uiMessages.messages ?? []).reduce<Array<Types.Message>>((arr, m) => {
+        const message = conversationIDKey
+          ? Constants.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
+          : undefined
+        if (message) {
+          arr.push(message)
+        }
+        return arr
+      }, [])
 
-  const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
-  try {
-    let validated = false
-    const results = await RPCChatTypes.localGetThreadNonblockRpcListener(
-      {
-        incomingCallMap: {
-          'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
-          'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
-          'chat.1.chatUi.chatThreadStatus': p => {
-            // if we're validated, never undo that
-            if (p.status.typ === RPCChatTypes.UIChatThreadStatusTyp.validated) {
-              validated = true
-            } else if (validated) {
-              return false
-            }
-            return !!p && Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status: p.status})
-          },
-        },
-        params: {
-          cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
-          conversationID,
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          knownRemotes,
-          pagination,
-          pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
-          query: {
-            disablePostProcessThread: false,
-            disableResolveSupersedes: false,
-            enableDeletePlaceholders: true,
-            markAsRead: false,
-            messageIDControl,
-            messageTypes: loadThreadMessageTypes,
-          },
-          reason: reasonToRPCReason(reason),
-        },
-        waitingKey: loadingKey,
-      },
-      listenerApi
-    )
-    listenerApi.dispatch(
-      Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.warn(error.desc)
-      // no longer in team
-      if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-        return [
-          Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}),
-          Chat2Gen.createNavigateToInbox(),
-        ]
+      // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
+
+      const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+      reduxDispatch(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad}))
+
+      if (messages.length) {
+        reduxDispatch(
+          Chat2Gen.createMessagesAdd({
+            centeredMessageIDs,
+            context: {conversationIDKey, type: 'threadLoad'},
+            conversationIDKey,
+            forceContainsLatestCalc,
+            messages,
+            shouldClearOthers,
+          })
+        )
       }
-      if (error.code !== RPCTypes.StatusCode.scteamreaderror) {
-        // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
-        throw error
+    }
+
+    const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
+    try {
+      let validated = false
+      const results = await RPCChatTypes.localGetThreadNonblockRpcListener(
+        {
+          incomingCallMap: {
+            'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
+            'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
+            'chat.1.chatUi.chatThreadStatus': p => {
+              // if we're validated, never undo that
+              if (p.status.typ === RPCChatTypes.UIChatThreadStatusTyp.validated) {
+                validated = true
+              } else if (validated) {
+                return
+              }
+              if (p) {
+                reduxDispatch(Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status: p.status}))
+              }
+            },
+          },
+          params: {
+            cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
+            conversationID,
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            knownRemotes,
+            pagination,
+            pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
+            query: {
+              disablePostProcessThread: false,
+              disableResolveSupersedes: false,
+              enableDeletePlaceholders: true,
+              markAsRead: false,
+              messageIDControl,
+              messageTypes: loadThreadMessageTypes,
+            },
+            reason: reasonToRPCReason(reason),
+          },
+          waitingKey: loadingKey,
+        },
+        Z.dummyListenerApi
+      )
+      reduxDispatch(
+        Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
+      )
+    } catch (error) {
+      if (error instanceof RPCError) {
+        logger.warn(error.desc)
+        // no longer in team
+        if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
+          reduxDispatch(Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}))
+          reduxDispatch(Chat2Gen.createNavigateToInbox())
+        }
+        if (error.code !== RPCTypes.StatusCode.scteamreaderror) {
+          // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
+          throw error
+        }
       }
     }
   }
-  return
+  Z.ignorePromise(f())
 }
 
 const getUnreadline = async (
@@ -1322,10 +1324,10 @@ const desktopNotify = async (state: Container.TypedState, action: Chat2Gen.Deskt
 
   const actions = await new Promise<Array<Container.TypedActions>>(resolve => {
     const onClick = () => {
+      ConfigConstants.useConfigState.getState().dispatch.showMain()
       resolve([
         Chat2Gen.createNavigateToInbox(),
         Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'desktopNotification'}),
-        ConfigGen.createShowMain(),
       ])
     }
     const onClose = () => {
@@ -1665,17 +1667,6 @@ const onInboxSearchNameResults = (
       force: true,
       reason: 'inboxSearchResults',
     })
-  }
-  return false
-}
-
-const maybeCancelInboxSearchOnFocusChanged = (
-  state: Container.TypedState,
-  action: ConfigGen.MobileAppStatePayload
-) => {
-  const {inboxSearch} = state.chat2
-  if (action.payload.nextAppState === 'background' && inboxSearch) {
-    return Chat2Gen.createToggleInboxSearch({enabled: false})
   }
   return false
 }
@@ -2315,80 +2306,81 @@ const resetLetThemIn = async (_: unknown, action: Chat2Gen.ResetLetThemInPayload
   })
 }
 
-const markThreadAsRead = async (
-  state: Container.TypedState,
-  action:
+const markThreadAsRead = (
+  action?:
     | Chat2Gen.MessagesAddPayload
     | Chat2Gen.UpdateUnreadlinePayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | Chat2Gen.UpdateReactionsPayload
-    | ConfigGen.ChangedFocusPayload
-    | ConfigGen.ChangedActivePayload
     | Chat2Gen.TabSelectedPayload
 ) => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    logger.info('bail on not logged in')
-    return
-  }
-  const conversationIDKey = Constants.getSelectedConversation()
-
-  if (!Constants.isValidConversationIDKey(conversationIDKey)) {
-    logger.info('bail on no selected conversation')
-    return
-  }
-
-  const meta = state.chat2.metaMap.get(conversationIDKey)
-
-  if (action.type === Chat2Gen.markInitiallyLoadedThreadAsRead) {
-    if (action.payload.conversationIDKey !== conversationIDKey) {
-      logger.info('bail on not looking at this thread anymore?')
+  const f = async () => {
+    const getReduxStore = Z.getReduxStore()
+    if (!ConfigConstants.useConfigState.getState().loggedIn) {
+      logger.info('bail on not logged in')
       return
     }
-  }
+    const conversationIDKey = Constants.getSelectedConversation()
 
-  if (!Constants.isUserActivelyLookingAtThisThread(conversationIDKey)) {
-    logger.info('bail on not looking at this thread')
-    return
-  }
+    if (!Constants.isValidConversationIDKey(conversationIDKey)) {
+      logger.info('bail on no selected conversation')
+      return
+    }
 
-  // Check to see if we do not have the latest message, and don't mark anything as read in that case
-  // If we have no information at all, then just mark as read
-  if (
-    !state.chat2.containsLatestMessageMap.has(conversationIDKey) ||
-    !state.chat2.containsLatestMessageMap.get(conversationIDKey)
-  ) {
-    logger.info('bail on not containing latest message')
-    return
-  }
+    const meta = getReduxStore().chat2.metaMap.get(conversationIDKey)
 
-  let message: Types.Message | undefined
-  const mmap = state.chat2.messageMap.get(conversationIDKey)
-  if (mmap) {
-    const ordinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const ordinal =
-      ordinals &&
-      findLast([...ordinals], (o: Types.Ordinal) => {
-        const m = mmap.get(o)
-        return m ? !!m.id : false
-      })
-    message = ordinal ? mmap.get(ordinal) : undefined
-  }
+    if (action?.type === Chat2Gen.markInitiallyLoadedThreadAsRead) {
+      if (action?.payload.conversationIDKey !== conversationIDKey) {
+        logger.info('bail on not looking at this thread anymore?')
+        return
+      }
+    }
 
-  let readMsgID: number | undefined
-  if (meta) {
-    readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
-  }
-  if (action.type === Chat2Gen.updateUnreadline && readMsgID && readMsgID >= action.payload.messageID) {
-    // If we are marking as unread, don't send the local RPC.
-    return
-  }
+    if (!Constants.isUserActivelyLookingAtThisThread(conversationIDKey)) {
+      logger.info('bail on not looking at this thread')
+      return
+    }
 
-  logger.info(`marking read messages ${conversationIDKey} ${readMsgID} for ${action.type}`)
-  await RPCChatTypes.localMarkAsReadLocalRpcPromise({
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    forceUnread: false,
-    msgID: readMsgID,
-  })
+    // Check to see if we do not have the latest message, and don't mark anything as read in that case
+    // If we have no information at all, then just mark as read
+    if (
+      !getReduxStore().chat2.containsLatestMessageMap.has(conversationIDKey) ||
+      !getReduxStore().chat2.containsLatestMessageMap.get(conversationIDKey)
+    ) {
+      logger.info('bail on not containing latest message')
+      return
+    }
+
+    let message: Types.Message | undefined
+    const mmap = getReduxStore().chat2.messageMap.get(conversationIDKey)
+    if (mmap) {
+      const ordinals = Constants.getMessageOrdinals(getReduxStore(), conversationIDKey)
+      const ordinal =
+        ordinals &&
+        findLast([...ordinals], (o: Types.Ordinal) => {
+          const m = mmap.get(o)
+          return m ? !!m.id : false
+        })
+      message = ordinal ? mmap.get(ordinal) : undefined
+    }
+
+    let readMsgID: number | undefined
+    if (meta) {
+      readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
+    }
+    if (action?.type === Chat2Gen.updateUnreadline && readMsgID && readMsgID >= action?.payload.messageID) {
+      // If we are marking as unread, don't send the local RPC.
+      return
+    }
+
+    logger.info(`marking read messages ${conversationIDKey} ${readMsgID} for ${action?.type ?? ''}`)
+    await RPCChatTypes.localMarkAsReadLocalRpcPromise({
+      conversationID: Types.keyToConversationID(conversationIDKey),
+      forceUnread: false,
+      msgID: readMsgID,
+    })
+  }
+  Z.ignorePromise(f())
 }
 
 const markAsUnread = async (
@@ -2867,7 +2859,7 @@ const blockConversation = async (
 ) => {
   const {conversationIDKey, reportUser} = action.payload
   listenerApi.dispatch(Chat2Gen.createNavigateToInbox())
-  listenerApi.dispatch(ConfigGen.createPersistRoute({}))
+  ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.()
   await RPCChatTypes.localSetConversationStatusLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
@@ -3154,58 +3146,59 @@ const setConvExplodingMode = async (
   }
 }
 
-const loadStaticConfig = async (
-  state: Container.TypedState,
-  action: ConfigGen.DaemonHandshakePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  if (state.chat2.staticConfig) {
+const loadStaticConfig = () => {
+  const getReduxStore = Z.getReduxStore()
+  const reduxDispatch = Z.getReduxDispatch()
+  if (getReduxStore().chat2.staticConfig) {
     return
   }
-  const {version} = action.payload
+  const version = ConfigConstants.useDaemonState.getState().handshakeVersion
   const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-  const name = 'chat.loadStatic'
-  wait(name, version, true)
-  try {
-    const res = await RPCChatTypes.localGetStaticConfigRpcPromise()
-    if (!res.deletableByDeleteHistory) {
-      logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
-      return
-    }
+  const f = async () => {
+    const name = 'chat.loadStatic'
+    wait(name, version, true)
+    try {
+      const res = await RPCChatTypes.localGetStaticConfigRpcPromise()
+      if (!res.deletableByDeleteHistory) {
+        logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+        return
+      }
 
-    const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce<Array<Types.MessageType>>(
-      (res, type) => {
-        const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
-        if (ourTypes) {
-          res.push(...ourTypes)
-        }
-        return res
-      },
-      []
-    )
-    listenerApi.dispatch(
-      Chat2Gen.createStaticConfigLoaded({
-        staticConfig: {
-          builtinCommands: (res.builtinCommands || []).reduce<Types.StaticConfig['builtinCommands']>(
-            (map, c) => {
-              map[c.typ] = c.commands || []
-              return map
-            },
-            {
-              [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
-              [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
-              [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
-              [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
-              [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
-            }
-          ),
-          deletableByDeleteHistory: new Set(deletableByDeleteHistory),
+      const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce<Array<Types.MessageType>>(
+        (res, type) => {
+          const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
+          if (ourTypes) {
+            res.push(...ourTypes)
+          }
+          return res
         },
-      })
-    )
-  } finally {
-    wait(name, version, false)
+        []
+      )
+      reduxDispatch(
+        Chat2Gen.createStaticConfigLoaded({
+          staticConfig: {
+            builtinCommands: (res.builtinCommands || []).reduce<Types.StaticConfig['builtinCommands']>(
+              (map, c) => {
+                map[c.typ] = c.commands || []
+                return map
+              },
+              {
+                [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
+                [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
+                [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
+                [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
+                [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
+              }
+            ),
+            deletableByDeleteHistory: new Set(deletableByDeleteHistory),
+          },
+        })
+      )
+    } finally {
+      wait(name, version, false)
+    }
   }
+  Z.ignorePromise(f())
 }
 
 const toggleMessageReaction = async (
@@ -3250,13 +3243,6 @@ const toggleMessageReaction = async (
     }
   }
 }
-
-const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
-  Chat2Gen.createBadgesUpdated({
-    bigTeamBadgeCount: action.payload.badgeState.bigTeamBadgeCount,
-    conversations: action.payload.badgeState.conversations || [],
-    smallTeamBadgeCount: action.payload.badgeState.smallTeamBadgeCount,
-  })
 
 const setMinWriterRole = async (_: unknown, action: Chat2Gen.SetMinWriterRolePayload) => {
   const {conversationIDKey, role} = action.payload
@@ -3426,13 +3412,15 @@ const onUpdateLastCoord = async (_: unknown, action: Chat2Gen.UpdateLastCoordPay
 const openChatFromWidget = (
   _: unknown,
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
-) => [
-  ConfigGen.createShowMain(),
-  Chat2Gen.createNavigateToThread({
-    conversationIDKey: conversationIDKey ?? Constants.noConversationIDKey,
-    reason: 'inboxSmall',
-  }),
-]
+) => {
+  ConfigConstants.useConfigState.getState().dispatch.showMain()
+  return [
+    Chat2Gen.createNavigateToThread({
+      conversationIDKey: conversationIDKey ?? Constants.noConversationIDKey,
+      reason: 'inboxSmall',
+    }),
+  ]
+}
 
 const gregorPushState = (state: Container.TypedState, action: GregorGen.PushStatePayload) => {
   const actions: Array<Container.TypedActions> = []
@@ -3885,11 +3873,16 @@ const initChat = () => {
       Chat2Gen.loadNewerMessagesDueToScroll,
       Chat2Gen.loadMessagesCentered,
       Chat2Gen.markConversationsStale,
-      ConfigGen.changedFocus,
       Chat2Gen.tabSelected,
     ],
-    loadMoreMessages
+    (_, a) => loadMoreMessages(a)
   )
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.appFocused === old.appFocused) return
+    loadMoreMessages()
+    markThreadAsRead()
+  })
 
   // get the unread (orange) line
   Container.listenAction(Chat2Gen.selectedConversation, getUnreadline)
@@ -3926,25 +3919,27 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.findGeneralConvIDFromTeamID, findGeneralConvIDFromTeamID)
   Container.listenAction(Chat2Gen.refreshBotRoleInConv, refreshBotRoleInConv)
 
-  // On login lets load the untrusted inbox. This helps make some flows easier
-  Container.listenAction(ConfigGen.loadOnStart, (_, action) => {
-    if (action.payload.phase !== 'startupOrReloginButNotInARush') return
-    return (
-      !!ConfigConstants.useCurrentUserState.getState().username &&
-      Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
-    )
-  })
-
-  Container.listenAction(ConfigGen.loadOnStart, async (_, action) => {
-    if (action.payload.phase !== 'startupOrReloginButNotInARush') return
-    try {
-      const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-      const ri = rows?.i ?? -1
-      if (ri > 0) {
-        return Chat2Gen.createSetInboxNumSmallRows({ignoreWrite: true, rows: ri})
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.loadOnStartPhase === old.loadOnStartPhase) return
+    const reduxDispatch = Z.getReduxDispatch()
+    switch (s.loadOnStartPhase) {
+      case 'startupOrReloginButNotInARush': {
+        // On login lets load the untrusted inbox. This helps make some flows easier
+        if (ConfigConstants.useCurrentUserState.getState().username) {
+          reduxDispatch(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
+        }
+        const f = async () => {
+          const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+          const ri = rows?.i ?? -1
+          if (ri > 0) {
+            reduxDispatch(Chat2Gen.createSetInboxNumSmallRows({ignoreWrite: true, rows: ri}))
+          }
+        }
+        Z.ignorePromise(f())
+        break
       }
-    } catch (_) {}
-    return false
+      default:
+    }
   })
 
   // Search handling
@@ -3965,11 +3960,9 @@ const initChat = () => {
       Chat2Gen.updateUnreadline,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       Chat2Gen.updateReactions,
-      ConfigGen.changedFocus,
-      ConfigGen.changedActive,
       Chat2Gen.tabSelected,
     ],
-    markThreadAsRead
+    (_, a) => markThreadAsRead(a)
   )
   Container.listenAction(Chat2Gen.markTeamAsRead, markTeamAsRead)
   Container.listenAction(Chat2Gen.markAsUnread, markAsUnread)
@@ -3996,8 +3989,20 @@ const initChat = () => {
   // Exploding things
   Container.listenAction(Chat2Gen.setConvExplodingMode, setConvExplodingMode)
   Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
-  Container.listenAction(ConfigGen.daemonHandshake, loadStaticConfig)
-  Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.badgeState === old.badgeState) return
+    if (!s.badgeState) return
+    const reduxDispatch = Z.getReduxDispatch()
+    reduxDispatch(
+      Chat2Gen.createBadgesUpdated({
+        bigTeamBadgeCount: s.badgeState.bigTeamBadgeCount,
+        conversations: s.badgeState.conversations || [],
+        smallTeamBadgeCount: s.badgeState.smallTeamBadgeCount,
+      })
+    )
+  })
+
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)
   Container.listenAction(GregorGen.pushState, gregorPushState)
   Container.listenAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
@@ -4048,7 +4053,15 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.inboxSearchSelect, onInboxSearchSelect)
   Container.listenAction(Chat2Gen.inboxSearchNameResults, onInboxSearchNameResults)
   Container.listenAction(Chat2Gen.inboxSearchTextResult, onInboxSearchTextResult)
-  Container.listenAction(ConfigGen.mobileAppState, maybeCancelInboxSearchOnFocusChanged)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.mobileAppState === old.mobileAppState) return
+    const getReduxStore = Z.getReduxStore()
+    const reduxDispatch = Z.getReduxDispatch()
+    if (s.mobileAppState === 'background' && getReduxStore().chat2.inboxSearch) {
+      reduxDispatch(Chat2Gen.createToggleInboxSearch({enabled: false}))
+    }
+  })
 
   Container.listenAction(Chat2Gen.threadSearch, threadSearch)
   Container.listenAction(Chat2Gen.toggleThreadSearch, onToggleThreadSearch)
@@ -4085,6 +4098,11 @@ const initChat = () => {
     EngineGen.chat1NotifyChatChatTypingUpdate,
     updateTyping
   )
+
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion === old.handshakeVersion) return
+    loadStaticConfig()
+  })
 }
 
 export default initChat

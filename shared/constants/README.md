@@ -18,3 +18,5 @@ There are some minimal redux pieces mainly because we need a way to send data ov
 and that needs a representation, so we'd just have to remake something like our actions anyways. The other
 use case is for a general 'event emitter' pattern. These actions shouldn't produce any direct reducer
 changes.
+
+In the new system the only action creators should be fired from the zustand stores or from the electron bridge

@@ -1,18 +1,23 @@
 import * as ConfigGen from '../actions/config-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
+import * as RemoteGen from '../actions/remote-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ProvisionConstants from './provision'
 import * as RPCTypes from './types/rpc-gen'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
+import * as DarkMode from './darkmode'
 import logger from '../logger'
 import type * as Types from './types/config'
 import type {ConversationIDKey} from './types/chat2'
-import {type CommonResponseHandler} from '../engine/types'
 import type {Tab} from './tabs'
+import type {TypedActions} from '../actions/typed-actions-gen'
 import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
 import {defaultUseNativeFrame, runMode, isMobile} from './platform'
 import {enableActionLogging} from '../local-debug'
 import {noConversationIDKey} from './types/chat2/common'
+import {type CommonResponseHandler} from '../engine/types'
 import {useCurrentUserState} from './current-user'
 
 const ignorePromise = (f: Promise<void>) => {
@@ -54,21 +59,31 @@ export type Store = {
         text: string
       }
   appFocused: boolean
+  badgeState?: RPCTypes.BadgeState
   configuredAccounts: Array<Types.ConfiguredAccount>
   defaultUsername: string
   globalError?: Error | RPCError
+  gregorReachable?: RPCTypes.Reachable
   loginError?: RPCError
   httpSrv: {
     address: string
     token: string
   }
   incomingShareUseOriginal?: boolean
+  installerRanCount: number
   isOnline: boolean
   justDeletedSelf: string
   justRevokedSelf: string
   loggedIn: boolean
-  logoutHandshakeVersion: number
-  logoutHandshakeWaiters: Map<string, number>
+  loggedInCausedbyStartup: boolean
+  loadOnStartPhase:
+    | 'notStarted'
+    | 'initialStartupAsEarlyAsPossible'
+    | 'connectedToDaemonForFirstTime'
+    | 'reloggedIn'
+    | 'startupOrReloginButNotInARush'
+  mobileAppState: 'active' | 'background' | 'inactive' | 'unknown'
+  networkStatus?: {online: boolean; type: Types.ConnectionType; isInit?: boolean}
   notifySound: boolean
   openAtLogin: boolean
   outOfDate: Types.OutOfDate
@@ -102,21 +117,26 @@ const initialStore: Store = {
   allowAnimatedEmojis: true,
   androidShare: undefined,
   appFocused: true,
+  badgeState: undefined,
   configuredAccounts: [],
   defaultUsername: '',
   globalError: undefined,
+  gregorReachable: undefined,
   httpSrv: {
     address: '',
     token: '',
   },
   incomingShareUseOriginal: undefined,
+  installerRanCount: 0,
   isOnline: false,
   justDeletedSelf: '',
   justRevokedSelf: '',
+  loadOnStartPhase: 'notStarted',
   loggedIn: false,
+  loggedInCausedbyStartup: false,
   loginError: undefined,
-  logoutHandshakeVersion: 1,
-  logoutHandshakeWaiters: new Map(),
+  mobileAppState: 'unknown',
+  networkStatus: undefined,
   notifySound: false,
   openAtLogin: true,
   outOfDate: {
@@ -152,10 +172,20 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     dynamic: {
+      copyToClipboard: (s: string) => void
+      dumpLogsNative?: (reason: string) => Promise<void>
       onFilePickerError?: (error: Error) => void
+      openAppSettings?: () => void
+      openAppStore?: () => void
+      persistRoute?: (path?: Array<any>) => void
+      setNavigatorExistsNative?: () => void
+      showMainNative?: () => void
+      showShareActionSheet?: (filePath: string, message: string, mimeType: string) => void
     }
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
+    dumpLogs: (reason: string) => Promise<void>
+    eventFromRemoteWindows: (action: TypedActions) => boolean
     filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
     initNotifySound: () => void
@@ -163,9 +193,12 @@ type State = Store & {
     initUseNativeFrame: () => void
     installerRan: () => void
     loadIsOnline: () => void
+    loadOnStart: (phase: State['loadOnStartPhase']) => void
     login: (username: string, password: string) => void
     loginError: (error?: RPCError) => void
     logoutAndTryToLogInAs: (username: string) => void
+    osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
+    powerMonitorEvent: (event: string) => void
     resetState: () => void
     remoteWindowNeedsProps: (component: string, params: string) => void
     resetRevokedSelf: () => void
@@ -173,12 +206,16 @@ type State = Store & {
     setAccounts: (a: Store['configuredAccounts']) => void
     setAllowAnimatedEmojis: (a: boolean) => void
     setAndroidShare: (s: Store['androidShare']) => void
+    setBadgeState: (b: State['badgeState']) => void
     setDefaultUsername: (u: string) => void
     setGlobalError: (e?: any) => void
+    setGregorReachable: (r: Store['gregorReachable']) => void
     setHTTPSrvInfo: (address: string, token: string) => void
     setIncomingShareUseOriginal: (use: boolean) => void
     setJustDeletedSelf: (s: string) => void
-    setLoggedIn: (l: boolean, causedByStartup?: boolean, skipSideEffect?: boolean) => void
+    setLoggedIn: (l: boolean, causedByStartup: boolean) => void
+    setMobileAppState: (nextAppState: 'active' | 'background' | 'inactive') => void
+    setNavigatorExists: () => void
     setNotifySound: (n: boolean) => void
     setStartupDetails: (st: Omit<Store['startup'], 'loaded'>) => void
     setStartupDetailsLoaded: () => void
@@ -187,20 +224,22 @@ type State = Store & {
     setUserSwitching: (sw: boolean) => void
     setUseNativeFrame: (use: boolean) => void
     setWindowIsMax: (m: boolean) => void
+    showMain: () => void
     toggleRuntimeStats: () => void
     updateApp: () => void
+    updateGregorCategory: (category: string, body: string, dtime?: {offset: number; time: number}) => void
     updateRuntimeStats: (stats?: RPCTypes.RuntimeStats) => void
     updateWindowState: (ws: Omit<Store['windowState'], 'isMaximized'>) => void
     windowShown: (win: string) => void
   }
 }
 
+export const openAtLoginKey = 'openAtLogin'
 export const useConfigState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
 
   const nativeFrameKey = 'useNativeFrame'
   const notifySoundKey = 'notifySound'
-  const openAtLoginKey = 'openAtLogin'
 
   const _checkForUpdate = async () => {
     try {
@@ -230,7 +269,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.appFocused = f
       })
-      reduxDispatch(ConfigGen.createChangedFocus({appFocused: f}))
     },
     checkForUpdate: () => {
       const f = async () => {
@@ -238,8 +276,106 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
+    dumpLogs: async reason => {
+      await get().dispatch.dynamic.dumpLogsNative?.(reason)
+    },
     dynamic: {
+      copyToClipboard: () => {
+        throw new Error('copyToClipboard not implemented?????')
+      },
+      dumpLogsNative: undefined,
       onFilePickerError: undefined,
+      openAppSettings: undefined,
+      openAppStore: undefined,
+      persistRoute: undefined,
+      setNavigatorExistsNative: undefined,
+      showMainNative: undefined,
+      showShareActionSheet: undefined,
+    },
+    eventFromRemoteWindows: (action: TypedActions) => {
+      switch (action.type) {
+        // only used by remote tracker, TODO this will change
+        case RemoteGen.trackerChangeFollow: {
+          const f = async () => {
+            const TrackerConstants = await import('./tracker2')
+            TrackerConstants.useState
+              .getState()
+              .dispatch.changeFollow(action.payload.guiID, action.payload.follow)
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case RemoteGen.trackerIgnore: {
+          const f = async () => {
+            const TrackerConstants = await import('./tracker2')
+            TrackerConstants.useState.getState().dispatch.ignore(action.payload.guiID)
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case RemoteGen.trackerCloseTracker: {
+          const f = async () => {
+            const TrackerConstants = await import('./tracker2')
+            TrackerConstants.useState.getState().dispatch.closeTracker(action.payload.guiID)
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case RemoteGen.trackerLoad: {
+          const f = async () => {
+            const TrackerConstants = await import('./tracker2')
+            TrackerConstants.useState.getState().dispatch.load(action.payload)
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case RemoteGen.link:
+          {
+            const {link} = action.payload
+            const f = async () => {
+              const DeepLinkConstants = await import('./deeplinks')
+              DeepLinkConstants.useState.getState().dispatch.handleAppLink(link)
+            }
+            Z.ignorePromise(f())
+          }
+          break
+        case RemoteGen.installerRan:
+          get().dispatch.installerRan()
+          break
+        case RemoteGen.updateNow:
+          get().dispatch.updateApp()
+          break
+        case RemoteGen.powerMonitorEvent:
+          get().dispatch.powerMonitorEvent(action.payload.event)
+          break
+        case RemoteGen.showMain:
+          get().dispatch.showMain()
+          break
+        case RemoteGen.dumpLogs:
+          Z.ignorePromise(get().dispatch.dumpLogs(action.payload.reason))
+          break
+        case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
+          get().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
+          break
+        case RemoteGen.remoteWindowWantsProps:
+          get().dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
+          break
+        case RemoteGen.updateWindowMaxState:
+          get().dispatch.setWindowIsMax(action.payload.max)
+          break
+        case RemoteGen.updateWindowState:
+          get().dispatch.updateWindowState(action.payload.windowState)
+          break
+        case RemoteGen.updateWindowShown:
+          get().dispatch.windowShown(action.payload.component)
+          break
+        case RemoteGen.setSystemDarkMode:
+          DarkMode.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
+          break
+        default:
+          return false
+      }
+      return true
     },
     filePickerError: error => {
       get().dispatch.dynamic.onFilePickerError?.(error)
@@ -288,7 +424,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       ignorePromise(f())
     },
-    installerRan: () => {},
+    installerRan: () => {
+      set(s => {
+        s.installerRanCount++
+      })
+    },
     loadIsOnline: () => {
       const f = async () => {
         try {
@@ -301,6 +441,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    loadOnStart: phase => {
+      set(s => {
+        s.loadOnStartPhase = phase
+      })
     },
     login: (username, passphrase) => {
       const cancelDesc = 'Canceling RPC'
@@ -395,6 +540,21 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => {
+      set(s => {
+        s.networkStatus = {
+          isInit,
+          online,
+          type,
+        }
+      })
+    },
+    powerMonitorEvent: event => {
+      const f = async () => {
+        await RPCTypes.appStatePowerMonitorEventRpcPromise({event})
+      }
+      Z.ignorePromise(f())
+    },
     remoteWindowNeedsProps: (component, params) => {
       set(s => {
         const map = s.remoteWindowNeedsProps.get(component) ?? new Map<string, number>()
@@ -447,6 +607,15 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.androidShare = share
       })
+      // already loaded, so just go now
+      if (get().startup.loaded) {
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']}))
+      }
+    },
+    setBadgeState: b => {
+      set(s => {
+        s.badgeState = b
+      })
     },
     setDefaultUsername: u => {
       set(s => {
@@ -473,6 +642,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.globalError = e
       })
     },
+    setGregorReachable: (r: Store['gregorReachable']) => {
+      set(s => {
+        s.gregorReachable = r
+      })
+    },
     setHTTPSrvInfo: (address, token) => {
       logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)
       set(s => {
@@ -490,16 +664,19 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.justDeletedSelf = self
       })
     },
-    setLoggedIn: (l, causedByStartup = false, skipSideEffect = false) => {
-      if (l === get().loggedIn) {
-        return
-      }
+    setLoggedIn: (l, causedByStartup) => {
       set(s => {
         s.loggedIn = l
+        s.loggedInCausedbyStartup = causedByStartup
       })
-      if (!skipSideEffect) {
-        reduxDispatch(ConfigGen.createLoggedInChanged({causedByStartup}))
-      }
+    },
+    setMobileAppState: nextAppState => {
+      set(s => {
+        s.mobileAppState = nextAppState
+      })
+    },
+    setNavigatorExists: () => {
+      get().dispatch.dynamic.setNavigatorExistsNative?.()
     },
     setNotifySound: n => {
       set(s => {
@@ -519,18 +696,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.openAtLogin = open
       })
-      const f = async () => {
-        await RPCTypes.configGuiSetValueRpcPromise({
-          path: openAtLoginKey,
-          value: {b: open, isNull: false},
-        })
-        if (__DEV__) {
-          console.log('onSetOpenAtLogin disabled for dev mode')
-          return
-        }
-        reduxDispatch(ConfigGen.createOpenAtLoginChanged())
-      }
-      ignorePromise(f())
     },
     setOutOfDate: outOfDate => {
       set(s => {
@@ -577,6 +742,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.windowState.isMaximized = m
       })
     },
+    showMain: () => {
+      get().dispatch.dynamic.showMainNative?.()
+    },
     toggleRuntimeStats: () => {
       const f = async () => {
         await RPCTypes.configToggleRuntimeStatsRpcPromise()
@@ -601,6 +769,18 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.outOfDate.updating = true
       })
+    },
+    updateGregorCategory: (category, body, dtime) => {
+      const f = async () => {
+        try {
+          await RPCTypes.gregorUpdateCategoryRpcPromise({
+            body,
+            category,
+            dtime: dtime || {offset: 0, time: 0},
+          })
+        } catch (_) {}
+      }
+      Z.ignorePromise(f())
     },
     updateRuntimeStats: stats => {
       set(s => {

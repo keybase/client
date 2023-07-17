@@ -1,10 +1,9 @@
+import * as Z from '../util/zustand'
 import * as Chat2Gen from './chat2-gen'
-import * as ConfigGen from './config-gen'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/wallets'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as NotificationsGen from './notifications-gen'
 import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -394,30 +393,24 @@ const clearBuilding = () => WalletsGen.createClearBuilding()
 
 const clearErrors = () => WalletsGen.createClearErrors()
 
-const loadWalletDisclaimer = async (
-  _state: unknown,
-  action:
-    | ConfigGen.LoadOnStartPayload
-    | WalletsGen.LoadAccountsPayload
-    | WalletsGen.LoadWalletDisclaimerPayload
-) => {
-  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
-    return false
+const loadWalletDisclaimer = () => {
+  const f = async () => {
+    const username = ConfigConstants.useCurrentUserState.getState().username
+    if (!username) {
+      return
+    }
+    const reduxDispatch = Z.getReduxDispatch()
+    try {
+      const accepted = await RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(
+        undefined,
+        Constants.checkOnlineWaitingKey
+      )
+      reduxDispatch(WalletsGen.createWalletDisclaimerReceived({accepted}))
+    } catch (_) {
+      return // handled by reloadable
+    }
   }
-
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  if (!username) {
-    return false
-  }
-  try {
-    const accepted = await RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise(
-      undefined,
-      Constants.checkOnlineWaitingKey
-    )
-    return WalletsGen.createWalletDisclaimerReceived({accepted})
-  } catch (_) {
-    return false // handled by reloadable
-  }
+  Z.ignorePromise(f())
 }
 
 const loadAccounts = async (
@@ -1067,9 +1060,6 @@ const paymentReviewed = (_: unknown, action: EngineGen.Stellar1UiPaymentReviewed
 // maybe just clear always?
 const maybeClearErrors = () => WalletsGen.createClearErrors()
 
-const receivedBadgeState = (_: unknown, action: NotificationsGen.ReceivedBadgeStatePayload) =>
-  WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []})
-
 const acceptDisclaimer = async () =>
   RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).catch(
     () => {
@@ -1171,22 +1161,26 @@ const writeLastSentXLM = async (state: Container.TypedState, action: WalletsGen.
   return
 }
 
-const readLastSentXLM = async () => {
-  logger.info(`Reading config`)
-  try {
-    const result = await RPCTypes.configGuiGetValueRpcPromise({path: 'stellar.lastSentXLM'})
-    const value = !result.isNull && !!result.b
-    logger.info(`Successfully read config: ${String(value)}`)
-    return WalletsGen.createSetLastSentXLM({lastSentXLM: value, writeFile: false})
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
+const readLastSentXLM = () => {
+  const reduxDispatch = Z.getReduxDispatch()
+  const f = async () => {
+    logger.info(`Reading config`)
+    try {
+      const result = await RPCTypes.configGuiGetValueRpcPromise({path: 'stellar.lastSentXLM'})
+      const value = !result.isNull && !!result.b
+      logger.info(`Successfully read config: ${String(value)}`)
+      reduxDispatch(WalletsGen.createSetLastSentXLM({lastSentXLM: value, writeFile: false}))
+    } catch (error) {
+      if (!(error instanceof RPCError)) {
+        return
+      }
+      if (!error.message.includes('no such key')) {
+        logger.error(`Error reading config: ${error.message}`)
+      }
       return
     }
-    if (!error.message.includes('no such key')) {
-      logger.error(`Error reading config: ${error.message}`)
-    }
-    return false
   }
+  Z.ignorePromise(f())
 }
 
 const exitFailedPayment = (state: Container.TypedState) => {
@@ -1597,28 +1591,6 @@ const assetWithdraw = async (_: unknown, action: WalletsGen.AssetWithdrawPayload
   }
 }
 
-const loadStaticConfig = async (
-  state: Container.TypedState,
-  action: ConfigGen.DaemonHandshakePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  if (state.wallets.staticConfig) {
-    return false
-  }
-  const {version} = action.payload
-  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-  const name = 'wallets.loadStatic'
-  wait(name, version, true)
-
-  try {
-    const res = await RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
-    listenerApi.dispatch(WalletsGen.createStaticConfigLoaded({staticConfig: res}))
-  } finally {
-    wait(name, version, false)
-  }
-  return false
-}
-
 const initWallets = () => {
   Container.listenAction(WalletsGen.createNewAccount, createNewAccount)
   Container.listenAction(
@@ -1718,12 +1690,24 @@ const initWallets = () => {
   // Clear some errors on navigateUp, clear new txs on switchTab
   Container.listenAction(RouteTreeGen.navigateUp, maybeClearErrors)
 
-  Container.listenAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.badgeState === old.badgeState) return
+    const reduxDispatch = Z.getReduxDispatch()
+    reduxDispatch(WalletsGen.createBadgesUpdated({accounts: s.badgeState?.unreadWalletAccounts || []}))
+  })
 
-  Container.listenAction(
-    [ConfigGen.loadOnStart, WalletsGen.loadAccounts, WalletsGen.loadWalletDisclaimer],
-    loadWalletDisclaimer
-  )
+  Container.listenAction([WalletsGen.loadAccounts, WalletsGen.loadWalletDisclaimer], loadWalletDisclaimer)
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.loadOnStartPhase === old.loadOnStartPhase) return
+    switch (s.loadOnStartPhase) {
+      case 'startupOrReloginButNotInARush':
+        loadWalletDisclaimer()
+        break
+      default:
+    }
+  })
+
   Container.listenAction(WalletsGen.acceptDisclaimer, acceptDisclaimer)
   Container.listenAction(WalletsGen.checkDisclaimer, checkDisclaimer)
   Container.listenAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)
@@ -1731,7 +1715,12 @@ const initWallets = () => {
   Container.listenAction([WalletsGen.loadMobileOnlyMode, WalletsGen.selectAccount], loadMobileOnlyMode)
   Container.listenAction(WalletsGen.changeMobileOnlyMode, changeMobileOnlyMode)
   Container.listenAction(WalletsGen.setLastSentXLM, writeLastSentXLM)
-  Container.listenAction(ConfigGen.daemonHandshakeDone, readLastSentXLM)
+
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
+    readLastSentXLM()
+  })
+
   Container.listenAction(EngineGen.stellar1NotifyAccountDetailsUpdate, accountDetailsUpdate)
   Container.listenAction(EngineGen.stellar1NotifyAccountsUpdate, accountsUpdate)
   Container.listenAction(EngineGen.stellar1NotifyPendingPaymentsUpdate, pendingPaymentsUpdate)
@@ -1755,7 +1744,27 @@ const initWallets = () => {
   Container.listenAction(WalletsGen.setTrustlineSearchText, searchTrustlineAssets)
   Container.listenAction(WalletsGen.calculateBuildingAdvanced, calculateBuildingAdvanced)
   Container.listenAction(WalletsGen.sendPaymentAdvanced, sendPaymentAdvanced)
-  Container.listenAction(ConfigGen.daemonHandshake, loadStaticConfig)
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion === old.handshakeVersion) return
+    const getReduxStore = Z.getReduxStore()
+    const reduxDispatch = Z.getReduxDispatch()
+    if (getReduxStore().wallets.staticConfig) {
+      return
+    }
+    const version = s.handshakeVersion
+    const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+    const name = 'wallets.loadStatic'
+    wait(name, version, true)
+    const f = async () => {
+      try {
+        const res = await RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
+        reduxDispatch(WalletsGen.createStaticConfigLoaded({staticConfig: res}))
+      } finally {
+        wait(name, version, false)
+      }
+    }
+    Z.ignorePromise(f())
+  })
   Container.listenAction(WalletsGen.assetDeposit, assetDeposit)
   Container.listenAction(WalletsGen.assetWithdraw, assetWithdraw)
 }

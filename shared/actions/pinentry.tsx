@@ -1,6 +1,6 @@
 import logger from '../logger'
 import * as EngineGen from './engine-gen-gen'
-import * as PinentryGen from './pinentry-gen'
+import * as RemoteGen from './remote-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/pinentry'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -22,10 +22,10 @@ const initPinentry = () => {
       logger.warn('error in registering secret ui: ', error)
     }
   })
-  Container.listenAction(PinentryGen.onCancel, () => {
+  Container.listenAction(RemoteGen.pinentryOnCancel, () => {
     Constants.useState.getState().dispatch.dynamic.onCancel?.()
   })
-  Container.listenAction(PinentryGen.onSubmit, (_, action) => {
+  Container.listenAction(RemoteGen.pinentryOnSubmit, (_, action) => {
     Constants.useState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
   })
 }

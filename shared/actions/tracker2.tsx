@@ -2,7 +2,6 @@ import * as Constants from '../constants/tracker2'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as Tracker2Gen from './tracker2-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 
@@ -97,19 +96,6 @@ const initTracker = () => {
   Container.listenAction(EngineGen.keybase1Identify3UiIdentify3Summary, (_, action) => {
     const {summary} = action.payload.params
     Constants.useState.getState().dispatch.notifySummary(summary)
-  })
-  // only used by remote tracker, TODO this will change
-  Container.listenAction(Tracker2Gen.changeFollow, (_, a) => {
-    Constants.useState.getState().dispatch.changeFollow(a.payload.guiID, a.payload.follow)
-  })
-  Container.listenAction(Tracker2Gen.ignore, (_, a) => {
-    Constants.useState.getState().dispatch.ignore(a.payload.guiID)
-  })
-  Container.listenAction(Tracker2Gen.closeTracker, (_, a) => {
-    Constants.useState.getState().dispatch.closeTracker(a.payload.guiID)
-  })
-  Container.listenAction(Tracker2Gen.load, (_, a) => {
-    Constants.useState.getState().dispatch.load(a.payload)
   })
 }
 

@@ -1,6 +1,5 @@
-import * as ConfigGen from '../actions/config-gen'
 import * as Styles from '../styles'
-import * as Container from '../util/container'
+import * as ConfigConstants from '../constants/config'
 import Text from './text'
 import {Box2} from './box'
 import Icon from './icon'
@@ -8,11 +7,7 @@ import Icon from './icon'
 const Kb = {Box2, Icon, Text}
 
 const QRScanNotAuthorized = () => {
-  const dispatch = Container.useDispatch()
-
-  const onOpenSettings = () => {
-    dispatch(ConfigGen.createOpenAppSettings())
-  }
+  const onOpenSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   return (
     <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
       <Kb.Icon type="iconfont-camera" color={Styles.globalColors.white_40} />

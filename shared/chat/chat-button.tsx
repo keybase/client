@@ -1,6 +1,6 @@
 import * as ChatConstants from '../constants/chat2'
+import * as ConfigConstants from '../constants/config'
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
@@ -14,9 +14,10 @@ type Props = {
 
 const ChatButton = ({small, style, username, afterClick}: Props) => {
   const dispatch = Container.useDispatch()
+  const showMain = ConfigConstants.useConfigState(s => s.dispatch.showMain)
   const chat = () => {
     afterClick?.()
-    dispatch(ConfigGen.createShowMain())
+    showMain()
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   }
   return (

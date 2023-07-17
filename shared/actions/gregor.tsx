@@ -1,22 +1,10 @@
 import logger from '../logger'
-import * as ConfigGen from './config-gen'
 import * as ConfigConstants from '../constants/config'
 import * as GregorGen from './gregor-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
-
-const pushOutOfBandMessages = (
-  _: unknown,
-  action: EngineGen.Keybase1GregorUIPushOutOfBandMessagesPayload
-) => {
-  const {oobm} = action.payload.params
-  const filteredOOBM = (oobm || []).filter(Boolean)
-  if (filteredOOBM.length) {
-    return GregorGen.createPushOOBM({messages: filteredOOBM})
-  }
-  return false
-}
+import * as Z from '../util/zustand'
 
 const pushState = (_: unknown, action: EngineGen.Keybase1GregorUIPushStatePayload) => {
   const {reason, state} = action.payload.params
@@ -38,9 +26,16 @@ const pushState = (_: unknown, action: EngineGen.Keybase1GregorUIPushStatePayloa
 }
 
 // Gregor reachability is only valid if we're logged in
-const reachabilityChanged = (_: unknown, action: EngineGen.Keybase1ReachabilityReachabilityChangedPayload) =>
-  ConfigConstants.useConfigState.getState().loggedIn &&
-  GregorGen.createUpdateReachable({reachable: action.payload.params.reachability.reachable})
+const reachabilityChanged = (
+  _: unknown,
+  action: EngineGen.Keybase1ReachabilityReachabilityChangedPayload
+) => {
+  if (ConfigConstants.useConfigState.getState().loggedIn) {
+    ConfigConstants.useConfigState
+      .getState()
+      .dispatch.setGregorReachable(action.payload.params.reachability.reachable)
+  }
+}
 
 // If ever you want to get OOBMs for a different system, then you need to enter it here.
 const registerForGregorNotifications = async () => {
@@ -58,49 +53,30 @@ const registerForGregorNotifications = async () => {
 const startReachability = async () => {
   try {
     const reachability = await RPCTypes.reachabilityStartReachabilityRpcPromise()
-    return GregorGen.createUpdateReachable({reachable: reachability.reachable})
+    ConfigConstants.useConfigState.getState().dispatch.setGregorReachable(reachability.reachable)
   } catch (err) {
     logger.warn('error bootstrapping reachability: ', err)
-    return false
   }
 }
 
-let _lastOnline: undefined | boolean
-const checkReachability = async (
-  _: unknown,
-  action: GregorGen.CheckReachabilityPayload | ConfigGen.OsNetworkStatusChangedPayload
-) => {
-  try {
-    if (action.type === ConfigGen.osNetworkStatusChanged) {
-      if (action.payload.online === _lastOnline) {
-        return false
-      }
-      _lastOnline = action.payload.online
-    }
-
-    const reachability = await RPCTypes.reachabilityCheckReachabilityRpcPromise()
-    return GregorGen.createUpdateReachable({reachable: reachability.reachable})
-  } catch (_) {
-    return false
+const checkReachability = () => {
+  const f = async () => {
+    try {
+      const reachability = await RPCTypes.reachabilityCheckReachabilityRpcPromise()
+      ConfigConstants.useConfigState.getState().dispatch.setGregorReachable(reachability.reachable)
+    } catch (_) {}
   }
-}
-
-const updateCategory = async (_: unknown, action: GregorGen.UpdateCategoryPayload) => {
-  try {
-    await RPCTypes.gregorUpdateCategoryRpcPromise({
-      body: action.payload.body,
-      category: action.payload.category,
-      dtime: action.payload.dtime || {offset: 0, time: 0},
-    })
-  } catch (_) {}
+  Z.ignorePromise(f())
 }
 
 const initGregor = () => {
-  Container.listenAction(GregorGen.updateCategory, updateCategory)
-  Container.listenAction([GregorGen.checkReachability, ConfigGen.osNetworkStatusChanged], checkReachability)
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.networkStatus === old.networkStatus) return
+    checkReachability()
+  })
+
   Container.listenAction(EngineGen.connected, registerForGregorNotifications)
   Container.listenAction(EngineGen.connected, startReachability)
-  Container.listenAction(EngineGen.keybase1GregorUIPushOutOfBandMessages, pushOutOfBandMessages)
   Container.listenAction(EngineGen.keybase1GregorUIPushState, pushState)
   Container.listenAction(EngineGen.keybase1ReachabilityReachabilityChanged, reachabilityChanged)
 }

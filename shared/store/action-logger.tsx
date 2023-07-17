@@ -1,6 +1,5 @@
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as GregorGen from '../actions/gregor-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import type {TypedDispatch, TypedActions} from '../util/container'
 import {debugFullLogs} from '../local-debug'
@@ -38,11 +37,9 @@ const transformActionForLog = (action: TypedActions) => {
     case Chat2Gen.metaNeedsUpdating: // fallthrough
     case Chat2Gen.updateMoreToLoad: // fallthrough
     case Chat2Gen.setConversationOffline: // fallthrough
-    case GregorGen.updateReachable: // fallthrough
       return action
 
     // no output
-    case GregorGen.pushOOBM: // fallthrough
     case EngineGen.chat1NotifyChatChatTypingUpdate: // fallthrough
       return null
 

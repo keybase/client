@@ -1,5 +1,4 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamsConstants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
@@ -71,10 +70,9 @@ export default (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createClearModals())
     dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'attachments'}))
   }
+  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopyLink = (label: string, message: Types.Message) => {
-    dispatch(
-      ConfigGen.createCopyToClipboard({text: DeeplinksConstants.linkFromConvAndMessage(label, message.id)})
-    )
+    copyToClipboard(DeeplinksConstants.linkFromConvAndMessage(label, message.id))
   }
   const _onDelete = (message: Types.Message) => {
     dispatch(

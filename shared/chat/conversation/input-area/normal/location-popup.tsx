@@ -4,7 +4,6 @@ import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as ConfigGen from '../../../../actions/config-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
@@ -32,9 +31,7 @@ const LocationPopup = (props: Props) => {
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
   }
-  const onSettings = () => {
-    dispatch(ConfigGen.createOpenAppSettings())
-  }
+  const onSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const onLocationShare = (duration: string) => {
     onClose()
     dispatch(

@@ -1,5 +1,5 @@
 // Entrypoint for the menubar node part
-import * as ConfigGen from '../../actions/config-gen'
+import * as RemoteGen from '../../actions/remote-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Electron from 'electron'
 import logger from '../../logger'
@@ -118,7 +118,7 @@ const MenuBar = () => {
   mb.on('ready', () => {
     // ask for an update in case we missed one
     mainWindowDispatch(
-      ConfigGen.createRemoteWindowWantsProps({
+      RemoteGen.createRemoteWindowWantsProps({
         component: 'menubar',
         param: '',
       })
@@ -151,7 +151,7 @@ const MenuBar = () => {
     })
 
     mb.window?.on('show', () => {
-      mainWindowDispatch(ConfigGen.createUpdateWindowShown({component: 'menu'}))
+      mainWindowDispatch(RemoteGen.createUpdateWindowShown({component: 'menu'}))
     })
 
     if (isLinux) {

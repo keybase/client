@@ -1,8 +1,8 @@
-import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import PostProof from '.'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/profile'
+import * as ConfigConstants from '../../constants/config'
 
 export default () => {
   const platform = Constants.useState(s => s.platform)
@@ -51,9 +51,7 @@ export default () => {
   const platformUserName = username
 
   const dispatch = Container.useDispatch()
-  const copyToClipboard = (text: string) => {
-    dispatch(ConfigGen.createCopyToClipboard({text}))
-  }
+  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCancel = () => {
     dispatch(RouteTreeGen.createClearModals())
     cancelAddProof?.()

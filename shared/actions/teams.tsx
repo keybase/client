@@ -1,10 +1,8 @@
 import * as ConfigConstants from '../constants/config'
-import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/teams'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as GregorGen from './gregor-gen'
-import * as NotificationsGen from './notifications-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
@@ -14,16 +12,17 @@ import type * as Types from '../constants/types/teams'
 import {mapGetEnsureValue} from '../util/map'
 
 const initTeams = () => {
-  Container.listenAction(ConfigGen.loadOnStart, (_, action) => {
-    if (action.payload.phase !== 'startupOrReloginButNotInARush') {
-      return
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.loadOnStartPhase === old.loadOnStartPhase) return
+    switch (s.loadOnStartPhase) {
+      case 'startupOrReloginButNotInARush':
+        Constants.useState.getState().dispatch.getTeams()
+        Constants.useState.getState().dispatch.refreshTeamRoleMap()
+        break
+      default:
     }
-    Constants.useState.getState().dispatch.getTeams()
   })
 
-  Container.listenAction(ConfigGen.loadOnStart, () => {
-    Constants.useState.getState().dispatch.refreshTeamRoleMap()
-  })
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamRoleMapChanged, (_, action) => {
     const {newVersion} = action.payload.params
     const loadedVersion = Constants.useState.getState().teamRoleMap.loadedVersion
@@ -51,13 +50,21 @@ const initTeams = () => {
     }
   )
 
-  Container.listenAction([EngineGen.keybase1NotifyTeamTeamMetadataUpdate, GregorGen.updateReachable], () => {
+  const eagerLoadTeams = () => {
     if (Constants.useState.getState().teamMetaSubscribeCount > 0) {
       logger.info('eagerly reloading')
       Constants.useState.getState().dispatch.getTeams()
     } else {
       logger.info('skipping')
     }
+  }
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.gregorReachable === old.gregorReachable) return
+    eagerLoadTeams()
+  })
+
+  Container.listenAction(EngineGen.keybase1NotifyTeamTeamMetadataUpdate, () => {
+    eagerLoadTeams()
   })
 
   Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
@@ -72,13 +79,15 @@ const initTeams = () => {
     }
   })
 
-  Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.badgeState === old.badgeState) return
     const loggedIn = ConfigConstants.useConfigState.getState().loggedIn
     if (!loggedIn) {
       // Don't make any calls we don't have permission to.
       return
     }
-    const {badgeState} = action.payload
+    const {badgeState} = s
+    if (!badgeState) return
     const deletedTeams = badgeState.deletedTeams || []
     const newTeams = new Set<string>(badgeState.newTeams || [])
     const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []

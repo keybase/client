@@ -1,7 +1,7 @@
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as ConfigGen from '../actions/config-gen'
 import * as Container from '../util/container'
+import * as ConfigConstants from '../constants/config'
 import * as React from 'react'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
@@ -64,10 +64,7 @@ export default () => {
     Container.ignorePromise(f())
   })
 
-  const dispatch = Container.useDispatch()
-  const onOpenAppStore = React.useCallback(() => {
-    dispatch(ConfigGen.createOpenAppStore())
-  }, [dispatch])
+  const onOpenAppStore = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppStore)
 
   return status !== 'critical' ? null : (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.container}>

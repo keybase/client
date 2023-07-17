@@ -1,7 +1,6 @@
 import * as ConfigConstants from '../../constants/config'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as ProfileConstants from '../../constants/profile'
-import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as FsConstants from '../../constants/fs'
 import * as DaemonConstants from '../../constants/daemon'
@@ -13,7 +12,6 @@ import InputMonitor from './input-monitor.desktop'
 import KB2 from '../../util/electron.desktop'
 import logger from '../../logger'
 import type {RPCError} from '../../util/errors'
-import {_getNavigator} from '../../constants/router2'
 import {getEngine} from '../../engine'
 import {isLinux, isWindows} from '../../constants/platform.desktop'
 import {kbfsNotification} from './kbfs-notifications'
@@ -68,36 +66,6 @@ const initializeInputMonitor = () => {
   }
 }
 
-const checkRPCOwnership = async (_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) => {
-  const waitKey = 'pipeCheckFail'
-  const {version} = action.payload
-  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-  wait(waitKey, version, true)
-  try {
-    logger.info('Checking RPC ownership')
-    if (KB2.functions.winCheckRPCOwnership) {
-      await KB2.functions.winCheckRPCOwnership()
-    }
-    wait(waitKey, version, false)
-  } catch (error_) {
-    // error will be logged in bootstrap check
-    getEngine().reset()
-    const error = error_ as RPCError
-    wait(waitKey, version, false, error.message || 'windows pipe owner fail', true)
-  }
-}
-
-const initOsNetworkStatus = () =>
-  ConfigGen.createOsNetworkStatusChanged({isInit: true, online: navigator.onLine, type: 'notavailable'})
-
-const setupReachabilityWatcher = (listenerApi: Container.ListenerApi) => {
-  const handler = (online: boolean) => {
-    listenerApi.dispatch(ConfigGen.createOsNetworkStatusChanged({online, type: 'notavailable'}))
-  }
-  window.addEventListener('online', () => handler(true))
-  window.addEventListener('offline', () => handler(false))
-}
-
 const onExit = () => {
   console.log('App exit requested')
   exitApp?.(0)
@@ -126,40 +94,8 @@ const onConnected = () => {
   RPCTypes.configHelloIAmRpcPromise({details: KB2.constants.helloDetails}).catch(() => {})
 }
 
-const onCopyToClipboard = (_: unknown, action: ConfigGen.CopyToClipboardPayload) => {
-  copyToClipboard?.(action.payload.text)
-}
-
 export const requestLocationPermission = async () => Promise.resolve()
 export const watchPositionForMap = async () => Promise.resolve(() => {})
-
-const checkNav = async (
-  _state: Container.TypedState,
-  action: ConfigGen.DaemonHandshakePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  // have one
-  if (_getNavigator()) {
-    return
-  }
-
-  const name = 'desktopNav'
-  const {version} = action.payload
-  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-  wait(name, version, true)
-  try {
-    // eslint-disable-next-line
-    while (true) {
-      logger.info('Waiting on nav')
-      await listenerApi.take(a => a.type === ConfigGen.setNavigator)
-      if (_getNavigator()) {
-        break
-      }
-    }
-  } finally {
-    wait(name, version, false)
-  }
-}
 
 const maybePauseVideos = () => {
   const {appFocused} = ConfigConstants.useConfigState.getState()
@@ -195,9 +131,9 @@ export const dumpLogs = async (reason?: string) => {
 }
 
 export const initPlatformListener = () => {
-  Container.listenAction(ConfigGen.showMain, () => showMainWindow?.())
-  Container.listenAction(ConfigGen.dumpLogs, async (_, a) => {
-    await dumpLogs(a.payload.reason)
+  ConfigConstants.useConfigState.setState(s => {
+    s.dispatch.dynamic.dumpLogsNative = dumpLogs
+    s.dispatch.dynamic.showMainNative = () => showMainWindow?.()
   })
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   Container.listenAction(EngineGen.keybase1LogsendPrepareLogsend, async (_, action) => {
@@ -213,8 +149,17 @@ export const initPlatformListener = () => {
   Container.listenAction(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
   Container.listenAction(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
   Container.listenAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
-  Container.listenAction(ConfigGen.copyToClipboard, onCopyToClipboard)
-  Container.listenAction(ConfigGen.loggedInChanged, initOsNetworkStatus)
+
+  ConfigConstants.useConfigState.setState(s => {
+    s.dispatch.dynamic.copyToClipboard = s => copyToClipboard?.(s)
+  })
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.loggedIn === old.loggedIn) return
+    ConfigConstants.useConfigState
+      .getState()
+      .dispatch.osNetworkStatusChanged(navigator.onLine, 'notavailable', true)
+  })
 
   ConfigConstants.useConfigState.subscribe((s, prev) => {
     if (s.appFocused !== prev.appFocused) {
@@ -224,17 +169,55 @@ export const initPlatformListener = () => {
 
   Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
 
-  if (isWindows) {
-    Container.listenAction(ConfigGen.daemonHandshake, checkRPCOwnership)
-  }
-  Container.listenAction(ConfigGen.daemonHandshake, checkNav)
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeVersion === old.handshakeVersion) return
+    if (!isWindows) return
+
+    const f = async () => {
+      const waitKey = 'pipeCheckFail'
+      const version = s.handshakeVersion
+      const {wait} = ConfigConstants.useDaemonState.getState().dispatch
+      wait(waitKey, version, true)
+      try {
+        logger.info('Checking RPC ownership')
+        if (KB2.functions.winCheckRPCOwnership) {
+          await KB2.functions.winCheckRPCOwnership()
+        }
+        wait(waitKey, version, false)
+      } catch (error_) {
+        // error will be logged in bootstrap check
+        getEngine().reset()
+        const error = error_ as RPCError
+        wait(waitKey, version, false, error.message || 'windows pipe owner fail', true)
+      }
+    }
+    Z.ignorePromise(f())
+  })
 
   Container.spawn(handleWindowFocusEvents, 'handleWindowFocusEvents')
-  Container.spawn(setupReachabilityWatcher, 'setupReachabilityWatcher')
 
-  Container.listenAction(ConfigGen.openAtLoginChanged, () => {
-    const {openAtLogin} = ConfigConstants.useConfigState.getState()
+  const setupReachabilityWatcher = () => {
+    window.addEventListener('online', () =>
+      ConfigConstants.useConfigState.getState().dispatch.osNetworkStatusChanged(true, 'notavailable')
+    )
+    window.addEventListener('offline', () =>
+      ConfigConstants.useConfigState.getState().dispatch.osNetworkStatusChanged(false, 'notavailable')
+    )
+  }
+  setupReachabilityWatcher()
+
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.openAtLogin === old.openAtLogin) return
+    const {openAtLogin} = s
     const f = async () => {
+      if (__DEV__) {
+        console.log('onSetOpenAtLogin disabled for dev mode')
+      } else {
+        await RPCTypes.configGuiSetValueRpcPromise({
+          path: ConfigConstants.openAtLoginKey,
+          value: {b: openAtLogin, isNull: false},
+        })
+      }
       if (isLinux || isWindows) {
         const enabled =
           (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
@@ -261,12 +244,9 @@ export const initPlatformListener = () => {
       .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
   })
 
-  Container.listenAction(ConfigGen.daemonHandshakeDone, () => {
+  ConfigConstants.useDaemonState.subscribe((s, old) => {
+    if (s.handshakeState === old.handshakeState || s.handshakeState !== 'done') return
     ConfigConstants.useConfigState.getState().dispatch.setStartupDetailsLoaded()
-  })
-
-  Container.listenAction(ConfigGen.updateNow, () => {
-    ConfigConstants.useConfigState.getState().dispatch.updateApp()
   })
 
   if (isLinux) {
@@ -277,10 +257,6 @@ export const initPlatformListener = () => {
   ConfigConstants.useConfigState.getState().dispatch.initAppUpdateLoop()
   Container.listenAction(FsGen.userFileEditsLoad, () => {
     FsConstants.useState.getState().dispatch.userFileEditsLoad()
-  })
-
-  Container.listenAction(ConfigGen.installerRan, () => {
-    ConfigConstants.useConfigState.getState().dispatch.installerRan()
   })
 
   ProfileConstants.useState.setState(s => {

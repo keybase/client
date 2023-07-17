@@ -1,11 +1,12 @@
 import * as Constants from '../constants/devices'
-import * as Container from '../util/container'
-import * as NotificationsGen from './notifications-gen'
+import * as ConfigConstants from '../constants/config'
 
 const initDevice = () => {
-  Container.listenAction(NotificationsGen.receivedBadgeState, (_, action) => {
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.badgeState === old.badgeState) return
+    if (!s.badgeState) return
     const {setBadges} = Constants.useDevicesState.getState().dispatch
-    const {newDevices, revokedDevices} = action.payload.badgeState
+    const {newDevices, revokedDevices} = s.badgeState
     setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
   })
 }

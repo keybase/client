@@ -2,15 +2,12 @@
 import type * as bots from './bots-gen'
 import type * as chat2 from './chat2-gen'
 import type * as config from './config-gen'
-import type * as deeplinks from './deeplinks-gen'
 import type * as enginegen from './engine-gen-gen'
 import type * as fs from './fs-gen'
 import type * as gregor from './gregor-gen'
-import type * as notifications from './notifications-gen'
-import type * as pinentry from './pinentry-gen'
+import type * as remote from './remote-gen'
 import type * as routetree from './route-tree-gen'
 import type * as settings from './settings-gen'
-import type * as tracker2 from './tracker2-gen'
 import type * as unlockfolders from './unlock-folders-gen'
 import type * as wallets from './wallets-gen'
 
@@ -18,15 +15,12 @@ export type TypedActions =
   | bots.Actions
   | chat2.Actions
   | config.Actions
-  | deeplinks.Actions
   | enginegen.Actions
   | fs.Actions
   | gregor.Actions
-  | notifications.Actions
-  | pinentry.Actions
+  | remote.Actions
   | routetree.Actions
   | settings.Actions
-  | tracker2.Actions
   | unlockfolders.Actions
   | wallets.Actions
 

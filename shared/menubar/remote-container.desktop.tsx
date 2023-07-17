@@ -28,7 +28,7 @@ const RemoteContainer = () => {
   ConfigConstants.useCurrentUserState(s => s.dispatch.replaceUsername)(username)
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
   ConfigConstants.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
-  ConfigConstants.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn, undefined, true)
+  ConfigConstants.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn, false)
   return (
     <Menubar
       {...rest}

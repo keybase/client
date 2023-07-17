@@ -1,5 +1,4 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamsConstants from '../../../../../constants/teams'
 import * as ProfileConstants from '../../../../../constants/profile'
@@ -76,15 +75,14 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
+  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopy = (message: Types.Message) => {
     if (message.type === 'text') {
-      dispatch(ConfigGen.createCopyToClipboard({text: message.text.stringValue()}))
+      copyToClipboard(message.text.stringValue())
     }
   }
   const _onCopyLink = (label: string, message: Types.Message) => {
-    dispatch(
-      ConfigGen.createCopyToClipboard({text: DeeplinksConstants.linkFromConvAndMessage(label, message.id)})
-    )
+    copyToClipboard(DeeplinksConstants.linkFromConvAndMessage(label, message.id))
   }
   const _onDelete = (message: Types.Message) => {
     dispatch(

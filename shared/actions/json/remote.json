@@ -1,0 +1,65 @@
+{
+  "prelude": ["import type HiddenString from '../util/hidden-string'"],
+  "actions": {
+    "link": {"link": "string"},
+    "saltpackFileOpen": {
+      "_description": [
+        "Fired after OS notifies Electron that an associated Saltpack file has been opened.",
+        "",
+        "Path is a string when coming from Electron open-file event and HiddenString when coming from state.config.startupFile."
+      ],
+      "path": "string | HiddenString"
+    },
+    "installerRan": {
+      "_description": "desktop only: the installer ran and we can start up"
+    },
+    "dumpLogs": {"reason": ["'quitting through menu'"]},
+    "showMain": {},
+    "updateNow": {},
+    "setSystemDarkMode": {"dark": "boolean"},
+    "remoteWindowWantsProps": {
+      "_description": "remote electron window wants props sent",
+      "component": "string",
+      "param": "string"
+    },
+    "updateWindowShown": {
+      "_description": "a window was shown",
+      "component": "string"
+    },
+    "updateWindowMaxState": {
+      "_description": "main electron window changed max/min",
+      "max": "boolean"
+    },
+    "updateWindowState": {
+      "_description": "main electron window wants to store its state",
+      "windowState": "{ dockHidden: boolean; height: number; isFullScreen: boolean; width: number; windowHidden: boolean; x: number; y: number; }"
+    },
+    "powerMonitorEvent": {
+      "_description": "Plumb power monitor events from node",
+      "event": "string"
+    },
+    "pinentryOnSubmit": {
+      "password": "string"
+    },
+    "pinentryOnCancel": {},
+    "trackerChangeFollow": {
+      "guiID": "string",
+      "follow": "boolean"
+    },
+    "trackerIgnore": {
+      "guiID": "string"
+    },
+    "trackerCloseTracker": {
+      "guiID": "string"
+    },
+    "trackerLoad": {
+      "assertion": "string",
+      "forceDisplay?": "boolean",
+      "fromDaemon?": "boolean",
+      "guiID": "string",
+      "ignoreCache?": "boolean",
+      "reason": "string",
+      "inTracker": "boolean"
+    }
+  }
+}

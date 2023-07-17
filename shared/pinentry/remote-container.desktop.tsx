@@ -1,5 +1,5 @@
 import * as Container from '../util/container'
-import * as PinentryGen from '../actions/pinentry-gen'
+import * as RemoteGen from '../actions/remote-gen'
 import Pinentry from './index.desktop'
 import type {DeserializeProps} from './remote-serializer.desktop'
 
@@ -9,8 +9,8 @@ const RemoteContainer = () => {
   return (
     <Pinentry
       {...state}
-      onCancel={() => dispatch(PinentryGen.createOnCancel())}
-      onSubmit={(password: string) => dispatch(PinentryGen.createOnSubmit({password}))}
+      onCancel={() => dispatch(RemoteGen.createPinentryOnCancel())}
+      onSubmit={(password: string) => dispatch(RemoteGen.createPinentryOnSubmit({password}))}
     />
   )
 }
