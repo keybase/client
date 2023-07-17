@@ -2,45 +2,62 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import type * as Types from '../../../../../constants/types/wallets'
-import * as WalletsGen from '../../../../../actions/wallets-gen'
+//import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Container from '../../../../../util/container'
 import {WalletPopup} from '../../../../common'
+import * as RPCStellarTypes from '../../../../../constants/types/rpc-stellar-gen'
 
 type Props = {
   accountID: Types.AccountID
   name: string
-  loading: boolean
+  //loading: boolean
   waiting: boolean
-  onCopyKey: () => void
+  onCopyKey: (sk: string) => void
   onFinish: () => void
   onCancel: () => void
 }
 
 const ReallyRemoveAccountPopup = (props: Props) => {
   const {accountID, onCopyKey} = props
-  const dispatch = Container.useDispatch()
+  //const dispatch = Container.useDispatch()
   const [showingToast, setShowToast] = React.useState(false)
   const attachmentRef = React.useRef<Kb.ClickableBox>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
-  const onLoadSecretKey = React.useCallback(
-    () => dispatch(WalletsGen.createExportSecretKey({accountID: accountID})),
-    [dispatch, accountID]
-  )
-  const onSecretKeySeen = React.useCallback(
-    () => dispatch(WalletsGen.createSecretKeySeen({accountID})),
-    [accountID, dispatch]
-  )
+
+  const [sk, setSK] = React.useState('')
+  const loading = !sk
+  const getSecretKey = Container.useRPC(RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise)
+
   React.useEffect(() => {
-    onLoadSecretKey()
-    return () => {
-      onSecretKeySeen()
-    }
-  }, [onLoadSecretKey, onSecretKeySeen])
+    setSK('')
+    getSecretKey(
+      [{accountID}],
+      r => {
+        setSK(r)
+      },
+      () => {}
+    )
+  }, [getSecretKey, accountID])
+
+  // const onLoadSecretKey = React.useCallback(
+  //   () => dispatch(WalletsGen.createExportSecretKey({accountID: accountID})),
+  //   [dispatch, accountID]
+  // )
+  // const onSecretKeySeen = React.useCallback(
+  //   () => dispatch(WalletsGen.createSecretKeySeen({accountID})),
+  //   [accountID, dispatch]
+  // )
+  // React.useEffect(() => {
+  //   onLoadSecretKey()
+  //   return () => {
+  //     onSecretKeySeen()
+  //   }
+  // }, [onLoadSecretKey, onSecretKeySeen])
   const onCopy = React.useCallback(() => {
     setShowToast(true)
     setShowToastFalseLater()
-    onCopyKey()
-  }, [onCopyKey, setShowToastFalseLater])
+    onCopyKey(sk)
+  }, [onCopyKey, setShowToastFalseLater, sk])
   return (
     <WalletPopup
       onExit={props.onCancel}
@@ -55,7 +72,7 @@ const ReallyRemoveAccountPopup = (props: Props) => {
           onClick={onCopy}
           type="Wallet"
           ref={attachmentRef}
-          waiting={props.loading}
+          waiting={loading}
           disabled={props.waiting}
         />,
         <Kb.Button
@@ -65,7 +82,7 @@ const ReallyRemoveAccountPopup = (props: Props) => {
           onClick={props.onFinish}
           type="Dim"
           waiting={props.waiting}
-          disabled={props.loading}
+          disabled={loading}
         />,
       ]}
       safeAreaViewBottomStyle={styles.background}
@@ -89,8 +106,7 @@ const ReallyRemoveAccountPopup = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         <Kb.Text center={true} type="BodySmall" style={styles.warningText}>
-          If you save this secret key, you can use it in other wallets outside Keybase, or even import it back
-          into Keybase later.
+          If you save this secret key, you can use it in other wallets outside Keybase
         </Kb.Text>
 
         <Kb.Toast visible={showingToast} attachTo={() => attachmentRef.current} position="top center">

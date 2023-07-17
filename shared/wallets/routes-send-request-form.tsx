@@ -1,8 +1,10 @@
-import sendReceiveForm from './send-form/page'
-import qrScan from './qr-scan/page'
-import chooseAssetForm from './send-form/choose-asset/page'
-import pickAssetForm from './send-form/pick-asset.page'
-import confirmForm from './confirm-form/page'
+/*
+import * as Constants from '../constants/wallets'
+import type ChooseAsset from './send-form/choose-asset/container'
+import type PickAsset from './send-form/pick-asset'
+import type ConfirmForm from './confirm-form/container'
+import type QRScan from './qr-scan/container'
+import type SendForm from './send-form/container'
 
 export const newModalRoutes = {
   chooseAssetForm,
@@ -10,4 +12,17 @@ export const newModalRoutes = {
   pickAssetForm,
   qrScan,
   sendReceiveForm,
+}
+
+*/
+
+import * as Constants from '../constants/wallets'
+const Keep = {getScreen: () => require('./keep').default}
+
+export const newModalRoutes = {
+  [Constants.chooseAssetFormRouteKey]: Keep,
+  [Constants.pickAssetFormRouteKey]: Keep,
+  [Constants.confirmFormRouteKey]: Keep,
+  qrScan: Keep,
+  sendReceiveForm: Keep,
 }
