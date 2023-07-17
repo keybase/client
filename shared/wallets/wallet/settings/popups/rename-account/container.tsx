@@ -10,8 +10,8 @@ import RenameAccount from '.'
 type OwnProps = Container.RouteProps<'renameAccount'>
 
 export default Container.connect(
-  (state, ownProps: OwnProps) => {
-    const accountID = ownProps.route.params?.accountID ?? Types.noAccountID
+  (state /*, ownProps: OwnProps*/) => {
+    const accountID = /*ownProps.route.params?.accountID ??*/ Types.noAccountID
     const selectedAccount = Constants.getAccount(state, accountID)
     return {
       accountID,

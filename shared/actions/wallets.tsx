@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-imports */
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/wallets'
@@ -1635,6 +1636,95 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
 }
 
 const initWallets = () => {
+  Container.listenAction([WalletsGen.loadAccounts, WalletsGen.deletedAccount], loadAccounts)
+  Container.listenAction(WalletsGen.showTransaction, () =>
+    RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
+  )
+  Container.listenAction(WalletsGen.deleteAccount, deleteAccount)
+
+  // silence warnings
+  createdOrLinkedAccount
+  loadAccounts
+  loadAssets
+  loadDisplayCurrencies
+  loadPayments
+  loadWalletDisclaimer
+  refreshTrustlineAcceptedAssetsByUsername
+  spawnBuildPayment
+  acceptDisclaimer
+  acceptSEP7Path
+  acceptSEP7Pay
+  acceptSEP7Tx
+  accountDetailsUpdate
+  accountsUpdate
+  addTrustline
+  assetDeposit
+  assetWithdraw
+  buildPayment
+  calculateBuildingAdvanced
+  cancelPayment
+  cancelRequest
+  changeAccountName
+  changeDisplayCurrency
+  changeMobileOnlyMode
+  checkDisclaimer
+  clearBuilding
+  clearBuiltPayment
+  clearBuiltRequest
+  clearErrors
+  commonListenActions
+  createNewAccount
+  deleteAccount
+  deleteTrustline
+  deletedAccount
+  exitFailedPayment
+  exportSecretKey
+  filterForNs
+  linkExistingAccount
+  loadDisplayCurrency
+  loadExternalPartners
+  loadMobileOnlyMode
+  loadMorePayments
+  loadPaymentDetail
+  loadSendAssetChoices
+  loadStaticConfig
+  loadWalletDisclaimer
+  markAsRead
+  maybeClearErrors
+  maybeNavigateAwayFromSendForm
+  maybeNavigateToConversationFromPayment
+  maybeNavigateToConversationFromRequest
+  maybePopulateBuildingCurrency
+  maybeSelectDefaultAccount
+  navigateToAccount
+  navigateToTransaction
+  navigateUp
+  onTeamBuildingAdded
+  openSendRequestForm
+  paymentReviewed
+  pendingPaymentsUpdate
+  readLastSentXLM
+  receivedBadgeState
+  recentPaymentsUpdate
+  refreshAssets
+  refreshTrustlineAcceptedAssets
+  refreshTrustlinePopularAssets
+  rejectDisclaimer
+  requestPayment
+  reviewPayment
+  searchTrustlineAssets
+  sendPayment
+  sendPaymentAdvanced
+  setAccountAsDefault
+  setLastSentXLM
+  startPayment
+  stopPayment
+  validateAccountName
+  validateSEP7Link
+  validateSecretKey
+  writeLastSentXLM
+
+  /*
   Container.listenAction(WalletsGen.createNewAccount, createNewAccount)
   Container.listenAction(
     [
@@ -1775,6 +1865,7 @@ const initWallets = () => {
   Container.listenAction(WalletsGen.assetWithdraw, assetWithdraw)
   commonListenActions('wallets')
   Container.listenAction(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('wallets', onTeamBuildingAdded))
+    */
 }
 
 export default initWallets
