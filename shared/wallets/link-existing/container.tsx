@@ -22,8 +22,8 @@ export default Container.connect(
       Constants.validateSecretKeyWaitingKey
     ),
   }),
-  (dispatch, ownProps: OwnProps) => ({
-    fromSendForm: ownProps.route.params?.fromSendForm ?? undefined,
+  (dispatch /*, ownProps: OwnProps*/) => ({
+    fromSendForm: undefined, //ownProps.route.params?.fromSendForm ?? undefined,
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onCheckKey: (key: string) => {
       dispatch(
@@ -36,15 +36,15 @@ export default Container.connect(
       dispatch(WalletsGen.createValidateAccountName({name}))
     },
     onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
-    onDone: (sk: string, name: string) => {
-      dispatch(
-        WalletsGen.createLinkExistingAccount({
-          name,
-          secretKey: new HiddenString(sk),
-          setBuildingTo: ownProps.route.params?.fromSendForm ?? undefined,
-          showOnCreation: ownProps.route.params?.showOnCreation ?? undefined,
-        })
-      )
+    onDone: (/*sk: string, name: string*/) => {
+      // dispatch(
+      //   WalletsGen.createLinkExistingAccount({
+      //     name,
+      //     secretKey: new HiddenString(sk),
+      //     setBuildingTo: ownProps.route.params?.fromSendForm ?? undefined,
+      //     showOnCreation: ownProps.route.params?.showOnCreation ?? undefined,
+      //   })
+      // )
 
       dispatch(RouteTreeGen.createNavigateUp())
     },
