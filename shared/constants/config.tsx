@@ -159,11 +159,7 @@ const initialStore: Store = {
     pushPayload: '',
     wasFromPush: false,
   },
-  unlockFoldersDevices: [
-    {deviceID: 'one', name: 'one', type: 'desktop'},
-    {deviceID: 'two', name: 'two', type: 'mobile'},
-    {deviceID: 'three', name: 'three', type: 'desktop'},
-  ],
+  unlockFoldersDevices: [],
   unlockFoldersError: '',
   useNativeFrame: defaultUseNativeFrame,
   userSwitching: false,

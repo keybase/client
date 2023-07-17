@@ -34,7 +34,6 @@ const decodeForgotUsernameError = (error: RPCError) => {
 const errorCausedByUsCanceling = (e?: RPCError) =>
   (e ? e.desc : undefined) === 'Input canceled' || (e ? e.desc : undefined) === 'kex canceled by caller'
 const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
-  console.log('aaa cancelOnCallback ', _)
   response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
 }
 

@@ -27,7 +27,6 @@ const UnlockRemoteProxy = () => {
   const devices = ConfigConstants.useConfigState(s => s.unlockFoldersDevices)
   const paperKeyError = ConfigConstants.useConfigState(s => s.unlockFoldersError)
   const waiting = WaitingConstants.useAnyWaiting('unlock-folders:waiting')
-  console.log('aaa error', paperKeyError)
   if (devices.length) {
     return (
       <UnlockFolders
