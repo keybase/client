@@ -1,8 +1,10 @@
 import * as RPCTypes from './types/rpc-stellar-gen'
+import * as RPCStellarTypes from './types/rpc-stellar-gen'
 import * as SettingsConstants from './settings'
 import * as ConfigConstants from './config'
 import * as Styles from '../styles'
 import * as Tabs from './tabs'
+import * as Z from '../util/zustand'
 import * as Types from './types/wallets'
 import HiddenString from '../util/hidden-string'
 import invert from 'lodash/invert'
@@ -785,3 +787,63 @@ export const makeCancelButtonInfo = (username: string) =>
 // would be separate error codes instead.
 export const exchangeRateErrorText = 'exchange rate'
 export const recipientRequiresAMemoErrorText = 'recipient requires a memo'
+
+export type Account = {
+  accountID: string
+  balanceDescription: string
+  deviceReadOnly: boolean
+  isDefault: boolean
+  name: string
+}
+type Store = {
+  accountMap: Map<string, Account>
+}
+
+const initialStore: Store = {
+  accountMap: new Map(),
+}
+
+type State = Store & {
+  dispatch: {
+    load: () => void
+    resetState: 'default'
+  }
+}
+
+export const useState = Z.createZustand<State>((set, _get) => {
+  const dispatch: State['dispatch'] = {
+    load: () => {
+      const f = async () => {
+        if (!ConfigConstants.useConfigState.getState().loggedIn) {
+          return
+        }
+        const res = await RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, [
+          loadAccountsWaitingKey,
+        ])
+        set(s => {
+          s.accountMap = new Map(
+            res?.map(a => {
+              return [
+                a.name,
+                makeAccount({
+                  accountID: Types.stringToAccountID(a.accountID),
+                  balanceDescription: a.balanceDescription,
+                  deviceReadOnly: a.deviceReadOnly,
+                  displayCurrency: currencyResultToCurrency(a.currencyLocal),
+                  isDefault: a.isDefault,
+                  name: a.name,
+                }),
+              ]
+            })
+          )
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    resetState: 'default',
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

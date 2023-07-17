@@ -1,17 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as WalletsGen from '../actions/wallets-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
 import * as Constants from '../constants/wallets'
 import * as WaitingConstants from '../constants/waiting'
-import type * as Types from '../constants/types/wallets'
 import {useFocusEffect} from '@react-navigation/native'
-import shallowEqual from 'shallowequal'
 
-const Row = (p: {account: Types.Account}) => {
+const Row = (p: {account: Constants.Account}) => {
   const {account} = p
   const {name, accountID, deviceReadOnly, balanceDescription, isDefault} = account
   const [sk, setSK] = React.useState('')
@@ -107,13 +104,14 @@ const Row = (p: {account: Types.Account}) => {
 }
 
 export default () => {
-  const dispatch = Container.useDispatch()
   const [acceptedDisclaimer, setAcceptedDisclaimer] = React.useState(false)
   const checkDisclaimer = Container.useRPC(RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise)
 
+  const load = Constants.useState(s => s.dispatch.load)
+
   useFocusEffect(
     React.useCallback(() => {
-      dispatch(WalletsGen.createLoadAccounts({reason: 'initial-load'}))
+      load()
       checkDisclaimer(
         [undefined, Constants.loadAccountsWaitingKey],
         r => {
@@ -124,16 +122,17 @@ export default () => {
         }
       )
       return () => {}
-    }, [dispatch, checkDisclaimer])
+    }, [load, checkDisclaimer])
   )
 
-  const accounts = Container.useSelector(state => {
-    return [...state.wallets.accountMap.values()].sort((a, b) => {
+  const accountMap = Constants.useState(s => s.accountMap)
+  const accounts = React.useMemo(() => {
+    return [...accountMap.values()].sort((a, b) => {
       if (a.isDefault) return -1
       if (b.isDefault) return 1
       return a.name < b.name ? -1 : 1
     })
-  }, shallowEqual)
+  }, [accountMap])
 
   const loading = WaitingConstants.useAnyWaiting(Constants.loadAccountsWaitingKey)
 
