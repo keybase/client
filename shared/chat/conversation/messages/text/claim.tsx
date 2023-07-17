@@ -3,7 +3,6 @@ import * as Container from '../../../../util/container'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Styles from '../../../../styles'
 import * as WalletConstants from '../../../../constants/wallets'
 import shallowEqual from 'shallowequal'
@@ -46,10 +45,6 @@ const getClaimProps = (state: Container.TypedState, message: Types.MessageText) 
 const Claim = () => {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const dispatch = Container.useDispatch()
-  const onClaim = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
-  }, [dispatch])
   const info = Container.useSelector(state => {
     const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
     return m?.type === 'text' ? getClaimProps(state, m) : undefined
@@ -57,7 +52,7 @@ const Claim = () => {
   if (!info) return null
   const {amount, label} = info
   return (
-    <Kb.Button type="Wallet" onClick={onClaim} small={true} style={styles.claimButton}>
+    <Kb.Button type="Wallet" onClick={undefined} small={true} style={styles.claimButton} disabled={true}>
       <Kb.Text style={styles.claimLabel} type="BodySemibold">
         {label}{' '}
         <Kb.Text style={styles.claimLabel} type="BodyExtrabold">
@@ -76,7 +71,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.xtiny,
       },
       claimLabel: {color: Styles.globalColors.white},
-    } as const)
+    }) as const
 )
 
 export default Claim

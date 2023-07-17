@@ -4,9 +4,7 @@ import type * as Types from '../../../../constants/types/chat2'
 import * as ConfigConstants from '../../../../constants/config'
 import * as WalletConstants from '../../../../constants/wallets'
 import type * as WalletTypes from '../../../../constants/types/wallets'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../actions/wallets-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import AccountPayment from '.'
 import shallowEqual from 'shallowequal'
 
@@ -56,8 +54,8 @@ type OwnProps = {
 }
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
-  const {message} = ownProps
-  const {conversationIDKey, ordinal} = message
+  // const {message} = ownProps
+  // const {conversationIDKey, ordinal} = message
   // TODO not huge selector
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const stateProps = Container.useSelector(state => {
@@ -157,12 +155,6 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
       dispatch(WalletsGen.createCancelPayment({paymentID}))
     }
   }
-  const onClaim = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
-  }
-  const onSend = () => {
-    dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal}))
-  }
   const props = {
     action: stateProps.action,
     amount: stateProps.amount,
@@ -177,8 +169,6 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
     loading: stateProps.loading,
     memo: stateProps.memo,
     onCancel: () => _onCancel(stateProps._paymentID),
-    onClaim: onClaim,
-    onSend: onSend,
     pending: stateProps.pending,
     sendButtonLabel: stateProps.sendButtonLabel || '',
     showCoinsIcon: stateProps.showCoinsIcon,

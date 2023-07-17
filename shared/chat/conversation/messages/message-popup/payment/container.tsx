@@ -1,7 +1,6 @@
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as ConfigConstants from '../../../../../constants/config'
 import * as WalletConstants from '../../../../../constants/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
@@ -77,12 +76,6 @@ export const SendPaymentPopup = (ownProps: SendOwnProps) => {
   const onCancel = (paymentID: WalletTypes.PaymentID) => {
     dispatch(WalletGen.createCancelPayment({paymentID}))
   }
-  const onClaimLumens = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
-  }
-  const onSeeDetails = (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
-    dispatch(WalletGen.createShowTransaction({accountID, paymentID}))
-  }
   const props = (() => {
     if (ownProps.message.type !== 'sendPayment' && ownProps.message.type !== 'text') {
       return null
@@ -96,8 +89,6 @@ export const SendPaymentPopup = (ownProps: SendOwnProps) => {
         visible: ownProps.visible,
       }
     }
-    const youAreSender = you === paymentInfo.fromUsername
-    const youAreReceiver = you === paymentInfo.toUsername
 
     const sourceAmountDesc = `${paymentInfo.sourceAmount} ${paymentInfo.sourceAsset.code || 'XLM'}`
     const balanceChangeAmount =
@@ -122,17 +113,9 @@ export const SendPaymentPopup = (ownProps: SendOwnProps) => {
       icon: paymentInfo.delta === 'increase' ? ('receiving' as const) : ('sending' as const),
       loading: false,
       onCancel: paymentInfo.showCancel ? () => onCancel(paymentInfo.paymentID) : undefined,
-      onClaimLumens: paymentInfo.status === 'claimable' && !youAreSender ? onClaimLumens : undefined,
+      onClaimLumens: undefined,
       onHidden: ownProps.onHidden,
-      onSeeDetails:
-        (paymentInfo.status === 'completed' ||
-          paymentInfo.status === 'error' ||
-          paymentInfo.status === 'pending' ||
-          paymentInfo.status === 'claimable' ||
-          paymentInfo.status === 'canceled') &&
-        (youAreSender || youAreReceiver)
-          ? () => onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID)
-          : undefined,
+      onSeeDetails: undefined,
       position: ownProps.position,
       sender: ownProps.message.author,
       senderDeviceName: ownProps.message.deviceName,

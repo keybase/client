@@ -1836,9 +1836,9 @@ const messageSend = async (
           },
           'chat.1.chatUi.chatStellarShowConfirm': () => [
             Chat2Gen.createClearPaymentConfirmInfo(),
-            RouteTreeGen.createNavigateAppend({
-              path: [confirmRouteName],
-            }),
+            // RouteTreeGen.createNavigateAppend({
+            //   path: [confirmRouteName],
+            // }),
           ],
         },
         params: {
@@ -2026,7 +2026,7 @@ const previewConversationTeam = async (
             "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
           )
         return RouteTreeGen.createNavigateAppend({
-          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+          path: ['keybaseLinkError'],
         })
       } else {
         return []
@@ -2061,7 +2061,7 @@ const previewConversationTeam = async (
           "We couldn't find this team. Please check that you're a member of the team and the channel exists."
         )
       return RouteTreeGen.createNavigateAppend({
-        path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+        path: ['keybaseLinkError'],
       })
     } else {
       throw error

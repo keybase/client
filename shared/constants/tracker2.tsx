@@ -346,7 +346,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               reduxDispatch(RouteTreeGen.createNavigateUp())
               reduxDispatch(
                 RouteTreeGen.createNavigateAppend({
-                  path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+                  path: ['keybaseLinkError'],
                 })
               )
             }

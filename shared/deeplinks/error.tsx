@@ -23,27 +23,10 @@ export const KeybaseLinkErrorBody = (props: KeybaseLinkErrorBodyProps) => {
   )
 }
 
-type OwnProps = {
-  errorSource: 'app' | 'sep6' | 'sep7'
-}
-
-const KeybaseLinkError = (props: OwnProps) => {
-  const errorSource = props.errorSource
-  const deepError = Constants.useState(s => (errorSource === 'app' ? s.keybaseLinkError : ''))
-  const reduxmessage = Container.useSelector(s => {
-    switch (errorSource) {
-      case 'sep7':
-        return s.wallets.sep7ConfirmError
-      case 'sep6':
-        return s.wallets.sep6Message
-      default:
-        return 'unknown'
-    }
-  })
-  const message = deepError || reduxmessage
-
-  const sep6Error = Container.useSelector(s => s.wallets.sep6Error)
-  const isError = errorSource !== 'sep6' || sep6Error
+const KeybaseLinkError = () => {
+  const deepError = Constants.useState(s => s.keybaseLinkError)
+  const message = deepError
+  const isError = true
   const dispatch = Container.useDispatch()
   const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
   return <KeybaseLinkErrorBody onCancel={onClose} isError={isError} message={message} />

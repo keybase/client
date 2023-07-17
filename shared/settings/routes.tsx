@@ -24,6 +24,7 @@ import password from './password/page'
 import deleteConfirm from './delete-confirm/page'
 import disableCertPinningModal from './disable-cert-pinning-modal/page'
 import settingsDeleteAddress from './account/confirm-delete.modal.page'
+import keybaseLinkError from '../deeplinks/page'
 
 import settingsRootPhone from './root-phone.page'
 import settingsRootDesktop from './root-desktop-tablet.page'
@@ -51,6 +52,7 @@ export const sharedNewRoutes = {
   addPhone,
   dbNukeConfirm,
   inviteSent,
+  keybaseLinkError,
   removeDevice: devicesRoutes.deviceRevoke,
 }
 

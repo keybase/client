@@ -1,12 +1,10 @@
 import * as React from 'react'
-import type * as Container from '../util/container'
 
 const Error = React.lazy(async () => import('./error'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Error>
 
-const Screen = (p: OwnProps) => (
+const Screen = () => (
   <React.Suspense>
-    <Error {...p.route.params} />
+    <Error />
   </React.Suspense>
 )
 

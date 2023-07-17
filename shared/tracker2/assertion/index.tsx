@@ -1,8 +1,4 @@
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
-import * as WalletsType from '../../constants/types/wallets'
-import * as WalletsGen from '../../actions/wallets-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -134,48 +130,15 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
 
 const StellarValue = (p: Props) => {
   const {value, color} = p
-  const dispatch = Container.useDispatch()
 
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onCopyAddress = React.useCallback(() => {
     copyToClipboard(value)
   }, [copyToClipboard, value])
 
-  const onWhatIsStellar = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['whatIsStellarModal']}))
-  }, [dispatch])
-
-  const onRequestLumens = React.useCallback(() => {
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: WalletsType.noAccountID,
-        isRequest: true,
-        recipientType: 'keybaseUser',
-        to: value.split('*')[0],
-      })
-    )
-  }, [dispatch, value])
-
-  const onSendLumens = React.useCallback(() => {
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({
-        from: WalletsType.noAccountID,
-        isRequest: false,
-        recipientType: 'keybaseUser',
-        to: value.split('*')[0],
-      })
-    )
-  }, [dispatch, value])
-
   const menuItems: Kb.MenuItems = React.useMemo(
-    () => [
-      {newTag: true, onClick: onSendLumens, title: 'Send Lumens (XLM)'},
-      {newTag: true, onClick: onRequestLumens, title: 'Request Lumens (XLM)'},
-      {onClick: onCopyAddress, title: 'Copy address'},
-      'Divider' as const,
-      {onClick: onWhatIsStellar, title: 'What is Stellar?'},
-    ],
-    [onCopyAddress, onWhatIsStellar, onRequestLumens, onSendLumens]
+    () => [{onClick: onCopyAddress, title: 'Copy address'}],
+    [onCopyAddress]
   )
 
   const makePopup = React.useCallback(

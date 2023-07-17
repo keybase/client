@@ -3,7 +3,7 @@ import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/wallets'
 import * as Container from '../util/container'
-import * as EngineGen from './engine-gen-gen'
+import type * as EngineGen from './engine-gen-gen'
 import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -14,7 +14,7 @@ import * as Types from '../constants/types/wallets'
 import * as WalletsGen from './wallets-gen'
 import HiddenString from '../util/hidden-string'
 import logger from '../logger'
-import openURL from '../util/open-url'
+// import openURL from '../util/open-url'
 import {RPCError} from '../util/errors'
 import {isTablet} from '../constants/platform'
 
@@ -96,19 +96,19 @@ const spawnBuildPayment = (
   return WalletsGen.createBuildPayment()
 }
 
-const openSendRequestForm = (state: Container.TypedState) => {
-  if (!state.wallets.acceptedDisclaimer) {
-    // redirect to disclaimer
-    return RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
-  }
+// const openSendRequestForm = (state: Container.TypedState) => {
+//   if (!state.wallets.acceptedDisclaimer) {
+//     // redirect to disclaimer
+//     // return RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
+//   }
 
-  // load accounts for default display currency
-  const accountsLoaded = Constants.getAccounts(state).length > 0
-  return [
-    !accountsLoaded && WalletsGen.createLoadAccounts({reason: 'open-send-req-form'}),
-    RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: Constants.sendRequestFormRouteKey}]}),
-  ]
-}
+//   // load accounts for default display currency
+//   const accountsLoaded = Constants.getAccounts(state).length > 0
+//   return [
+//     !accountsLoaded && WalletsGen.createLoadAccounts({reason: 'open-send-req-form'}),
+//     RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: Constants.sendRequestFormRouteKey}]}),
+//   ]
+// }
 
 const maybePopulateBuildingCurrency = (state: Container.TypedState) =>
   (state.wallets.building.bid || state.wallets.building.isRequest) && !state.wallets.building.currency // building a payment and haven't set currency yet
@@ -315,7 +315,7 @@ const validateSEP7Link = async (_: unknown, action: WalletsGen.ValidateSEP7LinkP
       }),
       WalletsGen.createValidateSEP7LinkError({error: ''}),
       RouteTreeGen.createClearModals(),
-      RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),
+      // RouteTreeGen.createNavigateAppend({path: ['sep7Confirm']}),
     ]
   } catch (error) {
     if (!(error instanceof RPCError)) {
@@ -325,7 +325,7 @@ const validateSEP7Link = async (_: unknown, action: WalletsGen.ValidateSEP7LinkP
       WalletsGen.createValidateSEP7LinkError({error: error.desc}),
       RouteTreeGen.createClearModals(),
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {errorSource: 'sep7'}, selected: 'keybaseLinkError'}],
+        path: ['keybaseLinkError'],
       }),
     ]
   }
@@ -887,18 +887,18 @@ const navigateToAccount = (_: unknown, action: WalletsGen.SelectAccountPayload) 
   ]
 }
 
-const navigateToTransaction = (_: unknown, action: WalletsGen.ShowTransactionPayload) => {
-  const {accountID, paymentID} = action.payload
-  const actions: Array<Container.TypedActions> = [
-    WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'}),
-  ]
-  actions.push(
-    RouteTreeGen.createNavigateAppend({
-      path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
-    })
-  )
-  return actions
-}
+// const navigateToTransaction = (_: unknown, action: WalletsGen.ShowTransactionPayload) => {
+//   const {accountID, paymentID} = action.payload
+//   const actions: Array<Container.TypedActions> = [
+//     WalletsGen.createSelectAccount({accountID, reason: 'show-transaction'}),
+//   ]
+//   actions.push(
+//     RouteTreeGen.createNavigateAppend({
+//       path: [{props: {accountID, paymentID}, selected: 'transactionDetails'}],
+//     })
+//   )
+//   return actions
+// }
 
 const exportSecretKey = async (_: unknown, action: WalletsGen.ExportSecretKeyPayload) => {
   const res = await RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise({
@@ -1520,82 +1520,82 @@ const sendPaymentAdvanced = async (state: Container.TypedState) => {
   })
 }
 
-const handleSEP6Result = (res: RPCStellarTypes.AssetActionResultLocal) => {
-  if (res.externalUrl) {
-    return openURL(res.externalUrl)
-  }
-  if (res.messageFromAnchor) {
-    return [
-      WalletsGen.createSetSEP6Message({error: false, message: res.messageFromAnchor}),
-      RouteTreeGen.createClearModals(),
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {errorSource: 'sep6'}, selected: 'keybaseLinkError'}],
-      }),
-    ]
-  }
-  console.warn('SEP6 result without Url or Message', res)
-  return false
-}
+// const handleSEP6Result = (res: RPCStellarTypes.AssetActionResultLocal) => {
+//   if (res.externalUrl) {
+//     return openURL(res.externalUrl)
+//   }
+//   if (res.messageFromAnchor) {
+//     return [
+//       WalletsGen.createSetSEP6Message({error: false, message: res.messageFromAnchor}),
+//       RouteTreeGen.createClearModals(),
+//       RouteTreeGen.createNavigateAppend({
+//         path: [{props: {errorSource: 'sep6'}, selected: 'keybaseLinkError'}],
+//       }),
+//     ]
+//   }
+//   console.warn('SEP6 result without Url or Message', res)
+//   return false
+// }
 
-const handleSEP6Error = (err: RPCError) => [
-  WalletsGen.createSetSEP6Message({error: true, message: err.desc}),
-  RouteTreeGen.createClearModals(),
-  RouteTreeGen.createNavigateAppend({
-    path: [{props: {errorSource: 'sep6'}, selected: 'keybaseLinkError'}],
-  }),
-]
+// const handleSEP6Error = (err: RPCError) => [
+//   WalletsGen.createSetSEP6Message({error: true, message: err.desc}),
+//   RouteTreeGen.createClearModals(),
+//   RouteTreeGen.createNavigateAppend({
+//     path: [{props: {errorSource: 'sep6'}, selected: 'keybaseLinkError'}],
+//   }),
+// ]
 
-const assetDeposit = async (_: unknown, action: WalletsGen.AssetDepositPayload) => {
-  try {
-    const res = await RPCStellarTypes.localAssetDepositLocalRpcPromise(
-      {
-        accountID: action.payload.accountID,
-        asset: assetDescriptionOrNativeToRpcAsset(
-          Constants.makeAssetDescription({
-            code: action.payload.code,
-            issuerAccountID: action.payload.issuerAccountID,
-          })
-        ),
-      },
-      Constants.assetDepositWaitingKey(action.payload.issuerAccountID, action.payload.code)
-    )
-    return handleSEP6Result(res)
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    return handleSEP6Error(error)
-  }
-}
+// const assetDeposit = async (_: unknown, action: WalletsGen.AssetDepositPayload) => {
+//   try {
+//     const res = await RPCStellarTypes.localAssetDepositLocalRpcPromise(
+//       {
+//         accountID: action.payload.accountID,
+//         asset: assetDescriptionOrNativeToRpcAsset(
+//           Constants.makeAssetDescription({
+//             code: action.payload.code,
+//             issuerAccountID: action.payload.issuerAccountID,
+//           })
+//         ),
+//       },
+//       Constants.assetDepositWaitingKey(action.payload.issuerAccountID, action.payload.code)
+//     )
+//     return handleSEP6Result(res)
+//   } catch (error) {
+//     if (!(error instanceof RPCError)) {
+//       return
+//     }
+//     return handleSEP6Error(error)
+//   }
+// }
 
-const assetWithdraw = async (_: unknown, action: WalletsGen.AssetWithdrawPayload) => {
-  try {
-    const res = await RPCStellarTypes.localAssetWithdrawLocalRpcPromise(
-      {
-        accountID: action.payload.accountID,
-        asset: assetDescriptionOrNativeToRpcAsset(
-          Constants.makeAssetDescription({
-            code: action.payload.code,
-            issuerAccountID: action.payload.issuerAccountID,
-          })
-        ),
-      },
-      Constants.assetWithdrawWaitingKey(action.payload.issuerAccountID, action.payload.code)
-    )
-    return handleSEP6Result(res)
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    return handleSEP6Error(error)
-  }
-}
+// const assetWithdraw = async (_: unknown, action: WalletsGen.AssetWithdrawPayload) => {
+//   try {
+//     const res = await RPCStellarTypes.localAssetWithdrawLocalRpcPromise(
+//       {
+//         accountID: action.payload.accountID,
+//         asset: assetDescriptionOrNativeToRpcAsset(
+//           Constants.makeAssetDescription({
+//             code: action.payload.code,
+//             issuerAccountID: action.payload.issuerAccountID,
+//           })
+//         ),
+//       },
+//       Constants.assetWithdrawWaitingKey(action.payload.issuerAccountID, action.payload.code)
+//     )
+//     return handleSEP6Result(res)
+//   } catch (error) {
+//     if (!(error instanceof RPCError)) {
+//       return
+//     }
+//     return handleSEP6Error(error)
+//   }
+// }
 
 const initWallets = () => {
   Container.listenAction([WalletsGen.loadAccounts, WalletsGen.deletedAccount], loadAccounts)
-  Container.listenAction(WalletsGen.showTransaction, () =>
-    RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
-  )
+  // Container.listenAction(WalletsGen.showTransaction, () =>
+  //   RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
+  // )
   Container.listenAction(WalletsGen.deleteAccount, deleteAccount)
 
   // silence warnings
@@ -1614,8 +1614,8 @@ const initWallets = () => {
   accountDetailsUpdate
   accountsUpdate
   addTrustline
-  assetDeposit
-  assetWithdraw
+  // assetDeposit
+  // assetWithdraw
   buildPayment
   calculateBuildingAdvanced
   cancelPayment
@@ -1653,10 +1653,10 @@ const initWallets = () => {
   maybePopulateBuildingCurrency
   maybeSelectDefaultAccount
   navigateToAccount
-  navigateToTransaction
+  // navigateToTransaction
   navigateUp
   // onTeamBuildingAdded
-  openSendRequestForm
+  // openSendRequestForm
   paymentReviewed
   pendingPaymentsUpdate
   readLastSentXLM
