@@ -2,7 +2,6 @@ import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/teams'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as GregorGen from './gregor-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Router2Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
@@ -33,8 +32,9 @@ const initTeams = () => {
     Constants.useState.getState().dispatch.refreshTeamRoleMap()
   })
 
-  Container.listenAction(GregorGen.pushState, (_, action) => {
-    Constants.useState.getState().dispatch.onGregorPushState(action.payload.state)
+  ConfigConstants.useConfigState.subscribe((s, old) => {
+    if (s.gregorPushState === old.gregorPushState) return
+    Constants.useState.getState().dispatch.onGregorPushState(s.gregorPushState)
   })
   Container.listenAction(EngineGen.keybase1NotifyTeamTeamChangedByID, (_, action) => {
     Constants.useState.getState().dispatch.teamChangedByID(action.payload.params)

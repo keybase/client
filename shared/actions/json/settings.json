@@ -1,6 +1,0 @@
-{
-  "prelude": [],
-  "actions": {
-    "stop": {"exitCode": "RPCTypes.ExitCode"}
-  }
-}

@@ -1,6 +1,7 @@
 {
   "prelude": ["import type HiddenString from '../util/hidden-string'"],
   "actions": {
+    "stop": {"exitCode": "RPCTypes.ExitCode"},
     "link": {"link": "string"},
     "saltpackFileOpen": {
       "_description": [

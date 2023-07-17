@@ -8,7 +8,6 @@ import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as SettingsGen from '../actions/settings-gen'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import ChatContainer from './chat-container.desktop'
@@ -101,7 +100,7 @@ const useMenuItems = (
         onClick: () => {
           if (!__DEV__) {
             if (isLinux) {
-              dispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
+              dispatch(RemoteGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
             } else {
               dispatch(RemoteGen.createDumpLogs({reason: 'quitting through menu'}))
             }

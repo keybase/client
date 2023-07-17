@@ -1,29 +1,9 @@
 import logger from '../logger'
 import * as ConfigConstants from '../constants/config'
-import * as GregorGen from './gregor-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
 import * as Z from '../util/zustand'
-
-const pushState = (_: unknown, action: EngineGen.Keybase1GregorUIPushStatePayload) => {
-  const {reason, state} = action.payload.params
-  const items = state.items || []
-
-  const goodState = items.reduce<Array<{item: RPCTypes.Gregor1.Item; md: RPCTypes.Gregor1.Metadata}>>(
-    (arr, {md, item}) => {
-      md && item && arr.push({item, md})
-      return arr
-    },
-    []
-  )
-
-  if (goodState.length !== items.length) {
-    logger.warn('Lost some messages in filtering out nonNull gregor items')
-  }
-
-  return GregorGen.createPushState({reason, state: goodState})
-}
 
 // Gregor reachability is only valid if we're logged in
 const reachabilityChanged = (
@@ -77,7 +57,6 @@ const initGregor = () => {
 
   Container.listenAction(EngineGen.connected, registerForGregorNotifications)
   Container.listenAction(EngineGen.connected, startReachability)
-  Container.listenAction(EngineGen.keybase1GregorUIPushState, pushState)
   Container.listenAction(EngineGen.keybase1ReachabilityReachabilityChanged, reachabilityChanged)
 }
 

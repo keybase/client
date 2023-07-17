@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-
+import type * as RPCTypes from '../constants/types/rpc-gen'
 import type HiddenString from '../util/hidden-string'
 
 // Constants
@@ -15,6 +15,7 @@ export const remoteWindowWantsProps = 'remote:remoteWindowWantsProps'
 export const saltpackFileOpen = 'remote:saltpackFileOpen'
 export const setSystemDarkMode = 'remote:setSystemDarkMode'
 export const showMain = 'remote:showMain'
+export const stop = 'remote:stop'
 export const trackerChangeFollow = 'remote:trackerChangeFollow'
 export const trackerCloseTracker = 'remote:trackerCloseTracker'
 export const trackerIgnore = 'remote:trackerIgnore'
@@ -101,6 +102,10 @@ export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   type: setSystemDarkMode as typeof setSystemDarkMode,
 })
 export const createShowMain = (payload?: undefined) => ({payload, type: showMain as typeof showMain})
+export const createStop = (payload: {readonly exitCode: RPCTypes.ExitCode}) => ({
+  payload,
+  type: stop as typeof stop,
+})
 export const createTrackerChangeFollow = (payload: {readonly guiID: string; readonly follow: boolean}) => ({
   payload,
   type: trackerChangeFollow as typeof trackerChangeFollow,
@@ -135,6 +140,7 @@ export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindow
 export type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
+export type StopPayload = ReturnType<typeof createStop>
 export type TrackerChangeFollowPayload = ReturnType<typeof createTrackerChangeFollow>
 export type TrackerCloseTrackerPayload = ReturnType<typeof createTrackerCloseTracker>
 export type TrackerIgnorePayload = ReturnType<typeof createTrackerIgnore>
@@ -157,6 +163,7 @@ export type Actions =
   | SaltpackFileOpenPayload
   | SetSystemDarkModePayload
   | ShowMainPayload
+  | StopPayload
   | TrackerChangeFollowPayload
   | TrackerCloseTrackerPayload
   | TrackerIgnorePayload
