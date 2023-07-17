@@ -212,6 +212,7 @@ export const initPlatformListener = () => {
     const f = async () => {
       if (__DEV__) {
         console.log('onSetOpenAtLogin disabled for dev mode')
+        return
       } else {
         await RPCTypes.configGuiSetValueRpcPromise({
           path: ConfigConstants.openAtLoginKey,
