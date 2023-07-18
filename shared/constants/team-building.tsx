@@ -449,14 +449,21 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           results.set(selectedService, users)
         })
 
-        const blocks = new Array<string>()
-        users.forEach(({serviceMap, prettyName}) => {
+        const updates = users.reduce((arr, {serviceMap, prettyName}) => {
           const {keybase} = serviceMap
           if (keybase) {
-            UsersConstants.useState.getState().dispatch.update(keybase, {fullname: prettyName})
-            blocks.push(keybase)
+            arr.push({info: {fullname: prettyName}, name: keybase})
           }
-        })
+          return arr
+        }, new Array<{info: {fullname: string}; name: string}>())
+        UsersConstants.useState.getState().dispatch.updates(updates)
+        const blocks = users.reduce((arr, {serviceMap}) => {
+          const {keybase} = serviceMap
+          if (keybase) {
+            arr.push(keybase)
+          }
+          return arr
+        }, new Array<string>())
         blocks.length && UsersConstants.useState.getState().dispatch.getBlockState(blocks)
       }
       Z.ignorePromise(f())

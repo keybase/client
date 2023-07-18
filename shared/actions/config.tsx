@@ -138,10 +138,11 @@ const loadDaemonAccounts = () => {
       }
       setAccounts(nextConfiguredAccounts)
       const UsersConstants = await import('../constants/users')
-      Object.keys(usernameToFullname).forEach(username => {
-        const fullname = usernameToFullname[username]
-        UsersConstants.useState.getState().dispatch.update(username, {fullname})
-      })
+      UsersConstants.useState
+        .getState()
+        .dispatch.updates(
+          Object.keys(usernameToFullname).map(name => ({info: {fullname: usernameToFullname[name]}, name}))
+        )
 
       if (handshakeWait) {
         // someone dismissed this already?

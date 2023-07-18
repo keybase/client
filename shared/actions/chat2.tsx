@@ -203,10 +203,11 @@ const onGetInboxConvsUnboxed = (
     })
   })
   if (added) {
-    Object.keys(usernameToFullname).forEach(username => {
-      const fullname = usernameToFullname[username]
-      UsersConstants.useState.getState().dispatch.update(username, {fullname})
-    })
+    UsersConstants.useState
+      .getState()
+      .dispatch.updates(
+        Object.keys(usernameToFullname).map(name => ({info: {fullname: usernameToFullname[name]}, name}))
+      )
   }
   if (metas.length > 0) {
     actions.push(Chat2Gen.createMetasReceived({metas}))
@@ -497,7 +498,7 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
       }
       arr.push(Chat2Gen.createMessageErrored({conversationIDKey, errorTyp: error.typ, outboxID, reason}))
       if (tempForceRedBox) {
-        UsersConstants.useState.getState().dispatch.updateBroken([tempForceRedBox], true)
+        UsersConstants.useState.getState().dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
       }
     }
     return arr
@@ -511,19 +512,8 @@ const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatI
   const {update} = action.payload.params
   const usernames = update.CanonicalName.split(',')
   const broken = (update.breaks.breaks || []).map(b => b.user.username)
-  const newlyBroken: Array<string> = []
-  const newlyFixed: Array<string> = []
-
-  usernames.forEach(name => {
-    if (broken.includes(name)) {
-      newlyBroken.push(name)
-    } else {
-      newlyFixed.push(name)
-    }
-  })
-
-  UsersConstants.useState.getState().dispatch.updateBroken(newlyBroken, true)
-  UsersConstants.useState.getState().dispatch.updateBroken(newlyFixed, false)
+  const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
+  UsersConstants.useState.getState().dispatch.updates(updates)
 }
 
 // Get actions to update messagemap / metamap when retention policy expunge happens

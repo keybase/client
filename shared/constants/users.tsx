@@ -52,7 +52,7 @@ export type State = Store & {
     replace: (infoMap: State['infoMap'], blockMap?: State['blockMap']) => void
     setUserBlocks: (blocks: Array<RPCTypes.UserBlockArg>) => void
     update: (name: string, i: Partial<Types.UserInfo>) => void
-    updateBroken: (names: Array<string>, broken: boolean) => void
+    updates: (infos: Array<{name: string; info: Partial<Types.UserInfo>}>) => void
   }
 }
 
@@ -129,11 +129,19 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    updateBroken: (names, broken) => {
+    updates: (infos: Array<{name: string; info: Partial<Types.UserInfo>}>) => {
       set(s => {
-        for (const name of names) {
-          const user = mapGetEnsureValue(s.infoMap, name, {broken})
-          user.broken = broken
+        for (const {name, info: i} of infos) {
+          const user = mapGetEnsureValue(s.infoMap, name, {broken: false})
+          if (i.bio !== undefined) {
+            user.bio = i.bio
+          }
+          if (i.broken !== undefined) {
+            user.broken = i.broken
+          }
+          if (i.fullname !== undefined) {
+            user.fullname = i.fullname
+          }
         }
       })
     },

@@ -366,8 +366,10 @@ export const useState = Z.createZustand<State>((set, get) => {
             d.followers = new Set(fs.users?.map(f => f.username))
             d.followersCount = d.followers.size
           })
-          for (const u of fs.users ?? []) {
-            UsersConstants.useState.getState().dispatch.update(u.username, {fullname: u.fullName})
+          if (fs.users) {
+            UsersConstants.useState
+              .getState()
+              .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -386,8 +388,10 @@ export const useState = Z.createZustand<State>((set, get) => {
             d.following = new Set(fs.users?.map(f => f.username))
             d.followingCount = d.following.size
           })
-          for (const u of fs.users ?? []) {
-            UsersConstants.useState.getState().dispatch.update(u.username, {fullname: u.fullName})
+          if (fs.users) {
+            UsersConstants.useState
+              .getState()
+              .dispatch.updates(fs.users.map(u => ({info: {fullname: u.fullName}, name: u.username})))
           }
         } catch (error) {
           if (error instanceof RPCError) {
