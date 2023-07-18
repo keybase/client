@@ -1,8 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "pollJournalStatus": {},
-    "getOnlineStatus": {},
     "loadTlfSyncConfig": {
       "tlfPath": "Types.Path"
     },

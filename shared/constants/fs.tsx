@@ -1151,6 +1151,7 @@ type State = Store & {
     favoritesLoad: () => void
     favoriteIgnore: (path: Types.Path) => void
     folderListLoad: (path: Types.Path, recursive: boolean) => void
+    getOnlineStatus: () => void
     journalUpdate: (syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: number) => void
     kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => void
     kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => void
@@ -1165,6 +1166,7 @@ type State = Store & {
     loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
     newFolderRow: (parentPath: Types.Path) => void
     onChangedFocus: (appFocused: boolean) => void
+    pollJournalStatus: () => void
     redbar: (error: string) => void
     resetState: 'default'
     setBadge: (b: RPCTypes.FilesTabBadge) => void
@@ -1294,6 +1296,29 @@ export const useState = Z.createZustand<State>((set, get) => {
         return undefined
     }
   }
+
+  // At start-up we might have a race where we get connected to a kbfs daemon
+  // which dies soon after, and we get an EOF here. So retry for a few times
+  // until we get through. After each try we delay for 2s, so this should give us
+  // e.g. 12s when n == 6. If it still doesn't work after 12s, something's wrong
+  // and we deserve a black bar.
+  const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<void> => {
+    try {
+      const onlineStatus = await RPCTypes.SimpleFSSimpleFSGetOnlineStatusRpcPromise({clientID})
+      get().dispatch.kbfsDaemonOnlineStatusChanged(onlineStatus)
+      return
+    } catch (error) {
+      if (n > 0) {
+        logger.warn(`failed to check if we are connected to MDServer: ${String(error)}; n=${n}`)
+        await Z.timeoutPromise(2000)
+        return checkIfWeReConnectedToMDServerUpToNTimes(n - 1)
+      } else {
+        logger.warn(`failed to check if we are connected to MDServer : ${String(error)}; n=${n}, throwing`)
+        throw error
+      }
+    }
+  }
+
   const dispatch: State['dispatch'] = {
     checkKbfsDaemonRpcStatus: () => {
       const f = async () => {
@@ -1632,6 +1657,12 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    getOnlineStatus: () => {
+      const f = async () => {
+        await checkIfWeReConnectedToMDServerUpToNTimes(2)
+      }
+      Z.ignorePromise(f())
+    },
     journalUpdate: (syncingPaths, totalSyncingBytes, endEstimate) => {
       set(s => {
         s.uploads.syncingPaths = new Set(syncingPaths)
@@ -1907,6 +1938,50 @@ export const useState = Z.createZustand<State>((set, get) => {
       ) {
         get().dispatch.driverEnable(true)
       }
+    },
+    pollJournalStatus: () => {
+      let polling = false
+      const getWaitDuration = (endEstimate: number | undefined, lower: number, upper: number): number => {
+        if (!endEstimate) {
+          return upper
+        }
+        const diff = endEstimate - Date.now()
+        return diff < lower ? lower : diff > upper ? upper : diff
+      }
+
+      const f = async () => {
+        if (polling) {
+          return
+        }
+        polling = true
+        try {
+          // eslint-disable-next-line
+          while (1) {
+            const {syncingPaths, totalSyncingBytes, endEstimate} =
+              await RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
+                filter: RPCTypes.ListFilter.filterSystemHidden,
+              })
+            get().dispatch.journalUpdate(
+              (syncingPaths || []).map(Types.stringToPath),
+              totalSyncingBytes,
+              endEstimate ?? undefined
+            )
+
+            // It's possible syncingPaths has not been emptied before
+            // totalSyncingBytes becomes 0. So check both.
+            if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
+              break
+            }
+            NotifConstants.useState.getState().dispatch.badgeApp('kbfsUploading', true)
+            await Z.timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
+          }
+        } finally {
+          polling = false
+          NotifConstants.useState.getState().dispatch.badgeApp('kbfsUploading', false)
+          get().dispatch.checkKbfsDaemonRpcStatus()
+        }
+      }
+      Z.ignorePromise(f())
     },
     redbar: error => {
       set(s => {

@@ -17,7 +17,6 @@ export const driverEnable = 'fs:driverEnable'
 export const finishManualConflictResolution = 'fs:finishManualConflictResolution'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
-export const getOnlineStatus = 'fs:getOnlineStatus'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
@@ -35,7 +34,6 @@ export const openPathInSystemFileManager = 'fs:openPathInSystemFileManager'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
-export const pollJournalStatus = 'fs:pollJournalStatus'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
@@ -104,10 +102,6 @@ export const createFinishedRegularDownload = (payload: {
   readonly downloadID: string
   readonly mimeType: string
 }) => ({payload, type: finishedRegularDownload as typeof finishedRegularDownload})
-export const createGetOnlineStatus = (payload?: undefined) => ({
-  payload,
-  type: getOnlineStatus as typeof getOnlineStatus,
-})
 export const createKbfsDaemonRpcStatusChanged = (payload?: undefined) => ({
   payload,
   type: kbfsDaemonRpcStatusChanged as typeof kbfsDaemonRpcStatusChanged,
@@ -175,10 +169,6 @@ export const createPickAndUpload = (payload: {
 export const createPlaceholderAction = (payload?: undefined) => ({
   payload,
   type: placeholderAction as typeof placeholderAction,
-})
-export const createPollJournalStatus = (payload?: undefined) => ({
-  payload,
-  type: pollJournalStatus as typeof pollJournalStatus,
 })
 export const createRefreshDriverStatus = (payload?: undefined) => ({
   payload,
@@ -258,7 +248,6 @@ export type DriverEnablePayload = ReturnType<typeof createDriverEnable>
 export type FinishManualConflictResolutionPayload = ReturnType<typeof createFinishManualConflictResolution>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
 export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedRegularDownload>
-export type GetOnlineStatusPayload = ReturnType<typeof createGetOnlineStatus>
 export type KbfsDaemonRpcStatusChangedPayload = ReturnType<typeof createKbfsDaemonRpcStatusChanged>
 export type LetResetUserBackInPayload = ReturnType<typeof createLetResetUserBackIn>
 export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
@@ -278,7 +267,6 @@ export type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPat
 export type OpenSecurityPreferencesPayload = ReturnType<typeof createOpenSecurityPreferences>
 export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
-export type PollJournalStatusPayload = ReturnType<typeof createPollJournalStatus>
 export type RefreshDriverStatusPayload = ReturnType<typeof createRefreshDriverStatus>
 export type RefreshMountDirsAfter10sPayload = ReturnType<typeof createRefreshMountDirsAfter10s>
 export type SaveMediaPayload = ReturnType<typeof createSaveMedia>
@@ -314,7 +302,6 @@ export type Actions =
   | FinishManualConflictResolutionPayload
   | FinishedDownloadWithIntentPayload
   | FinishedRegularDownloadPayload
-  | GetOnlineStatusPayload
   | KbfsDaemonRpcStatusChangedPayload
   | LetResetUserBackInPayload
   | LoadDownloadInfoPayload
@@ -332,7 +319,6 @@ export type Actions =
   | OpenSecurityPreferencesPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload
-  | PollJournalStatusPayload
   | RefreshDriverStatusPayload
   | RefreshMountDirsAfter10sPayload
   | SaveMediaPayload

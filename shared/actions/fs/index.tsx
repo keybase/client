@@ -1,5 +1,4 @@
 import * as Constants from '../../constants/fs'
-import * as NotifConstants from '../../constants/notifications'
 import * as ConfigConstants from '../../constants/config'
 import * as Router2Constants from '../../constants/router2'
 import * as EngineGen from '../engine-gen-gen'
@@ -104,57 +103,6 @@ const dismissUpload = async (_: Container.TypedState, action: FsGen.DismissUploa
     await RPCTypes.SimpleFSSimpleFSDismissUploadRpcPromise({uploadID: action.payload.uploadID})
   } catch {}
   return false
-}
-
-const getWaitDuration = (endEstimate: number | undefined, lower: number, upper: number): number => {
-  if (!endEstimate) {
-    return upper
-  }
-
-  const diff = endEstimate - Date.now()
-  return diff < lower ? lower : diff > upper ? upper : diff
-}
-
-// TODO: move these logic into Go HOTPOT-533
-let polling = false
-const pollJournalFlushStatusUntilDone = async (
-  _s: unknown,
-  _a: unknown,
-  listenerApi: Container.ListenerApi
-) => {
-  if (polling) {
-    return
-  }
-  polling = true
-  try {
-    // eslint-disable-next-line
-    while (1) {
-      const {syncingPaths, totalSyncingBytes, endEstimate} =
-        await RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
-          filter: RPCTypes.ListFilter.filterSystemHidden,
-        })
-
-      Constants.useState
-        .getState()
-        .dispatch.journalUpdate(
-          (syncingPaths || []).map(Types.stringToPath),
-          totalSyncingBytes,
-          endEstimate ?? undefined
-        )
-
-      // It's possible syncingPaths has not been emptied before
-      // totalSyncingBytes becomes 0. So check both.
-      if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
-        break
-      }
-      NotifConstants.useState.getState().dispatch.badgeApp('kbfsUploading', true)
-      await listenerApi.delay(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
-    }
-  } finally {
-    polling = false
-    NotifConstants.useState.getState().dispatch.badgeApp('kbfsUploading', false)
-    Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
-  }
 }
 
 const letResetUserBackIn = async (_: unknown, action: FsGen.LetResetUserBackInPayload) => {
@@ -323,7 +271,8 @@ const onNonPathChange = async (_: unknown, action: EngineGen.Keybase1NotifyFSFSS
       Constants.useState.getState().dispatch.favoritesLoad()
       return
     case RPCTypes.SubscriptionTopic.journalStatus:
-      return FsGen.createPollJournalStatus()
+      Constants.useState.getState().dispatch.pollJournalStatus()
+      return
     case RPCTypes.SubscriptionTopic.onlineStatus:
       return checkIfWeReConnectedToMDServerUpToNTimes(1)
     case RPCTypes.SubscriptionTopic.downloadStatus:
@@ -340,8 +289,6 @@ const onNonPathChange = async (_: unknown, action: EngineGen.Keybase1NotifyFSFSS
       return undefined
   }
 }
-
-const getOnlineStatus = async () => checkIfWeReConnectedToMDServerUpToNTimes(2)
 
 const loadPathInfo = async (_: unknown, action: FsGen.LoadPathInfoPayload) => {
   const pathInfo = await RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({
@@ -469,9 +416,8 @@ const subscribeAndLoadJournalStatus = () => {
     Constants.useState
       .getState()
       .dispatch.subscribeNonPath(journalStatusSubscriptionID, RPCTypes.SubscriptionTopic.journalStatus)
-    return FsGen.createPollJournalStatus()
+    Constants.useState.getState().dispatch.pollJournalStatus()
   }
-  return
 }
 
 let settingsSubscriptionID: string = ''
@@ -512,7 +458,6 @@ const initFS = () => {
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
   Container.listenAction(FsGen.letResetUserBackIn, letResetUserBackIn)
   Container.listenAction(FsGen.deleteFile, deleteFile)
-  Container.listenAction(FsGen.pollJournalStatus, pollJournalFlushStatusUntilDone)
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
   Container.listenAction(FsGen.userIn, () => {
     Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
@@ -532,7 +477,6 @@ const initFS = () => {
   })
 
   Container.listenAction(FsGen.setTlfSyncConfig, setTlfSyncConfig)
-  Container.listenAction([FsGen.getOnlineStatus], getOnlineStatus)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.networkStatus === old.networkStatus) return
