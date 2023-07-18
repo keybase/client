@@ -1,10 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "uploadFromDragAndDrop": {
-      "parentPath": "Types.Path",
-      "localPaths": "Array<string>"
-    },
     "dismissUpload": {
       "uploadID": "string"
     },

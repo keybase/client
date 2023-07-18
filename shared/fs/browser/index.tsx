@@ -1,6 +1,5 @@
 import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
-import * as FsGen from '../../actions/fs-gen'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as React from 'react'
@@ -67,14 +66,8 @@ const DragAndDrop = ({
   path: Types.Path
   rejectReason?: string
 }) => {
-  const dispatch = Container.useDispatch()
-  const onAttach = (localPaths: Array<string>) =>
-    dispatch(
-      FsGen.createUploadFromDragAndDrop({
-        localPaths,
-        parentPath: path,
-      })
-    )
+  const uploadFromDragAndDrop = Constants.useState(s => s.dispatch.uploadFromDragAndDrop)
+  const onAttach = (localPaths: Array<string>) => uploadFromDragAndDrop(path, localPaths)
   return (
     <Kb.DragAndDrop
       allowFolders={true}

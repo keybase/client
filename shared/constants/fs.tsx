@@ -12,8 +12,11 @@ import NotifyPopup from '../util/notify-popup'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
-import {isLinux, isMobile} from './platform'
+import {isLinux, isMobile, isDarwin} from './platform'
 import {tlfToPreferredOrder} from '../util/kbfs'
+import KB2 from '../util/electron'
+
+const {darwinCopyToKBFSTempUploadFile} = KB2.functions
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
@@ -1138,6 +1141,7 @@ type State = Store & {
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
+    dynamic: {}
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
     favoritesLoad: () => void
@@ -1160,7 +1164,7 @@ type State = Store & {
     onChangedFocus: (appFocused: boolean) => void
     pollJournalStatus: () => void
     redbar: (error: string) => void
-    resetState: 'default'
+    resetState: () => void
     setBadge: (b: RPCTypes.FilesTabBadge) => void
     setCriticalUpdate: (u: boolean) => void
     setDestinationPickerParentPath: (index: number, path: Types.Path) => void
@@ -1187,6 +1191,7 @@ type State = Store & {
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     unsubscribe: (subscriptionID: string) => void
     upload: (parentPath: Types.Path, localPath: string) => void
+    uploadFromDragAndDrop: (parentPath: Types.Path, localPaths: Array<string>) => void
     userFileEditsLoad: () => void
     waitForKbfsDaemon: () => void
   }
@@ -1437,6 +1442,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
+    dynamic: {},
     editError: (editID, error) => {
       set(s => {
         const e = s.edits.get(editID)
@@ -1998,7 +2004,13 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.errors.push(error)
       })
     },
-    resetState: 'default',
+    resetState: () => {
+      set(s => ({
+        ...s,
+        ...initialStore,
+        dispatch: s.dispatch,
+      }))
+    },
     setBadge: b => {
       set(s => {
         s.badge = b
@@ -2259,6 +2271,20 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
         } catch (err) {
           errorToActionOrThrow(err)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    uploadFromDragAndDrop: (parentPath, localPaths) => {
+      const f = async () => {
+        if (isDarwin && darwinCopyToKBFSTempUploadFile) {
+          const dir = await RPCTypes.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
+          const lp = await Promise.all(
+            localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(dir, localPath))
+          )
+          lp.forEach(localPath => get().dispatch.upload(parentPath, localPath))
+        } else {
+          localPaths.forEach(localPath => get().dispatch.upload(parentPath, localPath))
         }
       }
       Z.ignorePromise(f())

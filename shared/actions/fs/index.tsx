@@ -11,11 +11,7 @@ import * as Z from '../../util/zustand'
 import logger from '../../logger'
 import initPlatformSpecific from './platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
-import * as Platform from '../../constants/platform'
 import {RPCError} from '../../util/errors'
-import KB2 from '../../util/electron'
-
-const {darwinCopyToKBFSTempUploadFile} = KB2.functions
 
 const clientID = Constants.clientID
 
@@ -389,21 +385,6 @@ const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
 }
 
 const initFS = () => {
-  Container.listenAction(FsGen.uploadFromDragAndDrop, async (_, action) => {
-    if (Platform.isDarwin && darwinCopyToKBFSTempUploadFile) {
-      const dir = await RPCTypes.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
-      const localPaths = await Promise.all(
-        action.payload.localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(dir, localPath))
-      )
-      localPaths.forEach(localPath =>
-        Constants.useState.getState().dispatch.upload(action.payload.parentPath, localPath)
-      )
-    } else {
-      action.payload.localPaths.forEach(localPath =>
-        Constants.useState.getState().dispatch.upload(action.payload.parentPath, localPath)
-      )
-    }
-  })
   Container.listenAction(FsGen.dismissUpload, dismissUpload)
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
   Container.listenAction(FsGen.letResetUserBackIn, letResetUserBackIn)
