@@ -1,12 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "shareNative": {
-      "path": "Types.Path"
-    },
-    "saveMedia": {
-      "path": "Types.Path"
-    },
     "upload": {
       "parentPath": "Types.Path",
       "localPath": "string"

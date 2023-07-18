@@ -1,9 +1,7 @@
-import type * as Types from '../../../constants/types/fs'
-import * as React from 'react'
 import * as Constants from '../../../constants/fs'
-import * as FsGen from '../../../actions/fs-gen'
-import * as Container from '../../../util/container'
+import * as React from 'react'
 import Confirm, {type Props} from './confirm'
+import type * as Types from '../../../constants/types/fs'
 import type {FloatingMenuProps} from './types'
 
 type OwnProps = {
@@ -17,15 +15,13 @@ export default (ownProps: OwnProps) => {
   const size = Constants.useState(s => Constants.getPathItem(s.pathItems, path).size)
 
   const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
-  const dispatch = Container.useDispatch()
+  const download = Constants.useState(s => s.dispatch.download)
   const _confirm = React.useCallback(
     ({view, previousView}: any) => {
-      dispatch(
-        view === 'confirm-save-media' ? FsGen.createSaveMedia({path}) : FsGen.createShareNative({path})
-      )
+      download(path, view === 'confirm-save-media' ? 'saveMedia' : 'share')
       setPathItemActionMenuView(previousView)
     },
-    [setPathItemActionMenuView, dispatch, path]
+    [setPathItemActionMenuView, download, path]
   )
   const props = {
     ...ownProps,

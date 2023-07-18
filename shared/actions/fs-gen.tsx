@@ -23,7 +23,6 @@ export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
 export const loadPathInfo = 'fs:loadPathInfo'
-export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
 export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
 export const move = 'fs:move'
@@ -36,14 +35,11 @@ export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
-export const saveMedia = 'fs:saveMedia'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const setDriverStatus = 'fs:setDriverStatus'
 export const setSfmiBannerDismissed = 'fs:setSfmiBannerDismissed'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
-export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
-export const shareNative = 'fs:shareNative'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
@@ -126,10 +122,6 @@ export const createLoadPathInfo = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: loadPathInfo as typeof loadPathInfo,
 })
-export const createLoadTlfSyncConfig = (payload: {readonly tlfPath: Types.Path}) => ({
-  payload,
-  type: loadTlfSyncConfig as typeof loadTlfSyncConfig,
-})
 export const createLoadedFilesTabBadge = (payload: {readonly badge: RPCTypes.FilesTabBadge}) => ({
   payload,
   type: loadedFilesTabBadge as typeof loadedFilesTabBadge,
@@ -178,10 +170,6 @@ export const createRefreshMountDirsAfter10s = (payload?: undefined) => ({
   payload,
   type: refreshMountDirsAfter10s as typeof refreshMountDirsAfter10s,
 })
-export const createSaveMedia = (payload: {readonly path: Types.Path}) => ({
-  payload,
-  type: saveMedia as typeof saveMedia,
-})
 export const createSetCriticalUpdate = (payload: {readonly critical: boolean}) => ({
   payload,
   type: setCriticalUpdate as typeof setCriticalUpdate,
@@ -203,14 +191,6 @@ export const createSetSpaceAvailableNotificationThreshold = (payload: {
 }) => ({
   payload,
   type: setSpaceAvailableNotificationThreshold as typeof setSpaceAvailableNotificationThreshold,
-})
-export const createSetTlfSyncConfig = (payload: {
-  readonly enabled: boolean
-  readonly tlfPath: Types.Path
-}) => ({payload, type: setTlfSyncConfig as typeof setTlfSyncConfig})
-export const createShareNative = (payload: {readonly path: Types.Path}) => ({
-  payload,
-  type: shareNative as typeof shareNative,
 })
 export const createStartManualConflictResolution = (payload: {readonly tlfPath: Types.Path}) => ({
   payload,
@@ -254,7 +234,6 @@ export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
 export type LoadDownloadStatusPayload = ReturnType<typeof createLoadDownloadStatus>
 export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge>
 export type LoadPathInfoPayload = ReturnType<typeof createLoadPathInfo>
-export type LoadTlfSyncConfigPayload = ReturnType<typeof createLoadTlfSyncConfig>
 export type LoadedFilesTabBadgePayload = ReturnType<typeof createLoadedFilesTabBadge>
 export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
 export type MovePayload = ReturnType<typeof createMove>
@@ -269,7 +248,6 @@ export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
 export type RefreshDriverStatusPayload = ReturnType<typeof createRefreshDriverStatus>
 export type RefreshMountDirsAfter10sPayload = ReturnType<typeof createRefreshMountDirsAfter10s>
-export type SaveMediaPayload = ReturnType<typeof createSaveMedia>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
 export type SetDriverStatusPayload = ReturnType<typeof createSetDriverStatus>
@@ -277,8 +255,6 @@ export type SetSfmiBannerDismissedPayload = ReturnType<typeof createSetSfmiBanne
 export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
   typeof createSetSpaceAvailableNotificationThreshold
 >
-export type SetTlfSyncConfigPayload = ReturnType<typeof createSetTlfSyncConfig>
-export type ShareNativePayload = ReturnType<typeof createShareNative>
 export type StartManualConflictResolutionPayload = ReturnType<typeof createStartManualConflictResolution>
 export type UninstallKBFSConfirmPayload = ReturnType<typeof createUninstallKBFSConfirm>
 export type UploadFromDragAndDropPayload = ReturnType<typeof createUploadFromDragAndDrop>
@@ -308,7 +284,6 @@ export type Actions =
   | LoadDownloadStatusPayload
   | LoadFilesTabBadgePayload
   | LoadPathInfoPayload
-  | LoadTlfSyncConfigPayload
   | LoadedFilesTabBadgePayload
   | LoadedPathInfoPayload
   | MovePayload
@@ -321,14 +296,11 @@ export type Actions =
   | PlaceholderActionPayload
   | RefreshDriverStatusPayload
   | RefreshMountDirsAfter10sPayload
-  | SaveMediaPayload
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload
   | SetDriverStatusPayload
   | SetSfmiBannerDismissedPayload
   | SetSpaceAvailableNotificationThresholdPayload
-  | SetTlfSyncConfigPayload
-  | ShareNativePayload
   | StartManualConflictResolutionPayload
   | UninstallKBFSConfirmPayload
   | UploadFromDragAndDropPayload

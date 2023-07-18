@@ -1,4 +1,3 @@
-// TODO w/ zustand cleanup remove more fs actions
 import * as ConfigConstants from './config'
 import * as NotifConstants from './notifications'
 import * as FsGen from '../actions/fs-gen'
@@ -8,6 +7,7 @@ import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as Types from './types/fs'
 import * as Z from '../util/zustand'
+import {requestPermissionsToWrite} from '../actions/platform-specific'
 import NotifyPopup from '../util/notify-popup'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import {RPCError} from '../util/errors'
@@ -357,15 +357,6 @@ export const humanReadableFileSize = (size: number) => {
 
 export const downloadIsOngoing = (dlState: Types.DownloadState) =>
   dlState !== emptyDownloadState && !dlState.error && !dlState.done && !dlState.canceled
-
-export const getDownloadIntentFromAction = (
-  action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
-): Types.DownloadIntent =>
-  action.type === FsGen.download
-    ? Types.DownloadIntent.None
-    : action.type === FsGen.shareNative
-    ? Types.DownloadIntent.Share
-    : Types.DownloadIntent.CameraRoll
 
 export const getDownloadIntent = (
   path: Types.Path,
@@ -1143,6 +1134,7 @@ type State = Store & {
     commitEdit: (editID: Types.EditID) => void
     discardEdit: (editID: Types.EditID) => void
     dismissRedbar: (index: number) => void
+    download: (path: Types.Path, type: 'download' | 'share' | 'saveMedia') => void
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
@@ -1403,6 +1395,22 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.errors = [...s.errors.slice(0, index), ...s.errors.slice(index + 1)]
       })
+    },
+    download: (path, type) => {
+      const f = async () => {
+        await requestPermissionsToWrite()
+        const downloadID = await RPCTypes.SimpleFSSimpleFSStartDownloadRpcPromise({
+          isRegularDownload: type === 'download',
+          path: pathToRPCPath(path).kbfs,
+        })
+        if (type !== 'download') {
+          get().dispatch.setPathItemActionMenuDownload(
+            downloadID,
+            type === 'share' ? Types.DownloadIntent.Share : Types.DownloadIntent.CameraRoll
+          )
+        }
+      }
+      Z.ignorePromise(f())
     },
     driverDisabling: () => {
       set(s => {

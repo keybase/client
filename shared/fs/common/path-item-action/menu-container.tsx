@@ -115,12 +115,13 @@ export default (ownProps: OwnProps) => {
     )
   }
   const startRename = Constants.useState(s => s.dispatch.startRename)
+  const download = Constants.useState(s => s.dispatch.download)
   const _rename = React.useCallback(() => {
     startRename(path)
   }, [startRename, path])
   const _saveMedia = React.useCallback(() => {
-    dispatch(FsGen.createSaveMedia({path}))
-  }, [dispatch, path])
+    download(path, 'saveMedia')
+  }, [download, path])
   const _sendAttachmentToChat = () => {
     path &&
       dispatch(
@@ -130,8 +131,8 @@ export default (ownProps: OwnProps) => {
       )
   }
   const _sendToOtherApp = React.useCallback(() => {
-    dispatch(FsGen.createShareNative({path}))
-  }, [dispatch, path])
+    download(path, 'share')
+  }, [download, path])
   const _share = React.useCallback(() => {
     setPathItemActionMenuView(Types.PathItemActionMenuView.Share)
   }, [setPathItemActionMenuView])

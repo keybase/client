@@ -14,12 +14,10 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Platform from '../../constants/platform'
 import {RPCError} from '../../util/errors'
 import KB2 from '../../util/electron'
-import {requestPermissionsToWrite} from '../platform-specific'
 
 const {darwinCopyToKBFSTempUploadFile} = KB2.functions
 
 const clientID = Constants.clientID
-
 
 const setSpaceNotificationThreshold = async (
   _: unknown,
@@ -29,21 +27,6 @@ const setSpaceNotificationThreshold = async (
     threshold: action.payload.spaceAvailableNotificationThreshold,
   })
   Constants.useState.getState().dispatch.loadSettings()
-}
-
-const download = async (
-  _: unknown,
-  action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
-) => {
-  await requestPermissionsToWrite()
-  const downloadID = await RPCTypes.SimpleFSSimpleFSStartDownloadRpcPromise({
-    isRegularDownload: action.type === FsGen.download,
-    path: Constants.pathToRPCPath(action.payload.path).kbfs,
-  })
-  const {setPathItemActionMenuDownload} = Constants.useState.getState().dispatch
-  if (action.type !== FsGen.download) {
-    setPathItemActionMenuDownload(downloadID, Constants.getDownloadIntentFromAction(action))
-  }
 }
 
 const cancelDownload = async (_: unknown, action: FsGen.CancelDownloadPayload) =>
@@ -464,7 +447,6 @@ const initFS = () => {
     }
   })
 
-
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.networkStatus === old.networkStatus) return
     // We don't trigger the reachability check at init. Reachability checks cause
@@ -498,7 +480,6 @@ const initFS = () => {
   Container.listenAction(FsGen.loadPathInfo, loadPathInfo)
   Container.listenAction(FsGen.loadFilesTabBadge, loadFilesTabBadge)
 
-  Container.listenAction([FsGen.download, FsGen.shareNative, FsGen.saveMedia], download)
   Container.listenAction(FsGen.cancelDownload, cancelDownload)
   Container.listenAction(FsGen.dismissDownload, dismissDownload)
   Container.listenAction(FsGen.loadDownloadStatus, loadDownloadStatus)
