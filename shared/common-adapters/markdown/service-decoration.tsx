@@ -128,7 +128,7 @@ const ServiceDecoration = (p: Props) => {
       parsed.payment.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent &&
       parsed.payment.result.sent
     ) {
-      paymentID = WalletTypes.rpcPaymentIDToPaymentID(parsed.payment.result.sent)
+      paymentID = parsed.payment.result.sent
     } else if (
       parsed.payment.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.error &&
       parsed.payment.result.error

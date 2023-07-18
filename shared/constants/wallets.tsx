@@ -69,7 +69,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               return [
                 a.name,
                 {
-                  accountID: Types.stringToAccountID(a.accountID),
+                  accountID: a.accountID,
                   balanceDescription: a.balanceDescription,
                   deviceReadOnly: a.deviceReadOnly,
                   isDefault: a.isDefault,

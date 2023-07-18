@@ -7,9 +7,8 @@ import * as RPCStellarTypes from '../../constants/types/rpc-stellar-gen'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import WalletPopup from '../wallet-popup'
-import type * as Types from '../../constants/types/wallets'
 
-type OwnProps = {accountID: Types.AccountID}
+type OwnProps = {accountID: string}
 
 const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const {accountID} = props

@@ -3,10 +3,9 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/wallets'
 import WalletPopup from '../wallet-popup'
 
-type OwnProps = {accountID: Types.AccountID}
+type OwnProps = {accountID: string}
 
 export default (ownProps: OwnProps) => {
   const {accountID} = ownProps
