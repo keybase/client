@@ -1,11 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "subscribePath": {
-      "subscriptionID": "string",
-      "path": "Types.Path",
-      "topic": "RPCTypes.PathSubscriptionTopic"
-    },
     "subscribeNonPath": {
       "subscriptionID": "string",
       "topic": "RPCTypes.SubscriptionTopic"

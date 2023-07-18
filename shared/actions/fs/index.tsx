@@ -19,7 +19,7 @@ import {requestPermissionsToWrite} from '../platform-specific'
 
 const {darwinCopyToKBFSTempUploadFile} = KB2.functions
 
-const clientID = Constants.makeUUID()
+const clientID = Constants.clientID
 
 const setTlfSyncConfig = async (_: unknown, action: FsGen.SetTlfSyncConfigPayload) => {
   await RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
@@ -295,30 +295,6 @@ const setDebugLevel = async (_: unknown, action: FsGen.SetDebugLevelPayload) =>
   RPCTypes.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: action.payload.level})
 
 const subscriptionDeduplicateIntervalSecond = 1
-
-const subscribePath = async (_: unknown, action: FsGen.SubscribePathPayload) => {
-  try {
-    await RPCTypes.SimpleFSSimpleFSSubscribePathRpcPromise({
-      clientID,
-      deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-      kbfsPath: Types.pathToString(action.payload.path),
-      subscriptionID: action.payload.subscriptionID,
-      topic: action.payload.topic,
-    })
-    return null
-  } catch (error) {
-    if (!(error instanceof RPCError)) {
-      return
-    }
-    if (error.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-      // We'll handle this error in loadAdditionalTLF instead.
-      return
-    }
-    Constants.errorToActionOrThrow(error, action.payload.path)
-    return
-  }
-}
 
 const subscribeNonPath = async (_: unknown, action: FsGen.SubscribeNonPathPayload) => {
   try {
@@ -631,7 +607,6 @@ const initFS = () => {
   Container.listenAction(FsGen.loadDownloadStatus, loadDownloadStatus)
   Container.listenAction(FsGen.loadDownloadInfo, loadDownloadInfo)
 
-  Container.listenAction(FsGen.subscribePath, subscribePath)
   Container.listenAction(FsGen.subscribeNonPath, subscribeNonPath)
   Container.listenAction(FsGen.unsubscribe, unsubscribe)
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)

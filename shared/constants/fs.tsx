@@ -316,6 +316,7 @@ export const makeUUID = () => {
   return uuidSeed + counter.toString(36)
 }
 
+export const clientID = makeUUID()
 export const pathToRPCPath = (
   path: Types.Path
 ): {PathType: RPCTypes.PathType.kbfs; kbfs: RPCTypes.KBFSPath} => ({
@@ -1185,6 +1186,7 @@ type State = Store & {
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
     startRename: (path: Types.Path) => void
+    subscribePath: (subscriptionID: string, path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => void
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     userFileEditsLoad: () => void
     waitForKbfsDaemon: () => void
@@ -2052,6 +2054,30 @@ export const useState = Z.createZustand<State>((set, get) => {
         })
       })
     },
+    subscribePath: (subscriptionID, path, topic) => {
+      const subscriptionDeduplicateIntervalSecond = 1
+      const f = async () => {
+        try {
+          await RPCTypes.SimpleFSSimpleFSSubscribePathRpcPromise({
+            clientID,
+            deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+            kbfsPath: Types.pathToString(path),
+            subscriptionID,
+            topic,
+          })
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          if (error.code !== RPCTypes.StatusCode.scteamcontactsettingsblock) {
+            // We'll handle this error in loadAdditionalTLF instead.
+            errorToActionOrThrow(error, path)
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
     syncStatusChanged: status => {
       const diskSpaceStatus = status.outOfSyncSpace
         ? Types.DiskSpaceStatus.Error
@@ -2105,7 +2131,6 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
         } catch (error) {
           errorToActionOrThrow(error)
-          return
         }
       }
       Z.ignorePromise(f())
