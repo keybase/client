@@ -20,18 +20,6 @@ const {darwinCopyToKBFSTempUploadFile} = KB2.functions
 
 const clientID = Constants.clientID
 
-const setTlfSyncConfig = async (_: unknown, action: FsGen.SetTlfSyncConfigPayload) => {
-  await RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
-    {
-      config: {
-        mode: action.payload.enabled ? RPCTypes.FolderSyncMode.enabled : RPCTypes.FolderSyncMode.disabled,
-      },
-      path: Constants.pathToRPCPath(action.payload.tlfPath),
-    },
-    Constants.syncToggleWaitingKey
-  )
-  Constants.useState.getState().dispatch.loadTlfSyncConfig(action.payload.tlfPath)
-}
 
 const setSpaceNotificationThreshold = async (
   _: unknown,
@@ -476,7 +464,6 @@ const initFS = () => {
     }
   })
 
-  Container.listenAction(FsGen.setTlfSyncConfig, setTlfSyncConfig)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.networkStatus === old.networkStatus) return

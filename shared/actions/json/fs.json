@@ -1,13 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "loadTlfSyncConfig": {
-      "tlfPath": "Types.Path"
-    },
-    "setTlfSyncConfig": {
-      "enabled": "boolean",
-      "tlfPath": "Types.Path"
-    },
     "shareNative": {
       "path": "Types.Path"
     },

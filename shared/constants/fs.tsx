@@ -1185,6 +1185,7 @@ type State = Store & {
     setPathSoftError: (path: Types.Path, softError?: Types.SoftError) => void
     setTlfSoftError: (path: Types.Path, softError?: Types.SoftError) => void
     setTlfsAsUnloaded: () => void
+    setTlfSyncConfig: (tlfPath: Types.Path, enabled: boolean) => void
     setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
@@ -2087,6 +2088,19 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.softErrors.tlfErrors.delete(path)
         }
       })
+    },
+    setTlfSyncConfig: (tlfPath, enabled) => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
+          {
+            config: {mode: enabled ? RPCTypes.FolderSyncMode.enabled : RPCTypes.FolderSyncMode.disabled},
+            path: pathToRPCPath(tlfPath),
+          },
+          syncToggleWaitingKey
+        )
+        get().dispatch.loadTlfSyncConfig(tlfPath)
+      }
+      Z.ignorePromise(f())
     },
     setTlfsAsUnloaded: () => {
       set(s => {
