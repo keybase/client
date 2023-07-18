@@ -482,7 +482,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           })) ?? []
         d.hidFromFollowers = hidFromFollowers
       })
-      username && UsersConstants.useState.getState().dispatch.update(username, {fullname: card.fullName})
+      username &&
+        UsersConstants.useState
+          .getState()
+          .dispatch.updates([{info: {fullname: card.fullName}, name: username}])
     },
     notifyReset: guiID => {
       set(s => {

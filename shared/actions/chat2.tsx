@@ -471,10 +471,12 @@ const chatActivityToMetasAction = (
     return map
   }, {})
 
-  Object.keys(usernameToFullname).forEach(username => {
-    const fullname = usernameToFullname[username]
-    UsersConstants.useState.getState().dispatch.update(username, {fullname})
-  })
+  UsersConstants.useState.getState().dispatch.updates(
+    Object.keys(usernameToFullname).map(name => ({
+      info: {fullname: usernameToFullname[name]},
+      name,
+    }))
+  )
 
   return meta ? Chat2Gen.createMetasReceived({metas: [meta]}) : false
 }

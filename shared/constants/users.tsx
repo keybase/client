@@ -51,7 +51,6 @@ export type State = Store & {
     resetState: 'default'
     replace: (infoMap: State['infoMap'], blockMap?: State['blockMap']) => void
     setUserBlocks: (blocks: Array<RPCTypes.UserBlockArg>) => void
-    update: (name: string, i: Partial<Types.UserInfo>) => void
     updates: (infos: Array<{name: string; info: Partial<Types.UserInfo>}>) => void
   }
 }
@@ -67,7 +66,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         try {
           const userCard = await RPCTypes.userUserCardRpcPromise({useSession: true, username})
           if (userCard) {
-            get().dispatch.update(username, {bio: userCard.bioDecorated})
+            get().dispatch.updates([{info: {bio: userCard.bioDecorated}, name: username}])
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -114,20 +113,6 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
-    },
-    update: (name, i) => {
-      set(s => {
-        const user = mapGetEnsureValue(s.infoMap, name, {broken: false})
-        if (i.bio !== undefined) {
-          user.bio = i.bio
-        }
-        if (i.broken !== undefined) {
-          user.broken = i.broken
-        }
-        if (i.fullname !== undefined) {
-          user.fullname = i.fullname
-        }
-      })
     },
     updates: (infos: Array<{name: string; info: Partial<Types.UserInfo>}>) => {
       set(s => {
