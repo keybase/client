@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 
 type Props = {
-  source: 'newFolder' | 'teamAddSomeFailed' | 'teamAddAllFailed' | 'walletsRequest' | 'misc'
+  source: 'newFolder' | 'teamAddSomeFailed' | 'teamAddAllFailed' | 'misc'
   usernames: Array<string>
 }
 
@@ -17,10 +17,6 @@ export const ContactRestricted = (props: Props) => {
   let disallowedUsers: Array<string> = []
   const firstUser = props.usernames[0]
   switch (props.source) {
-    case 'walletsRequest':
-      header = `You cannot request a payment from @${firstUser}.`
-      description = `@${firstUser}'s contact restrictions prevent you from requesting a payment. Contact them outside Keybase to proceed.`
-      break
     case 'newFolder':
       header = `You cannot open a private folder with @${firstUser}.`
       description = `@${firstUser}'s contact restrictions prevent you from opening a private folder with them. Contact them outside Keybase to proceed.`
