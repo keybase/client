@@ -1,13 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "subscribeNonPath": {
-      "subscriptionID": "string",
-      "topic": "RPCTypes.SubscriptionTopic"
-    },
-    "unsubscribe": {
-      "subscriptionID": "string"
-    },
     "pollJournalStatus": {},
     "getOnlineStatus": {},
     "loadTlfSyncConfig": {

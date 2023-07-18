@@ -47,10 +47,7 @@ export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotif
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
 export const shareNative = 'fs:shareNative'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
-export const subscribeNonPath = 'fs:subscribeNonPath'
-export const subscribePath = 'fs:subscribePath'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
-export const unsubscribe = 'fs:unsubscribe'
 export const upload = 'fs:upload'
 export const uploadFromDragAndDrop = 'fs:uploadFromDragAndDrop'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
@@ -229,22 +226,9 @@ export const createStartManualConflictResolution = (payload: {readonly tlfPath: 
   payload,
   type: startManualConflictResolution as typeof startManualConflictResolution,
 })
-export const createSubscribeNonPath = (payload: {
-  readonly subscriptionID: string
-  readonly topic: RPCTypes.SubscriptionTopic
-}) => ({payload, type: subscribeNonPath as typeof subscribeNonPath})
-export const createSubscribePath = (payload: {
-  readonly subscriptionID: string
-  readonly path: Types.Path
-  readonly topic: RPCTypes.PathSubscriptionTopic
-}) => ({payload, type: subscribePath as typeof subscribePath})
 export const createUninstallKBFSConfirm = (payload?: undefined) => ({
   payload,
   type: uninstallKBFSConfirm as typeof uninstallKBFSConfirm,
-})
-export const createUnsubscribe = (payload: {readonly subscriptionID: string}) => ({
-  payload,
-  type: unsubscribe as typeof unsubscribe,
 })
 export const createUpload = (payload: {readonly parentPath: Types.Path; readonly localPath: string}) => ({
   payload,
@@ -308,10 +292,7 @@ export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
 export type SetTlfSyncConfigPayload = ReturnType<typeof createSetTlfSyncConfig>
 export type ShareNativePayload = ReturnType<typeof createShareNative>
 export type StartManualConflictResolutionPayload = ReturnType<typeof createStartManualConflictResolution>
-export type SubscribeNonPathPayload = ReturnType<typeof createSubscribeNonPath>
-export type SubscribePathPayload = ReturnType<typeof createSubscribePath>
 export type UninstallKBFSConfirmPayload = ReturnType<typeof createUninstallKBFSConfirm>
-export type UnsubscribePayload = ReturnType<typeof createUnsubscribe>
 export type UploadFromDragAndDropPayload = ReturnType<typeof createUploadFromDragAndDrop>
 export type UploadPayload = ReturnType<typeof createUpload>
 export type UserFileEditsLoadPayload = ReturnType<typeof createUserFileEditsLoad>
@@ -363,10 +344,7 @@ export type Actions =
   | SetTlfSyncConfigPayload
   | ShareNativePayload
   | StartManualConflictResolutionPayload
-  | SubscribeNonPathPayload
-  | SubscribePathPayload
   | UninstallKBFSConfirmPayload
-  | UnsubscribePayload
   | UploadFromDragAndDropPayload
   | UploadPayload
   | UserFileEditsLoadPayload

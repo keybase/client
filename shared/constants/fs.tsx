@@ -22,6 +22,7 @@ export const acceptMacOSFuseExtClosedSourceWaitingKey = 'fs:acceptMacOSFuseExtCl
 export const commitEditWaitingKey = 'fs:commitEditWaitingKey'
 export const setSyncOnCellularWaitingKey = 'fs:setSyncOnCellular'
 
+const subscriptionDeduplicateIntervalSecond = 1
 export const defaultPath = Types.stringToPath('/keybase')
 
 export const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
@@ -1186,8 +1187,10 @@ type State = Store & {
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
     startRename: (path: Types.Path) => void
+    subscribeNonPath: (subscriptionID: string, topic: RPCTypes.SubscriptionTopic) => void
     subscribePath: (subscriptionID: string, path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => void
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
+    unsubscribe: (subscriptionID: string) => void
     userFileEditsLoad: () => void
     waitForKbfsDaemon: () => void
   }
@@ -2054,8 +2057,23 @@ export const useState = Z.createZustand<State>((set, get) => {
         })
       })
     },
+    subscribeNonPath: (subscriptionID, topic) => {
+      const f = async () => {
+        try {
+          await RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
+            clientID,
+            deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+            subscriptionID,
+            topic,
+          })
+        } catch (err) {
+          errorToActionOrThrow(err)
+        }
+      }
+      Z.ignorePromise(f())
+    },
     subscribePath: (subscriptionID, path, topic) => {
-      const subscriptionDeduplicateIntervalSecond = 1
       const f = async () => {
         try {
           await RPCTypes.SimpleFSSimpleFSSubscribePathRpcPromise({
@@ -2121,6 +2139,18 @@ export const useState = Z.createZustand<State>((set, get) => {
           default:
         }
       }
+    },
+    unsubscribe: subscriptionID => {
+      const f = async () => {
+        try {
+          await RPCTypes.SimpleFSSimpleFSUnsubscribeRpcPromise({
+            clientID,
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+            subscriptionID,
+          })
+        } catch (_) {}
+      }
+      Z.ignorePromise(f())
     },
     userFileEditsLoad: () => {
       const f = async () => {

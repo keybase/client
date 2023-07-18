@@ -294,34 +294,6 @@ const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = () => {
 const setDebugLevel = async (_: unknown, action: FsGen.SetDebugLevelPayload) =>
   RPCTypes.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: action.payload.level})
 
-const subscriptionDeduplicateIntervalSecond = 1
-
-const subscribeNonPath = async (_: unknown, action: FsGen.SubscribeNonPathPayload) => {
-  try {
-    await RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
-      clientID,
-      deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-      subscriptionID: action.payload.subscriptionID,
-      topic: action.payload.topic,
-    })
-    return null
-  } catch (err) {
-    Constants.errorToActionOrThrow(err)
-    return
-  }
-}
-
-const unsubscribe = async (_: unknown, action: FsGen.UnsubscribePayload) => {
-  try {
-    await RPCTypes.SimpleFSSimpleFSUnsubscribeRpcPromise({
-      clientID,
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-      subscriptionID: action.payload.subscriptionID,
-    })
-  } catch (_) {}
-}
-
 const onPathChange = (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload) => {
   const {clientID: clientIDFromNotification, path, topics} = action.payload.params
   if (clientIDFromNotification !== clientID) {
@@ -451,18 +423,17 @@ const subscribeAndLoadFsBadge = () => {
   const oldFsBadgeSubscriptionID = fsBadgeSubscriptionID
   fsBadgeSubscriptionID = Constants.makeUUID()
   const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
-  return (
-    kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
-      ...(oldFsBadgeSubscriptionID
-        ? [FsGen.createUnsubscribe({subscriptionID: oldFsBadgeSubscriptionID})]
-        : []),
-      FsGen.createSubscribeNonPath({
-        subscriptionID: fsBadgeSubscriptionID,
-        topic: RPCTypes.SubscriptionTopic.filesTabBadge,
-      }),
-      FsGen.createLoadFilesTabBadge(),
-    ]
-  )
+  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+    if (oldFsBadgeSubscriptionID) {
+      Constants.useState.getState().dispatch.unsubscribe(oldFsBadgeSubscriptionID)
+    }
+    Constants.useState
+      .getState()
+      .dispatch.subscribeNonPath(fsBadgeSubscriptionID, RPCTypes.SubscriptionTopic.filesTabBadge)
+    return FsGen.createLoadFilesTabBadge()
+  } else {
+    return
+  }
 }
 
 let uploadStatusSubscriptionID: string = ''
@@ -474,17 +445,16 @@ const subscribeAndLoadUploadStatus = () => {
   if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
     Constants.useState.getState().dispatch.loadUploadStatus()
   }
-  return (
-    kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
-      ...(oldUploadStatusSubscriptionID
-        ? [FsGen.createUnsubscribe({subscriptionID: oldUploadStatusSubscriptionID})]
-        : []),
-      FsGen.createSubscribeNonPath({
-        subscriptionID: uploadStatusSubscriptionID,
-        topic: RPCTypes.SubscriptionTopic.uploadStatus,
-      }),
-    ]
-  )
+
+  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+    if (oldUploadStatusSubscriptionID) {
+      Constants.useState.getState().dispatch.unsubscribe(oldUploadStatusSubscriptionID)
+    }
+
+    Constants.useState
+      .getState()
+      .dispatch.subscribeNonPath(uploadStatusSubscriptionID, RPCTypes.SubscriptionTopic.uploadStatus)
+  }
 }
 
 let journalStatusSubscriptionID: string = ''
@@ -492,18 +462,16 @@ const subscribeAndLoadJournalStatus = () => {
   const oldJournalStatusSubscriptionID = journalStatusSubscriptionID
   journalStatusSubscriptionID = Constants.makeUUID()
   const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
-  return (
-    kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
-      ...(oldJournalStatusSubscriptionID
-        ? [FsGen.createUnsubscribe({subscriptionID: oldJournalStatusSubscriptionID})]
-        : []),
-      FsGen.createSubscribeNonPath({
-        subscriptionID: journalStatusSubscriptionID,
-        topic: RPCTypes.SubscriptionTopic.journalStatus,
-      }),
-      FsGen.createPollJournalStatus(),
-    ]
-  )
+  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+    if (oldJournalStatusSubscriptionID) {
+      Constants.useState.getState().dispatch.unsubscribe(oldJournalStatusSubscriptionID)
+    }
+    Constants.useState
+      .getState()
+      .dispatch.subscribeNonPath(journalStatusSubscriptionID, RPCTypes.SubscriptionTopic.journalStatus)
+    return FsGen.createPollJournalStatus()
+  }
+  return
 }
 
 let settingsSubscriptionID: string = ''
@@ -514,17 +482,15 @@ const subscribeAndLoadSettings = () => {
   if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
     Constants.useState.getState().dispatch.loadSettings()
   }
-  return (
-    kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected && [
-      ...(oldSettingsSubscriptionID
-        ? [FsGen.createUnsubscribe({subscriptionID: oldSettingsSubscriptionID})]
-        : []),
-      FsGen.createSubscribeNonPath({
-        subscriptionID: settingsSubscriptionID,
-        topic: RPCTypes.SubscriptionTopic.settings,
-      }),
-    ]
-  )
+
+  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+    if (oldSettingsSubscriptionID) {
+      Constants.useState.getState().dispatch.unsubscribe(oldSettingsSubscriptionID)
+    }
+    Constants.useState
+      .getState()
+      .dispatch.subscribeNonPath(settingsSubscriptionID, RPCTypes.SubscriptionTopic.settings)
+  }
 }
 
 const fsRrouteNames = ['fsRoot', 'barePreview']
@@ -607,8 +573,6 @@ const initFS = () => {
   Container.listenAction(FsGen.loadDownloadStatus, loadDownloadStatus)
   Container.listenAction(FsGen.loadDownloadInfo, loadDownloadInfo)
 
-  Container.listenAction(FsGen.subscribeNonPath, subscribeNonPath)
-  Container.listenAction(FsGen.unsubscribe, unsubscribe)
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadFsBadge)
