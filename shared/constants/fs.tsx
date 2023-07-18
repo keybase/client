@@ -1186,6 +1186,7 @@ type State = Store & {
     subscribePath: (subscriptionID: string, path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => void
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     unsubscribe: (subscriptionID: string) => void
+    upload: (parentPath: Types.Path, localPath: string) => void
     userFileEditsLoad: () => void
     waitForKbfsDaemon: () => void
   }
@@ -2246,6 +2247,19 @@ export const useState = Z.createZustand<State>((set, get) => {
             subscriptionID,
           })
         } catch (_) {}
+      }
+      Z.ignorePromise(f())
+    },
+    upload: (parentPath, localPath) => {
+      const f = async () => {
+        try {
+          await RPCTypes.SimpleFSSimpleFSStartUploadRpcPromise({
+            sourceLocalPath: Types.getNormalizedLocalPath(localPath),
+            targetParentPath: pathToRPCPath(parentPath).kbfs,
+          })
+        } catch (err) {
+          errorToActionOrThrow(err)
+        }
       }
       Z.ignorePromise(f())
     },

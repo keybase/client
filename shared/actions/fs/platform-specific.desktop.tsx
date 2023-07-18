@@ -216,14 +216,6 @@ const onInstallCachedDokan = async () => {
   }
 }
 
-const openAndUpload = async (_: unknown, action: FsGen.OpenAndUploadPayload) => {
-  const localPaths = await (selectFilesToUploadDialog?.(
-    action.payload.type,
-    action.payload.parentPath ?? undefined
-  ) ?? Promise.resolve([]))
-  return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
-}
-
 const openFilesFromWidget = (_: unknown, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
   ConfigConstants.useConfigState.getState().dispatch.showMain()
   return [
@@ -285,7 +277,15 @@ const initPlatformSpecific = () => {
     [FsGen.kbfsDaemonRpcStatusChanged, FsGen.setDriverStatus, FsGen.refreshMountDirsAfter10s],
     refreshMountDirs
   )
-  Container.listenAction(FsGen.openAndUpload, openAndUpload)
+  Container.listenAction(FsGen.openAndUpload, async (_, action) => {
+    const localPaths = await (selectFilesToUploadDialog?.(
+      action.payload.type,
+      action.payload.parentPath ?? undefined
+    ) ?? Promise.resolve([]))
+    localPaths.forEach(localPath =>
+      Constants.useState.getState().dispatch.upload(action.payload.parentPath, localPath)
+    )
+  })
   Container.listenAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
     Container.listenAction(FsGen.driverEnable, onInstallCachedDokan)

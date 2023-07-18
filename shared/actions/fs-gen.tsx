@@ -42,7 +42,6 @@ export const setSfmiBannerDismissed = 'fs:setSfmiBannerDismissed'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
-export const upload = 'fs:upload'
 export const uploadFromDragAndDrop = 'fs:uploadFromDragAndDrop'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
 export const userIn = 'fs:userIn'
@@ -200,10 +199,6 @@ export const createUninstallKBFSConfirm = (payload?: undefined) => ({
   payload,
   type: uninstallKBFSConfirm as typeof uninstallKBFSConfirm,
 })
-export const createUpload = (payload: {readonly parentPath: Types.Path; readonly localPath: string}) => ({
-  payload,
-  type: upload as typeof upload,
-})
 export const createUploadFromDragAndDrop = (payload: {
   readonly parentPath: Types.Path
   readonly localPaths: Array<string>
@@ -258,7 +253,6 @@ export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
 export type StartManualConflictResolutionPayload = ReturnType<typeof createStartManualConflictResolution>
 export type UninstallKBFSConfirmPayload = ReturnType<typeof createUninstallKBFSConfirm>
 export type UploadFromDragAndDropPayload = ReturnType<typeof createUploadFromDragAndDrop>
-export type UploadPayload = ReturnType<typeof createUpload>
 export type UserFileEditsLoadPayload = ReturnType<typeof createUserFileEditsLoad>
 export type UserInPayload = ReturnType<typeof createUserIn>
 export type UserOutPayload = ReturnType<typeof createUserOut>
@@ -304,7 +298,6 @@ export type Actions =
   | StartManualConflictResolutionPayload
   | UninstallKBFSConfirmPayload
   | UploadFromDragAndDropPayload
-  | UploadPayload
   | UserFileEditsLoadPayload
   | UserInPayload
   | UserOutPayload

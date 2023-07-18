@@ -35,40 +35,6 @@ const cancelDownload = async (_: unknown, action: FsGen.CancelDownloadPayload) =
 const dismissDownload = async (_: unknown, action: FsGen.DismissDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID: action.payload.downloadID})
 
-const upload = async (_: Container.TypedState, action: FsGen.UploadPayload) => {
-  try {
-    await RPCTypes.SimpleFSSimpleFSStartUploadRpcPromise({
-      sourceLocalPath: Types.getNormalizedLocalPath(action.payload.localPath),
-      targetParentPath: Constants.pathToRPCPath(action.payload.parentPath).kbfs,
-    })
-    return false
-  } catch (err) {
-    Constants.errorToActionOrThrow(err)
-    return
-  }
-}
-
-const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.UploadFromDragAndDropPayload) => {
-  if (Platform.isDarwin && darwinCopyToKBFSTempUploadFile) {
-    const dir = await RPCTypes.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
-    const localPaths = await Promise.all(
-      action.payload.localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(dir, localPath))
-    )
-    return localPaths.map(localPath =>
-      FsGen.createUpload({
-        localPath,
-        parentPath: action.payload.parentPath,
-      })
-    )
-  }
-  return action.payload.localPaths.map(localPath =>
-    FsGen.createUpload({
-      localPath,
-      parentPath: action.payload.parentPath,
-    })
-  )
-}
-
 const dismissUpload = async (_: Container.TypedState, action: FsGen.DismissUploadPayload) => {
   try {
     await RPCTypes.SimpleFSSimpleFSDismissUploadRpcPromise({uploadID: action.payload.uploadID})
@@ -423,8 +389,21 @@ const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
 }
 
 const initFS = () => {
-  Container.listenAction(FsGen.upload, upload)
-  Container.listenAction(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
+  Container.listenAction(FsGen.uploadFromDragAndDrop, async (_, action) => {
+    if (Platform.isDarwin && darwinCopyToKBFSTempUploadFile) {
+      const dir = await RPCTypes.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
+      const localPaths = await Promise.all(
+        action.payload.localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(dir, localPath))
+      )
+      localPaths.forEach(localPath =>
+        Constants.useState.getState().dispatch.upload(action.payload.parentPath, localPath)
+      )
+    } else {
+      action.payload.localPaths.forEach(localPath =>
+        Constants.useState.getState().dispatch.upload(action.payload.parentPath, localPath)
+      )
+    }
+  })
   Container.listenAction(FsGen.dismissUpload, dismissUpload)
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
   Container.listenAction(FsGen.letResetUserBackIn, letResetUserBackIn)
