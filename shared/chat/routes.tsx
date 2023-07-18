@@ -19,7 +19,6 @@ import chatLocationPreview from './conversation/input-area/normal/location-popup
 import chatMessagePopup from './conversation/messages/message-popup/page'
 import chatNewChat from '../team-building/page'
 import chatPDF from './pdf/page'
-import chatPaymentsConfirm from './payments/confirm/page'
 import chatRootSingle from './inbox/defer-loading.page'
 import chatRootSplit from './inbox-and-conversation-2.page'
 import chatSearchBots from './conversation/bot/search.page'
@@ -51,7 +50,6 @@ export const newModalRoutes = {
   chatMessagePopup,
   chatNewChat,
   chatPDF,
-  chatPaymentsConfirm,
   chatSearchBots,
   chatShowNewTeamDialog,
   chatUnfurlMapPopup,

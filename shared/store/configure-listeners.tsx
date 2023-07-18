@@ -17,7 +17,6 @@ import initTeams from '../actions/teams'
 import initTeamBuilding from '../actions/team-building'
 import initUnlockFolders from '../actions/unlock-folders'
 import initUsers from '../actions/users'
-import initWallets from '../actions/wallets'
 
 export const initListeners = () => {
   initAutoReset()
@@ -38,6 +37,5 @@ export const initListeners = () => {
   initUsers()
   initGit()
   initPeople()
-  initWallets()
   initSignup()
 }

@@ -1,13 +1,9 @@
 import * as Kb from '../../../../common-adapters'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
-import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import HiddenString from '../../../../util/hidden-string'
-import shallowEqual from 'shallowequal'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -17,63 +13,24 @@ type Props = {
 
 const MoreMenuPopup = (props: Props) => {
   const {conversationIDKey, onHidden, visible} = props
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const {participantInfo, wallet} = Container.useSelector(state => {
-    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-    const wallet = Constants.shouldShowWalletsIcon(state, conversationIDKey)
-    return {participantInfo, wallet}
-  }, shallowEqual)
   const dispatch = Container.useDispatch()
-  const onLumens = (to: string, isRequest: boolean) => {
-    dispatch(WalletsGen.createOpenSendRequestForm({isRequest, recipientType: 'keybaseUser', to}))
-  }
   const onSlashPrefill = (text: string) => {
     dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString(text)}))
   }
   const onLocationShare = () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey},
-            selected: 'chatLocationPreview',
-          },
-        ],
+        path: [{props: {conversationIDKey}, selected: 'chatLocationPreview'}],
       })
     )
   }
   // merge
-  let to = ''
-  if (wallet) {
-    const otherParticipants = participantInfo.name.filter(u => u !== you)
-    to = otherParticipants[0] || ''
-  }
-  const onSendLumens = wallet ? () => onLumens(to, false) : undefined
-  const onRequestLumens = wallet ? () => onLumens(to, true) : undefined
   const onCoinFlip = () => onSlashPrefill('/flip ')
   const onGiphy = () => onSlashPrefill('/giphy ')
   const onInsertSlashCommand = () => onSlashPrefill('/')
 
   // render
   const items: Kb.MenuItems = [
-    ...(onSendLumens
-      ? [
-          {
-            icon: 'iconfont-stellar-send',
-            onClick: onSendLumens,
-            title: 'Send Lumens (XLM)',
-          },
-        ]
-      : []),
-    ...(onRequestLumens
-      ? [
-          {
-            icon: 'iconfont-stellar-request',
-            onClick: onRequestLumens,
-            title: 'Request Lumens (XLM)',
-          },
-        ]
-      : []),
     {
       icon: 'iconfont-gif',
       onClick: onGiphy,
@@ -98,10 +55,7 @@ const MoreMenuPopup = (props: Props) => {
       subTitle: '/...',
       title: 'Other commands',
     },
-  ].reduce<Kb.MenuItems>((arr, i) => {
-    i && arr.push(i as Kb.MenuItem)
-    return arr
-  }, [])
+  ]
   return <Kb.FloatingMenu closeOnSelect={true} items={items} onHidden={onHidden} visible={visible} />
 }
 

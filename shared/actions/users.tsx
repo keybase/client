@@ -5,8 +5,20 @@ import * as Constants from '../constants/users'
 const initUsers = () => {
   Container.listenAction(EngineGen.keybase1NotifyUsersIdentifyUpdate, (_, action) => {
     const {brokenUsernames, okUsernames} = action.payload.params
-    brokenUsernames && Constants.useState.getState().dispatch.updateBroken(brokenUsernames, true)
-    okUsernames && Constants.useState.getState().dispatch.updateBroken(okUsernames, false)
+    brokenUsernames &&
+      Constants.useState.getState().dispatch.updates(
+        brokenUsernames.map(name => ({
+          info: {broken: true},
+          name,
+        }))
+      )
+    okUsernames &&
+      Constants.useState.getState().dispatch.updates(
+        okUsernames.map(name => ({
+          info: {broken: false},
+          name,
+        }))
+      )
   })
 }
 

@@ -610,7 +610,6 @@ export {
   getTeams,
   inboxUIItemToConversationMeta,
   makeConversationMeta,
-  shouldShowWalletsIcon,
   timestampToString,
   unverifiedInboxUIItemToConversationMeta,
   updateMeta,

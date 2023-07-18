@@ -528,7 +528,7 @@ export const uiRequestInfoToChatRequestInfo = (
     const assetResult = r.asset
     asset = WalletConstants.makeAssetDescription({
       code: assetResult.code,
-      issuerAccountID: WalletTypes.stringToAccountID(assetResult.issuer),
+      issuerAccountID: assetResult.issuer,
       issuerName: assetResult.issuerName,
       issuerVerifiedDomain: assetResult.verifiedDomain,
     })
@@ -556,13 +556,13 @@ export const uiPaymentInfoToChatPaymentInfo = (
   const p = ps[0]!
   const serviceStatus = WalletConstants.statusSimplifiedToString[p.status]
   return makeChatPaymentInfo({
-    accountID: p.accountID ? WalletTypes.stringToAccountID(p.accountID) : WalletTypes.noAccountID,
+    accountID: p.accountID ?? WalletTypes.noAccountID,
     amountDescription: p.amountDescription,
     delta: WalletConstants.balanceDeltaToString[p.delta],
     fromUsername: p.fromUsername,
     issuerDescription: p.issuerDescription,
     note: new HiddenString(p.note),
-    paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
+    paymentID: p.paymentID,
     showCancel: p.showCancel,
     sourceAmount: p.sourceAmount,
     sourceAsset: WalletConstants.makeAssetDescription({
@@ -922,7 +922,7 @@ const validUIMessagetoMessage = (
         inlinePaymentIDs: payments
           ? payments.reduce((arr: Array<string>, p) => {
               if (p.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent) {
-                const s = WalletTypes.rpcPaymentIDToPaymentID(p.result.sent)
+                const s = p.result.sent
                 s && arr.push(s)
               }
               return arr

@@ -1,7 +1,7 @@
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import type {AllowedColors} from '../../../../common-adapters/text'
-import {MarkdownMemo} from '../../../../wallets/common'
+import MarkdownMemo from '../../../../wallets/markdown-memo'
 
 export type Props = {
   action: string
@@ -16,23 +16,11 @@ export type Props = {
   icon?: Kb.IconType
   loading: boolean
   memo: string
-  onCancel: () => void
-  onClaim: () => void
-  onSend: () => void
   pending: boolean
   sendButtonLabel: string
   showCoinsIcon: boolean
   sourceAmount?: string
 }
-
-const ButtonText = (props: {text: string; amount: string}) => (
-  <Kb.Text style={styles.buttonText} type="BodySemibold">
-    {props.text}{' '}
-    <Kb.Text style={styles.buttonText} type="BodyExtrabold">
-      {props.amount}
-    </Kb.Text>
-  </Kb.Text>
-)
 
 const AccountPayment = (props: Props) => {
   const balanceChange = (
@@ -116,28 +104,6 @@ const AccountPayment = (props: Props) => {
       </Kb.Box2>
       <MarkdownMemo memo={props.memo} style={styles.memo} />
       {Styles.isMobile && balanceChange}
-      {!!props.sendButtonLabel && (
-        <Kb.Button type="Wallet" onClick={props.onSend} small={true} style={styles.button}>
-          <ButtonText text={props.sendButtonLabel} amount={props.amount} />
-        </Kb.Button>
-      )}
-      {!!props.claimButtonLabel && (
-        <Kb.Button type="Wallet" onClick={props.onClaim} small={true} style={styles.button}>
-          <ButtonText text={props.claimButtonLabel} amount={props.amount} />
-        </Kb.Button>
-      )}
-      {!!props.cancelButtonLabel && (
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-          <Kb.Text type="BodySmall">{props.cancelButtonInfo}</Kb.Text>
-          <Kb.WaitingButton
-            type="Danger"
-            label={props.cancelButtonLabel}
-            onClick={props.onCancel}
-            small={true}
-            style={styles.button}
-          />
-        </Kb.Box2>
-      )}
     </>
   )
   return (
@@ -184,7 +150,7 @@ const styles = Styles.styleSheetCreate(
       tooltipText: Styles.platformStyles({
         isElectron: {wordBreak: 'normal'},
       }),
-    } as const)
+    }) as const
 )
 
 export default AccountPayment

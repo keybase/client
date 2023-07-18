@@ -1911,9 +1911,12 @@ export const useState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.teamIDToMembers.set(teamID, members)
           })
-          for (const [, m] of members) {
-            UsersConstants.useState.getState().dispatch.update(m.username, {fullname: m.fullName})
-          }
+          UsersConstants.useState.getState().dispatch.updates(
+            [...members.values()].map(m => ({
+              info: {fullname: m.fullName},
+              name: m.username,
+            }))
+          )
         } catch (error) {
           if (error instanceof RPCError) {
             logger.error(`Error updating members for ${teamID}: ${error.desc}`)
@@ -2815,8 +2818,8 @@ export const useState = Z.createZustand<State>((set, get) => {
         if (parentTeam && filter) {
           const flc = filter.toLowerCase()
           s.subteamsFiltered = new Set(
-            [...(s.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
-              s.teamMeta.get(sID)?.teamname.toLowerCase().includes(flc)
+            [...(s.teamDetails.get(parentTeam)?.subteams || [])].filter(
+              sID => s.teamMeta.get(sID)?.teamname.toLowerCase().includes(flc)
             )
           )
         } else {

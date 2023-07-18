@@ -21,8 +21,6 @@ import * as TeamsConstants from '../constants/teams'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
 import * as WaitingConstants from '../constants/waiting'
-import * as WalletTypes from '../constants/types/wallets'
-import * as WalletsGen from './wallets-gen'
 import {findLast} from '../util/arrays'
 import KB2 from '../util/electron'
 import NotifyPopup from '../util/notify-popup'
@@ -205,10 +203,11 @@ const onGetInboxConvsUnboxed = (
     })
   })
   if (added) {
-    Object.keys(usernameToFullname).forEach(username => {
-      const fullname = usernameToFullname[username]
-      UsersConstants.useState.getState().dispatch.update(username, {fullname})
-    })
+    UsersConstants.useState
+      .getState()
+      .dispatch.updates(
+        Object.keys(usernameToFullname).map(name => ({info: {fullname: usernameToFullname[name]}, name}))
+      )
   }
   if (metas.length > 0) {
     actions.push(Chat2Gen.createMetasReceived({metas}))
@@ -472,10 +471,12 @@ const chatActivityToMetasAction = (
     return map
   }, {})
 
-  Object.keys(usernameToFullname).forEach(username => {
-    const fullname = usernameToFullname[username]
-    UsersConstants.useState.getState().dispatch.update(username, {fullname})
-  })
+  UsersConstants.useState.getState().dispatch.updates(
+    Object.keys(usernameToFullname).map(name => ({
+      info: {fullname: usernameToFullname[name]},
+      name,
+    }))
+  )
 
   return meta ? Chat2Gen.createMetasReceived({metas: [meta]}) : false
 }
@@ -499,7 +500,7 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
       }
       arr.push(Chat2Gen.createMessageErrored({conversationIDKey, errorTyp: error.typ, outboxID, reason}))
       if (tempForceRedBox) {
-        UsersConstants.useState.getState().dispatch.updateBroken([tempForceRedBox], true)
+        UsersConstants.useState.getState().dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
       }
     }
     return arr
@@ -513,19 +514,8 @@ const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatI
   const {update} = action.payload.params
   const usernames = update.CanonicalName.split(',')
   const broken = (update.breaks.breaks || []).map(b => b.user.username)
-  const newlyBroken: Array<string> = []
-  const newlyFixed: Array<string> = []
-
-  usernames.forEach(name => {
-    if (broken.includes(name)) {
-      newlyBroken.push(name)
-    } else {
-      newlyFixed.push(name)
-    }
-  })
-
-  UsersConstants.useState.getState().dispatch.updateBroken(newlyBroken, true)
-  UsersConstants.useState.getState().dispatch.updateBroken(newlyFixed, false)
+  const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
+  UsersConstants.useState.getState().dispatch.updates(updates)
 }
 
 // Get actions to update messagemap / metamap when retention policy expunge happens
@@ -1811,11 +1801,13 @@ const messageSend = async (
       {
         customResponseIncomingCallMap: {
           'chat.1.chatUi.chatStellarDataConfirm': ({summary}, response) => {
-            storeStellarConfirmWindowResponse(false, response)
+            // immediate fail
+            response.result(false)
             return Chat2Gen.createSetPaymentConfirmInfo({summary})
           },
           'chat.1.chatUi.chatStellarDataError': ({error}, response) => {
-            storeStellarConfirmWindowResponse(false, response)
+            // immediate fail
+            response.result(false)
             return Chat2Gen.createSetPaymentConfirmInfo({error})
           },
         },
@@ -1830,12 +1822,7 @@ const messageSend = async (
             }
             return false
           },
-          'chat.1.chatUi.chatStellarShowConfirm': () => [
-            Chat2Gen.createClearPaymentConfirmInfo(),
-            RouteTreeGen.createNavigateAppend({
-              path: [confirmRouteName],
-            }),
-          ],
+          'chat.1.chatUi.chatStellarShowConfirm': () => [Chat2Gen.createClearPaymentConfirmInfo()],
         },
         params: {
           ...ephemeralData,
@@ -2022,7 +2009,7 @@ const previewConversationTeam = async (
             "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
           )
         return RouteTreeGen.createNavigateAppend({
-          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+          path: ['keybaseLinkError'],
         })
       } else {
         return []
@@ -2057,7 +2044,7 @@ const previewConversationTeam = async (
           "We couldn't find this team. Please check that you're a member of the team and the channel exists."
         )
       return RouteTreeGen.createNavigateAppend({
-        path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+        path: ['keybaseLinkError'],
       })
     } else {
       throw error
@@ -3485,47 +3472,6 @@ const gregorPushState = (items: ConfigConstants.Store['gregorPushState']) => {
   return actions
 }
 
-const prepareFulfillRequestForm = (
-  state: Container.TypedState,
-  action: Chat2Gen.PrepareFulfillRequestFormPayload
-) => {
-  const {conversationIDKey, ordinal} = action.payload
-  const message = Constants.getMessage(state, conversationIDKey, ordinal)
-  if (!message) {
-    logger.error(
-      `prepareFulfillRequestForm: couldn't find message. convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(
-        ordinal
-      )}`
-    )
-    return
-  }
-  if (message.type !== 'requestPayment') {
-    logger.error(
-      `prepareFulfillRequestForm: got message with incorrect type '${
-        message.type
-      }', expected 'requestPayment'. convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(ordinal)}`
-    )
-    return
-  }
-  const requestInfo = Constants.getRequestMessageInfo(state, message)
-  if (!requestInfo) {
-    // This message shouldn't even be rendered; we shouldn't be here, throw error
-    throw new Error(
-      `Couldn't find request info for message in convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(
-        ordinal
-      )}`
-    )
-  }
-  return WalletsGen.createOpenSendRequestForm({
-    amount: requestInfo.amount,
-    currency: requestInfo.currencyCode || 'XLM',
-    from: WalletTypes.noAccountID,
-    recipientType: 'keybaseUser',
-    secretNote: message.note,
-    to: message.author,
-  })
-}
-
 const addUsersToChannel = async (_: unknown, action: Chat2Gen.AddUsersToChannelPayload) => {
   const {conversationIDKey, usernames} = action.payload
 
@@ -4008,7 +3954,6 @@ const initChat = () => {
     if (s.gregorPushState === old.gregorPushState) return
     gregorPushState(s.gregorPushState)
   })
-  Container.listenAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 
   Container.listenAction(Chat2Gen.channelSuggestionsTriggered, loadSuggestionData)
 

@@ -107,7 +107,6 @@ export const openFolder = 'chat2:openFolder'
 export const paymentInfoReceived = 'chat2:paymentInfoReceived'
 export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const pinMessage = 'chat2:pinMessage'
-export const prepareFulfillRequestForm = 'chat2:prepareFulfillRequestForm'
 export const previewConversation = 'chat2:previewConversation'
 export const refreshBotPublicCommands = 'chat2:refreshBotPublicCommands'
 export const refreshBotRoleInConv = 'chat2:refreshBotRoleInConv'
@@ -613,13 +612,6 @@ export const createPinMessage = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
 }) => ({payload, type: pinMessage as typeof pinMessage})
-/**
- * Prime data to fulfill this message's request and navigate to the send form.
- */
-export const createPrepareFulfillRequestForm = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: prepareFulfillRequestForm as typeof prepareFulfillRequestForm})
 /**
  * Record a new thread search result
  */
@@ -1522,7 +1514,6 @@ export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
 export type PaymentInfoReceivedPayload = ReturnType<typeof createPaymentInfoReceived>
 export type PendingMessageWasEditedPayload = ReturnType<typeof createPendingMessageWasEdited>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
-export type PrepareFulfillRequestFormPayload = ReturnType<typeof createPrepareFulfillRequestForm>
 export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
 export type RefreshBotPublicCommandsPayload = ReturnType<typeof createRefreshBotPublicCommands>
 export type RefreshBotRoleInConvPayload = ReturnType<typeof createRefreshBotRoleInConv>
@@ -1693,7 +1684,6 @@ export type Actions =
   | PaymentInfoReceivedPayload
   | PendingMessageWasEditedPayload
   | PinMessagePayload
-  | PrepareFulfillRequestFormPayload
   | PreviewConversationPayload
   | RefreshBotPublicCommandsPayload
   | RefreshBotRoleInConvPayload

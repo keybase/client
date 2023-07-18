@@ -1,7 +1,6 @@
 import * as RPCTypes from './types/rpc-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as WalletsGen from '../actions/wallets-gen'
 import * as RouterConstants from './router2'
 import * as SettingsConstants from './settings'
 import * as UsersConstants from './users'
@@ -96,7 +95,6 @@ const namespaceToRoute = new Map([
   ['crypto', 'cryptoTeamBuilder'],
   ['teams', 'teamsTeamBuilder'],
   ['people', 'peopleTeamBuilder'],
-  ['wallets', 'walletTeamBuilder'],
 ])
 
 const parseRawResultToUser = (
@@ -298,15 +296,6 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
             get().dispatch.cancelTeamBuilding()
             break
           }
-          case 'wallets': {
-            for (const user of teamSoFar) {
-              const username = user.id
-              reduxDispatch(WalletsGen.createSetBuildingTo({to: username}))
-              break
-            }
-            get().dispatch.cancelTeamBuilding()
-            break
-          }
           default:
         }
       }
@@ -325,7 +314,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals[modals.length - 1]?.name
       if (routeNames.includes(routeName ?? '')) {
-        reduxDispatch(RouteTreeGen.createNavigateUp())
+        reduxDispatch(RouteTreeGen.createClearModals())
       }
     },
     fetchUserRecs: () => {
@@ -460,14 +449,21 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
           results.set(selectedService, users)
         })
 
-        const blocks = new Array<string>()
-        users.forEach(({serviceMap, prettyName}) => {
+        const updates = users.reduce((arr, {serviceMap, prettyName}) => {
           const {keybase} = serviceMap
           if (keybase) {
-            UsersConstants.useState.getState().dispatch.update(keybase, {fullname: prettyName})
-            blocks.push(keybase)
+            arr.push({info: {fullname: prettyName}, name: keybase})
           }
-        })
+          return arr
+        }, new Array<{info: {fullname: string}; name: string}>())
+        UsersConstants.useState.getState().dispatch.updates(updates)
+        const blocks = users.reduce((arr, {serviceMap}) => {
+          const {keybase} = serviceMap
+          if (keybase) {
+            arr.push(keybase)
+          }
+          return arr
+        }, new Array<string>())
         blocks.length && UsersConstants.useState.getState().dispatch.getBlockState(blocks)
       }
       Z.ignorePromise(f())

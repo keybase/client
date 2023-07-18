@@ -43,7 +43,7 @@ const setupNotifications = async () => {
         teambot: false,
         tracking: true,
         users: true,
-        wallet: true,
+        wallet: false,
       },
     })
   } catch (error) {
@@ -62,7 +62,6 @@ const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState) => {
   const newTeams = bs.newTeams ?? []
   const revokedDevices = bs.revokedDevices ?? []
   const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
-  const unreadWalletAccounts = bs.unreadWalletAccounts ?? []
   const wotUpdates = bs.wotUpdates ?? new Map<string, RPCTypes.WotUpdate>()
 
   if (Constants.useState.getState().badgeVersion >= inboxVers) {
@@ -81,10 +80,6 @@ const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState) => {
   const deviceID = ConfigConstants.useCurrentUserState.getState().deviceID
   counts.set(Tabs.devicesTab, allDeviceChanges.size - (allDeviceChanges.has(deviceID) ? 1 : 0))
   counts.set(Tabs.chatTab, bs.smallTeamBadgeCount + bs.bigTeamBadgeCount)
-  counts.set(
-    Tabs.walletsTab,
-    unreadWalletAccounts.reduce<number>((total, a) => total + a.numUnread, 0)
-  )
   counts.set(Tabs.gitTab, newGitRepoGlobalUniqueIDs.length)
   counts.set(
     Tabs.teamsTab,

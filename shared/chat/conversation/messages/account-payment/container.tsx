@@ -1,14 +1,11 @@
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
-import type * as Types from '../../../../constants/types/chat2'
 import * as ConfigConstants from '../../../../constants/config'
-import * as WalletConstants from '../../../../constants/wallets'
-import type * as WalletTypes from '../../../../constants/types/wallets'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as WalletsGen from '../../../../actions/wallets-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as Constants from '../../../../constants/chat2'
+import * as Container from '../../../../util/container'
+import * as Styles from '../../../../styles'
 import AccountPayment from '.'
 import shallowEqual from 'shallowequal'
+import type * as Types from '../../../../constants/types/chat2'
+import type * as WalletTypes from '../../../../constants/types/wallets'
 
 // Props for rendering the loading indicator
 const loadingProps = {
@@ -56,12 +53,8 @@ type OwnProps = {
 }
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
-  const {message} = ownProps
-  const {conversationIDKey, ordinal} = message
-  // TODO not huge selector
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const stateProps = Container.useSelector(state => {
-    const acceptedDisclaimer = WalletConstants.getAcceptedDisclaimer(state)
     const youAreSender = ownProps.message.author === you
     switch (ownProps.message.type) {
       case 'sendPayment': {
@@ -71,20 +64,12 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           return loadingProps
         }
 
-        // find the other participant's username
-        const participantInfo = Constants.getParticipantInfo(state, ownProps.message.conversationIDKey)
-        const theirUsername = participantInfo.name.find(p => p !== you) || ''
-
         const cancelable = paymentInfo.status === 'claimable'
         const pending = cancelable || paymentInfo.status === 'pending'
         const canceled = paymentInfo.status === 'canceled'
         const completed = paymentInfo.status === 'completed'
         const verb = makeSendPaymentVerb(paymentInfo.status, youAreSender)
         const sourceAmountDesc = `${paymentInfo.sourceAmount} ${paymentInfo.sourceAsset.code || 'XLM'}`
-        const balanceChangeAmount =
-          paymentInfo.sourceAmount.length && paymentInfo.delta === 'decrease'
-            ? sourceAmountDesc
-            : paymentInfo.amountDescription
 
         const amountDescription = paymentInfo.sourceAmount
           ? `${paymentInfo.amountDescription}/${paymentInfo.issuerDescription}`
@@ -95,17 +80,12 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
           action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
           amount,
           approxWorth: paymentInfo.worthAtSendTime,
-          balanceChange: completed
-            ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, balanceChangeAmount)}`
-            : '',
-          balanceChangeColor: WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status),
-          cancelButtonInfo: paymentInfo.showCancel ? WalletConstants.makeCancelButtonInfo(theirUsername) : '',
+          balanceChange: '',
+          balanceChangeColor: Styles.globalColors.black,
+          cancelButtonInfo: '',
           cancelButtonLabel: paymentInfo.showCancel ? 'Cancel' : '',
           canceled,
-          claimButtonLabel:
-            !youAreSender && cancelable && !acceptedDisclaimer
-              ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''}`
-              : '',
+          claimButtonLabel: '',
           icon: pending ? ('iconfont-clock' as const) : undefined,
           loading: false,
           memo: paymentInfo.note.stringValue(),
@@ -150,19 +130,6 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
     }
   }, shallowEqual)
 
-  const dispatch = Container.useDispatch()
-
-  const _onCancel = (paymentID?: WalletTypes.PaymentID) => {
-    if (paymentID) {
-      dispatch(WalletsGen.createCancelPayment({paymentID}))
-    }
-  }
-  const onClaim = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']}))
-  }
-  const onSend = () => {
-    dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal}))
-  }
   const props = {
     action: stateProps.action,
     amount: stateProps.amount,
@@ -176,9 +143,6 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
     icon: stateProps.icon,
     loading: stateProps.loading,
     memo: stateProps.memo,
-    onCancel: () => _onCancel(stateProps._paymentID),
-    onClaim: onClaim,
-    onSend: onSend,
     pending: stateProps.pending,
     sendButtonLabel: stateProps.sendButtonLabel || '',
     showCoinsIcon: stateProps.showCoinsIcon,

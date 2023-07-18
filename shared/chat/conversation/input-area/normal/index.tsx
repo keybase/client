@@ -381,7 +381,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const data = Container.useSelector(state => {
     const isActiveForFocus = state.chat2.focus === null
     const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
-    const showWalletsIcon = Constants.shouldShowWalletsIcon(state, conversationIDKey)
     const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
     const cannotWrite = Constants.getMeta(state, conversationIDKey).cannotWrite
     const minWriterRole = Constants.getMeta(state, conversationIDKey).minWriterRole
@@ -396,12 +395,11 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       isActiveForFocus,
       minWriterRole,
       showTypingStatus,
-      showWalletsIcon,
       suggestBotCommandsUpdateStatus,
     }
   }, shallowEqual)
   const {cannotWrite, explodingModeSeconds, infoPanelShowing, isActiveForFocus} = data
-  const {minWriterRole, showTypingStatus, showWalletsIcon, suggestBotCommandsUpdateStatus} = data
+  const {minWriterRole, showTypingStatus, suggestBotCommandsUpdateStatus} = data
 
   Container.useDepChangeEffect(() => {
     inputRef.current?.focus()
@@ -447,7 +445,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       onRequestScrollUp={onRequestScrollUp}
       showReplyPreview={!!replyTo}
       showTypingStatus={showTypingStatus}
-      showWalletsIcon={showWalletsIcon}
     />
   )
 })
@@ -466,7 +463,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
         isTablet: {marginLeft: '30%', marginRight: infoPanelWidthTablet},
       }),
-    } as const)
+    }) as const
 )
 
 export default Input

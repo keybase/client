@@ -20,7 +20,6 @@ type Props = {
   onSubmit: (text: string) => void
   showReplyPreview: boolean
   showTypingStatus: boolean
-  showWalletsIcon: boolean
   suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
   suggestionOverlayStyle: unknown
 }

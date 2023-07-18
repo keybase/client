@@ -23,8 +23,6 @@ type Props = {
   onInstallBot: () => void
   onOpenPrivateFolder: () => void
   onReload: () => void
-  onRequestLumens: () => void
-  onSendLumens: () => void
   onUnfollow: () => void
   onManageBlocking: () => void
   state: Types.DetailsState
@@ -38,8 +36,6 @@ type DropdownProps = Pick<
   | 'onOpenPrivateFolder'
   | 'onBrowsePublicFolder'
   | 'onInstallBot'
-  | 'onSendLumens'
-  | 'onRequestLumens'
   | 'onManageBlocking'
 > & {
   blockedOrHidFromFollowers: boolean
@@ -78,8 +74,6 @@ const Actions = (p: Props) => {
       onOpenPrivateFolder={p.onOpenPrivateFolder}
       onBrowsePublicFolder={p.onBrowsePublicFolder}
       onInstallBot={p.onInstallBot}
-      onSendLumens={p.onSendLumens}
-      onRequestLumens={p.onRequestLumens}
       onUnfollow={p.followThem && p.state !== 'valid' ? p.onUnfollow : undefined}
       onManageBlocking={p.onManageBlocking}
     />
@@ -174,7 +168,7 @@ const Actions = (p: Props) => {
 }
 
 const DropdownButton = (p: DropdownProps) => {
-  const {onInstallBot, onAddToTeam, onSendLumens, onRequestLumens, onBrowsePublicFolder, onUnfollow} = p
+  const {onInstallBot, onAddToTeam, onBrowsePublicFolder, onUnfollow} = p
   const {onManageBlocking, blockedOrHidFromFollowers, isBot, onOpenPrivateFolder} = p
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
@@ -183,8 +177,6 @@ const DropdownButton = (p: DropdownProps) => {
         isBot
           ? {icon: 'iconfont-nav-2-robot', onClick: onInstallBot, title: 'Install bot in team or chat'}
           : {icon: 'iconfont-people', onClick: onAddToTeam, title: 'Add to team...'},
-        {icon: 'iconfont-stellar-send', onClick: onSendLumens, title: 'Send Lumens (XLM)'},
-        {icon: 'iconfont-stellar-request', onClick: onRequestLumens, title: 'Request Lumens (XLM)'},
         {icon: 'iconfont-folder-open', onClick: onOpenPrivateFolder, title: 'Open private folder'},
         {icon: 'iconfont-folder-public', onClick: onBrowsePublicFolder, title: 'Browse public folder'},
         onUnfollow && {icon: 'iconfont-wave', onClick: onUnfollow, title: 'Unfollow'},
@@ -217,8 +209,6 @@ const DropdownButton = (p: DropdownProps) => {
       onInstallBot,
       onManageBlocking,
       onOpenPrivateFolder,
-      onRequestLumens,
-      onSendLumens,
       onUnfollow,
     ]
   )
