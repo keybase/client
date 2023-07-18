@@ -53,9 +53,6 @@ type OwnProps = {
 }
 
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
-  // const {message} = ownProps
-  // const {conversationIDKey, ordinal} = message
-  // TODO not huge selector
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const stateProps = Container.useSelector(state => {
     const youAreSender = ownProps.message.author === you

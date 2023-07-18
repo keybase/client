@@ -1803,13 +1803,11 @@ const messageSend = async (
           'chat.1.chatUi.chatStellarDataConfirm': ({summary}, response) => {
             // immediate fail
             response.result(false)
-            //storeStellarConfirmWindowResponse(false, response)
             return Chat2Gen.createSetPaymentConfirmInfo({summary})
           },
           'chat.1.chatUi.chatStellarDataError': ({error}, response) => {
             // immediate fail
             response.result(false)
-            //storeStellarConfirmWindowResponse(false, response)
             return Chat2Gen.createSetPaymentConfirmInfo({error})
           },
         },
@@ -1824,12 +1822,7 @@ const messageSend = async (
             }
             return false
           },
-          'chat.1.chatUi.chatStellarShowConfirm': () => [
-            Chat2Gen.createClearPaymentConfirmInfo(),
-            // RouteTreeGen.createNavigateAppend({
-            //   path: [confirmRouteName],
-            // }),
-          ],
+          'chat.1.chatUi.chatStellarShowConfirm': () => [Chat2Gen.createClearPaymentConfirmInfo()],
         },
         params: {
           ...ephemeralData,
