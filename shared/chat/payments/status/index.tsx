@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import type * as Types from '../../../constants/types/chat2'
 import type * as WalletTypes from '../../../constants/types/wallets'
-import {SendPaymentPopup} from '../../conversation/messages/message-popup/payment/container'
 import PaymentStatusError from './error'
 import Text from '../../../common-adapters/text'
 import {Box2} from '../../../common-adapters/box'
@@ -109,18 +108,7 @@ class PaymentStatus extends React.Component<Props, State> {
         onHidden={this._hidePopup}
         visible={this.state.showPopup}
       />
-    ) : (
-      <SendPaymentPopup
-        attachTo={this._getAttachmentRef}
-        visible={this.state.showPopup}
-        paymentID={this.props.paymentID}
-        position="top center"
-        ordinal={this.props.message.id}
-        message={this.props.message}
-        conversationIDKey={this.props.message.conversationIDKey}
-        onHidden={this._hidePopup}
-      />
-    )
+    ) : null
     return Styles.isMobile ? (
       <>
         {text}
@@ -181,7 +169,7 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.xtiny,
         paddingRight: Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default PaymentStatus

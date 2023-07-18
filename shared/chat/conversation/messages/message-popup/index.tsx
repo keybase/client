@@ -7,7 +7,6 @@ import * as React from 'react'
 import AttachmentMessage from './attachment/container'
 import ExplodingMessage from './exploding/container'
 import JourneycardMessage from './journeycard/container'
-import PaymentMessage from './payment/container'
 import TextMessage from './text/container'
 import type * as Types from '../../../../constants/types/chat2'
 import type {Position, StylesCrossPlatform} from '../../../../styles'
@@ -106,19 +105,6 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
       }
       return (
         <AttachmentMessage
-          attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
-          ordinal={ordinal}
-          onHidden={onHidden}
-          position={position}
-          style={style}
-          visible={visible}
-        />
-      )
-    case 'sendPayment': // fallthrough
-    case 'requestPayment':
-      return (
-        <PaymentMessage
           attachTo={attachTo}
           conversationIDKey={conversationIDKey}
           ordinal={ordinal}

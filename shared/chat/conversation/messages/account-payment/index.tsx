@@ -16,7 +16,6 @@ export type Props = {
   icon?: Kb.IconType
   loading: boolean
   memo: string
-  onCancel: () => void
   pending: boolean
   sendButtonLabel: string
   showCoinsIcon: boolean
@@ -105,18 +104,6 @@ const AccountPayment = (props: Props) => {
       </Kb.Box2>
       <MarkdownMemo memo={props.memo} style={styles.memo} />
       {Styles.isMobile && balanceChange}
-      {!!props.cancelButtonLabel && (
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-          <Kb.Text type="BodySmall">{props.cancelButtonInfo}</Kb.Text>
-          <Kb.WaitingButton
-            type="Danger"
-            label={props.cancelButtonLabel}
-            onClick={props.onCancel}
-            small={true}
-            style={styles.button}
-          />
-        </Kb.Box2>
-      )}
     </>
   )
   return (

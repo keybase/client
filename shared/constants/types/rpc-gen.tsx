@@ -1634,14 +1634,6 @@ export type MessageTypes = {
     inParam: {readonly query: String; readonly service: String; readonly maxResults: Int; readonly includeServicesSummary: Boolean; readonly includeContacts: Boolean}
     outParam: Array<APIUserSearchResult> | null
   }
-  'keybase.1.wot.dismissWotNotifications': {
-    inParam: {readonly voucher: String; readonly vouchee: String}
-    outParam: void
-  }
-  'keybase.1.wot.wotFetchVouches': {
-    inParam: {readonly vouchee: String; readonly voucher: String}
-    outParam: Array<WotVouch> | null
-  }
   'keybase.1.wot.wotReact': {
     inParam: {readonly voucher: String; readonly sigID: SigID; readonly reaction: WotReactionType; readonly allowEmptySigID: Boolean}
     outParam: void
@@ -3987,8 +3979,6 @@ export const userSetUserBlocksRpcPromise = (params: MessageTypes['keybase.1.user
 export const userUnblockUserRpcPromise = (params: MessageTypes['keybase.1.user.unblockUser']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.unblockUser']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.unblockUser', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.user.unblockUser']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.user.uploadUserAvatar']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.uploadUserAvatar']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.uploadUserAvatar', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.user.uploadUserAvatar']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.userCard']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.userCard']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.userCard', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.user.userCard']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const wotDismissWotNotificationsRpcPromise = (params: MessageTypes['keybase.1.wot.dismissWotNotifications']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.wot.dismissWotNotifications']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.wot.dismissWotNotifications', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.wot.dismissWotNotifications']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const wotWotFetchVouchesRpcPromise = (params: MessageTypes['keybase.1.wot.wotFetchVouches']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.wot.wotFetchVouches']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.wot.wotFetchVouches', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.wot.wotFetchVouches']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const wotWotReactRpcPromise = (params: MessageTypes['keybase.1.wot.wotReact']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.wot.wotReact']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.wot.wotReact', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.wot.wotReact']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVouch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.wot.wotVouch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.wot.wotVouch', params, callback: (error: SimpleError, result: MessageTypes['keybase.1.wot.wotVouch']['outParam']) => (error ? reject(error) : resolve(result)), waitingKey}))
 // Not enabled calls. To enable add to enabled-calls.json:
@@ -4419,3 +4409,5 @@ export const wotWotVouchRpcPromise = (params: MessageTypes['keybase.1.wot.wotVou
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.getTeamBlocks'
 // 'keybase.1.wot.wotVouchCLI'
+// 'keybase.1.wot.dismissWotNotifications'
+// 'keybase.1.wot.wotFetchVouches'

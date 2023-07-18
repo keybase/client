@@ -1,17 +1,15 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
-import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
-import * as ConfigConstants from '../config'
 import * as Message from './message'
 import {memoize} from '../../util/memoize'
 import type {ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
 import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
-import {isMobile, isPhone} from '../platform'
+import {isPhone} from '../platform'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 import type {AllowedColors} from '../../common-adapters/text'
 import shallowEqual from 'shallowequal'
@@ -431,21 +429,6 @@ export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) =
   } else {
     return blankCommands
   }
-}
-
-// show wallets icon for one-on-one conversations
-export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
-  const meta = getMeta(state, id)
-  const participants = state.chat2.participantMap.get(id)
-  const accountID = WalletConstants.getDefaultAccountID(state.wallets)
-  const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
-
-  const myUsername = ConfigConstants.useCurrentUserState.getState().username
-  return (
-    !sendDisabled &&
-    meta.teamType === 'adhoc' &&
-    (participants?.name ?? []).filter(u => u !== myUsername).length === 1
-  )
 }
 
 export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {

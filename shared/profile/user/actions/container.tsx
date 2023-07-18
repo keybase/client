@@ -6,8 +6,6 @@ import * as ConfigConstants from '../../../constants/config'
 import * as FsConstants from '../../../constants/fs'
 import * as FsTypes from '../../../constants/types/fs'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as WalletsGen from '../../../actions/wallets-gen'
-import * as WalletsType from '../../../constants/types/wallets'
 import Actions from '.'
 
 type OwnProps = {
@@ -57,15 +55,6 @@ export default (ownProps: OwnProps) => {
   const _onReload = (username: string) => {
     showUser(username, false)
   }
-  const _onSendOrRequestLumens = (
-    to: string,
-    isRequest: boolean,
-    recipientType: WalletsType.CounterpartyType
-  ) => {
-    dispatch(
-      WalletsGen.createOpenSendRequestForm({from: WalletsType.noAccountID, isRequest, recipientType, to})
-    )
-  }
   const submitUnblockUser = ProfileConstants.useState(s => s.dispatch.submitUnblockUser)
   const _onUnblock = (username: string, guiID: string) => {
     submitUnblockUser(username, guiID)
@@ -86,8 +75,6 @@ export default (ownProps: OwnProps) => {
     onManageBlocking: () => _onManageBlocking(username),
     onOpenPrivateFolder: () => _onOpenPrivateFolder(_you, username),
     onReload: () => _onReload(username),
-    onRequestLumens: () => _onSendOrRequestLumens(username, true, 'keybaseUser'),
-    onSendLumens: () => _onSendOrRequestLumens(username, false, 'keybaseUser'),
     onUnblock: () => _onUnblock(username, _guiID),
     onUnfollow: () => _onFollow(_guiID, false),
     state: state,

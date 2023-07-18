@@ -21,8 +21,6 @@ import * as TeamsConstants from '../constants/teams'
 import * as TeamsTypes from '../constants/types/teams'
 import * as Types from '../constants/types/chat2'
 import * as WaitingConstants from '../constants/waiting'
-import * as WalletTypes from '../constants/types/wallets'
-import * as WalletsGen from './wallets-gen'
 import {findLast} from '../util/arrays'
 import KB2 from '../util/electron'
 import NotifyPopup from '../util/notify-popup'
@@ -3489,47 +3487,6 @@ const gregorPushState = (items: ConfigConstants.Store['gregorPushState']) => {
   return actions
 }
 
-const prepareFulfillRequestForm = (
-  state: Container.TypedState,
-  action: Chat2Gen.PrepareFulfillRequestFormPayload
-) => {
-  const {conversationIDKey, ordinal} = action.payload
-  const message = Constants.getMessage(state, conversationIDKey, ordinal)
-  if (!message) {
-    logger.error(
-      `prepareFulfillRequestForm: couldn't find message. convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(
-        ordinal
-      )}`
-    )
-    return
-  }
-  if (message.type !== 'requestPayment') {
-    logger.error(
-      `prepareFulfillRequestForm: got message with incorrect type '${
-        message.type
-      }', expected 'requestPayment'. convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(ordinal)}`
-    )
-    return
-  }
-  const requestInfo = Constants.getRequestMessageInfo(state, message)
-  if (!requestInfo) {
-    // This message shouldn't even be rendered; we shouldn't be here, throw error
-    throw new Error(
-      `Couldn't find request info for message in convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(
-        ordinal
-      )}`
-    )
-  }
-  return WalletsGen.createOpenSendRequestForm({
-    amount: requestInfo.amount,
-    currency: requestInfo.currencyCode || 'XLM',
-    from: WalletTypes.noAccountID,
-    recipientType: 'keybaseUser',
-    secretNote: message.note,
-    to: message.author,
-  })
-}
-
 const addUsersToChannel = async (_: unknown, action: Chat2Gen.AddUsersToChannelPayload) => {
   const {conversationIDKey, usernames} = action.payload
 
@@ -4012,7 +3969,6 @@ const initChat = () => {
     if (s.gregorPushState === old.gregorPushState) return
     gregorPushState(s.gregorPushState)
   })
-  Container.listenAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 
   Container.listenAction(Chat2Gen.channelSuggestionsTriggered, loadSuggestionData)
 

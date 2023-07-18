@@ -6,8 +6,6 @@ import * as FsConstants from '../../constants/fs'
 import * as UsersConstants from '../../constants/users'
 import * as FsTypes from '../../constants/types/fs'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as WalletsGen from '../../actions/wallets-gen'
-import * as WalletsType from '../../constants/types/wallets'
 import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
@@ -71,30 +69,6 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
     dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
   }, [dispatch, decoratedUsername])
 
-  const onSendLumens = React.useCallback(() => {
-    keybaseUsername &&
-      dispatch(
-        WalletsGen.createOpenSendRequestForm({
-          from: WalletsType.noAccountID,
-          isRequest: false,
-          recipientType: 'keybaseUser',
-          to: keybaseUsername,
-        })
-      )
-  }, [dispatch, keybaseUsername])
-
-  const onRequestLumens = React.useCallback(() => {
-    keybaseUsername &&
-      dispatch(
-        WalletsGen.createOpenSendRequestForm({
-          from: WalletsType.noAccountID,
-          isRequest: true,
-          recipientType: 'keybaseUser',
-          to: keybaseUsername,
-        })
-      )
-  }, [dispatch, keybaseUsername])
-
   const resultIsMe = keybaseUsername === myUsername
   const dropdown = keybaseUsername ? (
     <DropdownButton
@@ -103,8 +77,6 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
       onBrowsePublicFolder={onBrowsePublicFolder}
       onManageBlocking={!resultIsMe ? onManageBlocking : undefined}
       onOpenPrivateFolder={onOpenPrivateFolder}
-      onRequestLumens={onRequestLumens}
-      onSendLumens={onSendLumens}
       blocked={blocked}
     />
   ) : (
@@ -138,26 +110,17 @@ type DropdownProps = {
   onAddToTeam?: () => void
   onOpenPrivateFolder?: () => void
   onBrowsePublicFolder?: () => void
-  onSendLumens?: () => void
-  onRequestLumens?: () => void
   onManageBlocking?: () => void
   blocked?: boolean
   onUnfollow?: () => void
 }
 
 const DropdownButton = (p: DropdownProps) => {
-  const {onAddToTeam, onSendLumens, onRequestLumens} = p
-  const {onOpenPrivateFolder, onBrowsePublicFolder, onManageBlocking, blocked} = p
+  const {onAddToTeam, onOpenPrivateFolder, onBrowsePublicFolder, onManageBlocking, blocked} = p
   const items: Kb.MenuItems = React.useMemo(
     () =>
       [
         onAddToTeam && {icon: 'iconfont-add', onClick: onAddToTeam, title: 'Add to team...'},
-        onSendLumens && {icon: 'iconfont-stellar-send', onClick: onSendLumens, title: 'Send Lumens (XLM)'},
-        onRequestLumens && {
-          icon: 'iconfont-stellar-request',
-          onClick: onRequestLumens,
-          title: 'Request Lumens (XLM)',
-        },
         onOpenPrivateFolder && {
           icon: 'iconfont-folder-open',
           onClick: onOpenPrivateFolder,
@@ -178,15 +141,7 @@ const DropdownButton = (p: DropdownProps) => {
         i && arr.push(i as Kb.MenuItem)
         return arr
       }, []),
-    [
-      blocked,
-      onAddToTeam,
-      onBrowsePublicFolder,
-      onManageBlocking,
-      onOpenPrivateFolder,
-      onRequestLumens,
-      onSendLumens,
-    ]
+    [blocked, onAddToTeam, onBrowsePublicFolder, onManageBlocking, onOpenPrivateFolder]
   )
 
   const makePopup = React.useCallback(

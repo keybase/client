@@ -1,32 +1,38 @@
-import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/wallets'
-//import * as WalletsGen from '../../actions/wallets-gen'
+import * as ConfigConstants from '../../constants/config'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
-import WalletPopup from '../wallet-popup'
+import * as Kb from '../../common-adapters'
 import * as RPCStellarTypes from '../../constants/types/rpc-stellar-gen'
+import * as React from 'react'
+import * as Styles from '../../styles'
+import WalletPopup from '../wallet-popup'
+import type * as Types from '../../constants/types/wallets'
 
-type Props = {
-  accountID: Types.AccountID
-  name: string
-  //loading: boolean
-  waiting: boolean
-  onCopyKey: (sk: string) => void
-  onFinish: () => void
-  onCancel: () => void
-}
+type OwnProps = {accountID: Types.AccountID}
 
-const ReallyRemoveAccountPopup = (props: Props) => {
-  const {accountID, onCopyKey} = props
-  //const dispatch = Container.useDispatch()
+const ReallyRemoveAccountPopup = (props: OwnProps) => {
+  const {accountID} = props
+  const waiting = Container.useAnyWaiting(Constants.loadAccountsWaitingKey)
+  const name = Constants.useState(s => s.accountMap.get(accountID)?.name) ?? ''
   const [showingToast, setShowToast] = React.useState(false)
   const attachmentRef = React.useRef<Kb.ClickableBox>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
 
+  const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+
   const [sk, setSK] = React.useState('')
   const loading = !sk
   const getSecretKey = Container.useRPC(RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise)
+
+  const dispatch = Container.useDispatch()
+  const onCancel = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const removeAccount = Constants.useState(s => s.dispatch.removeAccount)
+  const onFinish = () => {
+    removeAccount(accountID)
+  }
 
   React.useEffect(() => {
     setSK('')
@@ -39,28 +45,14 @@ const ReallyRemoveAccountPopup = (props: Props) => {
     )
   }, [getSecretKey, accountID])
 
-  // const onLoadSecretKey = React.useCallback(
-  //   () => dispatch(WalletsGen.createExportSecretKey({accountID: accountID})),
-  //   [dispatch, accountID]
-  // )
-  // const onSecretKeySeen = React.useCallback(
-  //   () => dispatch(WalletsGen.createSecretKeySeen({accountID})),
-  //   [accountID, dispatch]
-  // )
-  // React.useEffect(() => {
-  //   onLoadSecretKey()
-  //   return () => {
-  //     onSecretKeySeen()
-  //   }
-  // }, [onLoadSecretKey, onSecretKeySeen])
   const onCopy = React.useCallback(() => {
     setShowToast(true)
     setShowToastFalseLater()
-    onCopyKey(sk)
-  }, [onCopyKey, setShowToastFalseLater, sk])
+    copyToClipboard(sk)
+  }, [copyToClipboard, setShowToastFalseLater, sk])
   return (
     <WalletPopup
-      onExit={props.onCancel}
+      onExit={onCancel}
       backButtonType="cancel"
       containerStyle={styles.background}
       headerStyle={Styles.collapseStyles([styles.background, styles.header])}
@@ -73,15 +65,15 @@ const ReallyRemoveAccountPopup = (props: Props) => {
           type="Wallet"
           ref={attachmentRef}
           waiting={loading}
-          disabled={props.waiting}
+          disabled={waiting}
         />,
         <Kb.Button
           fullWidth={Styles.isMobile}
           key={1}
           label="Finish"
-          onClick={props.onFinish}
+          onClick={onFinish}
           type="Dim"
-          waiting={props.waiting}
+          waiting={waiting}
           disabled={loading}
         />,
       ]}
@@ -102,7 +94,7 @@ const ReallyRemoveAccountPopup = (props: Props) => {
             type="HeaderItalic"
             style={Styles.collapseStyles([styles.warningText, styles.mainText] as const)}
           >
-            {props.name}.
+            {name}.
           </Kb.Text>
         </Kb.Box2>
         <Kb.Text center={true} type="BodySmall" style={styles.warningText}>

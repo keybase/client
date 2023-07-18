@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type * as Container from '../../util/container'
 
-const Remove = React.lazy(async () => import('./container'))
+const Remove = React.lazy(async () => import('.'))
 type OwnProps = Container.ViewPropsToPageProps<typeof Remove>
 
 const Screen = (p: OwnProps) => (

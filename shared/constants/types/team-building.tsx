@@ -1,6 +1,6 @@
 import type {ServiceId as _ServiceId} from '../../util/platforms'
 
-export const allowedNamespace = ['chat2', 'crypto', 'teams', 'people', 'wallets', 'invalid'] as const
+export const allowedNamespace = ['chat2', 'crypto', 'teams', 'people', 'invalid'] as const
 export type AllowedNamespace = (typeof allowedNamespace)[number]
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 export type ServiceId = _ServiceId

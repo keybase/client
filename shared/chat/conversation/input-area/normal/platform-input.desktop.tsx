@@ -8,7 +8,6 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Styles from '../../../../styles'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import Typing from './typing'
-import WalletsIcon from './wallets-icon'
 import type * as Types from '../../../../constants/types/chat2'
 import type {Props} from './platform-input'
 import {EmojiPickerDesktop} from '../../../emoji-picker/container'
@@ -310,20 +309,15 @@ const useKeyboard = (p: UseKeyboardProps) => {
   return {globalKeyDownPressHandler, inputKeyDown, onChangeText: onChangeTextInner}
 }
 
-type SideButtonsProps = Pick<Props, 'conversationIDKey' | 'showWalletsIcon' | 'cannotWrite'> & {
+type SideButtonsProps = Pick<Props, 'conversationIDKey' | 'cannotWrite'> & {
   htmlInputRef: HtmlInputRefType
   inputRef: InputRefType
 }
 
 const SideButtons = (p: SideButtonsProps) => {
-  const {htmlInputRef, conversationIDKey, cannotWrite, showWalletsIcon, inputRef} = p
+  const {htmlInputRef, conversationIDKey, cannotWrite, inputRef} = p
   return (
     <Kb.Box2 direction="horizontal">
-      {!cannotWrite && showWalletsIcon && (
-        <Kb.WithTooltip tooltip="Lumens">
-          <WalletsIcon size={16} style={styles.walletsIcon} conversationIDKey={conversationIDKey} />
-        </Kb.WithTooltip>
-      )}
       {!cannotWrite && (
         <>
           <GiphyButton conversationIDKey={conversationIDKey} />
@@ -337,7 +331,7 @@ const SideButtons = (p: SideButtonsProps) => {
 
 const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const {cannotWrite, conversationIDKey, explodingModeSeconds, onCancelEditing} = p
-  const {showWalletsIcon, hintText, inputSetRef, isEditing, onSubmit} = p
+  const {hintText, inputSetRef, isEditing, onSubmit} = p
   const {onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const htmlInputRef = React.useRef<HTMLInputElement>(null)
   const inputRef = React.useRef<Kb.PlainInput | null>(null)
@@ -447,7 +441,6 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
             <SideButtons
               cannotWrite={cannotWrite}
               conversationIDKey={conversationIDKey}
-              showWalletsIcon={showWalletsIcon}
               htmlInputRef={htmlInputRef}
               inputRef={inputRef}
             />
@@ -560,7 +553,7 @@ const styles = Styles.styleSheetCreate(
         marginBottom: 2,
         marginRight: Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default PlatformInput

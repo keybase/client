@@ -9,13 +9,12 @@ const namespaceToRoute = new Map([
   ['crypto', 'cryptoTeamBuilder'],
   ['teams', 'teamsTeamBuilder'],
   ['people', 'peopleTeamBuilder'],
-  ['wallets', 'walletTeamBuilder'],
 ])
 
 const initTeamBuilding = () => {
   Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
     const {prev, next} = action.payload
-    const namespaces: Array<Types.AllowedNamespace> = ['chat2', 'crypto', 'teams', 'people', 'wallets']
+    const namespaces: Array<Types.AllowedNamespace> = ['chat2', 'crypto', 'teams', 'people']
     for (const namespace of namespaces) {
       const wasTeamBuilding = namespaceToRoute.get(namespace) === RouterConstants.getVisibleScreen(prev)?.name
       if (wasTeamBuilding) {

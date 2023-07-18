@@ -6,9 +6,8 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as TeamsConstants from './teams'
-import * as WalletsGen from '../actions/wallets-gen'
 import * as Z from '../util/zustand'
-import HiddenString from '../util/hidden-string'
+import type HiddenString from '../util/hidden-string'
 import URL from 'url-parse'
 import logger from '../logger'
 import type * as CryptoTypes from '../constants/types/crypto'
@@ -126,10 +125,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
   const dispatch: State['dispatch'] = {
     handleAppLink: link => {
-      if (link.startsWith('web+stellar:')) {
-        reduxDispatch(WalletsGen.createValidateSEP7Link({fromQR: false, link}))
-        return
-      } else if (link.startsWith('keybase://')) {
+      if (link.startsWith('keybase://')) {
         get().dispatch.handleKeybaseLink(link.replace('keybase://', ''))
         return
       } else {

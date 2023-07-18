@@ -3,7 +3,6 @@ import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import {useClaim} from './claim'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
 import {ConvoIDContext, OrdinalContext} from '../ids-context'
@@ -63,7 +62,6 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
 
   const bottomChildren = useBottom(ordinal, toggleShowingPopup)
   const reply = useReply(ordinal)
-  const claim = useClaim(ordinal)
 
   const {isEditing, textType, hasReactions} = Container.useSelector(state => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
@@ -118,10 +116,9 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
       <>
         {reply}
         <MessageMarkdown style={style} />
-        {claim}
       </>
     )
-  }, [reply, claim, style])
+  }, [reply, style])
 
   // due to recycling, we can have items that aren't connected to the list that might have live connectors
   // so when we load more etc the entire messagMap could no longer have your item

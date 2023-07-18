@@ -1,29 +1,45 @@
+import * as Constants from '../../constants/wallets'
+import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
+import type * as Types from '../../constants/types/wallets'
 import WalletPopup from '../wallet-popup'
 
-export type Props = {
-  name: string
-  balance: string
-  onDelete: () => void
-  onClose: () => void
-}
+type OwnProps = {accountID: Types.AccountID}
 
-const RemoveAccountPopup = (props: Props) => {
+export default (ownProps: OwnProps) => {
+  const {accountID} = ownProps
+  const dispatch = Container.useDispatch()
+  const account = Constants.useState(s => s.accountMap.get(accountID))
+  const balance = account?.balanceDescription ?? 'Error loading account'
+  const name = account?.name ?? ''
+  const onClose = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  }
+  const onDelete = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {accountID}, selected: 'reallyRemoveAccount'}],
+      })
+    )
+  }
+
   const buttons = [
-    <Kb.Button fullWidth={Styles.isMobile} key={0} label="Cancel" onClick={props.onClose} type="Dim" />,
+    <Kb.Button fullWidth={Styles.isMobile} key={0} label="Cancel" onClick={onClose} type="Dim" />,
     <Kb.Button
       fullWidth={Styles.isMobile}
       key={1}
       label="Yes, remove"
-      onClick={props.onDelete}
+      onClick={onDelete}
       type="Danger"
+      disabled={!!account}
     />,
   ]
 
   return (
     <WalletPopup
-      onExit={props.onClose}
+      onExit={onClose}
       backButtonType="cancel"
       headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
@@ -38,7 +54,7 @@ const RemoveAccountPopup = (props: Props) => {
           This removes{' '}
         </Kb.Text>
         <Kb.Text center={true} type="HeaderItalic" style={styles.warningText}>
-          {props.name}
+          {name}
         </Kb.Text>
         <Kb.Text
           center={true}
@@ -49,7 +65,7 @@ const RemoveAccountPopup = (props: Props) => {
           from Keybase, but you can still use it elsewhere if you save the private key.
         </Kb.Text>
         <Kb.Text type="BodySmall">Balance:</Kb.Text>
-        <Kb.Text type="BodySmallExtrabold">{props.balance}</Kb.Text>
+        <Kb.Text type="BodySmallExtrabold">{balance}</Kb.Text>
       </Kb.Box2>
     </WalletPopup>
   )
@@ -75,5 +91,3 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
 }))
-
-export default RemoveAccountPopup
