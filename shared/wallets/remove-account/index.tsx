@@ -20,6 +20,7 @@ export default (ownProps: OwnProps) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {accountID}, selected: 'reallyRemoveAccount'}],
+        replace: true,
       })
     )
   }
@@ -32,7 +33,7 @@ export default (ownProps: OwnProps) => {
       label="Yes, remove"
       onClick={onDelete}
       type="Danger"
-      disabled={!!account}
+      disabled={!account}
     />,
   ]
 

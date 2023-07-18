@@ -67,7 +67,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.accountMap = new Map(
             res?.map(a => {
               return [
-                a.name,
+                a.accountID,
                 {
                   accountID: a.accountID,
                   balanceDescription: a.balanceDescription,

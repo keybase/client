@@ -31,6 +31,7 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const removeAccount = Constants.useState(s => s.dispatch.removeAccount)
   const onFinish = () => {
     removeAccount(accountID)
+    dispatch(RouteTreeGen.createNavigateUp())
   }
 
   React.useEffect(() => {
