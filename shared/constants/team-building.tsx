@@ -314,7 +314,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals[modals.length - 1]?.name
       if (routeNames.includes(routeName ?? '')) {
-        reduxDispatch(RouteTreeGen.createNavigateUp())
+        reduxDispatch(RouteTreeGen.createClearModals())
       }
     },
     fetchUserRecs: () => {
