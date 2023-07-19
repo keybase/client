@@ -1136,10 +1136,12 @@ type State = Store & {
     dismissRedbar: (index: number) => void
     dismissUpload: (uploadID: string) => void
     download: (path: Types.Path, type: 'download' | 'share' | 'saveMedia') => void
+    driverDisable: () => void
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
     dynamic: {
+      afterDriverDisable?: () => void
       afterDriverEnabled?: (isRetry: boolean) => void
       setSfmiBannerDismissedDesktop?: (dismissed: boolean) => void
       openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
@@ -1431,6 +1433,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    driverDisable: () => {
+      get().dispatch.dynamic.afterDriverDisable?.()
+    },
     driverDisabling: () => {
       set(s => {
         if (s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled) {
@@ -1456,6 +1461,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     dynamic: {
+      afterDriverDisable: undefined,
       afterDriverEnabled: undefined,
       openLocalPathInSystemFileManagerDesktop: undefined,
       openPathInSystemFileManagerDesktop: undefined,

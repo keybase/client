@@ -3,9 +3,7 @@ import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
-import * as Container from '../../util/container'
 import * as Kbfs from '../../fs/common'
-import * as FsGen from '../../actions/fs-gen'
 import RefreshDriverStatusOnMount from '../../fs/common/refresh-driver-status-on-mount'
 import RefreshSettings from './refresh-settings'
 import type {Props} from '.'
@@ -56,15 +54,15 @@ const isPending = (props: Props) =>
 
 const FinderIntegration = (props: Props) => {
   const preferredMountDirs = Constants.useState(s => s.sfmi.preferredMountDirs)
+  const driverDisable = Constants.useState(s => s.dispatch.driverDisable)
   const displayingMountDir = preferredMountDirs[0] || ''
-  const dispatch = Container.useDispatch()
   const openLocalPathInSystemFileManagerDesktop = Constants.useState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const openMount = displayingMountDir
     ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
     : undefined
-  const disable = () => dispatch(FsGen.createDriverDisable())
+  const disable = driverDisable
   return Platform.isDarwin || Platform.isWindows ? (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.finderIntegrationContent}>

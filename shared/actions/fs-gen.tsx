@@ -10,7 +10,6 @@ export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
 export const dismissDownload = 'fs:dismissDownload'
 export const download = 'fs:download'
-export const driverDisable = 'fs:driverDisable'
 export const driverDisabling = 'fs:driverDisabling'
 export const finishManualConflictResolution = 'fs:finishManualConflictResolution'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
@@ -57,10 +56,6 @@ export const createDismissDownload = (payload: {readonly downloadID: string}) =>
 export const createDownload = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: download as typeof download,
-})
-export const createDriverDisable = (payload?: undefined) => ({
-  payload,
-  type: driverDisable as typeof driverDisable,
 })
 export const createDriverDisabling = (payload?: undefined) => ({
   payload,
@@ -166,7 +161,6 @@ export type CopyPayload = ReturnType<typeof createCopy>
 export type DeleteFilePayload = ReturnType<typeof createDeleteFile>
 export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
 export type DownloadPayload = ReturnType<typeof createDownload>
-export type DriverDisablePayload = ReturnType<typeof createDriverDisable>
 export type DriverDisablingPayload = ReturnType<typeof createDriverDisabling>
 export type FinishManualConflictResolutionPayload = ReturnType<typeof createFinishManualConflictResolution>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
@@ -203,7 +197,6 @@ export type Actions =
   | DeleteFilePayload
   | DismissDownloadPayload
   | DownloadPayload
-  | DriverDisablePayload
   | DriverDisablingPayload
   | FinishManualConflictResolutionPayload
   | FinishedDownloadWithIntentPayload

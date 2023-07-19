@@ -171,10 +171,8 @@ const initPlatformSpecific = () => {
   })
   Container.listenAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    Container.listenAction(FsGen.driverDisable as any, uninstallDokanConfirm as any)
     Container.listenAction(FsGen.driverDisabling, onUninstallDokan)
   } else {
-    Container.listenAction(FsGen.driverDisable, uninstallKBFSConfirm)
     Container.listenAction(FsGen.driverDisabling, uninstallKBFS)
   }
   Container.listenAction(FsGen.openSecurityPreferences, openSecurityPreferences)
@@ -182,9 +180,6 @@ const initPlatformSpecific = () => {
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
     Constants.useState.getState().dispatch.onChangedFocus(s.appFocused)
-  })
-  Container.listenAction([FsGen.driverDisable], () => {
-    Constants.useState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
   })
 
   Constants.useState.setState(s => {
@@ -288,6 +283,18 @@ const initPlatformSpecific = () => {
           await onInstallCachedDokan()
         } else {
           await driverEnableFuse(isRetry)
+        }
+      }
+      Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.afterDriverDisable = () => {
+      const f = async () => {
+        Constants.useState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
+        if (isWindows) {
+          await uninstallDokanConfirm()
+        } else {
+          await uninstallKBFSConfirm()
         }
       }
       Z.ignorePromise(f())

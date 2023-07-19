@@ -9,6 +9,7 @@ import type {PickerItem} from '../../common-adapters/floating-picker'
 const SettingsFiles = () => {
   const areSettingsLoading = Constants.useState(s => s.settings.isLoading)
   const driverEnable = Constants.useState(s => s.dispatch.driverEnable)
+  const driverDisable = Constants.useState(s => s.dispatch.driverDisable)
   const driverStatus = Constants.useState(s => s.sfmi.driverStatus)
   const spaceAvailableNotificationThreshold = Constants.useState(
     s => s.settings.spaceAvailableNotificationThreshold
@@ -20,9 +21,7 @@ const SettingsFiles = () => {
         dispatch(RouteTreeGen.createNavigateUp())
       }
     : undefined
-  const onDisable = () => {
-    dispatch(FsGen.createDriverDisable())
-  }
+  const onDisable = driverDisable
   const onDisableSyncNotifications = () => {
     dispatch(FsGen.createSetSpaceAvailableNotificationThreshold({spaceAvailableNotificationThreshold: 0}))
   }
