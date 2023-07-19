@@ -1,7 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "setDriverStatus": {},
     "setSfmiBannerDismissed": {"dismissed": "boolean"},
     "driverEnable": {"isRetry?": "boolean"},
     "driverDisable": {},
@@ -41,7 +40,6 @@
       "spaceAvailableNotificationThreshold": "number"
     },
     "placeholderAction": {},
-    "refreshMountDirsAfter10s": {},
     "loadPathInfo": {"path": "Types.Path"},
     "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
     "download": {"path": "Types.Path"},

@@ -1144,6 +1144,7 @@ type State = Store & {
       openPathInSystemFileManagerDesktop?: (path: Types.Path) => void
       uploadFromDragAndDropDesktop?: (parentPath: Types.Path, localPaths: Array<string>) => void
       refreshDriverStatusDesktop?: () => void
+      refreshMountDirsDesktop?: () => void
     }
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
@@ -1456,6 +1457,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       openLocalPathInSystemFileManagerDesktop: undefined,
       openPathInSystemFileManagerDesktop: undefined,
       refreshDriverStatusDesktop: undefined,
+      refreshMountDirsDesktop: undefined,
       uploadFromDragAndDropDesktop: undefined,
     },
     editError: (editID, error) => {
@@ -2050,7 +2052,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.sfmi.driverStatus = driverStatus
       })
-      reduxDispatch(FsGen.createSetDriverStatus())
+      get().dispatch.dynamic.refreshMountDirsDesktop?.(false)
     },
     setEditName: (editID, name) => {
       set(s => {

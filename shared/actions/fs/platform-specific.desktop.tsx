@@ -151,33 +151,6 @@ const openFilesFromWidget = (_: unknown, {payload: {path}}: FsGen.OpenFilesFromW
   ]
 }
 
-const refreshMountDirs = async (
-  _: unknown,
-  action:
-    | FsGen.RefreshMountDirsAfter10sPayload
-    | FsGen.KbfsDaemonRpcStatusChangedPayload
-    | FsGen.SetDriverStatusPayload
-) => {
-  if (action.type === FsGen.refreshMountDirsAfter10s) {
-    await new Promise(resolve => setTimeout(resolve, 10000))
-  }
-
-  const driverStatus = Constants.useState.getState().sfmi.driverStatus
-  if (driverStatus.type !== Types.DriverStatusType.Enabled) {
-    return null
-  }
-  const directMountDir = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
-  const preferredMountDirs = await RPCTypes.kbfsMountGetPreferredMountDirsRpcPromise()
-
-  Constants.useState.getState().dispatch.setDirectMountDir(directMountDir)
-  Constants.useState.getState().dispatch.setPreferredMountDirs(preferredMountDirs || [])
-
-  return [
-    // Check again in 10s, as redirector comes up only after kbfs daemon is alive.
-    ...(action.type !== FsGen.refreshMountDirsAfter10s ? [FsGen.createRefreshMountDirsAfter10s()] : []),
-  ]
-}
-
 const setSfmiBannerDismissed = async (
   _: Container.TypedState,
   action: FsGen.SetSfmiBannerDismissedPayload | FsGen.DriverEnablePayload | FsGen.DriverDisablePayload
@@ -199,12 +172,9 @@ const initPlatformSpecific = () => {
       if (Constants.useState.getState().kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
         Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
       }
+      Constants.useState.getState().dispatch.dynamic.refreshMountDirsDesktop?.()
     })
   }
-  Container.listenAction(
-    [FsGen.kbfsDaemonRpcStatusChanged, FsGen.setDriverStatus, FsGen.refreshMountDirsAfter10s],
-    refreshMountDirs
-  )
   Container.listenAction(FsGen.openAndUpload, async (_, action) => {
     const localPaths = await (selectFilesToUploadDialog?.(
       action.payload.type,
@@ -303,6 +273,21 @@ const initPlatformSpecific = () => {
           status = await (windowsCheckMountFromOtherDokanInstall?.(m, status) ?? Promise.resolve(status))
         }
         fuseStatusToActions(Constants.useState.getState().sfmi.driverStatus.type)(status)
+      }
+      Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.refreshMountDirsDesktop = () => {
+      const f = async () => {
+        const driverStatus = Constants.useState.getState().sfmi.driverStatus
+        if (driverStatus.type !== Types.DriverStatusType.Enabled) {
+          return
+        }
+        const directMountDir = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
+        const preferredMountDirs = await RPCTypes.kbfsMountGetPreferredMountDirsRpcPromise()
+
+        Constants.useState.getState().dispatch.setDirectMountDir(directMountDir)
+        Constants.useState.getState().dispatch.setPreferredMountDirs(preferredMountDirs || [])
       }
       Z.ignorePromise(f())
     }

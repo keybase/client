@@ -30,10 +30,8 @@ export const openFilesFromWidget = 'fs:openFilesFromWidget'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
-export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
-export const setDriverStatus = 'fs:setDriverStatus'
 export const setSfmiBannerDismissed = 'fs:setSfmiBannerDismissed'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
@@ -143,10 +141,6 @@ export const createPlaceholderAction = (payload?: undefined) => ({
   payload,
   type: placeholderAction as typeof placeholderAction,
 })
-export const createRefreshMountDirsAfter10s = (payload?: undefined) => ({
-  payload,
-  type: refreshMountDirsAfter10s as typeof refreshMountDirsAfter10s,
-})
 export const createSetCriticalUpdate = (payload: {readonly critical: boolean}) => ({
   payload,
   type: setCriticalUpdate as typeof setCriticalUpdate,
@@ -154,10 +148,6 @@ export const createSetCriticalUpdate = (payload: {readonly critical: boolean}) =
 export const createSetDebugLevel = (payload: {readonly level: string}) => ({
   payload,
   type: setDebugLevel as typeof setDebugLevel,
-})
-export const createSetDriverStatus = (payload?: undefined) => ({
-  payload,
-  type: setDriverStatus as typeof setDriverStatus,
 })
 export const createSetSfmiBannerDismissed = (payload: {readonly dismissed: boolean}) => ({
   payload,
@@ -206,10 +196,8 @@ export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWi
 export type OpenSecurityPreferencesPayload = ReturnType<typeof createOpenSecurityPreferences>
 export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
-export type RefreshMountDirsAfter10sPayload = ReturnType<typeof createRefreshMountDirsAfter10s>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
-export type SetDriverStatusPayload = ReturnType<typeof createSetDriverStatus>
 export type SetSfmiBannerDismissedPayload = ReturnType<typeof createSetSfmiBannerDismissed>
 export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
   typeof createSetSpaceAvailableNotificationThreshold
@@ -247,10 +235,8 @@ export type Actions =
   | OpenSecurityPreferencesPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload
-  | RefreshMountDirsAfter10sPayload
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload
-  | SetDriverStatusPayload
   | SetSfmiBannerDismissedPayload
   | SetSpaceAvailableNotificationThresholdPayload
   | StartManualConflictResolutionPayload
