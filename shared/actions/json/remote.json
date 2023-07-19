@@ -1,22 +1,15 @@
 {
   "prelude": ["import type HiddenString from '../util/hidden-string'"],
   "actions": {
-    "openFilesFromWidget": {
-      "path": "string"
-    },
+    "setCriticalUpdate": {"critical": "boolean"},
+    "userFileEditsLoad": {},
+    "openFilesFromWidget": {"path": "string"},
     "openPathInSystemFileManager": {"path": "string"},
     "closeUnlockFolders": {},
     "unlockFoldersSubmitPaperKey": {"paperKey": "string"},
     "stop": {"exitCode": "RPCTypes.ExitCode"},
     "link": {"link": "string"},
-    "saltpackFileOpen": {
-      "_description": [
-        "Fired after OS notifies Electron that an associated Saltpack file has been opened.",
-        "",
-        "Path is a string when coming from Electron open-file event and HiddenString when coming from state.config.startupFile."
-      ],
-      "path": "string | HiddenString"
-    },
+    "saltpackFileOpen": {"path": "string | HiddenString"},
     "installerRan": {
       "_description": "desktop only: the installer ran and we can start up"
     },
@@ -29,36 +22,21 @@
       "component": "string",
       "param": "string"
     },
-    "updateWindowShown": {
-      "_description": "a window was shown",
-      "component": "string"
-    },
-    "updateWindowMaxState": {
-      "_description": "main electron window changed max/min",
-      "max": "boolean"
-    },
+    "updateWindowShown": {"component": "string"},
+    "updateWindowMaxState": {"max": "boolean"},
     "updateWindowState": {
       "_description": "main electron window wants to store its state",
       "windowState": "{ dockHidden: boolean; height: number; isFullScreen: boolean; width: number; windowHidden: boolean; x: number; y: number; }"
     },
-    "powerMonitorEvent": {
-      "_description": "Plumb power monitor events from node",
-      "event": "string"
-    },
-    "pinentryOnSubmit": {
-      "password": "string"
-    },
+    "powerMonitorEvent": {"event": "string"},
+    "pinentryOnSubmit": {"password": "string"},
     "pinentryOnCancel": {},
     "trackerChangeFollow": {
       "guiID": "string",
       "follow": "boolean"
     },
-    "trackerIgnore": {
-      "guiID": "string"
-    },
-    "trackerCloseTracker": {
-      "guiID": "string"
-    },
+    "trackerIgnore": {"guiID": "string"},
+    "trackerCloseTracker": {"guiID": "string"},
     "trackerLoad": {
       "assertion": "string",
       "forceDisplay?": "boolean",

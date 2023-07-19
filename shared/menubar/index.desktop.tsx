@@ -1,6 +1,5 @@
 import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
-import * as FsGen from '../actions/fs-gen'
 import * as FsTypes from '../constants/types/fs'
 import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -252,7 +251,7 @@ const LoggedIn = (p: Props) => {
 
   const dispatch = Container.useDispatch()
   const refreshUserFileEdits = Container.useThrottledCallback(() => {
-    dispatch(FsGen.createUserFileEditsLoad())
+    dispatch(RemoteGen.createUserFileEditsLoad())
   }, 5000)
 
   React.useEffect(() => {

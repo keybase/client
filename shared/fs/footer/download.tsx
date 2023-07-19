@@ -1,8 +1,6 @@
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
-import * as Container from '../../util/container'
-import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import DownloadWrapper from './download-wrapper'
@@ -37,15 +35,16 @@ const Download = (props: Props) => {
   const dlState = Constants.useState(
     s => s.downloads.state.get(props.downloadID) || Constants.emptyDownloadState
   )
-  const dispatch = Container.useDispatch()
   const openLocalPathInSystemFileManagerDesktop = Constants.useState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const open = dlState.localPath
     ? () => openLocalPathInSystemFileManagerDesktop?.(dlState.localPath)
     : () => {}
-  const dismiss = () => dispatch(FsGen.createDismissDownload({downloadID: props.downloadID}))
-  const cancel = () => dispatch(FsGen.createCancelDownload({downloadID: props.downloadID}))
+  const dismissDownload = Constants.useState(s => s.dispatch.dismissDownload)
+  const dismiss = () => dismissDownload(props.downloadID)
+  const cancelDownload = Constants.useState(s => s.dispatch.cancelDownload)
+  const cancel = () => cancelDownload(props.downloadID)
   Kbfs.useFsWatchDownloadForMobile(props.downloadID, Types.DownloadIntent.None)
   return (
     <DownloadWrapper dismiss={dismiss} isFirst={props.isFirst} done={dlState.done}>

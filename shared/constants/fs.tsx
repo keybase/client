@@ -1,6 +1,5 @@
 import * as ConfigConstants from './config'
 import * as NotifConstants from './notifications'
-import * as FsGen from '../actions/fs-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from './settings'
@@ -1130,9 +1129,12 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
+    cancelDownload: (downloadID: string) => void
     checkKbfsDaemonRpcStatus: () => void
     commitEdit: (editID: Types.EditID) => void
+    deleteFile: (path: Types.Path) => void
     discardEdit: (editID: Types.EditID) => void
+    dismissDownload: (downloadID: string) => void
     dismissRedbar: (index: number) => void
     dismissUpload: (uploadID: string) => void
     download: (path: Types.Path, type: 'download' | 'share' | 'saveMedia') => void
@@ -1144,7 +1146,16 @@ type State = Store & {
       afterDriverDisable?: () => void
       afterDriverDisabling?: () => void
       afterDriverEnabled?: (isRetry: boolean) => void
+      afterKbfsDaemonRpcStatusChanged?: () => void
+      finishedDownloadWithIntentMobile?: (
+        downloadID: string,
+        downloadIntent: Types.DownloadIntent,
+        mimeType: string
+      ) => void
+      finishedRegularDownloadMobile?: (downloadID: string, mimeType: string) => void
       openFilesFromWidgetDesktop?: (path: Types.Path) => void
+      openAndUploadDesktop?: (type: Types.OpenDialogType, parentPath: Types.Path) => void
+      pickAndUploadMobile?: (type: Types.MobilePickType, parentPath: Types.Path) => void
       openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
       openPathInSystemFileManagerDesktop?: (path: Types.Path) => void
       openSecurityPreferencesDesktop?: () => void
@@ -1163,22 +1174,26 @@ type State = Store & {
     journalUpdate: (syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: number) => void
     kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => void
     kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => void
+    letResetUserBackIn: (id: RPCTypes.TeamID, username: string) => void
     loadAdditionalTlf: (tlfPath: Types.Path) => void
     loadFileContext: (path: Types.Path) => void
+    loadFilesTabBadge: () => void
+    loadPathInfo: (path: Types.Path) => void
     loadPathMetadata: (path: Types.Path) => void
     loadSettings: () => void
     loadTlfSyncConfig: (tlfPath: Types.Path) => void
     loadUploadStatus: () => void
-    loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
-    loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
+    loadDownloadInfo: (downloadID: string) => void
+    loadDownloadStatus: () => void
     loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
     newFolderRow: (parentPath: Types.Path) => void
+    moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => void
     onChangedFocus: (appFocused: boolean) => void
     pollJournalStatus: () => void
     redbar: (error: string) => void
     resetState: () => void
-    setBadge: (b: RPCTypes.FilesTabBadge) => void
     setCriticalUpdate: (u: boolean) => void
+    setDebugLevel: (level: string) => void
     setDestinationPickerParentPath: (index: number, path: Types.Path) => void
     setDirectMountDir: (directMountDir: string) => void
     setDriverStatus: (driverStatus: Types.DriverStatus) => void
@@ -1191,6 +1206,7 @@ type State = Store & {
     setPathItemActionMenuView: (view: Types.PathItemActionMenuView) => void
     setPreferredMountDirs: (preferredMountDirs: Array<string>) => void
     setPathSoftError: (path: Types.Path, softError?: Types.SoftError) => void
+    setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
     setTlfSoftError: (path: Types.Path, softError?: Types.SoftError) => void
     setTlfsAsUnloaded: () => void
     setTlfSyncConfig: (tlfPath: Types.Path, enabled: boolean) => void
@@ -1204,6 +1220,8 @@ type State = Store & {
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     unsubscribe: (subscriptionID: string) => void
     upload: (parentPath: Types.Path, localPath: string) => void
+    userIn: () => void
+    userOut: () => void
     userFileEditsLoad: () => void
     waitForKbfsDaemon: () => void
   }
@@ -1330,7 +1348,18 @@ export const useState = Z.createZustand<State>((set, get) => {
     }
   }
 
+  let fsBadgeSubscriptionID: string = ''
+  let settingsSubscriptionID: string = ''
+  let uploadStatusSubscriptionID: string = ''
+  let journalStatusSubscriptionID: string = ''
+
   const dispatch: State['dispatch'] = {
+    cancelDownload: downloadID => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID})
+      }
+      Z.ignorePromise(f())
+    },
     checkKbfsDaemonRpcStatus: () => {
       const f = async () => {
         const connected = await RPCTypes.configWaitForClientRpcPromise({
@@ -1404,10 +1433,32 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    deleteFile: path => {
+      const f = async () => {
+        const opID = makeUUID()
+        try {
+          await RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
+            opID,
+            path: pathToRPCPath(path),
+            recursive: true,
+          })
+          await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
+        } catch (e) {
+          errorToActionOrThrow(e, path)
+        }
+      }
+      Z.ignorePromise(f())
+    },
     discardEdit: editID => {
       set(s => {
         s.edits.delete(editID)
       })
+    },
+    dismissDownload: downloadID => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID})
+      }
+      Z.ignorePromise(f())
     },
     dismissRedbar: index => {
       set(s => {
@@ -1469,10 +1520,15 @@ export const useState = Z.createZustand<State>((set, get) => {
       afterDriverDisable: undefined,
       afterDriverDisabling: undefined,
       afterDriverEnabled: undefined,
+      afterKbfsDaemonRpcStatusChanged: undefined,
+      finishedDownloadWithIntentMobile: undefined,
+      finishedRegularDownloadMobile: undefined,
+      openAndUploadDesktop: undefined,
       openFilesFromWidgetDesktop: undefined,
       openLocalPathInSystemFileManagerDesktop: undefined,
       openPathInSystemFileManagerDesktop: undefined,
       openSecurityPreferencesDesktop: undefined,
+      pickAndUploadMobile: undefined,
       refreshDriverStatusDesktop: undefined,
       refreshMountDirsDesktop: undefined,
       setSfmiBannerDismissedDesktop: undefined,
@@ -1749,7 +1805,90 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         s.kbfsDaemonStatus.rpcStatus = rpcStatus
       })
-      reduxDispatch(FsGen.createKbfsDaemonRpcStatusChanged())
+
+      const kbfsDaemonStatus = get().kbfsDaemonStatus
+      if (kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+        get().dispatch.setTlfsAsUnloaded()
+      }
+
+      const subscribeAndLoadFsBadge = () => {
+        const oldFsBadgeSubscriptionID = fsBadgeSubscriptionID
+        fsBadgeSubscriptionID = makeUUID()
+        const kbfsDaemonStatus = get().kbfsDaemonStatus
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          if (oldFsBadgeSubscriptionID) {
+            get().dispatch.unsubscribe(oldFsBadgeSubscriptionID)
+          }
+          get().dispatch.subscribeNonPath(fsBadgeSubscriptionID, RPCTypes.SubscriptionTopic.filesTabBadge)
+          get().dispatch.loadFilesTabBadge()
+        }
+      }
+
+      subscribeAndLoadFsBadge()
+
+      const subscribeAndLoadSettings = () => {
+        const oldSettingsSubscriptionID = settingsSubscriptionID
+        settingsSubscriptionID = makeUUID()
+        const kbfsDaemonStatus = get().kbfsDaemonStatus
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          get().dispatch.loadSettings()
+        }
+
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          if (oldSettingsSubscriptionID) {
+            get().dispatch.unsubscribe(oldSettingsSubscriptionID)
+          }
+          get().dispatch.subscribeNonPath(settingsSubscriptionID, RPCTypes.SubscriptionTopic.settings)
+        }
+      }
+      subscribeAndLoadSettings()
+
+      const subscribeAndLoadUploadStatus = () => {
+        const oldUploadStatusSubscriptionID = uploadStatusSubscriptionID
+        uploadStatusSubscriptionID = makeUUID()
+        const kbfsDaemonStatus = get().kbfsDaemonStatus
+
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          get().dispatch.loadUploadStatus()
+        }
+
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          if (oldUploadStatusSubscriptionID) {
+            get().dispatch.unsubscribe(oldUploadStatusSubscriptionID)
+          }
+
+          get().dispatch.subscribeNonPath(uploadStatusSubscriptionID, RPCTypes.SubscriptionTopic.uploadStatus)
+        }
+      }
+      subscribeAndLoadUploadStatus()
+
+      const subscribeAndLoadJournalStatus = () => {
+        const oldJournalStatusSubscriptionID = journalStatusSubscriptionID
+        journalStatusSubscriptionID = makeUUID()
+        const kbfsDaemonStatus = get().kbfsDaemonStatus
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          if (oldJournalStatusSubscriptionID) {
+            get().dispatch.unsubscribe(oldJournalStatusSubscriptionID)
+          }
+          get().dispatch.subscribeNonPath(
+            journalStatusSubscriptionID,
+            RPCTypes.SubscriptionTopic.journalStatus
+          )
+          get().dispatch.pollJournalStatus()
+        }
+      }
+      subscribeAndLoadJournalStatus()
+      get().dispatch.dynamic.afterKbfsDaemonRpcStatusChanged?.()
+    },
+    letResetUserBackIn: (id, username) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username})
+        } catch (error) {
+          errorToActionOrThrow(error)
+        }
+      }
+      Z.ignorePromise(f())
     },
     loadAdditionalTlf: tlfPath => {
       const f = async () => {
@@ -1805,6 +1944,61 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    loadDownloadInfo: downloadID => {
+      const f = async () => {
+        try {
+          const res = await RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
+            downloadID,
+          })
+          set(s => {
+            s.downloads.info.set(downloadID, {
+              filename: res.filename,
+              isRegularDownload: res.isRegularDownload,
+              path: Types.stringToPath('/keybase' + res.path.path),
+              startTime: res.startTime,
+            })
+          })
+        } catch (error) {
+          errorToActionOrThrow(error)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loadDownloadStatus: () => {
+      const f = async () => {
+        try {
+          const res = await RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
+
+          const regularDownloads = res.regularDownloadIDs || []
+          const state = new Map(
+            (res.states || []).map(s => [
+              s.downloadID,
+              {
+                canceled: s.canceled,
+                done: s.done,
+                endEstimate: s.endEstimate,
+                error: s.error,
+                localPath: s.localPath,
+                progress: s.progress,
+              },
+            ])
+          )
+
+          set(s => {
+            s.downloads.regularDownloads = regularDownloads
+            s.downloads.state = state
+
+            const toDelete = [...s.downloads.info.keys()].filter(downloadID => !state.has(downloadID))
+            if (toDelete.length) {
+              toDelete.forEach(downloadID => s.downloads.info.delete(downloadID))
+            }
+          })
+        } catch (error) {
+          errorToActionOrThrow(error)
+        }
+      }
+      Z.ignorePromise(f())
+    },
     loadFileContext: path => {
       const f = async () => {
         try {
@@ -1823,6 +2017,37 @@ export const useState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(err)
           return
         }
+      }
+      Z.ignorePromise(f())
+    },
+    loadFilesTabBadge: () => {
+      const f = async () => {
+        try {
+          const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+          set(s => {
+            s.badge = badge
+          })
+        } catch {
+          // retry once HOTPOT-1226
+          try {
+            const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+            set(s => {
+              s.badge = badge
+            })
+          } catch {}
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loadPathInfo: path => {
+      const f = async () => {
+        const pathInfo = await RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({
+          standardPath: Types.pathToString(path),
+        })
+        get().dispatch.loadedPathInfo(path, {
+          deeplinkPath: pathInfo.deeplinkPath,
+          platformAfterMountPath: pathInfo.platformAfterMountPath,
+        })
       }
       Z.ignorePromise(f())
     },
@@ -1943,26 +2168,72 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    loadedDownloadInfo: (downloadID, info) => {
-      set(s => {
-        s.downloads.info.set(downloadID, info)
-      })
-    },
-    loadedDownloadStatus: (regularDownloads, state) => {
-      set(s => {
-        s.downloads.regularDownloads = regularDownloads
-        s.downloads.state = state
-
-        const toDelete = [...s.downloads.info.keys()].filter(downloadID => !state.has(downloadID))
-        if (toDelete.length) {
-          toDelete.forEach(downloadID => s.downloads.info.delete(downloadID))
-        }
-      })
-    },
     loadedPathInfo: (path, info) => {
       set(s => {
         s.pathInfos.set(path, info)
       })
+    },
+    moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => {
+      const f = async () => {
+        const zState = get()
+        if (zState.destinationPicker.source.type === Types.DestinationPickerSource.None) {
+          return
+        }
+
+        const params =
+          zState.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
+            ? [
+                {
+                  dest: pathToRPCPath(
+                    Types.pathConcat(
+                      destinationParentPath,
+                      Types.getPathName(zState.destinationPicker.source.path)
+                    )
+                  ),
+                  opID: makeUUID(),
+                  overwriteExistingFiles: false,
+                  src: pathToRPCPath(zState.destinationPicker.source.path),
+                },
+              ]
+            : zState.destinationPicker.source.source
+                .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
+                .filter(({originalPath}) => !!originalPath)
+                .map(({originalPath, scaledPath}) => ({
+                  dest: pathToRPCPath(
+                    Types.pathConcat(
+                      destinationParentPath,
+                      Types.getLocalPathName(originalPath)
+                      // We use the local path name here since we only care about file name.
+                    )
+                  ),
+                  opID: makeUUID(),
+                  overwriteExistingFiles: false,
+                  src: {
+                    PathType: RPCTypes.PathType.local,
+                    local: Types.getNormalizedLocalPath(
+                      ConfigConstants.useConfigState.getState().incomingShareUseOriginal
+                        ? originalPath
+                        : scaledPath || originalPath
+                    ),
+                  } as RPCTypes.Path,
+                }))
+
+        try {
+          const rpc =
+            type === 'move'
+              ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise
+              : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise
+          await Promise.all(params.map(async p => rpc(p)))
+          await Promise.all(params.map(async ({opID}) => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})))
+          // We get source/dest paths from state rather than action, so we can't
+          // just retry it. If we do want retry in the future we can include those
+          // paths in the action.
+        } catch (e) {
+          errorToActionOrThrow(e, destinationParentPath)
+          return
+        }
+      }
+      Z.ignorePromise(f())
     },
     newFolderRow: parentPath => {
       const parentPathItem = getPathItem(get().pathItems, parentPath)
@@ -2055,15 +2326,16 @@ export const useState = Z.createZustand<State>((set, get) => {
         dispatch: s.dispatch,
       }))
     },
-    setBadge: b => {
-      set(s => {
-        s.badge = b
-      })
-    },
     setCriticalUpdate: u => {
       set(s => {
         s.criticalUpdate = u
       })
+    },
+    setDebugLevel: level => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSSetDebugLevelRpcPromise({level})
+      }
+      Z.ignorePromise(f())
     },
     setDestinationPickerParentPath: (index, path) => {
       set(s => {
@@ -2144,6 +2416,15 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.pathUserSettings.set(path, {...defaultPathUserSetting, sort: sortSetting})
         }
       })
+    },
+    setSpaceAvailableNotificationThreshold: threshold => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
+          threshold,
+        })
+        get().dispatch.loadSettings()
+      }
+      Z.ignorePromise(f())
     },
     setTlfSoftError: (path, softError) => {
       set(s => {
@@ -2338,6 +2619,19 @@ export const useState = Z.createZustand<State>((set, get) => {
         } catch (error) {
           errorToActionOrThrow(error)
         }
+      }
+      Z.ignorePromise(f())
+    },
+    userIn: () => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID})
+      }
+      Z.ignorePromise(f())
+      get().dispatch.checkKbfsDaemonRpcStatus()
+    },
+    userOut: () => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID})
       }
       Z.ignorePromise(f())
     },

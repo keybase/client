@@ -3,7 +3,6 @@ import type * as bots from './bots-gen'
 import type * as chat2 from './chat2-gen'
 import type * as config from './config-gen'
 import type * as enginegen from './engine-gen-gen'
-import type * as fs from './fs-gen'
 import type * as remote from './remote-gen'
 import type * as routetree from './route-tree-gen'
 
@@ -12,7 +11,6 @@ export type TypedActions =
   | chat2.Actions
   | config.Actions
   | enginegen.Actions
-  | fs.Actions
   | remote.Actions
   | routetree.Actions
 

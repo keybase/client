@@ -1,10 +1,8 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/fs'
 import * as Kbfs from '../../common/hooks'
-import * as FsGen from '../../../actions/fs-gen'
 import type {FloatingMenuProps} from './types'
 import {fileUIName} from '../../../constants/platform'
 import Header from './header'
@@ -193,6 +191,7 @@ const PathItemActionMenu = (props: Props) => {
   const {downloadID, downloadIntent} = Constants.useState(s => s.pathItemActionMenu)
   const justDoneWithIntent = Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
 
+  const dismissDownload = Constants.useState(s => s.dispatch.dismissDownload)
   const {
     floatingMenuProps: {hide},
   } = props
@@ -201,11 +200,10 @@ const PathItemActionMenu = (props: Props) => {
     justDoneWithIntent && hide()
   }, [justDoneWithIntent, hide])
 
-  const dispatch = Container.useDispatch()
   const userInitiatedHide = React.useCallback(() => {
     hide()
-    downloadID && dispatch(FsGen.createDismissDownload({downloadID}))
-  }, [downloadID, hide, dispatch])
+    downloadID && dismissDownload(downloadID)
+  }, [downloadID, hide, dismissDownload])
 
   return (
     <Kb.FloatingMenu

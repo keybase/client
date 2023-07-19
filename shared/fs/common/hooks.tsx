@@ -1,8 +1,6 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
@@ -102,7 +100,6 @@ export const useFsOnlineStatus = () => {
 
 export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {
   const pathInfo = Constants.useState(s => s.pathInfos.get(path) || Constants.emptyPathInfo)
-  const dispatch = Container.useDispatch()
   const alreadyKnown = knownPathInfo !== Constants.emptyPathInfo
   React.useEffect(() => {
     if (alreadyKnown) {
@@ -110,9 +107,9 @@ export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): 
     } else if (pathInfo === Constants.emptyPathInfo) {
       // We only need to load if it's empty. This never changes once we have
       // it.
-      dispatch(FsGen.createLoadPathInfo({path}))
+      Constants.useState.getState().dispatch.loadPathInfo(path)
     }
-  }, [path, alreadyKnown, knownPathInfo, pathInfo, dispatch])
+  }, [path, alreadyKnown, knownPathInfo, pathInfo])
   return alreadyKnown ? knownPathInfo : pathInfo
 }
 
@@ -123,20 +120,20 @@ export const useFsSoftError = (path: Types.Path): Types.SoftError | undefined =>
 
 export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
   const info = Constants.useState(s => s.downloads.info.get(downloadID) || Constants.emptyDownloadInfo)
-  const dispatch = Container.useDispatch()
+  const loadDownloadInfo = Constants.useState(s => s.dispatch.loadDownloadInfo)
   React.useEffect(() => {
     // This never changes, so simply just load it once.
-    downloadID && dispatch(FsGen.createLoadDownloadInfo({downloadID}))
-  }, [downloadID, dispatch])
+    downloadID && loadDownloadInfo(downloadID)
+  }, [downloadID, loadDownloadInfo])
   return info
 }
 
 export const useFsDownloadStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.downloadStatus)
-  const dispatch = Container.useDispatch()
+  const loadDownloadStatus = Constants.useState(s => s.dispatch.loadDownloadStatus)
   React.useEffect(() => {
-    dispatch(FsGen.createLoadDownloadStatus())
-  }, [dispatch])
+    loadDownloadStatus()
+  }, [loadDownloadStatus])
 }
 
 export const useFsFileContext = (path: Types.Path) => {
@@ -175,19 +172,32 @@ export const useFsWatchDownloadForMobile = isMobile
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
 
-      const dispatch = Container.useDispatch()
+      const finishedDownloadWithIntentMobile = Constants.useState(
+        s => s.dispatch.dynamic.finishedDownloadWithIntentMobile
+      )
+      const finishedRegularDownloadMobile = Constants.useState(
+        s => s.dispatch.dynamic.finishedRegularDownloadMobile
+      )
+
       React.useEffect(() => {
         if (!downloadID || !downloadIntent || !finished || !mimeType) {
           setJustDoneWithIntent(false)
           return
         }
         if (downloadIntent === Types.DownloadIntent.None) {
-          dispatch(FsGen.createFinishedRegularDownload({downloadID, mimeType}))
+          finishedRegularDownloadMobile?.(downloadID, mimeType)
           return
         }
-        dispatch(FsGen.createFinishedDownloadWithIntent({downloadID, downloadIntent, mimeType}))
+        finishedDownloadWithIntentMobile?.(downloadID, downloadIntent, mimeType)
         setJustDoneWithIntent(true)
-      }, [finished, mimeType, downloadID, downloadIntent, dispatch])
+      }, [
+        finishedRegularDownloadMobile,
+        finishedDownloadWithIntentMobile,
+        finished,
+        mimeType,
+        downloadID,
+        downloadIntent,
+      ])
       return justDoneWithIntent
     }
   : () => false
