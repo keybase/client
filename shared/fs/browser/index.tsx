@@ -66,8 +66,8 @@ const DragAndDrop = ({
   path: Types.Path
   rejectReason?: string
 }) => {
-  const uploadFromDragAndDrop = Constants.useState(s => s.dispatch.uploadFromDragAndDrop)
-  const onAttach = (localPaths: Array<string>) => uploadFromDragAndDrop(path, localPaths)
+  const uploadFromDragAndDrop = Constants.useState(s => s.dispatch.dynamic.uploadFromDragAndDrop)
+  const onAttach = (localPaths: Array<string>) => uploadFromDragAndDrop?.(path, localPaths)
   return (
     <Kb.DragAndDrop
       allowFolders={true}

@@ -1,26 +1,20 @@
 import * as FsGen from '../fs-gen'
+import * as Z from '../../util/zustand'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as ConfigConstants from '../../constants/config'
 import * as Tabs from '../../constants/tabs'
 import * as Container from '../../util/container'
-import {isWindows, isLinux, pathSep} from '../../constants/platform.desktop'
+import {isWindows, isLinux, pathSep, isDarwin} from '../../constants/platform.desktop'
 import logger from '../../logger'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Path from '../../util/path'
 import KB2 from '../../util/electron.desktop'
 
 const {openPathInFinder, openURL, getPathType, selectFilesToUploadDialog} = KB2.functions
-const {
-  exitApp,
-  relaunchApp,
-  uninstallKBFSDialog,
-  uninstallDokanDialog,
-  windowsCheckMountFromOtherDokanInstall,
-  installCachedDokan,
-  uninstallDokan,
-} = KB2.functions
+const {darwinCopyToKBFSTempUploadFile, relaunchApp, uninstallKBFSDialog, uninstallDokanDialog} = KB2.functions
+const {exitApp, windowsCheckMountFromOtherDokanInstall, installCachedDokan, uninstallDokan} = KB2.functions
 
 // _openPathInSystemFileManagerPromise opens `openPath` in system file manager.
 // If isFolder is true, it just opens it. Otherwise, it shows it in its parent
@@ -306,6 +300,24 @@ const initPlatformSpecific = () => {
     [FsGen.setSfmiBannerDismissed, FsGen.driverEnable, FsGen.driverDisable],
     setSfmiBannerDismissed
   )
+
+  Constants.useState.setState(s => {
+    s.dispatch.dynamic.uploadFromDragAndDrop = (parentPath, localPaths) => {
+      const {upload} = Constants.useState.getState().dispatch
+      const f = async () => {
+        if (isDarwin && darwinCopyToKBFSTempUploadFile) {
+          const dir = await RPCTypes.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
+          const lp = await Promise.all(
+            localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(dir, localPath))
+          )
+          lp.forEach(localPath => upload(parentPath, localPath))
+        } else {
+          localPaths.forEach(localPath => upload(parentPath, localPath))
+        }
+      }
+      Z.ignorePromise(f())
+    }
+  })
 }
 
 export default initPlatformSpecific

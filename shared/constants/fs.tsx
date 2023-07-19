@@ -12,11 +12,8 @@ import NotifyPopup from '../util/notify-popup'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
-import {isLinux, isMobile, isDarwin} from './platform'
+import {isLinux, isMobile} from './platform'
 import {tlfToPreferredOrder} from '../util/kbfs'
-import KB2 from '../util/electron'
-
-const {darwinCopyToKBFSTempUploadFile} = KB2.functions
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
@@ -1141,7 +1138,9 @@ type State = Store & {
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
-    dynamic: {}
+    dynamic: {
+      uploadFromDragAndDrop?: (parentPath: Types.Path, localPaths: Array<string>) => void
+    }
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
     favoritesLoad: () => void
@@ -1191,7 +1190,6 @@ type State = Store & {
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     unsubscribe: (subscriptionID: string) => void
     upload: (parentPath: Types.Path, localPath: string) => void
-    uploadFromDragAndDrop: (parentPath: Types.Path, localPaths: Array<string>) => void
     userFileEditsLoad: () => void
     waitForKbfsDaemon: () => void
   }
@@ -1442,7 +1440,9 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
-    dynamic: {},
+    dynamic: {
+      uploadFromDragAndDrop: undefined,
+    },
     editError: (editID, error) => {
       set(s => {
         const e = s.edits.get(editID)
@@ -2271,20 +2271,6 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
         } catch (err) {
           errorToActionOrThrow(err)
-        }
-      }
-      Z.ignorePromise(f())
-    },
-    uploadFromDragAndDrop: (parentPath, localPaths) => {
-      const f = async () => {
-        if (isDarwin && darwinCopyToKBFSTempUploadFile) {
-          const dir = await RPCTypes.SimpleFSSimpleFSMakeTempDirForUploadRpcPromise()
-          const lp = await Promise.all(
-            localPaths.map(async localPath => darwinCopyToKBFSTempUploadFile(dir, localPath))
-          )
-          lp.forEach(localPath => get().dispatch.upload(parentPath, localPath))
-        } else {
-          localPaths.forEach(localPath => get().dispatch.upload(parentPath, localPath))
         }
       }
       Z.ignorePromise(f())
