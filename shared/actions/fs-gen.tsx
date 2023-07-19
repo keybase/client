@@ -32,7 +32,6 @@ export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
-export const setSfmiBannerDismissed = 'fs:setSfmiBannerDismissed'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
@@ -149,10 +148,6 @@ export const createSetDebugLevel = (payload: {readonly level: string}) => ({
   payload,
   type: setDebugLevel as typeof setDebugLevel,
 })
-export const createSetSfmiBannerDismissed = (payload: {readonly dismissed: boolean}) => ({
-  payload,
-  type: setSfmiBannerDismissed as typeof setSfmiBannerDismissed,
-})
 export const createSetSpaceAvailableNotificationThreshold = (payload: {
   readonly spaceAvailableNotificationThreshold: number
 }) => ({
@@ -198,7 +193,6 @@ export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
-export type SetSfmiBannerDismissedPayload = ReturnType<typeof createSetSfmiBannerDismissed>
 export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
   typeof createSetSpaceAvailableNotificationThreshold
 >
@@ -237,7 +231,6 @@ export type Actions =
   | PlaceholderActionPayload
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload
-  | SetSfmiBannerDismissedPayload
   | SetSpaceAvailableNotificationThresholdPayload
   | StartManualConflictResolutionPayload
   | UserFileEditsLoadPayload

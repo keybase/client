@@ -151,21 +151,6 @@ const openFilesFromWidget = (_: unknown, {payload: {path}}: FsGen.OpenFilesFromW
   ]
 }
 
-const setSfmiBannerDismissed = async (
-  _: Container.TypedState,
-  action: FsGen.SetSfmiBannerDismissedPayload | FsGen.DriverEnablePayload | FsGen.DriverDisablePayload
-) => {
-  switch (action.type) {
-    case FsGen.setSfmiBannerDismissed:
-      await RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed: action.payload.dismissed})
-      return
-    case FsGen.driverEnable:
-    case FsGen.driverDisable:
-      await RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed: false})
-      return
-  }
-}
-
 const initPlatformSpecific = () => {
   if (!isLinux) {
     Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, () => {
@@ -200,10 +185,9 @@ const initPlatformSpecific = () => {
     if (s.appFocused === old.appFocused) return
     Constants.useState.getState().dispatch.onChangedFocus(s.appFocused)
   })
-  Container.listenAction(
-    [FsGen.setSfmiBannerDismissed, FsGen.driverEnable, FsGen.driverDisable],
-    setSfmiBannerDismissed
-  )
+  Container.listenAction([FsGen.driverEnable, FsGen.driverDisable], () => {
+    Constants.useState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
+  })
 
   Constants.useState.setState(s => {
     s.dispatch.dynamic.uploadFromDragAndDropDesktop = (parentPath, localPaths) => {
@@ -288,6 +272,13 @@ const initPlatformSpecific = () => {
 
         Constants.useState.getState().dispatch.setDirectMountDir(directMountDir)
         Constants.useState.getState().dispatch.setPreferredMountDirs(preferredMountDirs || [])
+      }
+      Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.setSfmiBannerDismissedDesktop = dismissed => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed})
       }
       Z.ignorePromise(f())
     }

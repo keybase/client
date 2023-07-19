@@ -1140,6 +1140,7 @@ type State = Store & {
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
     dynamic: {
+      setSfmiBannerDismissedDesktop?: (dismissed: boolean) => void
       openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
       openPathInSystemFileManagerDesktop?: (path: Types.Path) => void
       uploadFromDragAndDropDesktop?: (parentPath: Types.Path, localPaths: Array<string>) => void
@@ -1458,6 +1459,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       openPathInSystemFileManagerDesktop: undefined,
       refreshDriverStatusDesktop: undefined,
       refreshMountDirsDesktop: undefined,
+      setSfmiBannerDismissedDesktop: undefined,
       uploadFromDragAndDropDesktop: undefined,
     },
     editError: (editID, error) => {
