@@ -37,9 +37,6 @@ const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<void
   }
 }
 
-const setDebugLevel = async (_: unknown, action: FsGen.SetDebugLevelPayload) =>
-  RPCTypes.SimpleFSSimpleFSSetDebugLevelRpcPromise({level: action.payload.level})
-
 const onPathChange = (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload) => {
   const {clientID: clientIDFromNotification, path, topics} = action.payload.params
   if (clientIDFromNotification !== clientID) {
@@ -136,8 +133,6 @@ const initFS = () => {
     }
     Z.ignorePromise(f())
   })
-
-  Container.listenAction(FsGen.setDebugLevel, setDebugLevel)
 
   Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
     const {prev, next} = action.payload

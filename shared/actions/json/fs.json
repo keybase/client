@@ -1,9 +1,6 @@
 {
   "prelude": [],
   "actions": {
-    "setDebugLevel": {
-      "level": "string"
-    },
     "setCriticalUpdate": {
       "critical": "boolean"
     }

@@ -1,7 +1,7 @@
 import * as Constants from '../constants/settings'
+import * as FSConstants from '../constants/fs'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
-import * as FSGen from '../actions/fs-gen'
 import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
@@ -193,7 +193,8 @@ const Developer = () => {
   const dispatch = Container.useDispatch()
   const [clickCount, setClickCount] = React.useState(0)
 
-  const onExtraKBFSLogging = () => dispatch(FSGen.createSetDebugLevel({level: 'vlog2'}))
+  const setDebugLevel = FSConstants.useState(s => s.dispatch.setDebugLevel)
+  const onExtraKBFSLogging = () => setDebugLevel('vlog2')
   const onToggleRuntimeStats = ConfigConstants.useConfigState(s => s.dispatch.toggleRuntimeStats)
   const onLabelClick = () =>
     setClickCount(s => {

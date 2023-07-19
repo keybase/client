@@ -1193,6 +1193,7 @@ type State = Store & {
     redbar: (error: string) => void
     resetState: () => void
     setCriticalUpdate: (u: boolean) => void
+    setDebugLevel: (level: string) => void
     setDestinationPickerParentPath: (index: number, path: Types.Path) => void
     setDirectMountDir: (directMountDir: string) => void
     setDriverStatus: (driverStatus: Types.DriverStatus) => void
@@ -2329,6 +2330,12 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.criticalUpdate = u
       })
+    },
+    setDebugLevel: level => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSSetDebugLevelRpcPromise({level})
+      }
+      Z.ignorePromise(f())
     },
     setDestinationPickerParentPath: (index, path) => {
       set(s => {
