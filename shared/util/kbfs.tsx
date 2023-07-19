@@ -65,7 +65,7 @@ export const tlfToPreferredOrder = (tlf: string, me: string): string => {
   const [writers, readers = undefined] = splitByFirstOccurrenceOf(userList ?? '', '#')
 
   let writerNames = writers?.split(',') ?? []
-  let readerNames = readers?.split(',') ?? []
+  let readerNames = (readers?.length && readers.split(',')) || []
   let whereAmI = writerNames.indexOf(me)
   if (whereAmI === -1) {
     whereAmI = readerNames.indexOf(me)

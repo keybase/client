@@ -1,8 +1,7 @@
 import * as Container from '../../util/container'
-import SyncToggle from './sync-toggle'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as FsGen from '../../actions/fs-gen'
+import SyncToggle from './sync-toggle'
 
 type OwnProps = {
   tlfPath: Types.Path
@@ -14,12 +13,13 @@ export default (ownProps: OwnProps) => {
   const _tlfs = Constants.useState(s => s.tlfs)
   const waiting = Container.useAnyWaiting(Constants.syncToggleWaitingKey)
 
-  const dispatch = Container.useDispatch()
+  const setTlfSyncConfig = Constants.useState(s => s.dispatch.setTlfSyncConfig)
+
   const disableSync = () => {
-    dispatch(FsGen.createSetTlfSyncConfig({enabled: false, tlfPath}))
+    setTlfSyncConfig(tlfPath, false)
   }
   const enableSync = () => {
-    dispatch(FsGen.createSetTlfSyncConfig({enabled: true, tlfPath}))
+    setTlfSyncConfig(tlfPath, true)
   }
   const syncConfig = Constants.getTlfFromPath(_tlfs, tlfPath).syncConfig
   const props = {

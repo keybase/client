@@ -1,4 +1,3 @@
-// TODO w/ zustand cleanup remove more fs actions
 import * as ConfigConstants from './config'
 import * as NotifConstants from './notifications'
 import * as FsGen from '../actions/fs-gen'
@@ -8,6 +7,7 @@ import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as Types from './types/fs'
 import * as Z from '../util/zustand'
+import {requestPermissionsToWrite} from '../actions/platform-specific'
 import NotifyPopup from '../util/notify-popup'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import {RPCError} from '../util/errors'
@@ -22,6 +22,7 @@ export const acceptMacOSFuseExtClosedSourceWaitingKey = 'fs:acceptMacOSFuseExtCl
 export const commitEditWaitingKey = 'fs:commitEditWaitingKey'
 export const setSyncOnCellularWaitingKey = 'fs:setSyncOnCellular'
 
+const subscriptionDeduplicateIntervalSecond = 1
 export const defaultPath = Types.stringToPath('/keybase')
 
 export const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
@@ -316,6 +317,7 @@ export const makeUUID = () => {
   return uuidSeed + counter.toString(36)
 }
 
+export const clientID = makeUUID()
 export const pathToRPCPath = (
   path: Types.Path
 ): {PathType: RPCTypes.PathType.kbfs; kbfs: RPCTypes.KBFSPath} => ({
@@ -355,15 +357,6 @@ export const humanReadableFileSize = (size: number) => {
 
 export const downloadIsOngoing = (dlState: Types.DownloadState) =>
   dlState !== emptyDownloadState && !dlState.error && !dlState.done && !dlState.canceled
-
-export const getDownloadIntentFromAction = (
-  action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
-): Types.DownloadIntent =>
-  action.type === FsGen.download
-    ? Types.DownloadIntent.None
-    : action.type === FsGen.shareNative
-    ? Types.DownloadIntent.Share
-    : Types.DownloadIntent.CameraRoll
 
 export const getDownloadIntent = (
   path: Types.Path,
@@ -1141,14 +1134,32 @@ type State = Store & {
     commitEdit: (editID: Types.EditID) => void
     discardEdit: (editID: Types.EditID) => void
     dismissRedbar: (index: number) => void
+    dismissUpload: (uploadID: string) => void
+    download: (path: Types.Path, type: 'download' | 'share' | 'saveMedia') => void
+    driverDisable: () => void
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
+    dynamic: {
+      afterDriverDisable?: () => void
+      afterDriverDisabling?: () => void
+      afterDriverEnabled?: (isRetry: boolean) => void
+      openFilesFromWidgetDesktop?: (path: Types.Path) => void
+      openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
+      openPathInSystemFileManagerDesktop?: (path: Types.Path) => void
+      openSecurityPreferencesDesktop?: () => void
+      refreshDriverStatusDesktop?: () => void
+      refreshMountDirsDesktop?: () => void
+      setSfmiBannerDismissedDesktop?: (dismissed: boolean) => void
+      uploadFromDragAndDropDesktop?: (parentPath: Types.Path, localPaths: Array<string>) => void
+    }
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
     favoritesLoad: () => void
     favoriteIgnore: (path: Types.Path) => void
+    finishManualConflictResolution: (localViewTlfPath: Types.Path) => void
     folderListLoad: (path: Types.Path, recursive: boolean) => void
+    getOnlineStatus: () => void
     journalUpdate: (syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: number) => void
     kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => void
     kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => void
@@ -1163,8 +1174,9 @@ type State = Store & {
     loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
     newFolderRow: (parentPath: Types.Path) => void
     onChangedFocus: (appFocused: boolean) => void
+    pollJournalStatus: () => void
     redbar: (error: string) => void
-    resetState: 'default'
+    resetState: () => void
     setBadge: (b: RPCTypes.FilesTabBadge) => void
     setCriticalUpdate: (u: boolean) => void
     setDestinationPickerParentPath: (index: number, path: Types.Path) => void
@@ -1181,11 +1193,17 @@ type State = Store & {
     setPathSoftError: (path: Types.Path, softError?: Types.SoftError) => void
     setTlfSoftError: (path: Types.Path, softError?: Types.SoftError) => void
     setTlfsAsUnloaded: () => void
+    setTlfSyncConfig: (tlfPath: Types.Path, enabled: boolean) => void
     setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
+    startManualConflictResolution: (tlfPath: Types.Path) => void
     startRename: (path: Types.Path) => void
+    subscribeNonPath: (subscriptionID: string, topic: RPCTypes.SubscriptionTopic) => void
+    subscribePath: (subscriptionID: string, path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => void
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
+    unsubscribe: (subscriptionID: string) => void
+    upload: (parentPath: Types.Path, localPath: string) => void
     userFileEditsLoad: () => void
     waitForKbfsDaemon: () => void
   }
@@ -1289,6 +1307,29 @@ export const useState = Z.createZustand<State>((set, get) => {
         return undefined
     }
   }
+
+  // At start-up we might have a race where we get connected to a kbfs daemon
+  // which dies soon after, and we get an EOF here. So retry for a few times
+  // until we get through. After each try we delay for 2s, so this should give us
+  // e.g. 12s when n == 6. If it still doesn't work after 12s, something's wrong
+  // and we deserve a black bar.
+  const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<void> => {
+    try {
+      const onlineStatus = await RPCTypes.SimpleFSSimpleFSGetOnlineStatusRpcPromise({clientID})
+      get().dispatch.kbfsDaemonOnlineStatusChanged(onlineStatus)
+      return
+    } catch (error) {
+      if (n > 0) {
+        logger.warn(`failed to check if we are connected to MDServer: ${String(error)}; n=${n}`)
+        await Z.timeoutPromise(2000)
+        return checkIfWeReConnectedToMDServerUpToNTimes(n - 1)
+      } else {
+        logger.warn(`failed to check if we are connected to MDServer : ${String(error)}; n=${n}, throwing`)
+        throw error
+      }
+    }
+  }
+
   const dispatch: State['dispatch'] = {
     checkKbfsDaemonRpcStatus: () => {
       const f = async () => {
@@ -1373,13 +1414,40 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.errors = [...s.errors.slice(0, index), ...s.errors.slice(index + 1)]
       })
     },
+    dismissUpload: uploadID => {
+      const f = async () => {
+        try {
+          await RPCTypes.SimpleFSSimpleFSDismissUploadRpcPromise({uploadID})
+        } catch {}
+      }
+      Z.ignorePromise(f())
+    },
+    download: (path, type) => {
+      const f = async () => {
+        await requestPermissionsToWrite()
+        const downloadID = await RPCTypes.SimpleFSSimpleFSStartDownloadRpcPromise({
+          isRegularDownload: type === 'download',
+          path: pathToRPCPath(path).kbfs,
+        })
+        if (type !== 'download') {
+          get().dispatch.setPathItemActionMenuDownload(
+            downloadID,
+            type === 'share' ? Types.DownloadIntent.Share : Types.DownloadIntent.CameraRoll
+          )
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    driverDisable: () => {
+      get().dispatch.dynamic.afterDriverDisable?.()
+    },
     driverDisabling: () => {
       set(s => {
         if (s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled) {
           s.sfmi.driverStatus.isDisabling = true
         }
       })
-      reduxDispatch(FsGen.createDriverDisabling())
+      get().dispatch.dynamic.afterDriverDisabling?.()
     },
     driverEnable: isRetry => {
       set(s => {
@@ -1387,7 +1455,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.sfmi.driverStatus.isEnabling = true
         }
       })
-      reduxDispatch(FsGen.createDriverEnable({isRetry}))
+      get().dispatch.dynamic.afterDriverEnabled?.(!!isRetry)
     },
     driverKextPermissionError: () => {
       set(s => {
@@ -1396,6 +1464,19 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.sfmi.driverStatus.isEnabling = false
         }
       })
+    },
+    dynamic: {
+      afterDriverDisable: undefined,
+      afterDriverDisabling: undefined,
+      afterDriverEnabled: undefined,
+      openFilesFromWidgetDesktop: undefined,
+      openLocalPathInSystemFileManagerDesktop: undefined,
+      openPathInSystemFileManagerDesktop: undefined,
+      openSecurityPreferencesDesktop: undefined,
+      refreshDriverStatusDesktop: undefined,
+      refreshMountDirsDesktop: undefined,
+      setSfmiBannerDismissedDesktop: undefined,
+      uploadFromDragAndDropDesktop: undefined,
     },
     editError: (editID, error) => {
       set(s => {
@@ -1512,6 +1593,15 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    finishManualConflictResolution: localViewTlfPath => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
+          path: pathToRPCPath(localViewTlfPath),
+        })
+        get().dispatch.favoritesLoad()
+      }
+      Z.ignorePromise(f())
+    },
     folderListLoad: (rootPath, isRecursive) => {
       const f = async () => {
         try {
@@ -1624,6 +1714,12 @@ export const useState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(error, rootPath)
           return
         }
+      }
+      Z.ignorePromise(f())
+    },
+    getOnlineStatus: () => {
+      const f = async () => {
+        await checkIfWeReConnectedToMDServerUpToNTimes(2)
       }
       Z.ignorePromise(f())
     },
@@ -1903,12 +1999,62 @@ export const useState = Z.createZustand<State>((set, get) => {
         get().dispatch.driverEnable(true)
       }
     },
+    pollJournalStatus: () => {
+      let polling = false
+      const getWaitDuration = (endEstimate: number | undefined, lower: number, upper: number): number => {
+        if (!endEstimate) {
+          return upper
+        }
+        const diff = endEstimate - Date.now()
+        return diff < lower ? lower : diff > upper ? upper : diff
+      }
+
+      const f = async () => {
+        if (polling) {
+          return
+        }
+        polling = true
+        try {
+          // eslint-disable-next-line
+          while (1) {
+            const {syncingPaths, totalSyncingBytes, endEstimate} =
+              await RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise({
+                filter: RPCTypes.ListFilter.filterSystemHidden,
+              })
+            get().dispatch.journalUpdate(
+              (syncingPaths || []).map(Types.stringToPath),
+              totalSyncingBytes,
+              endEstimate ?? undefined
+            )
+
+            // It's possible syncingPaths has not been emptied before
+            // totalSyncingBytes becomes 0. So check both.
+            if (totalSyncingBytes <= 0 && !syncingPaths?.length) {
+              break
+            }
+            NotifConstants.useState.getState().dispatch.badgeApp('kbfsUploading', true)
+            await Z.timeoutPromise(getWaitDuration(endEstimate || undefined, 100, 4000)) // 0.1s to 4s
+          }
+        } finally {
+          polling = false
+          NotifConstants.useState.getState().dispatch.badgeApp('kbfsUploading', false)
+          get().dispatch.checkKbfsDaemonRpcStatus()
+        }
+      }
+      Z.ignorePromise(f())
+    },
     redbar: error => {
       set(s => {
         s.errors.push(error)
       })
     },
-    resetState: 'default',
+    resetState: () => {
+      set(s => ({
+        ...s,
+        ...initialStore,
+        dispatch: s.dispatch,
+      }))
+    },
     setBadge: b => {
       set(s => {
         s.badge = b
@@ -1933,7 +2079,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.sfmi.driverStatus = driverStatus
       })
-      reduxDispatch(FsGen.createSetDriverStatus())
+      get().dispatch.dynamic.refreshMountDirsDesktop?.()
     },
     setEditName: (editID, name) => {
       set(s => {
@@ -2008,6 +2154,19 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       })
     },
+    setTlfSyncConfig: (tlfPath, enabled) => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
+          {
+            config: {mode: enabled ? RPCTypes.FolderSyncMode.enabled : RPCTypes.FolderSyncMode.disabled},
+            path: pathToRPCPath(tlfPath),
+          },
+          syncToggleWaitingKey
+        )
+        get().dispatch.loadTlfSyncConfig(tlfPath)
+      }
+      Z.ignorePromise(f())
+    },
     setTlfsAsUnloaded: () => {
       set(s => {
         s.tlfs.loaded = false
@@ -2040,6 +2199,15 @@ export const useState = Z.createZustand<State>((set, get) => {
         RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
       )
     },
+    startManualConflictResolution: tlfPath => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
+          path: pathToRPCPath(tlfPath),
+        })
+        get().dispatch.favoritesLoad()
+      }
+      Z.ignorePromise(f())
+    },
     startRename: path => {
       const parentPath = Types.getPathParent(path)
       const originalName = Types.getPathName(path)
@@ -2051,6 +2219,45 @@ export const useState = Z.createZustand<State>((set, get) => {
           type: Types.EditType.Rename,
         })
       })
+    },
+    subscribeNonPath: (subscriptionID, topic) => {
+      const f = async () => {
+        try {
+          await RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
+            clientID,
+            deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+            subscriptionID,
+            topic,
+          })
+        } catch (err) {
+          errorToActionOrThrow(err)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    subscribePath: (subscriptionID, path, topic) => {
+      const f = async () => {
+        try {
+          await RPCTypes.SimpleFSSimpleFSSubscribePathRpcPromise({
+            clientID,
+            deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+            kbfsPath: Types.pathToString(path),
+            subscriptionID,
+            topic,
+          })
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          if (error.code !== RPCTypes.StatusCode.scteamcontactsettingsblock) {
+            // We'll handle this error in loadAdditionalTLF instead.
+            errorToActionOrThrow(error, path)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     syncStatusChanged: status => {
       const diskSpaceStatus = status.outOfSyncSpace
@@ -2096,6 +2303,31 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
     },
+    unsubscribe: subscriptionID => {
+      const f = async () => {
+        try {
+          await RPCTypes.SimpleFSSimpleFSUnsubscribeRpcPromise({
+            clientID,
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+            subscriptionID,
+          })
+        } catch (_) {}
+      }
+      Z.ignorePromise(f())
+    },
+    upload: (parentPath, localPath) => {
+      const f = async () => {
+        try {
+          await RPCTypes.SimpleFSSimpleFSStartUploadRpcPromise({
+            sourceLocalPath: Types.getNormalizedLocalPath(localPath),
+            targetParentPath: pathToRPCPath(parentPath).kbfs,
+          })
+        } catch (err) {
+          errorToActionOrThrow(err)
+        }
+      }
+      Z.ignorePromise(f())
+    },
     userFileEditsLoad: () => {
       const f = async () => {
         try {
@@ -2105,7 +2337,6 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
         } catch (error) {
           errorToActionOrThrow(error)
-          return
         }
       }
       Z.ignorePromise(f())

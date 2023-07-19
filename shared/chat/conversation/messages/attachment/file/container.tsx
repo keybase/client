@@ -1,8 +1,8 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
+import * as FSConstants from '../../../../../constants/fs'
 import * as CryptoConstants from '../../../../../constants/crypto'
 import * as Container from '../../../../../util/container'
-import * as FsGen from '../../../../../actions/fs-gen'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Tabs from '../../../../../constants/tabs'
@@ -48,9 +48,12 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     },
     [dispatch, saltpackOpenFile]
   )
+  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const onShowInFinder = React.useCallback(() => {
-    downloadPath && dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadPath}))
-  }, [dispatch, downloadPath])
+    downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
+  }, [openLocalPathInSystemFileManagerDesktop, downloadPath])
 
   const onDownload = React.useCallback(() => {
     if (Container.isMobile) {

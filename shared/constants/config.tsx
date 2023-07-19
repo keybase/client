@@ -1,5 +1,4 @@
 import * as DarkMode from './darkmode'
-import * as EngineGen from '../actions/engine-gen-gen'
 import * as ProvisionConstants from './provision'
 import * as DeviceTypes from './types/devices'
 import * as RPCTypes from './types/rpc-gen'
@@ -12,7 +11,6 @@ import type * as RPCTypesGregor from './types/rpc-gregor-gen'
 import type * as Types from './types/config'
 import type {ConversationIDKey} from './types/chat2'
 import type {Tab} from './tabs'
-import type {TypedActions} from '../actions/typed-actions-gen'
 import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
 import {defaultUseNativeFrame, runMode, isMobile} from './platform'
@@ -192,7 +190,7 @@ type State = Store & {
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
     dumpLogs: (reason: string) => Promise<void>
-    eventFromRemoteWindows: (action: TypedActions) => boolean
+    eventFromRemoteWindows: (action: RemoteGen.Actions) => void
     filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
     initNotifySound: () => void
@@ -301,8 +299,52 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       showMainNative: undefined,
       showShareActionSheet: undefined,
     },
-    eventFromRemoteWindows: (action: TypedActions) => {
+    eventFromRemoteWindows: (action: RemoteGen.Actions) => {
       switch (action.type) {
+        case RemoteGen.resetStore:
+          break
+        case RemoteGen.openFilesFromWidget: {
+          const f = async () => {
+            const FSConstants = await import('./fs')
+            FSConstants.useState.getState().dispatch.dynamic.openFilesFromWidgetDesktop?.(action.payload.path)
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case RemoteGen.saltpackFileOpen: {
+          const f = async () => {
+            const DConstants = await import('./deeplinks')
+            DConstants.useState.getState().dispatch.handleSaltPackOpen(action.payload.path)
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case RemoteGen.pinentryOnCancel: {
+          const f = async () => {
+            const PConstants = await import('./pinentry')
+            PConstants.useState.getState().dispatch.dynamic.onCancel?.()
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case RemoteGen.pinentryOnSubmit: {
+          const f = async () => {
+            const PConstants = await import('./pinentry')
+            PConstants.useState.getState().dispatch.dynamic.onSubmit?.(action.payload.password)
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case RemoteGen.openPathInSystemFileManager: {
+          const f = async () => {
+            const FSConstants = await import('./fs')
+            FSConstants.useState
+              .getState()
+              .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
+          }
+          Z.ignorePromise(f())
+          break
+        }
         case RemoteGen.unlockFoldersSubmitPaperKey: {
           RPCTypes.loginPaperKeySubmitRpcPromise(
             {paperPhrase: action.payload.paperKey},
@@ -392,9 +434,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         case RemoteGen.dumpLogs:
           Z.ignorePromise(get().dispatch.dumpLogs(action.payload.reason))
           break
-        case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
-          get().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
-          break
         case RemoteGen.remoteWindowWantsProps:
           get().dispatch.remoteWindowNeedsProps(action.payload.component, action.payload.param)
           break
@@ -410,10 +449,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         case RemoteGen.setSystemDarkMode:
           DarkMode.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
           break
-        default:
-          return false
       }
-      return true
     },
     filePickerError: error => {
       get().dispatch.dynamic.onFilePickerError?.(error)

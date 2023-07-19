@@ -7,23 +7,6 @@ import * as Container from '../../util/container'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 
-const pickAndUploadToPromise = async (_: Container.TypedState, action: FsGen.PickAndUploadPayload) => {
-  try {
-    const result = await launchImageLibraryAsync(action.payload.type, true, true)
-    return result.canceled || (result.assets?.length ?? 0) === 0
-      ? null
-      : result.assets.map(r =>
-          FsGen.createUpload({
-            localPath: Styles.unnormalizePath(r.uri),
-            parentPath: action.payload.parentPath,
-          })
-        )
-  } catch (e) {
-    Constants.errorToActionOrThrow(e)
-    return
-  }
-}
-
 const finishedDownloadWithIntent = async (_: unknown, action: FsGen.FinishedDownloadWithIntentPayload) => {
   const {downloadID, downloadIntent, mimeType} = action.payload
   const downloadState =
@@ -57,6 +40,18 @@ const finishedDownloadWithIntent = async (_: unknown, action: FsGen.FinishedDown
 }
 
 export default function initNative() {
-  Container.listenAction(FsGen.pickAndUpload, pickAndUploadToPromise)
+  Container.listenAction(FsGen.pickAndUpload, async (_, action) => {
+    try {
+      const result = await launchImageLibraryAsync(action.payload.type, true, true)
+      if (result.canceled) return
+      result.assets.map(r =>
+        Constants.useState
+          .getState()
+          .dispatch.upload(action.payload.parentPath, Styles.unnormalizePath(r.uri))
+      )
+    } catch (e) {
+      Constants.errorToActionOrThrow(e)
+    }
+  })
   Container.listenAction(FsGen.finishedDownloadWithIntent, finishedDownloadWithIntent)
 }

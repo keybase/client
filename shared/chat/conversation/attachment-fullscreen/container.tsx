@@ -3,10 +3,10 @@ import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
+import * as FSConstants from '../../../constants/fs'
 import * as ConfigConstants from '../../../constants/config'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
 import shallowEqual from 'shallowequal'
@@ -92,6 +92,9 @@ const Connected = (props: OwnProps) => {
     }
   }
 
+  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   return (
     <Fullscreen
       message={message}
@@ -119,9 +122,7 @@ const Connected = (props: OwnProps) => {
         onSwitchAttachment(true)
       }}
       onShowInFinder={
-        downloadPath
-          ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadPath}))
-          : undefined
+        downloadPath ? () => openLocalPathInSystemFileManagerDesktop?.(downloadPath) : undefined
       }
       path={fileURL ?? previewURL}
       previewHeight={clampedHeight}

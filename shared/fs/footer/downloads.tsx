@@ -1,8 +1,6 @@
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
 import * as Constants from '../../constants/fs'
-import * as FsGen from '../../actions/fs-gen'
 import * as Kbfs from '../common'
 import Download from './download'
 import {downloadFolder} from '../../constants/platform'
@@ -34,9 +32,10 @@ const Mobile = () => {
 const Desktop = () => {
   Kbfs.useFsDownloadStatus()
   const downloadIDs = Constants.useState(s => s.downloads.regularDownloads)
-  const dispatch = Container.useDispatch()
-  const openDownloadFolder = () =>
-    dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadFolder}))
+  const openLocalPathInSystemFileManagerDesktop = Constants.useState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
+  const openDownloadFolder = () => openLocalPathInSystemFileManagerDesktop?.(downloadFolder)
   return downloadIDs.length ? (
     <>
       <Kb.Divider />
@@ -96,7 +95,7 @@ const styles = Styles.styleSheetCreate(
         marginLeft: Styles.globalMargins.xtiny,
       },
       space: {flex: 1},
-    } as const)
+    }) as const
 )
 
 export default Styles.isMobile ? Mobile : Desktop

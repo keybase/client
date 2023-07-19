@@ -4,8 +4,6 @@ import * as Constants from '../../../constants/fs'
 import * as Kb from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
 import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
-import * as FsGen from '../../../actions/fs-gen'
 import * as Kbfs from '../../common'
 
 type Props = {
@@ -170,9 +168,11 @@ type JustEnabledProps = {onDismiss?: () => void}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const preferredMountDirs = Constants.useState(s => s.sfmi.preferredMountDirs)
   const displayingMountDir = preferredMountDirs[0] || ''
-  const dispatch = Container.useDispatch()
+  const openLocalPathInSystemFileManagerDesktop = Constants.useState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const open = displayingMountDir
-    ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: displayingMountDir}))
+    ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
     : undefined
   return (
     <Banner
@@ -292,5 +292,5 @@ const styles = Styles.styleSheetCreate(
       textWhite: {
         color: Styles.globalColors.white,
       },
-    } as const)
+    }) as const
 )

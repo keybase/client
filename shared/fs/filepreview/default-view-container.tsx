@@ -14,8 +14,11 @@ export default (ownProps: OwnProps) => {
   const download = () => {
     dispatch(FsGen.createDownload({path}))
   }
+  const openPathInSystemFileManagerDesktop = Constants.useState(
+    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+  )
   const showInSystemFileManager = () => {
-    dispatch(FsGen.createOpenPathInSystemFileManager({path}))
+    openPathInSystemFileManagerDesktop?.(path)
   }
   const props = {
     download,

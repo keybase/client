@@ -13,36 +13,30 @@ import type {StylesTextCrossPlatform} from '../../common-adapters/text'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 
-const noop = () => {}
-const useDispatchWithKbfsDaemonConnectoinGuard = () => {
-  const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
-  const isConnected = kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected
-  const dispatch = Container.useDispatch()
-  return isConnected ? dispatch : noop
-}
-
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
-  const dispatch = Container.useDispatch()
+  const subscribePath = Constants.useState(s => s.dispatch.subscribePath)
+  const unsubscribe = Constants.useState(s => s.dispatch.unsubscribe)
   React.useEffect(() => {
     if (Types.getPathLevel(path) < 3) {
       return () => {}
     }
 
     const subscriptionID = Constants.makeUUID()
-    dispatch(FsGen.createSubscribePath({path, subscriptionID, topic}))
-    return () => dispatch(FsGen.createUnsubscribe({subscriptionID}))
-  }, [dispatch, path, topic])
+    subscribePath(subscriptionID, path, topic)
+    return () => unsubscribe(subscriptionID)
+  }, [subscribePath, unsubscribe, path, topic])
 }
 
 const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
-  const dispatch = useDispatchWithKbfsDaemonConnectoinGuard()
+  const subscribeNonPath = Constants.useState(s => s.dispatch.subscribeNonPath)
+  const unsubscribe = Constants.useState(s => s.dispatch.unsubscribe)
   React.useEffect(() => {
     const subscriptionID = Constants.makeUUID()
-    dispatch(FsGen.createSubscribeNonPath({subscriptionID, topic}))
+    subscribeNonPath(subscriptionID, topic)
     return () => {
-      dispatch(FsGen.createUnsubscribe({subscriptionID}))
+      unsubscribe(subscriptionID)
     }
-  }, [dispatch, topic])
+  }, [subscribeNonPath, unsubscribe, topic])
 }
 
 export const useFsPathMetadata = (path: Types.Path) => {
@@ -100,10 +94,10 @@ export const useFsTlf = (path: Types.Path) => {
 
 export const useFsOnlineStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.onlineStatus)
-  const dispatch = useDispatchWithKbfsDaemonConnectoinGuard()
+  const getOnlineStatus = Constants.useState(s => s.dispatch.getOnlineStatus)
   React.useEffect(() => {
-    dispatch(FsGen.createGetOnlineStatus())
-  }, [dispatch])
+    getOnlineStatus()
+  }, [getOnlineStatus])
 }
 
 export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {

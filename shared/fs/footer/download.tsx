@@ -38,8 +38,11 @@ const Download = (props: Props) => {
     s => s.downloads.state.get(props.downloadID) || Constants.emptyDownloadState
   )
   const dispatch = Container.useDispatch()
+  const openLocalPathInSystemFileManagerDesktop = Constants.useState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const open = dlState.localPath
-    ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: dlState.localPath}))
+    ? () => openLocalPathInSystemFileManagerDesktop?.(dlState.localPath)
     : () => {}
   const dismiss = () => dispatch(FsGen.createDismissDownload({downloadID: props.downloadID}))
   const cancel = () => dispatch(FsGen.createCancelDownload({downloadID: props.downloadID}))
@@ -137,7 +140,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         top: 0,
       },
-    } as const)
+    }) as const
 )
 
 export default Download

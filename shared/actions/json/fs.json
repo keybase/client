@@ -1,70 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "subscribePath": {
-      "subscriptionID": "string",
-      "path": "Types.Path",
-      "topic": "RPCTypes.PathSubscriptionTopic"
-    },
-    "subscribeNonPath": {
-      "subscriptionID": "string",
-      "topic": "RPCTypes.SubscriptionTopic"
-    },
-    "unsubscribe": {
-      "subscriptionID": "string"
-    },
-    "pollJournalStatus": {},
-    "getOnlineStatus": {},
-    "loadTlfSyncConfig": {
-      "tlfPath": "Types.Path"
-    },
-    "setTlfSyncConfig": {
-      "enabled": "boolean",
-      "tlfPath": "Types.Path"
-    },
-    "shareNative": {
-      "path": "Types.Path"
-    },
-    "saveMedia": {
-      "path": "Types.Path"
-    },
-    "upload": {
-      "parentPath": "Types.Path",
-      "localPath": "string"
-    },
-    "uploadFromDragAndDrop": {
-      "parentPath": "Types.Path",
-      "localPaths": "Array<string>"
-    },
-    "dismissUpload": {
-      "uploadID": "string"
-    },
-    "openLocalPathInSystemFileManager": {
-      "localPath": "string"
-    },
-    "openPathInSystemFileManager": {
-      "path": "Types.Path"
-    },
-    "uninstallKBFSConfirm": {},
-
-    "refreshDriverStatus": {},
-    "setDriverStatus": {},
-    "setSfmiBannerDismissed": {"dismissed": "boolean"},
-    "driverEnable": {"isRetry?": "boolean"},
-    "driverDisable": {},
-    "driverDisabling": {},
-    "startManualConflictResolution": {
-      "tlfPath": "Types.Path"
-    },
-    "finishManualConflictResolution": {
-      "localViewTlfPath": "Types.Path"
-    },
-
-    "openSecurityPreferences": {},
-    "openFilesFromWidget": {
-      "path": "Types.Path",
-      "type": "Types.PathType"
-    },
     "letResetUserBackIn": {
       "id": "RPCTypes.TeamID",
       "username": "string"
@@ -88,7 +24,6 @@
       "spaceAvailableNotificationThreshold": "number"
     },
     "placeholderAction": {},
-    "refreshMountDirsAfter10s": {},
     "loadPathInfo": {"path": "Types.Path"},
     "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
     "download": {"path": "Types.Path"},
