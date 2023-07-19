@@ -5,12 +5,9 @@ import type * as Types from '../constants/types/fs'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
-export const cancelDownload = 'fs:cancelDownload'
 export const dismissDownload = 'fs:dismissDownload'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
-export const loadDownloadInfo = 'fs:loadDownloadInfo'
-export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
 export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
@@ -19,10 +16,6 @@ export const userIn = 'fs:userIn'
 export const userOut = 'fs:userOut'
 
 // Action Creators
-export const createCancelDownload = (payload: {readonly downloadID: string}) => ({
-  payload,
-  type: cancelDownload as typeof cancelDownload,
-})
 export const createDismissDownload = (payload: {readonly downloadID: string}) => ({
   payload,
   type: dismissDownload as typeof dismissDownload,
@@ -36,14 +29,6 @@ export const createFinishedRegularDownload = (payload: {
   readonly downloadID: string
   readonly mimeType: string
 }) => ({payload, type: finishedRegularDownload as typeof finishedRegularDownload})
-export const createLoadDownloadInfo = (payload: {readonly downloadID: string}) => ({
-  payload,
-  type: loadDownloadInfo as typeof loadDownloadInfo,
-})
-export const createLoadDownloadStatus = (payload?: undefined) => ({
-  payload,
-  type: loadDownloadStatus as typeof loadDownloadStatus,
-})
 export const createLoadFilesTabBadge = (payload?: undefined) => ({
   payload,
   type: loadFilesTabBadge as typeof loadFilesTabBadge,
@@ -64,12 +49,9 @@ export const createUserIn = (payload?: undefined) => ({payload, type: userIn as 
 export const createUserOut = (payload?: undefined) => ({payload, type: userOut as typeof userOut})
 
 // Action Payloads
-export type CancelDownloadPayload = ReturnType<typeof createCancelDownload>
 export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
 export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedRegularDownload>
-export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
-export type LoadDownloadStatusPayload = ReturnType<typeof createLoadDownloadStatus>
 export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge>
 export type LoadedFilesTabBadgePayload = ReturnType<typeof createLoadedFilesTabBadge>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
@@ -80,12 +62,9 @@ export type UserOutPayload = ReturnType<typeof createUserOut>
 // All Actions
 // prettier-ignore
 export type Actions =
-  | CancelDownloadPayload
   | DismissDownloadPayload
   | FinishedDownloadWithIntentPayload
   | FinishedRegularDownloadPayload
-  | LoadDownloadInfoPayload
-  | LoadDownloadStatusPayload
   | LoadFilesTabBadgePayload
   | LoadedFilesTabBadgePayload
   | SetCriticalUpdatePayload

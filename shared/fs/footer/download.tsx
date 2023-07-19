@@ -45,7 +45,8 @@ const Download = (props: Props) => {
     ? () => openLocalPathInSystemFileManagerDesktop?.(dlState.localPath)
     : () => {}
   const dismiss = () => dispatch(FsGen.createDismissDownload({downloadID: props.downloadID}))
-  const cancel = () => dispatch(FsGen.createCancelDownload({downloadID: props.downloadID}))
+  const cancelDownload = Constants.useState(s => s.dispatch.cancelDownload)
+  const cancel = () => cancelDownload(props.downloadID)
   Kbfs.useFsWatchDownloadForMobile(props.downloadID, Types.DownloadIntent.None)
   return (
     <DownloadWrapper dismiss={dismiss} isFirst={props.isFirst} done={dlState.done}>

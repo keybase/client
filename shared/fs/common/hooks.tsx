@@ -122,20 +122,20 @@ export const useFsSoftError = (path: Types.Path): Types.SoftError | undefined =>
 
 export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
   const info = Constants.useState(s => s.downloads.info.get(downloadID) || Constants.emptyDownloadInfo)
-  const dispatch = Container.useDispatch()
+  const loadDownloadInfo = Constants.useState(s => s.dispatch.loadDownloadInfo)
   React.useEffect(() => {
     // This never changes, so simply just load it once.
-    downloadID && dispatch(FsGen.createLoadDownloadInfo({downloadID}))
-  }, [downloadID, dispatch])
+    downloadID && loadDownloadInfo(downloadID)
+  }, [downloadID, loadDownloadInfo])
   return info
 }
 
 export const useFsDownloadStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.downloadStatus)
-  const dispatch = Container.useDispatch()
+  const loadDownloadStatus = Constants.useState(s => s.dispatch.loadDownloadStatus)
   React.useEffect(() => {
-    dispatch(FsGen.createLoadDownloadStatus())
-  }, [dispatch])
+    loadDownloadStatus()
+  }, [loadDownloadStatus])
 }
 
 export const useFsFileContext = (path: Types.Path) => {

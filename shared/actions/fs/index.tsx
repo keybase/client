@@ -15,9 +15,6 @@ import {RPCError} from '../../util/errors'
 
 const clientID = Constants.clientID
 
-const cancelDownload = async (_: unknown, action: FsGen.CancelDownloadPayload) =>
-  RPCTypes.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID: action.payload.downloadID})
-
 const dismissDownload = async (_: unknown, action: FsGen.DismissDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID: action.payload.downloadID})
 
@@ -80,7 +77,8 @@ const onNonPathChange = async (_: unknown, action: EngineGen.Keybase1NotifyFSFSS
     case RPCTypes.SubscriptionTopic.onlineStatus:
       return checkIfWeReConnectedToMDServerUpToNTimes(1)
     case RPCTypes.SubscriptionTopic.downloadStatus:
-      return FsGen.createLoadDownloadStatus()
+      Constants.useState.getState().dispatch.loadDownloadStatus()
+      return
     case RPCTypes.SubscriptionTopic.uploadStatus:
       Constants.useState.getState().dispatch.loadUploadStatus()
       return
@@ -91,24 +89,6 @@ const onNonPathChange = async (_: unknown, action: EngineGen.Keybase1NotifyFSFSS
       return
     case RPCTypes.SubscriptionTopic.overallSyncStatus:
       return undefined
-  }
-}
-
-const loadDownloadInfo = async (_: Container.TypedState, action: FsGen.LoadDownloadInfoPayload) => {
-  try {
-    const res = await RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
-      downloadID: action.payload.downloadID,
-    })
-    Constants.useState.getState().dispatch.loadedDownloadInfo(action.payload.downloadID, {
-      filename: res.filename,
-      isRegularDownload: res.isRegularDownload,
-      path: Types.stringToPath('/keybase' + res.path.path),
-      startTime: res.startTime,
-    })
-    return
-  } catch (error) {
-    Constants.errorToActionOrThrow(error)
-    return
   }
 }
 
@@ -188,9 +168,7 @@ const initFS = () => {
   Container.listenAction(FsGen.userOut, userOut)
   Container.listenAction(FsGen.loadFilesTabBadge, loadFilesTabBadge)
 
-  Container.listenAction(FsGen.cancelDownload, cancelDownload)
   Container.listenAction(FsGen.dismissDownload, dismissDownload)
-  Container.listenAction(FsGen.loadDownloadInfo, loadDownloadInfo)
 
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)

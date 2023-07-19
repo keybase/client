@@ -2,7 +2,6 @@ import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
 import * as Constants from '../../../constants/fs'
 import * as ConfigConstants from '../../../constants/config'
-import * as FsGen from '../../../actions/fs-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
@@ -57,6 +56,8 @@ export default (ownProps: OwnProps) => {
   const {path, mode} = ownProps
 
   const _downloads = Constants.useState(s => s.downloads)
+  const cancelDownload = Constants.useState(s => s.dispatch.cancelDownload)
+
   const _fileContext = Constants.useState(s => s.fileContext.get(path) || Constants.emptyFileContext)
   const _ignoreNeedsToWait = Container.useAnyWaiting([
     Constants.folderListWaitingKey,
@@ -71,12 +72,7 @@ export default (ownProps: OwnProps) => {
 
   const dispatch = Container.useDispatch()
 
-  const _cancel = React.useCallback(
-    (downloadID: string) => {
-      dispatch(FsGen.createCancelDownload({downloadID}))
-    },
-    [dispatch]
-  )
+  const _cancel = cancelDownload
 
   const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
 

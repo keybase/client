@@ -1130,6 +1130,7 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
+    cancelDownload: (downloadID: string) => void
     checkKbfsDaemonRpcStatus: () => void
     commitEdit: (editID: Types.EditID) => void
     deleteFile: (path: Types.Path) => void
@@ -1175,8 +1176,8 @@ type State = Store & {
     loadSettings: () => void
     loadTlfSyncConfig: (tlfPath: Types.Path) => void
     loadUploadStatus: () => void
+    loadDownloadInfo: (downloadID: string) => void
     loadDownloadStatus: () => void
-    loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
     loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
     newFolderRow: (parentPath: Types.Path) => void
     moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => void
@@ -1344,6 +1345,12 @@ export const useState = Z.createZustand<State>((set, get) => {
   let journalStatusSubscriptionID: string = ''
 
   const dispatch: State['dispatch'] = {
+    cancelDownload: downloadID => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID})
+      }
+      Z.ignorePromise(f())
+    },
     checkKbfsDaemonRpcStatus: () => {
       const f = async () => {
         const connected = await RPCTypes.configWaitForClientRpcPromise({
@@ -1920,6 +1927,26 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    loadDownloadInfo: downloadID => {
+      const f = async () => {
+        try {
+          const res = await RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
+            downloadID,
+          })
+          set(s => {
+            s.downloads.info.set(downloadID, {
+              filename: res.filename,
+              isRegularDownload: res.isRegularDownload,
+              path: Types.stringToPath('/keybase' + res.path.path),
+              startTime: res.startTime,
+            })
+          })
+        } catch (error) {
+          errorToActionOrThrow(error)
+        }
+      }
+      Z.ignorePromise(f())
+    },
     loadDownloadStatus: () => {
       const f = async () => {
         try {
@@ -2104,11 +2131,6 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
-    },
-    loadedDownloadInfo: (downloadID, info) => {
-      set(s => {
-        s.downloads.info.set(downloadID, info)
-      })
     },
     loadedPathInfo: (path, info) => {
       set(s => {
