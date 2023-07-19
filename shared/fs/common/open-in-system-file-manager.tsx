@@ -2,9 +2,7 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as FsGen from '../../actions/fs-gen'
 import {fileUIName} from '../../constants/platform'
-import * as Container from '../../util/container'
 import SystemFileManagerIntegrationPopup from './sfmi-popup'
 
 type Props = {
@@ -12,8 +10,10 @@ type Props = {
 }
 
 const OpenInSystemFileManager = ({path}: Props) => {
-  const dispatch = Container.useDispatch()
-  const openInSystemFileManager = () => dispatch(FsGen.createOpenPathInSystemFileManager({path}))
+  const openPathInSystemFileManagerDesktop = Constants.useState(
+    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+  )
+  const openInSystemFileManager = () => openPathInSystemFileManagerDesktop?.(path)
   return (
     <Kb.WithTooltip tooltip={`Show in ${fileUIName}`}>
       <Kb.Icon

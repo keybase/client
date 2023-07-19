@@ -303,6 +303,16 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
     },
     eventFromRemoteWindows: (action: TypedActions) => {
       switch (action.type) {
+        case RemoteGen.openPathInSystemFileManager: {
+          const f = async () => {
+            const FSConstants = await import('./fs')
+            FSConstants.useState
+              .getState()
+              .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(action.payload.path)
+          }
+          Z.ignorePromise(f())
+          break
+        }
         case RemoteGen.unlockFoldersSubmitPaperKey: {
           RPCTypes.loginPaperKeySubmitRpcPromise(
             {paperPhrase: action.payload.paperKey},

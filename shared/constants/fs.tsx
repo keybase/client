@@ -1141,6 +1141,7 @@ type State = Store & {
     driverKextPermissionError: () => void
     dynamic: {
       openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
+      openPathInSystemFileManagerDesktop?: (path: Types.Path) => void
       uploadFromDragAndDropDesktop?: (parentPath: Types.Path, localPaths: Array<string>) => void
     }
     editError: (editID: Types.EditID, error: string) => void
@@ -1452,6 +1453,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     dynamic: {
       openLocalPathInSystemFileManagerDesktop: undefined,
+      openPathInSystemFileManagerDesktop: undefined,
       uploadFromDragAndDropDesktop: undefined,
     },
     editError: (editID, error) => {

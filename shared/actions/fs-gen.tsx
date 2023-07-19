@@ -27,7 +27,6 @@ export const loadedPathInfo = 'fs:loadedPathInfo'
 export const move = 'fs:move'
 export const openAndUpload = 'fs:openAndUpload'
 export const openFilesFromWidget = 'fs:openFilesFromWidget'
-export const openPathInSystemFileManager = 'fs:openPathInSystemFileManager'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
@@ -134,10 +133,6 @@ export const createOpenFilesFromWidget = (payload: {
   readonly path: Types.Path
   readonly type: Types.PathType
 }) => ({payload, type: openFilesFromWidget as typeof openFilesFromWidget})
-export const createOpenPathInSystemFileManager = (payload: {readonly path: Types.Path}) => ({
-  payload,
-  type: openPathInSystemFileManager as typeof openPathInSystemFileManager,
-})
 export const createOpenSecurityPreferences = (payload?: undefined) => ({
   payload,
   type: openSecurityPreferences as typeof openSecurityPreferences,
@@ -218,7 +213,6 @@ export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
 export type MovePayload = ReturnType<typeof createMove>
 export type OpenAndUploadPayload = ReturnType<typeof createOpenAndUpload>
 export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWidget>
-export type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPathInSystemFileManager>
 export type OpenSecurityPreferencesPayload = ReturnType<typeof createOpenSecurityPreferences>
 export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
@@ -262,7 +256,6 @@ export type Actions =
   | MovePayload
   | OpenAndUploadPayload
   | OpenFilesFromWidgetPayload
-  | OpenPathInSystemFileManagerPayload
   | OpenSecurityPreferencesPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload

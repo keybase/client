@@ -9,6 +9,7 @@ export const closeUnlockFolders = 'remote:closeUnlockFolders'
 export const dumpLogs = 'remote:dumpLogs'
 export const installerRan = 'remote:installerRan'
 export const link = 'remote:link'
+export const openPathInSystemFileManager = 'remote:openPathInSystemFileManager'
 export const pinentryOnCancel = 'remote:pinentryOnCancel'
 export const pinentryOnSubmit = 'remote:pinentryOnSubmit'
 export const powerMonitorEvent = 'remote:powerMonitorEvent'
@@ -95,6 +96,10 @@ export const createDumpLogs = (payload: {readonly reason: 'quitting through menu
   type: dumpLogs as typeof dumpLogs,
 })
 export const createLink = (payload: {readonly link: string}) => ({payload, type: link as typeof link})
+export const createOpenPathInSystemFileManager = (payload: {readonly path: string}) => ({
+  payload,
+  type: openPathInSystemFileManager as typeof openPathInSystemFileManager,
+})
 export const createPinentryOnCancel = (payload?: undefined) => ({
   payload,
   type: pinentryOnCancel as typeof pinentryOnCancel,
@@ -144,6 +149,7 @@ export type CloseUnlockFoldersPayload = ReturnType<typeof createCloseUnlockFolde
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LinkPayload = ReturnType<typeof createLink>
+export type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPathInSystemFileManager>
 export type PinentryOnCancelPayload = ReturnType<typeof createPinentryOnCancel>
 export type PinentryOnSubmitPayload = ReturnType<typeof createPinentryOnSubmit>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
@@ -169,6 +175,7 @@ export type Actions =
   | DumpLogsPayload
   | InstallerRanPayload
   | LinkPayload
+  | OpenPathInSystemFileManagerPayload
   | PinentryOnCancelPayload
   | PinentryOnSubmitPayload
   | PowerMonitorEventPayload

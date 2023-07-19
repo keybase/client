@@ -33,30 +33,6 @@ const escapeBackslash = isWindows
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
   Path.join(mountLocation, Types.getPathElements(kbfsPath).slice(1).map(escapeBackslash).join(pathSep))
 
-const openPathInSystemFileManager = async (_: unknown, action: FsGen.OpenPathInSystemFileManagerPayload) => {
-  const sfmi = Constants.useState.getState().sfmi
-  return sfmi.driverStatus.type === Types.DriverStatusType.Enabled && sfmi.directMountDir
-    ? _openPathInSystemFileManagerPromise(
-        _rebaseKbfsPathToMountLocation(action.payload.path, sfmi.directMountDir),
-        ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
-          Constants.parsePath(action.payload.path).kind
-        ) ||
-          Constants.getPathItem(Constants.useState.getState().pathItems, action.payload.path).type ===
-            Types.PathType.Folder
-      ).catch(e => Constants.errorToActionOrThrow(action.payload.path, e))
-    : new Promise<void>((resolve, reject) => {
-        if (sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
-          // This usually indicates a developer error as
-          // openPathInSystemFileManager shouldn't be used when FUSE integration
-          // is not enabled. So just blackbar to encourage a log send.
-          reject(new Error('FUSE integration is not enabled'))
-        } else {
-          logger.warn('empty directMountDir') // if this happens it might be a race?
-          resolve()
-        }
-      })
-}
-
 const fuseStatusToUninstallExecPath = isWindows
   ? (status: RPCTypes.FuseStatus) => {
       const field = status?.status?.fields?.find(({key}) => key === 'uninstallString')
@@ -81,17 +57,11 @@ const fuseStatusToActions =
       Constants.useState.getState().dispatch.setDriverStatus(Constants.emptyDriverStatusDisabled)
     }
 
-    return status.kextStarted
-      ? [
-          ...(previousStatusType === Types.DriverStatusType.Disabled
-            ? [
-                FsGen.createOpenPathInSystemFileManager({
-                  path: Types.stringToPath('/keybase'),
-                }),
-              ]
-            : []), // open Finder/Explorer/etc for newly enabled
-        ]
-      : []
+    if (status.kextStarted && previousStatusType === Types.DriverStatusType.Disabled) {
+      Constants.useState
+        .getState()
+        .dispatch.dynamic.openPathInSystemFileManagerDesktop?.(Types.stringToPath('/keybase'))
+    }
   }
 
 const refreshDriverStatus = async (
@@ -245,7 +215,6 @@ const setSfmiBannerDismissed = async (
 }
 
 const initPlatformSpecific = () => {
-  Container.listenAction(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
   if (!isLinux) {
     Container.listenAction([FsGen.kbfsDaemonRpcStatusChanged, FsGen.refreshDriverStatus], refreshDriverStatus)
   }
@@ -310,6 +279,33 @@ const initPlatformSpecific = () => {
         } catch (e) {
           Constants.errorToActionOrThrow(e)
         }
+      }
+      Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.openPathInSystemFileManagerDesktop = path => {
+      const f = async () => {
+        const sfmi = Constants.useState.getState().sfmi
+        return sfmi.driverStatus.type === Types.DriverStatusType.Enabled && sfmi.directMountDir
+          ? _openPathInSystemFileManagerPromise(
+              _rebaseKbfsPathToMountLocation(path, sfmi.directMountDir),
+              ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
+                Constants.parsePath(path).kind
+              ) ||
+                Constants.getPathItem(Constants.useState.getState().pathItems, path).type ===
+                  Types.PathType.Folder
+            ).catch(e => Constants.errorToActionOrThrow(path, e))
+          : new Promise<void>((resolve, reject) => {
+              if (sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
+                // This usually indicates a developer error as
+                // openPathInSystemFileManager shouldn't be used when FUSE integration
+                // is not enabled. So just blackbar to encourage a log send.
+                reject(new Error('FUSE integration is not enabled'))
+              } else {
+                logger.warn('empty directMountDir') // if this happens it might be a race?
+                resolve()
+              }
+            })
       }
       Z.ignorePromise(f())
     }

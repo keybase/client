@@ -1,9 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "openPathInSystemFileManager": {
-      "path": "Types.Path"
-    },
     "uninstallKBFSConfirm": {},
 
     "refreshDriverStatus": {},

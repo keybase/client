@@ -1,6 +1,7 @@
 {
   "prelude": ["import type HiddenString from '../util/hidden-string'"],
   "actions": {
+    "openPathInSystemFileManager": {"path": "string"},
     "closeUnlockFolders": {},
     "unlockFoldersSubmitPaperKey": {"paperKey": "string"},
     "stop": {"exitCode": "RPCTypes.ExitCode"},

@@ -1,17 +1,17 @@
-import * as RemoteGen from '../actions/remote-gen'
 import * as Container from '../util/container'
-import * as FsConstants from '../constants/fs'
 import * as DarkMode from '../constants/darkmode'
 import * as FsGen from '../actions/fs-gen'
 import * as FsTypes from '../constants/types/fs'
 import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
+import * as RemoteGen from '../actions/remote-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import ChatContainer from './chat-container.desktop'
 import FilesPreview from './files-container.desktop'
+import KB2 from '../util/electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import openUrl from '../util/open-url'
@@ -20,7 +20,6 @@ import {Loading} from '../fs/simple-screens'
 import {isLinux, isDarwin} from '../constants/platform'
 import {type _InnerMenuItem} from '../common-adapters/floating-menu/menu-layout'
 import {useUploadCountdown} from '../fs/footer/use-upload-countdown'
-import KB2 from '../util/electron.desktop'
 
 const {hideWindow, ctlQuit} = KB2.functions
 
@@ -75,6 +74,7 @@ const useMenuItems = (
   const dispatch = Container.useDispatch()
   const countMap = navBadges
   const startingUp = daemonHandshakeState !== 'done'
+
   const ret = React.useMemo(() => {
     const common = [
       {onClick: () => openUrl(`https://keybase.io/${username || ''}`), title: 'Keybase.io'},
@@ -163,7 +163,7 @@ const useMenuItems = (
           ? ([
               {
                 onClick: () => {
-                  dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath}))
+                  dispatch(RemoteGen.createOpenPathInSystemFileManager({path: '/keybase'}))
                 },
                 title: `Open folders in ${Styles.fileUIName}`,
               },

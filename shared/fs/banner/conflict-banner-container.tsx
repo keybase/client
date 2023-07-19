@@ -47,11 +47,16 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const onStartResolving = React.useCallback(() => {
     dispatch(FsGen.createStartManualConflictResolution({tlfPath: path}))
   }, [dispatch, path])
+
+  const openPathInSystemFileManagerDesktop = Constants.useState(
+    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+  )
+
   const openInSystemFileManager = React.useCallback(
     (path: Types.Path) => {
-      dispatch(FsGen.createOpenPathInSystemFileManager({path}))
+      openPathInSystemFileManagerDesktop?.(path)
     },
-    [dispatch]
+    [openPathInSystemFileManagerDesktop]
   )
 
   const props = {

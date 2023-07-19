@@ -136,9 +136,12 @@ export default (ownProps: OwnProps) => {
   const _share = React.useCallback(() => {
     setPathItemActionMenuView(Types.PathItemActionMenuView.Share)
   }, [setPathItemActionMenuView])
+  const openPathInSystemFileManagerDesktop = Constants.useState(
+    s => s.dispatch.dynamic.openPathInSystemFileManagerDesktop
+  )
   const _showInSystemFileManager = React.useCallback(() => {
-    dispatch(FsGen.createOpenPathInSystemFileManager({path}))
-  }, [dispatch, path])
+    openPathInSystemFileManagerDesktop?.(path)
+  }, [openPathInSystemFileManagerDesktop, path])
 
   const getLayout = _view === 'share' ? getShareLayout : getRootLayout
   const layout = getLayout(mode, ownProps.path, _pathItem, _fileContext, _username)
