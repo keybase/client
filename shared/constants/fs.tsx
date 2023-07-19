@@ -1143,6 +1143,7 @@ type State = Store & {
       openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
       openPathInSystemFileManagerDesktop?: (path: Types.Path) => void
       uploadFromDragAndDropDesktop?: (parentPath: Types.Path, localPaths: Array<string>) => void
+      refreshDriverStatusDesktop?: () => void
     }
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
@@ -1454,6 +1455,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     dynamic: {
       openLocalPathInSystemFileManagerDesktop: undefined,
       openPathInSystemFileManagerDesktop: undefined,
+      refreshDriverStatusDesktop: undefined,
       uploadFromDragAndDropDesktop: undefined,
     },
     editError: (editID, error) => {

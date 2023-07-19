@@ -30,7 +30,6 @@ export const openFilesFromWidget = 'fs:openFilesFromWidget'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
-export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
@@ -38,7 +37,6 @@ export const setDriverStatus = 'fs:setDriverStatus'
 export const setSfmiBannerDismissed = 'fs:setSfmiBannerDismissed'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
-export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
 export const userIn = 'fs:userIn'
 export const userOut = 'fs:userOut'
@@ -145,10 +143,6 @@ export const createPlaceholderAction = (payload?: undefined) => ({
   payload,
   type: placeholderAction as typeof placeholderAction,
 })
-export const createRefreshDriverStatus = (payload?: undefined) => ({
-  payload,
-  type: refreshDriverStatus as typeof refreshDriverStatus,
-})
 export const createRefreshMountDirsAfter10s = (payload?: undefined) => ({
   payload,
   type: refreshMountDirsAfter10s as typeof refreshMountDirsAfter10s,
@@ -178,10 +172,6 @@ export const createSetSpaceAvailableNotificationThreshold = (payload: {
 export const createStartManualConflictResolution = (payload: {readonly tlfPath: Types.Path}) => ({
   payload,
   type: startManualConflictResolution as typeof startManualConflictResolution,
-})
-export const createUninstallKBFSConfirm = (payload?: undefined) => ({
-  payload,
-  type: uninstallKBFSConfirm as typeof uninstallKBFSConfirm,
 })
 export const createUserFileEditsLoad = (payload?: undefined) => ({
   payload,
@@ -216,7 +206,6 @@ export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWi
 export type OpenSecurityPreferencesPayload = ReturnType<typeof createOpenSecurityPreferences>
 export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
-export type RefreshDriverStatusPayload = ReturnType<typeof createRefreshDriverStatus>
 export type RefreshMountDirsAfter10sPayload = ReturnType<typeof createRefreshMountDirsAfter10s>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
@@ -226,7 +215,6 @@ export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
   typeof createSetSpaceAvailableNotificationThreshold
 >
 export type StartManualConflictResolutionPayload = ReturnType<typeof createStartManualConflictResolution>
-export type UninstallKBFSConfirmPayload = ReturnType<typeof createUninstallKBFSConfirm>
 export type UserFileEditsLoadPayload = ReturnType<typeof createUserFileEditsLoad>
 export type UserInPayload = ReturnType<typeof createUserIn>
 export type UserOutPayload = ReturnType<typeof createUserOut>
@@ -259,7 +247,6 @@ export type Actions =
   | OpenSecurityPreferencesPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload
-  | RefreshDriverStatusPayload
   | RefreshMountDirsAfter10sPayload
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload
@@ -267,7 +254,6 @@ export type Actions =
   | SetSfmiBannerDismissedPayload
   | SetSpaceAvailableNotificationThresholdPayload
   | StartManualConflictResolutionPayload
-  | UninstallKBFSConfirmPayload
   | UserFileEditsLoadPayload
   | UserInPayload
   | UserOutPayload

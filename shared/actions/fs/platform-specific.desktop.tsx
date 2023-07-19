@@ -64,26 +64,6 @@ const fuseStatusToActions =
     }
   }
 
-const refreshDriverStatus = async (
-  _: unknown,
-  action: FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload
-) => {
-  if (
-    action.type !== FsGen.kbfsDaemonRpcStatusChanged ||
-    Constants.useState.getState().kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected
-  ) {
-    let status = await RPCTypes.installFuseStatusRpcPromise({
-      bundleVersion: '',
-    })
-    if (isWindows && status.installStatus !== RPCTypes.InstallStatus.installed) {
-      const m = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
-      status = await (windowsCheckMountFromOtherDokanInstall?.(m, status) ?? Promise.resolve(status))
-    }
-    return fuseStatusToActions(Constants.useState.getState().sfmi.driverStatus.type)(status)
-  }
-  return false
-}
-
 const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult): boolean =>
   result?.componentResults?.findIndex(
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
@@ -99,7 +79,8 @@ const driverEnableFuse = async (_: unknown, action: FsGen.DriverEnablePayload) =
   } else {
     await RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
     await RPCTypes.kbfsMountWaitForMountsRpcPromise()
-    return FsGen.createRefreshDriverStatus()
+    Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
+    return
   }
 }
 
@@ -117,18 +98,17 @@ const uninstallKBFS = async () =>
     exitApp?.(0)
   })
 
-const uninstallDokanConfirm = async (): Promise<Container.TypedActions | false> => {
+const uninstallDokanConfirm = async () => {
   const driverStatus = Constants.useState.getState().sfmi.driverStatus
   if (driverStatus.type !== Types.DriverStatusType.Enabled) {
-    return false
+    return
   }
   if (!driverStatus.dokanUninstallExecPath) {
     await uninstallDokanDialog?.()
-    return FsGen.createRefreshDriverStatus()
+    Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
+    return
   }
-
   Constants.useState.getState().dispatch.driverDisabling()
-  return false
 }
 
 const onUninstallDokan = async () => {
@@ -139,7 +119,7 @@ const onUninstallDokan = async () => {
   try {
     await uninstallDokan?.(execPath)
   } catch {}
-  return FsGen.createRefreshDriverStatus()
+  Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
 }
 
 const openSecurityPreferences = () => {
@@ -156,10 +136,9 @@ const openSecurityPreferences = () => {
 const onInstallCachedDokan = async () => {
   try {
     await installCachedDokan?.()
-    return FsGen.createRefreshDriverStatus()
+    Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
   } catch (e) {
     Constants.errorToActionOrThrow(e)
-    return
   }
 }
 
@@ -216,7 +195,11 @@ const setSfmiBannerDismissed = async (
 
 const initPlatformSpecific = () => {
   if (!isLinux) {
-    Container.listenAction([FsGen.kbfsDaemonRpcStatusChanged, FsGen.refreshDriverStatus], refreshDriverStatus)
+    Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, () => {
+      if (Constants.useState.getState().kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+        Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
+      }
+    })
   }
   Container.listenAction(
     [FsGen.kbfsDaemonRpcStatusChanged, FsGen.setDriverStatus, FsGen.refreshMountDirsAfter10s],
@@ -306,6 +289,20 @@ const initPlatformSpecific = () => {
                 resolve()
               }
             })
+      }
+      Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.refreshDriverStatusDesktop = () => {
+      const f = async () => {
+        let status = await RPCTypes.installFuseStatusRpcPromise({
+          bundleVersion: '',
+        })
+        if (isWindows && status.installStatus !== RPCTypes.InstallStatus.installed) {
+          const m = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
+          status = await (windowsCheckMountFromOtherDokanInstall?.(m, status) ?? Promise.resolve(status))
+        }
+        fuseStatusToActions(Constants.useState.getState().sfmi.driverStatus.type)(status)
       }
       Z.ignorePromise(f())
     }
