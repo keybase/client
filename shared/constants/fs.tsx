@@ -2052,7 +2052,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.sfmi.driverStatus = driverStatus
       })
-      get().dispatch.dynamic.refreshMountDirsDesktop?.(false)
+      get().dispatch.dynamic.refreshMountDirsDesktop?.()
     },
     setEditName: (editID, name) => {
       set(s => {
