@@ -1,9 +1,6 @@
 {
   "prelude": [],
   "actions": {
-    "userIn": {},
-    "userOut": {},
-
     "setDebugLevel": {
       "level": "string"
     },

@@ -59,56 +59,9 @@ const onPathChange = (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscripti
   })
 }
 
-const onNonPathChange = async (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload) => {
-  const {clientID: clientIDFromNotification, topic} = action.payload.params
-  if (clientIDFromNotification !== clientID) {
-    return null
-  }
-  switch (topic) {
-    case RPCTypes.SubscriptionTopic.favorites:
-      Constants.useState.getState().dispatch.favoritesLoad()
-      return
-    case RPCTypes.SubscriptionTopic.journalStatus:
-      Constants.useState.getState().dispatch.pollJournalStatus()
-      return
-    case RPCTypes.SubscriptionTopic.onlineStatus:
-      return checkIfWeReConnectedToMDServerUpToNTimes(1)
-    case RPCTypes.SubscriptionTopic.downloadStatus:
-      Constants.useState.getState().dispatch.loadDownloadStatus()
-      return
-    case RPCTypes.SubscriptionTopic.uploadStatus:
-      Constants.useState.getState().dispatch.loadUploadStatus()
-      return
-    case RPCTypes.SubscriptionTopic.filesTabBadge:
-      return FsGen.createLoadFilesTabBadge()
-    case RPCTypes.SubscriptionTopic.settings:
-      Constants.useState.getState().dispatch.loadSettings()
-      return
-    case RPCTypes.SubscriptionTopic.overallSyncStatus:
-      return undefined
-  }
-}
-
-const userIn = async () => RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID}).catch(() => {})
-const userOut = async () => RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID}).catch(() => {})
-
 const fsRrouteNames = ['fsRoot', 'barePreview']
-const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
-  const {prev, next} = action.payload
-  const wasScreen = fsRrouteNames.includes(Router2Constants.getVisibleScreen(prev)?.name ?? '')
-  const isScreen = fsRrouteNames.includes(Router2Constants.getVisibleScreen(next)?.name ?? '')
-
-  if (wasScreen === isScreen) {
-    return false
-  }
-  return wasScreen ? FsGen.createUserOut() : FsGen.createUserIn()
-}
 
 const initFS = () => {
-  Container.listenAction(FsGen.userIn, () => {
-    Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
-  })
-
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
     if (ConfigConstants.useConfigState.getState().loggedIn) {
@@ -147,11 +100,42 @@ const initFS = () => {
   Container.listenAction(EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged, (_, a) => {
     a.payload.params.status
   })
-  Container.listenAction(FsGen.userIn, userIn)
-  Container.listenAction(FsGen.userOut, userOut)
 
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
-  Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)
+  Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, (_, action) => {
+    const f = async () => {
+      const {clientID: clientIDFromNotification, topic} = action.payload.params
+      if (clientIDFromNotification !== clientID) {
+        return
+      }
+      switch (topic) {
+        case RPCTypes.SubscriptionTopic.favorites:
+          Constants.useState.getState().dispatch.favoritesLoad()
+          break
+        case RPCTypes.SubscriptionTopic.journalStatus:
+          Constants.useState.getState().dispatch.pollJournalStatus()
+          break
+        case RPCTypes.SubscriptionTopic.onlineStatus:
+          await checkIfWeReConnectedToMDServerUpToNTimes(1)
+          break
+        case RPCTypes.SubscriptionTopic.downloadStatus:
+          Constants.useState.getState().dispatch.loadDownloadStatus()
+          break
+        case RPCTypes.SubscriptionTopic.uploadStatus:
+          Constants.useState.getState().dispatch.loadUploadStatus()
+          break
+        case RPCTypes.SubscriptionTopic.filesTabBadge:
+          Constants.useState.getState().dispatch.loadFilesTabBadge()
+          break
+        case RPCTypes.SubscriptionTopic.settings:
+          Constants.useState.getState().dispatch.loadSettings()
+          break
+        case RPCTypes.SubscriptionTopic.overallSyncStatus:
+          break
+      }
+    }
+    Z.ignorePromise(f())
+  })
 
   Container.listenAction(FsGen.setDebugLevel, setDebugLevel)
 
@@ -169,7 +153,21 @@ const initFS = () => {
       Constants.useState.getState().dispatch.setCriticalUpdate(false)
     }
   })
-  Container.listenAction(RouteTreeGen.onNavChanged, maybeOnFSTab)
+  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
+    const {prev, next} = action.payload
+    const wasScreen = fsRrouteNames.includes(Router2Constants.getVisibleScreen(prev)?.name ?? '')
+    const isScreen = fsRrouteNames.includes(Router2Constants.getVisibleScreen(next)?.name ?? '')
+
+    if (wasScreen === isScreen) {
+      return
+    }
+
+    if (wasScreen) {
+      Constants.useState.getState().dispatch.userOut()
+    } else {
+      Constants.useState.getState().dispatch.userIn()
+    }
+  })
 
   initPlatformSpecific()
 

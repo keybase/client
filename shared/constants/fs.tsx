@@ -1,6 +1,5 @@
 import * as ConfigConstants from './config'
 import * as NotifConstants from './notifications'
-import * as FsGen from '../actions/fs-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from './settings'
@@ -1220,6 +1219,8 @@ type State = Store & {
     syncStatusChanged: (status: RPCTypes.FolderSyncStatus) => void
     unsubscribe: (subscriptionID: string) => void
     upload: (parentPath: Types.Path, localPath: string) => void
+    userIn: () => void
+    userOut: () => void
     userFileEditsLoad: () => void
     waitForKbfsDaemon: () => void
   }
@@ -1818,7 +1819,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             get().dispatch.unsubscribe(oldFsBadgeSubscriptionID)
           }
           get().dispatch.subscribeNonPath(fsBadgeSubscriptionID, RPCTypes.SubscriptionTopic.filesTabBadge)
-          reduxDispatch(FsGen.createLoadFilesTabBadge())
+          get().dispatch.loadFilesTabBadge()
         }
       }
 
@@ -2611,6 +2612,19 @@ export const useState = Z.createZustand<State>((set, get) => {
         } catch (error) {
           errorToActionOrThrow(error)
         }
+      }
+      Z.ignorePromise(f())
+    },
+    userIn: () => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID})
+      }
+      Z.ignorePromise(f())
+      get().dispatch.checkKbfsDaemonRpcStatus()
+    },
+    userOut: () => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID})
       }
       Z.ignorePromise(f())
     },
