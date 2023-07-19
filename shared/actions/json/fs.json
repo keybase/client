@@ -1,7 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "loadDownloadStatus": {},
     "loadDownloadInfo": {"downloadID": "string"},
     "cancelDownload": {"downloadID": "string"},
     "dismissDownload": {"downloadID": "string"},

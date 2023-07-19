@@ -1175,8 +1175,8 @@ type State = Store & {
     loadSettings: () => void
     loadTlfSyncConfig: (tlfPath: Types.Path) => void
     loadUploadStatus: () => void
+    loadDownloadStatus: () => void
     loadedDownloadInfo: (downloadID: string, info: Types.DownloadInfo) => void
-    loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
     loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
     newFolderRow: (parentPath: Types.Path) => void
     moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => void
@@ -1920,6 +1920,41 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    loadDownloadStatus: () => {
+      const f = async () => {
+        try {
+          const res = await RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
+
+          const regularDownloads = res.regularDownloadIDs || []
+          const state = new Map(
+            (res.states || []).map(s => [
+              s.downloadID,
+              {
+                canceled: s.canceled,
+                done: s.done,
+                endEstimate: s.endEstimate,
+                error: s.error,
+                localPath: s.localPath,
+                progress: s.progress,
+              },
+            ])
+          )
+
+          set(s => {
+            s.downloads.regularDownloads = regularDownloads
+            s.downloads.state = state
+
+            const toDelete = [...s.downloads.info.keys()].filter(downloadID => !state.has(downloadID))
+            if (toDelete.length) {
+              toDelete.forEach(downloadID => s.downloads.info.delete(downloadID))
+            }
+          })
+        } catch (error) {
+          errorToActionOrThrow(error)
+        }
+      }
+      Z.ignorePromise(f())
+    },
     loadFileContext: path => {
       const f = async () => {
         try {
@@ -2073,17 +2108,6 @@ export const useState = Z.createZustand<State>((set, get) => {
     loadedDownloadInfo: (downloadID, info) => {
       set(s => {
         s.downloads.info.set(downloadID, info)
-      })
-    },
-    loadedDownloadStatus: (regularDownloads, state) => {
-      set(s => {
-        s.downloads.regularDownloads = regularDownloads
-        s.downloads.state = state
-
-        const toDelete = [...s.downloads.info.keys()].filter(downloadID => !state.has(downloadID))
-        if (toDelete.length) {
-          toDelete.forEach(downloadID => s.downloads.info.delete(downloadID))
-        }
       })
     },
     loadedPathInfo: (path, info) => {

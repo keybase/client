@@ -112,32 +112,6 @@ const loadDownloadInfo = async (_: Container.TypedState, action: FsGen.LoadDownl
   }
 }
 
-const loadDownloadStatus = async () => {
-  try {
-    const res = await RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
-    Constants.useState.getState().dispatch.loadedDownloadStatus(
-      res.regularDownloadIDs || [],
-      new Map(
-        (res.states || []).map(s => [
-          s.downloadID,
-          {
-            canceled: s.canceled,
-            done: s.done,
-            endEstimate: s.endEstimate,
-            error: s.error,
-            localPath: s.localPath,
-            progress: s.progress,
-          },
-        ])
-      )
-    )
-    return
-  } catch (error) {
-    Constants.errorToActionOrThrow(error)
-    return
-  }
-}
-
 const loadFilesTabBadge = async () => {
   try {
     const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
@@ -216,7 +190,6 @@ const initFS = () => {
 
   Container.listenAction(FsGen.cancelDownload, cancelDownload)
   Container.listenAction(FsGen.dismissDownload, dismissDownload)
-  Container.listenAction(FsGen.loadDownloadStatus, loadDownloadStatus)
   Container.listenAction(FsGen.loadDownloadInfo, loadDownloadInfo)
 
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
