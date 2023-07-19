@@ -15,9 +15,6 @@ import {RPCError} from '../../util/errors'
 
 const clientID = Constants.clientID
 
-const dismissDownload = async (_: unknown, action: FsGen.DismissDownloadPayload) =>
-  RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID: action.payload.downloadID})
-
 // At start-up we might have a race where we get connected to a kbfs daemon
 // which dies soon after, and we get an EOF here. So retry for a few times
 // until we get through. After each try we delay for 2s, so this should give us
@@ -167,8 +164,6 @@ const initFS = () => {
   Container.listenAction(FsGen.userIn, userIn)
   Container.listenAction(FsGen.userOut, userOut)
   Container.listenAction(FsGen.loadFilesTabBadge, loadFilesTabBadge)
-
-  Container.listenAction(FsGen.dismissDownload, dismissDownload)
 
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)

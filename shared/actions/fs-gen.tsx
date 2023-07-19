@@ -5,7 +5,6 @@ import type * as Types from '../constants/types/fs'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
-export const dismissDownload = 'fs:dismissDownload'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
 export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
@@ -16,10 +15,6 @@ export const userIn = 'fs:userIn'
 export const userOut = 'fs:userOut'
 
 // Action Creators
-export const createDismissDownload = (payload: {readonly downloadID: string}) => ({
-  payload,
-  type: dismissDownload as typeof dismissDownload,
-})
 export const createFinishedDownloadWithIntent = (payload: {
   readonly downloadID: string
   readonly downloadIntent: Types.DownloadIntent
@@ -49,7 +44,6 @@ export const createUserIn = (payload?: undefined) => ({payload, type: userIn as 
 export const createUserOut = (payload?: undefined) => ({payload, type: userOut as typeof userOut})
 
 // Action Payloads
-export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
 export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedRegularDownload>
 export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge>
@@ -62,7 +56,6 @@ export type UserOutPayload = ReturnType<typeof createUserOut>
 // All Actions
 // prettier-ignore
 export type Actions =
-  | DismissDownloadPayload
   | FinishedDownloadWithIntentPayload
   | FinishedRegularDownloadPayload
   | LoadFilesTabBadgePayload

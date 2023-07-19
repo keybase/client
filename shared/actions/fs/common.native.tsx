@@ -16,19 +16,23 @@ const finishedDownloadWithIntent = async (_: unknown, action: FsGen.FinishedDown
     logger.warn('missing download', downloadID)
     return
   }
+  const dismissDownload = Constants.useState.getState().dispatch.dismissDownload
   if (downloadState.error) {
     Constants.useState.getState().dispatch.redbar(downloadState.error)
-    return FsGen.createDismissDownload({downloadID})
+    dismissDownload(downloadID)
+    return
   }
   const {localPath} = downloadState
   try {
     switch (downloadIntent) {
       case Types.DownloadIntent.CameraRoll:
         await saveAttachmentToCameraRoll(localPath, mimeType)
-        return FsGen.createDismissDownload({downloadID})
+        dismissDownload(downloadID)
+        return
       case Types.DownloadIntent.Share:
         await showShareActionSheet({filePath: localPath, mimeType})
-        return FsGen.createDismissDownload({downloadID})
+        dismissDownload(downloadID)
+        return
       case Types.DownloadIntent.None:
         return null
       default:

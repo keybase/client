@@ -1135,6 +1135,7 @@ type State = Store & {
     commitEdit: (editID: Types.EditID) => void
     deleteFile: (path: Types.Path) => void
     discardEdit: (editID: Types.EditID) => void
+    dismissDownload: (downloadID: string) => void
     dismissRedbar: (index: number) => void
     dismissUpload: (uploadID: string) => void
     download: (path: Types.Path, type: 'download' | 'share' | 'saveMedia') => void
@@ -1444,6 +1445,12 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.edits.delete(editID)
       })
+    },
+    dismissDownload: downloadID => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID})
+      }
+      Z.ignorePromise(f())
     },
     dismissRedbar: index => {
       set(s => {
