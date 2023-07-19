@@ -1,6 +1,7 @@
 {
   "prelude": ["import type HiddenString from '../util/hidden-string'"],
   "actions": {
+    "userFileEditsLoad": {},
     "openFilesFromWidget": {
       "path": "string"
     },

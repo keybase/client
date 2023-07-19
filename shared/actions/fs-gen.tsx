@@ -24,7 +24,6 @@ export const placeholderAction = 'fs:placeholderAction'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
-export const userFileEditsLoad = 'fs:userFileEditsLoad'
 export const userIn = 'fs:userIn'
 export const userOut = 'fs:userOut'
 
@@ -108,10 +107,6 @@ export const createSetSpaceAvailableNotificationThreshold = (payload: {
   payload,
   type: setSpaceAvailableNotificationThreshold as typeof setSpaceAvailableNotificationThreshold,
 })
-export const createUserFileEditsLoad = (payload?: undefined) => ({
-  payload,
-  type: userFileEditsLoad as typeof userFileEditsLoad,
-})
 export const createUserIn = (payload?: undefined) => ({payload, type: userIn as typeof userIn})
 export const createUserOut = (payload?: undefined) => ({payload, type: userOut as typeof userOut})
 
@@ -137,7 +132,6 @@ export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
 export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
   typeof createSetSpaceAvailableNotificationThreshold
 >
-export type UserFileEditsLoadPayload = ReturnType<typeof createUserFileEditsLoad>
 export type UserInPayload = ReturnType<typeof createUserIn>
 export type UserOutPayload = ReturnType<typeof createUserOut>
 
@@ -163,7 +157,6 @@ export type Actions =
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload
   | SetSpaceAvailableNotificationThresholdPayload
-  | UserFileEditsLoadPayload
   | UserInPayload
   | UserOutPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

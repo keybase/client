@@ -303,6 +303,15 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       switch (action.type) {
         case RemoteGen.resetStore:
           break
+
+        case RemoteGen.userFileEditsLoad: {
+          const f = async () => {
+            const FSConstants = await import('./fs')
+            FSConstants.useState.getState().dispatch.userFileEditsLoad()
+          }
+          Z.ignorePromise(f())
+          break
+        }
         case RemoteGen.openFilesFromWidget: {
           const f = async () => {
             const FSConstants = await import('./fs')

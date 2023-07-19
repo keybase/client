@@ -1,8 +1,6 @@
 import * as ConfigConstants from '../../constants/config'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as ProfileConstants from '../../constants/profile'
-import * as FsGen from '../fs-gen'
-import * as FsConstants from '../../constants/fs'
 import * as DaemonConstants from '../../constants/daemon'
 import * as Container from '../../util/container'
 import * as EngineGen from '../engine-gen-gen'
@@ -256,9 +254,6 @@ export const initPlatformListener = () => {
   ConfigConstants.useConfigState.getState().dispatch.initNotifySound()
   ConfigConstants.useConfigState.getState().dispatch.initOpenAtLogin()
   ConfigConstants.useConfigState.getState().dispatch.initAppUpdateLoop()
-  Container.listenAction(FsGen.userFileEditsLoad, () => {
-    FsConstants.useState.getState().dispatch.userFileEditsLoad()
-  })
 
   ProfileConstants.useState.setState(s => {
     s.dispatch.editAvatar = () => {

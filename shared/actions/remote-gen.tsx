@@ -28,6 +28,7 @@ export const updateNow = 'remote:updateNow'
 export const updateWindowMaxState = 'remote:updateWindowMaxState'
 export const updateWindowShown = 'remote:updateWindowShown'
 export const updateWindowState = 'remote:updateWindowState'
+export const userFileEditsLoad = 'remote:userFileEditsLoad'
 
 // Action Creators
 /**
@@ -148,6 +149,10 @@ export const createUnlockFoldersSubmitPaperKey = (payload: {readonly paperKey: s
   type: unlockFoldersSubmitPaperKey as typeof unlockFoldersSubmitPaperKey,
 })
 export const createUpdateNow = (payload?: undefined) => ({payload, type: updateNow as typeof updateNow})
+export const createUserFileEditsLoad = (payload?: undefined) => ({
+  payload,
+  type: userFileEditsLoad as typeof userFileEditsLoad,
+})
 
 // Action Payloads
 export type CloseUnlockFoldersPayload = ReturnType<typeof createCloseUnlockFolders>
@@ -173,6 +178,7 @@ export type UpdateNowPayload = ReturnType<typeof createUpdateNow>
 export type UpdateWindowMaxStatePayload = ReturnType<typeof createUpdateWindowMaxState>
 export type UpdateWindowShownPayload = ReturnType<typeof createUpdateWindowShown>
 export type UpdateWindowStatePayload = ReturnType<typeof createUpdateWindowState>
+export type UserFileEditsLoadPayload = ReturnType<typeof createUserFileEditsLoad>
 
 // All Actions
 // prettier-ignore
@@ -200,4 +206,5 @@ export type Actions =
   | UpdateWindowMaxStatePayload
   | UpdateWindowShownPayload
   | UpdateWindowStatePayload
+  | UserFileEditsLoadPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}
