@@ -1145,6 +1145,7 @@ type State = Store & {
       afterDriverDisable?: () => void
       afterDriverDisabling?: () => void
       afterDriverEnabled?: (isRetry: boolean) => void
+      afterKbfsDaemonRpcStatusChanged?: () => void
       openFilesFromWidgetDesktop?: (path: Types.Path) => void
       openAndUploadDesktop?: (type: Types.OpenDialogType, parentPath: Types.Path) => void
       pickAndUploadMobile?: (type: Types.MobilePickType, parentPath: Types.Path) => void
@@ -1177,6 +1178,7 @@ type State = Store & {
     loadedDownloadStatus: (regularDownloads: Array<string>, state: Map<string, Types.DownloadState>) => void
     loadedPathInfo: (path: Types.Path, info: Types.PathInfo) => void
     newFolderRow: (parentPath: Types.Path) => void
+    moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => void
     onChangedFocus: (appFocused: boolean) => void
     pollJournalStatus: () => void
     redbar: (error: string) => void
@@ -1334,6 +1336,11 @@ export const useState = Z.createZustand<State>((set, get) => {
     }
   }
 
+  let fsBadgeSubscriptionID: string = ''
+  let settingsSubscriptionID: string = ''
+  let uploadStatusSubscriptionID: string = ''
+  let journalStatusSubscriptionID: string = ''
+
   const dispatch: State['dispatch'] = {
     checkKbfsDaemonRpcStatus: () => {
       const f = async () => {
@@ -1489,6 +1496,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       afterDriverDisable: undefined,
       afterDriverDisabling: undefined,
       afterDriverEnabled: undefined,
+      afterKbfsDaemonRpcStatusChanged: undefined,
       openAndUploadDesktop: undefined,
       openFilesFromWidgetDesktop: undefined,
       openLocalPathInSystemFileManagerDesktop: undefined,
@@ -1771,7 +1779,80 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         s.kbfsDaemonStatus.rpcStatus = rpcStatus
       })
-      reduxDispatch(FsGen.createKbfsDaemonRpcStatusChanged())
+
+      const kbfsDaemonStatus = get().kbfsDaemonStatus
+      if (kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+        get().dispatch.setTlfsAsUnloaded()
+      }
+
+      const subscribeAndLoadFsBadge = () => {
+        const oldFsBadgeSubscriptionID = fsBadgeSubscriptionID
+        fsBadgeSubscriptionID = makeUUID()
+        const kbfsDaemonStatus = get().kbfsDaemonStatus
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          if (oldFsBadgeSubscriptionID) {
+            get().dispatch.unsubscribe(oldFsBadgeSubscriptionID)
+          }
+          get().dispatch.subscribeNonPath(fsBadgeSubscriptionID, RPCTypes.SubscriptionTopic.filesTabBadge)
+          reduxDispatch(FsGen.createLoadFilesTabBadge())
+        }
+      }
+
+      subscribeAndLoadFsBadge()
+
+      const subscribeAndLoadSettings = () => {
+        const oldSettingsSubscriptionID = settingsSubscriptionID
+        settingsSubscriptionID = makeUUID()
+        const kbfsDaemonStatus = get().kbfsDaemonStatus
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          get().dispatch.loadSettings()
+        }
+
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          if (oldSettingsSubscriptionID) {
+            get().dispatch.unsubscribe(oldSettingsSubscriptionID)
+          }
+          get().dispatch.subscribeNonPath(settingsSubscriptionID, RPCTypes.SubscriptionTopic.settings)
+        }
+      }
+      subscribeAndLoadSettings()
+
+      const subscribeAndLoadUploadStatus = () => {
+        const oldUploadStatusSubscriptionID = uploadStatusSubscriptionID
+        uploadStatusSubscriptionID = makeUUID()
+        const kbfsDaemonStatus = get().kbfsDaemonStatus
+
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          get().dispatch.loadUploadStatus()
+        }
+
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          if (oldUploadStatusSubscriptionID) {
+            get().dispatch.unsubscribe(oldUploadStatusSubscriptionID)
+          }
+
+          get().dispatch.subscribeNonPath(uploadStatusSubscriptionID, RPCTypes.SubscriptionTopic.uploadStatus)
+        }
+      }
+      subscribeAndLoadUploadStatus()
+
+      const subscribeAndLoadJournalStatus = () => {
+        const oldJournalStatusSubscriptionID = journalStatusSubscriptionID
+        journalStatusSubscriptionID = makeUUID()
+        const kbfsDaemonStatus = get().kbfsDaemonStatus
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          if (oldJournalStatusSubscriptionID) {
+            get().dispatch.unsubscribe(oldJournalStatusSubscriptionID)
+          }
+          get().dispatch.subscribeNonPath(
+            journalStatusSubscriptionID,
+            RPCTypes.SubscriptionTopic.journalStatus
+          )
+          get().dispatch.pollJournalStatus()
+        }
+      }
+      subscribeAndLoadJournalStatus()
+      get().dispatch.dynamic.afterKbfsDaemonRpcStatusChanged?.()
     },
     letResetUserBackIn: (id, username) => {
       const f = async () => {
@@ -1995,6 +2076,68 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.pathInfos.set(path, info)
       })
+    },
+    moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => {
+      const f = async () => {
+        const zState = get()
+        if (zState.destinationPicker.source.type === Types.DestinationPickerSource.None) {
+          return
+        }
+
+        const params =
+          zState.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
+            ? [
+                {
+                  dest: pathToRPCPath(
+                    Types.pathConcat(
+                      destinationParentPath,
+                      Types.getPathName(zState.destinationPicker.source.path)
+                    )
+                  ),
+                  opID: makeUUID(),
+                  overwriteExistingFiles: false,
+                  src: pathToRPCPath(zState.destinationPicker.source.path),
+                },
+              ]
+            : zState.destinationPicker.source.source
+                .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
+                .filter(({originalPath}) => !!originalPath)
+                .map(({originalPath, scaledPath}) => ({
+                  dest: pathToRPCPath(
+                    Types.pathConcat(
+                      destinationParentPath,
+                      Types.getLocalPathName(originalPath)
+                      // We use the local path name here since we only care about file name.
+                    )
+                  ),
+                  opID: makeUUID(),
+                  overwriteExistingFiles: false,
+                  src: {
+                    PathType: RPCTypes.PathType.local,
+                    local: Types.getNormalizedLocalPath(
+                      ConfigConstants.useConfigState.getState().incomingShareUseOriginal
+                        ? originalPath
+                        : scaledPath || originalPath
+                    ),
+                  } as RPCTypes.Path,
+                }))
+
+        try {
+          const rpc =
+            type === 'move'
+              ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise
+              : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise
+          await Promise.all(params.map(async p => rpc(p)))
+          await Promise.all(params.map(async ({opID}) => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})))
+          // We get source/dest paths from state rather than action, so we can't
+          // just retry it. If we do want retry in the future we can include those
+          // paths in the action.
+        } catch (e) {
+          errorToActionOrThrow(e, destinationParentPath)
+          return
+        }
+      }
+      Z.ignorePromise(f())
     },
     newFolderRow: parentPath => {
       const parentPathItem = getPathItem(get().pathItems, parentPath)

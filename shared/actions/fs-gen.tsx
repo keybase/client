@@ -6,7 +6,6 @@ import type * as Types from '../constants/types/fs'
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
-export const copy = 'fs:copy'
 export const dismissDownload = 'fs:dismissDownload'
 export const download = 'fs:download'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
@@ -18,7 +17,6 @@ export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
 export const loadPathInfo = 'fs:loadPathInfo'
 export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
-export const move = 'fs:move'
 export const placeholderAction = 'fs:placeholderAction'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
@@ -30,10 +28,6 @@ export const userOut = 'fs:userOut'
 export const createCancelDownload = (payload: {readonly downloadID: string}) => ({
   payload,
   type: cancelDownload as typeof cancelDownload,
-})
-export const createCopy = (payload: {readonly destinationParentPath: Types.Path}) => ({
-  payload,
-  type: copy as typeof copy,
 })
 export const createDismissDownload = (payload: {readonly downloadID: string}) => ({
   payload,
@@ -80,10 +74,6 @@ export const createLoadedPathInfo = (payload: {
   readonly path: Types.Path
   readonly pathInfo: Types.PathInfo
 }) => ({payload, type: loadedPathInfo as typeof loadedPathInfo})
-export const createMove = (payload: {readonly destinationParentPath: Types.Path}) => ({
-  payload,
-  type: move as typeof move,
-})
 export const createPlaceholderAction = (payload?: undefined) => ({
   payload,
   type: placeholderAction as typeof placeholderAction,
@@ -107,7 +97,6 @@ export const createUserOut = (payload?: undefined) => ({payload, type: userOut a
 
 // Action Payloads
 export type CancelDownloadPayload = ReturnType<typeof createCancelDownload>
-export type CopyPayload = ReturnType<typeof createCopy>
 export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
 export type DownloadPayload = ReturnType<typeof createDownload>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
@@ -119,7 +108,6 @@ export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge
 export type LoadPathInfoPayload = ReturnType<typeof createLoadPathInfo>
 export type LoadedFilesTabBadgePayload = ReturnType<typeof createLoadedFilesTabBadge>
 export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
-export type MovePayload = ReturnType<typeof createMove>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
@@ -133,7 +121,6 @@ export type UserOutPayload = ReturnType<typeof createUserOut>
 // prettier-ignore
 export type Actions =
   | CancelDownloadPayload
-  | CopyPayload
   | DismissDownloadPayload
   | DownloadPayload
   | FinishedDownloadWithIntentPayload
@@ -145,7 +132,6 @@ export type Actions =
   | LoadPathInfoPayload
   | LoadedFilesTabBadgePayload
   | LoadedPathInfoPayload
-  | MovePayload
   | PlaceholderActionPayload
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload

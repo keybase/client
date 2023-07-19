@@ -31,67 +31,6 @@ const cancelDownload = async (_: unknown, action: FsGen.CancelDownloadPayload) =
 const dismissDownload = async (_: unknown, action: FsGen.DismissDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID: action.payload.downloadID})
 
-const moveOrCopy = async (_: unknown, action: FsGen.MovePayload | FsGen.CopyPayload) => {
-  const zState = Constants.useState.getState()
-  if (zState.destinationPicker.source.type === Types.DestinationPickerSource.None) {
-    return
-  }
-
-  const params =
-    zState.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
-      ? [
-          {
-            dest: Constants.pathToRPCPath(
-              Types.pathConcat(
-                action.payload.destinationParentPath,
-                Types.getPathName(zState.destinationPicker.source.path)
-              )
-            ),
-            opID: Constants.makeUUID(),
-            overwriteExistingFiles: false,
-            src: Constants.pathToRPCPath(zState.destinationPicker.source.path),
-          },
-        ]
-      : zState.destinationPicker.source.source
-          .map(item => ({originalPath: item.originalPath ?? '', scaledPath: item.scaledPath}))
-          .filter(({originalPath}) => !!originalPath)
-          .map(({originalPath, scaledPath}) => ({
-            dest: Constants.pathToRPCPath(
-              Types.pathConcat(
-                action.payload.destinationParentPath,
-                Types.getLocalPathName(originalPath)
-                // We use the local path name here since we only care about file name.
-              )
-            ),
-            opID: Constants.makeUUID(),
-            overwriteExistingFiles: false,
-            src: {
-              PathType: RPCTypes.PathType.local,
-              local: Types.getNormalizedLocalPath(
-                ConfigConstants.useConfigState.getState().incomingShareUseOriginal
-                  ? originalPath
-                  : scaledPath || originalPath
-              ),
-            } as RPCTypes.Path,
-          }))
-
-  try {
-    const rpc =
-      action.type === FsGen.move
-        ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise
-        : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise
-    await Promise.all(params.map(async p => rpc(p)))
-    await Promise.all(params.map(async ({opID}) => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})))
-    return null
-    // We get source/dest paths from state rather than action, so we can't
-    // just retry it. If we do want retry in the future we can include those
-    // paths in the action.
-  } catch (e) {
-    Constants.errorToActionOrThrow(e, action.payload.destinationParentPath)
-    return
-  }
-}
-
 // At start-up we might have a race where we get connected to a kbfs daemon
 // which dies soon after, and we get an EOF here. So retry for a few times
 // until we get through. After each try we delay for 2s, so this should give us
@@ -111,13 +50,6 @@ const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<void
       logger.warn(`failed to check if we are connected to MDServer : ${error}; n=${n}, throwing`)
       throw error
     }
-  }
-}
-
-const setTlfsAsUnloadedWhenKbfsDaemonDisconnects = () => {
-  const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
-  if (kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
-    Constants.useState.getState().dispatch.setTlfsAsUnloaded()
   }
 }
 
@@ -246,81 +178,6 @@ const loadFilesTabBadge = async () => {
 const userIn = async () => RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID}).catch(() => {})
 const userOut = async () => RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID}).catch(() => {})
 
-let fsBadgeSubscriptionID: string = ''
-
-const subscribeAndLoadFsBadge = () => {
-  const oldFsBadgeSubscriptionID = fsBadgeSubscriptionID
-  fsBadgeSubscriptionID = Constants.makeUUID()
-  const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
-  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
-    if (oldFsBadgeSubscriptionID) {
-      Constants.useState.getState().dispatch.unsubscribe(oldFsBadgeSubscriptionID)
-    }
-    Constants.useState
-      .getState()
-      .dispatch.subscribeNonPath(fsBadgeSubscriptionID, RPCTypes.SubscriptionTopic.filesTabBadge)
-    return FsGen.createLoadFilesTabBadge()
-  } else {
-    return
-  }
-}
-
-let uploadStatusSubscriptionID: string = ''
-const subscribeAndLoadUploadStatus = () => {
-  const oldUploadStatusSubscriptionID = uploadStatusSubscriptionID
-  uploadStatusSubscriptionID = Constants.makeUUID()
-  const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
-
-  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
-    Constants.useState.getState().dispatch.loadUploadStatus()
-  }
-
-  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
-    if (oldUploadStatusSubscriptionID) {
-      Constants.useState.getState().dispatch.unsubscribe(oldUploadStatusSubscriptionID)
-    }
-
-    Constants.useState
-      .getState()
-      .dispatch.subscribeNonPath(uploadStatusSubscriptionID, RPCTypes.SubscriptionTopic.uploadStatus)
-  }
-}
-
-let journalStatusSubscriptionID: string = ''
-const subscribeAndLoadJournalStatus = () => {
-  const oldJournalStatusSubscriptionID = journalStatusSubscriptionID
-  journalStatusSubscriptionID = Constants.makeUUID()
-  const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
-  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
-    if (oldJournalStatusSubscriptionID) {
-      Constants.useState.getState().dispatch.unsubscribe(oldJournalStatusSubscriptionID)
-    }
-    Constants.useState
-      .getState()
-      .dispatch.subscribeNonPath(journalStatusSubscriptionID, RPCTypes.SubscriptionTopic.journalStatus)
-    Constants.useState.getState().dispatch.pollJournalStatus()
-  }
-}
-
-let settingsSubscriptionID: string = ''
-const subscribeAndLoadSettings = () => {
-  const oldSettingsSubscriptionID = settingsSubscriptionID
-  settingsSubscriptionID = Constants.makeUUID()
-  const kbfsDaemonStatus = Constants.useState.getState().kbfsDaemonStatus
-  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
-    Constants.useState.getState().dispatch.loadSettings()
-  }
-
-  if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
-    if (oldSettingsSubscriptionID) {
-      Constants.useState.getState().dispatch.unsubscribe(oldSettingsSubscriptionID)
-    }
-    Constants.useState
-      .getState()
-      .dispatch.subscribeNonPath(settingsSubscriptionID, RPCTypes.SubscriptionTopic.settings)
-  }
-}
-
 const fsRrouteNames = ['fsRoot', 'barePreview']
 const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
   const {prev, next} = action.payload
@@ -334,8 +191,6 @@ const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
 }
 
 const initFS = () => {
-  Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
-  Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
   Container.listenAction(FsGen.userIn, () => {
     Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
   })
@@ -391,10 +246,6 @@ const initFS = () => {
 
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)
-  Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadFsBadge)
-  Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadSettings)
-  Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadUploadStatus)
-  Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadJournalStatus)
 
   Container.listenAction(FsGen.setDebugLevel, setDebugLevel)
 

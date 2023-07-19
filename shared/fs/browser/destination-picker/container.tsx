@@ -1,6 +1,5 @@
 import * as Constants from '../../../constants/fs'
 import * as Container from '../../../util/container'
-import * as FsGen from '../../../actions/fs-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/fs'
 import DestinationPicker from '.'
@@ -64,6 +63,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const nav = Container.useSafeNavigation()
 
   const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
+  const moveOrCopy = Constants.useState(s => s.dispatch.moveOrCopy)
   const dispatchProps = {
     _onBackUp: (currentPath: Types.Path) =>
       Constants.makeActionsForDestinationPickerOpen(
@@ -72,7 +72,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
         nav.safeNavigateAppendPayload
       ).forEach(action => dispatch(action)),
     _onCopyHere: (destinationParentPath: Types.Path) => {
-      dispatch(FsGen.createCopy({destinationParentPath}))
+      moveOrCopy(destinationParentPath, 'copy')
       dispatch(RouteTreeGen.createClearModals())
       dispatch(
         nav.safeNavigateAppendPayload({
@@ -81,7 +81,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       )
     },
     _onMoveHere: (destinationParentPath: Types.Path) => {
-      dispatch(FsGen.createMove({destinationParentPath}))
+      moveOrCopy(destinationParentPath, 'move')
       dispatch(RouteTreeGen.createClearModals())
       dispatch(
         nav.safeNavigateAppendPayload({

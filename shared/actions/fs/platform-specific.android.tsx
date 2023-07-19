@@ -1,5 +1,6 @@
 import logger from '../../logger'
 import * as FsGen from '../fs-gen'
+import * as Z from '../../util/zustand'
 import * as Constants from '../../constants/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Container from '../../util/container'
@@ -45,16 +46,20 @@ const finishedRegularDownload = async (_: unknown, action: FsGen.FinishedRegular
   return null
 }
 
-const configureDownload = async () =>
-  RPCTypes.SimpleFSSimpleFSConfigureDownloadRpcPromise({
-    // Android's cache dir is (when I tried) [app]/cache but Go side uses
-    // [app]/.cache by default, which can't be used for sharing to other apps.
-    cacheDirOverride: fsCacheDir,
-    downloadDirOverride: fsDownloadDir,
-  })
-
 export default function initPlatformSpecific() {
   nativeInit()
   Container.listenAction(FsGen.finishedRegularDownload, finishedRegularDownload)
-  Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, configureDownload)
+
+  Constants.useState.setState(s => {
+    s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = () => {
+      const f = async () =>
+        RPCTypes.SimpleFSSimpleFSConfigureDownloadRpcPromise({
+          // Android's cache dir is (when I tried) [app]/cache but Go side uses
+          // [app]/.cache by default, which can't be used for sharing to other apps.
+          cacheDirOverride: fsCacheDir,
+          downloadDirOverride: fsDownloadDir,
+        })
+      Z.ignorePromise(f())
+    }
+  })
 }

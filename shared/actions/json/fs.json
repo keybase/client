@@ -1,9 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "move": {"destinationParentPath": "Types.Path"},
-    "copy": {"destinationParentPath": "Types.Path"},
-    "kbfsDaemonRpcStatusChanged": {},
     "setSpaceAvailableNotificationThreshold": {
       "spaceAvailableNotificationThreshold": "number"
     },
