@@ -1134,12 +1134,14 @@ type State = Store & {
     commitEdit: (editID: Types.EditID) => void
     discardEdit: (editID: Types.EditID) => void
     dismissRedbar: (index: number) => void
+    dismissUpload: (uploadID: string) => void
     download: (path: Types.Path, type: 'download' | 'share' | 'saveMedia') => void
     driverDisabling: () => void
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
     dynamic: {
-      uploadFromDragAndDrop?: (parentPath: Types.Path, localPaths: Array<string>) => void
+      openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
+      uploadFromDragAndDropDesktop?: (parentPath: Types.Path, localPaths: Array<string>) => void
     }
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
@@ -1400,6 +1402,14 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.errors = [...s.errors.slice(0, index), ...s.errors.slice(index + 1)]
       })
     },
+    dismissUpload: uploadID => {
+      const f = async () => {
+        try {
+          await RPCTypes.SimpleFSSimpleFSDismissUploadRpcPromise({uploadID})
+        } catch {}
+      }
+      Z.ignorePromise(f())
+    },
     download: (path, type) => {
       const f = async () => {
         await requestPermissionsToWrite()
@@ -1441,7 +1451,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     dynamic: {
-      uploadFromDragAndDrop: undefined,
+      openLocalPathInSystemFileManagerDesktop: undefined,
+      uploadFromDragAndDropDesktop: undefined,
     },
     editError: (editID, error) => {
       set(s => {

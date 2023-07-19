@@ -1,17 +1,17 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Container from '../../../util/container'
-import * as React from 'react'
-import * as FsGen from '../../../actions/fs-gen'
-import type * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as Container from '../../../util/container'
+import * as FSConstants from '../../../constants/fs'
 import * as Kb from '../../../common-adapters'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as React from 'react'
 import * as Styles from '../../../styles'
-import {formatAudioRecordDuration, formatTimeForMessages} from '../../../util/timestamp'
-import {useMessagePopup} from '../messages/message-popup'
 import chunk from 'lodash/chunk'
-import {infoPanelWidth} from './common'
+import type * as Types from '../../../constants/types/chat2'
 import type {Section} from '../../../common-adapters/section-list'
+import {formatAudioRecordDuration, formatTimeForMessages} from '../../../util/timestamp'
+import {infoPanelWidth} from './common'
+import {useMessagePopup} from '../messages/message-popup'
 
 const monthNames = [
   'January',
@@ -373,7 +373,7 @@ const styles = Styles.styleSheetCreate(
         overflow: 'hidden',
         position: 'relative',
       },
-    } as const)
+    }) as const
 )
 
 const linkStyleOverride = {
@@ -466,9 +466,11 @@ export const useAttachmentSections = (
     }
   }
 
+  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const onShowInFinder = (message: Types.MessageAttachment) =>
-    message.downloadPath &&
-    dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
+    message.downloadPath && openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
 
   const commonSections: Array<InfoPanelSection> = [
     ...p.commonSections,
@@ -551,7 +553,7 @@ export const useAttachmentSections = (
                       ? ThumbTyp.VIDEO
                       : ThumbTyp.IMAGE,
                   width: m.previewWidth,
-                } as Thumb)
+                }) as Thumb
             )
           ).map(month => {
             const dataUnchunked = month.data.map(thumb => ({

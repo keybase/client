@@ -9,7 +9,6 @@ export const cancelDownload = 'fs:cancelDownload'
 export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
 export const dismissDownload = 'fs:dismissDownload'
-export const dismissUpload = 'fs:dismissUpload'
 export const download = 'fs:download'
 export const driverDisable = 'fs:driverDisable'
 export const driverDisabling = 'fs:driverDisabling'
@@ -28,7 +27,6 @@ export const loadedPathInfo = 'fs:loadedPathInfo'
 export const move = 'fs:move'
 export const openAndUpload = 'fs:openAndUpload'
 export const openFilesFromWidget = 'fs:openFilesFromWidget'
-export const openLocalPathInSystemFileManager = 'fs:openLocalPathInSystemFileManager'
 export const openPathInSystemFileManager = 'fs:openPathInSystemFileManager'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const pickAndUpload = 'fs:pickAndUpload'
@@ -62,10 +60,6 @@ export const createDeleteFile = (payload: {readonly path: Types.Path}) => ({
 export const createDismissDownload = (payload: {readonly downloadID: string}) => ({
   payload,
   type: dismissDownload as typeof dismissDownload,
-})
-export const createDismissUpload = (payload: {readonly uploadID: string}) => ({
-  payload,
-  type: dismissUpload as typeof dismissUpload,
 })
 export const createDownload = (payload: {readonly path: Types.Path}) => ({
   payload,
@@ -140,10 +134,6 @@ export const createOpenFilesFromWidget = (payload: {
   readonly path: Types.Path
   readonly type: Types.PathType
 }) => ({payload, type: openFilesFromWidget as typeof openFilesFromWidget})
-export const createOpenLocalPathInSystemFileManager = (payload: {readonly localPath: string}) => ({
-  payload,
-  type: openLocalPathInSystemFileManager as typeof openLocalPathInSystemFileManager,
-})
 export const createOpenPathInSystemFileManager = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: openPathInSystemFileManager as typeof openPathInSystemFileManager,
@@ -210,7 +200,6 @@ export type CancelDownloadPayload = ReturnType<typeof createCancelDownload>
 export type CopyPayload = ReturnType<typeof createCopy>
 export type DeleteFilePayload = ReturnType<typeof createDeleteFile>
 export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
-export type DismissUploadPayload = ReturnType<typeof createDismissUpload>
 export type DownloadPayload = ReturnType<typeof createDownload>
 export type DriverDisablePayload = ReturnType<typeof createDriverDisable>
 export type DriverDisablingPayload = ReturnType<typeof createDriverDisabling>
@@ -229,9 +218,6 @@ export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
 export type MovePayload = ReturnType<typeof createMove>
 export type OpenAndUploadPayload = ReturnType<typeof createOpenAndUpload>
 export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWidget>
-export type OpenLocalPathInSystemFileManagerPayload = ReturnType<
-  typeof createOpenLocalPathInSystemFileManager
->
 export type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPathInSystemFileManager>
 export type OpenSecurityPreferencesPayload = ReturnType<typeof createOpenSecurityPreferences>
 export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
@@ -258,7 +244,6 @@ export type Actions =
   | CopyPayload
   | DeleteFilePayload
   | DismissDownloadPayload
-  | DismissUploadPayload
   | DownloadPayload
   | DriverDisablePayload
   | DriverDisablingPayload
@@ -277,7 +262,6 @@ export type Actions =
   | MovePayload
   | OpenAndUploadPayload
   | OpenFilesFromWidgetPayload
-  | OpenLocalPathInSystemFileManagerPayload
   | OpenPathInSystemFileManagerPayload
   | OpenSecurityPreferencesPayload
   | PickAndUploadPayload

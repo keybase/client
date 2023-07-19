@@ -31,13 +31,6 @@ const cancelDownload = async (_: unknown, action: FsGen.CancelDownloadPayload) =
 const dismissDownload = async (_: unknown, action: FsGen.DismissDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID: action.payload.downloadID})
 
-const dismissUpload = async (_: Container.TypedState, action: FsGen.DismissUploadPayload) => {
-  try {
-    await RPCTypes.SimpleFSSimpleFSDismissUploadRpcPromise({uploadID: action.payload.uploadID})
-  } catch {}
-  return false
-}
-
 const letResetUserBackIn = async (_: unknown, action: FsGen.LetResetUserBackInPayload) => {
   try {
     await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({
@@ -385,7 +378,6 @@ const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
 }
 
 const initFS = () => {
-  Container.listenAction(FsGen.dismissUpload, dismissUpload)
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
   Container.listenAction(FsGen.letResetUserBackIn, letResetUserBackIn)
   Container.listenAction(FsGen.deleteFile, deleteFile)

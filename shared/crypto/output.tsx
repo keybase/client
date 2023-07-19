@@ -1,20 +1,20 @@
-import * as React from 'react'
-import * as Constants from '../constants/crypto'
-import * as ConfigConstants from '../constants/config'
-import * as Container from '../util/container'
-import type * as Types from '../constants/types/crypto'
-import * as FSGen from '../actions/fs-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as ConfigConstants from '../constants/config'
+import * as Constants from '../constants/crypto'
+import * as FSConstants from '../constants/fs'
+import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Platforms from '../constants/platform'
-import {humanizeBytes} from '../constants/fs'
-import capitalize from 'lodash/capitalize'
-import {getStyle} from '../common-adapters/text'
 import * as Path from '../util/path'
-import {pickFiles} from '../util/pick-files'
+import * as Platforms from '../constants/platform'
+import * as React from 'react'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Styles from '../styles'
+import capitalize from 'lodash/capitalize'
 import shallowEqual from 'shallowequal'
+import type * as Types from '../constants/types/crypto'
+import {getStyle} from '../common-adapters/text'
+import {humanizeBytes} from '../constants/fs'
+import {pickFiles} from '../util/pick-files'
 
 type OutputProps = {
   operation: Types.Operations
@@ -198,8 +198,11 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
 
   const actionsDisabled = waiting || !outputValid
 
+  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const onShowInFinder = () => {
-    dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output.stringValue()}))
+    openLocalPathInSystemFileManagerDesktop?.(output.stringValue())
   }
 
   const onReplyInChat = (username: Container.HiddenString) => {
@@ -364,7 +367,6 @@ const outputFileIcon = new Map([
 export const OperationOutput = (props: OutputProps) => {
   const {operation} = props
   const textType = outputTextType.get(operation)
-  const dispatch = Container.useDispatch()
 
   const {
     inputType,
@@ -380,9 +382,12 @@ export const OperationOutput = (props: OutputProps) => {
   }, shallowEqual)
   const output = _output.stringValue()
 
+  const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const onShowInFinder = () => {
     if (!output) return
-    dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
+    openLocalPathInSystemFileManagerDesktop?.(output)
   }
 
   const waiting = Container.useAnyWaiting(Constants.waitingKey)

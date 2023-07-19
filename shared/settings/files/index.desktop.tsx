@@ -58,8 +58,11 @@ const FinderIntegration = (props: Props) => {
   const preferredMountDirs = Constants.useState(s => s.sfmi.preferredMountDirs)
   const displayingMountDir = preferredMountDirs[0] || ''
   const dispatch = Container.useDispatch()
+  const openLocalPathInSystemFileManagerDesktop = Constants.useState(
+    s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
+  )
   const openMount = displayingMountDir
-    ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: displayingMountDir}))
+    ? () => openLocalPathInSystemFileManagerDesktop?.(displayingMountDir)
     : undefined
   const disable = () => dispatch(FsGen.createDriverDisable())
   return Platform.isDarwin || Platform.isWindows ? (
@@ -189,5 +192,5 @@ const styles = Styles.styleSheetCreate(
         marginRight: Styles.globalMargins.tiny,
         width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
       },
-    } as const)
+    }) as const
 )

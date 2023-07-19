@@ -23,23 +23,6 @@ const {exitApp, windowsCheckMountFromOtherDokanInstall, installCachedDokan, unin
 const _openPathInSystemFileManagerPromise = async (openPath: string, isFolder: boolean): Promise<void> =>
   openPathInFinder?.(openPath, isFolder)
 
-const openLocalPathInSystemFileManager = async (
-  _: unknown,
-  action: FsGen.OpenLocalPathInSystemFileManagerPayload
-) => {
-  try {
-    if (getPathType) {
-      const pathType = await getPathType(action.payload.localPath)
-      return _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory')
-    } else {
-      throw new Error('impossible')
-    }
-  } catch (e) {
-    Constants.errorToActionOrThrow(e)
-    return
-  }
-}
-
 const escapeBackslash = isWindows
   ? (pathElem: string): string =>
       pathElem
@@ -262,7 +245,6 @@ const setSfmiBannerDismissed = async (
 }
 
 const initPlatformSpecific = () => {
-  Container.listenAction(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   Container.listenAction(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
   if (!isLinux) {
     Container.listenAction([FsGen.kbfsDaemonRpcStatusChanged, FsGen.refreshDriverStatus], refreshDriverStatus)
@@ -302,7 +284,7 @@ const initPlatformSpecific = () => {
   )
 
   Constants.useState.setState(s => {
-    s.dispatch.dynamic.uploadFromDragAndDrop = (parentPath, localPaths) => {
+    s.dispatch.dynamic.uploadFromDragAndDropDesktop = (parentPath, localPaths) => {
       const {upload} = Constants.useState.getState().dispatch
       const f = async () => {
         if (isDarwin && darwinCopyToKBFSTempUploadFile) {
@@ -313,6 +295,20 @@ const initPlatformSpecific = () => {
           lp.forEach(localPath => upload(parentPath, localPath))
         } else {
           localPaths.forEach(localPath => upload(parentPath, localPath))
+        }
+      }
+      Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop = localPath => {
+      const f = async () => {
+        try {
+          if (getPathType) {
+            const pathType = await getPathType(localPath)
+            await _openPathInSystemFileManagerPromise(localPath, pathType === 'directory')
+          }
+        } catch (e) {
+          Constants.errorToActionOrThrow(e)
         }
       }
       Z.ignorePromise(f())
