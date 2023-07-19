@@ -9,6 +9,7 @@ export const closeUnlockFolders = 'remote:closeUnlockFolders'
 export const dumpLogs = 'remote:dumpLogs'
 export const installerRan = 'remote:installerRan'
 export const link = 'remote:link'
+export const openFilesFromWidget = 'remote:openFilesFromWidget'
 export const openPathInSystemFileManager = 'remote:openPathInSystemFileManager'
 export const pinentryOnCancel = 'remote:pinentryOnCancel'
 export const pinentryOnSubmit = 'remote:pinentryOnSubmit'
@@ -96,6 +97,10 @@ export const createDumpLogs = (payload: {readonly reason: 'quitting through menu
   type: dumpLogs as typeof dumpLogs,
 })
 export const createLink = (payload: {readonly link: string}) => ({payload, type: link as typeof link})
+export const createOpenFilesFromWidget = (payload: {readonly path: string}) => ({
+  payload,
+  type: openFilesFromWidget as typeof openFilesFromWidget,
+})
 export const createOpenPathInSystemFileManager = (payload: {readonly path: string}) => ({
   payload,
   type: openPathInSystemFileManager as typeof openPathInSystemFileManager,
@@ -149,6 +154,7 @@ export type CloseUnlockFoldersPayload = ReturnType<typeof createCloseUnlockFolde
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LinkPayload = ReturnType<typeof createLink>
+export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWidget>
 export type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPathInSystemFileManager>
 export type PinentryOnCancelPayload = ReturnType<typeof createPinentryOnCancel>
 export type PinentryOnSubmitPayload = ReturnType<typeof createPinentryOnSubmit>
@@ -175,6 +181,7 @@ export type Actions =
   | DumpLogsPayload
   | InstallerRanPayload
   | LinkPayload
+  | OpenFilesFromWidgetPayload
   | OpenPathInSystemFileManagerPayload
   | PinentryOnCancelPayload
   | PinentryOnSubmitPayload

@@ -1144,6 +1144,7 @@ type State = Store & {
       afterDriverDisable?: () => void
       afterDriverDisabling?: () => void
       afterDriverEnabled?: (isRetry: boolean) => void
+      openFilesFromWidgetDesktop?: (path: Types.Path) => void
       openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
       openPathInSystemFileManagerDesktop?: (path: Types.Path) => void
       openSecurityPreferencesDesktop?: () => void
@@ -1468,6 +1469,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       afterDriverDisable: undefined,
       afterDriverDisabling: undefined,
       afterDriverEnabled: undefined,
+      openFilesFromWidgetDesktop: undefined,
       openLocalPathInSystemFileManagerDesktop: undefined,
       openPathInSystemFileManagerDesktop: undefined,
       openSecurityPreferencesDesktop: undefined,

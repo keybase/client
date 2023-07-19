@@ -1,6 +1,9 @@
 {
   "prelude": ["import type HiddenString from '../util/hidden-string'"],
   "actions": {
+    "openFilesFromWidget": {
+      "path": "string"
+    },
     "openPathInSystemFileManager": {"path": "string"},
     "closeUnlockFolders": {},
     "unlockFoldersSubmitPaperKey": {"paperKey": "string"},

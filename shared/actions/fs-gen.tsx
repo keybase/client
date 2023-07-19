@@ -10,7 +10,6 @@ export const copy = 'fs:copy'
 export const deleteFile = 'fs:deleteFile'
 export const dismissDownload = 'fs:dismissDownload'
 export const download = 'fs:download'
-export const finishManualConflictResolution = 'fs:finishManualConflictResolution'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
@@ -23,14 +22,11 @@ export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
 export const move = 'fs:move'
 export const openAndUpload = 'fs:openAndUpload'
-export const openFilesFromWidget = 'fs:openFilesFromWidget'
-export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
-export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
 export const userIn = 'fs:userIn'
 export const userOut = 'fs:userOut'
@@ -55,10 +51,6 @@ export const createDismissDownload = (payload: {readonly downloadID: string}) =>
 export const createDownload = (payload: {readonly path: Types.Path}) => ({
   payload,
   type: download as typeof download,
-})
-export const createFinishManualConflictResolution = (payload: {readonly localViewTlfPath: Types.Path}) => ({
-  payload,
-  type: finishManualConflictResolution as typeof finishManualConflictResolution,
 })
 export const createFinishedDownloadWithIntent = (payload: {
   readonly downloadID: string
@@ -109,14 +101,6 @@ export const createOpenAndUpload = (payload: {
   readonly type: Types.OpenDialogType
   readonly parentPath: Types.Path
 }) => ({payload, type: openAndUpload as typeof openAndUpload})
-export const createOpenFilesFromWidget = (payload: {
-  readonly path: Types.Path
-  readonly type: Types.PathType
-}) => ({payload, type: openFilesFromWidget as typeof openFilesFromWidget})
-export const createOpenSecurityPreferences = (payload?: undefined) => ({
-  payload,
-  type: openSecurityPreferences as typeof openSecurityPreferences,
-})
 export const createPickAndUpload = (payload: {
   readonly type: Types.MobilePickType
   readonly parentPath: Types.Path
@@ -139,10 +123,6 @@ export const createSetSpaceAvailableNotificationThreshold = (payload: {
   payload,
   type: setSpaceAvailableNotificationThreshold as typeof setSpaceAvailableNotificationThreshold,
 })
-export const createStartManualConflictResolution = (payload: {readonly tlfPath: Types.Path}) => ({
-  payload,
-  type: startManualConflictResolution as typeof startManualConflictResolution,
-})
 export const createUserFileEditsLoad = (payload?: undefined) => ({
   payload,
   type: userFileEditsLoad as typeof userFileEditsLoad,
@@ -156,7 +136,6 @@ export type CopyPayload = ReturnType<typeof createCopy>
 export type DeleteFilePayload = ReturnType<typeof createDeleteFile>
 export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
 export type DownloadPayload = ReturnType<typeof createDownload>
-export type FinishManualConflictResolutionPayload = ReturnType<typeof createFinishManualConflictResolution>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
 export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedRegularDownload>
 export type KbfsDaemonRpcStatusChangedPayload = ReturnType<typeof createKbfsDaemonRpcStatusChanged>
@@ -169,8 +148,6 @@ export type LoadedFilesTabBadgePayload = ReturnType<typeof createLoadedFilesTabB
 export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
 export type MovePayload = ReturnType<typeof createMove>
 export type OpenAndUploadPayload = ReturnType<typeof createOpenAndUpload>
-export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWidget>
-export type OpenSecurityPreferencesPayload = ReturnType<typeof createOpenSecurityPreferences>
 export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
@@ -178,7 +155,6 @@ export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
 export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
   typeof createSetSpaceAvailableNotificationThreshold
 >
-export type StartManualConflictResolutionPayload = ReturnType<typeof createStartManualConflictResolution>
 export type UserFileEditsLoadPayload = ReturnType<typeof createUserFileEditsLoad>
 export type UserInPayload = ReturnType<typeof createUserIn>
 export type UserOutPayload = ReturnType<typeof createUserOut>
@@ -191,7 +167,6 @@ export type Actions =
   | DeleteFilePayload
   | DismissDownloadPayload
   | DownloadPayload
-  | FinishManualConflictResolutionPayload
   | FinishedDownloadWithIntentPayload
   | FinishedRegularDownloadPayload
   | KbfsDaemonRpcStatusChangedPayload
@@ -204,14 +179,11 @@ export type Actions =
   | LoadedPathInfoPayload
   | MovePayload
   | OpenAndUploadPayload
-  | OpenFilesFromWidgetPayload
-  | OpenSecurityPreferencesPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload
   | SetSpaceAvailableNotificationThresholdPayload
-  | StartManualConflictResolutionPayload
   | UserFileEditsLoadPayload
   | UserInPayload
   | UserOutPayload

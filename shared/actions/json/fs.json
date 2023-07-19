@@ -1,10 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "openFilesFromWidget": {
-      "path": "Types.Path",
-      "type": "Types.PathType"
-    },
     "letResetUserBackIn": {
       "id": "RPCTypes.TeamID",
       "username": "string"

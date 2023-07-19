@@ -134,15 +134,6 @@ const onInstallCachedDokan = async () => {
   }
 }
 
-const openFilesFromWidget = (_: unknown, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
-  ConfigConstants.useConfigState.getState().dispatch.showMain()
-  return [
-    ...(path
-      ? [Constants.makeActionForOpenPathInFilesTab(path)]
-      : ([RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]})] as any)),
-  ]
-}
-
 const initPlatformSpecific = () => {
   if (!isLinux) {
     Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, () => {
@@ -161,7 +152,6 @@ const initPlatformSpecific = () => {
       Constants.useState.getState().dispatch.upload(action.payload.parentPath, localPath)
     )
   })
-  Container.listenAction(FsGen.openFilesFromWidget, openFilesFromWidget)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
@@ -302,6 +292,16 @@ const initPlatformSpecific = () => {
         await openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
       }
       Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.openFilesFromWidgetDesktop = path => {
+      const reduxDispatch = Z.getReduxDispatch()
+      ConfigConstants.useConfigState.getState().dispatch.showMain()
+      if (path) {
+        reduxDispatch(Constants.makeActionForOpenPathInFilesTab(path))
+      } else {
+        reduxDispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]}))
+      }
     }
   })
 }

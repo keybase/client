@@ -2,7 +2,7 @@ import * as Container from '../util/container'
 import * as ConfigConstants from '../constants/config'
 import * as ProfileConstants from '../constants/profile'
 import * as FsTypes from '../constants/types/fs'
-import * as FsGen from '../actions/fs-gen'
+import * as RemoteGen from '../actions/remote-gen'
 import * as FsUtil from '../util/kbfs'
 import * as TimestampUtil from '../util/timestamp'
 import {FilesPreview} from './files.desktop'
@@ -25,8 +25,7 @@ const FilesContainer = () => {
               const tlfType = FsTypes.getPathVisibility(c.tlf) || FsTypes.TlfType.Private
               return {
                 onClickAvatar: () => showUserProfile(c.writer),
-                onSelectPath: () =>
-                  dispatch(FsGen.createOpenFilesFromWidget({path: c.tlf, type: FsTypes.PathType.Folder})),
+                onSelectPath: () => c.tlf && dispatch(RemoteGen.createOpenFilesFromWidget({path: c.tlf})),
                 participants: participants || [],
                 path: c.tlf,
                 teamname: teamname || '',
@@ -36,8 +35,7 @@ const FilesContainer = () => {
                 tlfType,
                 updates: c.updates.map(({path, uploading}) => {
                   return {
-                    onClick: () =>
-                      dispatch(FsGen.createOpenFilesFromWidget({path, type: FsTypes.PathType.File})),
+                    onClick: () => path && dispatch(RemoteGen.createOpenFilesFromWidget({path})),
                     path,
                     tlfType,
                     uploading,
