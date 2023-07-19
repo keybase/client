@@ -143,15 +143,6 @@ const initPlatformSpecific = () => {
       Constants.useState.getState().dispatch.dynamic.refreshMountDirsDesktop?.()
     })
   }
-  Container.listenAction(FsGen.openAndUpload, async (_, action) => {
-    const localPaths = await (selectFilesToUploadDialog?.(
-      action.payload.type,
-      action.payload.parentPath ?? undefined
-    ) ?? Promise.resolve([]))
-    localPaths.forEach(localPath =>
-      Constants.useState.getState().dispatch.upload(action.payload.parentPath, localPath)
-    )
-  })
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
@@ -302,6 +293,15 @@ const initPlatformSpecific = () => {
       } else {
         reduxDispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]}))
       }
+    }
+
+    s.dispatch.dynamic.openAndUploadDesktop = (type, parentPath) => {
+      const f = async () => {
+        const localPaths = await (selectFilesToUploadDialog?.(type, parentPath ?? undefined) ??
+          Promise.resolve([]))
+        localPaths.forEach(localPath => Constants.useState.getState().dispatch.upload(parentPath, localPath))
+      }
+      Z.ignorePromise(f())
     }
   })
 }

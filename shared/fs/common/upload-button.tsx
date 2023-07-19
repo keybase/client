@@ -1,9 +1,7 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
-import * as FsGen from '../../actions/fs-gen'
 import * as Platforms from '../../constants/platform'
 import type * as Styles from '../../styles'
 
@@ -74,30 +72,31 @@ const UploadButton = (props: UploadButtonProps) => {
 
 export default (ownProps: OwnProps) => {
   const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, ownProps.path))
-  const dispatch = Container.useDispatch()
+  const openAndUploadDesktop = Constants.useState(s => s.dispatch.dynamic.openAndUploadDesktop)
+  const pickAndUploadMobile = Constants.useState(s => s.dispatch.dynamic.pickAndUploadMobile)
   const _openAndUploadBoth = () => {
-    dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Both}))
+    openAndUploadDesktop?.(Types.OpenDialogType.Both, ownProps.path)
   }
   const openAndUploadBoth = Platforms.isDarwin ? _openAndUploadBoth : undefined
   const _openAndUploadDirectory = () => {
-    dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.Directory}))
+    openAndUploadDesktop?.(Types.OpenDialogType.Directory, ownProps.path)
   }
   const openAndUploadDirectory =
     Platforms.isElectron && !Platforms.isDarwin ? _openAndUploadDirectory : undefined
   const _openAndUploadFile = () => {
-    dispatch(FsGen.createOpenAndUpload({parentPath: ownProps.path, type: Types.OpenDialogType.File}))
+    openAndUploadDesktop?.(Types.OpenDialogType.File, ownProps.path)
   }
   const openAndUploadFile = Platforms.isElectron && !Platforms.isDarwin ? _openAndUploadFile : undefined
   const _pickAndUploadMixed = () => {
-    dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Mixed}))
+    pickAndUploadMobile?.(Types.MobilePickType.Mixed, ownProps.path)
   }
   const pickAndUploadMixed = Platforms.isIOS ? _pickAndUploadMixed : undefined
   const _pickAndUploadPhoto = () => {
-    dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Photo}))
+    pickAndUploadMobile?.(Types.MobilePickType.Photo, ownProps.path)
   }
   const pickAndUploadPhoto = Platforms.isAndroid ? _pickAndUploadPhoto : undefined
   const _pickAndUploadVideo = () => {
-    dispatch(FsGen.createPickAndUpload({parentPath: ownProps.path, type: Types.MobilePickType.Video}))
+    pickAndUploadMobile?.(Types.MobilePickType.Video, ownProps.path)
   }
   const pickAndUploadVideo = Platforms.isAndroid ? _pickAndUploadVideo : undefined
 

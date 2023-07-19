@@ -1145,6 +1145,8 @@ type State = Store & {
       afterDriverDisabling?: () => void
       afterDriverEnabled?: (isRetry: boolean) => void
       openFilesFromWidgetDesktop?: (path: Types.Path) => void
+      openAndUploadDesktop?: (type: Types.OpenDialogType, parentPath: Types.Path) => void
+      pickAndUploadMobile?: (type: Types.MobilePickType, parentPath: Types.Path) => void
       openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
       openPathInSystemFileManagerDesktop?: (path: Types.Path) => void
       openSecurityPreferencesDesktop?: () => void
@@ -1163,6 +1165,7 @@ type State = Store & {
     journalUpdate: (syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: number) => void
     kbfsDaemonOnlineStatusChanged: (onlineStatus: RPCTypes.KbfsOnlineStatus) => void
     kbfsDaemonRpcStatusChanged: (rpcStatus: Types.KbfsDaemonRpcStatus) => void
+    letResetUserBackIn: (id: RPCTypes.TeamID, username: string) => void
     loadAdditionalTlf: (tlfPath: Types.Path) => void
     loadFileContext: (path: Types.Path) => void
     loadPathMetadata: (path: Types.Path) => void
@@ -1469,10 +1472,12 @@ export const useState = Z.createZustand<State>((set, get) => {
       afterDriverDisable: undefined,
       afterDriverDisabling: undefined,
       afterDriverEnabled: undefined,
+      openAndUploadDesktop: undefined,
       openFilesFromWidgetDesktop: undefined,
       openLocalPathInSystemFileManagerDesktop: undefined,
       openPathInSystemFileManagerDesktop: undefined,
       openSecurityPreferencesDesktop: undefined,
+      pickAndUploadMobile: undefined,
       refreshDriverStatusDesktop: undefined,
       refreshMountDirsDesktop: undefined,
       setSfmiBannerDismissedDesktop: undefined,
@@ -1750,6 +1755,16 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.kbfsDaemonStatus.rpcStatus = rpcStatus
       })
       reduxDispatch(FsGen.createKbfsDaemonRpcStatusChanged())
+    },
+    letResetUserBackIn: (id, username) => {
+      const f = async () => {
+        try {
+          await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username})
+        } catch (error) {
+          errorToActionOrThrow(error)
+        }
+      }
+      Z.ignorePromise(f())
     },
     loadAdditionalTlf: tlfPath => {
       const f = async () => {

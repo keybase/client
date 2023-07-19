@@ -13,7 +13,6 @@ export const download = 'fs:download'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
-export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
@@ -21,8 +20,6 @@ export const loadPathInfo = 'fs:loadPathInfo'
 export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
 export const loadedPathInfo = 'fs:loadedPathInfo'
 export const move = 'fs:move'
-export const openAndUpload = 'fs:openAndUpload'
-export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
@@ -65,10 +62,6 @@ export const createKbfsDaemonRpcStatusChanged = (payload?: undefined) => ({
   payload,
   type: kbfsDaemonRpcStatusChanged as typeof kbfsDaemonRpcStatusChanged,
 })
-export const createLetResetUserBackIn = (payload: {
-  readonly id: RPCTypes.TeamID
-  readonly username: string
-}) => ({payload, type: letResetUserBackIn as typeof letResetUserBackIn})
 export const createLoadDownloadInfo = (payload: {readonly downloadID: string}) => ({
   payload,
   type: loadDownloadInfo as typeof loadDownloadInfo,
@@ -97,14 +90,6 @@ export const createMove = (payload: {readonly destinationParentPath: Types.Path}
   payload,
   type: move as typeof move,
 })
-export const createOpenAndUpload = (payload: {
-  readonly type: Types.OpenDialogType
-  readonly parentPath: Types.Path
-}) => ({payload, type: openAndUpload as typeof openAndUpload})
-export const createPickAndUpload = (payload: {
-  readonly type: Types.MobilePickType
-  readonly parentPath: Types.Path
-}) => ({payload, type: pickAndUpload as typeof pickAndUpload})
 export const createPlaceholderAction = (payload?: undefined) => ({
   payload,
   type: placeholderAction as typeof placeholderAction,
@@ -139,7 +124,6 @@ export type DownloadPayload = ReturnType<typeof createDownload>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
 export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedRegularDownload>
 export type KbfsDaemonRpcStatusChangedPayload = ReturnType<typeof createKbfsDaemonRpcStatusChanged>
-export type LetResetUserBackInPayload = ReturnType<typeof createLetResetUserBackIn>
 export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
 export type LoadDownloadStatusPayload = ReturnType<typeof createLoadDownloadStatus>
 export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge>
@@ -147,8 +131,6 @@ export type LoadPathInfoPayload = ReturnType<typeof createLoadPathInfo>
 export type LoadedFilesTabBadgePayload = ReturnType<typeof createLoadedFilesTabBadge>
 export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
 export type MovePayload = ReturnType<typeof createMove>
-export type OpenAndUploadPayload = ReturnType<typeof createOpenAndUpload>
-export type PickAndUploadPayload = ReturnType<typeof createPickAndUpload>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
@@ -170,7 +152,6 @@ export type Actions =
   | FinishedDownloadWithIntentPayload
   | FinishedRegularDownloadPayload
   | KbfsDaemonRpcStatusChangedPayload
-  | LetResetUserBackInPayload
   | LoadDownloadInfoPayload
   | LoadDownloadStatusPayload
   | LoadFilesTabBadgePayload
@@ -178,8 +159,6 @@ export type Actions =
   | LoadedFilesTabBadgePayload
   | LoadedPathInfoPayload
   | MovePayload
-  | OpenAndUploadPayload
-  | PickAndUploadPayload
   | PlaceholderActionPayload
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload

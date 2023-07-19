@@ -3,7 +3,6 @@ import * as TrackerConstants from '../../../constants/tracker2'
 import * as Constants from '../../../constants/fs'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Types from '../../../constants/types/fs'
-import * as FsGen from '../../../actions/fs-gen'
 import type * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Container from '../../../util/container'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
@@ -17,6 +16,7 @@ type OwnProps = {
 const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _tlf = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, path))
+  const letResetUserBackIn = Constants.useState(s => s.dispatch.letResetUserBackIn)
   const dispatch = Container.useDispatch()
   const _onOpenWithoutResetUsers = React.useCallback(
     (currPath: Types.Path, users: {[K in string]: boolean}) => {
@@ -30,9 +30,9 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   )
   const _onReAddToTeam = React.useCallback(
     (id: RPCTypes.TeamID, username: string) => {
-      dispatch(FsGen.createLetResetUserBackIn({id, username}))
+      letResetUserBackIn(id, username)
     },
-    [dispatch]
+    [letResetUserBackIn]
   )
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
 

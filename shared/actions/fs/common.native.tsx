@@ -1,6 +1,7 @@
 import logger from '../../logger'
 import * as FsGen from '../fs-gen'
 import * as Types from '../../constants/types/fs'
+import * as Z from '../../util/zustand'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
@@ -40,18 +41,22 @@ const finishedDownloadWithIntent = async (_: unknown, action: FsGen.FinishedDown
 }
 
 export default function initNative() {
-  Container.listenAction(FsGen.pickAndUpload, async (_, action) => {
-    try {
-      const result = await launchImageLibraryAsync(action.payload.type, true, true)
-      if (result.canceled) return
-      result.assets.map(r =>
-        Constants.useState
-          .getState()
-          .dispatch.upload(action.payload.parentPath, Styles.unnormalizePath(r.uri))
-      )
-    } catch (e) {
-      Constants.errorToActionOrThrow(e)
+  Container.listenAction(FsGen.finishedDownloadWithIntent, finishedDownloadWithIntent)
+
+  Constants.useState.setState(s => {
+    s.dispatch.dynamic.pickAndUploadMobile = (type, parentPath) => {
+      const f = async () => {
+        try {
+          const result = await launchImageLibraryAsync(type, true, true)
+          if (result.canceled) return
+          result.assets.map(r =>
+            Constants.useState.getState().dispatch.upload(parentPath, Styles.unnormalizePath(r.uri))
+          )
+        } catch (e) {
+          Constants.errorToActionOrThrow(e)
+        }
+      }
+      Z.ignorePromise(f())
     }
   })
-  Container.listenAction(FsGen.finishedDownloadWithIntent, finishedDownloadWithIntent)
 }
