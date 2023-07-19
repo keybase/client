@@ -190,7 +190,7 @@ type State = Store & {
     changedFocus: (f: boolean) => void
     checkForUpdate: () => void
     dumpLogs: (reason: string) => Promise<void>
-    eventFromRemoteWindows: (action: RemoteGen.Actions) => boolean
+    eventFromRemoteWindows: (action: RemoteGen.Actions) => void
     filePickerError: (error: Error) => void
     initAppUpdateLoop: () => void
     initNotifySound: () => void
@@ -311,15 +311,14 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           Z.ignorePromise(f())
           break
         }
-        case RemoteGen.saltpackFileOpen:
-          {
-            const f = async () => {
-              const DConstants = await import('./deeplinks')
-              DConstants.useState.getState().dispatch.handleSaltPackOpen(action.payload.path)
-            }
-            Z.ignorePromise(f())
+        case RemoteGen.saltpackFileOpen: {
+          const f = async () => {
+            const DConstants = await import('./deeplinks')
+            DConstants.useState.getState().dispatch.handleSaltPackOpen(action.payload.path)
           }
+          Z.ignorePromise(f())
           break
+        }
         case RemoteGen.pinentryOnCancel: {
           const f = async () => {
             const PConstants = await import('./pinentry')
@@ -450,10 +449,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         case RemoteGen.setSystemDarkMode:
           DarkMode.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
           break
-        // default:
-        //   return false
       }
-      return true
     },
     filePickerError: error => {
       get().dispatch.dynamic.onFilePickerError?.(error)
