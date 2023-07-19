@@ -170,11 +170,6 @@ const initPlatformSpecific = () => {
     )
   })
   Container.listenAction(FsGen.openFilesFromWidget, openFilesFromWidget)
-  if (isWindows) {
-    Container.listenAction(FsGen.driverDisabling, onUninstallDokan)
-  } else {
-    Container.listenAction(FsGen.driverDisabling, uninstallKBFS)
-  }
   Container.listenAction(FsGen.openSecurityPreferences, openSecurityPreferences)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
@@ -295,6 +290,17 @@ const initPlatformSpecific = () => {
           await uninstallDokanConfirm()
         } else {
           await uninstallKBFSConfirm()
+        }
+      }
+      Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.afterDriverDisabling = () => {
+      const f = async () => {
+        if (isWindows) {
+          await onUninstallDokan()
+        } else {
+          await uninstallKBFS()
         }
       }
       Z.ignorePromise(f())
