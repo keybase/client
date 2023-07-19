@@ -397,6 +397,10 @@ const initConfig = () => {
     const {state} = action.payload.params
     Constants.useConfigState.getState().dispatch.setGregorPushState(state)
   })
+
+  Container.listenAction(EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate, (_, action) => {
+    Constants.useConfigState.getState().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
+  })
 }
 
 export default initConfig
