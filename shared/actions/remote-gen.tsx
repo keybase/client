@@ -16,6 +16,7 @@ export const pinentryOnSubmit = 'remote:pinentryOnSubmit'
 export const powerMonitorEvent = 'remote:powerMonitorEvent'
 export const remoteWindowWantsProps = 'remote:remoteWindowWantsProps'
 export const saltpackFileOpen = 'remote:saltpackFileOpen'
+export const setCriticalUpdate = 'remote:setCriticalUpdate'
 export const setSystemDarkMode = 'remote:setSystemDarkMode'
 export const showMain = 'remote:showMain'
 export const stop = 'remote:stop'
@@ -32,41 +33,11 @@ export const userFileEditsLoad = 'remote:userFileEditsLoad'
 
 // Action Creators
 /**
- * Fired after OS notifies Electron that an associated Saltpack file has been opened.
- *
- * Path is a string when coming from Electron open-file event and HiddenString when coming from state.config.startupFile.
- */
-export const createSaltpackFileOpen = (payload: {readonly path: string | HiddenString}) => ({
-  payload,
-  type: saltpackFileOpen as typeof saltpackFileOpen,
-})
-/**
- * Plumb power monitor events from node
- */
-export const createPowerMonitorEvent = (payload: {readonly event: string}) => ({
-  payload,
-  type: powerMonitorEvent as typeof powerMonitorEvent,
-})
-/**
- * a window was shown
- */
-export const createUpdateWindowShown = (payload: {readonly component: string}) => ({
-  payload,
-  type: updateWindowShown as typeof updateWindowShown,
-})
-/**
  * desktop only: the installer ran and we can start up
  */
 export const createInstallerRan = (payload?: undefined) => ({
   payload,
   type: installerRan as typeof installerRan,
-})
-/**
- * main electron window changed max/min
- */
-export const createUpdateWindowMaxState = (payload: {readonly max: boolean}) => ({
-  payload,
-  type: updateWindowMaxState as typeof updateWindowMaxState,
 })
 /**
  * main electron window wants to store its state
@@ -114,6 +85,18 @@ export const createPinentryOnSubmit = (payload: {readonly password: string}) => 
   payload,
   type: pinentryOnSubmit as typeof pinentryOnSubmit,
 })
+export const createPowerMonitorEvent = (payload: {readonly event: string}) => ({
+  payload,
+  type: powerMonitorEvent as typeof powerMonitorEvent,
+})
+export const createSaltpackFileOpen = (payload: {readonly path: string | HiddenString}) => ({
+  payload,
+  type: saltpackFileOpen as typeof saltpackFileOpen,
+})
+export const createSetCriticalUpdate = (payload: {readonly critical: boolean}) => ({
+  payload,
+  type: setCriticalUpdate as typeof setCriticalUpdate,
+})
 export const createSetSystemDarkMode = (payload: {readonly dark: boolean}) => ({
   payload,
   type: setSystemDarkMode as typeof setSystemDarkMode,
@@ -149,6 +132,14 @@ export const createUnlockFoldersSubmitPaperKey = (payload: {readonly paperKey: s
   type: unlockFoldersSubmitPaperKey as typeof unlockFoldersSubmitPaperKey,
 })
 export const createUpdateNow = (payload?: undefined) => ({payload, type: updateNow as typeof updateNow})
+export const createUpdateWindowMaxState = (payload: {readonly max: boolean}) => ({
+  payload,
+  type: updateWindowMaxState as typeof updateWindowMaxState,
+})
+export const createUpdateWindowShown = (payload: {readonly component: string}) => ({
+  payload,
+  type: updateWindowShown as typeof updateWindowShown,
+})
 export const createUserFileEditsLoad = (payload?: undefined) => ({
   payload,
   type: userFileEditsLoad as typeof userFileEditsLoad,
@@ -166,6 +157,7 @@ export type PinentryOnSubmitPayload = ReturnType<typeof createPinentryOnSubmit>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
+export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type StopPayload = ReturnType<typeof createStop>
@@ -194,6 +186,7 @@ export type Actions =
   | PowerMonitorEventPayload
   | RemoteWindowWantsPropsPayload
   | SaltpackFileOpenPayload
+  | SetCriticalUpdatePayload
   | SetSystemDarkModePayload
   | ShowMainPayload
   | StopPayload

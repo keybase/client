@@ -1,4 +1,5 @@
 import * as Electron from 'electron'
+import * as RemoteGen from '../../actions/remote-gen'
 import fs from 'fs'
 import path from 'path'
 import exec from './exec.desktop'
@@ -8,7 +9,6 @@ import {isDarwin} from '../../constants/platform'
 import logger from '../../logger'
 import zlib from 'zlib'
 import type {TypedActions} from '../../actions/typed-actions-gen'
-import * as FsGen from '../../actions/fs-gen'
 
 const file = path.join(Electron.app.getPath('userData'), 'installer.json')
 
@@ -96,7 +96,7 @@ const checkErrors = (
     } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdate) {
       logger.info('[Installer] fuse critical update, setting badge')
       // ignore critical update error, it's just to coerce specific behavior in the Go installer
-      dispatch(FsGen.createSetCriticalUpdate({critical: true}))
+      dispatch(RemoteGen.createSetCriticalUpdate({critical: true}))
       return
     } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdateFailed) {
       errorTypes.fuse = true
