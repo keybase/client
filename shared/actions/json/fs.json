@@ -1,7 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "driverEnable": {"isRetry?": "boolean"},
     "driverDisable": {},
     "driverDisabling": {},
     "startManualConflictResolution": {

@@ -12,7 +12,6 @@ export const dismissDownload = 'fs:dismissDownload'
 export const download = 'fs:download'
 export const driverDisable = 'fs:driverDisable'
 export const driverDisabling = 'fs:driverDisabling'
-export const driverEnable = 'fs:driverEnable'
 export const finishManualConflictResolution = 'fs:finishManualConflictResolution'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
@@ -66,10 +65,6 @@ export const createDriverDisable = (payload?: undefined) => ({
 export const createDriverDisabling = (payload?: undefined) => ({
   payload,
   type: driverDisabling as typeof driverDisabling,
-})
-export const createDriverEnable = (payload: {readonly isRetry?: boolean} = {}) => ({
-  payload,
-  type: driverEnable as typeof driverEnable,
 })
 export const createFinishManualConflictResolution = (payload: {readonly localViewTlfPath: Types.Path}) => ({
   payload,
@@ -173,7 +168,6 @@ export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
 export type DownloadPayload = ReturnType<typeof createDownload>
 export type DriverDisablePayload = ReturnType<typeof createDriverDisable>
 export type DriverDisablingPayload = ReturnType<typeof createDriverDisabling>
-export type DriverEnablePayload = ReturnType<typeof createDriverEnable>
 export type FinishManualConflictResolutionPayload = ReturnType<typeof createFinishManualConflictResolution>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
 export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedRegularDownload>
@@ -211,7 +205,6 @@ export type Actions =
   | DownloadPayload
   | DriverDisablePayload
   | DriverDisablingPayload
-  | DriverEnablePayload
   | FinishManualConflictResolutionPayload
   | FinishedDownloadWithIntentPayload
   | FinishedRegularDownloadPayload

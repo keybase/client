@@ -69,18 +69,18 @@ const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult):
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
-const driverEnableFuse = async (_: unknown, action: FsGen.DriverEnablePayload) => {
+const driverEnableFuse = async (isRetry: boolean) => {
   const result = await RPCTypes.installInstallFuseRpcPromise()
+  const reduxDispatch = Z.getReduxDispatch()
   if (fuseInstallResultIsKextPermissionError(result)) {
     Constants.useState.getState().dispatch.driverKextPermissionError()
-    return [
-      ...(action.payload.isRetry ? [] : [RouteTreeGen.createNavigateAppend({path: ['kextPermission']})]),
-    ]
+    if (!isRetry) {
+      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['kextPermission']}))
+    }
   } else {
     await RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
     await RPCTypes.kbfsMountWaitForMountsRpcPromise()
     Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
-    return
   }
 }
 
@@ -171,11 +171,9 @@ const initPlatformSpecific = () => {
   })
   Container.listenAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    Container.listenAction(FsGen.driverEnable, onInstallCachedDokan)
     Container.listenAction(FsGen.driverDisable as any, uninstallDokanConfirm as any)
     Container.listenAction(FsGen.driverDisabling, onUninstallDokan)
   } else {
-    Container.listenAction(FsGen.driverEnable, driverEnableFuse)
     Container.listenAction(FsGen.driverDisable, uninstallKBFSConfirm)
     Container.listenAction(FsGen.driverDisabling, uninstallKBFS)
   }
@@ -185,7 +183,7 @@ const initPlatformSpecific = () => {
     if (s.appFocused === old.appFocused) return
     Constants.useState.getState().dispatch.onChangedFocus(s.appFocused)
   })
-  Container.listenAction([FsGen.driverEnable, FsGen.driverDisable], () => {
+  Container.listenAction([FsGen.driverDisable], () => {
     Constants.useState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
   })
 
@@ -279,6 +277,18 @@ const initPlatformSpecific = () => {
     s.dispatch.dynamic.setSfmiBannerDismissedDesktop = dismissed => {
       const f = async () => {
         await RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed})
+      }
+      Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.afterDriverEnabled = isRetry => {
+      const f = async () => {
+        Constants.useState.getState().dispatch.dynamic.setSfmiBannerDismissedDesktop?.(false)
+        if (isWindows) {
+          await onInstallCachedDokan()
+        } else {
+          await driverEnableFuse(isRetry)
+        }
       }
       Z.ignorePromise(f())
     }

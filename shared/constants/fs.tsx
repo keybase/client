@@ -1140,6 +1140,7 @@ type State = Store & {
     driverEnable: (isRetry?: boolean) => void
     driverKextPermissionError: () => void
     dynamic: {
+      afterDriverEnabled?: (isRetry: boolean) => void
       setSfmiBannerDismissedDesktop?: (dismissed: boolean) => void
       openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
       openPathInSystemFileManagerDesktop?: (path: Types.Path) => void
@@ -1444,7 +1445,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.sfmi.driverStatus.isEnabling = true
         }
       })
-      reduxDispatch(FsGen.createDriverEnable({isRetry}))
+      get().dispatch.dynamic.afterDriverEnabled?.(!!isRetry)
     },
     driverKextPermissionError: () => {
       set(s => {
@@ -1455,6 +1456,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     dynamic: {
+      afterDriverEnabled: undefined,
       openLocalPathInSystemFileManagerDesktop: undefined,
       openPathInSystemFileManagerDesktop: undefined,
       refreshDriverStatusDesktop: undefined,
