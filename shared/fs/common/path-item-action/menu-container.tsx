@@ -93,9 +93,6 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
-  const _download = React.useCallback(() => {
-    dispatch(FsGen.createDownload({path}))
-  }, [dispatch, path])
   const favoriteIgnore = Constants.useState(s => s.dispatch.favoriteIgnore)
   const _ignoreTlf = React.useCallback(() => {
     favoriteIgnore(path)
@@ -116,6 +113,9 @@ export default (ownProps: OwnProps) => {
   }
   const startRename = Constants.useState(s => s.dispatch.startRename)
   const download = Constants.useState(s => s.dispatch.download)
+  const _download = React.useCallback(() => {
+    download(path, 'download')
+  }, [download, path])
   const _rename = React.useCallback(() => {
     startRename(path)
   }, [startRename, path])

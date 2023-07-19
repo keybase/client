@@ -7,7 +7,6 @@ export const resetStore = 'common:resetStore' // not a part of fs but is handled
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
 export const dismissDownload = 'fs:dismissDownload'
-export const download = 'fs:download'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
@@ -27,10 +26,6 @@ export const createCancelDownload = (payload: {readonly downloadID: string}) => 
 export const createDismissDownload = (payload: {readonly downloadID: string}) => ({
   payload,
   type: dismissDownload as typeof dismissDownload,
-})
-export const createDownload = (payload: {readonly path: Types.Path}) => ({
-  payload,
-  type: download as typeof download,
 })
 export const createFinishedDownloadWithIntent = (payload: {
   readonly downloadID: string
@@ -71,7 +66,6 @@ export const createUserOut = (payload?: undefined) => ({payload, type: userOut a
 // Action Payloads
 export type CancelDownloadPayload = ReturnType<typeof createCancelDownload>
 export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
-export type DownloadPayload = ReturnType<typeof createDownload>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
 export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedRegularDownload>
 export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
@@ -88,7 +82,6 @@ export type UserOutPayload = ReturnType<typeof createUserOut>
 export type Actions =
   | CancelDownloadPayload
   | DismissDownloadPayload
-  | DownloadPayload
   | FinishedDownloadWithIntentPayload
   | FinishedRegularDownloadPayload
   | LoadDownloadInfoPayload
