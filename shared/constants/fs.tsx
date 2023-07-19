@@ -1170,6 +1170,7 @@ type State = Store & {
     letResetUserBackIn: (id: RPCTypes.TeamID, username: string) => void
     loadAdditionalTlf: (tlfPath: Types.Path) => void
     loadFileContext: (path: Types.Path) => void
+    loadPathInfo: (path: Types.Path) => void
     loadPathMetadata: (path: Types.Path) => void
     loadSettings: () => void
     loadTlfSyncConfig: (tlfPath: Types.Path) => void
@@ -1937,6 +1938,18 @@ export const useState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(err)
           return
         }
+      }
+      Z.ignorePromise(f())
+    },
+    loadPathInfo: path => {
+      const f = async () => {
+        const pathInfo = await RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({
+          standardPath: Types.pathToString(path),
+        })
+        get().dispatch.loadedPathInfo(path, {
+          deeplinkPath: pathInfo.deeplinkPath,
+          platformAfterMountPath: pathInfo.platformAfterMountPath,
+        })
       }
       Z.ignorePromise(f())
     },

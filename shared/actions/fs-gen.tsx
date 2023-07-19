@@ -13,10 +13,7 @@ export const finishedRegularDownload = 'fs:finishedRegularDownload'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
-export const loadPathInfo = 'fs:loadPathInfo'
 export const loadedFilesTabBadge = 'fs:loadedFilesTabBadge'
-export const loadedPathInfo = 'fs:loadedPathInfo'
-export const placeholderAction = 'fs:placeholderAction'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const userIn = 'fs:userIn'
@@ -56,21 +53,9 @@ export const createLoadFilesTabBadge = (payload?: undefined) => ({
   payload,
   type: loadFilesTabBadge as typeof loadFilesTabBadge,
 })
-export const createLoadPathInfo = (payload: {readonly path: Types.Path}) => ({
-  payload,
-  type: loadPathInfo as typeof loadPathInfo,
-})
 export const createLoadedFilesTabBadge = (payload: {readonly badge: RPCTypes.FilesTabBadge}) => ({
   payload,
   type: loadedFilesTabBadge as typeof loadedFilesTabBadge,
-})
-export const createLoadedPathInfo = (payload: {
-  readonly path: Types.Path
-  readonly pathInfo: Types.PathInfo
-}) => ({payload, type: loadedPathInfo as typeof loadedPathInfo})
-export const createPlaceholderAction = (payload?: undefined) => ({
-  payload,
-  type: placeholderAction as typeof placeholderAction,
 })
 export const createSetCriticalUpdate = (payload: {readonly critical: boolean}) => ({
   payload,
@@ -92,10 +77,7 @@ export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedReg
 export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
 export type LoadDownloadStatusPayload = ReturnType<typeof createLoadDownloadStatus>
 export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge>
-export type LoadPathInfoPayload = ReturnType<typeof createLoadPathInfo>
 export type LoadedFilesTabBadgePayload = ReturnType<typeof createLoadedFilesTabBadge>
-export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
-export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
 export type UserInPayload = ReturnType<typeof createUserIn>
@@ -112,10 +94,7 @@ export type Actions =
   | LoadDownloadInfoPayload
   | LoadDownloadStatusPayload
   | LoadFilesTabBadgePayload
-  | LoadPathInfoPayload
   | LoadedFilesTabBadgePayload
-  | LoadedPathInfoPayload
-  | PlaceholderActionPayload
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload
   | UserInPayload

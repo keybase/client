@@ -94,19 +94,6 @@ const onNonPathChange = async (_: unknown, action: EngineGen.Keybase1NotifyFSFSS
   }
 }
 
-const loadPathInfo = async (_: unknown, action: FsGen.LoadPathInfoPayload) => {
-  const pathInfo = await RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({
-    standardPath: Types.pathToString(action.payload.path),
-  })
-  return FsGen.createLoadedPathInfo({
-    path: action.payload.path,
-    pathInfo: {
-      deeplinkPath: pathInfo.deeplinkPath,
-      platformAfterMountPath: pathInfo.platformAfterMountPath,
-    },
-  })
-}
-
 const loadDownloadInfo = async (_: Container.TypedState, action: FsGen.LoadDownloadInfoPayload) => {
   try {
     const res = await RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
@@ -225,7 +212,6 @@ const initFS = () => {
   })
   Container.listenAction(FsGen.userIn, userIn)
   Container.listenAction(FsGen.userOut, userOut)
-  Container.listenAction(FsGen.loadPathInfo, loadPathInfo)
   Container.listenAction(FsGen.loadFilesTabBadge, loadFilesTabBadge)
 
   Container.listenAction(FsGen.cancelDownload, cancelDownload)
