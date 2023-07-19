@@ -1,9 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "setSpaceAvailableNotificationThreshold": {
-      "spaceAvailableNotificationThreshold": "number"
-    },
     "placeholderAction": {},
     "loadPathInfo": {"path": "Types.Path"},
     "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},

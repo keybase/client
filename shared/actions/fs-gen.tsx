@@ -10,7 +10,6 @@ export const dismissDownload = 'fs:dismissDownload'
 export const download = 'fs:download'
 export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
 export const finishedRegularDownload = 'fs:finishedRegularDownload'
-export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadFilesTabBadge = 'fs:loadFilesTabBadge'
@@ -20,7 +19,6 @@ export const loadedPathInfo = 'fs:loadedPathInfo'
 export const placeholderAction = 'fs:placeholderAction'
 export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
-export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const userIn = 'fs:userIn'
 export const userOut = 'fs:userOut'
 
@@ -46,10 +44,6 @@ export const createFinishedRegularDownload = (payload: {
   readonly downloadID: string
   readonly mimeType: string
 }) => ({payload, type: finishedRegularDownload as typeof finishedRegularDownload})
-export const createKbfsDaemonRpcStatusChanged = (payload?: undefined) => ({
-  payload,
-  type: kbfsDaemonRpcStatusChanged as typeof kbfsDaemonRpcStatusChanged,
-})
 export const createLoadDownloadInfo = (payload: {readonly downloadID: string}) => ({
   payload,
   type: loadDownloadInfo as typeof loadDownloadInfo,
@@ -86,12 +80,6 @@ export const createSetDebugLevel = (payload: {readonly level: string}) => ({
   payload,
   type: setDebugLevel as typeof setDebugLevel,
 })
-export const createSetSpaceAvailableNotificationThreshold = (payload: {
-  readonly spaceAvailableNotificationThreshold: number
-}) => ({
-  payload,
-  type: setSpaceAvailableNotificationThreshold as typeof setSpaceAvailableNotificationThreshold,
-})
 export const createUserIn = (payload?: undefined) => ({payload, type: userIn as typeof userIn})
 export const createUserOut = (payload?: undefined) => ({payload, type: userOut as typeof userOut})
 
@@ -101,7 +89,6 @@ export type DismissDownloadPayload = ReturnType<typeof createDismissDownload>
 export type DownloadPayload = ReturnType<typeof createDownload>
 export type FinishedDownloadWithIntentPayload = ReturnType<typeof createFinishedDownloadWithIntent>
 export type FinishedRegularDownloadPayload = ReturnType<typeof createFinishedRegularDownload>
-export type KbfsDaemonRpcStatusChangedPayload = ReturnType<typeof createKbfsDaemonRpcStatusChanged>
 export type LoadDownloadInfoPayload = ReturnType<typeof createLoadDownloadInfo>
 export type LoadDownloadStatusPayload = ReturnType<typeof createLoadDownloadStatus>
 export type LoadFilesTabBadgePayload = ReturnType<typeof createLoadFilesTabBadge>
@@ -111,9 +98,6 @@ export type LoadedPathInfoPayload = ReturnType<typeof createLoadedPathInfo>
 export type PlaceholderActionPayload = ReturnType<typeof createPlaceholderAction>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
 export type SetDebugLevelPayload = ReturnType<typeof createSetDebugLevel>
-export type SetSpaceAvailableNotificationThresholdPayload = ReturnType<
-  typeof createSetSpaceAvailableNotificationThreshold
->
 export type UserInPayload = ReturnType<typeof createUserIn>
 export type UserOutPayload = ReturnType<typeof createUserOut>
 
@@ -125,7 +109,6 @@ export type Actions =
   | DownloadPayload
   | FinishedDownloadWithIntentPayload
   | FinishedRegularDownloadPayload
-  | KbfsDaemonRpcStatusChangedPayload
   | LoadDownloadInfoPayload
   | LoadDownloadStatusPayload
   | LoadFilesTabBadgePayload
@@ -135,7 +118,6 @@ export type Actions =
   | PlaceholderActionPayload
   | SetCriticalUpdatePayload
   | SetDebugLevelPayload
-  | SetSpaceAvailableNotificationThresholdPayload
   | UserInPayload
   | UserOutPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

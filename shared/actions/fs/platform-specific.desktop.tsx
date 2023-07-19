@@ -1,11 +1,9 @@
-import * as FsGen from '../fs-gen'
 import * as Z from '../../util/zustand'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as ConfigConstants from '../../constants/config'
 import * as Tabs from '../../constants/tabs'
-import * as Container from '../../util/container'
 import {isWindows, isLinux, pathSep, isDarwin} from '../../constants/platform.desktop'
 import logger from '../../logger'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -135,15 +133,6 @@ const onInstallCachedDokan = async () => {
 }
 
 const initPlatformSpecific = () => {
-  if (!isLinux) {
-    Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, () => {
-      if (Constants.useState.getState().kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
-        Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
-      }
-      Constants.useState.getState().dispatch.dynamic.refreshMountDirsDesktop?.()
-    })
-  }
-
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
     Constants.useState.getState().dispatch.onChangedFocus(s.appFocused)
@@ -182,15 +171,13 @@ const initPlatformSpecific = () => {
 
     s.dispatch.dynamic.openPathInSystemFileManagerDesktop = path => {
       const f = async () => {
-        const sfmi = Constants.useState.getState().sfmi
+        const {sfmi, pathItems} = Constants.useState.getState()
         return sfmi.driverStatus.type === Types.DriverStatusType.Enabled && sfmi.directMountDir
           ? _openPathInSystemFileManagerPromise(
               _rebaseKbfsPathToMountLocation(path, sfmi.directMountDir),
               ![Types.PathKind.InGroupTlf, Types.PathKind.InTeamTlf].includes(
                 Constants.parsePath(path).kind
-              ) ||
-                Constants.getPathItem(Constants.useState.getState().pathItems, path).type ===
-                  Types.PathType.Folder
+              ) || Constants.getPathItem(pathItems, path).type === Types.PathType.Folder
             ).catch(e => Constants.errorToActionOrThrow(path, e))
           : new Promise<void>((resolve, reject) => {
               if (sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
@@ -223,15 +210,15 @@ const initPlatformSpecific = () => {
 
     s.dispatch.dynamic.refreshMountDirsDesktop = () => {
       const f = async () => {
-        const driverStatus = Constants.useState.getState().sfmi.driverStatus
+        const {sfmi, dispatch} = Constants.useState.getState()
+        const driverStatus = sfmi.driverStatus
         if (driverStatus.type !== Types.DriverStatusType.Enabled) {
           return
         }
         const directMountDir = await RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
         const preferredMountDirs = await RPCTypes.kbfsMountGetPreferredMountDirsRpcPromise()
-
-        Constants.useState.getState().dispatch.setDirectMountDir(directMountDir)
-        Constants.useState.getState().dispatch.setPreferredMountDirs(preferredMountDirs || [])
+        dispatch.setDirectMountDir(directMountDir)
+        dispatch.setPreferredMountDirs(preferredMountDirs || [])
       }
       Z.ignorePromise(f())
     }
@@ -302,6 +289,16 @@ const initPlatformSpecific = () => {
         localPaths.forEach(localPath => Constants.useState.getState().dispatch.upload(parentPath, localPath))
       }
       Z.ignorePromise(f())
+    }
+
+    if (!isLinux) {
+      s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = () => {
+        const {kbfsDaemonStatus, dispatch} = Constants.useState.getState()
+        if (kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+          dispatch.dynamic.refreshDriverStatusDesktop?.()
+        }
+        dispatch.dynamic.refreshMountDirsDesktop?.()
+      }
     }
   })
 }

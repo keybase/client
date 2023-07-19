@@ -1197,6 +1197,7 @@ type State = Store & {
     setPathItemActionMenuView: (view: Types.PathItemActionMenuView) => void
     setPreferredMountDirs: (preferredMountDirs: Array<string>) => void
     setPathSoftError: (path: Types.Path, softError?: Types.SoftError) => void
+    setSpaceAvailableNotificationThreshold: (spaceAvailableNotificationThreshold: number) => void
     setTlfSoftError: (path: Types.Path, softError?: Types.SoftError) => void
     setTlfsAsUnloaded: () => void
     setTlfSyncConfig: (tlfPath: Types.Path, enabled: boolean) => void
@@ -2319,6 +2320,15 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.pathUserSettings.set(path, {...defaultPathUserSetting, sort: sortSetting})
         }
       })
+    },
+    setSpaceAvailableNotificationThreshold: threshold => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
+          threshold,
+        })
+        get().dispatch.loadSettings()
+      }
+      Z.ignorePromise(f())
     },
     setTlfSoftError: (path, softError) => {
       set(s => {

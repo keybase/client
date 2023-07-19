@@ -15,16 +15,6 @@ import {RPCError} from '../../util/errors'
 
 const clientID = Constants.clientID
 
-const setSpaceNotificationThreshold = async (
-  _: unknown,
-  action: FsGen.SetSpaceAvailableNotificationThresholdPayload
-) => {
-  await RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
-    threshold: action.payload.spaceAvailableNotificationThreshold,
-  })
-  Constants.useState.getState().dispatch.loadSettings()
-}
-
 const cancelDownload = async (_: unknown, action: FsGen.CancelDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID: action.payload.downloadID})
 
@@ -235,7 +225,6 @@ const initFS = () => {
   })
   Container.listenAction(FsGen.userIn, userIn)
   Container.listenAction(FsGen.userOut, userOut)
-  Container.listenAction(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
   Container.listenAction(FsGen.loadPathInfo, loadPathInfo)
   Container.listenAction(FsGen.loadFilesTabBadge, loadFilesTabBadge)
 
