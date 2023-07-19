@@ -1,64 +1,62 @@
-import logger from '../../logger'
-import * as FsGen from '../fs-gen'
-import * as Z from '../../util/zustand'
 import * as Constants from '../../constants/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as Container from '../../util/container'
+import * as Z from '../../util/zustand'
+import logger from '../../logger'
 import nativeInit from './common.native'
 import {androidAddCompleteDownload, fsCacheDir, fsDownloadDir} from 'react-native-kb'
 
 const finishedRegularDownloadIDs = new Set<string>()
 
-const finishedRegularDownload = async (_: unknown, action: FsGen.FinishedRegularDownloadPayload) => {
-  const {downloadID, mimeType} = action.payload
-
-  // This is fired from a hook and can happen more than once per downloadID.
-  // So just deduplicate them here. This is small enough and won't happen
-  // constantly, so don't worry about clearing them.
-  if (finishedRegularDownloadIDs.has(downloadID)) {
-    return null
-  }
-  finishedRegularDownloadIDs.add(downloadID)
-
-  const downloadState =
-    Constants.useState.getState().downloads.state.get(downloadID) || Constants.emptyDownloadState
-  const downloadInfo =
-    Constants.useState.getState().downloads.info.get(downloadID) || Constants.emptyDownloadInfo
-  if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
-    logger.warn('missing download', downloadID)
-    return null
-  }
-  if (downloadState.error) {
-    return null
-  }
-  try {
-    await androidAddCompleteDownload({
-      description: `Keybase downloaded ${downloadInfo.filename}`,
-      mime: mimeType,
-      path: downloadState.localPath,
-      showNotification: true,
-      title: downloadInfo.filename,
-    })
-  } catch (_) {
-    logger.warn('Failed to addCompleteDownload')
-  }
-  // No need to dismiss here as the download wrapper does it for Android.
-  return null
-}
-
 export default function initPlatformSpecific() {
   nativeInit()
-  Container.listenAction(FsGen.finishedRegularDownload, finishedRegularDownload)
 
   Constants.useState.setState(s => {
     s.dispatch.dynamic.afterKbfsDaemonRpcStatusChanged = () => {
-      const f = async () =>
-        RPCTypes.SimpleFSSimpleFSConfigureDownloadRpcPromise({
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSConfigureDownloadRpcPromise({
           // Android's cache dir is (when I tried) [app]/cache but Go side uses
           // [app]/.cache by default, which can't be used for sharing to other apps.
           cacheDirOverride: fsCacheDir,
           downloadDirOverride: fsDownloadDir,
         })
+      }
+      Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.finishedRegularDownloadMobile = (downloadID, mimeType) => {
+      const f = async () => {
+        // This is fired from a hook and can happen more than once per downloadID.
+        // So just deduplicate them here. This is small enough and won't happen
+        // constantly, so don't worry about clearing them.
+        if (finishedRegularDownloadIDs.has(downloadID)) {
+          return
+        }
+        finishedRegularDownloadIDs.add(downloadID)
+
+        const {downloads} = Constants.useState.getState()
+
+        const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
+        const downloadInfo = downloads.info.get(downloadID) || Constants.emptyDownloadInfo
+        if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
+          logger.warn('missing download', downloadID)
+          return
+        }
+        if (downloadState.error) {
+          return
+        }
+        try {
+          await androidAddCompleteDownload({
+            description: `Keybase downloaded ${downloadInfo.filename}`,
+            mime: mimeType,
+            path: downloadState.localPath,
+            showNotification: true,
+            title: downloadInfo.filename,
+          })
+        } catch (_) {
+          logger.warn('Failed to addCompleteDownload')
+        }
+        // No need to dismiss here as the download wrapper does it for Android.
+      }
       Z.ignorePromise(f())
     }
   })

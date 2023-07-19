@@ -1,52 +1,12 @@
 import logger from '../../logger'
-import * as FsGen from '../fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Z from '../../util/zustand'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 
-const finishedDownloadWithIntent = async (_: unknown, action: FsGen.FinishedDownloadWithIntentPayload) => {
-  const {downloadID, downloadIntent, mimeType} = action.payload
-  const downloadState =
-    Constants.useState.getState().downloads.state.get(downloadID) || Constants.emptyDownloadState
-  if (downloadState === Constants.emptyDownloadState) {
-    logger.warn('missing download', downloadID)
-    return
-  }
-  const dismissDownload = Constants.useState.getState().dispatch.dismissDownload
-  if (downloadState.error) {
-    Constants.useState.getState().dispatch.redbar(downloadState.error)
-    dismissDownload(downloadID)
-    return
-  }
-  const {localPath} = downloadState
-  try {
-    switch (downloadIntent) {
-      case Types.DownloadIntent.CameraRoll:
-        await saveAttachmentToCameraRoll(localPath, mimeType)
-        dismissDownload(downloadID)
-        return
-      case Types.DownloadIntent.Share:
-        await showShareActionSheet({filePath: localPath, mimeType})
-        dismissDownload(downloadID)
-        return
-      case Types.DownloadIntent.None:
-        return null
-      default:
-        return null
-    }
-  } catch (err) {
-    Constants.errorToActionOrThrow(err)
-    return
-  }
-}
-
 export default function initNative() {
-  Container.listenAction(FsGen.finishedDownloadWithIntent, finishedDownloadWithIntent)
-
   Constants.useState.setState(s => {
     s.dispatch.dynamic.pickAndUploadMobile = (type, parentPath) => {
       const f = async () => {
@@ -58,6 +18,43 @@ export default function initNative() {
           )
         } catch (e) {
           Constants.errorToActionOrThrow(e)
+        }
+      }
+      Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.finishedDownloadWithIntentMobile = (downloadID, downloadIntent, mimeType) => {
+      const f = async () => {
+        const {downloads, dispatch} = Constants.useState.getState()
+        const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
+        if (downloadState === Constants.emptyDownloadState) {
+          logger.warn('missing download', downloadID)
+          return
+        }
+        const dismissDownload = dispatch.dismissDownload
+        if (downloadState.error) {
+          dispatch.redbar(downloadState.error)
+          dismissDownload(downloadID)
+          return
+        }
+        const {localPath} = downloadState
+        try {
+          switch (downloadIntent) {
+            case Types.DownloadIntent.CameraRoll:
+              await saveAttachmentToCameraRoll(localPath, mimeType)
+              dismissDownload(downloadID)
+              return
+            case Types.DownloadIntent.Share:
+              await showShareActionSheet({filePath: localPath, mimeType})
+              dismissDownload(downloadID)
+              return
+            case Types.DownloadIntent.None:
+              return
+            default:
+              return
+          }
+        } catch (err) {
+          Constants.errorToActionOrThrow(err)
         }
       }
       Z.ignorePromise(f())

@@ -1,8 +1,6 @@
 import * as React from 'react'
-import * as Container from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
@@ -174,19 +172,32 @@ export const useFsWatchDownloadForMobile = isMobile
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
 
-      const dispatch = Container.useDispatch()
+      const finishedDownloadWithIntentMobile = Constants.useState(
+        s => s.dispatch.dynamic.finishedDownloadWithIntentMobile
+      )
+      const finishedRegularDownloadMobile = Constants.useState(
+        s => s.dispatch.dynamic.finishedRegularDownloadMobile
+      )
+
       React.useEffect(() => {
         if (!downloadID || !downloadIntent || !finished || !mimeType) {
           setJustDoneWithIntent(false)
           return
         }
         if (downloadIntent === Types.DownloadIntent.None) {
-          dispatch(FsGen.createFinishedRegularDownload({downloadID, mimeType}))
+          finishedRegularDownloadMobile?.(downloadID, mimeType)
           return
         }
-        dispatch(FsGen.createFinishedDownloadWithIntent({downloadID, downloadIntent, mimeType}))
+        finishedDownloadWithIntentMobile?.(downloadID, downloadIntent, mimeType)
         setJustDoneWithIntent(true)
-      }, [finished, mimeType, downloadID, downloadIntent, dispatch])
+      }, [
+        finishedRegularDownloadMobile,
+        finishedDownloadWithIntentMobile,
+        finished,
+        mimeType,
+        downloadID,
+        downloadIntent,
+      ])
       return justDoneWithIntent
     }
   : () => false

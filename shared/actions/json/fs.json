@@ -1,15 +1,6 @@
 {
-  "prelude": ["import type * as Types from '../constants/types/fs'"],
+  "prelude": [],
   "actions": {
-    "finishedDownloadWithIntent": {
-      "downloadID": "string",
-      "downloadIntent": "Types.DownloadIntent",
-      "mimeType": "string"
-    },
-    "finishedRegularDownload": {
-      "downloadID": "string",
-      "mimeType": "string"
-    },
     "loadFilesTabBadge": {},
     "loadedFilesTabBadge": {
       "badge": "RPCTypes.FilesTabBadge"

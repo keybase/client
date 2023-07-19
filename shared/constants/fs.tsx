@@ -1148,6 +1148,12 @@ type State = Store & {
       afterDriverDisabling?: () => void
       afterDriverEnabled?: (isRetry: boolean) => void
       afterKbfsDaemonRpcStatusChanged?: () => void
+      finishedDownloadWithIntentMobile?: (
+        downloadID: string,
+        downloadIntent: Types.DownloadIntent,
+        mimeType: string
+      ) => void
+      finishedRegularDownloadMobile?: (downloadID: string, mimeType: string) => void
       openFilesFromWidgetDesktop?: (path: Types.Path) => void
       openAndUploadDesktop?: (type: Types.OpenDialogType, parentPath: Types.Path) => void
       pickAndUploadMobile?: (type: Types.MobilePickType, parentPath: Types.Path) => void
@@ -1513,6 +1519,8 @@ export const useState = Z.createZustand<State>((set, get) => {
       afterDriverDisabling: undefined,
       afterDriverEnabled: undefined,
       afterKbfsDaemonRpcStatusChanged: undefined,
+      finishedDownloadWithIntentMobile: undefined,
+      finishedRegularDownloadMobile: undefined,
       openAndUploadDesktop: undefined,
       openFilesFromWidgetDesktop: undefined,
       openLocalPathInSystemFileManagerDesktop: undefined,
