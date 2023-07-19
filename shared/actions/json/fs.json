@@ -1,10 +1,6 @@
 {
   "prelude": [],
   "actions": {
-    "loadFilesTabBadge": {},
-    "loadedFilesTabBadge": {
-      "badge": "RPCTypes.FilesTabBadge"
-    },
     "userIn": {},
     "userOut": {},
 

@@ -89,20 +89,6 @@ const onNonPathChange = async (_: unknown, action: EngineGen.Keybase1NotifyFSFSS
   }
 }
 
-const loadFilesTabBadge = async () => {
-  try {
-    const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-    return FsGen.createLoadedFilesTabBadge({badge})
-  } catch {
-    // retry once HOTPOT-1226
-    try {
-      const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-      return FsGen.createLoadedFilesTabBadge({badge})
-    } catch {}
-  }
-  return false
-}
-
 const userIn = async () => RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID}).catch(() => {})
 const userOut = async () => RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID}).catch(() => {})
 
@@ -163,7 +149,6 @@ const initFS = () => {
   })
   Container.listenAction(FsGen.userIn, userIn)
   Container.listenAction(FsGen.userOut, userOut)
-  Container.listenAction(FsGen.loadFilesTabBadge, loadFilesTabBadge)
 
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)

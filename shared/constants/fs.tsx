@@ -1178,6 +1178,7 @@ type State = Store & {
     letResetUserBackIn: (id: RPCTypes.TeamID, username: string) => void
     loadAdditionalTlf: (tlfPath: Types.Path) => void
     loadFileContext: (path: Types.Path) => void
+    loadFilesTabBadge: () => void
     loadPathInfo: (path: Types.Path) => void
     loadPathMetadata: (path: Types.Path) => void
     loadSettings: () => void
@@ -1192,7 +1193,6 @@ type State = Store & {
     pollJournalStatus: () => void
     redbar: (error: string) => void
     resetState: () => void
-    setBadge: (b: RPCTypes.FilesTabBadge) => void
     setCriticalUpdate: (u: boolean) => void
     setDestinationPickerParentPath: (index: number, path: Types.Path) => void
     setDirectMountDir: (directMountDir: string) => void
@@ -2018,6 +2018,25 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    loadFilesTabBadge: () => {
+      const f = async () => {
+        try {
+          const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+          set(s => {
+            s.badge = badge
+          })
+        } catch {
+          // retry once HOTPOT-1226
+          try {
+            const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+            set(s => {
+              s.badge = badge
+            })
+          } catch {}
+        }
+      }
+      Z.ignorePromise(f())
+    },
     loadPathInfo: path => {
       const f = async () => {
         const pathInfo = await RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({
@@ -2304,11 +2323,6 @@ export const useState = Z.createZustand<State>((set, get) => {
         ...initialStore,
         dispatch: s.dispatch,
       }))
-    },
-    setBadge: b => {
-      set(s => {
-        s.badge = b
-      })
     },
     setCriticalUpdate: u => {
       set(s => {
