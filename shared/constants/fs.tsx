@@ -1132,6 +1132,7 @@ type State = Store & {
   dispatch: {
     checkKbfsDaemonRpcStatus: () => void
     commitEdit: (editID: Types.EditID) => void
+    deleteFile: (path: Types.Path) => void
     discardEdit: (editID: Types.EditID) => void
     dismissRedbar: (index: number) => void
     dismissUpload: (uploadID: string) => void
@@ -1403,6 +1404,22 @@ export const useState = Z.createZustand<State>((set, get) => {
               }
               throw error
             }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    deleteFile: path => {
+      const f = async () => {
+        const opID = makeUUID()
+        try {
+          await RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
+            opID,
+            path: pathToRPCPath(path),
+            recursive: true,
+          })
+          await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
+        } catch (e) {
+          errorToActionOrThrow(e, path)
         }
       }
       Z.ignorePromise(f())

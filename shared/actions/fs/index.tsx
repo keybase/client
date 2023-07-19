@@ -31,22 +31,6 @@ const cancelDownload = async (_: unknown, action: FsGen.CancelDownloadPayload) =
 const dismissDownload = async (_: unknown, action: FsGen.DismissDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID: action.payload.downloadID})
 
-const deleteFile = async (_: unknown, action: FsGen.DeleteFilePayload) => {
-  const opID = Constants.makeUUID()
-  try {
-    await RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
-      opID,
-      path: Constants.pathToRPCPath(action.payload.path),
-      recursive: true,
-    })
-    await RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
-  } catch (e) {
-    Constants.errorToActionOrThrow(e, action.payload.path)
-    return
-  }
-  return
-}
-
 const moveOrCopy = async (_: unknown, action: FsGen.MovePayload | FsGen.CopyPayload) => {
   const zState = Constants.useState.getState()
   if (zState.destinationPicker.source.type === Types.DestinationPickerSource.None) {
@@ -351,7 +335,6 @@ const maybeOnFSTab = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
 
 const initFS = () => {
   Container.listenAction(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)
-  Container.listenAction(FsGen.deleteFile, deleteFile)
   Container.listenAction([FsGen.move, FsGen.copy], moveOrCopy)
   Container.listenAction(FsGen.userIn, () => {
     Constants.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
