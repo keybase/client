@@ -1,13 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "startManualConflictResolution": {
-      "tlfPath": "Types.Path"
-    },
-    "finishManualConflictResolution": {
-      "localViewTlfPath": "Types.Path"
-    },
-
     "openSecurityPreferences": {},
     "openFilesFromWidget": {
       "path": "Types.Path",

@@ -1155,6 +1155,7 @@ type State = Store & {
     editSuccess: (editID: Types.EditID) => void
     favoritesLoad: () => void
     favoriteIgnore: (path: Types.Path) => void
+    finishManualConflictResolution: (localViewTlfPath: Types.Path) => void
     folderListLoad: (path: Types.Path, recursive: boolean) => void
     getOnlineStatus: () => void
     journalUpdate: (syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: number) => void
@@ -1194,6 +1195,7 @@ type State = Store & {
     setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
+    startManualConflictResolution: (tlfPath: Types.Path) => void
     startRename: (path: Types.Path) => void
     subscribeNonPath: (subscriptionID: string, topic: RPCTypes.SubscriptionTopic) => void
     subscribePath: (subscriptionID: string, path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => void
@@ -1584,6 +1586,15 @@ export const useState = Z.createZustand<State>((set, get) => {
           errorToActionOrThrow(e)
         }
         return
+      }
+      Z.ignorePromise(f())
+    },
+    finishManualConflictResolution: localViewTlfPath => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
+          path: pathToRPCPath(localViewTlfPath),
+        })
+        get().dispatch.favoritesLoad()
       }
       Z.ignorePromise(f())
     },
@@ -2183,6 +2194,15 @@ export const useState = Z.createZustand<State>((set, get) => {
       reduxDispatch(
         RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
       )
+    },
+    startManualConflictResolution: tlfPath => {
+      const f = async () => {
+        await RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
+          path: pathToRPCPath(tlfPath),
+        })
+        get().dispatch.favoritesLoad()
+      }
+      Z.ignorePromise(f())
     },
     startRename: path => {
       const parentPath = Types.getPathParent(path)

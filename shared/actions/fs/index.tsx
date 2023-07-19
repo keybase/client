@@ -121,21 +121,6 @@ const moveOrCopy = async (_: unknown, action: FsGen.MovePayload | FsGen.CopyPayl
   }
 }
 
-const startManualCR = async (_: unknown, action: FsGen.StartManualConflictResolutionPayload) => {
-  await RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
-    path: Constants.pathToRPCPath(action.payload.tlfPath),
-  })
-
-  Constants.useState.getState().dispatch.favoritesLoad()
-}
-
-const finishManualCR = async (_: unknown, action: FsGen.FinishManualConflictResolutionPayload) => {
-  await RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
-    path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
-  })
-  Constants.useState.getState().dispatch.favoritesLoad()
-}
-
 // At start-up we might have a race where we get connected to a kbfs daemon
 // which dies soon after, and we get an EOF here. So retry for a few times
 // until we get through. After each try we delay for 2s, so this should give us
@@ -427,8 +412,6 @@ const initFS = () => {
   Container.listenAction(FsGen.userIn, userIn)
   Container.listenAction(FsGen.userOut, userOut)
   Container.listenAction(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
-  Container.listenAction(FsGen.startManualConflictResolution, startManualCR)
-  Container.listenAction(FsGen.finishManualConflictResolution, finishManualCR)
   Container.listenAction(FsGen.loadPathInfo, loadPathInfo)
   Container.listenAction(FsGen.loadFilesTabBadge, loadFilesTabBadge)
 
