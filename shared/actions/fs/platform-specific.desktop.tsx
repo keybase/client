@@ -122,14 +122,6 @@ const onUninstallDokan = async () => {
   Constants.useState.getState().dispatch.dynamic.refreshDriverStatusDesktop?.()
 }
 
-const openSecurityPreferences = () => {
-  openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
-    .then(() => {
-      logger.info('Opened Security Preferences')
-    })
-    .catch(() => {})
-}
-
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
@@ -170,7 +162,6 @@ const initPlatformSpecific = () => {
     )
   })
   Container.listenAction(FsGen.openFilesFromWidget, openFilesFromWidget)
-  Container.listenAction(FsGen.openSecurityPreferences, openSecurityPreferences)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
@@ -302,6 +293,13 @@ const initPlatformSpecific = () => {
         } else {
           await uninstallKBFS()
         }
+      }
+      Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.openSecurityPreferencesDesktop = () => {
+      const f = async () => {
+        await openURL?.('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
       }
       Z.ignorePromise(f())
     }

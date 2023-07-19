@@ -1,7 +1,6 @@
 {
   "prelude": ["import type * as Types from '../constants/types/fs'"],
   "actions": {
-    "openSecurityPreferences": {},
     "openFilesFromWidget": {
       "path": "Types.Path",
       "type": "Types.PathType"

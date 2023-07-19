@@ -1144,12 +1144,13 @@ type State = Store & {
       afterDriverDisable?: () => void
       afterDriverDisabling?: () => void
       afterDriverEnabled?: (isRetry: boolean) => void
-      setSfmiBannerDismissedDesktop?: (dismissed: boolean) => void
       openLocalPathInSystemFileManagerDesktop?: (localPath: string) => void
       openPathInSystemFileManagerDesktop?: (path: Types.Path) => void
-      uploadFromDragAndDropDesktop?: (parentPath: Types.Path, localPaths: Array<string>) => void
+      openSecurityPreferencesDesktop?: () => void
       refreshDriverStatusDesktop?: () => void
       refreshMountDirsDesktop?: () => void
+      setSfmiBannerDismissedDesktop?: (dismissed: boolean) => void
+      uploadFromDragAndDropDesktop?: (parentPath: Types.Path, localPaths: Array<string>) => void
     }
     editError: (editID: Types.EditID, error: string) => void
     editSuccess: (editID: Types.EditID) => void
@@ -1469,6 +1470,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       afterDriverEnabled: undefined,
       openLocalPathInSystemFileManagerDesktop: undefined,
       openPathInSystemFileManagerDesktop: undefined,
+      openSecurityPreferencesDesktop: undefined,
       refreshDriverStatusDesktop: undefined,
       refreshMountDirsDesktop: undefined,
       setSfmiBannerDismissedDesktop: undefined,
