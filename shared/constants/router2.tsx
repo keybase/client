@@ -318,7 +318,7 @@ export type State = Store & {
     navUpToScreen: (name: string) => void
     popStack: () => void
     resetState: 'default'
-    switchTab: (tab: Tabs.AppTab, params?: Object) => void
+    switchTab: (tab: Tabs.AppTab) => void
   }
 }
 
@@ -359,13 +359,13 @@ export const useState = Z.createZustand<State>(() => {
       n?.dispatch(StackActions.popToTop())
     },
     resetState: 'default',
-    switchTab: (name, params) => {
+    switchTab: name => {
       const n = _getNavigator()
       if (!n) return
       const ns = getRootState()
       if (!ns) return
       n.dispatch({
-        ...CommonActions.navigate({name, params}),
+        ...CommonActions.navigate({name}),
         target: ns.routes[0]?.state?.key,
       })
     },
