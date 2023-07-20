@@ -2,8 +2,7 @@ import * as Constants from '../constants/settings'
 import * as ConfigConstants from '../constants/config'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RouteTreeGen from './route-tree-gen'
-import * as Router2Constants from '../constants/router2'
+import * as RouterConstants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import logger from '../logger'
 import * as Container from '../util/container'
@@ -24,15 +23,17 @@ const initSettings = () => {
     }
   })
 
-  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
-    const {prev, next} = action.payload
+  RouterConstants.useState.subscribe((s, old) => {
+    const next = s.navState
+    const prev = old.navState
+    if (next === prev) return
     // Clear "check your inbox" in settings when you leave the settings tab
     if (
       Constants.useEmailState.getState().addedEmail &&
       prev &&
-      Router2Constants.getTab(prev) === Tabs.settingsTab &&
+      RouterConstants.getTab(prev) === Tabs.settingsTab &&
       next &&
-      Router2Constants.getTab(next) !== Tabs.settingsTab
+      RouterConstants.getTab(next) !== Tabs.settingsTab
     ) {
       Constants.useEmailState.getState().dispatch.resetAddedEmail()
     }

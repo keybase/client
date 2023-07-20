@@ -2,7 +2,6 @@ import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/teams'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as RouteTreeGen from './route-tree-gen'
 import * as RouterConstants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import logger from '../logger'
@@ -69,8 +68,10 @@ const initTeams = () => {
     eagerLoadTeams()
   })
 
-  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
-    const {prev, next} = action.payload
+  RouterConstants.useState.subscribe((s, old) => {
+    const next = s.navState
+    const prev = old.navState
+    if (next === prev) return
     if (
       prev &&
       RouterConstants.getTab(prev) === Tabs.teamsTab &&

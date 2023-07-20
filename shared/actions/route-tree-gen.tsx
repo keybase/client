@@ -9,7 +9,6 @@ export const typePrefix = 'route-tree:'
 export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateUp = 'route-tree:navigateUp'
 export const navigateUpNoop = 'route-tree:navigateUpNoop'
-export const onNavChanged = 'route-tree:onNavChanged'
 export const switchTab = 'route-tree:switchTab'
 
 // Action Creators
@@ -36,17 +35,11 @@ export const createNavigateUp = (payload: {readonly fromKey?: string} = {}) => (
   payload,
   type: navigateUp as typeof navigateUp,
 })
-export const createOnNavChanged = (payload: {
-  readonly prev: Types.NavState | undefined
-  readonly next: Types.NavState | undefined
-  readonly navAction: any
-}) => ({payload, type: onNavChanged as typeof onNavChanged})
 
 // Action Payloads
 export type NavigateAppendPayload = ReturnType<typeof createNavigateAppend>
 export type NavigateUpNoopPayload = ReturnType<typeof createNavigateUpNoop>
 export type NavigateUpPayload = ReturnType<typeof createNavigateUp>
-export type OnNavChangedPayload = ReturnType<typeof createOnNavChanged>
 export type SwitchTabPayload = ReturnType<typeof createSwitchTab>
 
 // All Actions
@@ -55,6 +48,5 @@ export type Actions =
   | NavigateAppendPayload
   | NavigateUpNoopPayload
   | NavigateUpPayload
-  | OnNavChangedPayload
   | SwitchTabPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

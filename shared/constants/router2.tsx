@@ -311,11 +311,16 @@ export const getRouteLoggedIn = (route: Array<Route>) => {
   return route[0]?.name === 'loggedIn'
 }
 
-type Store = {}
+type Store = {
+  // only used for subscribing
+  navState?: NavState
+}
 
-const initialStore: Store = {}
+const initialStore: Store = {
+  navState: undefined,
+}
 
-type State = Store & {
+export type State = Store & {
   dispatch: {
     clearModals: () => void
     dynamic: {

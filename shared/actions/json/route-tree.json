@@ -19,11 +19,6 @@
       "_description": "ONLY used by the new nav. Switch to a different tab.",
       "tab": "Tabs.AppTab",
       "params?": "Object"
-    },
-    "onNavChanged": {
-      "prev": "Types.NavState | undefined",
-      "next": "Types.NavState | undefined",
-      "navAction": "any"
     }
   }
 }

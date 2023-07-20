@@ -1,9 +1,7 @@
 import * as Constants from '../constants/people'
-import * as Router2Constants from '../constants/router2'
-// import * as ProfileConstants from '../constants/profile'
+import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
 
@@ -35,13 +33,15 @@ const initPeople = () => {
       console.warn('Error in registering home UI:', error)
     }
   })
-  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
-    const {prev, next} = action.payload
+  RouterConstants.useState.subscribe((s, old) => {
+    const next = s.navState
+    const prev = old.navState
+    if (next === prev) return
     if (
       prev &&
-      Router2Constants.getTab(prev) === Tabs.peopleTab &&
+      RouterConstants.getTab(prev) === Tabs.peopleTab &&
       next &&
-      Router2Constants.getTab(next) !== Tabs.peopleTab
+      RouterConstants.getTab(next) !== Tabs.peopleTab
     ) {
       Constants.useState.getState().dispatch.markViewed()
     }

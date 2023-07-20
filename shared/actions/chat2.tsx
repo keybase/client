@@ -15,7 +15,6 @@ import * as Platform from '../constants/platform'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import * as Router2Constants from '../constants/router2'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as TeamsConstants from '../constants/teams'
@@ -1814,7 +1813,7 @@ const messageSend = async (
         },
         incomingCallMap: {
           'chat.1.chatUi.chatStellarDone': ({canceled}) => {
-            const visibleScreen = Router2Constants.getVisibleScreen()
+            const visibleScreen = RouterConstants.getVisibleScreen()
             if (visibleScreen && visibleScreen.name === confirmRouteName) {
               RouterConstants.useState.getState().dispatch.clearModals()
               return
@@ -2596,7 +2595,7 @@ const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) 
   if (reason === 'navChanged') {
     return
   }
-  const visible = Router2Constants.getVisibleScreen()
+  const visible = RouterConstants.getVisibleScreen()
   // @ts-ignore TODO better types
   const visibleConvo: Types.ConversationIDKey | undefined = visible?.params?.conversationIDKey
   const visibleRouteName = visible?.name
@@ -2608,12 +2607,12 @@ const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) 
 
   // we select the chat tab and change the params
   if (Constants.isSplit) {
-    Router2Constants.navToThread(conversationIDKey)
+    RouterConstants.navToThread(conversationIDKey)
     return false
   } else {
     // immediately switch stack to an inbox | thread stack
     if (reason === 'push' || reason === 'savedLastState') {
-      Router2Constants.navToThread(conversationIDKey)
+      RouterConstants.navToThread(conversationIDKey)
       return false
     } else {
       // replace if looking at the pending / waiting screen
@@ -2621,7 +2620,7 @@ const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) 
         visibleRouteName === Constants.threadRouteName &&
         !Constants.isValidConversationIDKey(visibleConvo ?? '')
       // note: we don't switch tabs on non split
-      const modalPath = Router2Constants.getModalStack()
+      const modalPath = RouterConstants.getModalStack()
       if (modalPath.length > 0) {
         RouterConstants.useState.getState().dispatch.clearModals()
       }
@@ -3677,7 +3676,7 @@ const refreshBotSettings = async (_: unknown, action: Chat2Gen.RefreshBotSetting
 const onShowInfoPanel = (_: unknown, action: Chat2Gen.ShowInfoPanelPayload) => {
   const {conversationIDKey, show, tab} = action.payload
   if (Container.isPhone) {
-    const visibleScreen = Router2Constants.getVisibleScreen()
+    const visibleScreen = RouterConstants.getVisibleScreen()
     if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
       return show
         ? RouteTreeGen.createNavigateAppend({
@@ -3694,18 +3693,20 @@ const onShowInfoPanel = (_: unknown, action: Chat2Gen.ShowInfoPanelPayload) => {
   }
 }
 
-const maybeChangeChatSelection = (state: Container.TypedState, action: RouteTreeGen.OnNavChangedPayload) => {
-  const {prev, next} = action.payload
-  const wasModal = prev && Router2Constants.getModalStack(prev).length > 0
-  const isModal = next && Router2Constants.getModalStack(next).length > 0
+const maybeChangeChatSelection = (
+  prev: RouterConstants.State['navState'],
+  next: RouterConstants.State['navState']
+) => {
+  const wasModal = prev && RouterConstants.getModalStack(prev).length > 0
+  const isModal = next && RouterConstants.getModalStack(next).length > 0
 
   // ignore if changes involve a modal
   if (wasModal || isModal) {
     return
   }
 
-  const p = Router2Constants.getVisibleScreen(prev)
-  const n = Router2Constants.getVisibleScreen(next)
+  const p = RouterConstants.getVisibleScreen(prev)
+  const n = RouterConstants.getVisibleScreen(next)
 
   const wasChat = p?.name === Constants.threadRouteName
   const isChat = n?.name === Constants.threadRouteName
@@ -3724,8 +3725,9 @@ const maybeChangeChatSelection = (state: Container.TypedState, action: RouteTree
 
   // same? ignore
   if (wasChat && isChat && wasID === isID) {
+    const getReduxStore = Z.getReduxStore()
     // if we've never loaded anything, keep going so we load it
-    if (!isID || state.chat2.containsLatestMessageMap.get(isID) !== undefined) {
+    if (!isID || getReduxStore().chat2.containsLatestMessageMap.get(isID) !== undefined) {
       return false
     }
   }
@@ -3756,9 +3758,11 @@ const maybeChangeChatSelection = (state: Container.TypedState, action: RouteTree
   return false
 }
 
-const maybeChatTabSelected = (_: unknown, action: RouteTreeGen.OnNavChangedPayload) => {
-  const {prev, next} = action.payload
-  if (Router2Constants.getTab(prev) !== Tabs.chatTab && Router2Constants.getTab(next) === Tabs.chatTab) {
+const maybeChatTabSelected = (
+  prev: RouterConstants.State['navState'],
+  next: RouterConstants.State['navState']
+) => {
+  if (RouterConstants.getTab(prev) !== Tabs.chatTab && RouterConstants.getTab(next) === Tabs.chatTab) {
     return Chat2Gen.createTabSelected()
   }
   return false
@@ -4039,8 +4043,14 @@ const initChat = () => {
 
   Container.listenAction(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
 
-  Container.listenAction(RouteTreeGen.onNavChanged, maybeChangeChatSelection)
-  Container.listenAction(RouteTreeGen.onNavChanged, maybeChatTabSelected)
+  RouterConstants.useState.subscribe((s, old) => {
+    const next = s.navState
+    const prev = old.navState
+    if (next === prev) return
+    maybeChangeChatSelection(prev, next)
+    maybeChatTabSelected(prev, next)
+  })
+
   Container.listenAction(Chat2Gen.deselectedConversation, updateDraftState)
   getEngine().registerRpcCallback<EngineGen.Chat1NotifyChatChatTypingUpdatePayload>(
     EngineGen.chat1NotifyChatChatTypingUpdate,

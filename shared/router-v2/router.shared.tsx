@@ -6,10 +6,8 @@ import * as FsConstants from '../constants/fs'
 import * as Kb from '../common-adapters'
 import * as Kbfs from '../fs/common'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import Loading from '../login/loading'
-import type {NavState} from '../constants/types/route-tree'
 import type {Theme} from '@react-navigation/native'
 import {colors, darkColors, themed} from '../styles/colors'
 
@@ -87,9 +85,7 @@ export const useShared = () => {
   // if we use useEffect and useState we'll have to deal with extra renders which look really bad
   const loggedInLoaded = ConfigConstants.useDaemonState(s => s.handshakeState === 'done')
   const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
-  const dispatch = Container.useDispatch()
   const navContainerKey = React.useRef(1)
-  const oldNavState = React.useRef<NavState | undefined>(undefined)
   // keep track if we went to an init route yet or not
   const appState = React.useRef(loggedInLoaded ? AppState.NEEDS_INIT : AppState.UNINIT)
 
@@ -98,18 +94,11 @@ export const useShared = () => {
   }
 
   const onStateChange = React.useCallback(() => {
-    const old = oldNavState.current
     const ns = Constants.getRootState()
-    ns &&
-      dispatch(
-        RouteTreeGen.createOnNavChanged({
-          navAction: undefined,
-          next: ns,
-          prev: old,
-        })
-      )
-    oldNavState.current = ns
-  }, [oldNavState, dispatch])
+    Constants.useState.setState(s => {
+      s.navState = ns
+    })
+  }, [])
 
   const navKey = useNavKey(appState.current, navContainerKey)
   const initialState = useInitialState()

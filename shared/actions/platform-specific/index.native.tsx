@@ -570,10 +570,16 @@ export const initPlatformListener = () => {
     })
   }
 
-  Container.listenAction(RouteTreeGen.onNavChanged, async () => {
-    await Container.timeoutPromise(1000)
-    const path = RouterConstants.getVisiblePath()
-    ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
+  RouterConstants.useState.subscribe((s, old) => {
+    const next = s.navState
+    const prev = old.navState
+    if (next === prev) return
+    const f = async () => {
+      await Container.timeoutPromise(1000)
+      const path = RouterConstants.getVisiblePath()
+      ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
+    }
+    Z.ignorePromise(f())
   })
 
   Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
