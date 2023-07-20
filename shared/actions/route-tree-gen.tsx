@@ -6,7 +6,6 @@ import type * as Types from '../constants/types/route-tree'
 export const resetStore = 'common:resetStore' // not a part of route-tree but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'route-tree:'
 export const navigateAppend = 'route-tree:navigateAppend'
-export const navigateUp = 'route-tree:navigateUp'
 export const navigateUpNoop = 'route-tree:navigateUpNoop'
 
 // Action Creators
@@ -22,20 +21,14 @@ export const createNavigateAppend = (payload: {
   readonly path: Types.PathParam
   readonly replace?: boolean
 }) => ({payload, type: navigateAppend as typeof navigateAppend})
-export const createNavigateUp = (payload: {readonly fromKey?: string} = {}) => ({
-  payload,
-  type: navigateUp as typeof navigateUp,
-})
 
 // Action Payloads
 export type NavigateAppendPayload = ReturnType<typeof createNavigateAppend>
 export type NavigateUpNoopPayload = ReturnType<typeof createNavigateUpNoop>
-export type NavigateUpPayload = ReturnType<typeof createNavigateUp>
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | NavigateAppendPayload
   | NavigateUpNoopPayload
-  | NavigateUpPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

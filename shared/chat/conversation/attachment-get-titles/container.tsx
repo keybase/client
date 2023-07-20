@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/chat2'
 import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
 import * as FsTypes from '../../../constants/types/fs'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import GetTitles, {type Info} from '.'
 import type * as Types from '../../../constants/types/chat2'
 import type * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
@@ -26,6 +25,7 @@ export default (ownProps: OwnProps) => {
   const {titles, tlfName, pathAndOutboxIDs} = ownProps
   const noDragDrop = ownProps.noDragDrop ?? false
   const selectConversationWithReason = ownProps.selectConversationWithReason
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     dispatch(
       Chat2Gen.createAttachmentUploadCanceled({
@@ -37,7 +37,7 @@ export default (ownProps: OwnProps) => {
         }, []),
       })
     )
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onSubmit = (titles: Array<string>) => {

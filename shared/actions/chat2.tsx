@@ -3678,14 +3678,14 @@ const onShowInfoPanel = (_: unknown, action: Chat2Gen.ShowInfoPanelPayload) => {
   if (Container.isPhone) {
     const visibleScreen = RouterConstants.getVisibleScreen()
     if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
-      return show
-        ? RouteTreeGen.createNavigateAppend({
-            path: [{props: {conversationIDKey, tab}, selected: 'chatInfoPanel'}],
-          })
-        : [
-            ...(conversationIDKey ? [Chat2Gen.createClearAttachmentView({conversationIDKey})] : []),
-            RouteTreeGen.createNavigateUp(),
-          ]
+      if (show) {
+        return RouteTreeGen.createNavigateAppend({
+          path: [{props: {conversationIDKey, tab}, selected: 'chatInfoPanel'}],
+        })
+      } else {
+        RouterConstants.useState.getState().dispatch.navigateUp()
+        return conversationIDKey ? [Chat2Gen.createClearAttachmentView({conversationIDKey})] : []
+      }
     }
     return false
   } else {

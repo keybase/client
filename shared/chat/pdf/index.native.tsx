@@ -1,17 +1,16 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Container from '../../util/container'
 import * as ConfigConstants from '../../constants/config'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import type {Props} from '.'
 
 const ChatPDF = (props: Props) => {
   const {message, url} = props
   const title = message?.title || message?.fileName || 'PDF'
   const [error, setError] = React.useState('')
-  const dispatch = Container.useDispatch()
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const onBack = () => navigateUp()
   const showShareActionSheet = ConfigConstants.useConfigState(s => s.dispatch.dynamic.showShareActionSheet)
   const onShare = () => showShareActionSheet?.(url ?? '', '', 'application/pdf')
   const rightActions = [{icon: 'iconfont-share', onPress: onShare} as const]

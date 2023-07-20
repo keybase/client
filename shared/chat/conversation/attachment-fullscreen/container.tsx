@@ -2,11 +2,11 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/chat2'
 import * as FSConstants from '../../../constants/fs'
 import * as ConfigConstants from '../../../constants/config'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
 import shallowEqual from 'shallowequal'
@@ -95,6 +95,7 @@ const Connected = (props: OwnProps) => {
   const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   return (
     <Fullscreen
       message={message}
@@ -102,7 +103,7 @@ const Connected = (props: OwnProps) => {
       onAllMedia={() =>
         dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'attachments'}))
       }
-      onClose={() => dispatch(RouteTreeGen.createNavigateUp())}
+      onClose={() => navigateUp()}
       onDownloadAttachment={
         message.downloadPath
           ? undefined

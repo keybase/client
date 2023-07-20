@@ -175,10 +175,7 @@ const updateServerConfig = () => {
   Z.ignorePromise(f())
 }
 
-const newNavigation = (
-  _: unknown,
-  action: RouteTreeGen.NavigateAppendPayload | RouteTreeGen.NavigateUpPayload
-) => {
+const newNavigation = (_: unknown, action: RouteTreeGen.NavigateAppendPayload) => {
   Router2.dispatchOldAction(action)
 }
 
@@ -235,7 +232,7 @@ const initConfig = () => {
     }
   })
 
-  Container.listenAction([RouteTreeGen.navigateAppend, RouteTreeGen.navigateUp], newNavigation)
+  Container.listenAction([RouteTreeGen.navigateAppend], newNavigation)
 
   // Give time for all waiters to register and allow the case where there are no waiters
   Constants.useLogoutState.subscribe((s, old) => {
