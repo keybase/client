@@ -1,4 +1,5 @@
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
+import * as Z from '../util/zustand'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Tabs from '../constants/tabs'
@@ -149,12 +150,6 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
       // no longer used
       return []
     }
-    case RouteTreeGen.clearModals: {
-      if (_isLoggedIn(navigationState) && navigationState?.routes?.length > 1) {
-        return [{...StackActions.popToTop(), target: navigationState.key}]
-      }
-      return []
-    }
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
     case RouteTreeGen.navUpToScreen: {
@@ -238,7 +233,6 @@ type RTGActions =
   | RouteTreeGen.NavigateAppendPayload
   | RouteTreeGen.NavigateUpPayload
   | RouteTreeGen.SwitchLoggedInPayload
-  | RouteTreeGen.ClearModalsPayload
   | RouteTreeGen.NavUpToScreenPayload
   | RouteTreeGen.SwitchTabPayload
   | RouteTreeGen.PopStackPayload
@@ -354,3 +348,32 @@ export const getRouteTab = (route: Array<Route>) => {
 export const getRouteLoggedIn = (route: Array<Route>) => {
   return route[0]?.name === 'loggedIn'
 }
+
+type Store = {}
+
+const initialStore: Store = {}
+
+type State = Store & {
+  dispatch: {
+    clearModals: () => void
+    resetState: 'default'
+  }
+}
+
+export const useState = Z.createZustand<State>(() => {
+  const dispatch: State['dispatch'] = {
+    clearModals: () => {
+      const n = _getNavigator()
+      if (!n) return
+      const ns = getRootState()
+      if (_isLoggedIn(ns) && (ns?.routes?.length ?? 0) > 1) {
+        n.dispatch({...StackActions.popToTop(), target: ns?.key})
+      }
+    },
+    resetState: 'default',
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

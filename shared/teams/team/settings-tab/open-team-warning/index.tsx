@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../../constants/router2'
 import {useSettingsState} from '../use-settings'
 
 type Props = {
@@ -26,14 +25,14 @@ const OpenTeamWarning = (props: Props) => {
   const teamname = props.teamname
   const [enabled, setEnabled] = React.useState(false)
   const onConfirmCallback = useSettingsState(s => s.dispatch.triggerAllowOpen)
-  const dispatch = Container.useDispatch()
 
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onConfirm = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     onConfirmCallback()
   }
 
-  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
+  const onCancel = () => clearModals()
 
   return (
     <Wrapper onBack={onCancel}>

@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/settings'
+import * as RouterConstants from '../../constants/router2'
 import * as Container from '../../util/container'
 import * as Platform from '../../constants/platform'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import {EnterEmailBody} from '../../signup/email'
 import {EnterPhoneNumberBody} from '../../signup/phone-number'
@@ -34,13 +34,16 @@ export const Email = () => {
     },
     [resetAddingEmail]
   )
+
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+
   // watch for + nav away on success
   React.useEffect(() => {
     if (addedEmail && addedEmail === addEmailInProgress) {
       // success
-      dispatch(RouteTreeGen.createClearModals())
+      clearModals()
     }
-  }, [addEmailInProgress, addedEmail, dispatch])
+  }, [addEmailInProgress, addedEmail, clearModals])
   // clean on edit
   React.useEffect(() => {
     if (emailTrimmed !== addEmailInProgress && emailError) {
@@ -229,8 +232,6 @@ export const Phone = () => {
   )
 }
 export const VerifyPhone = () => {
-  const dispatch = Container.useDispatch()
-
   const [code, onChangeCode] = React.useState('')
 
   const pendingVerification = Constants.usePhoneState(s => s.pendingVerification)
@@ -250,12 +251,13 @@ export const VerifyPhone = () => {
     },
     [clearPhoneNumberAdd]
   )
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   // Clear on success
   React.useEffect(() => {
     if (verificationState === 'success' && !error) {
-      dispatch(RouteTreeGen.createClearModals())
+      clearModals()
     }
-  }, [verificationState, error, dispatch])
+  }, [verificationState, error, clearModals])
 
   const resendVerificationForPhone = Constants.usePhoneState(s => s.dispatch.resendVerificationForPhone)
   const verifyPhoneNumber = Constants.usePhoneState(s => s.dispatch.verifyPhoneNumber)
@@ -265,8 +267,8 @@ export const VerifyPhone = () => {
   }, [resendVerificationForPhone, pendingVerification])
   const onClose = React.useCallback(() => {
     clearPhoneNumberAdd()
-    dispatch(RouteTreeGen.createClearModals())
-  }, [clearPhoneNumberAdd, dispatch])
+    clearModals()
+  }, [clearPhoneNumberAdd, clearModals])
   const onContinue = React.useCallback(
     () => verifyPhoneNumber(pendingVerification, code),
     [verifyPhoneNumber, code, pendingVerification]
@@ -365,5 +367,5 @@ const styles = Styles.styleSheetCreate(
       verifyContainer: {
         ...Styles.padding(0, Styles.globalMargins.small),
       },
-    } as const)
+    }) as const
 )

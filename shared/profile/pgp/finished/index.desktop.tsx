@@ -1,8 +1,7 @@
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../constants/router2'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/profile'
 import Modal from '../../modal'
 
@@ -82,7 +81,7 @@ const styles = Styles.styleSheetCreate(
           wordWrap: 'break-word',
         } as const,
       }),
-    } as const)
+    }) as const
 )
 
 export default () => {
@@ -90,10 +89,10 @@ export default () => {
   const promptShouldStoreKeyOnServer = Constants.useState(s => s.promptShouldStoreKeyOnServer)
   const finishedWithKeyGen = Constants.useState(s => s.dispatch.dynamic.finishedWithKeyGen)
 
-  const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onDone = (shouldStoreKeyOnServer: boolean) => {
     finishedWithKeyGen?.(shouldStoreKeyOnServer)
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const props = {
     onDone,

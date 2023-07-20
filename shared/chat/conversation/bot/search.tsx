@@ -1,5 +1,6 @@
 import * as BotsGen from '../../../actions/bots-gen'
 import * as Constants from '../../../constants/bots'
+import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -38,8 +39,9 @@ const SearchBotPopup = (props: Props) => {
     Constants.waitingKeyBotSearchFeatured,
   ])
   const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const onSearch = debounce((query: string) => {
     setLastQuery(query)

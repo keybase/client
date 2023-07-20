@@ -1,6 +1,5 @@
-import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/profile'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../constants/router2'
 import Success from '.'
 
 export default () => {
@@ -11,9 +10,9 @@ export default () => {
   const serviceIcon = Constants.useState(s => s.platformGenericParams?.logoFull ?? [])
   const backToProfile = Constants.useState(s => s.dispatch.backToProfile)
   const clearPlatformGeneric = Constants.useState(s => s.dispatch.clearPlatformGeneric)
-  const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     backToProfile()
     clearPlatformGeneric()
   }

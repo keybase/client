@@ -8,6 +8,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as ConfigConstants from '../../constants/config'
+import * as RouterConstants from '../../constants/router2'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type * as ChatTypes from '../../constants/types/chat2'
 import HiddenString from '../../util/hidden-string'
@@ -25,7 +26,8 @@ const MobileSendToChatRoutable = (props: Props) => {
   const {canBack, isFromShareExtension, sendPaths, text} = props
 
   const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const onCancel = () => clearModals()
   const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
 
   return (
@@ -98,8 +100,9 @@ const DesktopSendToChat = (props: Props) => {
   const [convName, setConvName] = React.useState('')
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const onSelect = (convID: ChatTypes.ConversationIDKey, convname: string) => {
     setConversationIDKey(convID)
@@ -116,7 +119,7 @@ const DesktopSendToChat = (props: Props) => {
         })
       )
     )
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'files'}))
   }
   return (
@@ -222,5 +225,5 @@ const desktopStyles = Styles.styleSheetCreate(
       pathItem: {
         marginTop: Styles.globalMargins.mediumLarge,
       },
-    } as const)
+    }) as const
 )

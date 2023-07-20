@@ -1,6 +1,5 @@
 import * as RPCTypes from './types/rpc-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterConstants from './router2'
 import * as SettingsConstants from './settings'
 import * as UsersConstants from './users'
@@ -274,8 +273,6 @@ const interestingPersonToUser = (person: RPCTypes.InterestingPerson): Types.User
 }
 
 const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
-
   const dispatch: State['dispatch'] = {
     addUsersToTeamSoFar: users => {
       set(s => {
@@ -314,7 +311,7 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
       const routeNames = [...namespaceToRoute.values()]
       const routeName = modals[modals.length - 1]?.name
       if (routeNames.includes(routeName ?? '')) {
-        reduxDispatch(RouteTreeGen.createClearModals())
+        RouterConstants.useState.getState().dispatch.clearModals()
       }
     },
     fetchUserRecs: () => {

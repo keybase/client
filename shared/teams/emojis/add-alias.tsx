@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as RouterConstants from '../../constants/router2'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import * as Container from '../../util/container'
@@ -55,12 +56,12 @@ export const AddAliasModal = (props: Props) => {
     [props.defaultSelected]
   )
 
-  const dispatch = Container.useDispatch()
   const addAliasRpc = useRPC(RPCChatGen.localAddEmojiAliasRpcPromise)
   const [addAliasWaiting, setAddAliasWaiting] = React.useState(false)
 
   const refreshEmoji = useEmojiState(s => s.dispatch.triggerEmojiUpdated)
 
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const doAddAlias = emoji
     ? () => {
         setAddAliasWaiting(true)
@@ -78,7 +79,7 @@ export const AddAliasModal = (props: Props) => {
               setError(res.error.uidisplay)
               return
             }
-            dispatch(RouteTreeGen.createClearModals())
+            clearModals()
             refreshEmoji()
           },
           err => {

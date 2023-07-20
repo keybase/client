@@ -1,5 +1,4 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/profile'
 import ProveEnterUsername from '.'
 
@@ -19,7 +18,6 @@ export default () => {
 
   const errorText = _errorText === 'Input canceled' ? '' : _errorText
 
-  const dispatch = Container.useDispatch()
   const _onSubmit = (username: string, platform?: string) => {
     updateUsername(username)
 
@@ -31,9 +29,10 @@ export default () => {
       submitUsername?.()
     }
   }
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onCancel = () => {
     cancelAddProof?.()
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const props = {
     errorText: errorText,

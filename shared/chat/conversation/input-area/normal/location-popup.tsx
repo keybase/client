@@ -2,10 +2,10 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
+import * as RouterConstants from '../../../../constants/router2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import LocationMap from '../../../location-map'
@@ -28,8 +28,9 @@ const LocationPopup = (props: Props) => {
   }, shallowEqual)
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const onSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const onLocationShare = (duration: string) => {
@@ -150,7 +151,7 @@ const styles = Styles.styleSheetCreate(
       liveButton: {
         height: 53,
       },
-    } as const)
+    }) as const
 )
 
 export default LocationPopup

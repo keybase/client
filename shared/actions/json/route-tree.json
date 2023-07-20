@@ -15,9 +15,6 @@
     "navigateUpNoop": {
       "_description": "Nav up but no longer focused, for logging only"
     },
-    "clearModals": {
-      "_description": "ONLY used by the new nav. use this to clear any modal routes"
-    },
     "navUpToScreen": {
       "_description": "ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.",
       "name": "string",

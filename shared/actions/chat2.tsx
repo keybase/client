@@ -2,6 +2,7 @@ import * as Z from '../util/zustand'
 import * as BotsGen from './bots-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
+import * as RouterConstants from '../constants/router2'
 import * as UsersConstants from '../constants/users'
 import * as LinksConstants from '../constants/deeplinks'
 import * as Constants from '../constants/chat2'
@@ -1815,7 +1816,8 @@ const messageSend = async (
           'chat.1.chatUi.chatStellarDone': ({canceled}) => {
             const visibleScreen = Router2Constants.getVisibleScreen()
             if (visibleScreen && visibleScreen.name === confirmRouteName) {
-              return RouteTreeGen.createClearModals()
+              RouterConstants.useState.getState().dispatch.clearModals()
+              return
             }
             if (canceled) {
               return Chat2Gen.createSetUnsentText({conversationIDKey, text})
@@ -2606,9 +2608,6 @@ const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) 
     return false
   }
 
-  const modalPath = Router2Constants.getModalStack()
-  const modalClearAction = modalPath.length > 0 ? [RouteTreeGen.createClearModals()] : []
-
   // we select the chat tab and change the params
   if (Constants.isSplit) {
     Router2Constants.navToThread(conversationIDKey)
@@ -2624,8 +2623,11 @@ const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) 
         visibleRouteName === Constants.threadRouteName &&
         !Constants.isValidConversationIDKey(visibleConvo ?? '')
       // note: we don't switch tabs on non split
+      const modalPath = Router2Constants.getModalStack()
+      if (modalPath.length > 0) {
+        RouterConstants.useState.getState().dispatch.clearModals()
+      }
       return [
-        ...modalClearAction,
         RouteTreeGen.createNavigateAppend({
           path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
           replace,
@@ -3480,12 +3482,11 @@ const addUsersToChannel = async (_: unknown, action: Chat2Gen.AddUsersToChannelP
       {convID: Types.keyToConversationID(conversationIDKey), usernames},
       Constants.waitingKeyAddUsersToChannel
     )
-    return [RouteTreeGen.createClearModals()]
+    RouterConstants.useState.getState().dispatch.clearModals()
   } catch (error) {
     if (error instanceof RPCError) {
       logger.error(`addUsersToChannel: ${error.message}`) // surfaced in UI via waiting key
     }
-    return false
   }
 }
 
@@ -3591,12 +3592,11 @@ const refreshBotPublicCommands = async (_: unknown, action: Chat2Gen.RefreshBotP
 }
 
 const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  const actions: Array<Container.TypedActions> = [RouteTreeGen.createClearModals()]
+  RouterConstants.useState.getState().dispatch.clearModals()
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (meta?.teamname) {
     TeamsConstants.useState.getState().dispatch.getMembers(meta.teamID)
   }
-  return actions
 }
 
 const addBotMember = async (state: Container.TypedState, action: Chat2Gen.AddBotMemberPayload) => {
@@ -3912,7 +3912,9 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.markTeamAsRead, markTeamAsRead)
   Container.listenAction(Chat2Gen.markAsUnread, markAsUnread)
   Container.listenAction(Chat2Gen.messagesAdd, messagesAdd)
-  Container.listenAction(Chat2Gen.leaveConversation, () => RouteTreeGen.createClearModals())
+  Container.listenAction(Chat2Gen.leaveConversation, () => {
+    RouterConstants.useState.getState().dispatch.clearModals()
+  })
   Container.listenAction([Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation], navigateToInbox)
   Container.listenAction(Chat2Gen.navigateToThread, navigateToThread)
 

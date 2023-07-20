@@ -1,5 +1,5 @@
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/chat2'
+import * as RouterConstants from '../../../constants/router2'
 import * as TeamsConstants from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
@@ -39,8 +39,9 @@ export default (ownProps: OwnProps) => {
     dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'teamMention'}))
   }
   const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const _onViewTeam = (teamname: string) => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     showTeamByName(teamname)
   }
   const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)

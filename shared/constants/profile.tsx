@@ -1,5 +1,6 @@
 import * as ConfigConstants from './config'
 import * as LinksConstants from '../constants/deeplinks'
+import * as RouterConstants from '../constants/router2'
 import * as More from './types/more'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -467,7 +468,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     backToProfile: () => {
-      reduxDispatch(RouteTreeGen.createClearModals())
+      RouterConstants.useState.getState().dispatch.clearModals()
       get().dispatch.showUserProfile(ConfigConstants.useCurrentUserState.getState().username)
     },
     checkProof: () => {
@@ -673,7 +674,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     showUserProfile: username => {
       if (isMobile) {
-        reduxDispatch(RouteTreeGen.createClearModals())
+        RouterConstants.useState.getState().dispatch.clearModals()
       }
       reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profile'}]}))
     },

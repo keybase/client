@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
@@ -107,8 +108,9 @@ const InstallBotPopup = (props: Props) => {
   const error = Container.useAnyErrors([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
   // dispatch
   const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => {
-    Styles.isMobile ? dispatch(RouteTreeGen.createNavigateUp()) : dispatch(RouteTreeGen.createClearModals())
+    Styles.isMobile ? dispatch(RouteTreeGen.createNavigateUp()) : clearModals()
   }
   const onLearn = () => {
     openURL('https://book.keybase.io/docs/chat/restricted-bots')

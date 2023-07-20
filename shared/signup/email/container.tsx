@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/signup'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Platform from '../../constants/platform'
@@ -44,8 +45,9 @@ const ConnectedEnterEmail = () => {
   const initialEmail = Constants.useState(s => s.email)
   const waiting = Container.useAnyWaiting(SettingsConstants.addEmailWaitingKey)
   const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const _navClearModals = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const _navToPushPrompt = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsPushPrompt'], replace: true}))

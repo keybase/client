@@ -1,6 +1,7 @@
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
+import * as RouterConstants from './router2'
 import * as UsersConstants from './users'
 import * as GregorConstants from './gregor'
 import * as ProfileConstants from './profile'
@@ -1506,7 +1507,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.addMembersWizard = {...addMembersWizardEmptyState}
       })
-      reduxDispatch(RouteTreeGen.createClearModals())
+      RouterConstants.useState.getState().dispatch.clearModals()
     },
     channelSetMemberSelected: (conversationIDKey, username, selected, clearAll) => {
       set(s => {
@@ -1598,7 +1599,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           // Dismiss the create channel dialog.
           const visibleScreen = Router2Constants.getVisibleScreen()
           if (visibleScreen && visibleScreen.name === 'chatCreateChannel') {
-            reduxDispatch(RouteTreeGen.createClearModals())
+            RouterConstants.useState.getState().dispatch.clearModals()
           }
           // Reload on team page
           get().dispatch.loadTeamChannelList(teamID)
@@ -1675,13 +1676,13 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
 
           if (fromChat) {
-            reduxDispatch(RouteTreeGen.createClearModals())
+            RouterConstants.useState.getState().dispatch.clearModals()
             reduxDispatch(Chat2Gen.createNavigateToInbox())
             reduxDispatch(
               Chat2Gen.createPreviewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
             )
           } else {
-            reduxDispatch(RouteTreeGen.createClearModals())
+            RouterConstants.useState.getState().dispatch.clearModals()
             reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
             if (isMobile) {
               reduxDispatch(
@@ -1732,7 +1733,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           teamWaitingKey(teamID)
         )
         get().dispatch.loadTeamChannelList(teamID)
-        reduxDispatch(RouteTreeGen.createClearModals())
+        RouterConstants.useState.getState().dispatch.clearModals()
       }
       Z.ignorePromise(f())
     },
@@ -1749,7 +1750,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
         }
         get().dispatch.loadTeamChannelList(teamID)
-        reduxDispatch(RouteTreeGen.createClearModals())
+        RouterConstants.useState.getState().dispatch.clearModals()
       }
       Z.ignorePromise(f())
     },
@@ -1850,7 +1851,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.newTeamWizard = newTeamWizardEmptyState
             s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
           })
-          reduxDispatch(RouteTreeGen.createClearModals())
+          RouterConstants.useState.getState().dispatch.clearModals()
           reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
         } catch (error) {
           set(s => {
@@ -1866,7 +1867,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
       })
-      reduxDispatch(RouteTreeGen.createClearModals())
+      RouterConstants.useState.getState().dispatch.clearModals()
     },
     getActivityForTeams: () => {
       const f = async () => {
@@ -2058,7 +2059,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             get().dispatch.resetErrorInEmailInvite()
             if (!isMobile) {
               // mobile does not nav away
-              reduxDispatch(RouteTreeGen.createClearModals())
+              RouterConstants.useState.getState().dispatch.clearModals()
             }
           }
         } catch (error) {
@@ -2215,7 +2216,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         try {
           await RPCTypes.teamsTeamLeaveRpcPromise({name: teamname, permanent}, leaveTeamWaitingKey(teamname))
           logger.info(`leaveTeam: left ${teamname} successfully`)
-          reduxDispatch(RouteTreeGen.createClearModals())
+          RouterConstants.useState.getState().dispatch.clearModals()
           reduxDispatch(
             RouteTreeGen.createNavUpToScreen({name: context === 'chat' ? 'chatRoot' : 'teamsRoot'})
           )

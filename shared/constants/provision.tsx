@@ -1,6 +1,7 @@
 import * as DeviceTypes from './types/devices'
 import * as WaitingConstants from './waiting'
 import * as ConfigConstants from './config'
+import * as RouterConstants from './router2'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Z from '../util/zustand'
@@ -298,7 +299,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.dispatch.dynamic.submitTextCode = _submitTextCode
           })
         }
-        reduxDispatch(RouteTreeGen.createClearModals())
+        RouterConstants.useState.getState().dispatch.clearModals()
       }
       Z.ignorePromise(f())
     },
@@ -556,7 +557,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                 set(s => {
                   s.finalError = finalError
                 })
-                reduxDispatch(RouteTreeGen.createClearModals())
+                RouterConstants.useState.getState().dispatch.clearModals()
                 reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['login', 'error'], replace: true}))
               }
               break

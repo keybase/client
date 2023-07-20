@@ -1,5 +1,6 @@
 import EditAvatar from '.'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/profile'
 import * as TeamsConstants from '../../constants/teams'
 import * as Container from '../../util/container'
@@ -34,9 +35,10 @@ export default (ownProps: OwnProps) => {
     dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
     dispatch(RouteTreeGen.createNavigateUp())
   }
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => {
     dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const uploadTeamAvatar = TeamsConstants.useState(s => s.dispatch.uploadTeamAvatar)
   const onSaveTeamAvatar = (

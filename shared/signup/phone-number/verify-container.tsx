@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsConstants from '../../constants/settings'
+import * as RouterConstants from '../../constants/router2'
 import VerifyPhoneNumber, {type Props} from './verify'
 
 type WatcherProps = Props & {
@@ -62,8 +63,9 @@ export default () => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
   const onCleanup = clearPhoneNumberAdd
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onSuccess = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const props = {
     error: error,
