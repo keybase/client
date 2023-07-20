@@ -3,6 +3,7 @@ import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Constants from '../../../constants/chat2'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
+import * as RouterConstants from '../../../constants/router2'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
@@ -33,8 +34,9 @@ export default (ownProps: OwnProps) => {
   const _you = ConfigConstants.useCurrentUserState(s => s.username)
   const rekeyers = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).rekeyers)
   const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onEnterPaperkey = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['chatEnterPaperkey']}))

@@ -1,7 +1,6 @@
-import * as Container from '../util/container'
+import * as RouterConstants from '../constants/router2'
 import * as Constants from '../constants/deeplinks'
 import * as Kb from '../common-adapters'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 
 type KeybaseLinkErrorBodyProps = {
@@ -27,8 +26,8 @@ const KeybaseLinkError = () => {
   const deepError = Constants.useState(s => s.keybaseLinkError)
   const message = deepError
   const isError = true
-  const dispatch = Container.useDispatch()
-  const onClose = () => dispatch(RouteTreeGen.createNavigateUp())
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const onClose = () => navigateUp()
   return <KeybaseLinkErrorBody onCancel={onClose} isError={isError} message={message} />
 }
 

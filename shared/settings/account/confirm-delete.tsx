@@ -69,14 +69,13 @@ type OwnProps = {
 }
 
 const DeleteModal = (props: OwnProps) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const itemAddress = props.address
   const itemType = props.type
   const itemSearchable = props.searchable
   const lastEmail = props.lastEmail ?? false
 
-  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
   const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
   const editEmail = Constants.useEmailState(s => s.dispatch.editEmail)
   const onConfirm = React.useCallback(() => {
@@ -86,8 +85,8 @@ const DeleteModal = (props: OwnProps) => {
       editEmail({delete: true, email: itemAddress})
     }
 
-    dispatch(nav.safeNavigateUpPayload())
-  }, [editEmail, editPhone, dispatch, itemAddress, itemType, nav])
+    nav.safeNavigateUp()
+  }, [editEmail, editPhone, itemAddress, itemType, nav])
 
   return (
     <ConfirmDeleteAddress

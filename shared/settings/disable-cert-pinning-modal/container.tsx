@@ -1,17 +1,16 @@
-import * as Container from '../../util/container'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/settings'
 import ConfirmDisableCertPinningModal from '.'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 export default () => {
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const setDidToggleCertificatePinning = Constants.useState(s => s.dispatch.setDidToggleCertificatePinning)
   const onConfirm = () => {
     setDidToggleCertificatePinning(true)
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const props = {
     onCancel,

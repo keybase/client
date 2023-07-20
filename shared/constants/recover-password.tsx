@@ -97,7 +97,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     const cancel = () => {
                       clear()
                       response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
-                      reduxDispatch(RouteTreeGen.createNavigateUp())
+                      RouterConstants.useState.getState().dispatch.navigateUp()
                     }
                     s.devices = devices
                     s.dispatch.dynamic.cancel = cancel
@@ -140,12 +140,12 @@ export const useState = Z.createZustand<State>((set, get) => {
                         set(s => {
                           s.resetEmailSent = true
                         })
-                        reduxDispatch(RouteTreeGen.createNavigateUp())
+                        RouterConstants.useState.getState().dispatch.navigateUp()
                       }
                       s.dispatch.dynamic.cancel = () => {
                         clear()
                         response.result(RPCTypes.ResetPromptResponse.nothing)
-                        reduxDispatch(RouteTreeGen.createNavigateUp())
+                        RouterConstants.useState.getState().dispatch.navigateUp()
                       }
                     })
                   } else {

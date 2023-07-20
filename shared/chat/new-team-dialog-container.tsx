@@ -1,7 +1,6 @@
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ChatConstants from '../constants/chat2'
+import * as RouterConstants from '../constants/router2'
 import * as TeamsConstants from '../constants/teams'
-import * as Container from '../util/container'
 import type * as Types from '../constants/types/chat2'
 import NewTeamDialog from '../teams/new-team'
 import upperFirst from 'lodash/upperFirst'
@@ -12,9 +11,9 @@ export default (ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey ?? ChatConstants.noConversationIDKey
   const baseTeam = ''
   const errorText = TeamsConstants.useState(s => upperFirst(s.errorInTeamCreation))
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const resetErrorInTeamCreation = TeamsConstants.useState(s => s.dispatch.resetErrorInTeamCreation)
   const createNewTeamFromConversation = TeamsConstants.useState(s => s.dispatch.createNewTeamFromConversation)

@@ -1,15 +1,14 @@
-import * as Container from '../../../util/container'
+import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/profile'
 import * as TrackerConstants from '../../../constants/tracker2'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
 import * as Styles from '../../../styles'
 
 export default () => {
   const _proofSuggestions = TrackerConstants.useState(s => s.proofSuggestions)
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const addProof = Constants.useState(s => s.dispatch.addProof)
   const providerClicked = (key: string) => {

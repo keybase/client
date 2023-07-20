@@ -47,7 +47,7 @@ const DeleteConfirm = () => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const onCancel = () => dispatch(nav.safeNavigateUpPayload())
+  const onCancel = () => nav.safeNavigateUp()
   const onDeleteForever = () => {
     if (Styles.isMobile && hasPassword) {
       dispatch(RouteTreeGen.createNavigateAppend({path: ['checkPassphraseBeforeDeleteAccount']}))

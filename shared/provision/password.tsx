@@ -1,9 +1,9 @@
 import * as Constants from '../constants/provision'
+import * as RouterConstants from '../constants/router2'
 import * as RecoverConstants from '../constants/recover-password'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import UserCard from '../login/user-card'
 import {SignupScreen, errorBanner} from '../signup/common'
@@ -14,16 +14,13 @@ export default () => {
   const resetEmailSent = RecoverConstants.useState(s => s.resetEmailSent)
   const username = Constants.useState(s => s.username)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-
-  const dispatch = Container.useDispatch()
-
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const startRecoverPassword = RecoverConstants.useState(s => s.dispatch.startRecoverPassword)
-
   const _onForgotPassword = (username: string) => {
     startRecoverPassword({abortProvisioning: true, username})
   }
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onSubmit = Constants.useState(s => s.dispatch.dynamic.setPassphrase)
   const props = {

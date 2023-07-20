@@ -11,7 +11,6 @@ import {VerifyBody} from '../../signup/phone-number/verify'
 import {e164ToDisplay} from '../../util/phone-numbers'
 
 export const Email = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const [email, onChangeEmail] = React.useState('')
@@ -51,7 +50,7 @@ export const Email = () => {
     }
   }, [addEmailInProgress, resetAddingEmail, emailError, emailTrimmed])
 
-  const onClose = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onClose = React.useCallback(() => nav.safeNavigateUp(), [nav])
   const onContinue = React.useCallback(() => {
     if (disabled || waiting) {
       return
@@ -158,8 +157,8 @@ export const Phone = () => {
 
   const onClose = React.useCallback(() => {
     clearPhoneNumberAdd()
-    dispatch(nav.safeNavigateUpPayload())
-  }, [clearPhoneNumberAdd, dispatch, nav])
+    nav.safeNavigateUp()
+  }, [clearPhoneNumberAdd, nav])
 
   const addPhoneNumber = Constants.usePhoneState(s => s.dispatch.addPhoneNumber)
   const onContinue = React.useCallback(() => {

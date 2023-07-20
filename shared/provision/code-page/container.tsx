@@ -1,9 +1,9 @@
 import * as React from 'react'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as DevicesConstants from '../../constants/devices'
 import * as ConfigConstants from '../../constants/config'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import CodePage2 from '.'
 
 const CodePageContainer = () => {
@@ -23,8 +23,8 @@ const CodePageContainer = () => {
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const submitTextCode = Constants.useState(s => s.dispatch.dynamic.submitTextCode)
 
-  const dispatch = Container.useDispatch()
-  const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const onBack = navigateUp
 
   const cancel = Constants.useState(s => s.dispatch.dynamic.cancel)
   const onClose = () => cancel?.()

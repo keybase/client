@@ -51,7 +51,6 @@ const TeamInviteByContact = (props: Props) => {
 
   useTeamDetailsSubscribe(teamID)
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const [selectedRole, setSelectedRole] = React.useState('writer' as Types.TeamRoleType)
@@ -59,9 +58,9 @@ const TeamInviteByContact = (props: Props) => {
   const loadingInvites = Constants.useState(s => s.teamNameToLoadingInvites.get(teamname))
   const resetErrorInEmailInvite = Constants.useState(s => s.dispatch.resetErrorInEmailInvite)
   const onBack = React.useCallback(() => {
-    dispatch(nav.safeNavigateUpPayload())
+    nav.safeNavigateUp()
     resetErrorInEmailInvite()
-  }, [resetErrorInEmailInvite, dispatch, nav])
+  }, [resetErrorInEmailInvite, nav])
 
   const onRoleChange = React.useCallback(
     (role: Types.TeamRoleType) => {

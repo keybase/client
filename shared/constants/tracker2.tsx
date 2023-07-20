@@ -1,4 +1,5 @@
 import * as LinksConstants from './deeplinks'
+import * as RouterConstants from './router2'
 import * as ProfileConstants from './profile'
 import * as UsersConstants from './users'
 import * as RPCTypes from './types/rpc-gen'
@@ -343,7 +344,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                 .dispatch.setLinkError(
                   `You followed a profile link for a user (${assertion}) that does not exist.`
                 )
-              reduxDispatch(RouteTreeGen.createNavigateUp())
+              RouterConstants.useState.getState().dispatch.navigateUp()
               reduxDispatch(
                 RouteTreeGen.createNavigateAppend({
                   path: ['keybaseLinkError'],

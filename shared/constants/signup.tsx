@@ -1,7 +1,8 @@
-import * as Platforms from '../constants/platform'
-import * as SettingsConstants from '../constants/settings'
-import * as PushConstants from '../constants/push'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Platforms from './platform'
+import * as RouterConstants from './router2'
+import * as SettingsConstants from './settings'
+import * as PushConstants from './push'
+import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Z from '../util/zustand'
 import logger from '../logger'
@@ -201,7 +202,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.inviteCodeError = ''
           })
           if (noErrors()) {
-            reduxDispatch(RouteTreeGen.createNavigateUp())
+            RouterConstants.useState.getState().dispatch.navigateUp()
             reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupEnterUsername']}))
           }
         } catch (error) {
@@ -268,7 +269,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.usernameError = ''
         s.usernameTaken = ''
       })
-      reduxDispatch(RouteTreeGen.createNavigateUp())
+      RouterConstants.useState.getState().dispatch.navigateUp()
     },
     requestAutoInvite: username => {
       set(s => {

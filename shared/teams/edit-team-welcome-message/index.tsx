@@ -34,11 +34,11 @@ const EditTeamWelcomeMessage = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onSave = () => _setWelcomeMessage(teamID, welcomeMessage)
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => nav.safeNavigateUp()
 
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
-    if (!waiting && wasWaiting && !error) dispatch(nav.safeNavigateUpPayload())
+    if (!waiting && wasWaiting && !error) nav.safeNavigateUp()
   }, [waiting, wasWaiting, nav, dispatch, error])
 
   return (

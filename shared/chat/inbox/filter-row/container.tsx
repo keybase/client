@@ -1,5 +1,5 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../constants/router2'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import * as Container from '../../../util/container'
 import ConversationFilterInput from '.'
@@ -22,8 +22,9 @@ export default (ownProps: OwnProps) => {
   const _appendNewChatBuilder = () => {
     dispatch(appendNewChatBuilder())
   }
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onStartSearch = () => {
     dispatch(Chat2Gen.createToggleInboxSearch({enabled: true}))

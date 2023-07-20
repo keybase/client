@@ -1,5 +1,4 @@
-import * as Container from '../../../../../util/container'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../../../constants/router2'
 import type {RetentionPolicy} from '../../../../../constants/types/retention-policy'
 import type {RetentionEntityType} from '../../../../team/settings-tab/retention'
 import RetentionWarning from '.'
@@ -11,9 +10,9 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   const entityType = ownProps.entityType
@@ -21,7 +20,7 @@ export default (ownProps: OwnProps) => {
 
   const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
   const onConfirm = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
     updateConfirm(policy)
   }
   const props = {

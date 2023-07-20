@@ -26,15 +26,14 @@ const EditTeamDescription = (props: Props) => {
   const [description, setDescription] = React.useState(origDescription)
   const editTeamDescription = Constants.useState(s => s.dispatch.editTeamDescription)
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onSave = () => editTeamDescription(teamID, description)
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => nav.safeNavigateUp()
 
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
-    if (!waiting && wasWaiting && !error) dispatch(nav.safeNavigateUpPayload())
-  }, [waiting, wasWaiting, nav, dispatch, error])
+    if (!waiting && wasWaiting && !error) nav.safeNavigateUp()
+  }, [waiting, wasWaiting, nav, error])
 
   return (
     <Kb.Modal

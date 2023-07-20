@@ -6,9 +6,6 @@
       "path": "Types.PathParam",
       "replace?": "boolean"
     },
-    "navigateUp": {
-      "fromKey?": "string"
-    },
     "navigateUpNoop": {
       "_description": "Nav up but no longer focused, for logging only"
     }

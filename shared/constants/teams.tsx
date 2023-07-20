@@ -3153,7 +3153,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             {crop, filename, sendChatNotification, teamname},
             ProfileConstants.uploadAvatarWaitingKey
           )
-          reduxDispatch(RouteTreeGen.createNavigateUp())
+          RouterConstants.useState.getState().dispatch.navigateUp()
         } catch (error) {
           if (error instanceof RPCError) {
             // error displayed in component

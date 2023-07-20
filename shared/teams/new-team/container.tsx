@@ -1,5 +1,4 @@
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import NewTeamDialog from '.'
 import upperFirst from 'lodash/upperFirst'
 import * as Constants from '../../constants/teams'
@@ -11,9 +10,9 @@ export default (ownProps: OwnProps) => {
   const subteamOf = ownProps.subteamOf ?? Types.noTeamID
   const baseTeam = Constants.useState(s => Constants.getTeamMeta(s, subteamOf).teamname)
   const errorText = Constants.useState(s => upperFirst(s.errorInTeamCreation))
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const resetErrorInTeamCreation = Constants.useState(s => s.dispatch.resetErrorInTeamCreation)
   const createNewTeam = Constants.useState(s => s.dispatch.createNewTeam)

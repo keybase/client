@@ -1,4 +1,5 @@
 import * as Constants from '../constants/settings'
+import * as RouterConstants from '../constants/router2'
 import * as ConfigConstants from '../constants/config'
 import * as PushConstants from '../constants/push'
 import * as Container from '../util/container'
@@ -6,7 +7,6 @@ import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as TeamConstants from '../constants/teams'
 import type * as TeamTypes from '../constants/types/teams'
@@ -40,10 +40,10 @@ export default () => {
   const notifRefresh = Constants.useNotifState(s => s.dispatch.refresh)
   const notifToggle = Constants.useNotifState(s => s.dispatch.toggle)
 
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = Container.isMobile
     ? () => {
-        dispatch(RouteTreeGen.createNavigateUp())
+        navigateUp()
       }
     : undefined
   const onContactSettingsSave = contactSettingsSaved

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as RouterConstants from '../../constants/router2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigConstants from '../../constants/config'
@@ -37,23 +38,24 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
       )
   }, [dispatch, keybaseUsername])
 
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onOpenPrivateFolder = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
     dispatch(
       FsConstants.makeActionForOpenPathInFilesTab(
         FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
       )
     )
-  }, [dispatch, decoratedUsername, myUsername])
+  }, [navigateUp, dispatch, decoratedUsername, myUsername])
 
   const onBrowsePublicFolder = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
     dispatch(
       FsConstants.makeActionForOpenPathInFilesTab(
         FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`)
       )
     )
-  }, [dispatch, decoratedUsername])
+  }, [navigateUp, dispatch, decoratedUsername])
 
   const onManageBlocking = React.useCallback(() => {
     keybaseUsername &&
@@ -65,9 +67,9 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   }, [dispatch, keybaseUsername])
 
   const onChat = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
     dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
-  }, [dispatch, decoratedUsername])
+  }, [navigateUp, dispatch, decoratedUsername])
 
   const resultIsMe = keybaseUsername === myUsername
   const dropdown = keybaseUsername ? (

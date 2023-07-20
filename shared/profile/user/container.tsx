@@ -1,4 +1,5 @@
 import Profile2, {type BackgroundColorType} from '.'
+import * as RouterConstants from '../../constants/router2'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/tracker2'
@@ -140,8 +141,9 @@ const Connected = (ownProps: OwnProps) => {
   const onAddIdentity = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProofsList']}))
   }
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   let allowOnAddIdentity = false

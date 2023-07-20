@@ -97,7 +97,7 @@ const AddToChannels = (props: Props) => {
   const onSelectAll = () => setSelected(new Set(convIDKeysAvailable))
   const onSelectNone = convIDKeysAvailable.length === 0 ? undefined : () => setSelected(new Set())
 
-  const onCancel = () => dispatch(nav.safeNavigateUpPayload())
+  const onCancel = () => nav.safeNavigateUp()
   const onCreate = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
 

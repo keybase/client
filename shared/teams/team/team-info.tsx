@@ -37,8 +37,7 @@ const TeamInfo = (props: Props) => {
 
   const editTeamDescription = Constants.useState(s => s.dispatch.editTeamDescription)
   const renameTeam = Constants.useState(s => s.dispatch.renameTeam)
-
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
   const onSave = () => {
     if (newName !== _leafName) {
       renameTeam(teamname, parentTeamNameWithDot + newName)

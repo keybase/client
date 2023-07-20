@@ -12,10 +12,8 @@ const waitingKey = 'phoneLookup'
 const AddPhone = () => {
   const teamID = Constants.useState(s => s.addMembersWizard.teamID)
   const [error, setError] = React.useState('')
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
 
   const {phoneNumbers, setPhoneNumber, addPhoneNumber, removePhoneNumber} = usePhoneNumberList()
   const disabled = !phoneNumbers.length || phoneNumbers.some(pn => !pn.valid)

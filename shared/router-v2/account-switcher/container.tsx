@@ -1,4 +1,5 @@
 import * as ConfigConstants from '../../constants/config'
+import * as RouterConstants from '../../constants/router2'
 import * as UsersConstants from '../../constants/users'
 import * as ProfileConstants from '../../constants/profile'
 import * as ProvisionConstants from '../../constants/provision'
@@ -24,8 +25,9 @@ export default () => {
   const _onProfileClick = ProfileConstants.useState(s => s.dispatch.showUserProfile)
 
   const onAddAccount = ProvisionConstants.useState(s => s.dispatch.startProvision)
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   const setUserSwitching = ConfigConstants.useConfigState(s => s.dispatch.setUserSwitching)

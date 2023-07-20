@@ -1,15 +1,15 @@
 import {PaperKey} from '../../../provision/paper-key'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../constants/router2'
 
 export default () => {
   const error = ''
   const hint = ''
   const waiting = false
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   const checkPaperKeyRPC = Container.useRPC(RPCTypes.loginPaperKeySubmitRpcPromise)
@@ -19,8 +19,8 @@ export default () => {
       () => {},
       () => {}
     )
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
+    navigateUp()
   }
   const props = {
     error,

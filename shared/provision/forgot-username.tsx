@@ -1,15 +1,13 @@
 import * as React from 'react'
+import * as RouterConstants from '../constants/router2'
 import * as Kb from '../common-adapters'
 import * as Constants from '../constants/provision'
 import * as SettingsConstants from '../constants/settings'
 import * as Container from '../util/container'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import {SignupScreen, errorBanner} from '../signup/common'
 
 const ForgotUsername = () => {
-  const dispatch = Container.useDispatch()
-
   const defaultCountry = SettingsConstants.usePhoneState(s => s.defaultCountry)
   const loadDefaultPhoneCountry = SettingsConstants.usePhoneState(s => s.dispatch.loadDefaultPhoneCountry)
   // trigger a default phone number country rpc if it's not already loaded
@@ -18,7 +16,8 @@ const ForgotUsername = () => {
   }, [defaultCountry, loadDefaultPhoneCountry])
 
   const forgotUsernameResult = Constants.useState(s => s.forgotUsernameResult)
-  const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const onBack = navigateUp
   const waiting = Container.useAnyWaiting(Constants.forgotUsernameWaitingKey)
 
   const [emailSelected, setEmailSelected] = React.useState(true)

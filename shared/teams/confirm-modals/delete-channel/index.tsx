@@ -1,8 +1,7 @@
 import * as Constants from '../../../constants/teams'
-import * as Container from '../../../util/container'
+import * as RouterConstants from '../../../constants/router2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/teams'
 import type * as ChatTypes from '../../../constants/types/chat2'
@@ -54,8 +53,6 @@ const DeleteChannel = (props: Props) => {
     )}`
   }
 
-  const dispatch = Container.useDispatch()
-
   const setChannelSelected = Constants.useState(s => s.dispatch.setChannelSelected)
   const deleteMultiChannelsConfirmed = Constants.useState(s => s.dispatch.deleteMultiChannelsConfirmed)
 
@@ -64,8 +61,9 @@ const DeleteChannel = (props: Props) => {
     setChannelSelected(teamID, '', false, true)
   }
 
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   return (

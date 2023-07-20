@@ -1,9 +1,9 @@
 import * as Constants from '../constants/settings'
+import * as RouterConstants from '../constants/router2'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import FeedbackForm from '../settings/feedback/index'
 import {SignupScreen, errorBanner} from './common'
 import {useSendFeedback} from '../settings/feedback/shared'
@@ -13,10 +13,9 @@ export default () => {
   const loggedOut = ConfigConstants.useConfigState(s => !s.loggedIn)
   const sendError = error
   const sending = Container.useAnyWaiting(Constants.sendFeedbackWaitingKey)
-
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onSendFeedback = sendFeedback
   const props = {

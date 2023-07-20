@@ -9,17 +9,14 @@ const CheckPassphraseMobile = () => {
   const [showTyping, setShowTyping] = React.useState(false)
 
   const checkPasswordIsCorrect = Constants.useState(s => s.checkPasswordIsCorrect)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const checkPassword = Constants.useState(s => s.dispatch.checkPassword)
   const resetCheckPassword = Constants.useState(s => s.dispatch.resetCheckPassword)
   const deleteAccountForever = Constants.useState(s => s.dispatch.deleteAccountForever)
 
   const onCancel = () => {
     resetCheckPassword()
-    dispatch(nav.safeNavigateUpPayload())
+    nav.safeNavigateUp()
   }
   const onCheckPassword = checkPassword
   const deleteForever = () => {
@@ -137,7 +134,7 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.small,
         textAlign: 'center',
       },
-    } as const)
+    }) as const
 )
 
 export default CheckPassphraseMobile

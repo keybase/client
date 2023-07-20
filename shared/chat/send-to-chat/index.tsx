@@ -24,11 +24,10 @@ type Props = {
 
 const MobileSendToChatRoutable = (props: Props) => {
   const {canBack, isFromShareExtension, sendPaths, text} = props
-
-  const dispatch = Container.useDispatch()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onCancel = () => clearModals()
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const onBack = () => navigateUp()
 
   return (
     <Kb.Modal

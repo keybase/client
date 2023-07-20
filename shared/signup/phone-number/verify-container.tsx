@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as RouterConstants from '../../constants/router2'
 import VerifyPhoneNumber, {type Props} from './verify'
@@ -44,7 +43,6 @@ export default () => {
   ])
   const verificationStatus = SettingsConstants.usePhoneState(s => s.verificationState)
   const verifyWaiting = Container.useAnyWaiting(SettingsConstants.verifyPhoneNumberWaitingKey)
-  const dispatch = Container.useDispatch()
 
   const verifyPhoneNumber = SettingsConstants.usePhoneState(s => s.dispatch.verifyPhoneNumber)
   const resendVerificationForPhone = SettingsConstants.usePhoneState(
@@ -59,8 +57,9 @@ export default () => {
   const _onResend = (phoneNumber: string) => {
     resendVerificationForPhone(phoneNumber)
   }
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onCleanup = clearPhoneNumberAdd
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)

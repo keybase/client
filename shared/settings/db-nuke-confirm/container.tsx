@@ -1,16 +1,15 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import DBNukeConfirm from '.'
-import * as Container from '../../util/container'
 import * as Constants from '../../constants/settings'
 
 export default () => {
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const dbNuke = Constants.useState(s => s.dispatch.dbNuke)
   const onDBNuke = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
     dbNuke()
   }
   const props = {onCancel, onDBNuke}

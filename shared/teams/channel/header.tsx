@@ -95,7 +95,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
             {
               danger: true,
               onClick: () => {
-                dispatch(nav.safeNavigateUpPayload())
+                nav.safeNavigateUp()
                 deleteChannelConfirmed(teamID, conversationIDKey)
               },
               title: 'Delete channel',
@@ -103,7 +103,7 @@ const HeaderTitle = (props: HeaderTitleProps) => {
           ]
         : []),
     ],
-    [deleteChannelConfirmed, dispatch, nav, teamID, conversationIDKey, canDelete]
+    [deleteChannelConfirmed, nav, teamID, conversationIDKey, canDelete]
   )
 
   const makePopup = React.useCallback(
@@ -263,5 +263,5 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )

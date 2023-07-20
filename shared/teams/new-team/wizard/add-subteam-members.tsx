@@ -10,15 +10,11 @@ import {pluralize} from '../../../util/string'
 import {useTeamDetailsSubscribe} from '../../subscriber'
 
 const AddSubteamMembers = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const [selectedMembers, setSelectedMembers] = React.useState(new Set<string>())
   const [filter, setFilter] = React.useState('')
   const filterL = filter.toLowerCase()
-
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-
+  const onBack = () => nav.safeNavigateUp()
   const setTeamWizardSubteamMembers = Constants.useState(s => s.dispatch.setTeamWizardSubteamMembers)
   const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
   const onContinue = () =>

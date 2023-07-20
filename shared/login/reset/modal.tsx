@@ -1,9 +1,8 @@
 import * as React from 'react'
+import * as RouterConstants from '../../constants/router2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Container from '../../util/container'
 import * as Constants from '../../constants/autoreset'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {formatDurationForAutoreset} from '../../util/timestamp'
 
 const ResetModal = () => {
@@ -15,12 +14,12 @@ const ResetModalImpl = () => {
   const active = Constants.useState(s => s.active)
   const endTime = Constants.useState(s => s.endTime)
   const error = Constants.useState(s => s.error)
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   React.useEffect(() => {
     if (!active) {
-      dispatch(RouteTreeGen.createNavigateUp())
+      navigateUp()
     }
-  }, [active, dispatch])
+  }, [active, navigateUp])
   const now = Date.now()
   const timeLeft = endTime - now
 

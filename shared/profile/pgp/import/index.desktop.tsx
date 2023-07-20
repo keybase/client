@@ -1,13 +1,12 @@
 import * as Kb from '../../../common-adapters'
+import * as RouterConstants from '../../../constants/router2'
 import * as Styles from '../../../styles'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Container from '../../../util/container'
 import Modal from '../../modal'
 
 export default function Import() {
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   return (
     <Modal onCancel={onCancel}>

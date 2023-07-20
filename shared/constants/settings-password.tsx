@@ -1,5 +1,5 @@
 import * as Z from '../util/zustand'
-import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as RouterConstants from './router2'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
 import * as RPCTypes from './types/rpc-gen'
@@ -43,7 +43,6 @@ export type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     loadHasRandomPw: () => {
       // Once loaded, do not issue this RPC again. This field can only go true ->
@@ -143,7 +142,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (thenLogout) {
             useLogoutState.getState().dispatch.requestLogout()
           }
-          reduxDispatch(RouteTreeGen.createNavigateUp())
+          RouterConstants.useState.getState().dispatch.navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

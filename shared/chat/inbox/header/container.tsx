@@ -1,5 +1,5 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
 import ChatInboxHeader from '.'
 import HiddenString from '../../../util/hidden-string'
@@ -23,8 +23,9 @@ export default (ownProps: OwnProps) => {
   const showFilter = !showEmptyInbox
 
   const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onEnsureSelection = () => {
     dispatch(Chat2Gen.createInboxSearchSelect({}))

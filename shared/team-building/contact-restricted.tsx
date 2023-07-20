@@ -9,9 +9,8 @@ type Props = {
 }
 
 export const ContactRestricted = (props: Props) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onBack = React.useCallback(() => nav.safeNavigateUp(), [nav])
   let header = ''
   let description = ''
   let disallowedUsers: Array<string> = []

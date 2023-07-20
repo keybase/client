@@ -1,8 +1,7 @@
 import * as Constants from '../constants/git'
-import * as Container from '../util/container'
+import * as RouterConstants from '../constants/router2'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 
 type OwnProps = {id: string}
@@ -17,10 +16,9 @@ export default (ownProps: OwnProps) => {
   const teamname = git.teamname || ''
   const waitingKey = Constants.loadingWaitingKey
 
-  const dispatch = Container.useDispatch()
-
   const deletePersonalRepo = Constants.useGitState(s => s.dispatch.deletePersonalRepo)
   const deleteTeamRepo = Constants.useGitState(s => s.dispatch.deleteTeamRepo)
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
 
   const _onDelete = (teamname: string | undefined, name: string, notifyTeam: boolean) => {
     if (teamname) {
@@ -28,10 +26,10 @@ export default (ownProps: OwnProps) => {
     } else {
       deletePersonalRepo(name)
     }
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onClose = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const props = {
     error,

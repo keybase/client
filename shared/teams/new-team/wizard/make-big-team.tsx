@@ -6,10 +6,8 @@ import * as Styles from '../../../styles'
 import {ModalTitle} from '../../common'
 
 const MakeBigTeam = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
   const setTeamWizardTeamSize = Constants.useState(s => s.dispatch.setTeamWizardTeamSize)
   const onSubmit = (isBig: boolean) => setTeamWizardTeamSize(isBig)
 

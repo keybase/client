@@ -18,9 +18,7 @@ const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
 
 const CreateChannel = (props: Props) => {
   const {onSubmitChannels, waiting} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const teamID = props.teamID || Types.newTeamWizardTeamID
   const initialChannels = Constants.useState(s => s.newTeamWizard.channels) ?? ['hellos', 'random', '']
 
@@ -42,8 +40,7 @@ const CreateChannel = (props: Props) => {
   const setTeamWizardChannels = Constants.useState(s => s.dispatch.setTeamWizardChannels)
   const onContinue = () =>
     onSubmitChannels ? onSubmitChannels(filteredChannels) : setTeamWizardChannels(filteredChannels)
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-
+  const onBack = () => nav.safeNavigateUp()
   const numChannels = filteredChannels.length
   // numChannels does not include the #general channel, so take it into account for tha label.
   const continueLabel = onSubmitChannels

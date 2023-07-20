@@ -1,5 +1,4 @@
-import {createNavigateUp} from '../actions/route-tree-gen'
-import * as Container from '../util/container'
+import * as RouterConstants from '../constants/router2'
 import * as React from 'react'
 import * as Styles from '../styles'
 import Icon from './icon'
@@ -12,8 +11,8 @@ const Kb = {
 }
 
 const BackButton = React.memo(function BackButton(props: Props) {
-  const dispatch = Container.useDispatch()
-  const onBack = props.disabled ? () => {} : props.onClick ?? (() => dispatch(createNavigateUp()))
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const onBack = props.disabled ? () => {} : props.onClick ?? (() => navigateUp())
   const _onClick = (event: React.BaseSyntheticEvent) => {
     event.preventDefault()
     event.stopPropagation()

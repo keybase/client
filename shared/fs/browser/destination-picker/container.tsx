@@ -1,7 +1,6 @@
 import * as Constants from '../../../constants/fs'
 import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/fs'
 import DestinationPicker from '.'
 import {OriginalOrCompressedButton} from '../../../incoming-share'
@@ -66,6 +65,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
   const moveOrCopy = Constants.useState(s => s.dispatch.moveOrCopy)
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const dispatchProps = {
     _onBackUp: (currentPath: Types.Path) =>
       Constants.makeActionsForDestinationPickerOpen(
@@ -95,7 +95,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       newFolderRow(destinationParentPath)
     },
     onBack: () => {
-      dispatch(RouteTreeGen.createNavigateUp())
+      navigateUp()
     },
     onCancel: () => {
       clearModals()

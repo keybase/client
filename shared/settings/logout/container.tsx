@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/settings'
 import * as ConfigConstants from '../../constants/config'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import LogOut from '.'
 
 const LogoutContainer = () => {
@@ -14,12 +14,12 @@ const LogoutContainer = () => {
 
   const loadHasRandomPw = Constants.usePasswordState(s => s.dispatch.loadHasRandomPw)
 
-  const dispatch = Container.useDispatch()
   const onBootstrap = loadHasRandomPw
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = React.useCallback(() => {
     resetCheckPassword()
-    dispatch(RouteTreeGen.createNavigateUp())
-  }, [resetCheckPassword, dispatch])
+    navigateUp()
+  }, [resetCheckPassword, navigateUp])
   const onCheckPassword = checkPassword
 
   const requestLogout = ConfigConstants.useLogoutState(s => s.dispatch.requestLogout)

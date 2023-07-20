@@ -1,5 +1,4 @@
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import InviteGenerated from '.'
 
 type OwnProps = {
@@ -9,9 +8,9 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {link, email} = ownProps
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onClose = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const props = {email, link, onClose}
   return <InviteGenerated {...props} />

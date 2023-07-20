@@ -4,7 +4,6 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from '../constants/settings'
 import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
@@ -136,9 +135,9 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const type = device?.type ?? 'desktop'
   const iconNumber = Constants.useDeviceIconNumber(selectedDeviceID)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const dispatch = Container.useDispatch()
   const onSubmit = useRevoke(deviceID)
-  const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const onCancel = navigateUp
 
   const actingDevice = ConfigConstants.useCurrentUserState(s => s.deviceID)
   Container.useOnMountOnce(() => {

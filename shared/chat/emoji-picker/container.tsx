@@ -3,6 +3,7 @@ import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import type {LayoutEvent} from './../../common-adapters/box'
 import * as Constants from './../../constants/chat2'
+import * as RouterConstants from './../../constants/router2'
 import * as Types from './../../constants/types/chat2'
 import * as TeamsTypes from './../../constants/types/teams'
 import * as Teams from './../../constants/teams'
@@ -159,7 +160,8 @@ const WrapperMobile = (props: Props) => {
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const dispatch = Container.useDispatch()
-  const onCancel = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const onCancel = navigateUp
   const addEmoji = React.useCallback(
     () => goToAddEmoji(dispatch, conversationIDKey),
     [dispatch, conversationIDKey]
@@ -380,7 +382,7 @@ const styles = Styles.styleSheetCreate(
       topContainerDesktop: {
         padding: Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 const Routable = (props: RoutableProps) => {
@@ -397,9 +399,8 @@ const Routable = (props: RoutableProps) => {
     [updatePickerMap, pickKey]
   )
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
-  const dispatch = Container.useDispatch()
-  const navigateUp = () => dispatch(RouteTreeGen.createNavigateUp())
-  const onDidPick = navigateUp
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const onDidPick = () => navigateUp()
 
   Container.useOnMountOnce(() => {
     Kb.keyboardDismiss()

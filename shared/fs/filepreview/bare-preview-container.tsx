@@ -1,4 +1,4 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/fs'
@@ -8,8 +8,8 @@ type OwnProps = {path: Types.Path}
 
 const ConnectedBarePreview = (ownProps: OwnProps) => {
   const path = ownProps.path ?? Constants.defaultPath
-  const dispatch = Container.useDispatch()
-  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const onBack = () => navigateUp()
   const props = {onBack, path}
   return <BarePreview {...props} />
 }

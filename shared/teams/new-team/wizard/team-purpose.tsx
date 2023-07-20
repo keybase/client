@@ -6,9 +6,8 @@ import {ModalTitle} from '../../common'
 import * as Types from '../../../constants/types/teams'
 
 const TeamPurpose = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
   const setTeamWizardTeamType = Constants.useState(s => s.dispatch.setTeamWizardTeamType)
   const onSubmit = (teamType: Types.TeamWizardTeamType) => setTeamWizardTeamType(teamType)
 

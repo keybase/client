@@ -25,7 +25,6 @@ const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
 
 const AddToChannel = (props: Props) => {
   const {conversationIDKey, teamID} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const [toAdd, setToAdd] = React.useState<Set<string>>(new Set())
@@ -48,7 +47,7 @@ const AddToChannel = (props: Props) => {
   const [error, setError] = React.useState('')
   const addToChannel = Container.useRPC(RPCChatGen.localBulkAddToConvRpcPromise)
 
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => nav.safeNavigateUp()
   const loadTeamChannelList = TeamConstants.useState(s => s.dispatch.loadTeamChannelList)
   const onAdd = () => {
     setWaiting(true)
