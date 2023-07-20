@@ -1,17 +1,17 @@
-import * as Z from '../util/zustand'
-import {pluralize} from '../util/string'
-import PushNotificationIOS from '@react-native-community/push-notification-ios'
-import {isIOS} from './platform'
 import * as Contacts from 'expo-contacts'
-import * as WaitingConstants from './waiting'
-import type * as RPCChatTypes from './types/rpc-chat-gen'
-import {getDefaultCountryCode} from 'react-native-kb'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import {RPCError} from '../util/errors'
-import logger from '../logger'
 import * as RPCTypes from './types/rpc-gen'
+import * as RouterConstants from './router2'
+import * as WaitingConstants from './waiting'
+import * as Z from '../util/zustand'
+import PushNotificationIOS from '@react-native-community/push-notification-ios'
+import logger from '../logger'
+import type * as RPCChatTypes from './types/rpc-chat-gen'
 import type {Store, State} from './settings-contacts'
+import {RPCError} from '../util/errors'
+import {getDefaultCountryCode} from 'react-native-kb'
 import {getE164} from './settings-phone'
+import {isIOS} from './platform'
+import {pluralize} from '../util/string'
 import {useConfigState, useCurrentUserState} from './config'
 
 export const importContactsWaitingKey = 'settings:importContacts'
@@ -75,7 +75,6 @@ const makeContactsResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     editContactImportEnabled: (enable, fromSettings) => {
       if (fromSettings) {
@@ -231,7 +230,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.waitingToShowJoinedModal = false
             })
             if (resolved.length) {
-              reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['settingsContactsJoined']}))
+              RouterConstants.useState.getState().dispatch.navigateAppend('settingsContactsJoined')
             }
           }
         } catch (_error) {

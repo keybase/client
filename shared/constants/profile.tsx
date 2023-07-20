@@ -3,7 +3,6 @@ import * as LinksConstants from './deeplinks'
 import * as RouterConstants from './router2'
 import * as More from './types/more'
 import * as RPCTypes from './types/rpc-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as TrackerConstants from './tracker2'
 import * as Validators from '../util/simple-validators'
 import * as Z from '../util/zustand'
@@ -13,7 +12,6 @@ import type * as RPCGen from './types/rpc-gen'
 import type {SiteIconSet} from './types/tracker2'
 import {RPCError} from '../util/errors'
 import {isMobile} from './platform'
-import {peopleTab} from './tabs'
 
 type ProveGenericParams = {
   logoBlack: SiteIconSet
@@ -144,7 +142,6 @@ type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const clearErrors = (s: Store) => {
     s.errorCode = undefined
     s.errorText = ''
@@ -216,7 +213,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           s.proofFound = true
           s.proofStatus = RPCTypes.ProofStatus.ok
         })
-        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['profileConfirmOrPending']}))
+        RouterConstants.useState.getState().dispatch.navigateAppend('profileConfirmOrPending')
       } catch (_error) {
         if (_error instanceof RPCError) {
           const error = _error
@@ -248,14 +245,14 @@ export const useState = Z.createZustand<State>((set, get) => {
         // Special cases
         switch (service) {
           case 'dnsOrGenericWebSite':
-            reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['profileProveWebsiteChoice']}))
+            RouterConstants.useState.getState().dispatch.navigateAppend('profileProveWebsiteChoice')
             return
           case 'zcash': //  fallthrough
           case 'btc':
-            reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']}))
+            RouterConstants.useState.getState().dispatch.navigateAppend('profileProveEnterUsername')
             return
           case 'pgp':
-            reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['profilePgp']}))
+            RouterConstants.useState.getState().dispatch.navigateAppend('profilePgp')
             return
           default:
         }
@@ -342,7 +339,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     set(s => {
                       s.proofText = proof
                     })
-                    reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['profilePostProof']}))
+                    RouterConstants.useState.getState().dispatch.navigateAppend('profilePostProof')
                   } else if (proof) {
                     set(s => {
                       s.platformGenericURL = proof
@@ -391,12 +388,12 @@ export const useState = Z.createZustand<State>((set, get) => {
                     })
                   }
                   if (service) {
-                    reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']}))
+                    RouterConstants.useState.getState().dispatch.navigateAppend('profileProveEnterUsername')
                   } else if (genericService && parameters) {
                     set(s => {
                       s.platformGenericParams = toProveGenericParams(parameters)
                     })
-                    reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['profileGenericEnterUsername']}))
+                    RouterConstants.useState.getState().dispatch.navigateAppend('profileGenericEnterUsername')
                   }
                 },
               },
@@ -443,11 +440,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                 .dispatch.setLinkError(
                   "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
                 )
-              reduxDispatch(
-                RouteTreeGen.createNavigateAppend({
-                  path: ['keybaseLinkError'],
-                })
-              )
+              RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
             }
           }
           if (genericService) {
@@ -498,11 +491,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.proofStatus = status
             })
             if (!isGeneric) {
-              reduxDispatch(
-                RouteTreeGen.createNavigateAppend({
-                  path: ['profileConfirmOrPending'],
-                })
-              )
+              RouterConstants.useState.getState().dispatch.navigateAppend('profileConfirmOrPending')
             }
           }
         } catch (_) {
@@ -558,18 +547,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           username: pgpFullName || '',
         }))
 
-        const username = ConfigConstants.useCurrentUserState.getState().username
-        reduxDispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              peopleTab,
-              {props: {username}, selected: 'profile'},
-              'profilePgp',
-              'profileProvideInfo',
-              'profileGenerate',
-            ],
-          })
-        )
+        RouterConstants.useState.getState().dispatch.navigateAppend('profileGenerate')
         // We allow the UI to cancel this call. Just stash this intention and nav away and response with an error to the rpc
         set(s => {
           s.dispatch.dynamic.cancelPgpGen = () => {
@@ -592,18 +570,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   }
                 },
                 'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
-                  reduxDispatch(
-                    RouteTreeGen.createNavigateAppend({
-                      path: [
-                        peopleTab,
-                        {props: {username}, selected: 'profile'},
-                        'profilePgp',
-                        'profileProvideInfo',
-                        'profileGenerate',
-                        'profileFinished',
-                      ],
-                    })
-                  )
+                  RouterConstants.useState.getState().dispatch.navigateAppend('profileFinished')
                   set(s => {
                     s.promptShouldStoreKeyOnServer = prompt
                     s.dispatch.dynamic.finishedWithKeyGen = (shouldStoreKeyOnServer: boolean) => {
@@ -676,7 +643,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       if (isMobile) {
         RouterConstants.useState.getState().dispatch.clearModals()
       }
-      reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profile'}]}))
+      RouterConstants.useState.getState().dispatch.navigateAppend({props: {username}, selected: 'profile'})
     },
     submitBTCAddress: () => {
       submitCryptoAddress('bitcoin')

@@ -1,5 +1,5 @@
+import * as RouterConstants from './router2'
 import logger from '../logger'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 // normally util.container but it re-exports from us so break the cycle
 import * as Z from '../util/zustand'
@@ -29,8 +29,6 @@ type State = Store & {
 }
 
 export const useLogoutState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
-
   const dispatch: State['dispatch'] = {
     requestLogout: () => {
       // Figure out whether we can log out using CanLogout, if so,
@@ -46,14 +44,10 @@ export const useLogoutState = Z.createZustand<State>((set, get) => {
           const {settingsTab} = await import('./tabs')
           const {isMobile} = await import('./platform')
           if (isMobile) {
-            reduxDispatch(
-              RouteTreeGen.createNavigateAppend({
-                path: [settingsTab, passwordTab],
-              })
-            )
+            RouterConstants.useState.getState().dispatch.navigateAppend(passwordTab)
           } else {
-            reduxDispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
-            reduxDispatch(RouteTreeGen.createNavigateAppend({path: [passwordTab]}))
+            RouterConstants.useState.getState().dispatch.navigateAppend(settingsTab)
+            RouterConstants.useState.getState().dispatch.navigateAppend(passwordTab)
           }
         }
       }
