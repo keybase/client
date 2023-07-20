@@ -1,8 +1,5 @@
 {
-  "prelude": [
-    "import type * as Tabs from '../constants/tabs'",
-    "import type * as Types from '../constants/types/route-tree'"
-  ],
+  "prelude": ["import type * as Types from '../constants/types/route-tree'"],
   "actions": {
     "navigateAppend": {
       "fromKey?": "string",
@@ -14,11 +11,6 @@
     },
     "navigateUpNoop": {
       "_description": "Nav up but no longer focused, for logging only"
-    },
-    "switchTab": {
-      "_description": "ONLY used by the new nav. Switch to a different tab.",
-      "tab": "Tabs.AppTab",
-      "params?": "Object"
     }
   }
 }

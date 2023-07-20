@@ -1,4 +1,5 @@
 import * as Constants from '../constants/git'
+import * as RouterConstants from '../constants/router2'
 import * as TeamsConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
@@ -35,8 +36,9 @@ export default (ownProps: OwnProps) => {
     dispatch(RouteTreeGen.createNavigateUp())
   }
   const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onNewTeam = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab}))
+    switchTab(teamsTab)
     launchNewTeamWizardOrModal()
   }
   const props = {

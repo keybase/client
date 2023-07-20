@@ -1,6 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import type * as RPCTypes from '../constants/types/rpc-gen'
 import type HiddenString from '../util/hidden-string'
+import type * as Tabs from '../constants/tabs'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of remote but is handled by every reducer. NEVER dispatch this
@@ -20,6 +21,7 @@ export const setCriticalUpdate = 'remote:setCriticalUpdate'
 export const setSystemDarkMode = 'remote:setSystemDarkMode'
 export const showMain = 'remote:showMain'
 export const stop = 'remote:stop'
+export const switchTab = 'remote:switchTab'
 export const trackerChangeFollow = 'remote:trackerChangeFollow'
 export const trackerCloseTracker = 'remote:trackerCloseTracker'
 export const trackerIgnore = 'remote:trackerIgnore'
@@ -106,6 +108,10 @@ export const createStop = (payload: {readonly exitCode: RPCTypes.ExitCode}) => (
   payload,
   type: stop as typeof stop,
 })
+export const createSwitchTab = (payload: {readonly tab: Tabs.AppTab}) => ({
+  payload,
+  type: switchTab as typeof switchTab,
+})
 export const createTrackerChangeFollow = (payload: {readonly guiID: string; readonly follow: boolean}) => ({
   payload,
   type: trackerChangeFollow as typeof trackerChangeFollow,
@@ -161,6 +167,7 @@ export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate
 export type SetSystemDarkModePayload = ReturnType<typeof createSetSystemDarkMode>
 export type ShowMainPayload = ReturnType<typeof createShowMain>
 export type StopPayload = ReturnType<typeof createStop>
+export type SwitchTabPayload = ReturnType<typeof createSwitchTab>
 export type TrackerChangeFollowPayload = ReturnType<typeof createTrackerChangeFollow>
 export type TrackerCloseTrackerPayload = ReturnType<typeof createTrackerCloseTracker>
 export type TrackerIgnorePayload = ReturnType<typeof createTrackerIgnore>
@@ -190,6 +197,7 @@ export type Actions =
   | SetSystemDarkModePayload
   | ShowMainPayload
   | StopPayload
+  | SwitchTabPayload
   | TrackerChangeFollowPayload
   | TrackerCloseTrackerPayload
   | TrackerIgnorePayload

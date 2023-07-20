@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/settings'
+import * as RouterConstants from '../../constants/router2'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
@@ -51,8 +52,9 @@ export default () => {
   const onSetPassword = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.passwordTab]}))
   }
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onStartPhoneConversation = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
+    switchTab(Tabs.chatTab)
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [Constants.chatTab, {props: {namespace: 'chat2'}, selected: 'chatNewChat'}],

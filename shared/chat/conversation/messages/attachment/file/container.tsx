@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
+import * as RouterConstants from '../../../../../constants/router2'
 import * as FSConstants from '../../../../../constants/fs'
 import * as CryptoConstants from '../../../../../constants/crypto'
 import * as Container from '../../../../../util/container'
@@ -41,12 +42,13 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
 
   const dispatch = Container.useDispatch()
   const saltpackOpenFile = CryptoConstants.useState(s => s.dispatch.onSaltpackOpenFile)
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onSaltpackFileOpen = React.useCallback(
     (path: string, operation: CryptoTypes.Operations) => {
-      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab}))
+      switchTab(Tabs.cryptoTab)
       saltpackOpenFile(operation, path)
     },
-    [dispatch, saltpackOpenFile]
+    [switchTab, saltpackOpenFile]
   )
   const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop

@@ -2,6 +2,7 @@ import * as ChatGen from '../actions/chat2-gen'
 import * as ConfigConstants from './config'
 import * as CryptoConstants from './crypto'
 import * as ProfileConstants from './profile'
+import * as RouterConstants from './router2'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
@@ -52,7 +53,7 @@ export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
 
   const handleShowUserProfileLink = (username: string) => {
-    reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
+    RouterConstants.useState.getState().dispatch.switchTab(Tabs.peopleTab)
     ProfileConstants.useState.getState().dispatch.showUserProfile(username)
   }
 
@@ -137,7 +138,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (!phones || phones.size > 0) {
             return
           }
-          reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+          RouterConstants.useState.getState().dispatch.switchTab(Tabs.settingsTab)
           reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
         } else if (username && username !== 'app') {
           handleShowUserProfileLink(username)
@@ -178,7 +179,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         case 'team':
           try {
             const decoded = decodeURIComponent(link)
-            reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}))
+            RouterConstants.useState.getState().dispatch.switchTab(Tabs.fsTab)
             reduxDispatch(
               RouteTreeGen.createNavigateAppend({
                 path: [{props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'}],
@@ -289,7 +290,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       const {onSaltpackOpenFile} = CryptoConstants.useState.getState().dispatch
       onSaltpackOpenFile(operation, path)
-      return RouteTreeGen.createSwitchTab({tab: Tabs.cryptoTab})
+      RouterConstants.useState.getState().dispatch.switchTab(Tabs.cryptoTab)
     },
     resetState: 'default',
     setLinkError: e => {

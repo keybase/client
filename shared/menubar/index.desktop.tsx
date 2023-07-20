@@ -183,7 +183,7 @@ const IconBar = (p: Props & {showBadges?: boolean}) => {
   const openApp = React.useCallback(
     (tab?: Tabs.AppTab) => {
       dispatch(RemoteGen.createShowMain())
-      tab && dispatch(RouteTreeGen.createSwitchTab({tab}))
+      tab && dispatch(RemoteGen.createSwitchTab({tab}))
     },
     [dispatch]
   )

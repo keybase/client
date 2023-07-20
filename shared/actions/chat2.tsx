@@ -2586,7 +2586,7 @@ const navigateToInbox = (
     return
   }
   RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
-  return [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})]
+  RouterConstants.useState.getState().dispatch.switchTab(Tabs.chatTab)
 }
 
 const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) => {
