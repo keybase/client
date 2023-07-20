@@ -2217,10 +2217,9 @@ export const useState = Z.createZustand<State>((set, get) => {
           await RPCTypes.teamsTeamLeaveRpcPromise({name: teamname, permanent}, leaveTeamWaitingKey(teamname))
           logger.info(`leaveTeam: left ${teamname} successfully`)
           RouterConstants.useState.getState().dispatch.clearModals()
-          reduxDispatch(
-            RouteTreeGen.createNavUpToScreen({name: context === 'chat' ? 'chatRoot' : 'teamsRoot'})
-          )
-
+          RouterConstants.useState
+            .getState()
+            .dispatch.navUpToScreen(context === 'chat' ? 'chatRoot' : 'teamsRoot')
           get().dispatch.getTeams()
         } catch (error) {
           if (error instanceof RPCError) {

@@ -3,7 +3,7 @@ import * as Constants from '../constants/teams'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as RouteTreeGen from './route-tree-gen'
-import * as Router2Constants from '../constants/router2'
+import * as RouterConstants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import logger from '../logger'
 import type * as RPCTypes from '../constants/types/rpc-gen'
@@ -46,7 +46,9 @@ const initTeams = () => {
   Container.listenAction(
     [EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit],
     () => {
-      return Router2Constants.getTab() ? RouteTreeGen.createNavUpToScreen({name: 'teamsRoot'}) : false
+      if (RouterConstants.getTab()) {
+        RouterConstants.useState.getState().dispatch.navUpToScreen('teamsRoot')
+      }
     }
   )
 
@@ -71,9 +73,9 @@ const initTeams = () => {
     const {prev, next} = action.payload
     if (
       prev &&
-      Router2Constants.getTab(prev) === Tabs.teamsTab &&
+      RouterConstants.getTab(prev) === Tabs.teamsTab &&
       next &&
-      Router2Constants.getTab(next) !== Tabs.teamsTab
+      RouterConstants.getTab(next) !== Tabs.teamsTab
     ) {
       Constants.useState.getState().dispatch.clearNavBadges()
     }

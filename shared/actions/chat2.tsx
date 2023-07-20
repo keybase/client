@@ -2586,10 +2586,8 @@ const navigateToInbox = (
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  return [
-    RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}),
-    RouteTreeGen.createNavUpToScreen({name: 'chatRoot'}),
-  ]
+  RouterConstants.useState.getState().dispatch.navUpToScreen('chatRoot')
+  return [RouteTreeGen.createSwitchTab({tab: Tabs.chatTab})]
 }
 
 const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) => {

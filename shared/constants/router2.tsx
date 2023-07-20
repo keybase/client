@@ -152,30 +152,6 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
     }
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
-    case RouteTreeGen.navUpToScreen: {
-      const {name, params} = action.payload
-      // find with matching params
-      // const path = _getVisiblePathForNavigator(navigationState)
-      // const p = path.find(p => p.name === name)
-      // return [CommonActions.navigate(name, params ?? p?.params)]
-
-      const rs = _getNavigator()?.getRootState()
-      // some kind of unknown race, just bail
-      if (!rs) {
-        console.log('Avoiding trying to nav to thread when missing nav state, bailing')
-        return
-      }
-      if (!rs.routes) {
-        console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
-        return
-      }
-
-      const nextState = Container.produce(rs, draft => {
-        navUpHelper(draft as DeepWriteable<NavState>, name, params)
-      })
-
-      return [CommonActions.reset(nextState)]
-    }
     case RouteTreeGen.popStack: {
       return [StackActions.popToTop()]
     }
@@ -185,14 +161,14 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
 }
 type DeepWriteable<T> = {-readonly [P in keyof T]: DeepWriteable<T[P]>}
 
-const navUpHelper = (s: DeepWriteable<NavState>, name: string, params: any) => {
+const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   const route = s?.routes[s?.index ?? -1] as DeepWriteable<Route>
   if (!route) {
     return
   }
 
   // found?
-  if (route.name === name && isEqual(route.params, params)) {
+  if (route.name === name) {
     // selected a root stack? choose just the root item
     if (route.state?.type === 'stack') {
       route.state.routes.length = 1
@@ -206,7 +182,7 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string, params: any) => {
 
   // search stack for target
   if (route.state?.type === 'stack') {
-    const idx = route.state.routes.findIndex(r => r.name === name && isEqual(r.params, params))
+    const idx = route.state.routes.findIndex(r => r.name === name)
     // found
     if (idx !== -1) {
       route.state.index = idx
@@ -216,7 +192,7 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string, params: any) => {
   }
   // try the incoming s
   if (s?.type === 'stack') {
-    const idx = s.routes.findIndex(r => r.name === name && isEqual(r.params, params))
+    const idx = s.routes.findIndex(r => r.name === name)
     // found
     if (idx !== -1) {
       s.index = idx
@@ -225,7 +201,7 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string, params: any) => {
     }
   }
 
-  navUpHelper(route.state, name, params)
+  navUpHelper(route.state, name)
 }
 
 type RTGActions =
@@ -233,7 +209,6 @@ type RTGActions =
   | RouteTreeGen.NavigateAppendPayload
   | RouteTreeGen.NavigateUpPayload
   | RouteTreeGen.SwitchLoggedInPayload
-  | RouteTreeGen.NavUpToScreenPayload
   | RouteTreeGen.SwitchTabPayload
   | RouteTreeGen.PopStackPayload
 
@@ -356,6 +331,7 @@ const initialStore: Store = {}
 type State = Store & {
   dispatch: {
     clearModals: () => void
+    navUpToScreen: (name: string) => void
     resetState: 'default'
   }
 }
@@ -369,6 +345,25 @@ export const useState = Z.createZustand<State>(() => {
       if (_isLoggedIn(ns) && (ns?.routes?.length ?? 0) > 1) {
         n.dispatch({...StackActions.popToTop(), target: ns?.key})
       }
+    },
+    navUpToScreen: name => {
+      const n = _getNavigator()
+      if (!n) return
+      const ns = getRootState()
+      // some kind of unknown race, just bail
+      if (!ns) {
+        console.log('Avoiding trying to nav to thread when missing nav state, bailing')
+        return
+      }
+      if (!ns.routes) {
+        console.log('Avoiding trying to nav to thread when malformed nav state, bailing')
+        return
+      }
+
+      const nextState = Container.produce(ns, draft => {
+        navUpHelper(draft as DeepWriteable<NavState>, name)
+      })
+      n.dispatch(CommonActions.reset(nextState))
     },
     resetState: 'default',
   }

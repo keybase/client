@@ -6,7 +6,6 @@ import type * as Types from '../constants/types/route-tree'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of route-tree but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'route-tree:'
-export const navUpToScreen = 'route-tree:navUpToScreen'
 export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateUp = 'route-tree:navigateUp'
 export const navigateUpNoop = 'route-tree:navigateUpNoop'
@@ -24,13 +23,6 @@ export const tabLongPress = 'route-tree:tabLongPress'
 export const createNavigateUpNoop = (payload?: undefined) => ({
   payload,
   type: navigateUpNoop as typeof navigateUpNoop,
-})
-/**
- * ONLY used by the new nav. Navigates up to this route if it already exists, noops otherwise.
- */
-export const createNavUpToScreen = (payload: {readonly name: string; readonly params?: Object}) => ({
-  payload,
-  type: navUpToScreen as typeof navUpToScreen,
 })
 /**
  * ONLY used by the new nav. Switch login stacks
@@ -80,7 +72,6 @@ export const createOnNavChanged = (payload: {
 }) => ({payload, type: onNavChanged as typeof onNavChanged})
 
 // Action Payloads
-export type NavUpToScreenPayload = ReturnType<typeof createNavUpToScreen>
 export type NavigateAppendPayload = ReturnType<typeof createNavigateAppend>
 export type NavigateUpNoopPayload = ReturnType<typeof createNavigateUpNoop>
 export type NavigateUpPayload = ReturnType<typeof createNavigateUp>
@@ -94,7 +85,6 @@ export type TabLongPressPayload = ReturnType<typeof createTabLongPress>
 // All Actions
 // prettier-ignore
 export type Actions =
-  | NavUpToScreenPayload
   | NavigateAppendPayload
   | NavigateUpNoopPayload
   | NavigateUpPayload

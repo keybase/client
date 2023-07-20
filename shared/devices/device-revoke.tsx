@@ -1,4 +1,5 @@
 import * as Constants from '../constants/devices'
+import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -94,7 +95,7 @@ const useRevoke = (deviceID = '') => {
   const load = Constants.useDevicesState(s => s.dispatch.load)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const wasCurrentDevice = d?.currentDevice ?? false
-  const dispatch = Container.useDispatch()
+  const navUpToScreen = RouterConstants.useState(s => s.dispatch.navUpToScreen)
   const deviceName = d?.name ?? ''
   return React.useCallback(() => {
     const f = async () => {
@@ -112,20 +113,18 @@ const useRevoke = (deviceID = '') => {
           )
           load()
           ConfigConstants.useConfigState.getState().dispatch.revoke(deviceName)
-          dispatch(
-            RouteTreeGen.createNavUpToScreen({
-              name: Container.isMobile
-                ? Container.isTablet
-                  ? Tabs.settingsTab
-                  : SettingsConstants.devicesTab
-                : Tabs.devicesTab,
-            })
+          navUpToScreen(
+            Container.isMobile
+              ? Container.isTablet
+                ? Tabs.settingsTab
+                : SettingsConstants.devicesTab
+              : Tabs.devicesTab
           )
         } catch {}
       }
     }
     Container.ignorePromise(f())
-  }, [dispatch, deviceID, deviceName, load, username, wasCurrentDevice])
+  }, [navUpToScreen, deviceID, deviceName, load, username, wasCurrentDevice])
 }
 
 const DeviceRevoke = (ownProps: OwnProps) => {
@@ -233,7 +232,7 @@ const styles = Styles.styleSheetCreate(
       tlf: Styles.platformStyles({
         isElectron: {wordBreak: 'break-word'} as const,
       }),
-    } as const)
+    }) as const
 )
 
 export default DeviceRevoke
