@@ -1,6 +1,5 @@
-import * as Container from '../../util/container'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/teams'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import JoinTeam from '.'
 import upperFirst from 'lodash/upperFirst'
 
@@ -12,9 +11,9 @@ export default (ownProps: OwnProps) => {
   const open = Constants.useState(s => s.teamJoinSuccessOpen)
   const success = Constants.useState(s => s.teamJoinSuccess)
   const successTeamName = Constants.useState(s => s.teamJoinSuccessTeamName)
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const joinTeam = Constants.useState(s => s.dispatch.joinTeam)
   const onJoinTeam = joinTeam

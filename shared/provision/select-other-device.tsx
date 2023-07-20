@@ -1,9 +1,9 @@
 import * as Constants from '../constants/provision'
+import * as RouterConstants from '../constants/router2'
 import * as ARConstants from '../constants/autoreset'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import DeviceIcon from '../devices/device-icon'
 import {type Device} from '../constants/provision'
@@ -14,11 +14,10 @@ const SelectOtherDeviceContainer = () => {
   const submitDeviceSelect = Constants.useState(s => s.dispatch.dynamic.submitDeviceSelect)
   const username = Constants.useState(s => s.username)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const _onBack = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateUp())
-  }, [dispatch])
+    navigateUp()
+  }, [navigateUp])
   const onBack = Container.useSafeSubmit(_onBack, false)
   const startAccountReset = ARConstants.useState(s => s.dispatch.startAccountReset)
   const onResetAccount = React.useCallback(() => {

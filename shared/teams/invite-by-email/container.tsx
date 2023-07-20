@@ -1,6 +1,5 @@
 import * as Constants from '../../constants/teams'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import type * as Types from '../../constants/types/teams'
 import {InviteByEmailDesktop} from '.'
 
@@ -14,7 +13,6 @@ export default (ownProps: OwnProps) => {
   const malformedEmails = inviteError.malformed
   const name = teamname
   const waitingKey = Constants.addToTeamByEmailWaitingKey(teamname) || ''
-  const dispatch = Container.useDispatch()
   const inviteToTeamByEmail = Constants.useState(s => s.dispatch.inviteToTeamByEmail)
   const _onInvite = (teamname: string, teamID: Types.TeamID, invitees: string, role: Types.TeamRoleType) => {
     inviteToTeamByEmail(invitees, role, teamID, teamname)
@@ -22,8 +20,9 @@ export default (ownProps: OwnProps) => {
   const resetErrorInEmailInvite = Constants.useState(s => s.dispatch.resetErrorInEmailInvite)
   // should only be called on unmount
   const onClearInviteError = resetErrorInEmailInvite
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onClose = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const props = {
     errorMessage,

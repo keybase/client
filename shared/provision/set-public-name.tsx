@@ -1,10 +1,10 @@
 import * as Constants from '../constants/provision'
+import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as Devices from '../constants/devices'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import debounce from 'lodash/debounce'
 import {SignupScreen, errorBanner} from '../signup/common'
@@ -14,9 +14,8 @@ const PublicNameContainer = () => {
   const devices = Constants.useState(s => s.devices)
   const error = Constants.useState(s => s.error)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const dispatch = Container.useDispatch()
-
-  const _onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const _onBack = React.useCallback(() => navigateUp(), [navigateUp])
   const onBack = Container.useSafeSubmit(_onBack, !!error)
   const setDeviceName = Constants.useState(s => s.dispatch.dynamic.setDeviceName)
   const onSubmit = React.useCallback(

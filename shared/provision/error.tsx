@@ -1,9 +1,8 @@
-import * as Container from '../util/container'
 import * as Constants from '../constants/autoreset'
+import * as RouterConstants from '../constants/router2'
 import * as ProvisionConstants from '../constants/provision'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import LoginContainer from '../login/forms/container'
 import openURL from '../util/open-url'
@@ -15,13 +14,13 @@ import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../styles
 const ConnectedRenderError = () => {
   const _username = Constants.useState(s => s.username)
   const error = ProvisionConstants.useState(s => s.finalError)
-  const dispatch = Container.useDispatch()
   const startAccountReset = Constants.useState(s => s.dispatch.startAccountReset)
   const _onAccountReset = (username: string) => {
     startAccountReset(false, username)
   }
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onKBHome = () => {
     openURL('https://keybase.io/')
@@ -344,5 +343,5 @@ const styles = styleSheetCreate(
         ...globalStyles.flexBoxColumn,
         maxWidth: 460,
       },
-    } as const)
+    }) as const
 )

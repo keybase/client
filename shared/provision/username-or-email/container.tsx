@@ -1,4 +1,5 @@
 import * as ARConstants from '../../constants/autoreset'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -46,7 +47,8 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
   const dispatch = Container.useDispatch()
-  const _onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const _onBack = React.useCallback(() => navigateUp(), [navigateUp])
   const onBack = Container.useSafeSubmit(_onBack, hasError)
   const onForgotUsername = React.useCallback(
     () => dispatch(RouteTreeGen.createNavigateAppend({path: ['forgotUsername']})),

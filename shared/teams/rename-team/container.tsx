@@ -1,6 +1,6 @@
 import * as Container from '../../util/container'
+import * as RouterConstants from '../../constants/router2'
 import * as WaitConstants from '../../constants/waiting'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
 import RenameTeam from '.'
 
@@ -11,15 +11,15 @@ export default (ownProps: OwnProps) => {
   const error = WaitConstants.useAnyErrors(Constants.teamRenameWaitingKey)
   const waiting = WaitConstants.useAnyWaiting(Constants.teamRenameWaitingKey)
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
-  const dispatch = Container.useDispatch()
   const renameTeam = Constants.useState(s => s.dispatch.renameTeam)
   const _onRename = renameTeam
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
     dispatchClearWaiting(Constants.teamRenameWaitingKey)
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onSuccess = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const props = {
     error: (!error ? undefined : error.message) || '',

@@ -1,7 +1,6 @@
-import * as Container from '../../util/container'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/tracker2'
 import * as Followers from '../../constants/followers'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Bio from '.'
 import shallowEqual from 'shallowequal'
 
@@ -40,10 +39,9 @@ export default (ownProps: OwnProps) => {
       }
     }
   }, shallowEqual)
-
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   const followThem = Followers.useFollowerState(s => s.following.has(username))

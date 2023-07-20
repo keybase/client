@@ -28,9 +28,10 @@ export default () => {
   const onAddPhone = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
   }
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = isMobile
     ? () => {
-        dispatch(RouteTreeGen.createNavigateUp())
+        navigateUp()
       }
     : undefined
 

@@ -1,4 +1,4 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/settings'
 import UpdatePassword from '.'
 import * as Container from '../../util/container'
@@ -12,9 +12,9 @@ export default () => {
   const saveLabel = Constants.usePasswordState(s => (s.randomPW ? 'Create password' : 'Save'))
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   const setPassword = Constants.usePasswordState(s => s.dispatch.setPassword)

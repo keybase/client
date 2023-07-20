@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/wallets'
+import * as RouterConstants from '../../constants/router2'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -13,8 +14,9 @@ export default (ownProps: OwnProps) => {
   const account = Constants.useState(s => s.accountMap.get(accountID))
   const balance = account?.balanceDescription ?? 'Error loading account'
   const name = account?.name ?? ''
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onClose = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onDelete = () => {
     dispatch(

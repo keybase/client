@@ -1,4 +1,5 @@
 import {Reloadable} from '../../common-adapters'
+import * as RouterConstants from '../../constants/router2'
 import * as Container from '../../util/container'
 import Notifications, {type Props} from '.'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -33,8 +34,9 @@ export default () => {
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
 
   const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onClickYourAccount = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.accountTab]}))

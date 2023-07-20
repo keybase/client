@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/fs'
+import * as RouterConstants from '../../constants/router2'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Files, {defaultNotificationThreshold, allowedNotificationThresholds} from '.'
@@ -19,9 +20,10 @@ const SettingsFiles = () => {
   )
 
   const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = isMobile
     ? () => {
-        dispatch(RouteTreeGen.createNavigateUp())
+        navigateUp()
       }
     : undefined
   const onDisable = driverDisable

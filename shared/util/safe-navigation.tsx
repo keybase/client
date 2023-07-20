@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as RouterConstants from '../../constants/router2'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {useIsFocused} from '@react-navigation/core'
 import type {NavigateAppendType} from '../router-v2/route-params'

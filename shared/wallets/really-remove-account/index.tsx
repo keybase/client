@@ -1,5 +1,5 @@
 import * as ConfigConstants from '../../constants/config'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/wallets'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
@@ -23,15 +23,14 @@ const ReallyRemoveAccountPopup = (props: OwnProps) => {
   const [sk, setSK] = React.useState('')
   const loading = !sk
   const getSecretKey = Container.useRPC(RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise)
-
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const removeAccount = Constants.useState(s => s.dispatch.removeAccount)
   const onFinish = () => {
     removeAccount(accountID)
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   React.useEffect(() => {

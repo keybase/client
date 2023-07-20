@@ -1,10 +1,10 @@
 import * as Constants from '../constants/signup'
+import * as RouterConstants from '../constants/router2'
 import * as ProvisionConstants from '../constants/provision'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as Platform from '../constants/platform'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import {SignupScreen, errorBanner} from './common'
 import {maxUsernameLength} from '../constants/signup'
@@ -15,11 +15,11 @@ const ConnectedEnterUsername = () => {
   const usernameTaken = Constants.useState(s => s.usernameTaken)
   const checkUsername = Constants.useState(s => s.dispatch.checkUsername)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const restartSignup = Constants.useState(s => s.dispatch.restartSignup)
   const onBack = () => {
     restartSignup()
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const onContinue = checkUsername
 
