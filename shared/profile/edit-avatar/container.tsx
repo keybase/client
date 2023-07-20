@@ -1,10 +1,9 @@
 import EditAvatar from '.'
-import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouterConstants from '../../constants/router2'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
 import * as TeamsConstants from '../../constants/teams'
 import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import type * as Types from '../../constants/types/teams'
 import type * as ImagePicker from 'expo-image-picker'
@@ -30,10 +29,10 @@ export default (ownProps: OwnProps) => {
   )
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
     dispatchClearWaiting(Constants.uploadAvatarWaitingKey)
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => {

@@ -1,8 +1,7 @@
-import * as Container from '../../util/container'
+import * as RouterConstants from '../../constants/router2'
 import * as Kb from '../../common-adapters'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/recover-password'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type {ButtonType} from '../../common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 import {globalColors} from '../../styles'
@@ -13,15 +12,15 @@ const ConnectedExplainDevice = () => {
   const deviceType = ed ? ed.type : undefined
   const username = Constants.useState(s => s.username)
   const startRecoverPassword = Constants.useState(s => s.dispatch.startRecoverPassword)
-  const dispatch = Container.useDispatch()
   const onBack = () => {
     startRecoverPassword({
       replaceRoute: true,
       username,
     })
   }
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onComplete = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const props = {
     deviceName,

@@ -1,7 +1,6 @@
 import * as Kb from '../../../common-adapters'
+import * as RouterConstants from '../../../constants/router2'
 import * as Styles from '../../../styles'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/profile'
 import Modal from '../../modal'
 import shallowEqual from 'shallowequal'
@@ -24,8 +23,8 @@ const Info = () => {
     }
   }, shallowEqual)
 
-  const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(RouteTreeGen.createNavigateUp())
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const onCancel = () => navigateUp()
   const onChangeEmail1 = (pgpEmail1: string) => updatePgpInfo({pgpEmail1})
   const onChangeEmail2 = (pgpEmail2: string) => updatePgpInfo({pgpEmail2})
   const onChangeEmail3 = (pgpEmail3: string) => updatePgpInfo({pgpEmail3})
@@ -84,6 +83,6 @@ const styles = Styles.styleSheetCreate(
       centered: {alignSelf: 'center'},
       content: {flexGrow: 1},
       math: {flexGrow: 1},
-    } as const)
+    }) as const
 )
 export default Info

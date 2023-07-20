@@ -1,8 +1,7 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/tracker2'
 import * as ProfileConstants from '../../constants/profile'
 import * as ConfigConstants from '../../constants/config'
-import * as Container from '../../util/container'
 import EditProfile from '.'
 
 export default () => {
@@ -12,15 +11,15 @@ export default () => {
   const fullname = d.fullname || ''
   const location = d.location || ''
 
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   const editProfile = ProfileConstants.useState(s => s.dispatch.editProfile)
   const onSubmit = (bio: string, fullname: string, location: string) => {
     editProfile(bio, fullname, location)
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const props = {
     bio,

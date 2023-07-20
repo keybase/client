@@ -1,19 +1,17 @@
-import * as Container from '../../util/container'
 import * as ConfigConstants from '../../constants/config'
 import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/recover-password'
 import * as Kb from '../../common-adapters'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type {ButtonType} from '../../common-adapters/button'
 import {SignupScreen} from '../../signup/common'
 
 const useConn = () => {
   const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
   const error = Constants.useState(s => s.error)
-  const dispatch = Container.useDispatch()
   const popStack = RouterConstants.useState(s => s.dispatch.popStack)
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    loggedIn ? dispatch(RouteTreeGen.createNavigateUp()) : popStack()
+    loggedIn ? navigateUp() : popStack()
   }
   return {error, onBack}
 }

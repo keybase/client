@@ -1,8 +1,8 @@
 import * as Constants from '../../constants/teams'
+import * as RouterConstants from '../../constants/router2'
 import * as Container from '../../util/container'
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import AddToTeam, {type AddToTeamProps} from './index'
+import AddToTeam, {type AddToTeamProps} from '.'
 import type * as Types from '../../constants/types/teams'
 import {memoize} from '../../util/memoize'
 import {sendNotificationFooter} from '../../teams/role-picker'
@@ -114,15 +114,15 @@ export default (ownProps: OwnProps) => {
   const addUserToTeams = Constants.useState(s => s.dispatch.addUserToTeams)
   const teamProfileAddList = Constants.useState(s => s.teamProfileAddList)
   const waiting = Container.useAnyWaiting(Constants.teamProfileAddListWaitingKey)
-  const dispatch = Container.useDispatch()
   const _onAddToTeams = addUserToTeams
   const getTeamProfileAddList = Constants.useState(s => s.dispatch.getTeamProfileAddList)
   const resetTeamProfileAddList = Constants.useState(s => s.dispatch.resetTeamProfileAddList)
   const loadTeamList = () => {
     getTeamProfileAddList(_them)
   }
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
     resetTeamProfileAddList()
   }
 

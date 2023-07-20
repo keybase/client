@@ -1,12 +1,11 @@
 import * as Kb from '../../common-adapters'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
+import * as RouterConstants from '../../constants/router2'
 import Modal from '../modal'
 
 export default function NoPGPView() {
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   return (
     <Modal onCancel={onCancel}>
