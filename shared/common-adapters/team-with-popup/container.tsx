@@ -1,6 +1,4 @@
-import * as Container from '../../util/container'
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as TeamsConstants from '../../constants/teams'
 import * as RouterConstants from '../../constants/router2'
 import type * as TeamsTypes from '../../constants/types/teams'
@@ -27,17 +25,16 @@ const ConnectedTeamWithPopup = (ownProps: OwnProps) => {
     memberCount: meta.memberCount,
     teamID,
   }
-
-  const dispatch = Container.useDispatch()
   const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
   const _onJoinTeam = joinTeam
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _onViewTeam = React.useCallback(
     (teamID: TeamsTypes.TeamID) => {
       clearModals()
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+      navigateAppend({props: {teamID}, selected: 'team'})
     },
-    [clearModals, dispatch]
+    [clearModals, navigateAppend]
   )
 
   const props = {

@@ -1,7 +1,7 @@
+import * as RouterConstants from '../../constants/router2'
 import * as React from 'react'
 import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import EnterPhoneNumber, {type Props} from '.'
 
 type WatcherProps = Props & {
@@ -43,23 +43,16 @@ const ConnectedEnterPhoneNumber = () => {
   const waiting = Container.useAnyWaiting(SettingsConstants.addPhoneNumberWaitingKey)
   const clearPhoneNumberErrors = SettingsConstants.usePhoneState(s => s.dispatch.clearPhoneNumberErrors)
   const clearPhoneNumberAdd = SettingsConstants.usePhoneState(s => s.dispatch.clearPhoneNumberAdd)
-
-  const dispatch = Container.useDispatch()
   const onClear = clearPhoneNumberErrors
-
   const addPhoneNumber = SettingsConstants.usePhoneState(s => s.dispatch.addPhoneNumber)
   const onContinue = addPhoneNumber
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onGoToVerify = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['signupVerifyPhoneNumber']}))
+    navigateAppend('signupVerifyPhoneNumber')
   }
   const onSkip = () => {
     clearPhoneNumberAdd()
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: ['signupEnterEmail'],
-        replace: true,
-      })
-    )
+    navigateAppend('signupEnterEmail', true)
   }
   const props = {
     defaultCountry,

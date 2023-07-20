@@ -1,13 +1,11 @@
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Container from '../util/container'
 import * as ConfigConstants from '../constants/config'
 import * as RouterConstants from '../constants/router2'
 import type * as Tabs from '../constants/tabs'
 import openURL from '../util/open-url'
 import {currentVersion, useState} from '../constants/whats-new'
 import {Current, Last, LastLast} from './versions'
+import type {PathParam} from '../constants/types/route-tree'
 import WhatsNew from '.'
-import type {NavigateAppendPayload} from '../actions/route-tree-gen'
 
 type OwnProps = {
   // Desktop only: popup.desktop.tsx passes this function to close the popup
@@ -16,11 +14,6 @@ type OwnProps = {
 }
 
 const WhatsNewContainer = (ownProps: OwnProps) => {
-  const dispatch = Container.useDispatch()
-  const _onNavigate = (props: NavigateAppendPayload['payload']) => {
-    dispatch(RouteTreeGen.createNavigateAppend(props))
-  }
-
   const _onNavigateExternal = (url: string) => {
     openURL(url)
   }
@@ -43,14 +36,15 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
       ownProps.onBack()
     }
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const props = {
     Current,
     Last,
     LastLast,
     onBack,
     // Navigate then handle setting seen state and closing the modal (desktop only)
-    onNavigate: (props: NavigateAppendPayload['payload']) => {
-      _onNavigate(props)
+    onNavigate: (props: PathParam) => {
+      navigateAppend(props)
       onBack()
     },
     onNavigateExternal: _onNavigateExternal,

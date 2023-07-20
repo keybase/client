@@ -1,20 +1,18 @@
 import * as Kb from '../../../common-adapters'
 import * as RouterConstants from '../../../constants/router2'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Container from '../../../util/container'
 import Modal from '../../modal'
 
 export default function Choice() {
-  const dispatch = Container.useDispatch()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onCancel = () => {
     clearModals()
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onShowGetNew = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProvideInfo']}))
+    navigateAppend('profileProvideInfo')
   }
   const onShowImport = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['profileImport']}))
+    navigateAppend('profileImport')
   }
   return (
     <Modal onCancel={onCancel}>

@@ -8,7 +8,6 @@ import * as Types from './../../constants/types/chat2'
 import * as TeamsTypes from './../../constants/types/teams'
 import * as Teams from './../../constants/teams'
 import * as Chat2Gen from './../../actions/chat2-gen'
-import * as RouteTreeGen from './../../actions/route-tree-gen'
 import * as Styles from './../../styles'
 import * as Data from './../../util/emoji'
 import startCase from 'lodash/startCase'
@@ -120,19 +119,6 @@ const useCustomReacji = (
   return disabled ? {customEmojiGroups: undefined, waiting: false} : {customEmojiGroups, waiting}
 }
 
-const goToAddEmoji = (dispatch: Container.TypedDispatch, conversationIDKey: Types.ConversationIDKey) => {
-  dispatch(
-    RouteTreeGen.createNavigateAppend({
-      path: [
-        {
-          props: {conversationIDKey, teamID: TeamsTypes.noTeamID},
-          selected: 'teamAddEmoji',
-        },
-      ],
-    })
-  )
-}
-
 const useCanManageEmoji = (conversationIDKey: Types.ConversationIDKey) => {
   const canManageEmoji = Container.useSelector(s => {
     const meta = Constants.getMeta(s, conversationIDKey)
@@ -159,12 +145,16 @@ const WrapperMobile = (props: Props) => {
   )
   const {currentSkinTone, setSkinTone} = useSkinTone()
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
-  const dispatch = Container.useDispatch()
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = navigateUp
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const addEmoji = React.useCallback(
-    () => goToAddEmoji(dispatch, conversationIDKey),
-    [dispatch, conversationIDKey]
+    () =>
+      navigateAppend({
+        props: {conversationIDKey, teamID: TeamsTypes.noTeamID},
+        selected: 'teamAddEmoji',
+      }),
+    [navigateAppend, conversationIDKey]
   )
   const canManageEmoji = useCanManageEmoji(conversationIDKey)
 
@@ -232,10 +222,13 @@ export const EmojiPickerDesktop = (props: Props) => {
     props.disableCustomEmoji
   )
   const canManageEmoji = useCanManageEmoji(conversationIDKey)
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const addEmoji = () => {
     props.onDidPick?.()
-    goToAddEmoji(dispatch, conversationIDKey)
+    navigateAppend({
+      props: {conversationIDKey, teamID: TeamsTypes.noTeamID},
+      selected: 'teamAddEmoji',
+    })
   }
 
   return (

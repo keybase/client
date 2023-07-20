@@ -1,5 +1,5 @@
+import * as RouterConstants from '../../constants/router2'
 import * as ConfigConstants from '../../constants/config'
-import * as RouteTreeGen from '../route-tree-gen'
 import * as ProfileConstants from '../../constants/profile'
 import * as DaemonConstants from '../../constants/daemon'
 import * as Container from '../../util/container'
@@ -257,12 +257,9 @@ export const initPlatformListener = () => {
 
   ProfileConstants.useState.setState(s => {
     s.dispatch.editAvatar = () => {
-      const reduxDispatch = Z.getReduxDispatch()
-      reduxDispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {image: undefined}, selected: 'profileEditAvatar'}],
-        })
-      )
+      RouterConstants.useState
+        .getState()
+        .dispatch.navigateAppend({props: {image: undefined}, selected: 'profileEditAvatar'})
     }
   })
 

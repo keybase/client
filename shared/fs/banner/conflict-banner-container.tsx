@@ -1,8 +1,7 @@
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/fs'
 import * as React from 'react'
 import * as SettingsConstants from '../../constants/settings'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type * as Types from '../../constants/types/fs'
 import ConflictBanner from './conflict-banner'
 import openUrl from '../../util/open-url'
@@ -16,32 +15,21 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const _tlf = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, path))
   const finishManualConflictResolution = Constants.useState(s => s.dispatch.finishManualConflictResolution)
   const startManualConflictResolution = Constants.useState(s => s.dispatch.startManualConflictResolution)
-
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onFeedback = React.useCallback(() => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {feedback: `Conflict Resolution failed in \`${path}\`.\n`},
-            selected: SettingsConstants.feedbackTab,
-          },
-        ],
-      })
-    )
-  }, [dispatch, path])
+    navigateAppend({
+      props: {feedback: `Conflict Resolution failed in \`${path}\`.\n`},
+      selected: SettingsConstants.feedbackTab,
+    })
+  }, [navigateAppend, path])
   const onFinishResolving = React.useCallback(() => {
     finishManualConflictResolution(path)
   }, [finishManualConflictResolution, path])
   const onGoToSamePathInDifferentTlf = React.useCallback(
     (tlfPath: Types.Path) => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {path: Constants.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'}],
-        })
-      )
+      navigateAppend({props: {path: Constants.rebasePathToDifferentTlf(path, tlfPath)}, selected: 'fsRoot'})
     },
-    [dispatch, path]
+    [navigateAppend, path]
   )
   const onHelp = React.useCallback(() => {
     openUrl('https://book.keybase.io/docs/files/details#conflict-resolution')

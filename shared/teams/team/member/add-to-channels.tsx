@@ -8,7 +8,6 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as RPCChatGen from '../../../constants/types/rpc-chat-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as ChatGen from '../../../actions/chat2-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Common from '../../common'
@@ -55,7 +54,6 @@ const AddToChannels = (props: Props) => {
   const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
   const usernames = props.usernames ?? [myUsername]
   const mode = props.usernames ? 'others' : 'self'
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
@@ -98,8 +96,7 @@ const AddToChannels = (props: Props) => {
   const onSelectNone = convIDKeysAvailable.length === 0 ? undefined : () => setSelected(new Set())
 
   const onCancel = () => nav.safeNavigateUp()
-  const onCreate = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
+  const onCreate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
 
   const submit = Container.useRPC(RPCChatGen.localBulkAddToManyConvsRpcPromise)
   const [waiting, setWaiting] = React.useState(false)
@@ -295,9 +292,7 @@ const SelfChannelActions = ({
   reloadChannels: () => Promise<void>
   selfMode: boolean
 }) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, meta.teamID))
   const isAdmin = yourOperations.deleteChannel
   const canEdit = yourOperations.editChannelDescription
@@ -318,46 +313,32 @@ const SelfChannelActions = ({
   }
 
   const onEditChannel = React.useCallback(() => {
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {
-              channelname: meta.channelname,
-              conversationIDKey: meta.conversationIDKey,
-              description: meta.description,
-              teamID: meta.teamID,
-            },
-            selected: 'teamEditChannel',
-          },
-        ],
-      })
-    )
-  }, [dispatch, nav, meta])
+    nav.safeNavigateAppend({
+      props: {
+        channelname: meta.channelname,
+        conversationIDKey: meta.conversationIDKey,
+        description: meta.description,
+        teamID: meta.teamID,
+      },
+      selected: 'teamEditChannel',
+    })
+  }, [nav, meta])
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onChannelSettings = React.useCallback(() => {
     clearModals()
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID}, selected: 'teamChannel'},
-        ],
-      })
-    )
-  }, [dispatch, meta, clearModals])
+    navigateAppend({
+      props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
+      selected: 'teamChannel',
+    })
+  }, [meta, clearModals, navigateAppend])
   const onDelete = React.useCallback(() => {
     // TODO: consider not using the confirm modal
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
-            selected: 'teamDeleteChannel',
-          },
-        ],
-      })
-    )
-  }, [dispatch, nav, meta])
+    nav.safeNavigateAppend({
+      props: {conversationIDKey: meta.conversationIDKey, teamID: meta.teamID},
+      selected: 'teamDeleteChannel',
+    })
+  }, [nav, meta])
 
   const joinRPC = Container.useRPC(RPCChatGen.localJoinConversationByIDLocalRpcPromise)
   const leaveRPC = Container.useRPC(RPCChatGen.localLeaveConversationLocalRpcPromise)

@@ -4,7 +4,6 @@ import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
 import * as TeamTypes from '../../../constants/types/teams'
@@ -152,26 +151,18 @@ const InstallBotPopup = (props: Props) => {
       })
     )
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onRemove = () => {
     if (!conversationIDKey) {
       return
     }
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              botUsername,
-              conversationIDKey,
-            },
-            selected: 'chatConfirmRemoveBot',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {botUsername, conversationIDKey},
+      selected: 'chatConfirmRemoveBot',
+    })
   }
   const onFeedback = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
+    navigateAppend({props: {}, selected: 'feedback'})
   }
 
   // lifecycle

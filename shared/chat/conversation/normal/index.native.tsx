@@ -1,6 +1,6 @@
+import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as KbMobile from '../../../common-adapters/mobile.native'
@@ -72,6 +72,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
   )
 
   const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onDropped = React.useCallback(
     (items: DropItems) => {
       let {attach, texts} = items.reduce(
@@ -93,16 +94,10 @@ const Conversation = React.memo(function Conversation(props: Props) {
           // just use the url and ignore the image
           attach = []
         } else {
-          dispatch(
-            RouteTreeGen.createNavigateAppend({
-              path: [
-                {
-                  props: {conversationIDKey, pathAndOutboxIDs: attach, titles: texts},
-                  selected: 'chatAttachmentGetTitles',
-                },
-              ],
-            })
-          )
+          navigateAppend({
+            props: {conversationIDKey, pathAndOutboxIDs: attach, titles: texts},
+            selected: 'chatAttachmentGetTitles',
+          })
           return
         }
       }
@@ -116,16 +111,13 @@ const Conversation = React.memo(function Conversation(props: Props) {
       }
 
       if (attach.length) {
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              {props: {conversationIDKey, pathAndOutboxIDs: attach}, selected: 'chatAttachmentGetTitles'},
-            ],
-          })
-        )
+        navigateAppend({
+          props: {conversationIDKey, pathAndOutboxIDs: attach},
+          selected: 'chatAttachmentGetTitles',
+        })
       }
     },
-    [dispatch, conversationIDKey]
+    [navigateAppend, dispatch, conversationIDKey]
   )
 
   const insets = useSafeAreaInsets()
@@ -190,7 +182,7 @@ const styles = Styles.styleSheetCreate(
         maxHeight: '100%',
         position: 'relative',
       },
-    } as const)
+    }) as const
 )
 
 export default Conversation

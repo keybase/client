@@ -4,7 +4,6 @@ import * as Constants from '../../../constants/chat2'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
 import * as RouterConstants from '../../../constants/router2'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
 import type * as Types from '../../../constants/types/chat2'
@@ -33,13 +32,13 @@ export default (ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
   const _you = ConfigConstants.useCurrentUserState(s => s.username)
   const rekeyers = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).rekeyers)
-  const dispatch = Container.useDispatch()
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onBack = () => {
     navigateUp()
   }
   const onEnterPaperkey = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['chatEnterPaperkey']}))
+    navigateAppend('chatEnterPaperkey')
   }
 
   const rekeyShowPendingRekeyStatus = Container.useRPC(RPCTypes.rekeyShowPendingRekeyStatusRpcPromise)

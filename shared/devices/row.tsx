@@ -1,8 +1,7 @@
 import * as Constants from '../constants/devices'
-import * as Container from '../util/container'
+import * as RouterConstants from '../constants/router2'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import DeviceIcon from './device-icon'
 import type * as Types from '../constants/types/devices'
@@ -23,10 +22,10 @@ export default (ownProps: OwnProps) => {
   const isNew = React.useContext(NewContext).has(deviceID)
   const {currentDevice, name, revokedAt, lastUsed} = device
   const isRevoked = !!device.revokedByName
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const showExistingDevicePage = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {deviceID}, selected: 'devicePage'}]}))
-  }, [dispatch, deviceID])
+    navigateAppend({props: {deviceID}, selected: 'devicePage'})
+  }, [navigateAppend, deviceID])
 
   return (
     <Kb.ListItem2
@@ -75,5 +74,5 @@ const styles = Styles.styleSheetCreate(
         textDecorationLine: 'line-through',
         textDecorationStyle: 'solid',
       },
-    } as const)
+    }) as const
 )

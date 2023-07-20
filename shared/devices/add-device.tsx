@@ -1,7 +1,5 @@
-import * as Container from '../util/container'
 import * as RouterConstants from '../constants/router2'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/devices'
 import * as ProvisionConstants from '../constants/provision'
 import * as Kb from '../common-adapters'
@@ -17,7 +15,6 @@ const noHighlight = new Array<'computer' | 'phone' | 'paper key'>()
 export default function AddDevice(ownProps: OwnProps) {
   const highlight = ownProps.highlight ?? noHighlight
   const iconNumbers = Constants.useNextDeviceIconNumber()
-  const dispatch = Container.useDispatch()
   const safeOptions = {onlyOnce: true}
   const addNewDevice = ProvisionConstants.useState(s => s.dispatch.addNewDevice)
 
@@ -25,10 +22,11 @@ export default function AddDevice(ownProps: OwnProps) {
     addNewDevice('desktop')
   }, [addNewDevice])
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onAddPaperKey = useSafeCallback(
     React.useCallback(() => {
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['devicePaperKey']}))
-    }, [dispatch]),
+      navigateAppend('devicePaperKey')
+    }, [navigateAppend]),
     safeOptions
   )
 

@@ -4,7 +4,7 @@ import * as Container from '../../../../util/container'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../../constants/router2'
 import * as Styles from '../../../../styles'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import Typing from './typing'
@@ -150,7 +150,7 @@ const fileListToPaths = (f: any): Array<string> =>
 
 const FileButton = (p: {conversationIDKey: Types.ConversationIDKey; htmlInputRef: HtmlInputRefType}) => {
   const {htmlInputRef, conversationIDKey} = p
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const pickFile = React.useCallback(() => {
     const paths = fileListToPaths(htmlInputRef.current?.files)
     const pathAndOutboxIDs = paths.reduce<Array<{path: string}>>((arr, path: string) => {
@@ -158,17 +158,13 @@ const FileButton = (p: {conversationIDKey: Types.ConversationIDKey; htmlInputRef
       return arr
     }, [])
     if (pathAndOutboxIDs.length) {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-        })
-      )
+      navigateAppend({props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'})
     }
 
     if (htmlInputRef.current) {
       htmlInputRef.current.value = ''
     }
-  }, [htmlInputRef, dispatch, conversationIDKey])
+  }, [htmlInputRef, navigateAppend, conversationIDKey])
 
   const filePickerOpen = React.useCallback(() => {
     htmlInputRef.current?.click()

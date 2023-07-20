@@ -1,9 +1,9 @@
+import * as RouterConstants from '../constants/router2'
 // A screen we show when we have a problem loading a screen
 import * as Container from '../util/container'
 import * as ConfigConstants from '../constants/config'
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import {Box2} from './box'
 import {HeaderHocHeader} from './header-hoc'
 import ScrollView from './scroll-view'
@@ -171,18 +171,13 @@ export default (ownProps: OwnProps) => {
     reason: (error && error.message) || '',
   }
 
-  const dispatch = Container.useDispatch()
-
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _onFeedback = (loggedIn: boolean) => {
     if (loggedIn) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {}, selected: feedbackTab}],
-        })
-      )
+      navigateAppend(settingsTab)
+      navigateAppend({props: {}, selected: feedbackTab})
     } else {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
+      navigateAppend({props: {}, selected: 'feedback'})
     }
   }
 

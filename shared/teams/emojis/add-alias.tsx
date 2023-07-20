@@ -2,9 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as RouterConstants from '../../constants/router2'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
-import * as Container from '../../util/container'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
 import {EmojiPickerDesktop} from '../../chat/emoji-picker/container'
@@ -136,7 +134,6 @@ type ChooseEmojiProps = {
 }
 const ChooseEmoji = Styles.isMobile
   ? (props: ChooseEmojiProps) => {
-      const dispatch = Container.useDispatch()
       const pickKey = 'addAlias'
       const {emojiStr, renderableEmoji} = usePickerState(s => s.pickerMap.get(pickKey)) ?? {
         emojiStr: '',
@@ -153,23 +150,18 @@ const ChooseEmoji = Styles.isMobile
         }, 1)
       }
 
+      const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
       const openEmojiPicker = () =>
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              {
-                props: {
-                  conversationIDKey: props.conversationIDKey,
-                  hideFrequentEmoji: true,
-                  onlyTeamCustomEmoji: true,
-                  pickKey,
-                  small: true,
-                },
-                selected: 'chatChooseEmoji',
-              },
-            ] as const,
-          })
-        )
+        navigateAppend({
+          props: {
+            conversationIDKey: props.conversationIDKey,
+            hideFrequentEmoji: true,
+            onlyTeamCustomEmoji: true,
+            pickKey,
+            small: true,
+          },
+          selected: 'chatChooseEmoji',
+        })
       return <Kb.Button mode="Secondary" label="Choose emoji" onClick={openEmojiPicker} />
     }
   : (props: ChooseEmojiProps) => {

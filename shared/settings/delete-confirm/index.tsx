@@ -1,8 +1,8 @@
+import * as RouterConstants from '../../constants/router2'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/settings'
 
@@ -39,18 +39,15 @@ const DeleteConfirm = () => {
   const hasPassword = Constants.usePasswordState(s => !s.randomPW)
   const deleteAccountForever = Constants.useState(s => s.dispatch.deleteAccountForever)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
-
   const [checkData, setCheckData] = React.useState(false)
   const [checkTeams, setCheckTeams] = React.useState(false)
   const [checkUsername, setCheckUsername] = React.useState(false)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const onCancel = () => nav.safeNavigateUp()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onDeleteForever = () => {
     if (Styles.isMobile && hasPassword) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['checkPassphraseBeforeDeleteAccount']}))
+      navigateAppend('checkPassphraseBeforeDeleteAccount')
     } else {
       deleteAccountForever()
     }

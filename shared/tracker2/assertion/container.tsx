@@ -1,5 +1,4 @@
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/tracker2'
 import * as ProfileConstants from '../../constants/profile'
 import * as ConfigConstants from '../../constants/config'
@@ -79,8 +78,6 @@ export default (ownProps: OwnProps) => {
   const timestamp = a.timestamp
   const type = a.type
   const value = a.value
-
-  const dispatch = Container.useDispatch()
   const addProof = ProfileConstants.useState(s => s.dispatch.addProof)
   const hideStellar = ProfileConstants.useState(s => s.dispatch.hideStellar)
   const recheckProof = ProfileConstants.useState(s => s.dispatch.recheckProof)
@@ -93,19 +90,17 @@ export default (ownProps: OwnProps) => {
   const _onRecheck = (sigID: string) => {
     recheckProof(sigID)
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _onRevokeProof = (
     type: PlatformsExpandedType,
     value: string,
     id: string,
     icon: Types.SiteIconSet
   ) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {props: {icon, platform: type, platformHandle: value, proofId: id}, selected: 'profileRevoke'},
-        ],
-      })
-    )
+    navigateAppend({
+      props: {icon, platform: type, platformHandle: value, proofId: id},
+      selected: 'profileRevoke',
+    })
   }
   const props = {
     color: color,

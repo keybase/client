@@ -1,3 +1,4 @@
+import * as RouterConstants from '../constants/router2'
 import * as Constants from '../constants/settings'
 import * as FSConstants from '../constants/fs'
 import * as ConfigConstants from '../constants/config'
@@ -5,7 +6,6 @@ import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import {ProxySettings} from './proxy/container'
 import {isMobile, isLinux} from '../constants/platform'
@@ -190,7 +190,6 @@ const traceDurationSeconds = 30
 const processorProfileDurationSeconds = 30
 
 const Developer = () => {
-  const dispatch = Container.useDispatch()
   const [clickCount, setClickCount] = React.useState(0)
 
   const setDebugLevel = FSConstants.useState(s => s.dispatch.setDebugLevel)
@@ -215,7 +214,8 @@ const Developer = () => {
   const onTrace = trace
   const processorProfileInProgress = Container.useAnyWaiting(Constants.processorProfileInProgressKey)
   const onProcessorProfile = processorProfile
-  const onDBNuke = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']}))
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const onDBNuke = () => navigateAppend('dbNukeConfirm')
 
   return (
     <Kb.Box style={styles.developerContainer}>

@@ -5,7 +5,7 @@ import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../../constants/router2'
 import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
 import MinWriterRole from './min-writer-role'
@@ -48,33 +48,24 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     u => u !== username && !Constants.isAssertion(u)
   )
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onShowClearConversationDialog = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],
-      })
-    )
+    navigateAppend({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'})
   }
 
   const onHideConv = () => dispatch(Chat2Gen.createHideConversation({conversationIDKey}))
   const onUnhideConv = () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey}))
   const onShowBlockConversationDialog = membersForBlock.length
     ? () => {
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              {
-                props: {
-                  blockUserByDefault: true,
-                  convID: conversationIDKey,
-                  others: membersForBlock,
-                  team: teamname,
-                },
-                selected: 'chatBlockingModal',
-              },
-            ],
-          })
-        )
+        navigateAppend({
+          props: {
+            blockUserByDefault: true,
+            convID: conversationIDKey,
+            others: membersForBlock,
+            team: teamname,
+          },
+          selected: 'chatBlockingModal',
+        })
       }
     : onHideConv
 
@@ -192,7 +183,7 @@ const styles = Styles.styleSheetCreate(
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
       },
-    } as const)
+    }) as const
 )
 
 type Props = {

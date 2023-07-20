@@ -4,7 +4,6 @@ import * as Container from '../util/container'
 import * as Constants from '../constants/settings'
 import * as ConfigConstants from '../constants/config'
 import * as Tabs from '../constants/tabs'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {appendNewChatBuilder} from '../actions/typed-routes'
@@ -77,13 +76,13 @@ const ManageContactsBanner = () => {
     switchTab(Tabs.chatTab)
     dispatch(appendNewChatBuilder())
   }, [switchTab, dispatch])
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onSendFeedback = React.useCallback(() => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {feedback: `Contact import failed\n${error}\n\n`}, selected: Constants.feedbackTab}],
-      })
-    )
-  }, [dispatch, error])
+    navigateAppend({
+      props: {feedback: `Contact import failed\n${error}\n\n`},
+      selected: Constants.feedbackTab,
+    })
+  }, [navigateAppend, error])
 
   return (
     <>

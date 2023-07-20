@@ -1,8 +1,8 @@
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/settings'
 import * as ProfileConstants from '../../constants/profile'
 import type {PendingInvite} from '../../constants/settings-invites'
 import Invites from '.'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 
 export default () => {
@@ -18,17 +18,13 @@ export default () => {
   const sendInvite = Constants.useInvitesState(s => s.dispatch.sendInvite)
   const reclaimInvite = Constants.useInvitesState(s => s.dispatch.reclaimInvite)
   const loadInvites = Constants.useInvitesState(s => s.dispatch.loadInvites)
-  const dispatch = Container.useDispatch()
   const onClearError = resetError
   const onGenerateInvitation = sendInvite
   const onReclaimInvitation = reclaimInvite
   const onRefresh = loadInvites
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onSelectPendingInvite = (invite: PendingInvite) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}],
-      })
-    )
+    navigateAppend({props: {email: invite.email, link: invite.url}, selected: 'inviteSent'})
   }
 
   const onSelectUser = ProfileConstants.useState(s => s.dispatch.showUserProfile)

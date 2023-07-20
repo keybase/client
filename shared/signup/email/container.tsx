@@ -3,7 +3,6 @@ import * as Container from '../../util/container'
 import * as SettingsConstants from '../../constants/settings'
 import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/signup'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Platform from '../../constants/platform'
 import * as PushConstants from '../../constants/push'
 import EnterEmail, {type Props} from '.'
@@ -44,13 +43,13 @@ const ConnectedEnterEmail = () => {
   const error = SettingsConstants.useEmailState(s => s.error)
   const initialEmail = Constants.useState(s => s.email)
   const waiting = Container.useAnyWaiting(SettingsConstants.addEmailWaitingKey)
-  const dispatch = Container.useDispatch()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const _navClearModals = () => {
     clearModals()
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _navToPushPrompt = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsPushPrompt'], replace: true}))
+    navigateAppend('settingsPushPrompt')
   }
 
   const setJustSignedUpEmail = Constants.useState(s => s.dispatch.setJustSignedUpEmail)

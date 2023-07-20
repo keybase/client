@@ -5,7 +5,6 @@ import * as FSConstants from '../../../../../constants/fs'
 import * as CryptoConstants from '../../../../../constants/crypto'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Tabs from '../../../../../constants/tabs'
 import File from '.'
 import type * as CryptoTypes from '../../../../../constants/types/crypto'
@@ -57,13 +56,14 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     downloadPath && openLocalPathInSystemFileManagerDesktop?.(downloadPath)
   }, [openLocalPathInSystemFileManagerDesktop, downloadPath])
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onDownload = React.useCallback(() => {
     if (Container.isMobile) {
       message && dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
     } else {
       if (!downloadPath) {
         if (fileType === 'application/pdf') {
-          dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {message}, selected: 'chatPDF'}]}))
+          navigateAppend({props: {message}, selected: 'chatPDF'})
         } else {
           switch (transferState) {
             case 'uploading':
@@ -82,7 +82,7 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
         }
       }
     }
-  }, [dispatch, downloadPath, transferState, fileType, message])
+  }, [navigateAppend, dispatch, downloadPath, transferState, fileType, message])
 
   const arrowColor = Container.isMobile
     ? ''

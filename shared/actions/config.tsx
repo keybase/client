@@ -6,8 +6,6 @@ import * as Followers from '../constants/followers'
 import * as Constants from '../constants/config'
 import * as Platform from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RouteTreeGen from './route-tree-gen'
-import * as Router2 from '../constants/router2'
 import * as DarkMode from '../constants/darkmode'
 import * as WhatsNew from '../constants/whats-new'
 import * as Z from '../util/zustand'
@@ -175,10 +173,6 @@ const updateServerConfig = () => {
   Z.ignorePromise(f())
 }
 
-const newNavigation = (_: unknown, action: RouteTreeGen.NavigateAppendPayload) => {
-  Router2.dispatchOldAction(action)
-}
-
 const emitStartupOnLoadNotInARush = () => {
   const f = async () => {
     await Container.timeoutPromise(1000)
@@ -231,8 +225,6 @@ const initConfig = () => {
       reduxDispatch({payload: {}, type: 'common:resetStore'} as any)
     }
   })
-
-  Container.listenAction([RouteTreeGen.navigateAppend], newNavigation)
 
   // Give time for all waiters to register and allow the case where there are no waiters
   Constants.useLogoutState.subscribe((s, old) => {

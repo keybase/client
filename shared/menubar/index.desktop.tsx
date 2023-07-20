@@ -1,3 +1,4 @@
+import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
 import * as FsTypes from '../constants/types/fs'
@@ -5,7 +6,6 @@ import * as Kb from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as RemoteGen from '../actions/remote-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import ChatContainer from './chat-container.desktop'
@@ -297,9 +297,10 @@ const LoggedOut = (p: {daemonHandshakeState: ConfigTypes.DaemonHandshakeState; l
     : 'Starting up Keybase...'
 
   const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const logIn = () => {
     dispatch(RemoteGen.createShowMain())
-    dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
+    navigateAppend(Tabs.loginTab)
   }
   return (
     <>

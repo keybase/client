@@ -1,10 +1,9 @@
+import * as RouterConstants from '../../constants/router2'
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Container from '../../util/container'
 import * as Constants from '../../constants/settings'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {isMobile} from '../../constants/platform'
 
 // props exported for stories
@@ -223,7 +222,7 @@ const styles = Styles.styleSheetCreate(
       menuHeader: {
         height: 64,
       },
-    } as const)
+    }) as const
 )
 
 // props exported for stories
@@ -235,10 +234,7 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
   const _emailRow = Constants.useEmailState(s => s.emails.get(ownProps.contactKey) ?? null)
   const _phoneRow = Constants.usePhoneState(s => s.phones?.get(ownProps.contactKey) || null)
   const moreThanOneEmail = Constants.useEmailState(s => s.emails.size > 1)
-
   const editEmail = Constants.useEmailState(s => s.dispatch.editEmail)
-  const dispatch = Container.useDispatch()
-
   const _onMakeNotSearchable = () => {
     editEmail({email: ownProps.contactKey, makeSearchable: false})
   }
@@ -248,25 +244,15 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
 
   const editPhone = Constants.usePhoneState(s => s.dispatch.editPhone)
   const resendVerificationForPhoneNumber = Constants.usePhoneState(s => s.dispatch.resendVerificationForPhone)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
 
   const dispatchProps = {
     email: {
       _onDelete: (address: string, searchable: boolean, lastEmail: boolean) =>
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              {
-                props: {
-                  address,
-                  lastEmail,
-                  searchable,
-                  type: 'email',
-                },
-                selected: 'settingsDeleteAddress',
-              },
-            ],
-          })
-        ),
+        navigateAppend({
+          props: {address, lastEmail, searchable, type: 'email'},
+          selected: 'settingsDeleteAddress',
+        }),
       onMakePrimary: () => {
         editEmail({email: ownProps.contactKey, makePrimary: true})
       },
@@ -276,26 +262,13 @@ const ConnectedEmailPhoneRow = (ownProps: OwnProps) => {
     },
     phone: {
       _onDelete: (address: string, searchable: boolean) =>
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              {
-                props: {
-                  address,
-                  searchable,
-                  type: 'phone',
-                },
-                selected: 'settingsDeleteAddress',
-              },
-            ],
-          })
-        ),
+        navigateAppend({props: {address, searchable, type: 'phone'}, selected: 'settingsDeleteAddress'}),
       _onToggleSearchable: (setSearchable: boolean) => {
         editPhone(ownProps.contactKey, undefined, setSearchable)
       },
       _onVerify: (phoneNumber: string) => {
         resendVerificationForPhoneNumber(phoneNumber)
-        dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
+        navigateAppend('settingsVerifyPhone')
       },
       onMakePrimary: () => {}, // this is not a supported phone action
     },

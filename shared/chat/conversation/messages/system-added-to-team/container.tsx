@@ -1,13 +1,12 @@
+import * as RouterConstants from '../../../../constants/router2'
 import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigConstants from '../../../../constants/config'
 import type * as Types from '../../../../constants/types/chat2'
 import * as TeamConstants from '../../../../constants/teams'
 import SystemAddedToTeam from '.'
-import {teamsTab} from '../../../../constants/tabs'
 
 type OwnProps = {
   message: Types.MessageSystemAddedToTeam
@@ -33,26 +32,21 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
     dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'settings'}))
   }, [dispatch, conversationIDKey])
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onViewBot = React.useCallback(() => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {botUsername: addee, conversationIDKey: conversationIDKey},
-            selected: 'chatInstallBot',
-          },
-        ],
-      })
-    )
-  }, [dispatch, conversationIDKey, addee])
+    navigateAppend({
+      props: {botUsername: addee, conversationIDKey: conversationIDKey},
+      selected: 'chatInstallBot',
+    })
+  }, [navigateAppend, conversationIDKey, addee])
 
   const onViewTeam = React.useCallback(() => {
     if (teamID) {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))
+      navigateAppend({props: {teamID}, selected: 'team'})
     } else {
       dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'settings'}))
     }
-  }, [dispatch, conversationIDKey, teamID])
+  }, [navigateAppend, dispatch, conversationIDKey, teamID])
 
   const props = {
     addee,

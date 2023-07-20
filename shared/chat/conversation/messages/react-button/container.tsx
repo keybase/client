@@ -1,13 +1,13 @@
-import * as React from 'react'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import type {StylesCrossPlatform} from '../../../../styles'
+import * as ConfigConstants from '../../../../constants/config'
+import * as Constants from '../../../../constants/chat2'
+import * as Container from '../../../../util/container'
+import * as React from 'react'
+import * as RouterConstants from '../../../../constants/router2'
 import ReactButton, {NewReactionButton} from '.'
 import shallowEqual from 'shallowequal'
+import type {StylesCrossPlatform} from '../../../../styles'
+import {ConvoIDContext, OrdinalContext} from '../ids-context'
 
 export type OwnProps = {
   className?: string
@@ -46,18 +46,13 @@ const ReactButtonContainer = React.memo(function ReactButtonContainer(p: OwnProp
   const onClick = React.useCallback(() => {
     dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji: emoji || '', ordinal}))
   }, [dispatch, emoji, ordinal, conversationIDKey])
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onOpenEmojiPicker = React.useCallback(() => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
-            selected: 'chatChooseEmoji',
-          },
-        ],
-      })
-    )
-  }, [dispatch, ordinal, conversationIDKey])
+    navigateAppend({
+      props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
+      selected: 'chatChooseEmoji',
+    })
+  }, [navigateAppend, ordinal, conversationIDKey])
 
   return emoji ? (
     <ReactButton

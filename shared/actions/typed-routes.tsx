@@ -1,59 +1,50 @@
+import * as RouterConstants from '../constants/router2'
 // Typed aliases for certain routes so you they are guaranteed to be routed
 // correctly
-
-import * as RouteTreeGen from './route-tree-gen'
 import type * as TeamTypes from '../constants/types/teams'
 
 // TODO i think this should go away. either we dispatch a team building action that's typed that produces these or
 // we actually type the routes / props
-export const appendPeopleBuilder = () =>
-  RouteTreeGen.createNavigateAppend({
-    path: [
-      {
-        props: {
-          filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
-          namespace: 'people',
-          title: '',
-        },
-        selected: 'peopleTeamBuilder',
-      },
-    ],
+export const appendPeopleBuilder = () => {
+  RouterConstants.useState.getState().dispatch.navigateAppend({
+    props: {
+      filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
+      namespace: 'people',
+      title: '',
+    },
+    selected: 'peopleTeamBuilder',
   })
+}
 
-export const appendNewChatBuilder = () =>
-  RouteTreeGen.createNavigateAppend({
-    path: [{props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'}],
-  })
+export const appendNewChatBuilder = () => {
+  RouterConstants.useState
+    .getState()
+    .dispatch.navigateAppend({props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'})
+}
 
 // Unless you're within the add members wizard you probably should use `TeamsGen.startAddMembersWizard` instead
-export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) =>
-  RouteTreeGen.createNavigateAppend({
-    path: [
-      {
-        props: {
-          filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
-          goButtonLabel: 'Add',
-          namespace: 'teams',
-          teamID,
-          title: '',
-        },
-        selected: 'teamsTeamBuilder',
-      },
-    ],
+export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) => {
+  RouterConstants.useState.getState().dispatch.navigateAppend({
+    props: {
+      filterServices: ['keybase', 'twitter', 'facebook', 'github', 'reddit', 'hackernews'],
+      goButtonLabel: 'Add',
+      namespace: 'teams',
+      teamID,
+      title: '',
+    },
+    selected: 'teamsTeamBuilder',
   })
+}
 
-export const appendEncryptRecipientsBuilder = () =>
-  RouteTreeGen.createNavigateAppend({
-    path: [
-      {
-        props: {
-          filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
-          goButtonLabel: 'Add',
-          namespace: 'crypto',
-          recommendedHideYourself: true,
-          title: 'Recipients',
-        },
-        selected: 'cryptoTeamBuilder',
-      },
-    ],
+export const appendEncryptRecipientsBuilder = () => {
+  RouterConstants.useState.getState().dispatch.navigateAppend({
+    props: {
+      filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
+      goButtonLabel: 'Add',
+      namespace: 'crypto',
+      recommendedHideYourself: true,
+      title: 'Recipients',
+    },
+    selected: 'cryptoTeamBuilder',
   })
+}

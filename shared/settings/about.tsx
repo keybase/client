@@ -1,33 +1,17 @@
-import * as Container from '../util/container'
-import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as RouterConstants from '../constants/router2'
 import * as Styles from '../styles'
 import * as Kb from '../common-adapters'
 import {version} from '../constants/platform'
 
 const About = () => {
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onShowPrivacyPolicy = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {title: 'Privacy Policy', url: 'https://keybase.io/_/webview/privacypolicy'},
-            selected: 'webLinks',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {title: 'Privacy Policy', url: 'https://keybase.io/_/webview/privacypolicy'},
+      selected: 'webLinks',
+    })
   const onShowTerms = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {title: 'Terms', url: 'https://keybase.io/_/webview/terms'},
-            selected: 'webLinks',
-          },
-        ],
-      })
-    )
+    navigateAppend({props: {title: 'Terms', url: 'https://keybase.io/_/webview/terms'}, selected: 'webLinks'})
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>

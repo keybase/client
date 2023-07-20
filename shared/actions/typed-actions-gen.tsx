@@ -4,15 +4,8 @@ import type * as chat2 from './chat2-gen'
 import type * as config from './config-gen'
 import type * as enginegen from './engine-gen-gen'
 import type * as remote from './remote-gen'
-import type * as routetree from './route-tree-gen'
 
-export type TypedActions =
-  | bots.Actions
-  | chat2.Actions
-  | config.Actions
-  | enginegen.Actions
-  | remote.Actions
-  | routetree.Actions
+export type TypedActions = bots.Actions | chat2.Actions | config.Actions | enginegen.Actions | remote.Actions
 
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never
 type MapDiscriminatedUnion<T extends Record<K, string>, K extends keyof T> = {

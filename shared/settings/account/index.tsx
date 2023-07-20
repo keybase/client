@@ -3,7 +3,6 @@ import * as RouterConstants from '../../constants/router2'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import EmailPhoneRow from './email-phone-row'
@@ -18,15 +17,15 @@ export default () => {
   const clearAddedPhone = Constants.usePhoneState(s => s.dispatch.clearAddedPhone)
   const hasPassword = Constants.usePasswordState(s => !s.randomPW)
   const waiting = Container.useAnyWaiting(Constants.loadSettingsWaitingKey)
-  const dispatch = Container.useDispatch()
   const _onClearSupersededPhoneNumber = (phone: string) => {
     editPhone(phone, true)
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onAddEmail = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']}))
+    navigateAppend('settingsAddEmail')
   }
   const onAddPhone = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
+    navigateAppend('settingsAddPhone')
   }
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = isMobile
@@ -39,7 +38,7 @@ export default () => {
   const onClearAddedEmail = resetAddedEmail
   const onClearAddedPhone = clearAddedPhone
   const onDeleteAccount = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']}))
+    navigateAppend('deleteConfirm')
   }
   const loadSettings = Constants.useState(s => s.dispatch.loadSettings)
   const loadRememberPassword = Constants.usePasswordState(s => s.dispatch.loadRememberPassword)
@@ -51,16 +50,12 @@ export default () => {
     loadHasRandomPw()
   }
   const onSetPassword = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.passwordTab]}))
+    navigateAppend(Constants.passwordTab)
   }
   const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onStartPhoneConversation = () => {
     switchTab(Tabs.chatTab)
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [Constants.chatTab, {props: {namespace: 'chat2'}, selected: 'chatNewChat'}],
-      })
-    )
+    navigateAppend({props: {namespace: 'chat2'}, selected: 'chatNewChat'})
     clearAddedPhone()
   }
   const supersededPhoneNumber = _phones && [..._phones.values()].find(p => p.superseded)

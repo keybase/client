@@ -1,12 +1,10 @@
 import Profile2, {type BackgroundColorType} from '.'
 import * as RouterConstants from '../../constants/router2'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/tracker2'
 import * as ProfileConstants from '../../constants/profile'
 import * as Followers from '../../constants/followers'
 import * as Styles from '../../styles'
-import * as Container from '../../util/container'
 import type * as Types from '../../constants/types/tracker2'
 import {memoize} from '../../util/memoize'
 
@@ -114,7 +112,6 @@ const Connected = (ownProps: OwnProps) => {
     }
   })()
 
-  const dispatch = Container.useDispatch()
   const editAvatar = ProfileConstants.useState(s => s.dispatch.editAvatar)
   const _onEditAvatar = editAvatar
   // const _onIKnowThem = (username: string, guiID: string) => {
@@ -138,8 +135,9 @@ const Connected = (ownProps: OwnProps) => {
       }
     }
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onAddIdentity = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProofsList']}))
+    navigateAppend('profileProofsList')
   }
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {

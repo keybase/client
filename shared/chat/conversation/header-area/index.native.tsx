@@ -2,10 +2,10 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
 import * as ProfileConstants from '../../../constants/profile'
+import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
 import shallowEqual from 'shallowequal'
 import type * as Types from '../../../constants/types/chat2'
@@ -45,13 +45,11 @@ const ChannelHeader = (p: Props) => {
     const smallTeam = teamType !== 'big'
     return {channelname, smallTeam, teamID, teamname}
   }, shallowEqual)
-
   const textType = smallTeam ? 'BodyBig' : Styles.isMobile ? 'BodyTinySemibold' : 'BodySemibold'
-
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onClick = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
-  }, [dispatch, teamID])
+    navigateAppend({props: {teamID}, selected: 'team'})
+  }, [navigateAppend, teamID])
 
   return (
     <Kb.Box2 direction="vertical">
@@ -178,7 +176,7 @@ const styles = Styles.styleSheetCreate(
       },
       shhIcon: {marginLeft: Styles.globalMargins.xtiny},
       usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
-    } as const)
+    }) as const
 )
 
 export {ChannelHeader, PhoneOrEmailHeader, UsernameHeader}

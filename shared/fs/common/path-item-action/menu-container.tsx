@@ -1,3 +1,4 @@
+import * as RouterConstants from '../../../constants/router2'
 import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
 import * as Constants from '../../../constants/fs'
@@ -9,7 +10,6 @@ import {memoize} from '../../../util/memoize'
 import Menu from './menu'
 import type {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Util from '../../../util/kbfs'
 
 type OwnProps = {
@@ -82,12 +82,9 @@ export default (ownProps: OwnProps) => {
   const _confirmSendToOtherApp = React.useCallback(() => {
     setPathItemActionMenuView(Types.PathItemActionMenuView.ConfirmSendToOtherApp)
   }, [setPathItemActionMenuView])
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _delete = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {mode, path}, selected: 'confirmDelete'}],
-      })
-    )
+    navigateAppend({props: {mode, path}, selected: 'confirmDelete'})
   }
   const favoriteIgnore = Constants.useState(s => s.dispatch.favoriteIgnore)
   const _ignoreTlf = React.useCallback(() => {
@@ -119,12 +116,7 @@ export default (ownProps: OwnProps) => {
     download(path, 'saveMedia')
   }, [download, path])
   const _sendAttachmentToChat = () => {
-    path &&
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {sendPaths: [path]}, selected: 'sendToChat'}],
-        })
-      )
+    path && navigateAppend({props: {sendPaths: [path]}, selected: 'sendToChat'})
   }
   const _sendToOtherApp = React.useCallback(() => {
     download(path, 'share')

@@ -4,7 +4,6 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as RouterConstants from '../../../constants/router2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as BotsGen from '../../../actions/bots-gen'
 import {Avatars, TeamAvatar} from '../../avatars'
@@ -46,18 +45,13 @@ const BotTeamPicker = (props: Props) => {
   const onClose = () => {
     clearModals()
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onSelect = (convID: RPCChatTypes.ConversationID) => {
     const conversationIDKey = Types.conversationIDToKey(convID)
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {botUsername, conversationIDKey},
-            selected: 'chatInstallBot',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {botUsername, conversationIDKey},
+      selected: 'chatInstallBot',
+    })
   }
 
   Container.useOnMountOnce(() => {

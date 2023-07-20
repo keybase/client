@@ -4,7 +4,6 @@ import * as UsersConstants from '../../constants/users'
 import * as ProfileConstants from '../../constants/profile'
 import * as ProvisionConstants from '../../constants/provision'
 import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import AccountSwitcher from './index'
@@ -20,10 +19,7 @@ export default () => {
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const fullname = TrackerConstants.useState(s => TrackerConstants.getDetails(s, you).fullname || '')
   const waiting = Container.useAnyWaiting(ConfigConstants.loginWaitingKey)
-
-  const dispatch = Container.useDispatch()
   const _onProfileClick = ProfileConstants.useState(s => s.dispatch.showUserProfile)
-
   const onAddAccount = ProvisionConstants.useState(s => s.dispatch.startProvision)
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = () => {
@@ -37,8 +33,9 @@ export default () => {
     login(username, '')
   }
   const onSelectAccountLoggedOut = ConfigConstants.useConfigState(s => s.dispatch.logoutAndTryToLogInAs)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onSignOut = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]}))
+    navigateAppend(SettingsConstants.logOutTab)
   }
   const accountRows = prepareAccountRows(_accountRows, you)
   const props = {

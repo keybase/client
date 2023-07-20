@@ -1,7 +1,5 @@
 import * as Constants from '../../constants/fs'
 import * as RouterConstants from '../../constants/router2'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Files, {defaultNotificationThreshold, allowedNotificationThresholds} from '.'
 import type {PickerItem} from '../../common-adapters/floating-picker'
 import {isMobile} from '../../constants/platform'
@@ -14,12 +12,9 @@ const SettingsFiles = () => {
   const setSpaceAvailableNotificationThreshold = Constants.useState(
     s => s.dispatch.setSpaceAvailableNotificationThreshold
   )
-
   const spaceAvailableNotificationThreshold = Constants.useState(
     s => s.settings.spaceAvailableNotificationThreshold
   )
-
-  const dispatch = Container.useDispatch()
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = isMobile
     ? () => {
@@ -34,8 +29,9 @@ const SettingsFiles = () => {
     driverEnable()
   }
   const onSetSyncNotificationThreshold = setSpaceAvailableNotificationThreshold
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onShowKextPermissionPopup = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['kextPermission']}))
+    navigateAppend('kextPermission')
   }
   const props = {
     allowedThresholds: allowedNotificationThresholds.map(

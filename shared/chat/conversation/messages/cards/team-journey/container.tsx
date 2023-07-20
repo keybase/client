@@ -1,10 +1,10 @@
+import * as RouterConstants from '../../../../../constants/router2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Container from '../../../../../util/container'
 import * as Kb from '../../../../../common-adapters'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as TeamConstants from '../../../../../constants/teams'
 import type * as ChatTypes from '../../../../../constants/types/chat2'
 import type * as MessageTypes from '../../../../../constants/types/chat2/message'
@@ -12,7 +12,6 @@ import type * as TeamTypes from '../../../../../constants/types/teams'
 import {TeamJourney, type Action} from '.'
 import {makeMessageJourneycard} from '../../../../../constants/chat2/message'
 import {renderWelcomeMessage} from './util'
-import {teamsTab} from '../../../../../constants/tabs'
 import {useAllChannelMetas} from '../../../../../teams/common/channel-hooks'
 
 type OwnProps = {
@@ -148,10 +147,10 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
 
   const startAddMembersWizard = TeamConstants.useState(s => s.dispatch.startAddMembersWizard)
   const _onAddPeopleToTeam = (teamID: TeamTypes.TeamID) => startAddMembersWizard(teamID)
-  const _onAuthorClick = (teamID: TeamTypes.TeamID) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const _onAuthorClick = (teamID: TeamTypes.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
   const _onCreateChannel = (teamID: string) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
+    navigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
   const _onDismiss = (
     conversationIDKey: ChatTypes.ConversationIDKey,
     cardType: RPCChatTypes.JourneycardType,
@@ -164,11 +163,10 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
 
   const setMemberPublicity = TeamConstants.useState(s => s.dispatch.setMemberPublicity)
   const _onPublishTeam = (teamID: string) => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']}))
+    navigateAppend('profileShowcaseTeamOffer')
     setMemberPublicity(teamID, true)
   }
-  const _onShowTeam = (teamID: TeamTypes.TeamID) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))
+  const _onShowTeam = (teamID: TeamTypes.TeamID) => navigateAppend({props: {teamID}, selected: 'team'})
   const props = {
     canShowcase,
     cannotWrite,

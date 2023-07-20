@@ -1,3 +1,4 @@
+import * as RouterConstants from '../constants/router2'
 import * as Constants from '../constants/git'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
@@ -5,7 +6,6 @@ import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as TeamConstants from '../constants/teams'
 import * as TrackerConstants from '../constants/tracker2'
@@ -39,18 +39,13 @@ const ConnectedRow = (ownProps: OwnProps) => {
     dispatch(FsConstants.makeActionForOpenPathInFilesTab(path))
   }
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _onOpenChannelSelection = () => {
     teamID &&
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {repoID: git.repoID, selected: git.channelName || 'general', teamID},
-              selected: 'gitSelectChannel',
-            },
-          ],
-        })
-      )
+      navigateAppend({
+        props: {repoID: git.repoID, selected: git.channelName || 'general', teamID},
+        selected: 'gitSelectChannel',
+      })
   }
   const _setDisableChat = (disabled: boolean, repoID: string, teamname: string) => {
     setTeamRepoSettings('', teamname, repoID, disabled)

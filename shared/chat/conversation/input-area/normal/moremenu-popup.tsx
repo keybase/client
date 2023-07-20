@@ -1,5 +1,5 @@
 import * as Kb from '../../../../common-adapters'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../../constants/router2'
 import * as Container from '../../../../util/container'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import type * as Types from '../../../../constants/types/chat2'
@@ -17,12 +17,9 @@ const MoreMenuPopup = (props: Props) => {
   const onSlashPrefill = (text: string) => {
     dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString(text)}))
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onLocationShare = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey}, selected: 'chatLocationPreview'}],
-      })
-    )
+    navigateAppend({props: {conversationIDKey}, selected: 'chatLocationPreview'})
   }
   // merge
   const onCoinFlip = () => onSlashPrefill('/flip ')

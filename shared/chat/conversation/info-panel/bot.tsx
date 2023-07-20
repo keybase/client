@@ -5,7 +5,7 @@ import * as UsersConstants from '../../../constants/users'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../constants/router2'
 import * as Styles from '../../../styles'
 import * as TeamConstants from '../../../constants/teams'
 import type * as RPCTypes from '../../../constants/types/rpc-gen'
@@ -179,7 +179,7 @@ const styles = Styles.styleSheetCreate(
           ...Styles.desktopStyles.clickable,
         },
       }),
-    } as const)
+    }) as const
 )
 
 type Props = {
@@ -261,24 +261,15 @@ const BotTab = (props: Props) => {
 
   const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onBotAdd = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey}, selected: 'chatSearchBots'}],
-      })
-    )
+    navigateAppend({props: {conversationIDKey}, selected: 'chatSearchBots'})
   }
   const onBotSelect = (username: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {botUsername: username, conversationIDKey},
-            selected: 'chatInstallBot',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {botUsername: username, conversationIDKey},
+      selected: 'chatInstallBot',
+    })
   }
   const onLoadMoreBots = () => dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100}))
   const loadingBots = !featuredBotsMap.size

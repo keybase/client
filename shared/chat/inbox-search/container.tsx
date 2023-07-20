@@ -1,10 +1,10 @@
+import * as RouterConstants from '../../constants/router2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Constants from '../../constants/chat2'
 import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import HiddenString from '../../util/hidden-string'
 import InboxSearch from '.'
-import type * as React from 'react'
+import * as React from 'react'
 import type * as Types from '../../constants/types/chat2'
 
 type OwnProps = {
@@ -19,12 +19,9 @@ export default (ownProps: OwnProps) => {
   const onCancel = () => {
     dispatch(Chat2Gen.createToggleInboxSearch({enabled: false}))
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onInstallBot = (username: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {botUsername: username}, selected: 'chatInstallBotPick'}],
-      })
-    )
+    navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
   }
   const onSelectConversation = (
     conversationIDKey: Types.ConversationIDKey,

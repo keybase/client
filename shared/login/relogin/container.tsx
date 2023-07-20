@@ -1,10 +1,10 @@
+import * as RouterConstants from '../../constants/router2'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/provision'
 import * as SignupConstants from '../../constants/signup'
 import * as Container from '../../util/container'
 import * as React from 'react'
 import * as RecoverConstants from '../../constants/recover-password'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Login from '.'
 import sortBy from 'lodash/sortBy'
 import type * as ConfigTypes from '../../constants/types/config'
@@ -99,13 +99,13 @@ export default () => {
   const _users = ConfigConstants.useConfigState(s => s.configuredAccounts)
   const error = ConfigConstants.useConfigState(s => s.loginError)
   const selectedUser = ConfigConstants.useConfigState(s => s.defaultUsername)
-  const dispatch = Container.useDispatch()
   const startRecoverPassword = RecoverConstants.useState(s => s.dispatch.startRecoverPassword)
   const onForgotPassword = (username: string) => {
     startRecoverPassword({username})
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onFeedback = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
+    navigateAppend({props: {}, selected: 'feedback'})
   }
   const onLogin = ConfigConstants.useConfigState(s => s.dispatch.login)
   const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)

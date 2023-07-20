@@ -3,7 +3,6 @@ import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import Row, {NewContext} from './row'
 import sortBy from 'lodash/sortBy'
@@ -38,21 +37,17 @@ export default (ownProps: OwnProps) => {
     const {clearBadges, load, setError} = dispatch
     return {clearBadges, error, idToInfo, isNew, load, setError}
   }, shallowEqual)
-
   const {badged} = useLocalBadging(isNew, clearBadges)
-
   const {personals, teams} = getRepos(idToInfo)
-
-  const dispatch = Container.useDispatch()
-
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = navigateUp
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onShowDelete = React.useCallback(
     (id: string) => {
       setError(undefined)
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {id}, selected: 'gitDeleteRepo'}]}))
+      navigateAppend({props: {id}, selected: 'gitDeleteRepo'})
     },
-    [dispatch, setError]
+    [navigateAppend, setError]
   )
 
   useFocusEffect(
@@ -78,13 +73,11 @@ export default (ownProps: OwnProps) => {
     (p: Kb.Popup2Parms) => {
       const onNewPersonalRepo = () => {
         setError(undefined)
-        dispatch(
-          RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]})
-        )
+        navigateAppend({props: {isTeam: false}, selected: 'gitNewRepo'})
       }
       const onNewTeamRepo = () => {
         setError(undefined)
-        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
+        navigateAppend({props: {isTeam: true}, selected: 'gitNewRepo'})
       }
       const {attachTo, toggleShowingPopup} = p
       const menuItems = [
@@ -103,7 +96,7 @@ export default (ownProps: OwnProps) => {
         />
       )
     },
-    [dispatch, setError]
+    [navigateAppend, setError]
   )
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 

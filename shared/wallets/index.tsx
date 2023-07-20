@@ -1,6 +1,6 @@
+import * as RouterConstants from '../constants/router2'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
@@ -14,10 +14,10 @@ const Row = (p: {account: Constants.Account}) => {
   const [sk, setSK] = React.useState('')
   const [err, setErr] = React.useState('')
   const getSecretKey = Container.useRPC(RPCStellarTypes.localGetWalletAccountSecretKeyLocalRpcPromise)
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onRemove = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {accountID}, selected: 'removeAccount'}]}))
-  }, [dispatch, accountID])
+    navigateAppend({props: {accountID}, selected: 'removeAccount'})
+  }, [navigateAppend, accountID])
   const onCopied = React.useCallback(() => {
     setSK('')
     setErr('')
