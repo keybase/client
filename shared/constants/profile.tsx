@@ -1,8 +1,8 @@
 import * as ConfigConstants from './config'
-import * as LinksConstants from '../constants/deeplinks'
-import * as RouterConstants from '../constants/router2'
+import * as LinksConstants from './deeplinks'
+import * as RouterConstants from './router2'
 import * as More from './types/more'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as TrackerConstants from './tracker2'
 import * as Validators from '../util/simple-validators'
@@ -794,7 +794,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           await RPCTypes.userUploadUserAvatarRpcPromise({crop, filename}, uploadAvatarWaitingKey)
-          reduxDispatch(RouteTreeGen.createNavigateUp())
+          RouterConstants.useState.getState().dispatch.navigateUp()
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return

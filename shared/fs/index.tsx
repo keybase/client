@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -66,8 +67,9 @@ const Connected = (ownProps?: OwnProps) => {
   const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
 
   const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const emitBarePreview = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {path}, selected: 'barePreview'}],

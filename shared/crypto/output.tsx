@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as RouterConstants from '../constants/router2'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/crypto'
 import * as FSConstants from '../constants/fs'
@@ -7,7 +8,6 @@ import * as Kb from '../common-adapters'
 import * as Path from '../util/path'
 import * as Platforms from '../constants/platform'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import capitalize from 'lodash/capitalize'
 import shallowEqual from 'shallowequal'
@@ -205,8 +205,9 @@ export const OutputActionsBar = (props: OutputActionsBarProps) => {
     openLocalPathInSystemFileManagerDesktop?.(output.stringValue())
   }
 
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onReplyInChat = (username: Container.HiddenString) => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
     dispatch(Chat2Gen.createPreviewConversation({participants: [username.stringValue()], reason: 'search'}))
   }
 

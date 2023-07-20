@@ -1,4 +1,5 @@
 import * as Constants from '../constants/devices'
+import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -17,7 +18,7 @@ const sortDevices = (a: Types.Device, b: Types.Device) => {
   return a.name.localeCompare(b.name)
 }
 
-const deviceToItem = (d: Types.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'} as const)
+const deviceToItem = (d: Types.Device) => ({id: d.deviceID, key: d.deviceID, type: 'device'}) as const
 const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
   partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
 
@@ -42,8 +43,9 @@ const ReloadableDevices = () => {
     // We don't have navigateAppend in upgraded routes
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {highlight}, selected: 'deviceAdd'}]}))
   }
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   const {showPaperKeyNudge, hasNewlyRevoked, revokedItems, items} = React.useMemo(() => {
@@ -184,7 +186,7 @@ const styles = Styles.styleSheetCreate(
         padding: Styles.globalMargins.medium,
         width: '100%',
       },
-    } as const)
+    }) as const
 )
 
 const DeviceHeader = ({onAddNew}: any) => (
@@ -260,6 +262,6 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate(
         },
       }),
       flexOne: {flex: 1},
-    } as const)
+    }) as const
 )
 export default ReloadableDevices

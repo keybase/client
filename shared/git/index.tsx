@@ -1,4 +1,5 @@
 import * as Constants from '../constants/git'
+import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
@@ -44,9 +45,10 @@ export default (ownProps: OwnProps) => {
 
   const dispatch = Container.useDispatch()
 
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateUp())
-  }, [dispatch])
+    navigateUp()
+  }, [navigateUp])
   const onShowDelete = React.useCallback(
     (id: string) => {
       setError(undefined)
@@ -166,5 +168,5 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         height: 48,
       },
-    } as const)
+    }) as const
 )

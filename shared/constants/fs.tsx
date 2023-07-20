@@ -3,6 +3,7 @@ import * as NotifConstants from './notifications'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from './settings'
+import * as RouterConstants from './router2'
 import * as Tabs from './tabs'
 import * as Types from './types/fs'
 import * as Z from '../util/zustand'
@@ -1932,7 +1933,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             const users = error.fields?.filter((elem: any) => elem.key === 'usernames')
             const usernames = users?.map((elem: any) => elem.value)
             // Don't leave the user on a broken FS dir screen.
-            reduxDispatch(RouteTreeGen.createNavigateUp())
+            RouterConstants.useState.getState().dispatch.navigateUp()
             reduxDispatch(
               RouteTreeGen.createNavigateAppend({
                 path: [{props: {source: 'newFolder', usernames}, selected: 'contactRestricted'}],

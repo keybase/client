@@ -1,10 +1,8 @@
 import * as Constants from '../constants/git'
 import * as RouterConstants from '../constants/router2'
 import * as TeamsConstants from '../constants/teams'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import {teamsTab} from '../constants/tabs'
 
@@ -18,11 +16,11 @@ export default (ownProps: OwnProps) => {
 
   const waitingKey = Constants.loadingWaitingKey
 
-  const dispatch = Container.useDispatch()
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const getTeams = TeamsConstants.useState(s => s.dispatch.getTeams)
   const loadTeams = getTeams
   const onClose = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
 
   const createPersonalRepo = Constants.useGitState(s => s.dispatch.createPersonalRepo)
@@ -33,7 +31,7 @@ export default (ownProps: OwnProps) => {
     } else {
       createPersonalRepo(name)
     }
-    dispatch(RouteTreeGen.createNavigateUp())
+    navigateUp()
   }
   const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)

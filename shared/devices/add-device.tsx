@@ -1,4 +1,5 @@
 import * as Container from '../util/container'
+import * as RouterConstants from '../constants/router2'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/devices'
@@ -35,10 +36,11 @@ export default function AddDevice(ownProps: OwnProps) {
     addNewDevice('mobile')
   }, [addNewDevice])
   const cancel = ProvisionConstants.useState(s => s.dispatch.dynamic.cancel)
+  const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onCancel = React.useCallback(() => {
     cancel?.()
-    dispatch(RouteTreeGen.createNavigateUp())
-  }, [cancel, dispatch])
+    navigateUp()
+  }, [cancel, navigateUp])
   return (
     <Kb.PopupWrapper onCancel={onCancel}>
       <Kb.ScrollView alwaysBounceVertical={false}>
