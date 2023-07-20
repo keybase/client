@@ -10,9 +10,7 @@ export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateUp = 'route-tree:navigateUp'
 export const navigateUpNoop = 'route-tree:navigateUpNoop'
 export const onNavChanged = 'route-tree:onNavChanged'
-export const setParams = 'route-tree:setParams'
 export const switchTab = 'route-tree:switchTab'
-export const tabLongPress = 'route-tree:tabLongPress'
 
 // Action Creators
 /**
@@ -28,20 +26,6 @@ export const createNavigateUpNoop = (payload?: undefined) => ({
 export const createSwitchTab = (payload: {readonly tab: Tabs.AppTab; readonly params?: Object}) => ({
   payload,
   type: switchTab as typeof switchTab,
-})
-/**
- * a tab was pressed
- */
-export const createTabLongPress = (payload: {readonly tab: string}) => ({
-  payload,
-  type: tabLongPress as typeof tabLongPress,
-})
-/**
- * deprecated soon
- */
-export const createSetParams = (payload: {readonly params: Object; readonly key: string}) => ({
-  payload,
-  type: setParams as typeof setParams,
 })
 export const createNavigateAppend = (payload: {
   readonly fromKey?: string
@@ -63,9 +47,7 @@ export type NavigateAppendPayload = ReturnType<typeof createNavigateAppend>
 export type NavigateUpNoopPayload = ReturnType<typeof createNavigateUpNoop>
 export type NavigateUpPayload = ReturnType<typeof createNavigateUp>
 export type OnNavChangedPayload = ReturnType<typeof createOnNavChanged>
-export type SetParamsPayload = ReturnType<typeof createSetParams>
 export type SwitchTabPayload = ReturnType<typeof createSwitchTab>
-export type TabLongPressPayload = ReturnType<typeof createTabLongPress>
 
 // All Actions
 // prettier-ignore
@@ -74,7 +56,5 @@ export type Actions =
   | NavigateUpNoopPayload
   | NavigateUpPayload
   | OnNavChangedPayload
-  | SetParamsPayload
   | SwitchTabPayload
-  | TabLongPressPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

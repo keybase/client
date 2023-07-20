@@ -86,9 +86,6 @@ export const getVisibleScreen = (navState?: NavState) => {
 // actual routing actions (or make RouteTreeGen append/up the only action)
 const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAppendDupe?: boolean) => {
   switch (action.type) {
-    case RouteTreeGen.setParams: {
-      return [{...CommonActions.setParams(action.payload.params), source: action.payload.key}]
-    }
     case RouteTreeGen.navigateAppend: {
       if (!navigationState) {
         return
@@ -198,7 +195,6 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
 }
 
 type RTGActions =
-  | RouteTreeGen.SetParamsPayload
   | RouteTreeGen.NavigateAppendPayload
   | RouteTreeGen.NavigateUpPayload
   | RouteTreeGen.SwitchTabPayload
@@ -322,6 +318,9 @@ const initialStore: Store = {}
 type State = Store & {
   dispatch: {
     clearModals: () => void
+    dynamic: {
+      tabLongPress?: (tab: string) => void
+    }
     navUpToScreen: (name: string) => void
     popStack: () => void
     resetState: 'default'
@@ -337,6 +336,9 @@ export const useState = Z.createZustand<State>(() => {
       if (_isLoggedIn(ns) && (ns?.routes?.length ?? 0) > 1) {
         n.dispatch({...StackActions.popToTop(), target: ns?.key})
       }
+    },
+    dynamic: {
+      tabLongPress: undefined,
     },
     navUpToScreen: name => {
       const n = _getNavigator()
