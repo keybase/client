@@ -11,7 +11,7 @@ const KnowPassword = () => {
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [nav, dispatch])
+  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
   const onYes = React.useCallback(
     () => dispatch(nav.safeNavigateAppendPayload({path: ['resetEnterPassword']})),
     [dispatch, nav]

@@ -11,12 +11,11 @@ type PunycodeLinkWarningProps = {
 
 const PunycodeLinkWarning = (props: PunycodeLinkWarningProps) => {
   const {url, display, punycode} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onCancel = () => dispatch(nav.safeNavigateUpPayload())
+  const onCancel = () => nav.safeNavigateUp()
   const onConfirm = () => {
     openURL(url)
-    dispatch(nav.safeNavigateUpPayload())
+    nav.safeNavigateUp()
   }
   const description = `The link you clicked on appears to be ${display}, but actually points to ${punycode}.`
   return (

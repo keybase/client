@@ -30,7 +30,7 @@ const EditChannel = (props: Props) => {
 
   const [description, setDescription] = React.useState(oldDescription)
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 
@@ -52,7 +52,7 @@ const EditChannel = (props: Props) => {
   const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
-      dispatch(nav.safeNavigateUpPayload())
+      nav.safeNavigateUp()
       loadTeamChannelList(teamID)
       triggerEditUpdated()
     }

@@ -15,10 +15,8 @@ const AvatarUploadWrapper = (props: Props) => {
   const {image, error, ...rest} = props
   const [selectedImage, setSelectedImage] = React.useState(image)
   const [imageError, setImageError] = React.useState('')
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const navUp = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const navUp = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
   const onChooseNewAvatar = React.useCallback(async () => {
     try {
@@ -292,7 +290,7 @@ const styles = Styles.styleSheetCreate(
         },
         isTablet: {alignSelf: 'center'},
       }),
-    } as const)
+    }) as const
 )
 
 export default AvatarUploadWrapper

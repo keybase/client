@@ -32,7 +32,7 @@ const JoinFromInvite = () => {
   const [clickedJoin, setClickedJoin] = React.useState(false)
   const nav = Container.useSafeNavigation()
 
-  const onNavUp = () => dispatch(nav.safeNavigateUpPayload())
+  const onNavUp = () => nav.safeNavigateUp()
   const respondToInviteLink = Constants.useState(s => s.dispatch.dynamic.respondToInviteLink)
   const onJoinTeam = () => {
     setClickedJoin(true)
@@ -210,7 +210,7 @@ const styles = Styles.styleSheetCreate(
       mobileOverlay: {
         height: 392,
       },
-    } as const)
+    }) as const
 )
 
 export default JoinFromInvite

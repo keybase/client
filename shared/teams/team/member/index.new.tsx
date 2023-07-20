@@ -122,14 +122,13 @@ const useMemberships = (targetTeamID: Types.TeamID, username: string) => {
 }
 
 const useNavUpIfRemovedFromTeam = (teamID: Types.TeamID, username: string) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const waitingKey = Constants.removeMemberWaitingKey(teamID, username)
   const waiting = Container.useAnyWaiting(waitingKey)
   const wasWaiting = Container.usePrevious(waiting)
   React.useEffect(() => {
     if (wasWaiting && !waiting) {
-      dispatch(nav.safeNavigateUpPayload())
+      nav.safeNavigateUp()
     }
   })
   return wasWaiting && !waiting
@@ -420,7 +419,7 @@ const NodeInRow = (props: NodeInRowProps) => {
   const onKickOut = () => {
     removeMember(props.node.teamID, props.username)
     if (props.isParentTeamMe) {
-      dispatch(nav.safeNavigateUpPayload())
+      nav.safeNavigateUp()
     }
   }
 
@@ -444,7 +443,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     editMembership(props.node.teamID, [props.username], role)
     setOpen(false)
     if (['reader, writer'].includes(role) && props.isParentTeamMe) {
-      dispatch(nav.safeNavigateUpPayload())
+      nav.safeNavigateUp()
     }
   }
   const disabledRoles = Constants.useState(s =>

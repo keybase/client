@@ -36,9 +36,8 @@ const Item = ({item}: {item: RPCTypes.ProcessedContact}) => {
 
 const ContactsJoinedModal = () => {
   const people = Constants.useContactsState(s => s.alreadyOnKeybase)
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => nav.safeNavigateUp()
   return (
     <Kb.Modal
       header={{
@@ -80,7 +79,7 @@ const styles = Styles.styleSheetCreate(
         marginRight: Styles.globalMargins.medium,
         marginTop: Styles.globalMargins.small,
       },
-    } as const)
+    }) as const
 )
 
 export default ContactsJoinedModal

@@ -17,21 +17,14 @@ const SelectChannel = (ownProps: OwnProps) => {
   const {teamID, repoID} = ownProps
   const _selected = ownProps.selected
   const teamname = TConstants.useState(s => TConstants.getTeamNameFromID(s, teamID) ?? '')
-
   const {channelMetas} = useAllChannelMetas(teamID)
   const waiting = channelMetas === null
   const channelNames = channelMetas ? [...channelMetas.values()].map(info => info.channelname) : []
-
   const [selected, setSelected] = React.useState(_selected)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const setTeamRepoSettings = Constants.useGitState(s => s.dispatch.setTeamRepoSettings)
-
   const onSubmit = (channelName: string) => setTeamRepoSettings(channelName, teamname, repoID, false)
-
-  const onCancel = () => dispatch(nav.safeNavigateUpPayload())
+  const onCancel = () => nav.safeNavigateUp()
 
   const submit = () => {
     onSubmit(selected)

@@ -15,14 +15,10 @@ const waitingKey = 'emailLookup'
 const AddEmail = (props: Props) => {
   const [invitees, setInvitees] = React.useState('')
   const [error, setError] = React.useState('')
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
-
+  const onBack = () => nav.safeNavigateUp()
   const disabled = invitees.length < 1
   const waiting = Container.useAnyWaiting(waitingKey)
-
   const teamID = Constants.useState(s => s.addMembersWizard.teamID)
   const addMembersWizardPushMembers = Constants.useState(s => s.dispatch.addMembersWizardPushMembers)
 

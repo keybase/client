@@ -33,7 +33,7 @@ const InviteHistory = (props: Props) => {
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const onClose = () => nav.safeNavigateUp()
   const onGenerate = () =>
     dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksGenerate'}]}))
 

@@ -69,17 +69,14 @@ const GenerateLinkModal = (props: Props) => {
   const [isRolePickerOpen, setRolePickerOpen] = React.useState(false)
   const [teamRole, setTeamRole] = React.useState<Types.TeamRoleType>('reader')
   const [inviteLinkURL, setInviteLinkURL] = React.useState('')
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const teamname = Constants.useState(s => Constants.getTeamMeta(s, teamID).teamname)
   useTeamDetailsSubscribe(teamID)
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
   const inviteLinks = teamDetails?.inviteLinks
   const inviteLink = [...(inviteLinks || [])].find(i => i.url == inviteLinkURL)
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 

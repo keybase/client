@@ -24,9 +24,8 @@ const ConfirmRemoveFromChannel = (props: Props) => {
   const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
+  const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
 
   const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
   const channelSetMemberSelected = Constants.useState(s => s.dispatch.channelSetMemberSelected)
@@ -40,7 +39,7 @@ const ConfirmRemoveFromChannel = (props: Props) => {
       _ => {
         setWaiting(false)
         channelSetMemberSelected(conversationIDKey, '', false, true)
-        dispatch(nav.safeNavigateUpPayload())
+        nav.safeNavigateUp()
         loadTeamChannelList(teamID)
       },
       err => {

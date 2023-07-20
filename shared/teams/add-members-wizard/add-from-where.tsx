@@ -35,7 +35,7 @@ const AddFromWhere = () => {
   const createTeamError = Constants.useState(s => (newTeam ? s.newTeamWizard.error : undefined))
 
   const onClose = () => cancelAddMembersWizard()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
   const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
   const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
   const onContinueContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))

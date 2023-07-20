@@ -10,9 +10,7 @@ import {ModalTitle} from '../../common'
 const cleanSubteamName = (name: string) => name.replace(/[^0-9a-zA-Z_]/, '')
 
 const CreateSubteams = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const teamID = Types.newTeamWizardTeamID
   const teamname = Constants.useState(s => s.newTeamWizard.name)
   const initialSubteams = Constants.useState(s => s.newTeamWizard.subteams) ?? ['', '', '']
@@ -32,7 +30,7 @@ const CreateSubteams = () => {
   }
   const setTeamWizardSubteams = Constants.useState(s => s.dispatch.setTeamWizardSubteams)
   const onContinue = () => setTeamWizardSubteams(subteams.filter(s => !!s))
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
 
   const numSubteams = subteams.filter(c => !!c.trim()).length
   const continueLabel = numSubteams

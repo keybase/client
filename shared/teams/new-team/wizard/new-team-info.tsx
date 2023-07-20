@@ -29,9 +29,7 @@ const getTeamTakenMessage = (status: number): string => {
 const cannotJoinAsOwner = {admin: `Users can't join open teams as admins`}
 
 const NewTeamInfo = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const teamWizardState = Constants.useState(s => s.newTeamWizard)
   const parentName = Constants.useState(s =>
     teamWizardState.parentTeamID ? Constants.getTeamNameFromID(s, teamWizardState.parentTeamID) : undefined
@@ -91,7 +89,7 @@ const NewTeamInfo = () => {
 
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => clearModals()
 

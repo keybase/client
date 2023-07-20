@@ -9,9 +9,8 @@ import {ModalTitle} from '../common'
 import ContactsList, {useContacts, EnableContactsPopup, type Contact} from '../common/contacts-list.native'
 
 const AddContacts = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => nav.safeNavigateUp()
   const teamID = Constants.useState(s => s.addMembersWizard.teamID)
   const [search, setSearch] = React.useState('')
   const [selectedPhones, setSelectedPhones] = React.useState(new Set<string>())
