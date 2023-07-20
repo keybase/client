@@ -146,10 +146,6 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
         },
       ]
     }
-    case RouteTreeGen.switchLoggedIn: {
-      // no longer used
-      return []
-    }
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
     case RouteTreeGen.popStack: {
@@ -208,7 +204,6 @@ type RTGActions =
   | RouteTreeGen.SetParamsPayload
   | RouteTreeGen.NavigateAppendPayload
   | RouteTreeGen.NavigateUpPayload
-  | RouteTreeGen.SwitchLoggedInPayload
   | RouteTreeGen.SwitchTabPayload
   | RouteTreeGen.PopStackPayload
 

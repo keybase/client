@@ -12,7 +12,6 @@ export const navigateUpNoop = 'route-tree:navigateUpNoop'
 export const onNavChanged = 'route-tree:onNavChanged'
 export const popStack = 'route-tree:popStack'
 export const setParams = 'route-tree:setParams'
-export const switchLoggedIn = 'route-tree:switchLoggedIn'
 export const switchTab = 'route-tree:switchTab'
 export const tabLongPress = 'route-tree:tabLongPress'
 
@@ -23,13 +22,6 @@ export const tabLongPress = 'route-tree:tabLongPress'
 export const createNavigateUpNoop = (payload?: undefined) => ({
   payload,
   type: navigateUpNoop as typeof navigateUpNoop,
-})
-/**
- * ONLY used by the new nav. Switch login stacks
- */
-export const createSwitchLoggedIn = (payload: {readonly loggedIn: boolean}) => ({
-  payload,
-  type: switchLoggedIn as typeof switchLoggedIn,
 })
 /**
  * ONLY used by the new nav. Switch to a different tab.
@@ -78,7 +70,6 @@ export type NavigateUpPayload = ReturnType<typeof createNavigateUp>
 export type OnNavChangedPayload = ReturnType<typeof createOnNavChanged>
 export type PopStackPayload = ReturnType<typeof createPopStack>
 export type SetParamsPayload = ReturnType<typeof createSetParams>
-export type SwitchLoggedInPayload = ReturnType<typeof createSwitchLoggedIn>
 export type SwitchTabPayload = ReturnType<typeof createSwitchTab>
 export type TabLongPressPayload = ReturnType<typeof createTabLongPress>
 
@@ -91,7 +82,6 @@ export type Actions =
   | OnNavChangedPayload
   | PopStackPayload
   | SetParamsPayload
-  | SwitchLoggedInPayload
   | SwitchTabPayload
   | TabLongPressPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

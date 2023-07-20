@@ -15,10 +15,6 @@
     "navigateUpNoop": {
       "_description": "Nav up but no longer focused, for logging only"
     },
-    "switchLoggedIn": {
-      "_description": "ONLY used by the new nav. Switch login stacks",
-      "loggedIn": "boolean"
-    },
     "switchTab": {
       "_description": "ONLY used by the new nav. Switch to a different tab.",
       "tab": "Tabs.AppTab",

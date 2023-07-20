@@ -181,7 +181,6 @@ const newNavigation = (
     | RouteTreeGen.SetParamsPayload
     | RouteTreeGen.NavigateAppendPayload
     | RouteTreeGen.NavigateUpPayload
-    | RouteTreeGen.SwitchLoggedInPayload
     | RouteTreeGen.SwitchTabPayload
     | RouteTreeGen.PopStackPayload
 ) => {
@@ -246,7 +245,6 @@ const initConfig = () => {
       RouteTreeGen.setParams,
       RouteTreeGen.navigateAppend,
       RouteTreeGen.navigateUp,
-      RouteTreeGen.switchLoggedIn,
       RouteTreeGen.switchTab,
       RouteTreeGen.popStack,
     ],

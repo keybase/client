@@ -148,7 +148,6 @@ export const useState = Z.createZustand<State>(set => {
 
         await RPCTypes.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
         useConfigState.getState().dispatch.setJustDeletedSelf(username)
-        reduxDispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: false}))
         reduxDispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
       }
       Z.ignorePromise(f())

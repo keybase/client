@@ -1,4 +1,3 @@
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import type {TypedDispatch, TypedActions} from '../util/container'
@@ -30,8 +29,6 @@ export const actionLogger = () => (next: TypedDispatch) => (action: TypedActions
 const transformActionForLog = (action: TypedActions) => {
   switch (action.type) {
     // full output
-    case RouteTreeGen.switchTab: // fallthrough
-    case RouteTreeGen.switchLoggedIn: // fallthrough
     case Chat2Gen.selectedConversation: // fallthrough
     case Chat2Gen.navigateToThread: // fallthrough
     case Chat2Gen.metaNeedsUpdating: // fallthrough
@@ -44,11 +41,6 @@ const transformActionForLog = (action: TypedActions) => {
       return null
 
     // custom
-    case RouteTreeGen.navigateAppend: {
-      const {fromKey, replace, path} = action.payload
-      const cleanPath = Array.from(path.map(p => (typeof p === 'string' ? p : p.selected)))
-      return {payload: {fromKey, path: cleanPath, replace}}
-    }
     case Chat2Gen.messagesWereDeleted: // fallthrough
     case Chat2Gen.messageSend: {
       const {conversationIDKey} = action.payload

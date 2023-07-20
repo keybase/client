@@ -319,7 +319,6 @@ export const useState = Z.createZustand<State>((set, get) => {
         // permissions checker finishes after the routeToInitialScreen is done.
         if (p.show && useConfigState.getState().loggedIn && !get().justSignedUp && !get().hasPermissions) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
-          reduxDispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
           await Z.timeoutPromise(100)
           reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
           reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['settingsPushPrompt']}))
