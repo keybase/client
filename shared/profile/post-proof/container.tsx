@@ -1,8 +1,7 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import PostProof from '.'
-import * as Container from '../../util/container'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/profile'
 import * as ConfigConstants from '../../constants/config'
+import PostProof from '.'
 
 export default () => {
   const platform = Constants.useState(s => s.platform)
@@ -50,10 +49,10 @@ export default () => {
 
   const platformUserName = username
 
-  const dispatch = Container.useDispatch()
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onCancel = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     cancelAddProof?.()
   }
   const onSubmit = checkProof

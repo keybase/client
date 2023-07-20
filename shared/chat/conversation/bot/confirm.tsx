@@ -2,7 +2,7 @@ import * as Container from '../../../util/container'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/chat2'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../constants/router2'
 import type * as Types from '../../../constants/types/chat2'
 import type * as TeamsTypes from '../../../constants/types/teams'
 import {useBotConversationIDKey} from './install'
@@ -30,8 +30,9 @@ const ConfirmBotRemove = (props: Props) => {
   const {botUsername, conversationIDKey} = props
   // dispatch
   const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const onRemove = conversationIDKey
     ? () => {

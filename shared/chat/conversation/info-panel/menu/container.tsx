@@ -1,4 +1,5 @@
 import * as ChatConstants from '../../../../constants/chat2'
+import * as RouterConstants from '../../../../constants/router2'
 import * as UsersConstants from '../../../../constants/users'
 import * as ConfigConstants from '../../../../constants/config'
 import * as ChatGen from '../../../../actions/chat2-gen'
@@ -157,18 +158,19 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     manageChatChannels(teamID)
     addTeamWithChosenChannels(teamID)
   }, [manageChatChannels, addTeamWithChosenChannels, teamID])
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onMarkAsRead = React.useCallback(() => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     dispatch(ChatGen.createMarkTeamAsRead({teamID}))
-  }, [dispatch, teamID])
+  }, [clearModals, dispatch, teamID])
   const onMarkAsUnread = React.useCallback(() => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     dispatch(ChatGen.createMarkAsUnread({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+  }, [clearModals, dispatch, conversationIDKey])
   const onViewTeam = React.useCallback(() => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
-  }, [dispatch, teamID])
+  }, [clearModals, dispatch, teamID])
   const onHideConv = React.useCallback(() => {
     dispatch(ChatGen.createHideConversation({conversationIDKey}))
   }, [conversationIDKey, dispatch])

@@ -1,15 +1,14 @@
 import * as Kb from '../../../common-adapters'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Container from '../../../util/container'
+import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/profile'
 import Modal from '../../modal'
 
 export default function Generate() {
-  const dispatch = Container.useDispatch()
   const cancelPgpGen = Constants.useState(s => s.dispatch.dynamic.cancelPgpGen)
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onCancel = () => {
     cancelPgpGen?.()
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   return (
     <Modal onCancel={onCancel}>

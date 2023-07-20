@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import * as ProfileConstants from '../../constants/profile'
+import * as RouterConstants from '../../constants/router2'
 import * as TeamsConstants from '../../constants/teams'
 import * as TrackerConstants from '../../constants/tracker2'
 import NameWithIcon, {type NameWithIconProps} from '.'
@@ -16,12 +17,13 @@ const ConnectedNameWithIcon = (p: OwnProps) => {
   const {onClick, username, teamname, ...props} = p
   const teamID = TeamsConstants.useState(s => s.teamNameToID.get(teamname ?? ''))
   const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onOpenTeamProfile = React.useCallback(() => {
     if (teamID) {
-      dispatch(RouteTreeGen.createClearModals())
+      clearModals()
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
     }
-  }, [dispatch, teamID])
+  }, [clearModals, dispatch, teamID])
   const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(() => {
     username && showUser(username, true)

@@ -1,5 +1,6 @@
 import * as Container from '../../../util/container'
 import * as ConfigConstants from '../../../constants/config'
+import * as RouterConstants from '../../../constants/router2'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/tracker2'
 import * as TeamsConstants from '../../../constants/teams'
@@ -28,8 +29,9 @@ export default (ownProps: OwnProps) => {
   const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
   const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
   const onJoinTeam = joinTeam
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onViewTeam = (teamname: string) => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     showTeamByName(teamname)
   }
   const props = {

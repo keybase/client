@@ -1,4 +1,5 @@
 import * as Container from '../../../util/container'
+import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/profile'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import openURL from '../../../util/open-url'
@@ -30,9 +31,10 @@ const ConnectedEnterUsername = () => {
   const submitUsername = Constants.useState(s => s.dispatch.dynamic.submitUsername)
 
   const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onBack = () => {
     cancelAddProof?.()
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const onChangeUsername = updateUsername
   const onContinue = () => {

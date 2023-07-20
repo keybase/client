@@ -1,6 +1,6 @@
 import * as Constants from '../../constants/profile'
 import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import Revoke from '.'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 import type {SiteIconSet} from '../../constants/types/tracker2'
@@ -20,14 +20,14 @@ export default (ownProps: OwnProps) => {
   const finishRevoking = Constants.useState(s => s.dispatch.finishRevoking)
   const submitRevokeProof = Constants.useState(s => s.dispatch.submitRevokeProof)
   const isWaiting = Container.useAnyWaiting(Constants.waitingKey)
-  const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onCancel = () => {
     finishRevoking()
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const onRevoke = () => {
     proofId && submitRevokeProof(proofId)
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const props = {
     errorMessage,

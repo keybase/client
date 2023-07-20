@@ -1,4 +1,5 @@
 import * as Constants from '../../../constants/fs'
+import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/fs'
@@ -64,6 +65,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
 
   const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
   const moveOrCopy = Constants.useState(s => s.dispatch.moveOrCopy)
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const dispatchProps = {
     _onBackUp: (currentPath: Types.Path) =>
       Constants.makeActionsForDestinationPickerOpen(
@@ -73,7 +75,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       ).forEach(action => dispatch(action)),
     _onCopyHere: (destinationParentPath: Types.Path) => {
       moveOrCopy(destinationParentPath, 'copy')
-      dispatch(RouteTreeGen.createClearModals())
+      clearModals()
       dispatch(
         nav.safeNavigateAppendPayload({
           path: [{props: {path: destinationParentPath}, selected: 'fsRoot'}],
@@ -82,7 +84,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
     },
     _onMoveHere: (destinationParentPath: Types.Path) => {
       moveOrCopy(destinationParentPath, 'move')
-      dispatch(RouteTreeGen.createClearModals())
+      clearModals()
       dispatch(
         nav.safeNavigateAppendPayload({
           path: [{props: {path: destinationParentPath}, selected: 'fsRoot'}],
@@ -96,7 +98,7 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       dispatch(RouteTreeGen.createNavigateUp())
     },
     onCancel: () => {
-      dispatch(RouteTreeGen.createClearModals())
+      clearModals()
     },
   }
 

@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/config'
+import * as RouterConstants from '../../constants/router2'
 import * as Container from '../../util/container'
 import * as Platform from '../../constants/platform'
 import * as React from 'react'
@@ -13,10 +14,11 @@ const Connected = () => {
   const setGlobalError = Constants.useConfigState(s => s.dispatch.setGlobalError)
   const dispatch = Container.useDispatch()
 
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onFeedback = React.useCallback(() => {
     setGlobalError()
     if (loggedIn) {
-      dispatch(RouteTreeGen.createClearModals())
+      clearModals()
       if (Platform.isMobile) {
         dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
         dispatch(
@@ -35,7 +37,7 @@ const Connected = () => {
     } else {
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
     }
-  }, [loggedIn, dispatch, setGlobalError])
+  }, [clearModals, loggedIn, dispatch, setGlobalError])
   const copyToClipboard = Constants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onDismiss = setGlobalError
 

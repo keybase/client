@@ -1,15 +1,14 @@
 import * as Constants from '../constants/devices'
+import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 const PaperKey = () => {
   const [paperkey, setPaperkey] = React.useState('')
   const [wroteItDown, setWroteItDown] = React.useState(false)
-  const dispatch = Container.useDispatch()
 
   Container.useOnMountOnce(() => {
     RPCTypes.loginPaperKeyRpcListener(
@@ -33,6 +32,8 @@ const PaperKey = () => {
       .then(() => {})
       .catch(() => {})
   })
+
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
@@ -72,7 +73,7 @@ const PaperKey = () => {
         />
         <Kb.WaitingButton
           label="Done"
-          onClick={() => dispatch(RouteTreeGen.createClearModals())}
+          onClick={clearModals}
           disabled={!wroteItDown}
           waitingKey={Constants.waitingKey}
         />
@@ -106,7 +107,7 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.fontTerminal,
         color: Styles.globalColors.blueDark,
       },
-    } as const)
+    }) as const
 )
 
 export default PaperKey

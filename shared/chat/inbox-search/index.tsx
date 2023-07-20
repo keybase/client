@@ -1,8 +1,7 @@
 import * as Constants from '../../constants/chat2'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import * as Styles from '../../styles'
 import * as TeamsConstants from '../../constants/teams'
 import Rover from './background'
@@ -388,11 +387,11 @@ type OpenTeamProps = Types.InboxSearchOpenTeamHit & {
 const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
   const {name, description, memberCount, publicAdmins, inTeam, isSelected} = p
-  const dispatch = Container.useDispatch()
   const showingDueToSelect = React.useRef(false)
   const joinTeam = TeamsConstants.useState(s => s.dispatch.joinTeam)
   const showTeamByName = TeamsConstants.useState(s => s.dispatch.showTeamByName)
 
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
@@ -409,7 +408,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
           onHidden={toggleShowingPopup}
           onJoinTeam={() => joinTeam(name)}
           onViewTeam={() => {
-            dispatch(RouteTreeGen.createClearModals())
+            clearModals()
             showTeamByName(name)
           }}
           publicAdmins={publicAdmins ?? []}
@@ -417,7 +416,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         />
       )
     },
-    [showTeamByName, joinTeam, description, dispatch, inTeam, memberCount, name, publicAdmins]
+    [showTeamByName, joinTeam, description, inTeam, memberCount, name, publicAdmins, clearModals]
   )
   const {showingPopup, setShowingPopup, popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
 
@@ -535,7 +534,7 @@ const styles = Styles.styleSheetCreate(
       textHeader: {
         backgroundColor: Styles.globalColors.blueLighter3,
       },
-    } as const)
+    }) as const
 )
 
 export default InboxSearch

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as RouterConstants from '../../../constants/router2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as ChatConstants from '../../../constants/chat2'
@@ -333,8 +334,9 @@ const SelfChannelActions = ({
       })
     )
   }, [dispatch, nav, meta])
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onChannelSettings = React.useCallback(() => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
@@ -342,7 +344,7 @@ const SelfChannelActions = ({
         ],
       })
     )
-  }, [dispatch, meta])
+  }, [dispatch, meta, clearModals])
   const onDelete = React.useCallback(() => {
     // TODO: consider not using the confirm modal
     dispatch(

@@ -1,5 +1,6 @@
 import * as ProvisionConstants from './provision'
 import * as ARConstants from './autoreset'
+import * as RouterConstants from './router2'
 import * as RPCTypes from './types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {useConfigState} from './config'
@@ -262,7 +263,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
         if (!hadError) {
-          reduxDispatch(RouteTreeGen.createClearModals())
+          RouterConstants.useState.getState().dispatch.clearModals()
         }
       }
       Z.ignorePromise(f())

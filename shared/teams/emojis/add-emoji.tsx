@@ -2,9 +2,8 @@ import * as React from 'react'
 import * as TeamsTypes from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
-import * as Container from '../../util/container'
 import * as FsTypes from '../../constants/types/fs'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as ChatConstants from '../../constants/chat2'
@@ -41,12 +40,12 @@ const useDoAddEmojis = (
   removeFilePath: (toRemove: Set<string> | string) => void,
   onChange?: () => void
 ) => {
-  const dispatch = Container.useDispatch()
   const addEmojisRpc = useRPC(RPCChatGen.localAddEmojisRpcPromise)
   const [waitingAddEmojis, setWaitingAddEmojis] = React.useState(false)
   const [bannerError, setBannerError] = React.useState('')
   const clearBannerError = React.useCallback(() => setBannerError(''), [setBannerError])
 
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const doAddEmojis =
     conversationIDKey !== ChatConstants.noConversationIDKey
       ? () => {
@@ -67,7 +66,7 @@ const useDoAddEmojis = (
                 removeFilePath(new Set(res.successFilenames))
               }
               const failedFilenamesKeys = Object.keys(res.failedFilenames || {})
-              !failedFilenamesKeys.length && dispatch(RouteTreeGen.createClearModals())
+              !failedFilenamesKeys.length && clearModals()
               setErrors(
                 new Map(failedFilenamesKeys.map(key => [key, res.failedFilenames[key]?.uidisplay ?? '']))
               )

@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
+import * as RouterConstants from '../../../../../constants/router2'
 import * as FSConstants from '../../../../../constants/fs'
 import * as TeamsConstants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
@@ -66,8 +67,9 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const _onAllMedia = (conversationIDKey: Types.ConversationIDKey) => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'attachments'}))
   }
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
@@ -81,7 +83,7 @@ export default (ownProps: OwnProps) => {
         ordinal: message.ordinal,
       })
     )
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const _onDownload = (message: Types.MessageAttachment) => {
     dispatch(

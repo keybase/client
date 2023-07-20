@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 
 type AliasInputProps = {
   error?: string
@@ -100,8 +99,8 @@ type ModalProps = {
 }
 
 export const Modal = (props: ModalProps) => {
-  const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const onCancel = () => clearModals()
   return (
     <Kb.PopupWrapper onCancel={onCancel} title={props.title}>
       <Kb.Box2

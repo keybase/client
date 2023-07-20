@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as RouterConstants from '../../../constants/router2'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
@@ -8,7 +9,6 @@ import * as Types from '../../../constants/types/teams'
 import {pluralize} from '../../../util/string'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
 import {FloatingRolePicker} from '../../role-picker'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import debounce from 'lodash/debounce'
 
@@ -92,7 +92,8 @@ const NewTeamInfo = () => {
   const continueDisabled = rolePickerIsOpen || teamNameTaken || name.length < minLength
 
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
-  const onClose = () => dispatch(RouteTreeGen.createClearModals())
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const onClose = () => clearModals()
 
   const setTeamWizardNameDescription = Constants.useState(s => s.dispatch.setTeamWizardNameDescription)
 

@@ -6,7 +6,6 @@ import type * as Types from '../constants/types/route-tree'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of route-tree but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'route-tree:'
-export const clearModals = 'route-tree:clearModals'
 export const navUpToScreen = 'route-tree:navUpToScreen'
 export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateUp = 'route-tree:navigateUp'
@@ -48,10 +47,6 @@ export const createSwitchTab = (payload: {readonly tab: Tabs.AppTab; readonly pa
   type: switchTab as typeof switchTab,
 })
 /**
- * ONLY used by the new nav. use this to clear any modal routes
- */
-export const createClearModals = (payload?: undefined) => ({payload, type: clearModals as typeof clearModals})
-/**
  * Reset a stack
  */
 export const createPopStack = (payload?: undefined) => ({payload, type: popStack as typeof popStack})
@@ -85,7 +80,6 @@ export const createOnNavChanged = (payload: {
 }) => ({payload, type: onNavChanged as typeof onNavChanged})
 
 // Action Payloads
-export type ClearModalsPayload = ReturnType<typeof createClearModals>
 export type NavUpToScreenPayload = ReturnType<typeof createNavUpToScreen>
 export type NavigateAppendPayload = ReturnType<typeof createNavigateAppend>
 export type NavigateUpNoopPayload = ReturnType<typeof createNavigateUpNoop>
@@ -100,7 +94,6 @@ export type TabLongPressPayload = ReturnType<typeof createTabLongPress>
 // All Actions
 // prettier-ignore
 export type Actions =
-  | ClearModalsPayload
   | NavUpToScreenPayload
   | NavigateAppendPayload
   | NavigateUpNoopPayload

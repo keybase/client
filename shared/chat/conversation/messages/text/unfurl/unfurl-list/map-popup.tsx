@@ -1,8 +1,8 @@
 import * as Kb from '../../../../../../common-adapters/index'
 import * as Container from '../../../../../../util/container'
-import * as RouteTreeGen from '../../../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../../../constants/config'
+import * as RouterConstants from '../../../../../../constants/router2'
 import * as Styles from '../../../../../../styles'
 import type * as Types from '../../../../../../constants/types/chat2'
 import openURL from '../../../../../../util/open-url'
@@ -24,8 +24,9 @@ const UnfurlMapPopup = (props: Props) => {
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
 
   const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
   const onViewURL = () => {
     onClose()

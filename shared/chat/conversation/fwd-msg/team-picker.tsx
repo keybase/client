@@ -4,10 +4,10 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
+import * as RouterConstants from '../../../constants/router2'
 import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
 import logger from '../../../logger'
@@ -50,8 +50,9 @@ const TeamPicker = (props: Props) => {
     )
   }
 
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
   }
 
   const [title, setTitle] = React.useState('')
@@ -101,7 +102,7 @@ const TeamPicker = (props: Props) => {
         logger.info('TeamPicker: error loading search results: ' + error.message)
       }
     )
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     dispatch(
       Chat2Gen.createPreviewConversation({
         conversationIDKey: Types.conversationIDToKey(dstConvIDRef.current),
@@ -290,7 +291,7 @@ const styles = Styles.styleSheetCreate(
           marginRight: Styles.globalMargins.small,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default TeamPicker

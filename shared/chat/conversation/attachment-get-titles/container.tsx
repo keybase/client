@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
 import * as FsTypes from '../../../constants/types/fs'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -38,6 +39,7 @@ export default (ownProps: OwnProps) => {
     )
     dispatch(RouteTreeGen.createNavigateUp())
   }
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onSubmit = (titles: Array<string>) => {
     tlfName || noDragDrop
       ? dispatch(
@@ -55,7 +57,7 @@ export default (ownProps: OwnProps) => {
             titles,
           })
         )
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
 
     if (selectConversationWithReason) {
       dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: selectConversationWithReason}))

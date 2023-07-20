@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as FsTypes from '../constants/types/fs'
@@ -140,8 +141,8 @@ const getContentDescription = (items: Array<RPCTypes.IncomingShareItem>) => {
 }
 
 const useHeader = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
-  const dispatch = Container.useDispatch()
-  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const onCancel = () => clearModals()
   return {
     leftButton: (
       <Kb.Text type="BodyBigLink" onClick={onCancel}>
@@ -227,8 +228,9 @@ const IncomingShare = (props: IncomingShareProps) => {
 
 const IncomingShareError = () => {
   const dispatch = Container.useDispatch()
+  const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const erroredSendFeedback = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    clearModals()
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
@@ -240,7 +242,7 @@ const IncomingShareError = () => {
       })
     )
   }
-  const onCancel = () => dispatch(RouteTreeGen.createClearModals())
+  const onCancel = () => clearModals()
 
   return (
     <Kb.Modal
