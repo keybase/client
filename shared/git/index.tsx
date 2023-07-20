@@ -46,9 +46,7 @@ export default (ownProps: OwnProps) => {
   const dispatch = Container.useDispatch()
 
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const onBack = React.useCallback(() => {
-    navigateUp()
-  }, [navigateUp])
+  const onBack = navigateUp
   const onShowDelete = React.useCallback(
     (id: string) => {
       setError(undefined)

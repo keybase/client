@@ -15,7 +15,7 @@ const PublicNameContainer = () => {
   const error = Constants.useState(s => s.error)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const _onBack = React.useCallback(() => navigateUp(), [navigateUp])
+  const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, !!error)
   const setDeviceName = Constants.useState(s => s.dispatch.dynamic.setDeviceName)
   const onSubmit = React.useCallback(

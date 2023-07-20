@@ -20,7 +20,7 @@ const DeleteTeamContainer = (op: OwnProps) => {
     : undefined
 
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const _onBack = React.useCallback(() => navigateUp(), [navigateUp])
+  const _onBack = navigateUp
   const onBack = deleteWaiting ? () => {} : _onBack
   const deleteTeam = Constants.useState(s => s.dispatch.deleteTeam)
   const _onDelete = React.useCallback(() => () => deleteTeam(teamID), [deleteTeam, teamID])

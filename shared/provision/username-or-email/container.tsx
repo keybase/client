@@ -48,7 +48,7 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
 
   const dispatch = Container.useDispatch()
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const _onBack = React.useCallback(() => navigateUp(), [navigateUp])
+  const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, hasError)
   const onForgotUsername = React.useCallback(
     () => dispatch(RouteTreeGen.createNavigateAppend({path: ['forgotUsername']})),

@@ -24,7 +24,7 @@ const CodePageContainer = () => {
   const submitTextCode = Constants.useState(s => s.dispatch.dynamic.submitTextCode)
 
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const onBack = React.useCallback(() => navigateUp(), [navigateUp])
+  const onBack = navigateUp
 
   const cancel = Constants.useState(s => s.dispatch.dynamic.cancel)
   const onClose = () => cancel?.()

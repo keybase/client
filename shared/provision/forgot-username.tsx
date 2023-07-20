@@ -17,7 +17,7 @@ const ForgotUsername = () => {
 
   const forgotUsernameResult = Constants.useState(s => s.forgotUsernameResult)
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const onBack = React.useCallback(() => navigateUp(), [navigateUp])
+  const onBack = navigateUp
   const waiting = Container.useAnyWaiting(Constants.forgotUsernameWaitingKey)
 
   const [emailSelected, setEmailSelected] = React.useState(true)

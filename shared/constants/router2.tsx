@@ -313,7 +313,7 @@ export type State = Store & {
     dynamic: {
       tabLongPress?: (tab: string) => void
     }
-    navigateUp: (fromKey?: string) => void
+    navigateUp: () => void
     navUpToScreen: (name: string) => void
     popStack: () => void
     resetState: 'default'
@@ -353,9 +353,9 @@ export const useState = Z.createZustand<State>(() => {
       })
       n.dispatch(CommonActions.reset(nextState))
     },
-    navigateUp: fromKey => {
+    navigateUp: () => {
       const n = _getNavigator()
-      return n?.dispatch({...CommonActions.goBack(), source: fromKey})
+      return n?.dispatch(CommonActions.goBack())
     },
     popStack: () => {
       const n = _getNavigator()

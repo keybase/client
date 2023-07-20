@@ -137,7 +137,7 @@ const DeviceRevoke = (ownProps: OwnProps) => {
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const onSubmit = useRevoke(deviceID)
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const onCancel = React.useCallback(() => navigateUp(), [navigateUp])
+  const onCancel = navigateUp
 
   const actingDevice = ConfigConstants.useCurrentUserState(s => s.deviceID)
   Container.useOnMountOnce(() => {

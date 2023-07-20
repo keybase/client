@@ -15,9 +15,7 @@ const SelectOtherDeviceContainer = () => {
   const username = Constants.useState(s => s.username)
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const _onBack = React.useCallback(() => {
-    navigateUp()
-  }, [navigateUp])
+  const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, false)
   const startAccountReset = ARConstants.useState(s => s.dispatch.startAccountReset)
   const onResetAccount = React.useCallback(() => {

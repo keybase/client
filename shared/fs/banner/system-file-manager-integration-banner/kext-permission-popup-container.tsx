@@ -9,7 +9,7 @@ const KPPContainer = () => {
     s => s.dispatch.dynamic.openSecurityPreferencesDesktop
   )
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const onCancel = React.useCallback(() => navigateUp(), [navigateUp])
+  const onCancel = navigateUp
   const openSecurityPrefs = React.useCallback(
     () => openSecurityPreferencesDesktop?.(),
     [openSecurityPreferencesDesktop]

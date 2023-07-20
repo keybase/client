@@ -37,7 +37,7 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
     },
     [leaveTeam, teamname]
   )
-  const _onBack = React.useCallback(() => navigateUp(), [navigateUp])
+  const _onBack = navigateUp
   const onBack = leaving ? () => {} : _onBack
   const onLeave = Container.useSafeSubmit(_onLeave, !leaving)
 

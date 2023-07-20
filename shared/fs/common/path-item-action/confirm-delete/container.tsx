@@ -13,7 +13,7 @@ export default (ownProps: OwnProps) => {
   const {path, mode} = ownProps
   const deleteFile = Constants.useState(s => s.dispatch.deleteFile)
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const onBack = React.useCallback(() => navigateUp(), [navigateUp])
+  const onBack = navigateUp
   const onDelete = React.useCallback(() => {
     if (path !== Constants.defaultPath) {
       deleteFile(path)

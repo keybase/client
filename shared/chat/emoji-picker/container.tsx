@@ -161,7 +161,7 @@ const WrapperMobile = (props: Props) => {
   const [skinTonePickerExpanded, setSkinTonePickerExpanded] = React.useState(false)
   const dispatch = Container.useDispatch()
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
-  const onCancel = React.useCallback(() => navigateUp(), [navigateUp])
+  const onCancel = navigateUp
   const addEmoji = React.useCallback(
     () => goToAddEmoji(dispatch, conversationIDKey),
     [dispatch, conversationIDKey]
