@@ -361,8 +361,6 @@ type State = Store & {
 }
 
 export const useState = Z.createZustand<State>(() => {
-  // const reduxDispatch = Z.getReduxDispatch()
-
   const dispatch: State['dispatch'] = {
     clearModals: () => {
       const n = _getNavigator()
