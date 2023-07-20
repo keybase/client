@@ -182,7 +182,6 @@ const newNavigation = (
     | RouteTreeGen.NavigateAppendPayload
     | RouteTreeGen.NavigateUpPayload
     | RouteTreeGen.SwitchTabPayload
-    | RouteTreeGen.PopStackPayload
 ) => {
   Router2.dispatchOldAction(action)
 }
@@ -241,13 +240,7 @@ const initConfig = () => {
   })
 
   Container.listenAction(
-    [
-      RouteTreeGen.setParams,
-      RouteTreeGen.navigateAppend,
-      RouteTreeGen.navigateUp,
-      RouteTreeGen.switchTab,
-      RouteTreeGen.popStack,
-    ],
+    [RouteTreeGen.setParams, RouteTreeGen.navigateAppend, RouteTreeGen.navigateUp, RouteTreeGen.switchTab],
     newNavigation
   )
 

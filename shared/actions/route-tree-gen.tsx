@@ -10,7 +10,6 @@ export const navigateAppend = 'route-tree:navigateAppend'
 export const navigateUp = 'route-tree:navigateUp'
 export const navigateUpNoop = 'route-tree:navigateUpNoop'
 export const onNavChanged = 'route-tree:onNavChanged'
-export const popStack = 'route-tree:popStack'
 export const setParams = 'route-tree:setParams'
 export const switchTab = 'route-tree:switchTab'
 export const tabLongPress = 'route-tree:tabLongPress'
@@ -30,10 +29,6 @@ export const createSwitchTab = (payload: {readonly tab: Tabs.AppTab; readonly pa
   payload,
   type: switchTab as typeof switchTab,
 })
-/**
- * Reset a stack
- */
-export const createPopStack = (payload?: undefined) => ({payload, type: popStack as typeof popStack})
 /**
  * a tab was pressed
  */
@@ -68,7 +63,6 @@ export type NavigateAppendPayload = ReturnType<typeof createNavigateAppend>
 export type NavigateUpNoopPayload = ReturnType<typeof createNavigateUpNoop>
 export type NavigateUpPayload = ReturnType<typeof createNavigateUp>
 export type OnNavChangedPayload = ReturnType<typeof createOnNavChanged>
-export type PopStackPayload = ReturnType<typeof createPopStack>
 export type SetParamsPayload = ReturnType<typeof createSetParams>
 export type SwitchTabPayload = ReturnType<typeof createSwitchTab>
 export type TabLongPressPayload = ReturnType<typeof createTabLongPress>
@@ -80,7 +74,6 @@ export type Actions =
   | NavigateUpNoopPayload
   | NavigateUpPayload
   | OnNavChangedPayload
-  | PopStackPayload
   | SetParamsPayload
   | SwitchTabPayload
   | TabLongPressPayload

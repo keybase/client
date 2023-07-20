@@ -20,9 +20,6 @@
       "tab": "Tabs.AppTab",
       "params?": "Object"
     },
-    "popStack": {
-      "_description": "Reset a stack"
-    },
     "onNavChanged": {
       "prev": "Types.NavState | undefined",
       "next": "Types.NavState | undefined",
