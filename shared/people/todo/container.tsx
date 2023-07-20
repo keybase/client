@@ -4,6 +4,7 @@ import * as Constants from '../../constants/people'
 import * as TrackerConstants from '../../constants/tracker2'
 import * as TeamsConstants from '../../constants/teams'
 import * as ProfileConstants from '../../constants/profile'
+import * as RouterConstants from '../../constants/router2'
 import * as SettingsConstants from '../../constants/settings'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ConfigConstants from '../../constants/config'
@@ -57,8 +58,9 @@ function makeDefaultButtons(
 
 const AddEmailConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onConfirm = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+    switchTab(Tabs.settingsTab)
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.accountTab]}))
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddEmail']}))
   }
@@ -69,8 +71,9 @@ const AddEmailConnector = (props: TodoOwnProps) => {
 
 const AddPhoneNumberConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onConfirm = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+    switchTab(Tabs.settingsTab)
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.accountTab]}))
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
   }
@@ -80,8 +83,8 @@ const AddPhoneNumberConnector = (props: TodoOwnProps) => {
 }
 
 const AvatarTeamConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
-  const onConfirm = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const onConfirm = () => switchTab(Tabs.teamsTab)
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel)
   return <Task {...props} buttons={buttons} />
 }
@@ -131,8 +134,8 @@ const FollowConnector = (props: TodoOwnProps) => {
 }
 
 const ChatConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
-  const onConfirm = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const onConfirm = () => switchTab(Tabs.chatTab)
   const onDismiss = useOnSkipTodo('chat')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
@@ -151,10 +154,10 @@ const PaperKeyConnector = (props: TodoOwnProps) => {
 }
 
 const TeamConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   const onConfirm = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
+    switchTab(Tabs.teamsTab)
     launchNewTeamWizardOrModal()
   }
   const onDismiss = useOnSkipTodo('team')
@@ -163,8 +166,8 @@ const TeamConnector = (props: TodoOwnProps) => {
 }
 
 const FolderConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
-  const onConfirm = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}))
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const onConfirm = () => switchTab(Tabs.fsTab)
   const onDismiss = useOnSkipTodo('folder')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
@@ -172,11 +175,12 @@ const FolderConnector = (props: TodoOwnProps) => {
 
 const GitRepoConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onConfirm = (isTeam: boolean) => {
     if (Container.isMobile) {
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: SettingsConstants.gitTab}]}))
     } else {
-      dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.gitTab}))
+      switchTab(Tabs.gitTab)
     }
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam}, selected: 'gitNewRepo'}]}))
   }
@@ -200,8 +204,8 @@ const GitRepoConnector = (props: TodoOwnProps) => {
 }
 
 const TeamShowcaseConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
-  const onConfirm = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const onConfirm = () => switchTab(Tabs.teamsTab)
   const onDismiss = useOnSkipTodo('teamShowcase')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)
   return <Task {...props} buttons={buttons} />
@@ -216,8 +220,9 @@ const VerifyAllEmailConnector = (props: TodoOwnProps) => {
     editEmail({email, verify: true})
     setResentEmail(email)
   }
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onManage = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+    switchTab(Tabs.settingsTab)
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.accountTab]}))
   }
 
@@ -256,8 +261,9 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
     resendVerificationForPhone(phoneNumber)
     dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
   }
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onManage = () => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+    switchTab(Tabs.settingsTab)
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.accountTab]}))
   }
   const buttons: Array<TaskButton> = [
@@ -285,8 +291,9 @@ const VerifyAllPhoneNumberConnector = (props: TodoOwnProps) => {
 const LegacyEmailVisibilityConnector = (props: TodoOwnProps) => {
   const dispatch = Container.useDispatch()
   const editEmail = SettingsConstants.useEmailState(s => s.dispatch.editEmail)
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onConfirm = (email: string) => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+    switchTab(Tabs.settingsTab)
     dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.accountTab]}))
     editEmail({email, makeSearchable: true})
   }

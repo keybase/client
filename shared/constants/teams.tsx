@@ -3025,7 +3025,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             return
           }
         }
-        reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}))
+        RouterConstants.useState.getState().dispatch.switchTab(Tabs.teamsTab)
         reduxDispatch(
           RouteTreeGen.createNavigateAppend({path: [{props: {initialTab, teamID}, selected: 'team'}]})
         )

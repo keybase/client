@@ -1,5 +1,6 @@
 import * as RPCTypes from './types/rpc-gen'
 import * as WaitingConstants from './waiting'
+import * as RouterConstants from './router2'
 import openURL from '../util/open-url'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
@@ -115,7 +116,7 @@ export const useState = Z.createZustand<State>(set => {
       return
     }
     maybeLoadAppLinkOnce = true
-    reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+    RouterConstants.useState.getState().dispatch.switchTab(Tabs.settingsTab)
     reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
   }
 

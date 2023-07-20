@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as Constants from '../constants/settings'
 import * as ConfigConstants from '../constants/config'
@@ -71,10 +72,11 @@ const ManageContactsBanner = () => {
   const error = Constants.useContactsState(s => s.importError)
 
   const onOpenAppSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onStartChat = React.useCallback(() => {
-    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
+    switchTab(Tabs.chatTab)
     dispatch(appendNewChatBuilder())
-  }, [dispatch])
+  }, [switchTab, dispatch])
   const onSendFeedback = React.useCallback(() => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -127,7 +129,7 @@ const styles = Styles.styleSheetCreate(
         width: undefined,
       },
       positionRelative: {position: 'relative'},
-    } as const)
+    }) as const
 )
 
 export default ManageContacts

@@ -2,6 +2,7 @@ import './tab-bar.css'
 import * as ConfigConstants from '../constants/config'
 import * as ProvisionConstants from '../constants/provision'
 import * as Container from '../util/container'
+import * as RouterConstants from '../constants/router2'
 import * as FsConstants from '../constants/fs'
 import * as ProfileConstants from '../constants/profile'
 import * as NotifConstants from '../constants/notifications'
@@ -69,7 +70,8 @@ const Header = () => {
       ctlQuit?.()
     }, 2000)
   }
-  const onSettings = () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const onSettings = () => switchTab(Tabs.settingsTab)
   const onSignOut = () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]}))
 
   const menuHeader = () => (

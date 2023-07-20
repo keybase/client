@@ -3,6 +3,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RouteTree from '../../actions/route-tree-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/people'
 import * as SettingsTabs from '../../constants/settings'
 import openURL from '../../util/open-url'
@@ -26,6 +27,7 @@ export default (ownProps: OwnProps) => {
   const loadPeople = Constants.useState(s => s.dispatch.loadPeople)
   const dismissAnnouncement = Constants.useState(s => s.dispatch.dismissAnnouncement)
 
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onConfirm = () => {
     if (url) {
       openURL(url)
@@ -38,34 +40,34 @@ export default (ownProps: OwnProps) => {
         dispatch(Chat2Gen.createNavigateToInbox())
         break
       case RPCTypes.AppLinkType.files:
-        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.fsTab}))
+        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.fsTab)
         if (Container.isMobile) {
           dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.fsTab]}))
         }
         break
       case RPCTypes.AppLinkType.wallet:
-        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
+        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.walletsTab)
         if (Container.isMobile) {
           dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.walletsTab]}))
         }
         break
       case RPCTypes.AppLinkType.git:
-        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.gitTab}))
+        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.gitTab)
         if (Container.isMobile) {
           dispatch(RouteTree.createNavigateAppend({path: [{props: {}, selected: SettingsTabs.gitTab}]}))
         }
         break
       case RPCTypes.AppLinkType.devices:
-        dispatch(RouteTree.createSwitchTab({tab: Container.isMobile ? Tabs.settingsTab : Tabs.devicesTab}))
+        switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.devicesTab)
         if (Container.isMobile) {
           dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.devicesTab]}))
         }
         break
       case RPCTypes.AppLinkType.settings:
-        dispatch(RouteTree.createSwitchTab({tab: Tabs.settingsTab}))
+        switchTab(Tabs.settingsTab)
         break
       case RPCTypes.AppLinkType.teams:
-        dispatch(RouteTree.createSwitchTab({tab: Tabs.teamsTab}))
+        switchTab(Tabs.teamsTab)
         break
     }
     dismissAnnouncement(id)

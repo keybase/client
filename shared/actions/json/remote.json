@@ -1,6 +1,10 @@
 {
-  "prelude": ["import type HiddenString from '../util/hidden-string'"],
+  "prelude": [
+    "import type HiddenString from '../util/hidden-string'",
+    "import type * as Tabs from '../constants/tabs'"
+  ],
   "actions": {
+    "switchTab": {"tab": "Tabs.AppTab"},
     "setCriticalUpdate": {"critical": "boolean"},
     "userFileEditsLoad": {},
     "openFilesFromWidget": {"path": "string"},

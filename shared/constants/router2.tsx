@@ -135,14 +135,6 @@ const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAp
 
       return [StackActions.push(routeName, params)]
     }
-    case RouteTreeGen.switchTab: {
-      return [
-        {
-          ...CommonActions.navigate({name: action.payload.tab, params: action.payload.params}),
-          target: navigationState.routes[0]?.state?.key,
-        },
-      ]
-    }
     case RouteTreeGen.navigateUp:
       return [{...CommonActions.goBack(), source: action.payload.fromKey}]
     default:
@@ -194,10 +186,7 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   navUpHelper(route.state, name)
 }
 
-type RTGActions =
-  | RouteTreeGen.NavigateAppendPayload
-  | RouteTreeGen.NavigateUpPayload
-  | RouteTreeGen.SwitchTabPayload
+type RTGActions = RouteTreeGen.NavigateAppendPayload | RouteTreeGen.NavigateUpPayload
 
 export const dispatchOldAction = (action: RTGActions) => {
   const rs = getRootState()
@@ -329,6 +318,7 @@ export type State = Store & {
     navUpToScreen: (name: string) => void
     popStack: () => void
     resetState: 'default'
+    switchTab: (tab: Tabs.AppTab) => void
   }
 }
 
@@ -369,6 +359,16 @@ export const useState = Z.createZustand<State>(() => {
       n?.dispatch(StackActions.popToTop())
     },
     resetState: 'default',
+    switchTab: name => {
+      const n = _getNavigator()
+      if (!n) return
+      const ns = getRootState()
+      if (!ns) return
+      n.dispatch({
+        ...CommonActions.navigate({name}),
+        target: ns.routes[0]?.state?.key,
+      })
+    },
   }
   return {
     ...initialStore,

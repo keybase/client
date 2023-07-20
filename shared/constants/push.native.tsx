@@ -185,7 +185,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               break
             case 'settings.contacts':
               if (useConfigState.getState().loggedIn) {
-                reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
+                RouterConstants.useState.getState().dispatch.switchTab(Tabs.peopleTab)
                 RouterConstants.useState.getState().dispatch.navUpToScreen('peopleRoot')
               }
               break
@@ -320,7 +320,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         if (p.show && useConfigState.getState().loggedIn && !get().justSignedUp && !get().hasPermissions) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
           await Z.timeoutPromise(100)
-          reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
+          RouterConstants.useState.getState().dispatch.switchTab(Tabs.peopleTab)
           reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['settingsPushPrompt']}))
         }
       }

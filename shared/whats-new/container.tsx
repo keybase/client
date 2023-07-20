@@ -1,6 +1,7 @@
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Container from '../util/container'
 import * as ConfigConstants from '../constants/config'
+import * as RouterConstants from '../constants/router2'
 import type * as Tabs from '../constants/tabs'
 import openURL from '../util/open-url'
 import {currentVersion, useState} from '../constants/whats-new'
@@ -23,8 +24,9 @@ const WhatsNewContainer = (ownProps: OwnProps) => {
   const _onNavigateExternal = (url: string) => {
     openURL(url)
   }
+  const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const _onSwitchTab = (tab: Tabs.AppTab) => {
-    dispatch(RouteTreeGen.createSwitchTab({tab}))
+    switchTab(tab)
   }
 
   const updateGregorCategory = ConfigConstants.useConfigState(s => s.dispatch.updateGregorCategory)

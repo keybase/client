@@ -303,6 +303,14 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       switch (action.type) {
         case RemoteGen.resetStore:
           break
+        case RemoteGen.switchTab: {
+          const f = async () => {
+            const RouterConstants = await import('./router2')
+            RouterConstants.useState.getState().dispatch.switchTab(action.payload.tab)
+          }
+          Z.ignorePromise(f())
+          break
+        }
         case RemoteGen.setCriticalUpdate: {
           const f = async () => {
             const FSConstants = await import('./fs')
