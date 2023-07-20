@@ -1,6 +1,6 @@
 import * as Constants from '../../constants/fs'
 import * as ConfigConstants from '../../constants/config'
-import * as Router2Constants from '../../constants/router2'
+import * as RouterConstants from '../../constants/router2'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
@@ -9,7 +9,6 @@ import * as Container from '../../util/container'
 import * as Z from '../../util/zustand'
 import logger from '../../logger'
 import initPlatformSpecific from './platform-specific'
-import * as RouteTreeGen from '../route-tree-gen'
 import {RPCError} from '../../util/errors'
 
 const clientID = Constants.clientID
@@ -133,33 +132,31 @@ const initFS = () => {
     Z.ignorePromise(f())
   })
 
-  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
-    const {prev, next} = action.payload
+  RouterConstants.useState.subscribe((s, old) => {
+    const next = s.navState
+    const prev = old.navState
+    if (next === prev) return
+
     const {criticalUpdate} = Constants.useState.getState()
     // Clear critical update when we nav away from tab
     if (
       criticalUpdate &&
       prev &&
-      Router2Constants.getTab(prev) === Tabs.fsTab &&
+      RouterConstants.getTab(prev) === Tabs.fsTab &&
       next &&
-      Router2Constants.getTab(next) !== Tabs.fsTab
+      RouterConstants.getTab(next) !== Tabs.fsTab
     ) {
       Constants.useState.getState().dispatch.setCriticalUpdate(false)
     }
-  })
-  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
-    const {prev, next} = action.payload
-    const wasScreen = fsRrouteNames.includes(Router2Constants.getVisibleScreen(prev)?.name ?? '')
-    const isScreen = fsRrouteNames.includes(Router2Constants.getVisibleScreen(next)?.name ?? '')
 
-    if (wasScreen === isScreen) {
-      return
-    }
-
-    if (wasScreen) {
-      Constants.useState.getState().dispatch.userOut()
-    } else {
-      Constants.useState.getState().dispatch.userIn()
+    const wasScreen = fsRrouteNames.includes(RouterConstants.getVisibleScreen(prev)?.name ?? '')
+    const isScreen = fsRrouteNames.includes(RouterConstants.getVisibleScreen(next)?.name ?? '')
+    if (wasScreen !== isScreen) {
+      if (wasScreen) {
+        Constants.useState.getState().dispatch.userOut()
+      } else {
+        Constants.useState.getState().dispatch.userIn()
+      }
     }
   })
 

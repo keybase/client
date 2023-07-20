@@ -1,6 +1,4 @@
 import * as Constants from '../constants/team-building'
-import * as Container from '../util/container'
-import * as RouteTreeGen from './route-tree-gen'
 import * as RouterConstants from '../constants/router2'
 import type * as Types from '../constants/types/team-building'
 
@@ -12,8 +10,10 @@ const namespaceToRoute = new Map([
 ])
 
 const initTeamBuilding = () => {
-  Container.listenAction(RouteTreeGen.onNavChanged, (_, action) => {
-    const {prev, next} = action.payload
+  RouterConstants.useState.subscribe((s, old) => {
+    const next = s.navState
+    const prev = old.navState
+    if (next === prev) return
     const namespaces: Array<Types.AllowedNamespace> = ['chat2', 'crypto', 'teams', 'people']
     for (const namespace of namespaces) {
       const wasTeamBuilding = namespaceToRoute.get(namespace) === RouterConstants.getVisibleScreen(prev)?.name

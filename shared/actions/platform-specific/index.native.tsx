@@ -369,18 +369,6 @@ export const watchPositionForMap = async (
   }
 }
 
-const onTabLongPress = (_: unknown, action: RouteTreeGen.TabLongPressPayload) => {
-  if (action.payload.tab !== Tabs.peopleTab) return
-  const accountRows = ConfigConstants.useConfigState.getState().configuredAccounts
-  const current = ConfigConstants.useCurrentUserState.getState().username
-  const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
-  if (row) {
-    ConfigConstants.useConfigState.getState().dispatch.setUserSwitching(true)
-    ConfigConstants.useConfigState.getState().dispatch.login(row.username, '')
-  }
-  return
-}
-
 const initAudioModes = () => {
   setupAudioMode(false)
     .then(() => {})
@@ -558,8 +546,6 @@ export const initPlatformListener = () => {
     }
   })
 
-  Container.listenAction(RouteTreeGen.tabLongPress, onTabLongPress)
-
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
     if (s.mobileAppState === 'active') {
@@ -584,10 +570,16 @@ export const initPlatformListener = () => {
     })
   }
 
-  Container.listenAction(RouteTreeGen.onNavChanged, async () => {
-    await Container.timeoutPromise(1000)
-    const path = RouterConstants.getVisiblePath()
-    ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
+  RouterConstants.useState.subscribe((s, old) => {
+    const next = s.navState
+    const prev = old.navState
+    if (next === prev) return
+    const f = async () => {
+      await Container.timeoutPromise(1000)
+      const path = RouterConstants.getVisiblePath()
+      ConfigConstants.useConfigState.getState().dispatch.dynamic.persistRoute?.(path)
+    }
+    Z.ignorePromise(f())
   })
 
   Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
@@ -617,6 +609,19 @@ export const initPlatformListener = () => {
         }
       }
       Container.ignorePromise(f())
+    }
+  })
+
+  RouterConstants.useState.setState(s => {
+    s.dispatch.dynamic.tabLongPress = tab => {
+      if (tab !== Tabs.peopleTab) return
+      const accountRows = ConfigConstants.useConfigState.getState().configuredAccounts
+      const current = ConfigConstants.useCurrentUserState.getState().username
+      const row = accountRows.find(a => a.username !== current && a.hasStoredSecret)
+      if (row) {
+        ConfigConstants.useConfigState.getState().dispatch.setUserSwitching(true)
+        ConfigConstants.useConfigState.getState().dispatch.login(row.username, '')
+      }
     }
   })
 }

@@ -1,4 +1,5 @@
 import * as Z from '../util/zustand'
+import * as RouterConstants from '../constants/router2'
 import * as RPCGen from '../constants/types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ProvisionConstants from './provision'
@@ -111,7 +112,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   })
                   ProvisionConstants.useState.getState().dispatch.startProvision(get().username, true)
                 } else {
-                  reduxDispatch(RouteTreeGen.createNavUpToScreen({name: 'login'}))
+                  RouterConstants.useState.getState().dispatch.navUpToScreen('login')
                 }
               }
             })

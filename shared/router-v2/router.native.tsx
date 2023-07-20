@@ -9,7 +9,6 @@ import * as Shim from './shim.native'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as Container from '../util/container'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RouterLinking from './router-linking.native'
 import * as Common from './common.native'
 import {StatusBar, View} from 'react-native'
@@ -125,7 +124,7 @@ const styles = Styles.styleSheetCreate(
         },
         isTablet: {width: '100%'},
       }),
-    } as const)
+    }) as const
 )
 
 const Tab = createBottomTabNavigator()
@@ -163,15 +162,8 @@ const makeTabStack = (tab: string) => {
   return Comp
 }
 
-const makeLongPressHandler = (dispatch: Container.TypedDispatch, tab: Tabs.AppTab) => {
-  return () => {
-    dispatch(RouteTreeGen.createTabLongPress({tab}))
-  }
-}
 const AppTabs = React.memo(
   function AppTabs() {
-    const dispatch = Container.useDispatch()
-
     // so we have a stack per tab
     const tabStacks = React.useMemo(
       () =>
@@ -186,39 +178,39 @@ const AppTabs = React.memo(
                 tabBarStyle: routeName === 'chatConversation' ? Common.tabBarStyleHidden : Common.tabBarStyle,
               }
             }}
-            listeners={{tabLongPress: makeLongPressHandler(dispatch, tab)}}
+            listeners={{
+              tabLongPress: () => Constants.useState.getState().dispatch.dynamic.tabLongPress?.(tab),
+            }}
           />
         )),
-      [dispatch]
+      []
     )
 
     const makeTabBarIcon =
       (routeName: string) =>
-      ({focused}: {focused: boolean}) =>
-        <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
+      ({focused}: {focused: boolean}) => <TabBarIcon isFocused={focused} routeName={routeName as Tabs.Tab} />
     const makeTabBarLabel =
       (routeName: string) =>
-      ({focused}: {focused: boolean}) =>
-        (
-          <Kb.Text
-            style={Styles.collapseStyles([
-              styles.label,
-              Styles.isDarkMode()
-                ? focused
-                  ? styles.labelDarkModeFocused
-                  : styles.labelDarkMode
-                : focused
-                ? styles.labelLightModeFocused
-                : styles.labelLightMode,
-            ])}
-            type="BodyBig"
-          >
-            {
-              // @ts-ignore
-              tabToData[routeName].label
-            }
-          </Kb.Text>
-        )
+      ({focused}: {focused: boolean}) => (
+        <Kb.Text
+          style={Styles.collapseStyles([
+            styles.label,
+            Styles.isDarkMode()
+              ? focused
+                ? styles.labelDarkModeFocused
+                : styles.labelDarkMode
+              : focused
+              ? styles.labelLightModeFocused
+              : styles.labelLightMode,
+          ])}
+          type="BodyBig"
+        >
+          {
+            // @ts-ignore
+            tabToData[routeName].label
+          }
+        </Kb.Text>
+      )
 
     return (
       <Tab.Navigator

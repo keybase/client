@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as RouterConstants from './router2'
 import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
@@ -185,7 +186,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             case 'settings.contacts':
               if (useConfigState.getState().loggedIn) {
                 reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
-                reduxDispatch(RouteTreeGen.createNavUpToScreen({name: 'peopleRoot'}))
+                RouterConstants.useState.getState().dispatch.navUpToScreen('peopleRoot')
               }
               break
           }
@@ -318,7 +319,6 @@ export const useState = Z.createZustand<State>((set, get) => {
         // permissions checker finishes after the routeToInitialScreen is done.
         if (p.show && useConfigState.getState().loggedIn && !get().justSignedUp && !get().hasPermissions) {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
-          reduxDispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
           await Z.timeoutPromise(100)
           reduxDispatch(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
           reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['settingsPushPrompt']}))

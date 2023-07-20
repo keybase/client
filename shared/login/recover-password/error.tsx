@@ -1,5 +1,6 @@
 import * as Container from '../../util/container'
 import * as ConfigConstants from '../../constants/config'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/recover-password'
 import * as Kb from '../../common-adapters'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -10,8 +11,9 @@ const useConn = () => {
   const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
   const error = Constants.useState(s => s.error)
   const dispatch = Container.useDispatch()
+  const popStack = RouterConstants.useState(s => s.dispatch.popStack)
   const onBack = () => {
-    loggedIn ? dispatch(RouteTreeGen.createNavigateUp()) : dispatch(RouteTreeGen.createPopStack())
+    loggedIn ? dispatch(RouteTreeGen.createNavigateUp()) : popStack()
   }
   return {error, onBack}
 }
