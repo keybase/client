@@ -3,7 +3,6 @@ import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import logger from '../logger'
 
 const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
   switch (result) {
@@ -48,14 +47,6 @@ const initTracker = () => {
       inTracker: true,
       reason: reason.reason,
     })
-  })
-  Container.listenAction(EngineGen.connected, async () => {
-    try {
-      await RPCTypes.delegateUiCtlRegisterIdentify3UIRpcPromise()
-      logger.info('Registered identify ui')
-    } catch (error) {
-      logger.warn('error in registering identify ui: ', error)
-    }
   })
 
   // if we mutated somehow reload ourselves and reget the suggestions

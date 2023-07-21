@@ -1,5 +1,4 @@
 import * as ConfigConstants from '../constants/config'
-import * as ConfigGen from '../actions/config-gen'
 import * as ReduxToolKit from '@reduxjs/toolkit'
 import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
@@ -153,7 +152,7 @@ export default function makeStore() {
       // register our listeners
       initListeners()
       // start our 'forks'
-      store.dispatch(ConfigGen.createInitListenerLoops())
+      store.dispatch({type: 'config:initListenerLoops'})
     },
     store,
   }

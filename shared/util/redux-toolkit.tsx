@@ -1,5 +1,4 @@
 import * as ConfigConstants from '../constants/config'
-import * as ConfigGen from '../actions/config-gen'
 import isArray from 'lodash/isArray'
 import type {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
 import type {TypedState} from '../constants/reducer'
@@ -85,6 +84,6 @@ export const spawn = (effect: (listenerApi: ListenerApi) => void | Promise<void>
       await task.result
       console.log('Spawned effect ended', name ?? '')
     },
-    type: ConfigGen.initListenerLoops,
+    type: 'config:initListenerLoops',
   })
 }

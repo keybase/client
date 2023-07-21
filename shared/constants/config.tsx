@@ -18,6 +18,7 @@ import {enableActionLogging} from '../local-debug'
 import {noConversationIDKey} from './types/chat2/common'
 import {type CommonResponseHandler} from '../engine/types'
 import {useCurrentUserState} from './current-user'
+import {useDaemonState} from './daemon'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -182,6 +183,7 @@ type State = Store & {
       onFilePickerError?: (error: Error) => void
       openAppSettings?: () => void
       openAppStore?: () => void
+      onEngineConnectedDesktop?: () => void
       persistRoute?: (path?: Array<any>) => void
       setNavigatorExistsNative?: () => void
       showMainNative?: () => void
@@ -202,6 +204,8 @@ type State = Store & {
     login: (username: string, password: string) => void
     loginError: (error?: RPCError) => void
     logoutAndTryToLogInAs: (username: string) => void
+    onEngineConnected: () => void
+    onEngineDisonnected: () => void
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
     openUnlockFolders: (devices: Array<RPCTypes.Device>) => void
     powerMonitorEvent: (event: string) => void
@@ -635,6 +639,42 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         get().dispatch.setDefaultUsername(username)
       }
       Z.ignorePromise(f())
+    },
+    onEngineConnected: () => {
+      useDaemonState.getState().dispatch.startHandshake()
+
+      // The startReachability RPC call both starts and returns the current
+      // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
+      // This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
+      const startReachability = async () => {
+        try {
+          const reachability = await RPCTypes.reachabilityStartReachabilityRpcPromise()
+          get().dispatch.setGregorReachable(reachability.reachable)
+        } catch (err) {
+          logger.warn('error bootstrapping reachability: ', err)
+        }
+      }
+      Z.ignorePromise(startReachability())
+
+      // If ever you want to get OOBMs for a different system, then you need to enter it here.
+      const registerForGregorNotifications = async () => {
+        try {
+          await RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: []})
+          logger.info('Registered gregor listener')
+        } catch (error) {
+          logger.warn('error in registering gregor listener: ', error)
+        }
+      }
+      Z.ignorePromise(registerForGregorNotifications())
+
+      get().dispatch.dynamic.onEngineConnectedDesktop?.()
+    },
+    onEngineDisonnected: () => {
+      const f = async () => {
+        await logger.dump()
+      }
+      Z.ignorePromise(f())
+      useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
     },
     openUnlockFolders: devices => {
       set(s => {

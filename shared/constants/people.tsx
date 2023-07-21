@@ -353,6 +353,7 @@ type State = Store & {
   dispatch: {
     dismissAnnouncement: (id: RPCTypes.HomeScreenAnnouncementID) => void
     loadPeople: (markViewed: boolean, numFollowSuggestionsWanted?: number) => void
+    onEngineConnected: () => void
     setResentEmail: (email: string) => void
     skipTodo: (type: Types.TodoType) => void
     markViewed: () => void
@@ -498,6 +499,17 @@ export const useState = Z.createZustand<State>((set, get) => {
           } else {
             throw error
           }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    onEngineConnected: () => {
+      const f = async () => {
+        try {
+          await RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
+          console.log('Registered home UI')
+        } catch (error) {
+          console.warn('Error in registering home UI:', error)
         }
       }
       Z.ignorePromise(f())

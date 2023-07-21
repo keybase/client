@@ -1,57 +1,11 @@
 import * as Tabs from '../constants/tabs'
 import * as EngineGen from './engine-gen-gen'
 import * as FsConstants from '../constants/fs'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/notifications'
-import logger from '../logger'
+import type * as RPCTypes from '../constants/types/rpc-gen'
 import {isMobile} from '../constants/platform'
-
-const setupNotifications = async () => {
-  try {
-    await RPCTypes.notifyCtlSetNotificationsRpcPromise({
-      channels: {
-        allowChatNotifySkips: true,
-        app: true,
-        audit: true,
-        badges: true,
-        chat: true,
-        chatattachments: true,
-        chatdev: false,
-        chatemoji: false,
-        chatemojicross: false,
-        chatkbfsedits: false,
-        deviceclone: false,
-        ephemeral: false,
-        favorites: false,
-        featuredBots: true,
-        kbfs: true,
-        kbfsdesktop: !isMobile,
-        kbfslegacy: false,
-        kbfsrequest: false,
-        kbfssubscription: true,
-        keyfamily: false,
-        paperkeys: false,
-        pgp: true,
-        reachability: true,
-        runtimestats: true,
-        saltpack: true,
-        service: true,
-        session: true,
-        team: true,
-        teambot: false,
-        tracking: true,
-        users: true,
-        wallet: false,
-      },
-    })
-  } catch (error) {
-    if (error != null) {
-      logger.warn('error in toggling notifications: ', error)
-    }
-  }
-}
 
 const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState) => {
   const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
@@ -119,7 +73,6 @@ const receivedBoxAuditError = (_: unknown, action: EngineGen.Keybase1NotifyAudit
 const initNotifications = () => {
   Container.listenAction(EngineGen.keybase1NotifyAuditRootAuditError, receivedRootAuditError)
   Container.listenAction(EngineGen.keybase1NotifyAuditBoxAuditError, receivedBoxAuditError)
-  Container.listenAction(EngineGen.connected, setupNotifications)
   Container.listenAction(EngineGen.keybase1NotifyBadgesBadgeState, (_, action) => {
     const badgeState = action.payload.params.badgeState
     ConfigConstants.useConfigState.getState().dispatch.setBadgeState(badgeState)

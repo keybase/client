@@ -2,7 +2,6 @@ import * as Constants from '../constants/people'
 import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Tabs from '../constants/tabs'
 
 // const dismissWotNotifications = async (_: unknown, action: PeopleGen.DismissWotNotificationsPayload) => {
@@ -24,14 +23,6 @@ import * as Tabs from '../constants/tabs'
 const initPeople = () => {
   Container.listenAction(EngineGen.keybase1HomeUIHomeUIRefresh, () => {
     Constants.useState.getState().dispatch.loadPeople(false)
-  })
-  Container.listenAction(EngineGen.connected, async () => {
-    try {
-      await RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
-      console.log('Registered home UI')
-    } catch (error) {
-      console.warn('Error in registering home UI:', error)
-    }
   })
   RouterConstants.useState.subscribe((s, old) => {
     const next = s.navState

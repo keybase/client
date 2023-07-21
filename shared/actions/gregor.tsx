@@ -1,4 +1,3 @@
-import logger from '../logger'
 import * as ConfigConstants from '../constants/config'
 import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -17,28 +16,6 @@ const reachabilityChanged = (
   }
 }
 
-// If ever you want to get OOBMs for a different system, then you need to enter it here.
-const registerForGregorNotifications = async () => {
-  try {
-    await RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: []})
-    logger.info('Registered gregor listener')
-  } catch (error) {
-    logger.warn('error in registering gregor listener: ', error)
-  }
-}
-
-// The startReachability RPC call both starts and returns the current
-// reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
-// This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
-const startReachability = async () => {
-  try {
-    const reachability = await RPCTypes.reachabilityStartReachabilityRpcPromise()
-    ConfigConstants.useConfigState.getState().dispatch.setGregorReachable(reachability.reachable)
-  } catch (err) {
-    logger.warn('error bootstrapping reachability: ', err)
-  }
-}
-
 const checkReachability = () => {
   const f = async () => {
     try {
@@ -54,9 +31,6 @@ const initGregor = () => {
     if (s.networkStatus === old.networkStatus) return
     checkReachability()
   })
-
-  Container.listenAction(EngineGen.connected, registerForGregorNotifications)
-  Container.listenAction(EngineGen.connected, startReachability)
   Container.listenAction(EngineGen.keybase1ReachabilityReachabilityChanged, reachabilityChanged)
 }
 

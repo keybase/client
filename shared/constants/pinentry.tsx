@@ -35,6 +35,7 @@ type State = Store & {
         result: (param: RPCTypes.GetPassphraseRes) => void
       }
     ) => void
+    onEngineConnected: () => void
     resetState: () => void
   }
 }
@@ -44,6 +45,17 @@ export const useState = Z.createZustand<State>((set, get) => {
     dynamic: {
       onCancel: undefined,
       onSubmit: undefined,
+    },
+    onEngineConnected: () => {
+      const f = async () => {
+        try {
+          await RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
+          logger.info('Registered secret ui')
+        } catch (error) {
+          logger.warn('error in registering secret ui: ', error)
+        }
+      }
+      Z.ignorePromise(f())
     },
     resetState: () => {
       set(s => ({...s, ...initialStore, dispatch: s.dispatch}))

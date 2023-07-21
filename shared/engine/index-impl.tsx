@@ -11,6 +11,7 @@ import {isMobile} from '../constants/platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
 import {type RPCError, convertToError} from '../util/errors'
+import {useState} from '../constants/engine'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
@@ -101,7 +102,7 @@ class Engine {
   }
 
   _onDisconnect() {
-    this._dispatch({payload: undefined, type: 'engine-gen:disconnected'})
+    useState.getState().dispatch.disconnected()
   }
 
   // We want to dispatch the connect action but only after listeners boot up
@@ -109,7 +110,7 @@ class Engine {
     this._listenersAreReady = true
     if (this._hasConnected) {
       // dispatch the action version
-      this._dispatch({payload: undefined, type: 'engine-gen:connected'})
+      useState.getState().dispatch.connected()
     }
 
     const f = async () => {
@@ -124,12 +125,7 @@ class Engine {
   // Called when we reconnect to the server
   _onConnected() {
     this._hasConnected = true
-
-    // listeners already booted so they can get this
-    if (this._listenersAreReady) {
-      // dispatch the action version
-      this._dispatch({payload: undefined, type: 'engine-gen:connected'})
-    }
+    useState.getState().dispatch.connected()
   }
 
   // Create and return the next unique session id

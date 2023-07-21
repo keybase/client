@@ -241,6 +241,7 @@ export type State = Store & {
     notifyRow: (row: RPCTypes.Identify3Row) => void
     notifySummary: (summary: RPCTypes.Identify3Summary) => void
     notifyUserBlocked: (b: RPCTypes.UserBlockedSummary) => void
+    onEngineConnected: () => void
     replace: (usernameToDetails: Map<string, Types.Details>) => void
     resetState: 'default'
     showUser: (username: string, asTracker: boolean, skipNav?: boolean) => void
@@ -531,6 +532,17 @@ export const useState = Z.createZustand<State>((set, get) => {
         })
         d.followersCount = d.followers?.size
       })
+    },
+    onEngineConnected: () => {
+      const f = async () => {
+        try {
+          await RPCTypes.delegateUiCtlRegisterIdentify3UIRpcPromise()
+          logger.info('Registered identify ui')
+        } catch (error) {
+          logger.warn('error in registering identify ui: ', error)
+        }
+      }
+      Z.ignorePromise(f())
     },
     replace: usernameToDetails => {
       set(s => {

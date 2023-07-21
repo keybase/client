@@ -29,6 +29,7 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
+    onEngineConnected: () => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     resetState: 'default'
   }
@@ -37,6 +38,18 @@ type State = Store & {
 export const useState = Z.createZustand<State>(() => {
   const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
+    onEngineConnected: () => {
+      const f = async () => {
+        try {
+          await RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
+          await RPCTypes.delegateUiCtlRegisterLogUIRpcPromise()
+          console.log('Registered Chat UI')
+        } catch (error) {
+          console.warn('Error in registering Chat UI:', error)
+        }
+      }
+      Z.ignorePromise(f())
+    },
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {
       const f = async () => {
         // need to let the mdoal hide first else its thrashy

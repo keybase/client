@@ -31,16 +31,6 @@ import {getEngine} from '../engine'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
-const onConnect = async () => {
-  try {
-    await RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
-    await RPCTypes.delegateUiCtlRegisterLogUIRpcPromise()
-    console.log('Registered Chat UI')
-  } catch (error) {
-    console.warn('Error in registering Chat UI:', error)
-  }
-}
-
 const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
   const {inbox} = action.payload.params
   const result = JSON.parse(inbox) as RPCChatTypes.UnverifiedInboxUIItems
@@ -4021,7 +4011,6 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.sendAudioRecording, sendAudioRecording)
 
-  Container.listenAction(EngineGen.connected, onConnect)
   Container.listenAction(Chat2Gen.setInboxNumSmallRows, setInboxNumSmallRows)
 
   Container.listenAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
