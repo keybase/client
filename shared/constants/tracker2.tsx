@@ -337,7 +337,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               const f = async () => {
                 // we're on the profile page for a user that does not exist. Currently the only way
                 // to get here is with an invalid link or deeplink.
-                const LinksConstants = await './deeplinks'
+                const LinksConstants = await import('./deeplinks')
                 LinksConstants.useState
                   .getState()
                   .dispatch.setLinkError(
