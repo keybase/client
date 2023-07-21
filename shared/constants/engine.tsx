@@ -1,4 +1,5 @@
 import * as Z from '../util/zustand'
+import * as EngineGen from '../actions/engine-gen-gen'
 
 type Store = {}
 const initialStore: Store = {}
@@ -7,7 +8,7 @@ type State = Store & {
   dispatch: {
     connected: () => void
     disconnected: () => void
-    incomingCall: () => void
+    incomingCall: (action: EngineGen.Actions) => void
     resetState: 'default'
   }
 }
@@ -17,18 +18,18 @@ export const useState = Z.createZustand<State>(() => {
     connected: () => {
       const f = async () => {
         const PinentryConstants = await import('./pinentry')
-        PinentryConstants.useState.getState().dispatch.onEngineConnected()
         const TrackerConstants = await import('./tracker2')
-        TrackerConstants.useState.getState().dispatch.onEngineConnected()
         const ConfigConstants = await import('./config')
-        ConfigConstants.useConfigState.getState().dispatch.onEngineConnected()
         const UnlockFolderConstants = await import('./unlock-folders')
-        UnlockFolderConstants.useState.getState().dispatch.onEngineConnected()
         const PeopleConstants = await import('./people')
-        PeopleConstants.useState.getState().dispatch.onEngineConnected()
         const NotifConstants = await import('./notifications')
-        NotifConstants.useState.getState().dispatch.onEngineConnected()
         const ChatConstants = await import('./chat2')
+        PinentryConstants.useState.getState().dispatch.onEngineConnected()
+        TrackerConstants.useState.getState().dispatch.onEngineConnected()
+        ConfigConstants.useConfigState.getState().dispatch.onEngineConnected()
+        UnlockFolderConstants.useState.getState().dispatch.onEngineConnected()
+        PeopleConstants.useState.getState().dispatch.onEngineConnected()
+        NotifConstants.useState.getState().dispatch.onEngineConnected()
         ChatConstants.useState.getState().dispatch.onEngineConnected()
       }
       Z.ignorePromise(f())
@@ -40,7 +41,55 @@ export const useState = Z.createZustand<State>(() => {
       }
       Z.ignorePromise(f())
     },
-    incomingCall: () => {},
+    incomingCall: action => {
+      const f = async () => {
+        const TeamsConstants = await import('./teams')
+        const RouterConstants = await import('./router2')
+        switch (action.type) {
+          case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
+            TeamsConstants.useState.getState().dispatch.eagerLoadTeams()
+            TeamsConstants.useState.getState().dispatch.resetTeamMetaStale()
+            break
+          case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded: {
+            const {teamID, message} = action.payload.params
+            TeamsConstants.useState.getState().dispatch.loadedWelcomeMessage(teamID, message)
+            break
+          }
+          case EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial: {
+            const {membership} = action.payload.params
+            TeamsConstants.useState.getState().dispatch.notifyTreeMembershipsPartial(membership)
+            break
+          }
+          case EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone: {
+            const {result} = action.payload.params
+            TeamsConstants.useState.getState().dispatch.notifyTreeMembershipsDone(result)
+            break
+          }
+          case EngineGen.keybase1NotifyTeamTeamRoleMapChanged: {
+            const {newVersion} = action.payload.params
+            TeamsConstants.useState.getState().dispatch.notifyTeamTeamRoleMapChanged(newVersion)
+            break
+          }
+          case EngineGen.keybase1NotifyTeamTeamChangedByID:
+            TeamsConstants.useState.getState().dispatch.teamChangedByID(action.payload.params)
+            break
+
+          case EngineGen.keybase1NotifyTeamTeamDeleted:
+            // likely wrong?
+            if (RouterConstants.getTab()) {
+              RouterConstants.useState.getState().dispatch.navUpToScreen('teamsRoot')
+            }
+            break
+          case EngineGen.keybase1NotifyTeamTeamExit:
+            if (RouterConstants.getTab()) {
+              RouterConstants.useState.getState().dispatch.navUpToScreen('teamsRoot')
+            }
+            break
+          default:
+        }
+      }
+      Z.ignorePromise(f())
+    },
     resetState: 'default',
   }
   return {

@@ -1,5 +1,4 @@
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as EngineGen from '../actions/engine-gen-gen'
 import type {TypedDispatch, TypedActions} from '../util/container'
 import {debugFullLogs} from '../local-debug'
 import logger from '../logger'
@@ -35,10 +34,6 @@ const transformActionForLog = (action: TypedActions) => {
     case Chat2Gen.updateMoreToLoad: // fallthrough
     case Chat2Gen.setConversationOffline: // fallthrough
       return action
-
-    // no output
-    case EngineGen.chat1NotifyChatChatTypingUpdate: // fallthrough
-      return null
 
     // custom
     case Chat2Gen.messagesWereDeleted: // fallthrough

@@ -11,6 +11,7 @@ import {isMobile} from '../constants/platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
 import {type RPCError, convertToError} from '../util/errors'
+import type * as EngineGen from '../actions/engine-gen-gen'
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
@@ -57,6 +58,15 @@ class Engine {
   }, 500)
 
   constructor(dispatch: TypedDispatch, dispatchBatch: (changes: BatchParams) => void) {
+    const f = async () => {
+      this._engineConstantsIncomingCall = (
+        await import('../constants/engine')
+      ).useState.getState().dispatch.incomingCall
+    }
+    f()
+      .then(() => {})
+      .catch(() => {})
+
     // setup some static vars
     if (DEFER_INCOMING_DURING_DEBUG) {
       this._dispatch = a => setTimeout(() => dispatch(a), 1)
@@ -150,6 +160,7 @@ class Engine {
     }
   }
 
+  // TODO likely remove
   _callbackAndNotAction = new Map<string, (action: any) => void>()
   registerRpcCallback = (rpcName: string, cb: (action: any) => void) => {
     if (this._callbackAndNotAction.has(rpcName)) {
@@ -191,6 +202,9 @@ class Engine {
           .join('')
 
         const act = {payload: {params: param, ...extra}, type: `engine-gen:${type}`}
+        this._engineConstantsIncomingCall(act as any)
+
+        // TODO >>>>>>>>>>>>>>>>>>>>>>>>>> remove when chat is done
         // allow us to skip going through redux for these notifications
         const maybeCB = this._callbackAndNotAction.get(act.type)
         if (maybeCB) {
@@ -201,6 +215,9 @@ class Engine {
         }
       }
     }
+  }
+  _engineConstantsIncomingCall = (_a: EngineGen.Actions): void => {
+    throw Error('needs override')
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers

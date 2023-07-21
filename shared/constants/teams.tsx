@@ -1101,6 +1101,7 @@ export type State = Store & {
     deleteChannelConfirmed: (teamID: Types.TeamID, conversationIDKey: ChatTypes.ConversationIDKey) => void
     deleteMultiChannelsConfirmed: (teamID: Types.TeamID, channels: Array<ChatTypes.ConversationIDKey>) => void
     deleteTeam: (teamID: Types.TeamID) => void
+    eagerLoadTeams: () => void
     editMembership: (teamID: Types.TeamID, usernames: Array<string>, role: Types.TeamRoleType) => void
     editTeamDescription: (teamID: Types.TeamID, description: string) => void
     finishNewTeamWizard: () => void
@@ -1137,6 +1138,7 @@ export type State = Store & {
     manageChatChannels: (teamID: Types.TeamID) => void
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => void
     notifyTreeMembershipsPartial: (membership: RPCChatTypes.Keybase1.TeamTreeMembership) => void
+    notifyTeamTeamRoleMapChanged: (newVersion: number) => void
     openInviteLink: (inviteID: string, inviteKey: string) => void
     onGregorPushState: (gs: Array<{md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}>) => void
     reAddToTeam: (teamID: Types.TeamID, username: string) => void
@@ -1776,6 +1778,14 @@ export const useState = Z.createZustand<State>((set, get) => {
     dynamic: {
       respondToInviteLink: undefined,
     },
+    eagerLoadTeams: () => {
+      if (get().teamMetaSubscribeCount > 0) {
+        logger.info('eagerly reloading')
+        get().dispatch.getTeams()
+      } else {
+        logger.info('skipping')
+      }
+    },
     editMembership: (teamID, usernames, r) => {
       const f = async () => {
         const role = RPCTypes.TeamRole[r]
@@ -2347,6 +2357,14 @@ export const useState = Z.createZustand<State>((set, get) => {
       RouterConstants.useState
         .getState()
         .dispatch.navigateAppend({props: {teamID}, selected: 'teamAddToChannels'})
+    },
+    notifyTeamTeamRoleMapChanged: (newVersion: number) => {
+      const loadedVersion = get().teamRoleMap.loadedVersion
+      logger.info(`Got teamRoleMapChanged with version ${newVersion}, loadedVersion is ${loadedVersion}`)
+      if (loadedVersion >= newVersion) {
+        return
+      }
+      get().dispatch.refreshTeamRoleMap()
     },
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => {
       const {guid, targetTeamID, targetUsername, expectedCount} = result
