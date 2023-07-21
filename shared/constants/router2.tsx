@@ -317,12 +317,12 @@ export const useState = Z.createZustand<State>(() => {
       }
       if (replace) {
         if (visible?.name === routeName) {
-          return [CommonActions.setParams(params)]
+          n.dispatch(CommonActions.setParams(params))
         } else {
-          return [StackActions.replace(routeName, params)]
+          n.dispatch(StackActions.replace(routeName, params))
         }
       }
-      return [StackActions.push(routeName, params)]
+      n.dispatch(StackActions.push(routeName, params))
     },
     navigateUp: () => {
       const n = _getNavigator()
