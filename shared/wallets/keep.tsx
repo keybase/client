@@ -60,7 +60,7 @@ const Row = (p: {account: Types.Account}) => {
         <Kb.Text type="Body" title={accountID} lineClamp={1} style={styles.accountID}>
           ID: {accountID}
         </Kb.Text>
-        <Kb.Text type="Body" lineClamp={1}>
+        <Kb.Text type="BodyBold" lineClamp={1}>
           Balance: {balanceDescription}
         </Kb.Text>
         <Kb.Box2
@@ -144,13 +144,11 @@ export default () => {
     <Kb.ScrollView style={styles.scroll}>
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         {loading ? <Kb.ProgressIndicator /> : null}
-        <Kb.Text type="BodyBig">Stellar Wallets are no longer supported in Keybase</Kb.Text>
+        <Kb.Text type="BodyBig">Stellar Transactions Are No Longer Supported in the Keybase App</Kb.Text>
         {acceptedDisclaimer ? (
           <>
             <Kb.Text type="Body">
-              If you have created a Stellar wallet in Keybase you can access your private keys below. In the
-              near future transactions through the Keybase app will stop functioning. Export your private keys
-              and import them in other Stellar wallets.
+              Please export your stellar balances to alternative wallets using your secret keys below.
             </Kb.Text>
             <Kb.Banner color="yellow" inline={true}>
               Only paste your secret key in 100% safe places. Anyone with this key could steal your Stellar
