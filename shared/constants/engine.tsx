@@ -1,4 +1,6 @@
 import * as Z from '../util/zustand'
+import logger from '../logger'
+import * as RPCTypes from './types/rpc-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 
 type Store = {}
@@ -45,6 +47,7 @@ export const useState = Z.createZustand<State>(() => {
       const f = async () => {
         const TeamsConstants = await import('./teams')
         const RouterConstants = await import('./router2')
+        const SettingsConstants = await import('./settings')
         switch (action.type) {
           case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
             TeamsConstants.useState.getState().dispatch.eagerLoadTeams()
@@ -84,6 +87,29 @@ export const useState = Z.createZustand<State>(() => {
             if (RouterConstants.getTab()) {
               RouterConstants.useState.getState().dispatch.navUpToScreen('teamsRoot')
             }
+            break
+          case EngineGen.keybase1NotifyUsersPasswordChanged: {
+            const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
+            SettingsConstants.usePasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
+            break
+          }
+          case EngineGen.keybase1NotifyPhoneNumberPhoneNumbersChanged: {
+            const {list} = action.payload.params
+            SettingsConstants.usePhoneState
+              .getState()
+              .dispatch.notifyPhoneNumberPhoneNumbersChanged(list ?? undefined)
+            break
+          }
+          case EngineGen.keybase1NotifyEmailAddressEmailsChanged: {
+            const list = action.payload.params.list ?? []
+            SettingsConstants.useEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
+            break
+          }
+          case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+            logger.info('email verified')
+            SettingsConstants.useEmailState
+              .getState()
+              .dispatch.notifyEmailVerified(action.payload.params.emailAddress)
             break
           default:
         }
