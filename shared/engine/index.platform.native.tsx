@@ -18,7 +18,6 @@ class NativeTransport extends TransportShared {
 
   // We're always connected, so call the callback
   connect(cb: (err?: any) => void) {
-    console.log('aaa connect native ts')
     cb()
   }
   is_connected() {
@@ -73,7 +72,6 @@ function createClient(
     try {
       switch (payload) {
         case 'kb-engine-reset':
-          console.log('aaa connected')
           connectCallback()
       }
     } catch (e) {

@@ -116,7 +116,6 @@ class Engine {
   // Called when we reconnect to the server. This only happens in node in the electron side.
   // We proxy the stuff over the mainWindowDispatch
   _onConnected() {
-    console.log('aaa connected in engine')
     this._hasConnected = true
     this._dispatch({payload: {connected: true}, type: 'remote:engineConnection'})
   }
@@ -197,7 +196,6 @@ class Engine {
         if (maybeCB) {
           maybeCB(act)
         } else {
-          console.log('aaaa engine dispatch')
           // @ts-ignore can't really type this easily
           this._dispatch(act)
         }

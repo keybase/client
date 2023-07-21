@@ -1,8 +1,10 @@
 import * as Chat2Gen from '../chat2-gen'
+import * as RemoteGen from '../remote-gen'
 import * as Clipboard from 'expo-clipboard'
 import * as ConfigConstants from '../../constants/config'
 import * as ProfileConstants from '../../constants/profile'
 import * as ChatConstants from '../../constants/chat2'
+import * as EngineConstants from '../../constants/engine'
 import * as Container from '../../util/container'
 import * as DarkMode from '../../constants/darkmode'
 import * as EngineGen from '../engine-gen-gen'
@@ -579,6 +581,16 @@ export const initPlatformListener = () => {
   })
 
   Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
+
+  // mobile version of the remote connection
+  Container.listenAction(RemoteGen.engineConnection, (_, a) => {
+    if (a.payload.connected) {
+      EngineConstants.useState.getState().dispatch.connected()
+      ConfigConstants.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
+    } else {
+      EngineConstants.useState.getState().dispatch.connected()
+    }
+  })
 
   // Start this immediately instead of waiting so we can do more things in parallel
   Container.spawn(loadStartupDetails, 'loadStartupDetails')
