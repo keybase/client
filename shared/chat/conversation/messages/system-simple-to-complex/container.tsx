@@ -1,9 +1,9 @@
+import * as RouterConstants from '../../../../constants/router2'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import SystemSimpleToComplex from '.'
 import type * as Types from '../../../../constants/types/chat2'
 
@@ -14,14 +14,14 @@ const SystemSimpleToComplexContainer = React.memo(function SystemSimpleToComplex
   const {conversationIDKey} = message
   const {teamID} = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const dispatch = Container.useDispatch()
   const manageChatChannels = TeamsConstants.useState(s => s.dispatch.manageChatChannels)
   const onManageChannels = React.useCallback(() => {
     manageChatChannels(teamID)
   }, [manageChatChannels, teamID])
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onViewTeam = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
-  }, [dispatch, teamID])
+    navigateAppend({props: {teamID}, selected: 'team'})
+  }, [navigateAppend, teamID])
   const props = {
     message,
     onManageChannels,

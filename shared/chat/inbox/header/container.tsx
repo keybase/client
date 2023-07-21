@@ -31,7 +31,7 @@ export default (ownProps: OwnProps) => {
     dispatch(Chat2Gen.createInboxSearchSelect({}))
   }
   const onNewChat = () => {
-    dispatch(appendNewChatBuilder())
+    appendNewChatBuilder()
   }
   const onQueryChanged = (query: string) => {
     dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(query)}))

@@ -3,7 +3,6 @@ import * as RouterConstants from './router2'
 import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Tabs from './tabs'
 import * as WaitingConstants from './waiting'
 import * as Z from '../util/zustand'
@@ -321,7 +320,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
           await Z.timeoutPromise(100)
           RouterConstants.useState.getState().dispatch.switchTab(Tabs.peopleTab)
-          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['settingsPushPrompt']}))
+          RouterConstants.useState.getState().dispatch.navigateAppend('settingsPushPrompt')
         }
       }
       Z.ignorePromise(monsterPrompt())

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import * as ProfileConstants from '../../constants/profile'
 import * as RouterConstants from '../../constants/router2'
@@ -16,14 +15,14 @@ type OwnProps = ConnectedNameWithIconProps
 const ConnectedNameWithIcon = (p: OwnProps) => {
   const {onClick, username, teamname, ...props} = p
   const teamID = TeamsConstants.useState(s => s.teamNameToID.get(teamname ?? ''))
-  const dispatch = Container.useDispatch()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onOpenTeamProfile = React.useCallback(() => {
     if (teamID) {
       clearModals()
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+      navigateAppend({props: {teamID}, selected: 'team'})
     }
-  }, [clearModals, dispatch, teamID])
+  }, [clearModals, navigateAppend, teamID])
   const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onOpenTracker = React.useCallback(() => {
     username && showUser(username, true)

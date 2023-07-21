@@ -4,7 +4,6 @@ import * as RouterConstants from './router2'
 import openURL from '../util/open-url'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import {useCurrentUserState, useConfigState} from './config'
 import * as Tabs from './tabs'
 import logger from '../logger'
@@ -101,7 +100,6 @@ export type State = Store & {
 
 let maybeLoadAppLinkOnce = false
 export const useState = Z.createZustand<State>(set => {
-  const reduxDispatch = Z.getReduxDispatch()
   const maybeLoadAppLink = () => {
     const phones = usePhoneState.getState().phones
     if (!phones || phones.size > 0) {
@@ -117,7 +115,7 @@ export const useState = Z.createZustand<State>(set => {
     }
     maybeLoadAppLinkOnce = true
     RouterConstants.useState.getState().dispatch.switchTab(Tabs.settingsTab)
-    reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
+    RouterConstants.useState.getState().dispatch.navigateAppend('settingsAddPhone')
   }
 
   const dispatch: State['dispatch'] = {
@@ -149,7 +147,7 @@ export const useState = Z.createZustand<State>(set => {
 
         await RPCTypes.loginAccountDeleteRpcPromise({passphrase}, settingsWaitingKey)
         useConfigState.getState().dispatch.setJustDeletedSelf(username)
-        reduxDispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}))
+        RouterConstants.useState.getState().dispatch.navigateAppend(Tabs.loginTab)
       }
       Z.ignorePromise(f())
     },

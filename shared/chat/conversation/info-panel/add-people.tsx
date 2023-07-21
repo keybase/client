@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as TeamsConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../constants/router2'
 import * as Styles from '../../../styles'
 import type * as TeamTypes from '../../../constants/types/teams'
 import type * as Types from '../../../constants/types/chat2'
@@ -79,18 +79,13 @@ type OwnProps = {
 const AddPeople = (ownProps: OwnProps) => {
   const meta = Container.useSelector(state => Constants.getMeta(state, ownProps.conversationIDKey))
   const teamID = meta.teamID
-
-  const dispatch = Container.useDispatch()
   const startAddMembersWizard = TeamsConstants.useState(s => s.dispatch.startAddMembersWizard)
   const _onAddPeople = (teamID: TeamTypes.TeamID) => {
     startAddMembersWizard(teamID)
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _onAddToChannel = (conversationIDKey: Types.ConversationIDKey, teamID: TeamTypes.TeamID) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
-      })
-    )
+    navigateAppend({props: {conversationIDKey, teamID}, selected: 'chatAddToChannel'})
   }
   const props = {
     isAdmin: ownProps.isAdmin,
@@ -110,7 +105,7 @@ const styles = Styles.styleSheetCreate(
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
       },
-    } as const)
+    }) as const
 )
 
 export default AddPeople

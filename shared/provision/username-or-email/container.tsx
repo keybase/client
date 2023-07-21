@@ -4,7 +4,6 @@ import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupConstants from '../../constants/signup'
 import Username from '.'
 import shallowEqual from 'shallowequal'
@@ -46,14 +45,11 @@ const UsernameOrEmailContainer = (op: OwnProps) => {
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
   const hasError = !!error || !!inlineError || inlineSignUpLink
 
-  const dispatch = Container.useDispatch()
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const _onBack = navigateUp
   const onBack = Container.useSafeSubmit(_onBack, hasError)
-  const onForgotUsername = React.useCallback(
-    () => dispatch(RouteTreeGen.createNavigateAppend({path: ['forgotUsername']})),
-    [dispatch]
-  )
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const onForgotUsername = React.useCallback(() => navigateAppend('forgotUsername'), [navigateAppend])
   const requestAutoInvite = SignupConstants.useState(s => s.dispatch.requestAutoInvite)
   const onGoToSignup = requestAutoInvite
   const setUsername = Constants.useState(s => s.dispatch.dynamic.setUsername)

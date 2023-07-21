@@ -1,8 +1,7 @@
+import * as RouterConstants from '../constants/router2'
 import * as Constants from '../constants/devices'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import {formatTimeForDeviceTimeline, formatTimeRelativeToNow} from '../util/timestamp'
 
@@ -91,12 +90,12 @@ const Timeline = ({device}: any) => {
 const DevicePage = (ownProps: OwnProps) => {
   const id = ownProps.deviceID
   const iconNumber = Constants.useDeviceIconNumber(id)
-  const dispatch = Container.useDispatch()
   const device = Constants.useDevicesState(s => s.deviceMap.get(id))
   const canRevoke = Constants.useActiveDeviceCounts() > 1
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const showRevokeDevicePage = React.useCallback(() => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {deviceID: id}, selected: 'deviceRevoke'}]}))
-  }, [dispatch, id])
+    navigateAppend({props: {deviceID: id}, selected: 'deviceRevoke'})
+  }, [navigateAppend, id])
 
   const metaOne = device?.currentDevice ? (
     'Current device'
@@ -192,7 +191,7 @@ const styles = Styles.styleSheetCreate(
         height: 6,
         width: 2,
       },
-    } as const)
+    }) as const
 )
 
 export default DevicePage

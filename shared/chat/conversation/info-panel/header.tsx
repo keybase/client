@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../constants/router2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as TeamConstants from '../../../constants/teams'
 import * as Kb from '../../../common-adapters'
@@ -168,18 +168,12 @@ type AdhocHeaderProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
 export const AdhocHeader = (props: AdhocHeaderProps) => {
   const {conversationIDKey} = props
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onShowNewTeamDialog = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey},
-            selected: 'chatShowNewTeamDialog',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {conversationIDKey},
+      selected: 'chatShowNewTeamDialog',
+    })
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
@@ -249,7 +243,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         justifyContent: 'space-between',
       },
-    } as const)
+    }) as const
 )
 
 export {TeamHeader}

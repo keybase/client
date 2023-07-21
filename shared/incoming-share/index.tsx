@@ -2,12 +2,10 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as RouterConstants from '../constants/router2'
-import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as FsTypes from '../constants/types/fs'
 import * as FsConstants from '../constants/fs'
 import * as FsCommon from '../fs/common'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Platform from '../constants/platform'
 import * as SettingsConstants from '../constants/settings'
 import * as ConfigConstants from '../constants/config'
@@ -160,23 +158,17 @@ const useHeader = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
 }
 
 const useFooter = (incomingShareItems: Array<RPCTypes.IncomingShareItem>) => {
-  const dispatch = Container.useDispatch()
   const setIncomingShareSource = FsConstants.useState(s => s.dispatch.setIncomingShareSource)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const saveInFiles = () => {
     setIncomingShareSource(incomingShareItems)
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              // headerRightButton: <OriginalOrCompressedButton incomingShareItems={incomingShareItems} />,
-              index: 0,
-            },
-            selected: 'destinationPicker',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {
+        // headerRightButton: <OriginalOrCompressedButton incomingShareItems={incomingShareItems} />,
+        index: 0,
+      },
+      selected: 'destinationPicker',
+    })
   }
   return isChatOnly(incomingShareItems)
     ? undefined
@@ -227,20 +219,14 @@ const IncomingShare = (props: IncomingShareProps) => {
 }
 
 const IncomingShareError = () => {
-  const dispatch = Container.useDispatch()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const erroredSendFeedback = () => {
     clearModals()
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {feedback: `iOS share failure`},
-            selected: SettingsConstants.feedbackTab,
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {feedback: `iOS share failure`},
+      selected: SettingsConstants.feedbackTab,
+    })
   }
   const onCancel = () => clearModals()
 

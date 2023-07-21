@@ -1,5 +1,5 @@
+import * as RouterConstants from './router2'
 import * as Z from '../util/zustand'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
 import trim from 'lodash/trim'
@@ -54,7 +54,6 @@ export type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     loadInvites: () => {
       const f = async () => {
@@ -158,9 +157,9 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.error = ''
             })
             get().dispatch.loadInvites()
-            reduxDispatch(
-              RouteTreeGen.createNavigateAppend({path: [{props: {email, link}, selected: 'inviteSent'}]})
-            )
+            RouterConstants.useState
+              .getState()
+              .dispatch.navigateAppend({props: {email, link}, selected: 'inviteSent'})
           }
         } catch (error) {
           if (!(error instanceof RPCError)) {

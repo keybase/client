@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
@@ -65,16 +64,11 @@ const Connected = (ownProps?: OwnProps) => {
   const path = ownProps?.path ?? Constants.defaultPath
   const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
   const kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
-
-  const dispatch = Container.useDispatch()
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const emitBarePreview = () => {
     navigateUp()
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {path}, selected: 'barePreview'}],
-      })
-    )
+    navigateAppend({props: {path}, selected: 'barePreview'})
   }
   const isDefinitelyFolder = Types.getPathElements(path).length <= 3 && !Constants.hasSpecialFileElement(path)
   const props = {

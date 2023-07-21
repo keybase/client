@@ -1,13 +1,16 @@
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
 import * as Z from '../util/zustand'
 import * as Container from '../util/container'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Tabs from '../constants/tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import shallowEqual from 'shallowequal'
-import type {NavState, Route} from './types/route-tree'
 import type {ConversationIDKey} from './types/chat2/common'
+import type {NavigationState} from '@react-navigation/core'
+import type {NavigateAppendType} from '../router-v2/route-params'
+export type PathParam = NavigateAppendType
+type Route = NavigationState['routes'][0]
+export type NavState = Route['state']
 
 export const navigationRef_ = createNavigationContainerRef()
 export const _getNavigator = () => {
@@ -82,63 +85,6 @@ export const getVisibleScreen = (navState?: NavState) => {
   return visible[visible.length - 1]
 }
 
-// Helper to convert old route tree actions to new actions. Likely goes away as we make
-// actual routing actions (or make RouteTreeGen append/up the only action)
-const oldActionToNewActions = (action: RTGActions, navigationState: any, allowAppendDupe?: boolean) => {
-  switch (action.type) {
-    case RouteTreeGen.navigateAppend: {
-      if (!navigationState) {
-        return
-      }
-      const p = action.payload.path[action.payload.path.length - 1]
-      if (!p) {
-        return
-      }
-      let routeName: string | undefined
-      let params: any
-
-      if (typeof p === 'string') {
-        routeName = p
-      } else {
-        routeName = p.selected
-        params = p.props
-      }
-
-      if (!routeName) {
-        return
-      }
-
-      const path = getVisiblePath(navigationState)
-      const visible = path[path.length - 1]
-      if (visible) {
-        if (!allowAppendDupe && routeName === visible.name && shallowEqual(visible.params, params)) {
-          console.log('Skipping append dupe')
-          return
-        }
-      }
-
-      if (action.payload.fromKey) {
-        const {fromKey} = action.payload
-        if (fromKey !== visible?.key) {
-          logger.warn('Skipping append on wrong screen')
-          return
-        }
-      }
-
-      if (action.payload.replace) {
-        if (visible?.name === routeName) {
-          return [CommonActions.setParams(params)]
-        } else {
-          return [StackActions.replace(routeName, params)]
-        }
-      }
-
-      return [StackActions.push(routeName, params)]
-    }
-    default:
-      return undefined
-  }
-}
 type DeepWriteable<T> = {-readonly [P in keyof T]: DeepWriteable<T[P]>}
 
 const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
@@ -182,23 +128,6 @@ const navUpHelper = (s: DeepWriteable<NavState>, name: string) => {
   }
 
   navUpHelper(route.state, name)
-}
-
-type RTGActions = RouteTreeGen.NavigateAppendPayload
-
-export const dispatchOldAction = (action: RTGActions) => {
-  const rs = getRootState()
-  if (!rs) {
-    return
-  }
-  const actions = oldActionToNewActions(action, rs) || []
-  try {
-    actions.forEach(a => {
-      navigationRef_.dispatch(a)
-    })
-  } catch (e) {
-    logger.error('Nav error', e)
-  }
 }
 
 export const getTab = (navState?: NavState) => {
@@ -313,6 +242,7 @@ export type State = Store & {
     dynamic: {
       tabLongPress?: (tab: string) => void
     }
+    navigateAppend: (path: PathParam, replace?: boolean, fromKey?: string) => void
     navigateUp: () => void
     navUpToScreen: (name: string) => void
     popStack: () => void
@@ -352,6 +282,47 @@ export const useState = Z.createZustand<State>(() => {
         navUpHelper(draft as DeepWriteable<NavState>, name)
       })
       n.dispatch(CommonActions.reset(nextState))
+    },
+    navigateAppend: (path, replace, fromKey) => {
+      const n = _getNavigator()
+      if (!n) return
+      const ns = getRootState()
+      if (!ns) {
+        return
+      }
+      let routeName: string | undefined
+      let params: any
+      if (typeof path === 'string') {
+        routeName = path
+      } else {
+        routeName = path.selected
+        params = path.props
+      }
+      if (!routeName) {
+        return
+      }
+      const vp = getVisiblePath(ns)
+      const visible = vp[vp.length - 1]
+      if (visible) {
+        if (routeName === visible.name && shallowEqual(visible.params, params)) {
+          console.log('Skipping append dupe')
+          return
+        }
+      }
+      if (fromKey) {
+        if (fromKey !== visible?.key) {
+          logger.warn('Skipping append on wrong screen')
+          return
+        }
+      }
+      if (replace) {
+        if (visible?.name === routeName) {
+          n.dispatch(CommonActions.setParams(params))
+        } else {
+          n.dispatch(StackActions.replace(routeName, params))
+        }
+      }
+      n.dispatch(StackActions.push(routeName, params))
     },
     navigateUp: () => {
       const n = _getNavigator()

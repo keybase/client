@@ -1,9 +1,9 @@
+import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/chat2'
 import * as UsersConstants from '../../../constants/users'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
 import ReactButton from './react-button/container'
 import shallowEqual from 'shallowequal'
@@ -59,20 +59,14 @@ const ReactionTooltip = (p: OwnProps) => {
   }, shallowEqual)
   const _usersInfo = good ? infoMap : emptyStateProps._usersInfo
 
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onAddReaction = React.useCallback(() => {
     onHidden()
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
-            selected: 'chatChooseEmoji',
-          },
-        ] as const,
-      })
-    )
-  }, [dispatch, onHidden, conversationIDKey, ordinal])
+    navigateAppend({
+      props: {conversationIDKey, onPickAddToMessageOrdinal: ordinal, pickKey: 'reaction'},
+      selected: 'chatChooseEmoji',
+    })
+  }, [navigateAppend, onHidden, conversationIDKey, ordinal])
 
   let reactions = [..._reactions.keys()]
     .map(emoji => ({
@@ -298,7 +292,7 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default ReactionTooltip

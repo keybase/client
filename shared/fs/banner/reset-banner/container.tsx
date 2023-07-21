@@ -17,16 +17,15 @@ const ConnectedBanner = (ownProps: OwnProps) => {
   const {path} = ownProps
   const _tlf = Constants.useState(s => Constants.getTlfFromPath(s.tlfs, path))
   const letResetUserBackIn = Constants.useState(s => s.dispatch.letResetUserBackIn)
-  const dispatch = Container.useDispatch()
   const _onOpenWithoutResetUsers = React.useCallback(
     (currPath: Types.Path, users: {[K in string]: boolean}) => {
       const pathElems = Types.getPathElements(currPath)
       if (pathElems.length < 3) return
       const filteredPathName = folderNameWithoutUsers(pathElems[2] ?? '', users)
       const filteredPath = Types.stringToPath(['', pathElems[0], pathElems[1], filteredPathName].join('/'))
-      dispatch(Constants.makeActionForOpenPathInFilesTab(filteredPath))
+      Constants.makeActionForOpenPathInFilesTab(filteredPath)
     },
-    [dispatch]
+    []
   )
   const _onReAddToTeam = React.useCallback(
     (id: RPCTypes.TeamID, username: string) => {

@@ -11,7 +11,6 @@ import * as Kbfs from '../fs/common'
 import * as Platforms from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from '../constants/settings'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
@@ -36,7 +35,6 @@ const FilesTabBadge = () => {
 }
 
 const Header = () => {
-  const dispatch = Container.useDispatch()
   const [showingMenu, setShowingMenu] = React.useState(false)
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const getAttachmentRef = () => attachmentRef.current
@@ -72,7 +70,8 @@ const Header = () => {
   }
   const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onSettings = () => switchTab(Tabs.settingsTab)
-  const onSignOut = () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]}))
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const onSignOut = () => navigateAppend(SettingsConstants.logOutTab)
 
   const menuHeader = () => (
     <Kb.Box2 direction="vertical" fullWidth={true}>

@@ -3,7 +3,6 @@ import * as RouterConstants from '../constants/router2'
 import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 import DeviceRow, {NewContext} from './row'
 import partition from 'lodash/partition'
@@ -37,11 +36,10 @@ const ReloadableDevices = () => {
     }, [load])
   )
 
-  const dispatch = Container.useDispatch()
-
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onAddDevice = (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
     // We don't have navigateAppend in upgraded routes
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {highlight}, selected: 'deviceAdd'}]}))
+    navigateAppend({props: {highlight}, selected: 'deviceAdd'})
   }
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {

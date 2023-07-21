@@ -1,8 +1,6 @@
 import * as Constants from '../../constants/wallets'
 import * as RouterConstants from '../../constants/router2'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import WalletPopup from '../wallet-popup'
 
@@ -10,7 +8,6 @@ type OwnProps = {accountID: string}
 
 export default (ownProps: OwnProps) => {
   const {accountID} = ownProps
-  const dispatch = Container.useDispatch()
   const account = Constants.useState(s => s.accountMap.get(accountID))
   const balance = account?.balanceDescription ?? 'Error loading account'
   const name = account?.name ?? ''
@@ -18,13 +15,9 @@ export default (ownProps: OwnProps) => {
   const onClose = () => {
     navigateUp()
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onDelete = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {accountID}, selected: 'reallyRemoveAccount'}],
-        replace: true,
-      })
-    )
+    navigateAppend({props: {accountID}, selected: 'reallyRemoveAccount'}, true)
   }
 
   const buttons = [

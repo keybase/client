@@ -113,8 +113,6 @@ const ErrorMessage = () => {
 
 const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const conversationIDKey = React.useContext(ConvoIDContext)
-  const dispatch = Container.useDispatch()
-
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const data = Container.useSelector(state => {
     const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
@@ -192,10 +190,8 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
     teamType === 'adhoc' && participantInfoAll.length === 1 && participantInfoAll.includes(username)
 
   const openPrivateFolder = React.useCallback(() => {
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${username}`))
-    )
-  }, [dispatch, username])
+    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${username}`))
+  }, [username])
 
   return (
     <Kb.Box>
@@ -254,7 +250,7 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       spacer: {height: Styles.globalMargins.small},
-    } as const)
+    }) as const
 )
 
 export default SpecialTopMessage

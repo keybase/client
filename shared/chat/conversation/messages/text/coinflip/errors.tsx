@@ -1,8 +1,7 @@
+import * as RouterConstants from '../../../../../constants/router2'
 import * as Kb from '../../../../../common-adapters'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../styles'
-import * as Container from '../../../../../util/container'
 
 type Props = {
   error: RPCChatTypes.UICoinFlipError
@@ -31,9 +30,9 @@ const CoinFlipError = (props: Props) => {
 }
 
 const CoinFlipGenericError = () => {
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const sendFeedback = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'modalFeedback'}]}))
+    navigateAppend({props: {}, selected: 'modalFeedback'})
   }
   return (
     <Kb.Text selectable={true} style={styles.error} type="BodySmall">
@@ -125,7 +124,7 @@ const styles = Styles.styleSheetCreate(
       error: {
         color: Styles.globalColors.redDark,
       },
-    } as const)
+    }) as const
 )
 
 export default CoinFlipError

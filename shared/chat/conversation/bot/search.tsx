@@ -4,7 +4,6 @@ import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Styles from '../../../styles'
 import debounce from 'lodash/debounce'
 import shallowEqual from 'shallowequal'
@@ -51,17 +50,12 @@ const SearchBotPopup = (props: Props) => {
       dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query, results: undefined}))
     }
   }, 200)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onSelect = (username: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {botUsername: username, conversationIDKey, teamID},
-            selected: 'chatInstallBot',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {botUsername: username, conversationIDKey, teamID},
+      selected: 'chatInstallBot',
+    })
   }
 
   Container.useOnMountOnce(() => {

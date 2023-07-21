@@ -305,25 +305,16 @@ const useHeaderCallbacks = (teamID: TeamID) => {
     dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname: meta.teamname}))
   const onEditAvatar = yourOperations.editTeamDescription
     ? () =>
-        dispatch(
-          nav.safeNavigateAppendPayload({
-            path: [{props: {sendChatNotification: true, teamID}, selected: 'profileEditAvatar'}],
-          })
-        )
+        nav.safeNavigateAppend({props: {sendChatNotification: true, teamID}, selected: 'profileEditAvatar'})
     : undefined
   const onEditDescription = yourOperations.editTeamDescription
-    ? () => dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamEditTeamInfo'}]}))
+    ? () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamEditTeamInfo'})
     : undefined
   const onRename = yourOperations.renameTeam
-    ? () =>
-        dispatch(
-          nav.safeNavigateAppendPayload({path: [{props: {teamname: meta.teamname}, selected: 'teamRename'}]})
-        )
+    ? () => nav.safeNavigateAppend({props: {teamname: meta.teamname}, selected: 'teamRename'})
     : undefined
-  const onManageInvites = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteHistory'}]}))
-  const onGenerateLink = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksGenerate'}]}))
+  const onManageInvites = () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamInviteHistory'})
+  const onGenerateLink = () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamInviteLinksGenerate'})
 
   return {
     onAddSelf,
@@ -439,5 +430,5 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: Styles.desktopStyles.windowDraggingClickable,
       }),
-    } as const)
+    }) as const
 )

@@ -1,8 +1,7 @@
+import * as RouterConstants from '../constants/router2'
 import * as Constants from '../constants/devices'
-import * as Container from '../util/container'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Styles from '../styles'
 
 export const HeaderTitle = () => {
@@ -19,11 +18,8 @@ export const HeaderTitle = () => {
 }
 
 export const HeaderRightActions = () => {
-  const dispatch = Container.useDispatch()
-  const onAdd = React.useCallback(
-    () => dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'deviceAdd'}]})),
-    [dispatch]
-  )
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const onAdd = React.useCallback(() => navigateAppend({props: {}, selected: 'deviceAdd'}), [navigateAppend])
   return (
     <Kb.Button
       small={true}

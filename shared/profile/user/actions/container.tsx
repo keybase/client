@@ -1,3 +1,4 @@
+import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/tracker2'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
@@ -5,7 +6,6 @@ import * as Followers from '../../../constants/followers'
 import * as ConfigConstants from '../../../constants/config'
 import * as FsConstants from '../../../constants/fs'
 import * as FsTypes from '../../../constants/types/fs'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import Actions from '.'
 
 type OwnProps = {
@@ -25,31 +25,24 @@ export default (ownProps: OwnProps) => {
   const hidFromFollowers = d.hidFromFollowers
   const state = d.state
 
-  const dispatch = Container.useDispatch()
-  const _onAddToTeam = (username: string) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileAddToTeam'}]}))
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const _onAddToTeam = (username: string) => navigateAppend({props: {username}, selected: 'profileAddToTeam'})
   const _onBrowsePublicFolder = (username: string) =>
-    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`)))
-  const _onEditProfile = () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileEdit']}))
+    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`))
+  const _onEditProfile = () => navigateAppend('profileEdit')
 
   const changeFollow = Constants.useState(s => s.dispatch.changeFollow)
   const ignore = Constants.useState(s => s.dispatch.ignore)
   const _onFollow = changeFollow
   const _onIgnoreFor24Hours = ignore
   const _onInstallBot = (username: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {botUsername: username}, selected: 'chatInstallBotPick'}],
-      })
-    )
+    navigateAppend({props: {botUsername: username}, selected: 'chatInstallBotPick'})
   }
   const _onManageBlocking = (username: string) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'chatBlockingModal'}]}))
+    navigateAppend({props: {username}, selected: 'chatBlockingModal'})
   const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`)
-      )
+    FsConstants.makeActionForOpenPathInFilesTab(
+      FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`)
     )
   const showUser = Constants.useState(s => s.dispatch.showUser)
   const _onReload = (username: string) => {

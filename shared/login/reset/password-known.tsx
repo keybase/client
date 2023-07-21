@@ -8,14 +8,9 @@ import * as Constants from '../../constants/autoreset'
 const KnowPassword = () => {
   const error = Constants.useState(s => s.error)
   const waiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onCancel = React.useCallback(() => nav.safeNavigateUp(), [nav])
-  const onYes = React.useCallback(
-    () => dispatch(nav.safeNavigateAppendPayload({path: ['resetEnterPassword']})),
-    [dispatch, nav]
-  )
+  const onYes = React.useCallback(() => nav.safeNavigateAppend('resetEnterPassword'), [nav])
   const resetAccount = Constants.useState(s => s.dispatch.resetAccount)
   const onNo = React.useCallback(() => resetAccount(), [resetAccount])
   return (

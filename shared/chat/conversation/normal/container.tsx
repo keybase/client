@@ -1,8 +1,8 @@
+import * as RouterConstants from '../../../constants/router2'
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as TrackerConstants from '../../../constants/tracker2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Container from '../../../util/container'
 import Normal from '.'
 import type * as Types from '../../../constants/types/chat2'
@@ -81,16 +81,13 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
     [showUser]
   )
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onAttach = React.useCallback(
     (paths: Array<string>) => {
       const pathAndOutboxIDs = paths.map(p => ({path: p}))
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-        })
-      )
+      navigateAppend({props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'})
     },
-    [conversationIDKey, dispatch]
+    [conversationIDKey, navigateAppend]
   )
 
   return (

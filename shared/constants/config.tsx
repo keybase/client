@@ -1,9 +1,9 @@
+import * as RouterConstants from './router2'
 import * as DarkMode from './darkmode'
 import * as ProvisionConstants from './provision'
 import * as DeviceTypes from './types/devices'
 import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
 import logger from '../logger'
@@ -243,8 +243,6 @@ type State = Store & {
 
 export const openAtLoginKey = 'openAtLogin'
 export const useConfigState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
-
   const nativeFrameKey = 'useNativeFrame'
   const notifySoundKey = 'notifySound'
 
@@ -716,7 +714,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       })
       // already loaded, so just go now
       if (get().startup.loaded) {
-        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']}))
+        RouterConstants.useState.getState().dispatch.navigateAppend('incomingShareNew')
       }
     },
     setBadgeState: b => {

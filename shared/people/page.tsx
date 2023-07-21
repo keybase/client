@@ -1,17 +1,13 @@
+import * as RouterConstants from '../constants/router2'
 import * as React from 'react'
-import * as Container from '../util/container'
 import * as ConfigConstants from '../constants/config'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Kb from '../common-adapters'
 import ProfileSearch from '../profile/search/bar'
 
 const HeaderAvatar = () => {
   const myUsername = ConfigConstants.useCurrentUserState(s => s.username)
-  const dispatch = Container.useDispatch()
-  const onClick = React.useCallback(
-    () => dispatch(RouteTreeGen.createNavigateAppend({path: ['accountSwitcher']})),
-    [dispatch]
-  )
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const onClick = React.useCallback(() => navigateAppend('accountSwitcher'), [navigateAppend])
   return <Kb.Avatar size={32} username={myUsername} onClick={onClick} />
 }
 

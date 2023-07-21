@@ -1,10 +1,8 @@
-import * as Container from '../../../util/container'
+import * as RouterConstants from '../../../constants/router2'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RowSizes from './sizes'
 import * as Styles from '../../../styles'
-import * as TabsContants from '../../../constants/tabs'
 import * as TeamConstants from '../../../constants/teams'
 import type * as TeamTypes from '../../../constants/types/teams'
 import TeamMenu from '../../conversation/info-panel/menu/container'
@@ -17,17 +15,9 @@ type Props = {
 
 const BigTeamHeader = React.memo(function BigTeamHeader(props: Props) {
   const {navKey, teamID, teamname} = props
-  const dispatch = Container.useDispatch()
-
   const badgeSubscribe = TeamConstants.useState(s => !TeamConstants.isTeamWithChosenChannels(s, teamname))
-
-  const onClick = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        fromKey: navKey,
-        path: [TabsContants.teamsTab, {props: {teamID}, selected: 'team'}],
-      })
-    )
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const onClick = () => navigateAppend({props: {teamID}, selected: 'team'}, false, navKey)
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
@@ -135,7 +125,7 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.small,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default BigTeamHeader

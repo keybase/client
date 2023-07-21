@@ -1,3 +1,4 @@
+import * as RouterConstants from '../../../../../constants/router2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamsConstants from '../../../../../constants/teams'
@@ -5,7 +6,6 @@ import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
 import * as DeeplinksConstants from '../../../../../constants/deeplinks'
 import * as ConfigConstants from '../../../../../constants/config'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import Text from '.'
 import openURL from '../../../../../util/open-url'
 import * as React from 'react'
@@ -59,21 +59,16 @@ export default (ownProps: OwnProps) => {
   const _you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _onAddReaction = (message: Types.Message) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              conversationIDKey: message.conversationIDKey,
-              onPickAddToMessageOrdinal: message.ordinal,
-              pickKey: 'reaction',
-            },
-            selected: 'chatChooseEmoji',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {
+        conversationIDKey: message.conversationIDKey,
+        onPickAddToMessageOrdinal: message.ordinal,
+        pickKey: 'reaction',
+      },
+      selected: 'chatChooseEmoji',
+    })
   }
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopy = (message: Types.Message) => {
@@ -91,11 +86,10 @@ export default (ownProps: OwnProps) => {
   }
   const _onDeleteMessageHistory = (message: Types.Message) => {
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey: message.conversationIDKey, reason: 'misc'}))
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey: message.conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],
-      })
-    )
+    navigateAppend({
+      props: {conversationIDKey: message.conversationIDKey},
+      selected: 'chatDeleteHistoryWarning',
+    })
   }
   const _onEdit = (message: Types.Message) => {
     dispatch(
@@ -106,30 +100,16 @@ export default (ownProps: OwnProps) => {
     )
   }
   const _onForward = (message: Types.Message) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {ordinal: message.ordinal, srcConvID: message.conversationIDKey},
-            selected: 'chatForwardMsgPick',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {ordinal: message.ordinal, srcConvID: message.conversationIDKey},
+      selected: 'chatForwardMsgPick',
+    })
   }
   const _onInstallBot = (message: Types.Message) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {botUsername: message.author}, selected: 'chatInstallBotPick'}],
-      })
-    )
+    navigateAppend({props: {botUsername: message.author}, selected: 'chatInstallBotPick'})
   }
   const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}],
-      })
-    )
+    navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
   }
   const _onMarkAsUnread = (message: Types.Message) => {
     dispatch(
@@ -173,21 +153,15 @@ export default (ownProps: OwnProps) => {
     )
   }
   const _onUserBlock = (message: Types.Message, isSingle: boolean) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              blockUserByDefault: true,
-              context: isSingle ? 'message-popup-single' : 'message-popup',
-              convID: message.conversationIDKey,
-              username: message.author,
-            },
-            selected: 'chatBlockingModal',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {
+        blockUserByDefault: true,
+        context: isSingle ? 'message-popup-single' : 'message-popup',
+        convID: message.conversationIDKey,
+        username: message.author,
+      },
+      selected: 'chatBlockingModal',
+    })
   }
 
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)

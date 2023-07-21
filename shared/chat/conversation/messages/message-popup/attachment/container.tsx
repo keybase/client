@@ -6,7 +6,6 @@ import * as TeamsConstants from '../../../../../constants/teams'
 import * as Container from '../../../../../util/container'
 import * as ConfigConstants from '../../../../../constants/config'
 import * as DeeplinksConstants from '../../../../../constants/deeplinks'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import Attachment from '.'
 import * as React from 'react'
 import type * as TeamTypes from '../../../../../constants/types/teams'
@@ -51,21 +50,16 @@ export default (ownProps: OwnProps) => {
 
   const dispatch = Container.useDispatch()
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _onAddReaction = (message: Types.Message) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              conversationIDKey: message.conversationIDKey,
-              onPickAddToMessageOrdinal: message.ordinal,
-              pickKey: 'reaction',
-            },
-            selected: 'chatChooseEmoji',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {
+        conversationIDKey: message.conversationIDKey,
+        onPickAddToMessageOrdinal: message.ordinal,
+        pickKey: 'reaction',
+      },
+      selected: 'chatChooseEmoji',
+    })
   }
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const _onAllMedia = (conversationIDKey: Types.ConversationIDKey) => {
@@ -102,30 +96,16 @@ export default (ownProps: OwnProps) => {
     )
   }
   const _onForward = (message: Types.Message) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {ordinal: message.ordinal, srcConvID: message.conversationIDKey},
-            selected: 'chatForwardMsgPick',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {ordinal: message.ordinal, srcConvID: message.conversationIDKey},
+      selected: 'chatForwardMsgPick',
+    })
   }
   const _onInstallBot = (message: Types.Message) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {botUsername: message.author}, selected: 'chatInstallBotPick'}],
-      })
-    )
+    navigateAppend({props: {botUsername: message.author}, selected: 'chatInstallBotPick'})
   }
   const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}],
-      })
-    )
+    navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
   }
   const _onMarkAsUnread = (message: Types.Message) => {
     dispatch(

@@ -2,11 +2,9 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {appendPeopleBuilder} from '../../actions/typed-routes'
-import {useDispatch} from 'react-redux'
 
 const ProfileSearch = () => {
-  const dispatch = useDispatch()
-  const onSearch = React.useCallback(() => dispatch(appendPeopleBuilder()), [dispatch])
+  const onSearch = React.useCallback(() => appendPeopleBuilder(), [])
   return (
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Kb.SearchFilter

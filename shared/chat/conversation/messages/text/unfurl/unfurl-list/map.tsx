@@ -1,8 +1,8 @@
+import * as RouterConstants from '../../../../../../constants/router2'
 import * as Container from '../../../../../../util/container'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
 import shallowEqual from 'shallowequal'
@@ -15,6 +15,7 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {idx} = p
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
 
   const data = Container.useSelector(state => {
     const {unfurl, youAreAuthor, author} = getUnfurlInfo(state, conversationIDKey, ordinal, idx)
@@ -45,8 +46,6 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
     }
   }, shallowEqual)
 
-  const dispatch = Container.useDispatch()
-
   if (!data) {
     return null
   }
@@ -54,23 +53,17 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const {author, url, coord, isLiveLocationDone, liveLocationEndTime} = data
   const {height, width, imageURL, youAreAuthor, time} = data
   const onViewMap = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              author,
-              conversationIDKey,
-              coord,
-              isAuthor: youAreAuthor,
-              isLiveLocation: !!liveLocationEndTime && !isLiveLocationDone,
-              url,
-            },
-            selected: 'chatUnfurlMapPopup',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {
+        author,
+        conversationIDKey,
+        coord,
+        isAuthor: youAreAuthor,
+        isLiveLocation: !!liveLocationEndTime && !isLiveLocationDone,
+        url,
+      },
+      selected: 'chatUnfurlMapPopup',
+    })
   }
 
   return (
@@ -168,7 +161,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: -2,
         padding: Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 export default UnfurlMap

@@ -1,5 +1,4 @@
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Container from '../../util/container'
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/settings'
 import {ProxySettings as ProxySettingsComponent, ProxySettingsPopup} from '.'
 
@@ -9,16 +8,15 @@ const useConnect = () => {
   const proxyData = Constants.useState(s => s.proxyData)
   const saveProxyData = Constants.useState(s => s.dispatch.setProxyData)
   const loadProxyData = Constants.useState(s => s.dispatch.loadProxyData)
-
-  const dispatch = Container.useDispatch()
   const resetCertPinningToggle = () => {
     setDidToggleCertificatePinning()
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onBack = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['login']}))
+    navigateAppend('login')
   }
   const onDisableCertPinning = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']}))
+    navigateAppend('disableCertPinningModal')
   }
   const onEnableCertPinning = () => {
     setDidToggleCertificatePinning(false)

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as RouterConstants from '../../../constants/router2'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
@@ -19,17 +18,12 @@ const ReallyLeaveTeamContainer = (op: OwnProps) => {
   const stillLoadingTeam = !members
   const leaving = Container.useAnyWaiting(Constants.leaveTeamWaitingKey(teamname))
   const error = Container.useAnyErrors(Constants.leaveTeamWaitingKey(teamname))
-
-  const dispatch = Container.useDispatch()
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onDeleteTeam = React.useCallback(() => {
     navigateUp()
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID}, selected: 'teamDeleteTeam'}],
-      })
-    )
-  }, [navigateUp, dispatch, teamID])
+    navigateAppend({props: {teamID}, selected: 'teamDeleteTeam'})
+  }, [navigateUp, navigateAppend, teamID])
   const leaveTeam = Constants.useState(s => s.dispatch.leaveTeam)
   const _onLeave = React.useCallback(
     (permanent: boolean) => {

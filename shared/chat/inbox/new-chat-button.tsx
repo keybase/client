@@ -13,8 +13,7 @@ const HeaderNewChatButton = () => {
       (state.chat2.inboxLayout.bigTeams || []).length === 0
   )
 
-  const dispatch = Container.useDispatch()
-  const onNewChat = React.useCallback(() => dispatch(appendNewChatBuilder()), [dispatch])
+  const onNewChat = React.useCallback(() => appendNewChatBuilder(), [])
   const content = React.useMemo(() => {
     return (
       <Kb.Box style={styles.rainbowButtonContainer}>
@@ -89,7 +88,7 @@ const styles = Styles.styleSheetCreate(
           width: 100,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export {HeaderNewChatButton}

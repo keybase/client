@@ -10,12 +10,10 @@ type Props = {
 export const useOpen = (props: Props) => {
   const destPicker = Constants.useState(s => s.destinationPicker)
   const pathItems = Constants.useState(s => s.pathItems)
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   if (typeof props.destinationPickerIndex !== 'number') {
-    return () =>
-      dispatch(nav.safeNavigateAppendPayload({path: [{props: {path: props.path}, selected: 'fsRoot'}]}))
+    return () => nav.safeNavigateAppend({props: {path: props.path}, selected: 'fsRoot'})
   }
 
   const isFolder =
@@ -33,11 +31,7 @@ export const useOpen = (props: Props) => {
   }
 
   const destinationPickerGoTo = () =>
-    Constants.makeActionsForDestinationPickerOpen(
-      (props.destinationPickerIndex || 0) + 1,
-      props.path,
-      nav.safeNavigateAppendPayload
-    ).forEach(action => dispatch(action))
+    Constants.makeActionsForDestinationPickerOpen((props.destinationPickerIndex || 0) + 1, props.path)
 
   return destinationPickerGoTo
 }

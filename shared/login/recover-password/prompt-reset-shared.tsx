@@ -13,7 +13,6 @@ export type Props = {
 }
 
 const PromptReset = (props: Props) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const skipPassword = AutoresetConstants.useState(s => s.skipPassword)
   const error = AutoresetConstants.useState(s => s.error)
@@ -31,9 +30,9 @@ const PromptReset = (props: Props) => {
     if (skipPassword) {
       resetAccount()
     } else {
-      dispatch(nav.safeNavigateAppendPayload({path: ['resetKnowPassword'], replace: true}))
+      nav.safeNavigateAppend('resetKnowPassword', true)
     }
-  }, [submitResetPassword, resetAccount, dispatch, skipPassword, resetPassword, nav])
+  }, [submitResetPassword, resetAccount, skipPassword, resetPassword, nav])
   const onBack = React.useCallback(() => {
     if (skipPassword) {
       startRecoverPassword({replaceRoute: true, username})

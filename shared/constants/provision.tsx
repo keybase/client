@@ -3,7 +3,6 @@ import * as WaitingConstants from './waiting'
 import * as ConfigConstants from './config'
 import * as RouterConstants from './router2'
 import * as RPCTypes from './types/rpc-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Z from '../util/zustand'
 import {RPCError} from '../util/errors'
 import {isMobile} from './platform'
@@ -140,7 +139,6 @@ type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const _cancel = () => {
     WaitingConstants.useWaitingState.getState().dispatch.clear(waitingKey)
     console.log('Provision: cancel called while not overloaded')
@@ -259,7 +257,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                       response.result({phrase: good, secret: null as any})
                     }
                   })
-                  reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['codePage']}))
+                  RouterConstants.useState.getState().dispatch.navigateAppend('codePage')
                 },
                 'keybase.1.provisionUi.chooseDeviceType': (_params, response) => {
                   const {type} = get().codePageOtherDevice
@@ -423,7 +421,7 @@ export const useState = Z.createZustand<State>((set, get) => {
 
                   // we ignore the return as we never autosubmit, but we want things to increment
                   shouldAutoSubmit(!!previousErr, {type: 'promptSecret'})
-                  reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['codePage']}))
+                  RouterConstants.useState.getState().dispatch.navigateAppend('codePage')
                 },
                 'keybase.1.provisionUi.PromptNewDeviceName': (params, response) => {
                   if (isCanceled(response)) return
@@ -446,7 +444,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     console.log('Provision: auto submit device name')
                     get().dispatch.dynamic.setDeviceName?.(get().deviceName)
                   } else {
-                    reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['setPublicName']}))
+                    RouterConstants.useState.getState().dispatch.navigateAppend('setPublicName')
                   }
                 },
                 'keybase.1.provisionUi.chooseDevice': (params, response) => {
@@ -472,7 +470,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     console.log('Provision: auto submit passphrase')
                     get().dispatch.dynamic.submitDeviceSelect?.(get().codePageOtherDevice.name)
                   } else {
-                    reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['selectOtherDevice']}))
+                    RouterConstants.useState.getState().dispatch.navigateAppend('selectOtherDevice')
                   }
                 },
                 'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
@@ -505,10 +503,10 @@ export const useState = Z.createZustand<State>((set, get) => {
                   } else {
                     switch (type) {
                       case RPCTypes.PassphraseType.passPhrase:
-                        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['password']}))
+                        RouterConstants.useState.getState().dispatch.navigateAppend('password')
                         break
                       case RPCTypes.PassphraseType.paperKey:
-                        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['paperkey']}))
+                        RouterConstants.useState.getState().dispatch.navigateAppend('paperkey')
                         break
                       default:
                         throw new Error('Got confused about password entry. Please send a log to us!')
@@ -558,7 +556,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   s.finalError = finalError
                 })
                 RouterConstants.useState.getState().dispatch.clearModals()
-                reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['login', 'error'], replace: true}))
+                RouterConstants.useState.getState().dispatch.navigateAppend('error', true)
               }
               break
           }
@@ -584,11 +582,9 @@ export const useState = Z.createZustand<State>((set, get) => {
             ConfigConstants.loginAsOtherUserWaitingKey
           )
         }
-        reduxDispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {fromReset}, selected: 'username'}],
-          })
-        )
+        RouterConstants.useState
+          .getState()
+          .dispatch.navigateAppend({props: {fromReset}, selected: 'username'})
       }
       Z.ignorePromise(f())
     },

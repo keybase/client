@@ -1,8 +1,8 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as RouterConstants from '../../../../constants/router2'
 import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import EmojiRow from '.'
 import type {Position, StylesCrossPlatform} from '../../../../styles'
 import {ConvoIDContext, OrdinalContext} from '../ids-context'
@@ -31,13 +31,10 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const emojis = Container.useSelector(getEmojis, shallowEqual)
   const dispatch = Container.useDispatch()
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onForward = React.useCallback(() => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {ordinal, srcConvID: conversationIDKey}, selected: 'chatForwardMsgPick'}],
-      })
-    )
-  }, [dispatch, conversationIDKey, ordinal])
+    navigateAppend({props: {ordinal, srcConvID: conversationIDKey}, selected: 'chatForwardMsgPick'})
+  }, [navigateAppend, conversationIDKey, ordinal])
   const onReact = React.useCallback(
     (emoji: string) => {
       dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal}))

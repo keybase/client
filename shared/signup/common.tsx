@@ -1,8 +1,7 @@
+import * as RouterConstants from '../constants/router2'
 import * as React from 'react'
-import * as Container from '../util/container'
 import * as ConfigConstants from '../constants/config'
 import * as Kb from '../common-adapters'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import {type Props as ButtonProps} from '../common-adapters/button'
 import openURL from '../util/open-url'
 import * as Styles from '../styles'
@@ -14,17 +13,13 @@ type InfoIconProps = {
 
 export const InfoIcon = (props: InfoIconProps) => {
   const loggedIn = ConfigConstants.useConfigState(s => s.loggedIn)
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       const onDocumentation = () => openURL('https://book.keybase.io/docs')
       const onFeedback = () => {
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut'],
-          })
-        )
+        navigateAppend(loggedIn ? 'signupSendFeedbackLoggedIn' : 'signupSendFeedbackLoggedOut')
       }
 
       return (
@@ -40,7 +35,7 @@ export const InfoIcon = (props: InfoIconProps) => {
         />
       )
     },
-    [dispatch, loggedIn]
+    [navigateAppend, loggedIn]
   )
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)
 
@@ -359,5 +354,5 @@ const styles = Styles.styleSheetCreate(
         borderBottomWidth: 1,
         borderStyle: 'solid',
       },
-    } as const)
+    }) as const
 )

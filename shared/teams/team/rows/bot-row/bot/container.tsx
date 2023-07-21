@@ -1,7 +1,7 @@
+import * as RouterConstants from '../../../../../constants/router2'
 import * as Constants from '../../../../../constants/teams'
 import * as TrackerConstants from '../../../../../constants/tracker2'
 import * as ProfileConstants from '../../../../../constants/profile'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Container from '../../../../../util/container'
 import type * as RPCTypes from '../../../../../constants/types/rpc-gen'
 import type * as Types from '../../../../../constants/types/teams'
@@ -40,8 +40,6 @@ export default (ownProps: OwnProps) => {
   const roleType = info.type
   const status = info.status
   const username = info.username
-
-  const dispatch = Container.useDispatch()
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const _onShowTracker = (username: string) => {
@@ -51,38 +49,21 @@ export default (ownProps: OwnProps) => {
       showUser(username, true)
     }
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onClick = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: ownProps, selected: 'teamMember'}]}))
+    navigateAppend({props: ownProps, selected: 'teamMember'})
   }
   const onEdit = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              botUsername: ownProps.username,
-              teamID: ownProps.teamID,
-            },
-            selected: 'chatInstallBot',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {botUsername: ownProps.username, teamID: ownProps.teamID},
+      selected: 'chatInstallBot',
+    })
   }
   const onRemove = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              botUsername: ownProps.username,
-              teamID: ownProps.teamID,
-            },
-            selected: 'chatConfirmRemoveBot',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {botUsername: ownProps.username, teamID: ownProps.teamID},
+      selected: 'chatConfirmRemoveBot',
+    })
   }
   const props = {
     botAlias: botAlias,

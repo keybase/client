@@ -1,9 +1,8 @@
+import * as RouterConstants from '../constants/router2'
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as Container from '../util/container'
 import * as Constants from '../constants/git'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 
 export const HeaderTitle = () => (
   <Kb.Box2
@@ -28,22 +27,19 @@ export const HeaderTitle = () => (
 )
 
 export const HeaderRightActions = () => {
-  const dispatch = Container.useDispatch()
-
   const setError = Constants.useGitState(state => state.dispatch.setError)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
       const onAddPersonal = () => {
         setError(undefined)
-        dispatch(
-          RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: false}, selected: 'gitNewRepo'}]})
-        )
+        navigateAppend({props: {isTeam: false}, selected: 'gitNewRepo'})
       }
       const onAddTeam = () => {
         setError(undefined)
-        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
+        navigateAppend({props: {isTeam: true}, selected: 'gitNewRepo'})
       }
 
       return (
@@ -61,7 +57,7 @@ export const HeaderRightActions = () => {
         />
       )
     },
-    [dispatch, setError]
+    [navigateAppend, setError]
   )
 
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)

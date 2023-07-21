@@ -1,7 +1,7 @@
+import * as RouterConstants from '../../constants/router2'
 import * as ConfigConstants from '../../constants/config'
 import * as Constants from '../../constants/provision'
 import * as Container from '../../util/container'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupConstants from '../../constants/signup'
 import Intro from '.'
 
@@ -17,9 +17,9 @@ export default () => {
   const isOnline = ConfigConstants.useConfigState(s => s.isOnline)
   const loadIsOnline = ConfigConstants.useConfigState(s => s.dispatch.loadIsOnline)
 
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _onFeedback = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
+    navigateAppend({props: {}, selected: 'feedback'})
   }
   const checkIsOnline = loadIsOnline
   const onLogin = Constants.useState(s => s.dispatch.startProvision)
@@ -28,7 +28,7 @@ export default () => {
     requestAutoInvite()
   }
   const showProxySettings = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['proxySettingsModal']}))
+    navigateAppend('proxySettingsModal')
   }
   const props = {
     bannerMessage,

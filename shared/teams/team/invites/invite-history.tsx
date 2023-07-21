@@ -30,13 +30,9 @@ const InviteHistory = (props: Props) => {
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
   const loading = !teamDetails
   const [showingValid, setShowingValid] = React.useState(true)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onClose = () => nav.safeNavigateUp()
-  const onGenerate = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamInviteLinksGenerate'}]}))
-
+  const onGenerate = () => nav.safeNavigateAppend({props: {teamID}, selected: 'teamInviteLinksGenerate'})
   const inviteLinks = teamDetails?.inviteLinks
   const {invalid, valid} = splitInviteLinks(inviteLinks)
   const data: Array<Types.InviteLink> = showingValid ? valid : invalid

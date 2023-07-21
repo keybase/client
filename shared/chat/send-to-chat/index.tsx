@@ -9,7 +9,6 @@ import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as ConfigConstants from '../../constants/config'
 import * as RouterConstants from '../../constants/router2'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type * as ChatTypes from '../../constants/types/chat2'
 import HiddenString from '../../util/hidden-string'
 import ConversationList from './conversation-list/conversation-list'
@@ -60,24 +59,19 @@ export const MobileSendToChat = (props: Props) => {
   const {isFromShareExtension, sendPaths, text} = props
   const dispatch = Container.useDispatch()
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
     text && dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString(text)}))
     if (sendPaths?.length) {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {
-                conversationIDKey,
-                pathAndOutboxIDs: sendPaths.map(p => ({path: p})),
-                selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
-                tlfName,
-              },
-              selected: 'chatAttachmentGetTitles',
-            },
-          ],
-        })
-      )
+      navigateAppend({
+        props: {
+          conversationIDKey,
+          pathAndOutboxIDs: sendPaths.map(p => ({path: p})),
+          selectConversationWithReason: isFromShareExtension ? 'extension' : 'files',
+          tlfName,
+        },
+        selected: 'chatAttachmentGetTitles',
+      })
     } else {
       dispatch(
         Chat2Gen.createNavigateToThread({

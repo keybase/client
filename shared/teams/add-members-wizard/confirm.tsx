@@ -203,17 +203,15 @@ const AlreadyInTeam = ({assertions}: {assertions: string[]}) => {
 }
 
 const AddMoreMembers = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const teamID = Constants.useState(s => s.addMembersWizard.teamID)
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
-      const onAddKeybase = () => dispatch(appendNewTeamBuilder(teamID))
-      const onAddContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))
-      const onAddPhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
-      const onAddEmail = () =>
-        dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamAddToTeamEmail'}]}))
+      const onAddKeybase = () => appendNewTeamBuilder(teamID)
+      const onAddContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
+      const onAddPhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
+      const onAddEmail = () => nav.safeNavigateAppend({props: {}, selected: 'teamAddToTeamEmail'})
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
@@ -229,7 +227,7 @@ const AddMoreMembers = () => {
         />
       )
     },
-    [dispatch, nav, teamID]
+    [nav, teamID]
   )
 
   const {toggleShowingPopup, popup, popupAnchor} = Kb.usePopup2(makePopup)

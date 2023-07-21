@@ -1,10 +1,8 @@
-import * as Container from '../../util/container'
 import * as LinkingConstants from '../../constants/deeplinks'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouterConstants from '../../constants/router2'
 import * as Styles from '../../styles'
-import * as WalletTypes from '../../constants/types/wallets'
 import Channel from '../channel-container'
 import KbfsPath from '../../fs/common/kbfs-path'
 import MaybeMention from '../../chat/conversation/maybe-mention'
@@ -13,6 +11,7 @@ import PaymentStatus from '../../chat/payments/status/container'
 import Text, {type StylesTextCrossPlatform} from '../text'
 import WithTooltip from '../with-tooltip'
 import type * as Types from '../../constants/types/chat2'
+import type * as WalletTypes from '../../constants/types/wallets'
 import type {StyleOverride} from '.'
 import {emojiDataToRenderableEmoji, renderEmoji, RPCToEmojiData} from '../../util/emoji'
 
@@ -58,8 +57,8 @@ type WarningLinkProps = {
 }
 
 const WarningLink = (props: WarningLinkProps) => {
-  const dispatch = Container.useDispatch()
   const {display, punycode, url} = props
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   if (Styles.isMobile) {
     return (
       <Text
@@ -68,11 +67,7 @@ const WarningLink = (props: WarningLinkProps) => {
         style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
         title={display}
         onClick={() =>
-          dispatch(
-            RouteTreeGen.createNavigateAppend({
-              path: [{props: {display, punycode, url}, selected: 'chatConfirmNavigateExternal'}],
-            })
-          )
+          navigateAppend({props: {display, punycode, url}, selected: 'chatConfirmNavigateExternal'})
         }
       >
         {display}

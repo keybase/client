@@ -6,7 +6,6 @@ import * as ChatGen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
 import * as TeamTypes from '../../../../constants/types/teams'
@@ -114,27 +113,22 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const onAddPeople = React.useCallback(() => {
     teamID && startAddMembersWizard(teamID)
   }, [startAddMembersWizard, teamID])
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onBlockConv = React.useCallback(() => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              blockUserByDefault: participants.length === 1,
-              convID: conversationIDKey,
-              others: participants,
-              team: teamname,
-            },
-            selected: 'chatBlockingModal',
-          },
-        ],
-      })
-    )
-  }, [dispatch, teamname, participants, conversationIDKey])
+    navigateAppend({
+      props: {
+        blockUserByDefault: participants.length === 1,
+        convID: conversationIDKey,
+        others: participants,
+        team: teamname,
+      },
+      selected: 'chatBlockingModal',
+    })
+  }, [navigateAppend, teamname, participants, conversationIDKey])
   const onInvite = React.useCallback(() => {
     const selected = Styles.isMobile ? 'teamInviteByContact' : 'teamInviteByEmail'
-    teamID && dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected}]}))
-  }, [dispatch, teamID])
+    teamID && navigateAppend({props: {teamID}, selected})
+  }, [navigateAppend, teamID])
 
   const onJoinChannel = React.useCallback(
     () => dispatch(ChatGen.createJoinConversation({conversationIDKey})),
@@ -145,12 +139,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     [dispatch, conversationIDKey]
   )
   const onLeaveTeam = React.useCallback(
-    () =>
-      teamID &&
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}]})
-      ),
-    [dispatch, teamID]
+    () => teamID && navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'}),
+    [navigateAppend, teamID]
   )
   const addTeamWithChosenChannels = TeamConstants.useState(s => s.dispatch.addTeamWithChosenChannels)
   const manageChatChannels = TeamConstants.useState(s => s.dispatch.manageChatChannels)
@@ -169,8 +159,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   }, [clearModals, dispatch, conversationIDKey])
   const onViewTeam = React.useCallback(() => {
     clearModals()
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
-  }, [clearModals, dispatch, teamID])
+    navigateAppend({props: {teamID}, selected: 'team'})
+  }, [clearModals, navigateAppend, teamID])
   const onHideConv = React.useCallback(() => {
     dispatch(ChatGen.createHideConversation({conversationIDKey}))
   }, [conversationIDKey, dispatch])

@@ -1,9 +1,7 @@
 import * as Constants from '../../constants/config'
 import * as RouterConstants from '../../constants/router2'
-import * as Container from '../../util/container'
 import * as Platform from '../../constants/platform'
 import * as React from 'react'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import GlobalError from '.'
 import {settingsTab} from '../../constants/tabs'
 
@@ -12,32 +10,26 @@ const Connected = () => {
   const daemonError = Constants.useDaemonState(s => s.error)
   const error = Constants.useConfigState(s => s.globalError)
   const setGlobalError = Constants.useConfigState(s => s.dispatch.setGlobalError)
-  const dispatch = Container.useDispatch()
 
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onFeedback = React.useCallback(() => {
     setGlobalError()
     if (loggedIn) {
       clearModals()
       if (Platform.isMobile) {
-        dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              {
-                props: {},
-                selected: require('../../constants/settings').feedbackTab,
-              },
-            ],
-          })
-        )
+        navigateAppend(settingsTab)
+        navigateAppend({
+          props: {},
+          selected: require('../../constants/settings').feedbackTab,
+        })
       } else {
-        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'modalFeedback'}]}))
+        navigateAppend({props: {}, selected: 'modalFeedback'})
       }
     } else {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
+      navigateAppend({props: {}, selected: 'feedback'})
     }
-  }, [clearModals, loggedIn, dispatch, setGlobalError])
+  }, [navigateAppend, clearModals, loggedIn, setGlobalError])
   const copyToClipboard = Constants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const onDismiss = setGlobalError
 

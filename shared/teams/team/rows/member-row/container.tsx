@@ -1,3 +1,4 @@
+import * as RouterConstants from '../../../../constants/router2'
 import * as Constants from '../../../../constants/teams'
 import * as UsersConstants from '../../../../constants/users'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
@@ -6,7 +7,6 @@ import * as ProfileConstants from '../../../../constants/profile'
 import * as TrackerConstants from '../../../../constants/tracker2'
 import type * as Types from '../../../../constants/types/teams'
 import {TeamMemberRow} from '.'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
 
 type OwnProps = {
@@ -39,8 +39,9 @@ export default (ownProps: OwnProps) => {
   const onChat = () => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onClick = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]}))
+    navigateAppend({props: {teamID, username}, selected: 'teamMember'})
   }
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const onOpenProfile = () => {

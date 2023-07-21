@@ -1,7 +1,6 @@
+import * as RouterConstants from '../../../../constants/router2'
 import * as React from 'react'
-import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/teams'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
 import type * as TeamsTypes from '../../../../constants/types/teams'
@@ -64,8 +63,6 @@ const RetentionPicker = (p: Props) => {
     [policy]
   )
 
-  const dispatch = Container.useDispatch()
-
   const modalConfirmed = useConfirm(s => s.confirmed)
   const updateConfirm = useConfirm(s => s.dispatch.updateConfirm)
 
@@ -80,6 +77,7 @@ const RetentionPicker = (p: Props) => {
     }, 1)
   }
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   React.useEffect(() => {
     if (userSelectedRef.current) {
       userSelectedRef.current = false
@@ -92,19 +90,10 @@ const RetentionPicker = (p: Props) => {
           // show warning
           showSaved.current = false
           if (selected) {
-            dispatch(
-              RouteTreeGen.createNavigateAppend({
-                path: [
-                  {
-                    props: {
-                      entityType,
-                      policy: selected.type === 'inherit' && teamPolicy ? teamPolicy : selected,
-                    },
-                    selected: 'retentionWarning',
-                  },
-                ],
-              })
-            )
+            navigateAppend({
+              props: {entityType, policy: selected.type === 'inherit' && teamPolicy ? teamPolicy : selected},
+              selected: 'retentionWarning',
+            })
           }
         } else {
           const onConfirm = () => {
@@ -117,7 +106,7 @@ const RetentionPicker = (p: Props) => {
         }
       }
     }
-  }, [selected, policy, saveRetentionPolicy, teamPolicy, dispatch, entityType])
+  }, [selected, policy, saveRetentionPolicy, teamPolicy, navigateAppend, entityType])
 
   const lastPolicy = React.useRef(policy)
   const lastTeamPolicy = React.useRef(teamPolicy)

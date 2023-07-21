@@ -23,10 +23,7 @@ const Waiting = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const onClose = React.useCallback(
-    () => dispatch(nav.safeNavigateAppendPayload({path: ['login'], replace: true})),
-    [dispatch, nav]
-  )
+  const onClose = React.useCallback(() => nav.safeNavigateAppend('login', true), [nav])
 
   const resetAccount = Constants.useState(s => s.dispatch.resetAccount)
   const onSendAgain = React.useCallback(() => {
@@ -53,7 +50,7 @@ const Waiting = (props: Props) => {
         setFormattedTime(newFormattedTime)
       }
       if (endTime < Date.now()) {
-        dispatch(nav.safeNavigateAppendPayload({path: ['resetEnterPassword'], replace: true}))
+        nav.safeNavigateAppend('resetEnterPassword', true)
       }
     }
 

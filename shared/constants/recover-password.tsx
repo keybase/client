@@ -2,7 +2,6 @@ import * as ProvisionConstants from './provision'
 import * as ARConstants from './autoreset'
 import * as RouterConstants from './router2'
 import * as RPCTypes from './types/rpc-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import {useConfigState} from './config'
 import * as Z from '../util/zustand'
 import logger from '../logger'
@@ -49,7 +48,6 @@ export type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     dynamic: {
       cancel: undefined,
@@ -111,22 +109,17 @@ export const useState = Z.createZustand<State>((set, get) => {
                       }
                     }
                   })
-                  reduxDispatch(
-                    RouteTreeGen.createNavigateAppend({
-                      path: ['recoverPasswordDeviceSelector'],
-                      replace: !!replaceRoute,
-                    })
-                  )
+                  RouterConstants.useState
+                    .getState()
+                    .dispatch.navigateAppend('recoverPasswordDeviceSelector', !!replaceRoute)
                 },
                 'keybase.1.loginUi.promptPassphraseRecovery': () => {},
                 // This same RPC is called at the beginning and end of the 7-day wait by the service.
                 'keybase.1.loginUi.promptResetAccount': (params, response) => {
                   if (params.prompt.t == RPCTypes.ResetPromptType.enterResetPw) {
-                    reduxDispatch(
-                      RouteTreeGen.createNavigateAppend({
-                        path: ['recoverPasswordPromptResetPassword'],
-                      })
-                    )
+                    RouterConstants.useState
+                      .getState()
+                      .dispatch.navigateAppend('recoverPasswordPromptResetPassword')
                     const clear = () => {
                       set(s => {
                         s.dispatch.dynamic.submitResetPassword = undefined
@@ -177,9 +170,9 @@ export const useState = Z.createZustand<State>((set, get) => {
                         response.result({passphrase, storeSecret: false})
                       }
                     })
-                    reduxDispatch(
-                      RouteTreeGen.createNavigateAppend({path: ['recoverPasswordPaperKey'], replace: true})
-                    )
+                    RouterConstants.useState
+                      .getState()
+                      .dispatch.navigateAppend('recoverPasswordPaperKey', true)
                   } else {
                     const clear = () => {
                       set(s => {
@@ -202,7 +195,9 @@ export const useState = Z.createZustand<State>((set, get) => {
                         }
                       })
                       // TODO maybe wait for loggedIn, for now the service promises to send this after login.
-                      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['recoverPasswordSetPassword']}))
+                      RouterConstants.useState
+                        .getState()
+                        .dispatch.navigateAppend('recoverPasswordSetPassword')
                     }
                   }
                 },
@@ -212,12 +207,9 @@ export const useState = Z.createZustand<State>((set, get) => {
                   set(s => {
                     s.explainedDevice = {name: params.name, type: params.kind}
                   })
-                  reduxDispatch(
-                    RouteTreeGen.createNavigateAppend({
-                      path: ['recoverPasswordExplainDevice'],
-                      replace: true,
-                    })
-                  )
+                  RouterConstants.useState
+                    .getState()
+                    .dispatch.navigateAppend('recoverPasswordExplainDevice', true)
                 },
               },
               params: {username: p.username},
@@ -243,14 +235,12 @@ export const useState = Z.createZustand<State>((set, get) => {
             set(s => {
               s.error = msg
             })
-            reduxDispatch(
-              RouteTreeGen.createNavigateAppend({
-                path: [
-                  useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
-                ],
-                replace: true,
-              })
-            )
+            RouterConstants.useState
+              .getState()
+              .dispatch.navigateAppend(
+                useConfigState.getState().loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError',
+                true
+              )
           }
         } finally {
           set(s => {

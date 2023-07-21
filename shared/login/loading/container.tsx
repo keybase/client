@@ -1,16 +1,16 @@
+import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/config'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Container from '../../util/container'
 import Splash from '.'
 
 const SplashContainer = () => {
-  const dispatch = Container.useDispatch()
   const failedReason = Constants.useDaemonState(s => s.handshakeFailedReason)
   const retriesLeft = Constants.useDaemonState(s => s.handshakeRetriesLeft)
   const startHandshake = Constants.useDaemonState(s => s.dispatch.startHandshake)
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onFeedback = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'feedback'}]}))
+    navigateAppend({props: {}, selected: 'feedback'})
   }
 
   const onRetry = () => {

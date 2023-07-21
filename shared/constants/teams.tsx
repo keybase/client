@@ -7,7 +7,6 @@ import * as GregorConstants from './gregor'
 import * as ProfileConstants from './profile'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as RPCTypes from './types/rpc-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Router2Constants from './router2'
 import * as Tabs from './tabs'
 import * as TeamBuildingConstants from './team-building'
@@ -1283,7 +1282,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         })
 
-        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}))
+        RouterConstants.useState.getState().dispatch.navigateAppend('teamAddToTeamConfirm')
       }
       Z.ignorePromise(f())
     },
@@ -1398,11 +1397,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           if (res.notAdded && res.notAdded.length > 0) {
             const usernames = res.notAdded.map(elem => elem.username)
             TeamBuildingConstants.stores.get('teams')?.getState().dispatch.finishedTeamBuilding()
-            reduxDispatch(
-              RouteTreeGen.createNavigateAppend({
-                path: [{props: {source: 'teamAddSomeFailed', usernames}, selected: 'contactRestricted'}],
-              })
-            )
+            RouterConstants.useState.getState().dispatch.navigateAppend({
+              props: {source: 'teamAddSomeFailed', usernames},
+              selected: 'contactRestricted',
+            })
             return
           }
 
@@ -1423,11 +1421,10 @@ export const useState = Z.createZustand<State>((set, get) => {
               .map(elem => elem?.value)
             const usernames = users?.[0]?.split(',') ?? []
             TeamBuildingConstants.stores.get('teams')?.getState().dispatch.finishedTeamBuilding()
-            reduxDispatch(
-              RouteTreeGen.createNavigateAppend({
-                path: [{props: {source: 'teamAddAllFailed', usernames}, selected: 'contactRestricted'}],
-              })
-            )
+            RouterConstants.useState.getState().dispatch.navigateAppend({
+              props: {source: 'teamAddAllFailed', usernames},
+              selected: 'contactRestricted',
+            })
             return
           }
 
@@ -1683,13 +1680,11 @@ export const useState = Z.createZustand<State>((set, get) => {
             )
           } else {
             RouterConstants.useState.getState().dispatch.clearModals()
-            reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+            RouterConstants.useState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})
             if (isMobile) {
-              reduxDispatch(
-                RouteTreeGen.createNavigateAppend({
-                  path: [{props: {createdTeam: true, teamID}, selected: 'profileEditAvatar'}],
-                })
-              )
+              RouterConstants.useState
+                .getState()
+                .dispatch.navigateAppend({props: {createdTeam: true, teamID}, selected: 'profileEditAvatar'})
             }
           }
         } catch (error) {
@@ -1852,7 +1847,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.addMembersWizard = {...addMembersWizardEmptyState, justFinished: true}
           })
           RouterConstants.useState.getState().dispatch.clearModals()
-          reduxDispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+          RouterConstants.useState.getState().dispatch.navigateAppend({props: {teamID}, selected: 'team'})
         } catch (error) {
           set(s => {
             if (error instanceof RPCError) {
@@ -2150,9 +2145,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                     s.teamInviteDetails.inviteDetails = params.details
                   })
                   if (!deeplink) {
-                    reduxDispatch(
-                      RouteTreeGen.createNavigateAppend({path: ['teamInviteLinkJoin'], replace: true})
-                    )
+                    RouterConstants.useState.getState().dispatch.navigateAppend('teamInviteLinkJoin', true)
                   }
                   set(s => {
                     s.dispatch.dynamic.respondToInviteLink = accept => {
@@ -2205,9 +2198,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
 
       if (subteamOf) {
-        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard2TeamInfo']}))
+        RouterConstants.useState.getState().dispatch.navigateAppend('teamWizard2TeamInfo')
       } else {
-        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard1TeamPurpose']}))
+        RouterConstants.useState.getState().dispatch.navigateAppend('teamWizard1TeamPurpose')
       }
     },
     leaveTeam: (teamname, permanent, context) => {
@@ -2351,11 +2344,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     manageChatChannels: teamID => {
-      reduxDispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {teamID}, selected: 'teamAddToChannels'}],
-        })
-      )
+      RouterConstants.useState
+        .getState()
+        .dispatch.navigateAppend({props: {teamID}, selected: 'teamAddToChannels'})
     },
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => {
       const {guid, targetTeamID, targetUsername, expectedCount} = result
@@ -2478,7 +2469,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.teamInviteDetails.inviteID = inviteID
         s.teamInviteDetails.inviteKey = inviteKey
       })
-      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamInviteLinkJoin']}))
+      RouterConstants.useState.getState().dispatch.navigateAppend('teamInviteLinkJoin')
     },
     reAddToTeam: (teamID, username) => {
       const f = async () => {
@@ -2882,7 +2873,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           const parentTeamMeta = getTeamMeta(get(), parentTeamID ?? '')
           // If it's just you, don't show the subteam members screen empty
           if (parentTeamMeta.memberCount > 1) {
-            reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizardSubteamMembers']}))
+            RouterConstants.useState.getState().dispatch.navigateAppend('teamWizardSubteamMembers')
             return
           } else {
             get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
@@ -2894,10 +2885,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
           return
         case 'project':
-          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard5Channels']}))
+          RouterConstants.useState.getState().dispatch.navigateAppend('teamWizard5Channels')
           return
         case 'community':
-          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard4TeamSize']}))
+          RouterConstants.useState.getState().dispatch.navigateAppend('teamWizard4TeamSize')
           return
       }
     },
@@ -2905,7 +2896,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.newTeamWizard.channels = channels
       })
-      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard6Subteams']}))
+      RouterConstants.useState.getState().dispatch.navigateAppend('teamWizard6Subteams')
     },
     setTeamWizardNameDescription: p => {
       set(s => {
@@ -2916,16 +2907,10 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.newTeamWizard.profileShowcase = p.profileShowcase
         s.newTeamWizard.addYourself = p.addYourself
       })
-      reduxDispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {createdTeam: true, teamID: Types.newTeamWizardTeamID, wizard: true},
-              selected: 'profileEditAvatar',
-            },
-          ],
-        })
-      )
+      RouterConstants.useState.getState().dispatch.navigateAppend({
+        props: {createdTeam: true, teamID: Types.newTeamWizardTeamID, wizard: true},
+        selected: 'profileEditAvatar',
+      })
     },
     setTeamWizardSubteamMembers: members => {
       set(s => {
@@ -2935,7 +2920,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           teamID: Types.newTeamWizardTeamID,
         }
       })
-      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamConfirm']}))
+      RouterConstants.useState.getState().dispatch.navigateAppend('teamAddToTeamConfirm')
     },
     setTeamWizardSubteams: subteams => {
       set(s => {
@@ -2948,7 +2933,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.newTeamWizard.isBig = isBig
       })
       if (isBig) {
-        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard5Channels']}))
+        RouterConstants.useState.getState().dispatch.navigateAppend('teamWizard5Channels')
       } else {
         get().dispatch.startAddMembersWizard(Types.newTeamWizardTeamID)
       }
@@ -2957,7 +2942,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.newTeamWizard.teamType = teamType
       })
-      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamWizard2TeamInfo']}))
+      RouterConstants.useState.getState().dispatch.navigateAppend('teamWizard2TeamInfo')
     },
     setTeamsWithChosenChannels: teamsWithChosenChannels => {
       set(s => {
@@ -2995,15 +2980,13 @@ export const useState = Z.createZustand<State>((set, get) => {
           logger.info(`team="${teamname}" cannot be loaded:`, err)
           // navigate to team page for team we're not in
           logger.info(`showing external team page, join=${join}`)
-          reduxDispatch(
-            RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamExternalTeam'}]})
-          )
+          RouterConstants.useState
+            .getState()
+            .dispatch.navigateAppend({props: {teamname}, selected: 'teamExternalTeam'})
           if (join) {
-            reduxDispatch(
-              RouteTreeGen.createNavigateAppend({
-                path: [{props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'}],
-              })
-            )
+            RouterConstants.useState
+              .getState()
+              .dispatch.navigateAppend({props: {initialTeamname: teamname}, selected: 'teamJoinTeamDialog'})
           }
           return
         }
@@ -3026,15 +3009,14 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         }
         RouterConstants.useState.getState().dispatch.switchTab(Tabs.teamsTab)
-        reduxDispatch(
-          RouteTreeGen.createNavigateAppend({path: [{props: {initialTab, teamID}, selected: 'team'}]})
-        )
+        RouterConstants.useState
+          .getState()
+          .dispatch.navigateAppend({props: {initialTab, teamID}, selected: 'team'})
         if (addMembers) {
-          reduxDispatch(
-            RouteTreeGen.createNavigateAppend({
-              path: [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}],
-            })
-          )
+          RouterConstants.useState.getState().dispatch.navigateAppend({
+            props: {namespace: 'teams', teamID, title: ''},
+            selected: 'teamsTeamBuilder',
+          })
         }
       }
       Z.ignorePromise(f())
@@ -3043,7 +3025,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.addMembersWizard = {...addMembersWizardEmptyState, teamID}
       })
-      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['teamAddToTeamFromWhere']}))
+      RouterConstants.useState.getState().dispatch.navigateAppend('teamAddToTeamFromWhere')
     },
     teamChangedByID: c => {
       const {teamID, latestHiddenSeqno, latestOffchainSeqno, latestSeqno} = c

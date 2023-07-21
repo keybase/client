@@ -1,10 +1,10 @@
+import * as RouterConstants from '../../../../../constants/router2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as FSConstants from '../../../../../constants/fs'
 import * as Container from '../../../../../util/container'
 import * as ConfigConstants from '../../../../../constants/config'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as TeamConstants from '../../../../../constants/teams'
 import Exploding from '.'
 import ReactionItem from '../reactionitem'
@@ -70,21 +70,16 @@ export default (ownProps: OwnProps) => {
   const timestamp = message.timestamp
 
   const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _onAddReaction = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              conversationIDKey: ownProps.conversationIDKey,
-              onPickAddToMessageOrdinal: ownProps.ordinal,
-              pickKey: 'reaction',
-            },
-            selected: 'chatChooseEmoji',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {
+        conversationIDKey: ownProps.conversationIDKey,
+        onPickAddToMessageOrdinal: ownProps.ordinal,
+        pickKey: 'reaction',
+      },
+      selected: 'chatChooseEmoji',
+    })
   }
   const _onAllMedia = () => {
     dispatch(
@@ -124,30 +119,16 @@ export default (ownProps: OwnProps) => {
     )
   }
   const _onForward = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {ordinal: ownProps.ordinal, srcConvID: ownProps.conversationIDKey},
-            selected: 'chatForwardMsgPick',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {ordinal: ownProps.ordinal, srcConvID: ownProps.conversationIDKey},
+      selected: 'chatForwardMsgPick',
+    })
   }
   const _onInstallBot = (author: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {botUsername: author}, selected: 'chatInstallBotPick'}],
-      })
-    )
+    navigateAppend({props: {botUsername: author}, selected: 'chatInstallBotPick'})
   }
   const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'}],
-      })
-    )
+    navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
   }
   const _onMarkAsUnread = (id: number) => {
     dispatch(
@@ -205,21 +186,15 @@ export default (ownProps: OwnProps) => {
       openLocalPathInSystemFileManagerDesktop?.(message.downloadPath)
   }
   const _onUserBlock = (message: Types.Message, isSingle: boolean) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              blockUserByDefault: true,
-              context: isSingle ? 'message-popup-single' : 'message-popup',
-              convID: message.conversationIDKey,
-              username: message.author,
-            },
-            selected: 'chatBlockingModal',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {
+        blockUserByDefault: true,
+        context: isSingle ? 'message-popup-single' : 'message-popup',
+        convID: message.conversationIDKey,
+        username: message.author,
+      },
+      selected: 'chatBlockingModal',
+    })
   }
 
   const authorInTeam = _teamMembers?.has(message.author) ?? true

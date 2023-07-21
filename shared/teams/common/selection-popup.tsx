@@ -1,3 +1,4 @@
+import * as RouterConstants from '../../constants/router2'
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import type * as Types from '../../constants/types/teams'
@@ -5,7 +6,6 @@ import type * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {pluralize} from '../../util/string'
 import {FloatingRolePicker} from '../role-picker'
 import {useFocusEffect} from '@react-navigation/core'
@@ -202,9 +202,9 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
   </Kb.Box2>
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
-  const dispatch = Container.useDispatch()
   const membersSet = Constants.useState(s => s.teamSelectedMembers.get(teamID))
   const isBigTeam = Container.useSelector(s => Constants.isBigTeam(s, teamID))
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   if (!membersSet) {
     // we shouldn't be rendered
     return null
@@ -213,17 +213,9 @@ const TeamMembersActions = ({teamID}: TeamActionsProps) => {
 
   // Members tab functions
   const onAddToChannel = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID, usernames: members}, selected: 'teamAddToChannels'}],
-      })
-    )
+    navigateAppend({props: {teamID, usernames: members}, selected: 'teamAddToChannels'})
   const onRemoveFromTeam = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {members: members, teamID}, selected: 'teamReallyRemoveMember'}],
-      })
-    )
+    navigateAppend({props: {members: members, teamID}, selected: 'teamReallyRemoveMember'})
 
   return (
     <ActionsWrapper>
@@ -302,15 +294,9 @@ const EditRoleButton = ({members, teamID}: {teamID: Types.TeamID; members: strin
 }
 
 const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
-  const dispatch = Container.useDispatch()
-
   // Channels tab functions
-  const onDelete = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID}, selected: 'teamDeleteChannel'}],
-      })
-    )
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const onDelete = () => navigateAppend({props: {teamID}, selected: 'teamDeleteChannel'})
 
   return (
     <ActionsWrapper>
@@ -319,12 +305,12 @@ const TeamChannelsActions = ({teamID}: TeamActionsProps) => {
   )
 }
 const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps) => {
-  const dispatch = Container.useDispatch()
   const membersSet = Constants.useState(
     s => s.channelSelectedMembers.get(conversationIDKey) ?? emptySetForUseSelector
   )
   const channelInfo = Constants.useState(s => Constants.getTeamChannelInfo(s, teamID, conversationIDKey))
   const {channelname} = channelInfo
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
 
   if (!membersSet) {
     // we shouldn't be rendered
@@ -334,22 +320,12 @@ const ChannelMembersActions = ({conversationIDKey, teamID}: ChannelActionsProps)
 
   // Members tab functions
   const onAddToChannel = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamID, usernames: members}, selected: 'teamAddToChannels'}],
-      })
-    )
+    navigateAppend({props: {teamID, usernames: members}, selected: 'teamAddToChannels'})
   const onRemoveFromChannel = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, members: [...members], teamID},
-            selected: 'teamReallyRemoveChannelMember',
-          },
-        ],
-      })
-    )
+    navigateAppend({
+      props: {conversationIDKey, members: [...members], teamID},
+      selected: 'teamReallyRemoveChannelMember',
+    })
 
   return (
     <ActionsWrapper>

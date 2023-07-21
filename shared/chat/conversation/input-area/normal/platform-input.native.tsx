@@ -2,7 +2,7 @@ import * as Container from '../../../../util/container'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as RouterConstants from '../../../../constants/router2'
 import * as Styles from '../../../../styles'
 import AudioRecorder from '../../../audio/audio-recorder.native'
 import FilePickerPopup from '../filepicker-popup'
@@ -69,10 +69,7 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
     insertText('@')
   }, [insertText])
 
-  const dispatch = Container.useDispatch()
-
   const pickKey = 'chatInput'
-
   const {emojiStr} = usePickerState(s => s.pickerMap.get(pickKey)) ?? {emojiStr: ''}
   const updatePickerMap = usePickerState(s => s.dispatch.updatePickerMap)
 
@@ -85,18 +82,13 @@ const Buttons = React.memo(function Buttons(p: ButtonsProps) {
     }, 1)
   }
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const openEmojiPicker = React.useCallback(() => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, pickKey},
-            selected: 'chatChooseEmoji',
-          },
-        ],
-      })
-    )
-  }, [conversationIDKey, dispatch])
+    navigateAppend({
+      props: {conversationIDKey, pickKey},
+      selected: 'chatChooseEmoji',
+    })
+  }, [conversationIDKey, navigateAppend])
 
   const explodingIcon = !isEditing && !cannotWrite && (
     <Kb.ClickableBox style={styles.explodingWrapper} onClick={toggleShowingMenu}>
@@ -219,22 +211,17 @@ type ChatFilePickerProps = {
 }
 const ChatFilePicker = (p: ChatFilePickerProps) => {
   const {attachTo, showingPopup, toggleShowingPopup, conversationIDKey} = p
-  const dispatch = Container.useDispatch()
   const filePickerError = ConfigConstants.useConfigState(s => s.dispatch.filePickerError)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const launchNativeImagePicker = React.useCallback(
     (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
       const handleSelection = (result: ImagePicker.ImagePickerResult) => {
         if (result.canceled || (result.assets.length ?? 0) == 0 || !conversationIDKey) {
           return
         }
-
         const pathAndOutboxIDs = result.assets.map(a => ({path: a.uri}))
         const props = {conversationIDKey, pathAndOutboxIDs}
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props, selected: 'chatAttachmentGetTitles'}],
-          })
-        )
+        navigateAppend({props, selected: 'chatAttachmentGetTitles'})
       }
 
       switch (location) {
@@ -250,7 +237,7 @@ const ChatFilePicker = (p: ChatFilePickerProps) => {
           break
       }
     },
-    [dispatch, conversationIDKey, filePickerError]
+    [navigateAppend, conversationIDKey, filePickerError]
   )
 
   return (
@@ -413,21 +400,17 @@ const PlatformInput = (p: Props) => {
     ourShowMenu('exploding')
   }, [ourShowMenu])
 
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onPasteImage = React.useCallback(
     (uri: string) => {
       try {
         const pathAndOutboxIDs = [{path: uri}]
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
-          })
-        )
+        navigateAppend({props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'})
       } catch (e) {
         logger.info('onPasteImage error', e)
       }
     },
-    [conversationIDKey, dispatch]
+    [conversationIDKey, navigateAppend]
   )
 
   const onLayout = React.useCallback((p: LayoutEvent) => {
@@ -652,7 +635,7 @@ const styles = Styles.styleSheetCreate(
           right: Styles.globalMargins.small,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default PlatformInput

@@ -1,6 +1,6 @@
+import * as RouterConstants from './router2'
 import type * as Types from './types/git'
 import * as dateFns from 'date-fns'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Z from '../util/zustand'
 import * as ConfigConstants from './config'
@@ -82,8 +82,6 @@ type State = Types.State & {
 }
 
 export const useGitState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
-
   const callAndHandleError = (f: () => Promise<void>, loadAfter = true) => {
     const wrapper = async () => {
       try {
@@ -146,11 +144,9 @@ export const useGitState = Z.createZustand<State>((set, get) => {
         await _load()
         for (const [, info] of get().idToInfo) {
           if (info.repoID === repoID && info.teamname === teamname) {
-            reduxDispatch(
-              RouteTreeGen.createNavigateAppend({
-                path: [{props: {expanded: info.id}, selected: 'gitRoot'}],
-              })
-            )
+            RouterConstants.useState
+              .getState()
+              .dispatch.navigateAppend({props: {expanded: info.id}, selected: 'gitRoot'})
             break
           }
         }

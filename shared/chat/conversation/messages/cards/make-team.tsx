@@ -1,21 +1,16 @@
+import * as RouterConstants from '../../../../constants/router2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
 import type * as Chat2Types from '../../../../constants/types/chat2'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type Props = {
   conversationIDKey: Chat2Types.ConversationIDKey
 }
 
 const MakeTeam = ({conversationIDKey}: Props) => {
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onShowNewTeamDialog = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'}],
-      })
-    )
+    navigateAppend({props: {conversationIDKey}, selected: 'chatShowNewTeamDialog'})
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
       <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
@@ -87,7 +82,7 @@ const styles = Styles.styleSheetCreate(
       },
       link: {color: Styles.isMobile ? Styles.globalColors.greenLight : undefined},
       textContainer: {padding: Styles.globalMargins.medium},
-    } as const)
+    }) as const
 )
 
 export default MakeTeam

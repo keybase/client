@@ -60,7 +60,7 @@ type Distribute<U> = U extends RouteKeys
     ? U
     : {selected: U; props: RootParamList[U]}
   : never
-export type NavigateAppendType = ReadonlyArray<Distribute<RouteKeys>>
+export type NavigateAppendType = Distribute<RouteKeys>
 
 export type RootRouteProps<RouteName extends keyof RootParamList> = RouteProp<RootParamList, RouteName>
 

@@ -23,8 +23,7 @@ const TeamRow = (props: Props) => {
   // useActivityLevels in ../container ensures these are loaded
   const activityLevel = Constants.useState(s => s.activityLevels.teams.get(teamID) || 'none')
 
-  const onViewTeam = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
+  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
 
   const activity = <Activity level={activityLevel} />
 

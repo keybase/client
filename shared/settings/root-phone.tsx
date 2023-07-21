@@ -1,3 +1,4 @@
+import * as RouterConstants from '../constants/router2'
 import * as React from 'react'
 import * as TabConstants from '../constants/tabs'
 import * as Kb from '../common-adapters'
@@ -5,8 +6,6 @@ import * as Constants from '../constants/settings'
 import * as NotifConstants from '../constants/notifications'
 import * as PushConstants from '../constants/push'
 import * as ConfigConstants from '../constants/config'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Container from '../util/container'
 import * as Styles from '../styles'
 import {logPerfLogPointRpcPromise} from '../constants/types/rpc-gen'
 import {keybaseFM} from '../constants/whats-new'
@@ -66,12 +65,12 @@ function SettingsNav() {
   const badgeNumbers = NotifConstants.useState(s => s.navBadges)
   const badgeNotifications = PushConstants.useState(s => !s.hasPermissions)
   const statsShown = ConfigConstants.useConfigState(s => !!s.runtimeStats)
-  const dispatch = Container.useDispatch()
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onTabChange = React.useCallback(
     (s: any) => {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [s]}))
+      navigateAppend(s)
     },
-    [dispatch]
+    [navigateAppend]
   )
   const contactsLabel = Constants.useContactsState(s =>
     s.importEnabled ? 'Phone contacts' : 'Import phone contacts'

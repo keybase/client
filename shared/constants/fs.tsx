@@ -1,7 +1,6 @@
 import * as ConfigConstants from './config'
 import * as NotifConstants from './notifications'
 import * as RPCTypes from './types/rpc-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from './settings'
 import * as RouterConstants from './router2'
 import * as Tabs from './tabs'
@@ -885,19 +884,9 @@ export const getPathStatusIconInMergeProps = (
   }
 }
 
-type SafeNavigateAppendArg = {path: any; replace?: boolean}
-export const makeActionsForDestinationPickerOpen = (
-  index: number,
-  path: Types.Path,
-  navigateAppend: (a: SafeNavigateAppendArg) => TypedActions,
-  headerRightButton?: React.ReactNode
-): ReadonlyArray<TypedActions> => {
+export const makeActionsForDestinationPickerOpen = (index: number, path: Types.Path) => {
   useState.getState().dispatch.setDestinationPickerParentPath(index, path)
-  return [
-    navigateAppend({
-      path: [{props: {headerRightButton, index}, selected: 'destinationPicker'}],
-    }),
-  ] as const
+  RouterConstants.useState.getState().dispatch.navigateAppend({props: {index}, selected: 'destinationPicker'})
 }
 
 export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
@@ -905,7 +894,9 @@ export const fsRootRouteForNav1 = isMobile ? [Tabs.settingsTab, SettingsConstant
 export const makeActionForOpenPathInFilesTab = (
   // TODO: remove the second arg when we are done with migrating to nav2
   path: Types.Path
-): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
+) => {
+  RouterConstants.useState.getState().dispatch.navigateAppend({props: {path}, selected: 'fsRoot'})
+}
 
 export const putActionIfOnPathForNav1 = (action: TypedActions) => action
 
@@ -1308,8 +1299,6 @@ const updatePathItem = (
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
-
   // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
   // reducer and happens before this.
   let waitForKbfsDaemonInProgress = false
@@ -1934,11 +1923,10 @@ export const useState = Z.createZustand<State>((set, get) => {
             const usernames = users?.map((elem: any) => elem.value)
             // Don't leave the user on a broken FS dir screen.
             RouterConstants.useState.getState().dispatch.navigateUp()
-            reduxDispatch(
-              RouteTreeGen.createNavigateAppend({
-                path: [{props: {source: 'newFolder', usernames}, selected: 'contactRestricted'}],
-              })
-            )
+            RouterConstants.useState.getState().dispatch.navigateAppend({
+              props: {source: 'newFolder', usernames},
+              selected: 'contactRestricted',
+            })
           }
           errorToActionOrThrow(error, tlfPath)
         }
@@ -2461,9 +2449,9 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
-      reduxDispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
-      )
+      RouterConstants.useState
+        .getState()
+        .dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     showMoveOrCopy: initialDestinationParentPath => {
       set(s => {
@@ -2477,9 +2465,10 @@ export const useState = Z.createZustand<State>((set, get) => {
 
         s.destinationPicker.destinationParentPath = [initialDestinationParentPath]
       })
-      reduxDispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
-      )
+
+      RouterConstants.useState
+        .getState()
+        .dispatch.navigateAppend({props: {index: 0}, selected: 'destinationPicker'})
     },
     startManualConflictResolution: tlfPath => {
       const f = async () => {

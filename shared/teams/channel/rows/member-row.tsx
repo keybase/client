@@ -1,3 +1,4 @@
+import * as RouterConstants from '../../../constants/router2'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -10,7 +11,6 @@ import * as ProfileConstants from '../../../constants/profile'
 import * as ChatConstants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import MenuHeader from '../../team/rows/menu-header.new'
 
 type Props = {
@@ -85,13 +85,12 @@ const ChannelMemberRow = (props: Props) => {
   const onChat = React.useCallback(() => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'}))
   }, [username, dispatch])
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onEditMember = React.useCallback(() => {
     yourOperations.manageMembers &&
       username &&
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]})
-      )
-  }, [yourOperations.manageMembers, username, dispatch, teamID])
+      navigateAppend({props: {teamID, username}, selected: 'teamMember'})
+  }, [yourOperations.manageMembers, username, navigateAppend, teamID])
   const checkCircle = (
     <Kb.CheckCircle
       checked={memberSelected}
@@ -135,16 +134,10 @@ const ChannelMemberRow = (props: Props) => {
       const {attachTo, toggleShowingPopup} = p
       const onOpenProfile = () => username && showUserProfile(username)
       const onRemoveFromChannel = () =>
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              {
-                props: {conversationIDKey, members: [username], teamID},
-                selected: 'teamReallyRemoveChannelMember',
-              },
-            ],
-          })
-        )
+        navigateAppend({
+          props: {conversationIDKey, members: [username], teamID},
+          selected: 'teamReallyRemoveChannelMember',
+        })
       const onBlock = () => {
         username &&
           setUserBlocks([
@@ -163,11 +156,7 @@ const ChannelMemberRow = (props: Props) => {
               {
                 icon: 'iconfont-chat',
                 onClick: () =>
-                  dispatch(
-                    RouteTreeGen.createNavigateAppend({
-                      path: [{props: {teamID, usernames: [username]}, selected: 'teamAddToChannels'}],
-                    })
-                  ),
+                  navigateAppend({props: {teamID, usernames: [username]}, selected: 'teamAddToChannels'}),
                 title: 'Add to channels...',
               },
               {icon: 'iconfont-crown-admin', onClick: onEditMember, title: 'Edit role...'},
@@ -222,11 +211,11 @@ const ChannelMemberRow = (props: Props) => {
       )
     },
     [
+      navigateAppend,
       setUserBlocks,
       fullname,
       roleLabel,
       teamID,
-      dispatch,
       yourOperations,
       username,
       isYou,

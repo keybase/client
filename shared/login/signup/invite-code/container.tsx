@@ -1,16 +1,15 @@
-import * as Container from '../../../util/container'
+import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/signup'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import InviteCode from '.'
 
 export default () => {
   const error = Constants.useState(s => s.inviteCodeError)
-  const dispatch = Container.useDispatch()
   const goBackAndClearErrors = Constants.useState(s => s.dispatch.goBackAndClearErrors)
   const checkInviteCode = Constants.useState(s => s.dispatch.checkInviteCode)
   const onBack = goBackAndClearErrors
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onRequestInvite = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: ['signupRequestInvite']}))
+    navigateAppend('signupRequestInvite')
   }
   const onSubmit = checkInviteCode
   const props = {

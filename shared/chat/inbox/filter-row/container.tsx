@@ -20,7 +20,7 @@ export default (ownProps: OwnProps) => {
   const isSearching = Container.useSelector(state => !!state.chat2.inboxSearch)
   const dispatch = Container.useDispatch()
   const _appendNewChatBuilder = () => {
-    dispatch(appendNewChatBuilder())
+    appendNewChatBuilder()
   }
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {

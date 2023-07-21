@@ -1,6 +1,6 @@
+import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import type * as Types from '../../../constants/types/teams'
 import {Settings} from '.'
 import {useSettingsState} from './use-settings'
@@ -27,8 +27,6 @@ export default (ownProps: OwnProps) => {
   const teamname = teamMeta.teamname
   const waitingForWelcomeMessage = Container.useAnyWaiting(Constants.loadWelcomeMessageWaitingKey(teamID))
   const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
-  const dispatch = Container.useDispatch()
-
   const _loadWelcomeMessage = Constants.useState(s => s.dispatch.loadWelcomeMessage)
   const resetErrorInSettings = Constants.useState(s => s.dispatch.resetErrorInSettings)
   const setPublicity = Constants.useState(s => s.dispatch.setPublicity)
@@ -36,20 +34,15 @@ export default (ownProps: OwnProps) => {
   const loadWelcomeMessage = () => {
     _loadWelcomeMessage(teamID)
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onEditWelcomeMessage = () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamEditWelcomeMessage'}]})
-    )
+    navigateAppend({props: {teamID}, selected: 'teamEditWelcomeMessage'})
   }
   const savePublicity = (settings: Types.PublicitySettings) => {
     setPublicity(teamID, settings)
   }
   const showOpenTeamWarning = (isOpenTeam: boolean, teamname: string) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {isOpenTeam, teamname}, selected: 'openTeamWarning'}],
-      })
-    )
+    navigateAppend({props: {isOpenTeam, teamname}, selected: 'openTeamWarning'})
   }
   const allowOpenTrigger = useSettingsState(s => s.allowOpenTrigger)
 

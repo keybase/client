@@ -1,9 +1,8 @@
-import {Reloadable} from '../../common-adapters'
-import * as RouterConstants from '../../constants/router2'
-import * as Container from '../../util/container'
-import Notifications, {type Props} from '.'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/settings'
+import * as Container from '../../util/container'
+import * as RouterConstants from '../../constants/router2'
+import Notifications, {type Props} from '.'
+import {Reloadable} from '../../common-adapters'
 
 const ReloadableNotifications = (props: Props) => {
   const loadSettings = Constants.useState(s => s.dispatch.loadSettings)
@@ -32,14 +31,13 @@ export default () => {
   const toggle = Constants.useNotifState(s => s.dispatch.toggle)
   const showEmailSection = Constants.useEmailState(s => s.emails.size > 0)
   const waitingForResponse = Container.useAnyWaiting(Constants.settingsWaitingKey)
-
-  const dispatch = Container.useDispatch()
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onClickYourAccount = () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [Constants.accountTab]}))
+    navigateAppend(Constants.accountTab)
   }
   const onToggle = toggle
   const onToggleUnsubscribeAll = toggle

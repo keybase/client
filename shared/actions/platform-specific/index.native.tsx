@@ -11,7 +11,6 @@ import * as ExpoTaskManager from 'expo-task-manager'
 import * as MediaLibrary from 'expo-media-library'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTreeGen from '../route-tree-gen'
 import * as RouterConstants from '../../constants/router2'
 import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
@@ -495,16 +494,13 @@ export const initPlatformListener = () => {
 
   ProfileConstants.useState.setState(s => {
     s.dispatch.editAvatar = () => {
-      const reduxDispatch = Z.getReduxDispatch()
       const f = async () => {
         try {
           const result = await launchImageLibraryAsync('photo')
           if (!result.canceled) {
-            reduxDispatch(
-              RouteTreeGen.createNavigateAppend({
-                path: [{props: {image: result.assets[0]}, selected: 'profileEditAvatar'}],
-              })
-            )
+            RouterConstants.useState
+              .getState()
+              .dispatch.navigateAppend({props: {image: result.assets[0]}, selected: 'profileEditAvatar'})
           }
         } catch (error) {
           ConfigConstants.useConfigState.getState().dispatch.filePickerError(new Error(String(error)))

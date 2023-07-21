@@ -4,11 +4,11 @@ import * as Styles from '../styles'
 import {currentVersion, lastVersion, lastLastVersion} from '../constants/whats-new'
 import type * as Tabs from '../constants/tabs'
 import type {VersionProps} from './versions'
-import type {NavigateAppendPayload} from '../actions/route-tree-gen'
+import type {PathParam} from '../constants/router2'
 
 type Props = {
   onBack: () => void
-  onNavigate: (props: NavigateAppendPayload['payload']) => void
+  onNavigate: (props: PathParam) => void
   onNavigateExternal: (url: string) => void
   onSwitchTab: (tab: Tabs.AppTab) => void
   seenVersions: {[key: string]: boolean}

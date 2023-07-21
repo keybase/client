@@ -32,25 +32,18 @@ const BlockButtons = (props: Props) => {
   )
 
   const onViewProfile = () => showUserProfile(adder)
-  const onViewTeam = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
+  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
   const onBlock = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {
-              blockUserByDefault: true,
-              convID: props.conversationID,
-              others: others,
-              team: team,
-              username: adder,
-            },
-            selected: 'chatBlockingModal',
-          },
-        ],
-      })
-    )
+    nav.safeNavigateAppend({
+      props: {
+        blockUserByDefault: true,
+        convID: props.conversationID,
+        others: others,
+        team: team,
+        username: adder,
+      },
+      selected: 'chatBlockingModal',
+    })
   const onDismiss = () => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))
 
   const buttonRow = (
@@ -157,5 +150,5 @@ const styles = Styles.styleSheetCreate(
           width: '',
         },
       }),
-    } as const)
+    }) as const
 )

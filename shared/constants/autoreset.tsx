@@ -1,7 +1,6 @@
 import * as Z from '../util/zustand'
 import * as RouterConstants from '../constants/router2'
 import * as RPCGen from '../constants/types/rpc-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as ProvisionConstants from './provision'
 import * as RecoverConstants from './recover-password'
 import logger from '../logger'
@@ -44,7 +43,6 @@ type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     cancelReset: () => {
       set(s => {
@@ -116,7 +114,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                 }
               }
             })
-            reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['resetConfirm'], replace: true}))
+            RouterConstants.useState.getState().dispatch.navigateAppend('resetConfirm', true)
           } else {
             logger.info('Starting account reset process')
             get().dispatch.startAccountReset(true, '')
@@ -133,12 +131,12 @@ export const useState = Z.createZustand<State>((set, get) => {
                       s.endTime = params.endTime * 1000
                     })
                   }
-                  reduxDispatch(
-                    RouteTreeGen.createNavigateAppend({
-                      path: [{props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'}],
-                      replace: true,
-                    })
-                  )
+                  RouterConstants.useState
+                    .getState()
+                    .dispatch.navigateAppend(
+                      {props: {pipelineStarted: !params.needVerify}, selected: 'resetWaiting'},
+                      true
+                    )
                 },
               },
               params: {
@@ -170,9 +168,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.error = ''
         s.username = username
       })
-      reduxDispatch(
-        RouteTreeGen.createNavigateAppend({path: ['recoverPasswordPromptResetAccount'], replace: true})
-      )
+      RouterConstants.useState.getState().dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
     },
     updateARState: (active, endTime) => {
       set(s => {

@@ -99,14 +99,9 @@ const NonExistent = (props: Props) => (
 )
 
 const Oops = (props: OwnProps) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const openParent = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [{props: {path: Types.getPathParent(props.path)}, selected: 'fsRoot'}],
-      })
-    )
+    nav.safeNavigateAppend({props: {path: Types.getPathParent(props.path)}, selected: 'fsRoot'})
   switch (props.reason) {
     case Types.SoftError.NoAccess:
       return <NoAccess {...props} openParent={openParent} />
@@ -164,5 +159,5 @@ const styles = Styles.styleSheetCreate(
           textAlign: 'center',
         },
       }),
-    } as const)
+    }) as const
 )

@@ -6,7 +6,6 @@ import * as ConfigConstants from '../../constants/config'
 import * as FsConstants from '../../constants/fs'
 import * as UsersConstants from '../../constants/users'
 import * as FsTypes from '../../constants/types/fs'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
@@ -29,42 +28,27 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const blocked = UsersConstants.useState(s => s.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onMenuAddToTeam = React.useCallback(() => {
-    keybaseUsername &&
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {username: keybaseUsername}, selected: 'profileAddToTeam'}],
-        })
-      )
-  }, [dispatch, keybaseUsername])
+    keybaseUsername && navigateAppend({props: {username: keybaseUsername}, selected: 'profileAddToTeam'})
+  }, [navigateAppend, keybaseUsername])
 
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onOpenPrivateFolder = React.useCallback(() => {
     navigateUp()
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
-      )
+    FsConstants.makeActionForOpenPathInFilesTab(
+      FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
     )
-  }, [navigateUp, dispatch, decoratedUsername, myUsername])
+  }, [navigateUp, decoratedUsername, myUsername])
 
   const onBrowsePublicFolder = React.useCallback(() => {
     navigateUp()
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`)
-      )
-    )
-  }, [navigateUp, dispatch, decoratedUsername])
+    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`))
+  }, [navigateUp, decoratedUsername])
 
   const onManageBlocking = React.useCallback(() => {
-    keybaseUsername &&
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
-        })
-      )
-  }, [dispatch, keybaseUsername])
+    keybaseUsername && navigateAppend({props: {username: keybaseUsername}, selected: 'chatBlockingModal'})
+  }, [navigateAppend, keybaseUsername])
 
   const onChat = React.useCallback(() => {
     navigateUp()

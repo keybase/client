@@ -1,6 +1,5 @@
 import Announcement from '.'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as RouteTree from '../../actions/route-tree-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
 import * as RouterConstants from '../../constants/router2'
@@ -28,6 +27,7 @@ export default (ownProps: OwnProps) => {
   const dismissAnnouncement = Constants.useState(s => s.dispatch.dismissAnnouncement)
 
   const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onConfirm = () => {
     if (url) {
       openURL(url)
@@ -42,25 +42,25 @@ export default (ownProps: OwnProps) => {
       case RPCTypes.AppLinkType.files:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.fsTab)
         if (Container.isMobile) {
-          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.fsTab]}))
+          navigateAppend(SettingsTabs.fsTab)
         }
         break
       case RPCTypes.AppLinkType.wallet:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.walletsTab)
         if (Container.isMobile) {
-          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.walletsTab]}))
+          navigateAppend(SettingsTabs.walletsTab)
         }
         break
       case RPCTypes.AppLinkType.git:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.gitTab)
         if (Container.isMobile) {
-          dispatch(RouteTree.createNavigateAppend({path: [{props: {}, selected: SettingsTabs.gitTab}]}))
+          navigateAppend({props: {}, selected: SettingsTabs.gitTab})
         }
         break
       case RPCTypes.AppLinkType.devices:
         switchTab(Container.isMobile ? Tabs.settingsTab : Tabs.devicesTab)
         if (Container.isMobile) {
-          dispatch(RouteTree.createNavigateAppend({path: [SettingsTabs.devicesTab]}))
+          navigateAppend(SettingsTabs.devicesTab)
         }
         break
       case RPCTypes.AppLinkType.settings:

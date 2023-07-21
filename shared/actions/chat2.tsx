@@ -14,7 +14,6 @@ import * as GregorConstants from '../constants/gregor'
 import * as Platform from '../constants/platform'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
-import * as RouteTreeGen from './route-tree-gen'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as TeamsConstants from '../constants/teams'
@@ -2009,9 +2008,8 @@ const previewConversationTeam = async (
           .dispatch.setLinkError(
             "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
           )
-        return RouteTreeGen.createNavigateAppend({
-          path: ['keybaseLinkError'],
-        })
+        RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+        return
       } else {
         return []
       }
@@ -2044,9 +2042,8 @@ const previewConversationTeam = async (
         .dispatch.setLinkError(
           "We couldn't find this team. Please check that you're a member of the team and the channel exists."
         )
-      return RouteTreeGen.createNavigateAppend({
-        path: ['keybaseLinkError'],
-      })
+      RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+      return
     } else {
       throw error
     }
@@ -2118,18 +2115,15 @@ const attachmentDownload = async (
   await downloadAttachment(false, message, listenerApi)
 }
 
-const attachmentPreviewSelect = (_: unknown, action: Chat2Gen.AttachmentPreviewSelectPayload) =>
-  RouteTreeGen.createNavigateAppend({
-    path: [
-      {
-        props: {
-          conversationIDKey: action.payload.conversationIDKey,
-          ordinal: action.payload.ordinal,
-        },
-        selected: 'chatAttachmentFullscreen',
-      },
-    ],
+const attachmentPreviewSelect = (_: unknown, action: Chat2Gen.AttachmentPreviewSelectPayload) => {
+  RouterConstants.useState.getState().dispatch.navigateAppend({
+    props: {
+      conversationIDKey: action.payload.conversationIDKey,
+      ordinal: action.payload.ordinal,
+    },
+    selected: 'chatAttachmentFullscreen',
   })
+}
 
 // Handle an image pasted into a conversation
 const attachmentPasted = async (_: unknown, action: Chat2Gen.AttachmentPastedPayload) => {
@@ -2138,10 +2132,10 @@ const attachmentPasted = async (_: unknown, action: Chat2Gen.AttachmentPastedPay
   const path = await RPCChatTypes.localMakeUploadTempFileRpcPromise({data, filename: 'paste.png', outboxID})
 
   const pathAndOutboxIDs = [{outboxID, path}]
-  return RouteTreeGen.createNavigateAppend({
-    path: [
-      {props: {conversationIDKey, noDragDrop: true, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'},
-    ],
+
+  RouterConstants.useState.getState().dispatch.navigateAppend({
+    props: {conversationIDKey, noDragDrop: true, pathAndOutboxIDs},
+    selected: 'chatAttachmentGetTitles',
   })
 }
 
@@ -2602,18 +2596,17 @@ const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) 
 
   if (visibleRouteName !== Constants.threadRouteName && reason === 'findNewestConversation') {
     // service is telling us to change our selection but we're not looking, ignore
-    return false
+    return
   }
 
   // we select the chat tab and change the params
   if (Constants.isSplit) {
     RouterConstants.navToThread(conversationIDKey)
-    return false
   } else {
     // immediately switch stack to an inbox | thread stack
     if (reason === 'push' || reason === 'savedLastState') {
       RouterConstants.navToThread(conversationIDKey)
-      return false
+      return
     } else {
       // replace if looking at the pending / waiting screen
       const replace =
@@ -2624,12 +2617,9 @@ const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) 
       if (modalPath.length > 0) {
         RouterConstants.useState.getState().dispatch.clearModals()
       }
-      return [
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey}, selected: Constants.threadRouteName}],
-          replace,
-        }),
-      ]
+      RouterConstants.useState
+        .getState()
+        .dispatch.navigateAppend({props: {conversationIDKey}, selected: Constants.threadRouteName}, replace)
     }
   }
 }
@@ -2709,22 +2699,16 @@ const mobileMessageAttachmentShare = async (
   }
 
   if (isIOS && message.fileName.endsWith('.pdf')) {
-    listenerApi.dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              message,
-              // Prepend the 'file://' prefix here. Otherwise when webview
-              // automatically does that, it triggers onNavigationStateChange
-              // with the new address and we'd call stoploading().
-              url: 'file://' + filePath,
-            },
-            selected: 'chatPDF',
-          },
-        ],
-      })
-    )
+    RouterConstants.useState.getState().dispatch.navigateAppend({
+      props: {
+        message,
+        // Prepend the 'file://' prefix here. Otherwise when webview
+        // automatically does that, it triggers onNavigationStateChange
+        // with the new address and we'd call stoploading().
+        url: 'file://' + filePath,
+      },
+      selected: 'chatPDF',
+    })
     return
   }
 
@@ -3679,9 +3663,10 @@ const onShowInfoPanel = (_: unknown, action: Chat2Gen.ShowInfoPanelPayload) => {
     const visibleScreen = RouterConstants.getVisibleScreen()
     if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
       if (show) {
-        return RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, tab}, selected: 'chatInfoPanel'}],
-        })
+        RouterConstants.useState
+          .getState()
+          .dispatch.navigateAppend({props: {conversationIDKey, tab}, selected: 'chatInfoPanel'})
+        return
       } else {
         RouterConstants.useState.getState().dispatch.navigateUp()
         return conversationIDKey ? [Chat2Gen.createClearAttachmentView({conversationIDKey})] : []

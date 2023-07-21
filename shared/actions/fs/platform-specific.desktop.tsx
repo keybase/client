@@ -1,3 +1,4 @@
+import * as RouterConstants from '../../constants/router2'
 import * as Z from '../../util/zustand'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
@@ -6,7 +7,6 @@ import * as ConfigConstants from '../../constants/config'
 import * as Tabs from '../../constants/tabs'
 import {isWindows, isLinux, pathSep, isDarwin} from '../../constants/platform.desktop'
 import logger from '../../logger'
-import * as RouteTreeGen from '../route-tree-gen'
 import * as Path from '../../util/path'
 import KB2 from '../../util/electron.desktop'
 
@@ -69,11 +69,10 @@ const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult):
 
 const driverEnableFuse = async (isRetry: boolean) => {
   const result = await RPCTypes.installInstallFuseRpcPromise()
-  const reduxDispatch = Z.getReduxDispatch()
   if (fuseInstallResultIsKextPermissionError(result)) {
     Constants.useState.getState().dispatch.driverKextPermissionError()
     if (!isRetry) {
-      reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['kextPermission']}))
+      RouterConstants.useState.getState().dispatch.navigateAppend('kextPermission')
     }
   } else {
     await RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
@@ -273,12 +272,11 @@ const initPlatformSpecific = () => {
     }
 
     s.dispatch.dynamic.openFilesFromWidgetDesktop = path => {
-      const reduxDispatch = Z.getReduxDispatch()
       ConfigConstants.useConfigState.getState().dispatch.showMain()
       if (path) {
-        reduxDispatch(Constants.makeActionForOpenPathInFilesTab(path))
+        Constants.makeActionForOpenPathInFilesTab(path)
       } else {
-        reduxDispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.fsTab]}))
+        RouterConstants.useState.getState().dispatch.navigateAppend(Tabs.fsTab)
       }
     }
 

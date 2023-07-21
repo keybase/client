@@ -1,6 +1,5 @@
+import * as RouterConstants from '../../../../constants/router2'
 import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Styles from '../../../../styles'
 
 type Props = {
@@ -8,18 +7,8 @@ type Props = {
 }
 const AddBotRow = (props: Props) => {
   const {teamID} = props
-  const dispatch = Container.useDispatch()
-  const onBotAdd = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {teamID},
-            selected: 'chatSearchBots',
-          },
-        ],
-      })
-    )
+  const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const onBotAdd = () => navigateAppend({props: {teamID}, selected: 'chatSearchBots'})
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" style={styles.container}>
@@ -34,7 +23,7 @@ const styles = Styles.styleSheetCreate(
       container: {
         marginTop: Styles.globalMargins.medium,
       },
-    } as const)
+    }) as const
 )
 
 export default AddBotRow
