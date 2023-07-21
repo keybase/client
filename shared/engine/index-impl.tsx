@@ -101,35 +101,23 @@ class Engine {
   }
 
   _onDisconnect() {
-    this._dispatch({payload: undefined, type: 'engine-gen:disconnected'})
+    // tell renderer we're disconnected
+    this._dispatch({payload: {connected: false}, type: 'remote:engineConnection'})
   }
 
   // We want to dispatch the connect action but only after listeners boot up
   listenersAreReady = () => {
     this._listenersAreReady = true
     if (this._hasConnected) {
-      // dispatch the action version
-      this._dispatch({payload: undefined, type: 'engine-gen:connected'})
+      this._dispatch({payload: {connected: true}, type: 'remote:engineConnection'})
     }
-
-    const f = async () => {
-      const ConfigConstants = await import('../constants/config')
-      ConfigConstants.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
-    }
-    f()
-      .then(() => {})
-      .catch(() => {})
   }
 
-  // Called when we reconnect to the server
+  // Called when we reconnect to the server. This only happens in node in the electron side.
+  // We proxy the stuff over the mainWindowDispatch
   _onConnected() {
     this._hasConnected = true
-
-    // listeners already booted so they can get this
-    if (this._listenersAreReady) {
-      // dispatch the action version
-      this._dispatch({payload: undefined, type: 'engine-gen:connected'})
-    }
+    this._dispatch({payload: {connected: true}, type: 'remote:engineConnection'})
   }
 
   // Create and return the next unique session id

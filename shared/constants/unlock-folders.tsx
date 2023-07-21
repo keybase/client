@@ -1,4 +1,6 @@
 import * as Z from '../util/zustand'
+import logger from '../logger'
+import * as RPCTypes from './types/rpc-gen'
 import type * as ConfigConstants from './config'
 
 type Store = {
@@ -14,6 +16,7 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     onBackFromPaperKey: () => void
+    onEngineConnected: () => void
     toPaperKeyInput: () => void
     replace: (devices: Store['devices']) => void
     resetState: 'default'
@@ -27,6 +30,18 @@ export const useState = Z.createZustand<State>((set, _get) => {
       set(s => {
         s.phase = 'promptOtherDevice'
       })
+    },
+    onEngineConnected: () => {
+      const f = async () => {
+        try {
+          await RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
+          logger.info('Registered rekey ui')
+        } catch (error) {
+          logger.warn('error in registering rekey ui: ')
+          logger.debug('error in registering rekey ui: ', error)
+        }
+      }
+      Z.ignorePromise(f())
     },
     replace: devices => {
       set(s => {

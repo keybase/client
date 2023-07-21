@@ -1,4 +1,3 @@
-import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
@@ -242,18 +241,6 @@ const initConfig = () => {
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
   Container.listenAction(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
 
-  Container.listenAction(EngineGen.connected, () => {
-    Constants.useDaemonState.getState().dispatch.startHandshake()
-  })
-
-  Container.listenAction(EngineGen.disconnected, () => {
-    logger
-      .dump()
-      .then(() => {})
-      .catch(() => {})
-    Constants.useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
-  })
-
   Container.listenAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, (_, action) => {
     Constants.useConfigState
       .getState()
@@ -285,7 +272,7 @@ const initConfig = () => {
   // Kick off platform specific stuff
   initPlatformListener()
 
-  Container.listenAction(ConfigGen.resetStore, () => {
+  Container.listenAction('common:resetStore', () => {
     Z.resetAllStores()
   })
 

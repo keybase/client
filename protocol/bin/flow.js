@@ -370,10 +370,7 @@ function parseVariant(t, project) {
 }
 
 function writeActions() {
-  const staticActions = {
-    disconnected: {},
-    connected: {},
-  }
+  const staticActions = {}
 
   const seenProjects = {}
 

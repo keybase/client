@@ -2,7 +2,6 @@ import * as Z from '../util/zustand'
 import * as RouterConstants from '../constants/router2'
 import * as RPCGen from '../constants/types/rpc-gen'
 import * as ProvisionConstants from './provision'
-import * as RecoverConstants from './recover-password'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
 
@@ -162,13 +161,17 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     resetState: 'default',
     startAccountReset: (skipPassword, _username) => {
-      const username = _username || RecoverConstants.useState.getState().username
-      set(s => {
-        s.skipPassword = skipPassword
-        s.error = ''
-        s.username = username
-      })
-      RouterConstants.useState.getState().dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
+      const f = async () => {
+        const RecoverConstants = await import('./recover-password')
+        const username = _username || RecoverConstants.useState.getState().username
+        set(s => {
+          s.skipPassword = skipPassword
+          s.error = ''
+          s.username = username
+        })
+        RouterConstants.useState.getState().dispatch.navigateAppend('recoverPasswordPromptResetAccount', true)
+      }
+      Z.ignorePromise(f())
     },
     updateARState: (active, endTime) => {
       set(s => {

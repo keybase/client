@@ -70,8 +70,6 @@ export const chat1NotifyChatChatThreadsStale = 'engine-gen:chat1NotifyChatChatTh
 export const chat1NotifyChatChatTypingUpdate = 'engine-gen:chat1NotifyChatChatTypingUpdate'
 export const chat1NotifyChatChatWelcomeMessageLoaded = 'engine-gen:chat1NotifyChatChatWelcomeMessageLoaded'
 export const chat1NotifyChatNewChatActivity = 'engine-gen:chat1NotifyChatNewChatActivity'
-export const connected = 'engine-gen:connected'
-export const disconnected = 'engine-gen:disconnected'
 export const keybase1GpgUiConfirmDuplicateKeyChosen = 'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen'
 export const keybase1GpgUiConfirmImportSecretToExistingKey =
   'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey'
@@ -681,11 +679,6 @@ export const createChat1NotifyChatNewChatActivity = (payload: {
     sessionID: number
   }
 }) => ({payload, type: chat1NotifyChatNewChatActivity as typeof chat1NotifyChatNewChatActivity})
-export const createConnected = (payload?: undefined) => ({payload, type: connected as typeof connected})
-export const createDisconnected = (payload?: undefined) => ({
-  payload,
-  type: disconnected as typeof disconnected,
-})
 export const createKeybase1GpgUiConfirmDuplicateKeyChosen = (payload: {
   readonly params: keybase1Types.MessageTypes['keybase.1.gpgUi.confirmDuplicateKeyChosen']['inParam'] & {
     sessionID: number
@@ -2283,8 +2276,6 @@ export type Chat1NotifyChatChatWelcomeMessageLoadedPayload = ReturnType<
   typeof createChat1NotifyChatChatWelcomeMessageLoaded
 >
 export type Chat1NotifyChatNewChatActivityPayload = ReturnType<typeof createChat1NotifyChatNewChatActivity>
-export type ConnectedPayload = ReturnType<typeof createConnected>
-export type DisconnectedPayload = ReturnType<typeof createDisconnected>
 export type Keybase1GpgUiConfirmDuplicateKeyChosenPayload = ReturnType<
   typeof createKeybase1GpgUiConfirmDuplicateKeyChosen
 >
@@ -2708,8 +2699,6 @@ export type Actions =
   | Chat1NotifyChatChatTypingUpdatePayload
   | Chat1NotifyChatChatWelcomeMessageLoadedPayload
   | Chat1NotifyChatNewChatActivityPayload
-  | ConnectedPayload
-  | DisconnectedPayload
   | Keybase1GpgUiConfirmDuplicateKeyChosenPayload
   | Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
   | Keybase1GpgUiGetTTYPayload

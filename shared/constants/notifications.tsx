@@ -1,4 +1,7 @@
 import * as Z from '../util/zustand'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import {isMobile} from './platform'
+import logger from '../logger'
 import isEqual from 'lodash/isEqual'
 import * as Tabs from './tabs'
 
@@ -24,6 +27,7 @@ const initialStore: Store = {
 
 type State = Store & {
   dispatch: {
+    onEngineConnected: () => void
     resetState: 'default'
     badgeApp: (key: NotificationKeys, on: boolean) => void
     setBadgeCounts: (counts: Map<Tabs.Tab, number>) => void
@@ -49,6 +53,53 @@ export const useState = Z.createZustand<State>(set => {
         keyState.set(key, on)
         updateWidgetBadge(s)
       })
+    },
+    onEngineConnected: () => {
+      const f = async () => {
+        try {
+          await RPCTypes.notifyCtlSetNotificationsRpcPromise({
+            channels: {
+              allowChatNotifySkips: true,
+              app: true,
+              audit: true,
+              badges: true,
+              chat: true,
+              chatattachments: true,
+              chatdev: false,
+              chatemoji: false,
+              chatemojicross: false,
+              chatkbfsedits: false,
+              deviceclone: false,
+              ephemeral: false,
+              favorites: false,
+              featuredBots: true,
+              kbfs: true,
+              kbfsdesktop: !isMobile,
+              kbfslegacy: false,
+              kbfsrequest: false,
+              kbfssubscription: true,
+              keyfamily: false,
+              paperkeys: false,
+              pgp: true,
+              reachability: true,
+              runtimestats: true,
+              saltpack: true,
+              service: true,
+              session: true,
+              team: true,
+              teambot: false,
+              tracking: true,
+              users: true,
+              wallet: false,
+            },
+          })
+        } catch (error) {
+          if (error != null) {
+            logger.warn('error in toggling notifications: ', error)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     resetState: 'default',
     setBadgeCounts: counts => {

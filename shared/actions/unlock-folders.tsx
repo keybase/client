@@ -1,9 +1,7 @@
 import logger from '../logger'
 import * as EngineGen from './engine-gen-gen'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as ConfigConstants from '../constants/config'
 import * as Container from '../util/container'
-import * as Z from '../util/zustand'
 import {getEngine} from '../engine/require'
 
 const initUnlockFolders = () => {
@@ -29,18 +27,6 @@ const initUnlockFolders = () => {
     })
     const {response} = action.payload
     response.result(session.id)
-  })
-  Container.listenAction(EngineGen.connected, () => {
-    const registerRekeyUI = async () => {
-      try {
-        await RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
-        logger.info('Registered rekey ui')
-      } catch (error) {
-        logger.warn('error in registering rekey ui: ')
-        logger.debug('error in registering rekey ui: ', error)
-      }
-    }
-    Z.ignorePromise(registerRekeyUI())
   })
 }
 

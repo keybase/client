@@ -4,6 +4,7 @@
     "import type * as Tabs from '../constants/tabs'"
   ],
   "actions": {
+    "engineConnection": {"connected": "boolean"},
     "switchTab": {"tab": "Tabs.AppTab"},
     "setCriticalUpdate": {"critical": "boolean"},
     "userFileEditsLoad": {},

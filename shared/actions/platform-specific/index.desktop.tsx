@@ -87,11 +87,6 @@ const onShutdown = (_: unknown, action: EngineGen.Keybase1NotifyServiceShutdownP
   }
 }
 
-const onConnected = () => {
-  // Introduce ourselves to the service
-  RPCTypes.configHelloIAmRpcPromise({details: KB2.constants.helloDetails}).catch(() => {})
-}
-
 export const requestLocationPermission = async () => Promise.resolve()
 export const watchPositionForMap = async () => Promise.resolve(() => {})
 
@@ -132,6 +127,14 @@ export const initPlatformListener = () => {
   ConfigConstants.useConfigState.setState(s => {
     s.dispatch.dynamic.dumpLogsNative = dumpLogs
     s.dispatch.dynamic.showMainNative = () => showMainWindow?.()
+    s.dispatch.dynamic.copyToClipboard = s => copyToClipboard?.(s)
+    s.dispatch.dynamic.onEngineConnectedDesktop = () => {
+      // Introduce ourselves to the service
+      const f = async () => {
+        await RPCTypes.configHelloIAmRpcPromise({details: KB2.constants.helloDetails})
+      }
+      Z.ignorePromise(f())
+    }
   })
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   Container.listenAction(EngineGen.keybase1LogsendPrepareLogsend, async (_, action) => {
@@ -142,15 +145,10 @@ export const initPlatformListener = () => {
       response?.result()
     }
   })
-  Container.listenAction(EngineGen.connected, onConnected)
   Container.listenAction(EngineGen.keybase1NotifyAppExit, onExit)
   Container.listenAction(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
   Container.listenAction(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
   Container.listenAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
-
-  ConfigConstants.useConfigState.setState(s => {
-    s.dispatch.dynamic.copyToClipboard = s => copyToClipboard?.(s)
-  })
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return

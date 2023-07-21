@@ -5,8 +5,6 @@
         "import type * as stellar1Types from '../constants/types/rpc-stellar-gen'"
     ],
     "actions": {
-        "disconnected": {},
-        "connected": {},
         "chat1ChatUiChatInboxLayout": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatInboxLayout']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxLayout']['outParam']) => void}"
         },
