@@ -21,4 +21,3 @@ __STORYSHOT__ = false
 __FILE_SUFFIX__ = ''
 __PROFILE__ = false
 __HOT__ = false
-__IS_NODE__ = false
