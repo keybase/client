@@ -3,7 +3,6 @@ import * as ConfigConstants from './config'
 import * as CryptoConstants from './crypto'
 import * as ProfileConstants from './profile'
 import * as RouterConstants from './router2'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as TeamsConstants from './teams'
@@ -139,7 +138,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             return
           }
           RouterConstants.useState.getState().dispatch.switchTab(Tabs.settingsTab)
-          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}))
+          RouterConstants.useState.getState().dispatch.navigateAppend('settingsAddPhone')
         } else if (username && username !== 'app') {
           handleShowUserProfileLink(username)
           return
@@ -180,11 +179,9 @@ export const useState = Z.createZustand<State>((set, get) => {
           try {
             const decoded = decodeURIComponent(link)
             RouterConstants.useState.getState().dispatch.switchTab(Tabs.fsTab)
-            reduxDispatch(
-              RouteTreeGen.createNavigateAppend({
-                path: [{props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'}],
-              })
-            )
+            RouterConstants.useState
+              .getState()
+              .dispatch.navigateAppend({props: {path: `/keybase/${decoded}`}, selected: 'fsRoot'})
             return
           } catch (e) {
             logger.warn("Coudn't decode KBFS URI")
@@ -204,11 +201,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               const teamChat = parts[1]!.split('#')
               if (teamChat.length !== 2) {
                 get().dispatch.setLinkError(error)
-                reduxDispatch(
-                  RouteTreeGen.createNavigateAppend({
-                    path: ['keybaseLinkError'],
-                  })
-                )
+                RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
                 return
               }
               const [teamname, channelname] = teamChat
@@ -255,7 +248,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
           break
         case 'incoming-share':
-          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['incomingShareNew']}))
+          RouterConstants.useState.getState().dispatch.navigateAppend('incomingShareNew')
           return
         case 'team-invite-link':
           TeamsConstants.useState.getState().dispatch.openInviteLink(parts[1] ?? '', parts[2] || '')
@@ -264,11 +257,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         // Fall through to the error return below.
       }
       get().dispatch.setLinkError(error)
-      reduxDispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: ['keybaseLinkError'],
-        })
-      )
+      RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
     },
     handleSaltPackOpen: _path => {
       const path = typeof _path === 'string' ? _path : _path.stringValue()

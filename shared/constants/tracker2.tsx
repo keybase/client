@@ -3,7 +3,6 @@ import * as RouterConstants from './router2'
 import * as ProfileConstants from './profile'
 import * as UsersConstants from './users'
 import * as RPCTypes from './types/rpc-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import type * as Types from './types/tracker2'
@@ -250,7 +249,6 @@ export type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     changeFollow: (guiID, follow) => {
       const f = async () => {
@@ -345,11 +343,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                   `You followed a profile link for a user (${assertion}) that does not exist.`
                 )
               RouterConstants.useState.getState().dispatch.navigateUp()
-              reduxDispatch(
-                RouteTreeGen.createNavigateAppend({
-                  path: ['keybaseLinkError'],
-                })
-              )
+              RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
             }
             // hooked into reloadable
             logger.error(`Error loading profile: ${error.message}`)

@@ -3,7 +3,6 @@ import * as RouterConstants from './router2'
 import * as SettingsConstants from './settings'
 import * as PushConstants from './push'
 import * as RPCTypes from './types/rpc-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Z from '../util/zustand'
 import logger from '../logger'
 import trim from 'lodash/trim'
@@ -75,7 +74,6 @@ export type State = Store & {
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const noErrors = () => {
     const {devicenameError, emailError, inviteCodeError} = get()
     const {nameError, usernameError, signupError, usernameTaken} = get()
@@ -144,7 +142,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         if (noErrors()) {
           get().dispatch.restartSignup()
         } else {
-          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupError']}))
+          RouterConstants.useState.getState().dispatch.navigateAppend('signupError')
         }
         // If the email was set to be visible during signup, we need to set that with a separate RPC.
         if (noErrors() && get().emailVisible) {
@@ -158,7 +156,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           set(s => {
             s.signupError = error
           })
-          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupError']}))
+          RouterConstants.useState.getState().dispatch.navigateAppend('signupError')
           PushConstants.useState.getState().dispatch.showPermissionsPrompt({justSignedUp: false})
         }
       }
@@ -203,7 +201,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
           if (noErrors()) {
             RouterConstants.useState.getState().dispatch.navigateUp()
-            reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupEnterUsername']}))
+            RouterConstants.useState.getState().dispatch.navigateAppend('signupEnterUsername')
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -236,7 +234,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             s.usernameTaken = ''
           })
           if (noErrors()) {
-            reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupEnterDevicename']}))
+            RouterConstants.useState.getState().dispatch.navigateAppend('signupEnterDevicename')
           }
         } catch (error) {
           if (error instanceof RPCError) {
@@ -296,7 +294,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
         }
         get().dispatch.checkInviteCode(get().inviteCode)
-        reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupInviteCode']}))
+        RouterConstants.useState.getState().dispatch.navigateAppend('signupInviteCode')
       }
       Z.ignorePromise(f())
     },
@@ -316,7 +314,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             {email, fullname: name, notes: 'Requested through GUI app'},
             waitingKey
           )
-          reduxDispatch(RouteTreeGen.createNavigateAppend({path: ['signupRequestInviteSuccess']}))
+          RouterConstants.useState.getState().dispatch.navigateAppend('signupRequestInviteSuccess')
         } catch (error) {
           if (error instanceof RPCError) {
             const emailError = `Sorry can't get an invite: ${error.desc}`
