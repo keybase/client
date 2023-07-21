@@ -1,6 +1,2 @@
 leftover actions
-electron bridge not using redux (all of unlock folders left as its pure remote), keep but mark all actions as REMOTE
 engine notifications actions
-any todo >>>>
-
-double check extra params to nae append (replace, from etc)

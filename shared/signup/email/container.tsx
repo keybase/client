@@ -49,7 +49,7 @@ const ConnectedEnterEmail = () => {
   }
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const _navToPushPrompt = () => {
-    navigateAppend('settingsPushPrompt')
+    navigateAppend('settingsPushPrompt', true)
   }
 
   const setJustSignedUpEmail = Constants.useState(s => s.dispatch.setJustSignedUpEmail)
