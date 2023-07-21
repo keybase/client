@@ -59,7 +59,6 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
       <OriginalOrCompressedButton incomingShareItems={destPicker.source.source} />
     ) : undefined
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const newFolderRow = Constants.useState(s => s.dispatch.newFolderRow)
@@ -68,28 +67,16 @@ const ConnectedDestinationPicker = (ownProps: OwnProps) => {
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const dispatchProps = {
     _onBackUp: (currentPath: Types.Path) =>
-      Constants.makeActionsForDestinationPickerOpen(
-        getIndex(ownProps) + 1,
-        Types.getPathParent(currentPath),
-        nav.safeNavigateAppendPayload
-      ).forEach(action => dispatch(action)),
+      Constants.makeActionsForDestinationPickerOpen(getIndex(ownProps) + 1, Types.getPathParent(currentPath)),
     _onCopyHere: (destinationParentPath: Types.Path) => {
       moveOrCopy(destinationParentPath, 'copy')
       clearModals()
-      dispatch(
-        nav.safeNavigateAppendPayload({
-          path: [{props: {path: destinationParentPath}, selected: 'fsRoot'}],
-        })
-      )
+      nav.safeNavigateAppend({props: {path: destinationParentPath}, selected: 'fsRoot'})
     },
     _onMoveHere: (destinationParentPath: Types.Path) => {
       moveOrCopy(destinationParentPath, 'move')
       clearModals()
-      dispatch(
-        nav.safeNavigateAppendPayload({
-          path: [{props: {path: destinationParentPath}, selected: 'fsRoot'}],
-        })
-      )
+      nav.safeNavigateAppend({props: {path: destinationParentPath}, selected: 'fsRoot'})
     },
     _onNewFolder: (destinationParentPath: Types.Path) => {
       newFolderRow(destinationParentPath)

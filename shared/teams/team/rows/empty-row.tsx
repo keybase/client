@@ -29,7 +29,6 @@ const buttonLabel = {
 
 const useSecondaryAction = (props: Props) => {
   const {teamID, conversationIDKey} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
   const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
@@ -37,11 +36,10 @@ const useSecondaryAction = (props: Props) => {
     switch (props.type) {
       case 'members':
         if (conversationIDKey) {
-          dispatch(
-            nav.safeNavigateAppendPayload({
-              path: [{props: {conversationIDKey: conversationIDKey, teamID}, selected: 'chatAddToChannel'}],
-            })
-          )
+          nav.safeNavigateAppend({
+            props: {conversationIDKey: conversationIDKey, teamID},
+            selected: 'chatAddToChannel',
+          })
         } else {
           startAddMembersWizard(teamID)
         }
@@ -50,10 +48,10 @@ const useSecondaryAction = (props: Props) => {
         launchNewTeamWizardOrModal(teamID)
         break
       case 'channelsFew':
-        dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
+        nav.safeNavigateAppend({props: {teamID}, selected: 'chatCreateChannel'})
         break
       case 'channelsEmpty':
-        dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamCreateChannels'}]}))
+        nav.safeNavigateAppend({props: {teamID}, selected: 'teamCreateChannels'})
         break
     }
   }
@@ -143,7 +141,7 @@ const styles = Styles.styleSheetCreate(
       text: Styles.platformStyles({
         isElectron: {maxWidth: 272},
       }),
-    } as const)
+    }) as const
 )
 
 export default EmptyRow

@@ -3,7 +3,6 @@ import type * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
 import PathInfo from './path-info'
 import PathItemInfo from './path-item-info'
 
@@ -20,8 +19,7 @@ type PopupProps = Props & {
 }
 
 const useOpenInFilesTab = (path: Types.Path) => {
-  const dispatch = Container.useDispatch()
-  return React.useCallback(() => dispatch(Constants.makeActionForOpenPathInFilesTab(path)), [path, dispatch])
+  return React.useCallback(() => Constants.makeActionForOpenPathInFilesTab(path), [path])
 }
 
 const KbfsPathPopup = (props: PopupProps) => {
@@ -124,7 +122,7 @@ const styles = Styles.styleSheetCreate(
           display: 'inline-block',
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default KbfsPath

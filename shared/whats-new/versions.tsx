@@ -7,11 +7,11 @@ import {encryptTab} from '../constants/crypto'
 import {cryptoTab, displayTab} from '../constants/settings'
 import {keybaseFM} from '../constants/whats-new'
 import NewFeatureRow from './new-feature-row'
-import type {NavigateAppendPayload} from '../actions/route-tree-gen'
+import type {PathParam} from '../constants/types/route-tree'
 
 export type VersionProps = {
   seen: boolean
-  onNavigate: (props: NavigateAppendPayload['payload']) => void
+  onNavigate: (props: PathParam) => void
   onNavigateExternal: (url: string) => void
   onSwitchTab: (tab: Tabs.AppTab) => void
 }
@@ -92,7 +92,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-5.2.0-crypto"
         noSeparator={true}
         onPrimaryButtonClick={() => {
-          onNavigate({path: [Platform.isMobile ? cryptoTab : encryptTab]} as const)
+          onNavigate(Platform.isMobile ? cryptoTab : encryptTab)
         }}
         primaryButtonText="Try it"
         seen={seen}
@@ -133,7 +133,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-4.7.0-dark-mode"
         primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
-          onNavigate({path: [displayTab]})
+          onNavigate(displayTab)
         }}
       >
         Dark mode is here! You can access theme settings under the Display section in Settings.
@@ -142,9 +142,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         seen={seen}
         primaryButtonText="Try it"
         onPrimaryButtonClick={() => {
-          onNavigate({
-            path: [{props: {namespace: 'chat2' as const, title: 'New chat'}, selected: 'chatNewChat'}],
-          })
+          onNavigate({props: {namespace: 'chat2' as const, title: 'New chat'}, selected: 'chatNewChat'})
         }}
         secondaryButtonText="Read the doc"
         onSecondaryButtonClick={() => {

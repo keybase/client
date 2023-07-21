@@ -13,30 +13,17 @@ type OwnProps = {
 }
 const AddEmoji = ({teamID, convID, filter, setFilter}: OwnProps) => {
   const nav = Container.useSafeNavigation()
-  const dispatch = Container.useDispatch()
   const canManageEmoji = Constants.useState(s => Constants.getCanPerformByID(s, teamID).manageEmojis)
   const onAddEmoji = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {conversationIDKey: convID, teamID},
-            selected: 'teamAddEmoji',
-          },
-        ],
-      })
-    )
+    nav.safeNavigateAppend({
+      props: {conversationIDKey: convID, teamID},
+      selected: 'teamAddEmoji',
+    })
   const onAddAlias = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {conversationIDKey: convID},
-            selected: 'teamAddEmojiAlias',
-          },
-        ],
-      })
-    )
+    nav.safeNavigateAppend({
+      props: {conversationIDKey: convID},
+      selected: 'teamAddEmojiAlias',
+    })
   // clear filter on unmount
   return !canManageEmoji ? null : (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.containerNew}>

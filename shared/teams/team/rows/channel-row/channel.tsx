@@ -30,62 +30,42 @@ const ChannelRow = (props: ChannelRowProps) => {
     s => s.activityLevels.channels.get(channel.conversationIDKey) || 'none'
   )
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const setChannelSelected = Constants.useState(s => s.dispatch.setChannelSelected)
   const onSelect = (newSelected: boolean) => {
     setChannelSelected(teamID, channel.conversationIDKey, newSelected)
   }
 
   const onEditChannel = React.useCallback(() => {
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {
-              channelname: channel.channelname,
-              conversationIDKey: channel.conversationIDKey,
-              description: channel.description,
-              teamID,
-            },
-            selected: 'teamEditChannel',
-          },
-        ],
-      })
-    )
-  }, [dispatch, nav, channel, teamID])
+    nav.safeNavigateAppend({
+      props: {
+        channelname: channel.channelname,
+        conversationIDKey: channel.conversationIDKey,
+        description: channel.description,
+        teamID,
+      },
+      selected: 'teamEditChannel',
+    })
+  }, [nav, channel, teamID])
   const onNavToChannel = React.useCallback(() => {
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {
-              conversationIDKey: channel.conversationIDKey,
-              teamID,
-            },
-            selected: 'teamChannel',
-          },
-        ],
-      })
-    )
-  }, [dispatch, nav, channel, teamID])
+    nav.safeNavigateAppend({
+      props: {
+        conversationIDKey: channel.conversationIDKey,
+        teamID,
+      },
+      selected: 'teamChannel',
+    })
+  }, [nav, channel, teamID])
   const onNavToSettings = React.useCallback(() => {
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {
-              ...props,
-              conversationIDKey: channel.conversationIDKey,
-              selectedTab: 'settings' as const,
-            },
-            selected: 'teamChannel',
-          },
-        ],
-      })
-    )
-  }, [channel, props, nav, dispatch])
+    nav.safeNavigateAppend({
+      props: {
+        ...props,
+        conversationIDKey: channel.conversationIDKey,
+        selectedTab: 'settings' as const,
+      },
+      selected: 'teamChannel',
+    })
+  }, [channel, props, nav])
 
   const deleteChannelConfirmed = Constants.useState(s => s.dispatch.deleteChannelConfirmed)
 
@@ -208,7 +188,7 @@ const styles = Styles.styleSheetCreate(
       selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
       unselected: {backgroundColor: Styles.globalColors.white},
       widenClickableArea: {margin: -5, padding: 5},
-    } as const)
+    }) as const
 )
 
 export default ChannelRow

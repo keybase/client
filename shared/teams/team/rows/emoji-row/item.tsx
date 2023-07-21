@@ -22,23 +22,16 @@ type OwnProps = {
 
 const ItemRow = ({conversationIDKey, emoji, firstItem, teamID}: OwnProps) => {
   const emojiData = RPCToEmojiData(emoji, false)
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const canManageEmoji = Constants.useState(s => Constants.getCanPerformByID(s, teamID).manageEmojis)
   const deleteOtherEmoji = Constants.useState(s => Constants.getCanPerformByID(s, teamID).deleteOtherEmojis)
   const canRemove = canManageEmoji && (deleteOtherEmoji || emoji.creationInfo?.username === username)
   const onAddAlias = Container.useEvent(() => {
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {conversationIDKey, defaultSelected: emojiData},
-            selected: 'teamAddEmojiAlias',
-          },
-        ],
-      })
-    )
+    nav.safeNavigateAppend({
+      props: {conversationIDKey, defaultSelected: emojiData},
+      selected: 'teamAddEmojiAlias',
+    })
   })
   const isStockAlias = emoji.remoteSource.typ === RPCChatTypes.EmojiRemoteSourceTyp.stockalias
   const doAddAlias = !isStockAlias && canManageEmoji ? onAddAlias : undefined
@@ -170,7 +163,7 @@ const styles = Styles.styleSheetCreate(
         maxWidth: 210,
         width: 210,
       },
-    } as const)
+    }) as const
 )
 
 export default ItemRow

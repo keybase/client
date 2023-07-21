@@ -84,8 +84,8 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
 
   // a hack to have it check for marked as read when we mount as the focus events don't fire always
   const onNewChat = React.useCallback(() => {
-    dispatch(appendNewChatBuilder())
-  }, [dispatch])
+    appendNewChatBuilder()
+  }, [])
   const onUntrustedInboxVisible = React.useCallback(
     (conversationIDKeys: Array<Types.ConversationIDKey>) => {
       dispatch(

@@ -7,7 +7,6 @@ import * as RouterConstants from '../../../../constants/router2'
 import {teamsTab} from '../../../../constants/tabs'
 
 const BuildTeam = React.memo(function BuildTeam() {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const launchNewTeamWizardOrModal = TeamsConstants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
@@ -16,7 +15,7 @@ const BuildTeam = React.memo(function BuildTeam() {
     launchNewTeamWizardOrModal()
   }
   const onJoinTeam = () => {
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamJoinTeamDialog'}]}))
+    nav.safeNavigateAppend({props: {}, selected: 'teamJoinTeamDialog'})
   }
 
   return (

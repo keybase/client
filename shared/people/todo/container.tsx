@@ -123,9 +123,8 @@ const DeviceConnector = (props: TodoOwnProps) => {
 }
 
 const FollowConnector = (props: TodoOwnProps) => {
-  const dispatch = Container.useDispatch()
   const onConfirm = () => {
-    dispatch(appendPeopleBuilder())
+    appendPeopleBuilder()
   }
   const onDismiss = useOnSkipTodo('follow')
   const buttons = makeDefaultButtons(onConfirm, props.confirmLabel, onDismiss)

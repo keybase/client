@@ -9,13 +9,10 @@ import {ModalTitle} from '../common'
 type Props = {teamID: Types.TeamID}
 
 const TeamInfo = (props: Props) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const teamID = props.teamID ?? Types.noTeamID
   const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = Constants.useState(s => s.teamDetails.get(teamID))
-
   const teamname = teamMeta.teamname
   const lastDot = teamname.lastIndexOf('.')
   const isSubteam = lastDot !== -1
@@ -47,11 +44,10 @@ const TeamInfo = (props: Props) => {
     }
   }
   const onEditAvatar = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [{props: {sendChatNotification: true, showBack: true, teamID}, selected: 'profileEditAvatar'}],
-      })
-    )
+    nav.safeNavigateAppend({
+      props: {sendChatNotification: true, showBack: true, teamID},
+      selected: 'profileEditAvatar',
+    })
   return (
     <Kb.Modal
       mode="DefaultFullHeight"

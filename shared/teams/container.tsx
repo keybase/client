@@ -14,13 +14,11 @@ import {useActivityLevels} from './common'
 
 // share some between headerRightActions on desktop and component on mobile
 const useHeaderActions = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
     onCreateTeam: () => launchNewTeamWizardOrModal(),
-    onJoinTeam: () =>
-      dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamJoinTeamDialog'}]})),
+    onJoinTeam: () => nav.safeNavigateAppend({props: {}, selected: 'teamJoinTeamDialog'}),
   }
 }
 
@@ -64,7 +62,6 @@ const orderTeams = memoize(orderTeamsImpl)
 type ReloadableProps = Omit<MainOwnProps, 'onManageChat' | 'onViewTeam'>
 
 const Reloadable = (props: ReloadableProps) => {
-  const dispatch = Container.useDispatch()
   const getTeams = Constants.useState(s => s.dispatch.getTeams)
   const loadTeams = getTeams
 
@@ -79,8 +76,7 @@ const Reloadable = (props: ReloadableProps) => {
   const manageChatChannels = Constants.useState(s => s.dispatch.manageChatChannels)
   const otherActions = {
     onManageChat: (teamID: Types.TeamID) => manageChatChannels(teamID),
-    onViewTeam: (teamID: Types.TeamID) =>
-      dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]})),
+    onViewTeam: (teamID: Types.TeamID) => nav.safeNavigateAppend({props: {teamID}, selected: 'team'}),
   }
 
   return (
@@ -101,14 +97,13 @@ const Connected = () => {
   const sawChatBanner = Constants.useState(s => s.sawChatBanner)
   const sortOrder = Constants.useState(s => s.teamListSort)
   const teamIDToResetUsers = Constants.useState(s => s.teamIDToResetUsers)
-  const dispatch = Container.useDispatch()
 
   const updateGregorCategory = ConfigConstants.useConfigState(s => s.dispatch.updateGregorCategory)
   const onHideChatBanner = () => {
     updateGregorCategory('sawChatBanner', 'true')
   }
   const onOpenFolder = (teamname: Types.Teamname) => {
-    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`)))
+    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
   }
   const onReadMore = () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')

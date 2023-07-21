@@ -1,4 +1,3 @@
-import * as Container from '../util/container'
 import * as Constants from '../constants/crypto'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
@@ -7,15 +6,13 @@ import {appendEncryptRecipientsBuilder} from '../actions/typed-routes'
 const placeholder = 'Search people'
 
 const Recipients = () => {
-  const dispatch = Container.useDispatch()
-
   const recipients = Constants.useState(s => s.encrypt.recipients)
   const inProgress = Constants.useState(s => s.encrypt.inProgress)
   const clearRecipients = Constants.useState(s => s.dispatch.clearRecipients)
 
   const onAddRecipients = () => {
     if (inProgress) return
-    dispatch(appendEncryptRecipientsBuilder())
+    appendEncryptRecipientsBuilder()
   }
 
   const onClearRecipients = () => {
@@ -87,7 +84,7 @@ const styles = Styles.styleSheetCreate(
       toField: {
         marginRight: Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 export default Recipients

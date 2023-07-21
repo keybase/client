@@ -36,21 +36,15 @@ const PeopleResult = React.memo(function PeopleResult(props: ResultProps) {
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onOpenPrivateFolder = React.useCallback(() => {
     navigateUp()
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
-      )
+    FsConstants.makeActionForOpenPathInFilesTab(
+      FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
     )
-  }, [navigateUp, dispatch, decoratedUsername, myUsername])
+  }, [navigateUp, decoratedUsername, myUsername])
 
   const onBrowsePublicFolder = React.useCallback(() => {
     navigateUp()
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`)
-      )
-    )
-  }, [navigateUp, dispatch, decoratedUsername])
+    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`))
+  }, [navigateUp, decoratedUsername])
 
   const onManageBlocking = React.useCallback(() => {
     keybaseUsername && navigateAppend({props: {username: keybaseUsername}, selected: 'chatBlockingModal'})

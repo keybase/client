@@ -272,10 +272,9 @@ const initPlatformSpecific = () => {
     }
 
     s.dispatch.dynamic.openFilesFromWidgetDesktop = path => {
-      const reduxDispatch = Z.getReduxDispatch()
       ConfigConstants.useConfigState.getState().dispatch.showMain()
       if (path) {
-        reduxDispatch(Constants.makeActionForOpenPathInFilesTab(path))
+        Constants.makeActionForOpenPathInFilesTab(path)
       } else {
         RouterConstants.useState.getState().dispatch.navigateAppend(Tabs.fsTab)
       }

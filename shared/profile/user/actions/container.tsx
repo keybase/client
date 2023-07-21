@@ -26,10 +26,9 @@ export default (ownProps: OwnProps) => {
   const state = d.state
 
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
-  const dispatch = Container.useDispatch()
   const _onAddToTeam = (username: string) => navigateAppend({props: {username}, selected: 'profileAddToTeam'})
   const _onBrowsePublicFolder = (username: string) =>
-    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`)))
+    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`))
   const _onEditProfile = () => navigateAppend('profileEdit')
 
   const changeFollow = Constants.useState(s => s.dispatch.changeFollow)
@@ -42,10 +41,8 @@ export default (ownProps: OwnProps) => {
   const _onManageBlocking = (username: string) =>
     navigateAppend({props: {username}, selected: 'chatBlockingModal'})
   const _onOpenPrivateFolder = (myUsername: string, theirUsername: string) =>
-    dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`)
-      )
+    FsConstants.makeActionForOpenPathInFilesTab(
+      FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`)
     )
   const showUser = Constants.useState(s => s.dispatch.showUser)
   const _onReload = (username: string) => {

@@ -8,13 +8,11 @@ import {HeaderRightActions} from './main/header'
 const Root = React.lazy(async () => import('./container'))
 
 const useHeaderActions = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const launchNewTeamWizardOrModal = Constants.useState(s => s.dispatch.launchNewTeamWizardOrModal)
   return {
     onCreateTeam: () => launchNewTeamWizardOrModal(),
-    onJoinTeam: () =>
-      dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamJoinTeamDialog'}]})),
+    onJoinTeam: () => nav.safeNavigateAppend({props: {}, selected: 'teamJoinTeamDialog'}),
   }
 }
 

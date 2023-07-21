@@ -120,7 +120,6 @@ export const Email = () => {
   )
 }
 export const Phone = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
   const [phoneNumber, onChangeNumber] = React.useState('')
@@ -147,9 +146,9 @@ export const Phone = () => {
   // watch for go to verify
   React.useEffect(() => {
     if (!error && !!pendingVerification) {
-      dispatch(nav.safeNavigateAppendPayload({path: ['settingsVerifyPhone']}))
+      nav.safeNavigateAppend('settingsVerifyPhone')
     }
-  }, [dispatch, error, nav, pendingVerification])
+  }, [error, nav, pendingVerification])
   // trigger a default phone number country rpc if it's not already loaded
   React.useEffect(() => {
     !defaultCountry && loadDefaultPhoneCountry()

@@ -279,8 +279,6 @@ type NodeNotInRowProps = {
 }
 const NodeNotInRow = (props: NodeNotInRowProps) => {
   useTeamDetailsSubscribe(props.node.teamID)
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onAddWaitingKey = Constants.addMemberWaitingKey(props.node.teamID, props.username)
   const addToTeam = Constants.useState(s => s.dispatch.addToTeam)
@@ -288,19 +286,12 @@ const NodeNotInRow = (props: NodeNotInRowProps) => {
     addToTeam(props.node.teamID, [{assertion: props.username, role}], true)
   }
   const openTeam = React.useCallback(
-    () =>
-      dispatch(
-        nav.safeNavigateAppendPayload({
-          path: [{props: {teamID: props.node.teamID}, selected: 'team'}],
-        })
-      ),
-    [props.node.teamID, dispatch, nav]
+    () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'}),
+    [props.node.teamID, nav]
   )
-
   const disabledRoles = Constants.useState(s =>
     Constants.getDisabledReasonsForRolePicker(s, props.node.teamID, props.username)
   )
-
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -401,19 +392,12 @@ const NodeInRow = (props: NodeInRowProps) => {
   )
   useTeamDetailsSubscribe(props.node.teamID)
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onAddToChannels = () =>
-    dispatch(
-      nav.safeNavigateAppendPayload({
-        path: [
-          {
-            props: {teamID: props.node.teamID, usernames: [props.username]},
-            selected: 'teamAddToChannels',
-          },
-        ],
-      })
-    )
+    nav.safeNavigateAppend({
+      props: {teamID: props.node.teamID, usernames: [props.username]},
+      selected: 'teamAddToChannels',
+    })
   const onKickOutWaitingKey = Constants.removeMemberWaitingKey(props.node.teamID, props.username)
   const removeMember = Constants.useState(s => s.dispatch.removeMember)
   const onKickOut = () => {
@@ -424,13 +408,8 @@ const NodeInRow = (props: NodeInRowProps) => {
   }
 
   const openTeam = React.useCallback(
-    () =>
-      dispatch(
-        nav.safeNavigateAppendPayload({
-          path: [{props: {teamID: props.node.teamID}, selected: 'team'}],
-        })
-      ),
-    [props.node.teamID, dispatch, nav]
+    () => nav.safeNavigateAppend({props: {teamID: props.node.teamID}, selected: 'team'}),
+    [props.node.teamID, nav]
   )
 
   const {expanded, setExpanded} = props
@@ -642,8 +621,7 @@ export const TeamMemberHeader = (props: Props) => {
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
   const onViewProfile = () => showUserProfile(username)
-  const onViewTeam = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
+  const onViewTeam = () => nav.safeNavigateAppend({props: {teamID}, selected: 'team'})
 
   const member = teamDetails?.members.get(username)
   if (!member) {
@@ -713,17 +691,11 @@ export const TeamMemberHeader = (props: Props) => {
 
 const BlockDropdown = (props: {username: string}) => {
   const {username} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
       const {attachTo, toggleShowingPopup} = p
-      const onBlock = () =>
-        dispatch(
-          nav.safeNavigateAppendPayload({
-            path: [{props: {username}, selected: 'chatBlockingModal'}],
-          })
-        )
+      const onBlock = () => nav.safeNavigateAppend({props: {username}, selected: 'chatBlockingModal'})
       return (
         <Kb.FloatingMenu
           attachTo={attachTo}
@@ -734,7 +706,7 @@ const BlockDropdown = (props: {username: string}) => {
         />
       )
     },
-    [dispatch, nav, username]
+    [nav, username]
   )
   const {popup, popupAnchor, toggleShowingPopup} = Kb.usePopup2(makePopup)
   return (

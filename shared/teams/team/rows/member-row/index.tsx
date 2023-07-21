@@ -81,7 +81,6 @@ export const TeamMemberRow = (props: Props) => {
   const isYou = props.you === props.username
   const teamID = props.teamID
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const teamSelectedMembers = Constants.useState(s => s.teamSelectedMembers.get(teamID))
   const anySelected = !!teamSelectedMembers?.size
@@ -167,11 +166,10 @@ export const TeamMemberRow = (props: Props) => {
               {
                 icon: 'iconfont-chat',
                 onClick: () =>
-                  dispatch(
-                    nav.safeNavigateAppendPayload({
-                      path: [{props: {teamID, usernames: [username]}, selected: 'teamAddToChannels'}],
-                    })
-                  ),
+                  nav.safeNavigateAppend({
+                    props: {teamID, usernames: [username]},
+                    selected: 'teamAddToChannels',
+                  }),
                 title: 'Add to channels...',
               },
               {icon: 'iconfont-crown-admin', onClick: onClick, title: 'Edit role...'},
@@ -216,7 +214,6 @@ export const TeamMemberRow = (props: Props) => {
       crown,
       fullName,
       roleLabel,
-      dispatch,
       nav,
       teamID,
       username,

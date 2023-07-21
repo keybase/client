@@ -27,18 +27,14 @@ const getAncestors = memoize(path =>
 const Breadcrumb = (props: Props) => {
   const ancestors = getAncestors(props.path || Constants.defaultPath)
   const {inDestinationPicker} = props
-
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onOpenPath = React.useCallback(
     (path: Types.Path) => {
       inDestinationPicker
-        ? Constants.makeActionsForDestinationPickerOpen(0, path, nav.safeNavigateAppendPayload).forEach(
-            action => dispatch(action)
-          )
-        : dispatch(nav.safeNavigateAppendPayload({path: [{props: {path}, selected: 'fsRoot'}]}))
+        ? Constants.makeActionsForDestinationPickerOpen(0, path)
+        : nav.safeNavigateAppend({props: {path}, selected: 'fsRoot'})
     },
-    [dispatch, nav, inDestinationPicker]
+    [nav, inDestinationPicker]
   )
 
   const makePopup = React.useCallback(
@@ -164,5 +160,5 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.xxtiny,
         paddingRight: Styles.globalMargins.xxtiny,
       },
-    } as const)
+    }) as const
 )

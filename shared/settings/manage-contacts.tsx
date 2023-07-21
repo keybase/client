@@ -63,19 +63,16 @@ const ManageContacts = () => {
 }
 
 const ManageContactsBanner = () => {
-  const dispatch = Container.useDispatch()
-
   const status = Constants.useContactsState(s => s.permissionStatus)
   const contactsImported = Constants.useContactsState(s => s.importEnabled)
   const importedCount = Constants.useContactsState(s => s.importedCount)
   const error = Constants.useContactsState(s => s.importError)
-
   const onOpenAppSettings = ConfigConstants.useConfigState(s => s.dispatch.dynamic.openAppSettings)
   const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onStartChat = React.useCallback(() => {
     switchTab(Tabs.chatTab)
-    dispatch(appendNewChatBuilder())
-  }, [switchTab, dispatch])
+    appendNewChatBuilder()
+  }, [switchTab])
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onSendFeedback = React.useCallback(() => {
     navigateAppend({

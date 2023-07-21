@@ -1,6 +1,5 @@
 import * as RouterConstants from '../../constants/router2'
 import * as Constants from '../../constants/teams'
-import * as Container from '../../util/container'
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
@@ -89,9 +88,6 @@ export default (ownProps: OwnProps) => {
   const canInvite = yourOperations.manageMembers
   const canLeaveTeam = Constants.useState(s => !Constants.isLastOwner(s, teamID) && role !== 'none')
   const canViewFolder = !yourOperations.joinTeam
-
-  const dispatch = Container.useDispatch()
-
   const startAddMembersWizard = Constants.useState(s => s.dispatch.startAddMembersWizard)
   const onAddOrInvitePeople = () => {
     startAddMembersWizard(teamID)
@@ -104,7 +100,7 @@ export default (ownProps: OwnProps) => {
     navigateAppend({props: {teamID}, selected: 'teamReallyLeaveTeam'})
   }
   const onOpenFolder = (teamname: string) => {
-    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`)))
+    FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
   }
 
   const items: Kb.MenuItems = ['Divider']

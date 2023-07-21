@@ -25,22 +25,18 @@ const Skip = () => {
 }
 
 const AddFromWhere = () => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-
   const teamID = Constants.useState(s => s.addMembersWizard.teamID)
   const cancelAddMembersWizard = Constants.useState(s => s.dispatch.cancelAddMembersWizard)
   const newTeam: boolean = teamID === Types.newTeamWizardTeamID
   // Clicking "skip" concludes the new team wizard. It can error so we should display that here.
   const createTeamError = Constants.useState(s => (newTeam ? s.newTeamWizard.error : undefined))
-
   const onClose = () => cancelAddMembersWizard()
   const onBack = () => nav.safeNavigateUp()
-  const onContinueKeybase = () => dispatch(appendNewTeamBuilder(teamID))
-  const onContinuePhone = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamPhone']}))
-  const onContinueContacts = () => dispatch(nav.safeNavigateAppendPayload({path: ['teamAddToTeamContacts']}))
-  const onContinueEmail = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props: {}, selected: 'teamAddToTeamEmail'}]}))
+  const onContinueKeybase = () => appendNewTeamBuilder(teamID)
+  const onContinuePhone = () => nav.safeNavigateAppend('teamAddToTeamPhone')
+  const onContinueContacts = () => nav.safeNavigateAppend('teamAddToTeamContacts')
+  const onContinueEmail = () => nav.safeNavigateAppend({props: {}, selected: 'teamAddToTeamEmail'})
   return (
     <Kb.Modal
       allowOverflow={true}

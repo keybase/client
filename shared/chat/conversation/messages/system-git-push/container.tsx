@@ -14,7 +14,6 @@ type OwnProps = {
 
 const GitContainer = React.memo(function GitContainer(p: OwnProps) {
   const {message} = p
-  const dispatch = Container.useDispatch()
   const onClickCommit = React.useCallback(
     (commitHash: string) => {
       const path = FsTypes.stringToPath(
@@ -25,9 +24,9 @@ const GitContainer = React.memo(function GitContainer(p: OwnProps) {
           '/.kbfs_autogit_commit_' +
           commitHash
       )
-      dispatch(FsConstants.makeActionForOpenPathInFilesTab(path))
+      FsConstants.makeActionForOpenPathInFilesTab(path)
     },
-    [dispatch, message]
+    [message]
   )
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
