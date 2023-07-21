@@ -305,6 +305,19 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       switch (action.type) {
         case RemoteGen.resetStore:
           break
+        case RemoteGen.engineConnection: {
+          const f = async () => {
+            const EngineConstants = await import('./engine')
+            if (action.payload.connected) {
+              EngineConstants.useState.getState().dispatch.connected()
+              get().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
+            } else {
+              EngineConstants.useState.getState().dispatch.disconnected()
+            }
+          }
+          Z.ignorePromise(f())
+          break
+        }
         case RemoteGen.switchTab: {
           const f = async () => {
             const RouterConstants = await import('./router2')

@@ -33,7 +33,13 @@ export const useState = Z.createZustand<State>(() => {
       }
       Z.ignorePromise(f())
     },
-    disconnected: () => {},
+    disconnected: () => {
+      const f = async () => {
+        const ConfigConstants = await import('./config')
+        ConfigConstants.useConfigState.getState().dispatch.onEngineDisonnected()
+      }
+      Z.ignorePromise(f())
+    },
     incomingCall: () => {},
     resetState: 'default',
   }

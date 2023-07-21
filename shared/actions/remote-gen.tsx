@@ -8,6 +8,7 @@ export const resetStore = 'common:resetStore' // not a part of remote but is han
 export const typePrefix = 'remote:'
 export const closeUnlockFolders = 'remote:closeUnlockFolders'
 export const dumpLogs = 'remote:dumpLogs'
+export const engineConnection = 'remote:engineConnection'
 export const installerRan = 'remote:installerRan'
 export const link = 'remote:link'
 export const openFilesFromWidget = 'remote:openFilesFromWidget'
@@ -69,6 +70,10 @@ export const createCloseUnlockFolders = (payload?: undefined) => ({
 export const createDumpLogs = (payload: {readonly reason: 'quitting through menu'}) => ({
   payload,
   type: dumpLogs as typeof dumpLogs,
+})
+export const createEngineConnection = (payload: {readonly connected: boolean}) => ({
+  payload,
+  type: engineConnection as typeof engineConnection,
 })
 export const createLink = (payload: {readonly link: string}) => ({payload, type: link as typeof link})
 export const createOpenFilesFromWidget = (payload: {readonly path: string}) => ({
@@ -154,6 +159,7 @@ export const createUserFileEditsLoad = (payload?: undefined) => ({
 // Action Payloads
 export type CloseUnlockFoldersPayload = ReturnType<typeof createCloseUnlockFolders>
 export type DumpLogsPayload = ReturnType<typeof createDumpLogs>
+export type EngineConnectionPayload = ReturnType<typeof createEngineConnection>
 export type InstallerRanPayload = ReturnType<typeof createInstallerRan>
 export type LinkPayload = ReturnType<typeof createLink>
 export type OpenFilesFromWidgetPayload = ReturnType<typeof createOpenFilesFromWidget>
@@ -184,6 +190,7 @@ export type UserFileEditsLoadPayload = ReturnType<typeof createUserFileEditsLoad
 export type Actions =
   | CloseUnlockFoldersPayload
   | DumpLogsPayload
+  | EngineConnectionPayload
   | InstallerRanPayload
   | LinkPayload
   | OpenFilesFromWidgetPayload

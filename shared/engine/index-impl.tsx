@@ -12,8 +12,6 @@ import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
 import {type RPCError, convertToError} from '../util/errors'
 
-console.log('aaaaa node check in engine', __IS_NODE__)
-
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
 const DEFER_INCOMING_DURING_DEBUG = __DEV__ && false
@@ -103,49 +101,23 @@ class Engine {
   }
 
   _onDisconnect() {
-    if (__IS_NODE__) return
-    const f = async () => {
-      const {useState} = await import('../constants/engine')
-      useState.getState().dispatch.disconnected()
-    }
-    f()
-      .then(() => {})
-      .catch(() => {})
+    // tell renderer we're disconnected
+    this._dispatch({payload: {connected: false}, type: 'remote:engineConnection'})
   }
 
   // We want to dispatch the connect action but only after listeners boot up
   listenersAreReady = () => {
-    console.log('aaa engine impllistenersAreReady ')
-    if (__IS_NODE__) return
-
     this._listenersAreReady = true
-
-    const f = async () => {
-      if (this._hasConnected) {
-        // dispatch the action version
-        const {useState} = await import('../constants/engine')
-        useState.getState().dispatch.connected()
-      }
-      const ConfigConstants = await import('../constants/config')
-      ConfigConstants.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
+    if (this._hasConnected) {
+      this._dispatch({payload: {connected: true}, type: 'remote:engineConnection'})
     }
-    f()
-      .then(() => {})
-      .catch(() => {})
   }
 
-  // Called when we reconnect to the server
+  // Called when we reconnect to the server. This only happens in node in the electron side.
+  // We proxy the stuff over the mainWindowDispatch
   _onConnected() {
-    console.log('aaa engine onconnected ')
     this._hasConnected = true
-    if (__IS_NODE__) return
-    const f = async () => {
-      const {useState} = await import('../constants/engine')
-      useState.getState().dispatch.connected()
-    }
-    f()
-      .then(() => {})
-      .catch(() => {})
+    this._dispatch({payload: {connected: true}, type: 'remote:engineConnection'})
   }
 
   // Create and return the next unique session id
