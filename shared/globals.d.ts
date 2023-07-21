@@ -23,6 +23,7 @@ declare global {
   var DEBUGEngine: any
   var DEBUGLoaded: boolean | undefined
   var _fromPreload: any
+  var __IS_NODE__: boolean
   var __HOT__: boolean
   var __VERSION__: string
   var __FILE_SUFFIX__: string

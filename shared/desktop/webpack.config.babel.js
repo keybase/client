@@ -201,6 +201,9 @@ const config = (_, {mode}) => {
     plugins: [
       // blacklist common things from the main thread to ensure the view layer doesn't bleed into the node layer
       new webpack.IgnorePlugin({resourceRegExp: /^react$/}),
+      new webpack.DefinePlugin({
+        __IS_NODE__: 'true',
+      }),
     ],
     stats: {
       ...(isDev ? {} : {usedExports: false}), // ignore exports warnings as its mostly used in the render thread
@@ -214,6 +217,7 @@ const config = (_, {mode}) => {
       // needed to help webpack and electron renderer
       new webpack.DefinePlugin({
         global: 'globalThis',
+        __IS_NODE__: 'false',
         'process.env.NODE_DEBUG': JSON.stringify(process.env.NODE_DEBUG),
       }),
       ...(isHot ? [new ReactRefreshWebpackPlugin()] : []),

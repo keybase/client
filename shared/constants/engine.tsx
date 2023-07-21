@@ -1,11 +1,4 @@
 import * as Z from '../util/zustand'
-import * as PinentryConstants from './pinentry'
-import * as TrackerConstants from './tracker2'
-import * as ConfigConstants from './config'
-import * as UnlockFolderConstants from './unlock-folders'
-import * as PeopleConstants from './people'
-import * as NotifConstants from './notifications'
-import * as ChatConstants from './chat2'
 
 type Store = {}
 const initialStore: Store = {}
@@ -22,13 +15,23 @@ type State = Store & {
 export const useState = Z.createZustand<State>(() => {
   const dispatch: State['dispatch'] = {
     connected: () => {
-      PinentryConstants.useState.getState().dispatch.onEngineConnected()
-      TrackerConstants.useState.getState().dispatch.onEngineConnected()
-      ConfigConstants.useConfigState.getState().dispatch.onEngineConnected()
-      UnlockFolderConstants.useState.getState().dispatch.onEngineConnected()
-      PeopleConstants.useState.getState().dispatch.onEngineConnected()
-      NotifConstants.useState.getState().dispatch.onEngineConnected()
-      ChatConstants.useState.getState().dispatch.onEngineConnected()
+      const f = async () => {
+        const PinentryConstants = await import('./pinentry')
+        PinentryConstants.useState.getState().dispatch.onEngineConnected()
+        const TrackerConstants = await import('./tracker2')
+        TrackerConstants.useState.getState().dispatch.onEngineConnected()
+        const ConfigConstants = await import('./config')
+        ConfigConstants.useConfigState.getState().dispatch.onEngineConnected()
+        const UnlockFolderConstants = await import('./unlock-folders')
+        UnlockFolderConstants.useState.getState().dispatch.onEngineConnected()
+        const PeopleConstants = await import('./people')
+        PeopleConstants.useState.getState().dispatch.onEngineConnected()
+        const NotifConstants = await import('./notifications')
+        NotifConstants.useState.getState().dispatch.onEngineConnected()
+        const ChatConstants = await import('./chat2')
+        ChatConstants.useState.getState().dispatch.onEngineConnected()
+      }
+      Z.ignorePromise(f())
     },
     disconnected: () => {},
     incomingCall: () => {},

@@ -11,7 +11,8 @@ import {isMobile} from '../constants/platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog, type createClientType} from './index.platform'
 import {type RPCError, convertToError} from '../util/errors'
-import {useState} from '../constants/engine'
+
+console.log('aaaaa node check in engine', __IS_NODE__)
 
 // delay incoming to stop react from queueing too many setState calls and stopping rendering
 // only while debugging for now
@@ -102,18 +103,29 @@ class Engine {
   }
 
   _onDisconnect() {
-    useState.getState().dispatch.disconnected()
+    if (__IS_NODE__) return
+    const f = async () => {
+      const {useState} = await import('../constants/engine')
+      useState.getState().dispatch.disconnected()
+    }
+    f()
+      .then(() => {})
+      .catch(() => {})
   }
 
   // We want to dispatch the connect action but only after listeners boot up
   listenersAreReady = () => {
+    console.log('aaa engine impllistenersAreReady ')
+    if (__IS_NODE__) return
+
     this._listenersAreReady = true
-    if (this._hasConnected) {
-      // dispatch the action version
-      useState.getState().dispatch.connected()
-    }
 
     const f = async () => {
+      if (this._hasConnected) {
+        // dispatch the action version
+        const {useState} = await import('../constants/engine')
+        useState.getState().dispatch.connected()
+      }
       const ConfigConstants = await import('../constants/config')
       ConfigConstants.useConfigState.getState().dispatch.loadOnStart('initialStartupAsEarlyAsPossible')
     }
@@ -124,8 +136,16 @@ class Engine {
 
   // Called when we reconnect to the server
   _onConnected() {
+    console.log('aaa engine onconnected ')
     this._hasConnected = true
-    useState.getState().dispatch.connected()
+    if (__IS_NODE__) return
+    const f = async () => {
+      const {useState} = await import('../constants/engine')
+      useState.getState().dispatch.connected()
+    }
+    f()
+      .then(() => {})
+      .catch(() => {})
   }
 
   // Create and return the next unique session id
