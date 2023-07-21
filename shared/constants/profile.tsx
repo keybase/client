@@ -1,5 +1,4 @@
 import * as ConfigConstants from './config'
-import * as LinksConstants from './deeplinks'
 import * as RouterConstants from './router2'
 import * as More from './types/more'
 import * as RPCTypes from './types/rpc-gen'
@@ -435,12 +434,16 @@ export const useState = Z.createZustand<State>((set, get) => {
               s.errorCode = error.code
             })
             if (error.code === RPCTypes.StatusCode.scgeneric && reason === 'appLink') {
-              LinksConstants.useState
-                .getState()
-                .dispatch.setLinkError(
-                  "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
-                )
-              RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+              const f = async () => {
+                const LinksConstants = await import('./deeplinks')
+                LinksConstants.useState
+                  .getState()
+                  .dispatch.setLinkError(
+                    "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
+                  )
+                RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+              }
+              Z.ignorePromise(f())
             }
           }
           if (genericService) {

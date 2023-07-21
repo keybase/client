@@ -1,6 +1,4 @@
-import * as LinksConstants from './deeplinks'
 import * as RouterConstants from './router2'
-import * as ProfileConstants from './profile'
 import * as UsersConstants from './users'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
@@ -336,15 +334,19 @@ export const useState = Z.createZustand<State>((set, get) => {
             if (error.code === RPCTypes.StatusCode.scresolutionfailed) {
               get().dispatch.updateResult(guiID, 'notAUserYet')
             } else if (error.code === RPCTypes.StatusCode.scnotfound) {
-              // we're on the profile page for a user that does not exist. Currently the only way
-              // to get here is with an invalid link or deeplink.
-              LinksConstants.useState
-                .getState()
-                .dispatch.setLinkError(
-                  `You followed a profile link for a user (${assertion}) that does not exist.`
-                )
-              RouterConstants.useState.getState().dispatch.navigateUp()
-              RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+              const f = async () => {
+                // we're on the profile page for a user that does not exist. Currently the only way
+                // to get here is with an invalid link or deeplink.
+                const LinksConstants = await './deeplinks'
+                LinksConstants.useState
+                  .getState()
+                  .dispatch.setLinkError(
+                    `You followed a profile link for a user (${assertion}) that does not exist.`
+                  )
+                RouterConstants.useState.getState().dispatch.navigateUp()
+                RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+              }
+              Z.ignorePromise(f())
             }
             // hooked into reloadable
             logger.error(`Error loading profile: ${error.message}`)
@@ -563,7 +565,11 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
       if (!skipNav) {
         // go to profile page
-        ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+        const f = async () => {
+          const ProfileConstants = await import('./profile')
+          ProfileConstants.useState.getState().dispatch.showUserProfile(username)
+        }
+        Z.ignorePromise(f())
       }
     },
     updateResult: (guiID, result, reason) => {

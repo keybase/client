@@ -1,6 +1,5 @@
 import * as RouterConstants from './router2'
 import * as DarkMode from './darkmode'
-import * as ProvisionConstants from './provision'
 import * as DeviceTypes from './types/devices'
 import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
@@ -576,7 +575,11 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
                 'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
                 'keybase.1.provisionUi.PromptNewDeviceName': (_, response) => {
                   cancelOnCallback(undefined, response)
-                  ProvisionConstants.useState.getState().dispatch.dynamic.setUsername?.(username)
+                  const f = async () => {
+                    const ProvisionConstants = await import('./provision')
+                    ProvisionConstants.useState.getState().dispatch.dynamic.setUsername?.(username)
+                  }
+                  Z.ignorePromise(f())
                 },
                 'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
                 'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
