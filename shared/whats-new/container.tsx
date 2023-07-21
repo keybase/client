@@ -4,7 +4,7 @@ import type * as Tabs from '../constants/tabs'
 import openURL from '../util/open-url'
 import {currentVersion, useState} from '../constants/whats-new'
 import {Current, Last, LastLast} from './versions'
-import type {PathParam} from '../constants/types/route-tree'
+import type {PathParam} from '../constants/router2'
 import WhatsNew from '.'
 
 type OwnProps = {

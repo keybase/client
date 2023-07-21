@@ -5,8 +5,12 @@ import * as Tabs from '../constants/tabs'
 import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import shallowEqual from 'shallowequal'
-import type {NavState, Route, PathParam} from './types/route-tree'
 import type {ConversationIDKey} from './types/chat2/common'
+import type {NavigationState} from '@react-navigation/core'
+import type {NavigateAppendType} from '../router-v2/route-params'
+export type PathParam = NavigateAppendType
+type Route = NavigationState['routes'][0]
+export type NavState = Route['state']
 
 export const navigationRef_ = createNavigationContainerRef()
 export const _getNavigator = () => {

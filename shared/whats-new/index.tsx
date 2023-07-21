@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import {currentVersion, lastVersion, lastLastVersion} from '../constants/whats-new'
 import type * as Tabs from '../constants/tabs'
 import type {VersionProps} from './versions'
-import type {PathParam} from '../constants/types/route-tree'
+import type {PathParam} from '../constants/router2'
 
 type Props = {
   onBack: () => void

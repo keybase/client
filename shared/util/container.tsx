@@ -6,7 +6,6 @@ import type {TypedState as _TypedState} from '../constants/reducer'
 import {useDispatch as RRuseDispatch, shallowEqual, type TypedUseSelectorHook} from 'react-redux'
 import type {Dispatch as RRDispatch} from 'redux'
 import flowRight from 'lodash/flowRight'
-import type {Route} from '../constants/types/route-tree'
 import type {NavigationContainerRef} from '@react-navigation/core'
 import type {createListenerMiddleware} from '@reduxjs/toolkit'
 import {useNavigation} from '@react-navigation/core'
@@ -137,6 +136,8 @@ export const useOnUnMountOnce = (f: () => void) => {
   }, [])
 }
 
+import type {NavigationState} from '@react-navigation/core'
+type Route = NavigationState['routes'][0]
 export type RouteDef = {
   getScreen: () => React.ComponentType<any>
   getOptions?: Object | ((p: {navigation: NavigationContainerRef<{}>; route: Route}) => Object)

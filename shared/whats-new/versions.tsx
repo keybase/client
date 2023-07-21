@@ -7,7 +7,7 @@ import {encryptTab} from '../constants/crypto'
 import {cryptoTab, displayTab} from '../constants/settings'
 import {keybaseFM} from '../constants/whats-new'
 import NewFeatureRow from './new-feature-row'
-import type {PathParam} from '../constants/types/route-tree'
+import type {PathParam} from '../constants/router2'
 
 export type VersionProps = {
   seen: boolean
