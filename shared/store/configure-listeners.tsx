@@ -2,12 +2,10 @@ import initAutoReset from '../actions/autoreset'
 import initBots from '../actions/bots'
 import initChat from '../actions/chat2'
 import initConfig from '../actions/config'
-import initDeeplinks from '../actions/deeplinks'
 import initDevice from '../actions/devices'
 import initFS from '../actions/fs'
 import initGit from '../actions/git'
 import initGregor from '../actions/gregor'
-import initNotifications from '../actions/notifications'
 import initPeople from '../actions/people'
 import initPinentry from '../actions/pinentry'
 import initSettings from '../actions/settings'
@@ -21,11 +19,9 @@ export const initListeners = () => {
   initBots()
   initChat()
   initConfig()
-  initDeeplinks()
   initDevice()
   initFS()
   initGregor()
-  initNotifications()
   initPinentry()
   initSettings()
   initTeams()

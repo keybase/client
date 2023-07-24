@@ -1,5 +1,8 @@
 import * as Z from '../util/zustand'
-import * as RPCTypes from '../constants/types/rpc-gen'
+import * as FsConstants from './fs'
+import * as ConfigConstants from './config'
+import * as EngineGen from '../actions/engine-gen-gen'
+import * as RPCTypes from './types/rpc-gen'
 import {isMobile} from './platform'
 import logger from '../logger'
 import isEqual from 'lodash/isEqual'
@@ -28,13 +31,58 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     onEngineConnected: () => void
+    onEngineIncoming: (action: any) => void
     resetState: 'default'
     badgeApp: (key: NotificationKeys, on: boolean) => void
     setBadgeCounts: (counts: Map<Tabs.Tab, number>) => void
   }
 }
 
-export const useState = Z.createZustand<State>(set => {
+let lastFsBadges = {newTlfs: 0, rekeysNeeded: 0}
+const shouldTriggerTlfLoad = (bs: RPCTypes.BadgeState) => {
+  const {newTlfs, rekeysNeeded} = bs
+  const same = newTlfs === lastFsBadges.newTlfs && rekeysNeeded === lastFsBadges.rekeysNeeded
+  lastFsBadges = {newTlfs, rekeysNeeded}
+  return !same
+}
+
+const badgeStateToBadgeCounts = (bs: RPCTypes.BadgeState) => {
+  const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
+  const deletedTeams = bs.deletedTeams ?? []
+  const newDevices = bs.newDevices ?? []
+  const newGitRepoGlobalUniqueIDs = bs.newGitRepoGlobalUniqueIDs ?? []
+  const newTeamAccessRequestCount = bs.newTeamAccessRequestCount ?? 0
+  const newTeams = bs.newTeams ?? []
+  const revokedDevices = bs.revokedDevices ?? []
+  const teamsWithResetUsers = bs.teamsWithResetUsers ?? []
+  const wotUpdates = bs.wotUpdates ?? new Map<string, RPCTypes.WotUpdate>()
+
+  if (useState.getState().badgeVersion >= inboxVers) {
+    return undefined
+  }
+
+  const counts = new Map<Tabs.Tab, number>()
+
+  counts.set(Tabs.peopleTab, bs.homeTodoItems + Object.keys(wotUpdates).length)
+
+  const allDeviceChanges = new Set(newDevices)
+  newDevices.forEach(d => allDeviceChanges.add(d))
+  revokedDevices.forEach(d => allDeviceChanges.add(d))
+
+  // don't see badges related to this device
+  const deviceID = ConfigConstants.useCurrentUserState.getState().deviceID
+  counts.set(Tabs.devicesTab, allDeviceChanges.size - (allDeviceChanges.has(deviceID) ? 1 : 0))
+  counts.set(Tabs.chatTab, bs.smallTeamBadgeCount + bs.bigTeamBadgeCount)
+  counts.set(Tabs.gitTab, newGitRepoGlobalUniqueIDs.length)
+  counts.set(
+    Tabs.teamsTab,
+    newTeams.length + newTeamAccessRequestCount + teamsWithResetUsers.length + deletedTeams.length
+  )
+  counts.set(Tabs.settingsTab, unverifiedEmails + unverifiedPhones)
+
+  return counts
+}
+export const useState = Z.createZustand<State>((set, get) => {
   const updateWidgetBadge = (s: State) => {
     let widgetBadge: BadgeType = 'regular'
     const {keyState} = s
@@ -100,6 +148,40 @@ export const useState = Z.createZustand<State>(set => {
         }
       }
       Z.ignorePromise(f())
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyAuditRootAuditError:
+          ConfigConstants.useConfigState
+            .getState()
+            .dispatch.setGlobalError(
+              new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`)
+            )
+
+          break
+        case EngineGen.keybase1NotifyAuditBoxAuditError:
+          ConfigConstants.useConfigState
+            .getState()
+            .dispatch.setGlobalError(
+              new Error(
+                `Keybase had a problem loading a team, please report this with \`keybase log send\`: ${action.payload.params.message}`
+              )
+            )
+          break
+        case EngineGen.keybase1NotifyBadgesBadgeState: {
+          const badgeState = action.payload.params.badgeState
+          ConfigConstants.useConfigState.getState().dispatch.setBadgeState(badgeState)
+
+          const counts = badgeStateToBadgeCounts(badgeState)
+          if (!isMobile && shouldTriggerTlfLoad(badgeState)) {
+            FsConstants.useState.getState().dispatch.favoritesLoad()
+          }
+          if (counts) {
+            get().dispatch.setBadgeCounts(counts)
+          }
+          break
+        }
+      }
     },
     resetState: 'default',
     setBadgeCounts: counts => {

@@ -7,6 +7,7 @@ import * as SettingsConstants from './settings'
 import * as Tabs from './tabs'
 import * as TeamsConstants from './teams'
 import * as Z from '../util/zustand'
+import * as EngineGen from '../actions/engine-gen-gen'
 import type HiddenString from '../util/hidden-string'
 import URL from 'url-parse'
 import logger from '../logger'
@@ -43,6 +44,7 @@ type State = Store & {
     handleAppLink: (link: string) => void
     handleKeybaseLink: (link: string) => void
     handleSaltPackOpen: (_path: string | HiddenString) => void
+    onEngineIncoming: (action: EngineGen.Keybase1NotifyServiceHandleKeybaseLinkPayload) => void
     resetState: 'default'
     setLinkError: (e: string) => void
   }
@@ -280,6 +282,19 @@ export const useState = Z.createZustand<State>((set, get) => {
       const {onSaltpackOpenFile} = CryptoConstants.useState.getState().dispatch
       onSaltpackOpenFile(operation, path)
       RouterConstants.useState.getState().dispatch.switchTab(Tabs.cryptoTab)
+    },
+
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyServiceHandleKeybaseLink: {
+          const {link, deferred} = action.payload.params
+          if (deferred && !link.startsWith('keybase://team-invite-link/')) {
+            return
+          }
+          get().dispatch.handleKeybaseLink(link)
+          break
+        }
+      }
     },
     resetState: 'default',
     setLinkError: e => {
