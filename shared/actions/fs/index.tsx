@@ -1,38 +1,12 @@
 import * as Constants from '../../constants/fs'
 import * as ConfigConstants from '../../constants/config'
 import * as RouterConstants from '../../constants/router2'
-import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
-import * as Container from '../../util/container'
 import * as Z from '../../util/zustand'
 import logger from '../../logger'
 import initPlatformSpecific from './platform-specific'
 import {RPCError} from '../../util/errors'
-
-const clientID = Constants.clientID
-
-// At start-up we might have a race where we get connected to a kbfs daemon
-// which dies soon after, and we get an EOF here. So retry for a few times
-// until we get through. After each try we delay for 2s, so this should give us
-// e.g. 12s when n == 6. If it still doesn't work after 12s, something's wrong
-// and we deserve a black bar.
-const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<void> => {
-  try {
-    const onlineStatus = await RPCTypes.SimpleFSSimpleFSGetOnlineStatusRpcPromise({clientID})
-    Constants.useState.getState().dispatch.kbfsDaemonOnlineStatusChanged(onlineStatus)
-    return
-  } catch (error) {
-    if (n > 0) {
-      logger.warn(`failed to check if we are connected to MDServer: ${error}; n=${n}`)
-      await Container.timeoutPromise(2000)
-      return checkIfWeReConnectedToMDServerUpToNTimes(n - 1)
-    } else {
-      logger.warn(`failed to check if we are connected to MDServer : ${error}; n=${n}, throwing`)
-      throw error
-    }
-  }
-}
 
 const fsRrouteNames = ['fsRoot', 'barePreview']
 
@@ -68,42 +42,6 @@ const initFS = () => {
           }
           logger.warn(`failed to check KBFS reachability: ${error.message}`)
         }
-      }
-    }
-    Z.ignorePromise(f())
-  })
-
-  // TODO more engine gen >>>>>
-  Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, (_, action) => {
-    const f = async () => {
-      const {clientID: clientIDFromNotification, topic} = action.payload.params
-      if (clientIDFromNotification !== clientID) {
-        return
-      }
-      switch (topic) {
-        case RPCTypes.SubscriptionTopic.favorites:
-          Constants.useState.getState().dispatch.favoritesLoad()
-          break
-        case RPCTypes.SubscriptionTopic.journalStatus:
-          Constants.useState.getState().dispatch.pollJournalStatus()
-          break
-        case RPCTypes.SubscriptionTopic.onlineStatus:
-          await checkIfWeReConnectedToMDServerUpToNTimes(1)
-          break
-        case RPCTypes.SubscriptionTopic.downloadStatus:
-          Constants.useState.getState().dispatch.loadDownloadStatus()
-          break
-        case RPCTypes.SubscriptionTopic.uploadStatus:
-          Constants.useState.getState().dispatch.loadUploadStatus()
-          break
-        case RPCTypes.SubscriptionTopic.filesTabBadge:
-          Constants.useState.getState().dispatch.loadFilesTabBadge()
-          break
-        case RPCTypes.SubscriptionTopic.settings:
-          Constants.useState.getState().dispatch.loadSettings()
-          break
-        case RPCTypes.SubscriptionTopic.overallSyncStatus:
-          break
       }
     }
     Z.ignorePromise(f())

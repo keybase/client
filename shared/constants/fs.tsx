@@ -1182,6 +1182,7 @@ type State = Store & {
     moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => void
     onChangedFocus: (appFocused: boolean) => void
     onPathChange: (clientID: string, path: string, topics: RPCTypes.PathSubscriptionTopic[]) => void
+    onSubscriptionNotify: (clientID: string, topic: RPCTypes.SubscriptionTopic) => void
     pollJournalStatus: () => void
     redbar: (error: string) => void
     resetState: () => void
@@ -2276,6 +2277,39 @@ export const useState = Z.createZustand<State>((set, get) => {
             break
         }
       })
+    },
+    onSubscriptionNotify: (cid, topic) => {
+      const f = async () => {
+        if (cid !== clientID) {
+          return
+        }
+        switch (topic) {
+          case RPCTypes.SubscriptionTopic.favorites:
+            get().dispatch.favoritesLoad()
+            break
+          case RPCTypes.SubscriptionTopic.journalStatus:
+            get().dispatch.pollJournalStatus()
+            break
+          case RPCTypes.SubscriptionTopic.onlineStatus:
+            await checkIfWeReConnectedToMDServerUpToNTimes(1)
+            break
+          case RPCTypes.SubscriptionTopic.downloadStatus:
+            get().dispatch.loadDownloadStatus()
+            break
+          case RPCTypes.SubscriptionTopic.uploadStatus:
+            get().dispatch.loadUploadStatus()
+            break
+          case RPCTypes.SubscriptionTopic.filesTabBadge:
+            get().dispatch.loadFilesTabBadge()
+            break
+          case RPCTypes.SubscriptionTopic.settings:
+            get().dispatch.loadSettings()
+            break
+          case RPCTypes.SubscriptionTopic.overallSyncStatus:
+            break
+        }
+      }
+      Z.ignorePromise(f())
     },
     pollJournalStatus: () => {
       let polling = false

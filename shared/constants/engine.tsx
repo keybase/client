@@ -120,6 +120,11 @@ export const useState = Z.createZustand<State>(() => {
             FSConstants.useState.getState().dispatch.onPathChange(clientID, path, topics ?? [])
             break
           }
+          case EngineGen.keybase1NotifyFSFSSubscriptionNotify: {
+            const {clientID, topic} = action.payload.params
+            FSConstants.useState.getState().dispatch.onSubscriptionNotify(clientID, topic)
+            break
+          }
           default:
         }
       }
