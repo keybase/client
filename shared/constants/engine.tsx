@@ -109,7 +109,8 @@ export const useState = Z.createZustand<State>(() => {
           case EngineGen.keybase1NotifySessionLoggedIn: // fallthrough
           case EngineGen.keybase1NotifySessionLoggedOut: // fallthrough
           case EngineGen.keybase1NotifyTeamAvatarUpdated: // fallthrough
-          case EngineGen.keybase1NotifyTrackingTrackingInfo:
+          case EngineGen.keybase1NotifyTrackingTrackingInfo: // fallthrough
+          case EngineGen.keybase1ReachabilityReachabilityChanged:
             ConfigConstants.useConfigState.getState().dispatch.onEngineIncoming(action)
             break
 

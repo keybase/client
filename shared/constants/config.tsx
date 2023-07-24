@@ -219,6 +219,7 @@ type State = Store & {
         | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
         | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
         | EngineGen.Keybase1NotifyTrackingTrackingInfoPayload
+        | EngineGen.Keybase1ReachabilityReachabilityChangedPayload
     ) => void
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
     openUnlockFolders: (devices: Array<RPCTypes.Device>) => void
@@ -767,6 +768,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           dispatch.replace(followers, following)
           break
         }
+
+        case EngineGen.keybase1ReachabilityReachabilityChanged:
+          if (get().loggedIn) {
+            get().dispatch.setGregorReachable(action.payload.params.reachability.reachable)
+          }
+          break
       }
     },
     openUnlockFolders: devices => {
