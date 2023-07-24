@@ -50,6 +50,7 @@ export const useState = Z.createZustand<State>(() => {
         const FSConstants = await import('./fs')
         const TrackerConstants = await import('./tracker2')
         const ConfigConstants = await import('./config')
+        const UsersConstants = await import('./users')
         switch (action.type) {
           case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded: // fallthrough
           case EngineGen.keybase1NotifyTeamTeamChangedByID: // fallthrough
@@ -116,6 +117,10 @@ export const useState = Z.createZustand<State>(() => {
           case EngineGen.keybase1NotifyTrackingTrackingChanged: // fallthrough
             TrackerConstants.useState.getState().dispatch.onEngineIncoming(action)
             ConfigConstants.useConfigState.getState().dispatch.onEngineIncoming(action)
+            break
+
+          case EngineGen.keybase1NotifyUsersIdentifyUpdate:
+            UsersConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
 
           default:
