@@ -1,5 +1,4 @@
 import initAutoReset from '../actions/autoreset'
-import initBots from '../actions/bots'
 import initChat from '../actions/chat2'
 import initConfig from '../actions/config'
 import initDevice from '../actions/devices'
@@ -14,7 +13,6 @@ import initTeamBuilding from '../actions/team-building'
 
 export const initListeners = () => {
   initAutoReset()
-  initBots()
   initChat()
   initConfig()
   initDevice()

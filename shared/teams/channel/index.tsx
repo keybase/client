@@ -4,10 +4,10 @@ import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as BotsConstants from '../../constants/bots'
 import * as ChatConstants from '../../constants/chat2'
 import * as UsersConstants from '../../constants/users'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as BotsGen from '../../actions/bots-gen'
 import type * as ChatTypes from '../../constants/types/chat2'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'
@@ -64,14 +64,15 @@ const useLoadDataForChannelPage = (
     participants,
     teamID,
   ])
+  const searchFeaturedBots = BotsConstants.useState(s => s.dispatch.searchFeaturedBots)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTab && selectedTab === 'bots') {
       // Load any bots that aren't in the featured bots map already
       bots
         .filter(botUsername => !featuredBotsMap.has(botUsername))
-        .map(botUsername => dispatch(BotsGen.createSearchFeaturedBots({query: botUsername})))
+        .map(botUsername => searchFeaturedBots(botUsername))
     }
-  }, [selectedTab, dispatch, conversationIDKey, prevSelectedTab, bots, featuredBotsMap])
+  }, [selectedTab, searchFeaturedBots, conversationIDKey, prevSelectedTab, bots, featuredBotsMap])
 
   const loadTeamChannelList = Constants.useState(s => s.dispatch.loadTeamChannelList)
   React.useEffect(() => {

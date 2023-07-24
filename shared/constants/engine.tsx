@@ -45,6 +45,7 @@ export const useState = Z.createZustand<State>(() => {
     },
     incomingCall: action => {
       const f = async () => {
+        const BotsConstants = await import('./bots')
         const ConfigConstants = await import('./config')
         const DLConstants = await import('./deeplinks')
         const FSConstants = await import('./fs')
@@ -150,6 +151,10 @@ export const useState = Z.createZustand<State>(() => {
           case EngineGen.chat1ChatUiChatWatchPosition: // fallthrough
           case EngineGen.chat1ChatUiTriggerContactSync: // fallthrough
             ConfigConstants.useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
+            break
+
+          case EngineGen.keybase1NotifyFeaturedBotsFeaturedBotsUpdate:
+            BotsConstants.useState.getState().dispatch.botsUpdate(action)
             break
 
           case EngineGen.keybase1LogUiLog: // fallthrough
