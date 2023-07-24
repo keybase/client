@@ -1,4 +1,6 @@
 import * as RouterConstants from './router2'
+import * as ConfigConstants from '../constants/config'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as UsersConstants from './users'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
@@ -240,6 +242,18 @@ export type State = Store & {
     notifySummary: (summary: RPCTypes.Identify3Summary) => void
     notifyUserBlocked: (b: RPCTypes.UserBlockedSummary) => void
     onEngineConnected: () => void
+    onEngineIncoming: (
+      action:
+        | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
+        | EngineGen.Keybase1Identify3UiIdentify3ResultPayload
+        | EngineGen.Keybase1Identify3UiIdentify3ShowTrackerPayload
+        | EngineGen.Keybase1NotifyUsersUserChangedPayload
+        | EngineGen.Keybase1NotifyTrackingNotifyUserBlockedPayload
+        | EngineGen.Keybase1Identify3UiIdentify3UpdateRowPayload
+        | EngineGen.Keybase1Identify3UiIdentify3UserResetPayload
+        | EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload
+        | EngineGen.Keybase1Identify3UiIdentify3SummaryPayload
+    ) => void
     replace: (usernameToDetails: Map<string, Types.Details>) => void
     resetState: 'default'
     showUser: (username: string, asTracker: boolean, skipNav?: boolean) => void
@@ -247,6 +261,18 @@ export type State = Store & {
   }
 }
 
+const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
+  switch (result) {
+    case RPCTypes.Identify3ResultType.ok:
+      return 'valid'
+    case RPCTypes.Identify3ResultType.broken:
+      return 'broken'
+    case RPCTypes.Identify3ResultType.needsUpgrade:
+      return 'needsUpgrade'
+    case RPCTypes.Identify3ResultType.canceled:
+      return 'error'
+  }
+}
 export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     changeFollow: (guiID, follow) => {
@@ -545,6 +571,87 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyTrackingTrackingChanged: {
+          // only refresh if we have tracked them before
+          const {username} = action.payload.params
+          if (get().usernameToDetails.get(username)) {
+            get().dispatch.load({
+              assertion: username,
+              fromDaemon: false,
+              guiID: generateGUIID(),
+              ignoreCache: true,
+              inTracker: false,
+              reason: '',
+            })
+          }
+          break
+        }
+        case EngineGen.keybase1Identify3UiIdentify3Result: {
+          const {guiID, result} = action.payload.params
+          get().dispatch.updateResult(guiID, rpcResultToStatus(result))
+          break
+        }
+        case EngineGen.keybase1Identify3UiIdentify3ShowTracker: {
+          const {assertion, forceDisplay = false, guiID, reason} = action.payload.params
+          get().dispatch.load({
+            assertion,
+            forceDisplay,
+            fromDaemon: true,
+            guiID,
+            ignoreCache: false,
+            inTracker: true,
+            reason: reason.reason,
+          })
+          break
+        }
+        // if we mutated somehow reload ourselves and reget the suggestions
+        case EngineGen.keybase1NotifyUsersUserChanged: {
+          if (ConfigConstants.useCurrentUserState.getState().uid !== action.payload.params.uid) {
+            return
+          }
+          get().dispatch.load({
+            assertion: ConfigConstants.useCurrentUserState.getState().username,
+            forceDisplay: false,
+            fromDaemon: false,
+            guiID: generateGUIID(),
+            ignoreCache: false,
+            inTracker: false,
+            reason: '',
+          })
+          get().dispatch.getProofSuggestions()
+          break
+        }
+        // This allows the server to send us a notification to *remove* (not add)
+        // arbitrary followers from arbitrary tracker2 results, so we can hide
+        // blocked users from follower lists.
+        case EngineGen.keybase1NotifyTrackingNotifyUserBlocked: {
+          get().dispatch.notifyUserBlocked(action.payload.params.b)
+          break
+        }
+        case EngineGen.keybase1Identify3UiIdentify3UpdateRow: {
+          const {row} = action.payload.params
+          get().dispatch.notifyRow(row)
+          break
+        }
+        case EngineGen.keybase1Identify3UiIdentify3UserReset: {
+          const {guiID} = action.payload.params
+          get().dispatch.notifyReset(guiID)
+          break
+        }
+        case EngineGen.keybase1Identify3UiIdentify3UpdateUserCard: {
+          const {guiID, card} = action.payload.params
+          get().dispatch.notifyCard(guiID, card)
+          break
+        }
+        case EngineGen.keybase1Identify3UiIdentify3Summary: {
+          const {summary} = action.payload.params
+          get().dispatch.notifySummary(summary)
+          break
+        }
+      }
     },
     replace: usernameToDetails => {
       set(s => {

@@ -19,15 +19,6 @@ import NotifyPopup from '../../util/notify-popup'
 const {showMainWindow, activeChanged, requestWindowsStartService, dumpNodeLogger} = KB2.functions
 const {quitApp, exitApp, setOpenAtLogin, ctlQuit, copyToClipboard} = KB2.functions
 
-const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
-  const {params} = action.payload
-  const {level, text} = params
-  logger.info('keybase.1.logUi.log:', params.text.data)
-  if (level >= RPCTypes.LogLevel.error) {
-    NotifyPopup(text.data, {})
-  }
-}
-
 export const requestPermissionsToWrite = async () => {
   return Promise.resolve(true)
 }
@@ -67,24 +58,6 @@ const initializeInputMonitor = () => {
 const onExit = () => {
   console.log('App exit requested')
   exitApp?.(0)
-}
-
-const onFSActivity = (_: unknown, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
-  kbfsNotification(action.payload.params.notification, NotifyPopup)
-}
-
-const onPgpgKeySecret = async () =>
-  RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
-    console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-  })
-
-const onShutdown = (_: unknown, action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
-  const {code} = action.payload.params
-  if (isWindows && code !== RPCTypes.ExitCode.restart) {
-    console.log('Quitting due to service shutdown with code: ', code)
-    // Quit just the app, not the service
-    quitApp?.()
-  }
 }
 
 export const requestLocationPermission = async () => Promise.resolve()
@@ -135,20 +108,67 @@ export const initPlatformListener = () => {
       }
       Z.ignorePromise(f())
     }
-  })
-  getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
-  Container.listenAction(EngineGen.keybase1LogsendPrepareLogsend, async (_, action) => {
-    const response = action.payload.response
-    try {
-      await dumpLogs()
-    } finally {
-      response?.result()
+
+    s.dispatch.dynamic.onEngineIncomingDesktop = action => {
+      switch (action.type) {
+        case EngineGen.keybase1LogsendPrepareLogsend: {
+          const f = async () => {
+            const response = action.payload.response
+            try {
+              await dumpLogs()
+            } finally {
+              response?.result()
+            }
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case EngineGen.keybase1NotifyAppExit:
+          onExit()
+          break
+        case EngineGen.keybase1NotifyFSFSActivity:
+          kbfsNotification(action.payload.params.notification, NotifyPopup)
+          break
+        case EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile: {
+          const f = async () =>
+            RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
+              console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
+            })
+          Z.ignorePromise(f())
+          break
+        }
+        case EngineGen.keybase1NotifyServiceShutdown: {
+          const {code} = action.payload.params
+          if (isWindows && code !== RPCTypes.ExitCode.restart) {
+            console.log('Quitting due to service shutdown with code: ', code)
+            // Quit just the app, not the service
+            quitApp?.()
+          }
+          break
+        }
+
+        case EngineGen.keybase1LogUiLog: {
+          const {params} = action.payload
+          const {level, text} = params
+          logger.info('keybase.1.logUi.log:', params.text.data)
+          if (level >= RPCTypes.LogLevel.error) {
+            NotifyPopup(text.data, {})
+          }
+          break
+        }
+
+        case EngineGen.keybase1NotifySessionClientOutOfDate: {
+          const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
+          const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
+          NotifyPopup('Client out of date!', {body}, 60 * 60)
+          // This is from the API server. Consider notifications from server always critical.
+          ConfigConstants.useConfigState
+            .getState()
+            .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
+        }
+      }
     }
   })
-  Container.listenAction(EngineGen.keybase1NotifyAppExit, onExit)
-  Container.listenAction(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
-  Container.listenAction(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
-  Container.listenAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.loggedIn === old.loggedIn) return
@@ -162,8 +182,6 @@ export const initPlatformListener = () => {
       maybePauseVideos()
     }
   })
-
-  Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
 
   ConfigConstants.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
@@ -229,16 +247,6 @@ export const initPlatformListener = () => {
       }
     }
     Container.ignorePromise(f())
-  })
-
-  Container.listenAction(EngineGen.keybase1NotifySessionClientOutOfDate, (_, action) => {
-    const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
-    const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
-    NotifyPopup('Client out of date!', {body}, 60 * 60)
-    // This is from the API server. Consider notifications from server always critical.
-    ConfigConstants.useConfigState
-      .getState()
-      .dispatch.setOutOfDate({critical: true, message: upgradeMsg, outOfDate: true, updating: false})
   })
 
   ConfigConstants.useDaemonState.subscribe((s, old) => {

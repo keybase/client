@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as ChatTypes from './types/chat2'
 import * as ConfigConstants from './config'
 import * as RouterConstants from './router2'
@@ -15,7 +16,6 @@ import * as Z from '../util/zustand'
 import invert from 'lodash/invert'
 import logger from '../logger'
 import openSMS from '../util/sms'
-import type * as EngineGen from '../actions/engine-gen-gen'
 import type {RetentionPolicy} from './types/retention-policy'
 import type {TypedState} from './reducer'
 import {RPCError, logError} from '../util/errors'
@@ -1101,6 +1101,7 @@ export type State = Store & {
     deleteChannelConfirmed: (teamID: Types.TeamID, conversationIDKey: ChatTypes.ConversationIDKey) => void
     deleteMultiChannelsConfirmed: (teamID: Types.TeamID, channels: Array<ChatTypes.ConversationIDKey>) => void
     deleteTeam: (teamID: Types.TeamID) => void
+    eagerLoadTeams: () => void
     editMembership: (teamID: Types.TeamID, usernames: Array<string>, role: Types.TeamRoleType) => void
     editTeamDescription: (teamID: Types.TeamID, description: string) => void
     finishNewTeamWizard: () => void
@@ -1137,6 +1138,18 @@ export type State = Store & {
     manageChatChannels: (teamID: Types.TeamID) => void
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => void
     notifyTreeMembershipsPartial: (membership: RPCChatTypes.Keybase1.TeamTreeMembership) => void
+    notifyTeamTeamRoleMapChanged: (newVersion: number) => void
+    onEngineIncoming: (
+      action:
+        | EngineGen.Chat1NotifyChatChatWelcomeMessageLoadedPayload
+        | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload
+        | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsPartialPayload
+        | EngineGen.Keybase1NotifyTeamTeamTreeMembershipsDonePayload
+        | EngineGen.Keybase1NotifyTeamTeamRoleMapChangedPayload
+        | EngineGen.Keybase1NotifyTeamTeamChangedByIDPayload
+        | EngineGen.Keybase1NotifyTeamTeamDeletedPayload
+        | EngineGen.Keybase1NotifyTeamTeamExitPayload
+    ) => void
     openInviteLink: (inviteID: string, inviteKey: string) => void
     onGregorPushState: (gs: Array<{md: RPCTypes.Gregor1.Metadata; item: RPCTypes.Gregor1.Item}>) => void
     reAddToTeam: (teamID: Types.TeamID, username: string) => void
@@ -1776,6 +1789,14 @@ export const useState = Z.createZustand<State>((set, get) => {
     dynamic: {
       respondToInviteLink: undefined,
     },
+    eagerLoadTeams: () => {
+      if (get().teamMetaSubscribeCount > 0) {
+        logger.info('eagerly reloading')
+        get().dispatch.getTeams()
+      } else {
+        logger.info('skipping')
+      }
+    },
     editMembership: (teamID, usernames, r) => {
       const f = async () => {
         const role = RPCTypes.TeamRole[r]
@@ -2348,6 +2369,14 @@ export const useState = Z.createZustand<State>((set, get) => {
         .getState()
         .dispatch.navigateAppend({props: {teamID}, selected: 'teamAddToChannels'})
     },
+    notifyTeamTeamRoleMapChanged: (newVersion: number) => {
+      const loadedVersion = get().teamRoleMap.loadedVersion
+      logger.info(`Got teamRoleMapChanged with version ${newVersion}, loadedVersion is ${loadedVersion}`)
+      if (loadedVersion < newVersion) {
+        get().dispatch.refreshTeamRoleMap()
+      }
+      get().dispatch.setTeamRoleMapLatestKnownVersion(newVersion)
+    },
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => {
       const {guid, targetTeamID, targetUsername, expectedCount} = result
       set(s => {
@@ -2431,6 +2460,48 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
+          get().dispatch.eagerLoadTeams()
+          get().dispatch.resetTeamMetaStale()
+          break
+        case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded: {
+          const {teamID, message} = action.payload.params
+          get().dispatch.loadedWelcomeMessage(teamID, message)
+          break
+        }
+        case EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial: {
+          const {membership} = action.payload.params
+          get().dispatch.notifyTreeMembershipsPartial(membership)
+          break
+        }
+        case EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone: {
+          const {result} = action.payload.params
+          get().dispatch.notifyTreeMembershipsDone(result)
+          break
+        }
+        case EngineGen.keybase1NotifyTeamTeamRoleMapChanged: {
+          const {newVersion} = action.payload.params
+          get().dispatch.notifyTeamTeamRoleMapChanged(newVersion)
+          break
+        }
+        case EngineGen.keybase1NotifyTeamTeamChangedByID:
+          get().dispatch.teamChangedByID(action.payload.params)
+          break
+        case EngineGen.keybase1NotifyTeamTeamDeleted:
+          // likely wrong?
+          if (RouterConstants.getTab()) {
+            RouterConstants.useState.getState().dispatch.navUpToScreen('teamsRoot')
+          }
+          break
+        case EngineGen.keybase1NotifyTeamTeamExit:
+          if (RouterConstants.getTab()) {
+            RouterConstants.useState.getState().dispatch.navUpToScreen('teamsRoot')
+          }
+          break
+      }
     },
     onGregorPushState: items => {
       let sawChatBanner = false

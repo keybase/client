@@ -42,15 +42,6 @@ import {
 } from './push.native'
 import * as Z from '../../util/zustand'
 
-const onLog = (_: unknown, action: EngineGen.Keybase1LogUiLogPayload) => {
-  const {params} = action.payload
-  const {level, text} = params
-  logger.info('keybase.1.logUi.log:', params.text.data)
-  if (level >= RPCTypes.LogLevel.error) {
-    NotifyPopup(text.data, {})
-  }
-}
-
 export const requestPermissionsToWrite = async () => {
   if (isAndroid) {
     const p = await MediaLibrary.requestPermissionsAsync(false)
@@ -256,7 +247,8 @@ const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationI
     },
   })
 
-const onChatWatchPosition = async (_: unknown, action: EngineGen.Chat1ChatUiChatWatchPositionPayload) => {
+const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositionPayload) => {
+  const reduxDispatch = Z.getReduxDispatch()
   const response = action.payload.response
   response.result(0)
   try {
@@ -264,9 +256,11 @@ const onChatWatchPosition = async (_: unknown, action: EngineGen.Chat1ChatUiChat
   } catch (_error) {
     const error = _error as any
     logger.info('failed to get location perms: ' + error.message)
-    return setPermissionDeniedCommandStatus(
-      Types.conversationIDToKey(action.payload.params.convID),
-      `Failed to access location. ${error.message}`
+    reduxDispatch(
+      setPermissionDeniedCommandStatus(
+        Types.conversationIDToKey(action.payload.params.convID),
+        `Failed to access location. ${error.message}`
+      )
     )
   }
 
@@ -285,7 +279,6 @@ const onChatWatchPosition = async (_: unknown, action: EngineGen.Chat1ChatUiChat
       locationRefs--
     }
   }
-  return []
 }
 
 const onChatClearWatch = async () => {
@@ -415,6 +408,11 @@ export const initPlatformListener = () => {
         _lastPersist = s
       }
       Z.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.onEngineIncomingNative = action => {
+      switch (action.type) {
+      }
     }
   })
 
@@ -552,14 +550,7 @@ export const initPlatformListener = () => {
     }
   })
 
-  Container.listenAction(EngineGen.chat1ChatUiTriggerContactSync, () => {
-    SettingsConstants.useContactsState.getState().dispatch.manageContactsCache()
-  })
-
   // Location
-  getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
-  Container.listenAction(EngineGen.chat1ChatUiChatWatchPosition, onChatWatchPosition)
-  Container.listenAction(EngineGen.chat1ChatUiChatClearWatch, onChatClearWatch)
   if (isAndroid) {
     DarkMode.useDarkModeState.subscribe((s, old) => {
       if (s.darkModePreference === old.darkModePreference) return
@@ -579,8 +570,6 @@ export const initPlatformListener = () => {
     }
     Z.ignorePromise(f())
   })
-
-  Container.listenAction(EngineGen.keybase1LogUiLog, onLog)
 
   // mobile version of the remote connection
   Container.listenAction(RemoteGen.engineConnection, (_, a) => {
@@ -617,6 +606,29 @@ export const initPlatformListener = () => {
         }
       }
       Container.ignorePromise(f())
+    }
+
+    s.dispatch.dynamic.onEngineIncomingNative = action => {
+      switch (action.type) {
+        case EngineGen.chat1ChatUiTriggerContactSync:
+          SettingsConstants.useContactsState.getState().dispatch.manageContactsCache()
+          break
+        case EngineGen.keybase1LogUiLog: {
+          const {params} = action.payload
+          const {level, text} = params
+          logger.info('keybase.1.logUi.log:', params.text.data)
+          if (level >= RPCTypes.LogLevel.error) {
+            NotifyPopup(text.data, {})
+          }
+          break
+        }
+        case EngineGen.chat1ChatUiChatWatchPosition:
+          Z.ignorePromise(onChatWatchPosition(action))
+          break
+        case EngineGen.chat1ChatUiChatClearWatch:
+          Z.ignorePromise(onChatClearWatch())
+          break
+      }
     }
   })
 

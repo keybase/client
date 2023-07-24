@@ -1,3 +1,4 @@
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import logger from '../logger'
@@ -41,6 +42,7 @@ export type State = Store & {
   dispatch: {
     getBio: (username: string) => void
     getBlockState: (usernames: Array<string>) => void
+    onEngineIncoming: (action: EngineGen.Keybase1NotifyUsersIdentifyUpdatePayload) => void
     reportUser: (p: {
       username: string
       reason: string
@@ -90,6 +92,16 @@ export const useState = Z.createZustand<State>((set, get) => {
         })
       }
       Z.ignorePromise(f())
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyUsersIdentifyUpdate: {
+          const {brokenUsernames, okUsernames} = action.payload.params
+          brokenUsernames &&
+            get().dispatch.updates(brokenUsernames.map(name => ({info: {broken: true}, name})))
+          okUsernames && get().dispatch.updates(okUsernames.map(name => ({info: {broken: false}, name})))
+        }
+      }
     },
     replace: (infoMap, blockMap) => {
       set(s => {

@@ -1,4 +1,5 @@
 import * as Platforms from './platform'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as RouterConstants from './router2'
 import * as SettingsConstants from './settings'
 import * as PushConstants from './push'
@@ -65,6 +66,7 @@ export type State = Store & {
     checkUsername: (username: string) => void
     clearJustSignedUpEmail: () => void
     goBackAndClearErrors: () => void
+    onEngineIncoming: (action: EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload) => void
     requestAutoInvite: (username?: string) => void
     requestInvite: (email: string, name: string) => void
     resetState: () => void
@@ -268,6 +270,13 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.usernameTaken = ''
       })
       RouterConstants.useState.getState().dispatch.navigateUp()
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+          get().dispatch.clearJustSignedUpEmail()
+          break
+      }
     },
     requestAutoInvite: username => {
       set(s => {

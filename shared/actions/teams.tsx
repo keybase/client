@@ -1,10 +1,7 @@
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/teams'
-import * as Container from '../util/container'
-import * as EngineGen from './engine-gen-gen'
 import * as RouterConstants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
-import logger from '../logger'
 import type * as RPCTypes from '../constants/types/rpc-gen'
 import type * as Types from '../constants/types/teams'
 import {mapGetEnsureValue} from '../util/map'
@@ -21,51 +18,14 @@ const initTeams = () => {
     }
   })
 
-  Container.listenAction(EngineGen.keybase1NotifyTeamTeamRoleMapChanged, (_, action) => {
-    const {newVersion} = action.payload.params
-    const loadedVersion = Constants.useState.getState().teamRoleMap.loadedVersion
-    logger.info(`Got teamRoleMapChanged with version ${newVersion}, loadedVersion is ${loadedVersion}`)
-    if (loadedVersion >= newVersion) {
-      return
-    }
-    Constants.useState.getState().dispatch.refreshTeamRoleMap()
-  })
-
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.gregorPushState === old.gregorPushState) return
     Constants.useState.getState().dispatch.onGregorPushState(s.gregorPushState)
   })
-  Container.listenAction(EngineGen.keybase1NotifyTeamTeamChangedByID, (_, action) => {
-    Constants.useState.getState().dispatch.teamChangedByID(action.payload.params)
-  })
-  Container.listenAction(EngineGen.keybase1NotifyTeamTeamRoleMapChanged, (_, action) => {
-    Constants.useState.getState().dispatch.setTeamRoleMapLatestKnownVersion(action.payload.params.newVersion)
-  })
 
-  Container.listenAction(
-    [EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit],
-    () => {
-      if (RouterConstants.getTab()) {
-        RouterConstants.useState.getState().dispatch.navUpToScreen('teamsRoot')
-      }
-    }
-  )
-
-  const eagerLoadTeams = () => {
-    if (Constants.useState.getState().teamMetaSubscribeCount > 0) {
-      logger.info('eagerly reloading')
-      Constants.useState.getState().dispatch.getTeams()
-    } else {
-      logger.info('skipping')
-    }
-  }
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.gregorReachable === old.gregorReachable) return
-    eagerLoadTeams()
-  })
-
-  Container.listenAction(EngineGen.keybase1NotifyTeamTeamMetadataUpdate, () => {
-    eagerLoadTeams()
+    Constants.useState.getState().dispatch.eagerLoadTeams()
   })
 
   RouterConstants.useState.subscribe((s, old) => {
@@ -102,25 +62,6 @@ const initTeams = () => {
 
     // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
     Constants.useState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
-  })
-
-  Container.listenAction(EngineGen.chat1NotifyChatChatWelcomeMessageLoaded, (_, action) => {
-    const {teamID, message} = action.payload.params
-    Constants.useState.getState().dispatch.loadedWelcomeMessage(teamID, message)
-  })
-
-  Container.listenAction(EngineGen.keybase1NotifyTeamTeamMetadataUpdate, () => {
-    Constants.useState.getState().dispatch.resetTeamMetaStale()
-  })
-
-  Container.listenAction(EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial, (_, action) => {
-    const {membership} = action.payload.params
-    Constants.useState.getState().dispatch.notifyTreeMembershipsPartial(membership)
-  })
-
-  Container.listenAction(EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone, (_, action) => {
-    const {result} = action.payload.params
-    Constants.useState.getState().dispatch.notifyTreeMembershipsDone(result)
   })
 }
 

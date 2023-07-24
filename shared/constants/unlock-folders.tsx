@@ -1,7 +1,9 @@
+import * as ConfigConstants from './config'
+import * as EngineGen from '../actions/engine-gen-gen'
+import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
 import logger from '../logger'
-import * as RPCTypes from './types/rpc-gen'
-import type * as ConfigConstants from './config'
+import {getEngine} from '../engine/require'
 
 type Store = {
   devices: ConfigConstants.Store['unlockFoldersDevices']
@@ -17,6 +19,9 @@ export type State = Store & {
   dispatch: {
     onBackFromPaperKey: () => void
     onEngineConnected: () => void
+    onEngineIncoming: (
+      action: EngineGen.Keybase1RekeyUIRefreshPayload | EngineGen.Keybase1RekeyUIDelegateRekeyUIPayload
+    ) => void
     toPaperKeyInput: () => void
     replace: (devices: Store['devices']) => void
     resetState: 'default'
@@ -42,6 +47,36 @@ export const useState = Z.createZustand<State>((set, _get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1RekeyUIRefresh: {
+          const {problemSetDevices} = action.payload.params
+          logger.info('Asked for rekey')
+          ConfigConstants.useConfigState
+            .getState()
+            .dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
+          break
+        }
+        case EngineGen.keybase1RekeyUIDelegateRekeyUI: {
+          // we get this with sessionID == 0 if we call openDialog
+          // Dangling, never gets closed
+          const session = getEngine().createSession({
+            dangling: true,
+            incomingCallMap: {
+              'keybase.1.rekeyUI.refresh': ({problemSetDevices}) => {
+                ConfigConstants.useConfigState
+                  .getState()
+                  .dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
+              },
+              'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
+            },
+          })
+          const {response} = action.payload
+          response.result(session.id)
+          break
+        }
+      }
     },
     replace: devices => {
       set(s => {

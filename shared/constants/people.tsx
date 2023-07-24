@@ -1,4 +1,5 @@
 import * as ConfigConstants from './config'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as Followers from './followers'
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
@@ -357,6 +358,11 @@ type State = Store & {
     setResentEmail: (email: string) => void
     skipTodo: (type: Types.TodoType) => void
     markViewed: () => void
+    onEngineIncoming: (
+      action:
+        | EngineGen.Keybase1HomeUIHomeUIRefreshPayload
+        | EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload
+    ) => void
     resetState: () => void
   }
 }
@@ -513,6 +519,16 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1HomeUIHomeUIRefresh:
+          get().dispatch.loadPeople(false)
+          break
+        case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+          get().dispatch.setResentEmail(action.payload.params.emailAddress)
+          break
+      }
     },
     resetState: () => {
       set(s => ({

@@ -1,8 +1,6 @@
-import * as EngineGen from './engine-gen-gen'
 import * as RouterConstants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
 import * as Constants from '../constants/signup'
-import * as Container from '../util/container'
 
 const initSignup = () => {
   RouterConstants.useState.subscribe((s, old) => {
@@ -19,10 +17,6 @@ const initSignup = () => {
     ) {
       Constants.useState.getState().dispatch.clearJustSignedUpEmail()
     }
-  })
-
-  Container.listenAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, () => {
-    Constants.useState.getState().dispatch.clearJustSignedUpEmail()
   })
 }
 

@@ -1,4 +1,5 @@
 import * as Z from '../util/zustand'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as RPCTypes from './types/rpc-gen'
 import logger from '../logger'
 import * as ConfigConstants from './config'
@@ -35,6 +36,7 @@ type State = Store & {
         result: (param: RPCTypes.GetPassphraseRes) => void
       }
     ) => void
+    onEngineIncoming: (action: EngineGen.Keybase1SecretUiGetPassphrasePayload) => void
     onEngineConnected: () => void
     resetState: () => void
   }
@@ -56,6 +58,16 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1SecretUiGetPassphrase: {
+          const {response, params} = action.payload
+          const {pinentry} = params
+          get().dispatch.secretUIWantsPassphrase(pinentry, response)
+          break
+        }
+      }
     },
     resetState: () => {
       set(s => ({...s, ...initialStore, dispatch: s.dispatch}))

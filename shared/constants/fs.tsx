@@ -1,4 +1,5 @@
 import * as ConfigConstants from './config'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as NotifConstants from './notifications'
 import * as RPCTypes from './types/rpc-gen'
 import * as SettingsConstants from './settings'
@@ -1181,6 +1182,14 @@ type State = Store & {
     newFolderRow: (parentPath: Types.Path) => void
     moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => void
     onChangedFocus: (appFocused: boolean) => void
+    onEngineIncoming: (
+      action:
+        | EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
+        | EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload
+        | EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload
+    ) => void
+    onPathChange: (clientID: string, path: string, topics: RPCTypes.PathSubscriptionTopic[]) => void
+    onSubscriptionNotify: (clientID: string, topic: RPCTypes.SubscriptionTopic) => void
     pollJournalStatus: () => void
     redbar: (error: string) => void
     resetState: () => void
@@ -2258,6 +2267,73 @@ export const useState = Z.createZustand<State>((set, get) => {
       ) {
         get().dispatch.driverEnable(true)
       }
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged:
+          get().dispatch.syncStatusChanged(action.payload.params.status)
+          break
+        case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath: {
+          const {clientID, path, topics} = action.payload.params
+          get().dispatch.onPathChange(clientID, path, topics ?? [])
+          break
+        }
+        case EngineGen.keybase1NotifyFSFSSubscriptionNotify: {
+          const {clientID, topic} = action.payload.params
+          get().dispatch.onSubscriptionNotify(clientID, topic)
+          break
+        }
+      }
+    },
+    onPathChange: (cid, path, topics) => {
+      if (cid !== clientID) {
+        return
+      }
+
+      const {folderListLoad} = useState.getState().dispatch
+      topics.forEach(topic => {
+        switch (topic) {
+          case RPCTypes.PathSubscriptionTopic.children:
+            folderListLoad(Types.stringToPath(path), false)
+            break
+          case RPCTypes.PathSubscriptionTopic.stat:
+            get().dispatch.loadPathMetadata(Types.stringToPath(path))
+            break
+        }
+      })
+    },
+    onSubscriptionNotify: (cid, topic) => {
+      const f = async () => {
+        if (cid !== clientID) {
+          return
+        }
+        switch (topic) {
+          case RPCTypes.SubscriptionTopic.favorites:
+            get().dispatch.favoritesLoad()
+            break
+          case RPCTypes.SubscriptionTopic.journalStatus:
+            get().dispatch.pollJournalStatus()
+            break
+          case RPCTypes.SubscriptionTopic.onlineStatus:
+            await checkIfWeReConnectedToMDServerUpToNTimes(1)
+            break
+          case RPCTypes.SubscriptionTopic.downloadStatus:
+            get().dispatch.loadDownloadStatus()
+            break
+          case RPCTypes.SubscriptionTopic.uploadStatus:
+            get().dispatch.loadUploadStatus()
+            break
+          case RPCTypes.SubscriptionTopic.filesTabBadge:
+            get().dispatch.loadFilesTabBadge()
+            break
+          case RPCTypes.SubscriptionTopic.settings:
+            get().dispatch.loadSettings()
+            break
+          case RPCTypes.SubscriptionTopic.overallSyncStatus:
+            break
+        }
+      }
+      Z.ignorePromise(f())
     },
     pollJournalStatus: () => {
       let polling = false

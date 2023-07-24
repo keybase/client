@@ -290,7 +290,10 @@ const createSlice: Z.ImmerStateCreator<State> = (set, get) => {
               ProfileConstants.useState.getState().dispatch.showUserProfile(username)
               break
             }
-            get().dispatch.cancelTeamBuilding()
+            // stop a silly race
+            setTimeout(() => {
+              get().dispatch.cancelTeamBuilding()
+            }, 100)
             break
           }
           default:

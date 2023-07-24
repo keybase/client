@@ -1,10 +1,13 @@
-import * as RouterConstants from './router2'
 import * as DarkMode from './darkmode'
 import * as DeviceTypes from './types/devices'
+import * as EngineGen from '../actions/engine-gen-gen'
+import * as Followers from './followers'
 import * as RPCTypes from './types/rpc-gen'
 import * as RemoteGen from '../actions/remote-gen'
+import * as RouterConstants from './router2'
 import * as Stats from '../engine/stats'
 import * as Z from '../util/zustand'
+import isEqual from 'lodash/isEqual'
 import logger from '../logger'
 import type * as RPCTypesGregor from './types/rpc-gregor-gen'
 import type * as Types from './types/config'
@@ -16,6 +19,7 @@ import {defaultUseNativeFrame, runMode, isMobile} from './platform'
 import {enableActionLogging} from '../local-debug'
 import {noConversationIDKey} from './types/chat2/common'
 import {type CommonResponseHandler} from '../engine/types'
+import {useAvatarState} from '../common-adapters/avatar-zus'
 import {useCurrentUserState} from './current-user'
 import {useDaemonState} from './daemon'
 
@@ -183,6 +187,23 @@ type State = Store & {
       openAppSettings?: () => void
       openAppStore?: () => void
       onEngineConnectedDesktop?: () => void
+      onEngineIncomingDesktop?: (
+        action:
+          | EngineGen.Keybase1LogsendPrepareLogsendPayload
+          | EngineGen.Keybase1NotifyAppExitPayload
+          | EngineGen.Keybase1NotifyFSFSActivityPayload
+          | EngineGen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
+          | EngineGen.Keybase1NotifyServiceShutdownPayload
+          | EngineGen.Keybase1LogUiLogPayload
+          | EngineGen.Keybase1NotifySessionClientOutOfDatePayload
+      ) => void
+      onEngineIncomingNative?: (
+        action:
+          | EngineGen.Chat1ChatUiChatClearWatchPayload
+          | EngineGen.Chat1ChatUiChatWatchPositionPayload
+          | EngineGen.Chat1ChatUiTriggerContactSyncPayload
+          | EngineGen.Keybase1LogUiLogPayload
+      ) => void
       persistRoute?: (path?: Array<any>) => void
       setNavigatorExistsNative?: () => void
       showMainNative?: () => void
@@ -205,6 +226,18 @@ type State = Store & {
     logoutAndTryToLogInAs: (username: string) => void
     onEngineConnected: () => void
     onEngineDisonnected: () => void
+    onEngineIncoming: (
+      action:
+        | EngineGen.Keybase1GregorUIPushStatePayload
+        | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+        | EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
+        | EngineGen.Keybase1NotifySessionLoggedInPayload
+        | EngineGen.Keybase1NotifySessionLoggedOutPayload
+        | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
+        | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
+        | EngineGen.Keybase1NotifyTrackingTrackingInfoPayload
+        | EngineGen.Keybase1ReachabilityReachabilityChangedPayload
+    ) => void
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => void
     openUnlockFolders: (devices: Array<RPCTypes.Device>) => void
     powerMonitorEvent: (event: string) => void
@@ -292,6 +325,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         throw new Error('copyToClipboard not implemented?????')
       },
       dumpLogsNative: undefined,
+      onEngineConnectedDesktop: undefined,
+      onEngineIncomingDesktop: undefined,
+      onEngineIncomingNative: undefined,
       onFilePickerError: undefined,
       openAppSettings: undefined,
       openAppStore: undefined,
@@ -691,6 +727,74 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
       useDaemonState.getState().dispatch.setError(new Error('Disconnected'))
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1GregorUIPushState: {
+          const {state} = action.payload.params
+          get().dispatch.setGregorPushState(state)
+          break
+        }
+        case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate: {
+          get().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
+          break
+        }
+        case EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate: {
+          get().dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
+          break
+        }
+        case EngineGen.keybase1NotifySessionLoggedIn: {
+          logger.info('keybase.1.NotifySession.loggedIn')
+          // only send this if we think we're not logged in
+          const {loggedIn, dispatch} = get()
+          if (!loggedIn) {
+            dispatch.setLoggedIn(true, false)
+          }
+          break
+        }
+        case EngineGen.keybase1NotifySessionLoggedOut: {
+          logger.info('keybase.1.NotifySession.loggedOut')
+          const {loggedIn, dispatch} = get()
+          // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
+          if (loggedIn) {
+            dispatch.setLoggedIn(false, false)
+          }
+          break
+        }
+        case EngineGen.keybase1NotifyTeamAvatarUpdated: {
+          const {name} = action.payload.params
+          useAvatarState.getState().dispatch.updated(name)
+          break
+        }
+        case EngineGen.keybase1NotifyTrackingTrackingChanged: {
+          const {isTracking, username} = action.payload.params
+          Followers.useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
+          break
+        }
+        case EngineGen.keybase1NotifyTrackingTrackingInfo: {
+          const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
+          if (useCurrentUserState.getState().uid !== uid) {
+            return
+          }
+          const newFollowers = new Set(_newFollowers)
+          const newFollowing = new Set(_newFollowing)
+          const {
+            following: oldFollowing,
+            followers: oldFollowers,
+            dispatch,
+          } = Followers.useFollowerState.getState()
+          const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
+          const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
+          dispatch.replace(followers, following)
+          break
+        }
+
+        case EngineGen.keybase1ReachabilityReachabilityChanged:
+          if (get().loggedIn) {
+            get().dispatch.setGregorReachable(action.payload.params.reachability.reachable)
+          }
+          break
+      }
     },
     openUnlockFolders: devices => {
       set(s => {
