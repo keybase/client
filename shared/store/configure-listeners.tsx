@@ -7,7 +7,6 @@ import initFS from '../actions/fs'
 import initGit from '../actions/git'
 import initGregor from '../actions/gregor'
 import initPeople from '../actions/people'
-import initPinentry from '../actions/pinentry'
 import initSettings from '../actions/settings'
 import initSignup from '../actions/signup'
 import initTeams from '../actions/teams'
@@ -22,7 +21,6 @@ export const initListeners = () => {
   initDevice()
   initFS()
   initGregor()
-  initPinentry()
   initSettings()
   initTeams()
   initTeamBuilding()

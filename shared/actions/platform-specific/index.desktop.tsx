@@ -136,7 +136,6 @@ export const initPlatformListener = () => {
       Z.ignorePromise(f())
     }
   })
-  getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   Container.listenAction(EngineGen.keybase1LogsendPrepareLogsend, async (_, action) => {
     const response = action.payload.response
     try {

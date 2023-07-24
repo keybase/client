@@ -557,7 +557,6 @@ export const initPlatformListener = () => {
   })
 
   // Location
-  getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
   Container.listenAction(EngineGen.chat1ChatUiChatWatchPosition, onChatWatchPosition)
   Container.listenAction(EngineGen.chat1ChatUiChatClearWatch, onChatClearWatch)
   if (isAndroid) {

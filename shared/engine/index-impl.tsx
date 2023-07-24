@@ -34,7 +34,11 @@ class Engine {
   // Helper we delegate actual calls to
   _rpcClient: createClientType
   // Set which actions we don't auto respond with so listeners can themselves
-  _customResponseAction: {[K in MethodKey]: true} = {}
+  _customResponseAction: {[K in MethodKey]: true} = {
+    'keybase.1.rekeyUI.delegateRekeyUI': true,
+    'keybase.1.secretUi.getPassphrase': true,
+    ...(isMobile ? {'chat.1.chatUi.chatWatchPosition': true} : {'keybase.1.logsend.prepareLogsend': true}),
+  }
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
@@ -306,15 +310,6 @@ class Engine {
       return
     }
     resetClient(this._rpcClient)
-  }
-
-  registerCustomResponse = (method: string) => {
-    // TODO change how this global thing works. not nice w/ hot reload
-    // if (this._customResponseAction[method]) {
-    //     throw new Error('Dupe custom response handler registered: ' + method)
-    // }
-
-    this._customResponseAction[method] = true
   }
 }
 

@@ -51,6 +51,7 @@ export const useState = Z.createZustand<State>(() => {
         const TrackerConstants = await import('./tracker2')
         const ConfigConstants = await import('./config')
         const UsersConstants = await import('./users')
+        const PeopleConstants = await import('./people')
         switch (action.type) {
           case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded: // fallthrough
           case EngineGen.keybase1NotifyTeamTeamChangedByID: // fallthrough
@@ -85,6 +86,7 @@ export const useState = Z.createZustand<State>(() => {
             SettingsConstants.useEmailState
               .getState()
               .dispatch.notifyEmailVerified(action.payload.params.emailAddress)
+            PeopleConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
 
           case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged: // fallthrough
@@ -123,6 +125,9 @@ export const useState = Z.createZustand<State>(() => {
             UsersConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
 
+          case EngineGen.keybase1HomeUIHomeUIRefresh:
+            PeopleConstants.useState.getState().dispatch.onEngineIncoming(action)
+            break
           default:
         }
       }

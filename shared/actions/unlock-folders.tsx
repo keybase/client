@@ -10,7 +10,6 @@ const initUnlockFolders = () => {
     logger.info('Asked for rekey')
     ConfigConstants.useConfigState.getState().dispatch.openUnlockFolders(problemSetDevices.devices ?? [])
   })
-  getEngine().registerCustomResponse('keybase.1.rekeyUI.delegateRekeyUI')
   Container.listenAction(EngineGen.keybase1RekeyUIDelegateRekeyUI, (_, action) => {
     // we get this with sessionID == 0 if we call openDialog
     // Dangling, never gets closed
