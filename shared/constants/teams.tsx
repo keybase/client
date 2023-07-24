@@ -2372,10 +2372,10 @@ export const useState = Z.createZustand<State>((set, get) => {
     notifyTeamTeamRoleMapChanged: (newVersion: number) => {
       const loadedVersion = get().teamRoleMap.loadedVersion
       logger.info(`Got teamRoleMapChanged with version ${newVersion}, loadedVersion is ${loadedVersion}`)
-      if (loadedVersion >= newVersion) {
-        return
+      if (loadedVersion < newVersion) {
+        get().dispatch.refreshTeamRoleMap()
       }
-      get().dispatch.refreshTeamRoleMap()
+      get().dispatch.setTeamRoleMapLatestKnownVersion(newVersion)
     },
     notifyTreeMembershipsDone: (result: RPCChatTypes.Keybase1.TeamTreeMembershipsDoneResult) => {
       const {guid, targetTeamID, targetUsername, expectedCount} = result

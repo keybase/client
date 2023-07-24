@@ -49,6 +49,7 @@ export const useState = Z.createZustand<State>(() => {
         const SettingsConstants = await import('./settings')
         const FSConstants = await import('./fs')
         const TrackerConstants = await import('./tracker2')
+        const ConfigConstants = await import('./config')
         switch (action.type) {
           case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded: // fallthrough
           case EngineGen.keybase1NotifyTeamTeamChangedByID: // fallthrough
@@ -98,10 +99,25 @@ export const useState = Z.createZustand<State>(() => {
           case EngineGen.keybase1Identify3UiIdentify3UpdateUserCard: // fallthrough
           case EngineGen.keybase1Identify3UiIdentify3UserReset: // fallthrough
           case EngineGen.keybase1NotifyTrackingNotifyUserBlocked: // fallthrough
-          case EngineGen.keybase1NotifyTrackingTrackingChanged: // fallthrough
           case EngineGen.keybase1NotifyUsersUserChanged:
             TrackerConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
+
+          case EngineGen.keybase1GregorUIPushState: // fallthrough
+          case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate: // fallthrough
+          case EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate: // fallthrough
+          case EngineGen.keybase1NotifySessionLoggedIn: // fallthrough
+          case EngineGen.keybase1NotifySessionLoggedOut: // fallthrough
+          case EngineGen.keybase1NotifyTeamAvatarUpdated: // fallthrough
+          case EngineGen.keybase1NotifyTrackingTrackingInfo:
+            ConfigConstants.useConfigState.getState().dispatch.onEngineIncoming(action)
+            break
+
+          case EngineGen.keybase1NotifyTrackingTrackingChanged: // fallthrough
+            TrackerConstants.useState.getState().dispatch.onEngineIncoming(action)
+            ConfigConstants.useConfigState.getState().dispatch.onEngineIncoming(action)
+            break
+
           default:
         }
       }

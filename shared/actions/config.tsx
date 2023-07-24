@@ -1,7 +1,5 @@
 import * as Chat2Gen from './chat2-gen'
 import * as Container from '../util/container'
-import * as EngineGen from './engine-gen-gen'
-import * as Followers from '../constants/followers'
 import * as Constants from '../constants/config'
 import * as Platform from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -9,28 +7,8 @@ import * as DarkMode from '../constants/darkmode'
 import * as WhatsNew from '../constants/whats-new'
 import * as Z from '../util/zustand'
 import {_getNavigator} from '../constants/router2'
-import {useAvatarState} from '../common-adapters/avatar-zus'
 import logger from '../logger'
 import {initPlatformListener} from './platform-specific'
-import isEqual from 'lodash/isEqual'
-
-const onLoggedIn = () => {
-  logger.info('keybase.1.NotifySession.loggedIn')
-  // only send this if we think we're not logged in
-  const {loggedIn, dispatch} = Constants.useConfigState.getState()
-  if (!loggedIn) {
-    dispatch.setLoggedIn(true, false)
-  }
-}
-
-const onLoggedOut = () => {
-  logger.info('keybase.1.NotifySession.loggedOut')
-  const {loggedIn, dispatch} = Constants.useConfigState.getState()
-  // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-  if (loggedIn) {
-    dispatch.setLoggedIn(false, false)
-  }
-}
 
 const getFollowerInfo = () => {
   const {uid} = Constants.useCurrentUserState.getState()
@@ -238,15 +216,6 @@ const initConfig = () => {
     Z.ignorePromise(f())
   })
 
-  Container.listenAction(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
-  Container.listenAction(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
-
-  Container.listenAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, (_, action) => {
-    Constants.useConfigState
-      .getState()
-      .dispatch.setHTTPSrvInfo(action.payload.params.info.address, action.payload.params.info.token)
-  })
-
   Constants.useConfigState.subscribe((s, old) => {
     if (s.gregorPushState === old.gregorPushState) return
     const items = s.gregorPushState
@@ -274,29 +243,6 @@ const initConfig = () => {
 
   Container.listenAction('common:resetStore', () => {
     Z.resetAllStores()
-  })
-
-  Container.listenAction(EngineGen.keybase1NotifyTeamAvatarUpdated, (_, action) => {
-    const {name} = action.payload.params
-    useAvatarState.getState().dispatch.updated(name)
-  })
-
-  Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingChanged, (_, action) => {
-    const {isTracking, username} = action.payload.params
-    Followers.useFollowerState.getState().dispatch.updateFollowing(username, isTracking)
-  })
-
-  Container.listenAction(EngineGen.keybase1NotifyTrackingTrackingInfo, (_, action) => {
-    const {uid, followers: _newFollowers, followees: _newFollowing} = action.payload.params
-    if (Constants.useCurrentUserState.getState().uid !== uid) {
-      return
-    }
-    const newFollowers = new Set(_newFollowers)
-    const newFollowing = new Set(_newFollowing)
-    const {following: oldFollowing, followers: oldFollowers, dispatch} = Followers.useFollowerState.getState()
-    const following = isEqual(newFollowing, oldFollowing) ? oldFollowing : newFollowing
-    const followers = isEqual(newFollowers, oldFollowers) ? oldFollowers : newFollowers
-    dispatch.replace(followers, following)
   })
 
   const checkNav = (version: number) => {
@@ -347,15 +293,6 @@ const initConfig = () => {
       _emitStartupOnLoadDaemonConnectedOnce = true
       Constants.useConfigState.getState().dispatch.loadOnStart('connectedToDaemonForFirstTime')
     }
-  })
-
-  Container.listenAction(EngineGen.keybase1GregorUIPushState, (_, action) => {
-    const {state} = action.payload.params
-    Constants.useConfigState.getState().dispatch.setGregorPushState(state)
-  })
-
-  Container.listenAction(EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate, (_, action) => {
-    Constants.useConfigState.getState().dispatch.updateRuntimeStats(action.payload.params.stats ?? undefined)
   })
 }
 
