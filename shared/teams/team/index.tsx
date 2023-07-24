@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as BotsGen from '../../actions/bots-gen'
 import * as Constants from '../../constants/teams'
+import * as BotsConstants from '../../constants/bots'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -72,18 +72,18 @@ const getBots = memoize((members: Map<string, Types.MemberInfo>) =>
   [...members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot')
 )
 const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean) => {
-  const dispatch = Container.useDispatch()
   const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
+  const searchFeaturedBots = BotsConstants.useState(s => s.dispatch.searchFeaturedBots)
   const _bots = getBots(teamDetails.members)
   React.useEffect(() => {
     if (shouldLoad) {
       _bots.forEach(bot => {
         if (!featuredBotsMap.has(bot.username)) {
-          dispatch(BotsGen.createSearchFeaturedBots({query: bot.username}))
+          searchFeaturedBots(bot.username)
         }
       })
     }
-  }, [shouldLoad, _bots, featuredBotsMap, dispatch])
+  }, [shouldLoad, _bots, featuredBotsMap, searchFeaturedBots])
 }
 
 const SectionList = createAnimatedComponent<SectionListProps<SectionType<Section>>>(Kb.SectionList as any)

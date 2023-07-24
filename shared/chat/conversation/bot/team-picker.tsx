@@ -3,9 +3,9 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as RouterConstants from '../../../constants/router2'
+import * as BotsConstants from '../../../constants/bots'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../constants/types/chat2'
-import * as BotsGen from '../../../actions/bots-gen'
 import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
 import logger from '../../../logger'
@@ -21,7 +21,6 @@ const BotTeamPicker = (props: Props) => {
   const [waiting, setWaiting] = React.useState(false)
   const [error, setError] = React.useState('')
   const submit = Container.useRPC(RPCChatTypes.localAddBotConvSearchRpcPromise)
-  const dispatch = Container.useDispatch()
 
   const [lastTerm, setLastTerm] = React.useState('init')
   if (lastTerm !== term) {
@@ -54,8 +53,9 @@ const BotTeamPicker = (props: Props) => {
     })
   }
 
+  const getFeaturedBots = BotsConstants.useState(s => s.dispatch.getFeaturedBots)
   Container.useOnMountOnce(() => {
-    dispatch(BotsGen.createGetFeaturedBots({}))
+    getFeaturedBots()
   })
 
   const renderResult = (index: number, item: RPCChatTypes.ConvSearchHit) => {

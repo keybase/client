@@ -1,7 +1,7 @@
 import * as Z from '../util/zustand'
-import * as BotsGen from './bots-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
+import * as BotsConstants from '../constants/bots'
 import * as RouterConstants from '../constants/router2'
 import * as UsersConstants from '../constants/users'
 import * as LinksConstants from '../constants/deeplinks'
@@ -3508,11 +3508,11 @@ const setInboxNumSmallRows = async (
   return false
 }
 
-const loadNextBotPage = (state: Container.TypedState, action: Chat2Gen.LoadNextBotPagePayload) =>
-  BotsGen.createGetFeaturedBots({
-    limit: action.payload.pageSize,
-    page: state.chat2.featuredBotsPage + 1,
-  })
+const loadNextBotPage = (state: Container.TypedState, action: Chat2Gen.LoadNextBotPagePayload) => {
+  BotsConstants.useState
+    .getState()
+    .dispatch.getFeaturedBots(action.payload.pageSize, state.chat2.featuredBotsPage + 1)
+}
 
 const refreshBotRoleInConv = async (_: unknown, action: Chat2Gen.RefreshBotRoleInConvPayload) => {
   let role: RPCTypes.TeamRole | undefined

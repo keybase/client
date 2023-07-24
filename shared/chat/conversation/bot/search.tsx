@@ -42,10 +42,14 @@ const SearchBotPopup = (props: Props) => {
   const onClose = () => {
     clearModals()
   }
+
+  const searchFeaturedAndUsers = Constants.useState(s => s.dispatch.searchFeaturedAndUsers)
+  const getFeaturedBots = Constants.useState(s => s.dispatch.getFeaturedBots)
+
   const onSearch = debounce((query: string) => {
     setLastQuery(query)
     if (query.length > 0) {
-      dispatch(BotsGen.createSearchFeaturedAndUsers({query}))
+      searchFeaturedAndUsers(query)
     } else {
       dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query, results: undefined}))
     }
@@ -60,7 +64,7 @@ const SearchBotPopup = (props: Props) => {
 
   Container.useOnMountOnce(() => {
     dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query: '', results: undefined}))
-    dispatch(BotsGen.createGetFeaturedBots({}))
+    getFeaturedBots()
   })
 
   const botData: Array<RPCTypes.FeaturedBot | string> =
