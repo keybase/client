@@ -56,6 +56,7 @@ export const useState = Z.createZustand<State>(() => {
         const TeamsConstants = await import('./teams')
         const TrackerConstants = await import('./tracker2')
         const UsersConstants = await import('./users')
+        const UnlockConstants = await import('./unlock-folders')
         switch (action.type) {
           case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded: // fallthrough
           case EngineGen.keybase1NotifyTeamTeamChangedByID: // fallthrough
@@ -136,6 +137,10 @@ export const useState = Z.createZustand<State>(() => {
             PinConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
 
+          case EngineGen.keybase1RekeyUIRefresh: //fallthrough
+          case EngineGen.keybase1RekeyUIDelegateRekeyUI:
+            UnlockConstants.useState.getState().dispatch.onEngineIncoming(action)
+            break
           case EngineGen.keybase1NotifyTrackingTrackingChanged: // fallthrough
             TrackerConstants.useState.getState().dispatch.onEngineIncoming(action)
             ConfigConstants.useConfigState.getState().dispatch.onEngineIncoming(action)
