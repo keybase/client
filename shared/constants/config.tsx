@@ -187,6 +187,23 @@ type State = Store & {
       openAppSettings?: () => void
       openAppStore?: () => void
       onEngineConnectedDesktop?: () => void
+      onEngineIncomingDesktop?: (
+        action:
+          | EngineGen.Keybase1LogsendPrepareLogsendPayload
+          | EngineGen.Keybase1NotifyAppExitPayload
+          | EngineGen.Keybase1NotifyFSFSActivityPayload
+          | EngineGen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
+          | EngineGen.Keybase1NotifyServiceShutdownPayload
+          | EngineGen.Keybase1LogUiLogPayload
+          | EngineGen.Keybase1NotifySessionClientOutOfDatePayload
+      ) => void
+      onEngineIncomingNative?: (
+        action:
+          | EngineGen.Chat1ChatUiChatClearWatchPayload
+          | EngineGen.Chat1ChatUiChatWatchPositionPayload
+          | EngineGen.Chat1ChatUiTriggerContactSyncPayload
+          | EngineGen.Keybase1LogUiLogPayload
+      ) => void
       persistRoute?: (path?: Array<any>) => void
       setNavigatorExistsNative?: () => void
       showMainNative?: () => void
@@ -308,6 +325,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         throw new Error('copyToClipboard not implemented?????')
       },
       dumpLogsNative: undefined,
+      onEngineConnectedDesktop: undefined,
+      onEngineIncomingDesktop: undefined,
+      onEngineIncomingNative: undefined,
       onFilePickerError: undefined,
       openAppSettings: undefined,
       openAppStore: undefined,

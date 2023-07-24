@@ -137,6 +137,26 @@ export const useState = Z.createZustand<State>(() => {
             PinConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
 
+          case EngineGen.keybase1LogsendPrepareLogsend: // fallthrough
+          case EngineGen.keybase1NotifyAppExit: // fallthrough
+          case EngineGen.keybase1NotifyFSFSActivity: // fallthrough
+          case EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile: // fallthrough
+          case EngineGen.keybase1NotifyServiceShutdown: // fallthrough
+          case EngineGen.keybase1NotifySessionClientOutOfDate: // fallthrough
+            ConfigConstants.useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
+            break
+
+          case EngineGen.chat1ChatUiChatClearWatch: // fallthrough
+          case EngineGen.chat1ChatUiChatWatchPosition: // fallthrough
+          case EngineGen.chat1ChatUiTriggerContactSync: // fallthrough
+            ConfigConstants.useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
+            break
+
+          case EngineGen.keybase1LogUiLog: // fallthrough
+            ConfigConstants.useConfigState.getState().dispatch.dynamic.onEngineIncomingNative?.(action)
+            ConfigConstants.useConfigState.getState().dispatch.dynamic.onEngineIncomingDesktop?.(action)
+            break
+
           case EngineGen.keybase1RekeyUIRefresh: //fallthrough
           case EngineGen.keybase1RekeyUIDelegateRekeyUI:
             UnlockConstants.useState.getState().dispatch.onEngineIncoming(action)
