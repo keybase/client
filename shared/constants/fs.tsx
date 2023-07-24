@@ -1181,6 +1181,7 @@ type State = Store & {
     newFolderRow: (parentPath: Types.Path) => void
     moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => void
     onChangedFocus: (appFocused: boolean) => void
+    onPathChange: (clientID: string, path: string, topics: RPCTypes.PathSubscriptionTopic[]) => void
     pollJournalStatus: () => void
     redbar: (error: string) => void
     resetState: () => void
@@ -2258,6 +2259,23 @@ export const useState = Z.createZustand<State>((set, get) => {
       ) {
         get().dispatch.driverEnable(true)
       }
+    },
+    onPathChange: (cid, path, topics) => {
+      if (cid !== clientID) {
+        return
+      }
+
+      const {folderListLoad} = useState.getState().dispatch
+      topics.forEach(topic => {
+        switch (topic) {
+          case RPCTypes.PathSubscriptionTopic.children:
+            folderListLoad(Types.stringToPath(path), false)
+            break
+          case RPCTypes.PathSubscriptionTopic.stat:
+            get().dispatch.loadPathMetadata(Types.stringToPath(path))
+            break
+        }
+      })
     },
     pollJournalStatus: () => {
       let polling = false

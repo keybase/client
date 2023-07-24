@@ -48,6 +48,7 @@ export const useState = Z.createZustand<State>(() => {
         const TeamsConstants = await import('./teams')
         const RouterConstants = await import('./router2')
         const SettingsConstants = await import('./settings')
+        const FSConstants = await import('./fs')
         switch (action.type) {
           case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
             TeamsConstants.useState.getState().dispatch.eagerLoadTeams()
@@ -111,6 +112,14 @@ export const useState = Z.createZustand<State>(() => {
               .getState()
               .dispatch.notifyEmailVerified(action.payload.params.emailAddress)
             break
+          case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged:
+            FSConstants.useState.getState().dispatch.syncStatusChanged(action.payload.params.status)
+            break
+          case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath: {
+            const {clientID, path, topics} = action.payload.params
+            FSConstants.useState.getState().dispatch.onPathChange(clientID, path, topics ?? [])
+            break
+          }
           default:
         }
       }

@@ -4,7 +4,6 @@ import * as RouterConstants from '../../constants/router2'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Tabs from '../../constants/tabs'
-import * as Types from '../../constants/types/fs'
 import * as Container from '../../util/container'
 import * as Z from '../../util/zustand'
 import logger from '../../logger'
@@ -33,25 +32,6 @@ const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<void
       throw error
     }
   }
-}
-
-const onPathChange = (_: unknown, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload) => {
-  const {clientID: clientIDFromNotification, path, topics} = action.payload.params
-  if (clientIDFromNotification !== clientID) {
-    return
-  }
-
-  const {folderListLoad} = Constants.useState.getState().dispatch
-  topics?.forEach(topic => {
-    switch (topic) {
-      case RPCTypes.PathSubscriptionTopic.children:
-        folderListLoad(Types.stringToPath(path), false)
-        break
-      case RPCTypes.PathSubscriptionTopic.stat:
-        Constants.useState.getState().dispatch.loadPathMetadata(Types.stringToPath(path))
-        break
-    }
-  })
 }
 
 const fsRrouteNames = ['fsRoot', 'barePreview']
@@ -92,11 +72,8 @@ const initFS = () => {
     }
     Z.ignorePromise(f())
   })
-  Container.listenAction(EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged, (_, a) => {
-    a.payload.params.status
-  })
 
-  Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
+  // TODO more engine gen >>>>>
   Container.listenAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, (_, action) => {
     const f = async () => {
       const {clientID: clientIDFromNotification, topic} = action.payload.params
