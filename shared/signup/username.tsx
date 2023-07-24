@@ -51,8 +51,9 @@ type Props = {
 
 const EnterUsername = (props: Props) => {
   const [username, onChangeUsername] = React.useState(props.initialUsername || '')
+  const [acceptedEULA, setAcceptedEULA] = React.useState(false)
   const usernameTrimmed = username.trim()
-  const disabled = !usernameTrimmed || usernameTrimmed === props.usernameTaken
+  const disabled = !usernameTrimmed || usernameTrimmed === props.usernameTaken || !acceptedEULA
   const onContinue = () => {
     if (disabled) {
       return
@@ -94,27 +95,48 @@ const EnterUsername = (props: Props) => {
       onBack={props.onBack}
       title={Styles.isMobile ? 'Create account' : 'Create an account'}
     >
-      <Kb.Box2
-        alignItems="center"
-        gap={Styles.isMobile ? 'small' : 'medium'}
-        direction="vertical"
-        style={styles.body}
-        fullWidth={true}
-      >
-        <Kb.Avatar size={Platform.isLargeScreen ? 96 : 64} />
-        <Kb.Box2 direction="vertical" fullWidth={Styles.isPhone} gap="tiny">
-          <Kb.LabeledInput
-            autoFocus={true}
-            containerStyle={styles.input}
-            placeholder="Pick a username"
-            maxLength={maxUsernameLength}
-            onChangeText={onChangeUsername}
-            onEnterKeyDown={onContinue}
-            value={username}
-          />
-          <Kb.Text type="BodySmall">Your username is unique and can not be changed in the future.</Kb.Text>
+      <Kb.ScrollView>
+        <Kb.Box2
+          alignItems="center"
+          gap={Styles.isMobile ? 'small' : 'medium'}
+          direction="vertical"
+          style={styles.body}
+          fullWidth={true}
+        >
+          <Kb.Avatar size={Platform.isLargeScreen ? 96 : 64} />
+          <Kb.Box2 direction="vertical" fullWidth={Styles.isPhone} gap="tiny">
+            <Kb.LabeledInput
+              autoFocus={true}
+              containerStyle={styles.input}
+              placeholder="Pick a username"
+              maxLength={maxUsernameLength}
+              onChangeText={onChangeUsername}
+              onEnterKeyDown={onContinue}
+              value={username}
+            />
+            <Kb.Text type="BodySmall">Your username is unique and can not be changed in the future.</Kb.Text>
+          </Kb.Box2>
+          <Kb.Box2
+            direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+            fullWidth={Styles.isPhone}
+            gap="tiny"
+            alignItems="flex-start"
+          >
+            <Kb.Checkbox
+              label="I accept the Keybase Acceptable Use Policy"
+              checked={acceptedEULA}
+              onCheck={() => setAcceptedEULA(s => !s)}
+            />
+            <Kb.Text
+              type="BodyPrimaryLink"
+              style={{marginTop: 2}}
+              onClickURL="https://keybase.io/docs/acceptable-use-policy"
+            >
+              (Read it here)
+            </Kb.Text>
+          </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
+      </Kb.ScrollView>
     </SignupScreen>
   )
 }
