@@ -46,49 +46,21 @@ export const useState = Z.createZustand<State>(() => {
     incomingCall: action => {
       const f = async () => {
         const TeamsConstants = await import('./teams')
-        const RouterConstants = await import('./router2')
         const SettingsConstants = await import('./settings')
         const FSConstants = await import('./fs')
+        const TrackerConstants = await import('./tracker2')
         switch (action.type) {
-          case EngineGen.keybase1NotifyTeamTeamMetadataUpdate:
-            TeamsConstants.useState.getState().dispatch.eagerLoadTeams()
-            TeamsConstants.useState.getState().dispatch.resetTeamMetaStale()
-            break
-          case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded: {
-            const {teamID, message} = action.payload.params
-            TeamsConstants.useState.getState().dispatch.loadedWelcomeMessage(teamID, message)
-            break
-          }
-          case EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial: {
-            const {membership} = action.payload.params
-            TeamsConstants.useState.getState().dispatch.notifyTreeMembershipsPartial(membership)
-            break
-          }
-          case EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone: {
-            const {result} = action.payload.params
-            TeamsConstants.useState.getState().dispatch.notifyTreeMembershipsDone(result)
-            break
-          }
-          case EngineGen.keybase1NotifyTeamTeamRoleMapChanged: {
-            const {newVersion} = action.payload.params
-            TeamsConstants.useState.getState().dispatch.notifyTeamTeamRoleMapChanged(newVersion)
-            break
-          }
-          case EngineGen.keybase1NotifyTeamTeamChangedByID:
-            TeamsConstants.useState.getState().dispatch.teamChangedByID(action.payload.params)
+          case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded: // fallthrough
+          case EngineGen.keybase1NotifyTeamTeamChangedByID: // fallthrough
+          case EngineGen.keybase1NotifyTeamTeamDeleted: // fallthrough
+          case EngineGen.keybase1NotifyTeamTeamExit: // fallthrough
+          case EngineGen.keybase1NotifyTeamTeamMetadataUpdate: // fallthrough
+          case EngineGen.keybase1NotifyTeamTeamRoleMapChanged: // fallthrough
+          case EngineGen.keybase1NotifyTeamTeamTreeMembershipsDone: // fallthrough
+          case EngineGen.keybase1NotifyTeamTeamTreeMembershipsPartial:
+            TeamsConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
 
-          case EngineGen.keybase1NotifyTeamTeamDeleted:
-            // likely wrong?
-            if (RouterConstants.getTab()) {
-              RouterConstants.useState.getState().dispatch.navUpToScreen('teamsRoot')
-            }
-            break
-          case EngineGen.keybase1NotifyTeamTeamExit:
-            if (RouterConstants.getTab()) {
-              RouterConstants.useState.getState().dispatch.navUpToScreen('teamsRoot')
-            }
-            break
           case EngineGen.keybase1NotifyUsersPasswordChanged: {
             const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
             SettingsConstants.usePasswordState.getState().dispatch.notifyUsersPasswordChanged(randomPW)
@@ -112,19 +84,24 @@ export const useState = Z.createZustand<State>(() => {
               .getState()
               .dispatch.notifyEmailVerified(action.payload.params.emailAddress)
             break
-          case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged:
-            FSConstants.useState.getState().dispatch.syncStatusChanged(action.payload.params.status)
+
+          case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged: // fallthrough
+          case EngineGen.keybase1NotifyFSFSSubscriptionNotify: // fallthrough
+          case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath:
+            FSConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
-          case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath: {
-            const {clientID, path, topics} = action.payload.params
-            FSConstants.useState.getState().dispatch.onPathChange(clientID, path, topics ?? [])
+
+          case EngineGen.keybase1Identify3UiIdentify3Result: // fallthrough
+          case EngineGen.keybase1Identify3UiIdentify3ShowTracker: // fallthrough
+          case EngineGen.keybase1Identify3UiIdentify3Summary: // fallthrough
+          case EngineGen.keybase1Identify3UiIdentify3UpdateRow: // fallthrough
+          case EngineGen.keybase1Identify3UiIdentify3UpdateUserCard: // fallthrough
+          case EngineGen.keybase1Identify3UiIdentify3UserReset: // fallthrough
+          case EngineGen.keybase1NotifyTrackingNotifyUserBlocked: // fallthrough
+          case EngineGen.keybase1NotifyTrackingTrackingChanged: // fallthrough
+          case EngineGen.keybase1NotifyUsersUserChanged:
+            TrackerConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
-          }
-          case EngineGen.keybase1NotifyFSFSSubscriptionNotify: {
-            const {clientID, topic} = action.payload.params
-            FSConstants.useState.getState().dispatch.onSubscriptionNotify(clientID, topic)
-            break
-          }
           default:
         }
       }

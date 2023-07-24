@@ -10,7 +10,6 @@ import initGregor from '../actions/gregor'
 import initNotifications from '../actions/notifications'
 import initPeople from '../actions/people'
 import initPinentry from '../actions/pinentry'
-import initTracker from '../actions/tracker2'
 import initSettings from '../actions/settings'
 import initSignup from '../actions/signup'
 import initTeams from '../actions/teams'
@@ -29,7 +28,6 @@ export const initListeners = () => {
   initGregor()
   initNotifications()
   initPinentry()
-  initTracker()
   initSettings()
   initTeams()
   initTeamBuilding()

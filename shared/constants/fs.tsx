@@ -1,4 +1,5 @@
 import * as ConfigConstants from './config'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as NotifConstants from './notifications'
 import * as RPCTypes from './types/rpc-gen'
 import * as SettingsConstants from './settings'
@@ -1181,6 +1182,12 @@ type State = Store & {
     newFolderRow: (parentPath: Types.Path) => void
     moveOrCopy: (destinationParentPath: Types.Path, type: 'move' | 'copy') => void
     onChangedFocus: (appFocused: boolean) => void
+    onEngineIncoming: (
+      action:
+        | EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
+        | EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload
+        | EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPayload
+    ) => void
     onPathChange: (clientID: string, path: string, topics: RPCTypes.PathSubscriptionTopic[]) => void
     onSubscriptionNotify: (clientID: string, topic: RPCTypes.SubscriptionTopic) => void
     pollJournalStatus: () => void
@@ -2259,6 +2266,23 @@ export const useState = Z.createZustand<State>((set, get) => {
         driverStatus.kextPermissionError
       ) {
         get().dispatch.driverEnable(true)
+      }
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged:
+          get().dispatch.syncStatusChanged(action.payload.params.status)
+          break
+        case EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath: {
+          const {clientID, path, topics} = action.payload.params
+          get().dispatch.onPathChange(clientID, path, topics ?? [])
+          break
+        }
+        case EngineGen.keybase1NotifyFSFSSubscriptionNotify: {
+          const {clientID, topic} = action.payload.params
+          get().dispatch.onSubscriptionNotify(clientID, topic)
+          break
+        }
       }
     },
     onPathChange: (cid, path, topics) => {
