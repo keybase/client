@@ -31,7 +31,12 @@ const initialStore: Store = {
 type State = Store & {
   dispatch: {
     onEngineConnected: () => void
-    onEngineIncoming: (action: any) => void
+    onEngineIncoming: (
+      action:
+        | EngineGen.Keybase1NotifyAuditRootAuditErrorPayload
+        | EngineGen.Keybase1NotifyAuditBoxAuditErrorPayload
+        | EngineGen.Keybase1NotifyBadgesBadgeStatePayload
+    ) => void
     resetState: 'default'
     badgeApp: (key: NotificationKeys, on: boolean) => void
     setBadgeCounts: (counts: Map<Tabs.Tab, number>) => void

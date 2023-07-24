@@ -45,14 +45,17 @@ export const useState = Z.createZustand<State>(() => {
     },
     incomingCall: action => {
       const f = async () => {
-        const TeamsConstants = await import('./teams')
-        const SettingsConstants = await import('./settings')
-        const FSConstants = await import('./fs')
-        const TrackerConstants = await import('./tracker2')
         const ConfigConstants = await import('./config')
-        const UsersConstants = await import('./users')
+        const DLConstants = await import('./deeplinks')
+        const FSConstants = await import('./fs')
+        const NotifConstants = await import('./notifications')
         const PeopleConstants = await import('./people')
+        const PinConstants = await import('./pinentry')
+        const SettingsConstants = await import('./settings')
         const SignupConstants = await import('./signup')
+        const TeamsConstants = await import('./teams')
+        const TrackerConstants = await import('./tracker2')
+        const UsersConstants = await import('./users')
         switch (action.type) {
           case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded: // fallthrough
           case EngineGen.keybase1NotifyTeamTeamChangedByID: // fallthrough
@@ -82,14 +85,6 @@ export const useState = Z.createZustand<State>(() => {
             SettingsConstants.useEmailState.getState().dispatch.notifyEmailAddressEmailsChanged(list)
             break
           }
-          case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
-            logger.info('email verified')
-            SettingsConstants.useEmailState
-              .getState()
-              .dispatch.notifyEmailVerified(action.payload.params.emailAddress)
-            PeopleConstants.useState.getState().dispatch.onEngineIncoming(action)
-            SignupConstants.useState.getState().dispatch.onEngineIncoming(action)
-            break
 
           case EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged: // fallthrough
           case EngineGen.keybase1NotifyFSFSSubscriptionNotify: // fallthrough
@@ -118,17 +113,40 @@ export const useState = Z.createZustand<State>(() => {
             ConfigConstants.useConfigState.getState().dispatch.onEngineIncoming(action)
             break
 
-          case EngineGen.keybase1NotifyTrackingTrackingChanged: // fallthrough
-            TrackerConstants.useState.getState().dispatch.onEngineIncoming(action)
-            ConfigConstants.useConfigState.getState().dispatch.onEngineIncoming(action)
-            break
-
           case EngineGen.keybase1NotifyUsersIdentifyUpdate:
             UsersConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
 
           case EngineGen.keybase1HomeUIHomeUIRefresh:
             PeopleConstants.useState.getState().dispatch.onEngineIncoming(action)
+            break
+
+          case EngineGen.keybase1NotifyServiceHandleKeybaseLink:
+            DLConstants.useState.getState().dispatch.onEngineIncoming(action)
+            break
+
+          case EngineGen.keybase1NotifyAuditRootAuditError: // fallthrough
+          case EngineGen.keybase1NotifyAuditBoxAuditError: // fallthrough
+          case EngineGen.keybase1NotifyBadgesBadgeState:
+            NotifConstants.useState.getState().dispatch.onEngineIncoming(action)
+            break
+
+          case EngineGen.keybase1SecretUiGetPassphrase:
+            PinConstants.useState.getState().dispatch.onEngineIncoming(action)
+            break
+
+          case EngineGen.keybase1NotifyTrackingTrackingChanged: // fallthrough
+            TrackerConstants.useState.getState().dispatch.onEngineIncoming(action)
+            ConfigConstants.useConfigState.getState().dispatch.onEngineIncoming(action)
+            break
+
+          case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
+            logger.info('email verified')
+            SettingsConstants.useEmailState
+              .getState()
+              .dispatch.notifyEmailVerified(action.payload.params.emailAddress)
+            PeopleConstants.useState.getState().dispatch.onEngineIncoming(action)
+            SignupConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
           default:
         }
