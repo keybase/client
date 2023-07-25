@@ -379,7 +379,6 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const isTyping = Constants.useState(s => !!s.typingMap.get(conversationIDKey)?.size)
 
   const data = Container.useSelector(state => {
-    const isActiveForFocus = state.chat2.focus === null
     const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
     const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
     const cannotWrite = Constants.getMeta(state, conversationIDKey).cannotWrite
@@ -392,18 +391,17 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       cannotWrite,
       explodingModeSeconds,
       infoPanelShowing,
-      isActiveForFocus,
       minWriterRole,
       showTypingStatus,
       suggestBotCommandsUpdateStatus,
     }
   }, shallowEqual)
-  const {cannotWrite, explodingModeSeconds, infoPanelShowing, isActiveForFocus} = data
+  const {cannotWrite, explodingModeSeconds, infoPanelShowing} = data
   const {minWriterRole, showTypingStatus, suggestBotCommandsUpdateStatus} = data
 
   Container.useDepChangeEffect(() => {
     inputRef.current?.focus()
-  }, [inputRef, focusInputCounter, isActiveForFocus, isEditing])
+  }, [inputRef, focusInputCounter, isEditing])
 
   const onCancelEditing = React.useCallback(() => {
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey}))

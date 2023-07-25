@@ -68,10 +68,6 @@
       "highlightMessageID?": "number",
       "participants": "Array<string>"
     },
-    "changeFocus": {
-      "_description": "Where we want our focus for keypresses",
-      "nextFocus": "Types.Focus"
-    },
     "badgesUpdated": {
       "_description": "Update our badges in the nav",
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"

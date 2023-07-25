@@ -26,7 +26,6 @@ export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
-export const changeFocus = 'chat2:changeFocus'
 export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
 export const clearAttachmentView = 'chat2:clearAttachmentView'
 export const clearCommandStatusInfo = 'chat2:clearCommandStatusInfo'
@@ -1234,13 +1233,6 @@ export const createClearMarkAsUnread = (payload: {readonly conversationIDKey: Ty
   type: clearMarkAsUnread as typeof clearMarkAsUnread,
 })
 /**
- * Where we want our focus for keypresses
- */
-export const createChangeFocus = (payload: {readonly nextFocus: Types.Focus}) => ({
-  payload,
-  type: changeFocus as typeof changeFocus,
-})
-/**
  * add bot member to channel
  */
 export const createAddBotMember = (payload: {
@@ -1415,7 +1407,6 @@ export type AttachmentUploadingPayload = ReturnType<typeof createAttachmentUploa
 export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
 export type BadgesUpdatedPayload = ReturnType<typeof createBadgesUpdated>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
-export type ChangeFocusPayload = ReturnType<typeof createChangeFocus>
 export type ChannelSuggestionsTriggeredPayload = ReturnType<typeof createChannelSuggestionsTriggered>
 export type ClearAttachmentViewPayload = ReturnType<typeof createClearAttachmentView>
 export type ClearCommandStatusInfoPayload = ReturnType<typeof createClearCommandStatusInfo>
@@ -1583,7 +1574,6 @@ export type Actions =
   | AttachmentsUploadPayload
   | BadgesUpdatedPayload
   | BlockConversationPayload
-  | ChangeFocusPayload
   | ChannelSuggestionsTriggeredPayload
   | ClearAttachmentViewPayload
   | ClearCommandStatusInfoPayload

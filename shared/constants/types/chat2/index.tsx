@@ -74,12 +74,6 @@ export type InboxSearchInfo = {
   textStatus: InboxSearchStatus
 }
 
-// Where focus should be going to.
-// Null represents the default chat input.
-// This is very simple for now, but we can make
-// it fancier by using a stack and more types
-export type Focus = 'filter' | undefined
-
 export type CenterOrdinalHighlightMode = 'none' | 'flash' | 'always'
 
 export type CenterOrdinal = {
@@ -224,7 +218,6 @@ export type State = {
   explodingModeLocks: Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
   explodingModes: Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
   flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
-  focus: Focus
   giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
   giphyWindowMap: Map<Common.ConversationIDKey, boolean>
   hasZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard>
