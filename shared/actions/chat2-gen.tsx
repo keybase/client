@@ -100,7 +100,6 @@ export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
-export const paymentInfoReceived = 'chat2:paymentInfoReceived'
 export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const pinMessage = 'chat2:pinMessage'
 export const previewConversation = 'chat2:previewConversation'
@@ -139,7 +138,6 @@ export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const showInfoPanel = 'chat2:showInfoPanel'
-export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
@@ -929,13 +927,6 @@ export const createMessageSetEditing = (payload: {
   readonly editLastUser?: string
 }) => ({payload, type: messageSetEditing as typeof messageSetEditing})
 /**
- * Static configuration info was loaded from the service.
- */
-export const createStaticConfigLoaded = (payload: {readonly staticConfig: Types.StaticConfig}) => ({
-  payload,
-  type: staticConfigLoaded as typeof staticConfigLoaded,
-})
-/**
  * Submit an edit to the daemon
  */
 export const createMessageEdit = (payload: {
@@ -1122,14 +1113,6 @@ export const createMessageAttachmentUploaded = (payload: {
   readonly placeholderID: RPCChatTypes.MessageID
   readonly message: Types.MessageAttachment
 }) => ({payload, type: messageAttachmentUploaded as typeof messageAttachmentUploaded})
-/**
- * We received payment info for a sendPayment message
- */
-export const createPaymentInfoReceived = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: RPCChatTypes.MessageID
-  readonly paymentInfo: Types.ChatPaymentInfo
-}) => ({payload, type: paymentInfoReceived as typeof paymentInfoReceived})
 /**
  * We received request info for a requestPayment message
  */
@@ -1448,7 +1431,6 @@ export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type NotificationSettingsUpdatedPayload = ReturnType<typeof createNotificationSettingsUpdated>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
 export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
-export type PaymentInfoReceivedPayload = ReturnType<typeof createPaymentInfoReceived>
 export type PendingMessageWasEditedPayload = ReturnType<typeof createPendingMessageWasEdited>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
@@ -1487,7 +1469,6 @@ export type SetThreadSearchQueryPayload = ReturnType<typeof createSetThreadSearc
 export type SetThreadSearchStatusPayload = ReturnType<typeof createSetThreadSearchStatus>
 export type SetUnsentTextPayload = ReturnType<typeof createSetUnsentText>
 export type ShowInfoPanelPayload = ReturnType<typeof createShowInfoPanel>
-export type StaticConfigLoadedPayload = ReturnType<typeof createStaticConfigLoaded>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ThreadSearchPayload = ReturnType<typeof createThreadSearch>
 export type ThreadSearchResultsPayload = ReturnType<typeof createThreadSearchResults>
@@ -1611,7 +1592,6 @@ export type Actions =
   | NotificationSettingsUpdatedPayload
   | OpenChatFromWidgetPayload
   | OpenFolderPayload
-  | PaymentInfoReceivedPayload
   | PendingMessageWasEditedPayload
   | PinMessagePayload
   | PreviewConversationPayload
@@ -1650,7 +1630,6 @@ export type Actions =
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
   | ShowInfoPanelPayload
-  | StaticConfigLoadedPayload
   | TabSelectedPayload
   | ThreadSearchPayload
   | ThreadSearchResultsPayload

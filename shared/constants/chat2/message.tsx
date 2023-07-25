@@ -130,33 +130,6 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
       return []
   }
 }
-export const allMessageTypes: Set<Types.MessageType> = new Set([
-  'attachment',
-  'deleted',
-  'requestPayment',
-  'sendPayment',
-  'setChannelname',
-  'setDescription',
-  'systemAddedToTeam',
-  'systemChangeRetention',
-  'systemGitPush',
-  'systemInviteAccepted',
-  'systemJoined',
-  'systemLeft',
-  'systemSBSResolved',
-  'systemSimpleToComplex',
-  'systemChangeAvatar',
-  'systemNewChannel',
-  'systemText',
-  'systemUsersAddedToConversation',
-  'text',
-  'placeholder',
-])
-
-// The types here are askew. It confuses frontend MessageType with protocol MessageType.
-// Placeholder is an example where it doesn't make sense.
-export const getDeletableByDeleteHistory = (state: TypedState) =>
-  (!!state.chat2.staticConfig && state.chat2.staticConfig.deletableByDeleteHistory) || allMessageTypes
 
 type Minimum = {
   author: string

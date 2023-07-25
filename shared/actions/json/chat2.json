@@ -498,10 +498,6 @@
       "_description": "Handle an update to our conversation exploding modes.",
       "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
     },
-    "staticConfigLoaded": {
-      "_description": "Static configuration info was loaded from the service.",
-      "staticConfig": "Types.StaticConfig"
-    },
     "setMinWriterRole": {
       "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",
       "conversationIDKey": "Types.ConversationIDKey",

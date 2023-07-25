@@ -443,8 +443,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
 }
 
 const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
-  [Chat2Gen.resetStore]: draftState => {
-    return {...initialState, staticConfig: draftState.staticConfig as Types.State['staticConfig']}
+  [Chat2Gen.resetStore]: () => {
+    return {...initialState}
   },
   [Chat2Gen.toggleSmallTeamsExpanded]: draftState => {
     draftState.smallTeamsExpanded = !draftState.smallTeamsExpanded
@@ -1149,9 +1149,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey} = action.payload
     const {messageCenterOrdinals} = draftState
     messageCenterOrdinals.delete(conversationIDKey)
-  },
-  [Chat2Gen.staticConfigLoaded]: (draftState, action) => {
-    draftState.staticConfig = action.payload.staticConfig
   },
   [Chat2Gen.loadedMutualTeams]: (draftState, action) => {
     const {conversationIDKey, teamIDs} = action.payload

@@ -408,19 +408,6 @@ export const getGeneralChannelForBigTeam = (state: TypedState, teamname: string)
 
 const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
 
-export const getCommands = (
-  state: TypedState,
-  id: Types.ConversationIDKey
-): Array<RPCChatTypes.ConversationCommand> => {
-  const {commands} = getMeta(state, id)
-  if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin) {
-    return state.chat2.staticConfig
-      ? state.chat2.staticConfig.builtinCommands[commands.builtin] || blankCommands
-      : blankCommands
-  } else {
-    return blankCommands
-  }
-}
 
 export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {botCommands} = getMeta(state, id)

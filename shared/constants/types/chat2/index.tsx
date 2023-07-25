@@ -241,7 +241,6 @@ export type State = {
   pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
   replyToMap: Map<Common.ConversationIDKey, _Message.Ordinal>
   smallTeamsExpanded: boolean // if we're showing all small teams,
-  staticConfig?: StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   teamIDToGeneralConvID: Map<Team.TeamID, Common.ConversationIDKey>
   threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
   threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>

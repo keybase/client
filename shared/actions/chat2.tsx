@@ -507,13 +507,18 @@ const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatI
 }
 
 // Get actions to update messagemap / metamap when retention policy expunge happens
-const expungeToActions = (state: Container.TypedState, expunge: RPCChatTypes.ExpungeInfo) => {
+
+const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo) => {
   const actions: Array<Container.TypedActions> = []
   const conversationIDKey = Types.conversationIDToKey(expunge.convID)
+  const staticConfig = Constants.useState.getState().staticConfig
+  // The types here are askew. It confuses frontend MessageType with protocol MessageType.
+  // Placeholder is an example where it doesn't make sense.
+  const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || Constants.allMessageTypes
   actions.push(
     Chat2Gen.createMessagesWereDeleted({
       conversationIDKey,
-      deletableMessageTypes: Constants.getDeletableByDeleteHistory(state),
+      deletableMessageTypes,
       upToMessageID: expunge.expunge.upto,
     })
   )
@@ -694,7 +699,7 @@ const onChatPaymentInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatPaym
     logger.error(errMsg)
     throw new Error(errMsg)
   }
-  return Chat2Gen.createPaymentInfoReceived({conversationIDKey, messageID: msgID, paymentInfo})
+  Constants.useState.getState().dispatch.paymentInfoReceived(conversationIDKey, msgID, paymentInfo)
 }
 
 const onChatRequestInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatRequestInfoPayload) => {
@@ -885,7 +890,7 @@ const onNewChatActivity = (
       }
       break
     case RPCChatTypes.ChatActivityType.expunge: {
-      actions = expungeToActions(state, activity.expunge)
+      actions = expungeToActions(activity.expunge)
       break
     }
     case RPCChatTypes.ChatActivityType.ephemeralPurge:
@@ -3097,61 +3102,6 @@ const setConvExplodingMode = async (
   }
 }
 
-const loadStaticConfig = () => {
-  const getReduxStore = Z.getReduxStore()
-  const reduxDispatch = Z.getReduxDispatch()
-  if (getReduxStore().chat2.staticConfig) {
-    return
-  }
-  const version = ConfigConstants.useDaemonState.getState().handshakeVersion
-  const {wait} = ConfigConstants.useDaemonState.getState().dispatch
-  const f = async () => {
-    const name = 'chat.loadStatic'
-    wait(name, version, true)
-    try {
-      const res = await RPCChatTypes.localGetStaticConfigRpcPromise()
-      if (!res.deletableByDeleteHistory) {
-        logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
-        return
-      }
-
-      const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce<Array<Types.MessageType>>(
-        (res, type) => {
-          const ourTypes = Constants.serviceMessageTypeToMessageTypes(type)
-          if (ourTypes) {
-            res.push(...ourTypes)
-          }
-          return res
-        },
-        []
-      )
-      reduxDispatch(
-        Chat2Gen.createStaticConfigLoaded({
-          staticConfig: {
-            builtinCommands: (res.builtinCommands || []).reduce<Types.StaticConfig['builtinCommands']>(
-              (map, c) => {
-                map[c.typ] = c.commands || []
-                return map
-              },
-              {
-                [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
-                [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
-                [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
-                [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
-                [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
-              }
-            ),
-            deletableByDeleteHistory: new Set(deletableByDeleteHistory),
-          },
-        })
-      )
-    } finally {
-      wait(name, version, false)
-    }
-  }
-  Z.ignorePromise(f())
-}
-
 const toggleMessageReaction = async (
   state: Container.TypedState,
   action: Chat2Gen.ToggleMessageReactionPayload
@@ -4013,7 +3963,7 @@ const initChat = () => {
 
   ConfigConstants.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
-    loadStaticConfig()
+    Constants.useState.getState().dispatch.loadStaticConfig()
   })
 }
 

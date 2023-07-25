@@ -5,7 +5,8 @@ import * as Router2 from '../router2'
 import * as ConfigConstants from '../config'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamConstants from '../teams'
-import type * as Message from '../types/chat2/message'
+import logger from '../../logger'
+import * as Message from './message'
 import type * as Wallet from '../types/wallets'
 import {isMobile, isTablet} from '../platform'
 import {
@@ -102,7 +103,6 @@ export const makeState = (): Types.State => ({
   replyToMap: new Map(),
   shouldDeleteZzzJourneycard: new Map(),
   smallTeamsExpanded: false,
-  staticConfig: undefined,
   teamIDToGeneralConvID: new Map(),
   threadLoadStatus: new Map(),
   threadSearchInfoMap: new Map(),
@@ -546,7 +546,6 @@ export const uiParticipantsToParticipantInfo = (uiParticipants: Array<RPCChatTyp
 
 export {
   getBotCommands,
-  getCommands,
   getConversationIDKeyMetasToLoad,
   getConversationLabel,
   getEffectiveRetentionPolicy,
@@ -564,9 +563,7 @@ export {
 } from './meta'
 
 export {
-  allMessageTypes,
   getClientPrev,
-  getDeletableByDeleteHistory,
   getMapUnfurl,
   getMessageID,
   getMessageStateExtras,
@@ -592,7 +589,6 @@ export {
   previewSpecs,
   reactionMapToReactions,
   rpcErrorToString,
-  serviceMessageTypeToMessageTypes,
   shouldShowPopup,
   specialMentions,
   uiMessageEditToMessage,
@@ -611,13 +607,37 @@ export {
   pendingWaitingConversationIDKey,
 }
 
+export const allMessageTypes: Set<Types.MessageType> = new Set([
+  'attachment',
+  'deleted',
+  'requestPayment',
+  'sendPayment',
+  'setChannelname',
+  'setDescription',
+  'systemAddedToTeam',
+  'systemChangeRetention',
+  'systemGitPush',
+  'systemInviteAccepted',
+  'systemJoined',
+  'systemLeft',
+  'systemSBSResolved',
+  'systemSimpleToComplex',
+  'systemChangeAvatar',
+  'systemNewChannel',
+  'systemText',
+  'systemUsersAddedToConversation',
+  'text',
+  'placeholder',
+])
+
 type Store = {
   createConversationError?: Types.CreateConversationError
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
   typingMap: Map<Types.ConversationIDKey, Set<string>>
   lastCoord?: Types.Coordinate
-  paymentStatusMap: Map<Wallet.PaymentID, Message.ChatPaymentInfo>
+  paymentStatusMap: Map<Wallet.PaymentID, Types.ChatPaymentInfo>
+  staticConfig?: Types.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
 }
 
 const initialStore: Store = {
@@ -626,6 +646,7 @@ const initialStore: Store = {
   lastCoord: undefined,
   paymentStatusMap: new Map(),
   smallTeamBadgeCount: 0,
+  staticConfig: undefined,
   typingMap: new Map(),
 }
 
@@ -642,6 +663,7 @@ export type State = Store & {
       code: number,
       message: string
     ) => void
+    loadStaticConfig: () => void
     onEngineConnected: () => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     paymentInfoReceived: (
@@ -649,13 +671,13 @@ export type State = Store & {
       messageID: RPCChatTypes.MessageID,
       paymentInfo: Types.ChatPaymentInfo
     ) => void
-    resetState: 'default'
+    resetState: () => void
     resetConversationErrored: () => void
     updateLastCoord: (coord: Types.Coordinate) => void
   }
 }
 
-export const useState = Z.createZustand<State>(set => {
+export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
     badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount, _conversations /*TODO*/) => {
@@ -673,6 +695,54 @@ export const useState = Z.createZustand<State>(set => {
           message,
         }
       })
+    },
+    loadStaticConfig: () => {
+      if (get().staticConfig) {
+        return
+      }
+      const {handshakeVersion, dispatch} = ConfigConstants.useDaemonState.getState()
+      const f = async () => {
+        const name = 'chat.loadStatic'
+        dispatch.wait(name, handshakeVersion, true)
+        try {
+          const res = await RPCChatTypes.localGetStaticConfigRpcPromise()
+          if (!res.deletableByDeleteHistory) {
+            logger.error('chat.loadStaticConfig: got no deletableByDeleteHistory in static config')
+            return
+          }
+          const deletableByDeleteHistory = res.deletableByDeleteHistory.reduce<Array<Types.MessageType>>(
+            (res, type) => {
+              const ourTypes = Message.serviceMessageTypeToMessageTypes(type)
+              if (ourTypes) {
+                res.push(...ourTypes)
+              }
+              return res
+            },
+            []
+          )
+          set(s => {
+            s.staticConfig = {
+              builtinCommands: (res.builtinCommands || []).reduce<Types.StaticConfig['builtinCommands']>(
+                (map, c) => {
+                  map[c.typ] = c.commands || []
+                  return map
+                },
+                {
+                  [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
+                  [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
+                  [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
+                  [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
+                  [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
+                }
+              ),
+              deletableByDeleteHistory: new Set(deletableByDeleteHistory),
+            }
+          })
+        } finally {
+          dispatch.wait(name, handshakeVersion, false)
+        }
+      }
+      Z.ignorePromise(f())
     },
     onEngineConnected: () => {
       const f = async () => {
@@ -717,7 +787,14 @@ export const useState = Z.createZustand<State>(set => {
         s.createConversationError = undefined
       })
     },
-    resetState: 'default',
+    resetState: () => {
+      set(s => ({
+        ...s,
+        ...initialStore,
+        dispatch: s.dispatch,
+        staticConfig: s.staticConfig,
+      }))
+    },
     updateLastCoord: coord => {
       set(s => {
         s.lastCoord = coord

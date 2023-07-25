@@ -5,7 +5,7 @@ import {memoize} from '../../../../util/memoize'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import type * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import shallowEqual from 'shallowequal'
 
@@ -96,8 +96,22 @@ const getMaxCmdLength = memoize(
       .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
 )
 
+const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
+const getCommands = (
+  state: Container.TypedState,
+  id: Types.ConversationIDKey,
+  staticConfig?: Types.StaticConfig
+): Array<RPCChatTypes.ConversationCommand> => {
+  const {commands} = Constants.getMeta(state, id)
+  if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin) {
+    return staticConfig ? staticConfig.builtinCommands[commands.builtin] || blankCommands : blankCommands
+  } else {
+    return blankCommands
+  }
+}
 export const useDataSource = (p: UseDataSourceProps) => {
   const {conversationIDKey, filter, inputRef, lastTextRef} = p
+  const staticConfig = Constants.useState(s => s.staticConfig)
 
   return Container.useSelector(state => {
     const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
@@ -107,7 +121,7 @@ export const useDataSource = (p: UseDataSourceProps) => {
     }
 
     const suggestBotCommands = Constants.getBotCommands(state, conversationIDKey)
-    const suggestCommands = Constants.getCommands(state, conversationIDKey)
+    const suggestCommands = getCommands(state, conversationIDKey, staticConfig)
     const sel = inputRef.current?.getSelection()
     if (sel && lastTextRef.current) {
       const maxCmdLength = getMaxCmdLength(suggestBotCommands, suggestCommands)
