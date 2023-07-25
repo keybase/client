@@ -19,7 +19,7 @@ import shallowEqual from 'shallowequal'
 import {usingFlashList} from '../list-area/flashlist-config'
 
 const ErrorMessage = () => {
-  const createConversationError = Container.useSelector(state => state.chat2.createConversationError)
+  const createConversationError = Constants.useState(s => s.createConversationError)
   const dispatch = Container.useDispatch()
 
   const _onCreateWithoutThem = React.useCallback(

@@ -18,13 +18,6 @@
     "channelSuggestionsTriggered": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "conversationErrored": {
-      "_description": "Got an error while creating a conversation.",
-      "allowedUsers": "Array<string>",
-      "code": "number",
-      "disallowedUsers": "Array<string>",
-      "message": "string"
-    },
     "previewConversation": {
       "_description": [
         "Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)",

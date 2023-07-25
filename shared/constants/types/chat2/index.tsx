@@ -211,7 +211,6 @@ export type State = {
   commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
-  createConversationError?: CreateConversationError
   dismissedInviteBannersMap: Map<Common.ConversationIDKey, boolean>
   draftMap: Map<Common.ConversationIDKey, string>
   editingMap: Map<Common.ConversationIDKey, _Message.Ordinal> // current message being edited,

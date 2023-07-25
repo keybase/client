@@ -512,16 +512,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (Constants.isValidConversationIDKey(conversationIDKey)) {
       // If navigating away from error conversation to a valid conv - clear
       // error msg.
-      draftState.createConversationError = undefined
-    }
-  },
-  [Chat2Gen.conversationErrored]: (draftState, action) => {
-    const {allowedUsers, code, disallowedUsers, message} = action.payload
-    draftState.createConversationError = {
-      allowedUsers,
-      code,
-      disallowedUsers,
-      message,
+      Constants.useState.getState().dispatch.resetConversationErrored()
     }
   },
   [Chat2Gen.updateUnreadline]: (draftState, action) => {

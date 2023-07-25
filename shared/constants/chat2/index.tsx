@@ -69,7 +69,6 @@ export const makeState = (): Types.State => ({
   commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),
   containsLatestMessageMap: new Map(),
-  createConversationError: undefined,
   dismissedInviteBannersMap: new Map(),
   draftMap: new Map(),
   editingMap: new Map(),
@@ -614,6 +613,7 @@ export {
 }
 
 type Store = {
+  createConversationError?: Types.CreateConversationError
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
   typingMap: Map<Types.ConversationIDKey, Set<string>>
@@ -622,6 +622,7 @@ type Store = {
 
 const initialStore: Store = {
   bigTeamBadgeCount: 0,
+  createConversationError: undefined,
   lastCoord: undefined,
   smallTeamBadgeCount: 0,
   typingMap: new Map(),
@@ -634,9 +635,16 @@ type State = Store & {
       smallTeamBadgeCount: number,
       conversations: Array<RPCTypes.BadgeConversationInfo>
     ) => void
+    conversationErrored: (
+      allowedUsers: Array<string>,
+      disallowedUsers: Array<string>,
+      code: number,
+      message: string
+    ) => void
     onEngineConnected: () => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     resetState: 'default'
+    resetConversationErrored: () => void
     updateLastCoord: (coord: Types.Coordinate) => void
   }
 }
@@ -648,6 +656,16 @@ export const useState = Z.createZustand<State>(set => {
       set(s => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
+      })
+    },
+    conversationErrored: (allowedUsers, disallowedUsers, code, message) => {
+      set(s => {
+        s.createConversationError = {
+          allowedUsers,
+          code,
+          disallowedUsers,
+          message,
+        }
       })
     },
     onEngineConnected: () => {
@@ -679,6 +697,11 @@ export const useState = Z.createZustand<State>(set => {
         )
       }
       Z.ignorePromise(f())
+    },
+    resetConversationErrored: () => {
+      set(s => {
+        s.createConversationError = undefined
+      })
     },
     resetState: 'default',
     updateLastCoord: coord => {

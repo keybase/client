@@ -34,7 +34,6 @@ export const clearMessages = 'chat2:clearMessages'
 export const clearMetas = 'chat2:clearMetas'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
-export const conversationErrored = 'chat2:conversationErrored'
 export const createConversation = 'chat2:createConversation'
 export const deselectedConversation = 'chat2:deselectedConversation'
 export const desktopNotification = 'chat2:desktopNotification'
@@ -378,15 +377,6 @@ export const createMessageErrored = (payload: {
   readonly errorTyp?: number
   readonly outboxID: Types.OutboxID
 }) => ({payload, type: messageErrored as typeof messageErrored})
-/**
- * Got an error while creating a conversation.
- */
-export const createConversationErrored = (payload: {
-  readonly allowedUsers: Array<string>
-  readonly code: number
-  readonly disallowedUsers: Array<string>
-  readonly message: string
-}) => ({payload, type: conversationErrored as typeof conversationErrored})
 /**
  * Got some inbox errors
  */
@@ -1407,7 +1397,6 @@ export type ClearMessagesPayload = ReturnType<typeof createClearMessages>
 export type ClearMetasPayload = ReturnType<typeof createClearMetas>
 export type ClearPaymentConfirmInfoPayload = ReturnType<typeof createClearPaymentConfirmInfo>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
-export type ConversationErroredPayload = ReturnType<typeof createConversationErrored>
 export type CreateConversationPayload = ReturnType<typeof createCreateConversation>
 export type DeselectedConversationPayload = ReturnType<typeof createDeselectedConversation>
 export type DesktopNotificationPayload = ReturnType<typeof createDesktopNotification>
@@ -1573,7 +1562,6 @@ export type Actions =
   | ClearMetasPayload
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
-  | ConversationErroredPayload
   | CreateConversationPayload
   | DeselectedConversationPayload
   | DesktopNotificationPayload

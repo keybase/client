@@ -2981,14 +2981,9 @@ const createConversation = async (
         disallowedUsers = value.split(',')
       }
       const allowedUsers = action.payload.participants.filter(x => !disallowedUsers?.includes(x))
-      listenerApi.dispatch(
-        Chat2Gen.createConversationErrored({
-          allowedUsers,
-          code: error.code,
-          disallowedUsers,
-          message: error.desc,
-        })
-      )
+      Constants.useState
+        .getState()
+        .dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
       listenerApi.dispatch(
         Chat2Gen.createNavigateToThread({
           conversationIDKey: Constants.pendingErrorConversationIDKey,
