@@ -1637,7 +1637,7 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
 
 const initWallets = () => {
   Container.listenAction([WalletsGen.loadAccounts, WalletsGen.deletedAccount], loadAccounts)
-  Container.listenAction(WalletsGen.showTransaction, () =>
+  Container.listenAction([WalletsGen.showTransaction, WalletsGen.openSendRequestForm], () =>
     RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})
   )
   Container.listenAction(WalletsGen.deleteAccount, deleteAccount)
