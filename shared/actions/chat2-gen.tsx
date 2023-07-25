@@ -380,7 +380,6 @@ export const createMetasReceived = (payload: {
   readonly metas: Array<Types.ConversationMeta>
   readonly removals?: Array<Types.ConversationIDKey>
   readonly fromInboxRefresh?: boolean
-  readonly initialTrustedLoad?: boolean
 }) => ({payload, type: metasReceived as typeof metasReceived})
 /**
  * Handle an update to our conversation exploding modes.

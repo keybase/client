@@ -45,7 +45,7 @@ type RoutableProps = {
 }
 
 const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessageOrdinal}: Props) => {
-  const topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
+  const topReacjis = Constants.useState(s => s.userReacjis.topReacjis)
   const [filter, setFilter] = React.useState('')
   const dispatch = Container.useDispatch()
   const onChoose = React.useCallback(
@@ -73,9 +73,7 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
 }
 
 const useSkinTone = () => {
-  const currentSkinTone = Types.EmojiSkinToneFromRPC(
-    Container.useSelector(state => state.chat2.userReacjis.skinTone)
-  )
+  const currentSkinTone = Types.EmojiSkinToneFromRPC(Constants.useState(s => s.userReacjis.skinTone))
   const dispatch = Container.useDispatch()
   const rpc = useRPC(RPCChatGen.localPutReacjiSkinToneRpcPromise)
   const setSkinTone = (emojiSkinTone: undefined | Types.EmojiSkinTone) => {
@@ -99,7 +97,7 @@ const useCustomReacji = (
   onlyInTeam: boolean | undefined,
   disabled?: boolean
 ) => {
-  const customEmojiGroups = Container.useSelector(s => s.chat2.userEmojis)
+  const customEmojiGroups = Constants.useState(s => s.userEmojis)
   const waiting = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
   const dispatch = Container.useDispatch()
 

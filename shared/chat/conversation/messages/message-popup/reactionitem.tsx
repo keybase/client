@@ -1,4 +1,4 @@
-import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {renderEmoji, RPCUserReacjiToRenderableEmoji} from '../../../../util/emoji'
@@ -10,7 +10,7 @@ type Props = {
 }
 
 const ReactionItem = (props: Props) => {
-  const _topReacjis = Container.useSelector(state => state.chat2.userReacjis.topReacjis)
+  const _topReacjis = Constants.useState(s => s.userReacjis.topReacjis)
   const onReact = (emoji: string) => {
     props.onReact(emoji)
     props.onHidden()
@@ -52,7 +52,7 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.small,
         paddingRight: Styles.globalMargins.small,
       },
-    } as const)
+    }) as const
 )
 
 export default ReactionItem

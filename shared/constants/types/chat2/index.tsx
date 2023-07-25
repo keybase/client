@@ -244,13 +244,9 @@ export type State = {
   threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
   threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
   threadSearchQueryMap: Map<Common.ConversationIDKey, HiddenString>
-  trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
   unfurlPromptMap: Map<Common.ConversationIDKey, Map<_Message.MessageID, Set<string>>>
   unreadMap: ConversationCountMap // how many unread messages there are,
   unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>
-  userReacjis: UserReacjis
-  userEmojis?: RPCChatTypes.EmojiGroup[]
-  userEmojisForAutocomplete?: Array<RPCChatTypes.Emoji>
 }
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>

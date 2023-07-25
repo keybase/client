@@ -40,8 +40,9 @@ const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChat
     m && arr.push(m)
     return arr
   }, [])
+  Constants.useState.getState().dispatch.setTrustedInboxHasLoaded()
   // Check if some of our existing stored metas might no longer be valid
-  return Chat2Gen.createMetasReceived({fromInboxRefresh: true, initialTrustedLoad: true, metas})
+  return Chat2Gen.createMetasReceived({fromInboxRefresh: true, metas})
 }
 
 // Ask the service to refresh the inbox

@@ -106,13 +106,9 @@ export const makeState = (): Types.State => ({
   threadLoadStatus: new Map(),
   threadSearchInfoMap: new Map(),
   threadSearchQueryMap: new Map(),
-  trustedInboxHasLoaded: false,
   unfurlPromptMap: new Map(),
   unreadMap: new Map(),
   unsentTextMap: new Map(),
-  userEmojis: undefined,
-  userEmojisForAutocomplete: undefined,
-  userReacjis: defaultUserReacjis,
 })
 
 export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
@@ -638,6 +634,10 @@ type Store = {
   lastCoord?: Types.Coordinate
   paymentStatusMap: Map<Wallet.PaymentID, Types.ChatPaymentInfo>
   staticConfig?: Types.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
+  trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
+  userReacjis: Types.UserReacjis
+  userEmojis?: RPCChatTypes.EmojiGroup[]
+  userEmojisForAutocomplete?: Array<RPCChatTypes.Emoji>
 }
 
 const initialStore: Store = {
@@ -648,7 +648,11 @@ const initialStore: Store = {
   smallTeamBadgeCount: 0,
   smallTeamsExpanded: false,
   staticConfig: undefined,
+  trustedInboxHasLoaded: false,
   typingMap: new Map(),
+  userEmojis: undefined,
+  userEmojisForAutocomplete: undefined,
+  userReacjis: defaultUserReacjis,
 }
 
 export type State = Store & {
@@ -674,8 +678,11 @@ export type State = Store & {
     ) => void
     resetState: () => void
     resetConversationErrored: () => void
+    setTrustedInboxHasLoaded: () => void
     toggleSmallTeamsExpanded: () => void
     updateLastCoord: (coord: Types.Coordinate) => void
+    updateUserReacjis: (userReacjis: RPCTypes.UserReacjis) => void
+    loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
   }
 }
 
@@ -746,6 +753,16 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    loadedUserEmoji: results => {
+      set(s => {
+        const newEmojis: Array<RPCChatTypes.Emoji> = []
+        results.emojis.emojis?.forEach(group => {
+          group.emojis?.forEach(e => newEmojis.push(e))
+        })
+        s.userEmojisForAutocomplete = newEmojis
+        s.userEmojis = results.emojis.emojis ?? []
+      })
+    },
     onEngineConnected: () => {
       const f = async () => {
         try {
@@ -797,6 +814,11 @@ export const useState = Z.createZustand<State>((set, get) => {
         staticConfig: s.staticConfig,
       }))
     },
+    setTrustedInboxHasLoaded: () => {
+      set(s => {
+        s.trustedInboxHasLoaded = true
+      })
+    },
     toggleSmallTeamsExpanded: () => {
       set(s => {
         s.smallTeamsExpanded = !s.smallTeamsExpanded
@@ -811,6 +833,13 @@ export const useState = Z.createZustand<State>((set, get) => {
         await RPCChatTypes.localLocationUpdateRpcPromise({coord: {accuracy, lat, lon}})
       }
       Z.ignorePromise(f())
+    },
+    updateUserReacjis: userReacjis => {
+      set(s => {
+        const {skinTone, topReacjis} = userReacjis
+        s.userReacjis.skinTone = skinTone
+        s.userReacjis.topReacjis = topReacjis || defaultTopReacjis
+      })
     },
   }
   return {

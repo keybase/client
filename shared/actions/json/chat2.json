@@ -117,8 +117,7 @@
       "_description": "Got some new inbox rows",
       "metas": "Array<Types.ConversationMeta>",
       "removals?": "Array<Types.ConversationIDKey>", // convs to remove
-      "fromInboxRefresh?": "boolean", // If true from an inbox refresh
-      "initialTrustedLoad?": "boolean" // If true this is the first trusted inbox load
+      "fromInboxRefresh?": "boolean" // If true from an inbox refresh
     },
     "clearMetas": {},
     "clearMessages": {},
@@ -730,9 +729,6 @@
       "_description": "Clear attachment views",
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "updateUserReacjis": {
-      "userReacjis": "RPCTypes.UserReacjis"
-    },
     "setCommandStatusInfo": {
       "_description": "Set command status info",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -876,9 +872,6 @@
       "_description": "Refresh user emoji and put it in store for picker",
       "conversationIDKey?": "Types.ConversationIDKey",
       "onlyInTeam?": "boolean"
-    },
-    "loadedUserEmoji": {
-      "results": "RPCChatTypes.UserEmojiRes"
     }
   }
 }

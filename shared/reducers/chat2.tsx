@@ -1152,15 +1152,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {mutualTeamMap} = draftState
     mutualTeamMap.set(conversationIDKey, teamIDs)
   },
-  [Chat2Gen.loadedUserEmoji]: (draftState, action) => {
-    const {results} = action.payload
-    const newEmojis: Array<RPCChatTypes.Emoji> = []
-    results.emojis.emojis?.forEach(group => {
-      group.emojis?.forEach(e => newEmojis.push(e))
-    })
-    draftState.userEmojisForAutocomplete = newEmojis
-    draftState.userEmojis = results.emojis?.emojis ?? []
-  },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {
       draftState.participantMap.set(part.conversationIDKey, part.participants)
@@ -1180,11 +1171,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     })
   },
   [Chat2Gen.metasReceived]: (draftState, action) => {
-    const {metas, initialTrustedLoad, removals} = action.payload
+    const {metas, removals} = action.payload
     const {draftMap, mutedMap, metaMap} = draftState
-    if (initialTrustedLoad) {
-      draftState.trustedInboxHasLoaded = true
-    }
 
     metas.forEach((m: Types.ConversationMeta) => {
       if (m.draft) {
@@ -1216,11 +1204,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const convMap = accountsInfoMap.get(conversationIDKey) || new Map()
     accountsInfoMap.set(conversationIDKey, convMap)
     convMap.set(messageID, requestInfo)
-  },
-  [Chat2Gen.updateUserReacjis]: (draftState, action) => {
-    const {skinTone, topReacjis} = action.payload.userReacjis
-    draftState.userReacjis.skinTone = skinTone
-    draftState.userReacjis.topReacjis = topReacjis || Constants.defaultTopReacjis
   },
   [Chat2Gen.dismissBottomBanner]: (draftState, action) => {
     const {conversationIDKey} = action.payload

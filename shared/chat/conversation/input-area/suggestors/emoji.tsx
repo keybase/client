@@ -56,7 +56,7 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
   }
 
   const userEmojisLoading = Container.useAnyWaiting(Constants.waitingKeyLoadingEmoji)
-  const userEmojis = Container.useSelector(state => state.chat2.userEmojisForAutocomplete)
+  const userEmojis = Constants.useState(s => s.userEmojisForAutocomplete)
 
   if (!emojiPrepass.test(filter)) {
     return {
