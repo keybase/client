@@ -823,14 +823,6 @@
       "path": "string",
       "amps": "Array<number>"
     },
-    "loadNextBotPage": {
-      "_description": "loads next page of featured bots from backend",
-      "pageSize": "number"
-    },
-    "setLoadedBotPage": {
-      "_description": "set page # for a conversation",
-      "page": "number"
-    },
     "refreshBotPublicCommands": {
       "_description": "refresh bot public commands",
       "username": "string"

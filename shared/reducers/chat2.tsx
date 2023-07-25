@@ -1,5 +1,4 @@
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as BotsGen from '../actions/bots-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as TeamsConstants from '../constants/teams'
@@ -23,12 +22,7 @@ type EngineActions =
   | EngineGen.Chat1NotifyChatChatAttachmentDownloadCompletePayload
   | EngineGen.Chat1NotifyChatChatAttachmentDownloadProgressPayload
 
-type Actions =
-  | Chat2Gen.Actions
-  | EngineActions
-  | BotsGen.UpdateFeaturedBotsPayload
-  | BotsGen.SetLoadedAllBotsPayload
-  | BotsGen.SetSearchFeaturedAndUsersResultsPayload
+type Actions = Chat2Gen.Actions | EngineActions
 
 const initialState: Types.State = Constants.makeState()
 
@@ -61,23 +55,6 @@ const messageIDToOrdinal = (
   }
 
   return null
-}
-
-const botActions: Container.ActionHandler<Actions, Types.State> = {
-  [BotsGen.updateFeaturedBots]: (draftState, action) => {
-    const {bots, page} = action.payload
-    bots.map(b => draftState.featuredBotsMap.set(b.botUsername, b))
-    if (page !== undefined) {
-      draftState.featuredBotsPage = page
-    }
-  },
-  [BotsGen.setLoadedAllBots]: (draftState, action) => {
-    const {loaded} = action.payload
-    draftState.featuredBotsLoaded = loaded
-  },
-  [BotsGen.setSearchFeaturedAndUsersResults]: (draftState, action) => {
-    draftState.botSearchResults.set(action.payload.query, action.payload.results)
-  },
 }
 
 const giphyActions: Container.ActionHandler<Actions, Types.State> = {
@@ -1533,10 +1510,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.inboxNumSmallRows = rows
     }
   },
-  [Chat2Gen.setLoadedBotPage]: (draftState, action) => {
-    const {page} = action.payload
-    draftState.featuredBotsPage = page
-  },
   [Chat2Gen.setBotPublicCommands]: (draftState, action) => {
     draftState.botPublicCommands.set(action.payload.username, action.payload.commands)
   },
@@ -1589,7 +1562,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.botTeamRoleInConvMap.set(action.payload.conversationIDKey, roles)
   },
-  ...botActions,
   ...giphyActions,
   ...paymentActions,
   ...searchActions,

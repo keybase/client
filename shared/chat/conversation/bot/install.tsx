@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
+import * as BotsConstants from '../../../constants/bots'
 import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -80,7 +81,7 @@ const InstallBotPopup = (props: Props) => {
     return commands.length > 0 ? convCommands : state.chat2.botPublicCommands.get(botUsername)
   })
 
-  const featured = Container.useSelector(state => state.chat2.featuredBotsMap.get(botUsername))
+  const featured = BotsConstants.useState(s => s.featuredBotsMap.get(botUsername))
   const teamRole = Container.useSelector(state =>
     conversationIDKey ? state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername) : undefined
   )

@@ -1,4 +1,4 @@
-import * as BotConstants from '../../../constants/bots'
+import * as BotsConstants from '../../../constants/bots'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as UsersConstants from '../../../constants/users'
@@ -197,7 +197,6 @@ const featuredBotSpinner = 'bots: featured spinners'
 
 const BotTab = (props: Props) => {
   const {renderTabs, conversationIDKey} = props
-  const dispatch = Container.useDispatch()
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {teamID, teamname, teamType, botAliases} = meta
   const yourOperations = TeamConstants.useState(s =>
@@ -230,8 +229,8 @@ const BotTab = (props: Props) => {
       .sort((l, r) => l.localeCompare(r))
   }
 
-  const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
-  const featuredBots = BotConstants.getFeaturedSorted(featuredBotsMap)
+  const featuredBotsMap = BotsConstants.useState(s => s.featuredBotsMap)
+  const featuredBots = BotsConstants.getFeaturedSorted(featuredBotsMap)
     .filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
@@ -239,7 +238,7 @@ const BotTab = (props: Props) => {
     )
     .map((bot, index) => ({...bot, index}))
   const infoMap = UsersConstants.useState(s => s.infoMap)
-  const loadedAllBots = Container.useSelector(state => state.chat2.featuredBotsLoaded)
+  const loadedAllBots = BotsConstants.useState(s => s.featuredBotsLoaded)
 
   const usernamesToFeaturedBots = (usernames: string[]) =>
     usernames.map((b, index) => ({
@@ -271,7 +270,8 @@ const BotTab = (props: Props) => {
       selected: 'chatInstallBot',
     })
   }
-  const onLoadMoreBots = () => dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100}))
+  const loadNextBotPage = BotsConstants.useState(s => s.dispatch.loadNextBotPage)
+  const onLoadMoreBots = () => loadNextBotPage()
   const loadingBots = !featuredBotsMap.size
 
   const featuredBotsLength = featuredBots.length
@@ -281,7 +281,7 @@ const BotTab = (props: Props) => {
     setLastCID(conversationIDKey)
     setLastFBL(featuredBotsLength)
     if (featuredBotsLength === 0 && !loadedAllBots) {
-      dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100}))
+      loadNextBotPage()
     }
   }
 

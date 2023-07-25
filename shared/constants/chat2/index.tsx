@@ -19,63 +19,6 @@ import type * as TeamBuildingTypes from '../types/team-building'
 import type {TypedState} from '../reducer'
 import * as Z from '../../util/zustand'
 
-type Store = {
-  typingMap: Map<Types.ConversationIDKey, Set<string>>
-}
-
-const initialStore: Store = {
-  typingMap: new Map(),
-}
-
-type State = Store & {
-  dispatch: {
-    onEngineConnected: () => void
-    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
-    resetState: 'default'
-  }
-}
-
-export const useState = Z.createZustand<State>(() => {
-  const reduxDispatch = Z.getReduxDispatch()
-  const dispatch: State['dispatch'] = {
-    onEngineConnected: () => {
-      const f = async () => {
-        try {
-          await RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
-          await RPCTypes.delegateUiCtlRegisterLogUIRpcPromise()
-          console.log('Registered Chat UI')
-        } catch (error) {
-          console.warn('Error in registering Chat UI:', error)
-        }
-      }
-      Z.ignorePromise(f())
-    },
-    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {
-      const f = async () => {
-        // need to let the mdoal hide first else its thrashy
-        await Z.timeoutPromise(500)
-        reduxDispatch(
-          Chat2Gen.createNavigateToThread({
-            conversationIDKey: pendingWaitingConversationIDKey,
-            reason: 'justCreated',
-          })
-        )
-        reduxDispatch(
-          Chat2Gen.createCreateConversation({
-            participants: [...users].map(u => u.id),
-          })
-        )
-      }
-      Z.ignorePromise(f())
-    },
-    resetState: 'default',
-  }
-  return {
-    ...initialStore,
-    dispatch,
-  }
-})
-
 export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
   switch (m.type) {
     case 'attachment':
@@ -122,7 +65,6 @@ export const makeState = (): Types.State => ({
   blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   botPublicCommands: new Map(),
-  botSearchResults: new Map(),
   botSettings: new Map(),
   botTeamRoleInConvMap: new Map(),
   commandMarkdownMap: new Map(),
@@ -134,9 +76,6 @@ export const makeState = (): Types.State => ({
   editingMap: new Map(),
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,
-  featuredBotsLoaded: false,
-  featuredBotsMap: new Map(),
-  featuredBotsPage: -1,
   flipStatusMap: new Map(),
   focus: undefined,
   giphyResultMap: new Map(),
@@ -677,3 +616,60 @@ export {
   pendingErrorConversationIDKey,
   pendingWaitingConversationIDKey,
 }
+
+type Store = {
+  typingMap: Map<Types.ConversationIDKey, Set<string>>
+}
+
+const initialStore: Store = {
+  typingMap: new Map(),
+}
+
+type State = Store & {
+  dispatch: {
+    onEngineConnected: () => void
+    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
+    resetState: 'default'
+  }
+}
+
+export const useState = Z.createZustand<State>(() => {
+  const reduxDispatch = Z.getReduxDispatch()
+  const dispatch: State['dispatch'] = {
+    onEngineConnected: () => {
+      const f = async () => {
+        try {
+          await RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
+          await RPCTypes.delegateUiCtlRegisterLogUIRpcPromise()
+          console.log('Registered Chat UI')
+        } catch (error) {
+          console.warn('Error in registering Chat UI:', error)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {
+      const f = async () => {
+        // need to let the mdoal hide first else its thrashy
+        await Z.timeoutPromise(500)
+        reduxDispatch(
+          Chat2Gen.createNavigateToThread({
+            conversationIDKey: pendingWaitingConversationIDKey,
+            reason: 'justCreated',
+          })
+        )
+        reduxDispatch(
+          Chat2Gen.createCreateConversation({
+            participants: [...users].map(u => u.id),
+          })
+        )
+      }
+      Z.ignorePromise(f())
+    },
+    resetState: 'default',
+  }
+  return {
+    ...initialStore,
+    dispatch,
+  }
+})

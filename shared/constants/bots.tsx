@@ -1,7 +1,6 @@
 import * as RPCTypes from './types/rpc-gen'
 import * as Z from '../util/zustand'
-import * as BotsGen from '../actions/bots-gen'
-import * as EngineGen from '../actions/engine-gen-gen'
+import type * as EngineGen from '../actions/engine-gen-gen'
 import logger from '../logger'
 import {RPCError, isNetworkErr} from '../util/errors'
 
@@ -23,33 +22,49 @@ export const getFeaturedSorted = (
   return featured
 }
 
-type Store = {}
+type BotSearchResults = {
+  bots: Array<RPCTypes.FeaturedBot>
+  users: Array<string>
+}
 
-const initialStore: Store = {}
+type Store = {
+  featuredBotsPage: number
+  featuredBotsLoaded: boolean
+  featuredBotsMap: Map<string, RPCTypes.FeaturedBot>
+  botSearchResults: Map<string, BotSearchResults | undefined> // Keyed so that we never show results that don't match the user's input (e.g. outdated results)
+}
+
+const initialStore: Store = {
+  botSearchResults: new Map(),
+  featuredBotsLoaded: false,
+  featuredBotsMap: new Map(),
+  featuredBotsPage: -1,
+}
 
 type State = Store & {
   dispatch: {
     botsUpdate: (action: EngineGen.Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload) => void
     getFeaturedBots: (limit?: number, page?: number) => void
+    loadNextBotPage: (pageSize?: number) => void
     resetState: 'default'
     searchFeaturedAndUsers: (query: string) => void
     searchFeaturedBots: (query: string, limit?: number, offset?: number) => void
+    setLoadedAllBots: (loaded: boolean) => void
+    setLoadedBotPage: (page: number) => void
+    setSearchFeaturedAndUsersResults: (query: string, results?: BotSearchResults) => void
+    updateFeaturedBots: (bots: Array<RPCTypes.FeaturedBot>, page?: number) => void
   }
 }
 
 const pageSize = 100
-export const useState = Z.createZustand<State>(_set => {
-  // TODO remove when chat is done
-  const reduxDispatch = Z.getReduxDispatch()
+export const useState = Z.createZustand<State>((set, get) => {
   const dispatch: State['dispatch'] = {
     botsUpdate: action => {
       const {bots, limit, offset} = action.payload.params
       const loadedAllBots = !bots || bots.length < pageSize
       const page = offset / (limit ?? pageSize)
-      return [
-        BotsGen.createUpdateFeaturedBots({bots: bots ?? [], page}),
-        BotsGen.createSetLoadedAllBots({loaded: loadedAllBots}),
-      ]
+      get().dispatch.updateFeaturedBots(bots ?? [], page)
+      get().dispatch.setLoadedAllBots(loadedAllBots)
     },
     getFeaturedBots: (limit, page) => {
       const f = async () => {
@@ -60,8 +75,8 @@ export const useState = Z.createZustand<State>(_set => {
             skipCache: false,
           })
           const loadedAllBots = !bots || bots.length < pageSize
-          reduxDispatch(BotsGen.createUpdateFeaturedBots({bots: bots ?? [], page}))
-          reduxDispatch(BotsGen.createSetLoadedAllBots({loaded: loadedAllBots}))
+          get().dispatch.updateFeaturedBots(bots ?? [], page)
+          get().dispatch.setLoadedAllBots(loadedAllBots)
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
@@ -74,6 +89,9 @@ export const useState = Z.createZustand<State>(_set => {
         }
       }
       Z.ignorePromise(f())
+    },
+    loadNextBotPage: ps => {
+      get().dispatch.getFeaturedBots(ps ?? pageSize, get().featuredBotsPage + 1)
     },
     resetState: 'default',
     searchFeaturedAndUsers: query => {
@@ -103,21 +121,16 @@ export const useState = Z.createZustand<State>(_set => {
           logger.info(`searchFeaturedAndUsers: failed to run search: ${error.message}`)
           return
         }
-        reduxDispatch(
-          BotsGen.createSetSearchFeaturedAndUsersResults({
-            query,
-            results: {
-              bots: botRes?.bots || [],
-              users: (userRes ?? []).reduce<Array<string>>((l, r) => {
-                const username = r?.keybase?.username
-                if (username) {
-                  l.push(username)
-                }
-                return l
-              }, []),
-            },
-          })
-        )
+        get().dispatch.setSearchFeaturedAndUsersResults(query, {
+          bots: botRes?.bots || [],
+          users: (userRes ?? []).reduce<Array<string>>((l, r) => {
+            const username = r?.keybase?.username
+            if (username) {
+              l.push(username)
+            }
+            return l
+          }, []),
+        })
       }
       Z.ignorePromise(f())
     },
@@ -133,7 +146,7 @@ export const useState = Z.createZustand<State>(_set => {
             // don't do anything with a bad response from rpc
             return
           }
-          reduxDispatch(BotsGen.createUpdateFeaturedBots({bots}))
+          get().dispatch.updateFeaturedBots(bots)
         } catch (error) {
           if (!(error instanceof RPCError)) {
             return
@@ -146,6 +159,29 @@ export const useState = Z.createZustand<State>(_set => {
         }
       }
       Z.ignorePromise(f())
+    },
+    setLoadedAllBots: loaded => {
+      set(s => {
+        s.featuredBotsLoaded = loaded
+      })
+    },
+    setLoadedBotPage: page => {
+      set(s => {
+        s.featuredBotsPage = page
+      })
+    },
+    setSearchFeaturedAndUsersResults: (query, results) => {
+      set(s => {
+        s.botSearchResults.set(query, results)
+      })
+    },
+    updateFeaturedBots: (bots, page) => {
+      set(s => {
+        bots.map(b => s.featuredBotsMap.set(b.botUsername, b))
+        if (page !== undefined) {
+          s.featuredBotsPage = page
+        }
+      })
     },
   }
   return {
