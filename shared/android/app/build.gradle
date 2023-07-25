@@ -5,7 +5,7 @@ import com.android.build.OutputFile
 import org.apache.tools.ant.taskdefs.condition.Os
 
 // KB: app version
-def VERSION_NAME = "6.2.1"
+def VERSION_NAME = "6.2.2"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
