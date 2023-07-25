@@ -164,7 +164,6 @@ export const updateBlockButtons = 'chat2:updateBlockButtons'
 export const updateCoinFlipStatus = 'chat2:updateCoinFlipStatus'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
-export const updateLastCoord = 'chat2:updateLastCoord'
 export const updateMessages = 'chat2:updateMessages'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
@@ -1077,13 +1076,6 @@ export const createMessageWasEdited = (payload: {
   readonly mentionsChannelName: Map<string, Types.ConversationIDKey>
 }) => ({payload, type: messageWasEdited as typeof messageWasEdited})
 /**
- * Update last known coordinate
- */
-export const createUpdateLastCoord = (payload: {readonly coord: Types.Coordinate}) => ({
-  payload,
-  type: updateLastCoord as typeof updateLastCoord,
-})
-/**
  * Update messages that we might have in the store
  */
 export const createUpdateMessages = (payload: {
@@ -1545,7 +1537,6 @@ export type UpdateBlockButtonsPayload = ReturnType<typeof createUpdateBlockButto
 export type UpdateCoinFlipStatusPayload = ReturnType<typeof createUpdateCoinFlipStatus>
 export type UpdateConvExplodingModesPayload = ReturnType<typeof createUpdateConvExplodingModes>
 export type UpdateConvRetentionPolicyPayload = ReturnType<typeof createUpdateConvRetentionPolicy>
-export type UpdateLastCoordPayload = ReturnType<typeof createUpdateLastCoord>
 export type UpdateMessagesPayload = ReturnType<typeof createUpdateMessages>
 export type UpdateMoreToLoadPayload = ReturnType<typeof createUpdateMoreToLoad>
 export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNotificationSettings>
@@ -1712,7 +1703,6 @@ export type Actions =
   | UpdateCoinFlipStatusPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
-  | UpdateLastCoordPayload
   | UpdateMessagesPayload
   | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload

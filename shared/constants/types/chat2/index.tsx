@@ -228,7 +228,6 @@ export type State = {
   inboxSearch?: InboxSearchInfo
   infoPanelShowing: boolean
   infoPanelSelectedTab?: 'settings' | 'members' | 'attachments' | 'bots'
-  lastCoord?: Coordinate
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,

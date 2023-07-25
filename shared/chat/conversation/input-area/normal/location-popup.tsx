@@ -11,7 +11,6 @@ import type * as Types from '../../../../constants/types/chat2'
 import LocationMap from '../../../location-map'
 import HiddenString from '../../../../util/hidden-string'
 import {watchPositionForMap} from '../../../../actions/platform-specific'
-import shallowEqual from 'shallowequal'
 
 type Props = {conversationIDKey: Types.ConversationIDKey}
 
@@ -19,13 +18,13 @@ const LocationPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
-  const {location, locationDenied} = Container.useSelector(state => {
-    const location = state.chat2.lastCoord
+  const location = Constants.useState(s => s.lastCoord)
+  const locationDenied = Container.useSelector(state => {
     const locationDenied =
       state.chat2.commandStatusMap.get(conversationIDKey)?.displayType ===
       RPCChatTypes.UICommandStatusDisplayTyp.error
-    return {location, locationDenied, username}
-  }, shallowEqual)
+    return locationDenied
+  })
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const dispatch = Container.useDispatch()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)

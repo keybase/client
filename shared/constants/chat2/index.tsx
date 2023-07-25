@@ -85,7 +85,6 @@ export const makeState = (): Types.State => ({
   inboxSearch: undefined,
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
-  lastCoord: undefined,
   markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
@@ -618,10 +617,12 @@ type Store = {
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
   typingMap: Map<Types.ConversationIDKey, Set<string>>
+  lastCoord?: Types.Coordinate
 }
 
 const initialStore: Store = {
   bigTeamBadgeCount: 0,
+  lastCoord: undefined,
   smallTeamBadgeCount: 0,
   typingMap: new Map(),
 }
@@ -636,6 +637,7 @@ type State = Store & {
     onEngineConnected: () => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     resetState: 'default'
+    updateLastCoord: (coord: Types.Coordinate) => void
   }
 }
 
@@ -679,6 +681,16 @@ export const useState = Z.createZustand<State>(set => {
       Z.ignorePromise(f())
     },
     resetState: 'default',
+    updateLastCoord: coord => {
+      set(s => {
+        s.lastCoord = coord
+      })
+      const f = async () => {
+        const {accuracy, lat, lon} = coord
+        await RPCChatTypes.localLocationUpdateRpcPromise({coord: {accuracy, lat, lon}})
+      }
+      Z.ignorePromise(f())
+    },
   }
   return {
     ...initialStore,

@@ -22,7 +22,6 @@ import NotifyPopup from '../../util/notify-popup'
 import PushNotificationIOS from '@react-native-community/push-notification-ios'
 import logger from '../../logger'
 import {Alert, Linking, ActionSheetIOS} from 'react-native'
-import {getEngine} from '../../engine/require'
 import {isIOS, isAndroid} from '../../constants/platform'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker.native'
 import {setupAudioMode} from '../../util/audio.native'
@@ -310,18 +309,11 @@ ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
     return
   }
   const pos = locations[locations.length - 1]
-
-  // a hack to get a naked dispatch instead of storing it multiple times, just reach in here
-  // @ts-ignore
-  getEngine()._dispatch(
-    Chat2Gen.createUpdateLastCoord({
-      coord: {
-        accuracy: Math.floor(pos?.coords.accuracy ?? 0),
-        lat: pos?.coords.latitude ?? 0,
-        lon: pos?.coords.longitude ?? 0,
-      },
-    })
-  )
+  ChatConstants.useState.getState().dispatch.updateLastCoord({
+    accuracy: Math.floor(pos?.coords.accuracy ?? 0),
+    lat: pos?.coords.latitude ?? 0,
+    lon: pos?.coords.longitude ?? 0,
+  })
 })
 
 export const watchPositionForMap = async (
@@ -349,7 +341,7 @@ export const watchPositionForMap = async (
           lat: location.coords.latitude,
           lon: location.coords.longitude,
         }
-        dispatch(Chat2Gen.createUpdateLastCoord({coord}))
+        ChatConstants.useState.getState().dispatch.updateLastCoord(coord)
       }
     )
     return () => sub.remove()

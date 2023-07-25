@@ -3362,11 +3362,6 @@ const ignorePinnedMessage = async (_: unknown, action: Chat2Gen.IgnorePinnedMess
   })
 }
 
-const onUpdateLastCoord = async (_: unknown, action: Chat2Gen.UpdateLastCoordPayload) => {
-  const {accuracy, lat, lon} = action.payload.coord
-  await RPCChatTypes.localLocationUpdateRpcPromise({coord: {accuracy, lat, lon}})
-}
-
 const openChatFromWidget = (
   _: unknown,
   {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
@@ -3992,8 +3987,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.pinMessage, pinMessage)
   Container.listenAction(Chat2Gen.unpinMessage, unpinMessage)
   Container.listenAction(Chat2Gen.ignorePinnedMessage, ignorePinnedMessage)
-
-  Container.listenAction(Chat2Gen.updateLastCoord, onUpdateLastCoord)
 
   Container.listenAction(Chat2Gen.loadAttachmentView, loadAttachmentView)
 

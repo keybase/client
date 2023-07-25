@@ -592,9 +592,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {commandStatusMap} = draftState
     commandStatusMap.delete(conversationIDKey)
   },
-  [Chat2Gen.updateLastCoord]: (draftState, action) => {
-    draftState.lastCoord = action.payload.coord
-  },
   [Chat2Gen.badgesUpdated]: (draftState, action) => {
     const {conversations} = action.payload
     const badgeMap = new Map<Types.ConversationIDKey, number>()

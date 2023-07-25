@@ -790,10 +790,6 @@
       "_description": "Set the bottom banner on a new conversation as dismissed",
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "updateLastCoord": {
-      "_description": "Update last known coordinate",
-      "coord": "Types.Coordinate"
-    },
     "toggleGiphyPrefill": {
       "_description": "Toggle /giphy text to trigger preview window",
       "conversationIDKey": "Types.ConversationIDKey"
