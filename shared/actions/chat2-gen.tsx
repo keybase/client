@@ -47,7 +47,6 @@ export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
 export const hideConversation = 'chat2:hideConversation'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
-export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -549,23 +548,6 @@ export const createRefreshBotRoleInConv = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
 }) => ({payload, type: refreshBotRoleInConv as typeof refreshBotRoleInConv})
-/**
- * Refresh the inbox
- */
-export const createInboxRefresh = (payload: {
-  readonly reason:
-    | 'bootstrap'
-    | 'componentNeverLoaded'
-    | 'inboxStale'
-    | 'inboxSyncedClear'
-    | 'inboxSyncedUnknown'
-    | 'joinedAConversation'
-    | 'leftAConversation'
-    | 'teamTypeChanged'
-    | 'maybeKickedFromTeam'
-    | 'widgetRefresh'
-    | 'shareConfigSearch'
-}) => ({payload, type: inboxRefresh as typeof inboxRefresh})
 /**
  * Refresh user emoji and put it in store for picker
  */
@@ -1260,7 +1242,6 @@ export type GiphySendPayload = ReturnType<typeof createGiphySend>
 export type GiphyToggleWindowPayload = ReturnType<typeof createGiphyToggleWindow>
 export type HideConversationPayload = ReturnType<typeof createHideConversation>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
-export type InboxRefreshPayload = ReturnType<typeof createInboxRefresh>
 export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
@@ -1405,7 +1386,6 @@ export type Actions =
   | GiphyToggleWindowPayload
   | HideConversationPayload
   | IgnorePinnedMessagePayload
-  | InboxRefreshPayload
   | JoinConversationPayload
   | JumpToRecentPayload
   | LeaveConversationPayload

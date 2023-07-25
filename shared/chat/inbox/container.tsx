@@ -111,13 +111,15 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     }
   }
 
+  const inboxRefresh = Constants.useState(s => s.dispatch.inboxRefresh)
+
   Container.useOnMountOnce(() => {
     if (!Container.isMobile) {
       // On mobile this is taken care of by NavigationEvents.
       dispatch(Chat2Gen.createTabSelected())
     }
     if (!inboxHasLoaded) {
-      dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'}))
+      inboxRefresh('componentNeverLoaded')
     }
   })
 

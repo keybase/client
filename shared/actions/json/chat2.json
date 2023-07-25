@@ -64,22 +64,6 @@
       "_description": "Update our badges in the nav",
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"
     },
-    "inboxRefresh": {
-      "_description": "Refresh the inbox",
-      "reason": [
-        "'bootstrap'",
-        "'componentNeverLoaded'",
-        "'inboxStale'",
-        "'inboxSyncedClear'",
-        "'inboxSyncedUnknown'",
-        "'joinedAConversation'",
-        "'leftAConversation'",
-        "'teamTypeChanged'",
-        "'maybeKickedFromTeam'",
-        "'widgetRefresh'",
-        "'shareConfigSearch'"
-      ]
-    },
     "metaNeedsUpdating": {
       "_description": "We want to unbox an inbox row",
       "conversationIDKeys": "Array<Types.ConversationIDKey>",

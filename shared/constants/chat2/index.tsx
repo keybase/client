@@ -706,6 +706,21 @@ export type State = Store & {
       conversationIDKey?: Types.ConversationIDKey
     ) => void
     setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
+    inboxRefresh: (
+      reason:
+        | 'bootstrap'
+        | 'componentNeverLoaded'
+        | 'inboxStale'
+        | 'inboxSyncedClear'
+        | 'inboxSyncedUnknown'
+        | 'joinedAConversation'
+        | 'leftAConversation'
+        | 'teamTypeChanged'
+        | 'maybeKickedFromTeam'
+        | 'widgetRefresh'
+        | 'shareConfigSearch'
+    ) => void
+
     inboxSearch: (query: string) => void
     inboxSearchMoveSelectedIndex: (increment: boolean) => void
     inboxSearchSelect: (
@@ -736,6 +751,31 @@ export const useState = Z.createZustand<State>((set, get) => {
           message,
         }
       })
+    },
+    inboxRefresh: reason => {
+      const f = async () => {
+        const {username} = ConfigConstants.useCurrentUserState.getState()
+        const {loggedIn} = ConfigConstants.useConfigState.getState()
+        if (!loggedIn || !username) {
+          return
+        }
+        const clearExistingMetas = reason === 'inboxSyncedClear'
+        const clearExistingMessages = reason === 'inboxSyncedClear'
+
+        logger.info(`Inbox refresh due to ${reason}`)
+        const reselectMode =
+          get().inboxHasLoaded || isPhone
+            ? RPCChatTypes.InboxLayoutReselectMode.default
+            : RPCChatTypes.InboxLayoutReselectMode.force
+        await RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
+        if (clearExistingMetas) {
+          reduxDispatch(Chat2Gen.createClearMetas())
+        }
+        if (clearExistingMessages) {
+          reduxDispatch(Chat2Gen.createClearMessages())
+        }
+      }
+      Z.ignorePromise(f())
     },
     inboxSearch: query => {
       set(s => {

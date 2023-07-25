@@ -45,50 +45,6 @@ const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChat
   return Chat2Gen.createMetasReceived({fromInboxRefresh: true, metas})
 }
 
-// Ask the service to refresh the inbox
-const inboxRefresh = (
-  _state: unknown,
-  action: Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload
-) => {
-  const {username} = ConfigConstants.useCurrentUserState.getState()
-  const {loggedIn} = ConfigConstants.useConfigState.getState()
-  if (!loggedIn || !username) {
-    return false
-  }
-  const actions: Array<Container.TypedActions> = []
-  let reason: string = ''
-  let clearExistingMetas = false
-  let clearExistingMessages = false
-
-  switch (action.type) {
-    case Chat2Gen.inboxRefresh:
-      reason = action.payload.reason
-      clearExistingMetas = reason === 'inboxSyncedClear'
-      clearExistingMessages = reason === 'inboxSyncedClear'
-      break
-    case EngineGen.chat1NotifyChatChatInboxStale:
-      reason = 'inboxStale'
-      break
-    default:
-  }
-
-  logger.info(`Inbox refresh due to ${reason}`)
-  if (clearExistingMetas) {
-    actions.push(Chat2Gen.createClearMetas())
-  }
-  if (clearExistingMessages) {
-    actions.push(Chat2Gen.createClearMessages())
-  }
-  const reselectMode =
-    Constants.useState.getState().inboxHasLoaded || Container.isPhone
-      ? RPCChatTypes.InboxLayoutReselectMode.default
-      : RPCChatTypes.InboxLayoutReselectMode.force
-  RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
-    .then(() => {})
-    .catch(() => {})
-  return actions
-}
-
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (state: Container.TypedState, ids: Array<Types.ConversationIDKey>) =>
   ids.filter(id => (state.chat2.metaMap.get(id) ?? {trustedState: 'untrusted'}).trustedState === 'untrusted')
@@ -630,13 +586,14 @@ const onChatInboxSynced = (
   const {syncRes} = action.payload.params
 
   const {clear} = WaitingConstants.useWaitingState.getState().dispatch
+  const {inboxRefresh} = Constants.useState.getState().dispatch
   clear(Constants.waitingKeyInboxSyncStarted)
   const actions: Array<Container.TypedActions> = []
 
   switch (syncRes.syncType) {
     // Just clear it all
     case RPCChatTypes.SyncInboxResType.clear:
-      actions.push(Chat2Gen.createInboxRefresh({reason: 'inboxSyncedClear'}))
+      inboxRefresh('inboxSyncedClear')
       break
     // We're up to date
     case RPCChatTypes.SyncInboxResType.current:
@@ -681,7 +638,7 @@ const onChatInboxSynced = (
       break
     }
     default:
-      actions.push(Chat2Gen.createInboxRefresh({reason: 'inboxSyncedUnknown'}))
+      inboxRefresh('inboxSyncedUnknown')
   }
   return actions
 }
@@ -1208,7 +1165,8 @@ const loadMoreMessages = (
         logger.warn(error.desc)
         // no longer in team
         if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-          reduxDispatch(Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}))
+          const {inboxRefresh} = Constants.useState.getState().dispatch
+          inboxRefresh('maybeKickedFromTeam')
           reduxDispatch(Chat2Gen.createNavigateToInbox())
         }
         if (error.code !== RPCTypes.StatusCode.scteamreaderror) {
@@ -1274,7 +1232,8 @@ const getUnreadline = async (
   } catch (error) {
     if (error instanceof RPCError) {
       if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-        listenerApi.dispatch(Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}))
+        const {inboxRefresh} = Constants.useState.getState().dispatch
+        inboxRefresh('maybeKickedFromTeam')
         listenerApi.dispatch(Chat2Gen.createNavigateToInbox())
       }
     }
@@ -3471,7 +3430,9 @@ const initChat = () => {
   }
 
   // Refresh the inbox
-  Container.listenAction([Chat2Gen.inboxRefresh, EngineGen.chat1NotifyChatChatInboxStale], inboxRefresh)
+  Container.listenAction(EngineGen.chat1NotifyChatChatInboxStale, () => {
+    Constants.useState.getState().dispatch.inboxRefresh('inboxStale')
+  })
   Container.listenAction([Chat2Gen.selectedConversation, Chat2Gen.metasReceived], ensureSelectedTeamLoaded)
   // We've scrolled some new inbox rows into view, queue them up
   Container.listenAction(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
@@ -3546,12 +3507,12 @@ const initChat = () => {
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase === old.loadOnStartPhase) return
-    const reduxDispatch = Z.getReduxDispatch()
     switch (s.loadOnStartPhase) {
       case 'startupOrReloginButNotInARush': {
         // On login lets load the untrusted inbox. This helps make some flows easier
         if (ConfigConstants.useCurrentUserState.getState().username) {
-          reduxDispatch(Chat2Gen.createInboxRefresh({reason: 'bootstrap'}))
+          const {inboxRefresh} = Constants.useState.getState().dispatch
+          inboxRefresh('bootstrap')
         }
         const f = async () => {
           const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})

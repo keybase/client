@@ -1,6 +1,5 @@
 // Entrypoint for the menubar node part
 import * as RemoteGen from '../../actions/remote-gen'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Electron from 'electron'
 import logger from '../../logger'
 import {isDarwin, isWindows, isLinux, getAssetPath} from '../../constants/platform.desktop'
@@ -195,11 +194,7 @@ const MenuBar = () => {
     }
 
     mb.on('show', () => {
-      mainWindowDispatch(
-        Chat2Gen.createInboxRefresh({
-          reason: 'widgetRefresh',
-        })
-      )
+      mainWindowDispatch(RemoteGen.createInboxRefresh())
       adjustForWindows()
     })
     mb.on('hide', () => {})

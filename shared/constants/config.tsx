@@ -340,6 +340,14 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       switch (action.type) {
         case RemoteGen.resetStore:
           break
+        case RemoteGen.inboxRefresh: {
+          const f = async () => {
+            const ChatConstants = await import('./chat2')
+            ChatConstants.useState.getState().dispatch.inboxRefresh('widgetRefresh')
+          }
+          Z.ignorePromise(f())
+          break
+        }
         case RemoteGen.engineConnection: {
           const f = async () => {
             const EngineConstants = await import('./engine')
