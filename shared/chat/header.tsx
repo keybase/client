@@ -19,11 +19,11 @@ type Props = {
 const Header = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const data = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
     const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-    const infoPanelShowing = state.chat2.infoPanelShowing
     // TODO not reactive
     const canEditDesc = TeamConstants.getCanPerform(
       TeamConstants.useState.getState(),
@@ -33,7 +33,6 @@ const Header = (props: Props) => {
       canEditDesc,
       channelname,
       descriptionDecorated,
-      infoPanelShowing,
       isMuted,
       participantInfo,
       teamType,
@@ -41,7 +40,7 @@ const Header = (props: Props) => {
     }
   }, shallowEqual)
 
-  const {canEditDesc, channelname, descriptionDecorated, infoPanelShowing, isMuted} = data
+  const {canEditDesc, channelname, descriptionDecorated, isMuted} = data
   const {participantInfo, teamType, teamname} = data
   const otherParticipants = Constants.getRowParticipants(participantInfo, username)
   const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
@@ -60,9 +59,11 @@ const Header = (props: Props) => {
   const unMuteConversation = React.useCallback(() => {
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false}))
   }, [dispatch, conversationIDKey])
+
+  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const onToggleInfoPanel = React.useCallback(() => {
-    dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: !infoPanelShowing}))
-  }, [dispatch, conversationIDKey, infoPanelShowing])
+    showInfoPanel(!infoPanelShowing, undefined, conversationIDKey)
+  }, [showInfoPanel, conversationIDKey, infoPanelShowing])
 
   const channel = teamType === 'big' ? `${teamname}#${channelname}` : teamType === 'small' ? teamname : null
   const isTeam = ['small', 'big'].includes(teamType)
@@ -314,7 +315,7 @@ const styles = Styles.styleSheetCreate(
       shhIconStyle: {
         marginLeft: Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default Header

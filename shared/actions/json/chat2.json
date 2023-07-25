@@ -849,11 +849,6 @@
       "username": "string",
       "role?": "TeamsTypes.TeamRoleType"
     },
-    "showInfoPanel": {
-      "tab?": "'settings' | 'members' | 'attachments' | 'bots'",
-      "show": "boolean",
-      "conversationIDKey?": "Types.ConversationIDKey"
-    },
     "dismissJourneycard": {
       "_description": "Dismiss a journeycard",
       "conversationIDKey": "Types.ConversationIDKey",

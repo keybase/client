@@ -1,6 +1,6 @@
-import * as Chat2Gen from './chat2-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/config'
+import * as ChatConstants from '../constants/chat2'
 import * as Platform from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as DarkMode from '../constants/darkmode'
@@ -24,7 +24,6 @@ const getFollowerInfo = () => {
 // set to true so we reget status when we're reachable again
 const loadDaemonBootstrapStatus = async (fromGregor: boolean) => {
   const version = Constants.useDaemonState.getState().handshakeVersion
-  const reduxDispatch = Z.getReduxDispatch()
   const {wait} = Constants.useDaemonState.getState().dispatch
   const {setBootstrap} = Constants.useCurrentUserState.getState().dispatch
   const {setDefaultUsername} = Constants.useConfigState.getState().dispatch
@@ -42,7 +41,7 @@ const loadDaemonBootstrapStatus = async (fromGregor: boolean) => {
 
     logger.info(`[Bootstrap] loggedIn: ${loggedIn ? 1 : 0}`)
     Constants.useConfigState.getState().dispatch.setLoggedIn(loggedIn, false)
-    reduxDispatch(Chat2Gen.createUpdateUserReacjis({userReacjis}))
+    ChatConstants.useState.getState().dispatch.updateUserReacjis(userReacjis)
 
     // set HTTP srv info
     if (s.httpSrvInfo) {

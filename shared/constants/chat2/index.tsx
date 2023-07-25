@@ -8,7 +8,7 @@ import * as TeamConstants from '../teams'
 import logger from '../../logger'
 import * as Message from './message'
 import type * as Wallet from '../types/wallets'
-import {isMobile, isTablet} from '../platform'
+import {isMobile, isTablet, isPhone} from '../platform'
 import {
   noConversationIDKey,
   pendingWaitingConversationIDKey,
@@ -85,8 +85,6 @@ export const makeState = (): Types.State => ({
   inboxLayout: undefined,
   inboxNumSmallRows: 5,
   inboxSearch: undefined,
-  infoPanelSelectedTab: undefined,
-  infoPanelShowing: false,
   markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
@@ -638,11 +636,15 @@ type Store = {
   userReacjis: Types.UserReacjis
   userEmojis?: RPCChatTypes.EmojiGroup[]
   userEmojisForAutocomplete?: Array<RPCChatTypes.Emoji>
+  infoPanelShowing: boolean
+  infoPanelSelectedTab?: 'settings' | 'members' | 'attachments' | 'bots'
 }
 
 const initialStore: Store = {
   bigTeamBadgeCount: 0,
   createConversationError: undefined,
+  infoPanelSelectedTab: undefined,
+  infoPanelShowing: false,
   lastCoord: undefined,
   paymentStatusMap: new Map(),
   smallTeamBadgeCount: 0,
@@ -683,6 +685,11 @@ export type State = Store & {
     updateLastCoord: (coord: Types.Coordinate) => void
     updateUserReacjis: (userReacjis: RPCTypes.UserReacjis) => void
     loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
+    showInfoPanel: (
+      show: boolean,
+      tab?: 'settings' | 'members' | 'attachments' | 'bots',
+      conversationIDKey?: Types.ConversationIDKey
+    ) => void
   }
 }
 
@@ -818,6 +825,30 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.trustedInboxHasLoaded = true
       })
+    },
+    showInfoPanel: (
+      show: boolean,
+      tab?: 'settings' | 'members' | 'attachments' | 'bots',
+      conversationIDKey?: Types.ConversationIDKey
+    ) => {
+      set(s => {
+        s.infoPanelShowing = show
+        s.infoPanelSelectedTab = show ? tab : undefined
+      })
+
+      if (isPhone) {
+        const visibleScreen = Router2.getVisibleScreen()
+        if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
+          if (show) {
+            Router2.useState
+              .getState()
+              .dispatch.navigateAppend({props: {conversationIDKey, tab}, selected: 'chatInfoPanel'})
+          } else {
+            Router2.useState.getState().dispatch.navigateUp()
+            conversationIDKey && reduxDispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+          }
+        }
+      }
     },
     toggleSmallTeamsExpanded: () => {
       set(s => {

@@ -1,10 +1,9 @@
 import * as React from 'react'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
 import * as TeamConstants from '../../../../constants/teams'
+import * as Constants from '../../../../constants/chat2'
 import RetentionNotice from '.'
-import {getMeta} from '../../../../constants/chat2'
 import {makeRetentionNotice} from '../../../../util/teams'
 
 type OwnProps = {conversationIDKey: ChatTypes.ConversationIDKey}
@@ -13,7 +12,7 @@ const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer(p:
   const {conversationIDKey} = p
 
   const meta = Container.useSelector(state => {
-    return getMeta(state, conversationIDKey)
+    return Constants.getMeta(state, conversationIDKey)
   })
   const {teamType, retentionPolicy, teamRetentionPolicy} = meta
   const canChange = TeamConstants.useState(s => {
@@ -22,10 +21,10 @@ const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer(p:
       : true
   })
 
-  const dispatch = Container.useDispatch()
+  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const onChange = React.useCallback(
-    () => dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'settings'})),
-    [dispatch, conversationIDKey]
+    () => showInfoPanel(true, 'settings', conversationIDKey),
+    [showInfoPanel, conversationIDKey]
   )
   const explanation = makeRetentionNotice(retentionPolicy, teamRetentionPolicy, teamType) ?? undefined
 

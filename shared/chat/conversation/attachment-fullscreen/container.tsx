@@ -96,13 +96,12 @@ const Connected = (props: OwnProps) => {
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   return (
     <Fullscreen
       message={message}
       isVideo={Constants.isVideoAttachment(message)}
-      onAllMedia={() =>
-        dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'attachments'}))
-      }
+      onAllMedia={() => showInfoPanel(true, 'attachments', conversationIDKey)}
       onClose={() => navigateUp()}
       onDownloadAttachment={
         message.downloadPath

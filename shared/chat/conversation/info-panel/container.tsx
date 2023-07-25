@@ -15,7 +15,7 @@ type Props = {
 }>
 
 const InfoPanelConnector = (props: Props) => {
-  const storeSelectedTab = Container.useSelector(state => state.chat2.infoPanelSelectedTab)
+  const storeSelectedTab = Constants.useState(s => s.infoPanelSelectedTab)
   const initialTab = props.tab ?? storeSelectedTab
 
   const conversationIDKey: Types.ConversationIDKey =
@@ -33,8 +33,9 @@ const InfoPanelConnector = (props: Props) => {
   const [lastSNO, setLastSNO] = React.useState(shouldNavigateOut)
 
   const dispatch = Container.useDispatch()
+  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const onCancel = () => {
-    dispatch(Chat2Gen.createShowInfoPanel({show: false}))
+    showInfoPanel(false)
     dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
   }
   const onGoToInbox = React.useCallback(() => dispatch(Chat2Gen.createNavigateToInbox()), [dispatch])

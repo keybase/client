@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as TrackerConstants from '../../../../constants/tracker2'
 import * as TeamsConstants from '../../../../constants/teams'
@@ -24,15 +23,15 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
     meta.teamType === 'adhoc' ? true : getCanPerform(s, meta.teamname).setRetentionPolicy
   )
 
-  const dispatch = Container.useDispatch()
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onClickUserAvatar = React.useCallback(() => {
     Container.isMobile ? showUserProfile(user) : showUser(user, true)
   }, [showUserProfile, showUser, user])
+  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const onManageRetention = React.useCallback(() => {
-    dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'settings'}))
-  }, [dispatch, conversationIDKey])
+    showInfoPanel(true, 'settings', conversationIDKey)
+  }, [showInfoPanel, conversationIDKey])
   const props = {
     canManage,
     isInherit,

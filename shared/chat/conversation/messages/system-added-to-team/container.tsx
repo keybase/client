@@ -1,7 +1,6 @@
 import * as RouterConstants from '../../../../constants/router2'
 import * as React from 'react'
 import * as Container from '../../../../util/container'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigConstants from '../../../../constants/config'
 import type * as Types from '../../../../constants/types/chat2'
@@ -27,10 +26,10 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
   const isAdmin = authorIsAdmin || authorIsOwner
   const isTeam = teamType === 'big' || teamType === 'small'
 
-  const dispatch = Container.useDispatch()
+  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const onManageNotifications = React.useCallback(() => {
-    dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'settings'}))
-  }, [dispatch, conversationIDKey])
+    showInfoPanel(true, 'settings', conversationIDKey)
+  }, [showInfoPanel, conversationIDKey])
 
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onViewBot = React.useCallback(() => {
@@ -44,9 +43,9 @@ const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
     if (teamID) {
       navigateAppend({props: {teamID}, selected: 'team'})
     } else {
-      dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'settings'}))
+      showInfoPanel(true, 'settings', conversationIDKey)
     }
-  }, [navigateAppend, dispatch, conversationIDKey, teamID])
+  }, [navigateAppend, showInfoPanel, conversationIDKey, teamID])
 
   const props = {
     addee,

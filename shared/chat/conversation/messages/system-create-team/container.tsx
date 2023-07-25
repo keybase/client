@@ -1,5 +1,4 @@
 import * as RouterConstants from '../../../../constants/router2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Container from '../../../../util/container'
@@ -20,16 +19,15 @@ const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const isAdmin = TeamConstants.isAdmin(role) || TeamConstants.isOwner(role)
   const team = teamname
-  const dispatch = Container.useDispatch()
-
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const onViewTeam = React.useCallback(() => {
     if (teamID) {
       navigateAppend({props: {teamID}, selected: 'team'})
     } else {
-      dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'settings'}))
+      showInfoPanel(true, 'settings', conversationIDKey)
     }
-  }, [navigateAppend, dispatch, teamID, conversationIDKey])
+  }, [showInfoPanel, navigateAppend, teamID, conversationIDKey])
 
   const props = {
     creator,

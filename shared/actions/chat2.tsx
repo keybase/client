@@ -570,21 +570,20 @@ const messagesUpdatedToActions = (state: Container.TypedState, info: RPCChatType
 }
 
 // Get actions to update the messagemap when reactions are updated
-const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif): Array<Container.TypedActions> => {
+const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
   const conversationIDKey = Types.conversationIDToKey(info.convID)
   if (!info.reactionUpdates || info.reactionUpdates.length === 0) {
     logger.warn(`Got ReactionUpdateNotif with no reactionUpdates for convID=${conversationIDKey}`)
-    return []
+    return
   }
   const updates = info.reactionUpdates.map(ru => ({
     reactions: Constants.reactionMapToReactions(ru.reactions),
     targetMsgID: ru.targetMsgID,
   }))
   logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
-  return [
-    Chat2Gen.createUpdateReactions({conversationIDKey, updates}),
-    Chat2Gen.createUpdateUserReacjis({userReacjis: info.userReacjis}),
-  ]
+  const reduxDispatch = Z.getReduxDispatch()
+  reduxDispatch(Chat2Gen.createUpdateReactions({conversationIDKey, updates}))
+  Constants.useState.getState().dispatch.updateUserReacjis(info.userReacjis)
 }
 
 const onChatPromptUnfurl = (_: unknown, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
@@ -898,7 +897,7 @@ const onNewChatActivity = (
       actions = ephemeralPurgeToActions(activity.ephemeralPurge)
       break
     case RPCChatTypes.ChatActivityType.reactionUpdate:
-      actions = reactionUpdateToActions(activity.reactionUpdate)
+      reactionUpdateToActions(activity.reactionUpdate)
       break
     case RPCChatTypes.ChatActivityType.messagesUpdated: {
       actions = messagesUpdatedToActions(state, activity.messagesUpdated)
@@ -2561,7 +2560,7 @@ const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload
     },
     Constants.waitingKeyLoadingEmoji
   )
-  return Chat2Gen.createLoadedUserEmoji({results})
+  Constants.useState.getState().dispatch.loadedUserEmoji(results)
 }
 
 // Helpers to nav you to the right place
@@ -2839,7 +2838,7 @@ const hideConversation = async (
   // does that with better information. It knows the conversation is hidden even before
   // that state bounces back.
   listenerApi.dispatch(Chat2Gen.createNavigateToInbox())
-  listenerApi.dispatch(Chat2Gen.createShowInfoPanel({show: false}))
+  Constants.useState.getState().dispatch.showInfoPanel(false)
   try {
     await RPCChatTypes.localSetConversationStatusLocalRpcPromise(
       {
@@ -3579,27 +3578,6 @@ const refreshBotSettings = async (_: unknown, action: Chat2Gen.RefreshBotSetting
   return Chat2Gen.createSetBotSettings({conversationIDKey, settings, username})
 }
 
-const onShowInfoPanel = (_: unknown, action: Chat2Gen.ShowInfoPanelPayload) => {
-  const {conversationIDKey, show, tab} = action.payload
-  if (Container.isPhone) {
-    const visibleScreen = RouterConstants.getVisibleScreen()
-    if ((visibleScreen?.name === 'chatInfoPanel') !== show) {
-      if (show) {
-        RouterConstants.useState
-          .getState()
-          .dispatch.navigateAppend({props: {conversationIDKey, tab}, selected: 'chatInfoPanel'})
-        return
-      } else {
-        RouterConstants.useState.getState().dispatch.navigateUp()
-        return conversationIDKey ? [Chat2Gen.createClearAttachmentView({conversationIDKey})] : []
-      }
-    }
-    return false
-  } else {
-    return false
-  }
-}
-
 const maybeChangeChatSelection = (
   prev: RouterConstants.State['navState'],
   next: RouterConstants.State['navState']
@@ -3935,8 +3913,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.loadAttachmentView, loadAttachmentView)
 
   Container.listenAction(Chat2Gen.selectedConversation, ensureSelectedMeta)
-
-  Container.listenAction(Chat2Gen.showInfoPanel, onShowInfoPanel)
 
   Container.listenAction(Chat2Gen.selectedConversation, fetchConversationBio)
 

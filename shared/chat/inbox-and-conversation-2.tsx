@@ -18,7 +18,7 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
   const navKey = props?.navKey ?? ''
   const dispatch = Container.useDispatch()
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
-  const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
+  const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
   const needSelectConvoID = Container.useSelector(state => {
     if (validConvoID) {
@@ -76,7 +76,7 @@ const styles = Styles.styleSheetCreate(
         top: 0,
         width: 320,
       },
-    } as const)
+    }) as const
 )
 
 export default InboxAndConversation

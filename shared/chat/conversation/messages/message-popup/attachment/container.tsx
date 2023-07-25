@@ -62,9 +62,10 @@ export default (ownProps: OwnProps) => {
     })
   }
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
+  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const _onAllMedia = (conversationIDKey: Types.ConversationIDKey) => {
     clearModals()
-    dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'attachments'}))
+    showInfoPanel(true, 'attachments', conversationIDKey)
   }
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopyLink = (label: string, message: Types.Message) => {

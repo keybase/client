@@ -74,8 +74,8 @@ const useReacji = ({conversationIDKey, onDidPick, onPickAction, onPickAddToMessa
 
 const useSkinTone = () => {
   const currentSkinTone = Types.EmojiSkinToneFromRPC(Constants.useState(s => s.userReacjis.skinTone))
-  const dispatch = Container.useDispatch()
   const rpc = useRPC(RPCChatGen.localPutReacjiSkinToneRpcPromise)
+  const updateUserReacjis = Constants.useState(s => s.dispatch.updateUserReacjis)
   const setSkinTone = (emojiSkinTone: undefined | Types.EmojiSkinTone) => {
     rpc(
       [
@@ -83,7 +83,7 @@ const useSkinTone = () => {
           skinTone: Types.EmojiSkinToneToRPC(emojiSkinTone),
         },
       ],
-      res => dispatch(Chat2Gen.createUpdateUserReacjis({userReacjis: res})),
+      res => updateUserReacjis(res),
       err => {
         throw err
       }

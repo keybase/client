@@ -377,27 +377,25 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   }
 
   const isTyping = Constants.useState(s => !!s.typingMap.get(conversationIDKey)?.size)
-
+  const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const data = Container.useSelector(state => {
     const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
     const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
     const cannotWrite = Constants.getMeta(state, conversationIDKey).cannotWrite
     const minWriterRole = Constants.getMeta(state, conversationIDKey).minWriterRole
-    const infoPanelShowing = state.chat2.infoPanelShowing
     const suggestBotCommandsUpdateStatus =
       state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
       RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
     return {
       cannotWrite,
       explodingModeSeconds,
-      infoPanelShowing,
       minWriterRole,
       showTypingStatus,
       suggestBotCommandsUpdateStatus,
     }
   }, shallowEqual)
-  const {cannotWrite, explodingModeSeconds, infoPanelShowing} = data
-  const {minWriterRole, showTypingStatus, suggestBotCommandsUpdateStatus} = data
+  const {cannotWrite, explodingModeSeconds, minWriterRole, showTypingStatus, suggestBotCommandsUpdateStatus} =
+    data
 
   Container.useDepChangeEffect(() => {
     inputRef.current?.focus()

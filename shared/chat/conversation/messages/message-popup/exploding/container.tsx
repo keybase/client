@@ -81,14 +81,9 @@ export default (ownProps: OwnProps) => {
       selected: 'chatChooseEmoji',
     })
   }
+  const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const _onAllMedia = () => {
-    dispatch(
-      Chat2Gen.createShowInfoPanel({
-        conversationIDKey: ownProps.conversationIDKey,
-        show: true,
-        tab: 'attachments',
-      })
-    )
+    showInfoPanel(true, 'attachments', ownProps.conversationIDKey)
   }
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const _onCopy = (h: Container.HiddenString) => {

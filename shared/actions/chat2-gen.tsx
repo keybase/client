@@ -66,7 +66,6 @@ export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const loadedMutualTeams = 'chat2:loadedMutualTeams'
-export const loadedUserEmoji = 'chat2:loadedUserEmoji'
 export const markAsUnread = 'chat2:markAsUnread'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
@@ -137,7 +136,6 @@ export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
-export const showInfoPanel = 'chat2:showInfoPanel'
 export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
@@ -164,7 +162,6 @@ export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateReactions = 'chat2:updateReactions'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateUnreadline = 'chat2:updateUnreadline'
-export const updateUserReacjis = 'chat2:updateUserReacjis'
 
 // Action Creators
 /**
@@ -1284,10 +1281,6 @@ export const createLoadedMutualTeams = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly teamIDs: Array<TeamsTypes.TeamID>
 }) => ({payload, type: loadedMutualTeams as typeof loadedMutualTeams})
-export const createLoadedUserEmoji = (payload: {readonly results: RPCChatTypes.UserEmojiRes}) => ({
-  payload,
-  type: loadedUserEmoji as typeof loadedUserEmoji,
-})
 export const createMessageSendByUsernames = (payload: {
   readonly usernames: string
   readonly text: HiddenString
@@ -1319,18 +1312,9 @@ export const createSetInboxNumSmallRows = (payload: {
   readonly ignoreWrite?: boolean
   readonly rows: number
 }) => ({payload, type: setInboxNumSmallRows as typeof setInboxNumSmallRows})
-export const createShowInfoPanel = (payload: {
-  readonly tab?: 'settings' | 'members' | 'attachments' | 'bots'
-  readonly show: boolean
-  readonly conversationIDKey?: Types.ConversationIDKey
-}) => ({payload, type: showInfoPanel as typeof showInfoPanel})
 export const createUnhideConversation = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
   payload,
   type: unhideConversation as typeof unhideConversation,
-})
-export const createUpdateUserReacjis = (payload: {readonly userReacjis: RPCTypes.UserReacjis}) => ({
-  payload,
-  type: updateUserReacjis as typeof updateUserReacjis,
 })
 
 // Action Payloads
@@ -1391,7 +1375,6 @@ export type LoadMessagesCenteredPayload = ReturnType<typeof createLoadMessagesCe
 export type LoadNewerMessagesDueToScrollPayload = ReturnType<typeof createLoadNewerMessagesDueToScroll>
 export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
 export type LoadedMutualTeamsPayload = ReturnType<typeof createLoadedMutualTeams>
-export type LoadedUserEmojiPayload = ReturnType<typeof createLoadedUserEmoji>
 export type MarkAsUnreadPayload = ReturnType<typeof createMarkAsUnread>
 export type MarkConversationsStalePayload = ReturnType<typeof createMarkConversationsStale>
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
@@ -1462,7 +1445,6 @@ export type SetThreadLoadStatusPayload = ReturnType<typeof createSetThreadLoadSt
 export type SetThreadSearchQueryPayload = ReturnType<typeof createSetThreadSearchQuery>
 export type SetThreadSearchStatusPayload = ReturnType<typeof createSetThreadSearchStatus>
 export type SetUnsentTextPayload = ReturnType<typeof createSetUnsentText>
-export type ShowInfoPanelPayload = ReturnType<typeof createShowInfoPanel>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ThreadSearchPayload = ReturnType<typeof createThreadSearch>
 export type ThreadSearchResultsPayload = ReturnType<typeof createThreadSearchResults>
@@ -1489,7 +1471,6 @@ export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNo
 export type UpdateReactionsPayload = ReturnType<typeof createUpdateReactions>
 export type UpdateTeamRetentionPolicyPayload = ReturnType<typeof createUpdateTeamRetentionPolicy>
 export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
-export type UpdateUserReacjisPayload = ReturnType<typeof createUpdateUserReacjis>
 
 // All Actions
 // prettier-ignore
@@ -1551,7 +1532,6 @@ export type Actions =
   | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
   | LoadedMutualTeamsPayload
-  | LoadedUserEmojiPayload
   | MarkAsUnreadPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
@@ -1622,7 +1602,6 @@ export type Actions =
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
-  | ShowInfoPanelPayload
   | TabSelectedPayload
   | ThreadSearchPayload
   | ThreadSearchResultsPayload
@@ -1649,5 +1628,4 @@ export type Actions =
   | UpdateReactionsPayload
   | UpdateTeamRetentionPolicyPayload
   | UpdateUnreadlinePayload
-  | UpdateUserReacjisPayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}
