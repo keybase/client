@@ -147,7 +147,6 @@ export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const toggleReplyToMessage = 'chat2:toggleReplyToMessage'
-export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
 export const toggleThreadSearch = 'chat2:toggleThreadSearch'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
@@ -1326,10 +1325,6 @@ export const createShowInfoPanel = (payload: {
   readonly show: boolean
   readonly conversationIDKey?: Types.ConversationIDKey
 }) => ({payload, type: showInfoPanel as typeof showInfoPanel})
-export const createToggleSmallTeamsExpanded = (payload?: undefined) => ({
-  payload,
-  type: toggleSmallTeamsExpanded as typeof toggleSmallTeamsExpanded,
-})
 export const createUnhideConversation = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
   payload,
   type: unhideConversation as typeof unhideConversation,
@@ -1478,7 +1473,6 @@ export type ToggleLocalReactionPayload = ReturnType<typeof createToggleLocalReac
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
 export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
 export type ToggleReplyToMessagePayload = ReturnType<typeof createToggleReplyToMessage>
-export type ToggleSmallTeamsExpandedPayload = ReturnType<typeof createToggleSmallTeamsExpanded>
 export type ToggleThreadSearchPayload = ReturnType<typeof createToggleThreadSearch>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
 export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePrompt>
@@ -1639,7 +1633,6 @@ export type Actions =
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload
   | ToggleReplyToMessagePayload
-  | ToggleSmallTeamsExpandedPayload
   | ToggleThreadSearchPayload
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload

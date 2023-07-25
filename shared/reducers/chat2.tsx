@@ -446,9 +446,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.resetStore]: () => {
     return {...initialState}
   },
-  [Chat2Gen.toggleSmallTeamsExpanded]: draftState => {
-    draftState.smallTeamsExpanded = !draftState.smallTeamsExpanded
-  },
   [Chat2Gen.selectedConversation]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {threadLoadStatus, containsLatestMessageMap, orangeLineMap} = draftState

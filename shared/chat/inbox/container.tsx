@@ -103,10 +103,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     },
     [dispatch]
   )
-  const toggleSmallTeamsExpanded = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleSmallTeamsExpanded())
-  }, [dispatch])
-
+  const toggleSmallTeamsExpanded = Constants.useState(s => s.dispatch.toggleSmallTeamsExpanded)
   const [lastIsFocused, setLastIsFocused] = React.useState(isFocused)
 
   if (lastIsFocused !== isFocused) {
@@ -150,7 +147,7 @@ const Connected = (ownProps: OwnProps) => {
   const _inboxLayout = inboxLayout
   const _selectedConversationIDKey = conversationIDKey ?? Constants.noConversationIDKey
   const isSearching = Container.useSelector(state => !!state.chat2.inboxSearch)
-  const smallTeamsExpanded = Container.useSelector(state => state.chat2.smallTeamsExpanded)
+  const smallTeamsExpanded = Constants.useState(s => s.smallTeamsExpanded)
   const {navKey} = ownProps
   const bigTeams = _inboxLayout ? _inboxLayout.bigTeams || [] : []
   const showAllSmallRows = smallTeamsExpanded || !bigTeams.length

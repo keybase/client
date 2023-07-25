@@ -102,7 +102,6 @@ export const makeState = (): Types.State => ({
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
   replyToMap: new Map(),
   shouldDeleteZzzJourneycard: new Map(),
-  smallTeamsExpanded: false,
   teamIDToGeneralConvID: new Map(),
   threadLoadStatus: new Map(),
   threadSearchInfoMap: new Map(),
@@ -635,6 +634,7 @@ type Store = {
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
   typingMap: Map<Types.ConversationIDKey, Set<string>>
+  smallTeamsExpanded: boolean // if we're showing all small teams,
   lastCoord?: Types.Coordinate
   paymentStatusMap: Map<Wallet.PaymentID, Types.ChatPaymentInfo>
   staticConfig?: Types.StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
@@ -646,6 +646,7 @@ const initialStore: Store = {
   lastCoord: undefined,
   paymentStatusMap: new Map(),
   smallTeamBadgeCount: 0,
+  smallTeamsExpanded: false,
   staticConfig: undefined,
   typingMap: new Map(),
 }
@@ -673,6 +674,7 @@ export type State = Store & {
     ) => void
     resetState: () => void
     resetConversationErrored: () => void
+    toggleSmallTeamsExpanded: () => void
     updateLastCoord: (coord: Types.Coordinate) => void
   }
 }
@@ -794,6 +796,11 @@ export const useState = Z.createZustand<State>((set, get) => {
         dispatch: s.dispatch,
         staticConfig: s.staticConfig,
       }))
+    },
+    toggleSmallTeamsExpanded: () => {
+      set(s => {
+        s.smallTeamsExpanded = !s.smallTeamsExpanded
+      })
     },
     updateLastCoord: coord => {
       set(s => {
