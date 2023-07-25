@@ -48,16 +48,6 @@ export const giphyToggleWindow = 'chat2:giphyToggleWindow'
 export const hideConversation = 'chat2:hideConversation'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const inboxRefresh = 'chat2:inboxRefresh'
-export const inboxSearch = 'chat2:inboxSearch'
-export const inboxSearchBotsResults = 'chat2:inboxSearchBotsResults'
-export const inboxSearchMoveSelectedIndex = 'chat2:inboxSearchMoveSelectedIndex'
-export const inboxSearchNameResults = 'chat2:inboxSearchNameResults'
-export const inboxSearchOpenTeamsResults = 'chat2:inboxSearchOpenTeamsResults'
-export const inboxSearchSelect = 'chat2:inboxSearchSelect'
-export const inboxSearchSetIndexPercent = 'chat2:inboxSearchSetIndexPercent'
-export const inboxSearchSetTextStatus = 'chat2:inboxSearchSetTextStatus'
-export const inboxSearchStarted = 'chat2:inboxSearchStarted'
-export const inboxSearchTextResult = 'chat2:inboxSearchTextResult'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -128,7 +118,6 @@ export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setGeneralConvFromTeamID = 'chat2:setGeneralConvFromTeamID'
-export const setInboxNumSmallRows = 'chat2:setInboxNumSmallRows'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setParticipants = 'chat2:setParticipants'
@@ -140,7 +129,6 @@ export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
 export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
-export const toggleInboxSearch = 'chat2:toggleInboxSearch'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
@@ -260,13 +248,6 @@ export const createBlockConversation = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly reportUser: boolean
 }) => ({payload, type: blockConversation as typeof blockConversation})
-/**
- * Change selected index of inbox search
- */
-export const createInboxSearchMoveSelectedIndex = (payload: {readonly increment: boolean}) => ({
-  payload,
-  type: inboxSearchMoveSelectedIndex as typeof inboxSearchMoveSelectedIndex,
-})
 /**
  * Clear attachment views
  */
@@ -418,41 +399,6 @@ export const createAttachmentPasted = (payload: {
   readonly data: Buffer
 }) => ({payload, type: attachmentPasted as typeof attachmentPasted})
 /**
- * Inbox search bot results received
- */
-export const createInboxSearchBotsResults = (payload: {
-  readonly results: Array<RPCTypes.FeaturedBot>
-  readonly suggested: boolean
-}) => ({payload, type: inboxSearchBotsResults as typeof inboxSearchBotsResults})
-/**
- * Inbox search has started
- */
-export const createInboxSearchStarted = (payload?: undefined) => ({
-  payload,
-  type: inboxSearchStarted as typeof inboxSearchStarted,
-})
-/**
- * Inbox search name results received
- */
-export const createInboxSearchNameResults = (payload: {
-  readonly results: Array<Types.InboxSearchConvHit>
-  readonly unread: boolean
-}) => ({payload, type: inboxSearchNameResults as typeof inboxSearchNameResults})
-/**
- * Inbox search open teams results received
- */
-export const createInboxSearchOpenTeamsResults = (payload: {
-  readonly results: Array<Types.InboxSearchOpenTeamHit>
-  readonly suggested: boolean
-}) => ({payload, type: inboxSearchOpenTeamsResults as typeof inboxSearchOpenTeamsResults})
-/**
- * Inbox text result has arrived
- */
-export const createInboxSearchTextResult = (payload: {readonly result: Types.InboxSearchTextHit}) => ({
-  payload,
-  type: inboxSearchTextResult as typeof inboxSearchTextResult,
-})
-/**
  * Internal action: pull more metas from the queue to request
  */
 export const createMetaHandleQueue = (payload?: undefined) => ({
@@ -568,13 +514,6 @@ export const createThreadSearch = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly query: HiddenString
 }) => ({payload, type: threadSearch as typeof threadSearch})
-/**
- * Perform an inbox search
- */
-export const createInboxSearch = (payload: {readonly query: HiddenString}) => ({
-  payload,
-  type: inboxSearch as typeof inboxSearch,
-})
 /**
  * Pin a message
  */
@@ -736,16 +675,6 @@ export const createPreviewConversation = (payload: {
     | 'transaction'
 }) => ({payload, type: previewConversation as typeof previewConversation})
 /**
- * Select an inbox search item
- */
-export const createInboxSearchSelect = (
-  payload: {
-    readonly conversationIDKey?: Types.ConversationIDKey
-    readonly query?: HiddenString
-    readonly selectedIndex?: number
-  } = {}
-) => ({payload, type: inboxSearchSelect as typeof inboxSearchSelect})
-/**
  * Selected a conversation (used by nav only)
  */
 export const createSelectedConversation = (payload: {
@@ -815,13 +744,6 @@ export const createSetParticipants = (payload: {
   }>
 }) => ({payload, type: setParticipants as typeof setParticipants})
 /**
- * Set index percent complete
- */
-export const createInboxSearchSetIndexPercent = (payload: {readonly percent: number}) => ({
-  payload,
-  type: inboxSearchSetIndexPercent as typeof inboxSearchSetIndexPercent,
-})
-/**
  * Set team mention info
  */
 export const createSetMaybeMentionInfo = (payload: {
@@ -855,13 +777,6 @@ export const createSetThreadSearchStatus = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly status: Types.ThreadSearchStatus
 }) => ({payload, type: setThreadSearchStatus as typeof setThreadSearchStatus})
-/**
- * Set the status of the inbox text search
- */
-export const createInboxSearchSetTextStatus = (payload: {readonly status: Types.InboxSearchStatus}) => ({
-  payload,
-  type: inboxSearchSetTextStatus as typeof inboxSearchSetTextStatus,
-})
 /**
  * Set thread load status
  */
@@ -989,13 +904,6 @@ export const createToggleLocalReaction = (payload: {
   readonly targetOrdinal: Types.Ordinal
   readonly username: string
 }) => ({payload, type: toggleLocalReaction as typeof toggleLocalReaction})
-/**
- * Toggle inbox search view
- */
-export const createToggleInboxSearch = (payload: {readonly enabled: boolean}) => ({
-  payload,
-  type: toggleInboxSearch as typeof toggleInboxSearch,
-})
 /**
  * Toggle the collapse status of a message
  */
@@ -1308,10 +1216,6 @@ export const createSendAudioRecording = (payload: {
   readonly path: string
   readonly amps: Array<number>
 }) => ({payload, type: sendAudioRecording as typeof sendAudioRecording})
-export const createSetInboxNumSmallRows = (payload: {
-  readonly ignoreWrite?: boolean
-  readonly rows: number
-}) => ({payload, type: setInboxNumSmallRows as typeof setInboxNumSmallRows})
 export const createUnhideConversation = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
   payload,
   type: unhideConversation as typeof unhideConversation,
@@ -1357,16 +1261,6 @@ export type GiphyToggleWindowPayload = ReturnType<typeof createGiphyToggleWindow
 export type HideConversationPayload = ReturnType<typeof createHideConversation>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
 export type InboxRefreshPayload = ReturnType<typeof createInboxRefresh>
-export type InboxSearchBotsResultsPayload = ReturnType<typeof createInboxSearchBotsResults>
-export type InboxSearchMoveSelectedIndexPayload = ReturnType<typeof createInboxSearchMoveSelectedIndex>
-export type InboxSearchNameResultsPayload = ReturnType<typeof createInboxSearchNameResults>
-export type InboxSearchOpenTeamsResultsPayload = ReturnType<typeof createInboxSearchOpenTeamsResults>
-export type InboxSearchPayload = ReturnType<typeof createInboxSearch>
-export type InboxSearchSelectPayload = ReturnType<typeof createInboxSearchSelect>
-export type InboxSearchSetIndexPercentPayload = ReturnType<typeof createInboxSearchSetIndexPercent>
-export type InboxSearchSetTextStatusPayload = ReturnType<typeof createInboxSearchSetTextStatus>
-export type InboxSearchStartedPayload = ReturnType<typeof createInboxSearchStarted>
-export type InboxSearchTextResultPayload = ReturnType<typeof createInboxSearchTextResult>
 export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
@@ -1437,7 +1331,6 @@ export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvReten
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
 export type SetExplodingModeLockPayload = ReturnType<typeof createSetExplodingModeLock>
 export type SetGeneralConvFromTeamIDPayload = ReturnType<typeof createSetGeneralConvFromTeamID>
-export type SetInboxNumSmallRowsPayload = ReturnType<typeof createSetInboxNumSmallRows>
 export type SetMaybeMentionInfoPayload = ReturnType<typeof createSetMaybeMentionInfo>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
@@ -1449,7 +1342,6 @@ export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ThreadSearchPayload = ReturnType<typeof createThreadSearch>
 export type ThreadSearchResultsPayload = ReturnType<typeof createThreadSearchResults>
 export type ToggleGiphyPrefillPayload = ReturnType<typeof createToggleGiphyPrefill>
-export type ToggleInboxSearchPayload = ReturnType<typeof createToggleInboxSearch>
 export type ToggleLocalReactionPayload = ReturnType<typeof createToggleLocalReaction>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
 export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
@@ -1514,16 +1406,6 @@ export type Actions =
   | HideConversationPayload
   | IgnorePinnedMessagePayload
   | InboxRefreshPayload
-  | InboxSearchBotsResultsPayload
-  | InboxSearchMoveSelectedIndexPayload
-  | InboxSearchNameResultsPayload
-  | InboxSearchOpenTeamsResultsPayload
-  | InboxSearchPayload
-  | InboxSearchSelectPayload
-  | InboxSearchSetIndexPercentPayload
-  | InboxSearchSetTextStatusPayload
-  | InboxSearchStartedPayload
-  | InboxSearchTextResultPayload
   | JoinConversationPayload
   | JumpToRecentPayload
   | LeaveConversationPayload
@@ -1594,7 +1476,6 @@ export type Actions =
   | SetConversationOfflinePayload
   | SetExplodingModeLockPayload
   | SetGeneralConvFromTeamIDPayload
-  | SetInboxNumSmallRowsPayload
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
   | SetParticipantsPayload
@@ -1606,7 +1487,6 @@ export type Actions =
   | ThreadSearchPayload
   | ThreadSearchResultsPayload
   | ToggleGiphyPrefillPayload
-  | ToggleInboxSearchPayload
   | ToggleLocalReactionPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload

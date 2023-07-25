@@ -141,7 +141,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const welcomeMessage = {display: '', raw: '', set: false}
   const _teamID = teamID
   const canShowcase = TeamConstants.useState(s => TeamConstants.canShowcase(s, teamID))
-  const isBigTeam = Container.useSelector(state => TeamConstants.isBigTeam(state, teamID))
+  const isBigTeam = Constants.useState(s => Constants.isBigTeam(s, teamID))
 
   const dispatch = Container.useDispatch()
 

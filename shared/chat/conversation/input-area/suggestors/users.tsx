@@ -164,7 +164,7 @@ const useDataUsers = (conversationIDKey: Types.ConversationIDKey) => {
 }
 
 const useDataTeams = () => {
-  const inboxLayout = Container.useSelector(state => state.chat2.inboxLayout)
+  const inboxLayout = Constants.useState(s => s.inboxLayout)
   const teams = React.useMemo(() => getTeams(inboxLayout), [inboxLayout])
   const allChannels = React.useMemo(
     () =>

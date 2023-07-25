@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import * as RouterConstants from '../../constants/router2'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as ChatConstants from '../../constants/chat2'
 import * as Types from '../../constants/types/teams'
 import * as RPCGen from '../../constants/types/rpc-gen'
 import {appendNewTeamBuilder} from '../../actions/typed-routes'
@@ -32,7 +33,9 @@ const AddMembersConfirm = () => {
   )
   const isSubteam = Constants.useState(s => Constants.getTeamMeta(s, teamID)?.teamname.includes('.'))
   const fromNewTeamWizard = teamID === Types.newTeamWizardTeamID
-  const isBigTeam = Container.useSelector(s => (fromNewTeamWizard ? false : Constants.isBigTeam(s, teamID)))
+  const isBigTeam = ChatConstants.useState(s =>
+    fromNewTeamWizard ? false : ChatConstants.isBigTeam(s, teamID)
+  )
   const noun = addingMembers.length === 1 ? 'person' : 'people'
   const isInTeam = Constants.useState(s => Constants.getRole(s, teamID) !== 'none')
 

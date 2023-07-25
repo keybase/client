@@ -1,4 +1,5 @@
 import * as RPCChatTypes from '../types/rpc-chat-gen'
+import {RPCError} from '../../util/errors'
 import * as RPCTypes from '../types/rpc-gen'
 import * as Types from '../types/chat2'
 import * as Router2 from '../router2'
@@ -81,10 +82,6 @@ export const makeState = (): Types.State => ({
   giphyResultMap: new Map(),
   giphyWindowMap: new Map(),
   hasZzzJourneycard: new Map(),
-  inboxHasLoaded: false,
-  inboxLayout: undefined,
-  inboxNumSmallRows: 5,
-  inboxSearch: undefined,
   markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
@@ -131,7 +128,7 @@ export const makeInboxSearchInfo = (): Types.InboxSearchInfo => ({
   openTeamsResults: [],
   openTeamsResultsSuggested: false,
   openTeamsStatus: 'initial',
-  query: new HiddenString(''),
+  query: '',
   selectedIndex: 0,
   textResults: [],
   textStatus: 'initial',
@@ -167,7 +164,7 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
     if (result) {
       return {
         conversationIDKey: result.conversationIDKey,
-        query: new HiddenString(result.query),
+        query: result.query,
       }
     }
   }
@@ -542,7 +539,6 @@ export {
   getConversationIDKeyMetasToLoad,
   getConversationLabel,
   getEffectiveRetentionPolicy,
-  getGeneralChannelForBigTeam,
   getMeta,
   getRowParticipants,
   getRowStyles,
@@ -623,6 +619,16 @@ export const allMessageTypes: Set<Types.MessageType> = new Set([
   'placeholder',
 ])
 
+/**
+ * Returns true if the team is big and you're a member
+ */
+export const isBigTeam = (state: State, teamID: string): boolean => {
+  const bigTeams = state.inboxLayout?.bigTeams
+  return (bigTeams || []).some(
+    v => v.state === RPCChatTypes.UIInboxBigTeamRowTyp.label && v.label.id === teamID
+  )
+}
+
 type Store = {
   createConversationError?: Types.CreateConversationError
   smallTeamBadgeCount: number
@@ -638,11 +644,19 @@ type Store = {
   userEmojisForAutocomplete?: Array<RPCChatTypes.Emoji>
   infoPanelShowing: boolean
   infoPanelSelectedTab?: 'settings' | 'members' | 'attachments' | 'bots'
+  inboxNumSmallRows?: number
+  inboxHasLoaded: boolean // if we've ever loaded,
+  inboxLayout?: RPCChatTypes.UIInboxLayout // layout of the inbox
+  inboxSearch?: Types.InboxSearchInfo
 }
 
 const initialStore: Store = {
   bigTeamBadgeCount: 0,
   createConversationError: undefined,
+  inboxHasLoaded: false,
+  inboxLayout: undefined,
+  inboxNumSmallRows: 5,
+  inboxSearch: undefined,
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
   lastCoord: undefined,
@@ -682,6 +696,7 @@ export type State = Store & {
     resetConversationErrored: () => void
     setTrustedInboxHasLoaded: () => void
     toggleSmallTeamsExpanded: () => void
+    toggleInboxSearch: (enabled: boolean) => void
     updateLastCoord: (coord: Types.Coordinate) => void
     updateUserReacjis: (userReacjis: RPCTypes.UserReacjis) => void
     loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
@@ -690,11 +705,21 @@ export type State = Store & {
       tab?: 'settings' | 'members' | 'attachments' | 'bots',
       conversationIDKey?: Types.ConversationIDKey
     ) => void
+    setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
+    inboxSearch: (query: string) => void
+    inboxSearchMoveSelectedIndex: (increment: boolean) => void
+    inboxSearchSelect: (
+      conversationIDKey?: Types.ConversationIDKey,
+      query?: string,
+      selectedIndex?: number
+    ) => void
+    updateInboxLayout: (layout: string) => void
   }
 }
 
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
+  const getReduxStore = Z.getReduxStore()
   const dispatch: State['dispatch'] = {
     badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount, _conversations /*TODO*/) => {
       set(s => {
@@ -711,6 +736,270 @@ export const useState = Z.createZustand<State>((set, get) => {
           message,
         }
       })
+    },
+    inboxSearch: query => {
+      set(s => {
+        const {inboxSearch} = s
+        if (inboxSearch) {
+          inboxSearch.query = query
+        }
+      })
+      const f = async () => {
+        const teamType = (t: RPCChatTypes.TeamType) => (t === RPCChatTypes.TeamType.complex ? 'big' : 'small')
+
+        const onConvHits = (
+          resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']
+        ) => {
+          const results = (resp.hits.hits || []).reduce<Array<Types.InboxSearchConvHit>>((arr, h) => {
+            arr.push({
+              conversationIDKey: Types.stringToConversationIDKey(h.convID),
+              name: h.name,
+              teamType: teamType(h.teamType),
+            })
+            return arr
+          }, [])
+
+          set(s => {
+            const unread = resp.hits.unreadMatches
+            const {inboxSearch} = s
+            if (inboxSearch?.nameStatus === 'inprogress') {
+              inboxSearch.nameResults = results
+              inboxSearch.nameResultsUnread = unread
+              inboxSearch.nameStatus = 'success'
+            }
+          })
+
+          const missingMetas = results.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
+            if (!getReduxStore().chat2.metaMap.get(r.conversationIDKey)) {
+              arr.push(r.conversationIDKey)
+            }
+            return arr
+          }, [])
+          if (missingMetas.length > 0) {
+            reduxDispatch(
+              Chat2Gen.createMetaRequestTrusted({
+                conversationIDKeys: missingMetas,
+                force: true,
+                reason: 'inboxSearchResults',
+              })
+            )
+          }
+        }
+
+        const onOpenTeamHits = (
+          resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam']
+        ) => {
+          const results = (resp.hits.hits || []).reduce<Array<Types.InboxSearchOpenTeamHit>>((arr, h) => {
+            const {description, name, memberCount, inTeam} = h
+            arr.push({
+              description: description ?? '',
+              inTeam,
+              memberCount,
+              name,
+              publicAdmins: [],
+            })
+            return arr
+          }, [])
+          const suggested = resp.hits.suggestedMatches
+          set(s => {
+            const {inboxSearch} = s
+            if (inboxSearch?.openTeamsStatus === 'inprogress') {
+              inboxSearch.openTeamsResultsSuggested = suggested
+              inboxSearch.openTeamsResults = results
+              inboxSearch.openTeamsStatus = 'success'
+            }
+          })
+        }
+
+        const onBotsHits = (
+          resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam']
+        ) => {
+          const results = resp.hits.hits || []
+          const suggested = resp.hits.suggestedMatches
+          set(s => {
+            const {inboxSearch} = s
+            if (inboxSearch?.botsStatus === 'inprogress') {
+              inboxSearch.botsResultsSuggested = suggested
+              inboxSearch.botsResults = results
+              inboxSearch.botsStatus = 'success'
+            }
+          })
+        }
+
+        const onTextHit = (
+          resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']
+        ) => {
+          const {convID, convName, hits, query, teamType: tt, time} = resp.searchHit
+
+          const result = {
+            conversationIDKey: Types.conversationIDToKey(convID),
+            name: convName,
+            numHits: hits?.length ?? 0,
+            query,
+            teamType: teamType(tt),
+            time,
+          } as const
+          set(s => {
+            const {inboxSearch} = s
+            if (inboxSearch && inboxSearch.textStatus === 'inprogress') {
+              const {conversationIDKey} = result
+              const textResults = inboxSearch.textResults.filter(
+                r => r.conversationIDKey !== conversationIDKey
+              )
+              textResults.push(result)
+              inboxSearch.textResults = textResults.sort((l, r) => r.time - l.time)
+            }
+          })
+
+          if (!getReduxStore().chat2.metaMap.get(result.conversationIDKey)) {
+            reduxDispatch(
+              Chat2Gen.createMetaRequestTrusted({
+                conversationIDKeys: [result.conversationIDKey],
+                force: true,
+                reason: 'inboxSearchResults',
+              })
+            )
+          }
+        }
+        const onStart = () => {
+          set(s => {
+            const {inboxSearch} = s
+            if (inboxSearch) {
+              inboxSearch.nameStatus = 'inprogress'
+              inboxSearch.selectedIndex = 0
+              inboxSearch.textResults = []
+              inboxSearch.textStatus = 'inprogress'
+              inboxSearch.openTeamsStatus = 'inprogress'
+              inboxSearch.botsStatus = 'inprogress'
+            }
+          })
+        }
+        const onDone = () => {
+          set(s => {
+            const status = 'success'
+            const inboxSearch = s.inboxSearch ?? makeInboxSearchInfo()
+            s.inboxSearch = inboxSearch
+            inboxSearch.textStatus = status
+          })
+        }
+
+        const onIndexStatus = (
+          resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']
+        ) => {
+          const percent = resp.status.percentIndexed
+          set(s => {
+            const {inboxSearch} = s
+            if (inboxSearch?.textStatus === 'inprogress') {
+              inboxSearch.indexPercent = percent
+            }
+          })
+        }
+
+        try {
+          await RPCChatTypes.localSearchInboxRpcListener(
+            {
+              incomingCallMap: {
+                'chat.1.chatUi.chatSearchBotHits': onBotsHits,
+                'chat.1.chatUi.chatSearchConvHits': onConvHits,
+                'chat.1.chatUi.chatSearchInboxDone': onDone,
+                'chat.1.chatUi.chatSearchInboxHit': onTextHit,
+                'chat.1.chatUi.chatSearchInboxStart': onStart,
+                'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
+                'chat.1.chatUi.chatSearchTeamHits': onOpenTeamHits,
+              },
+              params: {
+                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+                namesOnly: false,
+                opts: {
+                  afterContext: 0,
+                  beforeContext: 0,
+                  isRegex: false,
+                  matchMentions: false,
+                  maxBots: 10,
+                  maxConvsHit: inboxSearchMaxTextResults,
+                  maxConvsSearched: 0,
+                  maxHits: inboxSearchMaxTextMessages,
+                  maxMessages: -1,
+                  maxNameConvs:
+                    query.length > 0 ? inboxSearchMaxNameResults : inboxSearchMaxUnreadNameResults,
+                  maxTeams: 10,
+                  reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
+                  sentAfter: 0,
+                  sentBefore: 0,
+                  sentBy: '',
+                  sentTo: '',
+                  skipBotCache: false,
+                },
+                query,
+              },
+            },
+            Z.dummyListenerApi
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            if (!(error.code === RPCTypes.StatusCode.sccanceled)) {
+              logger.error('search failed: ' + error.message)
+              set(s => {
+                const status = 'error'
+                const inboxSearch = s.inboxSearch ?? makeInboxSearchInfo()
+                s.inboxSearch = inboxSearch
+                inboxSearch.textStatus = status
+              })
+            }
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    inboxSearchMoveSelectedIndex: increment => {
+      set(s => {
+        const {inboxSearch} = s
+        if (inboxSearch) {
+          const {selectedIndex} = inboxSearch
+          const totalResults = inboxSearch.nameResults.length + inboxSearch.textResults.length
+          if (increment && selectedIndex < totalResults - 1) {
+            inboxSearch.selectedIndex = selectedIndex + 1
+          } else if (!increment && selectedIndex > 0) {
+            inboxSearch.selectedIndex = selectedIndex - 1
+          }
+        }
+      })
+    },
+    inboxSearchSelect: (conversationIDKey, q, selectedIndex) => {
+      let query = q
+      set(s => {
+        const {inboxSearch} = s
+        if (inboxSearch && selectedIndex != null) {
+          inboxSearch.selectedIndex = selectedIndex
+        }
+      })
+
+      const {inboxSearch} = get()
+      if (!inboxSearch) {
+        return
+      }
+      const selected = getInboxSearchSelected(inboxSearch)
+      if (!conversationIDKey) {
+        conversationIDKey = selected?.conversationIDKey
+      }
+
+      if (!conversationIDKey) {
+        return
+      }
+      if (!query) {
+        query = selected?.query
+      }
+
+      reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSearch'}))
+      if (query) {
+        reduxDispatch(
+          Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query: new HiddenString(query)})
+        )
+        reduxDispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
+        reduxDispatch(Chat2Gen.createThreadSearch({conversationIDKey, query: new HiddenString(query)}))
+      } else {
+        get().dispatch.toggleInboxSearch(false)
+      }
     },
     loadStaticConfig: () => {
       if (get().staticConfig) {
@@ -821,6 +1110,29 @@ export const useState = Z.createZustand<State>((set, get) => {
         staticConfig: s.staticConfig,
       }))
     },
+    setInboxNumSmallRows: (rows, ignoreWrite) => {
+      set(s => {
+        if (rows > 0) {
+          s.inboxNumSmallRows = rows
+        }
+      })
+      if (ignoreWrite) {
+        return
+      }
+      const {inboxNumSmallRows} = get()
+      if (inboxNumSmallRows === undefined || inboxNumSmallRows <= 0) {
+        return
+      }
+      const f = async () => {
+        try {
+          await RPCTypes.configGuiSetValueRpcPromise({
+            path: 'ui.inboxSmallRows',
+            value: {i: inboxNumSmallRows, isNull: false},
+          })
+        } catch (_) {}
+      }
+      Z.ignorePromise(f())
+    },
     setTrustedInboxHasLoaded: () => {
       set(s => {
         s.trustedInboxHasLoaded = true
@@ -850,9 +1162,76 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
     },
+    toggleInboxSearch: enabled => {
+      set(s => {
+        const {inboxSearch} = s
+        if (enabled && !inboxSearch) {
+          s.inboxSearch = makeInboxSearchInfo()
+        } else if (!enabled && inboxSearch) {
+          s.inboxSearch = undefined
+        }
+      })
+      const f = async () => {
+        const {inboxSearch} = get()
+        if (!inboxSearch) {
+          await RPCChatTypes.localCancelActiveInboxSearchRpcPromise()
+          return
+        }
+        if (inboxSearch.nameStatus === 'initial') {
+          get().dispatch.inboxSearch('')
+        }
+      }
+      Z.ignorePromise(f())
+    },
     toggleSmallTeamsExpanded: () => {
       set(s => {
         s.smallTeamsExpanded = !s.smallTeamsExpanded
+      })
+    },
+    updateInboxLayout: str => {
+      set(s => {
+        try {
+          // TODO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+          const {inboxHasLoaded /*, draftMap, mutedMap TODO */} = s
+          const layout: RPCChatTypes.UIInboxLayout = JSON.parse(str)
+          s.inboxLayout = layout
+          s.inboxHasLoaded = true
+          if (!inboxHasLoaded) {
+            // TODO
+            // const smallTeams = layout.smallTeams || []
+            // // on first layout, initialize any drafts and muted status
+            // // After the first layout, any other updates will come in the form of meta updates.
+            // smallTeams.forEach(t => {
+            //   if (t.isMuted) {
+            //     mutedMap.set(t.convID, true)
+            //   } else {
+            //     mutedMap.delete(t.convID)
+            //   }
+            //   if (t.draft) {
+            //     draftMap.set(t.convID, t.draft)
+            //   } else {
+            //     draftMap.delete(t.convID)
+            //   }
+            // })
+            // const bigTeams = layout.bigTeams || []
+            // bigTeams.forEach(t => {
+            //   if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+            //     if (t.channel.isMuted) {
+            //       mutedMap.set(t.channel.convID, true)
+            //     } else {
+            //       mutedMap.delete(t.channel.convID)
+            //     }
+            //     if (t.channel.draft) {
+            //       draftMap.set(t.channel.convID, t.channel.draft)
+            //     } else {
+            //       draftMap.delete(t.channel.convID)
+            //     }
+            //   }
+            // })
+          }
+        } catch (e) {
+          logger.info('failed to JSON parse inbox layout: ' + e)
+        }
       })
     },
     updateLastCoord: coord => {

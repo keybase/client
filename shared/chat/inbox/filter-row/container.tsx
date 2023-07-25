@@ -1,7 +1,6 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouterConstants from '../../../constants/router2'
+import * as Constants from '../../../constants/chat2'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
-import * as Container from '../../../util/container'
 import ConversationFilterInput from '.'
 
 type OwnProps = {
@@ -17,8 +16,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const filter = ownProps.query
-  const isSearching = Container.useSelector(state => !!state.chat2.inboxSearch)
-  const dispatch = Container.useDispatch()
+  const isSearching = Constants.useState(s => !!s.inboxSearch)
   const _appendNewChatBuilder = () => {
     appendNewChatBuilder()
   }
@@ -26,11 +24,12 @@ export default (ownProps: OwnProps) => {
   const onBack = () => {
     navigateUp()
   }
+  const toggleInboxSearch = Constants.useState(s => s.dispatch.toggleInboxSearch)
   const onStartSearch = () => {
-    dispatch(Chat2Gen.createToggleInboxSearch({enabled: true}))
+    toggleInboxSearch(true)
   }
   const onStopSearch = () => {
-    dispatch(Chat2Gen.createToggleInboxSearch({enabled: false}))
+    toggleInboxSearch(false)
   }
   const props = {
     appendNewChatBuilder: _appendNewChatBuilder,

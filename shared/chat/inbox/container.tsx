@@ -71,12 +71,12 @@ type WrapperProps = Pick<
 
 const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   const dispatch = Container.useDispatch()
-  const inboxHasLoaded = Container.useSelector(state => state.chat2.inboxHasLoaded)
+  const inboxHasLoaded = Constants.useState(s => s.inboxHasLoaded)
   const isFocused = useIsFocused()
-  const inboxNumSmallRows = Container.useSelector(state => state.chat2.inboxNumSmallRows ?? 5)
-  const allowShowFloatingButton = Container.useSelector(state => {
-    const {inboxLayout} = state.chat2
-    const inboxNumSmallRows = state.chat2.inboxNumSmallRows ?? 5
+  const inboxNumSmallRows = Constants.useState(s => s.inboxNumSmallRows ?? 5)
+  const allowShowFloatingButton = Constants.useState(s => {
+    const {inboxLayout} = s
+    const inboxNumSmallRows = s.inboxNumSmallRows ?? 5
     return inboxLayout
       ? (inboxLayout.smallTeams || []).length > inboxNumSmallRows && !!(inboxLayout.bigTeams || []).length
       : false
@@ -97,12 +97,8 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
     },
     [dispatch]
   )
-  const setInboxNumSmallRows = React.useCallback(
-    (rows: number) => {
-      dispatch(Chat2Gen.createSetInboxNumSmallRows({rows}))
-    },
-    [dispatch]
-  )
+
+  const setInboxNumSmallRows = Constants.useState(s => s.dispatch.setInboxNumSmallRows)
   const toggleSmallTeamsExpanded = Constants.useState(s => s.dispatch.toggleSmallTeamsExpanded)
   const [lastIsFocused, setLastIsFocused] = React.useState(isFocused)
 
@@ -139,14 +135,15 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
 })
 
 const Connected = (ownProps: OwnProps) => {
-  const {inboxLayout, inboxHasLoaded} = Container.useSelector(state => state.chat2)
+  const inboxLayout = Constants.useState(s => s.inboxLayout)
+  const inboxHasLoaded = Constants.useState(s => s.inboxHasLoaded)
   const {conversationIDKey} = ownProps
   const neverLoaded = !inboxHasLoaded
-  const inboxNumSmallRows = Container.useSelector(state => state.chat2.inboxNumSmallRows ?? 5)
+  const inboxNumSmallRows = Constants.useState(s => s.inboxNumSmallRows ?? 5)
   const _badgeMap = Container.useSelector(state => state.chat2.badgeMap)
   const _inboxLayout = inboxLayout
   const _selectedConversationIDKey = conversationIDKey ?? Constants.noConversationIDKey
-  const isSearching = Container.useSelector(state => !!state.chat2.inboxSearch)
+  const isSearching = Constants.useState(s => !!s.inboxSearch)
   const smallTeamsExpanded = Constants.useState(s => s.smallTeamsExpanded)
   const {navKey} = ownProps
   const bigTeams = _inboxLayout ? _inboxLayout.bigTeams || [] : []

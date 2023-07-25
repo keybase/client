@@ -67,7 +67,7 @@ export type InboxSearchInfo = {
   openTeamsResults: Array<InboxSearchOpenTeamHit>
   openTeamsResultsSuggested: boolean
   openTeamsStatus: InboxSearchStatus
-  query: HiddenString
+  query: string
   selectedIndex: number
   textResults: Array<InboxSearchTextHit>
   textStatus: InboxSearchStatus
@@ -220,10 +220,6 @@ export type State = {
   giphyWindowMap: Map<Common.ConversationIDKey, boolean>
   hasZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard>
   shouldDeleteZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard> // messages scheduled for deletion
-  inboxNumSmallRows?: number
-  inboxHasLoaded: boolean // if we've ever loaded,
-  inboxLayout?: RPCChatTypes.UIInboxLayout // layout of the inbox
-  inboxSearch?: InboxSearchInfo
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,

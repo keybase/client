@@ -7,7 +7,7 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
-import * as Chat2Constants from '../../../constants/chat2'
+import * as ChatConstants from '../../../constants/chat2'
 import type {Section as _Section} from '../../../common-adapters/section-list'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import MemberRow from './member-row/container'
@@ -133,7 +133,7 @@ export const useChannelsSections = (
   teamID: Types.TeamID,
   yourOperations: Types.TeamOperations
 ): Array<Section> => {
-  const isBig = Container.useSelector(state => Constants.isBigTeam(state, teamID))
+  const isBig = ChatConstants.useState(s => ChatConstants.isBigTeam(s, teamID))
   const channels = Constants.useState(s => s.channelInfo.get(teamID))
   const canCreate = Constants.useState(s => Constants.getCanPerformByID(s, teamID).createChannel)
 
@@ -219,7 +219,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
   const [filter, setFilter] = React.useState('')
 
   const doGetUserEmoji = () => {
-    if (!convID || convID === Chat2Constants.noConversationIDKey || !shouldActuallyLoad) {
+    if (!convID || convID === ChatConstants.noConversationIDKey || !shouldActuallyLoad) {
       return
     }
     getUserEmoji(
@@ -274,7 +274,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
     renderItem: () => (
       <EmojiAddRow
         teamID={teamID}
-        convID={convID ?? Chat2Constants.noConversationIDKey}
+        convID={convID ?? ChatConstants.noConversationIDKey}
         filter={filter}
         setFilter={setFilter}
       />
@@ -297,7 +297,7 @@ export const useEmojiSections = (teamID: Types.TeamID, shouldActuallyLoad: boole
         <EmojiItemRow
           emoji={item}
           firstItem={index === 0}
-          conversationIDKey={convID ?? Chat2Constants.noConversationIDKey}
+          conversationIDKey={convID ?? ChatConstants.noConversationIDKey}
           teamID={teamID}
         />
       ),

@@ -1,8 +1,7 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouterConstants from '../../../constants/router2'
+import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import ChatInboxHeader from '.'
-import HiddenString from '../../../util/hidden-string'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 
 type OwnProps = {
@@ -10,37 +9,38 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const hasLoadedEmptyInbox = Container.useSelector(
-    state =>
-      state.chat2.inboxHasLoaded &&
-      !!state.chat2.inboxLayout &&
-      (state.chat2.inboxLayout.smallTeams || []).length === 0 &&
-      (state.chat2.inboxLayout.bigTeams || []).length === 0
+  const hasLoadedEmptyInbox = Constants.useState(
+    s =>
+      s.inboxHasLoaded &&
+      !!s.inboxLayout &&
+      (s.inboxLayout.smallTeams || []).length === 0 &&
+      (s.inboxLayout.bigTeams || []).length === 0
   )
-  const showEmptyInbox = Container.useSelector(state => !state.chat2.inboxSearch && hasLoadedEmptyInbox)
+  const showEmptyInbox = Constants.useState(s => !s.inboxSearch && hasLoadedEmptyInbox)
   const showStartNewChat = !Container.isMobile && showEmptyInbox
-  const isSearching = Container.useSelector(state => !!state.chat2.inboxSearch)
+  const isSearching = Constants.useState(s => !!s.inboxSearch)
   const showFilter = !showEmptyInbox
 
-  const dispatch = Container.useDispatch()
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const onBack = () => {
     navigateUp()
   }
+
+  const inboxSearchSelect = Constants.useState(s => s.dispatch.inboxSearchSelect)
+  const inboxSearch = Constants.useState(s => s.dispatch.inboxSearch)
+  const inboxSearchMoveSelectedIndex = Constants.useState(s => s.dispatch.inboxSearchMoveSelectedIndex)
   const onEnsureSelection = () => {
-    dispatch(Chat2Gen.createInboxSearchSelect({}))
+    inboxSearchSelect()
   }
   const onNewChat = () => {
     appendNewChatBuilder()
   }
-  const onQueryChanged = (query: string) => {
-    dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(query)}))
-  }
+  const onQueryChanged = inboxSearch
   const onSelectDown = () => {
-    dispatch(Chat2Gen.createInboxSearchMoveSelectedIndex({increment: true}))
+    inboxSearchMoveSelectedIndex(true)
   }
   const onSelectUp = () => {
-    dispatch(Chat2Gen.createInboxSearchMoveSelectedIndex({increment: false}))
+    inboxSearchMoveSelectedIndex(false)
   }
   const props = {
     isSearching: isSearching,

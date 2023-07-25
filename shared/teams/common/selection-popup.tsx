@@ -1,13 +1,14 @@
-import * as RouterConstants from '../../constants/router2'
-import * as React from 'react'
+import * as ChatConstants from '../../constants/chat2'
 import * as Constants from '../../constants/teams'
-import type * as Types from '../../constants/types/teams'
-import type * as ChatTypes from '../../constants/types/chat2'
-import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
-import {pluralize} from '../../util/string'
+import * as React from 'react'
+import * as RouterConstants from '../../constants/router2'
+import * as Styles from '../../styles'
+import type * as ChatTypes from '../../constants/types/chat2'
+import type * as Types from '../../constants/types/teams'
 import {FloatingRolePicker} from '../role-picker'
+import {pluralize} from '../../util/string'
 import {useFocusEffect} from '@react-navigation/core'
 
 type UnselectableTab = string
@@ -203,7 +204,7 @@ const ActionsWrapper = ({children}: {children: React.ReactNode}) => (
 )
 const TeamMembersActions = ({teamID}: TeamActionsProps) => {
   const membersSet = Constants.useState(s => s.teamSelectedMembers.get(teamID))
-  const isBigTeam = Container.useSelector(s => Constants.isBigTeam(s, teamID))
+  const isBigTeam = ChatConstants.useState(s => ChatConstants.isBigTeam(s, teamID))
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   if (!membersSet) {
     // we shouldn't be rendered

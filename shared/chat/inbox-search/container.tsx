@@ -1,8 +1,5 @@
 import * as RouterConstants from '../../constants/router2'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Constants from '../../constants/chat2'
-import * as Container from '../../util/container'
-import HiddenString from '../../util/hidden-string'
 import InboxSearch from '.'
 import * as React from 'react'
 import type * as Types from '../../constants/types/chat2'
@@ -14,10 +11,11 @@ type OwnProps = {
 const emptySearch = Constants.makeInboxSearchInfo()
 
 export default (ownProps: OwnProps) => {
-  const _inboxSearch = Container.useSelector(state => state.chat2.inboxSearch ?? emptySearch)
-  const dispatch = Container.useDispatch()
+  const _inboxSearch = Constants.useState(s => s.inboxSearch ?? emptySearch)
+  const toggleInboxSearch = Constants.useState(s => s.dispatch.toggleInboxSearch)
+  const inboxSearchSelect = Constants.useState(s => s.dispatch.inboxSearchSelect)
   const onCancel = () => {
-    dispatch(Chat2Gen.createToggleInboxSearch({enabled: false}))
+    toggleInboxSearch(false)
   }
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onInstallBot = (username: string) => {
@@ -28,13 +26,7 @@ export default (ownProps: OwnProps) => {
     selectedIndex: number,
     query: string
   ) => {
-    dispatch(
-      Chat2Gen.createInboxSearchSelect({
-        conversationIDKey,
-        query: query.length > 0 ? new HiddenString(query) : undefined,
-        selectedIndex,
-      })
-    )
+    inboxSearchSelect(conversationIDKey, query.length > 0 ? query : undefined, selectedIndex)
   }
   const {header} = ownProps
   const {indexPercent, nameResults, nameResultsUnread, nameStatus, textStatus} = _inboxSearch
@@ -60,7 +52,7 @@ export default (ownProps: OwnProps) => {
     openTeamsResults,
     openTeamsResultsSuggested,
     openTeamsStatus,
-    query: query.stringValue(),
+    query,
     selectedIndex,
     textResults: textResults.map(r => ({
       conversationIDKey: r.conversationIDKey,

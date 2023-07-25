@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/teams'
+import * as ChatConstants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
 import * as ProfileConstants from '../../../constants/profile'
 import * as Container from '../../../util/container'
@@ -437,7 +438,7 @@ const NodeInRow = (props: NodeInRowProps) => {
     Constants.loadTeamTreeActivityWaitingKey(props.node.teamID, props.username)
   )
 
-  const isSmallTeam = !Container.useSelector(s => Constants.isBigTeam(s, props.node.teamID))
+  const isSmallTeam = !ChatConstants.useState(s => ChatConstants.isBigTeam(s, props.node.teamID))
 
   const channelsJoined = isSmallTeam
     ? []

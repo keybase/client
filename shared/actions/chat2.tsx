@@ -47,7 +47,7 @@ const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChat
 
 // Ask the service to refresh the inbox
 const inboxRefresh = (
-  state: Container.TypedState,
+  _state: unknown,
   action: Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload
 ) => {
   const {username} = ConfigConstants.useCurrentUserState.getState()
@@ -80,7 +80,7 @@ const inboxRefresh = (
     actions.push(Chat2Gen.createClearMessages())
   }
   const reselectMode =
-    state.chat2.inboxHasLoaded || Container.isPhone
+    Constants.useState.getState().inboxHasLoaded || Container.isPhone
       ? RPCChatTypes.InboxLayoutReselectMode.default
       : RPCChatTypes.InboxLayoutReselectMode.force
   RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
@@ -223,12 +223,9 @@ const onGetInboxConvFailed = (_: unknown, action: EngineGen.Chat1ChatUiChatInbox
   }
 }
 
-const maybeChangeSelectedConv = (
-  state: Container.TypedState,
-  _: EngineGen.Chat1ChatUiChatInboxLayoutPayload
-) => {
+const maybeChangeSelectedConv = () => {
   const selectedConversation = Constants.getSelectedConversation()
-  const {inboxLayout} = state.chat2
+  const {inboxLayout} = Constants.useState.getState()
   if (!inboxLayout || !inboxLayout.reselectInfo) {
     return false
   }
@@ -1580,193 +1577,6 @@ const threadSearch = async (
   }
 }
 
-const onInboxSearchSelect = (state: Container.TypedState, action: Chat2Gen.InboxSearchSelectPayload) => {
-  const {inboxSearch} = state.chat2
-  if (!inboxSearch) {
-    return
-  }
-  const selected = Constants.getInboxSearchSelected(inboxSearch)
-  let {conversationIDKey, query} = action.payload
-  if (!conversationIDKey) {
-    conversationIDKey = selected?.conversationIDKey
-  }
-
-  if (!conversationIDKey) {
-    return
-  }
-  if (!query) {
-    query = selected?.query
-  }
-
-  return [
-    Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSearch'}),
-    ...(query
-      ? [
-          Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query}),
-          Chat2Gen.createToggleThreadSearch({conversationIDKey}),
-          Chat2Gen.createThreadSearch({conversationIDKey, query}),
-        ]
-      : [Chat2Gen.createToggleInboxSearch({enabled: false})]),
-  ]
-}
-
-const onToggleInboxSearch = async (state: Container.TypedState) => {
-  const {inboxSearch} = state.chat2
-  if (!inboxSearch) {
-    await RPCChatTypes.localCancelActiveInboxSearchRpcPromise()
-    return
-  }
-  return inboxSearch.nameStatus === 'initial'
-    ? Chat2Gen.createInboxSearch({query: new Container.HiddenString('')})
-    : false
-}
-
-const onInboxSearchTextResult = (
-  state: Container.TypedState,
-  action: Chat2Gen.InboxSearchTextResultPayload
-) =>
-  !state.chat2.metaMap.get(action.payload.result.conversationIDKey)
-    ? Chat2Gen.createMetaRequestTrusted({
-        conversationIDKeys: [action.payload.result.conversationIDKey],
-        force: true,
-        reason: 'inboxSearchResults',
-      })
-    : undefined
-
-const onInboxSearchNameResults = (
-  state: Container.TypedState,
-  action: Chat2Gen.InboxSearchNameResultsPayload
-) => {
-  const missingMetas = action.payload.results.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
-    if (!state.chat2.metaMap.get(r.conversationIDKey)) {
-      arr.push(r.conversationIDKey)
-    }
-    return arr
-  }, [])
-  if (missingMetas.length > 0) {
-    return Chat2Gen.createMetaRequestTrusted({
-      conversationIDKeys: missingMetas,
-      force: true,
-      reason: 'inboxSearchResults',
-    })
-  }
-  return false
-}
-
-const inboxSearch = async (
-  _: Container.TypedState,
-  action: Chat2Gen.InboxSearchPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {query} = action.payload
-  const teamType = (t: RPCChatTypes.TeamType) => (t === RPCChatTypes.TeamType.complex ? 'big' : 'small')
-
-  const onConvHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) =>
-    Chat2Gen.createInboxSearchNameResults({
-      results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchConvHit>>((arr, h) => {
-        arr.push({
-          conversationIDKey: Types.stringToConversationIDKey(h.convID),
-          name: h.name,
-          teamType: teamType(h.teamType),
-        })
-        return arr
-      }, []),
-      unread: resp.hits.unreadMatches,
-    })
-
-  const onOpenTeamHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam']) =>
-    Chat2Gen.createInboxSearchOpenTeamsResults({
-      results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchOpenTeamHit>>((arr, h) => {
-        const {description, name, memberCount, inTeam} = h
-        arr.push({
-          description: description ?? '',
-          inTeam,
-          memberCount,
-          name,
-          publicAdmins: [],
-        })
-        return arr
-      }, []),
-      suggested: resp.hits.suggestedMatches,
-    })
-
-  const onBotsHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchBotHits']['inParam']) =>
-    Chat2Gen.createInboxSearchBotsResults({
-      results: resp.hits.hits || [],
-      suggested: resp.hits.suggestedMatches,
-    })
-
-  const onTextHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
-    const {convID, convName, hits, query, teamType: tt, time} = resp.searchHit
-    return Chat2Gen.createInboxSearchTextResult({
-      result: {
-        conversationIDKey: Types.conversationIDToKey(convID),
-        name: convName,
-        numHits: hits?.length ?? 0,
-        query,
-        teamType: teamType(tt),
-        time,
-      },
-    })
-  }
-  const onStart = () => Chat2Gen.createInboxSearchStarted()
-  const onDone = () => Chat2Gen.createInboxSearchSetTextStatus({status: 'success'})
-
-  const onIndexStatus = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']) =>
-    Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed})
-
-  try {
-    await RPCChatTypes.localSearchInboxRpcListener(
-      {
-        incomingCallMap: {
-          'chat.1.chatUi.chatSearchBotHits': onBotsHits,
-          'chat.1.chatUi.chatSearchConvHits': onConvHits,
-          'chat.1.chatUi.chatSearchInboxDone': onDone,
-          'chat.1.chatUi.chatSearchInboxHit': onTextHit,
-          'chat.1.chatUi.chatSearchInboxStart': onStart,
-          'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
-          'chat.1.chatUi.chatSearchTeamHits': onOpenTeamHits,
-        },
-        params: {
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          namesOnly: false,
-          opts: {
-            afterContext: 0,
-            beforeContext: 0,
-            isRegex: false,
-            matchMentions: false,
-            maxBots: 10,
-            maxConvsHit: Constants.inboxSearchMaxTextResults,
-            maxConvsSearched: 0,
-            maxHits: Constants.inboxSearchMaxTextMessages,
-            maxMessages: -1,
-            maxNameConvs:
-              query.stringValue().length > 0
-                ? Constants.inboxSearchMaxNameResults
-                : Constants.inboxSearchMaxUnreadNameResults,
-            maxTeams: 10,
-            reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
-            sentAfter: 0,
-            sentBefore: 0,
-            sentBy: '',
-            sentTo: '',
-            skipBotCache: false,
-          },
-          query: query.stringValue(),
-        },
-      },
-      listenerApi
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      if (!(error.code === RPCTypes.StatusCode.sccanceled)) {
-        logger.error('search failed: ' + error.message)
-        listenerApi.dispatch(Chat2Gen.createInboxSearchSetTextStatus({status: 'error'}))
-      }
-    }
-  }
-}
-
 const onReplyJump = (_: unknown, action: Chat2Gen.ReplyJumpPayload) =>
   Chat2Gen.createLoadMessagesCentered({
     conversationIDKey: action.payload.conversationIDKey,
@@ -2653,7 +2463,8 @@ const ensureSelectedMeta = (state: Container.TypedState, action: Chat2Gen.Select
 }
 
 const ensureWidgetMetas = (state: Container.TypedState) => {
-  const {inboxLayout, metaMap} = state.chat2
+  const {inboxLayout} = Constants.useState.getState()
+  const {metaMap} = state.chat2
   if (!inboxLayout?.widgetList) {
     return false
   }
@@ -3424,27 +3235,6 @@ const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButt
   }
 }
 
-const setInboxNumSmallRows = async (
-  state: Container.TypedState,
-  action: Chat2Gen.SetInboxNumSmallRowsPayload
-): Promise<boolean> => {
-  const {ignoreWrite} = action.payload
-  if (ignoreWrite) {
-    return false
-  }
-  const {inboxNumSmallRows} = state.chat2
-  if (inboxNumSmallRows === undefined || inboxNumSmallRows <= 0) {
-    return false
-  }
-  try {
-    await RPCTypes.configGuiSetValueRpcPromise({
-      path: 'ui.inboxSmallRows',
-      value: {i: inboxNumSmallRows, isNull: false},
-    })
-  } catch (_) {}
-  return false
-}
-
 const refreshBotRoleInConv = async (_: unknown, action: Chat2Gen.RefreshBotRoleInConvPayload) => {
   let role: RPCTypes.TeamRole | undefined
   const {conversationIDKey, username} = action.payload
@@ -3695,6 +3485,10 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1ChatUiChatInboxFailed, onGetInboxConvFailed)
   Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, maybeChangeSelectedConv)
   Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, ensureWidgetMetas)
+  // TODO move to engine constants
+  Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, (_, action) => {
+    Constants.useState.getState().dispatch.updateInboxLayout(action.payload.params.layout)
+  })
 
   // Load the selected thread
   Container.listenAction(
@@ -3763,7 +3557,7 @@ const initChat = () => {
           const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
           const ri = rows?.i ?? -1
           if (ri > 0) {
-            reduxDispatch(Chat2Gen.createSetInboxNumSmallRows({ignoreWrite: true, rows: ri}))
+            Constants.useState.getState().dispatch.setInboxNumSmallRows(ri, true)
           }
         }
         Z.ignorePromise(f())
@@ -3886,18 +3680,10 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.replyJump, onReplyJump)
 
-  Container.listenAction(Chat2Gen.inboxSearch, inboxSearch)
-  Container.listenAction(Chat2Gen.toggleInboxSearch, onToggleInboxSearch)
-  Container.listenAction(Chat2Gen.inboxSearchSelect, onInboxSearchSelect)
-  Container.listenAction(Chat2Gen.inboxSearchNameResults, onInboxSearchNameResults)
-  Container.listenAction(Chat2Gen.inboxSearchTextResult, onInboxSearchTextResult)
-
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.mobileAppState === old.mobileAppState) return
-    const getReduxStore = Z.getReduxStore()
-    const reduxDispatch = Z.getReduxDispatch()
-    if (s.mobileAppState === 'background' && getReduxStore().chat2.inboxSearch) {
-      reduxDispatch(Chat2Gen.createToggleInboxSearch({enabled: false}))
+    if (s.mobileAppState === 'background' && Constants.useState.getState().inboxSearch) {
+      Constants.useState.getState().dispatch.toggleInboxSearch(false)
     }
   })
 
@@ -3917,8 +3703,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.selectedConversation, fetchConversationBio)
 
   Container.listenAction(Chat2Gen.sendAudioRecording, sendAudioRecording)
-
-  Container.listenAction(Chat2Gen.setInboxNumSmallRows, setInboxNumSmallRows)
 
   Container.listenAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
 

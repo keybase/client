@@ -492,16 +492,6 @@ export const getTeamRetentionPolicyByID = (state: State, teamID: Types.TeamID) =
 export const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types.Teamname): number =>
   [...state.chat2.metaMap.values()].reduce((count, c) => (count += c.teamname === teamname ? 1 : 0), 0)
 
-/**
- * Returns true if the team is big and you're a member
- */
-export const isBigTeam = (state: TypedState, teamID: Types.TeamID): boolean => {
-  const bigTeams = state.chat2.inboxLayout?.bigTeams
-  return (bigTeams || []).some(
-    v => v.state === RPCChatTypes.UIInboxBigTeamRowTyp.label && v.label.id === teamID
-  )
-}
-
 export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>({
   anyMemberShowcase: false,
   description: '',

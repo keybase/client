@@ -127,103 +127,6 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
     const {threadSearchQueryMap} = draftState
     threadSearchQueryMap.set(conversationIDKey, query)
   },
-  [Chat2Gen.inboxSearchOpenTeamsResults]: (draftState, action) => {
-    const {inboxSearch} = draftState
-    if (inboxSearch?.openTeamsStatus === 'inprogress') {
-      const {results, suggested} = action.payload
-      inboxSearch.openTeamsResultsSuggested = suggested
-      inboxSearch.openTeamsResults = results
-      inboxSearch.openTeamsStatus = 'success'
-    }
-  },
-  [Chat2Gen.inboxSearchBotsResults]: (draftState, action) => {
-    const {inboxSearch} = draftState
-    if (inboxSearch?.botsStatus === 'inprogress') {
-      const {results, suggested} = action.payload
-      inboxSearch.botsResultsSuggested = suggested
-      inboxSearch.botsResults = results
-      inboxSearch.botsStatus = 'success'
-    }
-  },
-  [Chat2Gen.inboxSearchSetTextStatus]: (draftState, action) => {
-    const {status} = action.payload
-    const inboxSearch = draftState.inboxSearch ?? Constants.makeInboxSearchInfo()
-    draftState.inboxSearch = inboxSearch
-    inboxSearch.textStatus = status
-  },
-  [Chat2Gen.inboxSearchSetIndexPercent]: (draftState, action) => {
-    const {percent} = action.payload
-    const {inboxSearch} = draftState
-    if (inboxSearch?.textStatus === 'inprogress') {
-      inboxSearch.indexPercent = percent
-    }
-  },
-  [Chat2Gen.toggleInboxSearch]: (draftState, action) => {
-    const {enabled} = action.payload
-    const {inboxSearch} = draftState
-    if (enabled && !inboxSearch) {
-      draftState.inboxSearch = Constants.makeInboxSearchInfo()
-    } else if (!enabled && inboxSearch) {
-      draftState.inboxSearch = undefined
-    }
-  },
-  [Chat2Gen.inboxSearchTextResult]: (draftState, action) => {
-    const {inboxSearch} = draftState
-    if (inboxSearch && inboxSearch.textStatus === 'inprogress') {
-      const {result} = action.payload
-      const {conversationIDKey} = result
-      const textResults = inboxSearch.textResults.filter(r => r.conversationIDKey !== conversationIDKey)
-      textResults.push(result)
-      inboxSearch.textResults = textResults.sort((l, r) => r.time - l.time)
-    }
-  },
-  [Chat2Gen.inboxSearchStarted]: draftState => {
-    const {inboxSearch} = draftState
-    if (inboxSearch) {
-      inboxSearch.nameStatus = 'inprogress'
-      inboxSearch.selectedIndex = 0
-      inboxSearch.textResults = []
-      inboxSearch.textStatus = 'inprogress'
-      inboxSearch.openTeamsStatus = 'inprogress'
-      inboxSearch.botsStatus = 'inprogress'
-    }
-  },
-  [Chat2Gen.inboxSearchNameResults]: (draftState, action) => {
-    const {inboxSearch} = draftState
-    if (inboxSearch?.nameStatus === 'inprogress') {
-      const {results, unread} = action.payload
-      inboxSearch.nameResults = results
-      inboxSearch.nameResultsUnread = unread
-      inboxSearch.nameStatus = 'success'
-    }
-  },
-  [Chat2Gen.inboxSearchMoveSelectedIndex]: (draftState, action) => {
-    const {inboxSearch} = draftState
-    if (inboxSearch) {
-      const {increment} = action.payload
-      const {selectedIndex} = inboxSearch
-      const totalResults = inboxSearch.nameResults.length + inboxSearch.textResults.length
-      if (increment && selectedIndex < totalResults - 1) {
-        inboxSearch.selectedIndex = selectedIndex + 1
-      } else if (!increment && selectedIndex > 0) {
-        inboxSearch.selectedIndex = selectedIndex - 1
-      }
-    }
-  },
-  [Chat2Gen.inboxSearchSelect]: (draftState, action) => {
-    const {selectedIndex} = action.payload
-    const {inboxSearch} = draftState
-    if (inboxSearch && selectedIndex != null) {
-      inboxSearch.selectedIndex = selectedIndex
-    }
-  },
-  [Chat2Gen.inboxSearch]: (draftState, action) => {
-    const {query} = action.payload
-    const {inboxSearch} = draftState
-    if (inboxSearch) {
-      inboxSearch.query = query
-    }
-  },
 }
 
 const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
@@ -922,49 +825,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     m.submitState = 'failed'
     m.errorTyp = errorTyp || undefined
   },
-  [EngineGen.chat1ChatUiChatInboxLayout]: (draftState, action) => {
-    try {
-      const {params} = action.payload
-      const {inboxHasLoaded, draftMap, mutedMap} = draftState
-      const layout: RPCChatTypes.UIInboxLayout = JSON.parse(params.layout)
-      draftState.inboxLayout = layout
-      draftState.inboxHasLoaded = true
-      if (!inboxHasLoaded) {
-        const smallTeams = layout.smallTeams || []
-        // on first layout, initialize any drafts and muted status
-        // After the first layout, any other updates will come in the form of meta updates.
-        smallTeams.forEach(t => {
-          if (t.isMuted) {
-            mutedMap.set(t.convID, true)
-          } else {
-            mutedMap.delete(t.convID)
-          }
-          if (t.draft) {
-            draftMap.set(t.convID, t.draft)
-          } else {
-            draftMap.delete(t.convID)
-          }
-        })
-        const bigTeams = layout.bigTeams || []
-        bigTeams.forEach(t => {
-          if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-            if (t.channel.isMuted) {
-              mutedMap.set(t.channel.convID, true)
-            } else {
-              mutedMap.delete(t.channel.convID)
-            }
-            if (t.channel.draft) {
-              draftMap.set(t.channel.convID, t.channel.draft)
-            } else {
-              draftMap.delete(t.channel.convID)
-            }
-          }
-        })
-      }
-    } catch (e) {
-      logger.info('failed to JSON parse inbox layout: ' + e)
-    }
-  },
   [EngineGen.chat1ChatUiChatBotCommandsUpdateStatus]: (draftState, action) => {
     const {convID, status} = action.payload.params
     const {botCommandsUpdateStatusMap, botSettings} = draftState
@@ -1448,12 +1308,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.clearMetas]: draftState => {
     draftState.metaMap.clear()
-  },
-  [Chat2Gen.setInboxNumSmallRows]: (draftState, action) => {
-    const {rows} = action.payload
-    if (rows > 0) {
-      draftState.inboxNumSmallRows = rows
-    }
   },
   [Chat2Gen.setBotPublicCommands]: (draftState, action) => {
     draftState.botPublicCommands.set(action.payload.username, action.payload.commands)

@@ -17,14 +17,14 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
   const conversationIDKey = props?.conversationIDKey ?? Constants.noConversationIDKey
   const navKey = props?.navKey ?? ''
   const dispatch = Container.useDispatch()
-  const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
+  const inboxSearch = Constants.useState(s => s.inboxSearch)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const validConvoID = conversationIDKey && conversationIDKey !== Constants.noConversationIDKey
-  const needSelectConvoID = Container.useSelector(state => {
+  const needSelectConvoID = Constants.useState(s => {
     if (validConvoID) {
       return null
     }
-    const first = state.chat2.inboxLayout?.smallTeams?.[0]
+    const first = s.inboxLayout?.smallTeams?.[0]
     return first?.convID
   })
 

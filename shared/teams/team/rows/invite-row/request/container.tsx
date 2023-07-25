@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/teams'
+import * as ChatConstants from '../../../../../constants/chat2'
 import * as ProfileConstants from '../../../../../constants/profile'
 import * as Container from '../../../../../util/container'
 import * as React from 'react'
@@ -62,8 +63,8 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
 export default (ownProps: OwnProps) => {
   const {teamID, username, reset, fullName} = ownProps
   const {teamname} = Constants.useState(s => Constants.getTeamMeta(s, teamID))
-  const _notifLabel = Container.useSelector(state =>
-    Constants.isBigTeam(state, teamID) ? `Announce them in #general` : `Announce them in team chat`
+  const _notifLabel = ChatConstants.useState(s =>
+    ChatConstants.isBigTeam(s, teamID) ? `Announce them in #general` : `Announce them in team chat`
   )
   const disabledReasonsForRolePicker = Constants.useState(s =>
     Constants.getDisabledReasonsForRolePicker(s, teamID, username)

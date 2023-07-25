@@ -1,5 +1,6 @@
 import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/teams'
+import * as ChatConstants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import type * as Types from '../../../constants/types/teams'
 import {Settings} from '.'
@@ -21,7 +22,7 @@ export default (ownProps: OwnProps) => {
   const canShowcase = teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner'
   const error = Constants.useState(s => s.errorInSettings)
   const ignoreAccessRequests = teamDetails.settings.tarsDisabled
-  const isBigTeam = Container.useSelector(state => Constants.isBigTeam(state, teamID))
+  const isBigTeam = ChatConstants.useState(s => ChatConstants.isBigTeam(s, teamID))
   const openTeam = settings.open
   const openTeamRole = teamDetails.settings.openJoinAs
   const teamname = teamMeta.teamname
