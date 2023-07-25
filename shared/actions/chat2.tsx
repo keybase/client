@@ -1788,15 +1788,13 @@ const messageSend = async (
     await RPCChatTypes.localPostTextNonblockRpcListener(
       {
         customResponseIncomingCallMap: {
-          'chat.1.chatUi.chatStellarDataConfirm': ({summary}, response) => {
+          'chat.1.chatUi.chatStellarDataConfirm': (_, response) => {
             // immediate fail
             response.result(false)
-            return Chat2Gen.createSetPaymentConfirmInfo({summary})
           },
-          'chat.1.chatUi.chatStellarDataError': ({error}, response) => {
+          'chat.1.chatUi.chatStellarDataError': (_, response) => {
             // immediate fail
             response.result(false)
-            return Chat2Gen.createSetPaymentConfirmInfo({error})
           },
         },
         incomingCallMap: {
@@ -1811,7 +1809,7 @@ const messageSend = async (
             }
             return false
           },
-          'chat.1.chatUi.chatStellarShowConfirm': () => [Chat2Gen.createClearPaymentConfirmInfo()],
+          'chat.1.chatUi.chatStellarShowConfirm': () => {},
         },
         params: {
           ...ephemeralData,

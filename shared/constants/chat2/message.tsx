@@ -831,20 +831,6 @@ export const previewSpecs = (preview?: RPCChatTypes.AssetMetadata, full?: RPCCha
   return res
 }
 
-const successfulInlinePaymentStatuses = ['completed', 'claimable']
-export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Message): boolean => {
-  if (message.type !== 'text' || !message.inlinePaymentIDs) {
-    return false
-  }
-  return (
-    message.inlinePaymentSuccessful ||
-    message.inlinePaymentIDs.some(id => {
-      const s = state.chat2.paymentStatusMap.get(id)
-      return !!s && successfulInlinePaymentStatuses.includes(s.status)
-    })
-  )
-}
-
 export const getMapUnfurl = (message: Types.Message): RPCChatTypes.UnfurlGenericDisplay | undefined => {
   const unfurls = message.type === 'text' && message.unfurls.size ? [...message.unfurls.values()] : null
   const mapInfo = unfurls?.[0]?.unfurl
@@ -855,6 +841,7 @@ export const getMapUnfurl = (message: Types.Message): RPCChatTypes.UnfurlGeneric
   return mapInfo || undefined
 }
 
+const successfulInlinePaymentStatuses = ['completed', 'claimable']
 const validUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   m: RPCChatTypes.UIMessageValid,

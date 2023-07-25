@@ -84,6 +84,22 @@ type WMProps = {
   popupAnchor: React.MutableRefObject<React.Component | null>
 } & Props
 
+const successfulInlinePaymentStatuses = ['completed', 'claimable']
+const hasSuccessfulInlinePayments = (
+  paymentStatusMap: Constants.State['paymentStatusMap'],
+  message: Types.Message
+): boolean => {
+  if (message.type !== 'text' || !message.inlinePaymentIDs) {
+    return false
+  }
+  return (
+    message.inlinePaymentSuccessful ||
+    message.inlinePaymentIDs.some(id => {
+      const s = paymentStatusMap.get(id)
+      return !!s && successfulInlinePaymentStatuses.includes(s.status)
+    })
+  )
+}
 const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
   const getReactionsPopupPosition = (
     hasReactions: boolean,
@@ -130,6 +146,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
   }
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const paymentStatusMap = Constants.useState(s => s.paymentStatusMap)
   return Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const {exploded, submitState, author, id, botUsername} = m
@@ -144,7 +161,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
       !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
     const showRevoked = !!m?.deviceRevokedAt
     const showExplodingCountdown = !!exploding && !exploded && submitState !== 'failed'
-    const showCoinsIcon = Constants.hasSuccessfulInlinePayments(state, m)
+    const showCoinsIcon = hasSuccessfulInlinePayments(paymentStatusMap, m)
     const hasReactions = (m.reactions?.size ?? 0) > 0
     // hide if the bot is writing to itself
     const botname = botUsername === author ? '' : botUsername ?? ''
@@ -635,5 +652,5 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 19,
         },
       }),
-    } as const)
+    }) as const
 )

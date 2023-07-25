@@ -32,7 +32,6 @@ export const clearCommandStatusInfo = 'chat2:clearCommandStatusInfo'
 export const clearMarkAsUnread = 'chat2:clearMarkAsUnread'
 export const clearMessages = 'chat2:clearMessages'
 export const clearMetas = 'chat2:clearMetas'
-export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const createConversation = 'chat2:createConversation'
 export const deselectedConversation = 'chat2:deselectedConversation'
@@ -135,7 +134,6 @@ export const setInboxNumSmallRows = 'chat2:setInboxNumSmallRows'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setParticipants = 'chat2:setParticipants'
-export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
 export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
@@ -287,13 +285,6 @@ export const createClearAttachmentView = (payload: {
 export const createClearCommandStatusInfo = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: clearCommandStatusInfo as typeof clearCommandStatusInfo})
-/**
- * Clear data for payment confirm modal
- */
-export const createClearPaymentConfirmInfo = (payload?: undefined) => ({
-  payload,
-  type: clearPaymentConfirmInfo as typeof clearPaymentConfirmInfo,
-})
 /**
  * Consume a service notification that a conversation's retention policy has been updated
  */
@@ -858,12 +849,6 @@ export const createSetMinWriterRole = (payload: {
   readonly role: TeamsTypes.TeamRoleType
 }) => ({payload, type: setMinWriterRole as typeof setMinWriterRole})
 /**
- * Set the payment confirm modal payment data
- */
-export const createSetPaymentConfirmInfo = (
-  payload: {readonly error?: RPCTypes.Status; readonly summary?: RPCChatTypes.UIChatPaymentSummary} = {}
-) => ({payload, type: setPaymentConfirmInfo as typeof setPaymentConfirmInfo})
-/**
  * Set the remote exploding mode for a conversation.
  */
 export const createSetConvExplodingMode = (payload: {
@@ -1395,7 +1380,6 @@ export type ClearCommandStatusInfoPayload = ReturnType<typeof createClearCommand
 export type ClearMarkAsUnreadPayload = ReturnType<typeof createClearMarkAsUnread>
 export type ClearMessagesPayload = ReturnType<typeof createClearMessages>
 export type ClearMetasPayload = ReturnType<typeof createClearMetas>
-export type ClearPaymentConfirmInfoPayload = ReturnType<typeof createClearPaymentConfirmInfo>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
 export type CreateConversationPayload = ReturnType<typeof createCreateConversation>
 export type DeselectedConversationPayload = ReturnType<typeof createDeselectedConversation>
@@ -1498,7 +1482,6 @@ export type SetInboxNumSmallRowsPayload = ReturnType<typeof createSetInboxNumSma
 export type SetMaybeMentionInfoPayload = ReturnType<typeof createSetMaybeMentionInfo>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
-export type SetPaymentConfirmInfoPayload = ReturnType<typeof createSetPaymentConfirmInfo>
 export type SetThreadLoadStatusPayload = ReturnType<typeof createSetThreadLoadStatus>
 export type SetThreadSearchQueryPayload = ReturnType<typeof createSetThreadSearchQuery>
 export type SetThreadSearchStatusPayload = ReturnType<typeof createSetThreadSearchStatus>
@@ -1560,7 +1543,6 @@ export type Actions =
   | ClearMarkAsUnreadPayload
   | ClearMessagesPayload
   | ClearMetasPayload
-  | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
   | CreateConversationPayload
   | DeselectedConversationPayload
@@ -1663,7 +1645,6 @@ export type Actions =
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
   | SetParticipantsPayload
-  | SetPaymentConfirmInfoPayload
   | SetThreadLoadStatusPayload
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload

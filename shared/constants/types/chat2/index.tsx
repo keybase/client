@@ -5,7 +5,6 @@ import type * as ChatInboxRowTypes from './rowitem'
 import type * as Meta from './meta'
 import type * as RPCChatTypes from '../rpc-chat-gen'
 import type * as Team from '../teams'
-import type * as Wallet from '../wallets'
 import type HiddenString from '../../../util/hidden-string'
 
 export type PaymentConfirmInfo = {
@@ -239,8 +238,6 @@ export type State = {
   orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
   markedAsUnreadMap: Map<Common.ConversationIDKey, boolean> // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
-  paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
-  paymentStatusMap: Map<Wallet.PaymentID, _Message.ChatPaymentInfo>
   pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
   replyToMap: Map<Common.ConversationIDKey, _Message.Ordinal>
   smallTeamsExpanded: boolean // if we're showing all small teams,

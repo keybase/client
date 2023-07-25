@@ -87,22 +87,7 @@ const giphyActions: Container.ActionHandler<Actions, Types.State> = {
   },
 }
 
-const paymentActions: Container.ActionHandler<Actions, Types.State> = {
-  [Chat2Gen.setPaymentConfirmInfo]: (draftState, action) => {
-    const {error, summary} = action.payload
-    draftState.paymentConfirmInfo = error ? {error} : {summary}
-  },
-  [Chat2Gen.clearPaymentConfirmInfo]: draftState => {
-    draftState.paymentConfirmInfo = undefined
-  },
-  [Chat2Gen.paymentInfoReceived]: (draftState, action) => {
-    const {conversationIDKey, messageID, paymentInfo} = action.payload
-    const {accountsInfoMap, paymentStatusMap} = draftState
-    const convMap = mapGetEnsureValue(accountsInfoMap, conversationIDKey, new Map())
-    convMap.set(messageID, paymentInfo)
-    paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
-  },
-}
+const paymentActions: Container.ActionHandler<Actions, Types.State> = {}
 
 const searchActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.threadSearchResults]: (draftState, action) => {

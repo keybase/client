@@ -5,6 +5,8 @@ import * as Router2 from '../router2'
 import * as ConfigConstants from '../config'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamConstants from '../teams'
+import type * as Message from '../types/chat2/message'
+import type * as Wallet from '../types/wallets'
 import {isMobile, isTablet} from '../platform'
 import {
   noConversationIDKey,
@@ -96,8 +98,6 @@ export const makeState = (): Types.State => ({
   mutualTeamMap: new Map(),
   orangeLineMap: new Map(), // last message we've seen,
   participantMap: new Map(),
-  paymentConfirmInfo: undefined,
-  paymentStatusMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
   replyToMap: new Map(),
   shouldDeleteZzzJourneycard: new Map(),
@@ -572,7 +572,6 @@ export {
   getMessageStateExtras,
   getPaymentMessageInfo,
   getRequestMessageInfo,
-  hasSuccessfulInlinePayments,
   isPendingPaymentMessage,
   isSpecialMention,
   isVideoAttachment,
@@ -618,17 +617,19 @@ type Store = {
   bigTeamBadgeCount: number
   typingMap: Map<Types.ConversationIDKey, Set<string>>
   lastCoord?: Types.Coordinate
+  paymentStatusMap: Map<Wallet.PaymentID, Message.ChatPaymentInfo>
 }
 
 const initialStore: Store = {
   bigTeamBadgeCount: 0,
   createConversationError: undefined,
   lastCoord: undefined,
+  paymentStatusMap: new Map(),
   smallTeamBadgeCount: 0,
   typingMap: new Map(),
 }
 
-type State = Store & {
+export type State = Store & {
   dispatch: {
     badgesUpdated: (
       bigTeamBadgeCount: number,
@@ -643,6 +644,11 @@ type State = Store & {
     ) => void
     onEngineConnected: () => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
+    paymentInfoReceived: (
+      conversationIDKey: Types.ConversationIDKey,
+      messageID: RPCChatTypes.MessageID,
+      paymentInfo: Types.ChatPaymentInfo
+    ) => void
     resetState: 'default'
     resetConversationErrored: () => void
     updateLastCoord: (coord: Types.Coordinate) => void
@@ -697,6 +703,14 @@ export const useState = Z.createZustand<State>(set => {
         )
       }
       Z.ignorePromise(f())
+    },
+    paymentInfoReceived: (_conversationIDKey, _messageID, paymentInfo) => {
+      set(s => {
+        const {/*accountsInfoMap, TODO */ paymentStatusMap} = s
+        // const convMap = mapGetEnsureValue(accountsInfoMap, conversationIDKey, new Map())
+        // convMap.set(messageID, paymentInfo)
+        paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
+      })
     },
     resetConversationErrored: () => {
       set(s => {
