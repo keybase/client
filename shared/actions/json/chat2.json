@@ -74,9 +74,7 @@
     },
     "badgesUpdated": {
       "_description": "Update our badges in the nav",
-      "bigTeamBadgeCount": "number",
-      "conversations": "Array<RPCTypes.BadgeConversationInfo>",
-      "smallTeamBadgeCount": "number"
+      "conversations": "Array<RPCTypes.BadgeConversationInfo>"
     },
     "inboxRefresh": {
       "_description": "Refresh the inbox",

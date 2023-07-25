@@ -3910,13 +3910,15 @@ const initChat = () => {
     if (s.badgeState === old.badgeState) return
     if (!s.badgeState) return
     const reduxDispatch = Z.getReduxDispatch()
+    const conversations = s.badgeState.conversations || []
     reduxDispatch(
       Chat2Gen.createBadgesUpdated({
-        bigTeamBadgeCount: s.badgeState.bigTeamBadgeCount,
-        conversations: s.badgeState.conversations || [],
-        smallTeamBadgeCount: s.badgeState.smallTeamBadgeCount,
+        conversations,
       })
     )
+    Constants.useState
+      .getState()
+      .dispatch.badgesUpdated(s.badgeState.bigTeamBadgeCount, s.badgeState.smallTeamBadgeCount, conversations)
   })
 
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)

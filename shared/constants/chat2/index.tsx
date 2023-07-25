@@ -61,7 +61,6 @@ export const makeState = (): Types.State => ({
   accountsInfoMap: new Map(),
   attachmentViewMap: new Map(),
   badgeMap: new Map(), // id to the badge count
-  bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   botPublicCommands: new Map(),
@@ -105,7 +104,6 @@ export const makeState = (): Types.State => ({
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
   replyToMap: new Map(),
   shouldDeleteZzzJourneycard: new Map(),
-  smallTeamBadgeCount: 0,
   smallTeamsExpanded: false,
   staticConfig: undefined,
   teamIDToGeneralConvID: new Map(),
@@ -618,24 +616,39 @@ export {
 }
 
 type Store = {
+  smallTeamBadgeCount: number
+  bigTeamBadgeCount: number
   typingMap: Map<Types.ConversationIDKey, Set<string>>
 }
 
 const initialStore: Store = {
+  bigTeamBadgeCount: 0,
+  smallTeamBadgeCount: 0,
   typingMap: new Map(),
 }
 
 type State = Store & {
   dispatch: {
+    badgesUpdated: (
+      bigTeamBadgeCount: number,
+      smallTeamBadgeCount: number,
+      conversations: Array<RPCTypes.BadgeConversationInfo>
+    ) => void
     onEngineConnected: () => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     resetState: 'default'
   }
 }
 
-export const useState = Z.createZustand<State>(() => {
+export const useState = Z.createZustand<State>(set => {
   const reduxDispatch = Z.getReduxDispatch()
   const dispatch: State['dispatch'] = {
+    badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount, _conversations /*TODO*/) => {
+      set(s => {
+        s.smallTeamBadgeCount = smallTeamBadgeCount
+        s.bigTeamBadgeCount = bigTeamBadgeCount
+      })
+    },
     onEngineConnected: () => {
       const f = async () => {
         try {

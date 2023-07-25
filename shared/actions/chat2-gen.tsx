@@ -1095,9 +1095,7 @@ export const createUpdateMessages = (payload: {
  * Update our badges in the nav
  */
 export const createBadgesUpdated = (payload: {
-  readonly bigTeamBadgeCount: number
   readonly conversations: Array<RPCTypes.BadgeConversationInfo>
-  readonly smallTeamBadgeCount: number
 }) => ({payload, type: badgesUpdated as typeof badgesUpdated})
 /**
  * Update progress on an upload

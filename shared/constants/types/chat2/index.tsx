@@ -209,8 +209,6 @@ export type State = {
   > // temp cache for requestPayment and sendPayment message data,
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
   badgeMap: ConversationCountMap // id to the badge count,
-  smallTeamBadgeCount: number
-  bigTeamBadgeCount: number
   blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
   botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatusTyp>
   botPublicCommands: Map<string, BotPublicCommands>

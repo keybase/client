@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as RowSizes from './sizes'
@@ -12,7 +12,7 @@ type Props = {
 
 const BigTeamsDivider = React.memo(function BigTeamsDivider(props: Props) {
   const {toggle} = props
-  const badgeCount = Container.useSelector(state => state.chat2.bigTeamBadgeCount)
+  const badgeCount = Constants.useState(s => s.bigTeamBadgeCount)
   return (
     <Kb.ClickableBox
       title="Teams with multiple channels."
@@ -92,7 +92,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         marginTop: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default BigTeamsDivider

@@ -599,7 +599,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.lastCoord = action.payload.coord
   },
   [Chat2Gen.badgesUpdated]: (draftState, action) => {
-    const {bigTeamBadgeCount, conversations, smallTeamBadgeCount} = action.payload
+    const {conversations} = action.payload
     const badgeMap = new Map<Types.ConversationIDKey, number>()
     const unreadMap = new Map<Types.ConversationIDKey, number>()
     conversations.forEach(({convID, badgeCount, unreadMessages}) => {
@@ -608,8 +608,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       unreadMap.set(key, unreadMessages)
     })
 
-    draftState.smallTeamBadgeCount = smallTeamBadgeCount
-    draftState.bigTeamBadgeCount = bigTeamBadgeCount
     if (!mapEqual(draftState.badgeMap, badgeMap)) {
       draftState.badgeMap = badgeMap
     }

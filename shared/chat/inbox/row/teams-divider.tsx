@@ -2,6 +2,7 @@ import * as React from 'react'
 import type * as Types from '../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as RowSizes from './sizes'
@@ -33,9 +34,9 @@ const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<Ty
 
 const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
-  const {badges, smallTeamBadgeCount, totalSmallTeams} = Container.useSelector(state => {
+  const smallTeamBadgeCount = Constants.useState(s => s.smallTeamBadgeCount)
+  const {badges, totalSmallTeams} = Container.useSelector(state => {
     const badges = state.chat2.badgeMap
-    const smallTeamBadgeCount = state.chat2.smallTeamBadgeCount
     const totalSmallTeams = state.chat2.inboxLayout?.totalSmallTeams ?? 0
     return {badges, smallTeamBadgeCount, totalSmallTeams}
   }, shallowEqual)
@@ -116,7 +117,7 @@ const styles = Styles.styleSheetCreate(
         marginLeft: Styles.globalMargins.tiny,
         marginRight: Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 export default TeamsDivider
