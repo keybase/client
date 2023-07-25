@@ -1,7 +1,7 @@
 import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/tracker2'
+import * as BotsConstants from '../../../constants/bots'
 import * as ProfileConstants from '../../../constants/profile'
-import * as Container from '../../../util/container'
 import * as Followers from '../../../constants/followers'
 import * as ConfigConstants from '../../../constants/config'
 import * as FsConstants from '../../../constants/fs'
@@ -17,7 +17,7 @@ export default (ownProps: OwnProps) => {
   const d = Constants.useState(s => Constants.getDetails(s, username))
   const followThem = Followers.useFollowerState(s => s.following.has(username))
   const followsYou = Followers.useFollowerState(s => s.followers.has(username))
-  const isBot = Container.useSelector(state => state.chat2.featuredBotsMap.has(username))
+  const isBot = BotsConstants.useState(s => s.featuredBotsMap.has(username))
 
   const _guiID = d.guiID
   const _you = ConfigConstants.useCurrentUserState(s => s.username)

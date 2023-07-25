@@ -37,7 +37,7 @@ const useLoadDataForChannelPage = (
 ) => {
   const dispatch = Container.useDispatch()
   const prevSelectedTab = Container.usePrevious(selectedTab)
-  const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
+  const featuredBotsMap = BotsConstants.useState(s => s.featuredBotsMap)
   const getMembers = Constants.useState(s => s.dispatch.getMembers)
   const getBlockState = UsersConstants.useState(s => s.dispatch.getBlockState)
   React.useEffect(() => {

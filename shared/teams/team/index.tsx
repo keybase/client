@@ -72,7 +72,7 @@ const getBots = memoize((members: Map<string, Types.MemberInfo>) =>
   [...members.values()].filter(m => m.type === 'restrictedbot' || m.type === 'bot')
 )
 const useLoadFeaturedBots = (teamDetails: Types.TeamDetails, shouldLoad: boolean) => {
-  const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
+  const featuredBotsMap = BotsConstants.useState(s => s.featuredBotsMap)
   const searchFeaturedBots = BotsConstants.useState(s => s.dispatch.searchFeaturedBots)
   const _bots = getBots(teamDetails.members)
   React.useEffect(() => {

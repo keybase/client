@@ -67,7 +67,6 @@ export const leaveConversation = 'chat2:leaveConversation'
 export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
-export const loadNextBotPage = 'chat2:loadNextBotPage'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const loadedMutualTeams = 'chat2:loadedMutualTeams'
 export const loadedUserEmoji = 'chat2:loadedUserEmoji'
@@ -135,7 +134,6 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setGeneralConvFromTeamID = 'chat2:setGeneralConvFromTeamID'
 export const setInboxNumSmallRows = 'chat2:setInboxNumSmallRows'
-export const setLoadedBotPage = 'chat2:setLoadedBotPage'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setParticipants = 'chat2:setParticipants'
@@ -1266,13 +1264,6 @@ export const createEditBotSettings = (payload: {
   readonly convs?: Array<string>
 }) => ({payload, type: editBotSettings as typeof editBotSettings})
 /**
- * loads next page of featured bots from backend
- */
-export const createLoadNextBotPage = (payload: {readonly pageSize: number}) => ({
-  payload,
-  type: loadNextBotPage as typeof loadNextBotPage,
-})
-/**
  * refresh bot public commands
  */
 export const createRefreshBotPublicCommands = (payload: {readonly username: string}) => ({
@@ -1315,13 +1306,6 @@ export const createSetBotSettings = (payload: {
   readonly username: string
   readonly settings: RPCTypes.TeamBotSettings
 }) => ({payload, type: setBotSettings as typeof setBotSettings})
-/**
- * set page # for a conversation
- */
-export const createSetLoadedBotPage = (payload: {readonly page: number}) => ({
-  payload,
-  type: setLoadedBotPage as typeof setLoadedBotPage,
-})
 export const createAttachFromDragAndDrop = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly paths: Array<Types.PathAndOutboxID>
@@ -1474,7 +1458,6 @@ export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation
 export type LoadAttachmentViewPayload = ReturnType<typeof createLoadAttachmentView>
 export type LoadMessagesCenteredPayload = ReturnType<typeof createLoadMessagesCentered>
 export type LoadNewerMessagesDueToScrollPayload = ReturnType<typeof createLoadNewerMessagesDueToScroll>
-export type LoadNextBotPagePayload = ReturnType<typeof createLoadNextBotPage>
 export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
 export type LoadedMutualTeamsPayload = ReturnType<typeof createLoadedMutualTeams>
 export type LoadedUserEmojiPayload = ReturnType<typeof createLoadedUserEmoji>
@@ -1542,7 +1525,6 @@ export type SetConversationOfflinePayload = ReturnType<typeof createSetConversat
 export type SetExplodingModeLockPayload = ReturnType<typeof createSetExplodingModeLock>
 export type SetGeneralConvFromTeamIDPayload = ReturnType<typeof createSetGeneralConvFromTeamID>
 export type SetInboxNumSmallRowsPayload = ReturnType<typeof createSetInboxNumSmallRows>
-export type SetLoadedBotPagePayload = ReturnType<typeof createSetLoadedBotPage>
 export type SetMaybeMentionInfoPayload = ReturnType<typeof createSetMaybeMentionInfo>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
@@ -1644,7 +1626,6 @@ export type Actions =
   | LoadAttachmentViewPayload
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
-  | LoadNextBotPagePayload
   | LoadOlderMessagesDueToScrollPayload
   | LoadedMutualTeamsPayload
   | LoadedUserEmojiPayload
@@ -1712,7 +1693,6 @@ export type Actions =
   | SetExplodingModeLockPayload
   | SetGeneralConvFromTeamIDPayload
   | SetInboxNumSmallRowsPayload
-  | SetLoadedBotPagePayload
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
   | SetParticipantsPayload

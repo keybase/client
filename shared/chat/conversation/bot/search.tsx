@@ -1,4 +1,3 @@
-import * as BotsGen from '../../../actions/bots-gen'
 import * as Constants from '../../../constants/bots'
 import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
@@ -6,7 +5,6 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
 import debounce from 'lodash/debounce'
-import shallowEqual from 'shallowequal'
 import type * as RPCTypes from '../../../constants/types/rpc-gen'
 import type * as TeamsTypes from '../../../constants/types/teams'
 import type * as Types from '../../../constants/types/chat2'
@@ -24,20 +22,16 @@ const renderSectionHeader = ({section}: any) => {
 const userEmptyPlaceholder = '---EMPTYUSERS---'
 const resultEmptyPlaceholder = '---EMPTYRESULT---'
 
-const getResults = (state: Container.TypedState) => {
-  const {botSearchResults, featuredBotsMap} = state.chat2
-  return {botSearchResults, featuredBotsMap}
-}
 const SearchBotPopup = (props: Props) => {
   const conversationIDKey = props.conversationIDKey
   const teamID = props.teamID
   const [lastQuery, setLastQuery] = React.useState('')
-  const {featuredBotsMap, botSearchResults} = Container.useSelector(getResults, shallowEqual)
+  const featuredBotsMap = Constants.useState(s => s.featuredBotsMap)
+  const botSearchResults = Constants.useState(s => s.botSearchResults)
   const waiting = Container.useAnyWaiting([
     Constants.waitingKeyBotSearchUsers,
     Constants.waitingKeyBotSearchFeatured,
   ])
-  const dispatch = Container.useDispatch()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const onClose = () => {
     clearModals()
@@ -45,13 +39,16 @@ const SearchBotPopup = (props: Props) => {
 
   const searchFeaturedAndUsers = Constants.useState(s => s.dispatch.searchFeaturedAndUsers)
   const getFeaturedBots = Constants.useState(s => s.dispatch.getFeaturedBots)
+  const setSearchFeaturedAndUsersResults = Constants.useState(
+    s => s.dispatch.setSearchFeaturedAndUsersResults
+  )
 
   const onSearch = debounce((query: string) => {
     setLastQuery(query)
     if (query.length > 0) {
       searchFeaturedAndUsers(query)
     } else {
-      dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query, results: undefined}))
+      setSearchFeaturedAndUsersResults(query, undefined)
     }
   }, 200)
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
@@ -63,7 +60,7 @@ const SearchBotPopup = (props: Props) => {
   }
 
   Container.useOnMountOnce(() => {
-    dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({query: '', results: undefined}))
+    setSearchFeaturedAndUsersResults('', undefined)
     getFeaturedBots()
   })
 
