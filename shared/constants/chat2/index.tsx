@@ -623,7 +623,6 @@ export const isBigTeam = (state: State, teamID: string): boolean => {
 }
 
 type Store = {
-  // badgeCounts: Map<Types.ConversationIDKey, number> // only used by teams divider / inbox
   // increments when the convo stores values change, badges and unread
   badgeCountsChanged: number
   createConversationError?: Types.CreateConversationError
@@ -647,7 +646,6 @@ type Store = {
 }
 
 const initialStore: Store = {
-  // badgeCounts: new Map(),
   badgeCountsChanged: 0,
   bigTeamBadgeCount: 0,
   createConversationError: undefined,
@@ -729,7 +727,7 @@ export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const getReduxStore = Z.getReduxStore()
   const dispatch: State['dispatch'] = {
-    badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount /*, badgeCounts*/) => {
+    badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount) => {
       set(s => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
