@@ -81,7 +81,6 @@ export const metaReceivedError = 'chat2:metaReceivedError'
 export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
 export const metasReceived = 'chat2:metasReceived'
-export const muteConversation = 'chat2:muteConversation'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
@@ -1160,10 +1159,6 @@ export const createMessageSendByUsernames = (payload: {
   readonly text: HiddenString
   readonly waitingKey?: string
 }) => ({payload, type: messageSendByUsernames as typeof messageSendByUsernames})
-export const createMuteConversation = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly muted: boolean
-}) => ({payload, type: muteConversation as typeof muteConversation})
 export const createOpenChatFromWidget = (
   payload: {readonly conversationIDKey?: Types.ConversationIDKey} = {}
 ) => ({payload, type: openChatFromWidget as typeof openChatFromWidget})
@@ -1260,7 +1255,6 @@ export type MetaReceivedErrorPayload = ReturnType<typeof createMetaReceivedError
 export type MetaRequestTrustedPayload = ReturnType<typeof createMetaRequestTrusted>
 export type MetaRequestingTrustedPayload = ReturnType<typeof createMetaRequestingTrusted>
 export type MetasReceivedPayload = ReturnType<typeof createMetasReceived>
-export type MuteConversationPayload = ReturnType<typeof createMuteConversation>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type NotificationSettingsUpdatedPayload = ReturnType<typeof createNotificationSettingsUpdated>
@@ -1402,7 +1396,6 @@ export type Actions =
   | MetaRequestTrustedPayload
   | MetaRequestingTrustedPayload
   | MetasReceivedPayload
-  | MuteConversationPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | NotificationSettingsUpdatedPayload

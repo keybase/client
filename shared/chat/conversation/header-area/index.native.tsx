@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
 import * as ProfileConstants from '../../../constants/profile'
@@ -22,10 +21,10 @@ type Props = {
 const ShhIcon = (p: Props) => {
   const {conversationIDKey} = p
   const isMuted = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).isMuted)
-  const dispatch = Container.useDispatch()
+  const mute = Constants.useContext(s => s.dispatch.mute)
   const unMuteConversation = React.useCallback(() => {
-    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false}))
-  }, [dispatch, conversationIDKey])
+    mute(false)
+  }, [mute])
   return isMuted ? (
     <Kb.Icon
       type="iconfont-shh"

@@ -164,12 +164,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const onHideConv = React.useCallback(() => {
     dispatch(ChatGen.createHideConversation({conversationIDKey}))
   }, [conversationIDKey, dispatch])
-  const onMuteConv = React.useCallback(
-    (muted: boolean) => {
-      dispatch(ChatGen.createMuteConversation({conversationIDKey, muted}))
-    },
-    [conversationIDKey, dispatch]
-  )
+  const onMuteConv = ChatConstants.useContext(s => s.dispatch.mute)
   const onUnhideConv = React.useCallback(() => {
     dispatch(ChatGen.createUnhideConversation({conversationIDKey}))
   }, [conversationIDKey, dispatch])

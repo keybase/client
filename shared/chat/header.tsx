@@ -15,8 +15,15 @@ import shallowEqual from 'shallowequal'
 type Props = {
   conversationIDKey?: Types.ConversationIDKey
 }
-
 const Header = (props: Props) => {
+  return (
+    <Constants.Provider canBeNull={true} id={props.conversationIDKey ?? Constants.noConversationIDKey}>
+      <Header2 {...props} />
+    </Constants.Provider>
+  )
+}
+
+const Header2 = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
@@ -56,9 +63,10 @@ const Header = (props: Props) => {
   const onToggleThreadSearch = React.useCallback(() => {
     dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
   }, [dispatch, conversationIDKey])
+  const mute = Constants.useContext(s => s.dispatch.mute)
   const unMuteConversation = React.useCallback(() => {
-    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false}))
-  }, [dispatch, conversationIDKey])
+    mute(false)
+  }, [mute])
 
   const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
   const onToggleInfoPanel = React.useCallback(() => {

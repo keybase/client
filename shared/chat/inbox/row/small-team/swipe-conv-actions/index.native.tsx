@@ -57,14 +57,16 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const onMarkConversationAsUnread = Container.useEvent(() => {
     dispatch(Chat2Gen.createMarkAsUnread({conversationIDKey}))
   })
+
+  const mute = Constants.useContext(s => s.dispatch.mute)
   const onMuteConversation = Container.useEvent(() => {
-    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted}))
+    mute(!isMuted)
   })
   const onHideConversation = Container.useEvent(() => {
     dispatch(Chat2Gen.createHideConversation({conversationIDKey}))
   })
 
-  const isMuted = Container.useSelector(state => state.chat2.mutedMap.get(conversationIDKey) ?? false)
+  const isMuted = Constants.useContext(s => s.muted)
 
   const onMarkAsUnread = Container.useEvent(() => {
     onMarkConversationAsUnread()

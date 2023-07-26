@@ -51,13 +51,13 @@ const InboxAndConversation = React.memo(function InboxAndConversation(props?: Pr
           <Inbox navKey={navKey} conversationIDKey={conversationIDKey} />
         )}
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.conversation}>
-          <Constants.Provider id={conversationIDKey}>
+          <Constants.Provider id={conversationIDKey} canBeNull={true}>
             <Conversation conversationIDKey={conversationIDKey} />
           </Constants.Provider>
         </Kb.Box2>
         {infoPanelShowing ? (
           <Kb.Box2 direction="vertical" fullHeight={true} style={styles.infoPanel}>
-            <Constants.Provider id={conversationIDKey}>
+            <Constants.Provider id={conversationIDKey} canBeNull={true}>
               <InfoPanel conversationIDKey={conversationIDKey} />
             </Constants.Provider>
           </Kb.Box2>

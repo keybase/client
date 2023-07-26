@@ -135,12 +135,12 @@ const useUnsentText = (
     setLastCID(conversationIDKey)
     considerDraftRef.current = true
   }
-  const {draft, storeUnsentText} = Container.useSelector(state => {
-    const draft = considerDraftRef.current ? Constants.getDraft(state, conversationIDKey) : undefined
+  const draft = Constants.useContext(s => s.draft)
+  const storeUnsentText = Container.useSelector(state => {
     // we use the hiddenstring since external actions can try and affect the input state (especially clearing it) and that can fail if it doesn't change
     const storeUnsentText = state.chat2.unsentTextMap.get(conversationIDKey)
-    return {draft, storeUnsentText}
-  }, shallowEqual)
+    return storeUnsentText
+  })
   const prevDraft = Container.usePrevious(draft)
   const prevStoreUnsentText = Container.usePrevious(storeUnsentText)
 
@@ -372,9 +372,12 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     setLastUnsentText(unsentText)
     if (unsentText !== undefined) {
       lastTextRef.current = unsentText
-      setTextInput(unsentText)
     }
   }
+  // needs to be an effect since setTextInput needs a mounted ref
+  React.useEffect(() => {
+    setTextInput(lastTextRef.current)
+  }, [setTextInput])
 
   const isTyping = Constants.useState(s => !!s.typingMap.get(conversationIDKey)?.size)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)

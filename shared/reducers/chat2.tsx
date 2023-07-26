@@ -1015,19 +1015,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.metasReceived]: (draftState, action) => {
     const {metas, removals} = action.payload
-    const {draftMap, mutedMap, metaMap} = draftState
+    const {metaMap} = draftState
 
     metas.forEach((m: Types.ConversationMeta) => {
-      if (m.draft) {
-        draftMap.set(m.conversationIDKey, m.draft)
-      } else {
-        draftMap.delete(m.conversationIDKey)
-      }
-      if (m.isMuted) {
-        mutedMap.set(m.conversationIDKey, true)
-      } else {
-        mutedMap.delete(m.conversationIDKey)
-      }
+      const cs = Constants.getConvoState(m.conversationIDKey)
+      cs.dispatch.setDraft(m.draft)
+      cs.dispatch.setMuted(m.isMuted)
     })
 
     removals && removals.forEach(m => metaMap.delete(m))

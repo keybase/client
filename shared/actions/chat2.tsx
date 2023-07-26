@@ -2544,15 +2544,6 @@ const leaveConversation = async (_: unknown, action: Chat2Gen.LeaveConversationP
   )
 }
 
-const muteConversation = async (_: unknown, action: Chat2Gen.MuteConversationPayload) => {
-  const {muted, conversationIDKey} = action.payload
-  await RPCChatTypes.localSetConversationStatusLocalRpcPromise({
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    status: muted ? RPCChatTypes.ConversationStatus.muted : RPCChatTypes.ConversationStatus.unfiled,
-  })
-}
-
 const updateNotificationSettings = async (_: unknown, action: Chat2Gen.UpdateNotificationSettingsPayload) => {
   const {notificationsGlobalIgnoreMentions, notificationsMobile, notificationsDesktop} = action.payload
   const {conversationIDKey} = action.payload
@@ -3570,7 +3561,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.joinConversation, joinConversation)
   Container.listenAction(Chat2Gen.leaveConversation, leaveConversation)
 
-  Container.listenAction(Chat2Gen.muteConversation, muteConversation)
   Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
   Container.listenAction(Chat2Gen.blockConversation, blockConversation)
   Container.listenAction(Chat2Gen.hideConversation, hideConversation)
