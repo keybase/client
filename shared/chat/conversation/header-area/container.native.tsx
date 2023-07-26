@@ -125,7 +125,15 @@ export const headerNavigationOptions = (route: unknown) => {
         </Constants.Provider>
       )
     },
-    headerRight: () => <HeaderAreaRight conversationIDKey={conversationIDKey} />,
-    headerTitle: () => <HeaderBranchContainer conversationIDKey={conversationIDKey} />,
+    headerRight: () => (
+      <Constants.Provider id={conversationIDKey}>
+        <HeaderAreaRight conversationIDKey={conversationIDKey} />
+      </Constants.Provider>
+    ),
+    headerTitle: () => (
+      <Constants.Provider id={conversationIDKey}>
+        <HeaderBranchContainer conversationIDKey={conversationIDKey} />
+      </Constants.Provider>
+    ),
   }
 }
