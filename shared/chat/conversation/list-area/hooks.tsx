@@ -22,7 +22,6 @@ export const useJumpToRecent = (
   const dispatch = Container.useDispatch()
 
   const containsLatestMessage = Container.useSelector(state => {
-    console.log('aaa jump to recent sel', state.chat2.containsLatestMessageMap)
     return state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
   })
 
@@ -32,6 +31,5 @@ export const useJumpToRecent = (
     dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey, hide: true}))
   }, [dispatch, conversationIDKey, scrollToBottom])
 
-  console.log('aaa jump to recent', containsLatestMessage, numOrdinals, conversationIDKey)
   return !containsLatestMessage && numOrdinals > 0 && <JumpToRecent onClick={jumpToRecent} />
 }
