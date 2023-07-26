@@ -17,7 +17,7 @@ type Props = {
 }
 const Header = (props: Props) => {
   return (
-    <Constants.Provider id={props.conversationIDKey ?? Constants.noConversationIDKey}>
+    <Constants.Provider canBeNull={true} id={props.conversationIDKey ?? Constants.noConversationIDKey}>
       <Header2 {...props} />
     </Constants.Provider>
   )

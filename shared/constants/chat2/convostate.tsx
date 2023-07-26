@@ -107,13 +107,12 @@ export function getConvoState(id: Types.ConversationIDKey) {
 
 const Context = React.createContext<MadeStore | null>(null)
 
-type ConvoProviderProps = React.PropsWithChildren<{id: Types.ConversationIDKey}>
-export function Provider({children, ...props}: ConvoProviderProps) {
-  const storeRef = React.useRef<MadeStore>()
-  if (!storeRef.current) {
-    storeRef.current = createConvoStore(props.id)
+type ConvoProviderProps = React.PropsWithChildren<{id: Types.ConversationIDKey; canBeNull?: boolean}>
+export function Provider({canBeNull, children, ...props}: ConvoProviderProps) {
+  if (!canBeNull && (!props.id || props.id === noConversationIDKey)) {
+    throw new Error('No convo id in provider')
   }
-  return <Context.Provider value={storeRef.current}>{children}</Context.Provider>
+  return <Context.Provider value={createConvoStore(props.id)}>{children}</Context.Provider>
 }
 
 export function useContext<T>(

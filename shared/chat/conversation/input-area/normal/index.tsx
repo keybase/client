@@ -372,9 +372,12 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     setLastUnsentText(unsentText)
     if (unsentText !== undefined) {
       lastTextRef.current = unsentText
-      setTextInput(unsentText)
     }
   }
+  // needs to be an effect since setTextInput needs a mounted ref
+  React.useEffect(() => {
+    setTextInput(lastTextRef.current)
+  }, [setTextInput])
 
   const isTyping = Constants.useState(s => !!s.typingMap.get(conversationIDKey)?.size)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
