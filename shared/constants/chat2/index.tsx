@@ -671,11 +671,7 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    badgesUpdated: (
-      bigTeamBadgeCount: number,
-      smallTeamBadgeCount: number
-      // badgeCounts: Store['badgeCounts']
-    ) => void
+    badgesUpdated: (bigTeamBadgeCount: number, smallTeamBadgeCount: number) => void
     conversationErrored: (
       allowedUsers: Array<string>,
       disallowedUsers: Array<string>,
@@ -738,7 +734,6 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
         s.badgeCountsChanged++
-        // s.badgeCounts = badgeCounts
       })
     },
     conversationErrored: (allowedUsers, disallowedUsers, code, message) => {

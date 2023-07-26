@@ -6,7 +6,7 @@ import * as Styles from '../../../../styles'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import type * as Types from '../../../../constants/types/chat2'
 import {formatTimeForConversationList} from '../../../../util/timestamp'
-import {TimeContext, ConversationIDKeyContext, ParticipantsContext} from './contexts'
+import {TimeContext, ParticipantsContext} from './contexts'
 
 type Props = {
   isSelected: boolean
@@ -20,7 +20,7 @@ const getMeta = (state: Container.TypedState, conversationIDKey: Types.Conversat
   state.chat2.metaMap.get(conversationIDKey)
 
 const Timestamp = React.memo(function Timestamp() {
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+  const conversationIDKey = Constants.useContext(s => s.id)
   const layoutTime = React.useContext(TimeContext)
   const timeNum = Container.useSelector(state => {
     const timeNum = (getMeta(state, conversationIDKey)?.timestamp ?? layoutTime) || 0

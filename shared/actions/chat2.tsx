@@ -3348,7 +3348,7 @@ const maybeChangeChatSelection = (
 
   // nothing to do with chat
   if (!wasChat && !isChat) {
-    return false
+    return
   }
 
   // @ts-ignore TODO better param typing
@@ -3363,7 +3363,7 @@ const maybeChangeChatSelection = (
     const getReduxStore = Z.getReduxStore()
     // if we've never loaded anything, keep going so we load it
     if (!isID || getReduxStore().chat2.containsLatestMessageMap.get(isID) !== undefined) {
-      return false
+      return
     }
   }
 
@@ -3373,34 +3373,41 @@ const maybeChangeChatSelection = (
       ? [Chat2Gen.createDeselectedConversation({conversationIDKey: wasID})]
       : []
 
+  const reduxDispatch = Z.getReduxDispatch()
   // still chatting? just select new one
   if (wasChat && isChat && isID && Constants.isValidConversationIDKey(isID)) {
-    return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
+    ;[...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})].forEach(a =>
+      reduxDispatch(a)
+    )
+    return
   }
 
   // leaving a chat
   if (wasChat && !isChat) {
-    return [
+    ;[
       ...deselectAction,
       Chat2Gen.createSelectedConversation({conversationIDKey: Constants.noConversationIDKey}),
-    ]
+    ].forEach(a => reduxDispatch(a))
+    return
   }
 
   // going into a chat
   if (isChat && isID && Constants.isValidConversationIDKey(isID)) {
-    return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
+    ;[...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})].forEach(a =>
+      reduxDispatch(a)
+    )
+    return
   }
-  return false
 }
 
 const maybeChatTabSelected = (
   prev: RouterConstants.State['navState'],
   next: RouterConstants.State['navState']
 ) => {
+  const reduxDispatch = Z.getReduxDispatch()
   if (RouterConstants.getTab(prev) !== Tabs.chatTab && RouterConstants.getTab(next) === Tabs.chatTab) {
-    return Chat2Gen.createTabSelected()
+    reduxDispatch(Chat2Gen.createTabSelected())
   }
-  return false
 }
 
 const updateDraftState = (_: unknown, action: Chat2Gen.DeselectedConversationPayload) =>
@@ -3582,19 +3589,14 @@ const initChat = () => {
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.badgeState === old.badgeState) return
     if (!s.badgeState) return
-    // const badgeCounts = new Map<string, number>()
     s.badgeState.conversations?.forEach(c => {
       const id = Types.conversationIDToKey(c.convID)
       Constants.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
       Constants.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
-      // badgeCounts.set(id, c.badgeCount)
     })
     Constants.useState
       .getState()
-      .dispatch.badgesUpdated(
-        s.badgeState.bigTeamBadgeCount,
-        s.badgeState.smallTeamBadgeCount /*, badgeCounts*/
-      )
+      .dispatch.badgesUpdated(s.badgeState.bigTeamBadgeCount, s.badgeState.smallTeamBadgeCount)
   })
 
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)

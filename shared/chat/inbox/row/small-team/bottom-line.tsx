@@ -6,7 +6,7 @@ import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
 import shallowEqual from 'shallowequal'
-import {ConversationIDKeyContext, SnippetContext, SnippetDecorationContext} from './contexts'
+import {SnippetContext, SnippetDecorationContext} from './contexts'
 
 type Props = {
   isDecryptingSnippet: boolean
@@ -109,7 +109,7 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
 })
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+  const conversationIDKey = Constants.useContext(s => s.id)
   const {isSelected, backgroundColor, isInWidget, isDecryptingSnippet} = p
 
   const isTypingSnippet = Constants.useState(s => {
