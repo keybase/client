@@ -119,13 +119,14 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const hasUnread = Constants.useContext(s => s.unread > 0)
+  const _draft = Constants.useContext(s => s.draft)
   const data = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
     const youAreReset = meta?.membershipType === 'youAreReset'
     const participantNeedToRekey = (meta?.rekeyers?.size ?? 0) > 0
     const youNeedToRekey = meta?.rekeyers?.has(you) ?? false
     const hasResetUsers = (meta?.resetParticipants.size ?? 0) > 0
-    const draft = (!isSelected && !hasUnread && state.chat2.draftMap.get(conversationIDKey)) || ''
+    const draft = (!isSelected && !hasUnread && _draft) || ''
 
     return {
       draft,

@@ -153,13 +153,13 @@ const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const conversationIDKey = Constants.useContext(s => s.id)
   const layoutIsTeam = React.useContext(IsTeamContext)
   const participants = React.useContext(ParticipantsContext)
+  const isMuted = Constants.useContext(s => s.muted)
   const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const {isLocked, isMuted} = Container.useSelector(state => {
+  const isLocked = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
     const isLocked = meta?.rekeyers?.has(you) || (meta?.rekeyers.size ?? 0) > 0 || !!meta?.wasFinalizedBy
-    const isMuted = state.chat2.mutedMap.get(conversationIDKey) ?? false
-    return {isLocked, isMuted}
-  }, shallowEqual)
+    return isLocked
+  })
 
   let participantOne = ''
   let participantTwo = ''

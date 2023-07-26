@@ -135,12 +135,12 @@ const useUnsentText = (
     setLastCID(conversationIDKey)
     considerDraftRef.current = true
   }
-  const {draft, storeUnsentText} = Container.useSelector(state => {
-    const draft = considerDraftRef.current ? Constants.getDraft(state, conversationIDKey) : undefined
+  const draft = Constants.useContext(s => s.draft)
+  const storeUnsentText = Container.useSelector(state => {
     // we use the hiddenstring since external actions can try and affect the input state (especially clearing it) and that can fail if it doesn't change
     const storeUnsentText = state.chat2.unsentTextMap.get(conversationIDKey)
-    return {draft, storeUnsentText}
-  }, shallowEqual)
+    return storeUnsentText
+  })
   const prevDraft = Container.usePrevious(draft)
   const prevStoreUnsentText = Container.usePrevious(storeUnsentText)
 

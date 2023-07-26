@@ -28,9 +28,9 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
     state => Constants.getMeta(state, conversationIDKey).snippetDecoration
   )
   const hasBadge = Constants.useContext(s => s.badge > 0)
-  const hasDraft = Container.useSelector(state => !selected && !!Constants.getDraft(state, conversationIDKey))
+  const hasDraft = Constants.useContext(s => !!s.draft)
   const hasUnread = Constants.useContext(s => s.unread > 0)
-  const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
+  const isMuted = Constants.useContext(s => s.muted)
 
   const onSelectConversation = () =>
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxBig'}))

@@ -22,7 +22,7 @@ import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import type * as TeamBuildingTypes from '../types/team-building'
 import type {TypedState} from '../reducer'
 import * as Z from '../../util/zustand'
-import {stores} from './convostate'
+import {getConvoState, stores} from './convostate'
 
 export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
   switch (m.type) {
@@ -73,7 +73,6 @@ export const makeState = (): Types.State => ({
   commandStatusMap: new Map(),
   containsLatestMessageMap: new Map(),
   dismissedInviteBannersMap: new Map(),
-  draftMap: new Map(),
   editingMap: new Map(),
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,
@@ -89,7 +88,6 @@ export const makeState = (): Types.State => ({
   messageTypeMap: new Map(),
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
-  mutedMap: new Map(),
   mutualTeamMap: new Map(),
   orangeLineMap: new Map(), // last message we've seen,
   participantMap: new Map(),
@@ -380,12 +378,6 @@ export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationID
 export const getTeamMentionName = (name: string, channel: string) => {
   return name + (channel ? `#${channel}` : '')
 }
-
-export const isMuted = (state: TypedState, convID: Types.ConversationIDKey) =>
-  state.chat2.mutedMap.get(convID) || false
-
-export const getDraft = (state: TypedState, convID: Types.ConversationIDKey) =>
-  state.chat2.draftMap.get(convID) || ''
 
 // When user clicks wallets icon in chat input, set seenWalletsGregorKey with
 // body of 'true'
@@ -1220,43 +1212,25 @@ export const useState = Z.createZustand<State>((set, get) => {
     updateInboxLayout: str => {
       set(s => {
         try {
-          // TODO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-          const {inboxHasLoaded /*, draftMap, mutedMap TODO */} = s
+          const {inboxHasLoaded} = s
           const layout: RPCChatTypes.UIInboxLayout = JSON.parse(str)
           s.inboxLayout = layout
           s.inboxHasLoaded = true
           if (!inboxHasLoaded) {
-            // TODO
-            // const smallTeams = layout.smallTeams || []
-            // // on first layout, initialize any drafts and muted status
-            // // After the first layout, any other updates will come in the form of meta updates.
-            // smallTeams.forEach(t => {
-            //   if (t.isMuted) {
-            //     mutedMap.set(t.convID, true)
-            //   } else {
-            //     mutedMap.delete(t.convID)
-            //   }
-            //   if (t.draft) {
-            //     draftMap.set(t.convID, t.draft)
-            //   } else {
-            //     draftMap.delete(t.convID)
-            //   }
-            // })
-            // const bigTeams = layout.bigTeams || []
-            // bigTeams.forEach(t => {
-            //   if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-            //     if (t.channel.isMuted) {
-            //       mutedMap.set(t.channel.convID, true)
-            //     } else {
-            //       mutedMap.delete(t.channel.convID)
-            //     }
-            //     if (t.channel.draft) {
-            //       draftMap.set(t.channel.convID, t.channel.draft)
-            //     } else {
-            //       draftMap.delete(t.channel.convID)
-            //     }
-            //   }
-            // })
+            // on first layout, initialize any drafts and muted status
+            // After the first layout, any other updates will come in the form of meta updates.
+            layout.smallTeams?.forEach(t => {
+              const cs = getConvoState(t.convID)
+              cs.dispatch.setMuted(t.isMuted)
+              cs.dispatch.setDraft(t.draft ?? '')
+            })
+            layout.bigTeams?.forEach(t => {
+              if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+                const cs = getConvoState(t.channel.convID)
+                cs.dispatch.setMuted(t.channel.isMuted)
+                cs.dispatch.setDraft(t.channel.draft ?? '')
+              }
+            })
           }
         } catch (e) {
           logger.info('failed to JSON parse inbox layout: ' + e)
