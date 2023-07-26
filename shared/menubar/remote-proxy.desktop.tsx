@@ -86,13 +86,6 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   }, shallowEqual)
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const widgetList = ChatConstants.useState(s => s.inboxLayout?.widgetList)
-  const badgeCountsChanged = ChatConstants.useState(s => s.badgeCountsChanged)
-  const badgeMap = React.useMemo(() => {
-    return ChatConstants.useState.getState().getBadgeMap(badgeCountsChanged)
-  }, [badgeCountsChanged])
-  const unreadMap = React.useMemo(() => {
-    return ChatConstants.useState.getState().getUnreadMap(badgeCountsChanged)
-  }, [badgeCountsChanged])
   const s = Container.useSelector(state => {
     const {chat2} = state
     const {metaMap, participantMap} = chat2
@@ -124,6 +117,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
         let participants = participantMap.get(v.convID)?.name ?? []
         participants = participants.slice(0, 3)
 
+        const {badge, unread} = ChatConstants.getConvoState(v.convID)
         return {
           channelname: c?.channelname,
           conversationIDKey: v.convID,
@@ -131,12 +125,12 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
           teamType: c?.teamType,
           timestamp: c?.timestamp,
           tlfname: c?.tlfname,
-          ...(badgeMap.get(v.convID) ? {hasBadge: true as const} : {}),
-          ...(unreadMap.get(v.convID) ? {hasUnread: true as const} : {}),
+          ...(badge > 0 ? {hasBadge: true as const} : {}),
+          ...(unread > 0 ? {hasUnread: true as const} : {}),
           ...(participants.length ? {participants} : {}),
         }
       }) ?? [],
-    [widgetList, metaMap, badgeMap, unreadMap, participantMap]
+    [widgetList, metaMap, participantMap]
   )
 
   // filter some data based on visible users
