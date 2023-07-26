@@ -9,6 +9,7 @@ import * as Types from '../types/chat2'
 import * as WalletConstants from '../wallets'
 import * as WalletTypes from '../types/wallets'
 import * as ConfigConstants from '../config'
+import * as ConvoConstants from './convostate'
 import HiddenString from '../../util/hidden-string'
 import invert from 'lodash/invert'
 import logger from '../../logger'
@@ -42,26 +43,11 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   }
 }
 
-export const getRequestMessageInfo = (state: TypedState, message: Types.MessageRequestPayment) => {
-  const convMap = state.chat2.accountsInfoMap.get(message.conversationIDKey)
-  const maybeRequestInfo = convMap && convMap.get(message.id)
-  if (!maybeRequestInfo) {
-    return message.requestInfo
-  }
-  if (maybeRequestInfo.type === 'requestInfo') {
-    return maybeRequestInfo
-  }
-  throw new Error(
-    `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${message.conversationIDKey} msgID: ${message.id}`
-  )
-}
-
 export const getPaymentMessageInfo = (
-  state: TypedState,
+  accountsInfoMap: ConvoConstants.ConvoState['accountsInfoMap'],
   message: Types.MessageSendPayment | Types.MessageText
 ) => {
-  const convMap = state.chat2.accountsInfoMap.get(message.conversationIDKey)
-  const maybePaymentInfo = convMap && convMap.get(message.id)
+  const maybePaymentInfo = accountsInfoMap.get(message.id)
   if (!maybePaymentInfo) {
     return message.paymentInfo
   }
@@ -73,11 +59,14 @@ export const getPaymentMessageInfo = (
   )
 }
 
-export const isPendingPaymentMessage = (state: TypedState, message?: Types.Message) => {
+export const isPendingPaymentMessage = (
+  accountsInfoMap: ConvoConstants.ConvoState['accountsInfoMap'],
+  message?: Types.Message
+) => {
   if (message?.type !== 'sendPayment') {
     return false
   }
-  const paymentInfo = getPaymentMessageInfo(state, message)
+  const paymentInfo = getPaymentMessageInfo(accountsInfoMap, message)
   return !!(paymentInfo && paymentInfo.status === 'pending')
 }
 
@@ -1464,7 +1453,10 @@ export const upgradeMessage = (old: Types.Message, m: Types.Message): Types.Mess
   return m
 }
 
-export const shouldShowPopup = (state: TypedState, message?: Types.Message) => {
+export const shouldShowPopup = (
+  accountsInfoMap: ConvoConstants.ConvoState['accountsInfoMap'],
+  message?: Types.Message
+) => {
   switch (message?.type) {
     case 'text':
     case 'attachment':
@@ -1486,7 +1478,7 @@ export const shouldShowPopup = (state: TypedState, message?: Types.Message) => {
     case 'setChannelname':
       return message.newChannelname !== 'general'
     case 'sendPayment': {
-      const paymentInfo = getPaymentMessageInfo(state, message)
+      const paymentInfo = getPaymentMessageInfo(accountsInfoMap, message)
       if (!paymentInfo || ['claimable', 'pending', 'canceled'].includes(paymentInfo.status)) {
         return false
       }

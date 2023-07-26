@@ -1,11 +1,12 @@
-import * as React from 'react'
-import type * as Container from '../util/container'
-import * as Styles from '../styles'
 import * as Common from '../router-v2/common'
+import * as Constants from '../constants/chat2'
+import * as React from 'react'
+import * as Styles from '../styles'
 import Header from './header'
+import type * as Container from '../util/container'
 
 const Split = React.lazy(async () => import('./inbox-and-conversation-2'))
-type OwnProps = Container.ViewPropsToPageProps<typeof Split>
+type OwnProps = Container.ViewPropsToPagePropsMaybe<typeof Split>
 
 const getOptions = ({route}: OwnProps) => {
   if (Styles.isTablet) {
@@ -29,7 +30,9 @@ const getOptions = ({route}: OwnProps) => {
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>
-    <Split {...p.route.params} />
+    <Constants.Provider id={p.route.params?.conversationIDKey ?? Constants.noConversationIDKey}>
+      <Split {...p.route.params} />
+    </Constants.Provider>
   </React.Suspense>
 )
 

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Constants from '../../constants/chat2'
 import type * as Container from '../../util/container'
 import {headerNavigationOptions} from './header-area/container'
 
@@ -12,7 +13,9 @@ const getOptions = ({route}: OwnProps) => ({
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>
-    <Convo {...p.route.params} />
+    <Constants.Provider id={p.route.params.conversationIDKey ?? Constants.noConversationIDKey}>
+      <Convo {...p.route.params} />
+    </Constants.Provider>
   </React.Suspense>
 )
 

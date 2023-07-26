@@ -55,10 +55,11 @@ export const useCommon = (ordinal: Types.Ordinal) => {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const showCenteredHighlight = useHighlightMode(conversationIDKey, ordinal)
 
+  const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
   const {type, shouldShowPopup} = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal)
     const type = m?.type
-    const shouldShowPopup = Constants.shouldShowPopup(state, m ?? undefined)
+    const shouldShowPopup = Constants.shouldShowPopup(accountsInfoMap, m ?? undefined)
     return {shouldShowPopup, type}
   }, shallowEqual)
 
@@ -100,6 +101,7 @@ const hasSuccessfulInlinePayments = (
     })
   )
 }
+
 const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
   const getReactionsPopupPosition = (
     hasReactions: boolean,
@@ -147,12 +149,13 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const paymentStatusMap = Constants.useState(s => s.paymentStatusMap)
+  const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
   return Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const {exploded, submitState, author, id, botUsername} = m
     const youSent = m.author === you && m.ordinal !== m.id
     const exploding = !!m.exploding
-    const isPendingPayment = Constants.isPendingPaymentMessage(state, m)
+    const isPendingPayment = Constants.isPendingPaymentMessage(accountsInfoMap, m)
     const decorate = !exploded && !m.errorReason
     const type = m.type
     const isEditing = state.chat2.editingMap.get(conversationIDKey) === ordinal

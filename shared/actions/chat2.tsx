@@ -653,7 +653,8 @@ const onChatPaymentInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatPaym
     logger.error(errMsg)
     throw new Error(errMsg)
   }
-  Constants.useState.getState().dispatch.paymentInfoReceived(conversationIDKey, msgID, paymentInfo)
+  Constants.useState.getState().dispatch.paymentInfoReceived(paymentInfo)
+  Constants.getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
 }
 
 const onChatRequestInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatRequestInfoPayload) => {
@@ -666,7 +667,7 @@ const onChatRequestInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatRequ
     logger.error(errMsg)
     throw new Error(errMsg)
   }
-  return Chat2Gen.createRequestInfoReceived({conversationIDKey, messageID: msgID, requestInfo})
+  Constants.getConvoState(conversationIDKey).dispatch.requestInfoReceived(msgID, requestInfo)
 }
 
 const onChatSetConvRetention = (

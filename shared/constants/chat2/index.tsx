@@ -62,7 +62,6 @@ export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
 export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
-  accountsInfoMap: new Map(),
   attachmentViewMap: new Map(),
   badgeMap: new Map(), // id to the badge count
   blockButtonsMap: new Map(),
@@ -557,7 +556,6 @@ export {
   getMessageID,
   getMessageStateExtras,
   getPaymentMessageInfo,
-  getRequestMessageInfo,
   isPendingPaymentMessage,
   isSpecialMention,
   isVideoAttachment,
@@ -687,11 +685,7 @@ export type State = Store & {
     loadStaticConfig: () => void
     onEngineConnected: () => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
-    paymentInfoReceived: (
-      conversationIDKey: Types.ConversationIDKey,
-      messageID: RPCChatTypes.MessageID,
-      paymentInfo: Types.ChatPaymentInfo
-    ) => void
+    paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
     resetState: () => void
     resetConversationErrored: () => void
     setTrustedInboxHasLoaded: () => void
@@ -732,15 +726,32 @@ export type State = Store & {
   }
 }
 
+// generic chat store
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const getReduxStore = Z.getReduxStore()
   const dispatch: State['dispatch'] = {
-    badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount, _conversations /*TODO*/) => {
+    badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount, _conversations) => {
       set(s => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
       })
+
+      // TODO
+      // const badgeMap = new Map<Types.ConversationIDKey, number>()
+      // const unreadMap = new Map<Types.ConversationIDKey, number>()
+      // conversations.forEach(({convID, badgeCount, unreadMessages}) => {
+      //   const key = Types.conversationIDToKey(convID)
+      //   badgeMap.set(key, badgeCount)
+      //   unreadMap.set(key, unreadMessages)
+      // })
+
+      // if (!mapEqual(draftState.badgeMap, badgeMap)) {
+      //   draftState.badgeMap = badgeMap
+      // }
+      // if (!mapEqual(draftState.unreadMap, unreadMap)) {
+      //   draftState.unreadMap = unreadMap
+      // }
     },
     conversationErrored: (allowedUsers, disallowedUsers, code, message) => {
       set(s => {
@@ -1129,12 +1140,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    paymentInfoReceived: (_conversationIDKey, _messageID, paymentInfo) => {
+    paymentInfoReceived: paymentInfo => {
       set(s => {
-        const {/*accountsInfoMap, TODO */ paymentStatusMap} = s
-        // const convMap = mapGetEnsureValue(accountsInfoMap, conversationIDKey, new Map())
-        // convMap.set(messageID, paymentInfo)
-        paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
+        s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
       })
     },
     resetConversationErrored: () => {
@@ -1297,3 +1305,5 @@ export const useState = Z.createZustand<State>((set, get) => {
     dispatch,
   }
 })
+
+export {type ConvoState, useContext, getConvoState, Provider} from './convostate'

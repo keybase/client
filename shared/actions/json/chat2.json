@@ -494,12 +494,6 @@
     "openChatFromWidget": {
       "conversationIDKey?": "Types.ConversationIDKey"
     },
-    "requestInfoReceived": {
-      "_description": "We received request info for a requestPayment message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "RPCChatTypes.MessageID",
-      "requestInfo": "Types.ChatRequestInfo"
-    },
     "unfurlResolvePrompt": {
       "_description": "Response to an unfurl prompt",
       "conversationIDKey": "Types.ConversationIDKey",

@@ -57,6 +57,9 @@ export type PagesToParams<T> = {
 
 // get the views params and wrap them as the page would see it
 export type ViewPropsToPageProps<T> = T extends (p: infer P) => any ? {route: {params: P}} : never
+export type ViewPropsToPagePropsMaybe<T> = T extends (p: infer P) => any
+  ? {route: {params: P | undefined}}
+  : never
 
 const useSelector = USH.useSelector as TypedUseSelectorHook<RootState>
 

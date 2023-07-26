@@ -1058,13 +1058,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {maybeMentionMap} = draftState
     maybeMentionMap.set(name, info)
   },
-  [Chat2Gen.requestInfoReceived]: (draftState, action) => {
-    const {conversationIDKey, messageID, requestInfo} = action.payload
-    const {accountsInfoMap} = draftState
-    const convMap = accountsInfoMap.get(conversationIDKey) || new Map()
-    accountsInfoMap.set(conversationIDKey, convMap)
-    convMap.set(messageID, requestInfo)
-  },
   [Chat2Gen.dismissBottomBanner]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {dismissedInviteBannersMap} = draftState
