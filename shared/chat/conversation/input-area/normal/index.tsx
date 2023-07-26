@@ -136,11 +136,7 @@ const useUnsentText = (
     considerDraftRef.current = true
   }
   const draft = Constants.useContext(s => s.draft)
-  const storeUnsentText = Container.useSelector(state => {
-    // we use the hiddenstring since external actions can try and affect the input state (especially clearing it) and that can fail if it doesn't change
-    const storeUnsentText = state.chat2.unsentTextMap.get(conversationIDKey)
-    return storeUnsentText
-  })
+  const storeUnsentText = Constants.useContext(s => s.unsentText)
   const prevDraft = Container.usePrevious(draft)
   const prevStoreUnsentText = Container.usePrevious(storeUnsentText)
 
@@ -150,11 +146,13 @@ const useUnsentText = (
     unsentText = draft
   } else if (
     storeUnsentText &&
-    prevStoreUnsentText !== storeUnsentText &&
-    storeUnsentText.stringValue() !== lastTextRef.current
+    prevStoreUnsentText !== storeUnsentText //&&
+    // storeUnsentText !== lastTextRef.current
   ) {
-    unsentText = storeUnsentText.stringValue()
+    unsentText = storeUnsentText
   }
+
+  console.log('aaa useunsetn', unsentText, draft)
 
   //one chance to use the draft
   considerDraftRef.current = false
@@ -166,9 +164,11 @@ const useUnsentText = (
     },
     [dispatch, conversationIDKey]
   )
+
+  const _setUnsentText = Constants.useContext(s => s.dispatch.setUnsentText)
   const clearUnsentText = React.useCallback(() => {
-    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+    _setUnsentText('')
+  }, [_setUnsentText])
 
   const setUnsentText = React.useCallback(
     (text: string) => {
@@ -181,12 +181,12 @@ const useUnsentText = (
         onSetExplodingModeLock(shouldLock)
       }
       // The store text only lasts until we change it, so blow it away now
-      if (unsentText) {
+      if (storeUnsentText) {
         clearUnsentText()
       }
       unsentTextMap.set(conversationIDKey, text)
     },
-    [unsentText, clearUnsentText, conversationIDKey, onSetExplodingModeLock]
+    [storeUnsentText, clearUnsentText, conversationIDKey, onSetExplodingModeLock]
   )
   const unsentTextChanged = React.useCallback(
     (text: string) => {
@@ -372,6 +372,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     setLastUnsentText(unsentText)
     if (unsentText !== undefined) {
       lastTextRef.current = unsentText
+      setTextInput(lastTextRef.current)
     }
   }
   // needs to be an effect since setTextInput needs a mounted ref

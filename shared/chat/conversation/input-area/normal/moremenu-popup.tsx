@@ -1,9 +1,7 @@
 import * as Kb from '../../../../common-adapters'
 import * as RouterConstants from '../../../../constants/router2'
-import * as Container from '../../../../util/container'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Constants from '../../../../constants/chat2'
 import type * as Types from '../../../../constants/types/chat2'
-import HiddenString from '../../../../util/hidden-string'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -13,10 +11,8 @@ type Props = {
 
 const MoreMenuPopup = (props: Props) => {
   const {conversationIDKey, onHidden, visible} = props
-  const dispatch = Container.useDispatch()
-  const onSlashPrefill = (text: string) => {
-    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString(text)}))
-  }
+  const setUnsentText = Constants.useContext(s => s.dispatch.setUnsentText)
+  const onSlashPrefill = setUnsentText
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onLocationShare = () => {
     navigateAppend({props: {conversationIDKey}, selected: 'chatLocationPreview'})

@@ -120,7 +120,6 @@ export const setParticipants = 'chat2:setParticipants'
 export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
-export const setUnsentText = 'chat2:setUnsentText'
 export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
@@ -771,13 +770,6 @@ export const createSetThreadSearchQuery = (payload: {
   readonly query: HiddenString
 }) => ({payload, type: setThreadSearchQuery as typeof setThreadSearchQuery})
 /**
- * Set unsent text for a conversation
- */
-export const createSetUnsentText = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly text?: HiddenString
-}) => ({payload, type: setUnsentText as typeof setUnsentText})
-/**
  * Sets the retention policy for a conversation.
  */
 export const createSetConvRetentionPolicy = (payload: {
@@ -871,7 +863,6 @@ export const createToggleGiphyPrefill = (payload: {readonly conversationIDKey: T
 export const createGiphyToggleWindow = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly show: boolean
-  readonly clearInput: boolean
 }) => ({payload, type: giphyToggleWindow as typeof giphyToggleWindow})
 /**
  * Toggle a reaction in the store.
@@ -1294,7 +1285,6 @@ export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
 export type SetThreadLoadStatusPayload = ReturnType<typeof createSetThreadLoadStatus>
 export type SetThreadSearchQueryPayload = ReturnType<typeof createSetThreadSearchQuery>
 export type SetThreadSearchStatusPayload = ReturnType<typeof createSetThreadSearchStatus>
-export type SetUnsentTextPayload = ReturnType<typeof createSetUnsentText>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ThreadSearchPayload = ReturnType<typeof createThreadSearch>
 export type ThreadSearchResultsPayload = ReturnType<typeof createThreadSearchResults>
@@ -1435,7 +1425,6 @@ export type Actions =
   | SetThreadLoadStatusPayload
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
-  | SetUnsentTextPayload
   | TabSelectedPayload
   | ThreadSearchPayload
   | ThreadSearchResultsPayload

@@ -1,6 +1,5 @@
 import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as KbMobile from '../../../common-adapters/mobile.native'
@@ -71,8 +70,8 @@ const Conversation = React.memo(function Conversation(props: Props) {
     </Kb.BoxGrow>
   )
 
-  const dispatch = Container.useDispatch()
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const setUnsentText = Constants.useContext(s => s.dispatch.setUnsentText)
   const onDropped = React.useCallback(
     (items: DropItems) => {
       let {attach, texts} = items.reduce(
@@ -102,12 +101,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
         }
       }
       if (texts.length) {
-        dispatch(
-          Chat2Gen.createSetUnsentText({
-            conversationIDKey,
-            text: new Container.HiddenString(texts.join('\r')),
-          })
-        )
+        setUnsentText(texts.join('\r'))
       }
 
       if (attach.length) {
@@ -117,7 +111,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
         })
       }
     },
-    [navigateAppend, dispatch, conversationIDKey]
+    [setUnsentText, navigateAppend, conversationIDKey]
   )
 
   const insets = useSafeAreaInsets()

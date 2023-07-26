@@ -15,6 +15,7 @@ type ConvoStore = {
   unread: number
   muted: boolean
   draft: string
+  unsentText: string
 }
 
 const initialConvoStore: ConvoStore = {
@@ -24,6 +25,7 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   muted: false,
   unread: 0,
+  unsentText: '',
 }
 export type ConvoState = ConvoStore & {
   dispatch: {
@@ -35,6 +37,7 @@ export type ConvoState = ConvoStore & {
     resetState: 'default'
     setMuted: (m: boolean) => void
     setDraft: (d: string) => void
+    setUnsentText: (u: string) => void
   }
 }
 
@@ -74,6 +77,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMuted: m => {
       set(s => {
         s.muted = m
+      })
+    },
+    setUnsentText: u => {
+      set(s => {
+        s.unsentText = u
       })
     },
     unreadUpdated: unread => {
