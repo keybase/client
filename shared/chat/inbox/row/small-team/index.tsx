@@ -18,7 +18,6 @@ import {
   IsTeamContext,
   ParticipantsContext,
   TimeContext,
-  ConversationIDKeyContext,
   SnippetContext,
   SnippetDecorationContext,
 } from './contexts'
@@ -131,19 +130,17 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   }, [backgroundColor, isDecryptingSnippet, isInWidget, isSelected, onSelectConversation, swipeCloseRef])
 
   return (
-    <ConversationIDKeyContext.Provider value={conversationIDKey}>
-      <IsTeamContext.Provider value={!!layoutIsTeam}>
-        <ParticipantsContext.Provider value={participants}>
-          <TimeContext.Provider value={layoutTime ?? 0}>
-            <SnippetContext.Provider value={snippet}>
-              <SnippetDecorationContext.Provider value={snippetDecoration}>
-                {children}
-              </SnippetDecorationContext.Provider>
-            </SnippetContext.Provider>
-          </TimeContext.Provider>
-        </ParticipantsContext.Provider>
-      </IsTeamContext.Provider>
-    </ConversationIDKeyContext.Provider>
+    <IsTeamContext.Provider value={!!layoutIsTeam}>
+      <ParticipantsContext.Provider value={participants}>
+        <TimeContext.Provider value={layoutTime ?? 0}>
+          <SnippetContext.Provider value={snippet}>
+            <SnippetDecorationContext.Provider value={snippetDecoration}>
+              {children}
+            </SnippetDecorationContext.Provider>
+          </SnippetContext.Provider>
+        </TimeContext.Provider>
+      </ParticipantsContext.Provider>
+    </IsTeamContext.Provider>
   )
 })
 
@@ -153,7 +150,7 @@ type RowAvatarProps = {
 }
 const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const {backgroundColor, isSelected} = p
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+  const conversationIDKey = Constants.useContext(s => s.id)
   const layoutIsTeam = React.useContext(IsTeamContext)
   const participants = React.useContext(ParticipantsContext)
   const you = ConfigConstants.useCurrentUserState(s => s.username)

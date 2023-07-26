@@ -1,5 +1,6 @@
 import * as ConfigConstants from '../constants/config'
 import * as UsersConstants from '../constants/users'
+import * as ChatConstants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Followers from '../constants/followers'
 import Menubar from './index.desktop'
@@ -9,6 +10,8 @@ import {useAvatarState} from '../common-adapters/avatar-zus'
 const RemoteContainer = () => {
   const {
     avatarRefreshCounter,
+    badgeMap,
+    unreadMap,
     daemonHandshakeState,
     followers,
     following,
@@ -29,6 +32,12 @@ const RemoteContainer = () => {
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
   ConfigConstants.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
   ConfigConstants.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn, false)
+  for (const [id, unread] of unreadMap.entries()) {
+    ChatConstants.getConvoState(id).dispatch.unreadUpdated(unread)
+  }
+  for (const [id, badge] of badgeMap.entries()) {
+    ChatConstants.getConvoState(id).dispatch.badgesUpdated(badge)
+  }
   return (
     <Menubar
       {...rest}

@@ -22,6 +22,7 @@ import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import type * as TeamBuildingTypes from '../types/team-building'
 import type {TypedState} from '../reducer'
 import * as Z from '../../util/zustand'
+import {stores} from './convostate'
 
 export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
   switch (m.type) {
@@ -62,9 +63,7 @@ export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
 export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
-  accountsInfoMap: new Map(),
   attachmentViewMap: new Map(),
-  badgeMap: new Map(), // id to the badge count
   blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   botPublicCommands: new Map(),
@@ -102,7 +101,6 @@ export const makeState = (): Types.State => ({
   threadSearchInfoMap: new Map(),
   threadSearchQueryMap: new Map(),
   unfurlPromptMap: new Map(),
-  unreadMap: new Map(),
   unsentTextMap: new Map(),
 })
 
@@ -204,10 +202,6 @@ export const isMessageWithReactions = (message: Types.Message): message is Types
 }
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
-export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
-  (state.chat2.badgeMap.get(id) || 0) > 0
-export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
-  (state.chat2.unreadMap.get(id) || 0) > 0
 export const getSelectedConversation = (): Types.ConversationIDKey => {
   const maybeVisibleScreen = Router2.getVisibleScreen()
   if (maybeVisibleScreen?.name === threadRouteName) {
@@ -557,7 +551,6 @@ export {
   getMessageID,
   getMessageStateExtras,
   getPaymentMessageInfo,
-  getRequestMessageInfo,
   isPendingPaymentMessage,
   isSpecialMention,
   isVideoAttachment,
@@ -630,6 +623,8 @@ export const isBigTeam = (state: State, teamID: string): boolean => {
 }
 
 type Store = {
+  // increments when the convo stores values change, badges and unread
+  badgeCountsChanged: number
   createConversationError?: Types.CreateConversationError
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
@@ -651,6 +646,7 @@ type Store = {
 }
 
 const initialStore: Store = {
+  badgeCountsChanged: 0,
   bigTeamBadgeCount: 0,
   createConversationError: undefined,
   inboxHasLoaded: false,
@@ -673,11 +669,7 @@ const initialStore: Store = {
 
 export type State = Store & {
   dispatch: {
-    badgesUpdated: (
-      bigTeamBadgeCount: number,
-      smallTeamBadgeCount: number,
-      conversations: Array<RPCTypes.BadgeConversationInfo>
-    ) => void
+    badgesUpdated: (bigTeamBadgeCount: number, smallTeamBadgeCount: number) => void
     conversationErrored: (
       allowedUsers: Array<string>,
       disallowedUsers: Array<string>,
@@ -687,11 +679,7 @@ export type State = Store & {
     loadStaticConfig: () => void
     onEngineConnected: () => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
-    paymentInfoReceived: (
-      conversationIDKey: Types.ConversationIDKey,
-      messageID: RPCChatTypes.MessageID,
-      paymentInfo: Types.ChatPaymentInfo
-    ) => void
+    paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
     resetState: () => void
     resetConversationErrored: () => void
     setTrustedInboxHasLoaded: () => void
@@ -730,16 +718,20 @@ export type State = Store & {
     ) => void
     updateInboxLayout: (layout: string) => void
   }
+  getBadgeMap: (badgeCountsChanged: number) => Map<string, number>
+  getUnreadMap: (badgeCountsChanged: number) => Map<string, number>
 }
 
+// generic chat store
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const getReduxStore = Z.getReduxStore()
   const dispatch: State['dispatch'] = {
-    badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount, _conversations /*TODO*/) => {
+    badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount) => {
       set(s => {
         s.smallTeamBadgeCount = smallTeamBadgeCount
         s.bigTeamBadgeCount = bigTeamBadgeCount
+        s.badgeCountsChanged++
       })
     },
     conversationErrored: (allowedUsers, disallowedUsers, code, message) => {
@@ -1129,12 +1121,9 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
-    paymentInfoReceived: (_conversationIDKey, _messageID, paymentInfo) => {
+    paymentInfoReceived: paymentInfo => {
       set(s => {
-        const {/*accountsInfoMap, TODO */ paymentStatusMap} = s
-        // const convMap = mapGetEnsureValue(accountsInfoMap, conversationIDKey, new Map())
-        // convMap.set(messageID, paymentInfo)
-        paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
+        s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
       })
     },
     resetConversationErrored: () => {
@@ -1295,5 +1284,25 @@ export const useState = Z.createZustand<State>((set, get) => {
   return {
     ...initialStore,
     dispatch,
+    getBadgeMap: badgeCountsChanged => {
+      badgeCountsChanged // this param is just to ensure the selector reruns on a change
+      const badgeMap = new Map()
+      stores.forEach(s => {
+        const {id, badge} = s.getState()
+        badgeMap.set(id, badge)
+      })
+      return badgeMap
+    },
+    getUnreadMap: badgeCountsChanged => {
+      badgeCountsChanged // this param is just to ensure the selector reruns on a change
+      const unreadMap = new Map()
+      stores.forEach(s => {
+        const {id, unread} = s.getState()
+        unreadMap.set(id, unread)
+      })
+      return unreadMap
+    },
   }
 })
+
+export {type ConvoState, useContext, getConvoState, Provider} from './convostate'

@@ -653,7 +653,8 @@ const onChatPaymentInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatPaym
     logger.error(errMsg)
     throw new Error(errMsg)
   }
-  Constants.useState.getState().dispatch.paymentInfoReceived(conversationIDKey, msgID, paymentInfo)
+  Constants.useState.getState().dispatch.paymentInfoReceived(paymentInfo)
+  Constants.getConvoState(conversationIDKey).dispatch.paymentInfoReceived(msgID, paymentInfo)
 }
 
 const onChatRequestInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatRequestInfoPayload) => {
@@ -666,7 +667,7 @@ const onChatRequestInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatRequ
     logger.error(errMsg)
     throw new Error(errMsg)
   }
-  return Chat2Gen.createRequestInfoReceived({conversationIDKey, messageID: msgID, requestInfo})
+  Constants.getConvoState(conversationIDKey).dispatch.requestInfoReceived(msgID, requestInfo)
 }
 
 const onChatSetConvRetention = (
@@ -3347,7 +3348,7 @@ const maybeChangeChatSelection = (
 
   // nothing to do with chat
   if (!wasChat && !isChat) {
-    return false
+    return
   }
 
   // @ts-ignore TODO better param typing
@@ -3362,7 +3363,7 @@ const maybeChangeChatSelection = (
     const getReduxStore = Z.getReduxStore()
     // if we've never loaded anything, keep going so we load it
     if (!isID || getReduxStore().chat2.containsLatestMessageMap.get(isID) !== undefined) {
-      return false
+      return
     }
   }
 
@@ -3372,34 +3373,41 @@ const maybeChangeChatSelection = (
       ? [Chat2Gen.createDeselectedConversation({conversationIDKey: wasID})]
       : []
 
+  const reduxDispatch = Z.getReduxDispatch()
   // still chatting? just select new one
   if (wasChat && isChat && isID && Constants.isValidConversationIDKey(isID)) {
-    return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
+    ;[...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})].forEach(a =>
+      reduxDispatch(a)
+    )
+    return
   }
 
   // leaving a chat
   if (wasChat && !isChat) {
-    return [
+    ;[
       ...deselectAction,
       Chat2Gen.createSelectedConversation({conversationIDKey: Constants.noConversationIDKey}),
-    ]
+    ].forEach(a => reduxDispatch(a))
+    return
   }
 
   // going into a chat
   if (isChat && isID && Constants.isValidConversationIDKey(isID)) {
-    return [...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})]
+    ;[...deselectAction, Chat2Gen.createSelectedConversation({conversationIDKey: isID})].forEach(a =>
+      reduxDispatch(a)
+    )
+    return
   }
-  return false
 }
 
 const maybeChatTabSelected = (
   prev: RouterConstants.State['navState'],
   next: RouterConstants.State['navState']
 ) => {
+  const reduxDispatch = Z.getReduxDispatch()
   if (RouterConstants.getTab(prev) !== Tabs.chatTab && RouterConstants.getTab(next) === Tabs.chatTab) {
-    return Chat2Gen.createTabSelected()
+    reduxDispatch(Chat2Gen.createTabSelected())
   }
-  return false
 }
 
 const updateDraftState = (_: unknown, action: Chat2Gen.DeselectedConversationPayload) =>
@@ -3581,16 +3589,14 @@ const initChat = () => {
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.badgeState === old.badgeState) return
     if (!s.badgeState) return
-    const reduxDispatch = Z.getReduxDispatch()
-    const conversations = s.badgeState.conversations || []
-    reduxDispatch(
-      Chat2Gen.createBadgesUpdated({
-        conversations,
-      })
-    )
+    s.badgeState.conversations?.forEach(c => {
+      const id = Types.conversationIDToKey(c.convID)
+      Constants.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
+      Constants.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
+    })
     Constants.useState
       .getState()
-      .dispatch.badgesUpdated(s.badgeState.bigTeamBadgeCount, s.badgeState.smallTeamBadgeCount, conversations)
+      .dispatch.badgesUpdated(s.badgeState.bigTeamBadgeCount, s.badgeState.smallTeamBadgeCount)
   })
 
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)

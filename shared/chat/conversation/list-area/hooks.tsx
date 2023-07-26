@@ -21,9 +21,9 @@ export const useJumpToRecent = (
 ) => {
   const dispatch = Container.useDispatch()
 
-  const containsLatestMessage = Container.useSelector(
-    state => state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
-  )
+  const containsLatestMessage = Container.useSelector(state => {
+    return state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
+  })
 
   const jumpToRecent = React.useCallback(() => {
     scrollToBottom()

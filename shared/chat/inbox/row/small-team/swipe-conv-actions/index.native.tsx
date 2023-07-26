@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Container from '../../../../../util/container'
+import * as Constants from '../../../../../constants/chat2'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Reanimated from 'react-native-reanimated'
@@ -8,7 +9,6 @@ import * as Styles from '../../../../../styles'
 import type {Props} from '.'
 import {RectButton} from 'react-native-gesture-handler'
 import {Swipeable} from '../../../../../common-adapters/swipeable.native'
-import {ConversationIDKeyContext} from '../contexts'
 import {View} from 'react-native'
 
 const actionWidth = 64
@@ -42,7 +42,7 @@ const Action = (p: {
 
 const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const {swipeCloseRef, children, onClick} = p
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+  const conversationIDKey = Constants.useContext(s => s.id)
   const [extraData, setExtraData] = React.useState(0)
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   if (lastCID !== conversationIDKey) {
@@ -179,7 +179,7 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 0,
         height: RowSizes.smallRowHeight,
       },
-    } as const)
+    }) as const
 )
 
 export default SwipeConvActions

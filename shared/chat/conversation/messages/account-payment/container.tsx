@@ -52,13 +52,32 @@ type OwnProps = {
   message: Types.MessageSendPayment | Types.MessageRequestPayment
 }
 
+const getRequestMessageInfo = (
+  accountsInfoMap: Constants.ConvoState['accountsInfoMap'],
+  message: Types.MessageRequestPayment
+) => {
+  const maybeRequestInfo = accountsInfoMap.get(message.id)
+  if (!maybeRequestInfo) {
+    return message.requestInfo
+  }
+  if (maybeRequestInfo.type === 'requestInfo') {
+    return maybeRequestInfo
+  }
+  throw new Error(
+    `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${message.conversationIDKey} msgID: ${message.id}`
+  )
+}
+
 const ConnectedAccountPayment = (ownProps: OwnProps) => {
   const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const stateProps = Container.useSelector(state => {
+  const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
+
+  // TODO don't use selector
+  const stateProps = Container.useSelector(() => {
     const youAreSender = ownProps.message.author === you
     switch (ownProps.message.type) {
       case 'sendPayment': {
-        const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
+        const paymentInfo = Constants.getPaymentMessageInfo(accountsInfoMap, ownProps.message)
         if (!paymentInfo) {
           // waiting for service to load it (missed service cache on loading thread)
           return loadingProps
@@ -97,7 +116,7 @@ const ConnectedAccountPayment = (ownProps: OwnProps) => {
       }
       case 'requestPayment': {
         const message = ownProps.message
-        const requestInfo = Constants.getRequestMessageInfo(state, message)
+        const requestInfo = getRequestMessageInfo(accountsInfoMap, message)
         if (!requestInfo) {
           // waiting for service to load it
           return loadingProps

@@ -1,11 +1,10 @@
-import * as React from 'react'
-import type * as Types from '../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as React from 'react'
 import * as RowSizes from './sizes'
+import * as Styles from '../../../styles'
+import type * as Types from '../../../constants/types/chat2'
 import {memoize} from '../../../util/memoize'
 
 type Props = {
@@ -35,10 +34,10 @@ const TeamsDivider = React.memo(function TeamsDivider(props: Props) {
   const {rows, showButton, style, hiddenCountDelta, toggle, smallTeamsExpanded} = props
   const smallTeamBadgeCount = Constants.useState(s => s.smallTeamBadgeCount)
   const totalSmallTeams = Constants.useState(s => s.inboxLayout?.totalSmallTeams ?? 0)
-  const badges = Container.useSelector(state => {
-    const badges = state.chat2.badgeMap
-    return badges
-  })
+  const badgeCountsChanged = Constants.useState(s => s.badgeCountsChanged)
+  const badges = React.useMemo(() => {
+    return Constants.useState.getState().getBadgeMap(badgeCountsChanged)
+  }, [badgeCountsChanged])
   // we remove the badge count of the stuff we're showing
   let {badgeCount, hiddenCount} = getRowCounts(badges, rows)
   badgeCount += smallTeamBadgeCount

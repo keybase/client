@@ -142,7 +142,10 @@ const Connected = (ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
   const neverLoaded = !inboxHasLoaded
   const inboxNumSmallRows = Constants.useState(s => s.inboxNumSmallRows ?? 5)
-  const _badgeMap = Container.useSelector(state => state.chat2.badgeMap)
+  const badgeCountsChanged = Constants.useState(s => s.badgeCountsChanged)
+  const _badgeMap = React.useMemo(() => {
+    return Constants.useState.getState().getBadgeMap(badgeCountsChanged)
+  }, [badgeCountsChanged])
   const _inboxLayout = inboxLayout
   const _selectedConversationIDKey = conversationIDKey ?? Constants.noConversationIDKey
   const isSearching = Constants.useState(s => !!s.inboxSearch)

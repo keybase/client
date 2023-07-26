@@ -11,7 +11,7 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
-import {mapGetEnsureValue, mapEqual} from '../util/map'
+import {mapGetEnsureValue} from '../util/map'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 import {findLast} from '../util/arrays'
 
@@ -467,23 +467,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey} = action.payload
     const {commandStatusMap} = draftState
     commandStatusMap.delete(conversationIDKey)
-  },
-  [Chat2Gen.badgesUpdated]: (draftState, action) => {
-    const {conversations} = action.payload
-    const badgeMap = new Map<Types.ConversationIDKey, number>()
-    const unreadMap = new Map<Types.ConversationIDKey, number>()
-    conversations.forEach(({convID, badgeCount, unreadMessages}) => {
-      const key = Types.conversationIDToKey(convID)
-      badgeMap.set(key, badgeCount)
-      unreadMap.set(key, unreadMessages)
-    })
-
-    if (!mapEqual(draftState.badgeMap, badgeMap)) {
-      draftState.badgeMap = badgeMap
-    }
-    if (!mapEqual(draftState.unreadMap, unreadMap)) {
-      draftState.unreadMap = unreadMap
-    }
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser} = action.payload
@@ -1057,13 +1040,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {name, info} = action.payload
     const {maybeMentionMap} = draftState
     maybeMentionMap.set(name, info)
-  },
-  [Chat2Gen.requestInfoReceived]: (draftState, action) => {
-    const {conversationIDKey, messageID, requestInfo} = action.payload
-    const {accountsInfoMap} = draftState
-    const convMap = accountsInfoMap.get(conversationIDKey) || new Map()
-    accountsInfoMap.set(conversationIDKey, convMap)
-    convMap.set(messageID, requestInfo)
   },
   [Chat2Gen.dismissBottomBanner]: (draftState, action) => {
     const {conversationIDKey} = action.payload

@@ -87,7 +87,6 @@ export type DeserializeProps = Omit<ProxyProps, RemovedEmpties> & {
   httpSrvAddress: string
   httpSrvToken: string
   chat2: {
-    badgeMap: Map<string, number>
     draftMap: Map<string, number>
     metaMap: Map<
       string,
@@ -103,9 +102,10 @@ export type DeserializeProps = Omit<ProxyProps, RemovedEmpties> & {
       }
     >
     participantMap: Map<string, {name: Array<string>}>
-    unreadMap: Map<string, number>
     mutedMap: Map<string, number>
   }
+  badgeMap: Map<string, number>
+  unreadMap: Map<string, number>
   loggedIn: boolean
   outOfDate: OutOfDate
   infoMap: Map<string, UserInfo>
@@ -115,13 +115,12 @@ export type DeserializeProps = Omit<ProxyProps, RemovedEmpties> & {
 
 const initialState: DeserializeProps = {
   avatarRefreshCounter: new Map(),
+  badgeMap: new Map(),
   chat2: {
-    badgeMap: new Map(),
     draftMap: new Map(),
     metaMap: new Map(),
     mutedMap: new Map(),
     participantMap: new Map(),
-    unreadMap: new Map(),
   },
   conversationsToSend: [],
   daemonHandshakeState: 'starting',
@@ -151,6 +150,7 @@ const initialState: DeserializeProps = {
   remoteTlfUpdates: [],
   showingDiskSpaceBanner: false,
   totalSyncingBytes: 0,
+  unreadMap: new Map(),
   username: '',
   windowShownCountNum: 0,
 }
@@ -251,11 +251,11 @@ export const deserialize = (
     conversationsToSend?.forEach(c => {
       const {participants, conversationIDKey, hasUnread, hasBadge} = c
       const {teamname, timestamp, channelname, snippetDecorated} = c
-      s.chat2.badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
+      s.badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
       if (participants) {
         s.chat2.participantMap.set(conversationIDKey, {name: participants})
       }
-      s.chat2.unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
+      s.unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
       const meta = s.chat2.metaMap.get(conversationIDKey) ?? {
         channelname: undefined,
         rekeyers: undefined,

@@ -6,7 +6,7 @@ import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
 import shallowEqual from 'shallowequal'
-import {ConversationIDKeyContext, SnippetContext, SnippetDecorationContext} from './contexts'
+import {SnippetContext, SnippetDecorationContext} from './contexts'
 
 type Props = {
   isDecryptingSnippet: boolean
@@ -109,7 +109,7 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
 })
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+  const conversationIDKey = Constants.useContext(s => s.id)
   const {isSelected, backgroundColor, isInWidget, isDecryptingSnippet} = p
 
   const isTypingSnippet = Constants.useState(s => {
@@ -118,9 +118,9 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   })
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const hasUnread = Constants.useContext(s => s.unread > 0)
   const data = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
-    const hasUnread = (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0
     const youAreReset = meta?.membershipType === 'youAreReset'
     const participantNeedToRekey = (meta?.rekeyers?.size ?? 0) > 0
     const youNeedToRekey = meta?.rekeyers?.has(you) ?? false
@@ -130,7 +130,6 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
     return {
       draft,
       hasResetUsers,
-      hasUnread,
       participantNeedToRekey,
       youAreReset,
       youNeedToRekey,
@@ -140,6 +139,7 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   const props = {
     ...data,
     backgroundColor,
+    hasUnread,
     isDecryptingSnippet,
     isSelected,
     isTypingSnippet,
@@ -312,6 +312,6 @@ const styles = Styles.styleSheetCreate(
           lineHeight: 19,
         },
       }),
-    } as const)
+    }) as const
 )
 export {BottomLine}

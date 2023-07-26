@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
 import * as Styles from '../../../../styles'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import type * as Types from '../../../../constants/types/chat2'
-import shallowEqual from 'shallowequal'
 import {formatTimeForConversationList} from '../../../../util/timestamp'
-import {TimeContext, ConversationIDKeyContext, ParticipantsContext} from './contexts'
+import {TimeContext, ParticipantsContext} from './contexts'
 
 type Props = {
   isSelected: boolean
@@ -20,7 +20,7 @@ const getMeta = (state: Container.TypedState, conversationIDKey: Types.Conversat
   state.chat2.metaMap.get(conversationIDKey)
 
 const Timestamp = React.memo(function Timestamp() {
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
+  const conversationIDKey = Constants.useContext(s => s.id)
   const layoutTime = React.useContext(TimeContext)
   const timeNum = Container.useSelector(state => {
     const timeNum = (getMeta(state, conversationIDKey)?.timestamp ?? layoutTime) || 0
@@ -86,24 +86,15 @@ const Names = React.memo(function Names(p: {isSelected?: boolean; showBold: bool
 })
 
 const SimpleTopLine = React.memo(function SimpleTopLine(p: Props) {
-  const conversationIDKey = React.useContext(ConversationIDKeyContext)
   const {isSelected, isInWidget} = p
-
-  const data = Container.useSelector(state => {
-    const hasUnread = (state.chat2.unreadMap.get(conversationIDKey) ?? 0) > 0
-    const hasBadge = (state.chat2.badgeMap.get(conversationIDKey) ?? 0) > 0
-    return {
-      hasBadge,
-      hasUnread,
-    }
-  }, shallowEqual)
-
+  const hasUnread = Constants.useContext(s => s.unread > 0)
+  const hasBadge = Constants.useContext(s => s.badge > 0)
   const props = {
-    ...data,
+    hasBadge,
+    hasUnread,
     isInWidget,
     isSelected,
   }
-
   return <SimpleTopLineImpl {...props} />
 })
 
@@ -225,7 +216,7 @@ const styles = Styles.styleSheetCreate(
         marginLeft: 4,
         width: 8,
       },
-    } as const)
+    }) as const
 )
 
 export {SimpleTopLine}

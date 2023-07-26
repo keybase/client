@@ -16,7 +16,6 @@ export const getExtraChatLogsForLogSend = () => {
   if (c) {
     const metaMap = getMeta(state, c)
     return {
-      badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
       messageMap: [...(chat.messageMap.get(c)?.values() ?? [])].map(m => ({
         a: m.author,
@@ -55,7 +54,6 @@ export const getExtraChatLogsForLogSend = () => {
         wasFinalizedBy: metaMap.wasFinalizedBy,
       },
       pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
-      unreadMap: chat.unreadMap.get(c),
     }
   }
   return {}

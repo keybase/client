@@ -27,9 +27,9 @@ const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   const snippetDecoration = Container.useSelector(
     state => Constants.getMeta(state, conversationIDKey).snippetDecoration
   )
-  const hasBadge = Container.useSelector(state => Constants.getHasBadge(state, conversationIDKey))
+  const hasBadge = Constants.useContext(s => s.badge > 0)
   const hasDraft = Container.useSelector(state => !selected && !!Constants.getDraft(state, conversationIDKey))
-  const hasUnread = Container.useSelector(state => Constants.getHasUnread(state, conversationIDKey))
+  const hasUnread = Constants.useContext(s => s.unread > 0)
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
 
   const onSelectConversation = () =>

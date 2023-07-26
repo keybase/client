@@ -60,10 +60,6 @@
       "highlightMessageID?": "number",
       "participants": "Array<string>"
     },
-    "badgesUpdated": {
-      "_description": "Update our badges in the nav",
-      "conversations": "Array<RPCTypes.BadgeConversationInfo>"
-    },
     "metaNeedsUpdating": {
       "_description": "We want to unbox an inbox row",
       "conversationIDKeys": "Array<Types.ConversationIDKey>",
@@ -493,12 +489,6 @@
     },
     "openChatFromWidget": {
       "conversationIDKey?": "Types.ConversationIDKey"
-    },
-    "requestInfoReceived": {
-      "_description": "We received request info for a requestPayment message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "RPCChatTypes.MessageID",
-      "requestInfo": "Types.ChatRequestInfo"
     },
     "unfurlResolvePrompt": {
       "_description": "Response to an unfurl prompt",

@@ -17,8 +17,8 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey
-  const _hasBadge = Container.useSelector(state => Constants.getHasBadge(state, conversationIDKey))
-  const _hasUnread = Container.useSelector(state => Constants.getHasUnread(state, conversationIDKey))
+  const _hasBadge = Constants.useContext(s => s.badge > 0)
+  const _hasUnread = Constants.useContext(s => s.unread > 0)
   const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const _participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
