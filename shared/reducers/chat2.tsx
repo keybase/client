@@ -69,14 +69,6 @@ const giphyActions: Container.ActionHandler<Actions, Types.State> = {
     const {giphyWindowMap} = draftState
     giphyWindowMap.set(conversationIDKey, false)
   },
-  [Chat2Gen.toggleGiphyPrefill]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {giphyWindowMap} = draftState
-    // if the window is up, just blow it away
-    Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(
-      giphyWindowMap.get(conversationIDKey) ? '' : '/giphy '
-    )
-  },
   [Chat2Gen.giphyGotSearchResult]: (draftState, action) => {
     const {conversationIDKey, results} = action.payload
     const {giphyResultMap} = draftState
@@ -1008,13 +1000,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.metasReceived]: (draftState, action) => {
     const {metas, removals} = action.payload
     const {metaMap} = draftState
-
-    metas.forEach((m: Types.ConversationMeta) => {
-      const cs = Constants.getConvoState(m.conversationIDKey)
-      cs.dispatch.setDraft(m.draft)
-      cs.dispatch.setMuted(m.isMuted)
-    })
-
     removals && removals.forEach(m => metaMap.delete(m))
     metas.forEach(m => {
       const old = metaMap.get(m.conversationIDKey)

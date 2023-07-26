@@ -152,8 +152,6 @@ const useUnsentText = (
     unsentText = storeUnsentText
   }
 
-  console.log('aaa useunsetn', unsentText, draft)
-
   //one chance to use the draft
   considerDraftRef.current = false
 

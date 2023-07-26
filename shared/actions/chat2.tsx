@@ -3685,6 +3685,25 @@ const initChat = () => {
     if (s.handshakeVersion === old.handshakeVersion) return
     Constants.useState.getState().dispatch.loadStaticConfig()
   })
+
+  // TEMP bridging, todo move to constants
+  Container.listenAction(Chat2Gen.metasReceived, (_, a) => {
+    const {metas} = a.payload
+    metas.forEach((m: Types.ConversationMeta) => {
+      const cs = Constants.getConvoState(m.conversationIDKey)
+      cs.dispatch.setDraft(m.draft)
+      cs.dispatch.setMuted(m.isMuted)
+    })
+  })
+  Container.listenAction(Chat2Gen.toggleGiphyPrefill, (_, a) => {
+    const getReduxStore = Z.getReduxStore()
+    const {conversationIDKey} = a.payload
+    const {giphyWindowMap} = getReduxStore().chat2
+    // if the window is up, just blow it away
+    Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(
+      giphyWindowMap.get(conversationIDKey) ? '' : '/giphy '
+    )
+  })
 }
 
 export default initChat
