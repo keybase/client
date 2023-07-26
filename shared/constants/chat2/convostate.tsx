@@ -10,14 +10,20 @@ type ConvoStore = {
   id: Types.ConversationIDKey
   // temp cache for requestPayment and sendPayment message data,
   accountsInfoMap: Map<RPCChatTypes.MessageID, Types.ChatRequestInfo | Types.ChatPaymentInfo>
+  badge: number
+  unread: number
 }
 
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
+  badge: 0,
   id: noConversationIDKey,
+  unread: 0,
 }
 export type ConvoState = ConvoStore & {
   dispatch: {
+    badgesUpdated: (badge: number) => void
+    unreadUpdated: (unread: number) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetState: 'default'
@@ -26,6 +32,11 @@ export type ConvoState = ConvoStore & {
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, _get) => {
   const dispatch: ConvoState['dispatch'] = {
+    badgesUpdated: badge => {
+      set(s => {
+        s.badge = badge
+      })
+    },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {
         s.accountsInfoMap.set(messageID, paymentInfo)
@@ -37,6 +48,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, _get) => {
       })
     },
     resetState: 'default',
+    unreadUpdated: unread => {
+      set(s => {
+        s.unread = unread
+      })
+    },
   }
   return {
     ...initialConvoStore,

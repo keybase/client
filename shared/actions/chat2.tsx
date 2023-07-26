@@ -3582,16 +3582,19 @@ const initChat = () => {
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.badgeState === old.badgeState) return
     if (!s.badgeState) return
-    const reduxDispatch = Z.getReduxDispatch()
-    const conversations = s.badgeState.conversations || []
-    reduxDispatch(
-      Chat2Gen.createBadgesUpdated({
-        conversations,
-      })
-    )
+    // const badgeCounts = new Map<string, number>()
+    s.badgeState.conversations?.forEach(c => {
+      const id = Types.conversationIDToKey(c.convID)
+      Constants.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
+      Constants.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
+      // badgeCounts.set(id, c.badgeCount)
+    })
     Constants.useState
       .getState()
-      .dispatch.badgesUpdated(s.badgeState.bigTeamBadgeCount, s.badgeState.smallTeamBadgeCount, conversations)
+      .dispatch.badgesUpdated(
+        s.badgeState.bigTeamBadgeCount,
+        s.badgeState.smallTeamBadgeCount /*, badgeCounts*/
+      )
   })
 
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)

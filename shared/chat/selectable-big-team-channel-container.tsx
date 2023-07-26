@@ -14,8 +14,8 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {conversationIDKey, isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
-  const showBold = Container.useSelector(state => Constants.getHasUnread(state, conversationIDKey))
-  const showBadge = Container.useSelector(state => Constants.getHasBadge(state, conversationIDKey))
+  const showBold = Constants.useContext(s => s.unread > 0)
+  const showBadge = Constants.useContext(s => s.badge > 0)
   const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   let teamname = _meta.teamname
   let channelname = _meta.channelname

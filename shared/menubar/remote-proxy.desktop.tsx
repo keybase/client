@@ -86,21 +86,26 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   }, shallowEqual)
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const widgetList = ChatConstants.useState(s => s.inboxLayout?.widgetList)
+  const badgeCountsChanged = ChatConstants.useState(s => s.badgeCountsChanged)
+  const badgeMap = React.useMemo(() => {
+    return ChatConstants.useState.getState().getBadgeMap(badgeCountsChanged)
+  }, [badgeCountsChanged])
+  const unreadMap = React.useMemo(() => {
+    return ChatConstants.useState.getState().getUnreadMap(badgeCountsChanged)
+  }, [badgeCountsChanged])
   const s = Container.useSelector(state => {
     const {chat2} = state
-    const {metaMap, badgeMap, unreadMap, participantMap} = chat2
+    const {metaMap, participantMap} = chat2
 
     return {
-      badgeMap,
       metaMap,
       navBadges,
       participantMap,
-      unreadMap,
       widgetBadge,
     }
   }, shallowEqual)
 
-  const {unreadMap, badgeMap, metaMap, participantMap} = s
+  const {metaMap, participantMap} = s
 
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus

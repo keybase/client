@@ -5,7 +5,8 @@ import BigTeamChannel from './big-team-channel'
 import SmallTeam from './small-team/container'
 import {BigTeamsLabel} from './big-teams-label'
 import {Box} from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../../styles'
+import * as Constants from '../../../constants/chat2'
+import * as Styles from '../../../styles'
 import type * as Types from '../../../constants/types/chat2'
 
 const makeRow = (
@@ -25,25 +26,29 @@ const makeRow = (
       return <BigTeamHeader teamname={item.teamname} teamID={item.teamID} navKey={navKey} />
     case 'big':
       return (
-        <BigTeamChannel
-          conversationIDKey={item.conversationIDKey}
-          layoutChannelname={item.channelname}
-          selected={item.selected}
-          navKey={navKey}
-        />
+        <Constants.Provider id={item.conversationIDKey}>
+          <BigTeamChannel
+            conversationIDKey={item.conversationIDKey}
+            layoutChannelname={item.channelname}
+            selected={item.selected}
+            navKey={navKey}
+          />
+        </Constants.Provider>
       )
     case 'small':
       return (
-        <SmallTeam
-          isInWidget={false}
-          conversationIDKey={item.conversationIDKey}
-          layoutIsTeam={item.isTeam}
-          layoutName={item.teamname}
-          isSelected={item.selected}
-          layoutTime={item.time}
-          layoutSnippet={item.snippet}
-          swipeCloseRef={swipeCloseRef}
-        />
+        <Constants.Provider id={item.conversationIDKey}>
+          <SmallTeam
+            isInWidget={false}
+            conversationIDKey={item.conversationIDKey}
+            layoutIsTeam={item.isTeam}
+            layoutName={item.teamname}
+            isSelected={item.selected}
+            layoutTime={item.time}
+            layoutSnippet={item.snippet}
+            swipeCloseRef={swipeCloseRef}
+          />
+        </Constants.Provider>
       )
     default:
   }
@@ -52,10 +57,10 @@ const makeRow = (
 }
 
 const _bigTeamLabelStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  height: isMobile ? 32 : 24,
-  marginLeft: globalMargins.tiny,
+  height: Styles.isMobile ? 32 : 24,
+  marginLeft: Styles.globalMargins.tiny,
 }
 
 export {makeRow}

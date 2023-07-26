@@ -197,7 +197,6 @@ export type RenderMessageType =
 
 export type State = {
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
-  badgeMap: ConversationCountMap // id to the badge count,
   blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
   botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatusTyp>
   botPublicCommands: Map<string, BotPublicCommands>
@@ -235,7 +234,6 @@ export type State = {
   threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
   threadSearchQueryMap: Map<Common.ConversationIDKey, HiddenString>
   unfurlPromptMap: Map<Common.ConversationIDKey, Map<_Message.MessageID, Set<string>>>
-  unreadMap: ConversationCountMap // how many unread messages there are,
   unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>
 }
 

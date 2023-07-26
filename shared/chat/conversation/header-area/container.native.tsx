@@ -4,7 +4,6 @@ import * as Container from '../../../util/container'
 import {DebugChatDumpContext} from '../../../constants/chat2/debug'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
-import * as Tabs from '../../../constants/tabs'
 import type * as Types from '../../../constants/types/chat2'
 import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader} from './index.native'
 import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
@@ -99,17 +98,18 @@ export default HeaderBranchContainer
 
 const BadgeHeaderLeftArray = ({conversationIDKey, ...rest}: any) => {
   const visiblePath = getVisiblePath()
-  const onTopOfInbox = visiblePath?.length === 3 && visiblePath[1]?.name === Tabs.chatTab
-  const badgeNumber = Container.useSelector(state =>
-    onTopOfInbox
-      ? [...state.chat2.badgeMap.entries()].reduce(
-          (res, [currentConvID, currentValue]) =>
-            // only show sum of badges that aren't for the current conversation
-            currentConvID !== conversationIDKey ? res + currentValue : res,
-          0
-        )
-      : 0
-  )
+  const onTopOfInbox = visiblePath?.[(visiblePath.length ?? 0) - 2]?.name === 'chatRoot'
+  const badgeCountsChanged = Constants.useState(s => s.badgeCountsChanged)
+  const badgeNumber = React.useMemo(() => {
+    if (!onTopOfInbox) return 0
+    const badgeMap = Constants.useState.getState().getBadgeMap(badgeCountsChanged)
+    return [...badgeMap.entries()].reduce(
+      (res, [currentConvID, currentValue]) =>
+        // only show sum of badges that aren't for the current conversation
+        currentConvID !== conversationIDKey ? res + currentValue : res,
+      0
+    )
+  }, [badgeCountsChanged, onTopOfInbox, conversationIDKey])
   return <HeaderLeftArrow badgeNumber={badgeNumber} {...rest} />
 }
 
@@ -119,7 +119,11 @@ export const headerNavigationOptions = (route: unknown) => {
   return {
     headerLeft: (props: any) => {
       const {onLabelLayout, labelStyle, ...rest} = props
-      return <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
+      return (
+        <Constants.Provider id={conversationIDKey}>
+          <BadgeHeaderLeftArray {...rest} conversationIDKey={conversationIDKey} />
+        </Constants.Provider>
+      )
     },
     headerRight: () => <HeaderAreaRight conversationIDKey={conversationIDKey} />,
     headerTitle: () => <HeaderBranchContainer conversationIDKey={conversationIDKey} />,

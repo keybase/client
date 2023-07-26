@@ -1,5 +1,4 @@
 import * as Common from '../router-v2/common'
-import * as Constants from '../constants/chat2'
 import * as React from 'react'
 import * as Styles from '../styles'
 import Header from './header'
@@ -30,9 +29,7 @@ const getOptions = ({route}: OwnProps) => {
 
 const Screen = (p: OwnProps) => (
   <React.Suspense>
-    <Constants.Provider id={p.route.params?.conversationIDKey ?? Constants.noConversationIDKey}>
-      <Split {...p.route.params} />
-    </Constants.Provider>
+    <Split {...p.route.params} />
   </React.Suspense>
 )
 

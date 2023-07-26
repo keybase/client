@@ -60,10 +60,6 @@
       "highlightMessageID?": "number",
       "participants": "Array<string>"
     },
-    "badgesUpdated": {
-      "_description": "Update our badges in the nav",
-      "conversations": "Array<RPCTypes.BadgeConversationInfo>"
-    },
     "metaNeedsUpdating": {
       "_description": "We want to unbox an inbox row",
       "conversationIDKeys": "Array<Types.ConversationIDKey>",

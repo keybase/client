@@ -24,7 +24,6 @@ export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
 export const attachmentUploaded = 'chat2:attachmentUploaded'
 export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
-export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
 export const clearAttachmentView = 'chat2:clearAttachmentView'
@@ -97,7 +96,6 @@ export const refreshBotSettings = 'chat2:refreshBotSettings'
 export const refreshMutualTeamsInConv = 'chat2:refreshMutualTeamsInConv'
 export const removeBotMember = 'chat2:removeBotMember'
 export const replyJump = 'chat2:replyJump'
-export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
@@ -934,12 +932,6 @@ export const createUpdateMessages = (payload: {
   readonly messages: Array<{messageID: Types.MessageID; message: Types.Message}>
 }) => ({payload, type: updateMessages as typeof updateMessages})
 /**
- * Update our badges in the nav
- */
-export const createBadgesUpdated = (payload: {
-  readonly conversations: Array<RPCTypes.BadgeConversationInfo>
-}) => ({payload, type: badgesUpdated as typeof badgesUpdated})
-/**
  * Update progress on an upload
  */
 export const createAttachmentUploading = (payload: {
@@ -998,14 +990,6 @@ export const createMessageAttachmentUploaded = (payload: {
   readonly placeholderID: RPCChatTypes.MessageID
   readonly message: Types.MessageAttachment
 }) => ({payload, type: messageAttachmentUploaded as typeof messageAttachmentUploaded})
-/**
- * We received request info for a requestPayment message
- */
-export const createRequestInfoReceived = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: RPCChatTypes.MessageID
-  readonly requestInfo: Types.ChatRequestInfo
-}) => ({payload, type: requestInfoReceived as typeof requestInfoReceived})
 /**
  * We saved an attachment to the local disk
  */
@@ -1219,7 +1203,6 @@ export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachment
 export type AttachmentUploadedPayload = ReturnType<typeof createAttachmentUploaded>
 export type AttachmentUploadingPayload = ReturnType<typeof createAttachmentUploading>
 export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
-export type BadgesUpdatedPayload = ReturnType<typeof createBadgesUpdated>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ChannelSuggestionsTriggeredPayload = ReturnType<typeof createChannelSuggestionsTriggered>
 export type ClearAttachmentViewPayload = ReturnType<typeof createClearAttachmentView>
@@ -1292,7 +1275,6 @@ export type RefreshBotSettingsPayload = ReturnType<typeof createRefreshBotSettin
 export type RefreshMutualTeamsInConvPayload = ReturnType<typeof createRefreshMutualTeamsInConv>
 export type RemoveBotMemberPayload = ReturnType<typeof createRemoveBotMember>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
-export type RequestInfoReceivedPayload = ReturnType<typeof createRequestInfoReceived>
 export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = ReturnType<typeof createResetLetThemIn>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
@@ -1363,7 +1345,6 @@ export type Actions =
   | AttachmentUploadedPayload
   | AttachmentUploadingPayload
   | AttachmentsUploadPayload
-  | BadgesUpdatedPayload
   | BlockConversationPayload
   | ChannelSuggestionsTriggeredPayload
   | ClearAttachmentViewPayload
@@ -1436,7 +1417,6 @@ export type Actions =
   | RefreshMutualTeamsInConvPayload
   | RemoveBotMemberPayload
   | ReplyJumpPayload
-  | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
   | ResolveMaybeMentionPayload
