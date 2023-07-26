@@ -132,9 +132,10 @@ const Notifications = (props: Props) => {
     )
     delayUnsave()
   }
+  const mute = Constants.useContext(s => s.dispatch.mute)
   const saveMuted = (muted: boolean) => {
     setSaving(true)
-    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted}))
+    mute(muted)
     delayUnsave()
   }
 
@@ -192,7 +193,7 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxRow,
         marginLeft: Styles.globalMargins.tiny,
       },
-    } as const)
+    }) as const
 )
 
 export default Notifications
