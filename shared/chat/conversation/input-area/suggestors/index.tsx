@@ -106,10 +106,14 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       // desktop would get the previous selection on arrowleft / arrowright
       const cursorInfo = getWordAtCursor()
       if (!cursorInfo) {
+        setInactive()
         return
       }
       const {word} = cursorInfo
-      if (!word) return
+      if (!word) {
+        setInactive()
+        return
+      }
       if (active) {
         const activeMarker = suggestorToMarker[active]
         const matchInfo = matchesMarker(word, activeMarker)

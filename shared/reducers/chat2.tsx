@@ -465,7 +465,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     // clearing
     if (!editLastUser && !ordinal) {
       editingMap.delete(conversationIDKey)
-      Constants.getConvoState(conversationIDKey).dispatch.setUnsentText('')
+      Constants.getConvoState(conversationIDKey).dispatch.resetUnsentText()
       return
     }
 
