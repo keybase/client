@@ -112,7 +112,6 @@ export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
-export const toggleReplyToMessage = 'chat2:toggleReplyToMessage'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
@@ -494,13 +493,6 @@ export const createMessageReplyPrivately = (payload: {
   readonly sourceConversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: messageReplyPrivately as typeof messageReplyPrivately})
-/**
- * Reply to a message publicly
- */
-export const createToggleReplyToMessage = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal?: Types.Ordinal
-}) => ({payload, type: toggleReplyToMessage as typeof toggleReplyToMessage})
 /**
  * Resend a message
  */
@@ -1127,7 +1119,6 @@ export type ToggleGiphyPrefillPayload = ReturnType<typeof createToggleGiphyPrefi
 export type ToggleLocalReactionPayload = ReturnType<typeof createToggleLocalReaction>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
 export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
-export type ToggleReplyToMessagePayload = ReturnType<typeof createToggleReplyToMessage>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
 export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePrompt>
 export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
@@ -1248,7 +1239,6 @@ export type Actions =
   | ToggleLocalReactionPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload
-  | ToggleReplyToMessagePayload
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
   | UnhideConversationPayload

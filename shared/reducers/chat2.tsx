@@ -351,9 +351,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.messageSend]: (draftState, action) => {
     const {conversationIDKey} = action.payload
-    const {commandMarkdownMap, replyToMap} = draftState
+    const {commandMarkdownMap} = draftState
     commandMarkdownMap.delete(conversationIDKey)
-    replyToMap.delete(conversationIDKey)
+    Constants.getConvoState(conversationIDKey).dispatch.setReplyTo(0)
   },
   [Chat2Gen.setCommandMarkdown]: (draftState, action) => {
     const {conversationIDKey, md} = action.payload
@@ -846,15 +846,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       explodingModeLocks.delete(conversationIDKey)
     } else if (!alreadyLocked) {
       explodingModeLocks.set(conversationIDKey, mode)
-    }
-  },
-  [Chat2Gen.toggleReplyToMessage]: (draftState, action) => {
-    const {conversationIDKey, ordinal} = action.payload
-    const {replyToMap} = draftState
-    if (ordinal) {
-      replyToMap.set(conversationIDKey, ordinal)
-    } else {
-      replyToMap.delete(conversationIDKey)
     }
   },
   [Chat2Gen.replyJump]: (draftState, action) => {

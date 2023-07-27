@@ -215,7 +215,6 @@ export type State = {
   markedAsUnreadMap: Map<Common.ConversationIDKey, boolean> // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
   pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
-  replyToMap: Map<Common.ConversationIDKey, _Message.Ordinal>
   threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
 }
 

@@ -40,9 +40,10 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
     },
     [dispatch, conversationIDKey, ordinal]
   )
+  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
   const onReply = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
-  }, [dispatch, conversationIDKey, ordinal])
+    setReplyTo(ordinal)
+  }, [setReplyTo, ordinal])
 
   const props = {
     className,

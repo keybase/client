@@ -133,13 +133,10 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
+
+  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
   const _onReply = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createToggleReplyToMessage({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
+    setReplyTo(message.ordinal)
   }
   const _onSaveAttachment = (message: Types.MessageAttachment) => {
     dispatch(Chat2Gen.createMessageAttachmentNativeSave({message}))

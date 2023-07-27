@@ -547,11 +547,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "contains": "boolean"
     },
-    "toggleReplyToMessage": {
-      "_description": "Reply to a message publicly",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal?": "Types.Ordinal"
-    },
     "replyJump": {
       "_description": "Jump to a replied to message",
       "conversationIDKey": "Types.ConversationIDKey",

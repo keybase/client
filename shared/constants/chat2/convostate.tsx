@@ -37,6 +37,7 @@ type ConvoStore = {
   unsentText?: string
   threadSearchInfo: Types.ThreadSearchInfo
   threadSearchQuery: string
+  replyTo: Types.Ordinal
 }
 
 const initialConvoStore: ConvoStore = {
@@ -49,6 +50,7 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   muted: false,
   mutualTeams: [],
+  replyTo: 0,
   threadSearchInfo: makeThreadSearchInfo(),
   threadSearchQuery: '',
   typing: new Set(),
@@ -71,6 +73,7 @@ export type ConvoState = ConvoStore & {
     resetUnsentText: () => void
     setDraft: (d?: string) => void
     setMuted: (m: boolean) => void
+    setReplyTo: (o: Types.Ordinal) => void
     setTyping: (t: Set<string>) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
@@ -183,6 +186,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMuted: m => {
       set(s => {
         s.muted = m
+      })
+    },
+    setReplyTo: o => {
+      set(s => {
+        s.replyTo = o
       })
     },
     setThreadSearchQuery: query => {

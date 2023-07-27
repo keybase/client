@@ -84,7 +84,6 @@ export const makeState = (): Types.State => ({
   orangeLineMap: new Map(), // last message we've seen,
   participantMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
-  replyToMap: new Map(),
   threadLoadStatus: new Map(),
 })
 
@@ -186,11 +185,9 @@ export const getSelectedConversation = (): Types.ConversationIDKey => {
   return noConversationIDKey
 }
 
-export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  return state.chat2.replyToMap.get(conversationIDKey)
-}
 export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  const ordinal = getReplyToOrdinal(state, conversationIDKey)
+  // TODO not reactive, move to convoconstnts when  message moves over
+  const ordinal = getConvoState(conversationIDKey).replyTo
   if (!ordinal) return
   const maybeMessage = getMessage(state, conversationIDKey, ordinal)
   return ordinal
