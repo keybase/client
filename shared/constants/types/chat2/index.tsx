@@ -224,7 +224,6 @@ export type State = {
   participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
   pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
   replyToMap: Map<Common.ConversationIDKey, _Message.Ordinal>
-  teamIDToGeneralConvID: Map<Team.TeamID, Common.ConversationIDKey>
   threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
   threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
   threadSearchQueryMap: Map<Common.ConversationIDKey, HiddenString>

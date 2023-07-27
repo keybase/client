@@ -1693,35 +1693,6 @@ const previewConversationPersonMakesAConversation = (
   ]
 }
 
-const findGeneralConvIDFromTeamID = async (
-  state: Container.TypedState,
-  action: Chat2Gen.FindGeneralConvIDFromTeamIDPayload
-) => {
-  let conv: RPCChatTypes.InboxUIItem | undefined
-  try {
-    conv = await RPCChatTypes.localFindGeneralConvFromTeamIDRpcPromise({
-      teamID: action.payload.teamID,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info(`findGeneralConvIDFromTeamID: failed to get general conv: ${error.message}`)
-    }
-    return
-  }
-  const meta = Constants.inboxUIItemToConversationMeta(state, conv)
-  if (!meta) {
-    logger.info(`findGeneralConvIDFromTeamID: failed to convert to meta`)
-    return
-  }
-  return [
-    Chat2Gen.createMetasReceived({metas: [meta]}),
-    Chat2Gen.createSetGeneralConvFromTeamID({
-      conversationIDKey: Types.stringToConversationIDKey(conv.convID),
-      teamID: action.payload.teamID,
-    }),
-  ]
-}
-
 // We preview channels
 const previewConversationTeam = async (
   state: Container.TypedState,
@@ -3396,17 +3367,6 @@ const updateDraftState = (_: unknown, action: Chat2Gen.DeselectedConversationPay
     reason: 'refreshPreviousSelected',
   })
 
-const updateTyping = (action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) => {
-  const {typingUpdates} = action.payload.params
-  const typingMap = new Map<Types.ConversationIDKey, Set<string>>()
-  typingUpdates?.forEach(u => {
-    typingMap.set(Types.conversationIDToKey(u.convID), new Set(u.typers?.map(t => t.username)))
-  })
-  Constants.useState.setState(s => {
-    s.typingMap = typingMap
-  })
-}
-
 const initChat = () => {
   // Platform specific actions
   if (Container.isMobile) {
@@ -3489,7 +3449,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.editBotSettings, editBotSettings)
   Container.listenAction(Chat2Gen.removeBotMember, removeBotMember)
   Container.listenAction(Chat2Gen.refreshBotSettings, refreshBotSettings)
-  Container.listenAction(Chat2Gen.findGeneralConvIDFromTeamID, findGeneralConvIDFromTeamID)
   Container.listenAction(Chat2Gen.refreshBotRoleInConv, refreshBotRoleInConv)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
@@ -3661,9 +3620,17 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.deselectedConversation, updateDraftState)
+  // TODO remove this callback concept
   getEngine().registerRpcCallback<EngineGen.Chat1NotifyChatChatTypingUpdatePayload>(
     EngineGen.chat1NotifyChatChatTypingUpdate,
-    updateTyping
+    action => {
+      const {typingUpdates} = action.payload.params
+      typingUpdates?.forEach(u => {
+        Constants.getConvoState(Types.conversationIDToKey(u.convID)).dispatch.setTyping(
+          new Set(u.typers?.map(t => t.username))
+        )
+      })
+    }
   )
 
   ConfigConstants.useDaemonState.subscribe((s, old) => {

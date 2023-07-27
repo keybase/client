@@ -737,15 +737,6 @@
       "_description": "Set conversation participant info",
       "participants": "Array<{conversationIDKey: Types.ConversationIDKey, participants: Types.ParticipantInfo}>"
     },
-    "findGeneralConvIDFromTeamID": {
-      "_description": "Get the general channel conv ID from team ID",
-      "teamID": "TeamsTypes.TeamID"
-    },
-    "setGeneralConvFromTeamID": {
-      "_description": "Record teamID to general convID mapping",
-      "teamID": "TeamsTypes.TeamID",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     "refreshBotRoleInConv": {
       "_description": "Refresh role in conversation",
       "conversationIDKey": "Types.ConversationIDKey",

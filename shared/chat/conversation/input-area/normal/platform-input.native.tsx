@@ -441,7 +441,7 @@ const PlatformInput = (p: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} onLayout={onLayout} style={styles.outerContainer}>
         {popup}
         {menu}
-        {showTypingStatus && !popup && <Typing conversationIDKey={conversationIDKey} />}
+        {showTypingStatus && !popup && <Typing />}
         <Kb.Box2
           direction="vertical"
           style={Styles.collapseStyles([styles.container, isExploding && styles.explodingContainer])}

@@ -1,14 +1,16 @@
-import * as RPCChatTypes from '../types/rpc-chat-gen'
-import {RPCError} from '../../util/errors'
-import * as RPCTypes from '../types/rpc-gen'
-import * as Types from '../types/chat2'
-import * as Router2 from '../router2'
-import * as ConfigConstants from '../config'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as TeamConstants from '../teams'
-import logger from '../../logger'
+import * as ConfigConstants from '../config'
 import * as Message from './message'
+import * as RPCChatTypes from '../types/rpc-chat-gen'
+import * as RPCTypes from '../types/rpc-gen'
+import * as Router2 from '../router2'
+import * as TeamConstants from '../teams'
+import * as Types from '../types/chat2'
+import logger from '../../logger'
+import type * as TeamsTypes from '../types/teams'
 import type * as Wallet from '../types/wallets'
+import {RPCError} from '../../util/errors'
+import {inboxUIItemToConversationMeta} from './meta'
 import {isMobile, isTablet, isPhone} from '../platform'
 import {
   noConversationIDKey,
@@ -91,7 +93,6 @@ export const makeState = (): Types.State => ({
   participantMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
   replyToMap: new Map(),
-  teamIDToGeneralConvID: new Map(),
   threadLoadStatus: new Map(),
   threadSearchInfoMap: new Map(),
   threadSearchQueryMap: new Map(),
@@ -616,7 +617,6 @@ type Store = {
   createConversationError?: Types.CreateConversationError
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
-  typingMap: Map<Types.ConversationIDKey, Set<string>>
   smallTeamsExpanded: boolean // if we're showing all small teams,
   lastCoord?: Types.Coordinate
   paymentStatusMap: Map<Wallet.PaymentID, Types.ChatPaymentInfo>
@@ -631,6 +631,7 @@ type Store = {
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout?: RPCChatTypes.UIInboxLayout // layout of the inbox
   inboxSearch?: Types.InboxSearchInfo
+  teamIDToGeneralConvID: Map<TeamsTypes.TeamID, Types.ConversationIDKey>
 }
 
 const initialStore: Store = {
@@ -648,8 +649,8 @@ const initialStore: Store = {
   smallTeamBadgeCount: 0,
   smallTeamsExpanded: false,
   staticConfig: undefined,
+  teamIDToGeneralConvID: new Map(),
   trustedInboxHasLoaded: false,
-  typingMap: new Map(),
   userEmojis: undefined,
   userEmojisForAutocomplete: undefined,
   userReacjis: defaultUserReacjis,
@@ -664,6 +665,7 @@ export type State = Store & {
       code: number,
       message: string
     ) => void
+    findGeneralConvIDFromTeamID: (teamID: TeamsTypes.TeamID) => void
     loadStaticConfig: () => void
     onEngineConnected: () => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
@@ -731,6 +733,27 @@ export const useState = Z.createZustand<State>((set, get) => {
           message,
         }
       })
+    },
+    findGeneralConvIDFromTeamID: teamID => {
+      const f = async () => {
+        try {
+          const conv = await RPCChatTypes.localFindGeneralConvFromTeamIDRpcPromise({teamID})
+          const meta = inboxUIItemToConversationMeta(undefined, conv)
+          if (!meta) {
+            logger.info(`findGeneralConvIDFromTeamID: failed to convert to meta`)
+            return
+          }
+          reduxDispatch(Chat2Gen.createMetasReceived({metas: [meta]}))
+          set(s => {
+            s.teamIDToGeneralConvID.set(teamID, Types.stringToConversationIDKey(conv.convID))
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info(`findGeneralConvIDFromTeamID: failed to get general conv: ${error.message}`)
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     inboxRefresh: reason => {
       const f = async () => {

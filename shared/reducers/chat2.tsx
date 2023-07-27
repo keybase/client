@@ -1237,9 +1237,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     m.set(action.payload.username, action.payload.settings)
     draftState.botSettings.set(action.payload.conversationIDKey, m)
   },
-  [Chat2Gen.setGeneralConvFromTeamID]: (draftState, action) => {
-    draftState.teamIDToGeneralConvID.set(action.payload.teamID, action.payload.conversationIDKey)
-  },
   [Chat2Gen.navigateToThread]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     // hide search

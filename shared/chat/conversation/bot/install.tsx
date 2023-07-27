@@ -18,19 +18,17 @@ const RestrictedItem = '---RESTRICTED---'
 
 export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, teamID?: TeamTypes.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState(inConvIDKey)
-  const generalConvID = Container.useSelector(
-    (state: Container.TypedState) => teamID && state.chat2.teamIDToGeneralConvID.get(teamID)
-  )
-  const dispatch = Container.useDispatch()
+  const generalConvID = Constants.useState(s => teamID && s.teamIDToGeneralConvID.get(teamID))
+  const findGeneralConvIDFromTeamID = Constants.useState(s => s.dispatch.findGeneralConvIDFromTeamID)
   React.useEffect(() => {
     if (!conversationIDKey && teamID) {
       if (!generalConvID) {
-        dispatch(Chat2Gen.createFindGeneralConvIDFromTeamID({teamID}))
+        findGeneralConvIDFromTeamID(teamID)
       } else {
         setConversationIDKey(generalConvID)
       }
     }
-  }, [conversationIDKey, dispatch, generalConvID, teamID])
+  }, [conversationIDKey, findGeneralConvIDFromTeamID, generalConvID, teamID])
   return conversationIDKey
 }
 

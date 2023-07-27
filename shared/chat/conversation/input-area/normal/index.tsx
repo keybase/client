@@ -382,7 +382,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     setTextInput(lastTextRef.current)
   }, [setTextInput])
 
-  const isTyping = Constants.useState(s => !!s.typingMap.get(conversationIDKey)?.size)
+  const isTyping = Constants.useContext(s => s.typing.size > 0)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const data = Container.useSelector(state => {
     const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown

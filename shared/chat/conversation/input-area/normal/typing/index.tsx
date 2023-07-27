@@ -2,11 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import * as Constants from '../../../../../constants/chat2'
-import type * as Types from '../../../../../constants/types/chat2'
-
-type Props = {
-  conversationIDKey: Types.ConversationIDKey
-}
 
 const Names = (props: {names?: Set<string>}) => {
   const textType = 'BodyTinySemibold'
@@ -47,10 +42,8 @@ const Names = (props: {names?: Set<string>}) => {
   }
 }
 
-const Typing = React.memo(function Typing(props: Props) {
-  const {conversationIDKey} = props
-  const names = Constants.useState(s => s.typingMap.get(conversationIDKey))
-
+const Typing = React.memo(function Typing() {
+  const names = Constants.useContext(s => s.typing)
   return (
     <Kb.Box style={styles.isTypingContainer}>
       {(names?.size ?? 0) > 0 && (
@@ -129,6 +122,6 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )
 export default Typing

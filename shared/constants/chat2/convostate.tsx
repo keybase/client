@@ -5,6 +5,7 @@ import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import {noConversationIDKey} from '../types/chat2/common'
+import isEqual from 'lodash/isEqual'
 
 // per convo store
 type ConvoStore = {
@@ -17,6 +18,7 @@ type ConvoStore = {
   draft?: string
   unsentText?: string
   dismissedInviteBanners: boolean
+  typing: Set<string>
 }
 
 const initialConvoStore: ConvoStore = {
@@ -26,6 +28,7 @@ const initialConvoStore: ConvoStore = {
   draft: undefined,
   id: noConversationIDKey,
   muted: false,
+  typing: new Set(),
   unread: 0,
   unsentText: undefined,
 }
@@ -39,6 +42,7 @@ export type ConvoState = ConvoStore & {
     resetState: 'default'
     setDraft: (d?: string) => void
     setMuted: (m: boolean) => void
+    setTyping: (t: Set<string>) => void
     unreadUpdated: (unread: number) => void
     // this is how you set the unset value, including ''
     setUnsentText: (u: string) => void
@@ -92,6 +96,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMuted: m => {
       set(s => {
         s.muted = m
+      })
+    },
+    setTyping: t => {
+      set(s => {
+        if (!isEqual(s.typing, t)) {
+          s.typing = t
+        }
       })
     },
     setUnsentText: u => {
