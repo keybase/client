@@ -57,25 +57,6 @@ const messageIDToOrdinal = (
   return null
 }
 
-const giphyActions: Container.ActionHandler<Actions, Types.State> = {
-  [Chat2Gen.giphyToggleWindow]: (draftState, action) => {
-    const {conversationIDKey, show} = action.payload
-    const {giphyWindowMap, giphyResultMap} = draftState
-    giphyWindowMap.set(conversationIDKey, show)
-    !show && giphyResultMap.set(conversationIDKey, undefined)
-  },
-  [Chat2Gen.giphySend]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {giphyWindowMap} = draftState
-    giphyWindowMap.set(conversationIDKey, false)
-  },
-  [Chat2Gen.giphyGotSearchResult]: (draftState, action) => {
-    const {conversationIDKey, results} = action.payload
-    const {giphyResultMap} = draftState
-    giphyResultMap.set(conversationIDKey, results)
-  },
-}
-
 const paymentActions: Container.ActionHandler<Actions, Types.State> = {}
 
 const searchActions: Container.ActionHandler<Actions, Types.State> = {
@@ -1250,7 +1231,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.botTeamRoleInConvMap.set(action.payload.conversationIDKey, roles)
   },
-  ...giphyActions,
   ...paymentActions,
   ...searchActions,
   ...attachmentActions,

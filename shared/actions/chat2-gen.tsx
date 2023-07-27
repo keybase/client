@@ -39,9 +39,6 @@ export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const editBotSettings = 'chat2:editBotSettings'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
-export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
-export const giphySend = 'chat2:giphySend'
-export const giphyToggleWindow = 'chat2:giphyToggleWindow'
 export const hideConversation = 'chat2:hideConversation'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const joinConversation = 'chat2:joinConversation'
@@ -302,13 +299,6 @@ export const createMessagesExploded = (payload: {
   readonly messageIDs: Array<RPCChatTypes.MessageID>
   readonly explodedBy?: string
 }) => ({payload, type: messagesExploded as typeof messagesExploded})
-/**
- * Giphy search results obtained
- */
-export const createGiphyGotSearchResult = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly results: RPCChatTypes.GiphySearchResults
-}) => ({payload, type: giphyGotSearchResult as typeof giphyGotSearchResult})
 /**
  * Got an error sending a message
  */
@@ -825,13 +815,6 @@ export const createToggleGiphyPrefill = (payload: {readonly conversationIDKey: T
   type: toggleGiphyPrefill as typeof toggleGiphyPrefill,
 })
 /**
- * Toggle Giphy search preview window
- */
-export const createGiphyToggleWindow = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly show: boolean
-}) => ({payload, type: giphyToggleWindow as typeof giphyToggleWindow})
-/**
  * Toggle a reaction in the store.
  */
 export const createToggleLocalReaction = (payload: {
@@ -1051,13 +1034,6 @@ export const createRemoveBotMember = (payload: {
   readonly username: string
 }) => ({payload, type: removeBotMember as typeof removeBotMember})
 /**
- * send a message from Giphy search
- */
-export const createGiphySend = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly result: RPCChatTypes.GiphySearchResult
-}) => ({payload, type: giphySend as typeof giphySend})
-/**
  * set bot public commands
  */
 export const createSetBotPublicCommands = (payload: {
@@ -1171,9 +1147,6 @@ export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockBut
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type EditBotSettingsPayload = ReturnType<typeof createEditBotSettings>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
-export type GiphyGotSearchResultPayload = ReturnType<typeof createGiphyGotSearchResult>
-export type GiphySendPayload = ReturnType<typeof createGiphySend>
-export type GiphyToggleWindowPayload = ReturnType<typeof createGiphyToggleWindow>
 export type HideConversationPayload = ReturnType<typeof createHideConversation>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
 export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
@@ -1307,9 +1280,6 @@ export type Actions =
   | DismissJourneycardPayload
   | EditBotSettingsPayload
   | FetchUserEmojiPayload
-  | GiphyGotSearchResultPayload
-  | GiphySendPayload
-  | GiphyToggleWindowPayload
   | HideConversationPayload
   | IgnorePinnedMessagePayload
   | JoinConversationPayload

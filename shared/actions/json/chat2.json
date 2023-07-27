@@ -508,21 +508,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
     },
-    "giphySend": {
-      "_description": "send a message from Giphy search",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "result": "RPCChatTypes.GiphySearchResult"
-    },
-    "giphyGotSearchResult": {
-      "_description": "Giphy search results obtained",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "results": "RPCChatTypes.GiphySearchResults"
-    },
-    "giphyToggleWindow": {
-      "_description": "Toggle Giphy search preview window",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "show": "boolean"
-    },
     "confirmScreenResponse": {
       "_description": "User responded to the chat Stellar confirm screen",
       "accept": "boolean"

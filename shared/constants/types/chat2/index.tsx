@@ -209,8 +209,6 @@ export type State = {
   explodingModeLocks: Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
   explodingModes: Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
   flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
-  giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
-  giphyWindowMap: Map<Common.ConversationIDKey, boolean>
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,

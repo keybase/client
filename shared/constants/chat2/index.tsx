@@ -79,8 +79,6 @@ export const makeState = (): Types.State => ({
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,
   flipStatusMap: new Map(),
-  giphyResultMap: new Map(),
-  giphyWindowMap: new Map(),
   markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,

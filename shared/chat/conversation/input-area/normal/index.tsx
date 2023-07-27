@@ -89,12 +89,12 @@ const Input = (p: Props) => {
   const {conversationIDKey, jumpToRecent, focusInputCounter} = p
   const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
 
-  const {replyTo, showCommandMarkdown, showCommandStatus, showGiphySearch} = Container.useSelector(state => {
+  const showGiphySearch = Constants.useContext(s => s.giphyWindow)
+  const {replyTo, showCommandMarkdown, showCommandStatus} = Container.useSelector(state => {
     const replyTo = Constants.getReplyToMessageID(state, conversationIDKey) ?? undefined
     const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
     const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey)
-    const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey) || false
-    return {replyTo, showCommandMarkdown, showCommandStatus, showGiphySearch}
+    return {replyTo, showCommandMarkdown, showCommandStatus}
   }, shallowEqual)
 
   return (
@@ -106,7 +106,7 @@ const Input = (p: Props) => {
         )
       }
       {showCommandStatus && <CommandStatus conversationIDKey={conversationIDKey} />}
-      {showGiphySearch && <Giphy conversationIDKey={conversationIDKey} />}
+      {showGiphySearch && <Giphy />}
       <ConnectedPlatformInput
         conversationIDKey={conversationIDKey}
         jumpToRecent={jumpToRecent}
