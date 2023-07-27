@@ -92,7 +92,6 @@ export const makeState = (): Types.State => ({
   participantMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
   replyToMap: new Map(),
-  shouldDeleteZzzJourneycard: new Map(),
   teamIDToGeneralConvID: new Map(),
   threadLoadStatus: new Map(),
   threadSearchInfoMap: new Map(),

@@ -2237,20 +2237,6 @@ const markTeamAsRead = async (_: unknown, action: Chat2Gen.MarkTeamAsReadPayload
   })
 }
 
-const messagesAdd = (state: Container.TypedState, _action: Chat2Gen.MessagesAddPayload) => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    logger.info('bail on not logged in')
-    return
-  }
-  const actions = Array.from(state.chat2.shouldDeleteZzzJourneycard.entries()).map(([cid, jc]) =>
-    Chat2Gen.createMessagesWereDeleted({
-      conversationIDKey: cid,
-      ordinals: [jc.ordinal],
-    })
-  )
-  return actions
-}
-
 // Delete a message and any older
 const deleteMessageHistory = async (
   state: Container.TypedState,
@@ -3553,7 +3539,6 @@ const initChat = () => {
   )
   Container.listenAction(Chat2Gen.markTeamAsRead, markTeamAsRead)
   Container.listenAction(Chat2Gen.markAsUnread, markAsUnread)
-  Container.listenAction(Chat2Gen.messagesAdd, messagesAdd)
   Container.listenAction(Chat2Gen.leaveConversation, () => {
     RouterConstants.useState.getState().dispatch.clearModals()
   })
