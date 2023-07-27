@@ -197,7 +197,6 @@ export type RenderMessageType =
 
 export type State = {
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
-  blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
   botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatusTyp>
   botPublicCommands: Map<string, BotPublicCommands>
   botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>

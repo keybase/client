@@ -9,7 +9,6 @@ import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as FsConstants from '../constants/fs'
 import * as FsTypes from '../constants/types/fs'
-import * as GregorConstants from '../constants/gregor'
 import * as Platform from '../constants/platform'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from './../constants/types/rpc-gen'
@@ -1606,7 +1605,7 @@ const messageSend = async (
   }
 
   // If there are block buttons on this conversation, clear them.
-  if (state.chat2.blockButtonsMap.has(meta.teamID)) {
+  if (Constants.useState.getState().blockButtonsMap.has(meta.teamID)) {
     listenerApi.dispatch(Chat2Gen.createDismissBlockButtons({teamID: meta.teamID}))
   }
 
@@ -2975,70 +2974,6 @@ const openChatFromWidget = (
   ]
 }
 
-const gregorPushState = (items: ConfigConstants.Store['gregorPushState']) => {
-  const actions: Array<Container.TypedActions> = []
-  const getReduxStore = Z.getReduxStore()
-
-  const explodingItems = items.filter(i => i.item.category.startsWith(Constants.explodingModeGregorKeyPrefix))
-  if (!explodingItems.length) {
-    // No conversations have exploding modes, clear out what is set
-    actions.push(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
-  } else {
-    logger.info('Got push state with some exploding modes')
-    const modes = explodingItems.reduce<Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>>(
-      (current, i) => {
-        try {
-          const {category, body} = i.item
-          const secondsString = Buffer.from(body).toString()
-          const seconds = parseInt(secondsString, 10)
-          if (isNaN(seconds)) {
-            logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
-            return current
-          }
-          const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
-          const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
-          current.push({conversationIDKey, seconds})
-        } catch (e) {
-          logger.info('Error parsing exploding' + e)
-        }
-        return current
-      },
-      []
-    )
-    actions.push(Chat2Gen.createUpdateConvExplodingModes({modes}))
-  }
-
-  const blockButtons = items.some(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
-  if (blockButtons || getReduxStore().chat2.blockButtonsMap.size > 0) {
-    const shouldKeepExistingBlockButtons = new Map<string, boolean>()
-    getReduxStore().chat2.blockButtonsMap.forEach((_, teamID: string) =>
-      shouldKeepExistingBlockButtons.set(teamID, false)
-    )
-    items
-      .filter(i => i.item.category.startsWith(Constants.blockButtonsGregorPrefix))
-      .forEach(i => {
-        try {
-          const teamID = i.item.category.substring(Constants.blockButtonsGregorPrefix.length)
-          if (!getReduxStore().chat2.blockButtonsMap.get(teamID)) {
-            const body = GregorConstants.bodyToJSON(i.item.body) as {adder: string}
-            const adder = body.adder
-            actions.push(Chat2Gen.createUpdateBlockButtons({adder, show: true, teamID}))
-          } else {
-            shouldKeepExistingBlockButtons.set(teamID, true)
-          }
-        } catch (e) {
-          logger.info('block buttons parse fail', e)
-        }
-      })
-    shouldKeepExistingBlockButtons.forEach((keep, teamID) => {
-      if (!keep) {
-        actions.push(Chat2Gen.createUpdateBlockButtons({show: false, teamID}))
-      }
-    })
-  }
-  return actions
-}
-
 const addUsersToChannel = async (_: unknown, action: Chat2Gen.AddUsersToChannelPayload) => {
   const {conversationIDKey, usernames} = action.payload
 
@@ -3474,7 +3409,7 @@ const initChat = () => {
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.gregorPushState === old.gregorPushState) return
-    gregorPushState(s.gregorPushState)
+    Constants.useState.getState().dispatch.updatedGregor(s.gregorPushState)
   })
 
   Container.listenAction(Chat2Gen.channelSuggestionsTriggered, (state, action) => {
