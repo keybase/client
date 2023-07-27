@@ -60,9 +60,10 @@ const Header2 = (props: Props) => {
   const onOpenFolder = React.useCallback(() => {
     dispatch(Chat2Gen.createOpenFolder({conversationIDKey}))
   }, [dispatch, conversationIDKey])
+  const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+    toggleThreadSearch()
+  }, [toggleThreadSearch])
   const mute = Constants.useContext(s => s.dispatch.mute)
   const unMuteConversation = React.useCallback(() => {
     mute(false)

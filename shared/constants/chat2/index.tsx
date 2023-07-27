@@ -20,7 +20,6 @@ import {
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import HiddenString from '../../util/hidden-string'
 import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import type * as TeamBuildingTypes from '../types/team-building'
 import type {TypedState} from '../reducer'
@@ -54,7 +53,6 @@ export const defaultTopReacjis = [
 ]
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
-const emptyArray: Array<unknown> = []
 export const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 // while we're debugging chat issues
@@ -88,14 +86,6 @@ export const makeState = (): Types.State => ({
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
   replyToMap: new Map(),
   threadLoadStatus: new Map(),
-  threadSearchInfoMap: new Map(),
-  threadSearchQueryMap: new Map(),
-})
-
-export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
-  hits: emptyArray as Types.ThreadSearchInfo['hits'],
-  status: 'initial',
-  visible: false,
 })
 
 export const inboxSearchMaxTextMessages = 25
@@ -157,9 +147,6 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
 
   return null
 }
-
-export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
-  state.chat2.threadSearchInfoMap.get(conversationIDKey)
 
 const emptyOrdinals = new Array<Types.Ordinal>()
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -1041,11 +1028,10 @@ export const useState = Z.createZustand<State>((set, get) => {
 
       reduxDispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'inboxSearch'}))
       if (query) {
-        reduxDispatch(
-          Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query: new HiddenString(query)})
-        )
-        reduxDispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
-        reduxDispatch(Chat2Gen.createThreadSearch({conversationIDKey, query: new HiddenString(query)}))
+        const cs = getConvoState(conversationIDKey)
+        cs.dispatch.setThreadSearchQuery(query)
+        cs.dispatch.toggleThreadSearch(false)
+        cs.dispatch.threadSearch(query)
       } else {
         get().dispatch.toggleInboxSearch(false)
       }

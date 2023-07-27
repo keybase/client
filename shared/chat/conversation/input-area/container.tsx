@@ -18,15 +18,12 @@ type OwnProps = {
 const InputAreaContainer = (p: OwnProps) => {
   const {conversationIDKey, focusInputCounter, jumpToRecent} = p
   const {onRequestScrollUp, onRequestScrollDown, onRequestScrollToBottom} = p
-  const {membershipType, resetParticipants, showThreadSearch, wasFinalizedBy} = Container.useSelector(
-    state => {
-      const meta = Constants.getMeta(state, conversationIDKey)
-      const {membershipType, resetParticipants, wasFinalizedBy} = meta
-      const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey)?.visible ?? false
-      return {membershipType, resetParticipants, showThreadSearch, wasFinalizedBy}
-    },
-    shallowEqual
-  )
+  const showThreadSearch = Constants.useContext(s => s.threadSearchInfo.visible)
+  const {membershipType, resetParticipants, wasFinalizedBy} = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const {membershipType, resetParticipants, wasFinalizedBy} = meta
+    return {membershipType, resetParticipants, wasFinalizedBy}
+  }, shallowEqual)
 
   let noInput = resetParticipants.size > 0 || !!wasFinalizedBy
   if (

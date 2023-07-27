@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import {DebugChatDumpContext} from '../../../constants/chat2/debug'
@@ -20,9 +19,6 @@ export const HeaderAreaRight = (props: OwnProps) => {
   const pendingWaiting =
     conversationIDKey === Constants.pendingWaitingConversationIDKey ||
     conversationIDKey === Constants.pendingErrorConversationIDKey
-
-  const dispatch = Container.useDispatch()
-
   const {chatDebugDump} = React.useContext(DebugChatDumpContext)
   const [showToast, setShowToast] = React.useState(false)
 
@@ -48,13 +44,14 @@ export const HeaderAreaRight = (props: OwnProps) => {
     () => showInfoPanel(true, undefined, conversationIDKey),
     [showInfoPanel, conversationIDKey]
   )
+  const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
     // fix a race with the keyboard going away and coming back quickly
     Keyboard.dismiss()
     setTimeout(() => {
-      dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
+      toggleThreadSearch()
     }, 100)
-  }, [dispatch, conversationIDKey])
+  }, [toggleThreadSearch])
   return pendingWaiting ? null : (
     <Kb.Box2 direction="horizontal" gap="small">
       {dumpIcon}

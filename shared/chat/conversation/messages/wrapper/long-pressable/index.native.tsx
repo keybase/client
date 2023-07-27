@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Container from '../../../../../util/container'
+import * as Constants from '../../../../../constants/chat2'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
@@ -44,11 +45,12 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
   }, [])
 
   const dispatch = Container.useDispatch()
+  const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
   const onSwipeLeft = React.useCallback(() => {
     const {conversationIDKey, ordinal} = getIds()
     dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey, hide: true}))
-  }, [dispatch, getIds])
+    toggleThreadSearch(true)
+  }, [toggleThreadSearch, dispatch, getIds])
 
   // Only swipeable if there is an onSwipeLeft handler
   if (onSwipeLeft) {
@@ -80,7 +82,7 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxColumn,
         position: 'relative',
       },
-    } as const)
+    }) as const
 )
 
 export default LongPressable

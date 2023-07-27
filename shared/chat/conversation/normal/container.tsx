@@ -33,19 +33,16 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
     requestScrollToBottomRef.current?.()
   }, [])
 
-  const {cannotWrite, minWriterReason, showThreadSearch, threadLoadedOffline} = Container.useSelector(
-    state => {
-      const meta = Constants.getMeta(state, conversationIDKey)
-      const {cannotWrite, offline, minWriterRole} = meta
-      const threadLoadedOffline = offline
-      const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey)?.visible ?? false
-      const minWriterReason = `You must be at least ${indefiniteArticle(
-        minWriterRole
-      )} ${minWriterRole} to post.`
-      return {cannotWrite, minWriterReason, showThreadSearch, threadLoadedOffline}
-    },
-    shallowEqual
-  )
+  const showThreadSearch = Constants.useContext(s => s.threadSearchInfo.visible)
+  const {cannotWrite, minWriterReason, threadLoadedOffline} = Container.useSelector(state => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const {cannotWrite, offline, minWriterRole} = meta
+    const threadLoadedOffline = offline
+    const minWriterReason = `You must be at least ${indefiniteArticle(
+      minWriterRole
+    )} ${minWriterRole} to post.`
+    return {cannotWrite, minWriterReason, threadLoadedOffline}
+  }, shallowEqual)
 
   const dragAndDropRejectReason = cannotWrite ? minWriterReason : undefined
 
@@ -69,9 +66,10 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
     [conversationIDKey, dispatch]
   )
 
+  const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
   const onToggleThreadSearch = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+    toggleThreadSearch()
+  }, [toggleThreadSearch])
 
   const showUser = TrackerConstants.useState(s => s.dispatch.showUser)
   const onShowTracker = React.useCallback(

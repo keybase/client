@@ -59,46 +59,6 @@ const messageIDToOrdinal = (
 
 const paymentActions: Container.ActionHandler<Actions, Types.State> = {}
 
-const searchActions: Container.ActionHandler<Actions, Types.State> = {
-  [Chat2Gen.threadSearchResults]: (draftState, action) => {
-    const {conversationIDKey, clear, messages} = action.payload
-    const {threadSearchInfoMap} = draftState
-    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
-    info.hits = clear ? messages : [...info.hits, ...messages]
-  },
-  [Chat2Gen.setThreadSearchStatus]: (draftState, action) => {
-    const {conversationIDKey, status} = action.payload
-    const {threadSearchInfoMap} = draftState
-    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
-    info.status = status
-  },
-  [Chat2Gen.toggleThreadSearch]: (draftState, action) => {
-    const {conversationIDKey, hide} = action.payload
-    const {threadSearchInfoMap, messageCenterOrdinals} = draftState
-    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
-    info.hits = []
-    info.status = 'initial'
-    if (hide !== undefined) {
-      info.visible = !hide
-    } else {
-      info.visible = !info.visible
-    }
-
-    messageCenterOrdinals.delete(conversationIDKey)
-  },
-  [Chat2Gen.threadSearch]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {threadSearchInfoMap} = draftState
-    const info = mapGetEnsureValue(threadSearchInfoMap, conversationIDKey, Constants.makeThreadSearchInfo())
-    info.hits = []
-  },
-  [Chat2Gen.setThreadSearchQuery]: (draftState, action) => {
-    const {conversationIDKey, query} = action.payload
-    const {threadSearchQueryMap} = draftState
-    threadSearchQueryMap.set(conversationIDKey, query)
-  },
-}
-
 const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.loadAttachmentView]: (draftState, action) => {
     const {conversationIDKey, viewType} = action.payload
@@ -1176,20 +1136,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     m.set(action.payload.username, action.payload.settings)
     draftState.botSettings.set(action.payload.conversationIDKey, m)
   },
-  [Chat2Gen.navigateToThread]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    // hide search
-    const toHide = [...draftState.threadSearchInfoMap.entries()].reduce<Array<Types.ConversationIDKey>>(
-      (arr, [id, val]) => {
-        if (id !== conversationIDKey && val.visible) {
-          arr.push(id)
-        }
-        return arr
-      },
-      []
-    )
-    toHide.forEach(id => (draftState.threadSearchInfoMap.get(id)!.visible = false))
-  },
   [Chat2Gen.setBotRoleInConv]: (draftState, action) => {
     const roles =
       draftState.botTeamRoleInConvMap.get(action.payload.conversationIDKey) ||
@@ -1202,7 +1148,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.botTeamRoleInConvMap.set(action.payload.conversationIDKey, roles)
   },
   ...paymentActions,
-  ...searchActions,
   ...attachmentActions,
 })
 
