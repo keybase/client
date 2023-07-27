@@ -43,7 +43,12 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const inConvIDKey = props.conversationIDKey
   const teamID = props.teamID
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
-  return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
+  if (!inConvIDKey) return null
+  return (
+    <Constants.Provider id={inConvIDKey}>
+      <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
+    </Constants.Provider>
+  )
 }
 
 type Props = {
