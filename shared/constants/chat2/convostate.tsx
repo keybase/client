@@ -64,12 +64,6 @@ const initialConvoStore: ConvoStore = {
 }
 export type ConvoState = ConvoStore & {
   dispatch: {
-    // setBotSettings: (
-    //   _description: set bot settings,
-    //   conversationIDKey: Types.ConversationIDKey,
-    //   username: string,
-    //   settings: RPCTypes.TeamBotSettings
-    // )=>void
     badgesUpdated: (badge: number) => void
     dismissBottomBanner: () => void
     giphyGotSearchResult: (results: RPCChatTypes.GiphySearchResults) => void
@@ -137,7 +131,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const Constants = await import('./index')
         const conversationIDKey = get().id
-        const replyTo = Constants.getReplyToMessageID(getReduxState(), conversationIDKey)
+        const replyTo = Constants.getReplyToMessageID(get().replyTo, getReduxState(), conversationIDKey)
         try {
           await RPCChatTypes.localTrackGiphySelectRpcPromise({result})
         } catch {}

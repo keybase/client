@@ -87,7 +87,7 @@ export const styleSheetCreate = (obj: any) => styleSheetCreateProxy(obj, o => St
 //       const style = o[name]
 //       Object.keys(style).forEach(sname => {
 //         if (sname === 'borderRadius') {
-//           console.log('aaa found style', style, sname)
+//           console.log('found style', style, sname)
 //         }
 //       })
 //     })

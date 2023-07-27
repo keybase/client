@@ -89,8 +89,9 @@ const Input = (p: Props) => {
   const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
 
   const showGiphySearch = Constants.useContext(s => s.giphyWindow)
+  const rorindal = Constants.useContext(s => s.replyTo)
   const {replyTo, showCommandMarkdown, showCommandStatus} = Container.useSelector(state => {
-    const replyTo = Constants.getReplyToMessageID(state, conversationIDKey) ?? undefined
+    const replyTo = Constants.getReplyToMessageID(rorindal, state, conversationIDKey) ?? undefined
     const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
     const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey)
     return {replyTo, showCommandMarkdown, showCommandStatus}

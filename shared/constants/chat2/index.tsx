@@ -183,10 +183,11 @@ export const getSelectedConversation = (): Types.ConversationIDKey => {
   return noConversationIDKey
 }
 
-export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  // TODO not reactive, move to convoconstnts when  message moves over
-  const ordinal = getConvoState(conversationIDKey).replyTo
-  if (!ordinal) return
+export const getReplyToMessageID = (
+  ordinal: Types.Ordinal,
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey
+) => {
   const maybeMessage = getMessage(state, conversationIDKey, ordinal)
   return ordinal
     ? maybeMessage === null || maybeMessage === undefined
