@@ -3,6 +3,7 @@ import * as Z from '../../util/zustand'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import * as Types from '../types/chat2'
+import type * as TeamsTypes from '../types/teams'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import {noConversationIDKey} from '../types/chat2/common'
@@ -16,15 +17,16 @@ type ConvoStore = {
   // temp cache for requestPayment and sendPayment message data,
   accountsInfoMap: Map<RPCChatTypes.MessageID, Types.ChatRequestInfo | Types.ChatPaymentInfo>
   badge: number
-  unread: number
-  muted: boolean
-  draft?: string
-  unsentText?: string
   dismissedInviteBanners: boolean
-  typing: Set<string>
-  unfurlPrompt: Map<Types.MessageID, Set<string>>
+  draft?: string
   giphyResult?: RPCChatTypes.GiphySearchResults
   giphyWindow: boolean
+  muted: boolean
+  mutualTeams: Array<TeamsTypes.TeamID>
+  typing: Set<string>
+  unfurlPrompt: Map<Types.MessageID, Set<string>>
+  unread: number
+  unsentText?: string
 }
 
 const initialConvoStore: ConvoStore = {
@@ -36,6 +38,7 @@ const initialConvoStore: ConvoStore = {
   giphyWindow: false,
   id: noConversationIDKey,
   muted: false,
+  mutualTeams: [],
   typing: new Set(),
   unfurlPrompt: new Map(),
   unread: 0,
@@ -45,10 +48,15 @@ export type ConvoState = ConvoStore & {
   dispatch: {
     badgesUpdated: (badge: number) => void
     dismissBottomBanner: () => void
+    giphyGotSearchResult: (results: RPCChatTypes.GiphySearchResults) => void
+    giphySend: (result: RPCChatTypes.GiphySearchResult) => void
+    giphyToggleWindow: (show: boolean) => void
     mute: (m: boolean) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
+    refreshMutualTeamsInConv: () => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetState: 'default'
+    resetUnsentText: () => void
     setDraft: (d?: string) => void
     setMuted: (m: boolean) => void
     setTyping: (t: Set<string>) => void
@@ -56,11 +64,6 @@ export type ConvoState = ConvoStore & {
     unreadUpdated: (unread: number) => void
     // this is how you set the unset value, including ''
     setUnsentText: (u: string) => void
-    resetUnsentText: () => void
-
-    giphySend: (result: RPCChatTypes.GiphySearchResult) => void
-    giphyGotSearchResult: (results: RPCChatTypes.GiphySearchResults) => void
-    giphyToggleWindow: (show: boolean) => void
   }
 }
 
@@ -121,6 +124,24 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.accountsInfoMap.set(messageID, paymentInfo)
       })
+    },
+    refreshMutualTeamsInConv: () => {
+      const f = async () => {
+        const Constants = await import('./index')
+        const ConfigConstants = await import('../config')
+        const conversationIDKey = get().id
+        const participantInfo = Constants.getParticipantInfo(getReduxState(), conversationIDKey)
+        const username = ConfigConstants.useCurrentUserState.getState().username
+        const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
+        const results = await RPCChatTypes.localGetMutualTeamsLocalRpcPromise(
+          {usernames: otherParticipants},
+          Constants.waitingKeyMutualTeams(conversationIDKey)
+        )
+        set(s => {
+          s.mutualTeams = results.teamIDs ?? []
+        })
+      }
+      Z.ignorePromise(f())
     },
     requestInfoReceived: (messageID, requestInfo) => {
       set(s => {

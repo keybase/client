@@ -2241,35 +2241,6 @@ const dismissJourneycard = (_: unknown, action: Chat2Gen.DismissJourneycardPaylo
   return Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [ordinal]})
 }
 
-// Get the list of mutual teams if we need to.
-const loadSuggestionData = (
-  state: Container.TypedState,
-  action: Chat2Gen.ChannelSuggestionsTriggeredPayload
-) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
-  // If this is an impteam, try to refresh mutual team info
-  if (!meta.teamname) {
-    return Chat2Gen.createRefreshMutualTeamsInConv({conversationIDKey})
-  }
-  return false
-}
-
-const refreshMutualTeamsInConv = async (
-  state: Container.TypedState,
-  action: Chat2Gen.RefreshMutualTeamsInConvPayload
-) => {
-  const {conversationIDKey} = action.payload
-  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
-  const results = await RPCChatTypes.localGetMutualTeamsLocalRpcPromise(
-    {usernames: otherParticipants},
-    Constants.waitingKeyMutualTeams(conversationIDKey)
-  )
-  return Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []})
-}
-
 const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload) => {
   const {conversationIDKey, onlyInTeam} = action.payload
   const results = await RPCChatTypes.localUserEmojisRpcPromise(
@@ -3519,9 +3490,14 @@ const initChat = () => {
     gregorPushState(s.gregorPushState)
   })
 
-  Container.listenAction(Chat2Gen.channelSuggestionsTriggered, loadSuggestionData)
-
-  Container.listenAction(Chat2Gen.refreshMutualTeamsInConv, refreshMutualTeamsInConv)
+  Container.listenAction(Chat2Gen.channelSuggestionsTriggered, (state, action) => {
+    const {conversationIDKey} = action.payload
+    const meta = Constants.getMeta(state, conversationIDKey)
+    // If this is an impteam, try to refresh mutual team info
+    if (!meta.teamname) {
+      Constants.getConvoState(conversationIDKey).dispatch.refreshMutualTeamsInConv()
+    }
+  })
 
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 

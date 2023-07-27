@@ -48,7 +48,6 @@ export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
-export const loadedMutualTeams = 'chat2:loadedMutualTeams'
 export const markAsUnread = 'chat2:markAsUnread'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
@@ -87,7 +86,6 @@ export const previewConversation = 'chat2:previewConversation'
 export const refreshBotPublicCommands = 'chat2:refreshBotPublicCommands'
 export const refreshBotRoleInConv = 'chat2:refreshBotRoleInConv'
 export const refreshBotSettings = 'chat2:refreshBotSettings'
-export const refreshMutualTeamsInConv = 'chat2:refreshMutualTeamsInConv'
 export const removeBotMember = 'chat2:removeBotMember'
 export const replyJump = 'chat2:replyJump'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
@@ -494,12 +492,6 @@ export const createThreadSearchResults = (payload: {
   readonly messages: Array<Types.Message>
   readonly clear: boolean
 }) => ({payload, type: threadSearchResults as typeof threadSearchResults})
-/**
- * Refresh loaded mutual teams for a conversation
- */
-export const createRefreshMutualTeamsInConv = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: refreshMutualTeamsInConv as typeof refreshMutualTeamsInConv})
 /**
  * Refresh role in conversation
  */
@@ -1084,10 +1076,6 @@ export const createLoadMessagesCentered = (payload: {
 export const createLoadNewerMessagesDueToScroll = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: loadNewerMessagesDueToScroll as typeof loadNewerMessagesDueToScroll})
-export const createLoadedMutualTeams = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly teamIDs: Array<TeamsTypes.TeamID>
-}) => ({payload, type: loadedMutualTeams as typeof loadedMutualTeams})
 export const createMessageSendByUsernames = (payload: {
   readonly usernames: string
   readonly text: HiddenString
@@ -1156,7 +1144,6 @@ export type LoadAttachmentViewPayload = ReturnType<typeof createLoadAttachmentVi
 export type LoadMessagesCenteredPayload = ReturnType<typeof createLoadMessagesCentered>
 export type LoadNewerMessagesDueToScrollPayload = ReturnType<typeof createLoadNewerMessagesDueToScroll>
 export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
-export type LoadedMutualTeamsPayload = ReturnType<typeof createLoadedMutualTeams>
 export type MarkAsUnreadPayload = ReturnType<typeof createMarkAsUnread>
 export type MarkConversationsStalePayload = ReturnType<typeof createMarkConversationsStale>
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
@@ -1195,7 +1182,6 @@ export type PreviewConversationPayload = ReturnType<typeof createPreviewConversa
 export type RefreshBotPublicCommandsPayload = ReturnType<typeof createRefreshBotPublicCommands>
 export type RefreshBotRoleInConvPayload = ReturnType<typeof createRefreshBotRoleInConv>
 export type RefreshBotSettingsPayload = ReturnType<typeof createRefreshBotSettings>
-export type RefreshMutualTeamsInConvPayload = ReturnType<typeof createRefreshMutualTeamsInConv>
 export type RemoveBotMemberPayload = ReturnType<typeof createRemoveBotMember>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
@@ -1289,7 +1275,6 @@ export type Actions =
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
-  | LoadedMutualTeamsPayload
   | MarkAsUnreadPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
@@ -1328,7 +1313,6 @@ export type Actions =
   | RefreshBotPublicCommandsPayload
   | RefreshBotRoleInConvPayload
   | RefreshBotSettingsPayload
-  | RefreshMutualTeamsInConvPayload
   | RemoveBotMemberPayload
   | ReplyJumpPayload
   | ResetChatWithoutThemPayload

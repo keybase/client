@@ -916,11 +916,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {messageCenterOrdinals} = draftState
     messageCenterOrdinals.delete(conversationIDKey)
   },
-  [Chat2Gen.loadedMutualTeams]: (draftState, action) => {
-    const {conversationIDKey, teamIDs} = action.payload
-    const {mutualTeamMap} = draftState
-    mutualTeamMap.set(conversationIDKey, teamIDs)
-  },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {
       draftState.participantMap.set(part.conversationIDKey, part.participants)

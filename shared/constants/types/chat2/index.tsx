@@ -216,7 +216,6 @@ export type State = {
   messageOrdinals: Map<Common.ConversationIDKey, Array<_Message.Ordinal>> // ordered ordinals in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
-  mutualTeamMap: Map<Common.ConversationIDKey, Array<Team.TeamID>>
   orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
   markedAsUnreadMap: Map<Common.ConversationIDKey, boolean> // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   participantMap: Map<Common.ConversationIDKey, ParticipantInfo>

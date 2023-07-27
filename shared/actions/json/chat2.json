@@ -732,14 +732,6 @@
       "cardType": "RPCChatTypes.JourneycardType",
       "ordinal": "Types.Ordinal"
     },
-    "refreshMutualTeamsInConv": {
-      "_description": "Refresh loaded mutual teams for a conversation",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "loadedMutualTeams": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "teamIDs": "Array<TeamsTypes.TeamID>"
-    },
     "fetchUserEmoji": {
       "_description": "Refresh user emoji and put it in store for picker",
       "conversationIDKey?": "Types.ConversationIDKey",

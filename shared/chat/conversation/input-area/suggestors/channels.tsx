@@ -8,6 +8,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import type * as Types from '../../../../constants/types/chat2'
+import isEqual from 'lodash/isEqual'
 
 export const transformer = (
   {channelname, teamname}: {channelname: string; teamname?: string},
@@ -46,14 +47,13 @@ const ItemRenderer = (p: Common.ItemRendererProps<ChannelType>) => {
 
 const noChannel: Array<{channelname: string}> = []
 const getChannelSuggestions = (
-  state: Container.TypedState,
+  s: Constants.ConvoState,
   teamname: string,
-  convID: Types.ConversationIDKey,
   teamMeta: TeamsConstants.State['teamMeta']
 ) => {
   if (!teamname) {
     // this is an impteam, so get mutual teams from state
-    const mutualTeams = state.chat2.mutualTeamMap.get(convID)?.map(teamID => teamMeta.get(teamID)?.teamname)
+    const mutualTeams = s.mutualTeams.map(teamID => teamMeta.get(teamID)?.teamname)
     if (!mutualTeams?.length) {
       return noChannel
     }
@@ -101,19 +101,19 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
     Constants.waitingKeyMutualTeams(conversationIDKey),
   ])
   const teamMeta = TeamsConstants.useState(s => s.teamMeta)
-  return Container.useSelector(state => {
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  return Constants.useContext(s => {
     const fil = filter.toLowerCase()
-    const meta = Constants.getMeta(state, conversationIDKey)
     // don't include 'small' here to ditch the single #general suggestion
     const teamname = meta.teamType === 'big' ? meta.teamname : ''
-    const suggestChannels = getChannelSuggestions(state, teamname, conversationIDKey, teamMeta)
+    const suggestChannels = getChannelSuggestions(s, teamname, teamMeta)
 
     // TODO this will thrash always
     return {
       items: suggestChannels.filter(ch => ch.channelname.toLowerCase().includes(fil)).sort(),
       loading: suggestChannelsLoading,
     }
-  })
+  }, isEqual)
 }
 type ChannelType = {
   channelname: string
