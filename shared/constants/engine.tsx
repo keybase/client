@@ -46,6 +46,7 @@ export const useState = Z.createZustand<State>(() => {
     incomingCall: action => {
       const f = async () => {
         const BotsConstants = await import('./bots')
+        const ChatConstants = await import('./chat2')
         const ConfigConstants = await import('./config')
         const DLConstants = await import('./deeplinks')
         const FSConstants = await import('./fs')
@@ -59,6 +60,10 @@ export const useState = Z.createZustand<State>(() => {
         const UsersConstants = await import('./users')
         const UnlockConstants = await import('./unlock-folders')
         switch (action.type) {
+          case EngineGen.chat1NotifyChatChatTypingUpdate:
+            ChatConstants.useState.getState().dispatch.onEngineIncoming(action)
+            break
+
           case EngineGen.chat1NotifyChatChatWelcomeMessageLoaded: // fallthrough
           case EngineGen.keybase1NotifyTeamTeamChangedByID: // fallthrough
           case EngineGen.keybase1NotifyTeamTeamDeleted: // fallthrough

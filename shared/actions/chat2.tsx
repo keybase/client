@@ -26,7 +26,6 @@ import logger from '../logger'
 import {RPCError} from '../util/errors'
 import {isIOS} from '../constants/platform'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from './platform-specific'
-import {getEngine} from '../engine'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -3620,18 +3619,6 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.deselectedConversation, updateDraftState)
-  // TODO remove this callback concept
-  getEngine().registerRpcCallback<EngineGen.Chat1NotifyChatChatTypingUpdatePayload>(
-    EngineGen.chat1NotifyChatChatTypingUpdate,
-    action => {
-      const {typingUpdates} = action.payload.params
-      typingUpdates?.forEach(u => {
-        Constants.getConvoState(Types.conversationIDToKey(u.convID)).dispatch.setTyping(
-          new Set(u.typers?.map(t => t.username))
-        )
-      })
-    }
-  )
 
   ConfigConstants.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return

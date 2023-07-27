@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as EngineGen from '../../actions/engine-gen-gen'
 import * as ConfigConstants from '../config'
 import * as Message from './message'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
@@ -668,6 +669,7 @@ export type State = Store & {
     findGeneralConvIDFromTeamID: (teamID: TeamsTypes.TeamID) => void
     loadStaticConfig: () => void
     onEngineConnected: () => void
+    onEngineIncoming: (action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
     resetState: () => void
@@ -1113,6 +1115,19 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.chat1NotifyChatChatTypingUpdate: {
+          const {typingUpdates} = action.payload.params
+          typingUpdates?.forEach(u => {
+            getConvoState(Types.conversationIDToKey(u.convID)).dispatch.setTyping(
+              new Set(u.typers?.map(t => t.username))
+            )
+          })
+          break
+        }
+      }
     },
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {
       const f = async () => {
