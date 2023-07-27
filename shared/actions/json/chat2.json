@@ -654,15 +654,6 @@
       "path": "string",
       "amps": "Array<number>"
     },
-    "refreshBotPublicCommands": {
-      "_description": "refresh bot public commands",
-      "username": "string"
-    },
-    "setBotPublicCommands": {
-      "_description": "set bot public commands",
-      "username": "string",
-      "commands": "Types.BotPublicCommands"
-    },
     "addBotMember": {
       "_description": "add bot member to channel",
       "conversationIDKey": "Types.ConversationIDKey",

@@ -1163,12 +1163,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.clearMetas]: draftState => {
     draftState.metaMap.clear()
   },
-  [Chat2Gen.setBotPublicCommands]: (draftState, action) => {
-    draftState.botPublicCommands.set(action.payload.username, action.payload.commands)
-  },
-  [Chat2Gen.refreshBotPublicCommands]: (draftState, action) => {
-    draftState.botPublicCommands.delete(action.payload.username)
-  },
   [Chat2Gen.refreshBotSettings]: (draftState, action) => {
     const m = draftState.botSettings.get(action.payload.conversationIDKey)
     if (m) {
