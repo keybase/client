@@ -19,8 +19,8 @@ const noAdmins: Array<string> = []
 
 export default (ownProps: OwnProps) => {
   const {allowFontScaling, name, channel, style} = ownProps
-  const maybeMentionInfo = Container.useSelector(state =>
-    state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
+  const maybeMentionInfo = Constants.useState(s =>
+    s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel))
   )
   const mentionInfo =
     maybeMentionInfo && maybeMentionInfo.status === RPCChatTypes.UIMaybeMentionStatus.team

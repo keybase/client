@@ -583,11 +583,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "query": "HiddenString"
     },
-    "setMaybeMentionInfo": {
-      "_description": "Set team mention info",
-      "name": "string",
-      "info": "RPCChatTypes.UIMaybeMentionInfo"
-    },
     "tabSelected": {
       "_description": "Desktop changed tab to chat"
     },

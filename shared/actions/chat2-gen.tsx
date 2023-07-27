@@ -106,7 +106,6 @@ export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
-export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setParticipants = 'chat2:setParticipants'
 export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
@@ -676,13 +675,6 @@ export const createSetParticipants = (payload: {
   }>
 }) => ({payload, type: setParticipants as typeof setParticipants})
 /**
- * Set team mention info
- */
-export const createSetMaybeMentionInfo = (payload: {
-  readonly name: string
-  readonly info: RPCChatTypes.UIMaybeMentionInfo
-}) => ({payload, type: setMaybeMentionInfo as typeof setMaybeMentionInfo})
-/**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
 export const createSetMinWriterRole = (payload: {
@@ -1195,7 +1187,6 @@ export type SetConvExplodingModePayload = ReturnType<typeof createSetConvExplodi
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
 export type SetExplodingModeLockPayload = ReturnType<typeof createSetExplodingModeLock>
-export type SetMaybeMentionInfoPayload = ReturnType<typeof createSetMaybeMentionInfo>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
 export type SetThreadLoadStatusPayload = ReturnType<typeof createSetThreadLoadStatus>
@@ -1325,7 +1316,6 @@ export type Actions =
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetExplodingModeLockPayload
-  | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
   | SetParticipantsPayload
   | SetThreadLoadStatusPayload

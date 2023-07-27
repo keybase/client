@@ -936,11 +936,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       metaMap.set(m.conversationIDKey, old ? Constants.updateMeta(old, m) : m)
     })
   },
-  [Chat2Gen.setMaybeMentionInfo]: (draftState, action) => {
-    const {name, info} = action.payload
-    const {maybeMentionMap} = draftState
-    maybeMentionMap.set(name, info)
-  },
   [Chat2Gen.messageDelete]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState

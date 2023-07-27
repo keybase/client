@@ -79,7 +79,6 @@ export const makeState = (): Types.State => ({
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,
   markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
-  maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
   messageMap: new Map(), // messages in a thread,
   messageOrdinals: new Map(), // ordered ordinals in a thread,
@@ -629,6 +628,7 @@ type Store = {
   inboxSearch?: Types.InboxSearchInfo
   teamIDToGeneralConvID: Map<TeamsTypes.TeamID, Types.ConversationIDKey>
   flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
+  maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
 }
 
 const initialStore: Store = {
@@ -643,6 +643,7 @@ const initialStore: Store = {
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
   lastCoord: undefined,
+  maybeMentionMap: new Map(),
   paymentStatusMap: new Map(),
   smallTeamBadgeCount: 0,
   smallTeamsExpanded: false,
@@ -671,6 +672,7 @@ export type State = Store & {
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
     resetState: () => void
     resetConversationErrored: () => void
+    setMaybeMentionInfo: (name: string, info: RPCChatTypes.UIMaybeMentionInfo) => void
     setTrustedInboxHasLoaded: () => void
     toggleSmallTeamsExpanded: () => void
     toggleInboxSearch: (enabled: boolean) => void
@@ -1185,6 +1187,12 @@ export const useState = Z.createZustand<State>((set, get) => {
         } catch (_) {}
       }
       Z.ignorePromise(f())
+    },
+    setMaybeMentionInfo: (name, info) => {
+      set(s => {
+        const {maybeMentionMap} = s
+        maybeMentionMap.set(name, info)
+      })
     },
     setTrustedInboxHasLoaded: () => {
       set(s => {

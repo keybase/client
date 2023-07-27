@@ -2924,14 +2924,6 @@ const onChatCommandStatus = (_: unknown, action: EngineGen.Chat1ChatUiChatComman
   })
 }
 
-const onChatMaybeMentionUpdate = (_: unknown, action: EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload) => {
-  const {teamName, channel, info} = action.payload.params
-  return Chat2Gen.createSetMaybeMentionInfo({
-    info,
-    name: Constants.getTeamMentionName(teamName, channel),
-  })
-}
-
 const resolveMaybeMention = async (_: unknown, action: Chat2Gen.ResolveMaybeMentionPayload) => {
   await RPCChatTypes.localResolveMaybeMentionRpcPromise({
     mention: {channel: action.payload.channel, name: action.payload.name},
@@ -3530,7 +3522,12 @@ const initChat = () => {
   })
   Container.listenAction(EngineGen.chat1ChatUiChatCommandMarkdown, onChatCommandMarkdown)
   Container.listenAction(EngineGen.chat1ChatUiChatCommandStatus, onChatCommandStatus)
-  Container.listenAction(EngineGen.chat1ChatUiChatMaybeMentionUpdate, onChatMaybeMentionUpdate)
+  Container.listenAction(EngineGen.chat1ChatUiChatMaybeMentionUpdate, (_, action) => {
+    const {teamName, channel, info} = action.payload.params
+    Constants.useState
+      .getState()
+      .dispatch.setMaybeMentionInfo(Constants.getTeamMentionName(teamName, channel), info)
+  })
 
   Container.listenAction(Chat2Gen.replyJump, onReplyJump)
 
