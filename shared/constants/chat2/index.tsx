@@ -78,16 +78,13 @@ export const makeState = (): Types.State => ({
   editingMap: new Map(),
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,
-  flipStatusMap: new Map(),
   markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
-  maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
   messageMap: new Map(), // messages in a thread,
   messageOrdinals: new Map(), // ordered ordinals in a thread,
   messageTypeMap: new Map(),
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
-  mutualTeamMap: new Map(),
   orangeLineMap: new Map(), // last message we've seen,
   participantMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
@@ -630,12 +627,15 @@ type Store = {
   inboxLayout?: RPCChatTypes.UIInboxLayout // layout of the inbox
   inboxSearch?: Types.InboxSearchInfo
   teamIDToGeneralConvID: Map<TeamsTypes.TeamID, Types.ConversationIDKey>
+  flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
+  maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
 }
 
 const initialStore: Store = {
   badgeCountsChanged: 0,
   bigTeamBadgeCount: 0,
   createConversationError: undefined,
+  flipStatusMap: new Map(),
   inboxHasLoaded: false,
   inboxLayout: undefined,
   inboxNumSmallRows: 5,
@@ -643,6 +643,7 @@ const initialStore: Store = {
   infoPanelSelectedTab: undefined,
   infoPanelShowing: false,
   lastCoord: undefined,
+  maybeMentionMap: new Map(),
   paymentStatusMap: new Map(),
   smallTeamBadgeCount: 0,
   smallTeamsExpanded: false,
@@ -671,9 +672,11 @@ export type State = Store & {
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
     resetState: () => void
     resetConversationErrored: () => void
+    setMaybeMentionInfo: (name: string, info: RPCChatTypes.UIMaybeMentionInfo) => void
     setTrustedInboxHasLoaded: () => void
     toggleSmallTeamsExpanded: () => void
     toggleInboxSearch: (enabled: boolean) => void
+    updateCoinFlipStatus: (statuses: Array<RPCChatTypes.UICoinFlipStatus>) => void
     updateLastCoord: (coord: Types.Coordinate) => void
     updateUserReacjis: (userReacjis: RPCTypes.UserReacjis) => void
     loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
@@ -1185,6 +1188,12 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
       Z.ignorePromise(f())
     },
+    setMaybeMentionInfo: (name, info) => {
+      set(s => {
+        const {maybeMentionMap} = s
+        maybeMentionMap.set(name, info)
+      })
+    },
     setTrustedInboxHasLoaded: () => {
       set(s => {
         s.trustedInboxHasLoaded = true
@@ -1238,6 +1247,14 @@ export const useState = Z.createZustand<State>((set, get) => {
     toggleSmallTeamsExpanded: () => {
       set(s => {
         s.smallTeamsExpanded = !s.smallTeamsExpanded
+      })
+    },
+    updateCoinFlipStatus: statuses => {
+      set(s => {
+        const {flipStatusMap} = s
+        statuses.forEach(status => {
+          flipStatusMap.set(status.gameID, status)
+        })
       })
     },
     updateInboxLayout: str => {

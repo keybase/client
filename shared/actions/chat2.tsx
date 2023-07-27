@@ -2241,35 +2241,6 @@ const dismissJourneycard = (_: unknown, action: Chat2Gen.DismissJourneycardPaylo
   return Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [ordinal]})
 }
 
-// Get the list of mutual teams if we need to.
-const loadSuggestionData = (
-  state: Container.TypedState,
-  action: Chat2Gen.ChannelSuggestionsTriggeredPayload
-) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
-  // If this is an impteam, try to refresh mutual team info
-  if (!meta.teamname) {
-    return Chat2Gen.createRefreshMutualTeamsInConv({conversationIDKey})
-  }
-  return false
-}
-
-const refreshMutualTeamsInConv = async (
-  state: Container.TypedState,
-  action: Chat2Gen.RefreshMutualTeamsInConvPayload
-) => {
-  const {conversationIDKey} = action.payload
-  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
-  const results = await RPCChatTypes.localGetMutualTeamsLocalRpcPromise(
-    {usernames: otherParticipants},
-    Constants.waitingKeyMutualTeams(conversationIDKey)
-  )
-  return Chat2Gen.createLoadedMutualTeams({conversationIDKey, teamIDs: results.teamIDs ?? []})
-}
-
 const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload) => {
   const {conversationIDKey, onlyInTeam} = action.payload
   const results = await RPCChatTypes.localUserEmojisRpcPromise(
@@ -2933,11 +2904,6 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
   Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
 }
 
-const onChatCoinFlipStatus = (_: unknown, action: EngineGen.Chat1ChatUiChatCoinFlipStatusPayload) => {
-  const {statuses} = action.payload.params
-  return Chat2Gen.createUpdateCoinFlipStatus({statuses: statuses || []})
-}
-
 const onChatCommandMarkdown = (_: unknown, action: EngineGen.Chat1ChatUiChatCommandMarkdownPayload) => {
   const {convID, md} = action.payload.params
   return Chat2Gen.createSetCommandMarkdown({
@@ -2955,14 +2921,6 @@ const onChatCommandStatus = (_: unknown, action: EngineGen.Chat1ChatUiChatComman
       displayText,
       displayType: typ,
     },
-  })
-}
-
-const onChatMaybeMentionUpdate = (_: unknown, action: EngineGen.Chat1ChatUiChatMaybeMentionUpdatePayload) => {
-  const {teamName, channel, info} = action.payload.params
-  return Chat2Gen.createSetMaybeMentionInfo({
-    info,
-    name: Constants.getTeamMentionName(teamName, channel),
   })
 }
 
@@ -3519,9 +3477,14 @@ const initChat = () => {
     gregorPushState(s.gregorPushState)
   })
 
-  Container.listenAction(Chat2Gen.channelSuggestionsTriggered, loadSuggestionData)
-
-  Container.listenAction(Chat2Gen.refreshMutualTeamsInConv, refreshMutualTeamsInConv)
+  Container.listenAction(Chat2Gen.channelSuggestionsTriggered, (state, action) => {
+    const {conversationIDKey} = action.payload
+    const meta = Constants.getMeta(state, conversationIDKey)
+    // If this is an impteam, try to refresh mutual team info
+    if (!meta.teamname) {
+      Constants.getConvoState(conversationIDKey).dispatch.refreshMutualTeamsInConv()
+    }
+  })
 
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 
@@ -3553,10 +3516,18 @@ const initChat = () => {
     const teamID = TeamsConstants.useState.getState().teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
     TeamsConstants.useState.getState().dispatch.manageChatChannels(teamID)
   })
-  Container.listenAction(EngineGen.chat1ChatUiChatCoinFlipStatus, onChatCoinFlipStatus)
+  Container.listenAction(EngineGen.chat1ChatUiChatCoinFlipStatus, (_, action) => {
+    const {statuses} = action.payload.params
+    Constants.useState.getState().dispatch.updateCoinFlipStatus(statuses || [])
+  })
   Container.listenAction(EngineGen.chat1ChatUiChatCommandMarkdown, onChatCommandMarkdown)
   Container.listenAction(EngineGen.chat1ChatUiChatCommandStatus, onChatCommandStatus)
-  Container.listenAction(EngineGen.chat1ChatUiChatMaybeMentionUpdate, onChatMaybeMentionUpdate)
+  Container.listenAction(EngineGen.chat1ChatUiChatMaybeMentionUpdate, (_, action) => {
+    const {teamName, channel, info} = action.payload.params
+    Constants.useState
+      .getState()
+      .dispatch.setMaybeMentionInfo(Constants.getTeamMentionName(teamName, channel), info)
+  })
 
   Container.listenAction(Chat2Gen.replyJump, onReplyJump)
 

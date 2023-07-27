@@ -389,13 +389,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {markedAsUnreadMap} = draftState
     markedAsUnreadMap.delete(conversationIDKey)
   },
-  [Chat2Gen.updateCoinFlipStatus]: (draftState, action) => {
-    const {statuses} = action.payload
-    const {flipStatusMap} = draftState
-    statuses.forEach(status => {
-      flipStatusMap.set(status.gameID, status)
-    })
-  },
   [Chat2Gen.messageSend]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {commandMarkdownMap, replyToMap} = draftState
@@ -916,11 +909,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {messageCenterOrdinals} = draftState
     messageCenterOrdinals.delete(conversationIDKey)
   },
-  [Chat2Gen.loadedMutualTeams]: (draftState, action) => {
-    const {conversationIDKey, teamIDs} = action.payload
-    const {mutualTeamMap} = draftState
-    mutualTeamMap.set(conversationIDKey, teamIDs)
-  },
   [Chat2Gen.setParticipants]: (draftState, action) => {
     action.payload.participants.forEach(part => {
       draftState.participantMap.set(part.conversationIDKey, part.participants)
@@ -947,11 +935,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       const old = metaMap.get(m.conversationIDKey)
       metaMap.set(m.conversationIDKey, old ? Constants.updateMeta(old, m) : m)
     })
-  },
-  [Chat2Gen.setMaybeMentionInfo]: (draftState, action) => {
-    const {name, info} = action.payload
-    const {maybeMentionMap} = draftState
-    maybeMentionMap.set(name, info)
   },
   [Chat2Gen.messageDelete]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload

@@ -523,10 +523,6 @@
       "messageID": "Types.MessageID",
       "ordinal": "Types.Ordinal"
     },
-    "updateCoinFlipStatus": {
-      "_description": "Update status of a coin flip game",
-      "statuses": "Array<RPCChatTypes.UICoinFlipStatus>"
-    },
     "setCommandMarkdown": {
       "_description": "Set command markdown for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -586,11 +582,6 @@
       "_description": "Set thread search query (used from inbox search to initialize it)",
       "conversationIDKey": "Types.ConversationIDKey",
       "query": "HiddenString"
-    },
-    "setMaybeMentionInfo": {
-      "_description": "Set team mention info",
-      "name": "string",
-      "info": "RPCChatTypes.UIMaybeMentionInfo"
     },
     "tabSelected": {
       "_description": "Desktop changed tab to chat"
@@ -731,14 +722,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "cardType": "RPCChatTypes.JourneycardType",
       "ordinal": "Types.Ordinal"
-    },
-    "refreshMutualTeamsInConv": {
-      "_description": "Refresh loaded mutual teams for a conversation",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "loadedMutualTeams": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "teamIDs": "Array<TeamsTypes.TeamID>"
     },
     "fetchUserEmoji": {
       "_description": "Refresh user emoji and put it in store for picker",

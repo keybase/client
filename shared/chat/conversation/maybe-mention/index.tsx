@@ -63,12 +63,11 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const info = Container.useSelector(state =>
-    state.chat2.maybeMentionMap.get(Constants.getTeamMentionName(ownProps.name, ownProps.channel))
-  )
+  const {name, channel} = ownProps
+  const info = Constants.useState(s => s.maybeMentionMap.get(Constants.getTeamMentionName(name, channel)))
   const dispatch = Container.useDispatch()
   const onResolve = () => {
-    dispatch(Chat2Gen.createResolveMaybeMention({channel: ownProps.channel, name: ownProps.name}))
+    dispatch(Chat2Gen.createResolveMaybeMention({channel, name}))
   }
   const props = {
     allowFontScaling: ownProps.allowFontScaling,

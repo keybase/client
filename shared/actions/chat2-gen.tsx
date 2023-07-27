@@ -48,7 +48,6 @@ export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
-export const loadedMutualTeams = 'chat2:loadedMutualTeams'
 export const markAsUnread = 'chat2:markAsUnread'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
@@ -87,7 +86,6 @@ export const previewConversation = 'chat2:previewConversation'
 export const refreshBotPublicCommands = 'chat2:refreshBotPublicCommands'
 export const refreshBotRoleInConv = 'chat2:refreshBotRoleInConv'
 export const refreshBotSettings = 'chat2:refreshBotSettings'
-export const refreshMutualTeamsInConv = 'chat2:refreshMutualTeamsInConv'
 export const removeBotMember = 'chat2:removeBotMember'
 export const replyJump = 'chat2:replyJump'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
@@ -108,7 +106,6 @@ export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
-export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setParticipants = 'chat2:setParticipants'
 export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
@@ -129,7 +126,6 @@ export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateBlockButtons = 'chat2:updateBlockButtons'
-export const updateCoinFlipStatus = 'chat2:updateCoinFlipStatus'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
@@ -495,12 +491,6 @@ export const createThreadSearchResults = (payload: {
   readonly clear: boolean
 }) => ({payload, type: threadSearchResults as typeof threadSearchResults})
 /**
- * Refresh loaded mutual teams for a conversation
- */
-export const createRefreshMutualTeamsInConv = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: refreshMutualTeamsInConv as typeof refreshMutualTeamsInConv})
-/**
  * Refresh role in conversation
  */
 export const createRefreshBotRoleInConv = (payload: {
@@ -684,13 +674,6 @@ export const createSetParticipants = (payload: {
     participants: Types.ParticipantInfo
   }>
 }) => ({payload, type: setParticipants as typeof setParticipants})
-/**
- * Set team mention info
- */
-export const createSetMaybeMentionInfo = (payload: {
-  readonly name: string
-  readonly info: RPCChatTypes.UIMaybeMentionInfo
-}) => ({payload, type: setMaybeMentionInfo as typeof setMaybeMentionInfo})
 /**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
@@ -879,12 +862,6 @@ export const createAttachmentUploading = (payload: {
   readonly outboxID: Types.OutboxID
   readonly ratio: number
 }) => ({payload, type: attachmentUploading as typeof attachmentUploading})
-/**
- * Update status of a coin flip game
- */
-export const createUpdateCoinFlipStatus = (payload: {
-  readonly statuses: Array<RPCChatTypes.UICoinFlipStatus>
-}) => ({payload, type: updateCoinFlipStatus as typeof updateCoinFlipStatus})
 /**
  * Update the minWriterRole stored with the conversation metadata.
  */
@@ -1084,10 +1061,6 @@ export const createLoadMessagesCentered = (payload: {
 export const createLoadNewerMessagesDueToScroll = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: loadNewerMessagesDueToScroll as typeof loadNewerMessagesDueToScroll})
-export const createLoadedMutualTeams = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly teamIDs: Array<TeamsTypes.TeamID>
-}) => ({payload, type: loadedMutualTeams as typeof loadedMutualTeams})
 export const createMessageSendByUsernames = (payload: {
   readonly usernames: string
   readonly text: HiddenString
@@ -1156,7 +1129,6 @@ export type LoadAttachmentViewPayload = ReturnType<typeof createLoadAttachmentVi
 export type LoadMessagesCenteredPayload = ReturnType<typeof createLoadMessagesCentered>
 export type LoadNewerMessagesDueToScrollPayload = ReturnType<typeof createLoadNewerMessagesDueToScroll>
 export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
-export type LoadedMutualTeamsPayload = ReturnType<typeof createLoadedMutualTeams>
 export type MarkAsUnreadPayload = ReturnType<typeof createMarkAsUnread>
 export type MarkConversationsStalePayload = ReturnType<typeof createMarkConversationsStale>
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
@@ -1195,7 +1167,6 @@ export type PreviewConversationPayload = ReturnType<typeof createPreviewConversa
 export type RefreshBotPublicCommandsPayload = ReturnType<typeof createRefreshBotPublicCommands>
 export type RefreshBotRoleInConvPayload = ReturnType<typeof createRefreshBotRoleInConv>
 export type RefreshBotSettingsPayload = ReturnType<typeof createRefreshBotSettings>
-export type RefreshMutualTeamsInConvPayload = ReturnType<typeof createRefreshMutualTeamsInConv>
 export type RemoveBotMemberPayload = ReturnType<typeof createRemoveBotMember>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
@@ -1216,7 +1187,6 @@ export type SetConvExplodingModePayload = ReturnType<typeof createSetConvExplodi
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
 export type SetExplodingModeLockPayload = ReturnType<typeof createSetExplodingModeLock>
-export type SetMaybeMentionInfoPayload = ReturnType<typeof createSetMaybeMentionInfo>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
 export type SetThreadLoadStatusPayload = ReturnType<typeof createSetThreadLoadStatus>
@@ -1237,7 +1207,6 @@ export type UnhideConversationPayload = ReturnType<typeof createUnhideConversati
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
 export type UpdateBlockButtonsPayload = ReturnType<typeof createUpdateBlockButtons>
-export type UpdateCoinFlipStatusPayload = ReturnType<typeof createUpdateCoinFlipStatus>
 export type UpdateConvExplodingModesPayload = ReturnType<typeof createUpdateConvExplodingModes>
 export type UpdateConvRetentionPolicyPayload = ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateMessagesPayload = ReturnType<typeof createUpdateMessages>
@@ -1289,7 +1258,6 @@ export type Actions =
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
-  | LoadedMutualTeamsPayload
   | MarkAsUnreadPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
@@ -1328,7 +1296,6 @@ export type Actions =
   | RefreshBotPublicCommandsPayload
   | RefreshBotRoleInConvPayload
   | RefreshBotSettingsPayload
-  | RefreshMutualTeamsInConvPayload
   | RemoveBotMemberPayload
   | ReplyJumpPayload
   | ResetChatWithoutThemPayload
@@ -1349,7 +1316,6 @@ export type Actions =
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetExplodingModeLockPayload
-  | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
   | SetParticipantsPayload
   | SetThreadLoadStatusPayload
@@ -1370,7 +1336,6 @@ export type Actions =
   | UnpinMessagePayload
   | UnsentTextChangedPayload
   | UpdateBlockButtonsPayload
-  | UpdateCoinFlipStatusPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMessagesPayload
