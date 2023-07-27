@@ -212,8 +212,6 @@ export type State = {
   flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
   giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
   giphyWindowMap: Map<Common.ConversationIDKey, boolean>
-  hasZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard>
-  shouldDeleteZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard> // messages scheduled for deletion
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,

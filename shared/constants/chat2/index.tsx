@@ -79,7 +79,6 @@ export const makeState = (): Types.State => ({
   flipStatusMap: new Map(),
   giphyResultMap: new Map(),
   giphyWindowMap: new Map(),
-  hasZzzJourneycard: new Map(),
   markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
