@@ -83,7 +83,6 @@ export const openFolder = 'chat2:openFolder'
 export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const pinMessage = 'chat2:pinMessage'
 export const previewConversation = 'chat2:previewConversation'
-export const refreshBotPublicCommands = 'chat2:refreshBotPublicCommands'
 export const refreshBotRoleInConv = 'chat2:refreshBotRoleInConv'
 export const refreshBotSettings = 'chat2:refreshBotSettings'
 export const removeBotMember = 'chat2:removeBotMember'
@@ -96,7 +95,6 @@ export const selectedConversation = 'chat2:selectedConversation'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
-export const setBotPublicCommands = 'chat2:setBotPublicCommands'
 export const setBotRoleInConv = 'chat2:setBotRoleInConv'
 export const setBotSettings = 'chat2:setBotSettings'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
@@ -125,7 +123,6 @@ export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
-export const updateBlockButtons = 'chat2:updateBlockButtons'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
@@ -732,14 +729,6 @@ export const createDesktopNotification = (payload: {
   readonly body: string
 }) => ({payload, type: desktopNotification as typeof desktopNotification})
 /**
- * Show or hide invitation to block for a given team ID
- */
-export const createUpdateBlockButtons = (payload: {
-  readonly teamID: RPCTypes.TeamID
-  readonly adder?: string
-  readonly show: boolean
-}) => ({payload, type: updateBlockButtons as typeof updateBlockButtons})
-/**
  * Start editing a message / or edit the last message / or clear editing
  */
 export const createMessageSetEditing = (payload: {
@@ -990,13 +979,6 @@ export const createEditBotSettings = (payload: {
   readonly convs?: Array<string>
 }) => ({payload, type: editBotSettings as typeof editBotSettings})
 /**
- * refresh bot public commands
- */
-export const createRefreshBotPublicCommands = (payload: {readonly username: string}) => ({
-  payload,
-  type: refreshBotPublicCommands as typeof refreshBotPublicCommands,
-})
-/**
  * refresh bot settings
  */
 export const createRefreshBotSettings = (payload: {
@@ -1010,13 +992,6 @@ export const createRemoveBotMember = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
 }) => ({payload, type: removeBotMember as typeof removeBotMember})
-/**
- * set bot public commands
- */
-export const createSetBotPublicCommands = (payload: {
-  readonly username: string
-  readonly commands: Types.BotPublicCommands
-}) => ({payload, type: setBotPublicCommands as typeof setBotPublicCommands})
 /**
  * set bot settings
  */
@@ -1164,7 +1139,6 @@ export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
 export type PendingMessageWasEditedPayload = ReturnType<typeof createPendingMessageWasEdited>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
-export type RefreshBotPublicCommandsPayload = ReturnType<typeof createRefreshBotPublicCommands>
 export type RefreshBotRoleInConvPayload = ReturnType<typeof createRefreshBotRoleInConv>
 export type RefreshBotSettingsPayload = ReturnType<typeof createRefreshBotSettings>
 export type RemoveBotMemberPayload = ReturnType<typeof createRemoveBotMember>
@@ -1177,7 +1151,6 @@ export type SelectedConversationPayload = ReturnType<typeof createSelectedConver
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetAttachmentViewStatusPayload = ReturnType<typeof createSetAttachmentViewStatus>
-export type SetBotPublicCommandsPayload = ReturnType<typeof createSetBotPublicCommands>
 export type SetBotRoleInConvPayload = ReturnType<typeof createSetBotRoleInConv>
 export type SetBotSettingsPayload = ReturnType<typeof createSetBotSettings>
 export type SetCommandMarkdownPayload = ReturnType<typeof createSetCommandMarkdown>
@@ -1206,7 +1179,6 @@ export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePr
 export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
-export type UpdateBlockButtonsPayload = ReturnType<typeof createUpdateBlockButtons>
 export type UpdateConvExplodingModesPayload = ReturnType<typeof createUpdateConvExplodingModes>
 export type UpdateConvRetentionPolicyPayload = ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateMessagesPayload = ReturnType<typeof createUpdateMessages>
@@ -1293,7 +1265,6 @@ export type Actions =
   | PendingMessageWasEditedPayload
   | PinMessagePayload
   | PreviewConversationPayload
-  | RefreshBotPublicCommandsPayload
   | RefreshBotRoleInConvPayload
   | RefreshBotSettingsPayload
   | RemoveBotMemberPayload
@@ -1306,7 +1277,6 @@ export type Actions =
   | SendAudioRecordingPayload
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
-  | SetBotPublicCommandsPayload
   | SetBotRoleInConvPayload
   | SetBotSettingsPayload
   | SetCommandMarkdownPayload
@@ -1335,7 +1305,6 @@ export type Actions =
   | UnhideConversationPayload
   | UnpinMessagePayload
   | UnsentTextChangedPayload
-  | UpdateBlockButtonsPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMessagesPayload

@@ -3038,32 +3038,6 @@ const refreshBotRoleInConv = async (_: unknown, action: Chat2Gen.RefreshBotRoleI
   })
 }
 
-const refreshBotPublicCommands = async (_: unknown, action: Chat2Gen.RefreshBotPublicCommandsPayload) => {
-  let res: RPCChatTypes.ListBotCommandsLocalRes | undefined
-  const {username} = action.payload
-  try {
-    res = await RPCChatTypes.localListPublicBotCommandsLocalRpcPromise({
-      username,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info('refreshBotPublicCommands: failed to get public commands: ' + error.message)
-      return Chat2Gen.createSetBotPublicCommands({
-        commands: {commands: [], loadError: true},
-        username,
-      })
-    }
-  }
-  const commands = (res?.commands ?? []).reduce<Array<string>>((l, c) => {
-    l.push(c.name)
-    return l
-  }, [])
-  return Chat2Gen.createSetBotPublicCommands({
-    commands: {commands, loadError: false},
-    username,
-  })
-}
-
 const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) => {
   RouterConstants.useState.getState().dispatch.clearModals()
   const meta = state.chat2.metaMap.get(conversationIDKey)
@@ -3314,7 +3288,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.openFolder, openFolder)
 
   // bots
-  Container.listenAction(Chat2Gen.refreshBotPublicCommands, refreshBotPublicCommands)
   Container.listenAction(Chat2Gen.addBotMember, addBotMember)
   Container.listenAction(Chat2Gen.editBotSettings, editBotSettings)
   Container.listenAction(Chat2Gen.removeBotMember, removeBotMember)

@@ -68,7 +68,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 export const makeState = (): Types.State => ({
   attachmentViewMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
-  botPublicCommands: new Map(),
   botSettings: new Map(),
   botTeamRoleInConvMap: new Map(),
   commandMarkdownMap: new Map(),
@@ -608,6 +607,7 @@ export const isBigTeam = (state: State, teamID: string): boolean => {
 type Store = {
   // increments when the convo stores values change, badges and unread
   badgeCountsChanged: number
+  botPublicCommands: Map<string, Types.BotPublicCommands>
   createConversationError?: Types.CreateConversationError
   smallTeamBadgeCount: number
   bigTeamBadgeCount: number
@@ -635,6 +635,7 @@ const initialStore: Store = {
   badgeCountsChanged: 0,
   bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
+  botPublicCommands: new Map(),
   createConversationError: undefined,
   flipStatusMap: new Map(),
   inboxHasLoaded: false,
@@ -667,21 +668,22 @@ export type State = Store & {
     ) => void
     findGeneralConvIDFromTeamID: (teamID: TeamsTypes.TeamID) => void
     loadStaticConfig: () => void
+    loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
     onEngineConnected: () => void
     onEngineIncoming: (action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
-    resetState: () => void
+    refreshBotPublicCommands: (username: string) => void
     resetConversationErrored: () => void
+    resetState: () => void
     setMaybeMentionInfo: (name: string, info: RPCChatTypes.UIMaybeMentionInfo) => void
     setTrustedInboxHasLoaded: () => void
-    toggleSmallTeamsExpanded: () => void
     toggleInboxSearch: (enabled: boolean) => void
+    toggleSmallTeamsExpanded: () => void
     updateCoinFlipStatus: (statuses: Array<RPCChatTypes.UICoinFlipStatus>) => void
-    updatedGregor: (items: ConfigConstants.Store['gregorPushState']) => void
     updateLastCoord: (coord: Types.Coordinate) => void
     updateUserReacjis: (userReacjis: RPCTypes.UserReacjis) => void
-    loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
+    updatedGregor: (items: ConfigConstants.Store['gregorPushState']) => void
     showInfoPanel: (
       show: boolean,
       tab?: 'settings' | 'members' | 'attachments' | 'bots',
@@ -1153,6 +1155,35 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
       })
+    },
+    refreshBotPublicCommands: username => {
+      set(s => {
+        s.botPublicCommands.delete(username)
+      })
+      const f = async () => {
+        let res: RPCChatTypes.ListBotCommandsLocalRes | undefined
+        try {
+          res = await RPCChatTypes.localListPublicBotCommandsLocalRpcPromise({
+            username,
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info('refreshBotPublicCommands: failed to get public commands: ' + error.message)
+            set(s => {
+              s.botPublicCommands.set(username, {commands: [], loadError: true})
+            })
+          }
+        }
+        const commands = (res?.commands ?? []).reduce<Array<string>>((l, c) => {
+          l.push(c.name)
+          return l
+        }, [])
+
+        set(s => {
+          s.botPublicCommands.set(username, {commands, loadError: false})
+        })
+      }
+      Z.ignorePromise(f())
     },
     resetConversationErrored: () => {
       set(s => {

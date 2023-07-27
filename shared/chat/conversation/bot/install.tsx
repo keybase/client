@@ -67,6 +67,7 @@ const InstallBotPopup = (props: Props) => {
     conversationIDKey ? state.chat2.metaMap.get(conversationIDKey) : undefined
   )
 
+  const botPublicCommands = Constants.useState(s => s.botPublicCommands.get(botUsername))
   // TODO will thrash every time
   const commands = Container.useSelector(state => {
     let commands: Array<string> = []
@@ -76,7 +77,7 @@ const InstallBotPopup = (props: Props) => {
         .map(c => c.name)
     }
     const convCommands: Types.BotPublicCommands = {commands, loadError: false}
-    return commands.length > 0 ? convCommands : state.chat2.botPublicCommands.get(botUsername)
+    return commands.length > 0 ? convCommands : botPublicCommands
   })
 
   const featured = BotsConstants.useState(s => s.featuredBotsMap.get(botUsername))
@@ -176,12 +177,13 @@ const InstallBotPopup = (props: Props) => {
   const noCommands = !commands?.commands
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
+  const refreshBotPublicCommands = Constants.useState(s => s.dispatch.refreshBotPublicCommands)
   React.useEffect(() => {
     dispatchClearWaiting([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
     if (noCommands) {
-      dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
+      refreshBotPublicCommands(botUsername)
     }
-  }, [dispatchClearWaiting, dispatch, noCommands, botUsername])
+  }, [dispatchClearWaiting, refreshBotPublicCommands, noCommands, botUsername])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
