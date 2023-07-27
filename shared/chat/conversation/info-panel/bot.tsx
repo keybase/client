@@ -22,9 +22,7 @@ type Section = _Section<string | RPCTypes.FeaturedBot, Extra> | _Section<{key: s
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
   const dispatch = Container.useDispatch()
-  const settings = Container.useSelector(
-    state => state.chat2.botSettings.get(conversationIDKey)?.get(username) ?? undefined
-  )
+  const settings = Constants.useContext(s => s.botSettings.get(username))
   return (
     <Kb.WaitingButton
       disabled={!settings}
@@ -66,13 +64,13 @@ export const Bot = (props: BotProps) => {
   const {ownerTeam, ownerUser} = props
   const {onClick, firstItem} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
-  const dispatch = Container.useDispatch()
+  const refreshBotSettings = Constants.useContext(s => s.dispatch.refreshBotSettings)
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   if (conversationIDKey !== lastCID) {
     setLastCID(conversationIDKey)
     if (conversationIDKey && showChannelAdd) {
       // fetch bot settings if trying to show the add to channel button
-      dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
+      refreshBotSettings(botUsername)
     }
   }
 

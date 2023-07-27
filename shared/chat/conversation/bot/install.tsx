@@ -91,11 +91,7 @@ const InstallBotPopup = (props: Props) => {
   const readOnly = TeamConstants.useState(s =>
     meta?.teamname ? !TeamConstants.getCanPerformByID(s, meta.teamID).manageBots : false
   )
-  const settings = Container.useSelector(state =>
-    conversationIDKey
-      ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
-      : undefined
-  )
+  const settings = Constants.useContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
   let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
   if (meta?.teamname) {
@@ -165,15 +161,17 @@ const InstallBotPopup = (props: Props) => {
     navigateAppend({props: {}, selected: 'feedback'})
   }
 
+  const refreshBotSettings = Constants.useContext(s => s.dispatch.refreshBotSettings)
+
   // lifecycle
   React.useEffect(() => {
     if (conversationIDKey) {
       dispatch(Chat2Gen.createRefreshBotRoleInConv({conversationIDKey, username: botUsername}))
       if (inTeam) {
-        dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
+        refreshBotSettings(botUsername)
       }
     }
-  }, [conversationIDKey, inTeam, dispatch, botUsername])
+  }, [refreshBotSettings, conversationIDKey, inTeam, dispatch, botUsername])
   const noCommands = !commands?.commands
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()

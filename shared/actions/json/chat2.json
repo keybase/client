@@ -632,17 +632,6 @@
       "username": "string",
       "restricted": "boolean"
     },
-    "refreshBotSettings": {
-      "_description": "refresh bot settings",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string"
-    },
-    "setBotSettings": {
-      "_description": "set bot settings",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string",
-      "settings": "RPCTypes.TeamBotSettings"
-    },
     "removeBotMember": {
       "_description": "remove a bot member",
       "conversationIDKey": "Types.ConversationIDKey",

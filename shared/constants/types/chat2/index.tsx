@@ -196,8 +196,6 @@ export type RenderMessageType =
 
 export type State = {
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
-  botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatusTyp>
-  botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
   botTeamRoleInConvMap: Map<Common.ConversationIDKey, Map<string, Team.TeamRoleType | undefined>>
   commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>

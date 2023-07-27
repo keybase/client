@@ -65,8 +65,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
   attachmentViewMap: new Map(),
-  botCommandsUpdateStatusMap: new Map(),
-  botSettings: new Map(),
   botTeamRoleInConvMap: new Map(),
   commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),
@@ -461,7 +459,7 @@ export const messageAuthorIsBot = (
 }
 
 export const getBotRestrictBlockMap = (
-  settings: Map<string, RPCChatTypes.Keybase1.TeamBotSettings>,
+  settings: Map<string, RPCChatTypes.Keybase1.TeamBotSettings | undefined>,
   conversationIDKey: Types.ConversationIDKey,
   bots: Array<string>
 ) => {

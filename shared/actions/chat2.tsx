@@ -3013,23 +3013,6 @@ const removeBotMember = async (state: Container.TypedState, action: Chat2Gen.Rem
   return closeBotModal(state, conversationIDKey)
 }
 
-const refreshBotSettings = async (_: unknown, action: Chat2Gen.RefreshBotSettingsPayload) => {
-  let settings: RPCTypes.TeamBotSettings | undefined
-  const {conversationIDKey, username} = action.payload
-  try {
-    settings = await RPCChatTypes.localGetBotMemberSettingsRpcPromise({
-      convID: Types.keyToConversationID(conversationIDKey),
-      username,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${error.message}`)
-    }
-    return
-  }
-  return Chat2Gen.createSetBotSettings({conversationIDKey, settings, username})
-}
-
 const maybeChangeChatSelection = (
   prev: RouterConstants.State['navState'],
   next: RouterConstants.State['navState']
@@ -3198,7 +3181,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.addBotMember, addBotMember)
   Container.listenAction(Chat2Gen.editBotSettings, editBotSettings)
   Container.listenAction(Chat2Gen.removeBotMember, removeBotMember)
-  Container.listenAction(Chat2Gen.refreshBotSettings, refreshBotSettings)
   Container.listenAction(Chat2Gen.refreshBotRoleInConv, refreshBotRoleInConv)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
@@ -3374,6 +3356,12 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
 
   Container.listenAction(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
+
+  Container.listenAction(EngineGen.chat1ChatUiChatBotCommandsUpdateStatus, (_, a) => {
+    const {convID, status} = a.payload.params
+    const conversationIDKey = Types.stringToConversationIDKey(convID)
+    Constants.getConvoState(conversationIDKey).dispatch.botCommandsUpdateStatus(status)
+  })
 
   RouterConstants.useState.subscribe((s, old) => {
     const next = s.navState

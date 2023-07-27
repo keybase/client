@@ -28,19 +28,17 @@ export const keyExtractor = (c: RPCChatTypes.ConversationCommand) => c.name + c.
 const ItemRenderer = (p: Common.ItemRendererProps<CommandType>) => {
   const {conversationIDKey, selected, item: command} = p
   const prefix = getCommandPrefix(command)
+  const botSettings = Constants.useContext(s => s.botSettings)
   const enabled = Container.useSelector(state => {
-    const botSettings = state.chat2.botSettings.get(conversationIDKey)
     const suggestBotCommands = Constants.getBotCommands(state, conversationIDKey)
-    const botRestrictMap = botSettings
-      ? Constants.getBotRestrictBlockMap(botSettings, conversationIDKey, [
-          ...suggestBotCommands
-            .reduce<Set<string>>((s, c) => {
-              c.username && s.add(c.username)
-              return s
-            }, new Set())
-            .values(),
-        ])
-      : undefined
+    const botRestrictMap = Constants.getBotRestrictBlockMap(botSettings, conversationIDKey, [
+      ...suggestBotCommands
+        .reduce<Set<string>>((s, c) => {
+          c.username && s.add(c.username)
+          return s
+        }, new Set())
+        .values(),
+    ])
     return !botRestrictMap?.get(command.username ?? '') ?? true
   })
   return (

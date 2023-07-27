@@ -84,7 +84,6 @@ export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const pinMessage = 'chat2:pinMessage'
 export const previewConversation = 'chat2:previewConversation'
 export const refreshBotRoleInConv = 'chat2:refreshBotRoleInConv'
-export const refreshBotSettings = 'chat2:refreshBotSettings'
 export const removeBotMember = 'chat2:removeBotMember'
 export const replyJump = 'chat2:replyJump'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
@@ -96,7 +95,6 @@ export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
 export const setBotRoleInConv = 'chat2:setBotRoleInConv'
-export const setBotSettings = 'chat2:setBotSettings'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
@@ -930,27 +928,12 @@ export const createEditBotSettings = (payload: {
   readonly convs?: Array<string>
 }) => ({payload, type: editBotSettings as typeof editBotSettings})
 /**
- * refresh bot settings
- */
-export const createRefreshBotSettings = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-}) => ({payload, type: refreshBotSettings as typeof refreshBotSettings})
-/**
  * remove a bot member
  */
 export const createRemoveBotMember = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
 }) => ({payload, type: removeBotMember as typeof removeBotMember})
-/**
- * set bot settings
- */
-export const createSetBotSettings = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-  readonly settings: RPCTypes.TeamBotSettings
-}) => ({payload, type: setBotSettings as typeof setBotSettings})
 export const createAttachFromDragAndDrop = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly paths: Array<Types.PathAndOutboxID>
@@ -1091,7 +1074,6 @@ export type PendingMessageWasEditedPayload = ReturnType<typeof createPendingMess
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
 export type RefreshBotRoleInConvPayload = ReturnType<typeof createRefreshBotRoleInConv>
-export type RefreshBotSettingsPayload = ReturnType<typeof createRefreshBotSettings>
 export type RemoveBotMemberPayload = ReturnType<typeof createRemoveBotMember>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
@@ -1103,7 +1085,6 @@ export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecordi
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetAttachmentViewStatusPayload = ReturnType<typeof createSetAttachmentViewStatus>
 export type SetBotRoleInConvPayload = ReturnType<typeof createSetBotRoleInConv>
-export type SetBotSettingsPayload = ReturnType<typeof createSetBotSettings>
 export type SetCommandMarkdownPayload = ReturnType<typeof createSetCommandMarkdown>
 export type SetCommandStatusInfoPayload = ReturnType<typeof createSetCommandStatusInfo>
 export type SetContainsLastMessagePayload = ReturnType<typeof createSetContainsLastMessage>
@@ -1211,7 +1192,6 @@ export type Actions =
   | PinMessagePayload
   | PreviewConversationPayload
   | RefreshBotRoleInConvPayload
-  | RefreshBotSettingsPayload
   | RemoveBotMemberPayload
   | ReplyJumpPayload
   | ResetChatWithoutThemPayload
@@ -1223,7 +1203,6 @@ export type Actions =
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
   | SetBotRoleInConvPayload
-  | SetBotSettingsPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload

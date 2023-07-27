@@ -5,7 +5,6 @@ import * as TeamsConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
-import type * as RPCTypes from '../constants/types/rpc-gen'
 import type * as TeamTypes from '../constants/types/teams'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
@@ -699,19 +698,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     m.submitState = 'failed'
     m.errorTyp = errorTyp || undefined
   },
-  [EngineGen.chat1ChatUiChatBotCommandsUpdateStatus]: (draftState, action) => {
-    const {convID, status} = action.payload.params
-    const {botCommandsUpdateStatusMap, botSettings} = draftState
-    const conversationIDKey = Types.stringToConversationIDKey(convID)
-    botCommandsUpdateStatusMap.set(conversationIDKey, status.typ)
-    if (status.typ === RPCChatTypes.UIBotCommandsUpdateStatusTyp.uptodate) {
-      const settingsMap = new Map<string, RPCTypes.TeamBotSettings>()
-      Object.keys(status.uptodate.settings).forEach(u => {
-        settingsMap.set(u, status.uptodate.settings[u]!)
-      })
-      botSettings.set(conversationIDKey, settingsMap)
-    }
-  },
   [Chat2Gen.toggleLocalReaction]: (draftState, action) => {
     const {conversationIDKey, decorated, emoji, targetOrdinal, username} = action.payload
     const {messageMap} = draftState
@@ -1113,19 +1099,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.clearMetas]: draftState => {
     draftState.metaMap.clear()
-  },
-  [Chat2Gen.refreshBotSettings]: (draftState, action) => {
-    const m = draftState.botSettings.get(action.payload.conversationIDKey)
-    if (m) {
-      m.delete(action.payload.username)
-    }
-  },
-  [Chat2Gen.setBotSettings]: (draftState, action) => {
-    const m =
-      draftState.botSettings.get(action.payload.conversationIDKey) ||
-      new Map<string, RPCTypes.TeamBotSettings>()
-    m.set(action.payload.username, action.payload.settings)
-    draftState.botSettings.set(action.payload.conversationIDKey, m)
   },
   [Chat2Gen.setBotRoleInConv]: (draftState, action) => {
     const roles =

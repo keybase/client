@@ -24,6 +24,8 @@ type ConvoStore = {
   id: Types.ConversationIDKey
   // temp cache for requestPayment and sendPayment message data,
   accountsInfoMap: Map<RPCChatTypes.MessageID, Types.ChatRequestInfo | Types.ChatPaymentInfo>
+  botCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
+  botSettings: Map<string, RPCTypes.TeamBotSettings | undefined>
   badge: number
   dismissedInviteBanners: boolean
   draft?: string
@@ -43,6 +45,8 @@ type ConvoStore = {
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
   badge: 0,
+  botCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank,
+  botSettings: new Map(),
   dismissedInviteBanners: false,
   draft: undefined,
   giphyResult: undefined,
@@ -60,6 +64,12 @@ const initialConvoStore: ConvoStore = {
 }
 export type ConvoState = ConvoStore & {
   dispatch: {
+    // setBotSettings: (
+    //   _description: set bot settings,
+    //   conversationIDKey: Types.ConversationIDKey,
+    //   username: string,
+    //   settings: RPCTypes.TeamBotSettings
+    // )=>void
     badgesUpdated: (badge: number) => void
     dismissBottomBanner: () => void
     giphyGotSearchResult: (results: RPCChatTypes.GiphySearchResults) => void
@@ -67,6 +77,7 @@ export type ConvoState = ConvoStore & {
     giphyToggleWindow: (show: boolean) => void
     mute: (m: boolean) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
+    refreshBotSettings: (username: string) => void
     refreshMutualTeamsInConv: () => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetState: 'default'
@@ -83,6 +94,7 @@ export type ConvoState = ConvoStore & {
     setThreadSearchQuery: (query: string) => void
     toggleThreadSearch: (hide?: boolean) => void
     hideSearch: () => void
+    botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
   }
 }
 
@@ -93,6 +105,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     badgesUpdated: badge => {
       set(s => {
         s.badge = badge
+      })
+    },
+
+    botCommandsUpdateStatus: status => {
+      set(s => {
+        s.botCommandsUpdateStatus = status.typ
+        if (status.typ === RPCChatTypes.UIBotCommandsUpdateStatusTyp.uptodate) {
+          const settingsMap = new Map<string, RPCTypes.TeamBotSettings | undefined>()
+          Object.keys(status.uptodate.settings).forEach(u => {
+            settingsMap.set(u, status.uptodate.settings[u])
+          })
+          s.botSettings = settingsMap
+        }
       })
     },
     dismissBottomBanner: () => {
@@ -148,6 +173,29 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.accountsInfoMap.set(messageID, paymentInfo)
       })
+    },
+    refreshBotSettings: username => {
+      set(s => {
+        s.botSettings.delete(username)
+      })
+      const conversationIDKey = get().id
+      const f = async () => {
+        try {
+          const settings = await RPCChatTypes.localGetBotMemberSettingsRpcPromise({
+            convID: Types.keyToConversationID(conversationIDKey),
+            username,
+          })
+          set(s => {
+            s.botSettings.set(username, settings)
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${error.message}`)
+          }
+          return
+        }
+      }
+      Z.ignorePromise(f())
     },
     refreshMutualTeamsInConv: () => {
       const f = async () => {
