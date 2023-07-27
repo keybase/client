@@ -10,6 +10,14 @@ import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
 import {mapGetEnsureValue} from '../../util/map'
 import HiddenString from '../../util/hidden-string'
+import logger from '../../logger'
+import {RPCError} from '../../util/errors'
+
+const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
+  hits: [],
+  status: 'initial',
+  visible: false,
+})
 
 // per convo store
 type ConvoStore = {
@@ -27,6 +35,8 @@ type ConvoStore = {
   unfurlPrompt: Map<Types.MessageID, Set<string>>
   unread: number
   unsentText?: string
+  threadSearchInfo: Types.ThreadSearchInfo
+  threadSearchQuery: string
 }
 
 const initialConvoStore: ConvoStore = {
@@ -39,6 +49,8 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   muted: false,
   mutualTeams: [],
+  threadSearchInfo: makeThreadSearchInfo(),
+  threadSearchQuery: '',
   typing: new Set(),
   unfurlPrompt: new Map(),
   unread: 0,
@@ -64,6 +76,10 @@ export type ConvoState = ConvoStore & {
     unreadUpdated: (unread: number) => void
     // this is how you set the unset value, including ''
     setUnsentText: (u: string) => void
+    threadSearch: (query: string) => void
+    setThreadSearchQuery: (query: string) => void
+    toggleThreadSearch: (hide?: boolean) => void
+    hideSearch: () => void
   }
 }
 
@@ -108,6 +124,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     giphyToggleWindow: (show: boolean) => {
       set(s => {
         s.giphyWindow = show
+      })
+    },
+    hideSearch: () => {
+      set(s => {
+        s.threadSearchInfo.visible = false
       })
     },
     mute: m => {
@@ -164,6 +185,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.muted = m
       })
     },
+    setThreadSearchQuery: query => {
+      set(s => {
+        s.threadSearchQuery = query
+      })
+    },
     setTyping: t => {
       set(s => {
         if (!isEqual(s.typing, t)) {
@@ -175,6 +201,130 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.unsentText = u
       })
+    },
+    threadSearch: query => {
+      set(s => {
+        s.threadSearchInfo.hits = []
+      })
+      const f = async () => {
+        const Constants = await import('./index')
+        const conversationIDKey = get().id
+        const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(
+          getReduxState(),
+          conversationIDKey
+        )
+        const onDone = () => {
+          set(s => {
+            s.threadSearchInfo.status = 'done'
+          })
+        }
+        try {
+          await RPCChatTypes.localSearchInboxRpcListener(
+            {
+              incomingCallMap: {
+                'chat.1.chatUi.chatSearchDone': onDone,
+                'chat.1.chatUi.chatSearchHit': hit => {
+                  const message = Constants.uiMessageToMessage(
+                    conversationIDKey,
+                    hit.searchHit.hitMessage,
+                    username,
+                    getLastOrdinal,
+                    devicename
+                  )
+
+                  if (message) {
+                    set(s => {
+                      s.threadSearchInfo.hits = [message]
+                    })
+                  }
+                },
+                'chat.1.chatUi.chatSearchInboxDone': onDone,
+                'chat.1.chatUi.chatSearchInboxHit': resp => {
+                  const messages = (resp.searchHit.hits || []).reduce<Array<Types.Message>>((l, h) => {
+                    const uiMsg = Constants.uiMessageToMessage(
+                      conversationIDKey,
+                      h.hitMessage,
+                      username,
+                      getLastOrdinal,
+                      devicename
+                    )
+                    if (uiMsg) {
+                      l.push(uiMsg)
+                    }
+                    return l
+                  }, [])
+                  set(s => {
+                    if (messages.length > 0) {
+                      s.threadSearchInfo.hits = messages
+                    }
+                  })
+                },
+                'chat.1.chatUi.chatSearchInboxStart': () => {
+                  set(s => {
+                    s.threadSearchInfo.status = 'inprogress'
+                  })
+                },
+              },
+              params: {
+                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+                namesOnly: false,
+                opts: {
+                  afterContext: 0,
+                  beforeContext: 0,
+                  convID: Types.keyToConversationID(conversationIDKey),
+                  isRegex: false,
+                  matchMentions: false,
+                  maxBots: 0,
+                  maxConvsHit: 0,
+                  maxConvsSearched: 0,
+                  maxHits: 1000,
+                  maxMessages: -1,
+                  maxNameConvs: 0,
+                  maxTeams: 0,
+                  reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
+                  sentAfter: 0,
+                  sentBefore: 0,
+                  sentBy: '',
+                  sentTo: '',
+                  skipBotCache: false,
+                },
+                query,
+              },
+            },
+            Z.dummyListenerApi
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error('search failed: ' + error.message)
+            set(s => {
+              s.threadSearchInfo.status = 'done'
+            })
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    toggleThreadSearch: hide => {
+      set(s => {
+        // TODO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        const {threadSearchInfo /*, messageCenterOrdinals*/} = s
+        threadSearchInfo.hits = []
+        threadSearchInfo.status = 'initial'
+        if (hide !== undefined) {
+          threadSearchInfo.visible = !hide
+        } else {
+          threadSearchInfo.visible = !threadSearchInfo.visible
+        }
+        //   messageCenterOrdinals.delete(conversationIDKey)
+      })
+
+      const f = async () => {
+        const visible = get().threadSearchInfo.visible
+        if (!visible) {
+          await RPCChatTypes.localCancelActiveSearchRpcPromise()
+        }
+      }
+      Z.ignorePromise(f())
     },
     unfurlTogglePrompt: (messageID, domain, show) => {
       set(s => {

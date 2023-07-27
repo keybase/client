@@ -3,7 +3,6 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import type * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
-import HiddenString from '../../../util/hidden-string'
 import ThreadSearch from '.'
 
 type OwnProps = {
@@ -13,40 +12,36 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {conversationIDKey, style} = ownProps
-  const info = Container.useSelector(state => Constants.getThreadSearchInfo(state, conversationIDKey))
-  const _hits = info?.hits
-  const initialText = Container.useSelector(state => state.chat2.threadSearchQueryMap.get(conversationIDKey))
-  const status = info?.status
+  const info = Constants.useContext(s => s.threadSearchInfo)
+  const _hits = info.hits
+  const status = info.status
+  const initialText = Constants.useContext(s => s.threadSearchQuery)
 
   const dispatch = Container.useDispatch()
   const _loadSearchHit = (messageID: Types.MessageID) => {
     dispatch(Chat2Gen.createLoadMessagesCentered({conversationIDKey, highlightMode: 'always', messageID}))
   }
+  const setThreadSearchQuery = Constants.useContext(s => s.dispatch.setThreadSearchQuery)
   const clearInitialText = () => {
-    dispatch(Chat2Gen.createSetThreadSearchQuery({conversationIDKey, query: new HiddenString('')}))
+    setThreadSearchQuery('')
   }
+  const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
+  const threadSearch = Constants.useContext(s => s.dispatch.threadSearch)
+  const onSearch = threadSearch
   const onCancel = () => {
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
+    toggleThreadSearch()
   }
-  const onSearch = (query: string) => {
-    dispatch(Chat2Gen.createThreadSearch({conversationIDKey, query: new HiddenString(query)}))
-  }
-  const onToggleThreadSearch = () => {
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
-  }
-  const selfHide = () => {
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
-  }
+  const onToggleThreadSearch = onCancel
+  const selfHide = onCancel
   const props = {
     clearInitialText,
     conversationIDKey,
-    hits:
-      _hits?.map(h => ({
-        author: h.author,
-        summary: h.bodySummary.stringValue(),
-        timestamp: h.timestamp,
-      })) ?? [],
-    initialText: initialText ? initialText.stringValue() : undefined,
+    hits: _hits.map(h => ({
+      author: h.author,
+      summary: h.bodySummary.stringValue(),
+      timestamp: h.timestamp,
+    })),
+    initialText,
     loadSearchHit: (index: number) => {
       const message = _hits?.[index] || Constants.makeMessageText()
       if (message.id > 0) {

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/chat2'
 import JumpToRecent from './jump-to-recent'
 import type * as Types from '../../../constants/types/chat2'
 
@@ -25,11 +26,13 @@ export const useJumpToRecent = (
     return state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
   })
 
+  const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
+
   const jumpToRecent = React.useCallback(() => {
     scrollToBottom()
     dispatch(Chat2Gen.createJumpToRecent({conversationIDKey}))
-    dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey, hide: true}))
-  }, [dispatch, conversationIDKey, scrollToBottom])
+    toggleThreadSearch(true)
+  }, [toggleThreadSearch, dispatch, conversationIDKey, scrollToBottom])
 
   return !containsLatestMessage && numOrdinals > 0 && <JumpToRecent onClick={jumpToRecent} />
 }

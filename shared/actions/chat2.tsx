@@ -1441,99 +1441,6 @@ const loadAttachmentView = async (
   }
 }
 
-const onToggleThreadSearch = async (
-  state: Container.TypedState,
-  action: Chat2Gen.ToggleThreadSearchPayload
-) => {
-  const visible = Constants.getThreadSearchInfo(state, action.payload.conversationIDKey)?.visible
-  if (!visible) {
-    await RPCChatTypes.localCancelActiveSearchRpcPromise()
-  }
-}
-
-const threadSearch = async (
-  state: Container.TypedState,
-  action: Chat2Gen.ThreadSearchPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey, query} = action.payload
-  const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
-  const onDone = () => Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'})
-  try {
-    await RPCChatTypes.localSearchInboxRpcListener(
-      {
-        incomingCallMap: {
-          'chat.1.chatUi.chatSearchDone': onDone,
-          'chat.1.chatUi.chatSearchHit': hit => {
-            const message = Constants.uiMessageToMessage(
-              conversationIDKey,
-              hit.searchHit.hitMessage,
-              username,
-              getLastOrdinal,
-              devicename
-            )
-            return message
-              ? Chat2Gen.createThreadSearchResults({clear: false, conversationIDKey, messages: [message]})
-              : false
-          },
-          'chat.1.chatUi.chatSearchInboxDone': onDone,
-          'chat.1.chatUi.chatSearchInboxHit': resp => {
-            const messages = (resp.searchHit.hits || []).reduce<Array<Types.Message>>((l, h) => {
-              const uiMsg = Constants.uiMessageToMessage(
-                conversationIDKey,
-                h.hitMessage,
-                username,
-                getLastOrdinal,
-                devicename
-              )
-              if (uiMsg) {
-                l.push(uiMsg)
-              }
-              return l
-            }, [])
-            return messages.length > 0
-              ? Chat2Gen.createThreadSearchResults({clear: true, conversationIDKey, messages})
-              : false
-          },
-          'chat.1.chatUi.chatSearchInboxStart': () =>
-            Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'inprogress'}),
-        },
-        params: {
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          namesOnly: false,
-          opts: {
-            afterContext: 0,
-            beforeContext: 0,
-            convID: Types.keyToConversationID(conversationIDKey),
-            isRegex: false,
-            matchMentions: false,
-            maxBots: 0,
-            maxConvsHit: 0,
-            maxConvsSearched: 0,
-            maxHits: 1000,
-            maxMessages: -1,
-            maxNameConvs: 0,
-            maxTeams: 0,
-            reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
-            sentAfter: 0,
-            sentBefore: 0,
-            sentBy: '',
-            sentTo: '',
-            skipBotCache: false,
-          },
-          query: query.stringValue(),
-        },
-      },
-      listenerApi
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error('search failed: ' + error.message)
-      listenerApi.dispatch(Chat2Gen.createSetThreadSearchStatus({conversationIDKey, status: 'done'}))
-    }
-  }
-}
-
 const onReplyJump = (_: unknown, action: Chat2Gen.ReplyJumpPayload) =>
   Chat2Gen.createLoadMessagesCentered({
     conversationIDKey: action.payload.conversationIDKey,
@@ -3346,6 +3253,10 @@ const initChat = () => {
   })
   Container.listenAction([Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation], navigateToInbox)
   Container.listenAction(Chat2Gen.navigateToThread, navigateToThread)
+  Container.listenAction(Chat2Gen.navigateToThread, (_, action) => {
+    const {conversationIDKey} = action.payload
+    Constants.getConvoState(conversationIDKey).dispatch.hideSearch()
+  })
 
   Container.listenAction(Chat2Gen.joinConversation, joinConversation)
   Container.listenAction(Chat2Gen.leaveConversation, leaveConversation)
@@ -3445,9 +3356,6 @@ const initChat = () => {
       Constants.useState.getState().dispatch.toggleInboxSearch(false)
     }
   })
-
-  Container.listenAction(Chat2Gen.threadSearch, threadSearch)
-  Container.listenAction(Chat2Gen.toggleThreadSearch, onToggleThreadSearch)
 
   Container.listenAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
 

@@ -4,3 +4,4 @@ commentd out things in chat constants.usestate
 
 remove ConversationIDKeyContext
 remove convid as param
+    toggleThreadSearch: todo stuff

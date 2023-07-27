@@ -5,7 +5,6 @@ import type * as ChatInboxRowTypes from './rowitem'
 import type * as Meta from './meta'
 import type * as RPCChatTypes from '../rpc-chat-gen'
 import type * as Team from '../teams'
-import type HiddenString from '../../../util/hidden-string'
 
 export type PaymentConfirmInfo = {
   error?: RPCTypes.Status
@@ -218,8 +217,6 @@ export type State = {
   pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
   replyToMap: Map<Common.ConversationIDKey, _Message.Ordinal>
   threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
-  threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
-  threadSearchQueryMap: Map<Common.ConversationIDKey, HiddenString>
 }
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>

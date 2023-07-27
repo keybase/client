@@ -107,17 +107,12 @@ export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setParticipants = 'chat2:setParticipants'
 export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
-export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
-export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const tabSelected = 'chat2:tabSelected'
-export const threadSearch = 'chat2:threadSearch'
-export const threadSearchResults = 'chat2:threadSearchResults'
 export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const toggleReplyToMessage = 'chat2:toggleReplyToMessage'
-export const toggleThreadSearch = 'chat2:toggleThreadSearch'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
@@ -466,27 +461,12 @@ export const createMarkInitiallyLoadedThreadAsRead = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: markInitiallyLoadedThreadAsRead as typeof markInitiallyLoadedThreadAsRead})
 /**
- * Perform a search in a thread
- */
-export const createThreadSearch = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly query: HiddenString
-}) => ({payload, type: threadSearch as typeof threadSearch})
-/**
  * Pin a message
  */
 export const createPinMessage = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
 }) => ({payload, type: pinMessage as typeof pinMessage})
-/**
- * Record a new thread search result
- */
-export const createThreadSearchResults = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messages: Array<Types.Message>
-  readonly clear: boolean
-}) => ({payload, type: threadSearchResults as typeof threadSearchResults})
 /**
  * Refresh role in conversation
  */
@@ -686,26 +666,12 @@ export const createSetConvExplodingMode = (payload: {
   readonly seconds: number
 }) => ({payload, type: setConvExplodingMode as typeof setConvExplodingMode})
 /**
- * Set the status of a thread search
- */
-export const createSetThreadSearchStatus = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly status: Types.ThreadSearchStatus
-}) => ({payload, type: setThreadSearchStatus as typeof setThreadSearchStatus})
-/**
  * Set thread load status
  */
 export const createSetThreadLoadStatus = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly status: RPCChatTypes.UIChatThreadStatus
 }) => ({payload, type: setThreadLoadStatus as typeof setThreadLoadStatus})
-/**
- * Set thread search query (used from inbox search to initialize it)
- */
-export const createSetThreadSearchQuery = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly query: HiddenString
-}) => ({payload, type: setThreadSearchQuery as typeof setThreadSearchQuery})
 /**
  * Sets the retention policy for a conversation.
  */
@@ -804,13 +770,6 @@ export const createToggleMessageCollapse = (payload: {
   readonly messageID: Types.MessageID
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: toggleMessageCollapse as typeof toggleMessageCollapse})
-/**
- * Toggle the display of the thread search window
- */
-export const createToggleThreadSearch = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly hide?: boolean
-}) => ({payload, type: toggleThreadSearch as typeof toggleThreadSearch})
 /**
  * Unpin a message
  */
@@ -1163,17 +1122,12 @@ export type SetExplodingModeLockPayload = ReturnType<typeof createSetExplodingMo
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
 export type SetThreadLoadStatusPayload = ReturnType<typeof createSetThreadLoadStatus>
-export type SetThreadSearchQueryPayload = ReturnType<typeof createSetThreadSearchQuery>
-export type SetThreadSearchStatusPayload = ReturnType<typeof createSetThreadSearchStatus>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
-export type ThreadSearchPayload = ReturnType<typeof createThreadSearch>
-export type ThreadSearchResultsPayload = ReturnType<typeof createThreadSearchResults>
 export type ToggleGiphyPrefillPayload = ReturnType<typeof createToggleGiphyPrefill>
 export type ToggleLocalReactionPayload = ReturnType<typeof createToggleLocalReaction>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
 export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
 export type ToggleReplyToMessagePayload = ReturnType<typeof createToggleReplyToMessage>
-export type ToggleThreadSearchPayload = ReturnType<typeof createToggleThreadSearch>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
 export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePrompt>
 export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
@@ -1289,17 +1243,12 @@ export type Actions =
   | SetMinWriterRolePayload
   | SetParticipantsPayload
   | SetThreadLoadStatusPayload
-  | SetThreadSearchQueryPayload
-  | SetThreadSearchStatusPayload
   | TabSelectedPayload
-  | ThreadSearchPayload
-  | ThreadSearchResultsPayload
   | ToggleGiphyPrefillPayload
   | ToggleLocalReactionPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload
   | ToggleReplyToMessagePayload
-  | ToggleThreadSearchPayload
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
   | UnhideConversationPayload
