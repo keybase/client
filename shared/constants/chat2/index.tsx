@@ -67,7 +67,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
   attachmentViewMap: new Map(),
-  blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   botPublicCommands: new Map(),
   botSettings: new Map(),
@@ -629,11 +628,13 @@ type Store = {
   teamIDToGeneralConvID: Map<TeamsTypes.TeamID, Types.ConversationIDKey>
   flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
+  blockButtonsMap: Map<RPCTypes.TeamID, Types.BlockButtonsInfo> // Should we show block buttons for this team ID?
 }
 
 const initialStore: Store = {
   badgeCountsChanged: 0,
   bigTeamBadgeCount: 0,
+  blockButtonsMap: new Map(),
   createConversationError: undefined,
   flipStatusMap: new Map(),
   inboxHasLoaded: false,
@@ -677,6 +678,7 @@ export type State = Store & {
     toggleSmallTeamsExpanded: () => void
     toggleInboxSearch: (enabled: boolean) => void
     updateCoinFlipStatus: (statuses: Array<RPCChatTypes.UICoinFlipStatus>) => void
+    updatedGregor: (items: ConfigConstants.Store['gregorPushState']) => void
     updateLastCoord: (coord: Types.Coordinate) => void
     updateUserReacjis: (userReacjis: RPCTypes.UserReacjis) => void
     loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
@@ -1301,6 +1303,70 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.userReacjis.skinTone = skinTone
         s.userReacjis.topReacjis = topReacjis || defaultTopReacjis
       })
+    },
+    updatedGregor: items => {
+      const explodingItems = items.filter(i => i.item.category.startsWith(explodingModeGregorKeyPrefix))
+      if (!explodingItems.length) {
+        // No conversations have exploding modes, clear out what is set
+        reduxDispatch(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
+      } else {
+        logger.info('Got push state with some exploding modes')
+        const modes = explodingItems.reduce<
+          Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>
+        >((current, i) => {
+          try {
+            const {category, body} = i.item
+            const secondsString = Buffer.from(body).toString()
+            const seconds = parseInt(secondsString, 10)
+            if (isNaN(seconds)) {
+              logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
+              return current
+            }
+            const _conversationIDKey = category.substring(explodingModeGregorKeyPrefix.length)
+            const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
+            current.push({conversationIDKey, seconds})
+          } catch (e) {
+            logger.info('Error parsing exploding' + e)
+          }
+          return current
+        }, [])
+        reduxDispatch(Chat2Gen.createUpdateConvExplodingModes({modes}))
+      }
+
+      const f = async () => {
+        const GregorConstants = await import('../gregor')
+        set(s => {
+          const blockButtons = items.some(i => i.item.category.startsWith(blockButtonsGregorPrefix))
+          if (blockButtons || s.blockButtonsMap.size > 0) {
+            const shouldKeepExistingBlockButtons = new Map<string, boolean>()
+            s.blockButtonsMap.forEach((_, teamID: string) =>
+              shouldKeepExistingBlockButtons.set(teamID, false)
+            )
+            items
+              .filter(i => i.item.category.startsWith(blockButtonsGregorPrefix))
+              .forEach(i => {
+                try {
+                  const teamID = i.item.category.substring(blockButtonsGregorPrefix.length)
+                  if (!s.blockButtonsMap.get(teamID)) {
+                    const body = GregorConstants.bodyToJSON(i.item.body) as {adder: string}
+                    const adder = body.adder
+                    s.blockButtonsMap.set(teamID, {adder})
+                  } else {
+                    shouldKeepExistingBlockButtons.set(teamID, true)
+                  }
+                } catch (e) {
+                  logger.info('block buttons parse fail', e)
+                }
+              })
+            shouldKeepExistingBlockButtons.forEach((keep, teamID) => {
+              if (!keep) {
+                s.blockButtonsMap.delete(teamID)
+              }
+            })
+          }
+        })
+      }
+      Z.ignorePromise(f())
     },
   }
   return {
