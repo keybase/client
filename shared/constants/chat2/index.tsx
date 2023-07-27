@@ -72,7 +72,6 @@ export const makeState = (): Types.State => ({
   commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),
   containsLatestMessageMap: new Map(),
-  dismissedInviteBannersMap: new Map(),
   editingMap: new Map(),
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,

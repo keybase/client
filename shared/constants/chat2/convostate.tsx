@@ -16,11 +16,13 @@ type ConvoStore = {
   muted: boolean
   draft?: string
   unsentText?: string
+  dismissedInviteBanners: boolean
 }
 
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
   badge: 0,
+  dismissedInviteBanners: false,
   draft: undefined,
   id: noConversationIDKey,
   muted: false,
@@ -30,13 +32,14 @@ const initialConvoStore: ConvoStore = {
 export type ConvoState = ConvoStore & {
   dispatch: {
     badgesUpdated: (badge: number) => void
-    unreadUpdated: (unread: number) => void
+    dismissBottomBanner: () => void
+    mute: (m: boolean) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
-    mute: (m: boolean) => void
     resetState: 'default'
-    setMuted: (m: boolean) => void
     setDraft: (d?: string) => void
+    setMuted: (m: boolean) => void
+    unreadUpdated: (unread: number) => void
     // this is how you set the unset value, including ''
     setUnsentText: (u: string) => void
     resetUnsentText: () => void
@@ -48,6 +51,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     badgesUpdated: badge => {
       set(s => {
         s.badge = badge
+      })
+    },
+    dismissBottomBanner: () => {
+      set(s => {
+        s.dismissedInviteBanners = true
       })
     },
     mute: m => {

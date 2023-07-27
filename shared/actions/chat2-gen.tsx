@@ -36,7 +36,6 @@ export const createConversation = 'chat2:createConversation'
 export const deselectedConversation = 'chat2:deselectedConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
-export const dismissBottomBanner = 'chat2:dismissBottomBanner'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const editBotSettings = 'chat2:editBotSettings'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
@@ -729,12 +728,6 @@ export const createSetMaybeMentionInfo = (payload: {
   readonly info: RPCChatTypes.UIMaybeMentionInfo
 }) => ({payload, type: setMaybeMentionInfo as typeof setMaybeMentionInfo})
 /**
- * Set the bottom banner on a new conversation as dismissed
- */
-export const createDismissBottomBanner = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: dismissBottomBanner as typeof dismissBottomBanner})
-/**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
 export const createSetMinWriterRole = (payload: {
@@ -1201,7 +1194,6 @@ export type CreateConversationPayload = ReturnType<typeof createCreateConversati
 export type DeselectedConversationPayload = ReturnType<typeof createDeselectedConversation>
 export type DesktopNotificationPayload = ReturnType<typeof createDesktopNotification>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
-export type DismissBottomBannerPayload = ReturnType<typeof createDismissBottomBanner>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type EditBotSettingsPayload = ReturnType<typeof createEditBotSettings>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
@@ -1341,7 +1333,6 @@ export type Actions =
   | DeselectedConversationPayload
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
-  | DismissBottomBannerPayload
   | DismissJourneycardPayload
   | EditBotSettingsPayload
   | FetchUserEmojiPayload

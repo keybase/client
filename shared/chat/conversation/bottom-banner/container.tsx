@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as UsersConstants from '../../../constants/users'
 import * as Container from '../../../util/container'
@@ -39,10 +38,7 @@ const Invite = (p: {conversationIDKey: Types.ConversationIDKey}) => {
     state => Constants.getParticipantInfo(state, conversationIDKey).contactName
   )
 
-  const dispatch = Container.useDispatch()
-  const onDismiss = () => {
-    dispatch(Chat2Gen.createDismissBottomBanner({conversationIDKey}))
-  }
+  const onDismiss = Constants.useContext(s => s.dispatch.dismissBottomBanner)
 
   return (
     <InviteBanner
@@ -71,6 +67,7 @@ const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKe
   const {conversationIDKey} = p
   const following = Followers.useFollowerState(s => s.following)
   const infoMap = UsersConstants.useState(s => s.infoMap)
+  const dismissed = Constants.useContext(s => s.dismissedInviteBanners)
   const type = Container.useSelector(state => {
     const teamType = Constants.getMeta(state, conversationIDKey).teamType
     if (teamType !== 'adhoc') {
@@ -82,7 +79,6 @@ const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKe
       return 'broken'
     } else {
       const toInvite = participantInfoAll.some(p => p.includes('@'))
-      const dismissed = state.chat2.dismissedInviteBannersMap.get(conversationIDKey) || false
       const hasMessages = !Constants.getMeta(state, conversationIDKey).isEmpty
       if (toInvite && !dismissed && hasMessages) {
         return 'invite'
