@@ -208,7 +208,6 @@ export type State = {
   editingMap: Map<Common.ConversationIDKey, _Message.Ordinal> // current message being edited,
   explodingModeLocks: Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
   explodingModes: Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
-  flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,

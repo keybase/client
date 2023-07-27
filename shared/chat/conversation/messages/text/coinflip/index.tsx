@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Container from '../../../../../util/container'
+import * as Constants from '../../../../../constants/chat2'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../../styles'
@@ -18,7 +19,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   const isSendError = message?.type === 'text' ? !!message.errorReason : false
   const text = message?.type === 'text' ? message.text : undefined
   const flipGameID = (message?.type === 'text' && message.flipGameID) || ''
-  const status = Container.useSelector(state => state.chat2.flipStatusMap.get(flipGameID))
+  const status = Constants.useState(s => s.flipStatusMap.get(flipGameID))
   const dispatch = Container.useDispatch()
   const onFlipAgain = React.useCallback(() => {
     text && dispatch(Chat2Gen.createMessageSend({conversationIDKey, text}))
@@ -192,7 +193,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       statusContainer: {paddingTop: Styles.globalMargins.tiny},
-    } as const)
+    }) as const
 )
 
 export default CoinFlipContainer

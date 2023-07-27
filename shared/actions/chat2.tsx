@@ -2904,11 +2904,6 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
   Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
 }
 
-const onChatCoinFlipStatus = (_: unknown, action: EngineGen.Chat1ChatUiChatCoinFlipStatusPayload) => {
-  const {statuses} = action.payload.params
-  return Chat2Gen.createUpdateCoinFlipStatus({statuses: statuses || []})
-}
-
 const onChatCommandMarkdown = (_: unknown, action: EngineGen.Chat1ChatUiChatCommandMarkdownPayload) => {
   const {convID, md} = action.payload.params
   return Chat2Gen.createSetCommandMarkdown({
@@ -3529,7 +3524,10 @@ const initChat = () => {
     const teamID = TeamsConstants.useState.getState().teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
     TeamsConstants.useState.getState().dispatch.manageChatChannels(teamID)
   })
-  Container.listenAction(EngineGen.chat1ChatUiChatCoinFlipStatus, onChatCoinFlipStatus)
+  Container.listenAction(EngineGen.chat1ChatUiChatCoinFlipStatus, (_, action) => {
+    const {statuses} = action.payload.params
+    Constants.useState.getState().dispatch.updateCoinFlipStatus(statuses || [])
+  })
   Container.listenAction(EngineGen.chat1ChatUiChatCommandMarkdown, onChatCommandMarkdown)
   Container.listenAction(EngineGen.chat1ChatUiChatCommandStatus, onChatCommandStatus)
   Container.listenAction(EngineGen.chat1ChatUiChatMaybeMentionUpdate, onChatMaybeMentionUpdate)

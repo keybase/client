@@ -389,13 +389,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {markedAsUnreadMap} = draftState
     markedAsUnreadMap.delete(conversationIDKey)
   },
-  [Chat2Gen.updateCoinFlipStatus]: (draftState, action) => {
-    const {statuses} = action.payload
-    const {flipStatusMap} = draftState
-    statuses.forEach(status => {
-      flipStatusMap.set(status.gameID, status)
-    })
-  },
   [Chat2Gen.messageSend]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {commandMarkdownMap, replyToMap} = draftState

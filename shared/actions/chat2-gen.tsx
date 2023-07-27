@@ -127,7 +127,6 @@ export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateBlockButtons = 'chat2:updateBlockButtons'
-export const updateCoinFlipStatus = 'chat2:updateCoinFlipStatus'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
@@ -872,12 +871,6 @@ export const createAttachmentUploading = (payload: {
   readonly ratio: number
 }) => ({payload, type: attachmentUploading as typeof attachmentUploading})
 /**
- * Update status of a coin flip game
- */
-export const createUpdateCoinFlipStatus = (payload: {
-  readonly statuses: Array<RPCChatTypes.UICoinFlipStatus>
-}) => ({payload, type: updateCoinFlipStatus as typeof updateCoinFlipStatus})
-/**
  * Update the minWriterRole stored with the conversation metadata.
  */
 export const createSaveMinWriterRole = (payload: {
@@ -1223,7 +1216,6 @@ export type UnhideConversationPayload = ReturnType<typeof createUnhideConversati
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
 export type UpdateBlockButtonsPayload = ReturnType<typeof createUpdateBlockButtons>
-export type UpdateCoinFlipStatusPayload = ReturnType<typeof createUpdateCoinFlipStatus>
 export type UpdateConvExplodingModesPayload = ReturnType<typeof createUpdateConvExplodingModes>
 export type UpdateConvRetentionPolicyPayload = ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateMessagesPayload = ReturnType<typeof createUpdateMessages>
@@ -1354,7 +1346,6 @@ export type Actions =
   | UnpinMessagePayload
   | UnsentTextChangedPayload
   | UpdateBlockButtonsPayload
-  | UpdateCoinFlipStatusPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMessagesPayload

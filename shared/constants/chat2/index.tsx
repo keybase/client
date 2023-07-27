@@ -78,7 +78,6 @@ export const makeState = (): Types.State => ({
   editingMap: new Map(),
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,
-  flipStatusMap: new Map(),
   markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   maybeMentionMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
@@ -629,12 +628,14 @@ type Store = {
   inboxLayout?: RPCChatTypes.UIInboxLayout // layout of the inbox
   inboxSearch?: Types.InboxSearchInfo
   teamIDToGeneralConvID: Map<TeamsTypes.TeamID, Types.ConversationIDKey>
+  flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
 }
 
 const initialStore: Store = {
   badgeCountsChanged: 0,
   bigTeamBadgeCount: 0,
   createConversationError: undefined,
+  flipStatusMap: new Map(),
   inboxHasLoaded: false,
   inboxLayout: undefined,
   inboxNumSmallRows: 5,
@@ -673,6 +674,7 @@ export type State = Store & {
     setTrustedInboxHasLoaded: () => void
     toggleSmallTeamsExpanded: () => void
     toggleInboxSearch: (enabled: boolean) => void
+    updateCoinFlipStatus: (statuses: Array<RPCChatTypes.UICoinFlipStatus>) => void
     updateLastCoord: (coord: Types.Coordinate) => void
     updateUserReacjis: (userReacjis: RPCTypes.UserReacjis) => void
     loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
@@ -1237,6 +1239,14 @@ export const useState = Z.createZustand<State>((set, get) => {
     toggleSmallTeamsExpanded: () => {
       set(s => {
         s.smallTeamsExpanded = !s.smallTeamsExpanded
+      })
+    },
+    updateCoinFlipStatus: statuses => {
+      set(s => {
+        const {flipStatusMap} = s
+        statuses.forEach(status => {
+          flipStatusMap.set(status.gameID, status)
+        })
       })
     },
     updateInboxLayout: str => {
