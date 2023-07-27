@@ -540,12 +540,11 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
 
 const onChatPromptUnfurl = (_: unknown, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
   const {convID, domain, msgID} = action.payload.params
-  return Chat2Gen.createUnfurlTogglePrompt({
-    conversationIDKey: Types.conversationIDToKey(convID),
+  Constants.getConvoState(Types.conversationIDToKey(convID)).dispatch.unfurlTogglePrompt(
+    Types.numberToMessageID(msgID),
     domain,
-    messageID: Types.numberToMessageID(msgID),
-    show: true,
-  })
+    true
+  )
 }
 
 const onChatAttachmentUploadProgress = (
@@ -2896,12 +2895,7 @@ const unfurlRemove = async (state: Container.TypedState, action: Chat2Gen.Unfurl
 
 const unfurlDismissPrompt = (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {
   const {conversationIDKey, messageID, domain} = action.payload
-  return Chat2Gen.createUnfurlTogglePrompt({
-    conversationIDKey,
-    domain,
-    messageID,
-    show: false,
-  })
+  Constants.getConvoState(conversationIDKey).dispatch.unfurlTogglePrompt(messageID, domain, false)
 }
 
 const unfurlResolvePrompt = async (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {
@@ -2926,10 +2920,7 @@ const unsentTextChanged = async (state: Container.TypedState, action: Chat2Gen.U
 
 const onGiphyResults = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphySearchResultsPayload) => {
   const {convID, results} = action.payload.params
-  return Chat2Gen.createGiphyGotSearchResult({
-    conversationIDKey: Types.stringToConversationIDKey(convID),
-    results,
-  })
+  Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyGotSearchResult(results)
 }
 
 const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyToggleResultWindowPayload) => {
@@ -2938,20 +2929,8 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
   if (clearInput) {
     Constants.getConvoState(conversationIDKey).dispatch.setUnsentText('')
   }
-  return Chat2Gen.createGiphyToggleWindow({conversationIDKey, show})
-}
 
-const giphySend = (state: Container.TypedState, action: Chat2Gen.GiphySendPayload) => {
-  const {conversationIDKey, result} = action.payload
-  const replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
-  RPCChatTypes.localTrackGiphySelectRpcPromise({
-    result,
-  })
-    .then(() => {})
-    .catch(() => {})
-  const url = new Container.HiddenString(result.targetUrl)
-  Constants.getConvoState(conversationIDKey).dispatch.setUnsentText('')
-  return Chat2Gen.createMessageSend({conversationIDKey, replyTo: replyTo || undefined, text: url})
+  Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
 }
 
 const onChatCoinFlipStatus = (_: unknown, action: EngineGen.Chat1ChatUiChatCoinFlipStatusPayload) => {
@@ -3432,7 +3411,6 @@ const initChat = () => {
 
   // Giphy
   Container.listenAction(Chat2Gen.unsentTextChanged, unsentTextChanged)
-  Container.listenAction(Chat2Gen.giphySend, giphySend)
 
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlResolvePrompt)
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
@@ -3635,13 +3613,10 @@ const initChat = () => {
     })
   })
   Container.listenAction(Chat2Gen.toggleGiphyPrefill, (_, a) => {
-    const getReduxStore = Z.getReduxStore()
     const {conversationIDKey} = a.payload
-    const {giphyWindowMap} = getReduxStore().chat2
+    const giphyWindow = Constants.getConvoState(conversationIDKey).giphyWindow
     // if the window is up, just blow it away
-    Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(
-      giphyWindowMap.get(conversationIDKey) ? '' : '/giphy '
-    )
+    Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(giphyWindow ? '' : '/giphy ')
   })
 }
 

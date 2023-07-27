@@ -1,11 +1,14 @@
 import * as React from 'react'
 import * as Z from '../../util/zustand'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
+import {mapGetEnsureValue} from '../../util/map'
+import HiddenString from '../../util/hidden-string'
 
 // per convo store
 type ConvoStore = {
@@ -19,6 +22,9 @@ type ConvoStore = {
   unsentText?: string
   dismissedInviteBanners: boolean
   typing: Set<string>
+  unfurlPrompt: Map<Types.MessageID, Set<string>>
+  giphyResult?: RPCChatTypes.GiphySearchResults
+  giphyWindow: boolean
 }
 
 const initialConvoStore: ConvoStore = {
@@ -26,9 +32,12 @@ const initialConvoStore: ConvoStore = {
   badge: 0,
   dismissedInviteBanners: false,
   draft: undefined,
+  giphyResult: undefined,
+  giphyWindow: false,
   id: noConversationIDKey,
   muted: false,
   typing: new Set(),
+  unfurlPrompt: new Map(),
   unread: 0,
   unsentText: undefined,
 }
@@ -43,14 +52,21 @@ export type ConvoState = ConvoStore & {
     setDraft: (d?: string) => void
     setMuted: (m: boolean) => void
     setTyping: (t: Set<string>) => void
+    unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
     // this is how you set the unset value, including ''
     setUnsentText: (u: string) => void
     resetUnsentText: () => void
+
+    giphySend: (result: RPCChatTypes.GiphySearchResult) => void
+    giphyGotSearchResult: (results: RPCChatTypes.GiphySearchResults) => void
+    giphyToggleWindow: (show: boolean) => void
   }
 }
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
+  const getReduxState = Z.getReduxStore()
+  const reduxDispatch = Z.getReduxDispatch()
   const dispatch: ConvoState['dispatch'] = {
     badgesUpdated: badge => {
       set(s => {
@@ -60,6 +76,35 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     dismissBottomBanner: () => {
       set(s => {
         s.dismissedInviteBanners = true
+      })
+    },
+    giphyGotSearchResult: results => {
+      set(s => {
+        s.giphyResult = results
+      })
+    },
+    giphySend: result => {
+      set(s => {
+        s.giphyWindow = false
+      })
+      const f = async () => {
+        const Constants = await import('./index')
+        const conversationIDKey = get().id
+        const replyTo = Constants.getReplyToMessageID(getReduxState(), conversationIDKey)
+        try {
+          await RPCChatTypes.localTrackGiphySelectRpcPromise({result})
+        } catch {}
+        const url = new HiddenString(result.targetUrl)
+        Constants.getConvoState(conversationIDKey).dispatch.setUnsentText('')
+        reduxDispatch(
+          Chat2Gen.createMessageSend({conversationIDKey, replyTo: replyTo || undefined, text: url})
+        )
+      }
+      Z.ignorePromise(f())
+    },
+    giphyToggleWindow: (show: boolean) => {
+      set(s => {
+        s.giphyWindow = show
       })
     },
     mute: m => {
@@ -108,6 +153,16 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setUnsentText: u => {
       set(s => {
         s.unsentText = u
+      })
+    },
+    unfurlTogglePrompt: (messageID, domain, show) => {
+      set(s => {
+        const prompts = mapGetEnsureValue(s.unfurlPrompt, messageID, new Set())
+        if (show) {
+          prompts.add(domain)
+        } else {
+          prompts.delete(domain)
+        }
       })
     },
     unreadUpdated: unread => {

@@ -57,25 +57,6 @@ const messageIDToOrdinal = (
   return null
 }
 
-const giphyActions: Container.ActionHandler<Actions, Types.State> = {
-  [Chat2Gen.giphyToggleWindow]: (draftState, action) => {
-    const {conversationIDKey, show} = action.payload
-    const {giphyWindowMap, giphyResultMap} = draftState
-    giphyWindowMap.set(conversationIDKey, show)
-    !show && giphyResultMap.set(conversationIDKey, undefined)
-  },
-  [Chat2Gen.giphySend]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {giphyWindowMap} = draftState
-    giphyWindowMap.set(conversationIDKey, false)
-  },
-  [Chat2Gen.giphyGotSearchResult]: (draftState, action) => {
-    const {conversationIDKey, results} = action.payload
-    const {giphyResultMap} = draftState
-    giphyResultMap.set(conversationIDKey, results)
-  },
-}
-
 const paymentActions: Container.ActionHandler<Actions, Types.State> = {}
 
 const searchActions: Container.ActionHandler<Actions, Types.State> = {
@@ -407,18 +388,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey} = action.payload
     const {markedAsUnreadMap} = draftState
     markedAsUnreadMap.delete(conversationIDKey)
-  },
-  [Chat2Gen.unfurlTogglePrompt]: (draftState, action) => {
-    const {show, domain, conversationIDKey, messageID} = action.payload
-    const {unfurlPromptMap} = draftState
-    const map = mapGetEnsureValue(unfurlPromptMap, conversationIDKey, new Map())
-    const prompts = mapGetEnsureValue(map, messageID, new Set())
-
-    if (show) {
-      prompts.add(domain)
-    } else {
-      prompts.delete(domain)
-    }
   },
   [Chat2Gen.updateCoinFlipStatus]: (draftState, action) => {
     const {statuses} = action.payload
@@ -1262,7 +1231,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.botTeamRoleInConvMap.set(action.payload.conversationIDKey, roles)
   },
-  ...giphyActions,
   ...paymentActions,
   ...searchActions,
   ...attachmentActions,

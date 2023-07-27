@@ -7,7 +7,6 @@ import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import * as Container from '../../../../../../util/container'
 import UnfurlPromptList from '.'
 
-const noPrompts = new Set<string>()
 const noMessageID = Types.numberToMessageID(0)
 
 const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer() {
@@ -15,14 +14,7 @@ const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer(
   const ordinal = React.useContext(OrdinalContext)
   const message = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
   const messageID = message && message.type === 'text' ? message.id : noMessageID
-  let promptDomains: Set<string> | undefined
-
-  const pm = Container.useSelector(state => state.chat2.unfurlPromptMap.get(conversationIDKey))
-  if (pm) {
-    promptDomains = pm.get(messageID)
-  }
-  promptDomains = promptDomains || noPrompts
-
+  const promptDomains = Constants.useContext(s => s.unfurlPrompt).get(messageID)
   const dispatch = Container.useDispatch()
   const _setPolicy = (
     messageID: Types.MessageID,
@@ -32,7 +24,7 @@ const UnfurlPromptListContainer = React.memo(function UnfurlPromptListContainer(
     dispatch(Chat2Gen.createUnfurlResolvePrompt({conversationIDKey, domain, messageID, result}))
   }
   const props = {
-    prompts: [...promptDomains].map(domain => ({
+    prompts: [...(promptDomains ?? [])].map(domain => ({
       domain,
       onAccept: () =>
         _setPolicy(messageID, domain, {

@@ -112,10 +112,9 @@ const getCommands = (
 export const useDataSource = (p: UseDataSourceProps) => {
   const {conversationIDKey, filter, inputRef, lastTextRef} = p
   const staticConfig = Constants.useState(s => s.staticConfig)
-
+  const showGiphySearch = Constants.useContext(s => s.giphyWindow)
   return Container.useSelector(state => {
     const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
-    const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey) || false
     if (showCommandMarkdown || showGiphySearch) {
       return []
     }

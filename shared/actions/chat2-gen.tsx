@@ -39,9 +39,6 @@ export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const editBotSettings = 'chat2:editBotSettings'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
-export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
-export const giphySend = 'chat2:giphySend'
-export const giphyToggleWindow = 'chat2:giphyToggleWindow'
 export const hideConversation = 'chat2:hideConversation'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const joinConversation = 'chat2:joinConversation'
@@ -128,7 +125,6 @@ export const toggleReplyToMessage = 'chat2:toggleReplyToMessage'
 export const toggleThreadSearch = 'chat2:toggleThreadSearch'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
-export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
@@ -217,15 +213,6 @@ export const createAddUserToChannel = (payload: {
   readonly username: string
 }) => ({payload, type: addUserToChannel as typeof addUserToChannel})
 /**
- * Add an unfurl prompt to a message
- */
-export const createUnfurlTogglePrompt = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-  readonly domain: string
-  readonly show: boolean
-}) => ({payload, type: unfurlTogglePrompt as typeof unfurlTogglePrompt})
-/**
  * Add result for attachment view
  */
 export const createAddAttachmentViewMessage = (payload: {
@@ -312,13 +299,6 @@ export const createMessagesExploded = (payload: {
   readonly messageIDs: Array<RPCChatTypes.MessageID>
   readonly explodedBy?: string
 }) => ({payload, type: messagesExploded as typeof messagesExploded})
-/**
- * Giphy search results obtained
- */
-export const createGiphyGotSearchResult = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly results: RPCChatTypes.GiphySearchResults
-}) => ({payload, type: giphyGotSearchResult as typeof giphyGotSearchResult})
 /**
  * Got an error sending a message
  */
@@ -835,13 +815,6 @@ export const createToggleGiphyPrefill = (payload: {readonly conversationIDKey: T
   type: toggleGiphyPrefill as typeof toggleGiphyPrefill,
 })
 /**
- * Toggle Giphy search preview window
- */
-export const createGiphyToggleWindow = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly show: boolean
-}) => ({payload, type: giphyToggleWindow as typeof giphyToggleWindow})
-/**
  * Toggle a reaction in the store.
  */
 export const createToggleLocalReaction = (payload: {
@@ -1061,13 +1034,6 @@ export const createRemoveBotMember = (payload: {
   readonly username: string
 }) => ({payload, type: removeBotMember as typeof removeBotMember})
 /**
- * send a message from Giphy search
- */
-export const createGiphySend = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly result: RPCChatTypes.GiphySearchResult
-}) => ({payload, type: giphySend as typeof giphySend})
-/**
  * set bot public commands
  */
 export const createSetBotPublicCommands = (payload: {
@@ -1181,9 +1147,6 @@ export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockBut
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type EditBotSettingsPayload = ReturnType<typeof createEditBotSettings>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
-export type GiphyGotSearchResultPayload = ReturnType<typeof createGiphyGotSearchResult>
-export type GiphySendPayload = ReturnType<typeof createGiphySend>
-export type GiphyToggleWindowPayload = ReturnType<typeof createGiphyToggleWindow>
 export type HideConversationPayload = ReturnType<typeof createHideConversation>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
 export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
@@ -1270,7 +1233,6 @@ export type ToggleReplyToMessagePayload = ReturnType<typeof createToggleReplyToM
 export type ToggleThreadSearchPayload = ReturnType<typeof createToggleThreadSearch>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
 export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePrompt>
-export type UnfurlTogglePromptPayload = ReturnType<typeof createUnfurlTogglePrompt>
 export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
@@ -1318,9 +1280,6 @@ export type Actions =
   | DismissJourneycardPayload
   | EditBotSettingsPayload
   | FetchUserEmojiPayload
-  | GiphyGotSearchResultPayload
-  | GiphySendPayload
-  | GiphyToggleWindowPayload
   | HideConversationPayload
   | IgnorePinnedMessagePayload
   | JoinConversationPayload
@@ -1407,7 +1366,6 @@ export type Actions =
   | ToggleThreadSearchPayload
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
-  | UnfurlTogglePromptPayload
   | UnhideConversationPayload
   | UnpinMessagePayload
   | UnsentTextChangedPayload

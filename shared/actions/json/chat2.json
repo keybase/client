@@ -493,13 +493,6 @@
       "domain": "string",
       "result": "RPCChatTypes.UnfurlPromptResult"
     },
-    "unfurlTogglePrompt": {
-      "_description": "Add an unfurl prompt to a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID",
-      "domain": "string",
-      "show": "boolean"
-    },
     "unfurlRemove": {
       "_description": "Remove an unfurl",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -514,21 +507,6 @@
       "_description": "Update messages that we might have in the store",
       "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
-    },
-    "giphySend": {
-      "_description": "send a message from Giphy search",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "result": "RPCChatTypes.GiphySearchResult"
-    },
-    "giphyGotSearchResult": {
-      "_description": "Giphy search results obtained",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "results": "RPCChatTypes.GiphySearchResults"
-    },
-    "giphyToggleWindow": {
-      "_description": "Toggle Giphy search preview window",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "show": "boolean"
     },
     "confirmScreenResponse": {
       "_description": "User responded to the chat Stellar confirm screen",
