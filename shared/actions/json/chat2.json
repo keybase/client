@@ -493,13 +493,6 @@
       "domain": "string",
       "result": "RPCChatTypes.UnfurlPromptResult"
     },
-    "unfurlTogglePrompt": {
-      "_description": "Add an unfurl prompt to a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID",
-      "domain": "string",
-      "show": "boolean"
-    },
     "unfurlRemove": {
       "_description": "Remove an unfurl",
       "conversationIDKey": "Types.ConversationIDKey",

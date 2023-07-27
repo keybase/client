@@ -128,7 +128,6 @@ export const toggleReplyToMessage = 'chat2:toggleReplyToMessage'
 export const toggleThreadSearch = 'chat2:toggleThreadSearch'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
-export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
@@ -216,15 +215,6 @@ export const createAddUserToChannel = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
 }) => ({payload, type: addUserToChannel as typeof addUserToChannel})
-/**
- * Add an unfurl prompt to a message
- */
-export const createUnfurlTogglePrompt = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-  readonly domain: string
-  readonly show: boolean
-}) => ({payload, type: unfurlTogglePrompt as typeof unfurlTogglePrompt})
 /**
  * Add result for attachment view
  */
@@ -1270,7 +1260,6 @@ export type ToggleReplyToMessagePayload = ReturnType<typeof createToggleReplyToM
 export type ToggleThreadSearchPayload = ReturnType<typeof createToggleThreadSearch>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
 export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePrompt>
-export type UnfurlTogglePromptPayload = ReturnType<typeof createUnfurlTogglePrompt>
 export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
@@ -1407,7 +1396,6 @@ export type Actions =
   | ToggleThreadSearchPayload
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
-  | UnfurlTogglePromptPayload
   | UnhideConversationPayload
   | UnpinMessagePayload
   | UnsentTextChangedPayload

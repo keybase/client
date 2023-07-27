@@ -540,12 +540,11 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
 
 const onChatPromptUnfurl = (_: unknown, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
   const {convID, domain, msgID} = action.payload.params
-  return Chat2Gen.createUnfurlTogglePrompt({
-    conversationIDKey: Types.conversationIDToKey(convID),
+  Constants.getConvoState(Types.conversationIDToKey(convID)).dispatch.unfurlTogglePrompt(
+    Types.numberToMessageID(msgID),
     domain,
-    messageID: Types.numberToMessageID(msgID),
-    show: true,
-  })
+    true
+  )
 }
 
 const onChatAttachmentUploadProgress = (
@@ -2896,12 +2895,7 @@ const unfurlRemove = async (state: Container.TypedState, action: Chat2Gen.Unfurl
 
 const unfurlDismissPrompt = (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {
   const {conversationIDKey, messageID, domain} = action.payload
-  return Chat2Gen.createUnfurlTogglePrompt({
-    conversationIDKey,
-    domain,
-    messageID,
-    show: false,
-  })
+  Constants.getConvoState(conversationIDKey).dispatch.unfurlTogglePrompt(messageID, domain, false)
 }
 
 const unfurlResolvePrompt = async (_: unknown, action: Chat2Gen.UnfurlResolvePromptPayload) => {

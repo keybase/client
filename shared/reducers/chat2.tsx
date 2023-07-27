@@ -408,18 +408,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {markedAsUnreadMap} = draftState
     markedAsUnreadMap.delete(conversationIDKey)
   },
-  [Chat2Gen.unfurlTogglePrompt]: (draftState, action) => {
-    const {show, domain, conversationIDKey, messageID} = action.payload
-    const {unfurlPromptMap} = draftState
-    const map = mapGetEnsureValue(unfurlPromptMap, conversationIDKey, new Map())
-    const prompts = mapGetEnsureValue(map, messageID, new Set())
-
-    if (show) {
-      prompts.add(domain)
-    } else {
-      prompts.delete(domain)
-    }
-  },
   [Chat2Gen.updateCoinFlipStatus]: (draftState, action) => {
     const {statuses} = action.payload
     const {flipStatusMap} = draftState

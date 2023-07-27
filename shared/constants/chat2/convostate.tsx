@@ -6,6 +6,7 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
+import {mapGetEnsureValue} from '../../util/map'
 
 // per convo store
 type ConvoStore = {
@@ -19,6 +20,7 @@ type ConvoStore = {
   unsentText?: string
   dismissedInviteBanners: boolean
   typing: Set<string>
+  unfurlPrompt: Map<Types.MessageID, Set<string>>
 }
 
 const initialConvoStore: ConvoStore = {
@@ -29,6 +31,7 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   muted: false,
   typing: new Set(),
+  unfurlPrompt: new Map(),
   unread: 0,
   unsentText: undefined,
 }
@@ -43,6 +46,7 @@ export type ConvoState = ConvoStore & {
     setDraft: (d?: string) => void
     setMuted: (m: boolean) => void
     setTyping: (t: Set<string>) => void
+    unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
     // this is how you set the unset value, including ''
     setUnsentText: (u: string) => void
@@ -108,6 +112,16 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setUnsentText: u => {
       set(s => {
         s.unsentText = u
+      })
+    },
+    unfurlTogglePrompt: (messageID, domain, show) => {
+      set(s => {
+        const prompts = mapGetEnsureValue(s.unfurlPrompt, messageID, new Set())
+        if (show) {
+          prompts.add(domain)
+        } else {
+          prompts.delete(domain)
+        }
       })
     },
     unreadUpdated: unread => {
