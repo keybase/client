@@ -164,15 +164,6 @@ class Engine {
     }
   }
 
-  // TODO likely remove
-  _callbackAndNotAction = new Map<string, (action: any) => void>()
-  registerRpcCallback = (rpcName: string, cb: (action: any) => void) => {
-    if (this._callbackAndNotAction.has(rpcName)) {
-      throw new Error(`Dupe in registerRpcCallback not allowed: ${rpcName}`)
-    }
-    this._callbackAndNotAction.set(rpcName, cb)
-  }
-
   // An incoming rpc call
   _rpcIncoming(payload: {method: MethodKey; param: Array<Object>; response?: Object}) {
     const {method, param: incomingParam, response} = payload
@@ -208,15 +199,8 @@ class Engine {
         const act = {payload: {params: param, ...extra}, type: `engine-gen:${type}`}
         this._engineConstantsIncomingCall(act as any)
 
-        // TODO >>>>>>>>>>>>>>>>>>>>>>>>>> remove when chat is done
-        // allow us to skip going through redux for these notifications
-        const maybeCB = this._callbackAndNotAction.get(act.type)
-        if (maybeCB) {
-          maybeCB(act)
-        } else {
-          // @ts-ignore can't really type this easily
-          this._dispatch(act)
-        }
+        // @ts-ignore can't really type this easily
+        this._dispatch(act)
       }
     }
   }

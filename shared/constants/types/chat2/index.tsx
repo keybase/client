@@ -205,15 +205,12 @@ export type State = {
   commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
-  dismissedInviteBannersMap: Map<Common.ConversationIDKey, boolean>
   editingMap: Map<Common.ConversationIDKey, _Message.Ordinal> // current message being edited,
   explodingModeLocks: Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
   explodingModes: Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
   flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
   giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
   giphyWindowMap: Map<Common.ConversationIDKey, boolean>
-  hasZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard>
-  shouldDeleteZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard> // messages scheduled for deletion
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,
@@ -227,7 +224,6 @@ export type State = {
   participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
   pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
   replyToMap: Map<Common.ConversationIDKey, _Message.Ordinal>
-  teamIDToGeneralConvID: Map<Team.TeamID, Common.ConversationIDKey>
   threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
   threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
   threadSearchQueryMap: Map<Common.ConversationIDKey, HiddenString>

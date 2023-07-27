@@ -36,11 +36,9 @@ export const createConversation = 'chat2:createConversation'
 export const deselectedConversation = 'chat2:deselectedConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
-export const dismissBottomBanner = 'chat2:dismissBottomBanner'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const editBotSettings = 'chat2:editBotSettings'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
-export const findGeneralConvIDFromTeamID = 'chat2:findGeneralConvIDFromTeamID'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
@@ -113,7 +111,6 @@ export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
-export const setGeneralConvFromTeamID = 'chat2:setGeneralConvFromTeamID'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setParticipants = 'chat2:setParticipants'
@@ -315,13 +312,6 @@ export const createMessagesExploded = (payload: {
   readonly messageIDs: Array<RPCChatTypes.MessageID>
   readonly explodedBy?: string
 }) => ({payload, type: messagesExploded as typeof messagesExploded})
-/**
- * Get the general channel conv ID from team ID
- */
-export const createFindGeneralConvIDFromTeamID = (payload: {readonly teamID: TeamsTypes.TeamID}) => ({
-  payload,
-  type: findGeneralConvIDFromTeamID as typeof findGeneralConvIDFromTeamID,
-})
 /**
  * Giphy search results obtained
  */
@@ -525,13 +515,6 @@ export const createThreadSearchResults = (payload: {
   readonly clear: boolean
 }) => ({payload, type: threadSearchResults as typeof threadSearchResults})
 /**
- * Record teamID to general convID mapping
- */
-export const createSetGeneralConvFromTeamID = (payload: {
-  readonly teamID: TeamsTypes.TeamID
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: setGeneralConvFromTeamID as typeof setGeneralConvFromTeamID})
-/**
  * Refresh loaded mutual teams for a conversation
  */
 export const createRefreshMutualTeamsInConv = (payload: {
@@ -728,12 +711,6 @@ export const createSetMaybeMentionInfo = (payload: {
   readonly name: string
   readonly info: RPCChatTypes.UIMaybeMentionInfo
 }) => ({payload, type: setMaybeMentionInfo as typeof setMaybeMentionInfo})
-/**
- * Set the bottom banner on a new conversation as dismissed
- */
-export const createDismissBottomBanner = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: dismissBottomBanner as typeof dismissBottomBanner})
 /**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
@@ -1201,11 +1178,9 @@ export type CreateConversationPayload = ReturnType<typeof createCreateConversati
 export type DeselectedConversationPayload = ReturnType<typeof createDeselectedConversation>
 export type DesktopNotificationPayload = ReturnType<typeof createDesktopNotification>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
-export type DismissBottomBannerPayload = ReturnType<typeof createDismissBottomBanner>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type EditBotSettingsPayload = ReturnType<typeof createEditBotSettings>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
-export type FindGeneralConvIDFromTeamIDPayload = ReturnType<typeof createFindGeneralConvIDFromTeamID>
 export type GiphyGotSearchResultPayload = ReturnType<typeof createGiphyGotSearchResult>
 export type GiphySendPayload = ReturnType<typeof createGiphySend>
 export type GiphyToggleWindowPayload = ReturnType<typeof createGiphyToggleWindow>
@@ -1278,7 +1253,6 @@ export type SetConvExplodingModePayload = ReturnType<typeof createSetConvExplodi
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
 export type SetExplodingModeLockPayload = ReturnType<typeof createSetExplodingModeLock>
-export type SetGeneralConvFromTeamIDPayload = ReturnType<typeof createSetGeneralConvFromTeamID>
 export type SetMaybeMentionInfoPayload = ReturnType<typeof createSetMaybeMentionInfo>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
@@ -1341,11 +1315,9 @@ export type Actions =
   | DeselectedConversationPayload
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
-  | DismissBottomBannerPayload
   | DismissJourneycardPayload
   | EditBotSettingsPayload
   | FetchUserEmojiPayload
-  | FindGeneralConvIDFromTeamIDPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyToggleWindowPayload
@@ -1418,7 +1390,6 @@ export type Actions =
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetExplodingModeLockPayload
-  | SetGeneralConvFromTeamIDPayload
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
   | SetParticipantsPayload

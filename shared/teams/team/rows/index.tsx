@@ -1,23 +1,22 @@
-import * as React from 'react'
-import type * as Types from '../../../constants/types/teams'
-import * as Constants from '../../../constants/teams'
-import * as ConfigConstants from '../../../constants/config'
 import * as Chat2Types from '../../../constants/types/chat2'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Container from '../../../util/container'
-import * as Styles from '../../../styles'
 import * as ChatConstants from '../../../constants/chat2'
-import type {Section as _Section} from '../../../common-adapters/section-list'
-import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
+import * as ConfigConstants from '../../../constants/config'
+import * as Constants from '../../../constants/teams'
+import * as Container from '../../../util/container'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as React from 'react'
+import * as Styles from '../../../styles'
+import EmptyRow from './empty-row'
+import LoadingRow from './loading'
 import MemberRow from './member-row/container'
+import type * as Types from '../../../constants/types/teams'
+import type {Section as _Section} from '../../../common-adapters/section-list'
 import {BotRow, AddBotRow} from './bot-row'
-import {RequestRow, InviteRow} from './invite-row'
-import {SubteamAddRow, SubteamInfoRow, SubteamTeamRow} from './subteam-row'
 import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import {EmojiItemRow, EmojiAddRow, EmojiHeader} from './emoji-row'
-import LoadingRow from './loading'
-import EmptyRow from './empty-row'
+import {RequestRow, InviteRow} from './invite-row'
+import {SubteamAddRow, SubteamInfoRow, SubteamTeamRow} from './subteam-row'
+import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import {useEmojiState} from '../../emojis/use-emoji'
 
 type SectionExtras = {
@@ -194,19 +193,19 @@ export const useSubteamsSections = (
 
 const useGeneralConversationIDKey = (teamID?: Types.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState<Chat2Types.ConversationIDKey | undefined>()
-  const generalConvID = Container.useSelector(
-    (state: Container.TypedState) => teamID && state.chat2.teamIDToGeneralConvID.get(teamID)
+  const generalConvID = ChatConstants.useState(s =>
+    teamID ? s.teamIDToGeneralConvID.get(teamID) : undefined
   )
-  const dispatch = Container.useDispatch()
+  const findGeneralConvIDFromTeamID = ChatConstants.useState(s => s.dispatch.findGeneralConvIDFromTeamID)
   React.useEffect(() => {
     if (!conversationIDKey && teamID) {
       if (!generalConvID) {
-        dispatch(Chat2Gen.createFindGeneralConvIDFromTeamID({teamID}))
+        findGeneralConvIDFromTeamID(teamID)
       } else {
         setConversationIDKey(generalConvID)
       }
     }
-  }, [conversationIDKey, dispatch, generalConvID, teamID])
+  }, [conversationIDKey, findGeneralConvIDFromTeamID, generalConvID, teamID])
   return conversationIDKey
 }
 

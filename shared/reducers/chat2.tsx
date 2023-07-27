@@ -523,7 +523,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       oldPendingOutboxToOrdinal.delete(conversationIDKey)
       oldMessageMap.delete(conversationIDKey)
       oldMessageTypeMap.delete(conversationIDKey)
-      draftState.hasZzzJourneycard.delete(conversationIDKey)
     }
 
     // Update any pending messages
@@ -722,25 +721,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       })
     })
 
-    // we no longer make this card
-    // Identify convs that have a zzz CHANNEL_INACTIVE journeycard.
-    // Convs that used to have a zzz journeycard and just got a newer message should delete the journeycard.
-    // const jc = messages.find(
-    //   m => m.type == 'journeycard' && m.cardType == RPCChatTypes.JourneycardType.channelInactive
-    // ) as Types.MessageJourneycard | undefined
-    // if (jc) {
-    //   draftState.hasZzzJourneycard.set(conversationIDKey, jc)
-    //   draftState.shouldDeleteZzzJourneycard.delete(conversationIDKey)
-    // } else {
-    //   const priorJc = draftState.hasZzzJourneycard.get(conversationIDKey)
-    //   if (priorJc) {
-    //     // Find a message that has a later ordinal and so should cause the zzz to disappear.
-    //     if (messages.some(m => m.ordinal > priorJc.ordinal)) {
-    //       draftState.hasZzzJourneycard.delete(conversationIDKey)
-    //       draftState.shouldDeleteZzzJourneycard.set(conversationIDKey, priorJc)
-    //     }
-    //   }
-    // }
     draftState.messageMap = messageMap
     draftState.messageTypeMap = oldMessageTypeMap
     if (centeredMessageIDs.length > 0) {
@@ -929,13 +909,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         if (idx !== -1) os.splice(idx, 1)
       })
     }
-    const maps = [draftState.hasZzzJourneycard, draftState.shouldDeleteZzzJourneycard]
-    maps.forEach(m => {
-      const el = m.get(conversationIDKey)
-      if (el && allOrdinals.has(el.ordinal)) {
-        m.delete(conversationIDKey)
-      }
-    })
   },
   [Chat2Gen.updateMoreToLoad]: (draftState, action) => {
     const {conversationIDKey, moreToLoad} = action.payload
@@ -1010,11 +983,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {name, info} = action.payload
     const {maybeMentionMap} = draftState
     maybeMentionMap.set(name, info)
-  },
-  [Chat2Gen.dismissBottomBanner]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {dismissedInviteBannersMap} = draftState
-    dismissedInviteBannersMap.set(conversationIDKey, true)
   },
   [Chat2Gen.messageDelete]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
@@ -1141,9 +1109,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.markConversationsStale]: (draftState, action) => {
     const {updateType, conversationIDKeys} = action.payload
-    const {messageMap, messageOrdinals, hasZzzJourneycard, shouldDeleteZzzJourneycard} = draftState
+    const {messageMap, messageOrdinals} = draftState
     if (updateType === RPCChatTypes.StaleUpdateType.clear) {
-      const maps = [messageMap, messageOrdinals, hasZzzJourneycard, shouldDeleteZzzJourneycard]
+      const maps = [messageMap, messageOrdinals]
       maps.forEach(m => conversationIDKeys.forEach(convID => m.delete(convID)))
     }
   },
@@ -1244,12 +1212,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     })
   },
   [Chat2Gen.clearMessages]: draftState => {
-    const maps = [
-      draftState.messageMap,
-      draftState.messageOrdinals,
-      draftState.hasZzzJourneycard,
-      draftState.shouldDeleteZzzJourneycard,
-    ]
+    const maps = [draftState.messageMap, draftState.messageOrdinals]
     maps.forEach(m => m.clear())
   },
   [Chat2Gen.clearMetas]: draftState => {
@@ -1273,9 +1236,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       new Map<string, RPCTypes.TeamBotSettings>()
     m.set(action.payload.username, action.payload.settings)
     draftState.botSettings.set(action.payload.conversationIDKey, m)
-  },
-  [Chat2Gen.setGeneralConvFromTeamID]: (draftState, action) => {
-    draftState.teamIDToGeneralConvID.set(action.payload.teamID, action.payload.conversationIDKey)
   },
   [Chat2Gen.navigateToThread]: (draftState, action) => {
     const {conversationIDKey} = action.payload

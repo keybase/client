@@ -183,7 +183,7 @@ const FileButton = (p: {conversationIDKey: Types.ConversationIDKey; htmlInputRef
 const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () => void}) => {
   return (
     <Kb.Box style={styles.footerContainer}>
-      <Typing conversationIDKey={p.conversationIDKey} />
+      <Typing />
       <Kb.Text lineClamp={1} type="BodyTiny" style={styles.footer} onClick={p.focusInput} selectable={true}>
         {`*bold*, _italics_, \`code\`, >quote, @user, @team, #channel`}
       </Kb.Text>

@@ -112,8 +112,8 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   const conversationIDKey = Constants.useContext(s => s.id)
   const {isSelected, backgroundColor, isInWidget, isDecryptingSnippet} = p
 
-  const isTypingSnippet = Constants.useState(s => {
-    const typers = !isInWidget ? s.typingMap.get(conversationIDKey) : undefined
+  const isTypingSnippet = Constants.useContext(s => {
+    const typers = !isInWidget ? s.typing : undefined
     return !!typers?.size
   })
 
