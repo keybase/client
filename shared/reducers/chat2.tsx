@@ -59,26 +59,15 @@ const messageIDToOrdinal = (
 
 const giphyActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.giphyToggleWindow]: (draftState, action) => {
-    const {conversationIDKey, show, clearInput} = action.payload
-    const {giphyWindowMap, giphyResultMap, unsentTextMap} = draftState
+    const {conversationIDKey, show} = action.payload
+    const {giphyWindowMap, giphyResultMap} = draftState
     giphyWindowMap.set(conversationIDKey, show)
     !show && giphyResultMap.set(conversationIDKey, undefined)
-    clearInput && unsentTextMap.set(conversationIDKey, new HiddenString(''))
   },
   [Chat2Gen.giphySend]: (draftState, action) => {
     const {conversationIDKey} = action.payload
-    const {giphyWindowMap, unsentTextMap} = draftState
+    const {giphyWindowMap} = draftState
     giphyWindowMap.set(conversationIDKey, false)
-    unsentTextMap.set(conversationIDKey, new HiddenString(''))
-  },
-  [Chat2Gen.toggleGiphyPrefill]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {giphyWindowMap, unsentTextMap} = draftState
-    // if the window is up, just blow it away
-    unsentTextMap.set(
-      conversationIDKey,
-      new HiddenString(giphyWindowMap.get(conversationIDKey) ? '' : '/giphy ')
-    )
   },
   [Chat2Gen.giphyGotSearchResult]: (draftState, action) => {
     const {conversationIDKey, results} = action.payload
@@ -470,13 +459,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser} = action.payload
-    const {editingMap, messageOrdinals, unsentTextMap} = draftState
+    const {editingMap, messageOrdinals} = draftState
     let ordinal = action.payload.ordinal
 
     // clearing
     if (!editLastUser && !ordinal) {
       editingMap.delete(conversationIDKey)
-      unsentTextMap.delete(conversationIDKey)
+      Constants.getConvoState(conversationIDKey).dispatch.resetUnsentText()
       return
     }
 
@@ -502,9 +491,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       if (message?.type === 'text' || message?.type === 'attachment') {
         editingMap.set(conversationIDKey, ordinal)
         if (message.type === 'text') {
-          unsentTextMap.set(conversationIDKey, message.text)
+          Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(message.text.stringValue())
         } else if (message.type === 'attachment') {
-          unsentTextMap.set(conversationIDKey, new HiddenString(message.title))
+          Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(message.title)
         }
       }
     }
@@ -971,11 +960,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       explodingModeLocks.set(conversationIDKey, mode)
     }
   },
-  [Chat2Gen.setUnsentText]: (draftState, action) => {
-    const {conversationIDKey, text} = action.payload
-    const {unsentTextMap} = draftState
-    unsentTextMap.set(conversationIDKey, text)
-  },
   [Chat2Gen.toggleReplyToMessage]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
     const {replyToMap} = draftState
@@ -1016,13 +1000,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.metasReceived]: (draftState, action) => {
     const {metas, removals} = action.payload
     const {metaMap} = draftState
-
-    metas.forEach((m: Types.ConversationMeta) => {
-      const cs = Constants.getConvoState(m.conversationIDKey)
-      cs.dispatch.setDraft(m.draft)
-      cs.dispatch.setMuted(m.isMuted)
-    })
-
     removals && removals.forEach(m => metaMap.delete(m))
     metas.forEach(m => {
       const old = metaMap.get(m.conversationIDKey)

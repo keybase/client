@@ -14,16 +14,18 @@ type ConvoStore = {
   badge: number
   unread: number
   muted: boolean
-  draft: string
+  draft?: string
+  unsentText?: string
 }
 
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
   badge: 0,
-  draft: '',
+  draft: undefined,
   id: noConversationIDKey,
   muted: false,
   unread: 0,
+  unsentText: undefined,
 }
 export type ConvoState = ConvoStore & {
   dispatch: {
@@ -34,7 +36,10 @@ export type ConvoState = ConvoStore & {
     mute: (m: boolean) => void
     resetState: 'default'
     setMuted: (m: boolean) => void
-    setDraft: (d: string) => void
+    setDraft: (d?: string) => void
+    // this is how you set the unset value, including ''
+    setUnsentText: (u: string) => void
+    resetUnsentText: () => void
   }
 }
 
@@ -66,6 +71,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     resetState: 'default',
+    resetUnsentText: () => {
+      set(s => {
+        s.unsentText = undefined
+      })
+    },
     setDraft: d => {
       set(s => {
         s.draft = d
@@ -74,6 +84,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMuted: m => {
       set(s => {
         s.muted = m
+      })
+    },
+    setUnsentText: u => {
+      set(s => {
+        s.unsentText = u
       })
     },
     unreadUpdated: unread => {

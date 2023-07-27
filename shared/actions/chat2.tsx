@@ -1580,7 +1580,8 @@ const messageSend = async (
               return
             }
             if (canceled) {
-              return Chat2Gen.createSetUnsentText({conversationIDKey, text})
+              Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(text.stringValue())
+              return
             }
             return false
           },
@@ -2801,10 +2802,10 @@ const messageReplyPrivately = async (
   }
   const text = new Container.HiddenString(Constants.formatTextForQuoting(message.text.stringValue()))
 
+  Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(text.stringValue())
   return [
     Chat2Gen.createMetasReceived({metas: [meta]}),
     Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'}),
-    Chat2Gen.createSetUnsentText({conversationIDKey, text}),
   ]
 }
 
@@ -2977,11 +2978,11 @@ const onGiphyResults = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphySearch
 
 const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyToggleResultWindowPayload) => {
   const {convID, show, clearInput} = action.payload.params
-  return Chat2Gen.createGiphyToggleWindow({
-    clearInput,
-    conversationIDKey: Types.stringToConversationIDKey(convID),
-    show,
-  })
+  const conversationIDKey = Types.stringToConversationIDKey(convID)
+  if (clearInput) {
+    Constants.getConvoState(conversationIDKey).dispatch.setUnsentText('')
+  }
+  return Chat2Gen.createGiphyToggleWindow({conversationIDKey, show})
 }
 
 const giphySend = (state: Container.TypedState, action: Chat2Gen.GiphySendPayload) => {
@@ -2993,6 +2994,7 @@ const giphySend = (state: Container.TypedState, action: Chat2Gen.GiphySendPayloa
     .then(() => {})
     .catch(() => {})
   const url = new Container.HiddenString(result.targetUrl)
+  Constants.getConvoState(conversationIDKey).dispatch.setUnsentText('')
   return Chat2Gen.createMessageSend({conversationIDKey, replyTo: replyTo || undefined, text: url})
 }
 
@@ -3682,6 +3684,25 @@ const initChat = () => {
   ConfigConstants.useDaemonState.subscribe((s, old) => {
     if (s.handshakeVersion === old.handshakeVersion) return
     Constants.useState.getState().dispatch.loadStaticConfig()
+  })
+
+  // TEMP bridging, todo move to constants
+  Container.listenAction(Chat2Gen.metasReceived, (_, a) => {
+    const {metas} = a.payload
+    metas.forEach((m: Types.ConversationMeta) => {
+      const cs = Constants.getConvoState(m.conversationIDKey)
+      cs.dispatch.setDraft(m.draft)
+      cs.dispatch.setMuted(m.isMuted)
+    })
+  })
+  Container.listenAction(Chat2Gen.toggleGiphyPrefill, (_, a) => {
+    const getReduxStore = Z.getReduxStore()
+    const {conversationIDKey} = a.payload
+    const {giphyWindowMap} = getReduxStore().chat2
+    // if the window is up, just blow it away
+    Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(
+      giphyWindowMap.get(conversationIDKey) ? '' : '/giphy '
+    )
   })
 }
 

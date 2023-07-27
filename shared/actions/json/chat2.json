@@ -528,17 +528,11 @@
     "giphyToggleWindow": {
       "_description": "Toggle Giphy search preview window",
       "conversationIDKey": "Types.ConversationIDKey",
-      "show": "boolean",
-      "clearInput": "boolean"
+      "show": "boolean"
     },
     "confirmScreenResponse": {
       "_description": "User responded to the chat Stellar confirm screen",
       "accept": "boolean"
-    },
-    "setUnsentText": {
-      "_description": "Set unsent text for a conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "text?": "HiddenString"
     },
     "updateUnreadline": {
       "_description": "Update the unreadline line position for a conversation",

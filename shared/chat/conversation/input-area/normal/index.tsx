@@ -123,41 +123,44 @@ const Input = (p: Props) => {
 }
 
 const unsentTextMap = new Map<Types.ConversationIDKey, string>()
+// TODO this hook is a little tricky. We keep drafts in the store. We only inject drafts on first mount.
+// We also keep unsentText in the store, which allows other things to programmatically inject text (including '')
+// So we have a hierarchy of things from the store. After an unsentText is injected it serves no purpose in the store
+// so its set to undefined. The render function also keeps track of what comes out of this hook to see if there is a diff
+// and actually injects into the ref input. Might be simpler to set a dynamic setter in zustand to directly set the value
+// in the input
 const useUnsentText = (
   conversationIDKey: Types.ConversationIDKey,
-  lastTextRef: React.MutableRefObject<string>
+  _lastTextRef: React.MutableRefObject<string>
 ) => {
   // only look at the draft once per mount
   const considerDraftRef = React.useRef(true)
+  const draft = Constants.useContext(s => s.draft)
+  const storeUnsentText = Constants.useContext(s => s.unsentText)
+  const prevDraft = React.useRef<string | undefined>(undefined)
+  const prevStoreUnsentText = React.useRef<string | undefined>(undefined)
+
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   // reset on convo change
   if (lastCID !== conversationIDKey) {
     setLastCID(conversationIDKey)
     considerDraftRef.current = true
+    prevDraft.current = undefined
+    prevStoreUnsentText.current = undefined
   }
-  const draft = Constants.useContext(s => s.draft)
-  const storeUnsentText = Container.useSelector(state => {
-    // we use the hiddenstring since external actions can try and affect the input state (especially clearing it) and that can fail if it doesn't change
-    const storeUnsentText = state.chat2.unsentTextMap.get(conversationIDKey)
-    return storeUnsentText
-  })
-  const prevDraft = Container.usePrevious(draft)
-  const prevStoreUnsentText = Container.usePrevious(storeUnsentText)
 
   let unsentText: string | undefined = undefined
   // use draft if changed , or store if changed, or the module map
-  if (considerDraftRef.current && draft && draft !== prevDraft && draft !== lastTextRef.current) {
+  if (considerDraftRef.current && draft && draft !== prevDraft.current) {
     unsentText = draft
-  } else if (
-    storeUnsentText &&
-    prevStoreUnsentText !== storeUnsentText &&
-    storeUnsentText.stringValue() !== lastTextRef.current
-  ) {
-    unsentText = storeUnsentText.stringValue()
+  } else if (prevStoreUnsentText.current !== storeUnsentText) {
+    unsentText = storeUnsentText
   }
 
   //one chance to use the draft
   considerDraftRef.current = false
+  prevDraft.current = draft
+  prevStoreUnsentText.current = storeUnsentText
 
   const dispatch = Container.useDispatch()
   const onSetExplodingModeLock = React.useCallback(
@@ -166,9 +169,8 @@ const useUnsentText = (
     },
     [dispatch, conversationIDKey]
   )
-  const clearUnsentText = React.useCallback(() => {
-    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+
+  const resetUnsentText = Constants.useContext(s => s.dispatch.resetUnsentText)
 
   const setUnsentText = React.useCallback(
     (text: string) => {
@@ -181,12 +183,12 @@ const useUnsentText = (
         onSetExplodingModeLock(shouldLock)
       }
       // The store text only lasts until we change it, so blow it away now
-      if (unsentText) {
-        clearUnsentText()
+      if (storeUnsentText !== undefined) {
+        resetUnsentText()
       }
       unsentTextMap.set(conversationIDKey, text)
     },
-    [unsentText, clearUnsentText, conversationIDKey, onSetExplodingModeLock]
+    [storeUnsentText, resetUnsentText, conversationIDKey, onSetExplodingModeLock]
   )
   const unsentTextChanged = React.useCallback(
     (text: string) => {
@@ -367,11 +369,12 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     [sendTyping, sendTypingThrottled, setUnsentText, unsentTextChanged, unsentTextChangedThrottled]
   )
 
-  const [lastUnsentText, setLastUnsentText] = React.useState<string | undefined>('init')
+  const [lastUnsentText, setLastUnsentText] = React.useState<string | undefined>()
   if (lastUnsentText !== unsentText) {
     setLastUnsentText(unsentText)
     if (unsentText !== undefined) {
       lastTextRef.current = unsentText
+      setTextInput(lastTextRef.current)
     }
   }
   // needs to be an effect since setTextInput needs a mounted ref

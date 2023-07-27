@@ -10,7 +10,6 @@ import * as Container from '../../util/container'
 import * as ConfigConstants from '../../constants/config'
 import * as RouterConstants from '../../constants/router2'
 import type * as ChatTypes from '../../constants/types/chat2'
-import HiddenString from '../../util/hidden-string'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 
@@ -60,8 +59,9 @@ export const MobileSendToChat = (props: Props) => {
   const dispatch = Container.useDispatch()
 
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const setUnsentText = ChatConstants.useContext(s => s.dispatch.setUnsentText)
   const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, tlfName: string) => {
-    text && dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString(text)}))
+    text && setUnsentText(text)
     if (sendPaths?.length) {
       navigateAppend({
         props: {

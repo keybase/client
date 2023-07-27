@@ -99,7 +99,6 @@ export const makeState = (): Types.State => ({
   threadSearchInfoMap: new Map(),
   threadSearchQueryMap: new Map(),
   unfurlPromptMap: new Map(),
-  unsentTextMap: new Map(),
 })
 
 export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({

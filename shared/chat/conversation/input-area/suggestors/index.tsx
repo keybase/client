@@ -106,10 +106,14 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       // desktop would get the previous selection on arrowleft / arrowright
       const cursorInfo = getWordAtCursor()
       if (!cursorInfo) {
+        setInactive()
         return
       }
       const {word} = cursorInfo
-      if (!word) return
+      if (!word) {
+        setInactive()
+        return
+      }
       if (active) {
         const activeMarker = suggestorToMarker[active]
         const matchInfo = matchesMarker(word, activeMarker)
@@ -150,14 +154,11 @@ export const useSyncInput = (p: UseSyncInputProps) => {
       }
       const input = inputRef.current
       const cursorInfo = getWordAtCursor()
-      if (!cursorInfo?.word) {
-        return
-      }
-      const matchInfo = matchesMarker(cursorInfo.word, suggestorToMarker[active])
+      const matchInfo = matchesMarker(cursorInfo?.word ?? '', suggestorToMarker[active])
       const transformedText = transformers[active](
         value,
         matchInfo.marker,
-        {position: cursorInfo.position, text: lastTextRef.current},
+        {position: cursorInfo?.position ?? {end: null, start: null}, text: lastTextRef.current},
         !final
       )
       lastTextRef.current = transformedText.text
