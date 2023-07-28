@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import type * as Types from '../../../../constants/types/chat2'
 import SetExplodeTime from '.'
 
@@ -27,17 +26,14 @@ type OwnProps = {
 const SetExplodePopup = React.memo(function SetExplodePopup(p: OwnProps) {
   const {onHidden, visible, attachTo, conversationIDKey, onAfterSelect} = p
   const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const selected = Container.useSelector(state =>
-    Constants.getConversationExplodingMode(state, conversationIDKey)
-  )
-
-  const dispatch = Container.useDispatch()
+  const selected = Constants.useContext(s => s.getExplodingMode())
+  const setExplodingMode = Constants.useContext(s => s.dispatch.setExplodingMode)
   const onSelect = React.useCallback(
     (seconds: number) => {
-      dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey, seconds}))
+      setExplodingMode(seconds)
       onAfterSelect?.(seconds)
     },
-    [dispatch, onAfterSelect, conversationIDKey]
+    [setExplodingMode, onAfterSelect]
   )
 
   const items = React.useMemo(() => makeItems(_meta), [_meta])

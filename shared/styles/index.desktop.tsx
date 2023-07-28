@@ -256,13 +256,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   return Object.keys(s).length ? s : undefined
 }
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '../constants/platform'
-export {
-  globalMargins,
-  backgroundModeToColor,
-  backgroundModeToTextColor,
-  platformStyles,
-  padding,
-} from './shared'
+export * from './shared'
 
 export {themed as globalColors} from './colors'
 export const borderRadius = 4

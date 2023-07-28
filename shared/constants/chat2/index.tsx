@@ -17,14 +17,14 @@ import {
   noConversationIDKey,
   pendingWaitingConversationIDKey,
   pendingErrorConversationIDKey,
-  conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import {getEffectiveRetentionPolicy, getMeta} from './meta'
+import {getMeta} from './meta'
 import type * as TeamBuildingTypes from '../types/team-building'
 import type {TypedState} from '../reducer'
 import * as Z from '../../util/zustand'
 import {getConvoState, stores} from './convostate'
+import {getParticipantInfo, explodingModeGregorKeyPrefix} from './common'
 
 export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
   switch (m.type) {
@@ -69,8 +69,6 @@ export const makeState = (): Types.State => ({
   commandStatusMap: new Map(),
   containsLatestMessageMap: new Map(),
   editingMap: new Map(),
-  explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
-  explodingModes: new Map(), // seconds to exploding message expiration,
   markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
   messageMap: new Map(), // messages in a thread,
@@ -144,14 +142,6 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   return null
 }
 
-const emptyOrdinals = new Array<Types.Ordinal>()
-export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id) ?? emptyOrdinals
-export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageCenterOrdinals.get(id)
-export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-  state.chat2.messageMap.get(id)?.get(ordinal)
-
 export const isTextOrAttachment = (
   message: Types.Message
 ): message is Types.Message | Types.MessageAttachment => {
@@ -180,39 +170,6 @@ export const getSelectedConversation = (): Types.ConversationIDKey => {
     return maybeVisibleScreen.params?.conversationIDKey ?? noConversationIDKey
   }
   return noConversationIDKey
-}
-
-export const getReplyToMessageID = (
-  ordinal: Types.Ordinal,
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey
-) => {
-  const maybeMessage = getMessage(state, conversationIDKey, ordinal)
-  return ordinal
-    ? maybeMessage === null || maybeMessage === undefined
-      ? undefined
-      : maybeMessage.id
-    : undefined
-}
-
-export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
-  const ordinal = state.chat2.editingMap.get(id)
-  if (!ordinal) {
-    return
-  }
-
-  const message = getMessage(state, id, ordinal)
-  if (!message) {
-    return
-  }
-  switch (message.type) {
-    case 'text':
-      return {exploded: message.exploded, ordinal, text: message.text.stringValue()}
-    case 'attachment':
-      return {exploded: message.exploded, ordinal, text: message.title}
-    default:
-      return
-  }
 }
 
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
@@ -297,56 +254,6 @@ export const getBotsAndParticipants = (
   return {bots, participants}
 }
 
-export const waitingKeyJoinConversation = 'chat:joinConversation'
-export const waitingKeyLeaveConversation = 'chat:leaveConversation'
-export const waitingKeyDeleteHistory = 'chat:deleteHistory'
-export const waitingKeyPost = 'chat:post'
-export const waitingKeyRetryPost = 'chat:retryPost'
-export const waitingKeyEditPost = 'chat:editPost'
-export const waitingKeyDeletePost = 'chat:deletePost'
-export const waitingKeyCancelPost = 'chat:cancelPost'
-export const waitingKeyInboxRefresh = 'chat:inboxRefresh'
-export const waitingKeyCreating = 'chat:creatingConvo'
-export const waitingKeyInboxSyncStarted = 'chat:inboxSyncStarted'
-export const waitingKeyBotAdd = 'chat:botAdd'
-export const waitingKeyBotRemove = 'chat:botRemove'
-export const waitingKeyLoadingEmoji = 'chat:loadingEmoji'
-export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =>
-  `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>
-  `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
-export const waitingKeyAddUserToChannel = (username: string, conversationIDKey: Types.ConversationIDKey) =>
-  `chat:addUserToConversation:${username}:${conversationIDKey}`
-export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
-  `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
-  `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyMutualTeams = (conversationIDKey: Types.ConversationIDKey) =>
-  `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
-
-/**
- * Gregor key for exploding conversations
- * Used as the `category` when setting the exploding mode on a conversation
- * `body` is the number of seconds to exploding message etime
- * Note: The core service also uses this value, so if it changes, please notify core
- */
-export const explodingModeGregorKeyPrefix = 'exploding:'
-export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
-  `${explodingModeGregorKeyPrefix}${c}`
-export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey): number => {
-  let mode = state.chat2.explodingModeLocks.get(c)
-  if (mode === undefined) {
-    mode = state.chat2.explodingModes.get(c) ?? 0
-  }
-  const meta = getMeta(state, c)
-  const convRetention = getEffectiveRetentionPolicy(meta)
-  mode = convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
-  return mode || 0
-}
-export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
-  state.chat2.explodingModeLocks.get(c) !== undefined
-
 export const getTeamMentionName = (name: string, channel: string) => {
   return name + (channel ? `#${channel}` : '')
 }
@@ -429,20 +336,6 @@ export const zoomImage = (width: number, height: number, maxThumbSize: number) =
   }
 }
 
-export const noParticipantInfo: Types.ParticipantInfo = {
-  all: [],
-  contactName: new Map(),
-  name: [],
-}
-
-export const getParticipantInfo = (
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey
-): Types.ParticipantInfo => {
-  const participantInfo = state.chat2.participantMap.get(conversationIDKey)
-  return participantInfo ? participantInfo : noParticipantInfo
-}
-
 export const messageAuthorIsBot = (
   state: TeamConstants.State,
   meta: Types.ConversationMeta,
@@ -491,58 +384,6 @@ export const uiParticipantsToParticipantInfo = (uiParticipants: Array<RPCChatTyp
   })
   return participantInfo
 }
-
-export {
-  getBotCommands,
-  getConversationIDKeyMetasToLoad,
-  getConversationLabel,
-  getEffectiveRetentionPolicy,
-  getMeta,
-  getRowParticipants,
-  getRowStyles,
-  getTeams,
-  inboxUIItemToConversationMeta,
-  makeConversationMeta,
-  timestampToString,
-  unverifiedInboxUIItemToConversationMeta,
-  updateMeta,
-  updateMetaWithNotificationSettings,
-} from './meta'
-
-export {
-  getClientPrev,
-  getMapUnfurl,
-  getMessageID,
-  getMessageStateExtras,
-  getPaymentMessageInfo,
-  isPendingPaymentMessage,
-  isSpecialMention,
-  isVideoAttachment,
-  journeyCardTypeToType,
-  makeChatRequestInfo,
-  makeMessageAttachment,
-  makeMessageDeleted,
-  makeMessageText,
-  makePendingAttachmentMessage,
-  makePendingTextMessage,
-  makeReaction,
-  mergeMessage,
-  messageAttachmentHasProgress,
-  messageAttachmentTransferStateToProgressLabel,
-  messageExplodeDescriptions,
-  nextFractionalOrdinal,
-  pathToAttachmentType,
-  previewSpecs,
-  reactionMapToReactions,
-  rpcErrorToString,
-  shouldShowPopup,
-  specialMentions,
-  uiMessageEditToMessage,
-  uiMessageToMessage,
-  uiPaymentInfoToChatPaymentInfo,
-  uiRequestInfoToChatRequestInfo,
-  upgradeMessage,
-} from './message'
 
 export {
   isValidConversationIDKey,
@@ -1320,29 +1161,27 @@ export const useState = Z.createZustand<State>((set, get) => {
       const explodingItems = items.filter(i => i.item.category.startsWith(explodingModeGregorKeyPrefix))
       if (!explodingItems.length) {
         // No conversations have exploding modes, clear out what is set
-        reduxDispatch(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
+        for (const s of stores.values()) {
+          s.getState().dispatch.setExplodingMode(0, true)
+        }
       } else {
         logger.info('Got push state with some exploding modes')
-        const modes = explodingItems.reduce<
-          Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>
-        >((current, i) => {
+        explodingItems.forEach(i => {
           try {
             const {category, body} = i.item
             const secondsString = Buffer.from(body).toString()
             const seconds = parseInt(secondsString, 10)
             if (isNaN(seconds)) {
               logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
-              return current
+              return
             }
             const _conversationIDKey = category.substring(explodingModeGregorKeyPrefix.length)
             const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
-            current.push({conversationIDKey, seconds})
+            getConvoState(conversationIDKey).dispatch.setExplodingMode(seconds, true)
           } catch (e) {
             logger.info('Error parsing exploding' + e)
           }
-          return current
-        }, [])
-        reduxDispatch(Chat2Gen.createUpdateConvExplodingModes({modes}))
+        })
       }
 
       const f = async () => {
@@ -1405,4 +1244,7 @@ export const useState = Z.createZustand<State>((set, get) => {
   }
 })
 
-export {type ConvoState, useContext, getConvoState, Provider} from './convostate'
+export * from './convostate'
+export * from './common'
+export * from './meta'
+export * from './message'

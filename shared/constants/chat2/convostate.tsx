@@ -1,17 +1,22 @@
-import * as React from 'react'
-import * as Z from '../../util/zustand'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
-import * as Types from '../types/chat2'
-import type * as TeamsTypes from '../types/teams'
+import * as Common from './common'
+import * as Message from './message'
+import * as Meta from './meta'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
-import {noConversationIDKey} from '../types/chat2/common'
-import isEqual from 'lodash/isEqual'
-import {mapGetEnsureValue} from '../../util/map'
+import * as React from 'react'
+import * as Types from '../types/chat2'
+import * as Z from '../../util/zustand'
+import * as RouterConstants from '../router2'
+import * as TeamsConstants from '../teams'
 import HiddenString from '../../util/hidden-string'
+import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
+import type * as TeamsTypes from '../types/teams'
 import {RPCError} from '../../util/errors'
+import {mapGetEnsureValue} from '../../util/map'
+import {noConversationIDKey} from '../types/chat2/common'
+import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 
 const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
   hits: [],
@@ -30,6 +35,8 @@ type ConvoStore = {
   badge: number
   dismissedInviteBanners: boolean
   draft?: string
+  explodingModeLock?: number // locks set on exploding mode while user is inputting text,
+  explodingMode: number // seconds to exploding message expiration,
   giphyResult?: RPCChatTypes.GiphySearchResults
   giphyWindow: boolean
   muted: boolean
@@ -51,6 +58,8 @@ const initialConvoStore: ConvoStore = {
   botTeamRoleMap: new Map(),
   dismissedInviteBanners: false,
   draft: undefined,
+  explodingMode: 0,
+  explodingModeLock: undefined,
   giphyResult: undefined,
   giphyWindow: false,
   id: noConversationIDKey,
@@ -93,7 +102,9 @@ export type ConvoState = ConvoStore & {
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetState: 'default'
     resetUnsentText: () => void
+    setExplodingMode: (seconds: number, incoming?: boolean) => void
     setDraft: (d?: string) => void
+    setExplodingModeLocked: (locked: boolean) => void
     setMuted: (m: boolean) => void
     setReplyTo: (o: Types.Ordinal) => void
     setTyping: (t: Set<string>) => void
@@ -107,14 +118,20 @@ export type ConvoState = ConvoStore & {
     hideSearch: () => void
     botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
   }
+  getExplodingMode: () => number
 }
+
+// don't bug the users with black bars for network errors. chat isn't going to work in general
+const ignoreErrors = [
+  RPCTypes.StatusCode.scgenericapierror,
+  RPCTypes.StatusCode.scapinetworkerror,
+  RPCTypes.StatusCode.sctimeout,
+]
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const getReduxState = Z.getReduxStore()
   const reduxDispatch = Z.getReduxDispatch()
-  const closeBotModal = async () => {
-    const RouterConstants = await import('../router2')
-    const TeamsConstants = await import('../teams')
+  const closeBotModal = () => {
     RouterConstants.useState.getState().dispatch.clearModals()
     const meta = getReduxState().chat2.metaMap.get(get().id)
     if (meta?.teamname) {
@@ -124,7 +141,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
-        const Constants = await import('./index')
         const conversationIDKey = get().id
         try {
           await RPCChatTypes.localAddBotMemberRpcPromise(
@@ -134,7 +150,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               role: restricted ? RPCTypes.TeamRole.restrictedbot : RPCTypes.TeamRole.bot,
               username,
             },
-            Constants.waitingKeyBotAdd
+            Common.waitingKeyBotAdd
           )
         } catch (error) {
           if (error instanceof RPCError) {
@@ -142,7 +158,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           return
         }
-        await closeBotModal()
+        closeBotModal()
       }
       Z.ignorePromise(f())
     },
@@ -172,7 +188,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     editBotSettings: (username, allowCommands, allowMentions, convs) => {
       const f = async () => {
         const conversationIDKey = get().id
-        const Constants = await import('./index')
         try {
           await RPCChatTypes.localSetBotMemberSettingsRpcPromise(
             {
@@ -180,7 +195,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               convID: Types.keyToConversationID(conversationIDKey),
               username,
             },
-            Constants.waitingKeyBotAdd
+            Common.waitingKeyBotAdd
           )
         } catch (error) {
           if (error instanceof RPCError) {
@@ -188,7 +203,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           return
         }
-        await closeBotModal()
+        closeBotModal()
       }
       Z.ignorePromise(f())
     },
@@ -202,14 +217,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.giphyWindow = false
       })
       const f = async () => {
-        const Constants = await import('./index')
         const conversationIDKey = get().id
-        const replyTo = Constants.getReplyToMessageID(get().replyTo, getReduxState(), conversationIDKey)
+        const replyTo = Common.getReplyToMessageID(get().replyTo, getReduxState(), conversationIDKey)
         try {
           await RPCChatTypes.localTrackGiphySelectRpcPromise({result})
         } catch {}
         const url = new HiddenString(result.targetUrl)
-        Constants.getConvoState(conversationIDKey).dispatch.setUnsentText('')
+        getConvoState(conversationIDKey).dispatch.setUnsentText('')
         reduxDispatch(
           Chat2Gen.createMessageSend({conversationIDKey, replyTo: replyTo || undefined, text: url})
         )
@@ -295,15 +309,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     refreshMutualTeamsInConv: () => {
       const f = async () => {
-        const Constants = await import('./index')
         const ConfigConstants = await import('../config')
         const conversationIDKey = get().id
-        const participantInfo = Constants.getParticipantInfo(getReduxState(), conversationIDKey)
+        const participantInfo = Common.getParticipantInfo(getReduxState(), conversationIDKey)
         const username = ConfigConstants.useCurrentUserState.getState().username
-        const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
+        const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
         const results = await RPCChatTypes.localGetMutualTeamsLocalRpcPromise(
           {usernames: otherParticipants},
-          Constants.waitingKeyMutualTeams(conversationIDKey)
+          Common.waitingKeyMutualTeams(conversationIDKey)
         )
         set(s => {
           s.mutualTeams = results.teamIDs ?? []
@@ -313,11 +326,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     removeBotMember: username => {
       const f = async () => {
-        const Constants = await import('./index')
         const convID = Types.keyToConversationID(get().id)
         try {
-          await RPCChatTypes.localRemoveBotMemberRpcPromise({convID, username}, Constants.waitingKeyBotRemove)
-          await closeBotModal()
+          await RPCChatTypes.localRemoveBotMemberRpcPromise({convID, username}, Common.waitingKeyBotRemove)
+          closeBotModal()
         } catch (error) {
           if (error instanceof RPCError) {
             logger.info('removeBotMember: failed to remove bot member: ' + error.message)
@@ -340,6 +352,66 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setDraft: d => {
       set(s => {
         s.draft = d
+      })
+    },
+    setExplodingMode: (seconds, incoming) => {
+      set(s => {
+        s.explodingMode = seconds
+      })
+      if (incoming) return
+      const conversationIDKey = get().id
+      const f = async () => {
+        logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
+
+        // unset a conversation exploding lock for this convo so we accept the new one
+        get().dispatch.setExplodingModeLocked(false)
+
+        const category = `${Common.explodingModeGregorKeyPrefix}${conversationIDKey}`
+        // TODO remove redux
+        const meta = Meta.getMeta(getReduxState(), conversationIDKey)
+        const convRetention = Meta.getEffectiveRetentionPolicy(meta)
+        if (seconds === 0 || seconds === convRetention.seconds) {
+          // dismiss the category so we don't leave cruft in the push state
+          await RPCTypes.gregorDismissCategoryRpcPromise({category})
+        } else {
+          // update the category with the exploding time
+          try {
+            await RPCTypes.gregorUpdateCategoryRpcPromise({
+              body: seconds.toString(),
+              category,
+              dtime: {offset: 0, time: 0},
+            })
+            if (seconds !== 0) {
+              logger.info(
+                `Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`
+              )
+            } else {
+              logger.info(`Successfully unset exploding mode for conversation ${conversationIDKey}`)
+            }
+          } catch (error) {
+            if (error instanceof RPCError) {
+              if (seconds !== 0) {
+                logger.error(
+                  `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${error.message}`
+                )
+              } else {
+                logger.error(
+                  `Failed to unset exploding mode for conversation ${conversationIDKey}. Service responded with: ${error.message}`
+                )
+              }
+              if (ignoreErrors.includes(error.code)) {
+                return
+              }
+            }
+            throw error
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    setExplodingModeLocked: locked => {
+      set(s => {
+        s.explodingModeLock = locked ? get().explodingMode : undefined
       })
     },
     setMuted: m => {
@@ -374,9 +446,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.threadSearchInfo.hits = []
       })
       const f = async () => {
-        const Constants = await import('./index')
         const conversationIDKey = get().id
-        const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(
+        const {username, getLastOrdinal, devicename} = Message.getMessageStateExtras(
           getReduxState(),
           conversationIDKey
         )
@@ -391,7 +462,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               incomingCallMap: {
                 'chat.1.chatUi.chatSearchDone': onDone,
                 'chat.1.chatUi.chatSearchHit': hit => {
-                  const message = Constants.uiMessageToMessage(
+                  const message = Message.uiMessageToMessage(
                     conversationIDKey,
                     hit.searchHit.hitMessage,
                     username,
@@ -408,7 +479,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 'chat.1.chatUi.chatSearchInboxDone': onDone,
                 'chat.1.chatUi.chatSearchInboxHit': resp => {
                   const messages = (resp.searchHit.hits || []).reduce<Array<Types.Message>>((l, h) => {
-                    const uiMsg = Constants.uiMessageToMessage(
+                    const uiMsg = Message.uiMessageToMessage(
                       conversationIDKey,
                       h.hitMessage,
                       username,
@@ -512,6 +583,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   return {
     ...initialConvoStore,
     dispatch,
+    getExplodingMode: (): number => {
+      const mode = get().explodingModeLock ?? get().explodingMode
+      const meta = Meta.getMeta(getReduxState(), get().id)
+      const convRetention = Meta.getEffectiveRetentionPolicy(meta)
+      return convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
+    },
   }
 }
 

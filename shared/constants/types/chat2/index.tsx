@@ -199,8 +199,6 @@ export type State = {
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
   editingMap: Map<Common.ConversationIDKey, _Message.Ordinal> // current message being edited,
-  explodingModeLocks: Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
-  explodingModes: Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,
   messageTypeMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, RenderMessageType>> // messages types to help the thread, text is never used
@@ -278,14 +276,7 @@ export type ReactionDesc = _Message.ReactionDesc
 // common passthroughs
 export type ConversationIDKey = Common.ConversationIDKey
 
-export {
-  messageIDToNumber,
-  numberToMessageID,
-  numberToOrdinal,
-  ordinalToNumber,
-  outboxIDToString,
-  stringToOutboxID,
-} from './message'
+export * from './message'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'
 
 export type ChatInboxRowItemSmall = ChatInboxRowTypes.ChatInboxRowItemSmall

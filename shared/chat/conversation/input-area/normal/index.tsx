@@ -163,12 +163,7 @@ const useUnsentText = (
   prevStoreUnsentText.current = storeUnsentText
 
   const dispatch = Container.useDispatch()
-  const onSetExplodingModeLock = React.useCallback(
-    (locked: boolean) => {
-      dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: !locked}))
-    },
-    [dispatch, conversationIDKey]
-  )
+  const onSetExplodingModeLocked = Constants.useContext(s => s.dispatch.setExplodingModeLocked)
 
   const resetUnsentText = Constants.useContext(s => s.dispatch.resetUnsentText)
 
@@ -180,7 +175,7 @@ const useUnsentText = (
       if (isExplodingModeLocked !== shouldLock) {
         // if it's locked and we want to unset, unset it
         // alternatively, if it's not locked and we want to set it, set it
-        onSetExplodingModeLock(shouldLock)
+        onSetExplodingModeLocked(shouldLock)
       }
       // The store text only lasts until we change it, so blow it away now
       if (storeUnsentText !== undefined) {
@@ -188,7 +183,7 @@ const useUnsentText = (
       }
       unsentTextMap.set(conversationIDKey, text)
     },
-    [storeUnsentText, resetUnsentText, conversationIDKey, onSetExplodingModeLock]
+    [storeUnsentText, resetUnsentText, conversationIDKey, onSetExplodingModeLocked]
   )
   const unsentTextChanged = React.useCallback(
     (text: string) => {
@@ -385,9 +380,9 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const isTyping = Constants.useContext(s => s.typing.size > 0)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const suggestBotCommandsUpdateStatus = Constants.useContext(s => s.botCommandsUpdateStatus)
+  const explodingModeSeconds = Constants.useContext(s => s.getExplodingMode())
   const data = Container.useSelector(state => {
     const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
-    const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
     const cannotWrite = Constants.getMeta(state, conversationIDKey).cannotWrite
     const minWriterRole = Constants.getMeta(state, conversationIDKey).minWriterRole
     return {
@@ -397,7 +392,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       showTypingStatus,
     }
   }, shallowEqual)
-  const {cannotWrite, explodingModeSeconds, minWriterRole, showTypingStatus} = data
+  const {cannotWrite, minWriterRole, showTypingStatus} = data
 
   Container.useDepChangeEffect(() => {
     inputRef.current?.focus()

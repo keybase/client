@@ -302,10 +302,5 @@ export {
 } from './settings-chat'
 export {useState as useContactsState, importContactsWaitingKey} from './settings-contacts'
 
-export {
-  verifyPhoneNumberWaitingKey,
-  addPhoneNumberWaitingKey,
-  resendVerificationForPhoneWaitingKey,
-  getE164,
-} from './settings-phone'
+export * from './settings-phone'
 export {addEmailWaitingKey} from './settings-email'
