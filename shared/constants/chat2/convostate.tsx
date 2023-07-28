@@ -48,6 +48,7 @@ type ConvoStore = {
   threadSearchInfo: Types.ThreadSearchInfo
   threadSearchQuery: string
   replyTo: Types.Ordinal
+  threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp
 }
 
 const initialConvoStore: ConvoStore = {
@@ -66,6 +67,7 @@ const initialConvoStore: ConvoStore = {
   muted: false,
   mutualTeams: [],
   replyTo: 0,
+  threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp.none,
   threadSearchInfo: makeThreadSearchInfo(),
   threadSearchQuery: '',
   typing: new Set(),
@@ -107,6 +109,7 @@ export type ConvoState = ConvoStore & {
     setExplodingModeLocked: (locked: boolean) => void
     setMuted: (m: boolean) => void
     setReplyTo: (o: Types.Ordinal) => void
+    setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
     setTyping: (t: Set<string>) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
@@ -422,6 +425,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setReplyTo: o => {
       set(s => {
         s.replyTo = o
+      })
+    },
+    setThreadLoadStatus: status => {
+      set(s => {
+        s.threadLoadStatus = status
       })
     },
     setThreadSearchQuery: query => {

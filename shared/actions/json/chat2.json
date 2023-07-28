@@ -578,11 +578,6 @@
       "_description": "Clear command status info",
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "setThreadLoadStatus": {
-      "_description": "Set thread load status",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "status": "RPCChatTypes.UIChatThreadStatus"
-    },
     "pinMessage": {
       "_description": "Pin a message",
       "conversationIDKey": "Types.ConversationIDKey",

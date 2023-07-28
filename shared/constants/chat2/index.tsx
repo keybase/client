@@ -79,7 +79,6 @@ export const makeState = (): Types.State => ({
   orangeLineMap: new Map(), // last message we've seen,
   participantMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
-  threadLoadStatus: new Map(),
 })
 
 export const inboxSearchMaxTextMessages = 25
