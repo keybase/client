@@ -173,6 +173,7 @@ const useUnsentText = (
       const isExplodingModeLocked = (unsentTextMap.get(conversationIDKey)?.length ?? 0) > 0
       const shouldLock = text.length > 0
       if (isExplodingModeLocked !== shouldLock) {
+        console.log('aaa trying to lock', shouldLock)
         // if it's locked and we want to unset, unset it
         // alternatively, if it's not locked and we want to set it, set it
         onSetExplodingModeLock(shouldLock)
