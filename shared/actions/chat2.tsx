@@ -1130,7 +1130,7 @@ const loadMoreMessages = (
                 return
               }
               if (p) {
-                reduxDispatch(Chat2Gen.createSetThreadLoadStatus({conversationIDKey, status: p.status}))
+                Constants.getConvoState(conversationIDKey).dispatch.setThreadLoadStatus(p.status.typ)
               }
             },
           },
@@ -2754,14 +2754,6 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
   Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
 }
 
-const onChatCommandMarkdown = (_: unknown, action: EngineGen.Chat1ChatUiChatCommandMarkdownPayload) => {
-  const {convID, md} = action.payload.params
-  return Chat2Gen.createSetCommandMarkdown({
-    conversationIDKey: Types.stringToConversationIDKey(convID),
-    md: md || undefined,
-  })
-}
-
 const onChatCommandStatus = (_: unknown, action: EngineGen.Chat1ChatUiChatCommandStatusPayload) => {
   const {convID, displayText, typ, actions} = action.payload.params
   return Chat2Gen.createSetCommandStatusInfo({
@@ -3012,6 +3004,12 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.messageRetry, messageRetry)
   Container.listenAction(Chat2Gen.messageSend, messageSend)
+  Container.listenAction(Chat2Gen.messageSend, (_, a) => {
+    const {conversationIDKey} = a.payload
+    const {dispatch} = Constants.getConvoState(conversationIDKey)
+    dispatch.setReplyTo(0)
+    dispatch.setCommandMarkdown()
+  })
   Container.listenAction(Chat2Gen.messageSendByUsernames, messageSendByUsernames)
   Container.listenAction(Chat2Gen.messageEdit, messageEdit)
   Container.listenAction(Chat2Gen.messageEdit, clearMessageSetEditing)
@@ -3167,7 +3165,11 @@ const initChat = () => {
     const {statuses} = action.payload.params
     Constants.useState.getState().dispatch.updateCoinFlipStatus(statuses || [])
   })
-  Container.listenAction(EngineGen.chat1ChatUiChatCommandMarkdown, onChatCommandMarkdown)
+  Container.listenAction(EngineGen.chat1ChatUiChatCommandMarkdown, (_, action) => {
+    const {convID, md} = action.payload.params
+    const conversationIDKey = Types.stringToConversationIDKey(convID)
+    Constants.getConvoState(conversationIDKey).dispatch.setCommandMarkdown(md || undefined)
+  })
   Container.listenAction(EngineGen.chat1ChatUiChatCommandStatus, onChatCommandStatus)
   Container.listenAction(EngineGen.chat1ChatUiChatMaybeMentionUpdate, (_, action) => {
     const {teamName, channel, info} = action.payload.params

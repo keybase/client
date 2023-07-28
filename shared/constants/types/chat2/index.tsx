@@ -195,7 +195,6 @@ export type RenderMessageType =
 
 export type State = {
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
-  commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
   editingMap: Map<Common.ConversationIDKey, _Message.Ordinal> // current message being edited,

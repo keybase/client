@@ -33,6 +33,7 @@ type ConvoStore = {
   botSettings: Map<string, RPCTypes.TeamBotSettings | undefined>
   botTeamRoleMap: Map<string, TeamsTypes.TeamRoleType | undefined>
   badge: number
+  commandMarkdown?: RPCChatTypes.UICommandMarkdown
   dismissedInviteBanners: boolean
   draft?: string
   explodingModeLock?: number // locks set on exploding mode while user is inputting text,
@@ -57,6 +58,7 @@ const initialConvoStore: ConvoStore = {
   botCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank,
   botSettings: new Map(),
   botTeamRoleMap: new Map(),
+  commandMarkdown: undefined,
   dismissedInviteBanners: false,
   draft: undefined,
   explodingMode: 0,
@@ -105,6 +107,7 @@ export type ConvoState = ConvoStore & {
     resetState: 'default'
     resetUnsentText: () => void
     setExplodingMode: (seconds: number, incoming?: boolean) => void
+    setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setDraft: (d?: string) => void
     setExplodingModeLocked: (locked: boolean) => void
     setMuted: (m: boolean) => void
@@ -350,6 +353,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     resetUnsentText: () => {
       set(s => {
         s.unsentText = undefined
+      })
+    },
+    setCommandMarkdown: md => {
+      set(s => {
+        s.commandMarkdown = md
       })
     },
     setDraft: d => {

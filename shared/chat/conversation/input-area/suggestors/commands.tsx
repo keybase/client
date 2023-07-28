@@ -111,8 +111,8 @@ export const useDataSource = (p: UseDataSourceProps) => {
   const {conversationIDKey, filter, inputRef, lastTextRef} = p
   const staticConfig = Constants.useState(s => s.staticConfig)
   const showGiphySearch = Constants.useContext(s => s.giphyWindow)
+  const showCommandMarkdown = Constants.useContext(s => !!s.commandMarkdown)
   return Container.useSelector(state => {
-    const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
     if (showCommandMarkdown || showGiphySearch) {
       return []
     }

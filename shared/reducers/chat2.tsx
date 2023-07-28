@@ -349,21 +349,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {markedAsUnreadMap} = draftState
     markedAsUnreadMap.delete(conversationIDKey)
   },
-  [Chat2Gen.messageSend]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {commandMarkdownMap} = draftState
-    commandMarkdownMap.delete(conversationIDKey)
-    Constants.getConvoState(conversationIDKey).dispatch.setReplyTo(0)
-  },
-  [Chat2Gen.setCommandMarkdown]: (draftState, action) => {
-    const {conversationIDKey, md} = action.payload
-    const {commandMarkdownMap} = draftState
-    if (md) {
-      commandMarkdownMap.set(conversationIDKey, md)
-    } else {
-      commandMarkdownMap.delete(conversationIDKey)
-    }
-  },
   [Chat2Gen.setCommandStatusInfo]: (draftState, action) => {
     const {conversationIDKey, info} = action.payload
     const {commandStatusMap} = draftState

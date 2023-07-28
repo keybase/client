@@ -90,21 +90,17 @@ const Input = (p: Props) => {
 
   const showGiphySearch = Constants.useContext(s => s.giphyWindow)
   const rorindal = Constants.useContext(s => s.replyTo)
-  const {replyTo, showCommandMarkdown, showCommandStatus} = Container.useSelector(state => {
+  const showCommandMarkdown = Constants.useContext(s => !!s.commandMarkdown)
+  const {replyTo, showCommandStatus} = Container.useSelector(state => {
     const replyTo = Constants.getReplyToMessageID(rorindal, state, conversationIDKey) ?? undefined
-    const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
     const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey)
-    return {replyTo, showCommandMarkdown, showCommandStatus}
+    return {replyTo, showCommandStatus}
   }, shallowEqual)
 
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
       {!!replyTo && <ReplyPreview conversationIDKey={conversationIDKey} />}
-      {
-        /*TODO move this into suggestors*/ showCommandMarkdown && (
-          <CommandMarkdown conversationIDKey={conversationIDKey} />
-        )
-      }
+      {/*TODO move this into suggestors*/ showCommandMarkdown && <CommandMarkdown />}
       {showCommandStatus && <CommandStatus conversationIDKey={conversationIDKey} />}
       {showGiphySearch && <Giphy />}
       <ConnectedPlatformInput

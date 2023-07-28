@@ -90,14 +90,12 @@ export const selectedConversation = 'chat2:selectedConversation'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
-export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setParticipants = 'chat2:setParticipants'
-export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
 export const tabSelected = 'chat2:tabSelected'
 export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
@@ -583,13 +581,6 @@ export const createSetAttachmentViewStatus = (payload: {
   readonly last?: boolean
 }) => ({payload, type: setAttachmentViewStatus as typeof setAttachmentViewStatus})
 /**
- * Set command markdown for a conversation
- */
-export const createSetCommandMarkdown = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly md?: RPCChatTypes.UICommandMarkdown
-}) => ({payload, type: setCommandMarkdown as typeof setCommandMarkdown})
-/**
  * Set command status info
  */
 export const createSetCommandStatusInfo = (payload: {
@@ -612,13 +603,6 @@ export const createSetMinWriterRole = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly role: TeamsTypes.TeamRoleType
 }) => ({payload, type: setMinWriterRole as typeof setMinWriterRole})
-/**
- * Set thread load status
- */
-export const createSetThreadLoadStatus = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly status: RPCChatTypes.UIChatThreadStatus
-}) => ({payload, type: setThreadLoadStatus as typeof setThreadLoadStatus})
 /**
  * Sets the retention policy for a conversation.
  */
@@ -1009,14 +993,12 @@ export type SelectedConversationPayload = ReturnType<typeof createSelectedConver
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetAttachmentViewStatusPayload = ReturnType<typeof createSetAttachmentViewStatus>
-export type SetCommandMarkdownPayload = ReturnType<typeof createSetCommandMarkdown>
 export type SetCommandStatusInfoPayload = ReturnType<typeof createSetCommandStatusInfo>
 export type SetContainsLastMessagePayload = ReturnType<typeof createSetContainsLastMessage>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
-export type SetThreadLoadStatusPayload = ReturnType<typeof createSetThreadLoadStatus>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ToggleGiphyPrefillPayload = ReturnType<typeof createToggleGiphyPrefill>
 export type ToggleLocalReactionPayload = ReturnType<typeof createToggleLocalReaction>
@@ -1119,14 +1101,12 @@ export type Actions =
   | SendAudioRecordingPayload
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
-  | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetMinWriterRolePayload
   | SetParticipantsPayload
-  | SetThreadLoadStatusPayload
   | TabSelectedPayload
   | ToggleGiphyPrefillPayload
   | ToggleLocalReactionPayload
