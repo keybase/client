@@ -69,8 +69,6 @@ export const makeState = (): Types.State => ({
   commandStatusMap: new Map(),
   containsLatestMessageMap: new Map(),
   editingMap: new Map(),
-  explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
-  explodingModes: new Map(), // seconds to exploding message expiration,
   markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
   messageMap: new Map(), // messages in a thread,
@@ -324,28 +322,6 @@ export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyMutualTeams = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
-
-/**
- * Gregor key for exploding conversations
- * Used as the `category` when setting the exploding mode on a conversation
- * `body` is the number of seconds to exploding message etime
- * Note: The core service also uses this value, so if it changes, please notify core
- */
-export const explodingModeGregorKeyPrefix = 'exploding:'
-export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
-  `${explodingModeGregorKeyPrefix}${c}`
-export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey): number => {
-  let mode = state.chat2.explodingModeLocks.get(c)
-  if (mode === undefined) {
-    mode = state.chat2.explodingModes.get(c) ?? 0
-  }
-  const meta = getMeta(state, c)
-  const convRetention = getEffectiveRetentionPolicy(meta)
-  mode = convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
-  return mode || 0
-}
-export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
-  state.chat2.explodingModeLocks.get(c) !== undefined
 
 export const getTeamMentionName = (name: string, channel: string) => {
   return name + (channel ? `#${channel}` : '')

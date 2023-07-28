@@ -30,6 +30,8 @@ type ConvoStore = {
   badge: number
   dismissedInviteBanners: boolean
   draft?: string
+  explodingModeLock: number // locks set on exploding mode while user is inputting text,
+  explodingMode: number // seconds to exploding message expiration,
   giphyResult?: RPCChatTypes.GiphySearchResults
   giphyWindow: boolean
   muted: boolean
@@ -108,6 +110,26 @@ export type ConvoState = ConvoStore & {
     botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
   }
 }
+
+/**
+ * Gregor key for exploding conversations
+ * Used as the `category` when setting the exploding mode on a conversation
+ * `body` is the number of seconds to exploding message etime
+ * Note: The core service also uses this value, so if it changes, please notify core
+ */
+const explodingModeGregorKeyPrefix = 'exploding:'
+// TODO
+// const explodingModeGregorKey = (c: Types.ConversationIDKey): string => `${explodingModeGregorKeyPrefix}${c}`
+// const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey): number => {
+//   let mode = state.chat2.explodingModeLocks.get(c)
+//   if (mode === undefined) {
+//     mode = state.chat2.explodingModes.get(c) ?? 0
+//   }
+//   const meta = getMeta(state, c)
+//   const convRetention = getEffectiveRetentionPolicy(meta)
+//   mode = convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
+//   return mode || 0
+// }
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const getReduxState = Z.getReduxStore()
