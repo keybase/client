@@ -74,7 +74,6 @@ const InstallBotPopup = (props: Props) => {
   )
 
   const botPublicCommands = Constants.useState(s => s.botPublicCommands.get(botUsername))
-  console.log('aaaa installbotpopup', botPublicCommands)
   // TODO will thrash every time
   const commands = Container.useSelector(state => {
     let commands: Array<string> = []
@@ -99,7 +98,6 @@ const InstallBotPopup = (props: Props) => {
     meta?.teamname ? !TeamConstants.getCanPerformByID(s, meta.teamID).manageBots : false
   )
   const settings = Constants.useContext(s => s.botSettings.get(botUsername) ?? undefined)
-  console.log('aaaa installbotpopup settings', settings)
   let teamname: string | undefined
   let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
   if (meta?.teamname) {
@@ -452,7 +450,7 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const backButton = Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />
-  const enabled = !!conversationIDKey && inTeam !== undefined
+  const enabled = !!conversationIDKey
   return (
     <Kb.Modal
       onClose={!Styles.isMobile ? onClose : undefined}
