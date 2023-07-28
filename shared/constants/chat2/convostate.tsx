@@ -271,7 +271,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       Z.ignorePromise(f())
     },
     refreshBotSettings: username => {
-      console.log('aaa refresh bot settings', username)
       set(s => {
         s.botSettings.delete(username)
       })
@@ -282,7 +281,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             convID: Types.keyToConversationID(conversationIDKey),
             username,
           })
-          console.log('aaa bot settings', username, settings)
           set(s => {
             s.botSettings.set(username, settings)
           })
