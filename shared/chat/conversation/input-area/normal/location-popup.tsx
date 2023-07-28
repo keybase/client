@@ -19,12 +19,9 @@ const LocationPopup = (props: Props) => {
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const httpSrv = ConfigConstants.useConfigState(s => s.httpSrv)
   const location = Constants.useState(s => s.lastCoord)
-  const locationDenied = Container.useSelector(state => {
-    const locationDenied =
-      state.chat2.commandStatusMap.get(conversationIDKey)?.displayType ===
-      RPCChatTypes.UICommandStatusDisplayTyp.error
-    return locationDenied
-  })
+  const locationDenied = Constants.useContext(
+    s => s.commandStatus?.displayType == RPCChatTypes.UICommandStatusDisplayTyp.error
+  )
   const [mapLoaded, setMapLoaded] = React.useState(false)
   const dispatch = Container.useDispatch()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
@@ -44,7 +41,7 @@ const LocationPopup = (props: Props) => {
 
   React.useEffect(() => {
     let unwatch: undefined | (() => void)
-    watchPositionForMap(dispatch, conversationIDKey)
+    watchPositionForMap(conversationIDKey)
       .then(unsub => {
         unwatch = unsub
       })

@@ -26,7 +26,6 @@ export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const blockConversation = 'chat2:blockConversation'
 export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
 export const clearAttachmentView = 'chat2:clearAttachmentView'
-export const clearCommandStatusInfo = 'chat2:clearCommandStatusInfo'
 export const clearMarkAsUnread = 'chat2:clearMarkAsUnread'
 export const clearMessages = 'chat2:clearMessages'
 export const clearMetas = 'chat2:clearMetas'
@@ -90,7 +89,6 @@ export const selectedConversation = 'chat2:selectedConversation'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
-export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
@@ -208,12 +206,6 @@ export const createBlockConversation = (payload: {
 export const createClearAttachmentView = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: clearAttachmentView as typeof clearAttachmentView})
-/**
- * Clear command status info
- */
-export const createClearCommandStatusInfo = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: clearCommandStatusInfo as typeof clearCommandStatusInfo})
 /**
  * Consume a service notification that a conversation's retention policy has been updated
  */
@@ -581,13 +573,6 @@ export const createSetAttachmentViewStatus = (payload: {
   readonly last?: boolean
 }) => ({payload, type: setAttachmentViewStatus as typeof setAttachmentViewStatus})
 /**
- * Set command status info
- */
-export const createSetCommandStatusInfo = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly info: Types.CommandStatusInfo
-}) => ({payload, type: setCommandStatusInfo as typeof setCommandStatusInfo})
-/**
  * Set conversation participant info
  */
 export const createSetParticipants = (payload: {
@@ -929,7 +914,6 @@ export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ChannelSuggestionsTriggeredPayload = ReturnType<typeof createChannelSuggestionsTriggered>
 export type ClearAttachmentViewPayload = ReturnType<typeof createClearAttachmentView>
-export type ClearCommandStatusInfoPayload = ReturnType<typeof createClearCommandStatusInfo>
 export type ClearMarkAsUnreadPayload = ReturnType<typeof createClearMarkAsUnread>
 export type ClearMessagesPayload = ReturnType<typeof createClearMessages>
 export type ClearMetasPayload = ReturnType<typeof createClearMetas>
@@ -993,7 +977,6 @@ export type SelectedConversationPayload = ReturnType<typeof createSelectedConver
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetAttachmentViewStatusPayload = ReturnType<typeof createSetAttachmentViewStatus>
-export type SetCommandStatusInfoPayload = ReturnType<typeof createSetCommandStatusInfo>
 export type SetContainsLastMessagePayload = ReturnType<typeof createSetContainsLastMessage>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
@@ -1037,7 +1020,6 @@ export type Actions =
   | BlockConversationPayload
   | ChannelSuggestionsTriggeredPayload
   | ClearAttachmentViewPayload
-  | ClearCommandStatusInfoPayload
   | ClearMarkAsUnreadPayload
   | ClearMessagesPayload
   | ClearMetasPayload
@@ -1101,7 +1083,6 @@ export type Actions =
   | SendAudioRecordingPayload
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
-  | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
