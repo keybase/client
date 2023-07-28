@@ -97,13 +97,9 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
+  const setEditing = Constants.useContext(s => s.dispatch.setEditing)
   const _onEdit = () => {
-    dispatch(
-      Chat2Gen.createMessageSetEditing({
-        conversationIDKey: ownProps.conversationIDKey,
-        ordinal: ownProps.ordinal,
-      })
-    )
+    setEditing(ownProps.ordinal)
   }
   const _onExplodeNow = () => {
     dispatch(

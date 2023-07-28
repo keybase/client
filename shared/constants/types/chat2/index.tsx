@@ -195,7 +195,6 @@ export type RenderMessageType =
 export type State = {
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
   containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
-  editingMap: Map<Common.ConversationIDKey, _Message.Ordinal> // current message being edited,
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,
   messageTypeMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, RenderMessageType>> // messages types to help the thread, text is never used

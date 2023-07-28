@@ -58,7 +58,6 @@ export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
-export const messageSetEditing = 'chat2:messageSetEditing'
 export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
@@ -602,14 +601,6 @@ export const createDesktopNotification = (payload: {
   readonly body: string
 }) => ({payload, type: desktopNotification as typeof desktopNotification})
 /**
- * Start editing a message / or edit the last message / or clear editing
- */
-export const createMessageSetEditing = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal?: Types.Ordinal
-  readonly editLastUser?: string
-}) => ({payload, type: messageSetEditing as typeof messageSetEditing})
-/**
  * Submit an edit to the daemon
  */
 export const createMessageEdit = (payload: {
@@ -930,7 +921,6 @@ export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyP
 export type MessageRetryPayload = ReturnType<typeof createMessageRetry>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
-export type MessageSetEditingPayload = ReturnType<typeof createMessageSetEditing>
 export type MessageWasEditedPayload = ReturnType<typeof createMessageWasEdited>
 export type MessagesAddPayload = ReturnType<typeof createMessagesAdd>
 export type MessagesExplodedPayload = ReturnType<typeof createMessagesExploded>
@@ -1034,7 +1024,6 @@ export type Actions =
   | MessageRetryPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload
-  | MessageSetEditingPayload
   | MessageWasEditedPayload
   | MessagesAddPayload
   | MessagesExplodedPayload

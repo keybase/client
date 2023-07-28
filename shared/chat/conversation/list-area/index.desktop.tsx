@@ -147,7 +147,7 @@ const useScrolling = (
   const {conversationIDKey, requestScrollUpRef, requestScrollToBottomRef, requestScrollDownRef} = p
   const {listRef, containsLatestMessage, messageOrdinals, centeredOrdinal} = p
   const dispatch = Container.useDispatch()
-  const editingOrdinal = Container.useSelector(state => state.chat2.editingMap.get(conversationIDKey))
+  const editingOrdinal = Constants.useContext(s => s.editing)
   const loadNewerMessages = Container.useThrottledCallback(
     React.useCallback(() => {
       dispatch(Chat2Gen.createLoadNewerMessagesDueToScroll({conversationIDKey}))
@@ -528,15 +528,17 @@ const useItems = (p: {
 const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
   const {conversationIDKey, onFocusInput} = p
   const {requestScrollDownRef, requestScrollToBottomRef, requestScrollUpRef} = p
-  const {centeredOrdinal, containsLatestMessage, editingOrdinal, messageTypeMap, messageOrdinals} =
-    Container.useSelector(state => {
+  const editingOrdinal = Constants.useContext(s => s.editing)
+  const {centeredOrdinal, containsLatestMessage, messageTypeMap, messageOrdinals} = Container.useSelector(
+    state => {
       const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
       const messageTypeMap = state.chat2.messageTypeMap.get(conversationIDKey)
       const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal
       const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
-      const editingOrdinal = state.chat2.editingMap.get(conversationIDKey)
-      return {centeredOrdinal, containsLatestMessage, editingOrdinal, messageOrdinals, messageTypeMap}
-    }, shallowEqual)
+      return {centeredOrdinal, containsLatestMessage, messageOrdinals, messageTypeMap}
+    },
+    shallowEqual
+  )
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const {isLockedToBottom, scrollToBottom, setListRef, pointerWrapperRef} = useScrolling({

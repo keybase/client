@@ -9,7 +9,7 @@ import * as Types from '../types/chat2'
 import * as Z from '../../util/zustand'
 import * as RouterConstants from '../router2'
 import * as TeamsConstants from '../teams'
-import {useConfigState} from '../config'
+import {useConfigState, useCurrentUserState} from '../config'
 import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
@@ -31,29 +31,30 @@ type ConvoStore = {
   id: Types.ConversationIDKey
   // temp cache for requestPayment and sendPayment message data,
   accountsInfoMap: Map<RPCChatTypes.MessageID, Types.ChatRequestInfo | Types.ChatPaymentInfo>
+  badge: number
   botCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
   botSettings: Map<string, RPCTypes.TeamBotSettings | undefined>
   botTeamRoleMap: Map<string, TeamsTypes.TeamRoleType | undefined>
-  badge: number
   commandMarkdown?: RPCChatTypes.UICommandMarkdown
   commandStatus?: Types.CommandStatusInfo
   dismissedInviteBanners: boolean
   draft?: string
-  explodingModeLock?: number // locks set on exploding mode while user is inputting text,
+  editing: Types.Ordinal // current message being edited,
   explodingMode: number // seconds to exploding message expiration,
+  explodingModeLock?: number // locks set on exploding mode while user is inputting text,
   giphyResult?: RPCChatTypes.GiphySearchResults
   giphyWindow: boolean
   markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   muted: boolean
   mutualTeams: Array<TeamsTypes.TeamID>
+  replyTo: Types.Ordinal
+  threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp
+  threadSearchInfo: Types.ThreadSearchInfo
+  threadSearchQuery: string
   typing: Set<string>
   unfurlPrompt: Map<Types.MessageID, Set<string>>
   unread: number
   unsentText?: string
-  threadSearchInfo: Types.ThreadSearchInfo
-  threadSearchQuery: string
-  replyTo: Types.Ordinal
-  threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp
 }
 
 const initialConvoStore: ConvoStore = {
@@ -66,6 +67,7 @@ const initialConvoStore: ConvoStore = {
   commandStatus: undefined,
   dismissedInviteBanners: false,
   draft: undefined,
+  editing: 0,
   explodingMode: 0,
   explodingModeLock: undefined,
   giphyResult: undefined,
@@ -116,6 +118,7 @@ export type ConvoState = ConvoStore & {
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
     setDraft: (d?: string) => void
+    setEditing: (ordinal: Types.Ordinal | boolean) => void // true is last, false is clear
     setExplodingModeLocked: (locked: boolean) => void
     setMuted: (m: boolean) => void
     // false to clear
@@ -134,6 +137,7 @@ export type ConvoState = ConvoStore & {
     botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
   }
   getExplodingMode: () => number
+  getEditInfo: () => {exploded: boolean; ordinal: Types.Ordinal; text: string} | undefined
 }
 
 // don't bug the users with black bars for network errors. chat isn't going to work in general
@@ -378,6 +382,57 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.draft = d
       })
+    },
+    setEditing: _ordinal => {
+      // clearing
+      if (_ordinal === false) {
+        set(s => {
+          s.editing = 0
+        })
+        get().dispatch.resetUnsentText()
+        return
+      }
+
+      const state = getReduxState()
+      const conversationIDKey = get().id
+
+      const messageMap = state.chat2.messageMap.get(conversationIDKey)
+
+      let ordinal = 0
+      // Editing last message
+      if (_ordinal === true) {
+        const editLastUser = useCurrentUserState.getState().username
+        // Editing your last message
+        const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
+        const found = findLast(ordinals, o => {
+          const message = messageMap?.get(o)
+          return !!(
+            (message?.type === 'text' || message?.type === 'attachment') &&
+            message.author === editLastUser &&
+            !message.exploded &&
+            message.isEditable
+          )
+        })
+        if (!found) return
+        ordinal = found
+      } else {
+        ordinal = _ordinal
+      }
+
+      if (!ordinal) {
+        return
+      }
+      const message = messageMap?.get(ordinal)
+      if (message?.type === 'text' || message?.type === 'attachment') {
+        set(s => {
+          s.editing = ordinal
+        })
+        if (message.type === 'text') {
+          get().dispatch.setUnsentText(message.text.stringValue())
+        } else if (message.type === 'attachment') {
+          get().dispatch.setUnsentText(message.title)
+        }
+      }
     },
     setExplodingMode: (seconds, incoming) => {
       set(s => {
@@ -720,6 +775,26 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   return {
     ...initialConvoStore,
     dispatch,
+    getEditInfo: () => {
+      const ordinal = get().editing
+      if (!ordinal) {
+        return
+      }
+
+      const id = get().id
+      const message = Common.getMessage(getReduxState(), id, ordinal)
+      if (!message) {
+        return
+      }
+      switch (message.type) {
+        case 'text':
+          return {exploded: message.exploded, ordinal, text: message.text.stringValue()}
+        case 'attachment':
+          return {exploded: message.exploded, ordinal, text: message.title}
+        default:
+          return
+      }
+    },
     getExplodingMode: (): number => {
       const mode = get().explodingModeLock ?? get().explodingMode
       const meta = Meta.getMeta(getReduxState(), get().id)

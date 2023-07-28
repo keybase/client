@@ -66,7 +66,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 export const makeState = (): Types.State => ({
   attachmentViewMap: new Map(),
   containsLatestMessageMap: new Map(),
-  editingMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
   messageMap: new Map(), // messages in a thread,
   messageOrdinals: new Map(), // ordered ordinals in a thread,

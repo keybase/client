@@ -1282,11 +1282,6 @@ const messageDelete = async (state: Container.TypedState, action: Chat2Gen.Messa
   return false
 }
 
-const clearMessageSetEditing = (_: unknown, action: Chat2Gen.MessageEditPayload) =>
-  Chat2Gen.createMessageSetEditing({
-    conversationIDKey: action.payload.conversationIDKey,
-  })
-
 const messageEdit = async (
   state: Container.TypedState,
   action: Chat2Gen.MessageEditPayload,
@@ -1302,10 +1297,10 @@ const messageEdit = async (
   if (message.type === 'text' || message.type === 'attachment') {
     // Skip if the content is the same
     if (message.type === 'text' && message.text.stringValue() === text.stringValue()) {
-      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey}))
+      Constants.getConvoState(conversationIDKey).dispatch.setEditing(false)
       return
     } else if (message.type === 'attachment' && message.title === text.stringValue()) {
-      listenerApi.dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey}))
+      Constants.getConvoState(conversationIDKey).dispatch.setEditing(false)
       return
     }
     const meta = Constants.getMeta(state, conversationIDKey)
@@ -2859,7 +2854,9 @@ const initChat = () => {
   })
   Container.listenAction(Chat2Gen.messageSendByUsernames, messageSendByUsernames)
   Container.listenAction(Chat2Gen.messageEdit, messageEdit)
-  Container.listenAction(Chat2Gen.messageEdit, clearMessageSetEditing)
+  Container.listenAction(Chat2Gen.messageEdit, (_, action) => {
+    Constants.getConvoState(action.payload.conversationIDKey).dispatch.setEditing(false)
+  })
   Container.listenAction(Chat2Gen.messageDelete, messageDelete)
   Container.listenAction(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)

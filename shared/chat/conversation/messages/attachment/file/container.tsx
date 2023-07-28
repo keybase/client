@@ -22,10 +22,7 @@ const missingMessage = Constants.makeMessageAttachment({})
 const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const isEditing = Container.useSelector(state => {
-    const editInfo = Constants.getEditInfo(state, conversationIDKey)
-    return editInfo?.ordinal === ordinal
-  })
+  const isEditing = Constants.useContext(s => !!s.editing)
 
   const {fileType, downloadPath, transferState, transferErrMsg, fileName} = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage

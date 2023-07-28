@@ -150,7 +150,8 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const paymentStatusMap = Constants.useState(s => s.paymentStatusMap)
   const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
-  return Container.useSelector(state => {
+  const isEditing = Constants.useContext(s => s.editing === ordinal)
+  const d = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const {exploded, submitState, author, id, botUsername} = m
     const youSent = m.author === you && m.ordinal !== m.id
@@ -158,7 +159,6 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const isPendingPayment = Constants.isPendingPaymentMessage(accountsInfoMap, m)
     const decorate = !exploded && !m.errorReason
     const type = m.type
-    const isEditing = state.chat2.editingMap.get(conversationIDKey) === ordinal
     const isShowingUploadProgressBar = you === author && m.type === 'attachment' && m.inlineVideoPlayable
     const showSendIndicator =
       !!submitState && !exploded && you === author && id !== ordinal && !isShowingUploadProgressBar
@@ -176,7 +176,6 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
       ecrType,
       exploding,
       hasReactions,
-      isEditing,
       isPendingPayment,
       reactionsPopupPosition,
       showCoinsIcon,
@@ -188,6 +187,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
       youSent,
     }
   }, shallowEqual)
+  return {...d, isEditing}
 }
 
 type TSProps = {
@@ -329,9 +329,10 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
   const onCancel = React.useCallback(() => {
     dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
   }, [dispatch, conversationIDKey, ordinal])
+  const setEditing = Constants.useContext(s => s.dispatch.setEditing)
   const onEdit = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal}))
-  }, [dispatch, conversationIDKey, ordinal])
+    setEditing(ordinal)
+  }, [setEditing, ordinal])
   const onRetry = React.useCallback(() => {
     outboxID && dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
   }, [dispatch, conversationIDKey, outboxID])
