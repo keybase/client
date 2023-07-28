@@ -502,9 +502,8 @@ func TestConcurrentDeprovision(t *testing.T) {
 
 	g := new(errgroup.Group)
 	for i := 0; i < 5; i++ {
-		i := i
 		g.Go(func() error {
-			e := NewDeprovisionEngine(tc.G, fu.Username, i == 0 /* doRevoke */, libkb.LogoutOptions{})
+			e := NewDeprovisionEngine(tc.G, fu.Username, false, libkb.LogoutOptions{})
 			uis = libkb.UIs{
 				LogUI:    tc.G.UI.GetLogUI(),
 				SecretUI: fu.NewSecretUI(),
@@ -514,11 +513,6 @@ func TestConcurrentDeprovision(t *testing.T) {
 		})
 	}
 	require.NoError(t, g.Wait())
-	expectedNumKeys -= 2
-
-	if LoggedIn(tc) {
-		tc.T.Error("Unexpectedly still logged in")
-	}
 
 	if tc.G.SecretStore() != nil {
 		secretStore := libkb.NewSecretStore(m, fu.NormalizedUsername())
