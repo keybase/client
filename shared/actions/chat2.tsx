@@ -874,44 +874,6 @@ const onChatConvUpdate = (
   return []
 }
 
-const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType).reduce<Array<RPCChatTypes.MessageType>>(
-  (arr, key) => {
-    switch (key) {
-      case 'none':
-      case 'edit': // daemon filters this out for us so we can ignore
-      case 'delete':
-      case 'attachmentuploaded':
-      case 'reaction':
-      case 'unfurl':
-      case 'tlfname':
-        break
-      default:
-        {
-          const val = RPCChatTypes.MessageType[key as any]
-          if (typeof val === 'number') {
-            arr.push(val)
-          }
-        }
-        break
-    }
-
-    return arr
-  },
-  []
-)
-
-const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
-  switch (reason) {
-    case 'extension':
-    case 'push':
-      return RPCChatTypes.GetThreadReason.push
-    case 'foregrounding':
-      return RPCChatTypes.GetThreadReason.foreground
-    default:
-      return RPCChatTypes.GetThreadReason.general
-  }
-}
-
 type ScrollDirection = 'none' | 'back' | 'forward'
 
 const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
@@ -1147,9 +1109,9 @@ const loadMoreMessages = (
               enableDeletePlaceholders: true,
               markAsRead: false,
               messageIDControl,
-              messageTypes: loadThreadMessageTypes,
+              messageTypes: Constants.loadThreadMessageTypes,
             },
-            reason: reasonToRPCReason(reason),
+            reason: Constants.reasonToRPCReason(reason),
           },
           waitingKey: loadingKey,
         },
@@ -1219,13 +1181,9 @@ const getUnreadline = async (
         messageID: Types.numberToMessageID(unreadlineID),
       })
     )
-    if (state.chat2.markedAsUnreadMap.get(conversationIDKey)) {
-      listenerApi.dispatch(
-        // Remove the force unread bit for the next time we view the thread.
-        Chat2Gen.createClearMarkAsUnread({
-          conversationIDKey,
-        })
-      )
+    if (Constants.getConvoState(conversationIDKey).markedAsUnread) {
+      // Remove the force unread bit for the next time we view the thread.
+      Constants.getConvoState(conversationIDKey).dispatch.setMarkAsUnread(false)
     }
   } catch (error) {
     if (error instanceof RPCError) {
@@ -2000,105 +1958,6 @@ const markThreadAsRead = (
     })
   }
   Z.ignorePromise(f())
-}
-
-const markAsUnread = async (
-  state: Container.TypedState,
-  action: Chat2Gen.MarkAsUnreadPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    logger.info('bail on not logged in')
-    return
-  }
-  const {conversationIDKey, readMsgID} = action.payload
-  const meta = state.chat2.metaMap.get(conversationIDKey)
-  const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxVisibleMsgID : 0
-  let msgID = unreadLineID
-
-  // Find first visible message prior to what we have marked as unread. The
-  // server will use this value to calculate our badge state.
-  const messageMap = state.chat2.messageMap.get(conversationIDKey)
-
-  if (messageMap) {
-    const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
-    const ord =
-      messageMap &&
-      findLast([...ordinals], (o: Types.Ordinal) => {
-        const message = messageMap.get(o)
-        return !!(message && message.id < unreadLineID)
-      })
-    const message = ord ? messageMap?.get(ord) : undefined
-    if (message) {
-      msgID = message.id
-    }
-  } else {
-    const pagination = {
-      last: false,
-      next: '',
-      num: 2, // we need 2 items
-      previous: '',
-    }
-    try {
-      await new Promise<void>(resolve => {
-        const onGotThread = (p: any) => {
-          try {
-            const d = JSON.parse(p)
-            msgID = d?.messages[1]?.valid?.messageID
-            resolve()
-          } catch {}
-        }
-        RPCChatTypes.localGetThreadNonblockRpcListener(
-          {
-            incomingCallMap: {
-              'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
-              'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
-            },
-            params: {
-              cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
-              conversationID: Types.keyToConversationID(conversationIDKey),
-              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-              knownRemotes: [],
-              pagination,
-              pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
-              query: {
-                disablePostProcessThread: false,
-                disableResolveSupersedes: false,
-                enableDeletePlaceholders: true,
-                markAsRead: false,
-                messageIDControl: null,
-                messageTypes: loadThreadMessageTypes,
-              },
-              reason: reasonToRPCReason(''),
-            },
-          },
-          listenerApi
-        )
-          .then(() => {})
-          .catch(() => {
-            resolve()
-          })
-      })
-    } catch {}
-  }
-
-  if (!msgID) {
-    logger.info(`marking unread messages ${conversationIDKey} failed due to no id`)
-    return
-  }
-
-  logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
-  RPCChatTypes.localMarkAsReadLocalRpcPromise({
-    conversationID: Types.keyToConversationID(conversationIDKey),
-    forceUnread: true,
-    msgID,
-  })
-    .then(() => {})
-    .catch(() => {})
-  return Chat2Gen.createUpdateUnreadline({
-    conversationIDKey,
-    messageID: unreadLineID,
-  })
 }
 
 const markTeamAsRead = async (_: unknown, action: Chat2Gen.MarkTeamAsReadPayload) => {
@@ -3063,7 +2922,6 @@ const initChat = () => {
     (_, a) => markThreadAsRead(a)
   )
   Container.listenAction(Chat2Gen.markTeamAsRead, markTeamAsRead)
-  Container.listenAction(Chat2Gen.markAsUnread, markAsUnread)
   Container.listenAction(Chat2Gen.leaveConversation, () => {
     RouterConstants.useState.getState().dispatch.clearModals()
   })

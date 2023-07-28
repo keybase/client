@@ -339,16 +339,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       orangeLineMap.delete(action.payload.conversationIDKey)
     }
   },
-  [Chat2Gen.markAsUnread]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {markedAsUnreadMap} = draftState
-    markedAsUnreadMap.set(conversationIDKey, true)
-  },
-  [Chat2Gen.clearMarkAsUnread]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {markedAsUnreadMap} = draftState
-    markedAsUnreadMap.delete(conversationIDKey)
-  },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser} = action.payload
     const {editingMap, messageOrdinals} = draftState

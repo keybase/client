@@ -108,13 +108,9 @@ export default (ownProps: OwnProps) => {
   const _onKick = (teamID: TeamTypes.TeamID, username: string) => {
     navigateAppend({props: {members: [username], teamID}, selected: 'teamReallyRemoveMember'})
   }
+  const setMarkAsUnread = Constants.useContext(s => s.dispatch.setMarkAsUnread)
   const _onMarkAsUnread = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createMarkAsUnread({
-        conversationIDKey: message.conversationIDKey,
-        readMsgID: message.id,
-      })
-    )
+    setMarkAsUnread(message.id)
   }
   const _onPinMessage = (message: Types.Message) => {
     dispatch(
