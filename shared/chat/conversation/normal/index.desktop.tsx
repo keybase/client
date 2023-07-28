@@ -66,7 +66,7 @@ class Conversation extends React.PureComponent<Props> {
               conversationIDKey={this.props.conversationIDKey}
             />
             <Kb.Box2 direction="vertical" fullWidth={true} style={{left: 0, position: 'absolute', top: 0}}>
-              <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
+              <ThreadLoadStatus />
               {!this.props.showThreadSearch && (
                 <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
               )}
@@ -114,7 +114,7 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute' as const,
         top: 0,
       },
-    } as const)
+    }) as const
 )
 
 export default Conversation

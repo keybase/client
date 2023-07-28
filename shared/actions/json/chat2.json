@@ -509,11 +509,6 @@
       "messageID": "Types.MessageID",
       "ordinal": "Types.Ordinal"
     },
-    "setCommandMarkdown": {
-      "_description": "Set command markdown for a conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "md?": "RPCChatTypes.UICommandMarkdown"
-    },
     "addUsersToChannel": {
       "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -577,11 +572,6 @@
     "clearCommandStatusInfo": {
       "_description": "Clear command status info",
       "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "setThreadLoadStatus": {
-      "_description": "Set thread load status",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "status": "RPCChatTypes.UIChatThreadStatus"
     },
     "pinMessage": {
       "_description": "Pin a message",

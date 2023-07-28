@@ -65,7 +65,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
   attachmentViewMap: new Map(),
-  commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),
   containsLatestMessageMap: new Map(),
   editingMap: new Map(),
@@ -79,7 +78,6 @@ export const makeState = (): Types.State => ({
   orangeLineMap: new Map(), // last message we've seen,
   participantMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
-  threadLoadStatus: new Map(),
 })
 
 export const inboxSearchMaxTextMessages = 25

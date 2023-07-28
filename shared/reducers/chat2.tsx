@@ -279,7 +279,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.selectedConversation]: (draftState, action) => {
     const {conversationIDKey} = action.payload
-    const {threadLoadStatus, containsLatestMessageMap, orangeLineMap} = draftState
+    const {containsLatestMessageMap, orangeLineMap} = draftState
     const {metaMap, messageCenterOrdinals} = draftState
 
     if (conversationIDKey) {
@@ -320,7 +320,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       meta.draft = ''
     }
     messageCenterOrdinals.delete(conversationIDKey)
-    threadLoadStatus.delete(conversationIDKey)
+    Constants.getConvoState(conversationIDKey).dispatch.setThreadLoadStatus(
+      RPCChatTypes.UIChatThreadStatusTyp.none
+    )
     containsLatestMessageMap.set(conversationIDKey, true)
     if (Constants.isValidConversationIDKey(conversationIDKey)) {
       // If navigating away from error conversation to a valid conv - clear
@@ -346,26 +348,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey} = action.payload
     const {markedAsUnreadMap} = draftState
     markedAsUnreadMap.delete(conversationIDKey)
-  },
-  [Chat2Gen.messageSend]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {commandMarkdownMap} = draftState
-    commandMarkdownMap.delete(conversationIDKey)
-    Constants.getConvoState(conversationIDKey).dispatch.setReplyTo(0)
-  },
-  [Chat2Gen.setCommandMarkdown]: (draftState, action) => {
-    const {conversationIDKey, md} = action.payload
-    const {commandMarkdownMap} = draftState
-    if (md) {
-      commandMarkdownMap.set(conversationIDKey, md)
-    } else {
-      commandMarkdownMap.delete(conversationIDKey)
-    }
-  },
-  [Chat2Gen.setThreadLoadStatus]: (draftState, action) => {
-    const {conversationIDKey, status} = action.payload
-    const {threadLoadStatus} = draftState
-    threadLoadStatus.set(conversationIDKey, status)
   },
   [Chat2Gen.setCommandStatusInfo]: (draftState, action) => {
     const {conversationIDKey, info} = action.payload

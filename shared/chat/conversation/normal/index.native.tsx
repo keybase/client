@@ -44,7 +44,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
   const innerComponent = (
     <Kb.BoxGrow onLayout={onLayout}>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
-        <ThreadLoadStatus conversationIDKey={conversationIDKey} />
+        <ThreadLoadStatus />
         <PinnedMessage conversationIDKey={conversationIDKey} />
         <ListArea
           requestScrollToBottomRef={props.requestScrollToBottomRef}

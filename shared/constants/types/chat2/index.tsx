@@ -195,7 +195,6 @@ export type RenderMessageType =
 
 export type State = {
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
-  commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
   editingMap: Map<Common.ConversationIDKey, _Message.Ordinal> // current message being edited,
@@ -209,7 +208,6 @@ export type State = {
   markedAsUnreadMap: Map<Common.ConversationIDKey, boolean> // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
   pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
-  threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
 }
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>

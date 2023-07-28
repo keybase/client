@@ -33,6 +33,7 @@ type ConvoStore = {
   botSettings: Map<string, RPCTypes.TeamBotSettings | undefined>
   botTeamRoleMap: Map<string, TeamsTypes.TeamRoleType | undefined>
   badge: number
+  commandMarkdown?: RPCChatTypes.UICommandMarkdown
   dismissedInviteBanners: boolean
   draft?: string
   explodingModeLock?: number // locks set on exploding mode while user is inputting text,
@@ -48,6 +49,7 @@ type ConvoStore = {
   threadSearchInfo: Types.ThreadSearchInfo
   threadSearchQuery: string
   replyTo: Types.Ordinal
+  threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp
 }
 
 const initialConvoStore: ConvoStore = {
@@ -56,6 +58,7 @@ const initialConvoStore: ConvoStore = {
   botCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank,
   botSettings: new Map(),
   botTeamRoleMap: new Map(),
+  commandMarkdown: undefined,
   dismissedInviteBanners: false,
   draft: undefined,
   explodingMode: 0,
@@ -66,6 +69,7 @@ const initialConvoStore: ConvoStore = {
   muted: false,
   mutualTeams: [],
   replyTo: 0,
+  threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp.none,
   threadSearchInfo: makeThreadSearchInfo(),
   threadSearchQuery: '',
   typing: new Set(),
@@ -103,10 +107,12 @@ export type ConvoState = ConvoStore & {
     resetState: 'default'
     resetUnsentText: () => void
     setExplodingMode: (seconds: number, incoming?: boolean) => void
+    setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setDraft: (d?: string) => void
     setExplodingModeLocked: (locked: boolean) => void
     setMuted: (m: boolean) => void
     setReplyTo: (o: Types.Ordinal) => void
+    setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
     setTyping: (t: Set<string>) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
@@ -349,6 +355,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.unsentText = undefined
       })
     },
+    setCommandMarkdown: md => {
+      set(s => {
+        s.commandMarkdown = md
+      })
+    },
     setDraft: d => {
       set(s => {
         s.draft = d
@@ -422,6 +433,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setReplyTo: o => {
       set(s => {
         s.replyTo = o
+      })
+    },
+    setThreadLoadStatus: status => {
+      set(s => {
+        s.threadLoadStatus = status
       })
     },
     setThreadSearchQuery: query => {

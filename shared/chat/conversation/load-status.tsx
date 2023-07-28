@@ -1,9 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Styles from '../../styles'
-import type * as Types from '../../constants/types/chat2'
+import * as Constants from '../../constants/chat2'
 
 const ValidatedStatus = () => {
   const [visible, setVisible] = React.useState(true)
@@ -22,8 +21,8 @@ const ValidatedStatus = () => {
   ) : null
 }
 
-const getBkgColor = (status: RPCChatTypes.UIChatThreadStatus) => {
-  switch (status.typ) {
+const getBkgColor = (status: RPCChatTypes.UIChatThreadStatusTyp) => {
+  switch (status) {
     case RPCChatTypes.UIChatThreadStatusTyp.validated:
       return 'green'
     default:
@@ -31,15 +30,13 @@ const getBkgColor = (status: RPCChatTypes.UIChatThreadStatus) => {
   }
 }
 
-const ThreadLoadStatus = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
+const ThreadLoadStatus = () => {
+  const status = Constants.useContext(s => s.threadLoadStatus)
 
-  const status = Container.useSelector(state => state.chat2.threadLoadStatus.get(conversationIDKey))
-
-  if (!status || status.typ === RPCChatTypes.UIChatThreadStatusTyp.none) {
+  if (status === RPCChatTypes.UIChatThreadStatusTyp.none) {
     return null
   }
-  switch (status.typ) {
+  switch (status) {
     case RPCChatTypes.UIChatThreadStatusTyp.server:
       return (
         <Kb.Banner color={getBkgColor(status)} small={true} style={styles.banner}>
@@ -63,7 +60,7 @@ const styles = Styles.styleSheetCreate(
       banner: {
         padding: Styles.globalMargins.xxtiny,
       },
-    } as const)
+    }) as const
 )
 
 export default ThreadLoadStatus
