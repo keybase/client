@@ -2923,54 +2923,6 @@ const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButt
   }
 }
 
-const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  RouterConstants.useState.getState().dispatch.clearModals()
-  const meta = state.chat2.metaMap.get(conversationIDKey)
-  if (meta?.teamname) {
-    TeamsConstants.useState.getState().dispatch.getMembers(meta.teamID)
-  }
-}
-
-const addBotMember = async (state: Container.TypedState, action: Chat2Gen.AddBotMemberPayload) => {
-  const {allowCommands, allowMentions, conversationIDKey, convs, username} = action.payload
-  try {
-    await RPCChatTypes.localAddBotMemberRpcPromise(
-      {
-        botSettings: action.payload.restricted ? {cmds: allowCommands, convs, mentions: allowMentions} : null,
-        convID: Types.keyToConversationID(conversationIDKey),
-        role: action.payload.restricted ? RPCTypes.TeamRole.restrictedbot : RPCTypes.TeamRole.bot,
-        username,
-      },
-      Constants.waitingKeyBotAdd
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info('addBotMember: failed to add bot member: ' + error.message)
-    }
-    return false
-  }
-  return closeBotModal(state, conversationIDKey)
-}
-
-const removeBotMember = async (state: Container.TypedState, action: Chat2Gen.RemoveBotMemberPayload) => {
-  const {conversationIDKey, username} = action.payload
-  try {
-    await RPCChatTypes.localRemoveBotMemberRpcPromise(
-      {
-        convID: Types.keyToConversationID(conversationIDKey),
-        username,
-      },
-      Constants.waitingKeyBotRemove
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info('removeBotMember: failed to remove bot member: ' + error.message)
-    }
-    return false
-  }
-  return closeBotModal(state, conversationIDKey)
-}
-
 const maybeChangeChatSelection = (
   prev: RouterConstants.State['navState'],
   next: RouterConstants.State['navState']
@@ -3134,10 +3086,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.previewConversation, previewConversationTeam)
   Container.listenAction(Chat2Gen.previewConversation, previewConversationPersonMakesAConversation)
   Container.listenAction(Chat2Gen.openFolder, openFolder)
-
-  // bots
-  Container.listenAction(Chat2Gen.addBotMember, addBotMember)
-  Container.listenAction(Chat2Gen.removeBotMember, removeBotMember)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase === old.loadOnStartPhase) return

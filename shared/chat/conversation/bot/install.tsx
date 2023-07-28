@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as BotsConstants from '../../../constants/bots'
 import * as RouterConstants from '../../../constants/router2'
@@ -105,9 +104,9 @@ const InstallBotPopup = (props: Props) => {
   const {channelMetas} = useAllChannelMetas(teamID)
   const error = Container.useAnyErrors([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
   // dispatch
-  const dispatch = Container.useDispatch()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const addBotMember = Constants.useContext(s => s.dispatch.addBotMember)
   const onClose = () => {
     Styles.isMobile ? navigateUp() : clearModals()
   }
@@ -125,16 +124,7 @@ const InstallBotPopup = (props: Props) => {
     if (!conversationIDKey) {
       return
     }
-    dispatch(
-      Chat2Gen.createAddBotMember({
-        allowCommands: installWithCommands,
-        allowMentions: installWithMentions,
-        conversationIDKey,
-        convs: installInConvs,
-        restricted: installWithRestrict,
-        username: botUsername,
-      })
-    )
+    addBotMember(botUsername, installWithCommands, installWithMentions, installWithRestrict, installInConvs)
   }
   const editBotSettings = Constants.useContext(s => s.dispatch.editBotSettings)
   const onEdit = () => {

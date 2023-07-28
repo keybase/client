@@ -623,20 +623,6 @@
       "path": "string",
       "amps": "Array<number>"
     },
-    "addBotMember": {
-      "_description": "add bot member to channel",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "convs?": "Array<string>",
-      "allowCommands": "boolean",
-      "allowMentions": "boolean",
-      "username": "string",
-      "restricted": "boolean"
-    },
-    "removeBotMember": {
-      "_description": "remove a bot member",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string"
-    },
     "setParticipants": {
       "_description": "Set conversation participant info",
       "participants": "Array<{conversationIDKey: Types.ConversationIDKey, participants: Types.ParticipantInfo}>"

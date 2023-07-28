@@ -66,6 +66,14 @@ const initialConvoStore: ConvoStore = {
 }
 export type ConvoState = ConvoStore & {
   dispatch: {
+    addBotMember: (
+      username: string,
+      allowCommands: boolean,
+      allowMentions: boolean,
+      restricted: boolean,
+      convs?: Array<string>
+    ) => void
+    removeBotMember: (username: string) => void
     badgesUpdated: (badge: number) => void
     dismissBottomBanner: () => void
     editBotSettings: (
@@ -114,6 +122,30 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
   }
   const dispatch: ConvoState['dispatch'] = {
+    addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
+      const f = async () => {
+        const Constants = await import('./index')
+        const conversationIDKey = get().id
+        try {
+          await RPCChatTypes.localAddBotMemberRpcPromise(
+            {
+              botSettings: restricted ? {cmds: allowCommands, convs, mentions: allowMentions} : null,
+              convID: Types.keyToConversationID(conversationIDKey),
+              role: restricted ? RPCTypes.TeamRole.restrictedbot : RPCTypes.TeamRole.bot,
+              username,
+            },
+            Constants.waitingKeyBotAdd
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info('addBotMember: failed to add bot member: ' + error.message)
+          }
+          return
+        }
+        await closeBotModal()
+      }
+      Z.ignorePromise(f())
+    },
     badgesUpdated: badge => {
       set(s => {
         s.badge = badge
@@ -278,6 +310,21 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         set(s => {
           s.mutualTeams = results.teamIDs ?? []
         })
+      }
+      Z.ignorePromise(f())
+    },
+    removeBotMember: username => {
+      const f = async () => {
+        const Constants = await import('./index')
+        const convID = Types.keyToConversationID(get().id)
+        try {
+          await RPCChatTypes.localRemoveBotMemberRpcPromise({convID, username}, Constants.waitingKeyBotRemove)
+          await closeBotModal()
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info('removeBotMember: failed to remove bot member: ' + error.message)
+          }
+        }
       }
       Z.ignorePromise(f())
     },
