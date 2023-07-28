@@ -65,7 +65,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
   attachmentViewMap: new Map(),
-  commandStatusMap: new Map(),
   containsLatestMessageMap: new Map(),
   editingMap: new Map(),
   markedAsUnreadMap: new Map(), // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away

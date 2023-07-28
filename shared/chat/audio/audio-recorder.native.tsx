@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/chat2'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Kb from '../../common-adapters'
 import * as KbMobile from '../../common-adapters/mobile.native'
@@ -411,6 +412,7 @@ const useRecorder = (p: {
     setStaged(false)
     setShowAudioSend(false)
   }, [setStaged, ampTracker, stopRecording, setShowAudioSend])
+  const setCommandStatusInfo = Constants.useContext(s => s.dispatch.setCommandStatusInfo)
 
   const startRecording = React.useCallback(() => {
     // calls of this never handle the promise so just handle it here
@@ -428,16 +430,11 @@ const useRecorder = (p: {
       } catch (_error) {
         const error = _error as {message: string}
         logger.info('failed to get audio perms: ' + error.message)
-        dispatch(
-          Chat2Gen.createSetCommandStatusInfo({
-            conversationIDKey,
-            info: {
-              actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
-              displayText: `Failed to access audio. ${error.message}`,
-              displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
-            },
-          })
-        )
+        setCommandStatusInfo({
+          actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
+          displayText: `Failed to access audio. ${error.message}`,
+          displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
+        })
       }
       return false
     }
@@ -482,7 +479,7 @@ const useRecorder = (p: {
           .catch(() => {})
       })
     return
-  }, [ampTracker, conversationIDKey, dispatch, onReset, ampSV])
+  }, [setCommandStatusInfo, ampTracker, onReset, ampSV])
 
   const sendRecording = React.useCallback(() => {
     const impl = async () => {

@@ -2754,18 +2754,6 @@ const onGiphyToggleWindow = (_: unknown, action: EngineGen.Chat1ChatUiChatGiphyT
   Constants.getConvoState(Types.stringToConversationIDKey(convID)).dispatch.giphyToggleWindow(show)
 }
 
-const onChatCommandStatus = (_: unknown, action: EngineGen.Chat1ChatUiChatCommandStatusPayload) => {
-  const {convID, displayText, typ, actions} = action.payload.params
-  return Chat2Gen.createSetCommandStatusInfo({
-    conversationIDKey: Types.stringToConversationIDKey(convID),
-    info: {
-      actions: actions || [],
-      displayText,
-      displayType: typ,
-    },
-  })
-}
-
 const resolveMaybeMention = async (_: unknown, action: Chat2Gen.ResolveMaybeMentionPayload) => {
   await RPCChatTypes.localResolveMaybeMentionRpcPromise({
     mention: {channel: action.payload.channel, name: action.payload.name},
@@ -3170,7 +3158,15 @@ const initChat = () => {
     const conversationIDKey = Types.stringToConversationIDKey(convID)
     Constants.getConvoState(conversationIDKey).dispatch.setCommandMarkdown(md || undefined)
   })
-  Container.listenAction(EngineGen.chat1ChatUiChatCommandStatus, onChatCommandStatus)
+  Container.listenAction(EngineGen.chat1ChatUiChatCommandStatus, (_, action) => {
+    const {convID, displayText, typ, actions} = action.payload.params
+    const conversationIDKey = Types.stringToConversationIDKey(convID)
+    Constants.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+      actions: actions || [],
+      displayText,
+      displayType: typ,
+    })
+  })
   Container.listenAction(EngineGen.chat1ChatUiChatMaybeMentionUpdate, (_, action) => {
     const {teamName, channel, info} = action.payload.params
     Constants.useState
