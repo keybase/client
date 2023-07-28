@@ -93,10 +93,8 @@ export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
-export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
-export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setParticipants = 'chat2:setParticipants'
 export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
@@ -110,7 +108,6 @@ export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
-export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
@@ -304,12 +301,6 @@ export const createMetasReceived = (payload: {
   readonly removals?: Array<Types.ConversationIDKey>
   readonly fromInboxRefresh?: boolean
 }) => ({payload, type: metasReceived as typeof metasReceived})
-/**
- * Handle an update to our conversation exploding modes.
- */
-export const createUpdateConvExplodingModes = (payload: {
-  readonly modes: Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>
-}) => ({payload, type: updateConvExplodingModes as typeof updateConvExplodingModes})
 /**
  * Hide a conversation until future activity
  */
@@ -583,13 +574,6 @@ export const createMarkConversationsStale = (payload: {
   readonly updateType: RPCChatTypes.StaleUpdateType
 }) => ({payload, type: markConversationsStale as typeof markConversationsStale})
 /**
- * Set a lock on the exploding mode for a conversation.
- */
-export const createSetExplodingModeLock = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly unset?: boolean
-}) => ({payload, type: setExplodingModeLock as typeof setExplodingModeLock})
-/**
  * Set attachment view status
  */
 export const createSetAttachmentViewStatus = (payload: {
@@ -628,13 +612,6 @@ export const createSetMinWriterRole = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly role: TeamsTypes.TeamRoleType
 }) => ({payload, type: setMinWriterRole as typeof setMinWriterRole})
-/**
- * Set the remote exploding mode for a conversation.
- */
-export const createSetConvExplodingMode = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly seconds: number
-}) => ({payload, type: setConvExplodingMode as typeof setConvExplodingMode})
 /**
  * Set thread load status
  */
@@ -1035,10 +1012,8 @@ export type SetAttachmentViewStatusPayload = ReturnType<typeof createSetAttachme
 export type SetCommandMarkdownPayload = ReturnType<typeof createSetCommandMarkdown>
 export type SetCommandStatusInfoPayload = ReturnType<typeof createSetCommandStatusInfo>
 export type SetContainsLastMessagePayload = ReturnType<typeof createSetContainsLastMessage>
-export type SetConvExplodingModePayload = ReturnType<typeof createSetConvExplodingMode>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
-export type SetExplodingModeLockPayload = ReturnType<typeof createSetExplodingModeLock>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
 export type SetThreadLoadStatusPayload = ReturnType<typeof createSetThreadLoadStatus>
@@ -1052,7 +1027,6 @@ export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePr
 export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
-export type UpdateConvExplodingModesPayload = ReturnType<typeof createUpdateConvExplodingModes>
 export type UpdateConvRetentionPolicyPayload = ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateMessagesPayload = ReturnType<typeof createUpdateMessages>
 export type UpdateMoreToLoadPayload = ReturnType<typeof createUpdateMoreToLoad>
@@ -1148,10 +1122,8 @@ export type Actions =
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload
-  | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
-  | SetExplodingModeLockPayload
   | SetMinWriterRolePayload
   | SetParticipantsPayload
   | SetThreadLoadStatusPayload
@@ -1165,7 +1137,6 @@ export type Actions =
   | UnhideConversationPayload
   | UnpinMessagePayload
   | UnsentTextChangedPayload
-  | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMessagesPayload
   | UpdateMoreToLoadPayload

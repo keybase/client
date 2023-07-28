@@ -163,12 +163,7 @@ const useUnsentText = (
   prevStoreUnsentText.current = storeUnsentText
 
   const dispatch = Container.useDispatch()
-  const onSetExplodingModeLock = React.useCallback(
-    (locked: boolean) => {
-      dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: !locked}))
-    },
-    [dispatch, conversationIDKey]
-  )
+  const onSetExplodingModeLock = Constants.useContext(s => s.dispatch.setExplodingModeLock)
 
   const resetUnsentText = Constants.useContext(s => s.dispatch.resetUnsentText)
 
@@ -385,9 +380,9 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const isTyping = Constants.useContext(s => s.typing.size > 0)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const suggestBotCommandsUpdateStatus = Constants.useContext(s => s.botCommandsUpdateStatus)
+  const explodingModeSeconds = Constants.useContext(s => s.getConversationExplodingMode())
   const data = Container.useSelector(state => {
     const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
-    const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
     const cannotWrite = Constants.getMeta(state, conversationIDKey).cannotWrite
     const minWriterRole = Constants.getMeta(state, conversationIDKey).minWriterRole
     return {
@@ -397,7 +392,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
       showTypingStatus,
     }
   }, shallowEqual)
-  const {cannotWrite, explodingModeSeconds, minWriterRole, showTypingStatus} = data
+  const {cannotWrite, minWriterRole, showTypingStatus} = data
 
   Container.useDepChangeEffect(() => {
     inputRef.current?.focus()

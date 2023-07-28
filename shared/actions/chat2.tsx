@@ -1460,7 +1460,7 @@ const messageSend = async (
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
 
   // disable sending exploding messages if flag is false
-  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  const ephemeralLifetime = Constants.getConvoState(conversationIDKey).explodingMode
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
   const confirmRouteName = 'chatPaymentsConfirm'
   try {
@@ -1791,7 +1791,7 @@ const sendAudioRecording = async (
   const {conversationIDKey, amps, path, duration} = action.payload
   const outboxID = Constants.generateOutboxID()
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
-  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  const ephemeralLifetime = Constants.getConvoState(conversationIDKey).explodingMode
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
     logger.warn('sendAudioRecording: no meta for send')
@@ -1841,7 +1841,7 @@ const attachmentsUpload = async (state: Container.TypedState, action: Chat2Gen.A
   }
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   // disable sending exploding messages if flag is false
-  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  const ephemeralLifetime = Constants.getConvoState(conversationIDKey).explodingMode
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
   const outboxIDs = paths.reduce<Array<Buffer>>((obids, p) => {
     obids.push(p.outboxID ? p.outboxID : Constants.generateOutboxID())
@@ -2641,62 +2641,6 @@ const messageReplyPrivately = async (
   ]
 }
 
-// don't bug the users with black bars for network errors. chat isn't going to work in general
-const ignoreErrors = [
-  RPCTypes.StatusCode.scgenericapierror,
-  RPCTypes.StatusCode.scapinetworkerror,
-  RPCTypes.StatusCode.sctimeout,
-]
-const setConvExplodingMode = async (
-  state: Container.TypedState,
-  action: Chat2Gen.SetConvExplodingModePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey, seconds} = action.payload
-  logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
-
-  // unset a conversation exploding lock for this convo so we accept the new one
-  listenerApi.dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: true}))
-
-  const category = Constants.explodingModeGregorKey(conversationIDKey)
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const convRetention = Constants.getEffectiveRetentionPolicy(meta)
-  if (seconds === 0 || seconds === convRetention.seconds) {
-    // dismiss the category so we don't leave cruft in the push state
-    await RPCTypes.gregorDismissCategoryRpcPromise({category})
-  } else {
-    // update the category with the exploding time
-    try {
-      await RPCTypes.gregorUpdateCategoryRpcPromise({
-        body: seconds.toString(),
-        category,
-        dtime: {offset: 0, time: 0},
-      })
-      if (seconds !== 0) {
-        logger.info(`Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`)
-      } else {
-        logger.info(`Successfully unset exploding mode for conversation ${conversationIDKey}`)
-      }
-    } catch (error) {
-      if (error instanceof RPCError) {
-        if (seconds !== 0) {
-          logger.error(
-            `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${error.message}`
-          )
-        } else {
-          logger.error(
-            `Failed to unset exploding mode for conversation ${conversationIDKey}. Service responded with: ${error.message}`
-          )
-        }
-        if (ignoreErrors.includes(error.code)) {
-          return
-        }
-      }
-      throw error
-    }
-  }
-}
-
 const toggleMessageReaction = async (
   state: Container.TypedState,
   action: Chat2Gen.ToggleMessageReactionPayload
@@ -3158,8 +3102,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
   Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 
-  // Exploding things
-  Container.listenAction(Chat2Gen.setConvExplodingMode, setConvExplodingMode)
   Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {

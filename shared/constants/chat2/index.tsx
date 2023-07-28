@@ -20,7 +20,7 @@ import {
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import {getEffectiveRetentionPolicy, getMeta} from './meta'
+import {getMeta} from './meta'
 import type * as TeamBuildingTypes from '../types/team-building'
 import type {TypedState} from '../reducer'
 import * as Z from '../../util/zustand'
@@ -676,6 +676,8 @@ export type State = Store & {
   getUnreadMap: (badgeCountsChanged: number) => Map<string, number>
 }
 
+export const explodingModeGregorKeyPrefix = 'exploding:'
+
 // generic chat store
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
@@ -1296,29 +1298,27 @@ export const useState = Z.createZustand<State>((set, get) => {
       const explodingItems = items.filter(i => i.item.category.startsWith(explodingModeGregorKeyPrefix))
       if (!explodingItems.length) {
         // No conversations have exploding modes, clear out what is set
-        reduxDispatch(Chat2Gen.createUpdateConvExplodingModes({modes: []}))
+        for (const s of stores.values()) {
+          s.getState().dispatch.setExplodingMode(0, true)
+        }
       } else {
         logger.info('Got push state with some exploding modes')
-        const modes = explodingItems.reduce<
-          Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>
-        >((current, i) => {
+        explodingItems.forEach(i => {
           try {
             const {category, body} = i.item
             const secondsString = Buffer.from(body).toString()
             const seconds = parseInt(secondsString, 10)
             if (isNaN(seconds)) {
               logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
-              return current
+              return
             }
             const _conversationIDKey = category.substring(explodingModeGregorKeyPrefix.length)
             const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
-            current.push({conversationIDKey, seconds})
+            getConvoState(conversationIDKey).dispatch.setExplodingMode(seconds, true)
           } catch (e) {
             logger.info('Error parsing exploding' + e)
           }
-          return current
-        }, [])
-        reduxDispatch(Chat2Gen.createUpdateConvExplodingModes({modes}))
+        })
       }
 
       const f = async () => {

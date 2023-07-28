@@ -815,24 +815,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {moreToLoadMap} = draftState
     moreToLoadMap.set(conversationIDKey, moreToLoad)
   },
-  [Chat2Gen.updateConvExplodingModes]: (draftState, action) => {
-    const {modes} = action.payload
-    draftState.explodingModes = new Map(
-      modes.map(mode => [Types.conversationIDKeyToString(mode.conversationIDKey), mode.seconds])
-    )
-  },
-  [Chat2Gen.setExplodingModeLock]: (draftState, action) => {
-    const {conversationIDKey, unset} = action.payload
-    const {explodingModes, explodingModeLocks} = draftState
-    const mode = explodingModes.get(conversationIDKey) ?? 0
-    // we already have the new mode in `explodingModes`, if we've already locked it we shouldn't update
-    const alreadyLocked = explodingModeLocks.get(conversationIDKey) !== undefined
-    if (unset) {
-      explodingModeLocks.delete(conversationIDKey)
-    } else if (!alreadyLocked) {
-      explodingModeLocks.set(conversationIDKey, mode)
-    }
-  },
   [Chat2Gen.replyJump]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {messageCenterOrdinals} = draftState

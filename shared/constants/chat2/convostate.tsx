@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Z from '../../util/zustand'
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Meta from './meta'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import * as Types from '../types/chat2'
 import type * as TeamsTypes from '../types/teams'
@@ -30,7 +31,7 @@ type ConvoStore = {
   badge: number
   dismissedInviteBanners: boolean
   draft?: string
-  explodingModeLock: number // locks set on exploding mode while user is inputting text,
+  explodingModeLock: boolean // locks set on exploding mode while user is inputting text,
   explodingMode: number // seconds to exploding message expiration,
   giphyResult?: RPCChatTypes.GiphySearchResults
   giphyWindow: boolean
@@ -53,6 +54,8 @@ const initialConvoStore: ConvoStore = {
   botTeamRoleMap: new Map(),
   dismissedInviteBanners: false,
   draft: undefined,
+  explodingMode: 0,
+  explodingModeLock: false,
   giphyResult: undefined,
   giphyWindow: false,
   id: noConversationIDKey,
@@ -95,7 +98,9 @@ export type ConvoState = ConvoStore & {
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetState: 'default'
     resetUnsentText: () => void
+    setExplodingMode: (seconds: number, incoming?: boolean) => void
     setDraft: (d?: string) => void
+    setExplodingModeLock: (locked: boolean) => void
     setMuted: (m: boolean) => void
     setReplyTo: (o: Types.Ordinal) => void
     setTyping: (t: Set<string>) => void
@@ -109,27 +114,15 @@ export type ConvoState = ConvoStore & {
     hideSearch: () => void
     botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
   }
+  getConversationExplodingMode: () => number
 }
 
-/**
- * Gregor key for exploding conversations
- * Used as the `category` when setting the exploding mode on a conversation
- * `body` is the number of seconds to exploding message etime
- * Note: The core service also uses this value, so if it changes, please notify core
- */
-const explodingModeGregorKeyPrefix = 'exploding:'
-// TODO
-// const explodingModeGregorKey = (c: Types.ConversationIDKey): string => `${explodingModeGregorKeyPrefix}${c}`
-// const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey): number => {
-//   let mode = state.chat2.explodingModeLocks.get(c)
-//   if (mode === undefined) {
-//     mode = state.chat2.explodingModes.get(c) ?? 0
-//   }
-//   const meta = getMeta(state, c)
-//   const convRetention = getEffectiveRetentionPolicy(meta)
-//   mode = convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
-//   return mode || 0
-// }
+// don't bug the users with black bars for network errors. chat isn't going to work in general
+const ignoreErrors = [
+  RPCTypes.StatusCode.scgenericapierror,
+  RPCTypes.StatusCode.scapinetworkerror,
+  RPCTypes.StatusCode.sctimeout,
+]
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const getReduxState = Z.getReduxStore()
@@ -364,6 +357,67 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.draft = d
       })
     },
+    setExplodingMode: (seconds, incoming) => {
+      set(s => {
+        s.explodingMode = seconds
+      })
+      if (incoming) return
+      const conversationIDKey = get().id
+      const f = async () => {
+        const Constants = await import('./index')
+        logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
+
+        // unset a conversation exploding lock for this convo so we accept the new one
+        get().dispatch.setExplodingModeLock(false)
+
+        const category = `${Constants.explodingModeGregorKeyPrefix}${conversationIDKey}`
+        // TODO remove redux
+        const meta = Meta.getMeta(getReduxState(), conversationIDKey)
+        const convRetention = Meta.getEffectiveRetentionPolicy(meta)
+        if (seconds === 0 || seconds === convRetention.seconds) {
+          // dismiss the category so we don't leave cruft in the push state
+          await RPCTypes.gregorDismissCategoryRpcPromise({category})
+        } else {
+          // update the category with the exploding time
+          try {
+            await RPCTypes.gregorUpdateCategoryRpcPromise({
+              body: seconds.toString(),
+              category,
+              dtime: {offset: 0, time: 0},
+            })
+            if (seconds !== 0) {
+              logger.info(
+                `Successfully set exploding mode for conversation ${conversationIDKey} to ${seconds}`
+              )
+            } else {
+              logger.info(`Successfully unset exploding mode for conversation ${conversationIDKey}`)
+            }
+          } catch (error) {
+            if (error instanceof RPCError) {
+              if (seconds !== 0) {
+                logger.error(
+                  `Failed to set exploding mode for conversation ${conversationIDKey} to ${seconds}. Service responded with: ${error.message}`
+                )
+              } else {
+                logger.error(
+                  `Failed to unset exploding mode for conversation ${conversationIDKey}. Service responded with: ${error.message}`
+                )
+              }
+              if (ignoreErrors.includes(error.code)) {
+                return
+              }
+            }
+            throw error
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    setExplodingModeLock: locked => {
+      set(s => {
+        s.explodingModeLock = locked
+      })
+    },
     setMuted: m => {
       set(s => {
         s.muted = m
@@ -534,6 +588,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   return {
     ...initialConvoStore,
     dispatch,
+    getConversationExplodingMode: (): number => {
+      let mode = get().explodingMode
+      const meta = Meta.getMeta(getReduxState(), get().id)
+      const convRetention = Meta.getEffectiveRetentionPolicy(meta)
+      mode = convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
+      return mode
+    },
   }
 }
 
