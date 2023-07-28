@@ -2,6 +2,7 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import * as ConfigConstants from '../../../../constants/config'
+import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as RouterConstants from '../../../../constants/router2'
@@ -193,12 +194,7 @@ const Footer = (p: {conversationIDKey: Types.ConversationIDKey; focusInput: () =
 
 type UseKeyboardProps = Pick<
   Props,
-  | 'conversationIDKey'
-  | 'isEditing'
-  | 'onChangeText'
-  | 'onRequestScrollDown'
-  | 'onRequestScrollUp'
-  | 'showReplyPreview'
+  'isEditing' | 'onChangeText' | 'onRequestScrollDown' | 'onRequestScrollUp' | 'showReplyPreview'
 > & {
   focusInput: () => void
   htmlInputRef: HtmlInputRefType
@@ -207,13 +203,13 @@ type UseKeyboardProps = Pick<
   onCancelEditing: () => void
 }
 const useKeyboard = (p: UseKeyboardProps) => {
-  const {htmlInputRef, focusInput, isEditing, onKeyDown, conversationIDKey, onCancelEditing} = p
+  const {htmlInputRef, focusInput, isEditing, onKeyDown, onCancelEditing} = p
   const {onChangeText, onEditLastMessage, onRequestScrollDown, onRequestScrollUp, showReplyPreview} = p
   const lastText = React.useRef('')
-  const dispatch = Container.useDispatch()
+  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
   const onCancelReply = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey}))
-  }, [dispatch, conversationIDKey])
+    setReplyTo(0)
+  }, [setReplyTo])
 
   // Key-handling code shared by both the input key handler
   // (_onKeyDown) and the global key handler
@@ -373,7 +369,6 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   }, [dispatch, conversationIDKey, you])
 
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
-    conversationIDKey,
     focusInput,
     htmlInputRef,
     isEditing,

@@ -10,7 +10,6 @@ import type {RetentionPolicy} from '../constants/types/retention-policy'
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'chat2:'
 export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
-export const addBotMember = 'chat2:addBotMember'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
@@ -37,7 +36,6 @@ export const deselectedConversation = 'chat2:deselectedConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
-export const editBotSettings = 'chat2:editBotSettings'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const hideConversation = 'chat2:hideConversation'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
@@ -83,9 +81,6 @@ export const openFolder = 'chat2:openFolder'
 export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const pinMessage = 'chat2:pinMessage'
 export const previewConversation = 'chat2:previewConversation'
-export const refreshBotRoleInConv = 'chat2:refreshBotRoleInConv'
-export const refreshBotSettings = 'chat2:refreshBotSettings'
-export const removeBotMember = 'chat2:removeBotMember'
 export const replyJump = 'chat2:replyJump'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
@@ -95,8 +90,6 @@ export const selectedConversation = 'chat2:selectedConversation'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
-export const setBotRoleInConv = 'chat2:setBotRoleInConv'
-export const setBotSettings = 'chat2:setBotSettings'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
@@ -112,7 +105,6 @@ export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
-export const toggleReplyToMessage = 'chat2:toggleReplyToMessage'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
@@ -468,13 +460,6 @@ export const createPinMessage = (payload: {
   readonly messageID: Types.MessageID
 }) => ({payload, type: pinMessage as typeof pinMessage})
 /**
- * Refresh role in conversation
- */
-export const createRefreshBotRoleInConv = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-}) => ({payload, type: refreshBotRoleInConv as typeof refreshBotRoleInConv})
-/**
  * Refresh user emoji and put it in store for picker
  */
 export const createFetchUserEmoji = (
@@ -494,13 +479,6 @@ export const createMessageReplyPrivately = (payload: {
   readonly sourceConversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: messageReplyPrivately as typeof messageReplyPrivately})
-/**
- * Reply to a message publicly
- */
-export const createToggleReplyToMessage = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal?: Types.Ordinal
-}) => ({payload, type: toggleReplyToMessage as typeof toggleReplyToMessage})
 /**
  * Resend a message
  */
@@ -620,14 +598,6 @@ export const createSetAttachmentViewStatus = (payload: {
   readonly status: Types.AttachmentViewStatus
   readonly last?: boolean
 }) => ({payload, type: setAttachmentViewStatus as typeof setAttachmentViewStatus})
-/**
- * Set bot role in conversation
- */
-export const createSetBotRoleInConv = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-  readonly role?: TeamsTypes.TeamRoleType
-}) => ({payload, type: setBotRoleInConv as typeof setBotRoleInConv})
 /**
  * Set command markdown for a conversation
  */
@@ -916,49 +886,6 @@ export const createClearMarkAsUnread = (payload: {readonly conversationIDKey: Ty
   payload,
   type: clearMarkAsUnread as typeof clearMarkAsUnread,
 })
-/**
- * add bot member to channel
- */
-export const createAddBotMember = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly convs?: Array<string>
-  readonly allowCommands: boolean
-  readonly allowMentions: boolean
-  readonly username: string
-  readonly restricted: boolean
-}) => ({payload, type: addBotMember as typeof addBotMember})
-/**
- * edit bot settings
- */
-export const createEditBotSettings = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-  readonly allowCommands: boolean
-  readonly allowMentions: boolean
-  readonly convs?: Array<string>
-}) => ({payload, type: editBotSettings as typeof editBotSettings})
-/**
- * refresh bot settings
- */
-export const createRefreshBotSettings = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-}) => ({payload, type: refreshBotSettings as typeof refreshBotSettings})
-/**
- * remove a bot member
- */
-export const createRemoveBotMember = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-}) => ({payload, type: removeBotMember as typeof removeBotMember})
-/**
- * set bot settings
- */
-export const createSetBotSettings = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-  readonly settings: RPCTypes.TeamBotSettings
-}) => ({payload, type: setBotSettings as typeof setBotSettings})
 export const createAttachFromDragAndDrop = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly paths: Array<Types.PathAndOutboxID>
@@ -1025,7 +952,6 @@ export const createUnhideConversation = (payload: {readonly conversationIDKey: T
 
 // Action Payloads
 export type AddAttachmentViewMessagePayload = ReturnType<typeof createAddAttachmentViewMessage>
-export type AddBotMemberPayload = ReturnType<typeof createAddBotMember>
 export type AddUserToChannelPayload = ReturnType<typeof createAddUserToChannel>
 export type AddUsersToChannelPayload = ReturnType<typeof createAddUsersToChannel>
 export type AttachFromDragAndDropPayload = ReturnType<typeof createAttachFromDragAndDrop>
@@ -1052,7 +978,6 @@ export type DeselectedConversationPayload = ReturnType<typeof createDeselectedCo
 export type DesktopNotificationPayload = ReturnType<typeof createDesktopNotification>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
-export type EditBotSettingsPayload = ReturnType<typeof createEditBotSettings>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
 export type HideConversationPayload = ReturnType<typeof createHideConversation>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
@@ -1098,9 +1023,6 @@ export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
 export type PendingMessageWasEditedPayload = ReturnType<typeof createPendingMessageWasEdited>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
-export type RefreshBotRoleInConvPayload = ReturnType<typeof createRefreshBotRoleInConv>
-export type RefreshBotSettingsPayload = ReturnType<typeof createRefreshBotSettings>
-export type RemoveBotMemberPayload = ReturnType<typeof createRemoveBotMember>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = ReturnType<typeof createResetLetThemIn>
@@ -1110,8 +1032,6 @@ export type SelectedConversationPayload = ReturnType<typeof createSelectedConver
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetAttachmentViewStatusPayload = ReturnType<typeof createSetAttachmentViewStatus>
-export type SetBotRoleInConvPayload = ReturnType<typeof createSetBotRoleInConv>
-export type SetBotSettingsPayload = ReturnType<typeof createSetBotSettings>
 export type SetCommandMarkdownPayload = ReturnType<typeof createSetCommandMarkdown>
 export type SetCommandStatusInfoPayload = ReturnType<typeof createSetCommandStatusInfo>
 export type SetContainsLastMessagePayload = ReturnType<typeof createSetContainsLastMessage>
@@ -1127,7 +1047,6 @@ export type ToggleGiphyPrefillPayload = ReturnType<typeof createToggleGiphyPrefi
 export type ToggleLocalReactionPayload = ReturnType<typeof createToggleLocalReaction>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
 export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
-export type ToggleReplyToMessagePayload = ReturnType<typeof createToggleReplyToMessage>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
 export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePrompt>
 export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
@@ -1146,7 +1065,6 @@ export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 // prettier-ignore
 export type Actions =
   | AddAttachmentViewMessagePayload
-  | AddBotMemberPayload
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
   | AttachFromDragAndDropPayload
@@ -1173,7 +1091,6 @@ export type Actions =
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissJourneycardPayload
-  | EditBotSettingsPayload
   | FetchUserEmojiPayload
   | HideConversationPayload
   | IgnorePinnedMessagePayload
@@ -1219,9 +1136,6 @@ export type Actions =
   | PendingMessageWasEditedPayload
   | PinMessagePayload
   | PreviewConversationPayload
-  | RefreshBotRoleInConvPayload
-  | RefreshBotSettingsPayload
-  | RemoveBotMemberPayload
   | ReplyJumpPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
@@ -1231,8 +1145,6 @@ export type Actions =
   | SendAudioRecordingPayload
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
-  | SetBotRoleInConvPayload
-  | SetBotSettingsPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload
@@ -1248,7 +1160,6 @@ export type Actions =
   | ToggleLocalReactionPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload
-  | ToggleReplyToMessagePayload
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
   | UnhideConversationPayload

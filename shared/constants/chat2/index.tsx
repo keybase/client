@@ -65,9 +65,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
   attachmentViewMap: new Map(),
-  botCommandsUpdateStatusMap: new Map(),
-  botSettings: new Map(),
-  botTeamRoleInConvMap: new Map(),
   commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),
   containsLatestMessageMap: new Map(),
@@ -84,7 +81,6 @@ export const makeState = (): Types.State => ({
   orangeLineMap: new Map(), // last message we've seen,
   participantMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
-  replyToMap: new Map(),
   threadLoadStatus: new Map(),
 })
 
@@ -186,12 +182,11 @@ export const getSelectedConversation = (): Types.ConversationIDKey => {
   return noConversationIDKey
 }
 
-export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  return state.chat2.replyToMap.get(conversationIDKey)
-}
-export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  const ordinal = getReplyToOrdinal(state, conversationIDKey)
-  if (!ordinal) return
+export const getReplyToMessageID = (
+  ordinal: Types.Ordinal,
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey
+) => {
   const maybeMessage = getMessage(state, conversationIDKey, ordinal)
   return ordinal
     ? maybeMessage === null || maybeMessage === undefined
@@ -464,7 +459,7 @@ export const messageAuthorIsBot = (
 }
 
 export const getBotRestrictBlockMap = (
-  settings: Map<string, RPCChatTypes.Keybase1.TeamBotSettings>,
+  settings: Map<string, RPCChatTypes.Keybase1.TeamBotSettings | undefined>,
   conversationIDKey: Types.ConversationIDKey,
   bots: Array<string>
 ) => {

@@ -14,7 +14,6 @@ import type * as Types from '../../../../constants/types/chat2'
 import {indefiniteArticle} from '../../../../util/string'
 import {infoPanelWidthTablet} from '../../info-panel/common'
 import {isLargeScreen} from '../../../../constants/platform'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Platform from '../../../../constants/platform'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
 import shallowEqual from 'shallowequal'
@@ -90,8 +89,9 @@ const Input = (p: Props) => {
   const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
 
   const showGiphySearch = Constants.useContext(s => s.giphyWindow)
+  const rorindal = Constants.useContext(s => s.replyTo)
   const {replyTo, showCommandMarkdown, showCommandStatus} = Container.useSelector(state => {
-    const replyTo = Constants.getReplyToMessageID(state, conversationIDKey) ?? undefined
+    const replyTo = Constants.getReplyToMessageID(rorindal, state, conversationIDKey) ?? undefined
     const showCommandMarkdown = (state.chat2.commandMarkdownMap.get(conversationIDKey) || '') !== ''
     const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey)
     return {replyTo, showCommandMarkdown, showCommandStatus}
@@ -384,24 +384,20 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
 
   const isTyping = Constants.useContext(s => s.typing.size > 0)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
+  const suggestBotCommandsUpdateStatus = Constants.useContext(s => s.botCommandsUpdateStatus)
   const data = Container.useSelector(state => {
     const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
     const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
     const cannotWrite = Constants.getMeta(state, conversationIDKey).cannotWrite
     const minWriterRole = Constants.getMeta(state, conversationIDKey).minWriterRole
-    const suggestBotCommandsUpdateStatus =
-      state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
-      RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
     return {
       cannotWrite,
       explodingModeSeconds,
       minWriterRole,
       showTypingStatus,
-      suggestBotCommandsUpdateStatus,
     }
   }, shallowEqual)
-  const {cannotWrite, explodingModeSeconds, minWriterRole, showTypingStatus, suggestBotCommandsUpdateStatus} =
-    data
+  const {cannotWrite, explodingModeSeconds, minWriterRole, showTypingStatus} = data
 
   Container.useDepChangeEffect(() => {
     inputRef.current?.focus()

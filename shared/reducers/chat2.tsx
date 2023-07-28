@@ -5,8 +5,6 @@ import * as TeamsConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
-import type * as RPCTypes from '../constants/types/rpc-gen'
-import type * as TeamTypes from '../constants/types/teams'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
@@ -351,9 +349,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.messageSend]: (draftState, action) => {
     const {conversationIDKey} = action.payload
-    const {commandMarkdownMap, replyToMap} = draftState
+    const {commandMarkdownMap} = draftState
     commandMarkdownMap.delete(conversationIDKey)
-    replyToMap.delete(conversationIDKey)
+    Constants.getConvoState(conversationIDKey).dispatch.setReplyTo(0)
   },
   [Chat2Gen.setCommandMarkdown]: (draftState, action) => {
     const {conversationIDKey, md} = action.payload
@@ -699,19 +697,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     m.submitState = 'failed'
     m.errorTyp = errorTyp || undefined
   },
-  [EngineGen.chat1ChatUiChatBotCommandsUpdateStatus]: (draftState, action) => {
-    const {convID, status} = action.payload.params
-    const {botCommandsUpdateStatusMap, botSettings} = draftState
-    const conversationIDKey = Types.stringToConversationIDKey(convID)
-    botCommandsUpdateStatusMap.set(conversationIDKey, status.typ)
-    if (status.typ === RPCChatTypes.UIBotCommandsUpdateStatusTyp.uptodate) {
-      const settingsMap = new Map<string, RPCTypes.TeamBotSettings>()
-      Object.keys(status.uptodate.settings).forEach(u => {
-        settingsMap.set(u, status.uptodate.settings[u]!)
-      })
-      botSettings.set(conversationIDKey, settingsMap)
-    }
-  },
   [Chat2Gen.toggleLocalReaction]: (draftState, action) => {
     const {conversationIDKey, decorated, emoji, targetOrdinal, username} = action.payload
     const {messageMap} = draftState
@@ -846,15 +831,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       explodingModeLocks.delete(conversationIDKey)
     } else if (!alreadyLocked) {
       explodingModeLocks.set(conversationIDKey, mode)
-    }
-  },
-  [Chat2Gen.toggleReplyToMessage]: (draftState, action) => {
-    const {conversationIDKey, ordinal} = action.payload
-    const {replyToMap} = draftState
-    if (ordinal) {
-      replyToMap.set(conversationIDKey, ordinal)
-    } else {
-      replyToMap.delete(conversationIDKey)
     }
   },
   [Chat2Gen.replyJump]: (draftState, action) => {
@@ -1122,30 +1098,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.clearMetas]: draftState => {
     draftState.metaMap.clear()
-  },
-  [Chat2Gen.refreshBotSettings]: (draftState, action) => {
-    const m = draftState.botSettings.get(action.payload.conversationIDKey)
-    if (m) {
-      m.delete(action.payload.username)
-    }
-  },
-  [Chat2Gen.setBotSettings]: (draftState, action) => {
-    const m =
-      draftState.botSettings.get(action.payload.conversationIDKey) ||
-      new Map<string, RPCTypes.TeamBotSettings>()
-    m.set(action.payload.username, action.payload.settings)
-    draftState.botSettings.set(action.payload.conversationIDKey, m)
-  },
-  [Chat2Gen.setBotRoleInConv]: (draftState, action) => {
-    const roles =
-      draftState.botTeamRoleInConvMap.get(action.payload.conversationIDKey) ||
-      new Map<string, TeamTypes.TeamRoleType>()
-    if (action.payload.role !== undefined) {
-      roles.set(action.payload.username, action.payload.role)
-    } else {
-      roles.delete(action.payload.username)
-    }
-    draftState.botTeamRoleInConvMap.set(action.payload.conversationIDKey, roles)
   },
   ...paymentActions,
   ...attachmentActions,

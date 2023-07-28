@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as BotsConstants from '../../../constants/bots'
 import * as RouterConstants from '../../../constants/router2'
@@ -43,7 +42,12 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const inConvIDKey = props.conversationIDKey
   const teamID = props.teamID
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
-  return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
+  if (!inConvIDKey) return null
+  return (
+    <Constants.Provider id={inConvIDKey}>
+      <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
+    </Constants.Provider>
+  )
 }
 
 type Props = {
@@ -81,9 +85,7 @@ const InstallBotPopup = (props: Props) => {
   })
 
   const featured = BotsConstants.useState(s => s.featuredBotsMap.get(botUsername))
-  const teamRole = Container.useSelector(state =>
-    conversationIDKey ? state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername) : undefined
-  )
+  const teamRole = Constants.useContext(s => s.botTeamRoleMap.get(botUsername))
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
@@ -91,11 +93,7 @@ const InstallBotPopup = (props: Props) => {
   const readOnly = TeamConstants.useState(s =>
     meta?.teamname ? !TeamConstants.getCanPerformByID(s, meta.teamID).manageBots : false
   )
-  const settings = Container.useSelector(state =>
-    conversationIDKey
-      ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
-      : undefined
-  )
+  const settings = Constants.useContext(s => s.botSettings.get(botUsername) ?? undefined)
   let teamname: string | undefined
   let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
   if (meta?.teamname) {
@@ -106,9 +104,9 @@ const InstallBotPopup = (props: Props) => {
   const {channelMetas} = useAllChannelMetas(teamID)
   const error = Container.useAnyErrors([Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove])
   // dispatch
-  const dispatch = Container.useDispatch()
   const clearModals = RouterConstants.useState(s => s.dispatch.clearModals)
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
+  const addBotMember = Constants.useContext(s => s.dispatch.addBotMember)
   const onClose = () => {
     Styles.isMobile ? navigateUp() : clearModals()
   }
@@ -126,30 +124,14 @@ const InstallBotPopup = (props: Props) => {
     if (!conversationIDKey) {
       return
     }
-    dispatch(
-      Chat2Gen.createAddBotMember({
-        allowCommands: installWithCommands,
-        allowMentions: installWithMentions,
-        conversationIDKey,
-        convs: installInConvs,
-        restricted: installWithRestrict,
-        username: botUsername,
-      })
-    )
+    addBotMember(botUsername, installWithCommands, installWithMentions, installWithRestrict, installInConvs)
   }
+  const editBotSettings = Constants.useContext(s => s.dispatch.editBotSettings)
   const onEdit = () => {
     if (!conversationIDKey) {
       return
     }
-    dispatch(
-      Chat2Gen.createEditBotSettings({
-        allowCommands: installWithCommands,
-        allowMentions: installWithMentions,
-        conversationIDKey,
-        convs: installInConvs,
-        username: botUsername,
-      })
-    )
+    editBotSettings(botUsername, installWithCommands, installWithMentions, installInConvs)
   }
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onRemove = () => {
@@ -165,15 +147,18 @@ const InstallBotPopup = (props: Props) => {
     navigateAppend({props: {}, selected: 'feedback'})
   }
 
+  const refreshBotSettings = Constants.useContext(s => s.dispatch.refreshBotSettings)
+  const refreshBotRoleInConv = Constants.useContext(s => s.dispatch.refreshBotRoleInConv)
+
   // lifecycle
   React.useEffect(() => {
     if (conversationIDKey) {
-      dispatch(Chat2Gen.createRefreshBotRoleInConv({conversationIDKey, username: botUsername}))
+      refreshBotRoleInConv(botUsername)
       if (inTeam) {
-        dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
+        refreshBotSettings(botUsername)
       }
     }
-  }, [conversationIDKey, inTeam, dispatch, botUsername])
+  }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
   const noCommands = !commands?.commands
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()
@@ -446,7 +431,7 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const backButton = Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />
-  const enabled = !!conversationIDKey && inTeam !== undefined
+  const enabled = !!conversationIDKey
   return (
     <Kb.Modal
       onClose={!Styles.isMobile ? onClose : undefined}

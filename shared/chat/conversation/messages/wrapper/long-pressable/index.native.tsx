@@ -1,5 +1,3 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/chat2'
 import * as Kb from '../../../../../common-adapters'
 import * as React from 'react'
@@ -44,13 +42,13 @@ const LongPressable = React.memo(function LongPressable(props: Props) {
     )
   }, [])
 
-  const dispatch = Container.useDispatch()
   const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
+  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
   const onSwipeLeft = React.useCallback(() => {
-    const {conversationIDKey, ordinal} = getIds()
-    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal}))
+    const {ordinal} = getIds()
+    setReplyTo(ordinal)
     toggleThreadSearch(true)
-  }, [toggleThreadSearch, dispatch, getIds])
+  }, [setReplyTo, toggleThreadSearch, getIds])
 
   // Only swipeable if there is an onSwipeLeft handler
   if (onSwipeLeft) {

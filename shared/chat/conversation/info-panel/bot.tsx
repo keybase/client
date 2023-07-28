@@ -1,5 +1,4 @@
 import * as BotsConstants from '../../../constants/bots'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as UsersConstants from '../../../constants/users'
 import * as Container from '../../../util/container'
@@ -21,10 +20,8 @@ type Section = _Section<string | RPCTypes.FeaturedBot, Extra> | _Section<{key: s
 
 const AddToChannel = (props: AddToChannelProps) => {
   const {conversationIDKey, username} = props
-  const dispatch = Container.useDispatch()
-  const settings = Container.useSelector(
-    state => state.chat2.botSettings.get(conversationIDKey)?.get(username) ?? undefined
-  )
+  const settings = Constants.useContext(s => s.botSettings.get(username))
+  const editBotSettings = Constants.useContext(s => s.dispatch.editBotSettings)
   return (
     <Kb.WaitingButton
       disabled={!settings}
@@ -36,14 +33,11 @@ const AddToChannel = (props: AddToChannelProps) => {
         e.preventDefault()
         // if settings aren't loaded, don't even try to do anything
         if (settings && !settings.convs?.includes(conversationIDKey)) {
-          dispatch(
-            Chat2Gen.createEditBotSettings({
-              allowCommands: settings.cmds,
-              allowMentions: settings.mentions,
-              conversationIDKey,
-              convs: [conversationIDKey].concat(settings.convs ?? []),
-              username,
-            })
+          editBotSettings(
+            username,
+            settings.cmds,
+            settings.mentions,
+            [conversationIDKey].concat(settings.convs ?? [])
           )
         }
       }}
@@ -66,13 +60,13 @@ export const Bot = (props: BotProps) => {
   const {ownerTeam, ownerUser} = props
   const {onClick, firstItem} = props
   const {conversationIDKey, showChannelAdd, showTeamAdd} = props
-  const dispatch = Container.useDispatch()
+  const refreshBotSettings = Constants.useContext(s => s.dispatch.refreshBotSettings)
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   if (conversationIDKey !== lastCID) {
     setLastCID(conversationIDKey)
     if (conversationIDKey && showChannelAdd) {
       // fetch bot settings if trying to show the add to channel button
-      dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
+      refreshBotSettings(botUsername)
     }
   }
 

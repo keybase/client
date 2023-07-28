@@ -547,11 +547,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "contains": "boolean"
     },
-    "toggleReplyToMessage": {
-      "_description": "Reply to a message publicly",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal?": "Types.Ordinal"
-    },
     "replyJump": {
       "_description": "Jump to a replied to message",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -628,53 +623,9 @@
       "path": "string",
       "amps": "Array<number>"
     },
-    "addBotMember": {
-      "_description": "add bot member to channel",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "convs?": "Array<string>",
-      "allowCommands": "boolean",
-      "allowMentions": "boolean",
-      "username": "string",
-      "restricted": "boolean"
-    },
-    "refreshBotSettings": {
-      "_description": "refresh bot settings",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string"
-    },
-    "setBotSettings": {
-      "_description": "set bot settings",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string",
-      "settings": "RPCTypes.TeamBotSettings"
-    },
-    "removeBotMember": {
-      "_description": "remove a bot member",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string"
-    },
-    "editBotSettings": {
-      "_description": "edit bot settings",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string",
-      "allowCommands": "boolean",
-      "allowMentions": "boolean",
-      "convs?": "Array<string>"
-    },
     "setParticipants": {
       "_description": "Set conversation participant info",
       "participants": "Array<{conversationIDKey: Types.ConversationIDKey, participants: Types.ParticipantInfo}>"
-    },
-    "refreshBotRoleInConv": {
-      "_description": "Refresh role in conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string"
-    },
-    "setBotRoleInConv": {
-      "_description": "Set bot role in conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string",
-      "role?": "TeamsTypes.TeamRoleType"
     },
     "dismissJourneycard": {
       "_description": "Dismiss a journeycard",

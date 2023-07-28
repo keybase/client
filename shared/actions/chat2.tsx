@@ -2923,113 +2923,6 @@ const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButt
   }
 }
 
-const refreshBotRoleInConv = async (_: unknown, action: Chat2Gen.RefreshBotRoleInConvPayload) => {
-  let role: RPCTypes.TeamRole | undefined
-  const {conversationIDKey, username} = action.payload
-  try {
-    role = await RPCChatTypes.localGetTeamRoleInConversationRpcPromise({
-      convID: Types.keyToConversationID(conversationIDKey),
-      username,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info(`refreshBotRoleInConv: failed to refresh bot team role: ${error.message}`)
-    }
-    return
-  }
-  const trole = TeamsConstants.teamRoleByEnum[role]
-  return Chat2Gen.createSetBotRoleInConv({
-    conversationIDKey,
-    role: !trole || trole === 'none' ? undefined : trole,
-    username,
-  })
-}
-
-const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  RouterConstants.useState.getState().dispatch.clearModals()
-  const meta = state.chat2.metaMap.get(conversationIDKey)
-  if (meta?.teamname) {
-    TeamsConstants.useState.getState().dispatch.getMembers(meta.teamID)
-  }
-}
-
-const addBotMember = async (state: Container.TypedState, action: Chat2Gen.AddBotMemberPayload) => {
-  const {allowCommands, allowMentions, conversationIDKey, convs, username} = action.payload
-  try {
-    await RPCChatTypes.localAddBotMemberRpcPromise(
-      {
-        botSettings: action.payload.restricted ? {cmds: allowCommands, convs, mentions: allowMentions} : null,
-        convID: Types.keyToConversationID(conversationIDKey),
-        role: action.payload.restricted ? RPCTypes.TeamRole.restrictedbot : RPCTypes.TeamRole.bot,
-        username,
-      },
-      Constants.waitingKeyBotAdd
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info('addBotMember: failed to add bot member: ' + error.message)
-    }
-    return false
-  }
-  return closeBotModal(state, conversationIDKey)
-}
-
-const editBotSettings = async (state: Container.TypedState, action: Chat2Gen.EditBotSettingsPayload) => {
-  const {allowCommands, allowMentions, conversationIDKey, convs, username} = action.payload
-  try {
-    await RPCChatTypes.localSetBotMemberSettingsRpcPromise(
-      {
-        botSettings: {cmds: allowCommands, convs, mentions: allowMentions},
-        convID: Types.keyToConversationID(conversationIDKey),
-        username,
-      },
-      Constants.waitingKeyBotAdd
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info('addBotMember: failed to edit bot settings: ' + error.message)
-    }
-    return false
-  }
-  return closeBotModal(state, conversationIDKey)
-}
-
-const removeBotMember = async (state: Container.TypedState, action: Chat2Gen.RemoveBotMemberPayload) => {
-  const {conversationIDKey, username} = action.payload
-  try {
-    await RPCChatTypes.localRemoveBotMemberRpcPromise(
-      {
-        convID: Types.keyToConversationID(conversationIDKey),
-        username,
-      },
-      Constants.waitingKeyBotRemove
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info('removeBotMember: failed to remove bot member: ' + error.message)
-    }
-    return false
-  }
-  return closeBotModal(state, conversationIDKey)
-}
-
-const refreshBotSettings = async (_: unknown, action: Chat2Gen.RefreshBotSettingsPayload) => {
-  let settings: RPCTypes.TeamBotSettings | undefined
-  const {conversationIDKey, username} = action.payload
-  try {
-    settings = await RPCChatTypes.localGetBotMemberSettingsRpcPromise({
-      convID: Types.keyToConversationID(conversationIDKey),
-      username,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${error.message}`)
-    }
-    return
-  }
-  return Chat2Gen.createSetBotSettings({conversationIDKey, settings, username})
-}
-
 const maybeChangeChatSelection = (
   prev: RouterConstants.State['navState'],
   next: RouterConstants.State['navState']
@@ -3193,13 +3086,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.previewConversation, previewConversationTeam)
   Container.listenAction(Chat2Gen.previewConversation, previewConversationPersonMakesAConversation)
   Container.listenAction(Chat2Gen.openFolder, openFolder)
-
-  // bots
-  Container.listenAction(Chat2Gen.addBotMember, addBotMember)
-  Container.listenAction(Chat2Gen.editBotSettings, editBotSettings)
-  Container.listenAction(Chat2Gen.removeBotMember, removeBotMember)
-  Container.listenAction(Chat2Gen.refreshBotSettings, refreshBotSettings)
-  Container.listenAction(Chat2Gen.refreshBotRoleInConv, refreshBotRoleInConv)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase === old.loadOnStartPhase) return
@@ -3374,6 +3260,12 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
 
   Container.listenAction(EngineGen.chat1NotifyChatChatConvUpdate, onChatConvUpdate)
+
+  Container.listenAction(EngineGen.chat1ChatUiChatBotCommandsUpdateStatus, (_, a) => {
+    const {convID, status} = a.payload.params
+    const conversationIDKey = Types.stringToConversationIDKey(convID)
+    Constants.getConvoState(conversationIDKey).dispatch.botCommandsUpdateStatus(status)
+  })
 
   RouterConstants.useState.subscribe((s, old) => {
     const next = s.navState

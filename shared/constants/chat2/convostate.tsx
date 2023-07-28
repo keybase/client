@@ -24,6 +24,9 @@ type ConvoStore = {
   id: Types.ConversationIDKey
   // temp cache for requestPayment and sendPayment message data,
   accountsInfoMap: Map<RPCChatTypes.MessageID, Types.ChatRequestInfo | Types.ChatPaymentInfo>
+  botCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
+  botSettings: Map<string, RPCTypes.TeamBotSettings | undefined>
+  botTeamRoleMap: Map<string, TeamsTypes.TeamRoleType | undefined>
   badge: number
   dismissedInviteBanners: boolean
   draft?: string
@@ -37,11 +40,15 @@ type ConvoStore = {
   unsentText?: string
   threadSearchInfo: Types.ThreadSearchInfo
   threadSearchQuery: string
+  replyTo: Types.Ordinal
 }
 
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
   badge: 0,
+  botCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank,
+  botSettings: new Map(),
+  botTeamRoleMap: new Map(),
   dismissedInviteBanners: false,
   draft: undefined,
   giphyResult: undefined,
@@ -49,6 +56,7 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   muted: false,
   mutualTeams: [],
+  replyTo: 0,
   threadSearchInfo: makeThreadSearchInfo(),
   threadSearchQuery: '',
   typing: new Set(),
@@ -58,19 +66,36 @@ const initialConvoStore: ConvoStore = {
 }
 export type ConvoState = ConvoStore & {
   dispatch: {
+    addBotMember: (
+      username: string,
+      allowCommands: boolean,
+      allowMentions: boolean,
+      restricted: boolean,
+      convs?: Array<string>
+    ) => void
+    removeBotMember: (username: string) => void
     badgesUpdated: (badge: number) => void
     dismissBottomBanner: () => void
+    editBotSettings: (
+      username: string,
+      allowCommands: boolean,
+      allowMentions: boolean,
+      convs?: Array<string>
+    ) => void
     giphyGotSearchResult: (results: RPCChatTypes.GiphySearchResults) => void
     giphySend: (result: RPCChatTypes.GiphySearchResult) => void
     giphyToggleWindow: (show: boolean) => void
     mute: (m: boolean) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
+    refreshBotRoleInConv: (username: string) => void
+    refreshBotSettings: (username: string) => void
     refreshMutualTeamsInConv: () => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetState: 'default'
     resetUnsentText: () => void
     setDraft: (d?: string) => void
     setMuted: (m: boolean) => void
+    setReplyTo: (o: Types.Ordinal) => void
     setTyping: (t: Set<string>) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     unreadUpdated: (unread: number) => void
@@ -80,22 +105,92 @@ export type ConvoState = ConvoStore & {
     setThreadSearchQuery: (query: string) => void
     toggleThreadSearch: (hide?: boolean) => void
     hideSearch: () => void
+    botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
   }
 }
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const getReduxState = Z.getReduxStore()
   const reduxDispatch = Z.getReduxDispatch()
+  const closeBotModal = async () => {
+    const RouterConstants = await import('../router2')
+    const TeamsConstants = await import('../teams')
+    RouterConstants.useState.getState().dispatch.clearModals()
+    const meta = getReduxState().chat2.metaMap.get(get().id)
+    if (meta?.teamname) {
+      TeamsConstants.useState.getState().dispatch.getMembers(meta.teamID)
+    }
+  }
   const dispatch: ConvoState['dispatch'] = {
+    addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
+      const f = async () => {
+        const Constants = await import('./index')
+        const conversationIDKey = get().id
+        try {
+          await RPCChatTypes.localAddBotMemberRpcPromise(
+            {
+              botSettings: restricted ? {cmds: allowCommands, convs, mentions: allowMentions} : null,
+              convID: Types.keyToConversationID(conversationIDKey),
+              role: restricted ? RPCTypes.TeamRole.restrictedbot : RPCTypes.TeamRole.bot,
+              username,
+            },
+            Constants.waitingKeyBotAdd
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info('addBotMember: failed to add bot member: ' + error.message)
+          }
+          return
+        }
+        await closeBotModal()
+      }
+      Z.ignorePromise(f())
+    },
     badgesUpdated: badge => {
       set(s => {
         s.badge = badge
+      })
+    },
+
+    botCommandsUpdateStatus: status => {
+      set(s => {
+        s.botCommandsUpdateStatus = status.typ
+        if (status.typ === RPCChatTypes.UIBotCommandsUpdateStatusTyp.uptodate) {
+          const settingsMap = new Map<string, RPCTypes.TeamBotSettings | undefined>()
+          Object.keys(status.uptodate.settings).forEach(u => {
+            settingsMap.set(u, status.uptodate.settings[u])
+          })
+          s.botSettings = settingsMap
+        }
       })
     },
     dismissBottomBanner: () => {
       set(s => {
         s.dismissedInviteBanners = true
       })
+    },
+    editBotSettings: (username, allowCommands, allowMentions, convs) => {
+      const f = async () => {
+        const conversationIDKey = get().id
+        const Constants = await import('./index')
+        try {
+          await RPCChatTypes.localSetBotMemberSettingsRpcPromise(
+            {
+              botSettings: {cmds: allowCommands, convs, mentions: allowMentions},
+              convID: Types.keyToConversationID(conversationIDKey),
+              username,
+            },
+            Constants.waitingKeyBotAdd
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info('addBotMember: failed to edit bot settings: ' + error.message)
+          }
+          return
+        }
+        await closeBotModal()
+      }
+      Z.ignorePromise(f())
     },
     giphyGotSearchResult: results => {
       set(s => {
@@ -109,7 +204,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const Constants = await import('./index')
         const conversationIDKey = get().id
-        const replyTo = Constants.getReplyToMessageID(getReduxState(), conversationIDKey)
+        const replyTo = Constants.getReplyToMessageID(get().replyTo, getReduxState(), conversationIDKey)
         try {
           await RPCChatTypes.localTrackGiphySelectRpcPromise({result})
         } catch {}
@@ -146,6 +241,58 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.accountsInfoMap.set(messageID, paymentInfo)
       })
     },
+    refreshBotRoleInConv: username => {
+      const f = async () => {
+        const TeamsConstants = await import('../teams')
+        let role: RPCTypes.TeamRole | undefined
+        const conversationIDKey = get().id
+        try {
+          role = await RPCChatTypes.localGetTeamRoleInConversationRpcPromise({
+            convID: Types.keyToConversationID(conversationIDKey),
+            username,
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info(`refreshBotRoleInConv: failed to refresh bot team role: ${error.message}`)
+          }
+          return
+        }
+        const trole = TeamsConstants.teamRoleByEnum[role]
+        const r = !trole || trole === 'none' ? undefined : trole
+        set(s => {
+          const roles = s.botTeamRoleMap
+          if (r !== undefined) {
+            roles.set(username, r)
+          } else {
+            roles.delete(username)
+          }
+        })
+      }
+      Z.ignorePromise(f())
+    },
+    refreshBotSettings: username => {
+      set(s => {
+        s.botSettings.delete(username)
+      })
+      const conversationIDKey = get().id
+      const f = async () => {
+        try {
+          const settings = await RPCChatTypes.localGetBotMemberSettingsRpcPromise({
+            convID: Types.keyToConversationID(conversationIDKey),
+            username,
+          })
+          set(s => {
+            s.botSettings.set(username, settings)
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${error.message}`)
+          }
+          return
+        }
+      }
+      Z.ignorePromise(f())
+    },
     refreshMutualTeamsInConv: () => {
       const f = async () => {
         const Constants = await import('./index')
@@ -161,6 +308,21 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         set(s => {
           s.mutualTeams = results.teamIDs ?? []
         })
+      }
+      Z.ignorePromise(f())
+    },
+    removeBotMember: username => {
+      const f = async () => {
+        const Constants = await import('./index')
+        const convID = Types.keyToConversationID(get().id)
+        try {
+          await RPCChatTypes.localRemoveBotMemberRpcPromise({convID, username}, Constants.waitingKeyBotRemove)
+          await closeBotModal()
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info('removeBotMember: failed to remove bot member: ' + error.message)
+          }
+        }
       }
       Z.ignorePromise(f())
     },
@@ -183,6 +345,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMuted: m => {
       set(s => {
         s.muted = m
+      })
+    },
+    setReplyTo: o => {
+      set(s => {
+        s.replyTo = o
       })
     },
     setThreadSearchQuery: query => {

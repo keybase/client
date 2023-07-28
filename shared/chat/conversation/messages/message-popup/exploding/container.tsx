@@ -150,13 +150,9 @@ export default (ownProps: OwnProps) => {
       })
     )
   }
+  const setReplyTo = Constants.useContext(s => s.dispatch.setReplyTo)
   const _onReply = () => {
-    dispatch(
-      Chat2Gen.createToggleReplyToMessage({
-        conversationIDKey: ownProps.conversationIDKey,
-        ordinal: ownProps.ordinal,
-      })
-    )
+    setReplyTo(ownProps.ordinal)
   }
   const _onReplyPrivately = () => {
     dispatch(
