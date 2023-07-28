@@ -649,17 +649,6 @@
       "_description": "Set conversation participant info",
       "participants": "Array<{conversationIDKey: Types.ConversationIDKey, participants: Types.ParticipantInfo}>"
     },
-    "refreshBotRoleInConv": {
-      "_description": "Refresh role in conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string"
-    },
-    "setBotRoleInConv": {
-      "_description": "Set bot role in conversation",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string",
-      "role?": "TeamsTypes.TeamRoleType"
-    },
     "dismissJourneycard": {
       "_description": "Dismiss a journeycard",
       "conversationIDKey": "Types.ConversationIDKey",

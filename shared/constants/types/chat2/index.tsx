@@ -4,7 +4,6 @@ import * as _Message from './message'
 import type * as ChatInboxRowTypes from './rowitem'
 import type * as Meta from './meta'
 import type * as RPCChatTypes from '../rpc-chat-gen'
-import type * as Team from '../teams'
 
 export type PaymentConfirmInfo = {
   error?: RPCTypes.Status
@@ -196,7 +195,6 @@ export type RenderMessageType =
 
 export type State = {
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
-  botTeamRoleInConvMap: Map<Common.ConversationIDKey, Map<string, Team.TeamRoleType | undefined>>
   commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>

@@ -57,7 +57,6 @@ type Props = {
 }
 
 const InstallBotPopup = (props: Props) => {
-  // TODO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> doen'st load!!!
   const {botUsername, conversationIDKey} = props
 
   // state
@@ -87,9 +86,7 @@ const InstallBotPopup = (props: Props) => {
   })
 
   const featured = BotsConstants.useState(s => s.featuredBotsMap.get(botUsername))
-  const teamRole = Container.useSelector(state =>
-    conversationIDKey ? state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername) : undefined
-  )
+  const teamRole = Constants.useContext(s => s.botTeamRoleMap.get(botUsername))
   const inTeam = teamRole !== undefined ? !!teamRole : undefined
   const inTeamUnrestricted = inTeam && teamRole === 'bot'
   const isBot = teamRole === 'bot' || teamRole === 'restrictedbot' ? true : undefined
@@ -168,16 +165,17 @@ const InstallBotPopup = (props: Props) => {
   }
 
   const refreshBotSettings = Constants.useContext(s => s.dispatch.refreshBotSettings)
+  const refreshBotRoleInConv = Constants.useContext(s => s.dispatch.refreshBotRoleInConv)
 
   // lifecycle
   React.useEffect(() => {
     if (conversationIDKey) {
-      dispatch(Chat2Gen.createRefreshBotRoleInConv({conversationIDKey, username: botUsername}))
+      refreshBotRoleInConv(botUsername)
       if (inTeam) {
         refreshBotSettings(botUsername)
       }
     }
-  }, [refreshBotSettings, conversationIDKey, inTeam, dispatch, botUsername])
+  }, [refreshBotRoleInConv, refreshBotSettings, conversationIDKey, inTeam, botUsername])
   const noCommands = !commands?.commands
 
   const dispatchClearWaiting = Container.useDispatchClearWaiting()

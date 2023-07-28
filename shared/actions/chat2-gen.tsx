@@ -83,7 +83,6 @@ export const openFolder = 'chat2:openFolder'
 export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const pinMessage = 'chat2:pinMessage'
 export const previewConversation = 'chat2:previewConversation'
-export const refreshBotRoleInConv = 'chat2:refreshBotRoleInConv'
 export const removeBotMember = 'chat2:removeBotMember'
 export const replyJump = 'chat2:replyJump'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
@@ -94,7 +93,6 @@ export const selectedConversation = 'chat2:selectedConversation'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
-export const setBotRoleInConv = 'chat2:setBotRoleInConv'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
@@ -465,13 +463,6 @@ export const createPinMessage = (payload: {
   readonly messageID: Types.MessageID
 }) => ({payload, type: pinMessage as typeof pinMessage})
 /**
- * Refresh role in conversation
- */
-export const createRefreshBotRoleInConv = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-}) => ({payload, type: refreshBotRoleInConv as typeof refreshBotRoleInConv})
-/**
  * Refresh user emoji and put it in store for picker
  */
 export const createFetchUserEmoji = (
@@ -610,14 +601,6 @@ export const createSetAttachmentViewStatus = (payload: {
   readonly status: Types.AttachmentViewStatus
   readonly last?: boolean
 }) => ({payload, type: setAttachmentViewStatus as typeof setAttachmentViewStatus})
-/**
- * Set bot role in conversation
- */
-export const createSetBotRoleInConv = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-  readonly role?: TeamsTypes.TeamRoleType
-}) => ({payload, type: setBotRoleInConv as typeof setBotRoleInConv})
 /**
  * Set command markdown for a conversation
  */
@@ -1073,7 +1056,6 @@ export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
 export type PendingMessageWasEditedPayload = ReturnType<typeof createPendingMessageWasEdited>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
-export type RefreshBotRoleInConvPayload = ReturnType<typeof createRefreshBotRoleInConv>
 export type RemoveBotMemberPayload = ReturnType<typeof createRemoveBotMember>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
@@ -1084,7 +1066,6 @@ export type SelectedConversationPayload = ReturnType<typeof createSelectedConver
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetAttachmentViewStatusPayload = ReturnType<typeof createSetAttachmentViewStatus>
-export type SetBotRoleInConvPayload = ReturnType<typeof createSetBotRoleInConv>
 export type SetCommandMarkdownPayload = ReturnType<typeof createSetCommandMarkdown>
 export type SetCommandStatusInfoPayload = ReturnType<typeof createSetCommandStatusInfo>
 export type SetContainsLastMessagePayload = ReturnType<typeof createSetContainsLastMessage>
@@ -1191,7 +1172,6 @@ export type Actions =
   | PendingMessageWasEditedPayload
   | PinMessagePayload
   | PreviewConversationPayload
-  | RefreshBotRoleInConvPayload
   | RemoveBotMemberPayload
   | ReplyJumpPayload
   | ResetChatWithoutThemPayload
@@ -1202,7 +1182,6 @@ export type Actions =
   | SendAudioRecordingPayload
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
-  | SetBotRoleInConvPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload

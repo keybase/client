@@ -5,7 +5,6 @@ import * as TeamsConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
-import type * as TeamTypes from '../constants/types/teams'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
@@ -1099,17 +1098,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.clearMetas]: draftState => {
     draftState.metaMap.clear()
-  },
-  [Chat2Gen.setBotRoleInConv]: (draftState, action) => {
-    const roles =
-      draftState.botTeamRoleInConvMap.get(action.payload.conversationIDKey) ||
-      new Map<string, TeamTypes.TeamRoleType>()
-    if (action.payload.role !== undefined) {
-      roles.set(action.payload.username, action.payload.role)
-    } else {
-      roles.delete(action.payload.username)
-    }
-    draftState.botTeamRoleInConvMap.set(action.payload.conversationIDKey, roles)
   },
   ...paymentActions,
   ...attachmentActions,

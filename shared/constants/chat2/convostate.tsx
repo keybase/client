@@ -26,6 +26,7 @@ type ConvoStore = {
   accountsInfoMap: Map<RPCChatTypes.MessageID, Types.ChatRequestInfo | Types.ChatPaymentInfo>
   botCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
   botSettings: Map<string, RPCTypes.TeamBotSettings | undefined>
+  botTeamRoleMap: Map<string, TeamsTypes.TeamRoleType | undefined>
   badge: number
   dismissedInviteBanners: boolean
   draft?: string
@@ -47,6 +48,7 @@ const initialConvoStore: ConvoStore = {
   badge: 0,
   botCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank,
   botSettings: new Map(),
+  botTeamRoleMap: new Map(),
   dismissedInviteBanners: false,
   draft: undefined,
   giphyResult: undefined,
@@ -71,6 +73,7 @@ export type ConvoState = ConvoStore & {
     giphyToggleWindow: (show: boolean) => void
     mute: (m: boolean) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
+    refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
     refreshMutualTeamsInConv: () => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
@@ -167,6 +170,35 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.accountsInfoMap.set(messageID, paymentInfo)
       })
+    },
+    refreshBotRoleInConv: username => {
+      const f = async () => {
+        const TeamsConstants = await import('../teams')
+        let role: RPCTypes.TeamRole | undefined
+        const conversationIDKey = get().id
+        try {
+          role = await RPCChatTypes.localGetTeamRoleInConversationRpcPromise({
+            convID: Types.keyToConversationID(conversationIDKey),
+            username,
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info(`refreshBotRoleInConv: failed to refresh bot team role: ${error.message}`)
+          }
+          return
+        }
+        const trole = TeamsConstants.teamRoleByEnum[role]
+        const r = !trole || trole === 'none' ? undefined : trole
+        set(s => {
+          const roles = s.botTeamRoleMap
+          if (r !== undefined) {
+            roles.set(username, r)
+          } else {
+            roles.delete(username)
+          }
+        })
+      }
+      Z.ignorePromise(f())
     },
     refreshBotSettings: username => {
       console.log('aaa refresh bot settings', username)

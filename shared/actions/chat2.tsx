@@ -2923,28 +2923,6 @@ const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButt
   }
 }
 
-const refreshBotRoleInConv = async (_: unknown, action: Chat2Gen.RefreshBotRoleInConvPayload) => {
-  let role: RPCTypes.TeamRole | undefined
-  const {conversationIDKey, username} = action.payload
-  try {
-    role = await RPCChatTypes.localGetTeamRoleInConversationRpcPromise({
-      convID: Types.keyToConversationID(conversationIDKey),
-      username,
-    })
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info(`refreshBotRoleInConv: failed to refresh bot team role: ${error.message}`)
-    }
-    return
-  }
-  const trole = TeamsConstants.teamRoleByEnum[role]
-  return Chat2Gen.createSetBotRoleInConv({
-    conversationIDKey,
-    role: !trole || trole === 'none' ? undefined : trole,
-    username,
-  })
-}
-
 const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) => {
   RouterConstants.useState.getState().dispatch.clearModals()
   const meta = state.chat2.metaMap.get(conversationIDKey)
@@ -3181,7 +3159,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.addBotMember, addBotMember)
   Container.listenAction(Chat2Gen.editBotSettings, editBotSettings)
   Container.listenAction(Chat2Gen.removeBotMember, removeBotMember)
-  Container.listenAction(Chat2Gen.refreshBotRoleInConv, refreshBotRoleInConv)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.loadOnStartPhase === old.loadOnStartPhase) return
