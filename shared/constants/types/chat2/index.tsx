@@ -276,14 +276,7 @@ export type ReactionDesc = _Message.ReactionDesc
 // common passthroughs
 export type ConversationIDKey = Common.ConversationIDKey
 
-export {
-  messageIDToNumber,
-  numberToMessageID,
-  numberToOrdinal,
-  ordinalToNumber,
-  outboxIDToString,
-  stringToOutboxID,
-} from './message'
+export * from './message'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'
 
 export type ChatInboxRowItemSmall = ChatInboxRowTypes.ChatInboxRowItemSmall

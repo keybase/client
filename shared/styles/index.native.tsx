@@ -175,13 +175,7 @@ export const transition = () => ({})
 export const backgroundURL = () => ({})
 
 export {isMobile, isPhone, isTablet, fileUIName, isIOS, isAndroid} from '../constants/platform'
-export {
-  globalMargins,
-  backgroundModeToColor,
-  backgroundModeToTextColor,
-  platformStyles,
-  padding,
-} from './shared'
+export * from './shared'
 export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'
 export {DarkModeContext} from './dark-mode'
