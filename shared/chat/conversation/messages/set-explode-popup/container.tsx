@@ -26,7 +26,7 @@ type OwnProps = {
 const SetExplodePopup = React.memo(function SetExplodePopup(p: OwnProps) {
   const {onHidden, visible, attachTo, conversationIDKey, onAfterSelect} = p
   const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const selected = Constants.useContext(s => s.getConversationExplodingMode())
+  const selected = Constants.useContext(s => s.getExplodingMode())
   const setExplodingMode = Constants.useContext(s => s.dispatch.setExplodingMode)
   const onSelect = React.useCallback(
     (seconds: number) => {

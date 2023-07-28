@@ -31,7 +31,7 @@ type ConvoStore = {
   badge: number
   dismissedInviteBanners: boolean
   draft?: string
-  explodingModeLock: boolean // locks set on exploding mode while user is inputting text,
+  explodingModeLock?: number // locks set on exploding mode while user is inputting text,
   explodingMode: number // seconds to exploding message expiration,
   giphyResult?: RPCChatTypes.GiphySearchResults
   giphyWindow: boolean
@@ -55,7 +55,7 @@ const initialConvoStore: ConvoStore = {
   dismissedInviteBanners: false,
   draft: undefined,
   explodingMode: 0,
-  explodingModeLock: false,
+  explodingModeLock: undefined,
   giphyResult: undefined,
   giphyWindow: false,
   id: noConversationIDKey,
@@ -100,7 +100,7 @@ export type ConvoState = ConvoStore & {
     resetUnsentText: () => void
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setDraft: (d?: string) => void
-    setExplodingModeLock: (locked: boolean) => void
+    setExplodingModeLocked: (locked: boolean) => void
     setMuted: (m: boolean) => void
     setReplyTo: (o: Types.Ordinal) => void
     setTyping: (t: Set<string>) => void
@@ -114,7 +114,7 @@ export type ConvoState = ConvoStore & {
     hideSearch: () => void
     botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
   }
-  getConversationExplodingMode: () => number
+  getExplodingMode: () => number
 }
 
 // don't bug the users with black bars for network errors. chat isn't going to work in general
@@ -368,7 +368,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
 
         // unset a conversation exploding lock for this convo so we accept the new one
-        get().dispatch.setExplodingModeLock(false)
+        get().dispatch.setExplodingModeLocked(false)
 
         const category = `${Constants.explodingModeGregorKeyPrefix}${conversationIDKey}`
         // TODO remove redux
@@ -413,9 +413,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
-    setExplodingModeLock: locked => {
+    setExplodingModeLocked: locked => {
       set(s => {
-        s.explodingModeLock = locked
+        s.explodingModeLock = locked ? get().explodingMode : undefined
       })
     },
     setMuted: m => {
@@ -588,12 +588,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   return {
     ...initialConvoStore,
     dispatch,
-    getConversationExplodingMode: (): number => {
-      let mode = get().explodingMode
+    getExplodingMode: (): number => {
+      const mode = get().explodingModeLock ?? get().explodingMode
       const meta = Meta.getMeta(getReduxState(), get().id)
       const convRetention = Meta.getEffectiveRetentionPolicy(meta)
-      mode = convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
-      return mode
+      return convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
     },
   }
 }

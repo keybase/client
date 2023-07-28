@@ -163,7 +163,7 @@ const useUnsentText = (
   prevStoreUnsentText.current = storeUnsentText
 
   const dispatch = Container.useDispatch()
-  const onSetExplodingModeLock = Constants.useContext(s => s.dispatch.setExplodingModeLock)
+  const onSetExplodingModeLocked = Constants.useContext(s => s.dispatch.setExplodingModeLocked)
 
   const resetUnsentText = Constants.useContext(s => s.dispatch.resetUnsentText)
 
@@ -173,10 +173,9 @@ const useUnsentText = (
       const isExplodingModeLocked = (unsentTextMap.get(conversationIDKey)?.length ?? 0) > 0
       const shouldLock = text.length > 0
       if (isExplodingModeLocked !== shouldLock) {
-        console.log('aaa trying to lock', shouldLock)
         // if it's locked and we want to unset, unset it
         // alternatively, if it's not locked and we want to set it, set it
-        onSetExplodingModeLock(shouldLock)
+        onSetExplodingModeLocked(shouldLock)
       }
       // The store text only lasts until we change it, so blow it away now
       if (storeUnsentText !== undefined) {
@@ -184,7 +183,7 @@ const useUnsentText = (
       }
       unsentTextMap.set(conversationIDKey, text)
     },
-    [storeUnsentText, resetUnsentText, conversationIDKey, onSetExplodingModeLock]
+    [storeUnsentText, resetUnsentText, conversationIDKey, onSetExplodingModeLocked]
   )
   const unsentTextChanged = React.useCallback(
     (text: string) => {
@@ -381,7 +380,7 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const isTyping = Constants.useContext(s => s.typing.size > 0)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const suggestBotCommandsUpdateStatus = Constants.useContext(s => s.botCommandsUpdateStatus)
-  const explodingModeSeconds = Constants.useContext(s => s.getConversationExplodingMode())
+  const explodingModeSeconds = Constants.useContext(s => s.getExplodingMode())
   const data = Container.useSelector(state => {
     const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
     const cannotWrite = Constants.getMeta(state, conversationIDKey).cannotWrite
