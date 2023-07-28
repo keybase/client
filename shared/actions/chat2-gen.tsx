@@ -37,7 +37,6 @@ export const deselectedConversation = 'chat2:deselectedConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
-export const editBotSettings = 'chat2:editBotSettings'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
 export const hideConversation = 'chat2:hideConversation'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
@@ -901,16 +900,6 @@ export const createAddBotMember = (payload: {
   readonly restricted: boolean
 }) => ({payload, type: addBotMember as typeof addBotMember})
 /**
- * edit bot settings
- */
-export const createEditBotSettings = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly username: string
-  readonly allowCommands: boolean
-  readonly allowMentions: boolean
-  readonly convs?: Array<string>
-}) => ({payload, type: editBotSettings as typeof editBotSettings})
-/**
  * remove a bot member
  */
 export const createRemoveBotMember = (payload: {
@@ -1010,7 +999,6 @@ export type DeselectedConversationPayload = ReturnType<typeof createDeselectedCo
 export type DesktopNotificationPayload = ReturnType<typeof createDesktopNotification>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
-export type EditBotSettingsPayload = ReturnType<typeof createEditBotSettings>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
 export type HideConversationPayload = ReturnType<typeof createHideConversation>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
@@ -1126,7 +1114,6 @@ export type Actions =
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissJourneycardPayload
-  | EditBotSettingsPayload
   | FetchUserEmojiPayload
   | HideConversationPayload
   | IgnorePinnedMessagePayload

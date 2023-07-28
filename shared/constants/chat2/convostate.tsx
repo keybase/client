@@ -68,6 +68,12 @@ export type ConvoState = ConvoStore & {
   dispatch: {
     badgesUpdated: (badge: number) => void
     dismissBottomBanner: () => void
+    editBotSettings: (
+      username: string,
+      allowCommands: boolean,
+      allowMentions: boolean,
+      convs?: Array<string>
+    ) => void
     giphyGotSearchResult: (results: RPCChatTypes.GiphySearchResults) => void
     giphySend: (result: RPCChatTypes.GiphySearchResult) => void
     giphyToggleWindow: (show: boolean) => void
@@ -98,6 +104,15 @@ export type ConvoState = ConvoStore & {
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const getReduxState = Z.getReduxStore()
   const reduxDispatch = Z.getReduxDispatch()
+  const closeBotModal = async () => {
+    const RouterConstants = await import('../router2')
+    const TeamsConstants = await import('../teams')
+    RouterConstants.useState.getState().dispatch.clearModals()
+    const meta = getReduxState().chat2.metaMap.get(get().id)
+    if (meta?.teamname) {
+      TeamsConstants.useState.getState().dispatch.getMembers(meta.teamID)
+    }
+  }
   const dispatch: ConvoState['dispatch'] = {
     badgesUpdated: badge => {
       set(s => {
@@ -121,6 +136,29 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.dismissedInviteBanners = true
       })
+    },
+    editBotSettings: (username, allowCommands, allowMentions, convs) => {
+      const f = async () => {
+        const conversationIDKey = get().id
+        const Constants = await import('./index')
+        try {
+          await RPCChatTypes.localSetBotMemberSettingsRpcPromise(
+            {
+              botSettings: {cmds: allowCommands, convs, mentions: allowMentions},
+              convID: Types.keyToConversationID(conversationIDKey),
+              username,
+            },
+            Constants.waitingKeyBotAdd
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info('addBotMember: failed to edit bot settings: ' + error.message)
+          }
+          return
+        }
+        await closeBotModal()
+      }
+      Z.ignorePromise(f())
     },
     giphyGotSearchResult: results => {
       set(s => {

@@ -637,14 +637,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string"
     },
-    "editBotSettings": {
-      "_description": "edit bot settings",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "username": "string",
-      "allowCommands": "boolean",
-      "allowMentions": "boolean",
-      "convs?": "Array<string>"
-    },
     "setParticipants": {
       "_description": "Set conversation participant info",
       "participants": "Array<{conversationIDKey: Types.ConversationIDKey, participants: Types.ParticipantInfo}>"

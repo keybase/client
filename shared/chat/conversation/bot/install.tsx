@@ -136,19 +136,12 @@ const InstallBotPopup = (props: Props) => {
       })
     )
   }
+  const editBotSettings = Constants.useContext(s => s.dispatch.editBotSettings)
   const onEdit = () => {
     if (!conversationIDKey) {
       return
     }
-    dispatch(
-      Chat2Gen.createEditBotSettings({
-        allowCommands: installWithCommands,
-        allowMentions: installWithMentions,
-        conversationIDKey,
-        convs: installInConvs,
-        username: botUsername,
-      })
-    )
+    editBotSettings(botUsername, installWithCommands, installWithMentions, installInConvs)
   }
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onRemove = () => {

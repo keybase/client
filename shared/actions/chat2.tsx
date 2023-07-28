@@ -2952,26 +2952,6 @@ const addBotMember = async (state: Container.TypedState, action: Chat2Gen.AddBot
   return closeBotModal(state, conversationIDKey)
 }
 
-const editBotSettings = async (state: Container.TypedState, action: Chat2Gen.EditBotSettingsPayload) => {
-  const {allowCommands, allowMentions, conversationIDKey, convs, username} = action.payload
-  try {
-    await RPCChatTypes.localSetBotMemberSettingsRpcPromise(
-      {
-        botSettings: {cmds: allowCommands, convs, mentions: allowMentions},
-        convID: Types.keyToConversationID(conversationIDKey),
-        username,
-      },
-      Constants.waitingKeyBotAdd
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info('addBotMember: failed to edit bot settings: ' + error.message)
-    }
-    return false
-  }
-  return closeBotModal(state, conversationIDKey)
-}
-
 const removeBotMember = async (state: Container.TypedState, action: Chat2Gen.RemoveBotMemberPayload) => {
   const {conversationIDKey, username} = action.payload
   try {
@@ -3157,7 +3137,6 @@ const initChat = () => {
 
   // bots
   Container.listenAction(Chat2Gen.addBotMember, addBotMember)
-  Container.listenAction(Chat2Gen.editBotSettings, editBotSettings)
   Container.listenAction(Chat2Gen.removeBotMember, removeBotMember)
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
