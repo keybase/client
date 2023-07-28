@@ -54,8 +54,9 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   }
 
   const dispatch = Container.useDispatch()
+  const setMarkAsUnread = Constants.useContext(s => s.dispatch.setMarkAsUnread)
   const onMarkConversationAsUnread = Container.useEvent(() => {
-    dispatch(Chat2Gen.createMarkAsUnread({conversationIDKey}))
+    setMarkAsUnread()
   })
 
   const mute = Constants.useContext(s => s.dispatch.mute)

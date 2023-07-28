@@ -1183,7 +1183,7 @@ const getUnreadline = async (
     )
     if (Constants.getConvoState(conversationIDKey).markedAsUnread) {
       // Remove the force unread bit for the next time we view the thread.
-      Constants.getConvoState(conversationIDKey).dispatch.setMarkAsUnread()
+      Constants.getConvoState(conversationIDKey).dispatch.setMarkAsUnread(false)
     }
   } catch (error) {
     if (error instanceof RPCError) {

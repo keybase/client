@@ -118,7 +118,8 @@ export type ConvoState = ConvoStore & {
     setDraft: (d?: string) => void
     setExplodingModeLocked: (locked: boolean) => void
     setMuted: (m: boolean) => void
-    setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID) => void
+    // false to clear
+    setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID | false) => void
     setReplyTo: (o: Types.Ordinal) => void
     setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
     setTyping: (t: Set<string>) => void
@@ -439,9 +440,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     setMarkAsUnread: readMsgID => {
+      // false means clear, readMsgID === undefined means last item
       set(s => {
-        s.markedAsUnread = true
+        s.markedAsUnread = readMsgID !== false
       })
+      if (readMsgID === false) {
+        return
+      }
       const conversationIDKey = get().id
       const f = async () => {
         if (!useConfigState.getState().loggedIn) {
