@@ -40,5 +40,12 @@
     "typeRoots": ["./node_modules/@types/", "./custom-d.ts/"]
   },
   "include": ["globals.d.ts"],
-  "exclude": ["./node_modules", "./desktop/dist", "./desktop/build"]
+  "exclude": ["./node_modules", "./desktop/dist", "./desktop/build"],
+  "watchOptions": {
+    "watchFile": "useFsEvents",
+    "watchDirectory": "useFsEvents",
+    "fallbackPolling": "dynamicPriority",
+    "synchronousWatchDirectory": true,
+    "excludeDirectories": ["**/node_modules", "./desktop/dist", "./desktop/build"]
+  }
 }
