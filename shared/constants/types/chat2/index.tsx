@@ -1,7 +1,6 @@
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
 import * as _Message from './message'
-import type * as ChatInboxRowTypes from './rowitem'
 import type * as Meta from './meta'
 import type * as RPCChatTypes from '../rpc-chat-gen'
 
@@ -221,66 +220,7 @@ export const rpcOutboxIDToOutboxID = (outboxID: RPCChatTypes.OutboxID): _Message
 export const outboxIDToRpcOutboxID = (outboxID: _Message.OutboxID): RPCChatTypes.OutboxID =>
   Buffer.from(_Message.outboxIDToString(outboxID), 'hex')
 
-// meta passthroughs
-export type ConversationMeta = Meta.ConversationMeta
-export type MembershipType = Meta.MembershipType
-export type MetaTrustedState = Meta.MetaTrustedState
-export type NotificationsType = Meta.NotificationsType
-export type TeamType = Meta.TeamType
-
-// message passthroughs
-export type AttachmentType = _Message.AttachmentType
-export type ChatPaymentInfo = _Message.ChatPaymentInfo
-export type ChatRequestInfo = _Message.ChatRequestInfo
-export type MessagesWithReactions = _Message.MessagesWithReactions
-export type MentionsAt = _Message.MentionsAt
-export type MentionsChannel = _Message.MentionsChannel
-export type MentionsChannelName = _Message.MentionsChannelName
-export type Message = _Message.Message
-export type MessageAttachmentTransferState = _Message.MessageAttachmentTransferState
-export type MessageAttachment = _Message.MessageAttachment
-export type MessageExplodeDescription = _Message.MessageExplodeDescription
-export type MessageID = _Message.MessageID
-export type MessageRequestPayment = _Message.MessageRequestPayment
-export type MessageSendPayment = _Message.MessageSendPayment
-export type MessageSetChannelname = _Message.MessageSetChannelname
-export type MessageSetDescription = _Message.MessageSetDescription
-export type MessagePin = _Message.MessagePin
-export type MessageSystemAddedToTeam = _Message.MessageSystemAddedToTeam
-export type MessageSystemCreateTeam = _Message.MessageSystemCreateTeam
-export type MessageSystemChangeRetention = _Message.MessageSystemChangeRetention
-export type MessageSystemGitPush = _Message.MessageSystemGitPush
-export type MessageSystemInviteAccepted = _Message.MessageSystemInviteAccepted
-export type MessageSystemJoined = _Message.MessageSystemJoined
-export type MessageSystemLeft = _Message.MessageSystemLeft
-export type MessageSystemSBSResolved = _Message.MessageSystemSBSResolved
-export type MessageSystemSimpleToComplex = _Message.MessageSystemSimpleToComplex
-export type MessageSystemText = _Message.MessageSystemText
-export type MessageSystemUsersAddedToConversation = _Message.MessageSystemUsersAddedToConversation
-export type MessageSystemNewChannel = _Message.MessageSystemNewChannel
-export type MessageSystemChangeAvatar = _Message.MessageSystemChangeAvatar
-export type MessageJourneycard = _Message.MessageJourneycard
-export type MessageText = _Message.MessageText
-export type MessageType = _Message.MessageType
-export type Ordinal = _Message.Ordinal
-export type OutboxID = _Message.OutboxID
-export type PathAndOutboxID = _Message.PathAndOutboxID
-export type PreviewSpec = _Message.PreviewSpec
-export type Reaction = _Message.Reaction
-export type Reactions = _Message.Reactions
-export type ReactionDesc = _Message.ReactionDesc
-
-// common passthroughs
-export type ConversationIDKey = Common.ConversationIDKey
-
 export * from './message'
-export {stringToConversationIDKey, conversationIDKeyToString} from './common'
-
-export type ChatInboxRowItemSmall = ChatInboxRowTypes.ChatInboxRowItemSmall
-export type ChatInboxRowItemBigTeamsLabel = ChatInboxRowTypes.ChatInboxRowItemBigTeamsLabel
-export type ChatInboxRowItemBigHeader = ChatInboxRowTypes.ChatInboxRowItemBigHeader
-export type ChatInboxRowItemBig = ChatInboxRowTypes.ChatInboxRowItemBig
-export type ChatInboxRowItemDivider = ChatInboxRowTypes.ChatInboxRowItemDivider
-export type ChatInboxRowItemTeamBuilder = ChatInboxRowTypes.ChatInboxRowItemTeamBuilder
-export type ChatInboxRowItem = ChatInboxRowTypes.ChatInboxRowItem
-export type ChatInboxRowType = ChatInboxRowTypes.ChatInboxRowType
+export * from './common'
+export * from './meta'
+export * from './rowitem'
