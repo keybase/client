@@ -1,4 +1,5 @@
-import * as Types from '../types/chat2'
+import * as RPCChatTypes from '../types/rpc-chat-gen'
+import type * as Types from '../types/chat2'
 import type {TypedState} from '../reducer'
 import {conversationIDKeyToString} from '../types/chat2/common'
 
@@ -83,3 +84,40 @@ export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
   }
 }
 export const explodingModeGregorKeyPrefix = 'exploding:'
+
+export const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType).reduce<
+  Array<RPCChatTypes.MessageType>
+>((arr, key) => {
+  switch (key) {
+    case 'none':
+    case 'edit': // daemon filters this out for us so we can ignore
+    case 'delete':
+    case 'attachmentuploaded':
+    case 'reaction':
+    case 'unfurl':
+    case 'tlfname':
+      break
+    default:
+      {
+        const val = RPCChatTypes.MessageType[key as any]
+        if (typeof val === 'number') {
+          arr.push(val)
+        }
+      }
+      break
+  }
+
+  return arr
+}, [])
+
+export const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
+  switch (reason) {
+    case 'extension':
+    case 'push':
+      return RPCChatTypes.GetThreadReason.push
+    case 'foregrounding':
+      return RPCChatTypes.GetThreadReason.foreground
+    default:
+      return RPCChatTypes.GetThreadReason.general
+  }
+}

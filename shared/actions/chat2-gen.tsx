@@ -26,7 +26,6 @@ export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const blockConversation = 'chat2:blockConversation'
 export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
 export const clearAttachmentView = 'chat2:clearAttachmentView'
-export const clearMarkAsUnread = 'chat2:clearMarkAsUnread'
 export const clearMessages = 'chat2:clearMessages'
 export const clearMetas = 'chat2:clearMetas'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
@@ -45,7 +44,6 @@ export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
-export const markAsUnread = 'chat2:markAsUnread'
 export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const markTeamAsRead = 'chat2:markTeamAsRead'
@@ -376,13 +374,6 @@ export const createMarkTeamAsRead = (payload: {readonly teamID: TeamsTypes.TeamI
   payload,
   type: markTeamAsRead as typeof markTeamAsRead,
 })
-/**
- * Mark the converstation as unread to the given message ID
- */
-export const createMarkAsUnread = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly readMsgID?: RPCChatTypes.MessageID
-}) => ({payload, type: markAsUnread as typeof markAsUnread})
 /**
  * Navigation helper. Nav is slightly different on mobile / desktop.
  */
@@ -825,13 +816,6 @@ export const createAttachmentUploaded = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: attachmentUploaded as typeof attachmentUploaded})
-/**
- * When leaving a thread view, clear the force mark as unread bit
- */
-export const createClearMarkAsUnread = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: clearMarkAsUnread as typeof clearMarkAsUnread,
-})
 export const createAttachFromDragAndDrop = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly paths: Array<Types.PathAndOutboxID>
@@ -914,7 +898,6 @@ export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ChannelSuggestionsTriggeredPayload = ReturnType<typeof createChannelSuggestionsTriggered>
 export type ClearAttachmentViewPayload = ReturnType<typeof createClearAttachmentView>
-export type ClearMarkAsUnreadPayload = ReturnType<typeof createClearMarkAsUnread>
 export type ClearMessagesPayload = ReturnType<typeof createClearMessages>
 export type ClearMetasPayload = ReturnType<typeof createClearMetas>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
@@ -933,7 +916,6 @@ export type LoadAttachmentViewPayload = ReturnType<typeof createLoadAttachmentVi
 export type LoadMessagesCenteredPayload = ReturnType<typeof createLoadMessagesCentered>
 export type LoadNewerMessagesDueToScrollPayload = ReturnType<typeof createLoadNewerMessagesDueToScroll>
 export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
-export type MarkAsUnreadPayload = ReturnType<typeof createMarkAsUnread>
 export type MarkConversationsStalePayload = ReturnType<typeof createMarkConversationsStale>
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MarkTeamAsReadPayload = ReturnType<typeof createMarkTeamAsRead>
@@ -1020,7 +1002,6 @@ export type Actions =
   | BlockConversationPayload
   | ChannelSuggestionsTriggeredPayload
   | ClearAttachmentViewPayload
-  | ClearMarkAsUnreadPayload
   | ClearMessagesPayload
   | ClearMetasPayload
   | ConfirmScreenResponsePayload
@@ -1039,7 +1020,6 @@ export type Actions =
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
-  | MarkAsUnreadPayload
   | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MarkTeamAsReadPayload

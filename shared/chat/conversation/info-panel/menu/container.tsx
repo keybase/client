@@ -153,10 +153,11 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     clearModals()
     dispatch(ChatGen.createMarkTeamAsRead({teamID}))
   }, [clearModals, dispatch, teamID])
+  const setMarkAsUnread = ChatConstants.useContext(s => s.dispatch.setMarkAsUnread)
   const onMarkAsUnread = React.useCallback(() => {
     clearModals()
-    dispatch(ChatGen.createMarkAsUnread({conversationIDKey}))
-  }, [clearModals, dispatch, conversationIDKey])
+    setMarkAsUnread()
+  }, [clearModals, setMarkAsUnread])
   const onViewTeam = React.useCallback(() => {
     clearModals()
     navigateAppend({props: {teamID}, selected: 'team'})

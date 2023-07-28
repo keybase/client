@@ -9,6 +9,7 @@ import * as Types from '../types/chat2'
 import * as Z from '../../util/zustand'
 import * as RouterConstants from '../router2'
 import * as TeamsConstants from '../teams'
+import {useConfigState} from '../config'
 import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
@@ -17,6 +18,7 @@ import {RPCError} from '../../util/errors'
 import {mapGetEnsureValue} from '../../util/map'
 import {noConversationIDKey} from '../types/chat2/common'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
+import {findLast} from '../../util/arrays'
 
 const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
   hits: [],
@@ -41,6 +43,7 @@ type ConvoStore = {
   explodingMode: number // seconds to exploding message expiration,
   giphyResult?: RPCChatTypes.GiphySearchResults
   giphyWindow: boolean
+  markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   muted: boolean
   mutualTeams: Array<TeamsTypes.TeamID>
   typing: Set<string>
@@ -68,6 +71,7 @@ const initialConvoStore: ConvoStore = {
   giphyResult: undefined,
   giphyWindow: false,
   id: noConversationIDKey,
+  markedAsUnread: false,
   muted: false,
   mutualTeams: [],
   replyTo: 0,
@@ -114,6 +118,7 @@ export type ConvoState = ConvoStore & {
     setDraft: (d?: string) => void
     setExplodingModeLocked: (locked: boolean) => void
     setMuted: (m: boolean) => void
+    setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID) => void
     setReplyTo: (o: Types.Ordinal) => void
     setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
     setTyping: (t: Set<string>) => void
@@ -432,6 +437,109 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.explodingModeLock = locked ? get().explodingMode : undefined
       })
+    },
+    setMarkAsUnread: readMsgID => {
+      set(s => {
+        s.markedAsUnread = true
+      })
+      const conversationIDKey = get().id
+      const f = async () => {
+        if (!useConfigState.getState().loggedIn) {
+          logger.info('bail on not logged in')
+          return
+        }
+        const state = getReduxState()
+        const meta = state.chat2.metaMap.get(conversationIDKey)
+        const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxVisibleMsgID : 0
+        let msgID = unreadLineID
+
+        // Find first visible message prior to what we have marked as unread. The
+        // server will use this value to calculate our badge state.
+        const messageMap = state.chat2.messageMap.get(conversationIDKey)
+
+        if (messageMap) {
+          const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
+          const ord =
+            messageMap &&
+            findLast([...ordinals], (o: Types.Ordinal) => {
+              const message = messageMap.get(o)
+              return !!(message && message.id < unreadLineID)
+            })
+          const message = ord ? messageMap?.get(ord) : undefined
+          if (message) {
+            msgID = message.id
+          }
+        } else {
+          const pagination = {
+            last: false,
+            next: '',
+            num: 2, // we need 2 items
+            previous: '',
+          }
+          try {
+            await new Promise<void>(resolve => {
+              const onGotThread = (p: any) => {
+                try {
+                  const d = JSON.parse(p)
+                  msgID = d?.messages[1]?.valid?.messageID
+                  resolve()
+                } catch {}
+              }
+              RPCChatTypes.localGetThreadNonblockRpcListener(
+                {
+                  incomingCallMap: {
+                    'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
+                    'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
+                  },
+                  params: {
+                    cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
+                    conversationID: Types.keyToConversationID(conversationIDKey),
+                    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+                    knownRemotes: [],
+                    pagination,
+                    pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
+                    query: {
+                      disablePostProcessThread: false,
+                      disableResolveSupersedes: false,
+                      enableDeletePlaceholders: true,
+                      markAsRead: false,
+                      messageIDControl: null,
+                      messageTypes: Common.loadThreadMessageTypes,
+                    },
+                    reason: Common.reasonToRPCReason(''),
+                  },
+                },
+                Z.dummyListenerApi
+              )
+                .then(() => {})
+                .catch(() => {
+                  resolve()
+                })
+            })
+          } catch {}
+        }
+
+        if (!msgID) {
+          logger.info(`marking unread messages ${conversationIDKey} failed due to no id`)
+          return
+        }
+
+        logger.info(`marking unread messages ${conversationIDKey} ${msgID}`)
+        RPCChatTypes.localMarkAsReadLocalRpcPromise({
+          conversationID: Types.keyToConversationID(conversationIDKey),
+          forceUnread: true,
+          msgID,
+        })
+          .then(() => {})
+          .catch(() => {})
+        reduxDispatch(
+          Chat2Gen.createUpdateUnreadline({
+            conversationIDKey,
+            messageID: unreadLineID,
+          })
+        )
+      }
+      Z.ignorePromise(f())
     },
     setMuted: m => {
       set(s => {
