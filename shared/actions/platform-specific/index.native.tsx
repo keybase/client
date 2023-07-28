@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../chat2-gen'
 import * as RemoteGen from '../remote-gen'
 import * as Clipboard from 'expo-clipboard'
 import * as ConfigConstants from '../../constants/config'
@@ -236,18 +235,15 @@ const loadStartupDetails = async () => {
   afterStartupDetails(true)
 }
 
-const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
-  Chat2Gen.createSetCommandStatusInfo({
-    conversationIDKey,
-    info: {
-      actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
-      displayText: text,
-      displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
-    },
+const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) => {
+  ChatConstants.getConvoState(conversationIDKey).dispatch.setCommandStatusInfo({
+    actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
+    displayText: text,
+    displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
   })
+}
 
 const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositionPayload) => {
-  const reduxDispatch = Z.getReduxDispatch()
   const response = action.payload.response
   response.result(0)
   try {
@@ -255,11 +251,9 @@ const onChatWatchPosition = async (action: EngineGen.Chat1ChatUiChatWatchPositio
   } catch (_error) {
     const error = _error as any
     logger.info('failed to get location perms: ' + error.message)
-    reduxDispatch(
-      setPermissionDeniedCommandStatus(
-        Types.conversationIDToKey(action.payload.params.convID),
-        `Failed to access location. ${error.message}`
-      )
+    setPermissionDeniedCommandStatus(
+      Types.conversationIDToKey(action.payload.params.convID),
+      `Failed to access location. ${error.message}`
     )
   }
 
@@ -316,19 +310,14 @@ ExpoTaskManager.defineTask(locationTaskName, ({data, error}) => {
   })
 })
 
-export const watchPositionForMap = async (
-  dispatch: Container.TypedDispatch,
-  conversationIDKey: Types.ConversationIDKey
-) => {
+export const watchPositionForMap = async (conversationIDKey: Types.ConversationIDKey) => {
   try {
     logger.info('location perms check')
     await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
   } catch (_error) {
     const error = _error as any
     logger.info('failed to get location perms: ' + error.message)
-    dispatch(
-      setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
-    )
+    setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
     return () => {}
   }
 
@@ -348,9 +337,7 @@ export const watchPositionForMap = async (
   } catch (_error) {
     const error = _error as any
     logger.info('failed to get location: ' + error.message)
-    dispatch(
-      setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
-    )
+    setPermissionDeniedCommandStatus(conversationIDKey, `Failed to access location. ${error.message}`)
     return () => {}
   }
 }
