@@ -198,6 +198,7 @@ const useReduxFast = (
     leadingItem = sm.get(trailingItem) ?? 0
   }
   const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const orangeOrdinal = Constants.useContext(s => s.orangeLine)
   return Container.useSelector(state => {
     let ordinal = trailingItem
     let previous = leadingItem
@@ -205,7 +206,7 @@ const useReduxFast = (
     const pmessage = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const showUsername = m && getUsernameToShow(m, pmessage, you)
-    const orangeLineAbove = state.chat2.orangeLineMap.get(conversationIDKey) === ordinal
+    const orangeLineAbove = orangeOrdinal == ordinal
     return {orangeLineAbove, ordinal, showUsername}
   }, shallowEqual)
 }

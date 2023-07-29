@@ -1131,64 +1131,6 @@ const loadMoreMessages = (
   Z.ignorePromise(f())
 }
 
-const getUnreadline = async (
-  state: Container.TypedState,
-  action: Chat2Gen.SelectedConversationPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  // Get the conversationIDKey
-  let key: Types.ConversationIDKey | undefined
-  switch (action.type) {
-    case Chat2Gen.selectedConversation:
-      key = action.payload.conversationIDKey
-      break
-    default:
-      key = action.payload.conversationIDKey
-  }
-
-  if (!key || !Constants.isValidConversationIDKey(key)) {
-    logger.info('Load unreadline bail: no conversationIDKey')
-    return
-  }
-
-  const conversationIDKey = key
-  const convID = Types.keyToConversationID(conversationIDKey)
-  if (!convID) {
-    logger.info('Load unreadline bail: invalid conversationIDKey')
-    return
-  }
-
-  const {readMsgID} = state.chat2.metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
-  try {
-    const unreadlineRes = await RPCChatTypes.localGetUnreadlineRpcPromise({
-      convID,
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      readMsgID: readMsgID < 0 ? 0 : readMsgID,
-    })
-    const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-    logger.info(`marking unreadline ${conversationIDKey} ${unreadlineID}`)
-    listenerApi.dispatch(
-      Chat2Gen.createUpdateUnreadline({
-        conversationIDKey,
-        messageID: Types.numberToMessageID(unreadlineID),
-      })
-    )
-    if (Constants.getConvoState(conversationIDKey).markedAsUnread) {
-      // Remove the force unread bit for the next time we view the thread.
-      Constants.getConvoState(conversationIDKey).dispatch.setMarkAsUnread(false)
-    }
-  } catch (error) {
-    if (error instanceof RPCError) {
-      if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-        const {inboxRefresh} = Constants.useState.getState().dispatch
-        inboxRefresh('maybeKickedFromTeam')
-        listenerApi.dispatch(Chat2Gen.createNavigateToInbox())
-      }
-    }
-    // ignore this error in general
-  }
-}
-
 // Show a desktop notification
 const desktopNotify = async (state: Container.TypedState, action: Chat2Gen.DesktopNotificationPayload) => {
   const {conversationIDKey, author, body} = action.payload
@@ -2771,7 +2713,10 @@ const initChat = () => {
   })
 
   // get the unread (orange) line
-  Container.listenAction(Chat2Gen.selectedConversation, getUnreadline)
+  Container.listenAction(Chat2Gen.selectedConversation, (_, a) => {
+    const {conversationIDKey} = a.payload
+    Constants.getConvoState(conversationIDKey).dispatch.loadOrangeLine()
+  })
 
   Container.listenAction(Chat2Gen.messageRetry, messageRetry)
   Container.listenAction(Chat2Gen.messageSend, messageSend)
@@ -3062,6 +3007,40 @@ const initChat = () => {
         ordinal,
       })
     })
+  })
+
+  Container.listenAction(Chat2Gen.selectedConversation, (state, a) => {
+    const {conversationIDKey} = a.payload
+    const {readMsgID, maxVisibleMsgID} =
+      state.chat2.metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
+    logger.info(
+      `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
+    )
+    if (maxVisibleMsgID > readMsgID) {
+      // Store the message ID that will display the orange line above it,
+      // which is the first message after the last read message. We can't
+      // just increment `readMsgID` since that msgID might be a
+      // non-visible (edit, delete, reaction...) message so we scan the
+      // ordinals for the appropriate value.
+      const messageMap = state.chat2.messageMap.get(conversationIDKey)
+      const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
+      const ord =
+        messageMap &&
+        ordinals.find(o => {
+          const message = messageMap.get(o)
+          return !!(message && message.id >= readMsgID + 1)
+        })
+      const message = ord ? messageMap?.get(ord) : null
+      if (message?.id) {
+        Constants.getConvoState(conversationIDKey).dispatch.setOrangeLine(message.id)
+      } else {
+        Constants.getConvoState(conversationIDKey).dispatch.setOrangeLine(0)
+      }
+    } else {
+      // If there aren't any new messages, we don't want to display an
+      // orange line so remove its entry from orangeLineMap
+      Constants.getConvoState(conversationIDKey).dispatch.setOrangeLine(0)
+    }
   })
 }
 
