@@ -11,7 +11,6 @@ import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
 import {mapGetEnsureValue} from '../util/map'
 import sortedIndexOf from 'lodash/sortedIndexOf'
-import {findLast} from '../util/arrays'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatParticipantsInfoPayload
@@ -337,47 +336,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       orangeLineMap.set(conversationIDKey, messageID)
     } else {
       orangeLineMap.delete(action.payload.conversationIDKey)
-    }
-  },
-  [Chat2Gen.messageSetEditing]: (draftState, action) => {
-    const {conversationIDKey, editLastUser} = action.payload
-    const {editingMap, messageOrdinals} = draftState
-    let ordinal = action.payload.ordinal
-
-    // clearing
-    if (!editLastUser && !ordinal) {
-      editingMap.delete(conversationIDKey)
-      Constants.getConvoState(conversationIDKey).dispatch.resetUnsentText()
-      return
-    }
-
-    const messageMap = draftState.messageMap.get(conversationIDKey)
-
-    // Editing last message
-    if (!ordinal && editLastUser) {
-      // Editing your last message
-      const ordinals = messageOrdinals.get(conversationIDKey) ?? []
-      ordinal = findLast(ordinals, o => {
-        const message = messageMap?.get(o)
-        return !!(
-          (message?.type === 'text' || message?.type === 'attachment') &&
-          message.author === editLastUser &&
-          !message.exploded &&
-          message.isEditable
-        )
-      })
-    }
-
-    if (ordinal) {
-      const message = messageMap?.get(ordinal)
-      if (message?.type === 'text' || message?.type === 'attachment') {
-        editingMap.set(conversationIDKey, ordinal)
-        if (message.type === 'text') {
-          Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(message.text.stringValue())
-        } else if (message.type === 'attachment') {
-          Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(message.title)
-        }
-      }
     }
   },
   [Chat2Gen.messagesAdd]: (draftState, action) => {

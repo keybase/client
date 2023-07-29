@@ -63,8 +63,8 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   const bottomChildren = useBottom(ordinal, toggleShowingPopup)
   const reply = useReply(ordinal)
 
+  const editInfo = Constants.useContext(s => s.getEditInfo())
   const {isEditing, textType, hasReactions} = Container.useSelector(state => {
-    const editInfo = Constants.getEditInfo(state, conversationIDKey)
     const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
     const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
     const errorReason = m?.errorReason

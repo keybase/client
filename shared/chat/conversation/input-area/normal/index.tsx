@@ -292,14 +292,10 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
 ) {
   const {conversationIDKey, focusInputCounter, showCommandMarkdown, onRequestScrollToBottom} = p
   const {onRequestScrollDown, onRequestScrollUp, showGiphySearch, replyTo, jumpToRecent} = p
-  const dispatch = Container.useDispatch()
-  const {editOrdinal, isEditExploded} = Container.useSelector(state => {
-    const editOrdinal = state.chat2.editingMap.get(conversationIDKey)
-    const isEditExploded = editOrdinal
-      ? Constants.getMessage(state, conversationIDKey, editOrdinal)?.exploded ?? false
-      : false
-    return {editOrdinal, isEditExploded}
-  }, shallowEqual)
+  const editOrdinal = Constants.useContext(s => s.editing)
+  const isEditExploded = Container.useSelector(state =>
+    editOrdinal ? Constants.getMessage(state, conversationIDKey, editOrdinal)?.exploded ?? false : false
+  )
   const isEditing = !!editOrdinal
   const {onSubmit} = useSubmit({
     conversationIDKey,
@@ -393,10 +389,11 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
     inputRef.current?.focus()
   }, [inputRef, focusInputCounter, isEditing])
 
+  const setEditing = Constants.useContext(s => s.dispatch.setEditing)
   const onCancelEditing = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey}))
+    setEditing(false)
     setText('')
-  }, [dispatch, conversationIDKey, setText])
+  }, [setEditing, setText])
 
   const [lastIsEditing, setLastIsEditing] = React.useState(isEditing)
   const [lastIsEditExploded, setLastIsEditExploded] = React.useState(isEditExploded)

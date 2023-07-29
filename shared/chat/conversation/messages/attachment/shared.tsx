@@ -185,13 +185,13 @@ export const useAttachmentRedux = () => {
     dispatch(Chat2Gen.createAttachmentPreviewSelect({conversationIDKey, ordinal}))
   }, [dispatch, getIds])
 
+  const editInfo = Constants.useContext(s => s.getEditInfo())
   const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
     Container.useSelector(state => {
       const m = Constants.getMessage(state, conversationIDKey, ordinal)
       const message = m?.type === 'attachment' ? m : missingMessage
       const {isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
       const {deviceType, inlineVideoPlayable, transferState, submitState} = message
-      const editInfo = Constants.getEditInfo(state, conversationIDKey)
       const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
       const showTitle = !!title
       const fileName =

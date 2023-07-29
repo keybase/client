@@ -145,12 +145,6 @@
       "errorTyp?": "number",
       "outboxID": "Types.OutboxID"
     },
-    "messageSetEditing": {
-      "_description": "Start editing a message / or edit the last message / or clear editing",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal?": "Types.Ordinal",
-      "editLastUser?": "string"
-    },
     "messageReplyPrivately": {
       "_description": "Reply privately to a message with quoting",
       "sourceConversationIDKey": "Types.ConversationIDKey",

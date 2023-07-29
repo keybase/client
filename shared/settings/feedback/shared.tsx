@@ -16,7 +16,6 @@ export const getExtraChatLogsForLogSend = () => {
   if (c) {
     const metaMap = getMeta(state, c)
     return {
-      editingMap: chat.editingMap.get(c),
       messageMap: [...(chat.messageMap.get(c)?.values() ?? [])].map(m => ({
         a: m.author,
         i: m.id,

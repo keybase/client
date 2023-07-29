@@ -91,13 +91,9 @@ export default (ownProps: OwnProps) => {
       selected: 'chatDeleteHistoryWarning',
     })
   }
+  const setEditing = Constants.useContext(s => s.dispatch.setEditing)
   const _onEdit = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createMessageSetEditing({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
+    setEditing(message.ordinal)
   }
   const _onForward = (message: Types.Message) => {
     navigateAppend({

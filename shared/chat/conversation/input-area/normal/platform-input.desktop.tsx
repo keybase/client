@@ -1,7 +1,6 @@
 /* eslint-env browser */
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
-import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -357,16 +356,10 @@ const PlatformInput = React.memo(function PlatformInput(p: Props) {
   const focusInput = React.useCallback(() => {
     inputRef.current?.focus()
   }, [inputRef])
-  const dispatch = Container.useDispatch()
-  const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const setEditing = Constants.useContext(s => s.dispatch.setEditing)
   const onEditLastMessage = React.useCallback(() => {
-    dispatch(
-      Chat2Gen.createMessageSetEditing({
-        conversationIDKey,
-        editLastUser: you,
-      })
-    )
-  }, [dispatch, conversationIDKey, you])
+    setEditing(true)
+  }, [setEditing])
 
   const {globalKeyDownPressHandler, inputKeyDown, onChangeText} = useKeyboard({
     focusInput,

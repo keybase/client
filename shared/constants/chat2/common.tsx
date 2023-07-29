@@ -64,25 +64,6 @@ export const getReplyToMessageID = (
     : undefined
 }
 
-export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
-  const ordinal = state.chat2.editingMap.get(id)
-  if (!ordinal) {
-    return
-  }
-
-  const message = getMessage(state, id, ordinal)
-  if (!message) {
-    return
-  }
-  switch (message.type) {
-    case 'text':
-      return {exploded: message.exploded, ordinal, text: message.text.stringValue()}
-    case 'attachment':
-      return {exploded: message.exploded, ordinal, text: message.title}
-    default:
-      return
-  }
-}
 export const explodingModeGregorKeyPrefix = 'exploding:'
 
 export const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType).reduce<
