@@ -123,11 +123,11 @@ const ConversationList = React.memo(function ConversationList(p: {
   const [extraData, setExtraData] = React.useState(0)
   const [lastED, setLastED] = React.useState(extraData)
 
-  const {centeredOrdinal, _messageOrdinals, messageTypeMap} = Container.useSelector(state => {
-    const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)?.ordinal ?? -1
+  const centeredOrdinal = Constants.useContext(s => s.messageCenterOrdinal)?.ordinal ?? -1
+  const {_messageOrdinals, messageTypeMap} = Container.useSelector(state => {
     const _messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
     const messageTypeMap = state.chat2.messageTypeMap.get(conversationIDKey)
-    return {_messageOrdinals, centeredOrdinal, messageTypeMap}
+    return {_messageOrdinals, messageTypeMap}
   }, shallowEqual)
 
   const messageOrdinals = React.useMemo(() => {
@@ -311,7 +311,7 @@ const styles = Styles.styleSheetCreate(
         paddingBottom: 0,
         paddingTop: mobileTypingContainerHeight,
       },
-    } as const)
+    }) as const
 )
 
 export default ConversationList

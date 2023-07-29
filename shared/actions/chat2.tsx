@@ -3045,6 +3045,24 @@ const initChat = () => {
     const {conversationIDKey} = message
     Constants.getConvoState(conversationIDKey).dispatch.updateAttachmentViewTransfered(message.id, path ?? '')
   })
+
+  Container.listenAction(
+    [Chat2Gen.replyJump, Chat2Gen.jumpToRecent, Chat2Gen.selectedConversation],
+    (_, a) => {
+      const {conversationIDKey} = a.payload
+      Constants.getConvoState(conversationIDKey).dispatch.setMessageCenterOrdinal()
+    }
+  )
+
+  Container.listenAction(Chat2Gen.messagesAdd, (_, a) => {
+    a.payload.centeredMessageIDs?.forEach(cm => {
+      const ordinal = Types.numberToOrdinal(Types.messageIDToNumber(cm.messageID))
+      Constants.getConvoState(cm.conversationIDKey).dispatch.setMessageCenterOrdinal({
+        highlightMode: cm.highlightMode,
+        ordinal,
+      })
+    })
+  })
 }
 
 export default initChat

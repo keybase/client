@@ -52,6 +52,7 @@ type ConvoStore = {
   giphyResult?: RPCChatTypes.GiphySearchResults
   giphyWindow: boolean
   markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
+  messageCenterOrdinal?: Types.CenterOrdinal // ordinals to center threads on,
   muted: boolean
   mutualTeams: Array<TeamsTypes.TeamID>
   participants: Types.ParticipantInfo
@@ -83,6 +84,7 @@ const initialConvoStore: ConvoStore = {
   giphyWindow: false,
   id: noConversationIDKey,
   markedAsUnread: false,
+  messageCenterOrdinal: undefined,
   muted: false,
   mutualTeams: [],
   participants: noParticipantInfo,
@@ -137,6 +139,7 @@ export type ConvoState = ConvoStore & {
     setMuted: (m: boolean) => void
     // false to clear
     setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID | false) => void
+    setMessageCenterOrdinal: (m?: Types.CenterOrdinal) => void
     setParticipants: (p: ConvoState['participants']) => void
     setReplyTo: (o: Types.Ordinal) => void
     setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
@@ -697,6 +700,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    setMessageCenterOrdinal: m => {
+      set(s => {
+        s.messageCenterOrdinal = m
+      })
+    },
     setMuted: m => {
       set(s => {
         s.muted = m
@@ -839,8 +847,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     toggleThreadSearch: hide => {
       set(s => {
-        // TODO >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        const {threadSearchInfo /*, messageCenterOrdinals*/} = s
+        const {threadSearchInfo} = s
         threadSearchInfo.hits = []
         threadSearchInfo.status = 'initial'
         if (hide !== undefined) {
@@ -848,7 +855,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         } else {
           threadSearchInfo.visible = !threadSearchInfo.visible
         }
-        //   messageCenterOrdinals.delete(conversationIDKey)
+        s.messageCenterOrdinal = undefined
       })
 
       const f = async () => {
