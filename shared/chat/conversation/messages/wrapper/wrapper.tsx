@@ -53,7 +53,7 @@ const missingMessage = Constants.makeMessageDeleted({})
 
 export const useCommon = (ordinal: Types.Ordinal) => {
   const conversationIDKey = React.useContext(ConvoIDContext)
-  const showCenteredHighlight = useHighlightMode(conversationIDKey, ordinal)
+  const showCenteredHighlight = useHighlightMode(ordinal)
 
   const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
   const {type, shouldShowPopup} = Container.useSelector(state => {
@@ -298,9 +298,9 @@ const TextAndSiblings = React.memo(function TextAndSiblings(p: TSProps) {
   )
 })
 
-const useHighlightMode = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
-  const centeredOrdinalType = Container.useSelector(state => {
-    const i = state.chat2.messageCenterOrdinals.get(conversationIDKey)
+const useHighlightMode = (ordinal: Types.Ordinal) => {
+  const centeredOrdinalType = Constants.useContext(s => {
+    const i = s.messageCenterOrdinal
     return i?.ordinal === ordinal ? i.highlightMode : undefined
   })
 

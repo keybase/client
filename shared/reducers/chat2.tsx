@@ -214,7 +214,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.selectedConversation]: (draftState, action) => {
     const {conversationIDKey} = action.payload
     const {containsLatestMessageMap, orangeLineMap} = draftState
-    const {metaMap, messageCenterOrdinals} = draftState
+    const {metaMap} = draftState
 
     if (conversationIDKey) {
       const {readMsgID, maxVisibleMsgID} = metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
@@ -253,7 +253,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (meta) {
       meta.draft = ''
     }
-    messageCenterOrdinals.delete(conversationIDKey)
     Constants.getConvoState(conversationIDKey).dispatch.setThreadLoadStatus(
       RPCChatTypes.UIChatThreadStatusTyp.none
     )
@@ -477,30 +476,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }
     }
     draftState.containsLatestMessageMap = containsLatestMessageMap
-
-    const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
-    const centeredMessageIDs = action.payload.centeredMessageIDs || []
-    centeredMessageIDs.forEach(cm => {
-      let ordinal = messageIDToOrdinal(
-        draftState.messageMap,
-        draftState.pendingOutboxToOrdinal,
-        cm.conversationIDKey,
-        cm.messageID
-      )
-      if (!ordinal) {
-        ordinal = Types.numberToOrdinal(Types.messageIDToNumber(cm.messageID))
-      }
-      messageCenterOrdinals.set(cm.conversationIDKey, {
-        highlightMode: cm.highlightMode,
-        ordinal,
-      })
-    })
-
     draftState.messageMap = messageMap
     draftState.messageTypeMap = oldMessageTypeMap
-    if (centeredMessageIDs.length > 0) {
-      draftState.messageCenterOrdinals = messageCenterOrdinals
-    }
     draftState.containsLatestMessageMap = containsLatestMessageMap
     // only if different
     if (
@@ -510,11 +487,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
     draftState.messageMap = messageMap
-  },
-  [Chat2Gen.jumpToRecent]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {messageCenterOrdinals} = draftState
-    messageCenterOrdinals.delete(conversationIDKey)
   },
   [Chat2Gen.setContainsLastMessage]: (draftState, action) => {
     const {conversationIDKey, contains} = action.payload
@@ -669,11 +641,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey, moreToLoad} = action.payload
     const {moreToLoadMap} = draftState
     moreToLoadMap.set(conversationIDKey, moreToLoad)
-  },
-  [Chat2Gen.replyJump]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {messageCenterOrdinals} = draftState
-    messageCenterOrdinals.delete(conversationIDKey)
   },
   [Chat2Gen.metasReceived]: (draftState, action) => {
     const {metas, removals} = action.payload
