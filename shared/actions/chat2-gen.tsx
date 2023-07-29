@@ -9,7 +9,6 @@ import type {RetentionPolicy} from '../constants/types/retention-policy'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'chat2:'
-export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
@@ -25,7 +24,6 @@ export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const blockConversation = 'chat2:blockConversation'
 export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
-export const clearAttachmentView = 'chat2:clearAttachmentView'
 export const clearMessages = 'chat2:clearMessages'
 export const clearMetas = 'chat2:clearMetas'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
@@ -40,7 +38,6 @@ export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
-export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
@@ -85,7 +82,6 @@ export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectedConversation = 'chat2:selectedConversation'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
-export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
@@ -182,26 +178,12 @@ export const createAddUserToChannel = (payload: {
   readonly username: string
 }) => ({payload, type: addUserToChannel as typeof addUserToChannel})
 /**
- * Add result for attachment view
- */
-export const createAddAttachmentViewMessage = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly viewType: RPCChatTypes.GalleryItemTyp
-  readonly message: Types.Message
-}) => ({payload, type: addAttachmentViewMessage as typeof addAttachmentViewMessage})
-/**
  * Block a conversation
  */
 export const createBlockConversation = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly reportUser: boolean
 }) => ({payload, type: blockConversation as typeof blockConversation})
-/**
- * Clear attachment views
- */
-export const createClearAttachmentView = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: clearAttachmentView as typeof clearAttachmentView})
 /**
  * Consume a service notification that a conversation's retention policy has been updated
  */
@@ -341,14 +323,6 @@ export const createJumpToRecent = (payload: {readonly conversationIDKey: Types.C
   payload,
   type: jumpToRecent as typeof jumpToRecent,
 })
-/**
- * Load attachment view pane
- */
-export const createLoadAttachmentView = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly viewType: RPCChatTypes.GalleryItemTyp
-  readonly fromMsgID?: Types.MessageID
-}) => ({payload, type: loadAttachmentView as typeof loadAttachmentView})
 /**
  * Load some more messages for a conversation
  */
@@ -552,15 +526,6 @@ export const createMarkConversationsStale = (payload: {
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
   readonly updateType: RPCChatTypes.StaleUpdateType
 }) => ({payload, type: markConversationsStale as typeof markConversationsStale})
-/**
- * Set attachment view status
- */
-export const createSetAttachmentViewStatus = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly viewType: RPCChatTypes.GalleryItemTyp
-  readonly status: Types.AttachmentViewStatus
-  readonly last?: boolean
-}) => ({payload, type: setAttachmentViewStatus as typeof setAttachmentViewStatus})
 /**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
@@ -862,7 +827,6 @@ export const createUnhideConversation = (payload: {readonly conversationIDKey: T
 })
 
 // Action Payloads
-export type AddAttachmentViewMessagePayload = ReturnType<typeof createAddAttachmentViewMessage>
 export type AddUserToChannelPayload = ReturnType<typeof createAddUserToChannel>
 export type AddUsersToChannelPayload = ReturnType<typeof createAddUsersToChannel>
 export type AttachFromDragAndDropPayload = ReturnType<typeof createAttachFromDragAndDrop>
@@ -878,7 +842,6 @@ export type AttachmentUploadingPayload = ReturnType<typeof createAttachmentUploa
 export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ChannelSuggestionsTriggeredPayload = ReturnType<typeof createChannelSuggestionsTriggered>
-export type ClearAttachmentViewPayload = ReturnType<typeof createClearAttachmentView>
 export type ClearMessagesPayload = ReturnType<typeof createClearMessages>
 export type ClearMetasPayload = ReturnType<typeof createClearMetas>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
@@ -893,7 +856,6 @@ export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMes
 export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
 export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation>
-export type LoadAttachmentViewPayload = ReturnType<typeof createLoadAttachmentView>
 export type LoadMessagesCenteredPayload = ReturnType<typeof createLoadMessagesCentered>
 export type LoadNewerMessagesDueToScrollPayload = ReturnType<typeof createLoadNewerMessagesDueToScroll>
 export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
@@ -938,7 +900,6 @@ export type SaveMinWriterRolePayload = ReturnType<typeof createSaveMinWriterRole
 export type SelectedConversationPayload = ReturnType<typeof createSelectedConversation>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
-export type SetAttachmentViewStatusPayload = ReturnType<typeof createSetAttachmentViewStatus>
 export type SetContainsLastMessagePayload = ReturnType<typeof createSetContainsLastMessage>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
@@ -964,7 +925,6 @@ export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 // All Actions
 // prettier-ignore
 export type Actions =
-  | AddAttachmentViewMessagePayload
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
   | AttachFromDragAndDropPayload
@@ -980,7 +940,6 @@ export type Actions =
   | AttachmentsUploadPayload
   | BlockConversationPayload
   | ChannelSuggestionsTriggeredPayload
-  | ClearAttachmentViewPayload
   | ClearMessagesPayload
   | ClearMetasPayload
   | ConfirmScreenResponsePayload
@@ -995,7 +954,6 @@ export type Actions =
   | JoinConversationPayload
   | JumpToRecentPayload
   | LeaveConversationPayload
-  | LoadAttachmentViewPayload
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
@@ -1040,7 +998,6 @@ export type Actions =
   | SelectedConversationPayload
   | SendAudioRecordingPayload
   | SendTypingPayload
-  | SetAttachmentViewStatusPayload
   | SetContainsLastMessagePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload

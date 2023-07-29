@@ -526,29 +526,6 @@
       "name": "string",
       "channel": "string"
     },
-    "loadAttachmentView": {
-      "_description": "Load attachment view pane",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "viewType": "RPCChatTypes.GalleryItemTyp",
-      "fromMsgID?": "Types.MessageID"
-    },
-    "addAttachmentViewMessage": {
-      "_description": "Add result for attachment view",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "viewType": "RPCChatTypes.GalleryItemTyp",
-      "message": "Types.Message"
-    },
-    "setAttachmentViewStatus": {
-      "_description": "Set attachment view status",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "viewType": "RPCChatTypes.GalleryItemTyp",
-      "status": "Types.AttachmentViewStatus",
-      "last?": "boolean"
-    },
-    "clearAttachmentView": {
-      "_description": "Clear attachment views",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     "pinMessage": {
       "_description": "Pin a message",
       "conversationIDKey": "Types.ConversationIDKey",

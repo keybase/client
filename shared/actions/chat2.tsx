@@ -1331,61 +1331,6 @@ const messageRetry = async (_: unknown, action: Chat2Gen.MessageRetryPayload) =>
   )
 }
 
-const loadAttachmentView = async (
-  _: Container.TypedState,
-  action: Chat2Gen.LoadAttachmentViewPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey, viewType, fromMsgID} = action.payload
-  try {
-    const res = await RPCChatTypes.localLoadGalleryRpcListener(
-      {
-        incomingCallMap: {
-          'chat.1.chatUi.chatLoadGalleryHit': (
-            hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
-          ) => {
-            const state = listenerApi.getState()
-            const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(
-              state,
-              conversationIDKey
-            )
-            const message = Constants.uiMessageToMessage(
-              conversationIDKey,
-              hit.message,
-              username,
-              getLastOrdinal,
-              devicename
-            )
-
-            if (message) {
-              return Chat2Gen.createAddAttachmentViewMessage({conversationIDKey, message, viewType})
-            }
-            return false
-          },
-        },
-        params: {
-          convID: Types.keyToConversationID(conversationIDKey),
-          fromMsgID,
-          num: 50,
-          typ: viewType,
-        },
-      },
-      listenerApi
-    )
-
-    listenerApi.dispatch(
-      Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, last: res.last, status: 'success', viewType})
-    )
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.error('failed to load attachment view: ' + error.message)
-      listenerApi.dispatch(
-        Chat2Gen.createSetAttachmentViewStatus({conversationIDKey, status: 'error', viewType})
-      )
-    }
-  }
-}
-
 const onReplyJump = (_: unknown, action: Chat2Gen.ReplyJumpPayload) =>
   Chat2Gen.createLoadMessagesCentered({
     conversationIDKey: action.payload.conversationIDKey,
@@ -3028,8 +2973,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.unpinMessage, unpinMessage)
   Container.listenAction(Chat2Gen.ignorePinnedMessage, ignorePinnedMessage)
 
-  Container.listenAction(Chat2Gen.loadAttachmentView, loadAttachmentView)
-
   Container.listenAction(Chat2Gen.selectedConversation, ensureSelectedMeta)
 
   Container.listenAction(Chat2Gen.selectedConversation, fetchConversationBio)
@@ -3088,6 +3031,19 @@ const initChat = () => {
         )
       }
     })
+  })
+
+  Container.listenAction(EngineGen.chat1NotifyChatChatAttachmentDownloadProgress, (_, a) => {
+    const {convID, msgID, bytesComplete, bytesTotal} = a.payload.params
+    const conversationIDKey = Types.conversationIDToKey(convID)
+    const ratio = bytesComplete / bytesTotal
+    Constants.getConvoState(conversationIDKey).dispatch.updateAttachmentViewTransfer(msgID, ratio)
+  })
+
+  Container.listenAction(Chat2Gen.attachmentDownloaded, (_, a) => {
+    const {message, path} = a.payload
+    const {conversationIDKey} = message
+    Constants.getConvoState(conversationIDKey).dispatch.updateAttachmentViewTransfered(message.id, path ?? '')
   })
 }
 

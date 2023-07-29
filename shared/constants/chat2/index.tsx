@@ -98,12 +98,6 @@ export const makeInboxSearchInfo = (): Types.InboxSearchInfo => ({
   textStatus: 'initial',
 })
 
-export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
-  last: false,
-  messages: [],
-  status: 'loading',
-})
-
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
   const {selectedIndex, nameResults, botsResults, openTeamsResults, textResults} = inboxSearch
   const firstTextResultIdx = botsResults.length + openTeamsResults.length + nameResults.length
