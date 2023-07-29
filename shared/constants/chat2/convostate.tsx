@@ -37,6 +37,7 @@ type ConvoStore = {
   id: Types.ConversationIDKey
   // temp cache for requestPayment and sendPayment message data,
   accountsInfoMap: Map<RPCChatTypes.MessageID, Types.ChatRequestInfo | Types.ChatPaymentInfo>
+  attachmentViewMap: Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>
   badge: number
   botCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
   botSettings: Map<string, RPCTypes.TeamBotSettings | undefined>
@@ -66,6 +67,7 @@ type ConvoStore = {
 
 const initialConvoStore: ConvoStore = {
   accountsInfoMap: new Map(),
+  attachmentViewMap: new Map(),
   badge: 0,
   botCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank,
   botSettings: new Map(),
@@ -104,6 +106,9 @@ export type ConvoState = ConvoStore & {
     ) => void
     removeBotMember: (username: string) => void
     badgesUpdated: (badge: number) => void
+    clearAttachmentView: () => void
+    updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
+    updateAttachmentViewTransfered: (msgId: number, path: string) => void
     dismissBottomBanner: () => void
     editBotSettings: (
       username: string,
@@ -114,6 +119,7 @@ export type ConvoState = ConvoStore & {
     giphyGotSearchResult: (results: RPCChatTypes.GiphySearchResults) => void
     giphySend: (result: RPCChatTypes.GiphySearchResult) => void
     giphyToggleWindow: (show: boolean) => void
+    loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     mute: (m: boolean) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     refreshBotRoleInConv: (username: string) => void
@@ -156,6 +162,12 @@ const ignoreErrors = [
   RPCTypes.StatusCode.sctimeout,
 ]
 
+const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
+  last: false,
+  messages: [],
+  status: 'loading',
+})
+
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const getReduxState = Z.getReduxStore()
   const reduxDispatch = Z.getReduxDispatch()
@@ -195,7 +207,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.badge = badge
       })
     },
-
     botCommandsUpdateStatus: status => {
       set(s => {
         s.botCommandsUpdateStatus = status.typ
@@ -206,6 +217,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           })
           s.botSettings = settingsMap
         }
+      })
+    },
+    clearAttachmentView: () => {
+      set(s => {
+        s.attachmentViewMap = new Map()
       })
     },
     dismissBottomBanner: () => {
@@ -267,6 +283,78 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.threadSearchInfo.visible = false
       })
+    },
+    loadAttachmentView: (viewType, fromMsgID) => {
+      set(s => {
+        const {attachmentViewMap} = s
+        const info = mapGetEnsureValue(attachmentViewMap, viewType, makeAttachmentViewInfo())
+        info.status = 'loading'
+      })
+
+      const f = async () => {
+        const conversationIDKey = get().id
+        try {
+          const res = await RPCChatTypes.localLoadGalleryRpcListener(
+            {
+              incomingCallMap: {
+                'chat.1.chatUi.chatLoadGalleryHit': (
+                  hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
+                ) => {
+                  const {username, getLastOrdinal, devicename} = Message.getMessageStateExtras(
+                    getReduxState(),
+                    conversationIDKey
+                  )
+                  const message = Message.uiMessageToMessage(
+                    conversationIDKey,
+                    hit.message,
+                    username,
+                    getLastOrdinal,
+                    devicename
+                  )
+
+                  if (message) {
+                    set(s => {
+                      const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
+                      if (!info.messages.find((item: any) => item.id === message.id)) {
+                        info.messages = info.messages.concat(message).sort((l, r) => r.id - l.id)
+                      }
+                      // inject them into the message map
+                      // // TODO >>>>>>>>>>>>>>>> when message map is in here can't mutate it here yet
+                      // const {messageMap} = getReduxState().chat2
+                      // const mm = mapGetEnsureValue(messageMap, conversationIDKey, new Map())
+                      // info.messages.forEach(m => {
+                      //   mm.set(m.id, m)
+                      // })
+                    })
+                  }
+                },
+              },
+              params: {
+                convID: Types.keyToConversationID(conversationIDKey),
+                fromMsgID,
+                num: 50,
+                typ: viewType,
+              },
+            },
+            Z.dummyListenerApi
+          )
+          set(s => {
+            const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
+            info.last = !!res.last
+            info.status = 'success'
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.error('failed to load attachment view: ' + error.message)
+            set(s => {
+              const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
+              info.last = false
+              info.status = 'error'
+            })
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     mute: m => {
       const f = async () => {
@@ -784,6 +872,38 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     unreadUpdated: unread => {
       set(s => {
         s.unread = unread
+      })
+    },
+    updateAttachmentViewTransfer: (msgId, ratio) => {
+      set(s => {
+        const viewType = RPCChatTypes.GalleryItemTyp.doc
+        const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
+        const {messages} = info
+        const idx = messages.findIndex(item => item.id === msgId)
+        if (idx !== -1) {
+          const m = messages[idx]
+          if (m!.type === 'attachment') {
+            m.transferState = 'downloading'
+            m.transferProgress = ratio
+          }
+        }
+      })
+    },
+    updateAttachmentViewTransfered: (msgId, path) => {
+      set(s => {
+        const viewType = RPCChatTypes.GalleryItemTyp.doc
+        const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
+        const {messages} = info
+        const idx = messages.findIndex(item => item.id === msgId)
+        if (idx !== -1) {
+          const m = messages[idx]
+          if (m!.type === 'attachment') {
+            m.downloadPath = path
+            m.fileURLCached = true
+            m.transferProgress = 0
+            m.transferState = undefined
+          }
+        }
       })
     },
   }

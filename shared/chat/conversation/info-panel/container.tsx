@@ -34,9 +34,10 @@ const InfoPanelConnector = (props: Props) => {
 
   const dispatch = Container.useDispatch()
   const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const clearAttachmentView = Constants.useContext(s => s.dispatch.clearAttachmentView)
   const onCancel = () => {
     showInfoPanel(false)
-    dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+    clearAttachmentView()
   }
   const onGoToInbox = React.useCallback(() => dispatch(Chat2Gen.createNavigateToInbox()), [dispatch])
 

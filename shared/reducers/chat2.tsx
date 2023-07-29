@@ -57,43 +57,6 @@ const messageIDToOrdinal = (
 const paymentActions: Container.ActionHandler<Actions, Types.State> = {}
 
 const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
-  [Chat2Gen.loadAttachmentView]: (draftState, action) => {
-    const {conversationIDKey, viewType} = action.payload
-    const {attachmentViewMap} = draftState
-    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
-    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
-    info.status = 'loading'
-  },
-  [Chat2Gen.addAttachmentViewMessage]: (draftState, action) => {
-    const {conversationIDKey, viewType, message} = action.payload
-    const {attachmentViewMap, messageMap} = draftState
-    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
-    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
-    viewMap.set(viewType, info)
-
-    // inject them into the message map
-    const mm = mapGetEnsureValue(messageMap, conversationIDKey, new Map())
-    info.messages.forEach(m => {
-      mm.set(m.id, m)
-    })
-
-    if (info.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0) {
-      info.messages = info.messages.concat(message).sort((l: any, r: any) => r.id - l.id)
-    }
-  },
-  [Chat2Gen.setAttachmentViewStatus]: (draftState, action) => {
-    const {conversationIDKey, viewType, last, status} = action.payload
-    const {attachmentViewMap} = draftState
-    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
-    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
-    info.last = !!last
-    info.status = status
-  },
-  [Chat2Gen.clearAttachmentView]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {attachmentViewMap} = draftState
-    attachmentViewMap.delete(conversationIDKey)
-  },
   [Chat2Gen.attachmentUploading]: (draftState, action) => {
     const {conversationIDKey, outboxID, ratio} = action.payload
     const {pendingOutboxToOrdinal, messageMap} = draftState
@@ -216,20 +179,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       )
       return
     }
-    const {attachmentViewMap, messageMap} = draftState
     const ratio = bytesComplete / bytesTotal
-    const viewType = RPCChatTypes.GalleryItemTyp.doc
-    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
-    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
-    const {messages} = info
-    const idx = messages.findIndex(item => item.id === message.id)
-    if (idx !== -1) {
-      const m = messages[idx]
-      if (m!.type === 'attachment') {
-        m.transferState = 'downloading'
-        m.transferProgress = ratio
-      }
-    }
+    const {messageMap} = draftState
 
     const map = messageMap.get(conversationIDKey)
     const m = map?.get(message.ordinal)
@@ -243,22 +194,6 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
     const {message, path, error} = action.payload
     const {conversationIDKey, ordinal} = message
     const {messageMap} = draftState
-    const {attachmentViewMap} = draftState
-    const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
-    const viewType = RPCChatTypes.GalleryItemTyp.doc
-    const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
-
-    const {messages} = info
-    const idx = messages.findIndex(item => item.id === message.id)
-    if (idx !== -1) {
-      const m = messages[idx]
-      if (m!.type === 'attachment') {
-        m.downloadPath = path
-        m.fileURLCached = true
-        m.transferProgress = 0
-        m.transferState = undefined
-      }
-    }
 
     const map = messageMap.get(conversationIDKey)
     const m = map?.get(ordinal)

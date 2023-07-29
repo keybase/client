@@ -394,8 +394,6 @@ const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | undefin
   return lastMessage?.id
 }
 
-const noAttachmentView = Constants.makeAttachmentViewInfo()
-
 export const useAttachmentSections = (
   p: Props,
   loadImmediately: boolean,
@@ -408,39 +406,31 @@ export const useAttachmentSections = (
   )
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   const [lastSAV, setLastSAV] = React.useState(selectedAttachmentView)
+  const loadAttachmentView = Constants.useContext(s => s.dispatch.loadAttachmentView)
 
   Container.useOnMountOnce(() => {
-    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
+    loadAttachmentView(selectedAttachmentView)
   })
   if (lastCID !== conversationIDKey || lastSAV !== selectedAttachmentView) {
     setLastCID(conversationIDKey)
     setLastSAV(selectedAttachmentView)
     if (loadImmediately) {
-      dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
+      loadAttachmentView(selectedAttachmentView)
     }
   }
 
-  const attachmentView = Container.useSelector(state => state.chat2.attachmentViewMap.get(conversationIDKey))
-  const attachmentInfo = attachmentView?.get(selectedAttachmentView) || noAttachmentView
-  const fromMsgID = getFromMsgID(attachmentInfo)
+  const attachmentView = Constants.useContext(s => s.attachmentViewMap)
+  const attachmentInfo = attachmentView.get(selectedAttachmentView)
+  const fromMsgID = attachmentInfo ? getFromMsgID(attachmentInfo) : undefined
 
-  const onLoadMore = fromMsgID
-    ? () =>
-        dispatch(
-          Chat2Gen.createLoadAttachmentView({
-            conversationIDKey,
-            fromMsgID,
-            viewType: selectedAttachmentView,
-          })
-        )
-    : undefined
+  const onLoadMore = fromMsgID ? () => loadAttachmentView(selectedAttachmentView, fromMsgID) : undefined
 
   const onAttachmentViewChange = (viewType: RPCChatTypes.GalleryItemTyp) => {
     onSelectAttachmentView(viewType)
   }
 
   const loadAttachments = () => {
-    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
+    loadAttachmentView(selectedAttachmentView)
   }
 
   const onMediaClick = (message: Types.MessageAttachment) =>
@@ -488,7 +478,7 @@ export const useAttachmentSections = (
     data: [{key: 'load more'}],
     key: 'load-more',
     renderItem: () => {
-      const status = attachmentInfo.status
+      const status = attachmentInfo?.status
       if (onLoadMore && status !== 'loading') {
         return (
           <Kb.Button
@@ -517,7 +507,7 @@ export const useAttachmentSections = (
   }
 
   let sections: Array<InfoPanelSection>
-  if (attachmentInfo.messages.length === 0 && attachmentInfo.status !== 'loading') {
+  if (!attachmentInfo?.messages.length && attachmentInfo?.status !== 'loading') {
     sections = [
       {
         data: [{key: 'no-attachments'}],

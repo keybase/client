@@ -193,7 +193,6 @@ export type RenderMessageType =
   | 'attachment:video'
 
 export type State = {
-  attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
   containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
   messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,
