@@ -17,9 +17,7 @@ const BlockButtons = (props: Props) => {
     const blockButtonsMap = s.blockButtonsMap
     return teamID ? blockButtonsMap.get(teamID) : undefined
   })
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, props.conversationID)
-  )
+  const participantInfo = Constants.useContext(s => s.participants)
   const currentUser = ConfigConstants.useCurrentUserState(s => s.username)
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   if (!blockButtonInfo) {

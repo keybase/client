@@ -26,6 +26,12 @@ const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
   visible: false,
 })
 
+export const noParticipantInfo: Types.ParticipantInfo = {
+  all: [],
+  contactName: new Map(),
+  name: [],
+}
+
 // per convo store
 type ConvoStore = {
   id: Types.ConversationIDKey
@@ -47,6 +53,7 @@ type ConvoStore = {
   markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   muted: boolean
   mutualTeams: Array<TeamsTypes.TeamID>
+  participants: Types.ParticipantInfo
   replyTo: Types.Ordinal
   threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp
   threadSearchInfo: Types.ThreadSearchInfo
@@ -76,6 +83,7 @@ const initialConvoStore: ConvoStore = {
   markedAsUnread: false,
   muted: false,
   mutualTeams: [],
+  participants: noParticipantInfo,
   replyTo: 0,
   threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp.none,
   threadSearchInfo: makeThreadSearchInfo(),
@@ -123,6 +131,7 @@ export type ConvoState = ConvoStore & {
     setMuted: (m: boolean) => void
     // false to clear
     setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID | false) => void
+    setParticipants: (p: ConvoState['participants']) => void
     setReplyTo: (o: Types.Ordinal) => void
     setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
     setTyping: (t: Set<string>) => void
@@ -330,9 +339,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const ConfigConstants = await import('../config')
         const conversationIDKey = get().id
-        const participantInfo = Common.getParticipantInfo(getReduxState(), conversationIDKey)
         const username = ConfigConstants.useCurrentUserState.getState().username
-        const otherParticipants = Meta.getRowParticipants(participantInfo, username || '')
+        const otherParticipants = Meta.getRowParticipants(get().participants, username || '')
         const results = await RPCChatTypes.localGetMutualTeamsLocalRpcPromise(
           {usernames: otherParticipants},
           Common.waitingKeyMutualTeams(conversationIDKey)
@@ -606,6 +614,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.muted = m
       })
     },
+    setParticipants: p => {
+      set(s => {
+        if (!isEqual(s.participants, p)) {
+          s.participants = p
+        }
+      })
+    },
     setReplyTo: o => {
       set(s => {
         s.replyTo = o
@@ -816,6 +831,7 @@ const createConvoStore = (id: Types.ConversationIDKey) => {
   return next
 }
 
+// non reactive call, used in actions/dispatches
 export function getConvoState(id: Types.ConversationIDKey) {
   const store = createConvoStore(id)
   return store.getState()
@@ -831,11 +847,22 @@ export function Provider({canBeNull, children, ...props}: ConvoProviderProps) {
   return <Context.Provider value={createConvoStore(props.id)}>{children}</Context.Provider>
 }
 
+// use this if in doubt
 export function useContext<T>(
   selector: (state: ConvoState) => T,
   equalityFn?: (left: T, right: T) => boolean
 ): T {
   const store = React.useContext(Context)
   if (!store) throw new Error('Missing ConvoContext.Provider in the tree')
+  return useStore(store, selector, equalityFn)
+}
+
+// unusual, usually you useContext, but maybe in teams
+export function useConvoState<T>(
+  id: Types.ConversationIDKey,
+  selector: (state: ConvoState) => T,
+  equalityFn?: (left: T, right: T) => boolean
+): T {
+  const store = createConvoStore(id)
   return useStore(store, selector, equalityFn)
 }

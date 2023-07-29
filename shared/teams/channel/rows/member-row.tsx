@@ -37,7 +37,7 @@ const showCrown: Types.BoolTypeMap = {
 const ChannelMemberRow = (props: Props) => {
   const {conversationIDKey, teamID, username} = props
   const infoMap = UsersConstants.useState(s => s.infoMap)
-  const participantInfo = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey))
+  const participantInfo = ChatConstants.useConvoState(conversationIDKey, s => s.participants)
   const teamMemberInfo = Constants.useState(
     s => s.teamDetails.get(teamID)?.members?.get(username) ?? Constants.initialMemberInfo
   )

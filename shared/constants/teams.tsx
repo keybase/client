@@ -1230,7 +1230,6 @@ export type State = Store & {
 
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
-  const getReduxStore = Z.getReduxStore() // TODO remove when chat is done
   const dispatch: State['dispatch'] = {
     addMembersWizardPushMembers: members => {
       const f = async () => {
@@ -1707,7 +1706,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         const ChatConstants = await import('./chat2')
         const me = ConfigConstants.useCurrentUserState.getState().username
-        const participantInfo = ChatConstants.getParticipantInfo(getReduxStore(), conversationIDKey)
+        const participantInfo = ChatConstants.getConvoState(conversationIDKey).participants
         // exclude bots from the newly created team, they can be added back later.
         const participants = participantInfo.name.filter(p => p !== me) // we will already be in as 'owner'
         const users = participants.map(assertion => ({

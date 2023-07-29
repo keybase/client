@@ -27,10 +27,10 @@ const Header2 = (props: Props) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
+  const participantInfo = Constants.useContext(s => s.participants)
   const data = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
-    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     // TODO not reactive
     const canEditDesc = TeamConstants.getCanPerform(
       TeamConstants.useState.getState(),
@@ -48,7 +48,7 @@ const Header2 = (props: Props) => {
   }, shallowEqual)
 
   const {canEditDesc, channelname, descriptionDecorated, isMuted} = data
-  const {participantInfo, teamType, teamname} = data
+  const {teamType, teamname} = data
   const otherParticipants = Constants.getRowParticipants(participantInfo, username)
   const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
   const otherInfo = UsersConstants.useState(s => s.infoMap.get(first))

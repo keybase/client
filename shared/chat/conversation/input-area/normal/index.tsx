@@ -42,10 +42,7 @@ const useHintText = (p: {
     const channelname = Constants.getMeta(state, conversationIDKey).channelname
     return {channelname, teamType, teamname}
   }, shallowEqual)
-  const participantInfoName = Container.useSelector(
-    state => state.chat2.participantMap.get(conversationIDKey)?.name || Constants.noParticipantInfo.name,
-    shallowEqual
-  )
+  const participantInfoName = Constants.useContext(s => s.participants.name)
   if (Styles.isMobile && isExploding) {
     return isLargeScreen ? `Write an exploding message` : 'Exploding message'
   } else if (cannotWrite) {

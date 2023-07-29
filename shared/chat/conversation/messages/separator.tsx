@@ -211,7 +211,8 @@ const useReduxFast = (
 }
 
 const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
-  return Container.useSelector(state => {
+  const participantInfoNames = Constants.useContext(s => s.participants.name)
+  const d = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const {author, timestamp} = m
     const meta = Constants.getMeta(state, conversationIDKey)
@@ -222,7 +223,6 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
       .teamIDToMembers.get(teamID ?? '')
       ?.get(author)?.type
     const botAlias = botAliases[author] ?? ''
-    const participantInfoNames = Constants.getParticipantInfo(state, conversationIDKey).name
     const authorIsBot = meta.teamname
       ? authorRoleInTeam === 'restrictedbot' || authorRoleInTeam === 'bot'
       : teamType === 'adhoc' && participantInfoNames.length > 0 // teams without info may have type adhoc with an empty participant name list
@@ -236,6 +236,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
       timestamp,
     }
   }, shallowEqual)
+  return {...d, participantInfoNames}
 }
 
 type SProps = {
@@ -373,7 +374,7 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {alignItems: 'center'},
       }),
-    } as const)
+    }) as const
 )
 
 export default SeparatorConnector

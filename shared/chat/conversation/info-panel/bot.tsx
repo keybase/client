@@ -203,9 +203,7 @@ const BotTab = (props: Props) => {
     canManageBots = true
   }
   const adhocTeam = teamType === 'adhoc'
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
+  const participantInfo = Constants.useContext(s => s.participants)
   const teamMembers = TeamConstants.useState(s => s.teamIDToMembers.get(teamID)) ?? new Map()
   const participantsAll = participantInfo.all
 

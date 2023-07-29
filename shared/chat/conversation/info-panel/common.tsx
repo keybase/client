@@ -42,11 +42,11 @@ export const useTeamHumans = (teamID: TeamTypes.TeamID) => {
 }
 
 export const useHumans = (conversationIDKey: ChatTypes.ConversationIDKey) => {
-  const {participantInfo, teamType, teamID} = Container.useSelector(state => {
+  const participantInfo = ChatConstants.useContext(s => s.participants)
+  const {teamType, teamID} = Container.useSelector(state => {
     const meta = ChatConstants.getMeta(state, conversationIDKey)
     const {teamType, teamID} = meta
-    const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
-    return {participantInfo, teamID, teamType}
+    return {teamID, teamType}
   }, shallowEqual)
   const {bots, teamHumanCount} = useTeamHumans(teamID)
   const channelHumans =

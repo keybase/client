@@ -60,6 +60,7 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
   }, shallowEqual)
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
+  const participantInfo = Constants.useContext(s => s.participants)
   const participants = Container.useSelector(state => {
     const meta = state.chat2.metaMap.get(conversationIDKey)
     const teamname = (meta?.teamname || layoutIsTeam ? layoutName : '') || ''
@@ -67,7 +68,6 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
     if (teamname && channelname) {
       return `${teamname}#${channelname}`
     }
-    const participantInfo = state.chat2.participantMap.get(conversationIDKey)
     if (participantInfo?.name.length) {
       // Filter out ourselves unless it's our 1:1 conversation
       return participantInfo.name.filter((participant, _, list) =>

@@ -160,10 +160,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   }, [])
 
   // could not expose this and just return an enum for the is*convos
-  const participantInfoAll = Container.useSelector(
-    state => Constants.getParticipantInfo(state, conversationIDKey).all,
-    (a, b) => shallowEqual(a, b)
-  )
+  const participantInfoAll = Constants.useContext(s => s.participants.all)
 
   let pendingState: 'waiting' | 'error' | 'done'
   switch (conversationIDKey) {

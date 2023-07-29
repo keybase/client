@@ -10,9 +10,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
+  const participantInfo = Constants.useContext(s => s.participants)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const _participants = participantInfo.all
   const nextConversationIDKey = meta.supersededBy

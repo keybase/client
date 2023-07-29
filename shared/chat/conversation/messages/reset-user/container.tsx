@@ -12,9 +12,7 @@ type OwnProps = {
 export default (ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
+  const participantInfo = Constants.useContext(s => s.participants)
   const _participants = participantInfo.all
   const _resetParticipants = meta.resetParticipants
   const _conversationIDKey = conversationIDKey

@@ -37,9 +37,7 @@ export default (ownProps: OwnProps) => {
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const yourMessage = message.author === you
   const meta = Container.useSelector(state => Constants.getMeta(state, message.conversationIDKey))
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, message.conversationIDKey)
-  )
+  const participantInfo = Constants.useContext(s => s.participants)
   const _canDeleteHistory = TeamConstants.useState(
     s => meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(s, meta.teamID).deleteChatHistory
   )

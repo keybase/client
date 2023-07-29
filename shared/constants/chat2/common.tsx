@@ -30,18 +30,6 @@ export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyMutualTeams = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
-export const noParticipantInfo: Types.ParticipantInfo = {
-  all: [],
-  contactName: new Map(),
-  name: [],
-}
-export const getParticipantInfo = (
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey
-): Types.ParticipantInfo => {
-  const participantInfo = state.chat2.participantMap.get(conversationIDKey)
-  return participantInfo ? participantInfo : noParticipantInfo
-}
 
 const emptyOrdinals = new Array<Types.Ordinal>()
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>

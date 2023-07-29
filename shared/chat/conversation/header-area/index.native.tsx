@@ -83,12 +83,12 @@ const UsernameHeader = (p: Props) => {
   const {conversationIDKey} = p
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const infoMap = UsersConstants.useState(s => s.infoMap)
+  const participantInfo = Constants.useContext(s => s.participants)
   const {participants, theirFullname} = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
-    const participants =
-      (meta.teamname ? null : Constants.getParticipantInfo(state, conversationIDKey).name) || emptyArray
+    const participants = meta.teamname ? emptyArray : participantInfo.name
     const theirFullname =
-      participants?.length === 2
+      participants.length === 2
         ? participants
             .filter(username => username !== you)
             .map(username => infoMap.get(username)?.fullname)[0]
@@ -131,9 +131,7 @@ const UsernameHeader = (p: Props) => {
 
 const PhoneOrEmailHeader = (p: Props) => {
   const {conversationIDKey} = p
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
+  const participantInfo = Constants.useContext(s => s.participants)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
