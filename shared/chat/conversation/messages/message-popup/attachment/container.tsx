@@ -33,9 +33,7 @@ export default (ownProps: OwnProps) => {
   const message = m?.type === 'attachment' ? m : emptyMessage
   const meta = Container.useSelector(state => Constants.getMeta(state, message.conversationIDKey))
   const isTeam = !!meta.teamname
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, message.conversationIDKey)
-  )
+  const participantInfo = Constants.useContext(s => s.participants)
   const yourOperations = TeamsConstants.useState(s => getCanPerformByID(s, meta.teamID))
   const _canAdminDelete = yourOperations.deleteOtherMessages
   const _canPinMessage = !isTeam || yourOperations.pinMessage
@@ -43,7 +41,7 @@ export default (ownProps: OwnProps) => {
     Constants.messageAuthorIsBot(s, meta, message, participantInfo)
   )
   const _teamMembers = TeamsConstants.useState(s => s.teamIDToMembers.get(meta.teamID))
-  const _label = Container.useSelector(state => Constants.getConversationLabel(state, meta, true))
+  const _label = Constants.getConversationLabel(participantInfo, meta, true)
   const _teamID = meta.teamID
   const _you = ConfigConstants.useCurrentUserState(s => s.username)
   const pending = !!message.transferState

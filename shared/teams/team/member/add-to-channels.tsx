@@ -22,11 +22,7 @@ type Props = {
 }
 
 const getChannelsForList = memoize(
-  (
-    channels: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>,
-    participantMap: Map<ChatTypes.ConversationIDKey, ChatTypes.ParticipantInfo>,
-    usernames: string[]
-  ) => {
+  (channels: Map<ChatTypes.ConversationIDKey, ChatTypes.ConversationMeta>, usernames: string[]) => {
     const processed = [...channels.values()].reduce(
       ({list, general}: {general: ChatTypes.ConversationMeta; list: Array<ChatTypes.ConversationMeta>}, c) =>
         c.channelname === 'general' ? {general: c, list} : {general, list: [...list, c]},
@@ -37,9 +33,10 @@ const getChannelsForList = memoize(
     const convIDKeysAvailable = sortedList
       .map(c => c.conversationIDKey)
       .filter(convIDKey => {
-        const participants = participantMap.get(convIDKey)?.all
+        // TODO not reactive
+        const participants = ChatConstants.getConvoState(convIDKey).participants.all
         // At least one person is not in the channel
-        return usernames.some(member => !participants?.includes(member))
+        return usernames.some(member => !participants.includes(member))
       })
     return {
       channelMetaGeneral: general,
@@ -57,10 +54,8 @@ const AddToChannels = (props: Props) => {
   const nav = Container.useSafeNavigation()
 
   const {channelMetas, loadingChannels, reloadChannels} = useAllChannelMetas(teamID)
-  const participantMap = Container.useSelector(s => s.chat2.participantMap)
   const {channelMetasAll, channelMetaGeneral, convIDKeysAvailable} = getChannelsForList(
     channelMetas,
-    participantMap,
     usernames
   )
 
@@ -70,16 +65,18 @@ const AddToChannels = (props: Props) => {
   const channels = filterLCase
     ? channelMetasAll.filter(c => c.channelname.toLowerCase().includes(filterLCase))
     : channelMetasAll
+
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
-    ...channels.map(c => ({
-      channelMeta: c,
-      numMembers:
-        participantMap.get(c.conversationIDKey)?.name?.length ??
-        participantMap.get(c.conversationIDKey)?.all?.length ??
-        0,
-      type: 'channel' as const,
-    })),
+    ...channels.map(c => {
+      // TODO not reactive
+      const p = ChatConstants.getConvoState(c.conversationIDKey).participants
+      return {
+        channelMeta: c,
+        numMembers: p.name?.length ?? p.all?.length ?? 0,
+        type: 'channel' as const,
+      }
+    }),
   ]
   const [selected, setSelected] = React.useState(new Set<ChatTypes.ConversationIDKey>())
   const onSelect = (convIDKey: ChatTypes.ConversationIDKey) => {
@@ -453,10 +450,8 @@ type ChannelRowProps = {
 const ChannelRow = ({channelMeta, mode, selected, onSelect, reloadChannels, usernames}: ChannelRowProps) => {
   const dispatch = Container.useDispatch()
   const selfMode = mode === 'self'
-  const participants = Container.useSelector(s => {
-    const info = ChatConstants.getParticipantInfo(s, channelMeta.conversationIDKey)
-    return info.name.length ? info.name : info.all
-  })
+  const info = ChatConstants.useConvoState(channelMeta.conversationIDKey, s => s.participants)
+  const participants = info.name.length ? info.name : info.all
   const activityLevel = Constants.useState(
     s => s.activityLevels.channels.get(channelMeta.conversationIDKey) || 'none'
   )

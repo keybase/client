@@ -37,6 +37,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
   const username = ConfigConstants.useCurrentUserState(s => s.username)
 
   const infoMap = UsersConstants.useState(s => s.infoMap)
+  const participantInfo = ChatConstants.useContext(s => s.participants)
   const data = Container.useSelector(state => {
     const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
@@ -58,7 +59,6 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
 
     if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
       const meta = ChatConstants.getMeta(state, conversationIDKey)
-      const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
       const participants = ChatConstants.getRowParticipants(participantInfo, username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =

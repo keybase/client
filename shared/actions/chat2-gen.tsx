@@ -90,7 +90,6 @@ export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
-export const setParticipants = 'chat2:setParticipants'
 export const tabSelected = 'chat2:tabSelected'
 export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
@@ -563,15 +562,6 @@ export const createSetAttachmentViewStatus = (payload: {
   readonly last?: boolean
 }) => ({payload, type: setAttachmentViewStatus as typeof setAttachmentViewStatus})
 /**
- * Set conversation participant info
- */
-export const createSetParticipants = (payload: {
-  readonly participants: Array<{
-    conversationIDKey: Types.ConversationIDKey
-    participants: Types.ParticipantInfo
-  }>
-}) => ({payload, type: setParticipants as typeof setParticipants})
-/**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
 export const createSetMinWriterRole = (payload: {
@@ -953,7 +943,6 @@ export type SetContainsLastMessagePayload = ReturnType<typeof createSetContainsL
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
-export type SetParticipantsPayload = ReturnType<typeof createSetParticipants>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ToggleGiphyPrefillPayload = ReturnType<typeof createToggleGiphyPrefill>
 export type ToggleLocalReactionPayload = ReturnType<typeof createToggleLocalReaction>
@@ -1056,7 +1045,6 @@ export type Actions =
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetMinWriterRolePayload
-  | SetParticipantsPayload
   | TabSelectedPayload
   | ToggleGiphyPrefillPayload
   | ToggleLocalReactionPayload

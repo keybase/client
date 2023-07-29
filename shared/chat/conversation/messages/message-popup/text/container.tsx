@@ -32,13 +32,11 @@ export default (ownProps: OwnProps) => {
   const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
   const message = m ? m : emptyMessage
   const meta = Container.useSelector(state => Constants.getMeta(state, message.conversationIDKey))
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, message.conversationIDKey)
-  )
+  const participantInfo = Constants.useContext(s => s.participants)
   const yourOperations = TeamsConstants.useState(s => getCanPerformByID(s, meta.teamID))
   const _canDeleteHistory = yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations.deleteOtherMessages
-  const _label = Container.useSelector(state => Constants.getConversationLabel(state, meta, true))
+  const _label = Constants.getConversationLabel(participantInfo, meta, true)
   let _canPinMessage = message.type === 'text'
   if (_canPinMessage && meta.teamname) {
     _canPinMessage = yourOperations.pinMessage

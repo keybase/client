@@ -20,9 +20,7 @@ export default (ownProps: OwnProps) => {
   const _hasBadge = Constants.useContext(s => s.badge > 0)
   const _hasUnread = Constants.useContext(s => s.unread > 0)
   const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const _participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
+  const _participantInfo = Constants.useContext(s => s.participants)
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
   const isMuted = Constants.useContext(s => s.muted)
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps

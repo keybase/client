@@ -143,13 +143,14 @@ const getTeams = (layout?: RPCChatTypes.UIInboxLayout) => {
 
 const useDataUsers = (conversationIDKey: Types.ConversationIDKey) => {
   const infoMap = UsersConstants.useState(s => s.infoMap)
+  const participantInfo = Constants.useContext(s => s.participants)
   return Container.useSelector(state => {
     const {teamID, teamType} = Constants.getMeta(state, conversationIDKey)
     // TODO not reactive
     const teamMembers = TeamConstants.useState.getState().teamIDToMembers.get(teamID)
     const usernames = teamMembers
       ? [...teamMembers.values()].map(m => m.username).sort((a, b) => a.localeCompare(b))
-      : Constants.getParticipantInfo(state, conversationIDKey).all
+      : participantInfo.all
     const suggestions = usernames.map(username => ({
       fullName: infoMap.get(username)?.fullname || '',
       username,

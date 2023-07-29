@@ -69,13 +69,14 @@ enum HeaderType {
 
 const HeaderBranchContainer = React.memo(function HeaderBranchContainer(p: OwnProps) {
   const {conversationIDKey} = p
+  const participantInfo = Constants.useContext(s => s.participants)
   const type = Container.useSelector(state => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const teamName = meta.teamname
     if (teamName) {
       return HeaderType.Team
     }
-    const participants = meta.teamname ? null : Constants.getParticipantInfo(state, conversationIDKey).name
+    const participants = meta.teamname ? null : participantInfo.name
     const isPhoneOrEmail =
       participants?.some(participant => participant.endsWith('@phone') || participant.endsWith('@email')) ??
       false

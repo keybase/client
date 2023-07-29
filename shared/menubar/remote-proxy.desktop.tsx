@@ -88,17 +88,15 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const widgetList = ChatConstants.useState(s => s.inboxLayout?.widgetList)
   const s = Container.useSelector(state => {
     const {chat2} = state
-    const {metaMap, participantMap} = chat2
-
+    const {metaMap} = chat2
     return {
       metaMap,
       navBadges,
-      participantMap,
       widgetBadge,
     }
   }, shallowEqual)
 
-  const {metaMap, participantMap} = s
+  const {metaMap} = s
 
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
@@ -113,11 +111,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     () =>
       widgetList?.map(v => {
         const c = metaMap.get(v.convID)
-
-        let participants = participantMap.get(v.convID)?.name ?? []
-        participants = participants.slice(0, 3)
-
-        const {badge, unread} = ChatConstants.getConvoState(v.convID)
+        const {badge, unread, participants} = ChatConstants.getConvoState(v.convID)
         return {
           channelname: c?.channelname,
           conversationIDKey: v.convID,
@@ -127,10 +121,10 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
           tlfname: c?.tlfname,
           ...(badge > 0 ? {hasBadge: true as const} : {}),
           ...(unread > 0 ? {hasUnread: true as const} : {}),
-          ...(participants.length ? {participants} : {}),
+          ...(participants.name.length ? {participants: participants.name.slice(0, 3)} : {}),
         }
       }) ?? [],
-    [widgetList, metaMap, participantMap]
+    [widgetList, metaMap]
   )
 
   // filter some data based on visible users

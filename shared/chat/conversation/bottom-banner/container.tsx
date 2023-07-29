@@ -5,18 +5,15 @@ import * as Followers from '../../../constants/followers'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import openSMS from '../../../util/sms'
-import shallowEqual from 'shallowequal'
 import type * as Types from '../../../constants/types/chat2'
 import {InviteBanner} from '.'
 import {showShareActionSheet} from '../../../actions/platform-specific'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
-const Invite = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
-  const participantInfoAll = Container.useSelector(
-    state => Constants.getParticipantInfo(state, conversationIDKey).all
-  )
+const Invite = () => {
+  const participantInfo = Constants.useContext(s => s.participants)
+  const participantInfoAll = participantInfo.all
   const users = participantInfoAll.filter(p => p.includes('@'))
 
   const openShareSheet = () => {
@@ -34,9 +31,7 @@ const Invite = (p: {conversationIDKey: Types.ConversationIDKey}) => {
       .catch(() => {})
   }
 
-  const usernameToContactName = Container.useSelector(
-    state => Constants.getParticipantInfo(state, conversationIDKey).contactName
-  )
+  const usernameToContactName = participantInfo.contactName
 
   const onDismiss = Constants.useContext(s => s.dispatch.dismissBottomBanner)
 
@@ -51,15 +46,11 @@ const Invite = (p: {conversationIDKey: Types.ConversationIDKey}) => {
   )
 }
 
-const Broken = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
-
+const Broken = () => {
   const following = Followers.useFollowerState(s => s.following)
   const infoMap = UsersConstants.useState(s => s.infoMap)
-  const users = Container.useSelector(state => {
-    const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
-    return participantInfoAll.filter(p => following.has(p) && infoMap.get(p)?.broken)
-  }, shallowEqual)
+  const participantInfo = Constants.useContext(s => s.participants)
+  const users = participantInfo.all.filter(p => following.has(p) && infoMap.get(p)?.broken)
   return <Kb.ProofBrokenBanner users={users} />
 }
 
@@ -68,12 +59,13 @@ const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKe
   const following = Followers.useFollowerState(s => s.following)
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const dismissed = Constants.useContext(s => s.dismissedInviteBanners)
+  const participantInfo = Constants.useContext(s => s.participants)
   const type = Container.useSelector(state => {
     const teamType = Constants.getMeta(state, conversationIDKey).teamType
     if (teamType !== 'adhoc') {
       return 'none'
     }
-    const participantInfoAll = Constants.getParticipantInfo(state, conversationIDKey).all
+    const participantInfoAll = participantInfo.all
     const broken = participantInfoAll.some(p => following.has(p) && infoMap.get(p)?.broken)
     if (broken) {
       return 'broken'
@@ -90,9 +82,9 @@ const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKe
 
   switch (type) {
     case 'invite':
-      return <Invite conversationIDKey={conversationIDKey} />
+      return <Invite />
     case 'broken':
-      return <Broken conversationIDKey={conversationIDKey} />
+      return <Broken />
     case 'none':
       return null
   }

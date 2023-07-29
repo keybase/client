@@ -119,10 +119,6 @@ const onGetInboxConvsUnboxed = (
   const metas: Array<Types.ConversationMeta> = []
   let added = false
   const usernameToFullname: {[username: string]: string} = {}
-  const participants: Array<{
-    conversationIDKey: Types.ConversationIDKey
-    participants: Types.ParticipantInfo
-  }> = []
   inboxUIItems.forEach(inboxUIItem => {
     const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem)
     if (meta) {
@@ -132,10 +128,9 @@ const onGetInboxConvsUnboxed = (
       inboxUIItem.participants ?? []
     )
     if (participantInfo.all.length > 0) {
-      participants.push({
-        conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
-        participants: participantInfo,
-      })
+      Constants.getConvoState(Types.stringToConversationIDKey(inboxUIItem.convID)).dispatch.setParticipants(
+        participantInfo
+      )
     }
     inboxUIItem.participants?.forEach((part: RPCChatTypes.UIParticipant) => {
       const {assertion, fullName} = part
@@ -154,9 +149,6 @@ const onGetInboxConvsUnboxed = (
   }
   if (metas.length > 0) {
     actions.push(Chat2Gen.createMetasReceived({metas}))
-  }
-  if (participants.length > 0) {
-    actions.push(Chat2Gen.createSetParticipants({participants}))
   }
   return actions
 }
@@ -1517,7 +1509,7 @@ const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenRespons
 
 // We always make adhoc convos and never preview it
 const previewConversationPersonMakesAConversation = (
-  state: Container.TypedState,
+  _: unknown,
   action: Chat2Gen.PreviewConversationPayload
 ) => {
   const {participants, teamname, reason, highlightMessageID} = action.payload
@@ -1528,12 +1520,13 @@ const previewConversationPersonMakesAConversation = (
   if ((reason === 'requestedPayment' || reason === 'sentPayment') && participants.length === 1) {
     const username = ConfigConstants.useCurrentUserState.getState().username
     const toFind = participants[0]
-    for (const [cid, p] of state.chat2.participantMap.entries()) {
+    for (const cs of Constants.stores.values()) {
+      const p = cs.getState().participants
       if (p.name.length === 2) {
         const other = p.name.filter(n => n !== username)
         if (other[0] === toFind) {
           return Chat2Gen.createNavigateToThread({
-            conversationIDKey: cid,
+            conversationIDKey: cs.getState().id,
             reason: 'justCreated',
           })
         }
@@ -1643,7 +1636,7 @@ const previewConversationTeam = async (
 
 const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
-  const participantInfo = Constants.getParticipantInfo(state, action.payload.conversationIDKey)
+  const participantInfo = Constants.getConvoState(action.payload.conversationIDKey).participants
   const path = FsTypes.stringToPath(
     meta.teamType !== 'adhoc'
       ? ConfigConstants.teamFolder(meta.teamname)
@@ -1860,7 +1853,7 @@ const sendTyping = async (_: unknown, action: Chat2Gen.SendTypingPayload) => {
 const resetChatWithoutThem = (state: Container.TypedState, action: Chat2Gen.ResetChatWithoutThemPayload) => {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
-  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+  const participantInfo = Constants.getConvoState(conversationIDKey).participants
   // remove all bad people
   const goodParticipants = new Set(participantInfo.all)
   meta.resetParticipants.forEach(r => goodParticipants.delete(r))
@@ -2098,7 +2091,7 @@ const ensureSelectedMeta = (state: Container.TypedState, action: Chat2Gen.Select
   const {conversationIDKey} = action.payload
   const {metaMap} = state.chat2
   const meta = metaMap.get(conversationIDKey)
-  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+  const participantInfo = Constants.getConvoState(conversationIDKey).participants
   return !meta || participantInfo.all.length === 0
     ? Chat2Gen.createMetaRequestTrusted({
         conversationIDKeys: [conversationIDKey],
@@ -2204,9 +2197,9 @@ const joinConversation = async (_: unknown, action: Chat2Gen.JoinConversationPay
   )
 }
 
-const fetchConversationBio = (state: Container.TypedState, action: Chat2Gen.SelectedConversationPayload) => {
+const fetchConversationBio = (_: unknown, action: Chat2Gen.SelectedConversationPayload) => {
   const {conversationIDKey} = action.payload
-  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+  const participantInfo = Constants.getConvoState(conversationIDKey).participants
   const username = ConfigConstants.useCurrentUserState.getState().username
   const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
   if (otherParticipants.length === 1) {
@@ -2397,22 +2390,13 @@ const createConversation = async (
         listenerApi.dispatch(Chat2Gen.createMetasReceived({metas: [meta]}))
       }
 
-      const participants: Array<{
-        conversationIDKey: Types.ConversationIDKey
-        participants: Types.ParticipantInfo
-      }> = []
-
       const participantInfo: Types.ParticipantInfo = Constants.uiParticipantsToParticipantInfo(
         uiConv.participants ?? []
       )
       if (participantInfo.all.length > 0) {
-        participants.push({
-          conversationIDKey: Types.stringToConversationIDKey(uiConv.convID),
-          participants: participantInfo,
-        })
-      }
-      if (participants.length > 0) {
-        listenerApi.dispatch(Chat2Gen.createSetParticipants({participants}))
+        Constants.getConvoState(Types.stringToConversationIDKey(uiConv.convID)).dispatch.setParticipants(
+          participantInfo
+        )
       }
       listenerApi.dispatch(
         Chat2Gen.createNavigateToThread({
@@ -3091,6 +3075,19 @@ const initChat = () => {
     const giphyWindow = Constants.getConvoState(conversationIDKey).giphyWindow
     // if the window is up, just blow it away
     Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(giphyWindow ? '' : '/giphy ')
+  })
+
+  Container.listenAction(EngineGen.chat1NotifyChatChatParticipantsInfo, (_, a) => {
+    const {participants: participantMap} = a.payload.params
+    Object.keys(participantMap).forEach(convIDStr => {
+      const participants = participantMap[convIDStr]
+      const conversationIDKey = Types.stringToConversationIDKey(convIDStr)
+      if (participants) {
+        Constants.getConvoState(conversationIDKey).dispatch.setParticipants(
+          Constants.uiParticipantsToParticipantInfo(participants)
+        )
+      }
+    })
   })
 }
 

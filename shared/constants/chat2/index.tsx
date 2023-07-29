@@ -24,7 +24,7 @@ import type * as TeamBuildingTypes from '../types/team-building'
 import type {TypedState} from '../reducer'
 import * as Z from '../../util/zustand'
 import {getConvoState, stores} from './convostate'
-import {getParticipantInfo, explodingModeGregorKeyPrefix} from './common'
+import {explodingModeGregorKeyPrefix} from './common'
 
 export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
   switch (m.type) {
@@ -73,7 +73,6 @@ export const makeState = (): Types.State => ({
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
   orangeLineMap: new Map(), // last message we've seen,
-  participantMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
 })
 
@@ -204,7 +203,7 @@ export const getBotsAndParticipants = (
 ) => {
   const meta = getMeta(state, conversationIDKey)
   const isAdhocTeam = meta.teamType === 'adhoc'
-  const participantInfo = getParticipantInfo(state, conversationIDKey)
+  const participantInfo = getConvoState(conversationIDKey).participants
   const teamMembers = TeamConstants.useState.getState().teamIDToMembers.get(meta.teamID) ?? new Map()
   let bots: Array<string> = []
   if (isAdhocTeam) {

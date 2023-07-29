@@ -740,24 +740,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {messageCenterOrdinals} = draftState
     messageCenterOrdinals.delete(conversationIDKey)
   },
-  [Chat2Gen.setParticipants]: (draftState, action) => {
-    action.payload.participants.forEach(part => {
-      draftState.participantMap.set(part.conversationIDKey, part.participants)
-    })
-  },
-  [EngineGen.chat1NotifyChatChatParticipantsInfo]: (draftState, action) => {
-    const {participants: participantMap} = action.payload.params
-    Object.keys(participantMap).forEach(convIDStr => {
-      const participants = participantMap[convIDStr]
-      const conversationIDKey = Types.stringToConversationIDKey(convIDStr)
-      if (participants) {
-        draftState.participantMap.set(
-          conversationIDKey,
-          Constants.uiParticipantsToParticipantInfo(participants)
-        )
-      }
-    })
-  },
   [Chat2Gen.metasReceived]: (draftState, action) => {
     const {metas, removals} = action.payload
     const {metaMap} = draftState
@@ -859,7 +841,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           trustedState: 'error' as const,
         })
-        draftState.participantMap.set(conversationIDKey, {
+        Constants.getConvoState(conversationIDKey).dispatch.setParticipants({
           all: participants,
           contactName: Constants.noParticipantInfo.contactName,
           name: participants,

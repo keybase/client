@@ -575,10 +575,6 @@
       "path": "string",
       "amps": "Array<number>"
     },
-    "setParticipants": {
-      "_description": "Set conversation participant info",
-      "participants": "Array<{conversationIDKey: Types.ConversationIDKey, participants: Types.ParticipantInfo}>"
-    },
     "dismissJourneycard": {
       "_description": "Dismiss a journeycard",
       "conversationIDKey": "Types.ConversationIDKey",

@@ -33,9 +33,7 @@ const MembersTab = (props: Props) => {
   const isGeneral = channelname === 'general'
   const showAuditingBanner = isGeneral && !teamMembers
   const refreshParticipants = Container.useRPC(RPCChatTypes.localRefreshParticipantsRpcPromise)
-  const participantInfo = Container.useSelector(state =>
-    Constants.getParticipantInfo(state, conversationIDKey)
-  )
+  const participantInfo = Constants.useContext(s => s.participants)
   const participants = Container.useSelector(
     state => Constants.getBotsAndParticipants(state, conversationIDKey).participants
   )
@@ -130,5 +128,5 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       membersSpinner: {marginTop: Styles.globalMargins.small},
-    } as const)
+    }) as const
 )

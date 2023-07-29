@@ -4,7 +4,6 @@ import * as RPCTypes from '../types/rpc-gen'
 import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
 import * as Message from './message'
-import {memoize} from '../../util/memoize'
 import type {ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
 import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
@@ -13,7 +12,6 @@ import {isPhone} from '../platform'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 import type {AllowedColors} from '../../common-adapters/text'
 import shallowEqual from 'shallowequal'
-import {getParticipantInfo} from '.'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -443,14 +441,13 @@ export const getConversationIDKeyMetasToLoad = (
     return arr
   }, [])
 
-export const getRowParticipants = memoize((participants: Types.ParticipantInfo, username: string) =>
+export const getRowParticipants = (participants: Types.ParticipantInfo, username: string) =>
   participants.name
     // Filter out ourselves unless it's our 1:1 conversation
     .filter((participant, _, list) => (list.length === 1 ? true : participant !== username))
-)
 
 export const getConversationLabel = (
-  state: TypedState,
+  participantInfo: Types.ParticipantInfo,
   conv: Types.ConversationMeta,
   alwaysIncludeChannelName: boolean
 ): string => {
@@ -460,7 +457,6 @@ export const getConversationLabel = (
   if (conv.teamType === 'small') {
     return alwaysIncludeChannelName ? conv.teamname + '#' + conv.channelname : conv.teamname
   }
-  const participantInfo = getParticipantInfo(state, conv.conversationIDKey)
   return getRowParticipants(participantInfo, '').join(',')
 }
 
