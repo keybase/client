@@ -64,7 +64,6 @@ export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
 export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
-  attachmentViewMap: new Map(),
   containsLatestMessageMap: new Map(),
   messageCenterOrdinals: new Map(), // ordinals to center threads on,
   messageMap: new Map(), // messages in a thread,
@@ -1061,7 +1060,7 @@ export const useState = Z.createZustand<State>((set, get) => {
               .dispatch.navigateAppend({props: {conversationIDKey, tab}, selected: 'chatInfoPanel'})
           } else {
             Router2.useState.getState().dispatch.navigateUp()
-            conversationIDKey && reduxDispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+            conversationIDKey && getConvoState(conversationIDKey).dispatch.clearAttachmentView()
           }
         }
       }

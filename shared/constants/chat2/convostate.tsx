@@ -314,19 +314,19 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
                   if (message) {
                     set(s => {
-                      const {messageMap} = getReduxState().chat2
                       const info = mapGetEnsureValue(s.attachmentViewMap, viewType, makeAttachmentViewInfo())
-                      // inject them into the message map
-                      const mm = mapGetEnsureValue(messageMap, conversationIDKey, new Map())
-                      info.messages.forEach(m => {
-                        mm.set(m.id, m)
-                      })
-                      if (info.messages.findIndex((item: any) => item.id === message.id) < 0) {
-                        info.messages = info.messages.concat(message).sort((l: any, r: any) => r.id - l.id)
+                      if (!info.messages.find((item: any) => item.id === message.id)) {
+                        info.messages = info.messages.concat(message).sort((l, r) => r.id - l.id)
                       }
+                      // inject them into the message map
+                      // // TODO >>>>>>>>>>>>>>>> when message map is in here can't mutate it here yet
+                      // const {messageMap} = getReduxState().chat2
+                      // const mm = mapGetEnsureValue(messageMap, conversationIDKey, new Map())
+                      // info.messages.forEach(m => {
+                      //   mm.set(m.id, m)
+                      // })
                     })
                   }
-                  return
                 },
               },
               params: {
