@@ -14,6 +14,7 @@ import type * as Types from '../../../../../constants/types/chat2'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
 import {getCanPerformByID} from '../../../../../constants/teams'
 import {makeMessageText} from '../../../../../constants/chat2/message'
+import {isIOS} from '../../../../../constants/platform'
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -149,6 +150,43 @@ export default (ownProps: OwnProps) => {
       selected: 'chatBlockingModal',
     })
   }
+  const _onUserFilter = (message: Types.Message, isSingle: boolean) => {
+    navigateAppend({
+      props: {
+        blockUserByDefault: true,
+        context: isSingle ? 'message-popup-single' : 'message-popup',
+        convID: message.conversationIDKey,
+        filterUserByDefault: true,
+        username: message.author,
+      },
+      selected: 'chatBlockingModal',
+    })
+  }
+  const _onUserFlag = (message: Types.Message, isSingle: boolean) => {
+    navigateAppend({
+      props: {
+        blockUserByDefault: true,
+        context: isSingle ? 'message-popup-single' : 'message-popup',
+        convID: message.conversationIDKey,
+        flagUserByDefault: true,
+        reportsUserByDefault: true,
+        username: message.author,
+      },
+      selected: 'chatBlockingModal',
+    })
+  }
+  const _onUserReport = (message: Types.Message, isSingle: boolean) => {
+    navigateAppend({
+      props: {
+        blockUserByDefault: true,
+        context: isSingle ? 'message-popup-single' : 'message-popup',
+        convID: message.conversationIDKey,
+        reportsUserByDefault: true,
+        username: message.author,
+      },
+      selected: 'chatBlockingModal',
+    })
+  }
 
   const showUserProfile = ProfileConstants.useState(s => s.dispatch.showUserProfile)
   const _onViewProfile = showUserProfile
@@ -195,6 +233,12 @@ export default (ownProps: OwnProps) => {
     onReply: message.type === 'text' ? () => _onReply(message) : undefined,
     onReplyPrivately: !yourMessage && canReplyPrivately ? () => _onReplyPrivately(message) : undefined,
     onUserBlock: message.author && !yourMessage ? () => _onUserBlock(message, blockModalSingle) : undefined,
+    onUserFilter:
+      isIOS && message.author && !yourMessage ? () => _onUserFilter(message, blockModalSingle) : undefined,
+    onUserFlag:
+      isIOS && message.author && !yourMessage ? () => _onUserFlag(message, blockModalSingle) : undefined,
+    onUserReport:
+      isIOS && message.author && !yourMessage ? () => _onUserReport(message, blockModalSingle) : undefined,
     onViewMap,
     onViewProfile: message.author && !yourMessage ? () => _onViewProfile(message.author) : undefined,
     position: ownProps.position,
