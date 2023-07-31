@@ -28,9 +28,12 @@ export default Container.connect(
       blockUserByDefault: ownProps.route.params?.blockUserByDefault ?? false,
       context: ownProps.route.params?.context ?? undefined,
       convID: ownProps.route.params?.convID ?? undefined,
+      filterUserByDefault: ownProps.route.params?.filterUserByDefault ?? false,
+      flagUserByDefault: ownProps.route.params?.flagUserByDefault ?? false,
       finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
       loadingWaiting: Container.anyWaiting(state, Constants.getUserBlocksWaitingKey),
       otherUsernames: others && others.length > 0 ? others : undefined,
+      reportsUserByDefault: ownProps.route.params?.reportUserByDefault ?? false,
       teamname,
     }
   },
