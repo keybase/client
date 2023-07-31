@@ -175,6 +175,9 @@ export type RootParamListChat = {
     others?: Array<string>
     team?: string
     username?: string
+    reportUserByDefault?: boolean
+    filterUserByDefault?: boolean
+    flagUserByDefault?: boolean
   }
   chatAttachmentGetTitles: {
     conversationIDKey: Types.ConversationIDKey
