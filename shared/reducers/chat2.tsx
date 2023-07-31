@@ -213,41 +213,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.selectedConversation]: (draftState, action) => {
     const {conversationIDKey} = action.payload
-    const {containsLatestMessageMap, orangeLineMap} = draftState
+    const {containsLatestMessageMap} = draftState
     const {metaMap} = draftState
 
-    if (conversationIDKey) {
-      const {readMsgID, maxVisibleMsgID} = metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
-
-      logger.info(
-        `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
-      )
-      if (maxVisibleMsgID > readMsgID) {
-        // Store the message ID that will display the orange line above it,
-        // which is the first message after the last read message. We can't
-        // just increment `readMsgID` since that msgID might be a
-        // non-visible (edit, delete, reaction...) message so we scan the
-        // ordinals for the appropriate value.
-        const messageMap = draftState.messageMap.get(conversationIDKey)
-        const ordinals = draftState.messageOrdinals.get(conversationIDKey) ?? []
-        const ord =
-          messageMap &&
-          ordinals.find(o => {
-            const message = messageMap.get(o)
-            return !!(message && message.id >= readMsgID + 1)
-          })
-        const message = ord ? messageMap?.get(ord) : null
-        if (message?.id) {
-          orangeLineMap.set(conversationIDKey, message.id)
-        } else {
-          orangeLineMap.delete(conversationIDKey)
-        }
-      } else {
-        // If there aren't any new messages, we don't want to display an
-        // orange line so remove its entry from orangeLineMap
-        orangeLineMap.delete(conversationIDKey)
-      }
-    }
     // blank out draft so we don't flash old data when switching convs
     const meta = metaMap.get(conversationIDKey)
     if (meta) {
@@ -261,15 +229,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       // If navigating away from error conversation to a valid conv - clear
       // error msg.
       Constants.useState.getState().dispatch.resetConversationErrored()
-    }
-  },
-  [Chat2Gen.updateUnreadline]: (draftState, action) => {
-    const {conversationIDKey, messageID} = action.payload
-    const {orangeLineMap} = draftState
-    if (messageID > 0) {
-      orangeLineMap.set(conversationIDKey, messageID)
-    } else {
-      orangeLineMap.delete(action.payload.conversationIDKey)
     }
   },
   [Chat2Gen.messagesAdd]: (draftState, action) => {

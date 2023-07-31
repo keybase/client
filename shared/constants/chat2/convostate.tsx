@@ -55,6 +55,7 @@ type ConvoStore = {
   messageCenterOrdinal?: Types.CenterOrdinal // ordinals to center threads on,
   muted: boolean
   mutualTeams: Array<TeamsTypes.TeamID>
+  orangeLine: Types.Ordinal // last message we've seen,
   participants: Types.ParticipantInfo
   replyTo: Types.Ordinal
   threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp
@@ -87,6 +88,7 @@ const initialConvoStore: ConvoStore = {
   messageCenterOrdinal: undefined,
   muted: false,
   mutualTeams: [],
+  orangeLine: 0,
   participants: noParticipantInfo,
   replyTo: 0,
   threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp.none,
@@ -122,6 +124,7 @@ export type ConvoState = ConvoStore & {
     giphySend: (result: RPCChatTypes.GiphySearchResult) => void
     giphyToggleWindow: (show: boolean) => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
+    loadOrangeLine: () => void
     mute: (m: boolean) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     refreshBotRoleInConv: (username: string) => void
@@ -140,6 +143,7 @@ export type ConvoState = ConvoStore & {
     // false to clear
     setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID | false) => void
     setMessageCenterOrdinal: (m?: Types.CenterOrdinal) => void
+    setOrangeLine: (o: Types.Ordinal) => void
     setParticipants: (p: ConvoState['participants']) => void
     setReplyTo: (o: Types.Ordinal) => void
     setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
@@ -355,6 +359,50 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               info.status = 'error'
             })
           }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loadOrangeLine: () => {
+      const f = async () => {
+        const Constants = await import('.')
+        const conversationIDKey = get().id
+        if (!Types.isValidConversationIDKey(conversationIDKey)) {
+          logger.info('Load unreadline bail: no conversationIDKey')
+          return
+        }
+        const convID = Types.keyToConversationID(conversationIDKey)
+        if (!convID) {
+          logger.info('Load unreadline bail: invalid conversationIDKey')
+          return
+        }
+        const {readMsgID} =
+          getReduxState().chat2.metaMap.get(conversationIDKey) ?? Meta.makeConversationMeta()
+        try {
+          const unreadlineRes = await RPCChatTypes.localGetUnreadlineRpcPromise({
+            convID,
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            readMsgID: readMsgID < 0 ? 0 : readMsgID,
+          })
+          const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
+          logger.info(`marking unreadline ${conversationIDKey} ${unreadlineID}`)
+          Chat2Gen.createUpdateUnreadline({
+            conversationIDKey,
+            messageID: Types.numberToMessageID(unreadlineID),
+          })
+          if (get().markedAsUnread) {
+            // Remove the force unread bit for the next time we view the thread.
+            get().dispatch.setMarkAsUnread(false)
+          }
+        } catch (error) {
+          if (error instanceof RPCError) {
+            if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
+              const {inboxRefresh} = Constants.useState.getState().dispatch
+              inboxRefresh('maybeKickedFromTeam')
+              reduxDispatch(Chat2Gen.createNavigateToInbox())
+            }
+          }
+          // ignore this error in general
         }
       }
       Z.ignorePromise(f())
@@ -691,12 +739,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
           .then(() => {})
           .catch(() => {})
-        reduxDispatch(
-          Chat2Gen.createUpdateUnreadline({
-            conversationIDKey,
-            messageID: unreadLineID,
-          })
-        )
+        get().dispatch.setOrangeLine(unreadLineID)
       }
       Z.ignorePromise(f())
     },
@@ -708,6 +751,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMuted: m => {
       set(s => {
         s.muted = m
+      })
+    },
+    setOrangeLine: o => {
+      set(s => {
+        s.orangeLine = o
       })
     },
     setParticipants: p => {

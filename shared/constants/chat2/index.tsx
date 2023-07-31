@@ -70,7 +70,6 @@ export const makeState = (): Types.State => ({
   messageTypeMap: new Map(),
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
-  orangeLineMap: new Map(), // last message we've seen,
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
 })
 
