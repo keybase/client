@@ -53,6 +53,7 @@ type ConvoStore = {
   giphyWindow: boolean
   markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   messageCenterOrdinal?: Types.CenterOrdinal // ordinals to center threads on,
+  moreToLoad: boolean
   muted: boolean
   mutualTeams: Array<TeamsTypes.TeamID>
   orangeLine: Types.Ordinal // last message we've seen,
@@ -86,6 +87,7 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   markedAsUnread: false,
   messageCenterOrdinal: undefined,
+  moreToLoad: false,
   muted: false,
   mutualTeams: [],
   orangeLine: 0,

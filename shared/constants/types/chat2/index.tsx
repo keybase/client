@@ -198,7 +198,6 @@ export type State = {
   messageTypeMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, RenderMessageType>> // messages types to help the thread, text is never used
   messageOrdinals: Map<Common.ConversationIDKey, Array<_Message.Ordinal>> // ordered ordinals in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
-  moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
   pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
 }
 
