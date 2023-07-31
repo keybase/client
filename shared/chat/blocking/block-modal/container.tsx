@@ -9,6 +9,9 @@ import {leaveTeamWaitingKey} from '../../../constants/teams'
 
 type OwnProps = {
   blockUserByDefault?: boolean
+  filterUserByDefault?: boolean
+  flagUserByDefault?: boolean
+  reportsUserByDefault?: boolean
   context?: BlockModalContext
   convID?: string
   others?: Array<string>
@@ -20,6 +23,9 @@ export default (ownProps: OwnProps) => {
   const {context, convID} = ownProps
   const teamname = ownProps.team
   const blockUserByDefault = ownProps.blockUserByDefault ?? false
+  const filterUserByDefault = ownProps.filterUserByDefault ?? false
+  const flagUserByDefault = ownProps.flagUserByDefault ?? false
+  const reportsUserByDefault = ownProps.reportsUserByDefault ?? false
   let others = ownProps.others
   let adderUsername = ownProps.username
   const waitingForLeave = Container.useAnyWaiting(teamname ? leaveTeamWaitingKey(teamname) : undefined)
@@ -38,9 +44,12 @@ export default (ownProps: OwnProps) => {
     blockUserByDefault,
     context,
     convID,
+    filterUserByDefault,
     finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
+    flagUserByDefault,
     loadingWaiting,
     otherUsernames: others && others.length > 0 ? others : undefined,
+    reportsUserByDefault,
     teamname,
   }
 

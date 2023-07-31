@@ -1,6 +1,7 @@
 run:
   skip-files:
-    prot.go
+    - prot.go
+    - 'cmd_wallet.*.go'
 
 linters-settings:
   gocritic:
