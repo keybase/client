@@ -596,11 +596,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       })
     }
   },
-  [Chat2Gen.updateMoreToLoad]: (draftState, action) => {
-    const {conversationIDKey, moreToLoad} = action.payload
-    const {moreToLoadMap} = draftState
-    moreToLoadMap.set(conversationIDKey, moreToLoad)
-  },
   [Chat2Gen.metasReceived]: (draftState, action) => {
     const {metas, removals} = action.payload
     const {metaMap} = draftState

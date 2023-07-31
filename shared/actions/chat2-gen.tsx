@@ -98,7 +98,6 @@ export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
-export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateReactions = 'chat2:updateReactions'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
@@ -717,13 +716,6 @@ export const createAttachmentDownloaded = (payload: {
   readonly path?: string
 }) => ({payload, type: attachmentDownloaded as typeof attachmentDownloaded})
 /**
- * We updated our view of a thread
- */
-export const createUpdateMoreToLoad = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly moreToLoad: boolean
-}) => ({payload, type: updateMoreToLoad as typeof updateMoreToLoad})
-/**
  * We want to save an attachment to the local disk
  */
 export const createAttachmentDownload = (payload: {
@@ -916,7 +908,6 @@ export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
 export type UpdateConvRetentionPolicyPayload = ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateMessagesPayload = ReturnType<typeof createUpdateMessages>
-export type UpdateMoreToLoadPayload = ReturnType<typeof createUpdateMoreToLoad>
 export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNotificationSettings>
 export type UpdateReactionsPayload = ReturnType<typeof createUpdateReactions>
 export type UpdateTeamRetentionPolicyPayload = ReturnType<typeof createUpdateTeamRetentionPolicy>
@@ -1014,7 +1005,6 @@ export type Actions =
   | UnsentTextChangedPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMessagesPayload
-  | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload
   | UpdateReactionsPayload
   | UpdateTeamRetentionPolicyPayload

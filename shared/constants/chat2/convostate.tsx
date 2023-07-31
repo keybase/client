@@ -138,6 +138,7 @@ export type ConvoState = ConvoStore & {
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
+    setMoreToLoad: (m: boolean) => void
     setDraft: (d?: string) => void
     setEditing: (ordinal: Types.Ordinal | boolean) => void // true is last, false is clear
     setExplodingModeLocked: (locked: boolean) => void
@@ -748,6 +749,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMessageCenterOrdinal: m => {
       set(s => {
         s.messageCenterOrdinal = m
+      })
+    },
+    setMoreToLoad: m => {
+      set(s => {
+        s.moreToLoad = m
       })
     },
     setMuted: m => {
