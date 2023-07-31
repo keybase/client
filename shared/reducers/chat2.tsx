@@ -213,7 +213,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.selectedConversation]: (draftState, action) => {
     const {conversationIDKey} = action.payload
-    const {containsLatestMessageMap} = draftState
     const {metaMap} = draftState
 
     // blank out draft so we don't flash old data when switching convs
@@ -224,7 +223,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     Constants.getConvoState(conversationIDKey).dispatch.setThreadLoadStatus(
       RPCChatTypes.UIChatThreadStatusTyp.none
     )
-    containsLatestMessageMap.set(conversationIDKey, true)
     if (Constants.isValidConversationIDKey(conversationIDKey)) {
       // If navigating away from error conversation to a valid conv - clear
       // error msg.
@@ -411,8 +409,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }
     })
 
-    const containsLatestMessageMap = new Map(draftState.containsLatestMessageMap)
-    if (!action.payload.forceContainsLatestCalc && containsLatestMessageMap.get(conversationIDKey)) {
+    let containsLatestMessage = Constants.getConvoState(conversationIDKey).containsLatestMessage || false
+    if (!action.payload.forceContainsLatestCalc && containsLatestMessage) {
       // do nothing
     } else {
       const meta = draftState.metaMap.get(conversationIDKey)
@@ -429,15 +427,14 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         }
       }
       if (meta && maxMsgID >= meta.maxVisibleMsgID) {
-        containsLatestMessageMap.set(conversationIDKey, true)
+        containsLatestMessage = true
       } else if (action.payload.forceContainsLatestCalc) {
-        containsLatestMessageMap.set(conversationIDKey, false)
+        containsLatestMessage = false
       }
     }
-    draftState.containsLatestMessageMap = containsLatestMessageMap
+    Constants.getConvoState(conversationIDKey).dispatch.setContainsLatestMessage(containsLatestMessage)
     draftState.messageMap = messageMap
     draftState.messageTypeMap = oldMessageTypeMap
-    draftState.containsLatestMessageMap = containsLatestMessageMap
     // only if different
     if (
       !shallowEqual(draftState.messageOrdinals.get(conversationIDKey), messageOrdinals.get(conversationIDKey))
@@ -446,11 +443,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
     draftState.messageMap = messageMap
-  },
-  [Chat2Gen.setContainsLastMessage]: (draftState, action) => {
-    const {conversationIDKey, contains} = action.payload
-    const {containsLatestMessageMap} = draftState
-    containsLatestMessageMap.set(conversationIDKey, contains)
   },
   [Chat2Gen.messageRetry]: (draftState, action) => {
     const {conversationIDKey, outboxID} = action.payload

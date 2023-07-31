@@ -64,7 +64,6 @@ export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
 export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
-  containsLatestMessageMap: new Map(),
   messageMap: new Map(), // messages in a thread,
   messageOrdinals: new Map(), // ordered ordinals in a thread,
   messageTypeMap: new Map(),

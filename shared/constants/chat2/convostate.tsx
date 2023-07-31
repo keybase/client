@@ -44,6 +44,7 @@ type ConvoStore = {
   botTeamRoleMap: Map<string, TeamsTypes.TeamRoleType | undefined>
   commandMarkdown?: RPCChatTypes.UICommandMarkdown
   commandStatus?: Types.CommandStatusInfo
+  containsLatestMessage?: boolean
   dismissedInviteBanners: boolean
   draft?: string
   editing: Types.Ordinal // current message being edited,
@@ -77,6 +78,7 @@ const initialConvoStore: ConvoStore = {
   botTeamRoleMap: new Map(),
   commandMarkdown: undefined,
   commandStatus: undefined,
+  containsLatestMessage: undefined,
   dismissedInviteBanners: false,
   draft: undefined,
   editing: 0,
@@ -138,6 +140,7 @@ export type ConvoState = ConvoStore & {
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
+    setContainsLatestMessage: (c: boolean) => void
     setMoreToLoad: (m: boolean) => void
     setDraft: (d?: string) => void
     setEditing: (ordinal: Types.Ordinal | boolean) => void // true is last, false is clear
@@ -526,6 +529,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setCommandStatusInfo: info => {
       set(s => {
         s.commandStatus = info
+      })
+    },
+    setContainsLatestMessage: c => {
+      set(s => {
+        s.containsLatestMessage = c
       })
     },
     setDraft: d => {

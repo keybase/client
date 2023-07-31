@@ -503,11 +503,6 @@
       "_description": "Jump to most recent messages in a conversation",
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "setContainsLastMessage": {
-      "_description": "Explicitly set whether a thread is loaded to the most recent message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "contains": "boolean"
-    },
     "replyJump": {
       "_description": "Jump to a replied to message",
       "conversationIDKey": "Types.ConversationIDKey",
