@@ -531,11 +531,10 @@ const ThreadWrapper = React.memo(function ThreadWrapper(p: Props) {
   const editingOrdinal = Constants.useContext(s => s.editing)
   const centeredOrdinal = Constants.useContext(s => s.messageCenterOrdinal)?.ordinal
   const containsLatestMessage = Constants.useContext(s => s.containsLatestMessage) ?? false
-  const {messageTypeMap, messageOrdinals} = Container.useSelector(state => {
-    const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const messageTypeMap = state.chat2.messageTypeMap.get(conversationIDKey)
-    return {messageOrdinals, messageTypeMap}
-  }, shallowEqual)
+  const messageTypeMap = Constants.useContext(s => s.messageTypeMap)
+  const messageOrdinals = Container.useSelector(state =>
+    Constants.getMessageOrdinals(state, conversationIDKey)
+  )
   const copyToClipboard = ConfigConstants.useConfigState(s => s.dispatch.dynamic.copyToClipboard)
   const listRef = React.useRef<HTMLDivElement | null>(null)
   const {isLockedToBottom, scrollToBottom, setListRef, pointerWrapperRef} = useScrolling({
