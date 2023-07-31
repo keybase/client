@@ -114,7 +114,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   },
   [Chat2Gen.messageAttachmentUploaded]: (draftState, action) => {
     const {conversationIDKey, message, placeholderID} = action.payload
-    const {messageMap, messageTypeMap} = draftState
+    const {messageMap} = draftState
     const ordinal = messageIDToOrdinal(
       draftState.messageMap,
       draftState.pendingOutboxToOrdinal,
@@ -125,9 +125,8 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       const map = mapGetEnsureValue(messageMap, conversationIDKey, new Map())
       const m = map.get(ordinal)
       map.set(ordinal, m ? Constants.upgradeMessage(m, message) : message)
-      const typemap = mapGetEnsureValue(messageTypeMap, conversationIDKey, new Map())
       const subType = Constants.getMessageRenderType(message)
-      typemap.set(ordinal, subType)
+      Constants.getConvoState(conversationIDKey).dispatch.setMessageTypeMap(ordinal, subType)
     }
   },
   [EngineGen.chat1NotifyChatChatAttachmentDownloadComplete]: (draftState, action) => {
@@ -243,7 +242,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const messageOrdinals = new Map(draftState.messageOrdinals)
     const oldPendingOutboxToOrdinal = new Map(draftState.pendingOutboxToOrdinal)
     const oldMessageMap = new Map(draftState.messageMap)
-    const oldMessageTypeMap = new Map(draftState.messageTypeMap)
 
     // so we can keep messages if they haven't mutated
     const previousMessageMap = new Map(draftState.messageMap)
@@ -253,7 +251,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       messageOrdinals.delete(conversationIDKey)
       oldPendingOutboxToOrdinal.delete(conversationIDKey)
       oldMessageMap.delete(conversationIDKey)
-      oldMessageTypeMap.delete(conversationIDKey)
+      Constants.getConvoState(conversationIDKey).dispatch.clearMessageTypeMap()
     }
 
     // Update any pending messages
@@ -379,11 +377,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       deletedMessages.forEach(m => map.delete(m.ordinal))
       removedOrdinals.forEach(o => map.delete(o))
     }
-    const typemap = oldMessageTypeMap.get(conversationIDKey)
-    if (typemap) {
-      deletedMessages.forEach(m => typemap.delete(m.ordinal))
-      removedOrdinals.forEach(o => typemap.delete(o))
-    }
+
+    deletedMessages.forEach(m => {
+      Constants.getConvoState(conversationIDKey).dispatch.setMessageTypeMap(m.ordinal, undefined)
+    })
+    removedOrdinals.forEach(o => {
+      Constants.getConvoState(conversationIDKey).dispatch.setMessageTypeMap(o, undefined)
+    })
 
     // update messages
     messages.forEach(message => {
@@ -400,12 +400,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       messageMap.set(conversationIDKey, map)
       map.set(toSet.ordinal, toSet)
 
-      const typemap = mapGetEnsureValue(oldMessageTypeMap, conversationIDKey, new Map())
       if (toSet.type === 'text') {
-        typemap.delete(toSet.ordinal)
+        Constants.getConvoState(conversationIDKey).dispatch.setMessageTypeMap(toSet.ordinal, undefined)
       } else {
         const subType = Constants.getMessageRenderType(toSet)
-        typemap.set(toSet.ordinal, subType)
+        Constants.getConvoState(conversationIDKey).dispatch.setMessageTypeMap(toSet.ordinal, subType)
       }
     })
 
@@ -434,7 +433,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     Constants.getConvoState(conversationIDKey).dispatch.setContainsLatestMessage(containsLatestMessage)
     draftState.messageMap = messageMap
-    draftState.messageTypeMap = oldMessageTypeMap
     // only if different
     if (
       !shallowEqual(draftState.messageOrdinals.get(conversationIDKey), messageOrdinals.get(conversationIDKey))

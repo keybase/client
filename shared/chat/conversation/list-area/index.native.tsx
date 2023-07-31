@@ -17,7 +17,6 @@ import {getMessageRender} from '../messages/wrapper'
 import {mobileTypingContainerHeight} from '../input-area/normal/typing'
 import {SetRecycleTypeContext} from '../recycle-type-context'
 import {ForceListRedrawContext} from '../force-list-redraw-context'
-import shallowEqual from 'shallowequal'
 import {useChatDebugDump} from '../../../constants/chat2/debug'
 import {usingFlashList} from './flashlist-config'
 
@@ -124,11 +123,10 @@ const ConversationList = React.memo(function ConversationList(p: {
   const [lastED, setLastED] = React.useState(extraData)
 
   const centeredOrdinal = Constants.useContext(s => s.messageCenterOrdinal)?.ordinal ?? -1
-  const {_messageOrdinals, messageTypeMap} = Container.useSelector(state => {
-    const _messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
-    const messageTypeMap = state.chat2.messageTypeMap.get(conversationIDKey)
-    return {_messageOrdinals, messageTypeMap}
-  }, shallowEqual)
+  const messageTypeMap = Constants.useContext(s => s.messageTypeMap)
+  const _messageOrdinals = Container.useSelector(state =>
+    Constants.getMessageOrdinals(state, conversationIDKey)
+  )
 
   const messageOrdinals = React.useMemo(() => {
     return [..._messageOrdinals].reverse()

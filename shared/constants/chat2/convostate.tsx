@@ -54,6 +54,7 @@ type ConvoStore = {
   giphyWindow: boolean
   markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   messageCenterOrdinal?: Types.CenterOrdinal // ordinals to center threads on,
+  messageTypeMap: Map<Types.Ordinal, Types.RenderMessageType> // messages types to help the thread, text is never used
   moreToLoad: boolean
   muted: boolean
   mutualTeams: Array<TeamsTypes.TeamID>
@@ -89,6 +90,7 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   markedAsUnread: false,
   messageCenterOrdinal: undefined,
+  messageTypeMap: new Map(),
   moreToLoad: false,
   muted: false,
   mutualTeams: [],
@@ -112,11 +114,10 @@ export type ConvoState = ConvoStore & {
       restricted: boolean,
       convs?: Array<string>
     ) => void
-    removeBotMember: (username: string) => void
     badgesUpdated: (badge: number) => void
+    botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
     clearAttachmentView: () => void
-    updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
-    updateAttachmentViewTransfered: (msgId: number, path: string) => void
+    clearMessageTypeMap: () => void
     dismissBottomBanner: () => void
     editBotSettings: (
       username: string,
@@ -127,6 +128,7 @@ export type ConvoState = ConvoStore & {
     giphyGotSearchResult: (results: RPCChatTypes.GiphySearchResults) => void
     giphySend: (result: RPCChatTypes.GiphySearchResult) => void
     giphyToggleWindow: (show: boolean) => void
+    hideSearch: () => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadOrangeLine: () => void
     mute: (m: boolean) => void
@@ -134,35 +136,37 @@ export type ConvoState = ConvoStore & {
     refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
     refreshMutualTeamsInConv: () => void
+    removeBotMember: (username: string) => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetState: 'default'
     resetUnsentText: () => void
-    setExplodingMode: (seconds: number, incoming?: boolean) => void
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
     setContainsLatestMessage: (c: boolean) => void
-    setMoreToLoad: (m: boolean) => void
     setDraft: (d?: string) => void
     setEditing: (ordinal: Types.Ordinal | boolean) => void // true is last, false is clear
+    setExplodingMode: (seconds: number, incoming?: boolean) => void
     setExplodingModeLocked: (locked: boolean) => void
-    setMuted: (m: boolean) => void
     // false to clear
     setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID | false) => void
     setMessageCenterOrdinal: (m?: Types.CenterOrdinal) => void
+    setMessageTypeMap: (o: Types.Ordinal, t?: Types.RenderMessageType) => void
+    setMoreToLoad: (m: boolean) => void
+    setMuted: (m: boolean) => void
     setOrangeLine: (o: Types.Ordinal) => void
     setParticipants: (p: ConvoState['participants']) => void
     setReplyTo: (o: Types.Ordinal) => void
     setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
+    setThreadSearchQuery: (query: string) => void
     setTyping: (t: Set<string>) => void
+    threadSearch: (query: string) => void
+    toggleThreadSearch: (hide?: boolean) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
+    updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
+    updateAttachmentViewTransfered: (msgId: number, path: string) => void
     unreadUpdated: (unread: number) => void
     // this is how you set the unset value, including ''
     setUnsentText: (u: string) => void
-    threadSearch: (query: string) => void
-    setThreadSearchQuery: (query: string) => void
-    toggleThreadSearch: (hide?: boolean) => void
-    hideSearch: () => void
-    botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
   }
   getExplodingMode: () => number
   getEditInfo: () => {exploded: boolean; ordinal: Types.Ordinal; text: string} | undefined
@@ -235,6 +239,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     clearAttachmentView: () => {
       set(s => {
         s.attachmentViewMap = new Map()
+      })
+    },
+    clearMessageTypeMap: () => {
+      set(s => {
+        s.messageTypeMap.clear()
       })
     },
     dismissBottomBanner: () => {
@@ -757,6 +766,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMessageCenterOrdinal: m => {
       set(s => {
         s.messageCenterOrdinal = m
+      })
+    },
+    setMessageTypeMap: (o, t) => {
+      set(s => {
+        if (t) {
+          s.messageTypeMap.set(o, t)
+        } else {
+          s.messageTypeMap.delete(o)
+        }
       })
     },
     setMoreToLoad: m => {

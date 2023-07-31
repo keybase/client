@@ -66,7 +66,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 export const makeState = (): Types.State => ({
   messageMap: new Map(), // messages in a thread,
   messageOrdinals: new Map(), // ordered ordinals in a thread,
-  messageTypeMap: new Map(),
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
 })
