@@ -53,6 +53,7 @@ type ConvoStore = {
   giphyWindow: boolean
   markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   messageCenterOrdinal?: Types.CenterOrdinal // ordinals to center threads on,
+  moreToLoad: boolean
   muted: boolean
   mutualTeams: Array<TeamsTypes.TeamID>
   orangeLine: Types.Ordinal // last message we've seen,
@@ -86,6 +87,7 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   markedAsUnread: false,
   messageCenterOrdinal: undefined,
+  moreToLoad: false,
   muted: false,
   mutualTeams: [],
   orangeLine: 0,
@@ -136,6 +138,7 @@ export type ConvoState = ConvoStore & {
     setExplodingMode: (seconds: number, incoming?: boolean) => void
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
+    setMoreToLoad: (m: boolean) => void
     setDraft: (d?: string) => void
     setEditing: (ordinal: Types.Ordinal | boolean) => void // true is last, false is clear
     setExplodingModeLocked: (locked: boolean) => void
@@ -746,6 +749,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     setMessageCenterOrdinal: m => {
       set(s => {
         s.messageCenterOrdinal = m
+      })
+    },
+    setMoreToLoad: m => {
+      set(s => {
+        s.moreToLoad = m
       })
     },
     setMuted: m => {

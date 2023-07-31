@@ -69,7 +69,6 @@ export const makeState = (): Types.State => ({
   messageOrdinals: new Map(), // ordered ordinals in a thread,
   messageTypeMap: new Map(),
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
-  moreToLoadMap: new Map(), // if we have more data to load,
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
 })
 

@@ -1007,7 +1007,7 @@ const loadMoreMessages = (
     }
 
     if (action?.type === Chat2Gen.loadOlderMessagesDueToScroll) {
-      if (!getReduxStore().chat2.moreToLoadMap.get(conversationIDKey)) {
+      if (!Constants.getConvoState(conversationIDKey).moreToLoad) {
         logger.info('bail: scrolling back and at the end')
         return
       }
@@ -1052,7 +1052,7 @@ const loadMoreMessages = (
       // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
 
       const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-      reduxDispatch(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad}))
+      Constants.getConvoState(conversationIDKey).dispatch.setMoreToLoad(moreToLoad)
 
       if (messages.length) {
         reduxDispatch(

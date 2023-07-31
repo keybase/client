@@ -114,6 +114,7 @@ const ErrorMessage = () => {
 const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
+  const loadMoreType = Constants.useContext(s => (s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'))
   const data = Container.useSelector(state => {
     const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
     const hasLoadedEver = ordinals !== undefined
@@ -121,10 +122,6 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
 
     const meta = Constants.getMeta(state, conversationIDKey)
     const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
-    const loadMoreType =
-      state.chat2.moreToLoadMap.get(conversationIDKey) !== false
-        ? ('moreToLoad' as const)
-        : ('noMoreToLoad' as const)
 
     return {
       hasLoadedEver,
@@ -137,7 +134,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
       username,
     }
   }, shallowEqual)
-  const {hasLoadedEver, loadMoreType, ordinal, retentionPolicy} = data
+  const {hasLoadedEver, ordinal, retentionPolicy} = data
   const {supersedes, teamType, teamRetentionPolicy} = data
   // we defer showing this so it doesn't flash so much
   const [allowDigging, setAllowDigging] = React.useState(false)

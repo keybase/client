@@ -112,11 +112,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "selectSomethingElse": "boolean"
     },
-    "updateMoreToLoad": {
-      "_description": "We updated our view of a thread",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "moreToLoad": "boolean"
-    },
     "messagesAdd": {
       "_description": [
         "Add a new message",
