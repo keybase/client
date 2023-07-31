@@ -215,9 +215,7 @@ const useSubmit = (
 ) => {
   const {conversationIDKey, onRequestScrollToBottom, jumpToRecent, editOrdinal, replyTo} = p
   const dispatch = Container.useDispatch()
-  const containsLatestMessage = Container.useSelector(
-    state => state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
-  )
+  const containsLatestMessage = Constants.useContext(s => s.containsLatestMessage)
   const onPostMessage = React.useCallback(
     (text: string) => {
       dispatch(

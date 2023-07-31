@@ -82,7 +82,6 @@ export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectedConversation = 'chat2:selectedConversation'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
-export const setContainsLastMessage = 'chat2:setContainsLastMessage'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
@@ -228,13 +227,6 @@ export const createDismissJourneycard = (payload: {
   readonly cardType: RPCChatTypes.JourneycardType
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: dismissJourneycard as typeof dismissJourneycard})
-/**
- * Explicitly set whether a thread is loaded to the most recent message
- */
-export const createSetContainsLastMessage = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly contains: boolean
-}) => ({payload, type: setContainsLastMessage as typeof setContainsLastMessage})
 /**
  * Exploding messages expired or were manually detonated.
  */
@@ -892,7 +884,6 @@ export type SaveMinWriterRolePayload = ReturnType<typeof createSaveMinWriterRole
 export type SelectedConversationPayload = ReturnType<typeof createSelectedConversation>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
-export type SetContainsLastMessagePayload = ReturnType<typeof createSetContainsLastMessage>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
@@ -989,7 +980,6 @@ export type Actions =
   | SelectedConversationPayload
   | SendAudioRecordingPayload
   | SendTypingPayload
-  | SetContainsLastMessagePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetMinWriterRolePayload

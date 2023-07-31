@@ -22,10 +22,7 @@ export const useJumpToRecent = (
 ) => {
   const dispatch = Container.useDispatch()
 
-  const containsLatestMessage = Container.useSelector(state => {
-    return state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
-  })
-
+  const containsLatestMessage = Constants.useContext(s => s.containsLatestMessage)
   const toggleThreadSearch = Constants.useContext(s => s.dispatch.toggleThreadSearch)
 
   const jumpToRecent = React.useCallback(() => {

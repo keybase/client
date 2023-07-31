@@ -273,8 +273,7 @@ const onIncomingMessage = (
       return actions
     }
 
-    const {containsLatestMessageMap} = state.chat2
-    const shouldAddMessage = containsLatestMessageMap.get(conversationIDKey) || false
+    const shouldAddMessage = Constants.getConvoState(conversationIDKey).containsLatestMessage ?? false
 
     const {getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
     const message = Constants.uiMessageToMessage(
@@ -1795,10 +1794,7 @@ const markThreadAsRead = (
 
     // Check to see if we do not have the latest message, and don't mark anything as read in that case
     // If we have no information at all, then just mark as read
-    if (
-      !getReduxStore().chat2.containsLatestMessageMap.has(conversationIDKey) ||
-      !getReduxStore().chat2.containsLatestMessageMap.get(conversationIDKey)
-    ) {
+    if (!Constants.getConvoState(conversationIDKey).containsLatestMessage) {
       logger.info('bail on not containing latest message')
       return
     }
@@ -2604,9 +2600,8 @@ const maybeChangeChatSelection = (
 
   // same? ignore
   if (wasChat && isChat && wasID === isID) {
-    const getReduxStore = Z.getReduxStore()
     // if we've never loaded anything, keep going so we load it
-    if (!isID || getReduxStore().chat2.containsLatestMessageMap.get(isID) !== undefined) {
+    if (!isID || Constants.getConvoState(isID).containsLatestMessage !== undefined) {
       return
     }
   }
@@ -3011,6 +3006,7 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.selectedConversation, (state, a) => {
     const {conversationIDKey} = a.payload
+    Constants.getConvoState(conversationIDKey).dispatch.setContainsLatestMessage(true)
     const {readMsgID, maxVisibleMsgID} =
       state.chat2.metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
     logger.info(
