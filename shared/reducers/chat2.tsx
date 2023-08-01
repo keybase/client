@@ -238,12 +238,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     logger.info(
       `messagesAdd: running in context: ${context.type} messages: ${messages.length} deleted: ${deletedMessages.length}`
     )
-    // TODO different convoids ever?
     // we want the clear applied when we call findExisting
-    const oldPendingOutboxToOrdinal: Map<string, Constants.ConvoState['pendingOutboxToOrdinal']> = new Map()
-    for (const [, cs] of Constants.stores) {
-      oldPendingOutboxToOrdinal.set(cs.getState().id, cs.getState().pendingOutboxToOrdinal)
-    }
+    const oldPendingOutboxToOrdinal = new Map(
+      Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
+    )
     const oldMessageMap = new Map(draftState.messageMap)
 
     // so we can keep messages if they haven't mutated
@@ -251,7 +249,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     if (shouldClearOthers) {
       logger.info(`messagesAdd: clearing existing data`)
-      oldPendingOutboxToOrdinal.delete(conversationIDKey)
+      oldPendingOutboxToOrdinal.clear()
       oldMessageMap.delete(conversationIDKey)
       Constants.getConvoState(conversationIDKey).dispatch.clearMessageTypeMap()
       Constants.getConvoState(conversationIDKey).dispatch.setMessageOrdinals(undefined)
@@ -261,12 +259,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const pendingOutboxToOrdinal = new Map(oldPendingOutboxToOrdinal)
     messages.forEach(message => {
       if (message.submitState === 'pending' && message.outboxID) {
-        const outToOrd = new Map(pendingOutboxToOrdinal.get(conversationIDKey) || [])
         logger.info(
           `messagesAdd: setting new outbox ordinal: ${message.ordinal} outboxID: ${message.outboxID}`
         )
-        outToOrd.set(message.outboxID, message.ordinal)
-        pendingOutboxToOrdinal.set(conversationIDKey, outToOrd)
+        pendingOutboxToOrdinal.set(message.outboxID, message.ordinal)
       }
     })
 
@@ -274,8 +270,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       // something we sent
       if (m.outboxID) {
         // and we know about it
-        const outMap = oldPendingOutboxToOrdinal.get(conversationIDKey)
-        const ordinal = outMap && outMap.get(m.outboxID)
+        const ordinal = oldPendingOutboxToOrdinal.get(m.outboxID)
         if (ordinal) {
           const map = oldMessageMap.get(conversationIDKey)
           return map?.get(ordinal)
@@ -283,7 +278,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }
       const pendingOrdinal = messageIDToOrdinal(
         oldMessageMap,
-        oldPendingOutboxToOrdinal.get(conversationIDKey),
+        oldPendingOutboxToOrdinal,
         conversationIDKey,
         m.id
       )
@@ -314,7 +309,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         logger.info(`messagesAdd: got placeholder message with id: ${message.id}`)
         const existingOrdinal = messageIDToOrdinal(
           oldMessageMap,
-          pendingOutboxToOrdinal.get(conversationIDKey),
+          pendingOutboxToOrdinal,
           conversationIDKey,
           message.id
         )
@@ -436,10 +431,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     Constants.getConvoState(conversationIDKey).dispatch.setContainsLatestMessage(containsLatestMessage)
     draftState.messageMap = messageMap
-    for (const [id, poto] of pendingOutboxToOrdinal.entries()) {
-      Constants.getConvoState(id).dispatch.setPendingOutboxToOrdinal(poto)
-    }
-    draftState.messageMap = messageMap
+    Constants.getConvoState(conversationIDKey).dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
   },
   [Chat2Gen.messageRetry]: (draftState, action) => {
     const {conversationIDKey, outboxID} = action.payload
