@@ -124,12 +124,10 @@ const ConversationList = React.memo(function ConversationList(p: {
 
   const centeredOrdinal = Constants.useContext(s => s.messageCenterOrdinal)?.ordinal ?? -1
   const messageTypeMap = Constants.useContext(s => s.messageTypeMap)
-  const _messageOrdinals = Container.useSelector(state =>
-    Constants.getMessageOrdinals(state, conversationIDKey)
-  )
+  const _messageOrdinals = Constants.useContext(s => s.messageOrdinals)
 
   const messageOrdinals = React.useMemo(() => {
-    return [..._messageOrdinals].reverse()
+    return [...(_messageOrdinals ?? [])].reverse()
   }, [_messageOrdinals])
 
   // map to help the sep know the previous value
@@ -137,7 +135,7 @@ const ConversationList = React.memo(function ConversationList(p: {
     if (usingFlashList) return emptyMap
     const sm = new Map<Types.Ordinal, Types.Ordinal>()
     let p = 0
-    for (const o of _messageOrdinals) {
+    for (const o of _messageOrdinals ?? []) {
       sm.set(o, p)
       p = o
     }

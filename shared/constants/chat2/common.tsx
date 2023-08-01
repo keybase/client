@@ -31,9 +31,6 @@ export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
 export const waitingKeyMutualTeams = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
 
-const emptyOrdinals = new Array<Types.Ordinal>()
-export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id) ?? emptyOrdinals
 export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
   state.chat2.messageMap.get(id)?.get(ordinal)
 

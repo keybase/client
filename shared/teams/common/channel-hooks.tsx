@@ -60,7 +60,7 @@ export const useAllChannelMetas = (
               setChannelMetas(
                 new Map(
                   convs
-                    ?.map(conv => ChatConstants.inboxUIItemToConversationMeta(undefined, conv))
+                    ?.map(conv => ChatConstants.inboxUIItemToConversationMeta(conv))
                     .reduce((arr, a) => {
                       if (a) {
                         arr.push([a.conversationIDKey, a])
@@ -120,9 +120,6 @@ export const useChannelMeta = (
     )
   }, [teamID, conversationIDKey, getInboxItem, waitingKey])
 
-  const meta = Container.useSelector(state =>
-    conv ? ChatConstants.inboxUIItemToConversationMeta(state, conv) : undefined
-  )
-
+  const meta = conv ? ChatConstants.inboxUIItemToConversationMeta(conv) : undefined
   return meta ?? undefined
 }

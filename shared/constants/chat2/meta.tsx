@@ -2,6 +2,7 @@
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as Types from '../types/chat2'
+import * as ConfigConstants from '../config'
 import * as TeamConstants from '../teams'
 import * as Message from './message'
 import type {ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
@@ -244,10 +245,7 @@ const UIItemToRetentionPolicies = (
   return {retentionPolicy, teamRetentionPolicy}
 }
 
-export const inboxUIItemToConversationMeta = (
-  state: TypedState | undefined,
-  i: RPCChatTypes.InboxUIItem
-): ConversationMeta | undefined => {
+export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem): ConversationMeta | undefined => {
   // Private chats only
   if (i.visibility !== RPCTypes.TLFVisibility.private) {
     return
@@ -287,8 +285,11 @@ export const inboxUIItemToConversationMeta = (
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
   const conversationIDKey = Types.stringToConversationIDKey(i.convID)
   let pinnedMsg: PinnedMessageInfo | undefined
-  if (i.pinnedMsg && state) {
-    const {getLastOrdinal, username, devicename} = Message.getMessageStateExtras(state, conversationIDKey)
+  if (i.pinnedMsg) {
+    const CSConstants = require('./convostate')
+    const username = ConfigConstants.useCurrentUserState.getState().username
+    const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
+    const getLastOrdinal = () => CSConstants.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? 0
     const message = Message.uiMessageToMessage(
       conversationIDKey,
       i.pinnedMsg.message,

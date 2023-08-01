@@ -19,6 +19,7 @@ import {mapGetEnsureValue} from '../../util/map'
 import {noConversationIDKey} from '../types/chat2/common'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {findLast} from '../../util/arrays'
+import shallowEqual from 'shallowequal'
 
 const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
   hits: [],
@@ -55,6 +56,7 @@ type ConvoStore = {
   markedAsUnread: boolean // store a bit if we've marked this thread as unread so we don't mark as read when navgiating away
   messageCenterOrdinal?: Types.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<Types.Ordinal, Types.RenderMessageType> // messages types to help the thread, text is never used
+  messageOrdinals?: Array<Types.Ordinal> // ordered ordinals in a thread,
   moreToLoad: boolean
   muted: boolean
   mutualTeams: Array<TeamsTypes.TeamID>
@@ -90,6 +92,7 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   markedAsUnread: false,
   messageCenterOrdinal: undefined,
+  messageOrdinals: undefined,
   messageTypeMap: new Map(),
   moreToLoad: false,
   muted: false,
@@ -151,6 +154,7 @@ export type ConvoState = ConvoStore & {
     setMarkAsUnread: (readMsgID?: RPCChatTypes.MessageID | false) => void
     setMessageCenterOrdinal: (m?: Types.CenterOrdinal) => void
     setMessageTypeMap: (o: Types.Ordinal, t?: Types.RenderMessageType) => void
+    setMessageOrdinals: (os?: Array<Types.Ordinal>) => void
     setMoreToLoad: (m: boolean) => void
     setMuted: (m: boolean) => void
     setOrangeLine: (o: Types.Ordinal) => void
@@ -315,6 +319,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
       const f = async () => {
         const conversationIDKey = get().id
+        const ConfigConstants = await import('../config')
         try {
           const res = await RPCChatTypes.localLoadGalleryRpcListener(
             {
@@ -322,10 +327,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 'chat.1.chatUi.chatLoadGalleryHit': (
                   hit: RPCChatTypes.MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam']
                 ) => {
-                  const {username, getLastOrdinal, devicename} = Message.getMessageStateExtras(
-                    getReduxState(),
-                    conversationIDKey
-                  )
+                  const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+                  const username = ConfigConstants.useCurrentUserState.getState().username
+                  const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
                   const message = Message.uiMessageToMessage(
                     conversationIDKey,
                     hit.message,
@@ -570,16 +574,18 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       if (_ordinal === true) {
         const editLastUser = useCurrentUserState.getState().username
         // Editing your last message
-        const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
-        const found = findLast(ordinals, o => {
-          const message = messageMap?.get(o)
-          return !!(
-            (message?.type === 'text' || message?.type === 'attachment') &&
-            message.author === editLastUser &&
-            !message.exploded &&
-            message.isEditable
-          )
-        })
+        const ordinals = get().messageOrdinals
+        const found =
+          !!ordinals &&
+          findLast(ordinals, o => {
+            const message = messageMap?.get(o)
+            return !!(
+              (message?.type === 'text' || message?.type === 'attachment') &&
+              message.author === editLastUser &&
+              !message.exploded &&
+              message.isEditable
+            )
+          })
         if (!found) return
         ordinal = found
       } else {
@@ -685,10 +691,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const messageMap = state.chat2.messageMap.get(conversationIDKey)
 
         if (messageMap) {
-          const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
+          const ordinals = get().messageOrdinals
           const ord =
             messageMap &&
-            findLast([...ordinals], (o: Types.Ordinal) => {
+            ordinals &&
+            findLast(ordinals, (o: Types.Ordinal) => {
               const message = messageMap.get(o)
               return !!(message && message.id < unreadLineID)
             })
@@ -768,6 +775,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.messageCenterOrdinal = m
       })
     },
+    setMessageOrdinals: os => {
+      set(s => {
+        if (!shallowEqual(s.messageOrdinals, os)) {
+          s.messageOrdinals = os
+        }
+      })
+    },
     setMessageTypeMap: (o, t) => {
       set(s => {
         if (t) {
@@ -831,11 +845,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.threadSearchInfo.hits = []
       })
       const f = async () => {
+        const ConfigConstants = await import('../config')
         const conversationIDKey = get().id
-        const {username, getLastOrdinal, devicename} = Message.getMessageStateExtras(
-          getReduxState(),
-          conversationIDKey
-        )
+        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+        const username = ConfigConstants.useCurrentUserState.getState().username
+        const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
         const onDone = () => {
           set(s => {
             s.threadSearchInfo.status = 'done'

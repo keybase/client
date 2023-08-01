@@ -115,8 +115,8 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const loadMoreType = Constants.useContext(s => (s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'))
+  const ordinals = Constants.useContext(s => s.messageOrdinals)
   const data = Container.useSelector(state => {
-    const ordinals = state.chat2.messageOrdinals.get(conversationIDKey)
     const hasLoadedEver = ordinals !== undefined
     const ordinal = ordinals?.[0] ?? 0
 

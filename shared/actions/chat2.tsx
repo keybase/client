@@ -28,6 +28,27 @@ import {saveAttachmentToCameraRoll, showShareActionSheet} from './platform-speci
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
+const getClientPrev = (conversationIDKey: Types.ConversationIDKey): Types.MessageID => {
+  let clientPrev: undefined | Types.MessageID
+
+  const getReduxStore = Z.getReduxStore()
+  const mm = getReduxStore().chat2.messageMap.get(conversationIDKey)
+  if (mm) {
+    // find last valid messageid we know about
+    const goodOrdinal = findLast(Constants.getConvoState(conversationIDKey).messageOrdinals ?? [], o => {
+      const m = mm.get(o)
+      return !!m?.id
+    })
+
+    if (goodOrdinal) {
+      const message = mm.get(goodOrdinal)
+      clientPrev = message && message.id
+    }
+  }
+
+  return clientPrev || 0
+}
+
 const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload) => {
   const {inbox} = action.payload.params
   const result = JSON.parse(inbox) as RPCChatTypes.UnverifiedInboxUIItems
@@ -107,10 +128,7 @@ const rpcMetaRequestConversationIDKeys = (
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
 }
 
-const onGetInboxConvsUnboxed = (
-  state: Container.TypedState,
-  action: EngineGen.Chat1ChatUiChatInboxConversationPayload
-) => {
+const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
   // TODO not reactive
   const {infoMap} = UsersConstants.useState.getState()
   const actions: Array<Container.TypedActions> = []
@@ -120,7 +138,7 @@ const onGetInboxConvsUnboxed = (
   let added = false
   const usernameToFullname: {[username: string]: string} = {}
   inboxUIItems.forEach(inboxUIItem => {
-    const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem)
+    const meta = Constants.inboxUIItemToConversationMeta(inboxUIItem)
     if (meta) {
       metas.push(meta)
     }
@@ -275,7 +293,8 @@ const onIncomingMessage = (
 
     const shouldAddMessage = Constants.getConvoState(conversationIDKey).containsLatestMessage ?? false
 
-    const {getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
+    const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
+    const getLastOrdinal = () => Constants.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? 0
     const message = Constants.uiMessageToMessage(
       conversationIDKey,
       cMsg,
@@ -385,7 +404,7 @@ const onIncomingMessage = (
 
 // Helper to handle incoming inbox updates that piggy back on various calls
 const chatActivityToMetasAction = (
-  state: Container.TypedState,
+  _: unknown,
   payload: {
     readonly conv?: RPCChatTypes.InboxUIItem | null
   }
@@ -394,7 +413,7 @@ const chatActivityToMetasAction = (
   if (!conv) {
     return []
   }
-  const meta = Constants.inboxUIItemToConversationMeta(state, conv)
+  const meta = Constants.inboxUIItemToConversationMeta(conv)
   const usernameToFullname = (conv.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
     if (part.fullName) {
       map[part.assertion] = part.fullName
@@ -485,10 +504,11 @@ const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => 
   return actions
 }
 
-const messagesUpdatedToActions = (state: Container.TypedState, info: RPCChatTypes.MessagesUpdated) => {
+const messagesUpdatedToActions = (_: unknown, info: RPCChatTypes.MessagesUpdated) => {
   const conversationIDKey = Types.conversationIDToKey(info.convID)
-
-  const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(state, conversationIDKey)
+  const username = ConfigConstants.useCurrentUserState.getState().username
+  const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
+  const getLastOrdinal = () => Constants.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? 0
   const messages = (info.updates ?? []).reduce<
     Array<{
       message: Types.Message
@@ -658,16 +678,13 @@ const onChatRequestInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatRequ
   Constants.getConvoState(conversationIDKey).dispatch.requestInfoReceived(msgID, requestInfo)
 }
 
-const onChatSetConvRetention = (
-  state: Container.TypedState,
-  action: EngineGen.Chat1NotifyChatChatSetConvRetentionPayload
-) => {
+const onChatSetConvRetention = (_: unknown, action: EngineGen.Chat1NotifyChatChatSetConvRetentionPayload) => {
   const {conv, convID} = action.payload.params
   if (!conv) {
     logger.warn('onChatSetConvRetention: no conv given')
     return false
   }
-  const meta = Constants.inboxUIItemToConversationMeta(state, conv)
+  const meta = Constants.inboxUIItemToConversationMeta(conv)
   if (!meta) {
     logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
     return false
@@ -704,13 +721,10 @@ const onChatSetConvSettings = (_: unknown, action: EngineGen.Chat1NotifyChatChat
   return false
 }
 
-const onChatSetTeamRetention = (
-  state: Container.TypedState,
-  action: EngineGen.Chat1NotifyChatChatSetTeamRetentionPayload
-) => {
+const onChatSetTeamRetention = (_: unknown, action: EngineGen.Chat1NotifyChatChatSetTeamRetentionPayload) => {
   const {convs} = action.payload.params
   const metas = (convs ?? []).reduce<Array<Types.ConversationMeta>>((l, c) => {
-    const meta = Constants.inboxUIItemToConversationMeta(state, c)
+    const meta = Constants.inboxUIItemToConversationMeta(c)
     if (meta) {
       l.push(meta)
     }
@@ -851,13 +865,10 @@ const onNewChatActivity = (
   return actions
 }
 
-const onChatConvUpdate = (
-  state: Container.TypedState,
-  action: EngineGen.Chat1NotifyChatChatConvUpdatePayload
-) => {
+const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvUpdatePayload) => {
   const {conv} = action.payload.params
   if (conv) {
-    const meta = Constants.inboxUIItemToConversationMeta(state, conv)
+    const meta = Constants.inboxUIItemToConversationMeta(conv)
     if (meta) {
       return [Chat2Gen.createMetasReceived({metas: [meta]})]
     }
@@ -1028,10 +1039,9 @@ const loadMoreMessages = (
         return
       }
 
-      const {username, getLastOrdinal, devicename} = Constants.getMessageStateExtras(
-        getReduxStore(),
-        conversationIDKey
-      )
+      const username = ConfigConstants.useCurrentUserState.getState().username
+      const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
+      const getLastOrdinal = () => Constants.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? 0
       const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
       let shouldClearOthers = false
       if ((forceClear || sd === 'none') && !calledClear) {
@@ -1238,7 +1248,7 @@ const messageEdit = async (
     }
     const meta = Constants.getMeta(state, conversationIDKey)
     const tlfName = meta.tlfname
-    const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+    const clientPrev = getClientPrev(conversationIDKey)
     const outboxID = Constants.generateOutboxID()
     const target = {
       messageID: message.id,
@@ -1288,7 +1298,7 @@ const messageSend = async (
 
   const meta = Constants.getMeta(state, conversationIDKey)
   const tlfName = meta.tlfname
-  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const clientPrev = getClientPrev(conversationIDKey)
 
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConvoState(conversationIDKey).explodingMode
@@ -1430,10 +1440,7 @@ const previewConversationPersonMakesAConversation = (
 }
 
 // We preview channels
-const previewConversationTeam = async (
-  state: Container.TypedState,
-  action: Chat2Gen.PreviewConversationPayload
-) => {
+const previewConversationTeam = async (_: unknown, action: Chat2Gen.PreviewConversationPayload) => {
   const {conversationIDKey, highlightMessageID, teamname, reason} = action.payload
   if (conversationIDKey) {
     if (
@@ -1467,7 +1474,7 @@ const previewConversationTeam = async (
       visibility: RPCTypes.TLFVisibility.private,
     })
     const resultMetas = (results.uiConversations || [])
-      .map(row => Constants.inboxUIItemToConversationMeta(state, row))
+      .map(row => Constants.inboxUIItemToConversationMeta(row))
       .filter(Boolean)
 
     const first = resultMetas[0]
@@ -1489,7 +1496,7 @@ const previewConversationTeam = async (
       convID: Types.keyToConversationID(first.conversationIDKey),
     })
     const actions: Array<Container.TypedActions> = []
-    const meta = Constants.inboxUIItemToConversationMeta(state, results2.conv)
+    const meta = Constants.inboxUIItemToConversationMeta(results2.conv)
     if (meta) {
       actions.push(Chat2Gen.createMetasReceived({metas: [meta]}))
     }
@@ -1622,7 +1629,7 @@ const sendAudioRecording = async (
 ) => {
   const {conversationIDKey, amps, path, duration} = action.payload
   const outboxID = Constants.generateOutboxID()
-  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const clientPrev = getClientPrev(conversationIDKey)
   const ephemeralLifetime = Constants.getConvoState(conversationIDKey).explodingMode
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
@@ -1671,7 +1678,7 @@ const attachmentsUpload = async (state: Container.TypedState, action: Chat2Gen.A
   } else {
     tlfName = meta.tlfname
   }
-  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const clientPrev = getClientPrev(conversationIDKey)
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConvoState(conversationIDKey).explodingMode
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
@@ -1802,7 +1809,7 @@ const markThreadAsRead = (
     let message: Types.Message | undefined
     const mmap = getReduxStore().chat2.messageMap.get(conversationIDKey)
     if (mmap) {
-      const ordinals = Constants.getMessageOrdinals(getReduxStore(), conversationIDKey)
+      const ordinals = Constants.getConvoState(conversationIDKey).messageOrdinals
       const ordinal =
         ordinals &&
         findLast([...ordinals], (o: Types.Ordinal) => {
@@ -2243,7 +2250,7 @@ const toggleMessageCollapse = async (
 // only one pending conversation state.
 // The fix involves being able to make multiple pending conversations
 const createConversation = async (
-  state: Container.TypedState,
+  _: unknown,
   action: Chat2Gen.CreateConversationPayload,
   listenerApi: Container.ListenerApi
 ) => {
@@ -2268,7 +2275,7 @@ const createConversation = async (
     if (!conversationIDKey) {
       logger.warn("Couldn't make a new conversation?")
     } else {
-      const meta = Constants.inboxUIItemToConversationMeta(state, uiConv)
+      const meta = Constants.inboxUIItemToConversationMeta(uiConv)
       if (meta) {
         listenerApi.dispatch(Chat2Gen.createMetasReceived({metas: [meta]}))
       }
@@ -2344,7 +2351,7 @@ const messageReplyPrivately = async (
     logger.warn("messageReplyPrivately: couldn't make a new conversation?")
     return
   }
-  const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv)
+  const meta = Constants.inboxUIItemToConversationMeta(result.uiConv)
   if (!meta) {
     logger.warn('messageReplyPrivately: unable to make meta')
     return
@@ -2383,7 +2390,7 @@ const toggleMessageReaction = async (
     return
   }
   const messageID = id
-  const clientPrev = Constants.getClientPrev(state, conversationIDKey)
+  const clientPrev = getClientPrev(conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
   const outboxID = Constants.generateOutboxID()
   logger.info(`toggleMessageReaction: posting reaction`)
@@ -3019,10 +3026,10 @@ const initChat = () => {
       // non-visible (edit, delete, reaction...) message so we scan the
       // ordinals for the appropriate value.
       const messageMap = state.chat2.messageMap.get(conversationIDKey)
-      const ordinals = state.chat2.messageOrdinals.get(conversationIDKey) ?? []
+      const ordinals = Constants.getConvoState(conversationIDKey).messageOrdinals
       const ord =
         messageMap &&
-        ordinals.find(o => {
+        ordinals?.find(o => {
           const message = messageMap.get(o)
           return !!(message && message.id >= readMsgID + 1)
         })

@@ -104,9 +104,9 @@ const hasSuccessfulInlinePayments = (
 
 const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
   const getReactionsPopupPosition = (
+    ordinals: Array<Types.Ordinal>,
     hasReactions: boolean,
-    message: Types.Message,
-    state: Container.TypedState
+    message: Types.Message
   ) => {
     if (Container.isMobile) return 'none' as const
     if (hasReactions) {
@@ -115,7 +115,6 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const validMessage = message && Constants.isMessageWithReactions(message)
     if (!validMessage) return 'none' as const
 
-    const ordinals = Constants.getMessageOrdinals(state, message.conversationIDKey)
     return ordinals[ordinals.length - 1] === ordinal ? ('last' as const) : ('middle' as const)
   }
 
@@ -150,6 +149,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const paymentStatusMap = Constants.useState(s => s.paymentStatusMap)
   const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
+  const ordinals = Constants.useContext(s => s.messageOrdinals)
   const isEditing = Constants.useContext(s => s.editing === ordinal)
   const d = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
@@ -168,7 +168,7 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
     const hasReactions = (m.reactions?.size ?? 0) > 0
     // hide if the bot is writing to itself
     const botname = botUsername === author ? '' : botUsername ?? ''
-    const reactionsPopupPosition = getReactionsPopupPosition(hasReactions, m, state)
+    const reactionsPopupPosition = getReactionsPopupPosition(ordinals ?? [], hasReactions, m)
     const ecrType = getEcrType(m, you)
     return {
       botname,
