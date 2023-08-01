@@ -10,7 +10,6 @@ import * as Styles from '../styles'
 import * as Container from '../util/container'
 import type * as Types from '../constants/types/chat2'
 import ChatInboxHeader from './inbox/header/container'
-import shallowEqual from 'shallowequal'
 
 type Props = {
   conversationIDKey?: Types.ConversationIDKey
@@ -28,27 +27,13 @@ const Header2 = (props: Props) => {
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const participantInfo = Constants.useContext(s => s.participants)
-  const data = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
-    // TODO not reactive
-    const canEditDesc = TeamConstants.getCanPerform(
-      TeamConstants.useState.getState(),
-      teamname
-    ).editChannelDescription
-    return {
-      canEditDesc,
-      channelname,
-      descriptionDecorated,
-      isMuted,
-      participantInfo,
-      teamType,
-      teamname,
-    }
-  }, shallowEqual)
-
-  const {canEditDesc, channelname, descriptionDecorated, isMuted} = data
-  const {teamType, teamname} = data
+  const meta = Constants.useContext(s => s.meta)
+  const {channelname, descriptionDecorated, isMuted, teamType, teamname} = meta
+  // TODO not reactive
+  const canEditDesc = TeamConstants.getCanPerform(
+    TeamConstants.useState.getState(),
+    teamname
+  ).editChannelDescription
   const otherParticipants = Constants.getRowParticipants(participantInfo, username)
   const first: string = teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0]! : ''
   const otherInfo = UsersConstants.useState(s => s.infoMap.get(first))

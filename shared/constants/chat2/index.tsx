@@ -20,7 +20,6 @@ import {
   isValidConversationIDKey,
 } from '../types/chat2/common'
 import type * as TeamBuildingTypes from '../types/team-building'
-import type {TypedState} from '../reducer'
 import * as Z from '../../util/zustand'
 import {getConvoState, stores} from './convostate'
 import {explodingModeGregorKeyPrefix} from './common'
@@ -614,7 +613,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
 
           const missingMetas = results.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
-            if (!getReduxStore().chat2.metaMap.get(r.conversationIDKey)) {
+            if (getConvoState(r.conversationIDKey).meta.conversationIDKey !== r.conversationIDKey) {
               arr.push(r.conversationIDKey)
             }
             return arr

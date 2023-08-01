@@ -1,6 +1,5 @@
 import * as React from 'react'
 import type * as ChatTypes from '../../../../constants/types/chat2'
-import * as Container from '../../../../util/container'
 import * as TeamConstants from '../../../../constants/teams'
 import * as Constants from '../../../../constants/chat2'
 import RetentionNotice from '.'
@@ -10,10 +9,7 @@ type OwnProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
 const RetentionNoticeContainer = React.memo(function RetentionNoticeContainer(p: OwnProps) {
   const {conversationIDKey} = p
-
-  const meta = Container.useSelector(state => {
-    return Constants.getMeta(state, conversationIDKey)
-  })
+  const meta = Constants.useContext(s => s.meta)
   const {teamType, retentionPolicy, teamRetentionPolicy} = meta
   const canChange = TeamConstants.useState(s => {
     return meta.teamType !== 'adhoc'

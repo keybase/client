@@ -921,7 +921,6 @@ const loadMoreMessages = (
     | Chat2Gen.TabSelectedPayload
 ) => {
   const f = async () => {
-    const getReduxStore = Z.getReduxStore()
     const reduxDispatch = Z.getReduxDispatch()
     // Get the conversationIDKey
     let key: Types.ConversationIDKey | undefined
@@ -1019,7 +1018,7 @@ const loadMoreMessages = (
     const conversationID = Types.keyToConversationID(conversationIDKey)
     let numberOfMessagesToLoad: number
 
-    const meta = Constants.getMeta(getReduxStore(), conversationIDKey)
+    const meta = Constants.getConvoState(conversationIDKey).meta
 
     if (meta.membershipType === 'youAreReset' || meta.rekeyers.size > 0) {
       logger.info('bail: we are reset')
@@ -1151,9 +1150,9 @@ const loadMoreMessages = (
 }
 
 // Show a desktop notification
-const desktopNotify = async (state: Container.TypedState, action: Chat2Gen.DesktopNotificationPayload) => {
+const desktopNotify = async (_: unknown, action: Chat2Gen.DesktopNotificationPayload) => {
   const {conversationIDKey, author, body} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
+  const meta = Constants.getConvoState(conversationIDKey).meta
 
   if (
     Constants.isUserActivelyLookingAtThisThread(conversationIDKey) ||
@@ -1191,7 +1190,7 @@ const desktopNotify = async (state: Container.TypedState, action: Chat2Gen.Deskt
 // Delete a message. We cancel pending messages
 const messageDelete = async (state: Container.TypedState, action: Chat2Gen.MessageDeletePayload) => {
   const {conversationIDKey, ordinal} = action.payload
-  const {metaMap, messageMap} = state.chat2
+  const {messageMap} = state.chat2
   const map = messageMap.get(conversationIDKey)
   const message = map?.get(ordinal)
   if (!message) {
@@ -1200,8 +1199,8 @@ const messageDelete = async (state: Container.TypedState, action: Chat2Gen.Messa
     return false
   }
 
-  const meta = metaMap.get(conversationIDKey)
-  if (!meta) {
+  const meta = Constants.getConvoState(conversationIDKey).meta
+  if (meta.conversationIDKey !== conversationIDKey) {
     logger.warn('Deleting message w/ no meta')
     logger.debug('Deleting message w/ no meta', message)
     return false
@@ -1256,7 +1255,7 @@ const messageEdit = async (
       Constants.getConvoState(conversationIDKey).dispatch.setEditing(false)
       return
     }
-    const meta = Constants.getMeta(state, conversationIDKey)
+    const meta = Constants.getConvoState(conversationIDKey).meta
     const tlfName = meta.tlfname
     const clientPrev = getClientPrev(conversationIDKey)
     const outboxID = Constants.generateOutboxID()
@@ -1300,13 +1299,13 @@ const onReplyJump = (_: unknown, action: Chat2Gen.ReplyJumpPayload) =>
   })
 
 const messageSend = async (
-  state: Container.TypedState,
+  _: unknown,
   action: Chat2Gen.MessageSendPayload,
   listenerApi: Container.ListenerApi
 ) => {
   const {conversationIDKey, text, replyTo} = action.payload
 
-  const meta = Constants.getMeta(state, conversationIDKey)
+  const meta = Constants.getConvoState(conversationIDKey).meta
   const tlfName = meta.tlfname
   const clientPrev = getClientPrev(conversationIDKey)
 
@@ -1537,9 +1536,10 @@ const previewConversationTeam = async (_: unknown, action: Chat2Gen.PreviewConve
   }
 }
 
-const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayload) => {
-  const meta = Constants.getMeta(state, action.payload.conversationIDKey)
-  const participantInfo = Constants.getConvoState(action.payload.conversationIDKey).participants
+const openFolder = (_: unknown, action: Chat2Gen.OpenFolderPayload) => {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getConvoState(conversationIDKey).meta
+  const participantInfo = Constants.getConvoState(conversationIDKey).participants
   const path = FsTypes.stringToPath(
     meta.teamType !== 'adhoc'
       ? ConfigConstants.teamFolder(meta.teamname)
@@ -1633,16 +1633,13 @@ const attachmentUploadCanceled = async (_: unknown, action: Chat2Gen.AttachmentU
   }
 }
 
-const sendAudioRecording = async (
-  state: Container.TypedState,
-  action: Chat2Gen.SendAudioRecordingPayload
-) => {
+const sendAudioRecording = async (_: unknown, action: Chat2Gen.SendAudioRecordingPayload) => {
   const {conversationIDKey, amps, path, duration} = action.payload
   const outboxID = Constants.generateOutboxID()
   const clientPrev = getClientPrev(conversationIDKey)
   const ephemeralLifetime = Constants.getConvoState(conversationIDKey).explodingMode
-  const meta = state.chat2.metaMap.get(conversationIDKey)
-  if (!meta) {
+  const meta = Constants.getConvoState(conversationIDKey).meta
+  if (meta.conversationIDKey !== conversationIDKey) {
     logger.warn('sendAudioRecording: no meta for send')
     return
   }
@@ -1676,11 +1673,11 @@ const sendAudioRecording = async (
 }
 
 // Upload an attachment
-const attachmentsUpload = async (state: Container.TypedState, action: Chat2Gen.AttachmentsUploadPayload) => {
+const attachmentsUpload = async (_: unknown, action: Chat2Gen.AttachmentsUploadPayload) => {
   const {conversationIDKey, paths, titles} = action.payload
   let tlfName = action.payload.tlfName
-  const meta = state.chat2.metaMap.get(conversationIDKey)
-  if (!meta) {
+  const meta = Constants.getConvoState(conversationIDKey).meta
+  if (meta.conversationIDKey !== conversationIDKey) {
     if (!tlfName) {
       logger.warn('attachmentsUpload: missing meta for attachment upload', conversationIDKey)
       return
@@ -1753,9 +1750,9 @@ const sendTyping = async (_: unknown, action: Chat2Gen.SendTypingPayload) => {
 }
 
 // Implicit teams w/ reset users we can invite them back in or chat w/o them
-const resetChatWithoutThem = (state: Container.TypedState, action: Chat2Gen.ResetChatWithoutThemPayload) => {
+const resetChatWithoutThem = (_: unknown, action: Chat2Gen.ResetChatWithoutThemPayload) => {
   const {conversationIDKey} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
+  const meta = Constants.getConvoState(conversationIDKey).meta
   const participantInfo = Constants.getConvoState(conversationIDKey).participants
   // remove all bad people
   const goodParticipants = new Set(participantInfo.all)
@@ -1795,7 +1792,7 @@ const markThreadAsRead = (
       return
     }
 
-    const meta = getReduxStore().chat2.metaMap.get(conversationIDKey)
+    const meta = Constants.getConvoState(conversationIDKey).meta
 
     if (action?.type === Chat2Gen.markInitiallyLoadedThreadAsRead) {
       if (action?.payload.conversationIDKey !== conversationIDKey) {
@@ -1860,12 +1857,9 @@ const markTeamAsRead = async (_: unknown, action: Chat2Gen.MarkTeamAsReadPayload
 }
 
 // Delete a message and any older
-const deleteMessageHistory = async (
-  state: Container.TypedState,
-  action: Chat2Gen.MessageDeleteHistoryPayload
-) => {
+const deleteMessageHistory = async (_: unknown, action: Chat2Gen.MessageDeleteHistoryPayload) => {
   const {conversationIDKey} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
+  const meta = Constants.getConvoState(conversationIDKey).meta
 
   if (!meta.tlfname) {
     logger.warn('Deleting message history for non-existent TLF:')
@@ -1974,12 +1968,12 @@ const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
 }
 
 const ensureSelectedTeamLoaded = (
-  state: Container.TypedState,
+  _: unknown,
   action: Chat2Gen.SelectedConversationPayload | Chat2Gen.MetasReceivedPayload
 ) => {
   const selectedConversation = Constants.getSelectedConversation()
-  const meta = state.chat2.metaMap.get(selectedConversation)
-  return meta
+  const meta = Constants.getConvoState(selectedConversation).meta
+  return meta.conversationIDKey === selectedConversation
     ? action.type === Chat2Gen.selectedConversation ||
       !TeamsConstants.useState.getState().teamIDToMembers.get(meta.teamID)
       ? maybeLoadTeamFromMeta(meta)
@@ -1987,12 +1981,11 @@ const ensureSelectedTeamLoaded = (
     : false
 }
 
-const ensureSelectedMeta = (state: Container.TypedState, action: Chat2Gen.SelectedConversationPayload) => {
+const ensureSelectedMeta = (_: unknown, action: Chat2Gen.SelectedConversationPayload) => {
   const {conversationIDKey} = action.payload
-  const {metaMap} = state.chat2
-  const meta = metaMap.get(conversationIDKey)
+  const meta = Constants.getConvoState(conversationIDKey).meta
   const participantInfo = Constants.getConvoState(conversationIDKey).participants
-  return !meta || participantInfo.all.length === 0
+  return meta.conversationIDKey !== conversationIDKey || participantInfo.all.length === 0
     ? Chat2Gen.createMetaRequestTrusted({
         conversationIDKeys: [conversationIDKey],
         force: true,
@@ -2002,14 +1995,13 @@ const ensureSelectedMeta = (state: Container.TypedState, action: Chat2Gen.Select
     : false
 }
 
-const ensureWidgetMetas = (state: Container.TypedState) => {
+const ensureWidgetMetas = () => {
   const {inboxLayout} = Constants.useState.getState()
-  const {metaMap} = state.chat2
   if (!inboxLayout?.widgetList) {
     return false
   }
   const missing = inboxLayout.widgetList.reduce<Array<Types.ConversationIDKey>>((l, v) => {
-    if (!metaMap.get(v.convID)) {
+    if (Constants.getConvoState(v.convID).meta.conversationIDKey !== v.convID) {
       l.push(v.convID)
     }
     return l
@@ -2401,7 +2393,7 @@ const toggleMessageReaction = async (
   }
   const messageID = id
   const clientPrev = getClientPrev(conversationIDKey)
-  const meta = Constants.getMeta(state, conversationIDKey)
+  const meta = Constants.getConvoState(conversationIDKey).meta
   const outboxID = Constants.generateOutboxID()
   logger.info(`toggleMessageReaction: posting reaction`)
   try {
@@ -2431,10 +2423,10 @@ const setMinWriterRole = async (_: unknown, action: Chat2Gen.SetMinWriterRolePay
   })
 }
 
-const unfurlRemove = async (state: Container.TypedState, action: Chat2Gen.UnfurlRemovePayload) => {
+const unfurlRemove = async (_: unknown, action: Chat2Gen.UnfurlRemovePayload) => {
   const {conversationIDKey, messageID} = action.payload
-  const meta = state.chat2.metaMap.get(conversationIDKey)
-  if (!meta) {
+  const meta = Constants.getConvoState(conversationIDKey).meta
+  if (meta.conversationIDKey !== conversationIDKey) {
     logger.debug('unfurl remove no meta found, aborting!')
     return
   }
@@ -2467,9 +2459,9 @@ const unfurlResolvePrompt = async (_: unknown, action: Chat2Gen.UnfurlResolvePro
   })
 }
 
-const unsentTextChanged = async (state: Container.TypedState, action: Chat2Gen.UnsentTextChangedPayload) => {
+const unsentTextChanged = async (_: unknown, action: Chat2Gen.UnsentTextChangedPayload) => {
   const {conversationIDKey, text} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
+  const meta = Constants.getConvoState(conversationIDKey).meta
   await RPCChatTypes.localUpdateUnsentTextRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
     text: text.stringValue(),
@@ -2851,9 +2843,9 @@ const initChat = () => {
     Constants.useState.getState().dispatch.updatedGregor(s.gregorPushState)
   })
 
-  Container.listenAction(Chat2Gen.channelSuggestionsTriggered, (state, action) => {
+  Container.listenAction(Chat2Gen.channelSuggestionsTriggered, (_, action) => {
     const {conversationIDKey} = action.payload
-    const meta = Constants.getMeta(state, conversationIDKey)
+    const meta = Constants.getConvoState(conversationIDKey).meta
     // If this is an impteam, try to refresh mutual team info
     if (!meta.teamname) {
       Constants.getConvoState(conversationIDKey).dispatch.refreshMutualTeamsInConv()

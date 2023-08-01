@@ -20,7 +20,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const {conversationIDKey, isPreview} = props
   const dispatch = Container.useDispatch()
   const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const {status, teamname, teamType, channelname, teamID} = meta
   const yourOperations = TeamConstants.useState(s =>
     teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined

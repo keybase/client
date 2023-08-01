@@ -10,7 +10,6 @@ import InfoPanelMenu from './menu/container'
 import type * as ChatTypes from '../../../constants/types/chat2'
 import * as InfoPanelCommon from './common'
 import AddPeople from './add-people'
-import shallowEqual from 'shallowequal'
 import {ConvoIDContext} from '../messages/ids-context'
 
 type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey}
@@ -20,18 +19,11 @@ const gearIconSize = Styles.isMobile ? 24 : 16
 const TeamHeader = (props: SmallProps) => {
   const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
-  const {
-    teamname,
-    teamID,
-    channelname,
-    descriptionDecorated: description,
-    membershipType,
-    teamType,
-  } = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
-    return {channelname, descriptionDecorated: description, membershipType, teamID, teamType, teamname}
-  }, shallowEqual)
+  const meta = Constants.useContext(s => s.meta)
+  const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
+  const participants = Constants.useContext(s => s.participants)
+  const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(participants, meta)
+
   const yourOperations = TeamConstants.useState(s =>
     teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined
   )
@@ -39,7 +31,6 @@ const TeamHeader = (props: SmallProps) => {
   const isPreview = membershipType === 'youArePreviewing'
   const isSmallTeam = !!teamname && !!channelname && teamType !== 'big'
   const onJoinChannel = () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey}))
-  const {channelHumans, teamHumanCount} = InfoPanelCommon.useHumans(conversationIDKey)
   let title = teamname
   if (channelname && !isSmallTeam) {
     title += '#' + channelname

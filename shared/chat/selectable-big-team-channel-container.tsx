@@ -1,10 +1,7 @@
 import * as Constants from '../constants/chat2'
 import SelectableBigTeamChannel from './selectable-big-team-channel'
-import type * as Types from '../constants/types/chat2'
-import * as Container from '../util/container'
 
 type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
   isSelected: boolean
   maxSearchHits?: number
   name: string
@@ -13,10 +10,10 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const {conversationIDKey, isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
+  const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const showBold = Constants.useContext(s => s.unread > 0)
   const showBadge = Constants.useContext(s => s.badge > 0)
-  const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const _meta = Constants.useContext(s => s.meta)
   let teamname = _meta.teamname
   let channelname = _meta.channelname
   if (!teamname) {

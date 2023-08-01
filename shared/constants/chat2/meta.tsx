@@ -9,7 +9,7 @@ import type {ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isPhone} from '../platform'
-import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
+import {noConversationIDKey} from '../types/chat2/common'
 import type {AllowedColors} from '../../common-adapters/text'
 import shallowEqual from 'shallowequal'
 
