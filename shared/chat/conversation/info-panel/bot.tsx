@@ -191,7 +191,7 @@ const featuredBotSpinner = 'bots: featured spinners'
 
 const BotTab = (props: Props) => {
   const {renderTabs, conversationIDKey} = props
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const {teamID, teamname, teamType, botAliases} = meta
   const yourOperations = TeamConstants.useState(s =>
     teamname ? TeamConstants.getCanPerformByID(s, teamID) : undefined

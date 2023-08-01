@@ -136,7 +136,7 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
   const {conversationIDKey, ordinal} = ownProps
   const m = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
   const message = m?.type === 'journeycard' ? m : emptyJourney
-  const conv = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const conv = Constants.useContext(s => s.meta)
   const {cannotWrite, channelname, teamname, teamID} = conv
   const welcomeMessage = {display: '', raw: '', set: false}
   const _teamID = teamID

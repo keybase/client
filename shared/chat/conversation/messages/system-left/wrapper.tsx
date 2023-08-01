@@ -16,7 +16,7 @@ const SystemLeft = React.memo(function SystemLeft(p: Props) {
   const SystemLeft = require('./container').default as typeof SystemLeftType
   return (
     <WrapperMessage {...p} {...common}>
-      <SystemLeft message={message} />
+      <SystemLeft />
     </WrapperMessage>
   )
 })

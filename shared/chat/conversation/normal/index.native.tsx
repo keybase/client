@@ -56,7 +56,7 @@ const Conversation = React.memo(function Conversation(props: Props) {
         <LoadingLine conversationIDKey={conversationIDKey} />
       </Kb.Box2>
       <InvitationToBlock conversationID={conversationIDKey} />
-      <Banner conversationIDKey={conversationIDKey} />
+      <Banner />
       <MaxInputAreaContext.Provider value={maxInputArea}>
         <InputArea
           focusInputCounter={props.focusInputCounter}

@@ -116,11 +116,11 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const loadMoreType = Constants.useContext(s => (s.moreToLoad ? 'moreToLoad' : 'noMoreToLoad'))
   const ordinals = Constants.useContext(s => s.messageOrdinals)
-  const data = Container.useSelector(state => {
+  const data = Constants.useContext(s => {
     const hasLoadedEver = ordinals !== undefined
     const ordinal = ordinals?.[0] ?? 0
 
-    const meta = Constants.getMeta(state, conversationIDKey)
+    const meta = s.meta
     const {teamType, supersedes, retentionPolicy, teamRetentionPolicy} = meta
 
     return {
@@ -193,7 +193,7 @@ const SpecialTopMessage = React.memo(function SpecialTopMessage() {
         <RetentionNotice conversationIDKey={conversationIDKey} />
       )}
       <Kb.Box style={styles.spacer} />
-      {hasOlderResetConversation && <ProfileResetNotice conversationIDKey={conversationIDKey} />}
+      {hasOlderResetConversation && <ProfileResetNotice />}
       {pendingState === 'waiting' && (
         <Kb.Box style={styles.more}>
           <Kb.Text type="BodySmall">Loading...</Kb.Text>

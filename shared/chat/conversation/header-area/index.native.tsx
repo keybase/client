@@ -1,26 +1,19 @@
-import * as Constants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
-import * as ProfileConstants from '../../../constants/profile'
-import * as RouterConstants from '../../../constants/router2'
-import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/chat2'
 import * as Kb from '../../../common-adapters'
+import * as ProfileConstants from '../../../constants/profile'
 import * as React from 'react'
+import * as RouterConstants from '../../../constants/router2'
 import * as Styles from '../../../styles'
-import shallowEqual from 'shallowequal'
-import type * as Types from '../../../constants/types/chat2'
-import {assertionToDisplay} from '../../../common-adapters/usernames'
 import * as UsersConstants from '../../../constants/users'
+import shallowEqual from 'shallowequal'
+import {assertionToDisplay} from '../../../common-adapters/usernames'
 
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
 
-type Props = {
-  conversationIDKey: Types.ConversationIDKey
-}
-
-const ShhIcon = (p: Props) => {
-  const {conversationIDKey} = p
-  const isMuted = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).isMuted)
+const ShhIcon = () => {
+  const isMuted = Constants.useContext(s => s.meta.isMuted)
   const mute = Constants.useContext(s => s.dispatch.mute)
   const unMuteConversation = React.useCallback(() => {
     mute(false)
@@ -36,10 +29,9 @@ const ShhIcon = (p: Props) => {
   ) : null
 }
 
-const ChannelHeader = (p: Props) => {
-  const {conversationIDKey} = p
-  const {channelname, smallTeam, teamname, teamID} = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
+const ChannelHeader = () => {
+  const {channelname, smallTeam, teamname, teamID} = Constants.useContext(s => {
+    const meta = s.meta
     const {channelname, teamname, teamType, teamID} = meta
     const smallTeam = teamType !== 'big'
     return {channelname, smallTeam, teamID, teamname}
@@ -64,14 +56,14 @@ const ChannelHeader = (p: Props) => {
           &nbsp;
           {teamname}
         </Kb.Text>
-        {smallTeam && <ShhIcon conversationIDKey={conversationIDKey} />}
+        {smallTeam && <ShhIcon />}
       </Kb.Box2>
       {!smallTeam && (
         <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
           <Kb.Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
             #{channelname}
           </Kb.Text>
-          <ShhIcon conversationIDKey={conversationIDKey} />
+          <ShhIcon />
         </Kb.Box2>
       )}
     </Kb.Box2>
@@ -79,13 +71,12 @@ const ChannelHeader = (p: Props) => {
 }
 
 const emptyArray = new Array<string>()
-const UsernameHeader = (p: Props) => {
-  const {conversationIDKey} = p
+const UsernameHeader = () => {
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const participantInfo = Constants.useContext(s => s.participants)
-  const {participants, theirFullname} = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
+  const {participants, theirFullname} = Constants.useContext(s => {
+    const meta = s.meta
     const participants = meta.teamname ? emptyArray : participantInfo.name
     const theirFullname =
       participants.length === 2
@@ -123,16 +114,15 @@ const UsernameHeader = (p: Props) => {
           onUsernameClicked={onShowProfile}
           skipSelf={participants.length > 1}
         />
-        <ShhIcon conversationIDKey={conversationIDKey} />
+        <ShhIcon />
       </Kb.Box2>
     </Kb.Box2>
   )
 }
 
-const PhoneOrEmailHeader = (p: Props) => {
-  const {conversationIDKey} = p
+const PhoneOrEmailHeader = () => {
   const participantInfo = Constants.useContext(s => s.participants)
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const participants = (meta.teamname ? null : participantInfo.name) || emptyArray
   const phoneOrEmail = participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
@@ -143,7 +133,7 @@ const PhoneOrEmailHeader = (p: Props) => {
         <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
           {formattedPhoneOrEmail}
         </Kb.Text>
-        <ShhIcon conversationIDKey={conversationIDKey} />
+        <ShhIcon />
       </Kb.Box2>
       {!!name && <Kb.Text type="BodyTiny">{name}</Kb.Text>}
     </Kb.Box2>

@@ -2,7 +2,6 @@ import * as Common from './common'
 import * as Constants from '../../../../constants/chat2'
 import * as UsersConstants from '../../../../constants/users'
 import * as TeamConstants from '../../../../constants/teams'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
@@ -141,11 +140,11 @@ const getTeams = (layout?: RPCChatTypes.UIInboxLayout) => {
   return bigTeams.concat(smallTeams).map(teamname => ({channelname: '', teamname}))
 }
 
-const useDataUsers = (conversationIDKey: Types.ConversationIDKey) => {
+const useDataUsers = () => {
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const participantInfo = Constants.useContext(s => s.participants)
-  return Container.useSelector(state => {
-    const {teamID, teamType} = Constants.getMeta(state, conversationIDKey)
+  return Constants.useContext(s => {
+    const {teamID, teamType} = s.meta
     // TODO not reactive
     const teamMembers = TeamConstants.useState.getState().teamIDToMembers.get(teamID)
     const usernames = teamMembers
@@ -180,9 +179,9 @@ const useDataTeams = () => {
   return {allChannels, teams}
 }
 
-const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
+const useDataSource = (filter: string) => {
   const fl = filter.toLowerCase()
-  const users = useDataUsers(conversationIDKey)
+  const users = useDataUsers()
   const {teams, allChannels} = useDataTeams()
   return filterAndJoin(users, teams, allChannels, fl)
 }
@@ -262,7 +261,7 @@ const keyExtractor = (item: ListItem) => {
 
 export const UsersList = (p: ListProps) => {
   const {filter, ...rest} = p
-  const items = useDataSource(p.conversationIDKey, filter)
+  const items = useDataSource(filter)
   return (
     <Common.List
       {...rest}

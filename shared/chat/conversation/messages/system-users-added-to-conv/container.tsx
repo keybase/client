@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigConstants from '../../../../constants/config'
 import type * as Types from '../../../../constants/types/chat2'
@@ -10,9 +9,7 @@ type OwnProps = {message: Types.MessageSystemUsersAddedToConversation}
 const UsersAddedToConversationContainer = React.memo(function UsersAddedToConversationContainer(p: OwnProps) {
   const {message} = p
   const {usernames, author, timestamp} = message
-  const channelname = Container.useSelector(
-    state => Constants.getMeta(state, message.conversationIDKey).channelname
-  )
+  const channelname = Constants.useContext(s => s.meta.channelname)
   const you = ConfigConstants.useCurrentUserState(s => s.username)
 
   const props = {

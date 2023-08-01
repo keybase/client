@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import type * as Types from '../../../../constants/types/chat2'
 import SetExplodeTime from '.'
@@ -17,15 +16,14 @@ const makeItems = (meta: Types.ConversationMeta) => {
 
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
-  conversationIDKey: Types.ConversationIDKey
   onAfterSelect?: (s: number) => void
   onHidden: () => void
   visible: boolean
 }
 
 const SetExplodePopup = React.memo(function SetExplodePopup(p: OwnProps) {
-  const {onHidden, visible, attachTo, conversationIDKey, onAfterSelect} = p
-  const _meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {onHidden, visible, attachTo, onAfterSelect} = p
+  const _meta = Constants.useContext(s => s.meta)
   const selected = Constants.useContext(s => s.getExplodingMode())
   const setExplodingMode = Constants.useContext(s => s.dispatch.setExplodingMode)
   const onSelect = React.useCallback(

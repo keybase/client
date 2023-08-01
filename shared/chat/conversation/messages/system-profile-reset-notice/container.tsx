@@ -4,11 +4,8 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import ProfileResetNotice from '.'
 import * as Container from '../../../../util/container'
 
-type OwnProps = {conversationIDKey: Types.ConversationIDKey}
-
-export default (ownProps: OwnProps) => {
-  const {conversationIDKey} = ownProps
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+export default () => {
+  const meta = Constants.useContext(s => s.meta)
   const prevConversationIDKey = meta.supersedes
   const username = meta.wasFinalizedBy || ''
 

@@ -1,8 +1,10 @@
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/chat2'
+import type * as Types from '../constants/types/chat2'
 import SelectableSmallTeam from './selectable-small-team'
 
 type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey
   filter?: string
   name: string
   numSearchHits?: number
@@ -13,12 +15,13 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const _hasBadge = Constants.useContext(s => s.badge > 0)
-  const _hasUnread = Constants.useContext(s => s.unread > 0)
-  const _meta = Constants.useContext(s => s.meta)
-  const _participantInfo = Constants.useContext(s => s.participants)
+  const {conversationIDKey} = ownProps
+  const _hasBadge = Constants.useConvoState(conversationIDKey, s => s.badge > 0)
+  const _hasUnread = Constants.useConvoState(conversationIDKey, s => s.unread > 0)
+  const _meta = Constants.useConvoState(conversationIDKey, s => s.meta)
+  const _participantInfo = Constants.useConvoState(conversationIDKey, s => s.participants)
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
-  const isMuted = Constants.useContext(s => s.muted)
+  const isMuted = Constants.useConvoState(conversationIDKey, s => s.muted)
   const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
   const styles = Constants.getRowStyles(isSelected, _hasUnread)
   const participantNeedToRekey = _meta.rekeyers.size > 0

@@ -515,7 +515,6 @@ export type State = Store & {
 // generic chat store
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
-  const getReduxStore = Z.getReduxStore()
   const dispatch: State['dispatch'] = {
     badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount) => {
       set(s => {

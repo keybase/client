@@ -1,6 +1,5 @@
 import * as RouterConstants from '../../../../constants/router2'
 import * as React from 'react'
-import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigConstants from '../../../../constants/config'
 import type * as Types from '../../../../constants/types/chat2'
@@ -14,7 +13,7 @@ type OwnProps = {
 const SystemAddedToTeamContainer = React.memo(function (p: OwnProps) {
   const {message} = p
   const {conversationIDKey, addee, adder, author, bulkAdds, role, timestamp} = message
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const {teamID, teamname, teamType} = meta
   const authorIsAdmin = TeamConstants.useState(s =>
     TeamConstants.userIsRoleInTeam(s, teamID, author, 'admin')

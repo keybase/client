@@ -6,7 +6,6 @@ import * as RouterConstants from '../../../constants/router2'
 import * as Styles from '../../../styles'
 import type * as TeamTypes from '../../../constants/types/teams'
 import type * as Types from '../../../constants/types/chat2'
-import * as Container from '../../../util/container'
 
 type Props = {
   isAdmin: boolean
@@ -77,7 +76,7 @@ type OwnProps = {
 }
 
 const AddPeople = (ownProps: OwnProps) => {
-  const meta = Container.useSelector(state => Constants.getMeta(state, ownProps.conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const teamID = meta.teamID
   const startAddMembersWizard = TeamsConstants.useState(s => s.dispatch.startAddMembersWizard)
   const _onAddPeople = (teamID: TeamTypes.TeamID) => {

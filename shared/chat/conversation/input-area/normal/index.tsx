@@ -16,7 +16,6 @@ import {infoPanelWidthTablet} from '../../info-panel/common'
 import {isLargeScreen} from '../../../../constants/platform'
 import * as Platform from '../../../../constants/platform'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
-import shallowEqual from 'shallowequal'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -34,14 +33,9 @@ const useHintText = (p: {
   cannotWrite: boolean
   minWriterRole: Types.ConversationMeta['minWriterRole']
 }) => {
-  const {minWriterRole, conversationIDKey, isExploding, isEditing, cannotWrite} = p
+  const {minWriterRole, isExploding, isEditing, cannotWrite} = p
   const username = ConfigConstants.useCurrentUserState(s => s.username)
-  const {teamType, teamname, channelname} = Container.useSelector(state => {
-    const teamType = Constants.getMeta(state, conversationIDKey).teamType
-    const teamname = Constants.getMeta(state, conversationIDKey).teamname
-    const channelname = Constants.getMeta(state, conversationIDKey).channelname
-    return {channelname, teamType, teamname}
-  }, shallowEqual)
+  const {teamType, teamname, channelname} = Constants.useContext(s => s.meta)
   const participantInfoName = Constants.useContext(s => s.participants.name)
   if (Styles.isMobile && isExploding) {
     return isLargeScreen ? `Write an exploding message` : 'Exploding message'
@@ -367,18 +361,8 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const infoPanelShowing = Constants.useState(s => s.infoPanelShowing)
   const suggestBotCommandsUpdateStatus = Constants.useContext(s => s.botCommandsUpdateStatus)
   const explodingModeSeconds = Constants.useContext(s => s.getExplodingMode())
-  const data = Container.useSelector(state => {
-    const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
-    const cannotWrite = Constants.getMeta(state, conversationIDKey).cannotWrite
-    const minWriterRole = Constants.getMeta(state, conversationIDKey).minWriterRole
-    return {
-      cannotWrite,
-      explodingModeSeconds,
-      minWriterRole,
-      showTypingStatus,
-    }
-  }, shallowEqual)
-  const {cannotWrite, minWriterRole, showTypingStatus} = data
+  const showTypingStatus = isTyping && !showGiphySearch && !showCommandMarkdown
+  const {cannotWrite, minWriterRole} = Constants.useContext(s => s.meta)
 
   Container.useDepChangeEffect(() => {
     inputRef.current?.focus()

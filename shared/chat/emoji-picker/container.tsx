@@ -117,9 +117,9 @@ const useCustomReacji = (
   return disabled ? {customEmojiGroups: undefined, waiting: false} : {customEmojiGroups, waiting}
 }
 
-const useCanManageEmoji = (conversationIDKey: Types.ConversationIDKey) => {
-  const canManageEmoji = Container.useSelector(s => {
-    const meta = Constants.getMeta(s, conversationIDKey)
+const useCanManageEmoji = () => {
+  const canManageEmoji = Constants.useContext(s => {
+    const meta = s.meta
     // TODO not reactive
     return !meta.teamname || Teams.getCanPerformByID(Teams.useState.getState(), meta.teamID).manageEmojis
   })
@@ -154,7 +154,7 @@ const WrapperMobile = (props: Props) => {
       }),
     [navigateAppend, conversationIDKey]
   )
-  const canManageEmoji = useCanManageEmoji(conversationIDKey)
+  const canManageEmoji = useCanManageEmoji()
 
   return (
     <Kb.Box2
@@ -219,7 +219,7 @@ export const EmojiPickerDesktop = (props: Props) => {
     props.onlyTeamCustomEmoji,
     props.disableCustomEmoji
   )
-  const canManageEmoji = useCanManageEmoji(conversationIDKey)
+  const canManageEmoji = useCanManageEmoji()
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const addEmoji = () => {
     props.onDidPick?.()
