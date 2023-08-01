@@ -51,7 +51,6 @@ export const getExtraChatLogsForLogSend = () => {
         trustedState: metaMap.trustedState,
         wasFinalizedBy: metaMap.wasFinalizedBy,
       },
-      pendingOutboxToOrdinal: chat.pendingOutboxToOrdinal.get(c),
     }
   }
   return {}

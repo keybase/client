@@ -62,6 +62,7 @@ type ConvoStore = {
   mutualTeams: Array<TeamsTypes.TeamID>
   orangeLine: Types.Ordinal // last message we've seen,
   participants: Types.ParticipantInfo
+  pendingOutboxToOrdinal: Map<Types.OutboxID, Types.Ordinal> // messages waiting to be sent,
   replyTo: Types.Ordinal
   threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp
   threadSearchInfo: Types.ThreadSearchInfo
@@ -99,6 +100,7 @@ const initialConvoStore: ConvoStore = {
   mutualTeams: [],
   orangeLine: 0,
   participants: noParticipantInfo,
+  pendingOutboxToOrdinal: new Map(),
   replyTo: 0,
   threadLoadStatus: RPCChatTypes.UIChatThreadStatusTyp.none,
   threadSearchInfo: makeThreadSearchInfo(),
@@ -159,6 +161,7 @@ export type ConvoState = ConvoStore & {
     setMuted: (m: boolean) => void
     setOrangeLine: (o: Types.Ordinal) => void
     setParticipants: (p: ConvoState['participants']) => void
+    setPendingOutboxToOrdinal: (p: ConvoState['pendingOutboxToOrdinal']) => void
     setReplyTo: (o: Types.Ordinal) => void
     setThreadLoadStatus: (status: RPCChatTypes.UIChatThreadStatusTyp) => void
     setThreadSearchQuery: (query: string) => void
@@ -811,6 +814,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         if (!isEqual(s.participants, p)) {
           s.participants = p
         }
+      })
+    },
+    setPendingOutboxToOrdinal: p => {
+      set(s => {
+        s.pendingOutboxToOrdinal = p
       })
     },
     setReplyTo: o => {
