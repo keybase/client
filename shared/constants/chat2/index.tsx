@@ -66,7 +66,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 export const makeState = (): Types.State => ({
   messageMap: new Map(), // messages in a thread,
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
-  pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
 })
 
 export const inboxSearchMaxTextMessages = 25

@@ -195,7 +195,6 @@ export type RenderMessageType =
 export type State = {
   messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
-  pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<_Message.OutboxID, _Message.Ordinal>> // messages waiting to be sent,
 }
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>

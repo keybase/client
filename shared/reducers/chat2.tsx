@@ -25,7 +25,7 @@ const initialState: Types.State = Constants.makeState()
 // Backend gives us messageIDs sometimes so we need to find our ordinal
 const messageIDToOrdinal = (
   messageMap: Container.Draft<Types.State['messageMap']>,
-  pendingOutboxToOrdinal: Container.Draft<Types.State['pendingOutboxToOrdinal']>,
+  pendingOutboxToOrdinal: Constants.ConvoState['pendingOutboxToOrdinal'] | undefined,
   conversationIDKey: Types.ConversationIDKey,
   messageID: Types.MessageID
 ) => {
@@ -36,9 +36,7 @@ const messageIDToOrdinal = (
     return m.ordinal
   }
   // Search through our sent messages
-  const pendingOrdinal = [
-    ...(pendingOutboxToOrdinal.get(conversationIDKey) ?? new Map<Types.OutboxID, Types.Ordinal>()).values(),
-  ].find(o => {
+  const pendingOrdinal = [...(pendingOutboxToOrdinal?.values() ?? [])].find(o => {
     m = map?.get(o)
     if (m?.id !== 0 && m?.id === messageID) {
       return true
@@ -58,9 +56,9 @@ const paymentActions: Container.ActionHandler<Actions, Types.State> = {}
 const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.attachmentUploading]: (draftState, action) => {
     const {conversationIDKey, outboxID, ratio} = action.payload
-    const {pendingOutboxToOrdinal, messageMap} = draftState
-    const convMap = pendingOutboxToOrdinal.get(conversationIDKey)
-    const ordinal = convMap && convMap.get(outboxID)
+    const {messageMap} = draftState
+    const convMap = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
+    const ordinal = convMap.get(outboxID)
     if (ordinal) {
       const map = messageMap.get(conversationIDKey)
       const m = map?.get(ordinal)
@@ -114,9 +112,10 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.messageAttachmentUploaded]: (draftState, action) => {
     const {conversationIDKey, message, placeholderID} = action.payload
     const {messageMap} = draftState
+    const pendingOutboxToOrdinal = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
     const ordinal = messageIDToOrdinal(
       draftState.messageMap,
-      draftState.pendingOutboxToOrdinal,
+      pendingOutboxToOrdinal,
       conversationIDKey,
       placeholderID
     )
@@ -131,9 +130,10 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [EngineGen.chat1NotifyChatChatAttachmentDownloadComplete]: (draftState, action) => {
     const {convID, msgID} = action.payload.params
     const conversationIDKey = Types.conversationIDToKey(convID)
+    const pendingOutboxToOrdinal = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
     const ordinal = messageIDToOrdinal(
       draftState.messageMap,
-      draftState.pendingOutboxToOrdinal,
+      pendingOutboxToOrdinal,
       conversationIDKey,
       msgID
     )
@@ -158,9 +158,10 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [EngineGen.chat1NotifyChatChatAttachmentDownloadProgress]: (draftState, action) => {
     const {convID, msgID, bytesComplete, bytesTotal} = action.payload.params
     const conversationIDKey = Types.conversationIDToKey(convID)
+    const pendingOutboxToOrdinal = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
     const ordinal = messageIDToOrdinal(
       draftState.messageMap,
-      draftState.pendingOutboxToOrdinal,
+      pendingOutboxToOrdinal,
       conversationIDKey,
       msgID
     )
@@ -238,7 +239,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       `messagesAdd: running in context: ${context.type} messages: ${messages.length} deleted: ${deletedMessages.length}`
     )
     // we want the clear applied when we call findExisting
-    const oldPendingOutboxToOrdinal = new Map(draftState.pendingOutboxToOrdinal)
+    const oldPendingOutboxToOrdinal = new Map(
+      Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
+    )
     const oldMessageMap = new Map(draftState.messageMap)
 
     // so we can keep messages if they haven't mutated
@@ -246,7 +249,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     if (shouldClearOthers) {
       logger.info(`messagesAdd: clearing existing data`)
-      oldPendingOutboxToOrdinal.delete(conversationIDKey)
+      oldPendingOutboxToOrdinal.clear()
       oldMessageMap.delete(conversationIDKey)
       Constants.getConvoState(conversationIDKey).dispatch.clearMessageTypeMap()
       Constants.getConvoState(conversationIDKey).dispatch.setMessageOrdinals(undefined)
@@ -256,12 +259,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const pendingOutboxToOrdinal = new Map(oldPendingOutboxToOrdinal)
     messages.forEach(message => {
       if (message.submitState === 'pending' && message.outboxID) {
-        const outToOrd = new Map(pendingOutboxToOrdinal.get(conversationIDKey) || [])
         logger.info(
           `messagesAdd: setting new outbox ordinal: ${message.ordinal} outboxID: ${message.outboxID}`
         )
-        outToOrd.set(message.outboxID, message.ordinal)
-        pendingOutboxToOrdinal.set(conversationIDKey, outToOrd)
+        pendingOutboxToOrdinal.set(message.outboxID, message.ordinal)
       }
     })
 
@@ -269,8 +270,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       // something we sent
       if (m.outboxID) {
         // and we know about it
-        const outMap = oldPendingOutboxToOrdinal.get(conversationIDKey)
-        const ordinal = outMap && outMap.get(m.outboxID)
+        const ordinal = oldPendingOutboxToOrdinal.get(m.outboxID)
         if (ordinal) {
           const map = oldMessageMap.get(conversationIDKey)
           return map?.get(ordinal)
@@ -431,14 +431,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     Constants.getConvoState(conversationIDKey).dispatch.setContainsLatestMessage(containsLatestMessage)
     draftState.messageMap = messageMap
-    draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
-    draftState.messageMap = messageMap
+    Constants.getConvoState(conversationIDKey).dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
   },
   [Chat2Gen.messageRetry]: (draftState, action) => {
     const {conversationIDKey, outboxID} = action.payload
-    const {pendingOutboxToOrdinal, messageMap} = draftState
-    const outToOrd = pendingOutboxToOrdinal.get(conversationIDKey)
-    const ordinal = outToOrd && outToOrd.get(outboxID)
+    const {messageMap} = draftState
+    const outToOrd = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
+    const ordinal = outToOrd?.get(outboxID)
     if (!ordinal) {
       return
     }
@@ -451,9 +450,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.messageErrored]: (draftState, action) => {
     const {conversationIDKey, errorTyp, outboxID, reason} = action.payload
-    const {pendingOutboxToOrdinal, messageMap} = draftState
-    const outToOrd = pendingOutboxToOrdinal.get(conversationIDKey)
-    const ordinal = outToOrd && outToOrd.get(outboxID)
+    const {messageMap} = draftState
+    const outToOrd = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
+    const ordinal = outToOrd?.get(outboxID)
     if (!ordinal) {
       return
     }
@@ -492,15 +491,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.updateReactions]: (draftState, action) => {
     const {conversationIDKey, updates} = action.payload
     const {messageMap} = draftState
+    const pendingOutboxToOrdinal = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
     const targetData = updates.map(u => ({
       reactions: u.reactions,
       targetMsgID: u.targetMsgID,
-      targetOrdinal: messageIDToOrdinal(
-        messageMap,
-        draftState.pendingOutboxToOrdinal,
-        conversationIDKey,
-        u.targetMsgID
-      ),
+      targetOrdinal: messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, u.targetMsgID),
     }))
 
     const map = messageMap.get(conversationIDKey)
@@ -536,11 +531,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         }, upToOrdinals)
     }
 
+    const pendingOutboxToOrdinal = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
     const allOrdinals = new Set(
       [
         ...ordinals,
         ...messageIDs.map(messageID =>
-          messageIDToOrdinal(messageMap, draftState.pendingOutboxToOrdinal, conversationIDKey, messageID)
+          messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
         ),
         ...upToOrdinals,
       ].reduce<Array<Types.Ordinal>>((arr, n) => {
@@ -610,13 +606,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey, messageID, text} = action.payload
     const {mentionsAt, mentionsChannel, mentionsChannelName} = action.payload
     const {messageMap} = draftState
+    const pendingOutboxToOrdinal = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
 
-    const ordinal = messageIDToOrdinal(
-      messageMap,
-      draftState.pendingOutboxToOrdinal,
-      conversationIDKey,
-      messageID
-    )
+    const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
     if (ordinal) {
       const m = messageMap.get(conversationIDKey)?.get(ordinal)
       if (m?.type === 'text' || m?.type === 'attachment') {
@@ -757,9 +749,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.messagesExploded]: (draftState, action) => {
     const {conversationIDKey, messageIDs, explodedBy} = action.payload
     const {messageMap} = draftState
+    const pendingOutboxToOrdinal = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
     logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
     const ordinals = messageIDs.reduce<Array<Types.Ordinal>>((arr, mid) => {
-      const ord = messageIDToOrdinal(messageMap, draftState.pendingOutboxToOrdinal, conversationIDKey, mid)
+      const ord = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, mid)
       ord && arr.push(ord)
       return arr
     }, [])
@@ -791,13 +784,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.updateMessages]: (draftState, action) => {
     const {messages, conversationIDKey} = action.payload
     const {messageMap} = draftState
+    const pendingOutboxToOrdinal = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
     messages.forEach(({messageID, message}) => {
-      const ordinal = messageIDToOrdinal(
-        messageMap,
-        draftState.pendingOutboxToOrdinal,
-        conversationIDKey,
-        messageID
-      )
+      const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
       if (!ordinal) {
         return
       }
