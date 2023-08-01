@@ -147,6 +147,7 @@ export type ConvoState = ConvoStore & {
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetState: 'default'
     resetUnsentText: () => void
+    selectedConversation: () => void
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
     setContainsLatestMessage: (c: boolean) => void
@@ -204,6 +205,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       TeamsConstants.useState.getState().dispatch.getMembers(meta.teamID)
     }
   }
+
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
@@ -537,6 +539,92 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.unsentText = undefined
       })
+    },
+    selectedConversation: () => {
+      // blank out draft so we don't flash old data when switching convs
+      set(s => {
+        s.meta.draft = ''
+      })
+
+      const f = async () => {
+        const Constants = await import('.')
+        const ConfigConstants = await import('../config')
+        const UsersConstants = await import('../users')
+        const conversationIDKey = get().id
+
+        const fetchConversationBio = () => {
+          const participantInfo = get().participants
+          const username = ConfigConstants.useCurrentUserState.getState().username
+          const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
+          if (otherParticipants.length === 1) {
+            // we're in a one-on-one convo
+            const username = otherParticipants[0] || ''
+
+            // if this is an SBS/phone/email convo or we get a garbage username, don't do anything
+            if (username === '' || username.includes('@')) {
+              return
+            }
+
+            UsersConstants.useState.getState().dispatch.getBio(username)
+          }
+        }
+
+        const updateOrangeAfterSelected = () => {
+          get().dispatch.setContainsLatestMessage(true)
+          const {readMsgID, maxVisibleMsgID} = get().meta
+          logger.info(
+            `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
+          )
+          if (maxVisibleMsgID > readMsgID) {
+            // Store the message ID that will display the orange line above it,
+            // which is the first message after the last read message. We can't
+            // just increment `readMsgID` since that msgID might be a
+            // non-visible (edit, delete, reaction...) message so we scan the
+            // ordinals for the appropriate value.
+            const messageMap = getReduxState().chat2.messageMap.get(conversationIDKey)
+            const ordinals = get().messageOrdinals
+            const ord =
+              messageMap &&
+              ordinals?.find(o => {
+                const message = messageMap.get(o)
+                return !!(message && message.id >= readMsgID + 1)
+              })
+            const message = ord ? messageMap?.get(ord) : null
+            if (message?.id) {
+              get().dispatch.setOrangeLine(message.id)
+            } else {
+              get().dispatch.setOrangeLine(0)
+            }
+          } else {
+            // If there aren't any new messages, we don't want to display an
+            // orange line so remove its entry from orangeLineMap
+            get().dispatch.setOrangeLine(0)
+          }
+        }
+
+        const ensureSelectedMeta = () => {
+          const meta = get().meta
+          const participantInfo = get().participants
+          return meta.conversationIDKey !== conversationIDKey || participantInfo.all.length === 0
+            ? Chat2Gen.createMetaRequestTrusted({
+                conversationIDKeys: [conversationIDKey],
+                force: true,
+                noWaiting: true,
+                reason: 'ensureSelectedMeta',
+              })
+            : false
+        }
+
+        get().dispatch.loadOrangeLine()
+        Constants.useState.getState().dispatch.unboxRows([get().id])
+        get().dispatch.setThreadLoadStatus(RPCChatTypes.UIChatThreadStatusTyp.none)
+        get().dispatch.setMessageCenterOrdinal()
+        updateOrangeAfterSelected()
+        ensureSelectedMeta()
+        fetchConversationBio()
+        Constants.useState.getState().dispatch.resetConversationErrored()
+      }
+      Z.ignorePromise(f())
     },
     setCommandMarkdown: md => {
       set(s => {

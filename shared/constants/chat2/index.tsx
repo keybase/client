@@ -473,6 +473,7 @@ export type State = Store & {
     setMaybeMentionInfo: (name: string, info: RPCChatTypes.UIMaybeMentionInfo) => void
     setTrustedInboxHasLoaded: () => void
     toggleInboxSearch: (enabled: boolean) => void
+    unboxRows: (ids: Array<Types.ConversationIDKey>, force?: boolean) => void
     toggleSmallTeamsExpanded: () => void
     updateCoinFlipStatus: (statuses: Array<RPCChatTypes.UICoinFlipStatus>) => void
     updateLastCoord: (coord: Types.Coordinate) => void
@@ -1073,6 +1074,46 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.smallTeamsExpanded = !s.smallTeamsExpanded
       })
+    },
+    unboxRows: (ids, force) => {
+      // We want to unbox rows that have scroll into view
+      const f = async () => {
+        const ConfigConstants = await import('../config')
+        if (!ConfigConstants.useConfigState.getState().loggedIn) {
+          return
+        }
+
+        // Get valid keys that we aren't already loading or have loaded
+        const conversationIDKeys = force
+          ? ids
+          : ids.reduce((arr: Array<string>, id) => {
+              if (id && Types.isValidConversationIDKey(id)) {
+                const trustedState = getConvoState(id).meta.trustedState
+                if (trustedState !== 'requesting' && trustedState !== 'trusted') {
+                  arr.push(id)
+                }
+              }
+              return arr
+            }, [])
+
+        if (!conversationIDKeys.length) {
+          return
+        }
+        logger.info(
+          `unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`
+        )
+        try {
+          await RPCChatTypes.localRequestInboxUnboxRpcPromise({
+            convIDs: conversationIDKeys.map(k => Types.keyToConversationID(k)),
+          })
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.info(`unboxRows: failed ${error.desc}`)
+          }
+        }
+        reduxDispatch(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
+      }
+      Z.ignorePromise(f())
     },
     updateCoinFlipStatus: statuses => {
       set(s => {

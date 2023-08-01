@@ -28,7 +28,6 @@ export const actionLogger = () => (next: TypedDispatch) => (action: TypedActions
 const transformActionForLog = (action: TypedActions) => {
   switch (action.type) {
     // full output
-    case Chat2Gen.selectedConversation: // fallthrough
     case Chat2Gen.navigateToThread: // fallthrough
     case Chat2Gen.metaNeedsUpdating: // fallthrough
     case Chat2Gen.setConversationOffline: // fallthrough

@@ -106,38 +106,6 @@ const requestMeta = async (_: unknown, _a: unknown, listenerApi: Container.Liste
   }
 }
 
-const getConversationIDKeyMetasToLoad = (conversationIDKeys: Array<Types.ConversationIDKey>) =>
-  conversationIDKeys.reduce((arr: Array<string>, id) => {
-    if (id && Constants.isValidConversationIDKey(id)) {
-      const trustedState = Constants.getConvoState(id).meta.trustedState
-      if (trustedState !== 'requesting' && trustedState !== 'trusted') {
-        arr.push(id)
-      }
-    }
-    return arr
-  }, [])
-// Get valid keys that we aren't already loading or have loaded
-const rpcMetaRequestConversationIDKeys = (
-  _: unknown,
-  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectedConversationPayload
-) => {
-  let keys: Array<Types.ConversationIDKey>
-  switch (action.type) {
-    case Chat2Gen.metaRequestTrusted:
-      keys = action.payload.conversationIDKeys
-      if (action.payload.force) {
-        return keys.filter(Constants.isValidConversationIDKey)
-      }
-      break
-    case Chat2Gen.selectedConversation:
-      keys = [action.payload.conversationIDKey].filter(Constants.isValidConversationIDKey)
-      break
-    default:
-      throw new Error('Invalid action passed to unboxRows')
-  }
-  return getConversationIDKeyMetasToLoad(keys)
-}
-
 const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
   // TODO not reactive
   const {infoMap} = UsersConstants.useState.getState()
@@ -236,39 +204,6 @@ const maybeChangeSelectedConv = () => {
     )
     return false
   }
-}
-
-// We want to unbox rows that have scroll into view
-const unboxRows = (
-  state: Container.TypedState,
-  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectedConversationPayload
-) => {
-  if (!ConfigConstants.useConfigState.getState().loggedIn) {
-    return false
-  }
-  switch (action.type) {
-    case Chat2Gen.metaRequestTrusted:
-      logger.info(`unboxRows: metaRequestTrusted: reason: ${action.payload.reason}`)
-      break
-    case Chat2Gen.selectedConversation:
-      logger.info(`unboxRows: selectedConversation`)
-      break
-  }
-  const conversationIDKeys = rpcMetaRequestConversationIDKeys(state, action)
-  if (!conversationIDKeys.length) {
-    return
-  }
-  logger.info(`unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`)
-  RPCChatTypes.localRequestInboxUnboxRpcPromise({
-    convIDs: conversationIDKeys.map(k => Types.keyToConversationID(k)),
-  })
-    .then(() => {})
-    .catch((error: unknown) => {
-      if (error instanceof RPCError) {
-        logger.info(`unboxRows: failed ${error.desc}`)
-      }
-    })
-  return Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})
 }
 
 // We get an incoming message streamed to us
@@ -1981,20 +1916,6 @@ const ensureSelectedTeamLoaded = (
     : false
 }
 
-const ensureSelectedMeta = (_: unknown, action: Chat2Gen.SelectedConversationPayload) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  const participantInfo = Constants.getConvoState(conversationIDKey).participants
-  return meta.conversationIDKey !== conversationIDKey || participantInfo.all.length === 0
-    ? Chat2Gen.createMetaRequestTrusted({
-        conversationIDKeys: [conversationIDKey],
-        force: true,
-        noWaiting: true,
-        reason: 'ensureSelectedMeta',
-      })
-    : false
-}
-
 const ensureWidgetMetas = () => {
   const {inboxLayout} = Constants.useState.getState()
   if (!inboxLayout?.widgetList) {
@@ -2087,24 +2008,6 @@ const joinConversation = async (_: unknown, action: Chat2Gen.JoinConversationPay
     {convID: Types.keyToConversationID(action.payload.conversationIDKey)},
     Constants.waitingKeyJoinConversation
   )
-}
-
-const fetchConversationBio = (_: unknown, action: Chat2Gen.SelectedConversationPayload) => {
-  const {conversationIDKey} = action.payload
-  const participantInfo = Constants.getConvoState(conversationIDKey).participants
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
-  if (otherParticipants.length === 1) {
-    // we're in a one-on-one convo
-    const username = otherParticipants[0] || ''
-
-    // if this is an SBS/phone/email convo or we get a garbage username, don't do anything
-    if (username === '' || username.includes('@')) {
-      return
-    }
-
-    UsersConstants.useState.getState().dispatch.getBio(username)
-  }
 }
 
 const leaveConversation = async (_: unknown, action: Chat2Gen.LeaveConversationPayload) => {
@@ -2716,12 +2619,6 @@ const initChat = () => {
     markThreadAsRead()
   })
 
-  // get the unread (orange) line
-  Container.listenAction(Chat2Gen.selectedConversation, (_, a) => {
-    const {conversationIDKey} = a.payload
-    Constants.getConvoState(conversationIDKey).dispatch.loadOrangeLine()
-  })
-
   Container.listenAction(Chat2Gen.messageRetry, messageRetry)
   Container.listenAction(Chat2Gen.messageSend, messageSend)
   Container.listenAction(Chat2Gen.messageSend, (_, a) => {
@@ -2922,10 +2819,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.unpinMessage, unpinMessage)
   Container.listenAction(Chat2Gen.ignorePinnedMessage, ignorePinnedMessage)
 
-  Container.listenAction(Chat2Gen.selectedConversation, ensureSelectedMeta)
-
-  Container.listenAction(Chat2Gen.selectedConversation, fetchConversationBio)
-
   Container.listenAction(Chat2Gen.sendAudioRecording, sendAudioRecording)
 
   Container.listenAction(Chat2Gen.dismissBlockButtons, dismissBlockButtons)
@@ -2995,13 +2888,10 @@ const initChat = () => {
     Constants.getConvoState(conversationIDKey).dispatch.updateAttachmentViewTransfered(message.id, path ?? '')
   })
 
-  Container.listenAction(
-    [Chat2Gen.replyJump, Chat2Gen.jumpToRecent, Chat2Gen.selectedConversation],
-    (_, a) => {
-      const {conversationIDKey} = a.payload
-      Constants.getConvoState(conversationIDKey).dispatch.setMessageCenterOrdinal()
-    }
-  )
+  Container.listenAction([Chat2Gen.replyJump, Chat2Gen.jumpToRecent], (_, a) => {
+    const {conversationIDKey} = a.payload
+    Constants.getConvoState(conversationIDKey).dispatch.setMessageCenterOrdinal()
+  })
 
   Container.listenAction(Chat2Gen.messagesAdd, (_, a) => {
     a.payload.centeredMessageIDs?.forEach(cm => {
@@ -3011,41 +2901,6 @@ const initChat = () => {
         ordinal,
       })
     })
-  })
-
-  Container.listenAction(Chat2Gen.selectedConversation, (state, a) => {
-    const {conversationIDKey} = a.payload
-    const {dispatch, messageOrdinals, meta} = Constants.getConvoState(conversationIDKey)
-    dispatch.setContainsLatestMessage(true)
-    const {readMsgID, maxVisibleMsgID} = meta
-    logger.info(
-      `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
-    )
-    if (maxVisibleMsgID > readMsgID) {
-      // Store the message ID that will display the orange line above it,
-      // which is the first message after the last read message. We can't
-      // just increment `readMsgID` since that msgID might be a
-      // non-visible (edit, delete, reaction...) message so we scan the
-      // ordinals for the appropriate value.
-      const messageMap = state.chat2.messageMap.get(conversationIDKey)
-      const ordinals = messageOrdinals
-      const ord =
-        messageMap &&
-        ordinals?.find(o => {
-          const message = messageMap.get(o)
-          return !!(message && message.id >= readMsgID + 1)
-        })
-      const message = ord ? messageMap?.get(ord) : null
-      if (message?.id) {
-        dispatch.setOrangeLine(message.id)
-      } else {
-        dispatch.setOrangeLine(0)
-      }
-    } else {
-      // If there aren't any new messages, we don't want to display an
-      // orange line so remove its entry from orangeLineMap
-      dispatch.setOrangeLine(0)
-    }
   })
 }
 

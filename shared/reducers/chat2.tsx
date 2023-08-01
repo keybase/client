@@ -220,24 +220,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.resetStore]: () => {
     return {...initialState}
   },
-  [Chat2Gen.selectedConversation]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {metaMap} = draftState
-
-    // blank out draft so we don't flash old data when switching convs
-    const meta = metaMap.get(conversationIDKey)
-    if (meta) {
-      meta.draft = ''
-    }
-    Constants.getConvoState(conversationIDKey).dispatch.setThreadLoadStatus(
-      RPCChatTypes.UIChatThreadStatusTyp.none
-    )
-    if (Constants.isValidConversationIDKey(conversationIDKey)) {
-      // If navigating away from error conversation to a valid conv - clear
-      // error msg.
-      Constants.useState.getState().dispatch.resetConversationErrored()
-    }
-  },
   [Chat2Gen.messagesAdd]: (draftState, action) => {
     const {context, conversationIDKey, shouldClearOthers} = action.payload
     // pull out deletes and handle at the end

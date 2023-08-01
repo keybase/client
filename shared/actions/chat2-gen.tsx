@@ -79,7 +79,6 @@ export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
-export const selectedConversation = 'chat2:selectedConversation'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
@@ -496,12 +495,6 @@ export const createPreviewConversation = (payload: {
     | 'transaction'
 }) => ({payload, type: previewConversation as typeof previewConversation})
 /**
- * Selected a conversation (used by nav only)
- */
-export const createSelectedConversation = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: selectedConversation as typeof selectedConversation})
-/**
  * Send a text message
  */
 export const createMessageSend = (payload: {
@@ -881,7 +874,6 @@ export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWitho
 export type ResetLetThemInPayload = ReturnType<typeof createResetLetThemIn>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
 export type SaveMinWriterRolePayload = ReturnType<typeof createSaveMinWriterRole>
-export type SelectedConversationPayload = ReturnType<typeof createSelectedConversation>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
@@ -977,7 +969,6 @@ export type Actions =
   | ResetLetThemInPayload
   | ResolveMaybeMentionPayload
   | SaveMinWriterRolePayload
-  | SelectedConversationPayload
   | SendAudioRecordingPayload
   | SendTypingPayload
   | SetConvRetentionPolicyPayload
