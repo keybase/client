@@ -57,6 +57,7 @@ type ConvoStore = {
   messageCenterOrdinal?: Types.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<Types.Ordinal, Types.RenderMessageType> // messages types to help the thread, text is never used
   messageOrdinals?: Array<Types.Ordinal> // ordered ordinals in a thread,
+  meta: Types.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
   muted: boolean
   mutualTeams: Array<TeamsTypes.TeamID>
@@ -95,6 +96,7 @@ const initialConvoStore: ConvoStore = {
   messageCenterOrdinal: undefined,
   messageOrdinals: undefined,
   messageTypeMap: new Map(),
+  meta: Meta.makeConversationMeta(),
   moreToLoad: false,
   muted: false,
   mutualTeams: [],
@@ -197,8 +199,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const closeBotModal = () => {
     RouterConstants.useState.getState().dispatch.clearModals()
-    const meta = getReduxState().chat2.metaMap.get(get().id)
-    if (meta?.teamname) {
+    const meta = get().meta
+    if (meta.teamname) {
       TeamsConstants.useState.getState().dispatch.getMembers(meta.teamID)
     }
   }
@@ -398,8 +400,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.info('Load unreadline bail: invalid conversationIDKey')
           return
         }
-        const {readMsgID} =
-          getReduxState().chat2.metaMap.get(conversationIDKey) ?? Meta.makeConversationMeta()
+        const {readMsgID} = get().meta
         try {
           const unreadlineRes = await RPCChatTypes.localGetUnreadlineRpcPromise({
             convID,
@@ -623,8 +624,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         get().dispatch.setExplodingModeLocked(false)
 
         const category = `${Common.explodingModeGregorKeyPrefix}${conversationIDKey}`
-        // TODO remove redux
-        const meta = Meta.getMeta(getReduxState(), conversationIDKey)
+        const meta = get().meta
         const convRetention = Meta.getEffectiveRetentionPolicy(meta)
         if (seconds === 0 || seconds === convRetention.seconds) {
           // dismiss the category so we don't leave cruft in the push state
@@ -685,7 +685,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
         const state = getReduxState()
-        const meta = state.chat2.metaMap.get(conversationIDKey)
+        const meta = get().meta
         const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxVisibleMsgID : 0
         let msgID = unreadLineID
 
@@ -1043,7 +1043,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     getExplodingMode: (): number => {
       const mode = get().explodingModeLock ?? get().explodingMode
-      const meta = Meta.getMeta(getReduxState(), get().id)
+      const meta = get().meta
       const convRetention = Meta.getEffectiveRetentionPolicy(meta)
       return convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
     },

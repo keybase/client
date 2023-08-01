@@ -1,6 +1,5 @@
 // A mirror of the remote menubar windows.
 import * as ConfigConstants from '../constants/config'
-import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
 import * as FSConstants from '../constants/fs'
 import * as ChatConstants from '../constants/chat2'
@@ -86,18 +85,6 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   }, shallowEqual)
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const widgetList = ChatConstants.useState(s => s.inboxLayout?.widgetList)
-  const s = Container.useSelector(state => {
-    const {chat2} = state
-    const {metaMap} = chat2
-    return {
-      metaMap,
-      navBadges,
-      widgetBadge,
-    }
-  }, shallowEqual)
-
-  const {metaMap} = s
-
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
@@ -110,21 +97,21 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const conversationsToSend = React.useMemo(
     () =>
       widgetList?.map(v => {
-        const c = metaMap.get(v.convID)
+        const c = ChatConstants.getConvoState(v.convID).meta
         const {badge, unread, participants} = ChatConstants.getConvoState(v.convID)
         return {
-          channelname: c?.channelname,
+          channelname: c.channelname,
           conversationIDKey: v.convID,
-          snippetDecorated: c?.snippetDecorated,
-          teamType: c?.teamType,
-          timestamp: c?.timestamp,
-          tlfname: c?.tlfname,
+          snippetDecorated: c.snippetDecorated,
+          teamType: c.teamType,
+          timestamp: c.timestamp,
+          tlfname: c.tlfname,
           ...(badge > 0 ? {hasBadge: true as const} : {}),
           ...(unread > 0 ? {hasUnread: true as const} : {}),
           ...(participants.name.length ? {participants: participants.name.slice(0, 3)} : {}),
         }
       }) ?? [],
-    [widgetList, metaMap]
+    [widgetList]
   )
 
   // filter some data based on visible users

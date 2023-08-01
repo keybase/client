@@ -120,11 +120,12 @@ const Channel = (props: OwnProps) => {
   const conversationIDKey = props.conversationIDKey
   const providedTab = props.selectedTab
 
-  const {bots, participants: _participants} = Container.useSelector(
-    state => ChatConstants.getBotsAndParticipants(state, conversationIDKey, true /* sort */),
+  const meta = ChatConstants.useConvoState(conversationIDKey, s => s.meta)
+  const {bots, participants: _participants} = ChatConstants.useConvoState(
+    conversationIDKey,
+    s => ChatConstants.getBotsAndParticipants(meta, s.participants, true /* sort */),
     isEqual // do a deep comparison so as to not render thrash
   )
-  const meta = Container.useSelector(state => ChatConstants.getMeta(state, conversationIDKey))
   const yourOperations = Constants.useState(s => Constants.getCanPerformByID(s, teamID))
   const isPreview = meta.membershipType === 'youArePreviewing' || meta.membershipType === 'notMember'
   const teamMembers = Constants.useState(s => s.teamIDToMembers.get(teamID) ?? emptyMapForUseSelector)

@@ -17,7 +17,6 @@ import invert from 'lodash/invert'
 import logger from '../logger'
 import openSMS from '../util/sms'
 import type {RetentionPolicy} from './types/retention-policy'
-import type {TypedState} from './reducer'
 import {RPCError, logError} from '../util/errors'
 import {isMobile, isPhone} from './platform'
 import {mapGetEnsureValue} from '../util/map'
@@ -489,8 +488,6 @@ export const getTeamRetentionPolicyByID = (state: State, teamID: Types.TeamID) =
 /**
  *  Gets the number of channels you're subscribed to on a team
  */
-export const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types.Teamname): number =>
-  [...state.chat2.metaMap.values()].reduce((count, c) => (count += c.teamname === teamname ? 1 : 0), 0)
 
 export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>({
   anyMemberShowcase: false,

@@ -1,11 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
-import shallowEqual from 'shallowequal'
 import {SnippetContext, SnippetDecorationContext} from './contexts'
 
 type Props = {
@@ -109,7 +107,6 @@ const Snippet = React.memo(function Snippet(p: {isSelected?: Boolean; style: Sty
 })
 
 const BottomLine = React.memo(function BottomLine(p: Props) {
-  const conversationIDKey = Constants.useContext(s => s.id)
   const {isSelected, backgroundColor, isInWidget, isDecryptingSnippet} = p
 
   const isTypingSnippet = Constants.useContext(s => {
@@ -120,30 +117,24 @@ const BottomLine = React.memo(function BottomLine(p: Props) {
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const hasUnread = Constants.useContext(s => s.unread > 0)
   const _draft = Constants.useContext(s => s.draft)
-  const data = Container.useSelector(state => {
-    const meta = state.chat2.metaMap.get(conversationIDKey)
-    const youAreReset = meta?.membershipType === 'youAreReset'
-    const participantNeedToRekey = (meta?.rekeyers?.size ?? 0) > 0
-    const youNeedToRekey = meta?.rekeyers?.has(you) ?? false
-    const hasResetUsers = (meta?.resetParticipants.size ?? 0) > 0
-    const draft = (!isSelected && !hasUnread && _draft) || ''
-
-    return {
-      draft,
-      hasResetUsers,
-      participantNeedToRekey,
-      youAreReset,
-      youNeedToRekey,
-    }
-  }, shallowEqual)
+  const meta = Constants.useContext(s => s.meta)
+  const youAreReset = meta.membershipType === 'youAreReset'
+  const participantNeedToRekey = (meta.rekeyers.size ?? 0) > 0
+  const youNeedToRekey = meta.rekeyers.has(you) ?? false
+  const hasResetUsers = (meta.resetParticipants.size ?? 0) > 0
+  const draft = (!isSelected && !hasUnread && _draft) || ''
 
   const props = {
-    ...data,
     backgroundColor,
+    draft,
+    hasResetUsers,
     hasUnread,
     isDecryptingSnippet,
     isSelected,
     isTypingSnippet,
+    participantNeedToRekey,
+    youAreReset,
+    youNeedToRekey,
   }
 
   return <BottomLineImpl {...props} />

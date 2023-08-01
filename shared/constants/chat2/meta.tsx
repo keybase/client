@@ -6,7 +6,6 @@ import * as ConfigConstants from '../config'
 import * as TeamConstants from '../teams'
 import * as Message from './message'
 import type {ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
-import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isPhone} from '../platform'
@@ -391,21 +390,6 @@ export const makeConversationMeta = (): Types.ConversationMeta => ({
   wasFinalizedBy: '',
 })
 
-const emptyMeta = makeConversationMeta()
-export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.metaMap.get(id) || emptyMeta
-
-const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
-
-export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) => {
-  const {botCommands} = getMeta(state, id)
-  if (botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom) {
-    return botCommands.custom.commands || blankCommands
-  } else {
-    return blankCommands
-  }
-}
-
 export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
   const backgroundColor = isSelected
     ? globalColors.blue
@@ -428,20 +412,6 @@ export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
   }
 }
 
-export const getConversationIDKeyMetasToLoad = (
-  conversationIDKeys: Array<Types.ConversationIDKey>,
-  metaMap: Map<Types.ConversationIDKey, Types.ConversationMeta>
-) =>
-  conversationIDKeys.reduce((arr: Array<string>, id) => {
-    if (id && isValidConversationIDKey(id)) {
-      const trustedState = (metaMap.get(id) || {trustedState: undefined}).trustedState
-      if (trustedState !== 'requesting' && trustedState !== 'trusted') {
-        arr.push(id)
-      }
-    }
-    return arr
-  }, [])
-
 export const getRowParticipants = (participants: Types.ParticipantInfo, username: string) =>
   participants.name
     // Filter out ourselves unless it's our 1:1 conversation
@@ -463,14 +433,6 @@ export const getConversationLabel = (
 
 export const timestampToString = (meta: Types.ConversationMeta) =>
   formatTimeForConversationList(meta.timestamp)
-
-export const getConversationRetentionPolicy = (
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey
-) => {
-  const conv = getMeta(state, conversationIDKey)
-  return conv.retentionPolicy
-}
 
 export const getTeams = (metaMap: Types.MetaMap) =>
   [...metaMap.values()].reduce<Array<string>>((l, meta) => {

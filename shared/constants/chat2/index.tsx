@@ -19,7 +19,6 @@ import {
   pendingErrorConversationIDKey,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import {getMeta} from './meta'
 import type * as TeamBuildingTypes from '../types/team-building'
 import type {TypedState} from '../reducer'
 import * as Z from '../../util/zustand'
@@ -65,7 +64,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
   messageMap: new Map(), // messages in a thread,
-  metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
 })
 
 export const inboxSearchMaxTextMessages = 25
@@ -177,19 +175,13 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: Types.Conve
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
 }
-export const isTeamConversationSelected = (state: TypedState, teamname: string) => {
-  const meta = getMeta(state, getSelectedConversation())
-  return meta.teamname === teamname
-}
 
 export const getBotsAndParticipants = (
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey,
+  meta: Types.ConversationMeta,
+  participantInfo: Types.ParticipantInfo,
   sort?: boolean
 ) => {
-  const meta = getMeta(state, conversationIDKey)
   const isAdhocTeam = meta.teamType === 'adhoc'
-  const participantInfo = getConvoState(conversationIDKey).participants
   const teamMembers = TeamConstants.useState.getState().teamIDToMembers.get(meta.teamID) ?? new Map()
   let bots: Array<string> = []
   if (isAdhocTeam) {
@@ -703,7 +695,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             }
           })
 
-          if (!getReduxStore().chat2.metaMap.get(result.conversationIDKey)) {
+          if (getConvoState(result.conversationIDKey).meta.conversationIDKey === noConversationIDKey) {
             reduxDispatch(
               Chat2Gen.createMetaRequestTrusted({
                 conversationIDKeys: [result.conversationIDKey],

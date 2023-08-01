@@ -206,6 +206,16 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   },
 }
 
+const getConversationIDKeyMetasToLoad = (conversationIDKeys: Array<Types.ConversationIDKey>) =>
+  conversationIDKeys.reduce((arr: Array<string>, id) => {
+    if (id && Constants.isValidConversationIDKey(id)) {
+      const trustedState = Constants.getConvoState(id).meta.trustedState
+      if (trustedState !== 'requesting' && trustedState !== 'trusted') {
+        arr.push(id)
+      }
+    }
+    return arr
+  }, [])
 const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.resetStore]: () => {
     return {...initialState}
@@ -689,12 +699,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [Chat2Gen.metaRequestingTrusted]: (draftState, action) => {
+    // TODO
     const {conversationIDKeys} = action.payload
-    const {metaMap} = draftState
-    const ids = Constants.getConversationIDKeyMetasToLoad(
-      conversationIDKeys,
-      metaMap as Types.State['metaMap']
-    )
+    const ids = getConversationIDKeyMetasToLoad(conversationIDKeys)
     ids.forEach(conversationIDKey => {
       const old = metaMap.get(conversationIDKey)
       if (old) {

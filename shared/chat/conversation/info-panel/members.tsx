@@ -23,8 +23,8 @@ const spinnerItem = 'spinner item'
 const MembersTab = (props: Props) => {
   const {conversationIDKey} = props
   const infoMap = UsersConstants.useState(s => s.infoMap)
-  const {channelname, teamID, teamname} = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
+  const {channelname, teamID, teamname} = Constants.useContext(s => {
+    const {meta} = s
     const {teamID, channelname, teamname} = meta
     return {channelname, teamID, teamname}
   }, shallowEqual)
@@ -34,8 +34,8 @@ const MembersTab = (props: Props) => {
   const showAuditingBanner = isGeneral && !teamMembers
   const refreshParticipants = Container.useRPC(RPCChatTypes.localRefreshParticipantsRpcPromise)
   const participantInfo = Constants.useContext(s => s.participants)
-  const participants = Container.useSelector(
-    state => Constants.getBotsAndParticipants(state, conversationIDKey).participants
+  const participants = Constants.useContext(
+    s => Constants.getBotsAndParticipants(s.meta, s.participants).participants
   )
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
   const [lastTeamName, setLastTeamName] = React.useState('')

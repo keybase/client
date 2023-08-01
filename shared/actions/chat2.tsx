@@ -65,14 +65,14 @@ const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChat
 }
 
 // Only get the untrusted conversations out
-const untrustedConversationIDKeys = (state: Container.TypedState, ids: Array<Types.ConversationIDKey>) =>
-  ids.filter(id => (state.chat2.metaMap.get(id) ?? {trustedState: 'untrusted'}).trustedState === 'untrusted')
+const untrustedConversationIDKeys = (ids: Array<Types.ConversationIDKey>) =>
+  ids.filter(id => Constants.getConvoState(id).meta.trustedState === 'untrusted')
 
 // We keep a set of conversations to unbox
 let metaQueue = new Set<Types.ConversationIDKey>()
-const queueMetaToRequest = (state: Container.TypedState, action: Chat2Gen.MetaNeedsUpdatingPayload) => {
+const queueMetaToRequest = (_: unknown, action: Chat2Gen.MetaNeedsUpdatingPayload) => {
   let added = false
-  untrustedConversationIDKeys(state, action.payload.conversationIDKeys).forEach(k => {
+  untrustedConversationIDKeys(action.payload.conversationIDKeys).forEach(k => {
     if (!metaQueue.has(k)) {
       added = true
       metaQueue.add(k)
@@ -88,13 +88,13 @@ const queueMetaToRequest = (state: Container.TypedState, action: Chat2Gen.MetaNe
 }
 
 // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
-const requestMeta = async (state: Container.TypedState, _a: unknown, listenerApi: Container.ListenerApi) => {
+const requestMeta = async (_: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
   const maxToUnboxAtATime = 10
   const ar = [...metaQueue]
   const maybeUnbox = ar.slice(0, maxToUnboxAtATime)
   metaQueue = new Set(ar.slice(maxToUnboxAtATime))
 
-  const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox)
+  const conversationIDKeys = untrustedConversationIDKeys(maybeUnbox)
   if (conversationIDKeys.length) {
     listenerApi.dispatch(Chat2Gen.createMetaRequestTrusted({conversationIDKeys, reason: 'scroll'}))
   }
@@ -106,9 +106,19 @@ const requestMeta = async (state: Container.TypedState, _a: unknown, listenerApi
   }
 }
 
+const getConversationIDKeyMetasToLoad = (conversationIDKeys: Array<Types.ConversationIDKey>) =>
+  conversationIDKeys.reduce((arr: Array<string>, id) => {
+    if (id && Constants.isValidConversationIDKey(id)) {
+      const trustedState = Constants.getConvoState(id).meta.trustedState
+      if (trustedState !== 'requesting' && trustedState !== 'trusted') {
+        arr.push(id)
+      }
+    }
+    return arr
+  }, [])
 // Get valid keys that we aren't already loading or have loaded
 const rpcMetaRequestConversationIDKeys = (
-  state: Container.TypedState,
+  _: unknown,
   action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectedConversationPayload
 ) => {
   let keys: Array<Types.ConversationIDKey>
@@ -125,7 +135,7 @@ const rpcMetaRequestConversationIDKeys = (
     default:
       throw new Error('Invalid action passed to unboxRows')
   }
-  return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
+  return getConversationIDKeyMetasToLoad(keys)
 }
 
 const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
@@ -3013,9 +3023,9 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.selectedConversation, (state, a) => {
     const {conversationIDKey} = a.payload
-    Constants.getConvoState(conversationIDKey).dispatch.setContainsLatestMessage(true)
-    const {readMsgID, maxVisibleMsgID} =
-      state.chat2.metaMap.get(conversationIDKey) ?? Constants.makeConversationMeta()
+    const {dispatch, messageOrdinals, meta} = Constants.getConvoState(conversationIDKey)
+    dispatch.setContainsLatestMessage(true)
+    const {readMsgID, maxVisibleMsgID} = meta
     logger.info(
       `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
     )
@@ -3026,7 +3036,7 @@ const initChat = () => {
       // non-visible (edit, delete, reaction...) message so we scan the
       // ordinals for the appropriate value.
       const messageMap = state.chat2.messageMap.get(conversationIDKey)
-      const ordinals = Constants.getConvoState(conversationIDKey).messageOrdinals
+      const ordinals = messageOrdinals
       const ord =
         messageMap &&
         ordinals?.find(o => {
@@ -3035,14 +3045,14 @@ const initChat = () => {
         })
       const message = ord ? messageMap?.get(ord) : null
       if (message?.id) {
-        Constants.getConvoState(conversationIDKey).dispatch.setOrangeLine(message.id)
+        dispatch.setOrangeLine(message.id)
       } else {
-        Constants.getConvoState(conversationIDKey).dispatch.setOrangeLine(0)
+        dispatch.setOrangeLine(0)
       }
     } else {
       // If there aren't any new messages, we don't want to display an
       // orange line so remove its entry from orangeLineMap
-      Constants.getConvoState(conversationIDKey).dispatch.setOrangeLine(0)
+      dispatch.setOrangeLine(0)
     }
   })
 }

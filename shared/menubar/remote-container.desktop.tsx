@@ -22,6 +22,11 @@ const RemoteContainer = () => {
     httpSrvToken,
     windowShownCountNum,
     infoMap,
+    // TODO do we need these?
+    draftMap,
+    metaMap,
+    participantMap,
+    mutedMap,
     ...rest
   } = Container.useRemoteStore<DeserializeProps>()
   useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
