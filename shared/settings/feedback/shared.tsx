@@ -24,7 +24,6 @@ export const getExtraChatLogsForLogSend = () => {
         s: (m.type === 'text' || m.type === 'attachment') && m.submitState,
         t: m.type,
       })),
-      messageOrdinals: chat.messageOrdinals.get(c),
       metaMap: {
         channelname: 'x',
         conversationIDKey: metaMap.conversationIDKey,

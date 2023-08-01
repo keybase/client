@@ -1,6 +1,5 @@
 import * as ConfigConstants from './config'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as NotifConstants from './notifications'
 import * as RPCTypes from './types/rpc-gen'
 import * as SettingsConstants from './settings'
 import * as RouterConstants from './router2'
@@ -1584,6 +1583,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     favoritesLoad: () => {
       const f = async () => {
+        const NotifConstants = await import('./notifications')
         try {
           if (!ConfigConstants.useConfigState.getState().loggedIn) {
             return
@@ -2346,6 +2346,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       }
 
       const f = async () => {
+        const NotifConstants = await import('./notifications')
         if (polling) {
           return
         }
@@ -2622,13 +2623,18 @@ export const useState = Z.createZustand<State>((set, get) => {
       // Only notify about the disk space status if it has changed.
       if (oldStatus !== diskSpaceStatus) {
         switch (diskSpaceStatus) {
-          case Types.DiskSpaceStatus.Error:
-            NotifyPopup('Sync Error', {
-              body: 'You are out of disk space. Some folders could not be synced.',
-              sound: true,
-            })
-            NotifConstants.useState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
+          case Types.DiskSpaceStatus.Error: {
+            const f = async () => {
+              NotifyPopup('Sync Error', {
+                body: 'You are out of disk space. Some folders could not be synced.',
+                sound: true,
+              })
+              const NotifConstants = await import('./notifications')
+              NotifConstants.useState.getState().dispatch.badgeApp('outOfSpace', status.outOfSyncSpace)
+            }
+            Z.ignorePromise(f())
             break
+          }
           case Types.DiskSpaceStatus.Warning:
             {
               const threshold = humanizeBytes(get().settings.spaceAvailableNotificationThreshold, 0)

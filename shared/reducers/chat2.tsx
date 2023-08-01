@@ -8,7 +8,6 @@ import * as Types from '../constants/types/chat2'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
-import shallowEqual from 'shallowequal'
 import {mapGetEnsureValue} from '../util/map'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 
@@ -239,7 +238,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       `messagesAdd: running in context: ${context.type} messages: ${messages.length} deleted: ${deletedMessages.length}`
     )
     // we want the clear applied when we call findExisting
-    const messageOrdinals = new Map(draftState.messageOrdinals)
     const oldPendingOutboxToOrdinal = new Map(draftState.pendingOutboxToOrdinal)
     const oldMessageMap = new Map(draftState.messageMap)
 
@@ -248,10 +246,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     if (shouldClearOthers) {
       logger.info(`messagesAdd: clearing existing data`)
-      messageOrdinals.delete(conversationIDKey)
       oldPendingOutboxToOrdinal.delete(conversationIDKey)
       oldMessageMap.delete(conversationIDKey)
       Constants.getConvoState(conversationIDKey).dispatch.clearMessageTypeMap()
+      Constants.getConvoState(conversationIDKey).dispatch.setMessageOrdinals(undefined)
     }
 
     // Update any pending messages
@@ -293,7 +291,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     // remove all deleted messages from ordinals that we are passed as a parameter
     const os =
-      messageOrdinals.get(conversationIDKey)?.reduce((arr, o) => {
+      Constants.getConvoState(conversationIDKey).messageOrdinals?.reduce((arr, o) => {
         if (deletedMessages.find(m => m.ordinal === o)) {
           return arr
         }
@@ -301,7 +299,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         return arr
       }, new Array<Types.Ordinal>()) ?? []
 
-    messageOrdinals.set(conversationIDKey, os)
+    Constants.getConvoState(conversationIDKey).dispatch.setMessageOrdinals(os)
 
     const removedOrdinals: Array<Types.Ordinal> = []
     const ordinals = messages.reduce<Array<Types.Ordinal>>((arr, message) => {
@@ -327,7 +325,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         const existing = findExistingSentOrPending(conversationIDKey, message)
         if (
           !existing ||
-          sortedIndexOf(messageOrdinals.get(conversationIDKey) ?? [], existing.ordinal) === -1
+          sortedIndexOf(
+            Constants.getConvoState(conversationIDKey).messageOrdinals ?? [],
+            existing.ordinal
+          ) === -1
         ) {
           arr.push(message.ordinal)
         } else {
@@ -358,17 +359,14 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     // with their resolved ids
     // need to convert to a set and back due to needing to dedupe, could look into why this is necessary
     const oss =
-      messageOrdinals.get(conversationIDKey)?.reduce((s, o) => {
+      Constants.getConvoState(conversationIDKey).messageOrdinals?.reduce((s, o) => {
         if (removedOrdinals.includes(o)) {
           return s
         }
         s.add(o)
         return s
       }, new Set(ordinals)) ?? new Set(ordinals)
-    messageOrdinals.set(
-      conversationIDKey,
-      [...oss].sort((a, b) => a - b)
-    )
+    Constants.getConvoState(conversationIDKey).dispatch.setMessageOrdinals([...oss].sort((a, b) => a - b))
 
     // clear out message map of deleted stuff
     const messageMap = new Map(oldMessageMap)
@@ -413,7 +411,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       // do nothing
     } else {
       const meta = draftState.metaMap.get(conversationIDKey)
-      const ordinals = messageOrdinals.get(conversationIDKey) ?? []
+      const ordinals = Constants.getConvoState(conversationIDKey).messageOrdinals ?? []
       let maxMsgID = 0
       const convMsgMap = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
       messageMap.set(conversationIDKey, convMsgMap)
@@ -433,12 +431,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
     Constants.getConvoState(conversationIDKey).dispatch.setContainsLatestMessage(containsLatestMessage)
     draftState.messageMap = messageMap
-    // only if different
-    if (
-      !shallowEqual(draftState.messageOrdinals.get(conversationIDKey), messageOrdinals.get(conversationIDKey))
-    ) {
-      draftState.messageOrdinals.set(conversationIDKey, messageOrdinals.get(conversationIDKey) ?? [])
-    }
     draftState.pendingOutboxToOrdinal = pendingOutboxToOrdinal
     draftState.messageMap = messageMap
   },
@@ -530,7 +522,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.messagesWereDeleted]: (draftState, action) => {
     const {deletableMessageTypes = Constants.allMessageTypes, messageIDs = [], ordinals = []} = action.payload
     const {conversationIDKey, upToMessageID = null} = action.payload
-    const {messageMap, messageOrdinals} = draftState
+    const {messageMap} = draftState
 
     const upToOrdinals: Array<Types.Ordinal> = []
     if (upToMessageID) {
@@ -578,7 +570,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       }
     })
 
-    const os = messageOrdinals.get(conversationIDKey)
+    const os = Constants.getConvoState(conversationIDKey).messageOrdinals
     if (os) {
       allOrdinals.forEach(o => {
         const idx = sortedIndexOf(os, o)
@@ -720,10 +712,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.markConversationsStale]: (draftState, action) => {
     const {updateType, conversationIDKeys} = action.payload
-    const {messageMap, messageOrdinals} = draftState
     if (updateType === RPCChatTypes.StaleUpdateType.clear) {
-      const maps = [messageMap, messageOrdinals]
-      maps.forEach(m => conversationIDKeys.forEach(convID => m.delete(convID)))
+      conversationIDKeys.forEach(convID => draftState.messageMap.delete(convID))
+      conversationIDKeys.forEach(convID => Constants.getConvoState(convID).dispatch.setMessageOrdinals())
     }
   },
   [Chat2Gen.notificationSettingsUpdated]: (draftState, action) => {
@@ -823,8 +814,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     })
   },
   [Chat2Gen.clearMessages]: draftState => {
-    const maps = [draftState.messageMap, draftState.messageOrdinals]
-    maps.forEach(m => m.clear())
+    draftState.messageMap.clear()
+    for (const [, cs] of Constants.stores) {
+      cs.getState().dispatch.setMessageOrdinals()
+    }
   },
   [Chat2Gen.clearMetas]: draftState => {
     draftState.metaMap.clear()

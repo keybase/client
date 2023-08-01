@@ -65,7 +65,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
   messageMap: new Map(), // messages in a thread,
-  messageOrdinals: new Map(), // ordered ordinals in a thread,
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
 })
@@ -549,7 +548,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       const f = async () => {
         try {
           const conv = await RPCChatTypes.localFindGeneralConvFromTeamIDRpcPromise({teamID})
-          const meta = inboxUIItemToConversationMeta(undefined, conv)
+          const meta = inboxUIItemToConversationMeta(conv)
           if (!meta) {
             logger.info(`findGeneralConvIDFromTeamID: failed to convert to meta`)
             return

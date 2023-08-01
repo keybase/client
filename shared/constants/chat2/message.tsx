@@ -8,27 +8,17 @@ import * as TeamConstants from '../teams'
 import * as Types from '../types/chat2'
 import * as WalletConstants from '../wallets'
 import * as WalletTypes from '../types/wallets'
-import * as ConfigConstants from '../config'
-import * as ConvoConstants from './convostate'
+import type * as ConvoConstants from './convostate'
 import HiddenString from '../../util/hidden-string'
 import invert from 'lodash/invert'
 import logger from '../../logger'
 import shallowEqual from 'shallowequal'
 import type * as MessageTypes from '../types/chat2/message'
 import type {ServiceId} from 'util/platforms'
-import type {TypedState} from '../reducer'
 import {assertNever} from '../../util/container'
 import {isMobile} from '../platform'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
-
-export const getMessageStateExtras = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  const getLastOrdinal = () =>
-    [...(state.chat2.messageOrdinals.get(conversationIDKey) ?? [])].pop() ?? Types.numberToOrdinal(0)
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
-  return {devicename, getLastOrdinal, username}
-}
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -1292,29 +1282,6 @@ export const makePendingAttachmentMessage = (
     timestamp: Date.now(),
     title: title,
   })
-}
-
-export const getClientPrev = (
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey
-): Types.MessageID => {
-  let clientPrev: undefined | Types.MessageID
-
-  const mm = state.chat2.messageMap.get(conversationIDKey)
-  if (mm) {
-    // find last valid messageid we know about
-    const goodOrdinal = [...(state.chat2.messageOrdinals.get(conversationIDKey) || [])].reverse().find(o => {
-      const m = mm.get(o)
-      return m && m.id
-    })
-
-    if (goodOrdinal) {
-      const message = mm.get(goodOrdinal)
-      clientPrev = message && message.id
-    }
-  }
-
-  return clientPrev || 0
 }
 
 const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/i
