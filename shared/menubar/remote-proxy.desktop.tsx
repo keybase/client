@@ -94,9 +94,31 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     [tlfUpdates, uploads]
   )
 
+  // could handle this in a different way later but here we need to subscribe to all the convoStates
+  // normally we'd have a list and these would all subscribe within the component but this proxy isn't
+  // setup that way so instead we manually subscribe to all the substores and increment when a meta
+  // changes inside
+  const [remakeChat, setRemakeChat] = React.useState(0)
+  React.useEffect(() => {
+    const unsubs = widgetList?.map(v => {
+      return ChatConstants.stores.get(v.convID)?.subscribe((s, old) => {
+        if (s.meta !== old.meta) {
+          setRemakeChat(c => c + 1)
+        }
+      })
+    })
+
+    return () => {
+      for (const unsub of unsubs ?? []) {
+        unsub?.()
+      }
+    }
+  }, [widgetList])
+
   const conversationsToSend = React.useMemo(
     () =>
       widgetList?.map(v => {
+        remakeChat // implied dependency
         const c = ChatConstants.getConvoState(v.convID).meta
         const {badge, unread, participants} = ChatConstants.getConvoState(v.convID)
         return {
@@ -111,7 +133,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
           ...(participants.name.length ? {participants: participants.name.slice(0, 3)} : {}),
         }
       }) ?? [],
-    [widgetList]
+    [widgetList, remakeChat]
   )
 
   // filter some data based on visible users

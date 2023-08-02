@@ -54,8 +54,6 @@ const RemoteContainer = () => {
   for (const [id, meta] of metaMap) {
     ChatConstants.getConvoState(id).dispatch.updateMeta(meta)
   }
-  console.log('aaaa', metaMap)
-
   return (
     <Menubar
       daemonHandshakeState={daemonHandshakeState}
