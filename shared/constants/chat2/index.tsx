@@ -12,7 +12,7 @@ import logger from '../../logger'
 import type * as TeamsTypes from '../types/teams'
 import type * as Wallet from '../types/wallets'
 import {RPCError} from '../../util/errors'
-import {inboxUIItemToConversationMeta, makeConversationMeta, updateMeta} from './meta'
+import {inboxUIItemToConversationMeta, updateMeta} from './meta'
 import {isMobile, isTablet, isPhone} from '../platform'
 import {
   noConversationIDKey,
@@ -895,7 +895,7 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     metasReceived: (metas, removals) => {
       removals?.forEach(r => {
-        getConvoState(r).dispatch.setMeta(makeConversationMeta())
+        getConvoState(r).dispatch.setMeta()
       })
       metas.forEach(m => {
         const {meta: oldMeta, dispatch} = getConvoState(m.conversationIDKey)

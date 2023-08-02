@@ -619,8 +619,9 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       m.title = text.stringValue()
     }
   },
-  [Chat2Gen.metaReceivedError]: (draftState, action) => {
+  [Chat2Gen.metaReceivedError]: (_draftState, action) => {
     const {error, username, conversationIDKey} = action.payload
+    const cs = Constants.getConvoState(conversationIDKey)
     if (error) {
       if (
         error.typ === RPCChatTypes.ConversationErrorType.otherrekeyneeded ||
@@ -647,38 +648,41 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           // public conversation, do nothing
           return
         }
-        draftState.metaMap.set(conversationIDKey, {
+        cs.dispatch.setMeta({
           ...newMeta,
           rekeyers,
           snippet: error.message,
           snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           trustedState: 'error' as const,
         })
-        Constants.getConvoState(conversationIDKey).dispatch.setParticipants({
+        cs.dispatch.setParticipants({
           all: participants,
           contactName: Constants.noParticipantInfo.contactName,
           name: participants,
         })
       } else {
-        const old = draftState.metaMap.get(conversationIDKey)
-        if (old) {
-          old.snippet = error.message
-          old.snippetDecoration = RPCChatTypes.SnippetDecoration.none
-          old.trustedState = 'error'
-        }
+        const old = cs.meta
+        cs.dispatch.setMeta({
+          ...old,
+          snippet: error.message,
+          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+          trustedState: 'error',
+        })
       }
     } else {
-      draftState.metaMap.delete(conversationIDKey)
+      cs.dispatch.setMeta()
     }
   },
-  [Chat2Gen.metaRequestingTrusted]: (draftState, action) => {
-    // TODO
+  [Chat2Gen.metaRequestingTrusted]: (_draftState, action) => {
     const {conversationIDKeys} = action.payload
     const ids = getConversationIDKeyMetasToLoad(conversationIDKeys)
     ids.forEach(conversationIDKey => {
-      const old = metaMap.get(conversationIDKey)
-      if (old) {
-        old.trustedState = 'requesting'
+      const cs = Constants.getConvoState(conversationIDKey)
+      if (cs.meta.conversationIDKey === conversationIDKey) {
+        cs.dispatch.setMeta({
+          ...cs.meta,
+          trustedState: 'requesting',
+        })
       }
     })
   },
@@ -689,39 +693,43 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       conversationIDKeys.forEach(convID => Constants.getConvoState(convID).dispatch.setMessageOrdinals())
     }
   },
-  [Chat2Gen.notificationSettingsUpdated]: (draftState, action) => {
+  [Chat2Gen.notificationSettingsUpdated]: (_draftState, action) => {
     const {conversationIDKey, settings} = action.payload
-    const {metaMap} = draftState
-    const old = metaMap.get(conversationIDKey)
-    old && metaMap.set(conversationIDKey, Constants.updateMetaWithNotificationSettings(old, settings))
+    const cs = Constants.getConvoState(conversationIDKey)
+    if (cs.meta.conversationIDKey === conversationIDKey) {
+      cs.dispatch.setMeta(Constants.updateMetaWithNotificationSettings(cs.meta, settings))
+    }
   },
-  [Chat2Gen.metaDelete]: (draftState, action) => {
+  [Chat2Gen.metaDelete]: (_draftState, action) => {
     const {conversationIDKey} = action.payload
-    draftState.metaMap.delete(conversationIDKey)
+    const cs = Constants.getConvoState(conversationIDKey)
+    cs.dispatch.setMeta()
   },
-  [Chat2Gen.setConversationOffline]: (draftState, action) => {
+  [Chat2Gen.setConversationOffline]: (_draftState, action) => {
     const {conversationIDKey, offline} = action.payload
-    const old = draftState.metaMap.get(conversationIDKey)
-    if (old) {
-      old.offline = offline
+    const cs = Constants.getConvoState(conversationIDKey)
+    if (cs.meta.conversationIDKey === conversationIDKey) {
+      cs.dispatch.setMeta({
+        ...cs.meta,
+        offline,
+      })
     }
   },
-  [Chat2Gen.updateConvRetentionPolicy]: (draftState, action) => {
+  [Chat2Gen.updateConvRetentionPolicy]: (_draftState, action) => {
     const {meta} = action.payload
-    const {metaMap} = draftState
-    const newMeta = meta
-    if (metaMap.has(meta.conversationIDKey)) {
-      // only insert if the convo is already in the inbox
-      metaMap.set(newMeta.conversationIDKey, newMeta)
+    const cs = Constants.getConvoState(meta.conversationIDKey)
+    // only insert if the convo is already in the inbox
+    if (cs.meta.conversationIDKey === meta.conversationIDKey) {
+      cs.dispatch.setMeta(meta)
     }
   },
-  [Chat2Gen.updateTeamRetentionPolicy]: (draftState, action) => {
+  [Chat2Gen.updateTeamRetentionPolicy]: (_draftState, action) => {
     const {metas} = action.payload
-    const {metaMap} = draftState
     metas.forEach(meta => {
-      if (meta && metaMap.has(meta.conversationIDKey)) {
-        // only insert if the convo is already in the inbox
-        metaMap.set(meta.conversationIDKey, meta)
+      const cs = Constants.getConvoState(meta.conversationIDKey)
+      // only insert if the convo is already in the inbox
+      if (cs.meta.conversationIDKey === meta.conversationIDKey) {
+        cs.dispatch.setMeta(meta)
       }
     })
     TeamsConstants.useState.getState().dispatch.updateTeamRetentionPolicy(metas)
@@ -753,12 +761,16 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         m.flipGameID = ''
       })
   },
-  [Chat2Gen.saveMinWriterRole]: (draftState, action) => {
+  [Chat2Gen.saveMinWriterRole]: (_draftState, action) => {
     const {cannotWrite, conversationIDKey, role} = action.payload
-    const old = draftState.metaMap.get(conversationIDKey)
-    if (old) {
-      old.cannotWrite = cannotWrite
-      old.minWriterRole = role
+    const cs = Constants.getConvoState(conversationIDKey)
+    // only insert if the convo is already in the inbox
+    if (cs.meta.conversationIDKey === conversationIDKey) {
+      cs.dispatch.setMeta({
+        ...cs.meta,
+        cannotWrite,
+        minWriterRole: role,
+      })
     }
   },
   [Chat2Gen.updateMessages]: (draftState, action) => {
@@ -788,8 +800,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       cs.getState().dispatch.setMessageOrdinals()
     }
   },
-  [Chat2Gen.clearMetas]: draftState => {
-    draftState.metaMap.clear()
+  [Chat2Gen.clearMetas]: () => {
+    for (const [, cs] of Constants.stores) {
+      cs.getState().dispatch.setMeta()
+    }
   },
   ...paymentActions,
   ...attachmentActions,

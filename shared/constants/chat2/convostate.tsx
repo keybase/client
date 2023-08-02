@@ -160,7 +160,7 @@ export type ConvoState = ConvoStore & {
     setMessageCenterOrdinal: (m?: Types.CenterOrdinal) => void
     setMessageTypeMap: (o: Types.Ordinal, t?: Types.RenderMessageType) => void
     setMessageOrdinals: (os?: Array<Types.Ordinal>) => void
-    setMeta: (m: Types.ConversationMeta) => void
+    setMeta: (m?: Types.ConversationMeta) => void
     setMoreToLoad: (m: boolean) => void
     setMuted: (m: boolean) => void
     setOrangeLine: (o: Types.Ordinal) => void
@@ -883,7 +883,8 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
-    setMeta: m => {
+    setMeta: _m => {
+      const m = _m ?? Meta.makeConversationMeta()
       set(s => {
         s.meta = m
       })
