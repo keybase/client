@@ -174,7 +174,7 @@ type NotificationSettingsParsed = {
   notificationsGlobalIgnoreMentions: boolean
   notificationsMobile: Types.NotificationsType
 }
-const parseNotificationSettings = (
+export const parseNotificationSettings = (
   notifications?: RPCChatTypes.ConversationNotificationInfo
 ): NotificationSettingsParsed => {
   let notificationsDesktop = 'never' as Types.NotificationsType
@@ -206,20 +206,6 @@ const parseNotificationSettings = (
   }
 
   return {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile}
-}
-
-export const updateMetaWithNotificationSettings = (
-  old: Types.ConversationMeta,
-  notifications?: RPCChatTypes.ConversationNotificationInfo
-) => {
-  const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
-    parseNotificationSettings(notifications)
-  return {
-    ...old,
-    notificationsDesktop: notificationsDesktop,
-    notificationsGlobalIgnoreMentions: notificationsGlobalIgnoreMentions,
-    notificationsMobile: notificationsMobile,
-  } as Types.ConversationMeta
 }
 
 const UIItemToRetentionPolicies = (

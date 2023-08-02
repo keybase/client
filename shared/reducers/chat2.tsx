@@ -619,15 +619,20 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {conversationIDKey, settings} = action.payload
     const cs = Constants.getConvoState(conversationIDKey)
     if (cs.meta.conversationIDKey === conversationIDKey) {
-      cs.dispatch.setMeta(Constants.updateMetaWithNotificationSettings(cs.meta, settings))
+      const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
+        Constants.parseNotificationSettings(settings)
+      cs.dispatch.updateMeta({
+        notificationsDesktop: notificationsDesktop,
+        notificationsGlobalIgnoreMentions: notificationsGlobalIgnoreMentions,
+        notificationsMobile: notificationsMobile,
+      })
     }
   },
   [Chat2Gen.setConversationOffline]: (_draftState, action) => {
     const {conversationIDKey, offline} = action.payload
     const cs = Constants.getConvoState(conversationIDKey)
     if (cs.meta.conversationIDKey === conversationIDKey) {
-      cs.dispatch.setMeta({
-        ...cs.meta,
+      cs.dispatch.updateMeta({
         offline,
       })
     }
