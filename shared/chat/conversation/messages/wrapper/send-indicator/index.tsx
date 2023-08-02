@@ -1,6 +1,5 @@
-import {ConvoIDContext, OrdinalContext} from '../../ids-context'
+import {OrdinalContext} from '../../ids-context'
 import * as Constants from '../../../../../constants/chat2'
-import * as Container from '../../../../../util/container'
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
@@ -41,24 +40,23 @@ const statusToIconDarkExploding = {
 const shownEncryptingSet = new Set()
 
 const SendIndicatorContainer = React.memo(function SendIndicatorContainer() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const isExploding = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const isExploding = Constants.useContext(s => {
+    const message = s.messageMap.get(ordinal)
     return !!message?.exploding
   })
-  const sent = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const sent = Constants.useContext(s => {
+    const message = s.messageMap.get(ordinal)
     return (
       (message?.type !== 'text' && message?.type !== 'attachment') || !message.submitState || message.exploded
     )
   })
-  const failed = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const failed = Constants.useContext(s => {
+    const message = s.messageMap.get(ordinal)
     return (message?.type === 'text' || message?.type === 'attachment') && message.submitState === 'failed'
   })
-  const id = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const id = Constants.useContext(s => {
+    const message = s.messageMap.get(ordinal)
     return message?.timestamp
   })
 
@@ -160,7 +158,7 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {right: 8},
       }),
-    } as const)
+    }) as const
 )
 
 export default SendIndicatorContainer

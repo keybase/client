@@ -6,7 +6,7 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import shallowEqual from 'shallowequal'
 import type * as Types from '../../../../constants/types/chat2'
-import {ConvoIDContext, OrdinalContext, GetIdsContext} from '../ids-context'
+import {OrdinalContext, GetIdsContext} from '../ids-context'
 import {sharedStyles} from '../shared-styles'
 
 type Props = {
@@ -77,10 +77,9 @@ export const getEditStyle = (isEditing: boolean) => {
 }
 
 export const Title = () => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const title = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const title = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m.decoratedText?.stringValue() ?? m.title ?? '' : ''
   })
 
@@ -107,10 +106,9 @@ export const Title = () => {
 }
 
 const CollapseIcon = ({isWhite}: {isWhite: boolean}) => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const isCollapsed = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const isCollapsed = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal)
     const message = m?.type === 'attachment' ? m : missingMessage
     const {isCollapsed} = message
     return isCollapsed
@@ -176,7 +174,6 @@ const useCollapseIconMobile = (_isWhite: boolean) => null
 export const useCollapseIcon = Container.isMobile ? useCollapseIconMobile : useCollapseIconDesktop
 
 export const useAttachmentRedux = () => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const dispatch = Container.useDispatch()
   const getIds = React.useContext(GetIdsContext)
@@ -187,8 +184,8 @@ export const useAttachmentRedux = () => {
 
   const editInfo = Constants.useContext(s => s.getEditInfo())
   const {fileName, isCollapsed, isEditing, showTitle, submitState, transferProgress, transferState} =
-    Container.useSelector(state => {
-      const m = Constants.getMessage(state, conversationIDKey, ordinal)
+    Constants.useContext(s => {
+      const m = s.messageMap.get(ordinal)
       const message = m?.type === 'attachment' ? m : missingMessage
       const {isCollapsed, title, fileName: fileNameRaw, transferProgress} = message
       const {deviceType, inlineVideoPlayable, transferState, submitState} = message

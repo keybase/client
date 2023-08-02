@@ -42,7 +42,6 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
       }
       return (
         <TextMessage
-          conversationIDKey={conversationIDKey}
           ordinal={ordinal}
           attachTo={attachTo}
           onHidden={onHidden}
@@ -67,7 +66,6 @@ const MessagePopup = React.memo(function MessagePopup(p: Props) {
       return (
         <TextMessage
           attachTo={attachTo}
-          conversationIDKey={conversationIDKey}
           ordinal={ordinal}
           onHidden={onHidden}
           position={position}

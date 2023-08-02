@@ -22,7 +22,7 @@ type PickerState = 'picker' | 'title'
 const TeamPicker = (props: Props) => {
   const srcConvID = props.srcConvID
   const ordinal = props.ordinal
-  const message = Container.useSelector(state => Constants.getMessage(state, srcConvID, ordinal))
+  const message = Constants.useContext(s => s.messageMap.get(ordinal))
   const [pickerState, setPickerState] = React.useState<PickerState>('picker')
   const [term, setTerm] = React.useState('')
   const dstConvIDRef = React.useRef<Buffer | undefined>()
