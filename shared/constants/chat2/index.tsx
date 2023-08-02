@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as TeamsConstants from '../teams'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as ConfigConstants from '../config'
 import * as Message from './message'
@@ -11,7 +12,7 @@ import logger from '../../logger'
 import type * as TeamsTypes from '../types/teams'
 import type * as Wallet from '../types/wallets'
 import {RPCError} from '../../util/errors'
-import {inboxUIItemToConversationMeta} from './meta'
+import {inboxUIItemToConversationMeta, makeConversationMeta, updateMeta} from './meta'
 import {isMobile, isTablet, isPhone} from '../platform'
 import {
   noConversationIDKey,
@@ -461,30 +462,6 @@ export type State = Store & {
       message: string
     ) => void
     findGeneralConvIDFromTeamID: (teamID: TeamsTypes.TeamID) => void
-    loadStaticConfig: () => void
-    loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
-    onEngineConnected: () => void
-    onEngineIncoming: (action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) => void
-    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
-    paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
-    refreshBotPublicCommands: (username: string) => void
-    resetConversationErrored: () => void
-    resetState: () => void
-    setMaybeMentionInfo: (name: string, info: RPCChatTypes.UIMaybeMentionInfo) => void
-    setTrustedInboxHasLoaded: () => void
-    toggleInboxSearch: (enabled: boolean) => void
-    unboxRows: (ids: Array<Types.ConversationIDKey>, force?: boolean) => void
-    toggleSmallTeamsExpanded: () => void
-    updateCoinFlipStatus: (statuses: Array<RPCChatTypes.UICoinFlipStatus>) => void
-    updateLastCoord: (coord: Types.Coordinate) => void
-    updateUserReacjis: (userReacjis: RPCTypes.UserReacjis) => void
-    updatedGregor: (items: ConfigConstants.Store['gregorPushState']) => void
-    showInfoPanel: (
-      show: boolean,
-      tab?: 'settings' | 'members' | 'attachments' | 'bots',
-      conversationIDKey?: Types.ConversationIDKey
-    ) => void
-    setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
     inboxRefresh: (
       reason:
         | 'bootstrap'
@@ -499,7 +476,6 @@ export type State = Store & {
         | 'widgetRefresh'
         | 'shareConfigSearch'
     ) => void
-
     inboxSearch: (query: string) => void
     inboxSearchMoveSelectedIndex: (increment: boolean) => void
     inboxSearchSelect: (
@@ -507,7 +483,35 @@ export type State = Store & {
       query?: string,
       selectedIndex?: number
     ) => void
+    loadStaticConfig: () => void
+    loadedUserEmoji: (results: RPCChatTypes.UserEmojiRes) => void
+    metasReceived: (
+      metas: Array<Types.ConversationMeta>,
+      removals?: Array<Types.ConversationIDKey> // convs to remove
+    ) => void
+    onEngineConnected: () => void
+    onEngineIncoming: (action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) => void
+    onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
+    paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
+    refreshBotPublicCommands: (username: string) => void
+    resetConversationErrored: () => void
+    resetState: () => void
+    setMaybeMentionInfo: (name: string, info: RPCChatTypes.UIMaybeMentionInfo) => void
+    setTrustedInboxHasLoaded: () => void
+    showInfoPanel: (
+      show: boolean,
+      tab?: 'settings' | 'members' | 'attachments' | 'bots',
+      conversationIDKey?: Types.ConversationIDKey
+    ) => void
+    setInboxNumSmallRows: (rows: number, ignoreWrite?: boolean) => void
+    toggleInboxSearch: (enabled: boolean) => void
+    toggleSmallTeamsExpanded: () => void
+    unboxRows: (ids: Array<Types.ConversationIDKey>, force?: boolean) => void
+    updateCoinFlipStatus: (statuses: Array<RPCChatTypes.UICoinFlipStatus>) => void
     updateInboxLayout: (layout: string) => void
+    updateLastCoord: (coord: Types.Coordinate) => void
+    updateUserReacjis: (userReacjis: RPCTypes.UserReacjis) => void
+    updatedGregor: (items: ConfigConstants.Store['gregorPushState']) => void
   }
   getBadgeMap: (badgeCountsChanged: number) => Map<string, number>
   getUnreadMap: (badgeCountsChanged: number) => Map<string, number>
@@ -543,7 +547,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             logger.info(`findGeneralConvIDFromTeamID: failed to convert to meta`)
             return
           }
-          reduxDispatch(Chat2Gen.createMetasReceived({metas: [meta]}))
+          get().dispatch.metasReceived([meta])
           set(s => {
             s.teamIDToGeneralConvID.set(teamID, Types.stringToConversationIDKey(conv.convID))
           })
@@ -888,6 +892,24 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.userEmojisForAutocomplete = newEmojis
         s.userEmojis = results.emojis.emojis ?? []
       })
+    },
+    metasReceived: (metas, removals) => {
+      removals?.forEach(r => {
+        getConvoState(r).dispatch.setMeta(makeConversationMeta())
+      })
+      metas.forEach(m => {
+        const {meta: oldMeta, dispatch} = getConvoState(m.conversationIDKey)
+        dispatch.setMeta(oldMeta.conversationIDKey === m.conversationIDKey ? updateMeta(oldMeta, m) : m)
+      })
+
+      const selectedConversation = getSelectedConversation()
+      const meta = getConvoState(selectedConversation).meta
+      if (meta.conversationIDKey === selectedConversation) {
+        const {teamID} = meta
+        if (!TeamsConstants.useState.getState().teamIDToMembers.get(teamID) && meta.teamname) {
+          TeamsConstants.useState.getState().dispatch.getMembers(teamID)
+        }
+      }
     },
     onEngineConnected: () => {
       const f = async () => {

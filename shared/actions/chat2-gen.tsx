@@ -64,7 +64,6 @@ export const metaHandleQueue = 'chat2:metaHandleQueue'
 export const metaNeedsUpdating = 'chat2:metaNeedsUpdating'
 export const metaReceivedError = 'chat2:metaReceivedError'
 export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
-export const metasReceived = 'chat2:metasReceived'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
@@ -228,14 +227,6 @@ export const createMetaReceivedError = (payload: {
   readonly error?: RPCChatTypes.InboxUIItemError
   readonly username?: string
 }) => ({payload, type: metaReceivedError as typeof metaReceivedError})
-/**
- * Got some new inbox rows
- */
-export const createMetasReceived = (payload: {
-  readonly metas: Array<Types.ConversationMeta>
-  readonly removals?: Array<Types.ConversationIDKey>
-  readonly fromInboxRefresh?: boolean
-}) => ({payload, type: metasReceived as typeof metasReceived})
 /**
  * Hide a conversation until future activity
  */
@@ -836,7 +827,6 @@ export type MetaHandleQueuePayload = ReturnType<typeof createMetaHandleQueue>
 export type MetaNeedsUpdatingPayload = ReturnType<typeof createMetaNeedsUpdating>
 export type MetaReceivedErrorPayload = ReturnType<typeof createMetaReceivedError>
 export type MetaRequestingTrustedPayload = ReturnType<typeof createMetaRequestingTrusted>
-export type MetasReceivedPayload = ReturnType<typeof createMetasReceived>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type NotificationSettingsUpdatedPayload = ReturnType<typeof createNotificationSettingsUpdated>
@@ -930,7 +920,6 @@ export type Actions =
   | MetaNeedsUpdatingPayload
   | MetaReceivedErrorPayload
   | MetaRequestingTrustedPayload
-  | MetasReceivedPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | NotificationSettingsUpdatedPayload

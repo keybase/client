@@ -61,7 +61,7 @@ const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChat
   }, [])
   Constants.useState.getState().dispatch.setTrustedInboxHasLoaded()
   // Check if some of our existing stored metas might no longer be valid
-  return Chat2Gen.createMetasReceived({fromInboxRefresh: true, metas})
+  Constants.useState.getState().dispatch.metasReceived(metas)
 }
 
 // Only get the untrusted conversations out
@@ -144,7 +144,7 @@ const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInb
       )
   }
   if (metas.length > 0) {
-    actions.push(Chat2Gen.createMetasReceived({metas}))
+    Constants.useState.getState().dispatch.metasReceived(metas)
   }
   return actions
 }
@@ -356,7 +356,7 @@ const chatActivityToMetasAction = (
 ) => {
   const conv = payload?.conv
   if (!conv) {
-    return []
+    return
   }
   const meta = Constants.inboxUIItemToConversationMeta(conv)
   const usernameToFullname = (conv.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
@@ -373,7 +373,9 @@ const chatActivityToMetasAction = (
     }))
   )
 
-  return meta ? Chat2Gen.createMetasReceived({metas: [meta]}) : false
+  if (meta) {
+    Constants.useState.getState().dispatch.metasReceived([meta])
+  }
 }
 
 // We got errors from the service
@@ -576,7 +578,7 @@ const onChatInboxSynced = (
       )
       // Update new untrusted
       if (metas.length || removals.length) {
-        actions.push(Chat2Gen.createMetasReceived({metas, removals}))
+        Constants.useState.getState().dispatch.metasReceived(metas, removals)
       }
 
       Constants.useState.getState().dispatch.unboxRows(
@@ -801,10 +803,9 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
   if (conv) {
     const meta = Constants.inboxUIItemToConversationMeta(conv)
     if (meta) {
-      return [Chat2Gen.createMetasReceived({metas: [meta]})]
+      Constants.useState.getState().dispatch.metasReceived([meta])
     }
   }
-  return []
 }
 
 type ScrollDirection = 'none' | 'back' | 'forward'
@@ -1428,7 +1429,7 @@ const previewConversationTeam = async (_: unknown, action: Chat2Gen.PreviewConve
     const actions: Array<Container.TypedActions> = []
     const meta = Constants.inboxUIItemToConversationMeta(results2.conv)
     if (meta) {
-      actions.push(Chat2Gen.createMetasReceived({metas: [meta]}))
+      Constants.useState.getState().dispatch.metasReceived([meta])
     }
     actions.push(
       Chat2Gen.createNavigateToThread({
@@ -1881,23 +1882,6 @@ const navigateToThread = (_: unknown, action: Chat2Gen.NavigateToThreadPayload) 
   }
 }
 
-const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
-  const {teamID} = meta
-  if (meta.teamname) {
-    TeamsConstants.useState.getState().dispatch.getMembers(teamID)
-  }
-}
-
-const ensureSelectedTeamLoaded = () => {
-  const selectedConversation = Constants.getSelectedConversation()
-  const meta = Constants.getConvoState(selectedConversation).meta
-  return meta.conversationIDKey === selectedConversation
-    ? !TeamsConstants.useState.getState().teamIDToMembers.get(meta.teamID)
-      ? maybeLoadTeamFromMeta(meta)
-      : false
-    : false
-}
-
 const ensureWidgetMetas = () => {
   const {inboxLayout} = Constants.useState.getState()
   if (!inboxLayout?.widgetList) {
@@ -2160,7 +2144,7 @@ const createConversation = async (
     } else {
       const meta = Constants.inboxUIItemToConversationMeta(uiConv)
       if (meta) {
-        listenerApi.dispatch(Chat2Gen.createMetasReceived({metas: [meta]}))
+        Constants.useState.getState().dispatch.metasReceived([meta])
       }
 
       const participantInfo: Types.ParticipantInfo = Constants.uiParticipantsToParticipantInfo(
@@ -2246,10 +2230,8 @@ const messageReplyPrivately = async (
   const text = new Container.HiddenString(Constants.formatTextForQuoting(message.text.stringValue()))
 
   Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(text.stringValue())
-  return [
-    Chat2Gen.createMetasReceived({metas: [meta]}),
-    Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'}),
-  ]
+  Constants.useState.getState().dispatch.metasReceived([meta])
+  return [Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'})]
 }
 
 const toggleMessageReaction = async (
@@ -2552,7 +2534,6 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxStale, () => {
     Constants.useState.getState().dispatch.inboxRefresh('inboxStale')
   })
-  Container.listenAction(Chat2Gen.metasReceived, ensureSelectedTeamLoaded)
   // We've scrolled some new inbox rows into view, queue them up
   Container.listenAction(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process
@@ -2816,15 +2797,6 @@ const initChat = () => {
     Constants.useState.getState().dispatch.loadStaticConfig()
   })
 
-  // TEMP bridging, todo move to constants
-  Container.listenAction(Chat2Gen.metasReceived, (_, a) => {
-    const {metas} = a.payload
-    metas.forEach((m: Types.ConversationMeta) => {
-      const cs = Constants.getConvoState(m.conversationIDKey)
-      cs.dispatch.setDraft(m.draft)
-      cs.dispatch.setMuted(m.isMuted)
-    })
-  })
   Container.listenAction(Chat2Gen.toggleGiphyPrefill, (_, a) => {
     const {conversationIDKey} = a.payload
     const giphyWindow = Constants.getConvoState(conversationIDKey).giphyWindow

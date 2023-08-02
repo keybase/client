@@ -566,15 +566,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       })
     }
   },
-  [Chat2Gen.metasReceived]: (draftState, action) => {
-    const {metas, removals} = action.payload
-    const {metaMap} = draftState
-    removals && removals.forEach(m => metaMap.delete(m))
-    metas.forEach(m => {
-      const old = metaMap.get(m.conversationIDKey)
-      metaMap.set(m.conversationIDKey, old ? Constants.updateMeta(old, m) : m)
-    })
-  },
   [Chat2Gen.messageDelete]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState

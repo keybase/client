@@ -68,12 +68,6 @@
       "_description": "About to try and unbox some inbox rows",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
-    "metasReceived": {
-      "_description": "Got some new inbox rows",
-      "metas": "Array<Types.ConversationMeta>",
-      "removals?": "Array<Types.ConversationIDKey>", // convs to remove
-      "fromInboxRefresh?": "boolean" // If true from an inbox refresh
-    },
     "clearMetas": {},
     "clearMessages": {},
     "metaReceivedError": {
