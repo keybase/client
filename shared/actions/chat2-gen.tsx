@@ -19,8 +19,6 @@ export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
 export const attachmentPasted = 'chat2:attachmentPasted'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
-export const attachmentUploaded = 'chat2:attachmentUploaded'
-export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const blockConversation = 'chat2:blockConversation'
 export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
@@ -565,14 +563,6 @@ export const createUpdateMessages = (payload: {
   readonly messages: Array<{messageID: Types.MessageID; message: Types.Message}>
 }) => ({payload, type: updateMessages as typeof updateMessages})
 /**
- * Update progress on an upload
- */
-export const createAttachmentUploading = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly outboxID: Types.OutboxID
-  readonly ratio: number
-}) => ({payload, type: attachmentUploading as typeof attachmentUploading})
-/**
  * Update the unreadline line position for a conversation
  */
 export const createUpdateUnreadline = (payload: {
@@ -635,13 +625,6 @@ export const createUpdateNotificationSettings = (payload: {
   readonly notificationsMobile: Types.NotificationsType
   readonly notificationsGlobalIgnoreMentions: boolean
 }) => ({payload, type: updateNotificationSettings as typeof updateNotificationSettings})
-/**
- * We're done uploading
- */
-export const createAttachmentUploaded = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: attachmentUploaded as typeof attachmentUploaded})
 export const createAttachFromDragAndDrop = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly paths: Array<Types.PathAndOutboxID>
@@ -716,8 +699,6 @@ export type AttachmentMobileSavedPayload = ReturnType<typeof createAttachmentMob
 export type AttachmentPastedPayload = ReturnType<typeof createAttachmentPasted>
 export type AttachmentPreviewSelectPayload = ReturnType<typeof createAttachmentPreviewSelect>
 export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachmentUploadCanceled>
-export type AttachmentUploadedPayload = ReturnType<typeof createAttachmentUploaded>
-export type AttachmentUploadingPayload = ReturnType<typeof createAttachmentUploading>
 export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ChannelSuggestionsTriggeredPayload = ReturnType<typeof createChannelSuggestionsTriggered>
@@ -800,8 +781,6 @@ export type Actions =
   | AttachmentPastedPayload
   | AttachmentPreviewSelectPayload
   | AttachmentUploadCanceledPayload
-  | AttachmentUploadedPayload
-  | AttachmentUploadingPayload
   | AttachmentsUploadPayload
   | BlockConversationPayload
   | ChannelSuggestionsTriggeredPayload

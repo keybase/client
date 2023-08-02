@@ -30,9 +30,7 @@ const {darwinCopyToChatTempUploadFile} = KB2.functions
 
 const getClientPrev = (conversationIDKey: Types.ConversationIDKey): Types.MessageID => {
   let clientPrev: undefined | Types.MessageID
-
-  const getReduxStore = Z.getReduxStore()
-  const mm = getReduxStore().chat2.messageMap.get(conversationIDKey)
+  const mm = Constants.getConvoState(conversationIDKey).messageMap
   if (mm) {
     // find last valid messageid we know about
     const goodOrdinal = findLast(Constants.getConvoState(conversationIDKey).messageOrdinals ?? [], o => {
@@ -444,30 +442,6 @@ const onChatPromptUnfurl = (_: unknown, action: EngineGen.Chat1NotifyChatChatPro
     domain,
     true
   )
-}
-
-const onChatAttachmentUploadProgress = (
-  _: unknown,
-  action: EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
-) => {
-  const {convID, outboxID, bytesComplete, bytesTotal} = action.payload.params
-  return Chat2Gen.createAttachmentUploading({
-    conversationIDKey: Types.conversationIDToKey(convID),
-    outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
-    ratio: bytesComplete / bytesTotal,
-  })
-}
-
-const onChatAttachmentUploadStart = (
-  _: unknown,
-  action: EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
-) => {
-  const {convID, outboxID} = action.payload.params
-  return Chat2Gen.createAttachmentUploading({
-    conversationIDKey: Types.conversationIDToKey(convID),
-    outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
-    ratio: 0.01,
-  })
 }
 
 const onChatInboxSyncStarted = () => {
@@ -2581,11 +2555,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.addUserToChannel, addUserToChannel)
 
   Container.listenAction(EngineGen.chat1NotifyChatChatPromptUnfurl, onChatPromptUnfurl)
-  Container.listenAction(
-    EngineGen.chat1NotifyChatChatAttachmentUploadProgress,
-    onChatAttachmentUploadProgress
-  )
-  Container.listenAction(EngineGen.chat1NotifyChatChatAttachmentUploadStart, onChatAttachmentUploadStart)
   Container.listenAction(EngineGen.chat1NotifyChatChatIdentifyUpdate, onChatIdentifyUpdate)
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxSyncStarted, onChatInboxSyncStarted)
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxSynced, onChatInboxSynced)

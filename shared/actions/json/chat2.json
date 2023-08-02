@@ -244,17 +244,6 @@
       "paths": "Array<Types.PathAndOutboxID>",
       "titles": "Array<string>"
     },
-    "attachmentUploading": {
-      "_description": "Update progress on an upload",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "outboxID": "Types.OutboxID",
-      "ratio": "number" // 0-1
-    },
-    "attachmentUploaded": {
-      "_description": "We're done uploading",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
-    },
     "attachmentPasted": {
       "_description": "Image data pasted into a conversation",
       "conversationIDKey": "Types.ConversationIDKey",

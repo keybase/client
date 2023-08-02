@@ -48,33 +48,7 @@ const messageIDToOrdinal = (
   return null
 }
 
-const paymentActions: Container.ActionHandler<Actions, Types.State> = {}
-
 const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
-  [Chat2Gen.attachmentUploading]: (draftState, action) => {
-    const {conversationIDKey, outboxID, ratio} = action.payload
-    const {messageMap} = draftState
-    const convMap = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
-    const ordinal = convMap.get(outboxID)
-    if (ordinal) {
-      const map = messageMap.get(conversationIDKey)
-      const m = map?.get(ordinal)
-      if (m?.type === 'attachment') {
-        m.transferProgress = ratio
-        m.transferState = 'uploading'
-      }
-    }
-  },
-  [Chat2Gen.attachmentUploaded]: (draftState, action) => {
-    const {conversationIDKey, ordinal} = action.payload
-    const {messageMap} = draftState
-    const map = messageMap.get(conversationIDKey)
-    const m = map?.get(ordinal)
-    if (m?.type === 'attachment') {
-      m.transferProgress = 0
-      m.transferState = undefined
-    }
-  },
   [Chat2Gen.attachmentMobileSave]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
@@ -700,7 +674,6 @@ const reducer = Container.makeReducer<Actions, {}>(
         cs.getState().dispatch.setMessageOrdinals()
       }
     },
-    ...paymentActions,
     ...attachmentActions,
   }
 )

@@ -147,6 +147,8 @@ export type ConvoState = ConvoStore & {
       action:
         | EngineGen.Chat1ChatUiChatInboxFailedPayload
         | EngineGen.Chat1NotifyChatChatSetConvSettingsPayload
+        | EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
+        | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
     ) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     refreshBotRoleInConv: (username: string) => void
@@ -547,6 +549,27 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
             )
           }
+          break
+        }
+
+        case EngineGen.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
+        case EngineGen.chat1NotifyChatChatAttachmentUploadProgress: {
+          const {params} = action.payload
+          const ratio =
+            action.type === EngineGen.chat1NotifyChatChatAttachmentUploadProgress
+              ? action.payload.params.bytesComplete / action.payload.params.bytesTotal
+              : 0.01
+          const ordinal = get().pendingOutboxToOrdinal.get(Types.rpcOutboxIDToOutboxID(params.outboxID))
+          if (ordinal) {
+            set(s => {
+              const m = s.messageMap.get(ordinal)
+              if (m?.type === 'attachment') {
+                m.transferProgress = ratio
+                m.transferState = 'uploading'
+              }
+            })
+          }
+          break
         }
       }
     },

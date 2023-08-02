@@ -494,6 +494,8 @@ export type State = Store & {
         | EngineGen.Chat1NotifyChatChatSetConvRetentionPayload
         | EngineGen.Chat1NotifyChatChatSetTeamRetentionPayload
         | EngineGen.Chat1NotifyChatChatSetConvSettingsPayload
+        | EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
+        | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
     ) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
@@ -944,6 +946,15 @@ export const useState = Z.createZustand<State>((set, get) => {
     },
     onEngineIncoming: action => {
       switch (action.type) {
+        case EngineGen.chat1ChatUiChatInboxFailed: // fallthrough
+        case EngineGen.chat1NotifyChatChatSetConvSettings: // fallthrough
+        case EngineGen.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
+        case EngineGen.chat1NotifyChatChatAttachmentUploadProgress: {
+          const {convID} = action.payload.params
+          const conversationIDKey = Types.conversationIDToKey(convID)
+          getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
+          break
+        }
         case EngineGen.chat1NotifyChatChatTypingUpdate: {
           const {typingUpdates} = action.payload.params
           typingUpdates?.forEach(u => {
@@ -953,11 +964,6 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
           break
         }
-        case EngineGen.chat1ChatUiChatInboxFailed:
-          getConvoState(Types.conversationIDToKey(action.payload.params.convID)).dispatch.onEngineIncoming(
-            action
-          )
-          break
         case EngineGen.chat1NotifyChatChatSetConvRetention: {
           const {conv, convID} = action.payload.params
           if (!conv) {
@@ -999,12 +1005,6 @@ export const useState = Z.createZustand<State>((set, get) => {
           logger.error(
             'got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
           )
-          break
-        }
-        case EngineGen.chat1NotifyChatChatSetConvSettings: {
-          const {convID} = action.payload.params
-          const conversationIDKey = Types.conversationIDToKey(convID)
-          getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
       }
