@@ -492,7 +492,12 @@ export type State = Store & {
     ) => void
     onEngineConnected: () => void
     onEngineIncoming: (
-      action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload | EngineGen.Chat1ChatUiChatInboxFailedPayload
+      action:
+        | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
+        | EngineGen.Chat1ChatUiChatInboxFailedPayload
+        | EngineGen.Chat1NotifyChatChatSetConvRetentionPayload
+        | EngineGen.Chat1NotifyChatChatSetTeamRetentionPayload
+        | EngineGen.Chat1NotifyChatChatSetConvSettingsPayload
     ) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
@@ -957,6 +962,55 @@ export const useState = Z.createZustand<State>((set, get) => {
             action
           )
           break
+        case EngineGen.chat1NotifyChatChatSetConvRetention: {
+          const {conv, convID} = action.payload.params
+          if (!conv) {
+            logger.warn('onChatSetConvRetention: no conv given')
+            return
+          }
+          const meta = inboxUIItemToConversationMeta(conv)
+          if (!meta) {
+            logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
+            return
+          }
+          const cs = getConvoState(meta.conversationIDKey)
+          // only insert if the convo is already in the inbox
+          if (cs.meta.conversationIDKey === meta.conversationIDKey) {
+            cs.dispatch.setMeta(meta)
+          }
+          break
+        }
+        case EngineGen.chat1NotifyChatChatSetTeamRetention: {
+          const {convs} = action.payload.params
+          const metas = (convs ?? []).reduce<Array<Types.ConversationMeta>>((l, c) => {
+            const meta = inboxUIItemToConversationMeta(c)
+            if (meta) {
+              l.push(meta)
+            }
+            return l
+          }, [])
+          if (metas.length) {
+            metas.forEach(meta => {
+              const cs = getConvoState(meta.conversationIDKey)
+              // only insert if the convo is already in the inbox
+              if (cs.meta.conversationIDKey === meta.conversationIDKey) {
+                cs.dispatch.setMeta(meta)
+              }
+            })
+            TeamsConstants.useState.getState().dispatch.updateTeamRetentionPolicy(metas)
+          }
+          // this is a more serious problem, but we don't need to bug the user about it
+          logger.error(
+            'got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
+          )
+          break
+        }
+        case EngineGen.chat1NotifyChatChatSetConvSettings: {
+          const {convID} = action.payload.params
+          const conversationIDKey = Types.conversationIDToKey(convID)
+          getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
+          break
+        }
       }
     },
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {

@@ -70,7 +70,6 @@ export const replyJump = 'chat2:replyJump'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
-export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
@@ -86,11 +85,9 @@ export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
-export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateReactions = 'chat2:updateReactions'
-export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Action Creators
@@ -145,19 +142,6 @@ export const createBlockConversation = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly reportUser: boolean
 }) => ({payload, type: blockConversation as typeof blockConversation})
-/**
- * Consume a service notification that a conversation's retention policy has been updated
- */
-export const createUpdateConvRetentionPolicy = (payload: {readonly meta: Types.ConversationMeta}) => ({
-  payload,
-  type: updateConvRetentionPolicy as typeof updateConvRetentionPolicy,
-})
-/**
- * Consume a service notification that a team retention policy was updated
- */
-export const createUpdateTeamRetentionPolicy = (payload: {
-  readonly metas: Array<Types.ConversationMeta>
-}) => ({payload, type: updateTeamRetentionPolicy as typeof updateTeamRetentionPolicy})
 /**
  * Conversation was loaded and is offline
  */
@@ -589,14 +573,6 @@ export const createAttachmentUploading = (payload: {
   readonly ratio: number
 }) => ({payload, type: attachmentUploading as typeof attachmentUploading})
 /**
- * Update the minWriterRole stored with the conversation metadata.
- */
-export const createSaveMinWriterRole = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly role: TeamsTypes.TeamRoleType
-  readonly cannotWrite: boolean
-}) => ({payload, type: saveMinWriterRole as typeof saveMinWriterRole})
-/**
  * Update the unreadline line position for a conversation
  */
 export const createUpdateUnreadline = (payload: {
@@ -791,7 +767,6 @@ export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = ReturnType<typeof createResetLetThemIn>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
-export type SaveMinWriterRolePayload = ReturnType<typeof createSaveMinWriterRole>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
@@ -807,11 +782,9 @@ export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePr
 export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
-export type UpdateConvRetentionPolicyPayload = ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateMessagesPayload = ReturnType<typeof createUpdateMessages>
 export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNotificationSettings>
 export type UpdateReactionsPayload = ReturnType<typeof createUpdateReactions>
-export type UpdateTeamRetentionPolicyPayload = ReturnType<typeof createUpdateTeamRetentionPolicy>
 export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 
 // All Actions
@@ -878,7 +851,6 @@ export type Actions =
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
   | ResolveMaybeMentionPayload
-  | SaveMinWriterRolePayload
   | SendAudioRecordingPayload
   | SendTypingPayload
   | SetConvRetentionPolicyPayload
@@ -894,10 +866,8 @@ export type Actions =
   | UnhideConversationPayload
   | UnpinMessagePayload
   | UnsentTextChangedPayload
-  | UpdateConvRetentionPolicyPayload
   | UpdateMessagesPayload
   | UpdateNotificationSettingsPayload
   | UpdateReactionsPayload
-  | UpdateTeamRetentionPolicyPayload
   | UpdateUnreadlinePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

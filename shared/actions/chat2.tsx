@@ -562,68 +562,6 @@ const onChatRequestInfo = (_: unknown, action: EngineGen.Chat1NotifyChatChatRequ
   Constants.getConvoState(conversationIDKey).dispatch.requestInfoReceived(msgID, requestInfo)
 }
 
-const onChatSetConvRetention = (_: unknown, action: EngineGen.Chat1NotifyChatChatSetConvRetentionPayload) => {
-  const {conv, convID} = action.payload.params
-  if (!conv) {
-    logger.warn('onChatSetConvRetention: no conv given')
-    return
-  }
-  const meta = Constants.inboxUIItemToConversationMeta(conv)
-  if (!meta) {
-    logger.warn(`onChatSetConvRetention: no meta found for ${convID.toString()}`)
-    return
-  }
-  if (conv) {
-    const reduxDispatch = Z.getReduxDispatch()
-    reduxDispatch(Chat2Gen.createUpdateConvRetentionPolicy({meta}))
-    return
-  }
-  logger.warn('got NotifyChat.ChatSetConvRetention with no attached InboxUIItem. Forcing update.')
-  // force to get the new retention policy
-
-  Constants.useState.getState().dispatch.unboxRows([Types.conversationIDToKey(convID)], true)
-}
-
-const onChatSetConvSettings = (_: unknown, action: EngineGen.Chat1NotifyChatChatSetConvSettingsPayload) => {
-  const reduxDispatch = Z.getReduxDispatch()
-  const {conv, convID} = action.payload.params
-  const conversationIDKey = Types.conversationIDToKey(convID)
-  const newRole =
-    (conv?.convSettings && conv.convSettings.minWriterRoleInfo && conv.convSettings.minWriterRoleInfo.role) ||
-    undefined
-  const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
-  const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite || false
-  logger.info(
-    `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${cannotWrite ? 1 : 0}`
-  )
-  if (role && role !== 'none' && cannotWrite !== undefined) {
-    reduxDispatch(Chat2Gen.createSaveMinWriterRole({cannotWrite, conversationIDKey, role}))
-    return
-  }
-  logger.warn(
-    `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
-  )
-}
-
-const onChatSetTeamRetention = (_: unknown, action: EngineGen.Chat1NotifyChatChatSetTeamRetentionPayload) => {
-  const {convs} = action.payload.params
-  const metas = (convs ?? []).reduce<Array<Types.ConversationMeta>>((l, c) => {
-    const meta = Constants.inboxUIItemToConversationMeta(c)
-    if (meta) {
-      l.push(meta)
-    }
-    return l
-  }, [])
-  if (metas.length) {
-    return Chat2Gen.createUpdateTeamRetentionPolicy({metas})
-  }
-  // this is a more serious problem, but we don't need to bug the user about it
-  logger.error(
-    'got NotifyChat.ChatSetTeamRetention with no attached InboxUIItems. The local version may be out of date'
-  )
-  return false
-}
-
 const onChatSubteamRename = (_: unknown, action: EngineGen.Chat1NotifyChatChatSubteamRenamePayload) => {
   const {convs} = action.payload.params
   const conversationIDKeys = (convs ?? []).map(c => Types.stringToConversationIDKey(c.convID))
@@ -2653,9 +2591,6 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxSynced, onChatInboxSynced)
   Container.listenAction(EngineGen.chat1NotifyChatChatPaymentInfo, onChatPaymentInfo)
   Container.listenAction(EngineGen.chat1NotifyChatChatRequestInfo, onChatRequestInfo)
-  Container.listenAction(EngineGen.chat1NotifyChatChatSetConvRetention, onChatSetConvRetention)
-  Container.listenAction(EngineGen.chat1NotifyChatChatSetConvSettings, onChatSetConvSettings)
-  Container.listenAction(EngineGen.chat1NotifyChatChatSetTeamRetention, onChatSetTeamRetention)
   Container.listenAction(EngineGen.chat1NotifyChatChatSubteamRename, onChatSubteamRename)
   Container.listenAction(EngineGen.chat1NotifyChatChatTLFFinalize, onChatChatTLFFinalizePayload)
   Container.listenAction(EngineGen.chat1NotifyChatChatThreadsStale, onChatThreadStale)

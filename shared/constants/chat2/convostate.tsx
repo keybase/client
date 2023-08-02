@@ -141,7 +141,11 @@ export type ConvoState = ConvoStore & {
     loadOrangeLine: () => void
     metaReceivedError: (error: RPCChatTypes.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
-    onEngineIncoming: (action: EngineGen.Chat1ChatUiChatInboxFailedPayload) => void
+    onEngineIncoming: (
+      action:
+        | EngineGen.Chat1ChatUiChatInboxFailedPayload
+        | EngineGen.Chat1NotifyChatChatSetConvSettingsPayload
+    ) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
@@ -497,7 +501,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
-    onEngineIncoming: (action: EngineGen.Chat1ChatUiChatInboxFailedPayload) => {
+    onEngineIncoming: action => {
       switch (action.type) {
         case EngineGen.chat1ChatUiChatInboxFailed: {
           const f = async () => {
@@ -520,6 +524,31 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           Z.ignorePromise(f())
           break
+        }
+        case EngineGen.chat1NotifyChatChatSetConvSettings: {
+          const {conv} = action.payload.params
+          const newRole = conv?.convSettings?.minWriterRoleInfo?.role
+          const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
+          const conversationIDKey = get().id
+          const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite
+          logger.info(
+            `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${
+              cannotWrite ? 1 : 0
+            }`
+          )
+          if (role && role !== 'none') {
+            // only insert if the convo is already in the inbox
+            if (get().meta.conversationIDKey === conversationIDKey) {
+              get().dispatch.updateMeta({
+                cannotWrite,
+                minWriterRole: role,
+              })
+            }
+          } else {
+            logger.warn(
+              `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
+            )
+          }
         }
       }
     },

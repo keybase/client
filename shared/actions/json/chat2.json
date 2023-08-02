@@ -375,24 +375,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "policy": "RetentionPolicy"
     },
-    "updateConvRetentionPolicy": {
-      "_description": "Consume a service notification that a conversation's retention policy has been updated",
-      "meta": "Types.ConversationMeta"
-    },
-    "updateTeamRetentionPolicy": {
-      "_description": "Consume a service notification that a team retention policy was updated",
-      "metas": "Array<Types.ConversationMeta>"
-    },
     "setMinWriterRole": {
       "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",
       "conversationIDKey": "Types.ConversationIDKey",
       "role": "TeamsTypes.TeamRoleType"
-    },
-    "saveMinWriterRole": {
-      "_description": "Update the minWriterRole stored with the conversation metadata.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "role": "TeamsTypes.TeamRoleType",
-      "cannotWrite": "boolean"
     },
     "openChatFromWidget": {
       "conversationIDKey?": "Types.ConversationIDKey"

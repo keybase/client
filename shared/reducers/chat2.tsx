@@ -1,7 +1,6 @@
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
-import * as TeamsConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
@@ -633,25 +632,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       })
     }
   },
-  [Chat2Gen.updateConvRetentionPolicy]: (_draftState, action) => {
-    const {meta} = action.payload
-    const cs = Constants.getConvoState(meta.conversationIDKey)
-    // only insert if the convo is already in the inbox
-    if (cs.meta.conversationIDKey === meta.conversationIDKey) {
-      cs.dispatch.setMeta(meta)
-    }
-  },
-  [Chat2Gen.updateTeamRetentionPolicy]: (_draftState, action) => {
-    const {metas} = action.payload
-    metas.forEach(meta => {
-      const cs = Constants.getConvoState(meta.conversationIDKey)
-      // only insert if the convo is already in the inbox
-      if (cs.meta.conversationIDKey === meta.conversationIDKey) {
-        cs.dispatch.setMeta(meta)
-      }
-    })
-    TeamsConstants.useState.getState().dispatch.updateTeamRetentionPolicy(metas)
-  },
   [Chat2Gen.messagesExploded]: (draftState, action) => {
     const {conversationIDKey, messageIDs, explodedBy} = action.payload
     const {messageMap} = draftState
@@ -678,18 +658,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         m.unfurls = new Map()
         m.flipGameID = ''
       })
-  },
-  [Chat2Gen.saveMinWriterRole]: (_draftState, action) => {
-    const {cannotWrite, conversationIDKey, role} = action.payload
-    const cs = Constants.getConvoState(conversationIDKey)
-    // only insert if the convo is already in the inbox
-    if (cs.meta.conversationIDKey === conversationIDKey) {
-      cs.dispatch.setMeta({
-        ...cs.meta,
-        cannotWrite,
-        minWriterRole: role,
-      })
-    }
   },
   [Chat2Gen.updateMessages]: (draftState, action) => {
     const {messages, conversationIDKey} = action.payload
