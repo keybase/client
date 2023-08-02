@@ -1,4 +1,5 @@
 import * as Constants from '../../../constants/chat2'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as BotsConstants from '../../../constants/bots'
 import * as RouterConstants from '../../../constants/router2'
 import * as Container from '../../../util/container'
@@ -55,6 +56,8 @@ type Props = {
   conversationIDKey?: Types.ConversationIDKey
 }
 
+const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
+
 const InstallBotPopup = (props: Props) => {
   const {botUsername, conversationIDKey} = props
 
@@ -67,22 +70,20 @@ const InstallBotPopup = (props: Props) => {
   const [installInConvs, setInstallInConvs] = React.useState<string[]>([])
   const [disableDone, setDisableDone] = React.useState(false)
 
-  const meta = Container.useSelector(state =>
-    conversationIDKey ? state.chat2.metaMap.get(conversationIDKey) : undefined
-  )
-
   const botPublicCommands = Constants.useState(s => s.botPublicCommands.get(botUsername))
-  // TODO will thrash every time
-  const commands = Container.useSelector(state => {
-    let commands: Array<string> = []
-    if (conversationIDKey && meta) {
-      commands = Constants.getBotCommands(state, conversationIDKey)
-        .filter(c => c.username === botUsername)
-        .map(c => c.name)
-    }
+  const meta = Constants.useContext(s => s.meta)
+  const commands = React.useMemo(() => {
+    const {botCommands} = meta
+    const commands = (
+      botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom
+        ? botCommands.custom.commands || blankCommands
+        : blankCommands
+    )
+      .filter(c => c.username === botUsername)
+      .map(c => c.name)
     const convCommands: Types.BotPublicCommands = {commands, loadError: false}
     return commands.length > 0 ? convCommands : botPublicCommands
-  })
+  }, [meta, botPublicCommands, botUsername])
 
   const featured = BotsConstants.useState(s => s.featuredBotsMap.get(botUsername))
   const teamRole = Constants.useContext(s => s.botTeamRoleMap.get(botUsername))

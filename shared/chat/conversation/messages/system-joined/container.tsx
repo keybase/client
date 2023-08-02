@@ -2,7 +2,6 @@ import * as ConfigConstants from '../../../../constants/config'
 import * as Constants from '../../../../constants/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
 import * as ProfileConstants from '../../../../constants/profile'
-import * as Container from '../../../../util/container'
 import * as React from 'react'
 import Joined from '.'
 import type * as Types from '../../../../constants/types/chat2'
@@ -13,7 +12,7 @@ const JoinedContainer = React.memo(function JoinedContainer(p: OwnProps) {
   const {message} = p
   const {joiners, author, conversationIDKey, leavers, timestamp} = message
 
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const {channelname, teamType, teamname, teamID} = meta
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)

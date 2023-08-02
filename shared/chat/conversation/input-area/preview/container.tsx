@@ -10,7 +10,7 @@ type OwnProps = {
 
 export default (ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const {channelname} = meta
   const dispatch = Container.useDispatch()
   const onJoinChannel = () => {

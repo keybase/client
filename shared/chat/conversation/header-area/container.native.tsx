@@ -1,14 +1,13 @@
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
-import {DebugChatDumpContext} from '../../../constants/chat2/debug'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as Types from '../../../constants/types/chat2'
 import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader} from './index.native'
+import {DebugChatDumpContext} from '../../../constants/chat2/debug'
 import {HeaderLeftArrow} from '../../../common-adapters/header-hoc'
-import {getVisiblePath} from '../../../constants/router2'
-import {getRouteParamsFromRoute} from '../../../router-v2/route-params'
 import {Keyboard} from 'react-native'
+import {getRouteParamsFromRoute} from '../../../router-v2/route-params'
+import {getVisiblePath} from '../../../constants/router2'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -67,11 +66,10 @@ enum HeaderType {
   User,
 }
 
-const HeaderBranchContainer = React.memo(function HeaderBranchContainer(p: OwnProps) {
-  const {conversationIDKey} = p
+const HeaderBranchContainer = React.memo(function HeaderBranchContainer() {
   const participantInfo = Constants.useContext(s => s.participants)
-  const type = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
+  const type = Constants.useContext(s => {
+    const meta = s.meta
     const teamName = meta.teamname
     if (teamName) {
       return HeaderType.Team
@@ -85,11 +83,11 @@ const HeaderBranchContainer = React.memo(function HeaderBranchContainer(p: OwnPr
 
   switch (type) {
     case HeaderType.Team:
-      return <ChannelHeader conversationIDKey={conversationIDKey} />
+      return <ChannelHeader />
     case HeaderType.PhoneEmail:
-      return <PhoneOrEmailHeader conversationIDKey={conversationIDKey} />
+      return <PhoneOrEmailHeader />
     case HeaderType.User:
-      return <UsernameHeader conversationIDKey={conversationIDKey} />
+      return <UsernameHeader />
   }
 })
 export default HeaderBranchContainer
@@ -130,7 +128,7 @@ export const headerNavigationOptions = (route: unknown) => {
     ),
     headerTitle: () => (
       <Constants.Provider id={conversationIDKey}>
-        <HeaderBranchContainer conversationIDKey={conversationIDKey} />
+        <HeaderBranchContainer />
       </Constants.Provider>
     ),
   }

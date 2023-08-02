@@ -1,14 +1,9 @@
-import type * as Types from '../../constants/types/chat2'
 import * as Constants from '../../constants/chat2'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
-type OwnProps = {conversationIDKey: Types.ConversationIDKey}
-
-const ConversationError = (p: OwnProps) => {
-  const {conversationIDKey} = p
-  const text = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).snippet ?? '')
+const ConversationError = () => {
+  const text = Constants.useContext(s => s.meta.snippet ?? '')
   return (
     <Kb.Box style={styles.container}>
       <Kb.Text type="Header">There was an error loading this conversation.</Kb.Text>
@@ -25,9 +20,7 @@ const ConversationError = (p: OwnProps) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      body: {
-        marginTop: Styles.globalMargins.small,
-      },
+      body: {marginTop: Styles.globalMargins.small},
       container: {
         ...Styles.globalStyles.flexBoxColumn,
         padding: Styles.globalMargins.medium,
@@ -38,7 +31,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.small,
       },
       errorText: {flexGrow: 1},
-    } as const)
+    }) as const
 )
 
 export default ConversationError

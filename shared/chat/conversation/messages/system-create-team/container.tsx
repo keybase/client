@@ -1,7 +1,6 @@
 import * as RouterConstants from '../../../../constants/router2'
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigConstants from '../../../../constants/config'
-import * as Container from '../../../../util/container'
 import * as React from 'react'
 import * as TeamConstants from '../../../../constants/teams'
 import SystemCreateTeam from '.'
@@ -14,7 +13,7 @@ type OwnProps = {
 const SystemCreateTeamContainer = React.memo(function SystemCreateTeamContainer(p: OwnProps) {
   const {message} = p
   const {conversationIDKey, creator} = message
-  const {teamID, teamname} = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {teamID, teamname} = Constants.useContext(s => s.meta)
   const role = TeamConstants.useState(s => TeamConstants.getRole(s, teamID))
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const isAdmin = TeamConstants.isAdmin(role) || TeamConstants.isOwner(role)

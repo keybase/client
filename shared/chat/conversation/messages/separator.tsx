@@ -213,10 +213,10 @@ const useReduxFast = (
 
 const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
   const participantInfoNames = Constants.useContext(s => s.participants.name)
+  const meta = Constants.useContext(s => s.meta)
   const d = Container.useSelector(state => {
     const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
     const {author, timestamp} = m
-    const meta = Constants.getMeta(state, conversationIDKey)
     const {teamID, botAliases, teamType} = meta
     // TODO not reactive
     const authorRoleInTeam = TeamsConstants.useState

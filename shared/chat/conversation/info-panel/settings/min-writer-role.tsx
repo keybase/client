@@ -15,7 +15,7 @@ type Props = {conversationIDKey: Types.ConversationIDKey}
 const MinWriterRole = (props: Props) => {
   const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const {teamname} = meta
 
   const canPerform = TeamConstants.useState(s =>
@@ -166,7 +166,7 @@ const styles = Style.styleSheetCreate(
           height: Style.globalMargins.medium,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default MinWriterRole

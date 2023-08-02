@@ -372,12 +372,7 @@ const PlatformInput = (p: Props) => {
           )
         default:
           return (
-            <SetExplodingMessagePicker
-              attachTo={attachTo}
-              conversationIDKey={conversationIDKey}
-              onHidden={toggleShowingPopup}
-              visible={true}
-            />
+            <SetExplodingMessagePicker attachTo={attachTo} onHidden={toggleShowingPopup} visible={true} />
           )
       }
     },

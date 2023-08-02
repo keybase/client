@@ -1,4 +1,5 @@
 import * as Constants from '../../../../constants/teams'
+import * as ChatConstants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
 import type * as TeamsTypes from '../../../../constants/types/teams'
 import RetentionPicker, {type RetentionEntityType} from '.'
@@ -6,7 +7,6 @@ import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import type {StylesCrossPlatform} from '../../../../styles'
 import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
-import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey
@@ -23,9 +23,7 @@ export default (ownProps: OwnProps) => {
   let loading = false
   let teamPolicy: RetentionPolicy | undefined = undefined
 
-  let policy = Container.useSelector(state =>
-    conversationIDKey ? getConversationRetentionPolicy(state, conversationIDKey) : undefined
-  )
+  let policy = ChatConstants.useContext(s => (s.id ? s.meta.retentionPolicy : undefined))
   if (ownProps.conversationIDKey) {
   } else if (!entityType.endsWith('team')) {
     throw new Error(`RetentionPicker needs a conversationIDKey to set ${entityType} retention policies`)

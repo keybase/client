@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as EngineGen from '../../actions/engine-gen-gen'
 import * as Common from './common'
 import * as Message from './message'
 import * as Meta from './meta'
@@ -27,7 +28,7 @@ const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
   visible: false,
 })
 
-export const noParticipantInfo: Types.ParticipantInfo = {
+const noParticipantInfo: Types.ParticipantInfo = {
   all: [],
   contactName: new Map(),
   name: [],
@@ -57,6 +58,7 @@ type ConvoStore = {
   messageCenterOrdinal?: Types.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<Types.Ordinal, Types.RenderMessageType> // messages types to help the thread, text is never used
   messageOrdinals?: Array<Types.Ordinal> // ordered ordinals in a thread,
+  meta: Types.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
   muted: boolean
   mutualTeams: Array<TeamsTypes.TeamID>
@@ -95,6 +97,7 @@ const initialConvoStore: ConvoStore = {
   messageCenterOrdinal: undefined,
   messageOrdinals: undefined,
   messageTypeMap: new Map(),
+  meta: Meta.makeConversationMeta(),
   moreToLoad: false,
   muted: false,
   mutualTeams: [],
@@ -136,7 +139,13 @@ export type ConvoState = ConvoStore & {
     hideSearch: () => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadOrangeLine: () => void
+    metaReceivedError: (error: RPCChatTypes.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
+    onEngineIncoming: (
+      action:
+        | EngineGen.Chat1ChatUiChatInboxFailedPayload
+        | EngineGen.Chat1NotifyChatChatSetConvSettingsPayload
+    ) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
@@ -145,6 +154,7 @@ export type ConvoState = ConvoStore & {
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetState: 'default'
     resetUnsentText: () => void
+    selectedConversation: () => void
     setCommandMarkdown: (md?: RPCChatTypes.UICommandMarkdown) => void
     setCommandStatusInfo: (info?: Types.CommandStatusInfo) => void
     setContainsLatestMessage: (c: boolean) => void
@@ -157,6 +167,7 @@ export type ConvoState = ConvoStore & {
     setMessageCenterOrdinal: (m?: Types.CenterOrdinal) => void
     setMessageTypeMap: (o: Types.Ordinal, t?: Types.RenderMessageType) => void
     setMessageOrdinals: (os?: Array<Types.Ordinal>) => void
+    setMeta: (m?: Types.ConversationMeta) => void
     setMoreToLoad: (m: boolean) => void
     setMuted: (m: boolean) => void
     setOrangeLine: (o: Types.Ordinal) => void
@@ -168,6 +179,7 @@ export type ConvoState = ConvoStore & {
     setTyping: (t: Set<string>) => void
     threadSearch: (query: string) => void
     toggleThreadSearch: (hide?: boolean) => void
+    updateMeta: (m: Partial<Types.ConversationMeta>) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
     updateAttachmentViewTransfered: (msgId: number, path: string) => void
@@ -197,11 +209,12 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
   const closeBotModal = () => {
     RouterConstants.useState.getState().dispatch.clearModals()
-    const meta = getReduxState().chat2.metaMap.get(get().id)
-    if (meta?.teamname) {
+    const meta = get().meta
+    if (meta.teamname) {
       TeamsConstants.useState.getState().dispatch.getMembers(meta.teamID)
     }
   }
+
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
@@ -398,8 +411,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.info('Load unreadline bail: invalid conversationIDKey')
           return
         }
-        const {readMsgID} =
-          getReduxState().chat2.metaMap.get(conversationIDKey) ?? Meta.makeConversationMeta()
+        const {readMsgID} = get().meta
         try {
           const unreadlineRes = await RPCChatTypes.localGetUnreadlineRpcPromise({
             convID,
@@ -429,6 +441,56 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    metaReceivedError: (error, username) => {
+      if (error) {
+        if (
+          error.typ === RPCChatTypes.ConversationErrorType.otherrekeyneeded ||
+          error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
+        ) {
+          const {rekeyInfo} = error
+          const participants = [
+            ...(rekeyInfo
+              ? new Set<string>(
+                  ([] as Array<string>)
+                    .concat(rekeyInfo.writerNames || [], rekeyInfo.readerNames || [])
+                    .filter(Boolean)
+                )
+              : new Set<string>(error.unverifiedTLFName.split(','))),
+          ]
+
+          const rekeyers = new Set<string>(
+            error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
+              ? [username || '']
+              : (rekeyInfo && rekeyInfo.rekeyers) || []
+          )
+          const newMeta = Meta.unverifiedInboxUIItemToConversationMeta(error.remoteConv)
+          if (!newMeta) {
+            // public conversation, do nothing
+            return
+          }
+          get().dispatch.setMeta({
+            ...newMeta,
+            rekeyers,
+            snippet: error.message,
+            snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+            trustedState: 'error' as const,
+          })
+          get().dispatch.setParticipants({
+            all: participants,
+            contactName: noParticipantInfo.contactName,
+            name: participants,
+          })
+        } else {
+          get().dispatch.updateMeta({
+            snippet: error.message,
+            snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+            trustedState: 'error',
+          })
+        }
+      } else {
+        get().dispatch.setMeta()
+      }
+    },
     mute: m => {
       const f = async () => {
         await RPCChatTypes.localSetConversationStatusLocalRpcPromise({
@@ -438,6 +500,57 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
       }
       Z.ignorePromise(f())
+    },
+    onEngineIncoming: action => {
+      switch (action.type) {
+        case EngineGen.chat1ChatUiChatInboxFailed: {
+          const f = async () => {
+            const ConfigConstants = await import('../config')
+            const username = ConfigConstants.useCurrentUserState.getState().username
+            const {convID, error} = action.payload.params
+            const conversationIDKey = Types.conversationIDToKey(convID)
+            switch (error.typ) {
+              case RPCChatTypes.ConversationErrorType.transient:
+                logger.info(
+                  `onFailed: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
+                )
+                return
+              default:
+                logger.info(
+                  `onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`
+                )
+                get().dispatch.metaReceivedError(error, username)
+            }
+          }
+          Z.ignorePromise(f())
+          break
+        }
+        case EngineGen.chat1NotifyChatChatSetConvSettings: {
+          const {conv} = action.payload.params
+          const newRole = conv?.convSettings?.minWriterRoleInfo?.role
+          const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
+          const conversationIDKey = get().id
+          const cannotWrite = conv?.convSettings?.minWriterRoleInfo?.cannotWrite
+          logger.info(
+            `got new minWriterRole ${role || ''} for convID ${conversationIDKey}, cannotWrite ${
+              cannotWrite ? 1 : 0
+            }`
+          )
+          if (role && role !== 'none') {
+            // only insert if the convo is already in the inbox
+            if (get().meta.conversationIDKey === conversationIDKey) {
+              get().dispatch.updateMeta({
+                cannotWrite,
+                minWriterRole: role,
+              })
+            }
+          } else {
+            logger.warn(
+              `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
+            )
+          }
+        }
+      }
     },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {
@@ -537,6 +650,92 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.unsentText = undefined
       })
     },
+    selectedConversation: () => {
+      // blank out draft so we don't flash old data when switching convs
+      set(s => {
+        s.meta.draft = ''
+      })
+
+      const f = async () => {
+        const Constants = await import('.')
+        const ConfigConstants = await import('../config')
+        const UsersConstants = await import('../users')
+        const conversationIDKey = get().id
+
+        const fetchConversationBio = () => {
+          const participantInfo = get().participants
+          const username = ConfigConstants.useCurrentUserState.getState().username
+          const otherParticipants = Constants.getRowParticipants(participantInfo, username || '')
+          if (otherParticipants.length === 1) {
+            // we're in a one-on-one convo
+            const username = otherParticipants[0] || ''
+
+            // if this is an SBS/phone/email convo or we get a garbage username, don't do anything
+            if (username === '' || username.includes('@')) {
+              return
+            }
+
+            UsersConstants.useState.getState().dispatch.getBio(username)
+          }
+        }
+
+        const updateOrangeAfterSelected = () => {
+          get().dispatch.setContainsLatestMessage(true)
+          const {readMsgID, maxVisibleMsgID} = get().meta
+          logger.info(
+            `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
+          )
+          if (maxVisibleMsgID > readMsgID) {
+            // Store the message ID that will display the orange line above it,
+            // which is the first message after the last read message. We can't
+            // just increment `readMsgID` since that msgID might be a
+            // non-visible (edit, delete, reaction...) message so we scan the
+            // ordinals for the appropriate value.
+            const messageMap = getReduxState().chat2.messageMap.get(conversationIDKey)
+            const ordinals = get().messageOrdinals
+            const ord =
+              messageMap &&
+              ordinals?.find(o => {
+                const message = messageMap.get(o)
+                return !!(message && message.id >= readMsgID + 1)
+              })
+            const message = ord ? messageMap?.get(ord) : null
+            if (message?.id) {
+              get().dispatch.setOrangeLine(message.id)
+            } else {
+              get().dispatch.setOrangeLine(0)
+            }
+          } else {
+            // If there aren't any new messages, we don't want to display an
+            // orange line so remove its entry from orangeLineMap
+            get().dispatch.setOrangeLine(0)
+          }
+        }
+
+        const ensureSelectedTeamLoaded = () => {
+          const selectedConversation = Constants.getSelectedConversation()
+          const meta = Constants.getConvoState(selectedConversation).meta
+          if (meta.conversationIDKey === selectedConversation) {
+            const {teamID, teamname} = meta
+            if (teamname) {
+              TeamsConstants.useState.getState().dispatch.getMembers(teamID)
+            }
+          }
+        }
+        ensureSelectedTeamLoaded()
+        get().dispatch.loadOrangeLine()
+        const meta = get().meta
+        const participantInfo = get().participants
+        const force = meta.conversationIDKey !== conversationIDKey || participantInfo.all.length === 0
+        Constants.useState.getState().dispatch.unboxRows([conversationIDKey], force)
+        get().dispatch.setThreadLoadStatus(RPCChatTypes.UIChatThreadStatusTyp.none)
+        get().dispatch.setMessageCenterOrdinal()
+        updateOrangeAfterSelected()
+        fetchConversationBio()
+        Constants.useState.getState().dispatch.resetConversationErrored()
+      }
+      Z.ignorePromise(f())
+    },
     setCommandMarkdown: md => {
       set(s => {
         s.commandMarkdown = md
@@ -623,8 +822,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         get().dispatch.setExplodingModeLocked(false)
 
         const category = `${Common.explodingModeGregorKeyPrefix}${conversationIDKey}`
-        // TODO remove redux
-        const meta = Meta.getMeta(getReduxState(), conversationIDKey)
+        const meta = get().meta
         const convRetention = Meta.getEffectiveRetentionPolicy(meta)
         if (seconds === 0 || seconds === convRetention.seconds) {
           // dismiss the category so we don't leave cruft in the push state
@@ -685,7 +883,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
         const state = getReduxState()
-        const meta = state.chat2.metaMap.get(conversationIDKey)
+        const meta = get().meta
         const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxVisibleMsgID : 0
         let msgID = unreadLineID
 
@@ -793,6 +991,15 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           s.messageTypeMap.delete(o)
         }
       })
+    },
+    setMeta: _m => {
+      // see updatemeta
+      const m = _m ?? Meta.makeConversationMeta()
+      set(s => {
+        s.meta = m
+      })
+      get().dispatch.setDraft(get().meta.draft)
+      get().dispatch.setMuted(get().meta.isMuted)
     },
     setMoreToLoad: m => {
       set(s => {
@@ -1017,6 +1224,18 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
+    updateMeta: (m: Partial<Types.ConversationMeta>) => {
+      // see setmeta
+      set(s => {
+        const keys = Object.keys(m) as Array<keyof Types.ConversationMeta>
+        keys.forEach(k => {
+          // @ts-ignore
+          s.meta[k] = m[k]
+        })
+      })
+      get().dispatch.setDraft(get().meta.draft)
+      get().dispatch.setMuted(get().meta.isMuted)
+    },
   }
   return {
     ...initialConvoStore,
@@ -1043,7 +1262,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     },
     getExplodingMode: (): number => {
       const mode = get().explodingModeLock ?? get().explodingMode
-      const meta = Meta.getMeta(getReduxState(), get().id)
+      const meta = get().meta
       const convRetention = Meta.getEffectiveRetentionPolicy(meta)
       return convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
     },

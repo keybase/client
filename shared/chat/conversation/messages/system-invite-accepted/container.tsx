@@ -1,6 +1,5 @@
 import * as RouterConstants from '../../../../constants/router2'
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as ConfigConstants from '../../../../constants/config'
 import * as React from 'react'
 import SystemInviteAccepted from '.'
@@ -10,8 +9,8 @@ type OwnProps = {message: Types.MessageSystemInviteAccepted}
 
 const SystemInviteAcceptedContainer = React.memo(function SystemInviteAcceptedContainer(p: OwnProps) {
   const {message} = p
-  const {role, conversationIDKey} = message
-  const {teamID, teamname} = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {role} = message
+  const {teamID, teamname} = Constants.useContext(s => s.meta)
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onViewTeam = React.useCallback(() => {

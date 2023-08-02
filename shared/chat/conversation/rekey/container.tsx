@@ -6,11 +6,6 @@ import * as Container from '../../../util/container'
 import * as RouterConstants from '../../../constants/router2'
 import ParticipantRekey from './participant-rekey'
 import YouRekey from './you-rekey'
-import type * as Types from '../../../constants/types/chat2'
-
-type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey
-}
 
 type Props = {
   onBack: () => void
@@ -28,10 +23,9 @@ const Rekey = (props: Props) =>
     <ParticipantRekey rekeyers={props.rekeyers} onShowProfile={props.onShowProfile} onBack={props.onBack} />
   )
 
-export default (ownProps: OwnProps) => {
-  const {conversationIDKey} = ownProps
+export default () => {
   const _you = ConfigConstants.useCurrentUserState(s => s.username)
-  const rekeyers = Container.useSelector(state => Constants.getMeta(state, conversationIDKey).rekeyers)
+  const rekeyers = Constants.useContext(s => s.meta.rekeyers)
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
   const onBack = () => {

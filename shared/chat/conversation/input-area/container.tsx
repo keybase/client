@@ -4,7 +4,6 @@ import type * as Types from '../../../constants/types/chat2'
 import Normal from './normal'
 import Preview from './preview/container'
 import ThreadSearch from '../search/container'
-import shallowEqual from 'shallowequal'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -19,11 +18,7 @@ const InputAreaContainer = (p: OwnProps) => {
   const {conversationIDKey, focusInputCounter, jumpToRecent} = p
   const {onRequestScrollUp, onRequestScrollDown, onRequestScrollToBottom} = p
   const showThreadSearch = Constants.useContext(s => s.threadSearchInfo.visible)
-  const {membershipType, resetParticipants, wasFinalizedBy} = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    const {membershipType, resetParticipants, wasFinalizedBy} = meta
-    return {membershipType, resetParticipants, wasFinalizedBy}
-  }, shallowEqual)
+  const {membershipType, resetParticipants, wasFinalizedBy} = Constants.useContext(s => s.meta)
 
   let noInput = resetParticipants.size > 0 || !!wasFinalizedBy
   if (

@@ -11,18 +11,28 @@ const RemoteContainer = () => {
   const {
     avatarRefreshCounter,
     badgeMap,
-    unreadMap,
     daemonHandshakeState,
+    darkMode,
+    diskSpaceStatus,
+    endEstimate,
+    fileName,
+    files,
     followers,
     following,
-    loggedIn,
-    outOfDate,
-    username,
     httpSrvAddress,
     httpSrvToken,
-    windowShownCountNum,
     infoMap,
-    ...rest
+    kbfsDaemonStatus,
+    kbfsEnabled,
+    loggedIn,
+    metaMap,
+    navBadges,
+    outOfDate,
+    showingDiskSpaceBanner,
+    totalSyncingBytes,
+    unreadMap,
+    username,
+    windowShownCountNum,
   } = Container.useRemoteStore<DeserializeProps>()
   useAvatarState(s => s.dispatch.replace)(avatarRefreshCounter)
   ConfigConstants.useDaemonState(s => s.dispatch.setState)(daemonHandshakeState)
@@ -32,20 +42,32 @@ const RemoteContainer = () => {
   ConfigConstants.useConfigState(s => s.dispatch.setHTTPSrvInfo)(httpSrvAddress, httpSrvToken)
   ConfigConstants.useConfigState(s => s.dispatch.setOutOfDate)(outOfDate)
   ConfigConstants.useConfigState(s => s.dispatch.setLoggedIn)(loggedIn, false)
-  for (const [id, unread] of unreadMap.entries()) {
+  for (const [id, unread] of unreadMap) {
     ChatConstants.getConvoState(id).dispatch.unreadUpdated(unread)
   }
-  for (const [id, badge] of badgeMap.entries()) {
+  for (const [id, badge] of badgeMap) {
     ChatConstants.getConvoState(id).dispatch.badgesUpdated(badge)
+  }
+  for (const [id, meta] of metaMap) {
+    ChatConstants.getConvoState(id).dispatch.updateMeta(meta)
   }
   return (
     <Menubar
-      {...rest}
-      loggedIn={loggedIn}
-      username={username}
       daemonHandshakeState={daemonHandshakeState}
-      windowShownCount={windowShownCountNum}
+      darkMode={darkMode}
+      diskSpaceStatus={diskSpaceStatus}
+      endEstimate={endEstimate}
+      fileName={fileName}
+      files={files}
+      kbfsDaemonStatus={kbfsDaemonStatus}
+      kbfsEnabled={kbfsEnabled}
+      loggedIn={loggedIn}
+      navBadges={navBadges}
       outOfDate={outOfDate}
+      showingDiskSpaceBanner={showingDiskSpaceBanner}
+      totalSyncingBytes={totalSyncingBytes}
+      username={username}
+      windowShownCount={windowShownCountNum}
     />
   )
 }

@@ -35,11 +35,9 @@ const ChatPreview = (p: {convLimit?: number}) => {
   const {convLimit} = p
   const {conversationsToSend} = state
 
-  const convRows = __STORYBOOK__
-    ? []
-    : conversationsToSend
-        .slice(0, convLimit ? convLimit : conversationsToSend.length)
-        .map(c => c.conversationIDKey)
+  const convRows = conversationsToSend
+    .slice(0, convLimit ? convLimit : conversationsToSend.length)
+    .map(c => c.conversationIDKey)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>

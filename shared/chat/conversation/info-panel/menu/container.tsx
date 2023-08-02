@@ -9,7 +9,6 @@ import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as TeamConstants from '../../../../constants/teams'
 import * as TeamTypes from '../../../../constants/types/teams'
-import shallowEqual from 'shallowequal'
 import {InfoPanelMenu} from '.'
 import {ConvoIDContext} from '../../messages/ids-context'
 
@@ -38,7 +37,8 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
 
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const participantInfo = ChatConstants.useContext(s => s.participants)
-  const data = Container.useSelector(state => {
+  const meta = ChatConstants.useContext(s => s.meta)
+  const data = (() => {
     const manageChannelsTitle = isSmallTeam ? 'Create channels...' : 'Browse all channels'
     const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
 
@@ -57,8 +57,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       teamname: '',
     }
 
-    if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
-      const meta = ChatConstants.getMeta(state, conversationIDKey)
+    if (meta.conversationIDKey !== ChatConstants.noConversationIDKey) {
       const participants = ChatConstants.getRowParticipants(participantInfo, username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =
@@ -102,7 +101,7 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
       return {...common, badgeSubscribe, canAddPeople, teamID, teamname, yourOperations}
     }
     return {...common}
-  }, shallowEqual)
+  })()
 
   const {teamname, teamID, badgeSubscribe, canAddPeople, channelname, isInChannel, ignored} = data
   const {manageChannelsSubtitle, manageChannelsTitle, participants, teamType, isMuted} = data

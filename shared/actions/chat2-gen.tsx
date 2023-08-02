@@ -25,7 +25,6 @@ export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const blockConversation = 'chat2:blockConversation'
 export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
 export const clearMessages = 'chat2:clearMessages'
-export const clearMetas = 'chat2:clearMetas'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const createConversation = 'chat2:createConversation'
 export const deselectedConversation = 'chat2:deselectedConversation'
@@ -59,13 +58,6 @@ export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
-export const metaDelete = 'chat2:metaDelete'
-export const metaHandleQueue = 'chat2:metaHandleQueue'
-export const metaNeedsUpdating = 'chat2:metaNeedsUpdating'
-export const metaReceivedError = 'chat2:metaReceivedError'
-export const metaRequestTrusted = 'chat2:metaRequestTrusted'
-export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
-export const metasReceived = 'chat2:metasReceived'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
@@ -78,8 +70,6 @@ export const replyJump = 'chat2:replyJump'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
-export const saveMinWriterRole = 'chat2:saveMinWriterRole'
-export const selectedConversation = 'chat2:selectedConversation'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
@@ -95,20 +85,12 @@ export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
-export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateReactions = 'chat2:updateReactions'
-export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Action Creators
-/**
- * About to try and unbox some inbox rows
- */
-export const createMetaRequestingTrusted = (payload: {
-  readonly conversationIDKeys: Array<Types.ConversationIDKey>
-}) => ({payload, type: metaRequestingTrusted as typeof metaRequestingTrusted})
 /**
  * Actually start a conversation
  */
@@ -116,28 +98,6 @@ export const createCreateConversation = (payload: {
   readonly highlightMessageID?: number
   readonly participants: Array<string>
 }) => ({payload, type: createConversation as typeof createConversation})
-/**
- * Actually unboxing
- */
-export const createMetaRequestTrusted = (payload: {
-  readonly force?: boolean
-  readonly noWaiting?: boolean
-  readonly reason:
-    | 'refreshPreviousSelected'
-    | 'requestTeamsUnboxing'
-    | 'inboxSynced'
-    | 'setConvRetention'
-    | 'subTeamRename'
-    | 'tlfFinalize'
-    | 'threadStale'
-    | 'membersUpdate'
-    | 'scroll'
-    | 'ensureSelectedMeta'
-    | 'ensureWidgetMetas'
-    | 'ensureChannelMeta'
-    | 'inboxSearchResults'
-  readonly conversationIDKeys: Array<Types.ConversationIDKey>
-}) => ({payload, type: metaRequestTrusted as typeof metaRequestTrusted})
 /**
  * Add a list of users to a conversation. Creates a SystemBulkAddToConv message.
  */
@@ -182,19 +142,6 @@ export const createBlockConversation = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly reportUser: boolean
 }) => ({payload, type: blockConversation as typeof blockConversation})
-/**
- * Consume a service notification that a conversation's retention policy has been updated
- */
-export const createUpdateConvRetentionPolicy = (payload: {readonly meta: Types.ConversationMeta}) => ({
-  payload,
-  type: updateConvRetentionPolicy as typeof updateConvRetentionPolicy,
-})
-/**
- * Consume a service notification that a team retention policy was updated
- */
-export const createUpdateTeamRetentionPolicy = (payload: {
-  readonly metas: Array<Types.ConversationMeta>
-}) => ({payload, type: updateTeamRetentionPolicy as typeof updateTeamRetentionPolicy})
 /**
  * Conversation was loaded and is offline
  */
@@ -245,22 +192,6 @@ export const createMessageErrored = (payload: {
   readonly outboxID: Types.OutboxID
 }) => ({payload, type: messageErrored as typeof messageErrored})
 /**
- * Got some inbox errors
- */
-export const createMetaReceivedError = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly error?: RPCChatTypes.InboxUIItemError
-  readonly username?: string
-}) => ({payload, type: metaReceivedError as typeof metaReceivedError})
-/**
- * Got some new inbox rows
- */
-export const createMetasReceived = (payload: {
-  readonly metas: Array<Types.ConversationMeta>
-  readonly removals?: Array<Types.ConversationIDKey>
-  readonly fromInboxRefresh?: boolean
-}) => ({payload, type: metasReceived as typeof metasReceived})
-/**
  * Hide a conversation until future activity
  */
 export const createHideConversation = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
@@ -293,13 +224,6 @@ export const createAttachmentPasted = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly data: Buffer
 }) => ({payload, type: attachmentPasted as typeof attachmentPasted})
-/**
- * Internal action: pull more metas from the queue to request
- */
-export const createMetaHandleQueue = (payload?: undefined) => ({
-  payload,
-  type: metaHandleQueue as typeof metaHandleQueue,
-})
 /**
  * Jump to a replied to message
  */
@@ -496,12 +420,6 @@ export const createPreviewConversation = (payload: {
     | 'transaction'
 }) => ({payload, type: previewConversation as typeof previewConversation})
 /**
- * Selected a conversation (used by nav only)
- */
-export const createSelectedConversation = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-}) => ({payload, type: selectedConversation as typeof selectedConversation})
-/**
  * Send a text message
  */
 export const createMessageSend = (payload: {
@@ -655,14 +573,6 @@ export const createAttachmentUploading = (payload: {
   readonly ratio: number
 }) => ({payload, type: attachmentUploading as typeof attachmentUploading})
 /**
- * Update the minWriterRole stored with the conversation metadata.
- */
-export const createSaveMinWriterRole = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly role: TeamsTypes.TeamRoleType
-  readonly cannotWrite: boolean
-}) => ({payload, type: saveMinWriterRole as typeof saveMinWriterRole})
-/**
  * Update the unreadline line position for a conversation
  */
 export const createUpdateUnreadline = (payload: {
@@ -683,13 +593,6 @@ export const createNotificationSettingsUpdated = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly settings: RPCChatTypes.ConversationNotificationInfo
 }) => ({payload, type: notificationSettingsUpdated as typeof notificationSettingsUpdated})
-/**
- * We got a status update saying it was blocked or ignored
- */
-export const createMetaDelete = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly selectSomethingElse: boolean
-}) => ({payload, type: metaDelete as typeof metaDelete})
 /**
  * We got an uploaded attachment.
  * While online this is like an edit of the placeholder
@@ -714,13 +617,6 @@ export const createAttachmentDownload = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: attachmentDownload as typeof attachmentDownload})
-/**
- * We want to unbox an inbox row
- */
-export const createMetaNeedsUpdating = (payload: {
-  readonly conversationIDKeys: Array<Types.ConversationIDKey>
-  readonly reason: string
-}) => ({payload, type: metaNeedsUpdating as typeof metaNeedsUpdating})
 /**
  * We want to upload some attachments
  */
@@ -758,7 +654,6 @@ export const createClearMessages = (payload?: undefined) => ({
   payload,
   type: clearMessages as typeof clearMessages,
 })
-export const createClearMetas = (payload?: undefined) => ({payload, type: clearMetas as typeof clearMetas})
 export const createDeselectedConversation = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: deselectedConversation as typeof deselectedConversation})
@@ -827,7 +722,6 @@ export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ChannelSuggestionsTriggeredPayload = ReturnType<typeof createChannelSuggestionsTriggered>
 export type ClearMessagesPayload = ReturnType<typeof createClearMessages>
-export type ClearMetasPayload = ReturnType<typeof createClearMetas>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
 export type CreateConversationPayload = ReturnType<typeof createCreateConversation>
 export type DeselectedConversationPayload = ReturnType<typeof createDeselectedConversation>
@@ -861,13 +755,6 @@ export type MessageWasEditedPayload = ReturnType<typeof createMessageWasEdited>
 export type MessagesAddPayload = ReturnType<typeof createMessagesAdd>
 export type MessagesExplodedPayload = ReturnType<typeof createMessagesExploded>
 export type MessagesWereDeletedPayload = ReturnType<typeof createMessagesWereDeleted>
-export type MetaDeletePayload = ReturnType<typeof createMetaDelete>
-export type MetaHandleQueuePayload = ReturnType<typeof createMetaHandleQueue>
-export type MetaNeedsUpdatingPayload = ReturnType<typeof createMetaNeedsUpdating>
-export type MetaReceivedErrorPayload = ReturnType<typeof createMetaReceivedError>
-export type MetaRequestTrustedPayload = ReturnType<typeof createMetaRequestTrusted>
-export type MetaRequestingTrustedPayload = ReturnType<typeof createMetaRequestingTrusted>
-export type MetasReceivedPayload = ReturnType<typeof createMetasReceived>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type NotificationSettingsUpdatedPayload = ReturnType<typeof createNotificationSettingsUpdated>
@@ -880,8 +767,6 @@ export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = ReturnType<typeof createResetLetThemIn>
 export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMention>
-export type SaveMinWriterRolePayload = ReturnType<typeof createSaveMinWriterRole>
-export type SelectedConversationPayload = ReturnType<typeof createSelectedConversation>
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
@@ -897,11 +782,9 @@ export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePr
 export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
-export type UpdateConvRetentionPolicyPayload = ReturnType<typeof createUpdateConvRetentionPolicy>
 export type UpdateMessagesPayload = ReturnType<typeof createUpdateMessages>
 export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNotificationSettings>
 export type UpdateReactionsPayload = ReturnType<typeof createUpdateReactions>
-export type UpdateTeamRetentionPolicyPayload = ReturnType<typeof createUpdateTeamRetentionPolicy>
 export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 
 // All Actions
@@ -923,7 +806,6 @@ export type Actions =
   | BlockConversationPayload
   | ChannelSuggestionsTriggeredPayload
   | ClearMessagesPayload
-  | ClearMetasPayload
   | ConfirmScreenResponsePayload
   | CreateConversationPayload
   | DeselectedConversationPayload
@@ -957,13 +839,6 @@ export type Actions =
   | MessagesAddPayload
   | MessagesExplodedPayload
   | MessagesWereDeletedPayload
-  | MetaDeletePayload
-  | MetaHandleQueuePayload
-  | MetaNeedsUpdatingPayload
-  | MetaReceivedErrorPayload
-  | MetaRequestTrustedPayload
-  | MetaRequestingTrustedPayload
-  | MetasReceivedPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | NotificationSettingsUpdatedPayload
@@ -976,8 +851,6 @@ export type Actions =
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
   | ResolveMaybeMentionPayload
-  | SaveMinWriterRolePayload
-  | SelectedConversationPayload
   | SendAudioRecordingPayload
   | SendTypingPayload
   | SetConvRetentionPolicyPayload
@@ -993,10 +866,8 @@ export type Actions =
   | UnhideConversationPayload
   | UnpinMessagePayload
   | UnsentTextChangedPayload
-  | UpdateConvRetentionPolicyPayload
   | UpdateMessagesPayload
   | UpdateNotificationSettingsPayload
   | UpdateReactionsPayload
-  | UpdateTeamRetentionPolicyPayload
   | UpdateUnreadlinePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

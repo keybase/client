@@ -36,7 +36,7 @@ export default (ownProps: OwnProps) => {
   const message = m?.type === 'text' || m?.type === 'attachment' ? m : emptyMessage
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const yourMessage = message.author === you
-  const meta = Container.useSelector(state => Constants.getMeta(state, message.conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const participantInfo = Constants.useContext(s => s.participants)
   const _canDeleteHistory = TeamConstants.useState(
     s => meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(s, meta.teamID).deleteChatHistory

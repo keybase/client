@@ -34,8 +34,8 @@ const NormalWrapper = React.memo(function NormalWrapper(props: Props) {
   }, [])
 
   const showThreadSearch = Constants.useContext(s => s.threadSearchInfo.visible)
-  const {cannotWrite, minWriterReason, threadLoadedOffline} = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
+  const {cannotWrite, minWriterReason, threadLoadedOffline} = Constants.useContext(s => {
+    const meta = s.meta
     const {cannotWrite, offline, minWriterRole} = meta
     const threadLoadedOffline = offline
     const minWriterReason = `You must be at least ${indefiniteArticle(

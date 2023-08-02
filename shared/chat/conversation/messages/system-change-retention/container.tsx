@@ -18,7 +18,7 @@ const SystemChangeRetentionContainer = React.memo(function SystemChangeRetention
   const {conversationIDKey, isInherit, isTeam, membersType, policy, timestamp, user} = message
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const canManage = TeamsConstants.useState(s =>
     meta.teamType === 'adhoc' ? true : getCanPerform(s, meta.teamname).setRetentionPolicy
   )

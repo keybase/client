@@ -91,17 +91,14 @@ export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter
     dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey}))
   }
 
-  const teamID = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    return meta.teamID
-  })
+  const meta = Constants.useContext(s => s.meta)
+  const {teamID} = meta
 
   const suggestChannelsLoading = Container.useAnyWaiting([
     TeamsConstants.getChannelsWaitingKey(teamID),
     Constants.waitingKeyMutualTeams(conversationIDKey),
   ])
   const teamMeta = TeamsConstants.useState(s => s.teamMeta)
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   return Constants.useContext(s => {
     const fil = filter.toLowerCase()
     // don't include 'small' here to ditch the single #general suggestion

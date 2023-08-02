@@ -3,6 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import type * as ChatTypes from '../../../../constants/types/chat2'
 import type * as TeamTypes from '../../../../constants/types/teams'
+import * as Constants from '../../../../constants/chat2'
 import * as InfoPanelCommon from '../common'
 import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
@@ -49,7 +50,9 @@ type AdhocHeaderProps = {
 }
 
 const AdhocHeader = (props: AdhocHeaderProps) => {
-  const {channelHumans} = InfoPanelCommon.useHumans(props.conversationIDKey)
+  const meta = Constants.useContext(s => s.meta)
+  const participants = Constants.useContext(s => s.participants)
+  const {channelHumans} = InfoPanelCommon.useHumans(participants, meta)
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
       <Avatars
@@ -411,7 +414,7 @@ const styles = Styles.styleSheetCreate(
           color: Styles.globalColors.blueDark,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export {InfoPanelMenu}

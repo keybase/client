@@ -31,7 +31,7 @@ export default (ownProps: OwnProps) => {
   const {conversationIDKey, ordinal} = ownProps
   const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
   const message = m?.type === 'attachment' ? m : emptyMessage
-  const meta = Container.useSelector(state => Constants.getMeta(state, message.conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const isTeam = !!meta.teamname
   const participantInfo = Constants.useContext(s => s.participants)
   const yourOperations = TeamsConstants.useState(s => getCanPerformByID(s, meta.teamID))

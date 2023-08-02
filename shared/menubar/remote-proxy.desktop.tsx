@@ -1,6 +1,5 @@
 // A mirror of the remote menubar windows.
 import * as ConfigConstants from '../constants/config'
-import * as Container from '../util/container'
 import * as DarkMode from '../constants/darkmode'
 import * as FSConstants from '../constants/fs'
 import * as ChatConstants from '../constants/chat2'
@@ -65,6 +64,32 @@ const getCachedUsernames = memoize(
   ([a], [b]) => shallowEqual(a, b)
 )
 
+const convoDiff = (a: ChatConstants.ConvoState, b: ChatConstants.ConvoState) => {
+  if (a === b) return false
+
+  if (a.meta !== b.meta) {
+    if (
+      a.meta.channelname !== b.meta.channelname ||
+      a.meta.snippetDecorated !== b.meta.snippetDecorated ||
+      a.meta.teamType !== b.meta.teamType ||
+      a.meta.timestamp !== b.meta.timestamp ||
+      a.meta.tlfname !== b.meta.tlfname
+    ) {
+      return true
+    }
+  }
+
+  if (
+    a.badge !== b.badge ||
+    a.unread !== b.unread ||
+    !shallowEqual(a.participants.name, b.participants.name)
+  ) {
+    return true
+  }
+
+  return false
+}
+
 // TODO could make this render less
 const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const following = Followers.useFollowerState(s => s.following)
@@ -86,18 +111,6 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   }, shallowEqual)
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const widgetList = ChatConstants.useState(s => s.inboxLayout?.widgetList)
-  const s = Container.useSelector(state => {
-    const {chat2} = state
-    const {metaMap} = chat2
-    return {
-      metaMap,
-      navBadges,
-      widgetBadge,
-    }
-  }, shallowEqual)
-
-  const {metaMap} = s
-
   const darkMode = Styles.isDarkMode()
   const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
@@ -107,24 +120,46 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     [tlfUpdates, uploads]
   )
 
+  // could handle this in a different way later but here we need to subscribe to all the convoStates
+  // normally we'd have a list and these would all subscribe within the component but this proxy isn't
+  // setup that way so instead we manually subscribe to all the substores and increment when a meta
+  // changes inside
+  const [remakeChat, setRemakeChat] = React.useState(0)
+  React.useEffect(() => {
+    const unsubs = widgetList?.map(v => {
+      return ChatConstants.stores.get(v.convID)?.subscribe((s, old) => {
+        if (convoDiff(s, old)) {
+          setRemakeChat(c => c + 1)
+        }
+      })
+    })
+
+    return () => {
+      for (const unsub of unsubs ?? []) {
+        unsub?.()
+      }
+    }
+  }, [widgetList])
+
   const conversationsToSend = React.useMemo(
     () =>
       widgetList?.map(v => {
-        const c = metaMap.get(v.convID)
-        const {badge, unread, participants} = ChatConstants.getConvoState(v.convID)
+        remakeChat // implied dependency
+        const {badge, unread, participants, meta} = ChatConstants.getConvoState(v.convID)
+        const c = meta
         return {
-          channelname: c?.channelname,
+          channelname: c.channelname,
           conversationIDKey: v.convID,
-          snippetDecorated: c?.snippetDecorated,
-          teamType: c?.teamType,
-          timestamp: c?.timestamp,
-          tlfname: c?.tlfname,
+          snippetDecorated: c.snippetDecorated,
+          teamType: c.teamType,
+          timestamp: c.timestamp,
+          tlfname: c.tlfname,
           ...(badge > 0 ? {hasBadge: true as const} : {}),
           ...(unread > 0 ? {hasUnread: true as const} : {}),
           ...(participants.name.length ? {participants: participants.name.slice(0, 3)} : {}),
         }
       }) ?? [],
-    [widgetList, metaMap]
+    [widgetList, remakeChat]
   )
 
   // filter some data based on visible users

@@ -60,7 +60,10 @@ export const useState = Z.createZustand<State>(() => {
         const UsersConstants = await import('./users')
         const UnlockConstants = await import('./unlock-folders')
         switch (action.type) {
-          case EngineGen.chat1NotifyChatChatTypingUpdate:
+          case EngineGen.chat1NotifyChatChatTypingUpdate: // fallthrough
+          case EngineGen.chat1ChatUiChatInboxFailed: // fallthrough
+          case EngineGen.chat1NotifyChatChatSetConvRetention: // fallthrough
+          case EngineGen.chat1NotifyChatChatSetConvSettings:
             ChatConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
 

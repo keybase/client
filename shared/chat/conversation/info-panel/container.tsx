@@ -21,7 +21,7 @@ const InfoPanelConnector = (props: Props) => {
   const conversationIDKey: Types.ConversationIDKey =
     props.conversationIDKey ?? props.conversationIDKey ?? Constants.noConversationIDKey
 
-  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const meta = Constants.useContext(s => s.meta)
   const shouldNavigateOut = meta.conversationIDKey === Constants.noConversationIDKey
   const yourRole = TeamConstants.useState(s => TeamConstants.getRole(s, meta.teamID))
   const isPreview = meta.membershipType === 'youArePreviewing'

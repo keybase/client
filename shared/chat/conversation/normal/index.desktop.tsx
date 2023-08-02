@@ -80,7 +80,7 @@ class Conversation extends React.PureComponent<Props> {
             <LoadingLine conversationIDKey={this.props.conversationIDKey} />
           </Kb.Box2>
           <InvitationToBlock conversationID={this.props.conversationIDKey} />
-          <Banner conversationIDKey={this.props.conversationIDKey} />
+          <Banner />
           <InputArea
             focusInputCounter={this.props.focusInputCounter}
             jumpToRecent={this.props.jumpToRecent}

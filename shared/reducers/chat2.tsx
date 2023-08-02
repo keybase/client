@@ -1,7 +1,6 @@
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
-import * as TeamsConstants from '../constants/teams'
 import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
@@ -210,24 +209,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.resetStore]: () => {
     return {...initialState}
   },
-  [Chat2Gen.selectedConversation]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const {metaMap} = draftState
-
-    // blank out draft so we don't flash old data when switching convs
-    const meta = metaMap.get(conversationIDKey)
-    if (meta) {
-      meta.draft = ''
-    }
-    Constants.getConvoState(conversationIDKey).dispatch.setThreadLoadStatus(
-      RPCChatTypes.UIChatThreadStatusTyp.none
-    )
-    if (Constants.isValidConversationIDKey(conversationIDKey)) {
-      // If navigating away from error conversation to a valid conv - clear
-      // error msg.
-      Constants.useState.getState().dispatch.resetConversationErrored()
-    }
-  },
   [Chat2Gen.messagesAdd]: (draftState, action) => {
     const {context, conversationIDKey, shouldClearOthers} = action.payload
     // pull out deletes and handle at the end
@@ -410,7 +391,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (!action.payload.forceContainsLatestCalc && containsLatestMessage) {
       // do nothing
     } else {
-      const meta = draftState.metaMap.get(conversationIDKey)
+      const meta = Constants.getConvoState(conversationIDKey).meta
       const ordinals = Constants.getConvoState(conversationIDKey).messageOrdinals ?? []
       let maxMsgID = 0
       const convMsgMap = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
@@ -423,7 +404,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           break
         }
       }
-      if (meta && maxMsgID >= meta.maxVisibleMsgID) {
+      if (meta.conversationIDKey === conversationIDKey && maxMsgID >= meta.maxVisibleMsgID) {
         containsLatestMessage = true
       } else if (action.payload.forceContainsLatestCalc) {
         containsLatestMessage = false
@@ -574,15 +555,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       })
     }
   },
-  [Chat2Gen.metasReceived]: (draftState, action) => {
-    const {metas, removals} = action.payload
-    const {metaMap} = draftState
-    removals && removals.forEach(m => metaMap.delete(m))
-    metas.forEach(m => {
-      const old = metaMap.get(m.conversationIDKey)
-      metaMap.set(m.conversationIDKey, old ? Constants.updateMeta(old, m) : m)
-    })
-  },
   [Chat2Gen.messageDelete]: (draftState, action) => {
     const {conversationIDKey, ordinal} = action.payload
     const {messageMap} = draftState
@@ -636,72 +608,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       m.title = text.stringValue()
     }
   },
-  [Chat2Gen.metaReceivedError]: (draftState, action) => {
-    const {error, username, conversationIDKey} = action.payload
-    if (error) {
-      if (
-        error.typ === RPCChatTypes.ConversationErrorType.otherrekeyneeded ||
-        error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
-      ) {
-        const {rekeyInfo} = error
-        const participants = [
-          ...(rekeyInfo
-            ? new Set<string>(
-                ([] as Array<string>)
-                  .concat(rekeyInfo.writerNames || [], rekeyInfo.readerNames || [])
-                  .filter(Boolean)
-              )
-            : new Set<string>(error.unverifiedTLFName.split(','))),
-        ]
-
-        const rekeyers = new Set<string>(
-          error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
-            ? [username || '']
-            : (rekeyInfo && rekeyInfo.rekeyers) || []
-        )
-        const newMeta = Constants.unverifiedInboxUIItemToConversationMeta(error.remoteConv)
-        if (!newMeta) {
-          // public conversation, do nothing
-          return
-        }
-        draftState.metaMap.set(conversationIDKey, {
-          ...newMeta,
-          rekeyers,
-          snippet: error.message,
-          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
-          trustedState: 'error' as const,
-        })
-        Constants.getConvoState(conversationIDKey).dispatch.setParticipants({
-          all: participants,
-          contactName: Constants.noParticipantInfo.contactName,
-          name: participants,
-        })
-      } else {
-        const old = draftState.metaMap.get(conversationIDKey)
-        if (old) {
-          old.snippet = error.message
-          old.snippetDecoration = RPCChatTypes.SnippetDecoration.none
-          old.trustedState = 'error'
-        }
-      }
-    } else {
-      draftState.metaMap.delete(conversationIDKey)
-    }
-  },
-  [Chat2Gen.metaRequestingTrusted]: (draftState, action) => {
-    const {conversationIDKeys} = action.payload
-    const {metaMap} = draftState
-    const ids = Constants.getConversationIDKeyMetasToLoad(
-      conversationIDKeys,
-      metaMap as Types.State['metaMap']
-    )
-    ids.forEach(conversationIDKey => {
-      const old = metaMap.get(conversationIDKey)
-      if (old) {
-        old.trustedState = 'requesting'
-      }
-    })
-  },
   [Chat2Gen.markConversationsStale]: (draftState, action) => {
     const {updateType, conversationIDKeys} = action.payload
     if (updateType === RPCChatTypes.StaleUpdateType.clear) {
@@ -709,42 +615,27 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       conversationIDKeys.forEach(convID => Constants.getConvoState(convID).dispatch.setMessageOrdinals())
     }
   },
-  [Chat2Gen.notificationSettingsUpdated]: (draftState, action) => {
+  [Chat2Gen.notificationSettingsUpdated]: (_draftState, action) => {
     const {conversationIDKey, settings} = action.payload
-    const {metaMap} = draftState
-    const old = metaMap.get(conversationIDKey)
-    old && metaMap.set(conversationIDKey, Constants.updateMetaWithNotificationSettings(old, settings))
+    const cs = Constants.getConvoState(conversationIDKey)
+    if (cs.meta.conversationIDKey === conversationIDKey) {
+      const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
+        Constants.parseNotificationSettings(settings)
+      cs.dispatch.updateMeta({
+        notificationsDesktop: notificationsDesktop,
+        notificationsGlobalIgnoreMentions: notificationsGlobalIgnoreMentions,
+        notificationsMobile: notificationsMobile,
+      })
+    }
   },
-  [Chat2Gen.metaDelete]: (draftState, action) => {
-    const {conversationIDKey} = action.payload
-    draftState.metaMap.delete(conversationIDKey)
-  },
-  [Chat2Gen.setConversationOffline]: (draftState, action) => {
+  [Chat2Gen.setConversationOffline]: (_draftState, action) => {
     const {conversationIDKey, offline} = action.payload
-    const old = draftState.metaMap.get(conversationIDKey)
-    if (old) {
-      old.offline = offline
+    const cs = Constants.getConvoState(conversationIDKey)
+    if (cs.meta.conversationIDKey === conversationIDKey) {
+      cs.dispatch.updateMeta({
+        offline,
+      })
     }
-  },
-  [Chat2Gen.updateConvRetentionPolicy]: (draftState, action) => {
-    const {meta} = action.payload
-    const {metaMap} = draftState
-    const newMeta = meta
-    if (metaMap.has(meta.conversationIDKey)) {
-      // only insert if the convo is already in the inbox
-      metaMap.set(newMeta.conversationIDKey, newMeta)
-    }
-  },
-  [Chat2Gen.updateTeamRetentionPolicy]: (draftState, action) => {
-    const {metas} = action.payload
-    const {metaMap} = draftState
-    metas.forEach(meta => {
-      if (meta && metaMap.has(meta.conversationIDKey)) {
-        // only insert if the convo is already in the inbox
-        metaMap.set(meta.conversationIDKey, meta)
-      }
-    })
-    TeamsConstants.useState.getState().dispatch.updateTeamRetentionPolicy(metas)
   },
   [Chat2Gen.messagesExploded]: (draftState, action) => {
     const {conversationIDKey, messageIDs, explodedBy} = action.payload
@@ -773,14 +664,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         m.flipGameID = ''
       })
   },
-  [Chat2Gen.saveMinWriterRole]: (draftState, action) => {
-    const {cannotWrite, conversationIDKey, role} = action.payload
-    const old = draftState.metaMap.get(conversationIDKey)
-    if (old) {
-      old.cannotWrite = cannotWrite
-      old.minWriterRole = role
-    }
-  },
   [Chat2Gen.updateMessages]: (draftState, action) => {
     const {messages, conversationIDKey} = action.payload
     const {messageMap} = draftState
@@ -807,9 +690,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     for (const [, cs] of Constants.stores) {
       cs.getState().dispatch.setMessageOrdinals()
     }
-  },
-  [Chat2Gen.clearMetas]: draftState => {
-    draftState.metaMap.clear()
   },
   ...paymentActions,
   ...attachmentActions,

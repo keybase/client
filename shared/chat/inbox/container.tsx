@@ -72,6 +72,7 @@ type WrapperProps = Pick<
 const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   const dispatch = Container.useDispatch()
   const inboxHasLoaded = Constants.useState(s => s.inboxHasLoaded)
+  const queueMetaToRequest = Constants.useState(s => s.dispatch.queueMetaToRequest)
   const isFocused = useIsFocused()
   const inboxNumSmallRows = Constants.useState(s => s.inboxNumSmallRows ?? 5)
   const allowShowFloatingButton = Constants.useState(s => {
@@ -86,17 +87,7 @@ const InboxWrapper = React.memo(function InboxWrapper(props: WrapperProps) {
   const onNewChat = React.useCallback(() => {
     appendNewChatBuilder()
   }, [])
-  const onUntrustedInboxVisible = React.useCallback(
-    (conversationIDKeys: Array<Types.ConversationIDKey>) => {
-      dispatch(
-        Chat2Gen.createMetaNeedsUpdating({
-          conversationIDKeys,
-          reason: 'untrusted inbox visible',
-        })
-      )
-    },
-    [dispatch]
-  )
+  const onUntrustedInboxVisible = queueMetaToRequest
 
   const setInboxNumSmallRows = Constants.useState(s => s.dispatch.setInboxNumSmallRows)
   const toggleSmallTeamsExpanded = Constants.useState(s => s.dispatch.toggleSmallTeamsExpanded)

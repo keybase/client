@@ -1,11 +1,9 @@
 import * as Constants from '../../../constants/chat2'
 import * as UsersConstants from '../../../constants/users'
-import * as Container from '../../../util/container'
 import * as Followers from '../../../constants/followers'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import openSMS from '../../../util/sms'
-import type * as Types from '../../../constants/types/chat2'
 import {InviteBanner} from '.'
 import {showShareActionSheet} from '../../../actions/platform-specific'
 
@@ -54,14 +52,13 @@ const Broken = () => {
   return <Kb.ProofBrokenBanner users={users} />
 }
 
-const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKey: Types.ConversationIDKey}) {
-  const {conversationIDKey} = p
+const BannerContainer = React.memo(function BannerContainer() {
   const following = Followers.useFollowerState(s => s.following)
   const infoMap = UsersConstants.useState(s => s.infoMap)
   const dismissed = Constants.useContext(s => s.dismissedInviteBanners)
   const participantInfo = Constants.useContext(s => s.participants)
-  const type = Container.useSelector(state => {
-    const teamType = Constants.getMeta(state, conversationIDKey).teamType
+  const type = Constants.useContext(s => {
+    const teamType = s.meta.teamType
     if (teamType !== 'adhoc') {
       return 'none'
     }
@@ -71,7 +68,7 @@ const BannerContainer = React.memo(function BannerContainer(p: {conversationIDKe
       return 'broken'
     } else {
       const toInvite = participantInfoAll.some(p => p.includes('@'))
-      const hasMessages = !Constants.getMeta(state, conversationIDKey).isEmpty
+      const hasMessages = !s.meta.isEmpty
       if (toInvite && !dismissed && hasMessages) {
         return 'invite'
       } else {

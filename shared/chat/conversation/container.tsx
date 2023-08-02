@@ -12,8 +12,8 @@ type SwitchProps = {conversationIDKey?: Types.ConversationIDKey}
 
 const Conversation = React.memo(function Conversation(p: SwitchProps) {
   const conversationIDKey = p.conversationIDKey ?? Constants.noConversationIDKey
-  const type = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
+  const type = Constants.useContext(s => {
+    const meta = s.meta
     switch (conversationIDKey) {
       case Constants.noConversationIDKey:
         return 'noConvo'
@@ -32,7 +32,7 @@ const Conversation = React.memo(function Conversation(p: SwitchProps) {
 
   switch (type) {
     case 'error':
-      return <Error key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      return <Error />
     case 'noConvo':
       // When navigating back to the inbox on mobile, we deselect
       // conversationIDKey by called mobileChangeSelection. This results in
@@ -46,12 +46,11 @@ const Conversation = React.memo(function Conversation(p: SwitchProps) {
       // To solve this we render a blank screen on mobile conversation views with "noConvo"
       return Container.isPhone ? null : <NoConversation />
     case 'normal':
-      // the id as key is so we entirely force a top down redraw to ensure nothing is possibly from another convo
-      return <Normal key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      return <Normal conversationIDKey={conversationIDKey} />
     case 'youAreReset':
       return <YouAreReset />
     case 'rekey':
-      return <Rekey key={conversationIDKey} conversationIDKey={conversationIDKey} />
+      return <Rekey />
     default:
       return <NoConversation />
   }

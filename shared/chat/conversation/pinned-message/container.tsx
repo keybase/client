@@ -7,17 +7,13 @@ import * as React from 'react'
 import PinnedMessage from '.'
 import type * as Types from '../../../constants/types/chat2'
 import {getCanPerform} from '../../../constants/teams'
-import shallowEqual from 'shallowequal'
 
 type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 const PinnedMessageContainer = React.memo(function PinnedMessageContainer(p: OwnProps) {
   const {conversationIDKey} = p
   const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const {teamname, pinnedMsg} = Container.useSelector(state => {
-    const meta = Constants.getMeta(state, conversationIDKey)
-    return {pinnedMsg: meta?.pinnedMsg, teamname: meta?.teamname}
-  }, shallowEqual)
+  const {teamname, pinnedMsg} = Constants.useContext(s => s.meta)
   const message = pinnedMsg?.message
   const yourOperations = TeamsConstants.useState(s => getCanPerform(s, teamname))
   const unpinning = Container.useAnyWaiting(Constants.waitingKeyUnpin(conversationIDKey))

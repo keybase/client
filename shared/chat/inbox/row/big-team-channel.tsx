@@ -18,15 +18,9 @@ type Props = {
 const BigTeamChannel = React.memo(function BigTeamChannel(props: Props) {
   const {conversationIDKey, selected, layoutChannelname} = props
   const dispatch = Container.useDispatch()
-  const channelname =
-    Container.useSelector(state => Constants.getMeta(state, conversationIDKey).channelname) ||
-    layoutChannelname
-  const isError = Container.useSelector(
-    state => Constants.getMeta(state, conversationIDKey).trustedState === 'error'
-  )
-  const snippetDecoration = Container.useSelector(
-    state => Constants.getMeta(state, conversationIDKey).snippetDecoration
-  )
+  const channelname = Constants.useContext(s => s.meta.channelname) || layoutChannelname
+  const isError = Constants.useContext(s => s.meta.trustedState === 'error')
+  const snippetDecoration = Constants.useContext(s => s.meta.snippetDecoration)
   const hasBadge = Constants.useContext(s => s.badge > 0)
   const hasDraft = Constants.useContext(s => !!s.draft)
   const hasUnread = Constants.useContext(s => s.unread > 0)

@@ -45,12 +45,13 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
       : 'Multiple people typing...'
   })
 
-  const {isDecryptingSnippet, snippet, snippetDecoration} = Container.useSelector(state => {
-    const meta = state.chat2.metaMap.get(conversationIDKey)
+  const {isDecryptingSnippet, snippet, snippetDecoration} = Constants.useContext(s => {
+    const {meta} = s
     // only use layout if we don't have the meta at all
-    const maybeLayoutSnippet = meta === undefined ? layoutSnippet : undefined
-    const snippet = typingSnippet ?? meta?.snippetDecorated ?? maybeLayoutSnippet ?? ''
-    const trustedState = meta?.trustedState
+    const maybeLayoutSnippet =
+      meta.conversationIDKey === Constants.noConversationIDKey ? layoutSnippet : undefined
+    const snippet = typingSnippet ?? meta.snippetDecorated ?? maybeLayoutSnippet ?? ''
+    const trustedState = meta.trustedState
     const isDecryptingSnippet =
       conversationIDKey && !snippet
         ? !trustedState || trustedState === 'requesting' || trustedState === 'untrusted'
@@ -61,10 +62,10 @@ const SmallTeam = React.memo(function SmallTeam(p: Props) {
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const participantInfo = Constants.useContext(s => s.participants)
-  const participants = Container.useSelector(state => {
-    const meta = state.chat2.metaMap.get(conversationIDKey)
-    const teamname = (meta?.teamname || layoutIsTeam ? layoutName : '') || ''
-    const channelname = isInWidget ? meta?.channelname ?? '' : ''
+  const participants = Constants.useContext(s => {
+    const {meta} = s
+    const teamname = (meta.teamname || layoutIsTeam ? layoutName : '') || ''
+    const channelname = isInWidget ? meta.channelname ?? '' : ''
     if (teamname && channelname) {
       return `${teamname}#${channelname}`
     }
@@ -150,14 +151,13 @@ type RowAvatarProps = {
 }
 const RowAvatars = React.memo(function RowAvatars(p: RowAvatarProps) {
   const {backgroundColor, isSelected} = p
-  const conversationIDKey = Constants.useContext(s => s.id)
   const layoutIsTeam = React.useContext(IsTeamContext)
   const participants = React.useContext(ParticipantsContext)
   const isMuted = Constants.useContext(s => s.muted)
   const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const isLocked = Container.useSelector(state => {
-    const meta = state.chat2.metaMap.get(conversationIDKey)
-    const isLocked = meta?.rekeyers?.has(you) || (meta?.rekeyers.size ?? 0) > 0 || !!meta?.wasFinalizedBy
+  const isLocked = Constants.useContext(s => {
+    const {meta} = s
+    const isLocked = meta.rekeyers.has(you) || meta.rekeyers.size > 0 || !!meta.wasFinalizedBy
     return isLocked
   })
 

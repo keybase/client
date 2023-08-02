@@ -86,24 +86,19 @@ export type DeserializeProps = Omit<ProxyProps, RemovedEmpties> & {
   showingDiskSpaceBanner: boolean
   httpSrvAddress: string
   httpSrvToken: string
-  chat2: {
-    draftMap: Map<string, number>
-    metaMap: Map<
-      string,
-      {
-        teamname?: string
-        timestamp?: number
-        channelname?: string
-        snippetDecorated?: string
-        // its not important to show rekey/reset stuff in the widget
-        rekeyers?: Set<string>
-        resetParticipants?: Set<string>
-        wasFinalizedBy?: string
-      }
-    >
-    participantMap: Map<string, {name: Array<string>}>
-    mutedMap: Map<string, number>
-  }
+  metaMap: Map<
+    string,
+    {
+      teamname?: string
+      timestamp?: number
+      channelname?: string
+      snippetDecorated?: string
+      // its not important to show rekey/reset stuff in the widget
+      rekeyers?: Set<string>
+      resetParticipants?: Set<string>
+      wasFinalizedBy?: string
+    }
+  >
   badgeMap: Map<string, number>
   unreadMap: Map<string, number>
   loggedIn: boolean
@@ -116,12 +111,6 @@ export type DeserializeProps = Omit<ProxyProps, RemovedEmpties> & {
 const initialState: DeserializeProps = {
   avatarRefreshCounter: new Map(),
   badgeMap: new Map(),
-  chat2: {
-    draftMap: new Map(),
-    metaMap: new Map(),
-    mutedMap: new Map(),
-    participantMap: new Map(),
-  },
   conversationsToSend: [],
   daemonHandshakeState: 'starting',
   darkMode: false,
@@ -140,6 +129,7 @@ const initialState: DeserializeProps = {
   },
   kbfsEnabled: false,
   loggedIn: false,
+  metaMap: new Map(),
   navBadges: new Map(),
   outOfDate: {
     critical: false,
@@ -249,14 +239,11 @@ export const deserialize = (
     }
 
     conversationsToSend?.forEach(c => {
-      const {participants, conversationIDKey, hasUnread, hasBadge} = c
+      const {conversationIDKey, hasUnread, hasBadge} = c
       const {teamname, timestamp, channelname, snippetDecorated} = c
       s.badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
-      if (participants) {
-        s.chat2.participantMap.set(conversationIDKey, {name: participants})
-      }
       s.unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
-      const meta = s.chat2.metaMap.get(conversationIDKey) ?? {
+      const meta = s.metaMap.get(conversationIDKey) ?? {
         channelname: undefined,
         rekeyers: undefined,
         resetParticipants: undefined,
@@ -275,7 +262,7 @@ export const deserialize = (
       meta.resetParticipants = emptySet
       meta.wasFinalizedBy = ''
 
-      s.chat2.metaMap.set(conversationIDKey, meta)
+      s.metaMap.set(conversationIDKey, meta)
     })
   })
 }
