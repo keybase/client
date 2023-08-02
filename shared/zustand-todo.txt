@@ -5,6 +5,5 @@ commentd out things in chat constants.usestate
 remove ConversationIDKeyContext
 remove convid as param
     toggleThreadSearch: todo stuff
-    extra items in widget needed for chat?
     use .at() instead of length-1
     remove other meta related actions
