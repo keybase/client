@@ -318,8 +318,8 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
   const {ecrType} = p
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const {failureDescription, outboxID} = Container.useSelector(state => {
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  const {failureDescription, outboxID} = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal)
     const outboxID = m?.outboxID
     const reason = m?.errorReason ?? ''
     const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`

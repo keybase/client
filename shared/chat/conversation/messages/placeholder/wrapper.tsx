@@ -1,11 +1,11 @@
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import {WrapperMessage, type Props} from '../wrapper/wrapper'
 import {ForceListRedrawContext} from '../../force-list-redraw-context'
-import {ConvoIDContext} from '../ids-context'
 import {useChatDebugDump} from '../../../../constants/chat2/debug'
 
 const noop = () => {}
@@ -20,12 +20,9 @@ const WrapperPlaceholder = React.memo(function WrapperPlaceholder(p: Props) {
   const width = baseWidth + (code % 20) * mult // pseudo randomize the length
   const noAnchor = React.useRef(null)
 
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const forceListRedraw = React.useContext(ForceListRedrawContext)
 
-  const type = Container.useSelector(
-    state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.type
-  )
+  const type = Constants.useContext(s => s.messageMap.get(ordinal)?.type)
   const [lastType, setLastType] = React.useState(type)
 
   useChatDebugDump(
@@ -71,7 +68,7 @@ const styles = Styles.styleSheetCreate(
         marginLeft: 0,
         width: 16,
       },
-    } as const)
+    }) as const
 )
 
 export default WrapperPlaceholder

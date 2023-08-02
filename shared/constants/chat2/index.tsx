@@ -62,10 +62,6 @@ export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
 
 export const blockButtonsGregorPrefix = 'blockButtons.'
 
-export const makeState = (): Types.State => ({
-  messageMap: new Map(), // messages in a thread,
-})
-
 export const inboxSearchMaxTextMessages = 25
 export const inboxSearchMaxTextResults = 50
 export const inboxSearchMaxNameResults = 7

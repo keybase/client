@@ -55,7 +55,6 @@ const MessageMarkdown = (p: {style: Styles.StylesCrossPlatform}) => {
 }
 
 const WrapperText = React.memo(function WrapperText(p: Props) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const {ordinal} = p
   const common = useCommon(ordinal)
   const {toggleShowingPopup, type, showCenteredHighlight} = common
@@ -64,9 +63,9 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   const reply = useReply(ordinal)
 
   const editInfo = Constants.useContext(s => s.getEditInfo())
-  const {isEditing, textType, hasReactions} = Container.useSelector(state => {
+  const {isEditing, textType, hasReactions} = Constants.useContext(s => {
     const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    const m = s.messageMap.get(ordinal)
     const errorReason = m?.errorReason
     const textType = errorReason
       ? ('error' as const)

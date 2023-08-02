@@ -1,6 +1,5 @@
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import type * as Types from '../types/chat2'
-import type {TypedState} from '../reducer'
 import {conversationIDKeyToString} from '../types/chat2/common'
 
 export const waitingKeyJoinConversation = 'chat:joinConversation'
@@ -30,22 +29,6 @@ export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyMutualTeams = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:mutualTeams:${conversationIDKeyToString(conversationIDKey)}`
-
-export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-  state.chat2.messageMap.get(id)?.get(ordinal)
-
-export const getReplyToMessageID = (
-  ordinal: Types.Ordinal,
-  state: TypedState,
-  conversationIDKey: Types.ConversationIDKey
-) => {
-  const maybeMessage = getMessage(state, conversationIDKey, ordinal)
-  return ordinal
-    ? maybeMessage === null || maybeMessage === undefined
-      ? undefined
-      : maybeMessage.id
-    : undefined
-}
 
 export const explodingModeGregorKeyPrefix = 'exploding:'
 

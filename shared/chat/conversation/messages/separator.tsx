@@ -9,7 +9,7 @@ import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import type * as Types from '../../../constants/types/chat2'
 import {formatTimeForChat} from '../../../util/timestamp'
-import {ConvoIDContext, SeparatorMapContext} from './ids-context'
+import {SeparatorMapContext} from './ids-context'
 import {usingFlashList} from '../list-area/flashlist-config'
 import shallowEqual from 'shallowequal'
 
@@ -185,11 +185,7 @@ const TopSide = React.memo(function TopSide(p: TProps) {
 
 const missingMessage = Constants.makeMessageDeleted({})
 
-const useReduxFast = (
-  conversationIDKey: Types.ConversationIDKey,
-  trailingItem: Types.Ordinal,
-  leadingItem: Types.Ordinal
-) => {
+const useReduxFast = (trailingItem: Types.Ordinal, leadingItem: Types.Ordinal) => {
   const sm = React.useContext(SeparatorMapContext)
   // in flat list we get the leadingItem but its the opposite of what we want
   // we derive the previous by using SeparatorMapContext
@@ -199,23 +195,23 @@ const useReduxFast = (
   }
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const orangeOrdinal = Constants.useContext(s => s.orangeLine)
-  return Container.useSelector(state => {
+  return Constants.useContext(s => {
     let ordinal = trailingItem
     let previous = leadingItem
 
-    const pmessage = (previous && Constants.getMessage(state, conversationIDKey, previous)) || undefined
-    const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+    const pmessage = s.messageMap.get(previous)
+    const m = s.messageMap.get(ordinal) ?? missingMessage
     const showUsername = m && getUsernameToShow(m, pmessage, you)
     const orangeLineAbove = orangeOrdinal == ordinal
     return {orangeLineAbove, ordinal, showUsername}
   }, shallowEqual)
 }
 
-const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
+const useRedux = (ordinal: Types.Ordinal) => {
   const participantInfoNames = Constants.useContext(s => s.participants.name)
   const meta = Constants.useContext(s => s.meta)
-  const d = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+  const d = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal) ?? missingMessage
     const {author, timestamp} = m
     const {teamID, botAliases, teamType} = meta
     // TODO not reactive
@@ -242,13 +238,12 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
 
 type SProps = {
   ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
   showUsername: string
   orangeLineAbove: boolean
 }
 const Separator = React.memo(function Separator(p: SProps) {
-  const {conversationIDKey, ordinal, orangeLineAbove, showUsername} = p
-  const mdata = useRedux(conversationIDKey, ordinal)
+  const {ordinal, orangeLineAbove, showUsername} = p
+  const mdata = useRedux(ordinal)
   const {botAlias, authorRoleInTeam, authorIsBot, timestamp, teamType} = mdata
 
   return (
@@ -282,21 +277,9 @@ type Props = {
 
 const SeparatorConnector = (p: Props) => {
   const {leadingItem, trailingItem} = p
-
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const {ordinal, showUsername, orangeLineAbove} = useReduxFast(
-    conversationIDKey,
-    trailingItem ?? 0,
-    leadingItem ?? 0
-  )
-
+  const {ordinal, showUsername, orangeLineAbove} = useReduxFast(trailingItem ?? 0, leadingItem ?? 0)
   return ordinal && (showUsername || orangeLineAbove) ? (
-    <Separator
-      conversationIDKey={conversationIDKey}
-      ordinal={ordinal}
-      showUsername={showUsername}
-      orangeLineAbove={orangeLineAbove}
-    />
+    <Separator ordinal={ordinal} showUsername={showUsername} orangeLineAbove={orangeLineAbove} />
   ) : null
 }
 

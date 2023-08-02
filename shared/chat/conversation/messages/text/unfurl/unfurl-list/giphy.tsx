@@ -1,4 +1,4 @@
-import * as Container from '../../../../../../util/container'
+import * as Constants from '../../../../../../constants/chat2'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
@@ -13,13 +13,8 @@ const UnfurlGiphy = React.memo(function UnfurlGiphy(p: {idx: number}) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
-  const data = Container.useSelector(state => {
-    const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(
-      state,
-      conversationIDKey,
-      ordinal,
-      idx
-    )
+  const data = Constants.useContext(s => {
+    const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
     if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.giphy) {
       return null
     }
@@ -152,7 +147,7 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.tiny,
         },
       }),
-    } as const)
+    }) as const
 )
 
 export default UnfurlGiphy

@@ -282,8 +282,8 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const {conversationIDKey, focusInputCounter, showCommandMarkdown, onRequestScrollToBottom} = p
   const {onRequestScrollDown, onRequestScrollUp, showGiphySearch, replyTo, jumpToRecent} = p
   const editOrdinal = Constants.useContext(s => s.editing)
-  const isEditExploded = Container.useSelector(state =>
-    editOrdinal ? Constants.getMessage(state, conversationIDKey, editOrdinal)?.exploded ?? false : false
+  const isEditExploded = Constants.useContext(s =>
+    editOrdinal ? s.messageMap.get(editOrdinal)?.exploded ?? false : false
   )
   const isEditing = !!editOrdinal
   const {onSubmit} = useSubmit({

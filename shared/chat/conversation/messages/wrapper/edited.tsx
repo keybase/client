@@ -1,14 +1,13 @@
 import * as React from 'react'
-import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {ConvoIDContext, HighlightedContext, OrdinalContext} from '../ids-context'
+import {HighlightedContext, OrdinalContext} from '../ids-context'
 
 export const useEdited = () => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const hasBeenEdited = Container.useSelector(state => {
-    const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  const hasBeenEdited = Constants.useContext(s => {
+    const message = s.messageMap.get(ordinal)
     const hasBeenEdited = message?.hasBeenEdited ?? false
     return hasBeenEdited
   })
@@ -35,5 +34,5 @@ const styles = Styles.styleSheetCreate(
     ({
       edited: {color: Styles.globalColors.black_20},
       editedHighlighted: {color: Styles.globalColors.black_20OrBlack},
-    } as const)
+    }) as const
 )

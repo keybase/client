@@ -58,6 +58,7 @@ type ConvoStore = {
   messageCenterOrdinal?: Types.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<Types.Ordinal, Types.RenderMessageType> // messages types to help the thread, text is never used
   messageOrdinals?: Array<Types.Ordinal> // ordered ordinals in a thread,
+  messageMap: Map<Types.Ordinal, Types.Message> // messages in a thread,
   meta: Types.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
   muted: boolean
@@ -95,6 +96,7 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   markedAsUnread: false,
   messageCenterOrdinal: undefined,
+  messageMap: new Map(),
   messageOrdinals: undefined,
   messageTypeMap: new Map(),
   meta: Meta.makeConversationMeta(),
@@ -205,7 +207,6 @@ const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
 })
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
-  const getReduxState = Z.getReduxStore()
   const reduxDispatch = Z.getReduxDispatch()
   const closeBotModal = () => {
     RouterConstants.useState.getState().dispatch.clearModals()
@@ -304,7 +305,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
       const f = async () => {
         const conversationIDKey = get().id
-        const replyTo = Common.getReplyToMessageID(get().replyTo, getReduxState(), conversationIDKey)
+        const replyTo = get().messageMap.get(get().replyTo)?.id
         try {
           await RPCChatTypes.localTrackGiphySelectRpcPromise({result})
         } catch {}
@@ -361,12 +362,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                         info.messages = info.messages.concat(message).sort((l, r) => r.id - l.id)
                       }
                       // inject them into the message map
-                      // // TODO >>>>>>>>>>>>>>>> when message map is in here can't mutate it here yet
-                      // const {messageMap} = getReduxState().chat2
-                      // const mm = mapGetEnsureValue(messageMap, conversationIDKey, new Map())
-                      // info.messages.forEach(m => {
-                      //   mm.set(m.id, m)
-                      // })
+                      info.messages.forEach(m => {
+                        s.messageMap.set(m.id, m)
+                      })
                     })
                   }
                 },
@@ -691,15 +689,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             // just increment `readMsgID` since that msgID might be a
             // non-visible (edit, delete, reaction...) message so we scan the
             // ordinals for the appropriate value.
-            const messageMap = getReduxState().chat2.messageMap.get(conversationIDKey)
+            const messageMap = get().messageMap
             const ordinals = get().messageOrdinals
-            const ord =
-              messageMap &&
-              ordinals?.find(o => {
-                const message = messageMap.get(o)
-                return !!(message && message.id >= readMsgID + 1)
-              })
-            const message = ord ? messageMap?.get(ord) : null
+            const ord = ordinals?.find(o => {
+              const message = messageMap.get(o)
+              return !!(message && message.id >= readMsgID + 1)
+            })
+            const message = ord ? messageMap.get(ord) : null
             if (message?.id) {
               get().dispatch.setOrangeLine(message.id)
             } else {
@@ -766,10 +762,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         return
       }
 
-      const state = getReduxState()
-      const conversationIDKey = get().id
-
-      const messageMap = state.chat2.messageMap.get(conversationIDKey)
+      const messageMap = get().messageMap
 
       let ordinal = 0
       // Editing last message
@@ -780,7 +773,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const found =
           !!ordinals &&
           findLast(ordinals, o => {
-            const message = messageMap?.get(o)
+            const message = messageMap.get(o)
             return !!(
               (message?.type === 'text' || message?.type === 'attachment') &&
               message.author === editLastUser &&
@@ -797,7 +790,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       if (!ordinal) {
         return
       }
-      const message = messageMap?.get(ordinal)
+      const message = messageMap.get(ordinal)
       if (message?.type === 'text' || message?.type === 'attachment') {
         set(s => {
           s.editing = ordinal
@@ -882,25 +875,23 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.info('bail on not logged in')
           return
         }
-        const state = getReduxState()
         const meta = get().meta
         const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxVisibleMsgID : 0
         let msgID = unreadLineID
 
         // Find first visible message prior to what we have marked as unread. The
         // server will use this value to calculate our badge state.
-        const messageMap = state.chat2.messageMap.get(conversationIDKey)
+        const messageMap = get().messageMap
 
         if (messageMap) {
           const ordinals = get().messageOrdinals
           const ord =
-            messageMap &&
             ordinals &&
             findLast(ordinals, (o: Types.Ordinal) => {
               const message = messageMap.get(o)
               return !!(message && message.id < unreadLineID)
             })
-          const message = ord ? messageMap?.get(ord) : undefined
+          const message = ord ? messageMap.get(ord) : undefined
           if (message) {
             msgID = message.id
           }
@@ -1246,8 +1237,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         return
       }
 
-      const id = get().id
-      const message = Common.getMessage(getReduxState(), id, ordinal)
+      const message = get().messageMap.get(ordinal)
       if (!message) {
         return
       }

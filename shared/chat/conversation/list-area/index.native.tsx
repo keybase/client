@@ -229,20 +229,20 @@ const ConversationList = React.memo(function ConversationList(p: {
       const layoutManager = state?.layoutProvider?._lastLayoutManager ?? ({} as any)
       const {_layouts, _renderWindowSize, _totalHeight, _totalWidth} = layoutManager
       // @ts-ignore
-      const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)
+      // const mm = window.DEBUGStore.store.getState().chat2.messageMap.get(conversationIDKey)
       // const reduxItems = messageOrdinals.map(o => ({o, type: mm.get(o)?.type}))
 
       console.log(listRef.current)
 
       const items = data?.map((ordinal: number, idx: number) => {
         const layout = _layouts?.[idx]
-        const m = mm.get(ordinal) ?? ({} as any)
+        // const m = mm.get(ordinal) ?? ({} as any)
         return {
           idx,
           layout,
           ordinal,
-          rid: m.id,
-          rtype: m.type,
+          // rid: m.id,
+          // rtype: m.type,
         }
       })
 
