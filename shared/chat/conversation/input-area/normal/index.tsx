@@ -80,16 +80,14 @@ const Input = (p: Props) => {
   const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
 
   const showGiphySearch = Constants.useContext(s => s.giphyWindow)
-  const rorindal = Constants.useContext(s => s.replyTo)
+  const rordinal = Constants.useContext(s => s.replyTo)
   const showCommandMarkdown = Constants.useContext(s => !!s.commandMarkdown)
   const showCommandStatus = Constants.useContext(s => !!s.commandStatus)
-  const replyTo = Container.useSelector(
-    state => Constants.getReplyToMessageID(rorindal, state, conversationIDKey) ?? undefined
-  )
+  const replyTo = Constants.useContext(s => s.messageMap.get(rordinal)?.id)
 
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
-      {!!replyTo && <ReplyPreview conversationIDKey={conversationIDKey} />}
+      {!!replyTo && <ReplyPreview />}
       {/*TODO move this into suggestors*/ showCommandMarkdown && <CommandMarkdown />}
       {showCommandStatus && <CommandStatus />}
       {showGiphySearch && <Giphy />}

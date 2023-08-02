@@ -23,10 +23,8 @@ type Props = {
 
 const MessagePopup = React.memo(function MessagePopup(p: Props) {
   const {conversationIDKey, ordinal, attachTo, onHidden, position, style, visible} = p
-  const exploding = Container.useSelector(
-    state => Constants.getMessage(state, conversationIDKey, ordinal)?.exploding
-  )
-  const type = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal)?.type)
+  const exploding = Constants.useContext(s => s.messageMap.get(ordinal)?.exploding)
+  const type = Constants.useContext(s => s.messageMap.get(ordinal)?.type)
   switch (type) {
     case 'text':
       if (exploding) {

@@ -28,8 +28,8 @@ type OwnProps = {
 const emptyMessage = makeMessageAttachment({})
 
 export default (ownProps: OwnProps) => {
-  const {conversationIDKey, ordinal} = ownProps
-  const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const {ordinal} = ownProps
+  const m = Constants.useContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'attachment' ? m : emptyMessage
   const meta = Constants.useContext(s => s.meta)
   const isTeam = !!meta.teamname

@@ -4,7 +4,7 @@ import * as Container from '../../../../../util/container'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import Journeycard from '.'
 import type * as ChatTypes from '../../../../../constants/types/chat2'
-import type * as React from 'react'
+import * as React from 'react'
 import type {Position, StylesCrossPlatform} from '../../../../../styles'
 
 type OwnProps = {
@@ -18,10 +18,9 @@ type OwnProps = {
 }
 
 export default (ownProps: OwnProps) => {
-  const {conversationIDKey, ordinal} = ownProps
-  const cardType = Container.useSelector(
-    state =>
-      Constants.getMessage(state, conversationIDKey, ordinal)?.cardType ?? RPCChatTypes.JourneycardType.unused
+  const {ordinal} = ownProps
+  const cardType = Constants.useContext(
+    s => s.messageMap.get(ordinal)?.cardType ?? RPCChatTypes.JourneycardType.unused
   )
 
   const dispatch = Container.useDispatch()

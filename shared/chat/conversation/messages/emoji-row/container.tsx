@@ -20,8 +20,8 @@ const EmojiRowContainer = React.memo(function EmojiRowContainer(p: OwnProps) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
-  const {hasUnfurls, type} = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const {hasUnfurls, type} = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal)
     const hasUnfurls = (m?.unfurls?.size ?? 0) > 0
     const type = m?.type
     return {hasUnfurls, type}
