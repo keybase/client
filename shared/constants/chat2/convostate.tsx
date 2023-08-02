@@ -602,25 +602,25 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
 
-        const ensureSelectedMeta = () => {
-          const meta = get().meta
-          const participantInfo = get().participants
-          return meta.conversationIDKey !== conversationIDKey || participantInfo.all.length === 0
-            ? Chat2Gen.createMetaRequestTrusted({
-                conversationIDKeys: [conversationIDKey],
-                force: true,
-                noWaiting: true,
-                reason: 'ensureSelectedMeta',
-              })
-            : false
+        const ensureSelectedTeamLoaded = () => {
+          const selectedConversation = Constants.getSelectedConversation()
+          const meta = Constants.getConvoState(selectedConversation).meta
+          if (meta.conversationIDKey === selectedConversation) {
+            const {teamID, teamname} = meta
+            if (teamname) {
+              TeamsConstants.useState.getState().dispatch.getMembers(teamID)
+            }
+          }
         }
-
+        ensureSelectedTeamLoaded()
         get().dispatch.loadOrangeLine()
-        Constants.useState.getState().dispatch.unboxRows([get().id])
+        const meta = get().meta
+        const participantInfo = get().participants
+        const force = meta.conversationIDKey !== conversationIDKey || participantInfo.all.length === 0
+        Constants.useState.getState().dispatch.unboxRows([conversationIDKey], force)
         get().dispatch.setThreadLoadStatus(RPCChatTypes.UIChatThreadStatusTyp.none)
         get().dispatch.setMessageCenterOrdinal()
         updateOrangeAfterSelected()
-        ensureSelectedMeta()
         fetchConversationBio()
         Constants.useState.getState().dispatch.resetConversationErrored()
       }

@@ -619,13 +619,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             return arr
           }, [])
           if (missingMetas.length > 0) {
-            reduxDispatch(
-              Chat2Gen.createMetaRequestTrusted({
-                conversationIDKeys: missingMetas,
-                force: true,
-                reason: 'inboxSearchResults',
-              })
-            )
+            get().dispatch.unboxRows(missingMetas, true)
           }
         }
 
@@ -695,13 +689,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
 
           if (getConvoState(result.conversationIDKey).meta.conversationIDKey === noConversationIDKey) {
-            reduxDispatch(
-              Chat2Gen.createMetaRequestTrusted({
-                conversationIDKeys: [result.conversationIDKey],
-                force: true,
-                reason: 'inboxSearchResults',
-              })
-            )
+            get().dispatch.unboxRows([result.conversationIDKey], true)
           }
         }
         const onStart = () => {

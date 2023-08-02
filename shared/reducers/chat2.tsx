@@ -402,7 +402,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (!action.payload.forceContainsLatestCalc && containsLatestMessage) {
       // do nothing
     } else {
-      const meta = draftState.metaMap.get(conversationIDKey)
+      const meta = Constants.getConvoState(conversationIDKey).meta
       const ordinals = Constants.getConvoState(conversationIDKey).messageOrdinals ?? []
       let maxMsgID = 0
       const convMsgMap = messageMap.get(conversationIDKey) || new Map<Types.Ordinal, Types.Message>()
@@ -415,7 +415,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
           break
         }
       }
-      if (meta && maxMsgID >= meta.maxVisibleMsgID) {
+      if (meta.conversationIDKey === conversationIDKey && maxMsgID >= meta.maxVisibleMsgID) {
         containsLatestMessage = true
       } else if (action.payload.forceContainsLatestCalc) {
         containsLatestMessage = false

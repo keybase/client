@@ -63,7 +63,6 @@ export const metaDelete = 'chat2:metaDelete'
 export const metaHandleQueue = 'chat2:metaHandleQueue'
 export const metaNeedsUpdating = 'chat2:metaNeedsUpdating'
 export const metaReceivedError = 'chat2:metaReceivedError'
-export const metaRequestTrusted = 'chat2:metaRequestTrusted'
 export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
 export const metasReceived = 'chat2:metasReceived'
 export const navigateToInbox = 'chat2:navigateToInbox'
@@ -115,28 +114,6 @@ export const createCreateConversation = (payload: {
   readonly highlightMessageID?: number
   readonly participants: Array<string>
 }) => ({payload, type: createConversation as typeof createConversation})
-/**
- * Actually unboxing
- */
-export const createMetaRequestTrusted = (payload: {
-  readonly force?: boolean
-  readonly noWaiting?: boolean
-  readonly reason:
-    | 'refreshPreviousSelected'
-    | 'requestTeamsUnboxing'
-    | 'inboxSynced'
-    | 'setConvRetention'
-    | 'subTeamRename'
-    | 'tlfFinalize'
-    | 'threadStale'
-    | 'membersUpdate'
-    | 'scroll'
-    | 'ensureSelectedMeta'
-    | 'ensureWidgetMetas'
-    | 'ensureChannelMeta'
-    | 'inboxSearchResults'
-  readonly conversationIDKeys: Array<Types.ConversationIDKey>
-}) => ({payload, type: metaRequestTrusted as typeof metaRequestTrusted})
 /**
  * Add a list of users to a conversation. Creates a SystemBulkAddToConv message.
  */
@@ -858,7 +835,6 @@ export type MetaDeletePayload = ReturnType<typeof createMetaDelete>
 export type MetaHandleQueuePayload = ReturnType<typeof createMetaHandleQueue>
 export type MetaNeedsUpdatingPayload = ReturnType<typeof createMetaNeedsUpdating>
 export type MetaReceivedErrorPayload = ReturnType<typeof createMetaReceivedError>
-export type MetaRequestTrustedPayload = ReturnType<typeof createMetaRequestTrusted>
 export type MetaRequestingTrustedPayload = ReturnType<typeof createMetaRequestingTrusted>
 export type MetasReceivedPayload = ReturnType<typeof createMetasReceived>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
@@ -953,7 +929,6 @@ export type Actions =
   | MetaHandleQueuePayload
   | MetaNeedsUpdatingPayload
   | MetaReceivedErrorPayload
-  | MetaRequestTrustedPayload
   | MetaRequestingTrustedPayload
   | MetasReceivedPayload
   | NavigateToInboxPayload

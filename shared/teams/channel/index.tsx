@@ -7,7 +7,6 @@ import * as Constants from '../../constants/teams'
 import * as BotsConstants from '../../constants/bots'
 import * as ChatConstants from '../../constants/chat2'
 import * as UsersConstants from '../../constants/users'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import type * as ChatTypes from '../../constants/types/chat2'
 import {useAttachmentSections} from '../../chat/conversation/info-panel/attachments'
 import {SelectionPopup, useChannelParticipants} from '../common'
@@ -40,20 +39,17 @@ const useLoadDataForChannelPage = (
   const featuredBotsMap = BotsConstants.useState(s => s.featuredBotsMap)
   const getMembers = Constants.useState(s => s.dispatch.getMembers)
   const getBlockState = UsersConstants.useState(s => s.dispatch.getBlockState)
+  const unboxRows = ChatConstants.useState(s => s.dispatch.unboxRows)
   React.useEffect(() => {
     if (selectedTab !== prevSelectedTab && selectedTab === 'members') {
       if (meta.conversationIDKey === 'EMPTY') {
-        dispatch(
-          Chat2Gen.createMetaRequestTrusted({
-            conversationIDKeys: [conversationIDKey],
-            reason: 'ensureChannelMeta',
-          })
-        )
+        unboxRows([conversationIDKey])
       }
       getMembers(teamID)
       getBlockState(participants)
     }
   }, [
+    unboxRows,
     getBlockState,
     getMembers,
     selectedTab,

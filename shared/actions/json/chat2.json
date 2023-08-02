@@ -68,27 +68,6 @@
       "_description": "About to try and unbox some inbox rows",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
-    "metaRequestTrusted": {
-      "_description": "Actually unboxing",
-      "force?": "boolean",
-      "noWaiting?": "boolean",
-      "reason": [
-        "'refreshPreviousSelected'",
-        "'requestTeamsUnboxing'",
-        "'inboxSynced'",
-        "'setConvRetention'",
-        "'subTeamRename'",
-        "'tlfFinalize'",
-        "'threadStale'",
-        "'membersUpdate'",
-        "'scroll'",
-        "'ensureSelectedMeta'",
-        "'ensureWidgetMetas'",
-        "'ensureChannelMeta'",
-        "'inboxSearchResults'"
-      ],
-      "conversationIDKeys": "Array<Types.ConversationIDKey>"
-    },
     "metasReceived": {
       "_description": "Got some new inbox rows",
       "metas": "Array<Types.ConversationMeta>",
