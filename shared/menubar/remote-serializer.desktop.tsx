@@ -86,7 +86,6 @@ export type DeserializeProps = Omit<ProxyProps, RemovedEmpties> & {
   showingDiskSpaceBanner: boolean
   httpSrvAddress: string
   httpSrvToken: string
-  draftMap: Map<string, number>
   metaMap: Map<
     string,
     {
@@ -100,8 +99,6 @@ export type DeserializeProps = Omit<ProxyProps, RemovedEmpties> & {
       wasFinalizedBy?: string
     }
   >
-  participantMap: Map<string, {name: Array<string>}>
-  mutedMap: Map<string, number>
   badgeMap: Map<string, number>
   unreadMap: Map<string, number>
   loggedIn: boolean
@@ -118,7 +115,6 @@ const initialState: DeserializeProps = {
   daemonHandshakeState: 'starting',
   darkMode: false,
   diskSpaceStatus: FSTypes.DiskSpaceStatus.Ok,
-  draftMap: new Map(),
   endEstimate: 0,
   fileName: '',
   files: 0,
@@ -134,7 +130,6 @@ const initialState: DeserializeProps = {
   kbfsEnabled: false,
   loggedIn: false,
   metaMap: new Map(),
-  mutedMap: new Map(),
   navBadges: new Map(),
   outOfDate: {
     critical: false,
@@ -142,7 +137,6 @@ const initialState: DeserializeProps = {
     outOfDate: false,
     updating: false,
   },
-  participantMap: new Map(),
   remoteTlfUpdates: [],
   showingDiskSpaceBanner: false,
   totalSyncingBytes: 0,
@@ -245,12 +239,9 @@ export const deserialize = (
     }
 
     conversationsToSend?.forEach(c => {
-      const {participants, conversationIDKey, hasUnread, hasBadge} = c
+      const {conversationIDKey, hasUnread, hasBadge} = c
       const {teamname, timestamp, channelname, snippetDecorated} = c
       s.badgeMap.set(conversationIDKey, hasBadge ? 1 : 0)
-      if (participants) {
-        s.participantMap.set(conversationIDKey, {name: participants})
-      }
       s.unreadMap.set(conversationIDKey, hasUnread ? 1 : 0)
       const meta = s.metaMap.get(conversationIDKey) ?? {
         channelname: undefined,
