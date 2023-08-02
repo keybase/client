@@ -64,6 +64,32 @@ const getCachedUsernames = memoize(
   ([a], [b]) => shallowEqual(a, b)
 )
 
+const convoDiff = (a: ChatConstants.ConvoState, b: ChatConstants.ConvoState) => {
+  if (a === b) return false
+
+  if (a.meta !== b.meta) {
+    if (
+      a.meta.channelname !== b.meta.channelname ||
+      a.meta.snippetDecorated !== b.meta.snippetDecorated ||
+      a.meta.teamType !== b.meta.teamType ||
+      a.meta.timestamp !== b.meta.timestamp ||
+      a.meta.tlfname !== b.meta.tlfname
+    ) {
+      return true
+    }
+  }
+
+  if (
+    a.badge !== b.badge ||
+    a.unread !== b.unread ||
+    !shallowEqual(a.participants.name, b.participants.name)
+  ) {
+    return true
+  }
+
+  return false
+}
+
 // TODO could make this render less
 const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   const following = Followers.useFollowerState(s => s.following)
@@ -102,7 +128,7 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
   React.useEffect(() => {
     const unsubs = widgetList?.map(v => {
       return ChatConstants.stores.get(v.convID)?.subscribe((s, old) => {
-        if (s.meta !== old.meta) {
+        if (convoDiff(s, old)) {
           setRemakeChat(c => c + 1)
         }
       })
@@ -119,8 +145,8 @@ const RemoteProxy = React.memo(function MenubarRemoteProxy() {
     () =>
       widgetList?.map(v => {
         remakeChat // implied dependency
-        const c = ChatConstants.getConvoState(v.convID).meta
-        const {badge, unread, participants} = ChatConstants.getConvoState(v.convID)
+        const {badge, unread, participants, meta} = ChatConstants.getConvoState(v.convID)
+        const c = meta
         return {
           channelname: c.channelname,
           conversationIDKey: v.convID,
