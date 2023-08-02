@@ -800,11 +800,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       cs.getState().dispatch.setMessageOrdinals()
     }
   },
-  [Chat2Gen.clearMetas]: () => {
-    for (const [, cs] of Constants.stores) {
-      cs.getState().dispatch.setMeta()
-    }
-  },
   ...paymentActions,
   ...attachmentActions,
 })

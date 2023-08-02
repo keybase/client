@@ -455,6 +455,7 @@ const initialStore: Store = {
 export type State = Store & {
   dispatch: {
     badgesUpdated: (bigTeamBadgeCount: number, smallTeamBadgeCount: number) => void
+    clearMetas: () => void
     conversationErrored: (
       allowedUsers: Array<string>,
       disallowedUsers: Array<string>,
@@ -528,6 +529,11 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.badgeCountsChanged++
       })
     },
+    clearMetas: () => {
+      for (const [, cs] of stores) {
+        cs.getState().dispatch.setMeta()
+      }
+    },
     conversationErrored: (allowedUsers, disallowedUsers, code, message) => {
       set(s => {
         s.createConversationError = {
@@ -576,7 +582,7 @@ export const useState = Z.createZustand<State>((set, get) => {
             : RPCChatTypes.InboxLayoutReselectMode.force
         await RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
         if (clearExistingMetas) {
-          reduxDispatch(Chat2Gen.createClearMetas())
+          get().dispatch.clearMetas()
         }
         if (clearExistingMessages) {
           reduxDispatch(Chat2Gen.createClearMessages())

@@ -68,7 +68,6 @@
       "_description": "About to try and unbox some inbox rows",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
-    "clearMetas": {},
     "clearMessages": {},
     "metaReceivedError": {
       "_description": "Got some inbox errors",

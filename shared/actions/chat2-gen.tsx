@@ -25,7 +25,6 @@ export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const blockConversation = 'chat2:blockConversation'
 export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
 export const clearMessages = 'chat2:clearMessages'
-export const clearMetas = 'chat2:clearMetas'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const createConversation = 'chat2:createConversation'
 export const deselectedConversation = 'chat2:deselectedConversation'
@@ -719,7 +718,6 @@ export const createClearMessages = (payload?: undefined) => ({
   payload,
   type: clearMessages as typeof clearMessages,
 })
-export const createClearMetas = (payload?: undefined) => ({payload, type: clearMetas as typeof clearMetas})
 export const createDeselectedConversation = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: deselectedConversation as typeof deselectedConversation})
@@ -788,7 +786,6 @@ export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ChannelSuggestionsTriggeredPayload = ReturnType<typeof createChannelSuggestionsTriggered>
 export type ClearMessagesPayload = ReturnType<typeof createClearMessages>
-export type ClearMetasPayload = ReturnType<typeof createClearMetas>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
 export type CreateConversationPayload = ReturnType<typeof createCreateConversation>
 export type DeselectedConversationPayload = ReturnType<typeof createDeselectedConversation>
@@ -881,7 +878,6 @@ export type Actions =
   | BlockConversationPayload
   | ChannelSuggestionsTriggeredPayload
   | ClearMessagesPayload
-  | ClearMetasPayload
   | ConfirmScreenResponsePayload
   | CreateConversationPayload
   | DeselectedConversationPayload
