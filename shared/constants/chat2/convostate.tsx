@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as EngineGen from '../../actions/engine-gen-gen'
 import * as Common from './common'
 import * as Message from './message'
 import * as Meta from './meta'
@@ -27,7 +28,7 @@ const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
   visible: false,
 })
 
-export const noParticipantInfo: Types.ParticipantInfo = {
+const noParticipantInfo: Types.ParticipantInfo = {
   all: [],
   contactName: new Map(),
   name: [],
@@ -138,7 +139,9 @@ export type ConvoState = ConvoStore & {
     hideSearch: () => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadOrangeLine: () => void
+    metaReceivedError: (error: RPCChatTypes.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
+    onEngineIncoming: (action: EngineGen.Chat1ChatUiChatInboxFailedPayload) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
@@ -172,6 +175,7 @@ export type ConvoState = ConvoStore & {
     setTyping: (t: Set<string>) => void
     threadSearch: (query: string) => void
     toggleThreadSearch: (hide?: boolean) => void
+    updateMeta: (m: Partial<Types.ConversationMeta>) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
     updateAttachmentViewTransfered: (msgId: number, path: string) => void
@@ -433,6 +437,56 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    metaReceivedError: (error, username) => {
+      if (error) {
+        if (
+          error.typ === RPCChatTypes.ConversationErrorType.otherrekeyneeded ||
+          error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
+        ) {
+          const {rekeyInfo} = error
+          const participants = [
+            ...(rekeyInfo
+              ? new Set<string>(
+                  ([] as Array<string>)
+                    .concat(rekeyInfo.writerNames || [], rekeyInfo.readerNames || [])
+                    .filter(Boolean)
+                )
+              : new Set<string>(error.unverifiedTLFName.split(','))),
+          ]
+
+          const rekeyers = new Set<string>(
+            error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
+              ? [username || '']
+              : (rekeyInfo && rekeyInfo.rekeyers) || []
+          )
+          const newMeta = Meta.unverifiedInboxUIItemToConversationMeta(error.remoteConv)
+          if (!newMeta) {
+            // public conversation, do nothing
+            return
+          }
+          get().dispatch.setMeta({
+            ...newMeta,
+            rekeyers,
+            snippet: error.message,
+            snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+            trustedState: 'error' as const,
+          })
+          get().dispatch.setParticipants({
+            all: participants,
+            contactName: noParticipantInfo.contactName,
+            name: participants,
+          })
+        } else {
+          get().dispatch.updateMeta({
+            snippet: error.message,
+            snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+            trustedState: 'error',
+          })
+        }
+      } else {
+        get().dispatch.setMeta()
+      }
+    },
     mute: m => {
       const f = async () => {
         await RPCChatTypes.localSetConversationStatusLocalRpcPromise({
@@ -442,6 +496,32 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         })
       }
       Z.ignorePromise(f())
+    },
+    onEngineIncoming: (action: EngineGen.Chat1ChatUiChatInboxFailedPayload) => {
+      switch (action.type) {
+        case EngineGen.chat1ChatUiChatInboxFailed: {
+          const f = async () => {
+            const ConfigConstants = await import('../config')
+            const username = ConfigConstants.useCurrentUserState.getState().username
+            const {convID, error} = action.payload.params
+            const conversationIDKey = Types.conversationIDToKey(convID)
+            switch (error.typ) {
+              case RPCChatTypes.ConversationErrorType.transient:
+                logger.info(
+                  `onFailed: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
+                )
+                return
+              default:
+                logger.info(
+                  `onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`
+                )
+                get().dispatch.metaReceivedError(error, username)
+            }
+          }
+          Z.ignorePromise(f())
+          break
+        }
+      }
     },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {
@@ -884,12 +964,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     setMeta: _m => {
+      // see updatemeta
       const m = _m ?? Meta.makeConversationMeta()
       set(s => {
         s.meta = m
       })
-      get().dispatch.setDraft(m.draft)
-      get().dispatch.setMuted(m.isMuted)
+      get().dispatch.setDraft(get().meta.draft)
+      get().dispatch.setMuted(get().meta.isMuted)
     },
     setMoreToLoad: m => {
       set(s => {
@@ -1113,6 +1194,18 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
       })
+    },
+    updateMeta: (m: Partial<Types.ConversationMeta>) => {
+      // see setmeta
+      set(s => {
+        const keys = Object.keys(m) as Array<keyof Types.ConversationMeta>
+        keys.forEach(k => {
+          // @ts-ignore
+          s.meta[k] = m[k]
+        })
+      })
+      get().dispatch.setDraft(get().meta.draft)
+      get().dispatch.setMuted(get().meta.isMuted)
     },
   }
   return {

@@ -56,30 +56,7 @@
       "highlightMessageID?": "number",
       "participants": "Array<string>"
     },
-    "metaNeedsUpdating": {
-      "_description": "We want to unbox an inbox row",
-      "conversationIDKeys": "Array<Types.ConversationIDKey>",
-      "reason": "string"
-    },
-    "metaHandleQueue": {
-      "_description": "Internal action: pull more metas from the queue to request"
-    },
-    "metaRequestingTrusted": {
-      "_description": "About to try and unbox some inbox rows",
-      "conversationIDKeys": "Array<Types.ConversationIDKey>"
-    },
     "clearMessages": {},
-    "metaReceivedError": {
-      "_description": "Got some inbox errors",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "error?": "RPCChatTypes.InboxUIItemError",
-      "username?": "string"
-    },
-    "metaDelete": {
-      "_description": "We got a status update saying it was blocked or ignored",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "selectSomethingElse": "boolean"
-    },
     "messagesAdd": {
       "_description": [
         "Add a new message",

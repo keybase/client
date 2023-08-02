@@ -29,7 +29,6 @@ const transformActionForLog = (action: TypedActions) => {
   switch (action.type) {
     // full output
     case Chat2Gen.navigateToThread: // fallthrough
-    case Chat2Gen.metaNeedsUpdating: // fallthrough
     case Chat2Gen.setConversationOffline: // fallthrough
       return action
 

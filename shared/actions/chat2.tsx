@@ -64,48 +64,6 @@ const onGetInboxUnverifiedConvs = (_: unknown, action: EngineGen.Chat1ChatUiChat
   Constants.useState.getState().dispatch.metasReceived(metas)
 }
 
-// Only get the untrusted conversations out
-const untrustedConversationIDKeys = (ids: Array<Types.ConversationIDKey>) =>
-  ids.filter(id => Constants.getConvoState(id).meta.trustedState === 'untrusted')
-
-// We keep a set of conversations to unbox
-let metaQueue = new Set<Types.ConversationIDKey>()
-const queueMetaToRequest = (_: unknown, action: Chat2Gen.MetaNeedsUpdatingPayload) => {
-  let added = false
-  untrustedConversationIDKeys(action.payload.conversationIDKeys).forEach(k => {
-    if (!metaQueue.has(k)) {
-      added = true
-      metaQueue.add(k)
-    }
-  })
-  if (added) {
-    // only unboxMore if something changed
-    return Chat2Gen.createMetaHandleQueue()
-  } else {
-    logger.info('skipping meta queue run, queue unchanged')
-    return false
-  }
-}
-
-// Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
-const requestMeta = async (_: unknown, _a: unknown, listenerApi: Container.ListenerApi) => {
-  const maxToUnboxAtATime = 10
-  const ar = [...metaQueue]
-  const maybeUnbox = ar.slice(0, maxToUnboxAtATime)
-  metaQueue = new Set(ar.slice(maxToUnboxAtATime))
-
-  const conversationIDKeys = untrustedConversationIDKeys(maybeUnbox)
-  if (conversationIDKeys.length) {
-    Constants.useState.getState().dispatch.unboxRows(conversationIDKeys)
-  }
-  if (metaQueue.size && conversationIDKeys.length) {
-    await Container.timeoutPromise(100)
-  }
-  if (metaQueue.size) {
-    listenerApi.dispatch(Chat2Gen.createMetaHandleQueue())
-  }
-}
-
 const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxConversationPayload) => {
   // TODO not reactive
   const {infoMap} = UsersConstants.useState.getState()
@@ -147,22 +105,6 @@ const onGetInboxConvsUnboxed = (_: unknown, action: EngineGen.Chat1ChatUiChatInb
     Constants.useState.getState().dispatch.metasReceived(metas)
   }
   return actions
-}
-
-const onGetInboxConvFailed = (_: unknown, action: EngineGen.Chat1ChatUiChatInboxFailedPayload) => {
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  const {convID, error} = action.payload.params
-  const conversationIDKey = Types.conversationIDToKey(convID)
-  switch (error.typ) {
-    case RPCChatTypes.ConversationErrorType.transient:
-      logger.info(
-        `onFailed: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
-      )
-      return false
-    default:
-      logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
-      return Chat2Gen.createMetaReceivedError({conversationIDKey, error, username})
-  }
 }
 
 const maybeChangeSelectedConv = () => {
@@ -2534,15 +2476,10 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxStale, () => {
     Constants.useState.getState().dispatch.inboxRefresh('inboxStale')
   })
-  // We've scrolled some new inbox rows into view, queue them up
-  Container.listenAction(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
-  // We have some items in the queue to process
-  Container.listenAction(Chat2Gen.metaHandleQueue, requestMeta)
 
   // Actually try and unbox conversations
   Container.listenAction(EngineGen.chat1ChatUiChatInboxConversation, onGetInboxConvsUnboxed)
   Container.listenAction(EngineGen.chat1ChatUiChatInboxUnverified, onGetInboxUnverifiedConvs)
-  Container.listenAction(EngineGen.chat1ChatUiChatInboxFailed, onGetInboxConvFailed)
   Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, maybeChangeSelectedConv)
   Container.listenAction(EngineGen.chat1ChatUiChatInboxLayout, ensureWidgetMetas)
   // TODO move to engine constants

@@ -491,9 +491,13 @@ export type State = Store & {
       removals?: Array<Types.ConversationIDKey> // convs to remove
     ) => void
     onEngineConnected: () => void
-    onEngineIncoming: (action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload) => void
+    onEngineIncoming: (
+      action: EngineGen.Chat1NotifyChatChatTypingUpdatePayload | EngineGen.Chat1ChatUiChatInboxFailedPayload
+    ) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
+    queueMetaToRequest: (ids: Array<Types.ConversationIDKey>) => void
+    queueMetaHandle: () => void
     refreshBotPublicCommands: (username: string) => void
     resetConversationErrored: () => void
     resetState: () => void
@@ -518,9 +522,17 @@ export type State = Store & {
   getUnreadMap: (badgeCountsChanged: number) => Map<string, number>
 }
 
+// Only get the untrusted conversations out
+const untrustedConversationIDKeys = (ids: Array<Types.ConversationIDKey>) =>
+  ids.filter(id => getConvoState(id).meta.trustedState === 'untrusted')
+
 // generic chat store
 export const useState = Z.createZustand<State>((set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
+
+  // We keep a set of conversations to unbox
+  let metaQueue = new Set<Types.ConversationIDKey>()
+
   const dispatch: State['dispatch'] = {
     badgesUpdated: (bigTeamBadgeCount, smallTeamBadgeCount) => {
       set(s => {
@@ -940,6 +952,11 @@ export const useState = Z.createZustand<State>((set, get) => {
           })
           break
         }
+        case EngineGen.chat1ChatUiChatInboxFailed:
+          getConvoState(Types.conversationIDToKey(action.payload.params.convID)).dispatch.onEngineIncoming(
+            action
+          )
+          break
       }
     },
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {
@@ -964,6 +981,42 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
       })
+    },
+    queueMetaHandle: () => {
+      // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible
+      const f = async () => {
+        const maxToUnboxAtATime = 10
+        const ar = [...metaQueue]
+        const maybeUnbox = ar.slice(0, maxToUnboxAtATime)
+        metaQueue = new Set(ar.slice(maxToUnboxAtATime))
+        const conversationIDKeys = untrustedConversationIDKeys(maybeUnbox)
+        if (conversationIDKeys.length) {
+          get().dispatch.unboxRows(conversationIDKeys)
+        }
+        if (metaQueue.size && conversationIDKeys.length) {
+          await Z.timeoutPromise(100)
+        }
+        if (metaQueue.size) {
+          get().dispatch.queueMetaHandle()
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    queueMetaToRequest: ids => {
+      console.log('aaa queueMetaToRequest', ids)
+      let added = false
+      untrustedConversationIDKeys(ids).forEach(k => {
+        if (!metaQueue.has(k)) {
+          added = true
+          metaQueue.add(k)
+        }
+      })
+      if (added) {
+        // only unboxMore if something changed
+        get().dispatch.queueMetaHandle()
+      } else {
+        logger.info('skipping meta queue run, queue unchanged')
+      }
     },
     refreshBotPublicCommands: username => {
       set(s => {
@@ -1104,9 +1157,13 @@ export const useState = Z.createZustand<State>((set, get) => {
           ? ids
           : ids.reduce((arr: Array<string>, id) => {
               if (id && Types.isValidConversationIDKey(id)) {
-                const trustedState = getConvoState(id).meta.trustedState
+                const cs = getConvoState(id)
+                const trustedState = cs.meta.trustedState
                 if (trustedState !== 'requesting' && trustedState !== 'trusted') {
                   arr.push(id)
+                  cs.dispatch.updateMeta({
+                    trustedState: 'requesting',
+                  })
                 }
               }
               return arr
@@ -1127,7 +1184,6 @@ export const useState = Z.createZustand<State>((set, get) => {
             logger.info(`unboxRows: failed ${error.desc}`)
           }
         }
-        reduxDispatch(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
       }
       Z.ignorePromise(f())
     },

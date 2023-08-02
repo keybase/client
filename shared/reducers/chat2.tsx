@@ -206,16 +206,6 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   },
 }
 
-const getConversationIDKeyMetasToLoad = (conversationIDKeys: Array<Types.ConversationIDKey>) =>
-  conversationIDKeys.reduce((arr: Array<string>, id) => {
-    if (id && Constants.isValidConversationIDKey(id)) {
-      const trustedState = Constants.getConvoState(id).meta.trustedState
-      if (trustedState !== 'requesting' && trustedState !== 'trusted') {
-        arr.push(id)
-      }
-    }
-    return arr
-  }, [])
 const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.resetStore]: () => {
     return {...initialState}
@@ -619,73 +609,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       m.title = text.stringValue()
     }
   },
-  [Chat2Gen.metaReceivedError]: (_draftState, action) => {
-    const {error, username, conversationIDKey} = action.payload
-    const cs = Constants.getConvoState(conversationIDKey)
-    if (error) {
-      if (
-        error.typ === RPCChatTypes.ConversationErrorType.otherrekeyneeded ||
-        error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
-      ) {
-        const {rekeyInfo} = error
-        const participants = [
-          ...(rekeyInfo
-            ? new Set<string>(
-                ([] as Array<string>)
-                  .concat(rekeyInfo.writerNames || [], rekeyInfo.readerNames || [])
-                  .filter(Boolean)
-              )
-            : new Set<string>(error.unverifiedTLFName.split(','))),
-        ]
-
-        const rekeyers = new Set<string>(
-          error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
-            ? [username || '']
-            : (rekeyInfo && rekeyInfo.rekeyers) || []
-        )
-        const newMeta = Constants.unverifiedInboxUIItemToConversationMeta(error.remoteConv)
-        if (!newMeta) {
-          // public conversation, do nothing
-          return
-        }
-        cs.dispatch.setMeta({
-          ...newMeta,
-          rekeyers,
-          snippet: error.message,
-          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
-          trustedState: 'error' as const,
-        })
-        cs.dispatch.setParticipants({
-          all: participants,
-          contactName: Constants.noParticipantInfo.contactName,
-          name: participants,
-        })
-      } else {
-        const old = cs.meta
-        cs.dispatch.setMeta({
-          ...old,
-          snippet: error.message,
-          snippetDecoration: RPCChatTypes.SnippetDecoration.none,
-          trustedState: 'error',
-        })
-      }
-    } else {
-      cs.dispatch.setMeta()
-    }
-  },
-  [Chat2Gen.metaRequestingTrusted]: (_draftState, action) => {
-    const {conversationIDKeys} = action.payload
-    const ids = getConversationIDKeyMetasToLoad(conversationIDKeys)
-    ids.forEach(conversationIDKey => {
-      const cs = Constants.getConvoState(conversationIDKey)
-      if (cs.meta.conversationIDKey === conversationIDKey) {
-        cs.dispatch.setMeta({
-          ...cs.meta,
-          trustedState: 'requesting',
-        })
-      }
-    })
-  },
   [Chat2Gen.markConversationsStale]: (draftState, action) => {
     const {updateType, conversationIDKeys} = action.payload
     if (updateType === RPCChatTypes.StaleUpdateType.clear) {
@@ -699,11 +622,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (cs.meta.conversationIDKey === conversationIDKey) {
       cs.dispatch.setMeta(Constants.updateMetaWithNotificationSettings(cs.meta, settings))
     }
-  },
-  [Chat2Gen.metaDelete]: (_draftState, action) => {
-    const {conversationIDKey} = action.payload
-    const cs = Constants.getConvoState(conversationIDKey)
-    cs.dispatch.setMeta()
   },
   [Chat2Gen.setConversationOffline]: (_draftState, action) => {
     const {conversationIDKey, offline} = action.payload

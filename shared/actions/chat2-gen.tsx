@@ -58,11 +58,6 @@ export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
 export const messagesWereDeleted = 'chat2:messagesWereDeleted'
-export const metaDelete = 'chat2:metaDelete'
-export const metaHandleQueue = 'chat2:metaHandleQueue'
-export const metaNeedsUpdating = 'chat2:metaNeedsUpdating'
-export const metaReceivedError = 'chat2:metaReceivedError'
-export const metaRequestingTrusted = 'chat2:metaRequestingTrusted'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
@@ -99,12 +94,6 @@ export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Action Creators
-/**
- * About to try and unbox some inbox rows
- */
-export const createMetaRequestingTrusted = (payload: {
-  readonly conversationIDKeys: Array<Types.ConversationIDKey>
-}) => ({payload, type: metaRequestingTrusted as typeof metaRequestingTrusted})
 /**
  * Actually start a conversation
  */
@@ -219,14 +208,6 @@ export const createMessageErrored = (payload: {
   readonly outboxID: Types.OutboxID
 }) => ({payload, type: messageErrored as typeof messageErrored})
 /**
- * Got some inbox errors
- */
-export const createMetaReceivedError = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly error?: RPCChatTypes.InboxUIItemError
-  readonly username?: string
-}) => ({payload, type: metaReceivedError as typeof metaReceivedError})
-/**
  * Hide a conversation until future activity
  */
 export const createHideConversation = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
@@ -259,13 +240,6 @@ export const createAttachmentPasted = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly data: Buffer
 }) => ({payload, type: attachmentPasted as typeof attachmentPasted})
-/**
- * Internal action: pull more metas from the queue to request
- */
-export const createMetaHandleQueue = (payload?: undefined) => ({
-  payload,
-  type: metaHandleQueue as typeof metaHandleQueue,
-})
 /**
  * Jump to a replied to message
  */
@@ -644,13 +618,6 @@ export const createNotificationSettingsUpdated = (payload: {
   readonly settings: RPCChatTypes.ConversationNotificationInfo
 }) => ({payload, type: notificationSettingsUpdated as typeof notificationSettingsUpdated})
 /**
- * We got a status update saying it was blocked or ignored
- */
-export const createMetaDelete = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly selectSomethingElse: boolean
-}) => ({payload, type: metaDelete as typeof metaDelete})
-/**
  * We got an uploaded attachment.
  * While online this is like an edit of the placeholder
  */
@@ -674,13 +641,6 @@ export const createAttachmentDownload = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: attachmentDownload as typeof attachmentDownload})
-/**
- * We want to unbox an inbox row
- */
-export const createMetaNeedsUpdating = (payload: {
-  readonly conversationIDKeys: Array<Types.ConversationIDKey>
-  readonly reason: string
-}) => ({payload, type: metaNeedsUpdating as typeof metaNeedsUpdating})
 /**
  * We want to upload some attachments
  */
@@ -819,11 +779,6 @@ export type MessageWasEditedPayload = ReturnType<typeof createMessageWasEdited>
 export type MessagesAddPayload = ReturnType<typeof createMessagesAdd>
 export type MessagesExplodedPayload = ReturnType<typeof createMessagesExploded>
 export type MessagesWereDeletedPayload = ReturnType<typeof createMessagesWereDeleted>
-export type MetaDeletePayload = ReturnType<typeof createMetaDelete>
-export type MetaHandleQueuePayload = ReturnType<typeof createMetaHandleQueue>
-export type MetaNeedsUpdatingPayload = ReturnType<typeof createMetaNeedsUpdating>
-export type MetaReceivedErrorPayload = ReturnType<typeof createMetaReceivedError>
-export type MetaRequestingTrustedPayload = ReturnType<typeof createMetaRequestingTrusted>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type NotificationSettingsUpdatedPayload = ReturnType<typeof createNotificationSettingsUpdated>
@@ -911,11 +866,6 @@ export type Actions =
   | MessagesAddPayload
   | MessagesExplodedPayload
   | MessagesWereDeletedPayload
-  | MetaDeletePayload
-  | MetaHandleQueuePayload
-  | MetaNeedsUpdatingPayload
-  | MetaReceivedErrorPayload
-  | MetaRequestingTrustedPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | NotificationSettingsUpdatedPayload
