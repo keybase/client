@@ -1003,7 +1003,6 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     queueMetaToRequest: ids => {
-      console.log('aaa queueMetaToRequest', ids)
       let added = false
       untrustedConversationIDKeys(ids).forEach(k => {
         if (!metaQueue.has(k)) {
