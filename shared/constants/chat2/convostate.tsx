@@ -529,24 +529,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
 
         const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
 
-        console.log('aaa', {
-          cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
-          conversationID: Types.keyToConversationID(conversationIDKey),
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          knownRemotes,
-          pagination,
-          pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
-          query: {
-            disablePostProcessThread: false,
-            disableResolveSupersedes: false,
-            enableDeletePlaceholders: true,
-            markAsRead: false,
-            messageIDControl,
-            messageTypes: Common.loadThreadMessageTypes,
-          },
-          reason: Common.reasonToRPCReason(reason),
-        })
-
         try {
           let validated = false
           const results = await RPCChatTypes.localGetThreadNonblockRpcListener(
