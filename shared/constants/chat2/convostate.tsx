@@ -155,6 +155,7 @@ export type ConvoState = ConvoStore & {
     refreshBotSettings: (username: string) => void
     refreshMutualTeamsInConv: () => void
     removeBotMember: (username: string) => void
+    replaceMessageMap: (mm: ConvoStore['messageMap']) => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetState: 'default'
     resetUnsentText: () => void
@@ -183,6 +184,7 @@ export type ConvoState = ConvoStore & {
     setTyping: (t: Set<string>) => void
     threadSearch: (query: string) => void
     toggleThreadSearch: (hide?: boolean) => void
+    updateMessage: (ordinal: Types.Ordinal, m: Partial<Types.Message>) => void
     updateMeta: (m: Partial<Types.ConversationMeta>) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
@@ -659,6 +661,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    replaceMessageMap: mm => {
+      set(s => {
+        s.messageMap = mm
+      })
     },
     requestInfoReceived: (messageID, requestInfo) => {
       set(s => {
@@ -1238,13 +1245,26 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
-    updateMeta: (m: Partial<Types.ConversationMeta>) => {
-      // see setmeta
+    // maybe remove this when reducer is ported
+    updateMessage: (ordinal: Types.Ordinal, pm: Partial<Types.Message>) => {
       set(s => {
-        const keys = Object.keys(m) as Array<keyof Types.ConversationMeta>
+        const m = s.messageMap.get(ordinal)
+        if (!m) return
+
+        const keys = Object.keys(pm)
         keys.forEach(k => {
           // @ts-ignore
-          s.meta[k] = m[k]
+          m[k] = pm[k]
+        })
+      })
+    },
+    updateMeta: (pm: Partial<Types.ConversationMeta>) => {
+      // see setmeta
+      set(s => {
+        const keys = Object.keys(pm) as Array<keyof Types.ConversationMeta>
+        keys.forEach(k => {
+          // @ts-ignore
+          s.meta[k] = pm[k]
         })
       })
       get().dispatch.setDraft(get().meta.draft)
