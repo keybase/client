@@ -10,6 +10,7 @@ import * as Types from '../types/chat2'
 import * as Z from '../../util/zustand'
 import * as RouterConstants from '../router2'
 import * as TeamsConstants from '../teams'
+import {isMobile} from '../platform'
 import {useConfigState, useCurrentUserState} from '../config'
 import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
@@ -141,6 +142,20 @@ export type ConvoState = ConvoStore & {
     hideSearch: () => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadOrangeLine: () => void
+    loadMoreMessages: (p: {
+      forceContainsLatestCalc?: boolean
+      messageIDControl?: RPCChatTypes.MessageIDControl
+      centeredMessageIDs?: Array<{
+        conversationIDKey: Types.ConversationIDKey
+        messageID: Types.MessageID
+        highlightMode: Types.CenterOrdinalHighlightMode
+      }>
+      reason: string
+      knownRemotes?: Array<string>
+      forceClear?: boolean
+      scrollDirection?: ScrollDirection
+      numberOfMessagesToLoad?: number
+    }) => void
     metaReceivedError: (error: RPCChatTypes.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
     onEngineIncoming: (
@@ -215,6 +230,10 @@ const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   messages: [],
   status: 'loading',
 })
+
+type ScrollDirection = 'none' | 'back' | 'forward'
+export const numMessagesOnInitialLoad = isMobile ? 20 : 100
+export const numMessagesOnScrollback = isMobile ? 100 : 100
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
   const reduxDispatch = Z.getReduxDispatch()
@@ -401,6 +420,171 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               info.last = false
               info.status = 'error'
             })
+          }
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    loadMoreMessages: p => {
+      const {
+        reason,
+        messageIDControl,
+        knownRemotes,
+        forceClear = false,
+        forceContainsLatestCalc = false,
+        centeredMessageIDs,
+        scrollDirection: sd = 'none',
+        numberOfMessagesToLoad = numMessagesOnInitialLoad,
+      } = p
+
+      const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
+        const pagination = {
+          last: false,
+          next: '',
+          num: numberOfMessagesToLoad,
+          previous: '',
+        }
+        switch (sd) {
+          case 'none':
+            break
+          case 'back':
+            pagination.next = 'deadbeef'
+            break
+          case 'forward':
+            pagination.previous = 'deadbeef'
+        }
+        return pagination
+      }
+      // Load new messages on a thread. We call this when you select a conversation,
+      // we get a thread-is-stale notification, or when you scroll up and want more
+      // messages
+      const f = async () => {
+        const ConfigConstants = await import('../config')
+        const Constants = await import('.')
+        const reduxDispatch = Z.getReduxDispatch()
+        // Get the conversationIDKey
+        const key = get().id
+
+        if (!key || !Types.isValidConversationIDKey(key)) {
+          logger.info('bail: no conversationIDKey')
+          return
+        }
+
+        const conversationIDKey = get().id
+        const meta = get().meta
+
+        if (meta.membershipType === 'youAreReset' || meta.rekeyers.size > 0) {
+          logger.info('bail: we are reset')
+          return
+        }
+
+        logger.info(
+          `calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
+        )
+
+        const loadingKey = Common.waitingKeyThreadLoad(conversationIDKey)
+        let calledClear = false
+        const onGotThread = (thread: string) => {
+          if (!thread) {
+            return
+          }
+
+          const username = ConfigConstants.useCurrentUserState.getState().username
+          const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
+          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+          const uiMessages = JSON.parse(thread) as RPCChatTypes.UIMessages
+          let shouldClearOthers = false
+          if ((forceClear || sd === 'none') && !calledClear) {
+            shouldClearOthers = true
+            calledClear = true
+          }
+          const messages = (uiMessages.messages ?? []).reduce<Array<Types.Message>>((arr, m) => {
+            const message = conversationIDKey
+              ? Message.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
+              : undefined
+            if (message) {
+              arr.push(message)
+            }
+            return arr
+          }, [])
+
+          // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
+
+          const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
+          get().dispatch.setMoreToLoad(moreToLoad)
+
+          if (messages.length) {
+            reduxDispatch(
+              Chat2Gen.createMessagesAdd({
+                centeredMessageIDs,
+                context: {conversationIDKey, type: 'threadLoad'},
+                conversationIDKey,
+                forceContainsLatestCalc,
+                messages,
+                shouldClearOthers,
+              })
+            )
+          }
+        }
+
+        const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
+
+        try {
+          let validated = false
+          const results = await RPCChatTypes.localGetThreadNonblockRpcListener(
+            {
+              incomingCallMap: {
+                'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
+                'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
+                'chat.1.chatUi.chatThreadStatus': p => {
+                  // if we're validated, never undo that
+                  if (p.status.typ === RPCChatTypes.UIChatThreadStatusTyp.validated) {
+                    validated = true
+                  } else if (validated) {
+                    return
+                  }
+                  if (p) {
+                    get().dispatch.setThreadLoadStatus(p.status.typ)
+                  }
+                },
+              },
+              params: {
+                cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
+                conversationID: Types.keyToConversationID(conversationIDKey),
+                identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+                knownRemotes,
+                pagination,
+                pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
+                query: {
+                  disablePostProcessThread: false,
+                  disableResolveSupersedes: false,
+                  enableDeletePlaceholders: true,
+                  markAsRead: false,
+                  messageIDControl,
+                  messageTypes: Common.loadThreadMessageTypes,
+                },
+                reason: Common.reasonToRPCReason(reason),
+              },
+              waitingKey: loadingKey,
+            },
+            Z.dummyListenerApi
+          )
+          reduxDispatch(
+            Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
+          )
+        } catch (error) {
+          if (error instanceof RPCError) {
+            logger.warn(error.desc)
+            // no longer in team
+            if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
+              const {inboxRefresh} = Constants.useState.getState().dispatch
+              inboxRefresh('maybeKickedFromTeam')
+              reduxDispatch(Chat2Gen.createNavigateToInbox())
+            }
+            if (error.code !== RPCTypes.StatusCode.scteamreaderror) {
+              // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
+              throw error
+            }
           }
         }
       }
