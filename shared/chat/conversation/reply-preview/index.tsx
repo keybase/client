@@ -1,17 +1,13 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import type * as Types from '../../../constants/types/chat2'
 
-type Props = {conversationIDKey: Types.ConversationIDKey}
-
-const ReplyPreview = (props: Props) => {
-  const {conversationIDKey} = props
+const ReplyPreview = () => {
   const rordinal = Constants.useContext(s => s.replyTo)
-  const message = Container.useSelector(state => {
-    return rordinal ? Constants.getMessage(state, conversationIDKey, rordinal) : null
+  const message = Constants.useContext(s => {
+    return rordinal ? s.messageMap.get(rordinal) : null
   })
   let text = ''
   if (message) {

@@ -1,10 +1,9 @@
 import * as ConfigConstants from '../../../constants/config'
 import * as Constants from '../../../constants/chat2'
-import * as Container from '../../../util/container'
 import * as React from 'react'
 import PaymentStatus, {type Props} from '.'
 import type * as WalletTypes from '../../../constants/types/wallets'
-import {ConvoIDContext, OrdinalContext} from '../../conversation/messages/ids-context'
+import {OrdinalContext} from '../../conversation/messages/ids-context'
 
 type OwnProps = {
   allowFontScaling?: boolean
@@ -34,22 +33,16 @@ const reduceStatus = (status: string): Status => {
 
 const PaymentStatusContainer = React.memo(function PaymentStatusContainer(p: OwnProps) {
   const {error, paymentID, text, allowFontScaling} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const paymentInfo = Constants.useState(s => (paymentID ? s.paymentStatusMap.get(paymentID) : undefined))
   const status = error ? 'error' : paymentInfo?.status ?? 'pending'
 
   const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const allowPopup = Container.useSelector(state => {
-    const author = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.author
-    return status === 'completed' || status === 'pending' || status === 'claimable' || author === you
-  })
-
   // TODO remove
-  const message = Container.useSelector(state => {
-    return state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
-  })
-
+  const message = Constants.useContext(s => s.messageMap.get(ordinal))
+  const author = message?.author
+  const allowPopup =
+    status === 'completed' || status === 'pending' || status === 'claimable' || author === you
   if (message?.type !== 'text') return null
 
   const props = {

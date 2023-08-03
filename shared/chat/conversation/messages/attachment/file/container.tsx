@@ -8,7 +8,7 @@ import * as React from 'react'
 import * as Tabs from '../../../../../constants/tabs'
 import File from '.'
 import type * as CryptoTypes from '../../../../../constants/types/crypto'
-import {ConvoIDContext, OrdinalContext} from '../../ids-context'
+import {OrdinalContext} from '../../ids-context'
 import {globalColors} from '../../../../../styles'
 import {isPathSaltpack} from '../../../../../constants/crypto'
 import shallowEqual from 'shallowequal'
@@ -20,19 +20,18 @@ type OwnProps = {
 const missingMessage = Constants.makeMessageAttachment({})
 
 const FileContainer = React.memo(function FileContainer(p: OwnProps) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const isEditing = Constants.useContext(s => !!s.editing)
 
-  const {fileType, downloadPath, transferState, transferErrMsg, fileName} = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+  const {fileType, downloadPath, transferState, transferErrMsg, fileName} = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal) ?? missingMessage
     const {downloadPath, fileName, fileType, transferErrMsg, transferState} = m
     return {downloadPath, fileName, fileType, transferErrMsg, transferState}
   }, shallowEqual)
 
   // TODO not message
-  const message = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const message = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal)
     return m?.type === 'attachment' ? m : missingMessage
   })
 

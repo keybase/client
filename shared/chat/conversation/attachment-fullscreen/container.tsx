@@ -27,8 +27,8 @@ const Connected = (props: OwnProps) => {
   const currentDeviceName = ConfigConstants.useCurrentUserState(s => s.deviceName)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const ordinals = Constants.useContext(s => s.messageOrdinals)
-  const data = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const data = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal)
     const lastOrdinal = ordinals?.[ordinals.length - 1] ?? 0
     const message = m?.type === 'attachment' ? m : blankMessage
     const {previewHeight, previewWidth, title, fileURL, previewURL, downloadPath, transferProgress} = message

@@ -1,5 +1,5 @@
 import * as RouterConstants from '../../../../../../constants/router2'
-import * as Container from '../../../../../../util/container'
+import * as Constants from '../../../../../../constants/chat2'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
@@ -17,8 +17,8 @@ const UnfurlMap = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const ordinal = React.useContext(OrdinalContext)
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
 
-  const data = Container.useSelector(state => {
-    const {unfurl, youAreAuthor, author} = getUnfurlInfo(state, conversationIDKey, ordinal, idx)
+  const data = Constants.useContext(s => {
+    const {unfurl, youAreAuthor, author} = getUnfurlInfo(s, ordinal, idx)
     if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.generic) {
       return null
     }

@@ -1,6 +1,6 @@
-import * as Container from '../../../../../../util/container'
 import * as Kb from '../../../../../../common-adapters/index'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
+import * as Constants from '../../../../../../constants/chat2'
 import * as React from 'react'
 import * as Styles from '../../../../../../styles'
 import UnfurlImage from './image'
@@ -14,13 +14,8 @@ const UnfurlGeneric = React.memo(function UnfurlGeneric(p: {idx: number}) {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
-  const data = Container.useSelector(state => {
-    const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(
-      state,
-      conversationIDKey,
-      ordinal,
-      idx
-    )
+  const data = Constants.useContext(s => {
+    const {unfurl, isCollapsed, unfurlMessageID, youAreAuthor} = getUnfurlInfo(s, ordinal, idx)
     if (unfurl?.unfurlType !== RPCChatTypes.UnfurlType.generic) {
       return null
     }
@@ -214,7 +209,7 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.fastBlank,
         ...Styles.globalStyles.fontSemibold,
       },
-    } as const)
+    }) as const
 )
 
 export default UnfurlGeneric

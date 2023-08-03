@@ -19,8 +19,6 @@ export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
 export const attachmentPasted = 'chat2:attachmentPasted'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
-export const attachmentUploaded = 'chat2:attachmentUploaded'
-export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const blockConversation = 'chat2:blockConversation'
 export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
@@ -77,7 +75,6 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const tabSelected = 'chat2:tabSelected'
 export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
-export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const unfurlRemove = 'chat2:unfurlRemove'
@@ -515,16 +512,6 @@ export const createToggleGiphyPrefill = (payload: {readonly conversationIDKey: T
   type: toggleGiphyPrefill as typeof toggleGiphyPrefill,
 })
 /**
- * Toggle a reaction in the store.
- */
-export const createToggleLocalReaction = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly decorated: string
-  readonly emoji: string
-  readonly targetOrdinal: Types.Ordinal
-  readonly username: string
-}) => ({payload, type: toggleLocalReaction as typeof toggleLocalReaction})
-/**
  * Toggle the collapse status of a message
  */
 export const createToggleMessageCollapse = (payload: {
@@ -564,14 +551,6 @@ export const createUpdateMessages = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messages: Array<{messageID: Types.MessageID; message: Types.Message}>
 }) => ({payload, type: updateMessages as typeof updateMessages})
-/**
- * Update progress on an upload
- */
-export const createAttachmentUploading = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly outboxID: Types.OutboxID
-  readonly ratio: number
-}) => ({payload, type: attachmentUploading as typeof attachmentUploading})
 /**
  * Update the unreadline line position for a conversation
  */
@@ -635,13 +614,6 @@ export const createUpdateNotificationSettings = (payload: {
   readonly notificationsMobile: Types.NotificationsType
   readonly notificationsGlobalIgnoreMentions: boolean
 }) => ({payload, type: updateNotificationSettings as typeof updateNotificationSettings})
-/**
- * We're done uploading
- */
-export const createAttachmentUploaded = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: attachmentUploaded as typeof attachmentUploaded})
 export const createAttachFromDragAndDrop = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly paths: Array<Types.PathAndOutboxID>
@@ -716,8 +688,6 @@ export type AttachmentMobileSavedPayload = ReturnType<typeof createAttachmentMob
 export type AttachmentPastedPayload = ReturnType<typeof createAttachmentPasted>
 export type AttachmentPreviewSelectPayload = ReturnType<typeof createAttachmentPreviewSelect>
 export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachmentUploadCanceled>
-export type AttachmentUploadedPayload = ReturnType<typeof createAttachmentUploaded>
-export type AttachmentUploadingPayload = ReturnType<typeof createAttachmentUploading>
 export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ChannelSuggestionsTriggeredPayload = ReturnType<typeof createChannelSuggestionsTriggered>
@@ -774,7 +744,6 @@ export type SetConversationOfflinePayload = ReturnType<typeof createSetConversat
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ToggleGiphyPrefillPayload = ReturnType<typeof createToggleGiphyPrefill>
-export type ToggleLocalReactionPayload = ReturnType<typeof createToggleLocalReaction>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
 export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
@@ -800,8 +769,6 @@ export type Actions =
   | AttachmentPastedPayload
   | AttachmentPreviewSelectPayload
   | AttachmentUploadCanceledPayload
-  | AttachmentUploadedPayload
-  | AttachmentUploadingPayload
   | AttachmentsUploadPayload
   | BlockConversationPayload
   | ChannelSuggestionsTriggeredPayload
@@ -858,7 +825,6 @@ export type Actions =
   | SetMinWriterRolePayload
   | TabSelectedPayload
   | ToggleGiphyPrefillPayload
-  | ToggleLocalReactionPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload
   | UnfurlRemovePayload

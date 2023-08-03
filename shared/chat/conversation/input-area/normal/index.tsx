@@ -80,16 +80,14 @@ const Input = (p: Props) => {
   const {onRequestScrollDown, onRequestScrollUp, onRequestScrollToBottom} = p
 
   const showGiphySearch = Constants.useContext(s => s.giphyWindow)
-  const rorindal = Constants.useContext(s => s.replyTo)
+  const rordinal = Constants.useContext(s => s.replyTo)
   const showCommandMarkdown = Constants.useContext(s => !!s.commandMarkdown)
   const showCommandStatus = Constants.useContext(s => !!s.commandStatus)
-  const replyTo = Container.useSelector(
-    state => Constants.getReplyToMessageID(rorindal, state, conversationIDKey) ?? undefined
-  )
+  const replyTo = Constants.useContext(s => s.messageMap.get(rordinal)?.id)
 
   return (
     <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
-      {!!replyTo && <ReplyPreview conversationIDKey={conversationIDKey} />}
+      {!!replyTo && <ReplyPreview />}
       {/*TODO move this into suggestors*/ showCommandMarkdown && <CommandMarkdown />}
       {showCommandStatus && <CommandStatus />}
       {showGiphySearch && <Giphy />}
@@ -282,8 +280,8 @@ const ConnectedPlatformInput = React.memo(function ConnectedPlatformInput(
   const {conversationIDKey, focusInputCounter, showCommandMarkdown, onRequestScrollToBottom} = p
   const {onRequestScrollDown, onRequestScrollUp, showGiphySearch, replyTo, jumpToRecent} = p
   const editOrdinal = Constants.useContext(s => s.editing)
-  const isEditExploded = Container.useSelector(state =>
-    editOrdinal ? Constants.getMessage(state, conversationIDKey, editOrdinal)?.exploded ?? false : false
+  const isEditExploded = Constants.useContext(s =>
+    editOrdinal ? s.messageMap.get(editOrdinal)?.exploded ?? false : false
   )
   const isEditing = !!editOrdinal
   const {onSubmit} = useSubmit({

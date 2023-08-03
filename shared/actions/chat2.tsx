@@ -30,9 +30,7 @@ const {darwinCopyToChatTempUploadFile} = KB2.functions
 
 const getClientPrev = (conversationIDKey: Types.ConversationIDKey): Types.MessageID => {
   let clientPrev: undefined | Types.MessageID
-
-  const getReduxStore = Z.getReduxStore()
-  const mm = getReduxStore().chat2.messageMap.get(conversationIDKey)
+  const mm = Constants.getConvoState(conversationIDKey).messageMap
   if (mm) {
     // find last valid messageid we know about
     const goodOrdinal = findLast(Constants.getConvoState(conversationIDKey).messageOrdinals ?? [], o => {
@@ -149,10 +147,7 @@ const maybeChangeSelectedConv = () => {
 }
 
 // We get an incoming message streamed to us
-const onIncomingMessage = (
-  state: Container.TypedState,
-  incoming: RPCChatTypes.IncomingMessage
-): Array<Container.TypedActions> => {
+const onIncomingMessage = (_: unknown, incoming: RPCChatTypes.IncomingMessage) => {
   const {message: cMsg} = incoming
   const actions: Array<Container.TypedActions> = []
   const {modifiedMessage, convID, displayDesktopNotification, desktopNotificationSnippet} = incoming
@@ -166,16 +161,13 @@ const onIncomingMessage = (
       cMsg.state === RPCChatTypes.MessageUnboxedState.outbox &&
       cMsg.outbox.messageType === RPCChatTypes.MessageType.reaction
     ) {
-      actions.push(
-        Chat2Gen.createToggleLocalReaction({
-          conversationIDKey,
-          decorated: cMsg.outbox.decoratedTextBody ?? '',
-          emoji: cMsg.outbox.body,
-          targetOrdinal: cMsg.outbox.supersedes,
-          username,
-        })
-      )
-      return actions
+      Constants.getConvoState(conversationIDKey).dispatch.toggleLocalReaction({
+        decorated: cMsg.outbox.decoratedTextBody ?? '',
+        emoji: cMsg.outbox.body,
+        targetOrdinal: cMsg.outbox.supersedes,
+        username,
+      })
+      return []
     }
 
     const shouldAddMessage = Constants.getConvoState(conversationIDKey).containsLatestMessage ?? false
@@ -238,11 +230,10 @@ const onIncomingMessage = (
           break
         case RPCChatTypes.MessageType.delete: {
           const {delete: d} = body
-          const {messageMap} = state.chat2
           if (d?.messageIDs) {
             // check if the delete is acting on an exploding message
             const messageIDs = d.messageIDs
-            const messages = messageMap.get(conversationIDKey)
+            const messages = Constants.getConvoState(conversationIDKey).messageMap
             const isExplodeNow =
               !!messages &&
               messageIDs.some(_id => {
@@ -444,30 +435,6 @@ const onChatPromptUnfurl = (_: unknown, action: EngineGen.Chat1NotifyChatChatPro
     domain,
     true
   )
-}
-
-const onChatAttachmentUploadProgress = (
-  _: unknown,
-  action: EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
-) => {
-  const {convID, outboxID, bytesComplete, bytesTotal} = action.payload.params
-  return Chat2Gen.createAttachmentUploading({
-    conversationIDKey: Types.conversationIDToKey(convID),
-    outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
-    ratio: bytesComplete / bytesTotal,
-  })
-}
-
-const onChatAttachmentUploadStart = (
-  _: unknown,
-  action: EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
-) => {
-  const {convID, outboxID} = action.payload.params
-  return Chat2Gen.createAttachmentUploading({
-    conversationIDKey: Types.conversationIDToKey(convID),
-    outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
-    ratio: 0.01,
-  })
 }
 
 const onChatInboxSyncStarted = () => {
@@ -990,11 +957,9 @@ const desktopNotify = async (_: unknown, action: Chat2Gen.DesktopNotificationPay
 }
 
 // Delete a message. We cancel pending messages
-const messageDelete = async (state: Container.TypedState, action: Chat2Gen.MessageDeletePayload) => {
+const messageDelete = async (_: unknown, action: Chat2Gen.MessageDeletePayload) => {
   const {conversationIDKey, ordinal} = action.payload
-  const {messageMap} = state.chat2
-  const map = messageMap.get(conversationIDKey)
-  const message = map?.get(ordinal)
+  const message = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
   if (!message) {
     logger.warn('Deleting message')
     logger.debug('Deleting invalid message:', message)
@@ -1037,12 +1002,12 @@ const messageDelete = async (state: Container.TypedState, action: Chat2Gen.Messa
 }
 
 const messageEdit = async (
-  state: Container.TypedState,
+  _: unknown,
   action: Chat2Gen.MessageEditPayload,
   listenerApi: Container.ListenerApi
 ) => {
   const {conversationIDKey, text, ordinal} = action.payload
-  const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const message = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
   if (!message) {
     logger.warn("Can't find message to edit", ordinal)
     return
@@ -1383,13 +1348,13 @@ const downloadAttachment = async (
 
 // Download an attachment to your device
 const attachmentDownload = async (
-  state: Container.TypedState,
+  _: unknown,
   action: Chat2Gen.AttachmentDownloadPayload,
   listenerApi: Container.ListenerApi
 ) => {
   const {conversationIDKey, ordinal} = action.payload
 
-  const message = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  const message = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
 
   if (message?.type !== 'attachment') {
     throw new Error('Trying to download missing / incorrect message?')
@@ -1582,7 +1547,6 @@ const markThreadAsRead = (
     | Chat2Gen.TabSelectedPayload
 ) => {
   const f = async () => {
-    const getReduxStore = Z.getReduxStore()
     if (!ConfigConstants.useConfigState.getState().loggedIn) {
       logger.info('bail on not logged in')
       return
@@ -1616,17 +1580,15 @@ const markThreadAsRead = (
     }
 
     let message: Types.Message | undefined
-    const mmap = getReduxStore().chat2.messageMap.get(conversationIDKey)
-    if (mmap) {
-      const ordinals = Constants.getConvoState(conversationIDKey).messageOrdinals
-      const ordinal =
-        ordinals &&
-        findLast([...ordinals], (o: Types.Ordinal) => {
-          const m = mmap.get(o)
-          return m ? !!m.id : false
-        })
-      message = ordinal ? mmap.get(ordinal) : undefined
-    }
+    const mmap = Constants.getConvoState(conversationIDKey).messageMap
+    const ordinals = Constants.getConvoState(conversationIDKey).messageOrdinals
+    const ordinal =
+      ordinals &&
+      findLast([...ordinals], (o: Types.Ordinal) => {
+        const m = mmap.get(o)
+        return m ? !!m.id : false
+      })
+    message = ordinal ? mmap.get(ordinal) : undefined
 
     let readMsgID: number | undefined
     if (meta) {
@@ -1968,12 +1930,9 @@ const setConvRetentionPolicy = async (_: unknown, action: Chat2Gen.SetConvRetent
   return false
 }
 
-const toggleMessageCollapse = async (
-  state: Container.TypedState,
-  action: Chat2Gen.ToggleMessageCollapsePayload
-) => {
+const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageCollapsePayload) => {
   const {conversationIDKey, messageID, ordinal} = action.payload
-  const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  const m = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
   let isCollapsed = false
 
   if (messageID !== ordinal) {
@@ -2068,12 +2027,9 @@ const createConversation = async (
   }
 }
 
-const messageReplyPrivately = async (
-  state: Container.TypedState,
-  action: Chat2Gen.MessageReplyPrivatelyPayload
-) => {
+const messageReplyPrivately = async (_: unknown, action: Chat2Gen.MessageReplyPrivatelyPayload) => {
   const {sourceConversationIDKey, ordinal} = action.payload
-  const message = Constants.getMessage(state, sourceConversationIDKey, ordinal)
+  const message = Constants.getConvoState(sourceConversationIDKey).messageMap.get(ordinal)
   if (!message) {
     logger.warn("messageReplyPrivately: can't find message to reply to", ordinal)
     return
@@ -2114,17 +2070,14 @@ const messageReplyPrivately = async (
   return [Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'createdMessagePrivately'})]
 }
 
-const toggleMessageReaction = async (
-  state: Container.TypedState,
-  action: Chat2Gen.ToggleMessageReactionPayload
-) => {
+const toggleMessageReaction = async (_: unknown, action: Chat2Gen.ToggleMessageReactionPayload) => {
   // The service translates this to a delete if an identical reaction already exists
   // so we only need to call this RPC to toggle it on & off
   const {conversationIDKey, emoji, ordinal} = action.payload
   if (!emoji) {
     return
   }
-  const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const message = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
   if (!message) {
     logger.warn(`toggleMessageReaction: no message found`)
     return
@@ -2581,11 +2534,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.addUserToChannel, addUserToChannel)
 
   Container.listenAction(EngineGen.chat1NotifyChatChatPromptUnfurl, onChatPromptUnfurl)
-  Container.listenAction(
-    EngineGen.chat1NotifyChatChatAttachmentUploadProgress,
-    onChatAttachmentUploadProgress
-  )
-  Container.listenAction(EngineGen.chat1NotifyChatChatAttachmentUploadStart, onChatAttachmentUploadStart)
   Container.listenAction(EngineGen.chat1NotifyChatChatIdentifyUpdate, onChatIdentifyUpdate)
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxSyncStarted, onChatInboxSyncStarted)
   Container.listenAction(EngineGen.chat1NotifyChatChatInboxSynced, onChatInboxSynced)

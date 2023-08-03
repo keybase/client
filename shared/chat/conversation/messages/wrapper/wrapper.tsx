@@ -56,8 +56,8 @@ export const useCommon = (ordinal: Types.Ordinal) => {
   const showCenteredHighlight = useHighlightMode(ordinal)
 
   const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
-  const {type, shouldShowPopup} = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal)
+  const {type, shouldShowPopup} = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal)
     const type = m?.type
     const shouldShowPopup = Constants.shouldShowPopup(accountsInfoMap, m ?? undefined)
     return {shouldShowPopup, type}
@@ -102,7 +102,7 @@ const hasSuccessfulInlinePayments = (
   )
 }
 
-const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) => {
+const useRedux = (ordinal: Types.Ordinal) => {
   const getReactionsPopupPosition = (
     ordinals: Array<Types.Ordinal>,
     hasReactions: boolean,
@@ -151,8 +151,8 @@ const useRedux = (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ord
   const accountsInfoMap = Constants.useContext(s => s.accountsInfoMap)
   const ordinals = Constants.useContext(s => s.messageOrdinals)
   const isEditing = Constants.useContext(s => s.editing === ordinal)
-  const d = Container.useSelector(state => {
-    const m = Constants.getMessage(state, conversationIDKey, ordinal) ?? missingMessage
+  const d = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal) ?? missingMessage
     const {exploded, submitState, author, id, botUsername} = m
     const youSent = m.author === you && m.ordinal !== m.id
     const exploding = !!m.exploding
@@ -318,8 +318,8 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
   const {ecrType} = p
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const {failureDescription, outboxID} = Container.useSelector(state => {
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  const {failureDescription, outboxID} = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal)
     const outboxID = m?.outboxID
     const reason = m?.errorReason ?? ''
     const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
@@ -505,7 +505,7 @@ export const WrapperMessage = React.memo(function WrapperMessage(p: WMProps) {
   const {showCenteredHighlight, toggleShowingPopup, showingPopup, popup, popupAnchor} = p
   const [showingPicker, setShowingPicker] = React.useState(false)
 
-  const mdata = useRedux(conversationIDKey, ordinal)
+  const mdata = useRedux(ordinal)
 
   const {isPendingPayment, decorate, type, hasReactions, isEditing} = mdata
   const {ecrType, showSendIndicator, showRevoked, showExplodingCountdown, exploding} = mdata

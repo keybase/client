@@ -192,10 +192,6 @@ export type RenderMessageType =
   | 'attachment:file'
   | 'attachment:video'
 
-export type State = {
-  messageMap: Map<Common.ConversationIDKey, Map<_Message.Ordinal, _Message.Message>> // messages in a thread,
-}
-
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>
   Common.stringToConversationIDKey(Buffer.from(conversationID).toString('hex'))
 

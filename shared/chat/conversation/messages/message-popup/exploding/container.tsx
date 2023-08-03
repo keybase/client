@@ -30,9 +30,9 @@ export type OwnProps = {
 const emptyMessage = makeMessageText({})
 
 export default (ownProps: OwnProps) => {
-  const {conversationIDKey, ordinal} = ownProps
+  const {ordinal} = ownProps
   // TODO remove
-  const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const m = Constants.useContext(s => s.messageMap.get(ordinal))
   const message = m?.type === 'text' || m?.type === 'attachment' ? m : emptyMessage
   const you = ConfigConstants.useCurrentUserState(s => s.username)
   const yourMessage = message.author === you

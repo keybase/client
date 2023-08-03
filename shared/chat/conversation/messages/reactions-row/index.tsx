@@ -1,5 +1,4 @@
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
@@ -30,10 +29,9 @@ const getOrderedReactions = (reactions?: Types.Reactions) => {
 }
 
 const ReactionsRowContainer = React.memo(function ReactonsRowContainer() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const reactions = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const reactions = Constants.useContext(s => {
+    const message = s.messageMap.get(ordinal)
     const reactions = message?.reactions
     return reactions
   })
@@ -132,7 +130,7 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.xtiny,
       },
       visibilityHidden: Styles.platformStyles({isElectron: {visibility: 'hidden'}}),
-    } as const)
+    }) as const
 )
 
 export default ReactionsRowContainer

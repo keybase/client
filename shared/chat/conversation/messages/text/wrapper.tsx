@@ -1,11 +1,10 @@
 import * as Constants from '../../../../constants/chat2'
-import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import {useReply} from './reply'
 import {useBottom} from './bottom'
-import {ConvoIDContext, OrdinalContext} from '../ids-context'
+import {OrdinalContext} from '../ids-context'
 import {SetRecycleTypeContext} from '../../recycle-type-context'
 import {WrapperMessage, useCommon, type Props} from '../wrapper/wrapper'
 import {sharedStyles} from '../shared-styles'
@@ -32,10 +31,9 @@ const getStyle = (
 
 const MessageMarkdown = (p: {style: Styles.StylesCrossPlatform}) => {
   const {style} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const text = Container.useSelector(state => {
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  const text = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal)
     if (m?.type !== 'text') return ''
     const decoratedText = m.decoratedText
     const text = m.text
@@ -55,7 +53,6 @@ const MessageMarkdown = (p: {style: Styles.StylesCrossPlatform}) => {
 }
 
 const WrapperText = React.memo(function WrapperText(p: Props) {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const {ordinal} = p
   const common = useCommon(ordinal)
   const {toggleShowingPopup, type, showCenteredHighlight} = common
@@ -64,9 +61,9 @@ const WrapperText = React.memo(function WrapperText(p: Props) {
   const reply = useReply(ordinal)
 
   const editInfo = Constants.useContext(s => s.getEditInfo())
-  const {isEditing, textType, hasReactions} = Container.useSelector(state => {
+  const {isEditing, textType, hasReactions} = Constants.useContext(s => {
     const isEditing = !!(editInfo && editInfo.ordinal === ordinal)
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+    const m = s.messageMap.get(ordinal)
     const errorReason = m?.errorReason
     const textType = errorReason
       ? ('error' as const)

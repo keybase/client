@@ -58,6 +58,7 @@ type ConvoStore = {
   messageCenterOrdinal?: Types.CenterOrdinal // ordinals to center threads on,
   messageTypeMap: Map<Types.Ordinal, Types.RenderMessageType> // messages types to help the thread, text is never used
   messageOrdinals?: Array<Types.Ordinal> // ordered ordinals in a thread,
+  messageMap: Map<Types.Ordinal, Types.Message> // messages in a thread,
   meta: Types.ConversationMeta // metadata about a thread, There is a special node for the pending conversation,
   moreToLoad: boolean
   muted: boolean
@@ -95,6 +96,7 @@ const initialConvoStore: ConvoStore = {
   id: noConversationIDKey,
   markedAsUnread: false,
   messageCenterOrdinal: undefined,
+  messageMap: new Map(),
   messageOrdinals: undefined,
   messageTypeMap: new Map(),
   meta: Meta.makeConversationMeta(),
@@ -145,12 +147,15 @@ export type ConvoState = ConvoStore & {
       action:
         | EngineGen.Chat1ChatUiChatInboxFailedPayload
         | EngineGen.Chat1NotifyChatChatSetConvSettingsPayload
+        | EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
+        | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
     ) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
     refreshMutualTeamsInConv: () => void
     removeBotMember: (username: string) => void
+    replaceMessageMap: (mm: ConvoStore['messageMap']) => void
     requestInfoReceived: (messageID: RPCChatTypes.MessageID, requestInfo: Types.ChatRequestInfo) => void
     resetState: 'default'
     resetUnsentText: () => void
@@ -179,6 +184,13 @@ export type ConvoState = ConvoStore & {
     setTyping: (t: Set<string>) => void
     threadSearch: (query: string) => void
     toggleThreadSearch: (hide?: boolean) => void
+    toggleLocalReaction: (p: {
+      decorated: string
+      emoji: string
+      targetOrdinal: Types.Ordinal
+      username: string
+    }) => void
+    updateMessage: (ordinal: Types.Ordinal, m: Partial<Types.Message>) => void
     updateMeta: (m: Partial<Types.ConversationMeta>) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
@@ -205,7 +217,6 @@ const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
 })
 
 const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
-  const getReduxState = Z.getReduxStore()
   const reduxDispatch = Z.getReduxDispatch()
   const closeBotModal = () => {
     RouterConstants.useState.getState().dispatch.clearModals()
@@ -304,7 +315,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
       const f = async () => {
         const conversationIDKey = get().id
-        const replyTo = Common.getReplyToMessageID(get().replyTo, getReduxState(), conversationIDKey)
+        const replyTo = get().messageMap.get(get().replyTo)?.id
         try {
           await RPCChatTypes.localTrackGiphySelectRpcPromise({result})
         } catch {}
@@ -361,12 +372,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                         info.messages = info.messages.concat(message).sort((l, r) => r.id - l.id)
                       }
                       // inject them into the message map
-                      // // TODO >>>>>>>>>>>>>>>> when message map is in here can't mutate it here yet
-                      // const {messageMap} = getReduxState().chat2
-                      // const mm = mapGetEnsureValue(messageMap, conversationIDKey, new Map())
-                      // info.messages.forEach(m => {
-                      //   mm.set(m.id, m)
-                      // })
+                      info.messages.forEach(m => {
+                        s.messageMap.set(m.id, m)
+                      })
                     })
                   }
                 },
@@ -549,6 +557,27 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
               `got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
             )
           }
+          break
+        }
+
+        case EngineGen.chat1NotifyChatChatAttachmentUploadStart: // fallthrough
+        case EngineGen.chat1NotifyChatChatAttachmentUploadProgress: {
+          const {params} = action.payload
+          const ratio =
+            action.type === EngineGen.chat1NotifyChatChatAttachmentUploadProgress
+              ? action.payload.params.bytesComplete / action.payload.params.bytesTotal
+              : 0.01
+          const ordinal = get().pendingOutboxToOrdinal.get(Types.rpcOutboxIDToOutboxID(params.outboxID))
+          if (ordinal) {
+            set(s => {
+              const m = s.messageMap.get(ordinal)
+              if (m?.type === 'attachment') {
+                m.transferProgress = ratio
+                m.transferState = 'uploading'
+              }
+            })
+          }
+          break
         }
       }
     },
@@ -639,6 +668,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    replaceMessageMap: mm => {
+      set(s => {
+        s.messageMap = mm
+      })
+    },
     requestInfoReceived: (messageID, requestInfo) => {
       set(s => {
         s.accountsInfoMap.set(messageID, requestInfo)
@@ -691,15 +725,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             // just increment `readMsgID` since that msgID might be a
             // non-visible (edit, delete, reaction...) message so we scan the
             // ordinals for the appropriate value.
-            const messageMap = getReduxState().chat2.messageMap.get(conversationIDKey)
+            const messageMap = get().messageMap
             const ordinals = get().messageOrdinals
-            const ord =
-              messageMap &&
-              ordinals?.find(o => {
-                const message = messageMap.get(o)
-                return !!(message && message.id >= readMsgID + 1)
-              })
-            const message = ord ? messageMap?.get(ord) : null
+            const ord = ordinals?.find(o => {
+              const message = messageMap.get(o)
+              return !!(message && message.id >= readMsgID + 1)
+            })
+            const message = ord ? messageMap.get(ord) : null
             if (message?.id) {
               get().dispatch.setOrangeLine(message.id)
             } else {
@@ -766,10 +798,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         return
       }
 
-      const state = getReduxState()
-      const conversationIDKey = get().id
-
-      const messageMap = state.chat2.messageMap.get(conversationIDKey)
+      const messageMap = get().messageMap
 
       let ordinal = 0
       // Editing last message
@@ -780,7 +809,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const found =
           !!ordinals &&
           findLast(ordinals, o => {
-            const message = messageMap?.get(o)
+            const message = messageMap.get(o)
             return !!(
               (message?.type === 'text' || message?.type === 'attachment') &&
               message.author === editLastUser &&
@@ -797,7 +826,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       if (!ordinal) {
         return
       }
-      const message = messageMap?.get(ordinal)
+      const message = messageMap.get(ordinal)
       if (message?.type === 'text' || message?.type === 'attachment') {
         set(s => {
           s.editing = ordinal
@@ -882,25 +911,23 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           logger.info('bail on not logged in')
           return
         }
-        const state = getReduxState()
         const meta = get().meta
         const unreadLineID = readMsgID ? readMsgID : meta ? meta.maxVisibleMsgID : 0
         let msgID = unreadLineID
 
         // Find first visible message prior to what we have marked as unread. The
         // server will use this value to calculate our badge state.
-        const messageMap = state.chat2.messageMap.get(conversationIDKey)
+        const messageMap = get().messageMap
 
         if (messageMap) {
           const ordinals = get().messageOrdinals
           const ord =
-            messageMap &&
             ordinals &&
             findLast(ordinals, (o: Types.Ordinal) => {
               const message = messageMap.get(o)
               return !!(message && message.id < unreadLineID)
             })
-          const message = ord ? messageMap?.get(ord) : undefined
+          const message = ord ? messageMap.get(ord) : undefined
           if (message) {
             msgID = message.id
           }
@@ -1156,6 +1183,30 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    toggleLocalReaction: p => {
+      const {decorated, emoji, targetOrdinal, username} = p
+      set(s => {
+        const m = s.messageMap.get(targetOrdinal)
+        if (m && Message.isMessageWithReactions(m)) {
+          const reactions = m.reactions
+          const rs = {
+            decorated: reactions.get(emoji)?.decorated ?? decorated,
+            users: reactions.get(emoji)?.users ?? new Set(),
+          }
+          reactions.set(emoji, rs)
+          const existing = [...rs.users].find(r => r.username === username)
+          if (existing) {
+            // found an existing reaction. remove it from our list
+            rs.users.delete(existing)
+          }
+          // no existing reaction. add this one to the map
+          rs.users.add(Message.makeReaction({timestamp: Date.now(), username}))
+          if (rs.users.size === 0) {
+            reactions.delete(emoji)
+          }
+        }
+      })
+    },
     toggleThreadSearch: hide => {
       set(s => {
         const {threadSearchInfo} = s
@@ -1224,13 +1275,26 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       })
     },
-    updateMeta: (m: Partial<Types.ConversationMeta>) => {
-      // see setmeta
+    // maybe remove this when reducer is ported
+    updateMessage: (ordinal: Types.Ordinal, pm: Partial<Types.Message>) => {
       set(s => {
-        const keys = Object.keys(m) as Array<keyof Types.ConversationMeta>
+        const m = s.messageMap.get(ordinal)
+        if (!m) return
+
+        const keys = Object.keys(pm)
         keys.forEach(k => {
           // @ts-ignore
-          s.meta[k] = m[k]
+          m[k] = pm[k]
+        })
+      })
+    },
+    updateMeta: (pm: Partial<Types.ConversationMeta>) => {
+      // see setmeta
+      set(s => {
+        const keys = Object.keys(pm) as Array<keyof Types.ConversationMeta>
+        keys.forEach(k => {
+          // @ts-ignore
+          s.meta[k] = pm[k]
         })
       })
       get().dispatch.setDraft(get().meta.draft)
@@ -1246,8 +1310,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         return
       }
 
-      const id = get().id
-      const message = Common.getMessage(getReduxState(), id, ordinal)
+      const message = get().messageMap.get(ordinal)
       if (!message) {
         return
       }

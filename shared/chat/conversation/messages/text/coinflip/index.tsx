@@ -15,7 +15,7 @@ const CoinFlipContainer = React.memo(function CoinFlipContainer() {
   const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
 
-  const message = Container.useSelector(state => state.chat2.messageMap.get(conversationIDKey)?.get(ordinal))
+  const message = Constants.useContext(s => s.messageMap.get(ordinal))
   const isSendError = message?.type === 'text' ? !!message.errorReason : false
   const text = message?.type === 'text' ? message.text : undefined
   const flipGameID = (message?.type === 'text' && message.flipGameID) || ''

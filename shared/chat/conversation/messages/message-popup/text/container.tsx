@@ -19,7 +19,6 @@ import {isIOS} from '../../../../../constants/platform'
 type OwnProps = {
   attachTo?: () => React.Component<any> | null
   ordinal: Types.Ordinal
-  conversationIDKey: Types.ConversationIDKey
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform
@@ -29,8 +28,8 @@ type OwnProps = {
 const emptyMessage = makeMessageText({})
 
 export default (ownProps: OwnProps) => {
-  const {conversationIDKey, ordinal} = ownProps
-  const m = Container.useSelector(state => Constants.getMessage(state, conversationIDKey, ordinal))
+  const {ordinal} = ownProps
+  const m = Constants.useContext(s => s.messageMap.get(ordinal))
   const message = m ? m : emptyMessage
   const meta = Constants.useContext(s => s.meta)
   const participantInfo = Constants.useContext(s => s.participants)

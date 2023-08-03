@@ -63,7 +63,8 @@ export const useState = Z.createZustand<State>(() => {
           case EngineGen.chat1NotifyChatChatTypingUpdate: // fallthrough
           case EngineGen.chat1ChatUiChatInboxFailed: // fallthrough
           case EngineGen.chat1NotifyChatChatSetConvRetention: // fallthrough
-          case EngineGen.chat1NotifyChatChatSetConvSettings:
+          case EngineGen.chat1NotifyChatChatSetConvSettings: // fallthrough
+          case EngineGen.chat1NotifyChatChatAttachmentUploadProgress:
             ChatConstants.useState.getState().dispatch.onEngineIncoming(action)
             break
 

@@ -4,14 +4,11 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../../styles'
-import {ConvoIDContext, OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
+import {OrdinalContext, GetIdsContext, HighlightedContext} from '../ids-context'
 import type * as Types from '../../../../constants/types/chat2'
 
 export const useReply = (ordinal: Types.Ordinal) => {
-  const conversationIDKey = React.useContext(ConvoIDContext)
-  const showReplyTo = Container.useSelector(
-    state => !!state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)?.replyTo
-  )
+  const showReplyTo = Constants.useContext(s => !!s.messageMap.get(ordinal)?.replyTo)
   return showReplyTo ? <Reply /> : null
 }
 
@@ -126,10 +123,9 @@ const ReplyStructure = React.memo(function ReplyStructure(p: RS) {
 })
 
 const Reply = React.memo(function Reply() {
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
-  const replyTo = Container.useSelector(state => {
-    const m = state.chat2.messageMap.get(conversationIDKey)?.get(ordinal)
+  const replyTo = Constants.useContext(s => {
+    const m = s.messageMap.get(ordinal)
     return m?.replyTo ?? emptyMessage
   })
 
@@ -191,5 +187,5 @@ const styles = Styles.styleSheetCreate(
       replyUsername: {alignSelf: 'center'},
       replyUsernameHighlighted: {color: Styles.globalColors.blackOrBlack},
       textHighlighted: {color: Styles.globalColors.black_50OrBlack_50},
-    } as const)
+    }) as const
 )

@@ -49,8 +49,8 @@ const ReactionTooltip = (p: OwnProps) => {
   const {conversationIDKey, ordinal, onHidden, attachmentRef, onMouseLeave, onMouseOver, visible, emoji} = p
 
   const infoMap = UsersConstants.useState(s => s.infoMap)
-  const {_reactions, good} = Container.useSelector(state => {
-    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  const {_reactions, good} = Constants.useContext(s => {
+    const message = s.messageMap.get(ordinal)
     if (message && Constants.isMessageWithReactions(message)) {
       const _reactions = message.reactions
       return {_reactions, good: true}
