@@ -655,269 +655,6 @@ const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvU
   }
 }
 
-type ScrollDirection = 'none' | 'back' | 'forward'
-
-const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
-  const pagination = {
-    last: false,
-    next: '',
-    num: numberOfMessagesToLoad,
-    previous: '',
-  }
-  switch (sd) {
-    case 'none':
-      break
-    case 'back':
-      pagination.next = 'deadbeef'
-      break
-    case 'forward':
-      pagination.previous = 'deadbeef'
-  }
-  return pagination
-}
-
-// Load new messages on a thread. We call this when you select a conversation,
-// we get a thread-is-stale notification, or when you scroll up and want more
-// messages
-const loadMoreMessages = (
-  action?:
-    | Chat2Gen.NavigateToThreadPayload
-    | Chat2Gen.JumpToRecentPayload
-    | Chat2Gen.LoadOlderMessagesDueToScrollPayload
-    | Chat2Gen.LoadNewerMessagesDueToScrollPayload
-    | Chat2Gen.LoadMessagesCenteredPayload
-    | Chat2Gen.MarkConversationsStalePayload
-    | Chat2Gen.TabSelectedPayload
-) => {
-  const f = async () => {
-    const reduxDispatch = Z.getReduxDispatch()
-    // Get the conversationIDKey
-    let key: Types.ConversationIDKey | undefined
-    let reason: string = ''
-    let sd: ScrollDirection = 'none'
-    let messageIDControl: RPCChatTypes.MessageIDControl | undefined
-    let forceClear = false
-    let forceContainsLatestCalc = false
-    const knownRemotes: Array<string> = []
-    const centeredMessageIDs: Array<{
-      conversationIDKey: Types.ConversationIDKey
-      messageID: Types.MessageID
-      highlightMode: Types.CenterOrdinalHighlightMode
-    }> = []
-
-    switch (action?.type) {
-      case undefined:
-        if (!Container.isMobile || !ConfigConstants.useConfigState.getState().appFocused) {
-          return
-        }
-        key = Constants.getSelectedConversation()
-        reason = 'foregrounding'
-        break
-      case Chat2Gen.markConversationsStale:
-        key = Constants.getSelectedConversation()
-        // not mentioned?
-        if (!action.payload.conversationIDKeys.includes(key)) {
-          return
-        }
-        reason = 'got stale'
-        break
-      case Chat2Gen.tabSelected:
-        key = Constants.getSelectedConversation()
-        reason = 'tab selected'
-        break
-      case Chat2Gen.navigateToThread:
-        key = action.payload.conversationIDKey
-        reason = action.payload.reason || 'navigated'
-        if (action.payload.pushBody && action.payload.pushBody.length > 0) {
-          knownRemotes.push(action.payload.pushBody)
-        }
-        if (action.payload.highlightMessageID) {
-          reason = 'centered'
-          messageIDControl = {
-            mode: RPCChatTypes.MessageIDControlMode.centered,
-            num: Constants.numMessagesOnInitialLoad,
-            pivot: action.payload.highlightMessageID,
-          }
-          forceClear = true
-          forceContainsLatestCalc = true
-          centeredMessageIDs.push({
-            conversationIDKey: key,
-            highlightMode: 'flash',
-            messageID: action.payload.highlightMessageID,
-          })
-        }
-        break
-      case Chat2Gen.loadOlderMessagesDueToScroll:
-        key = action.payload.conversationIDKey
-        break
-      case Chat2Gen.loadNewerMessagesDueToScroll:
-        key = action.payload.conversationIDKey
-        reason = 'scroll forward'
-        break
-      case Chat2Gen.loadMessagesCentered:
-        key = action.payload.conversationIDKey
-        reason = 'centered'
-        messageIDControl = {
-          mode: RPCChatTypes.MessageIDControlMode.centered,
-          num: Constants.numMessagesOnInitialLoad,
-          pivot: action.payload.messageID,
-        }
-        forceClear = true
-        forceContainsLatestCalc = true
-        centeredMessageIDs.push({
-          conversationIDKey: key,
-          highlightMode: action.payload.highlightMode,
-          messageID: action.payload.messageID,
-        })
-        break
-      case Chat2Gen.jumpToRecent:
-        key = action.payload.conversationIDKey
-        reason = 'jump to recent'
-        forceClear = true
-        break
-      default:
-    }
-
-    if (!key || !Constants.isValidConversationIDKey(key)) {
-      logger.info('bail: no conversationIDKey')
-      return
-    }
-
-    const conversationIDKey = key
-    const conversationID = Types.keyToConversationID(conversationIDKey)
-    let numberOfMessagesToLoad: number
-
-    const meta = Constants.getConvoState(conversationIDKey).meta
-
-    if (meta.membershipType === 'youAreReset' || meta.rekeyers.size > 0) {
-      logger.info('bail: we are reset')
-      return
-    }
-
-    if (action?.type === Chat2Gen.loadOlderMessagesDueToScroll) {
-      if (!Constants.getConvoState(conversationIDKey).moreToLoad) {
-        logger.info('bail: scrolling back and at the end')
-        return
-      }
-      sd = 'back'
-      numberOfMessagesToLoad = Constants.numMessagesOnScrollback
-    } else if (action?.type === Chat2Gen.loadNewerMessagesDueToScroll) {
-      sd = 'forward'
-      numberOfMessagesToLoad = Constants.numMessagesOnScrollback
-    } else {
-      numberOfMessagesToLoad = Constants.numMessagesOnInitialLoad
-    }
-
-    logger.info(`calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`)
-
-    const loadingKey = Constants.waitingKeyThreadLoad(conversationIDKey)
-    let calledClear = false
-    const onGotThread = (thread: string) => {
-      if (!thread) {
-        return
-      }
-
-      const username = ConfigConstants.useCurrentUserState.getState().username
-      const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
-      const getLastOrdinal = () => Constants.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? 0
-      const uiMessages: RPCChatTypes.UIMessages = JSON.parse(thread)
-      let shouldClearOthers = false
-      if ((forceClear || sd === 'none') && !calledClear) {
-        shouldClearOthers = true
-        calledClear = true
-      }
-      const messages = (uiMessages.messages ?? []).reduce<Array<Types.Message>>((arr, m) => {
-        const message = conversationIDKey
-          ? Constants.uiMessageToMessage(conversationIDKey, m, username, getLastOrdinal, devicename)
-          : undefined
-        if (message) {
-          arr.push(message)
-        }
-        return arr
-      }, [])
-
-      // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
-
-      const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-      Constants.getConvoState(conversationIDKey).dispatch.setMoreToLoad(moreToLoad)
-
-      if (messages.length) {
-        reduxDispatch(
-          Chat2Gen.createMessagesAdd({
-            centeredMessageIDs,
-            context: {conversationIDKey, type: 'threadLoad'},
-            conversationIDKey,
-            forceContainsLatestCalc,
-            messages,
-            shouldClearOthers,
-          })
-        )
-      }
-    }
-
-    const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
-    try {
-      let validated = false
-      const results = await RPCChatTypes.localGetThreadNonblockRpcListener(
-        {
-          incomingCallMap: {
-            'chat.1.chatUi.chatThreadCached': p => p && onGotThread(p.thread || ''),
-            'chat.1.chatUi.chatThreadFull': p => p && onGotThread(p.thread || ''),
-            'chat.1.chatUi.chatThreadStatus': p => {
-              // if we're validated, never undo that
-              if (p.status.typ === RPCChatTypes.UIChatThreadStatusTyp.validated) {
-                validated = true
-              } else if (validated) {
-                return
-              }
-              if (p) {
-                Constants.getConvoState(conversationIDKey).dispatch.setThreadLoadStatus(p.status.typ)
-              }
-            },
-          },
-          params: {
-            cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
-            conversationID,
-            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-            knownRemotes,
-            pagination,
-            pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
-            query: {
-              disablePostProcessThread: false,
-              disableResolveSupersedes: false,
-              enableDeletePlaceholders: true,
-              markAsRead: false,
-              messageIDControl,
-              messageTypes: Constants.loadThreadMessageTypes,
-            },
-            reason: Constants.reasonToRPCReason(reason),
-          },
-          waitingKey: loadingKey,
-        },
-        Z.dummyListenerApi
-      )
-      reduxDispatch(
-        Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
-      )
-    } catch (error) {
-      if (error instanceof RPCError) {
-        logger.warn(error.desc)
-        // no longer in team
-        if (error.code === RPCTypes.StatusCode.scchatnotinteam) {
-          const {inboxRefresh} = Constants.useState.getState().dispatch
-          inboxRefresh('maybeKickedFromTeam')
-          reduxDispatch(Chat2Gen.createNavigateToInbox())
-        }
-        if (error.code !== RPCTypes.StatusCode.scteamreaderror) {
-          // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
-          throw error
-        }
-      }
-    }
-  }
-  Z.ignorePromise(f())
-}
-
 // Show a desktop notification
 const desktopNotify = async (_: unknown, action: Chat2Gen.DesktopNotificationPayload) => {
   const {conversationIDKey, author, body} = action.payload
@@ -2378,23 +2115,109 @@ const initChat = () => {
     Constants.useState.getState().dispatch.updateInboxLayout(action.payload.params.layout)
   })
 
-  // Load the selected thread
-  Container.listenAction(
-    [
-      Chat2Gen.navigateToThread,
-      Chat2Gen.jumpToRecent,
-      Chat2Gen.loadOlderMessagesDueToScroll,
-      Chat2Gen.loadNewerMessagesDueToScroll,
-      Chat2Gen.loadMessagesCentered,
-      Chat2Gen.markConversationsStale,
-      Chat2Gen.tabSelected,
-    ],
-    (_, a) => loadMoreMessages(a)
-  )
+  Container.listenAction(Chat2Gen.navigateToThread, (_, a) => {
+    const id = a.payload.conversationIDKey
+    const {dispatch} = Constants.getConvoState(id)
+    let reason: string = a.payload.reason || 'navigated'
+    let forceClear = false
+    let forceContainsLatestCalc = false
+    let messageIDControl: RPCChatTypes.MessageIDControl | undefined = undefined
+    const knownRemotes = a.payload.pushBody && a.payload.pushBody.length > 0 ? [a.payload.pushBody] : []
+    const centeredMessageIDs = a.payload.highlightMessageID
+      ? [
+          {
+            conversationIDKey: id,
+            highlightMode: 'flash' as const,
+            messageID: a.payload.highlightMessageID,
+          },
+        ]
+      : []
+
+    if (a.payload.highlightMessageID) {
+      reason = 'centered'
+      messageIDControl = {
+        mode: RPCChatTypes.MessageIDControlMode.centered,
+        num: Constants.numMessagesOnInitialLoad,
+        pivot: a.payload.highlightMessageID,
+      }
+      forceClear = true
+      forceContainsLatestCalc = true
+    }
+    dispatch.loadMoreMessages({
+      centeredMessageIDs,
+      forceClear,
+      forceContainsLatestCalc,
+      knownRemotes,
+      messageIDControl,
+      reason,
+    })
+  })
+  Container.listenAction(Chat2Gen.jumpToRecent, () => {
+    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
+    dispatch.loadMoreMessages({forceClear: true, reason: 'jump to recent'})
+  })
+  Container.listenAction(Chat2Gen.loadOlderMessagesDueToScroll, () => {
+    const {dispatch, moreToLoad} = Constants.getConvoState(Constants.getSelectedConversation())
+    if (!moreToLoad) {
+      logger.info('bail: scrolling back and at the end')
+      return
+    }
+    dispatch.loadMoreMessages({
+      numberOfMessagesToLoad: Constants.numMessagesOnScrollback,
+      reason: '',
+      scrollDirection: 'back',
+    })
+  })
+  Container.listenAction(Chat2Gen.loadNewerMessagesDueToScroll, () => {
+    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
+    dispatch.loadMoreMessages({
+      numberOfMessagesToLoad: Constants.numMessagesOnScrollback,
+      reason: 'scroll forward',
+      scrollDirection: 'forward',
+    })
+  })
+  Container.listenAction(Chat2Gen.loadMessagesCentered, (_, a) => {
+    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
+    dispatch.loadMoreMessages({
+      centeredMessageIDs: [
+        {
+          conversationIDKey: Constants.getSelectedConversation(),
+          highlightMode: a.payload.highlightMode,
+          messageID: a.payload.messageID,
+        },
+      ],
+      forceClear: true,
+      forceContainsLatestCalc: true,
+      messageIDControl: {
+        mode: RPCChatTypes.MessageIDControlMode.centered,
+        num: Constants.numMessagesOnInitialLoad,
+        pivot: a.payload.messageID,
+      },
+      reason: 'centered',
+    })
+  })
+  Container.listenAction(Chat2Gen.markConversationsStale, (_, a) => {
+    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
+    // mentioned?
+    if (a.payload.conversationIDKeys.includes(Constants.getSelectedConversation())) {
+      dispatch.loadMoreMessages({reason: 'got stale'})
+    }
+  })
+  Container.listenAction(Chat2Gen.tabSelected, () => {
+    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
+    dispatch.loadMoreMessages({reason: 'tab selected'})
+  })
 
   ConfigConstants.useConfigState.subscribe((s, old) => {
     if (s.appFocused === old.appFocused) return
-    loadMoreMessages()
+
+    if (!Container.isMobile || !s.appFocused) {
+      return
+    }
+    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
+    dispatch.loadMoreMessages({
+      reason: 'foregrounding',
+    })
     markThreadAsRead()
   })
 

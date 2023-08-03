@@ -14,12 +14,7 @@ import type * as Wallet from '../types/wallets'
 import {RPCError} from '../../util/errors'
 import {inboxUIItemToConversationMeta, updateMeta} from './meta'
 import {isMobile, isTablet, isPhone} from '../platform'
-import {
-  noConversationIDKey,
-  pendingWaitingConversationIDKey,
-  pendingErrorConversationIDKey,
-  isValidConversationIDKey,
-} from '../types/chat2/common'
+import {noConversationIDKey, pendingWaitingConversationIDKey} from '../types/chat2/common'
 import type * as TeamBuildingTypes from '../types/team-building'
 import * as Z from '../../util/zustand'
 import {getConvoState, stores} from './convostate'
@@ -248,9 +243,6 @@ export const makeInboxQuery = (
 
 export const isAssertion = (username: string) => username.includes('@')
 
-const numMessagesOnInitialLoad = isMobile ? 20 : 100
-const numMessagesOnScrollback = isMobile ? 100 : 100
-
 export const clampImageSize = (width: number, height: number, maxWidth: number, maxHeight: number) => {
   const aspectRatio = width / height
 
@@ -338,15 +330,6 @@ export const uiParticipantsToParticipantInfo = (uiParticipants: Array<RPCChatTyp
     }
   })
   return participantInfo
-}
-
-export {
-  isValidConversationIDKey,
-  noConversationIDKey,
-  numMessagesOnInitialLoad,
-  numMessagesOnScrollback,
-  pendingErrorConversationIDKey,
-  pendingWaitingConversationIDKey,
 }
 
 export const allMessageTypes: Set<Types.MessageType> = new Set([
@@ -1367,3 +1350,10 @@ export * from './convostate'
 export * from './common'
 export * from './meta'
 export * from './message'
+
+export {
+  noConversationIDKey,
+  pendingWaitingConversationIDKey,
+  pendingErrorConversationIDKey,
+  isValidConversationIDKey,
+} from '../types/chat2/common'
