@@ -75,7 +75,6 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const tabSelected = 'chat2:tabSelected'
 export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
-export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const unfurlRemove = 'chat2:unfurlRemove'
@@ -513,16 +512,6 @@ export const createToggleGiphyPrefill = (payload: {readonly conversationIDKey: T
   type: toggleGiphyPrefill as typeof toggleGiphyPrefill,
 })
 /**
- * Toggle a reaction in the store.
- */
-export const createToggleLocalReaction = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly decorated: string
-  readonly emoji: string
-  readonly targetOrdinal: Types.Ordinal
-  readonly username: string
-}) => ({payload, type: toggleLocalReaction as typeof toggleLocalReaction})
-/**
  * Toggle the collapse status of a message
  */
 export const createToggleMessageCollapse = (payload: {
@@ -755,7 +744,6 @@ export type SetConversationOfflinePayload = ReturnType<typeof createSetConversat
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ToggleGiphyPrefillPayload = ReturnType<typeof createToggleGiphyPrefill>
-export type ToggleLocalReactionPayload = ReturnType<typeof createToggleLocalReaction>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
 export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
@@ -837,7 +825,6 @@ export type Actions =
   | SetMinWriterRolePayload
   | TabSelectedPayload
   | ToggleGiphyPrefillPayload
-  | ToggleLocalReactionPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload
   | UnfurlRemovePayload

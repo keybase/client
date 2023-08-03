@@ -147,10 +147,7 @@ const maybeChangeSelectedConv = () => {
 }
 
 // We get an incoming message streamed to us
-const onIncomingMessage = (
-  _: unknown,
-  incoming: RPCChatTypes.IncomingMessage
-): Array<Container.TypedActions> => {
+const onIncomingMessage = (_: unknown, incoming: RPCChatTypes.IncomingMessage) => {
   const {message: cMsg} = incoming
   const actions: Array<Container.TypedActions> = []
   const {modifiedMessage, convID, displayDesktopNotification, desktopNotificationSnippet} = incoming
@@ -164,16 +161,13 @@ const onIncomingMessage = (
       cMsg.state === RPCChatTypes.MessageUnboxedState.outbox &&
       cMsg.outbox.messageType === RPCChatTypes.MessageType.reaction
     ) {
-      actions.push(
-        Chat2Gen.createToggleLocalReaction({
-          conversationIDKey,
-          decorated: cMsg.outbox.decoratedTextBody ?? '',
-          emoji: cMsg.outbox.body,
-          targetOrdinal: cMsg.outbox.supersedes,
-          username,
-        })
-      )
-      return actions
+      Constants.getConvoState(conversationIDKey).dispatch.toggleLocalReaction({
+        decorated: cMsg.outbox.decoratedTextBody ?? '',
+        emoji: cMsg.outbox.body,
+        targetOrdinal: cMsg.outbox.supersedes,
+        username,
+      })
+      return []
     }
 
     const shouldAddMessage = Constants.getConvoState(conversationIDKey).containsLatestMessage ?? false

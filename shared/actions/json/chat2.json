@@ -163,14 +163,6 @@
       "text": "HiddenString",
       "waitingKey?": "string"
     },
-    "toggleLocalReaction": {
-      "_description": "Toggle a reaction in the store.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "decorated": "string",
-      "emoji": "string",
-      "targetOrdinal": "Types.Ordinal",
-      "username": "string"
-    },
     "toggleMessageReaction": {
       "_description": "Tell the service to toggle a reaction on a message.",
       "conversationIDKey": "Types.ConversationIDKey",

@@ -20,6 +20,19 @@ import {isMobile} from '../platform'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
 
+export const isMessageWithReactions = (message: Types.Message): message is Types.MessagesWithReactions => {
+  return (
+    !(
+      message.type === 'placeholder' ||
+      message.type === 'deleted' ||
+      message.type === 'systemJoined' ||
+      message.type === 'systemLeft' ||
+      message.type === 'journeycard'
+    ) &&
+    !message.exploded &&
+    !message.errorReason
+  )
+}
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
     case RPCChatTypes.MessageUnboxedState.valid:

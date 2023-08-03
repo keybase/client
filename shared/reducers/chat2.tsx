@@ -387,30 +387,6 @@ const reducer = Container.makeReducer<Actions, {}>(
         submitState: 'failed',
       })
     },
-    [Chat2Gen.toggleLocalReaction]: (_draftState, _action) => {
-      // TODO port over
-      // const {conversationIDKey, decorated, emoji, targetOrdinal, username} = action.payload
-      // const {dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-      // const m = messageMap.get(targetOrdinal)
-      // if (m && Constants.isMessageWithReactions(m)) {
-      //   const reactions = m.reactions
-      //   const rs = {
-      //     decorated: reactions.get(emoji)?.decorated ?? decorated,
-      //     users: reactions.get(emoji)?.users ?? new Set(),
-      //   }
-      //   reactions.set(emoji, rs)
-      //   const existing = [...rs.users].find(r => r.username === username)
-      //   if (existing) {
-      //     // found an existing reaction. remove it from our list
-      //     rs.users.delete(existing)
-      //   }
-      //   // no existing reaction. add this one to the map
-      //   rs.users.add(Constants.makeReaction({timestamp: Date.now(), username}))
-      //   if (rs.users.size === 0) {
-      //     reactions.delete(emoji)
-      //   }
-      // }
-    },
     [Chat2Gen.updateReactions]: (_draftState, action) => {
       const {conversationIDKey, updates} = action.payload
       const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)

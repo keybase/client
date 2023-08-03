@@ -122,19 +122,6 @@ export const isTextOrAttachment = (
   return message.type === 'text' || message.type === 'attachment'
 }
 
-export const isMessageWithReactions = (message: Types.Message): message is Types.MessagesWithReactions => {
-  return (
-    !(
-      message.type === 'placeholder' ||
-      message.type === 'deleted' ||
-      message.type === 'systemJoined' ||
-      message.type === 'systemLeft' ||
-      message.type === 'journeycard'
-    ) &&
-    !message.exploded &&
-    !message.errorReason
-  )
-}
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getSelectedConversation = (): Types.ConversationIDKey => {
