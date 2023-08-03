@@ -7,3 +7,4 @@ remove convid as param
     toggleThreadSearch: todo stuff
     use .at() instead of length-1
     remove other meta related actions
+    remove useselector etc
