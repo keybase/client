@@ -433,20 +433,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         forceClear = false,
         forceContainsLatestCalc = false,
         centeredMessageIDs,
-        scrollDirection: sd,
+        scrollDirection: sd = 'none',
         numberOfMessagesToLoad = numMessagesOnInitialLoad,
       } = p
-
-      console.log('aaa loadMoreMessages', {
-        centeredMessageIDs,
-        forceClear,
-        forceContainsLatestCalc,
-        knownRemotes,
-        messageIDControl,
-        numberOfMessagesToLoad,
-        reason,
-        sd,
-      })
 
       const scrollDirectionToPagination = (sd: ScrollDirection, numberOfMessagesToLoad: number) => {
         const pagination = {
@@ -538,11 +527,26 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
         }
 
-        const pagination = messageIDControl
-          ? null
-          : sd
-          ? scrollDirectionToPagination(sd, numberOfMessagesToLoad)
-          : null
+        const pagination = messageIDControl ? null : scrollDirectionToPagination(sd, numberOfMessagesToLoad)
+
+        console.log('aaa', {
+          cbMode: RPCChatTypes.GetThreadNonblockCbMode.incremental,
+          conversationID: Types.keyToConversationID(conversationIDKey),
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          knownRemotes,
+          pagination,
+          pgmode: RPCChatTypes.GetThreadNonblockPgMode.server,
+          query: {
+            disablePostProcessThread: false,
+            disableResolveSupersedes: false,
+            enableDeletePlaceholders: true,
+            markAsRead: false,
+            messageIDControl,
+            messageTypes: Common.loadThreadMessageTypes,
+          },
+          reason: Common.reasonToRPCReason(reason),
+        })
+
         try {
           let validated = false
           const results = await RPCChatTypes.localGetThreadNonblockRpcListener(
