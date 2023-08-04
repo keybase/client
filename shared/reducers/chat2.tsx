@@ -2,7 +2,6 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
@@ -383,15 +382,6 @@ const reducer = Container.makeReducer<Actions, {}>(
           ...(m.type === 'text' ? {text} : {}),
           ...(m.type === 'attachment' ? {title: text.stringValue()} : {}),
         })
-      }
-    },
-    [Chat2Gen.markConversationsStale]: (_, action) => {
-      const {updateType, conversationIDKeys} = action.payload
-      if (updateType === RPCChatTypes.StaleUpdateType.clear) {
-        conversationIDKeys.forEach(convID =>
-          Constants.getConvoState(convID).dispatch.replaceMessageMap(new Map())
-        )
-        conversationIDKeys.forEach(convID => Constants.getConvoState(convID).dispatch.setMessageOrdinals())
       }
     },
     [Chat2Gen.notificationSettingsUpdated]: (_draftState, action) => {

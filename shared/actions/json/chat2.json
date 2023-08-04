@@ -233,11 +233,6 @@
       "_description": "Mark all conversations in a team as read",
       "teamID": "TeamsTypes.TeamID"
     },
-    "markConversationsStale": {
-      "_description": "Server told us a conversation is out of date",
-      "conversationIDKeys": "Array<Types.ConversationIDKey>",
-      "updateType": "RPCChatTypes.StaleUpdateType"
-    },
     "navigateToInbox": {
       "_description": "Navigation helper. Nav is slightly different on mobile / desktop."
     },

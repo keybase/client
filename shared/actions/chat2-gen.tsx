@@ -36,7 +36,6 @@ export const leaveConversation = 'chat2:leaveConversation'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
-export const markConversationsStale = 'chat2:markConversationsStale'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const markTeamAsRead = 'chat2:markTeamAsRead'
 export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
@@ -367,13 +366,6 @@ export const createMessageSend = (payload: {
   readonly waitingKey?: string
 }) => ({payload, type: messageSend as typeof messageSend})
 /**
- * Server told us a conversation is out of date
- */
-export const createMarkConversationsStale = (payload: {
-  readonly conversationIDKeys: Array<Types.ConversationIDKey>
-  readonly updateType: RPCChatTypes.StaleUpdateType
-}) => ({payload, type: markConversationsStale as typeof markConversationsStale})
-/**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
 export const createSetMinWriterRole = (payload: {
@@ -609,7 +601,6 @@ export type LeaveConversationPayload = ReturnType<typeof createLeaveConversation
 export type LoadMessagesCenteredPayload = ReturnType<typeof createLoadMessagesCentered>
 export type LoadNewerMessagesDueToScrollPayload = ReturnType<typeof createLoadNewerMessagesDueToScroll>
 export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
-export type MarkConversationsStalePayload = ReturnType<typeof createMarkConversationsStale>
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MarkTeamAsReadPayload = ReturnType<typeof createMarkTeamAsRead>
 export type MessageAttachmentNativeSavePayload = ReturnType<typeof createMessageAttachmentNativeSave>
@@ -678,7 +669,6 @@ export type Actions =
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadOlderMessagesDueToScrollPayload
-  | MarkConversationsStalePayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MarkTeamAsReadPayload
   | MessageAttachmentNativeSavePayload

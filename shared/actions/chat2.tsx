@@ -191,29 +191,25 @@ const onChatInboxSynced = (
       break
     // We got some new messages appended
     case RPCChatTypes.SyncInboxResType.incremental: {
+      const items = syncRes.incremental.items || []
       const selectedConversation = Constants.getSelectedConversation()
-      const items = syncRes.incremental?.items || []
+      let loadMore = false
       const metas = items.reduce<Array<Types.ConversationMeta>>((arr, i) => {
         const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv)
         if (meta) {
-          if (meta.conversationIDKey === selectedConversation) {
-            // First thing load the messages
-            actions.unshift(
-              Chat2Gen.createMarkConversationsStale({
-                conversationIDKeys: [selectedConversation],
-                updateType: RPCChatTypes.StaleUpdateType.newactivity,
-              })
-            )
-          }
           arr.push(meta)
+          if (meta.conversationIDKey === selectedConversation) {
+            loadMore = true
+          }
         }
         return arr
       }, [])
-      const removals = ((!syncRes.incremental ? undefined : syncRes.incremental.removals) || []).map(
-        Types.stringToConversationIDKey
-      )
+      if (loadMore) {
+        Constants.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+      }
+      const removals = syncRes.incremental.removals?.map(Types.stringToConversationIDKey)
       // Update new untrusted
-      if (metas.length || removals.length) {
+      if (metas.length || removals?.length) {
         Constants.useState.getState().dispatch.metasReceived(metas, removals)
       }
 
@@ -279,10 +275,17 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
       throw new Error('onChatThreadStale invalid enum')
     }
   }
+  let loadMore = false
+  const selectedConversation = Constants.getSelectedConversation()
   keys.forEach(key => {
     const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
+      const cid = Types.conversationIDToKey(u.convID)
       if (u.updateType === RPCChatTypes.StaleUpdateType[key]) {
-        arr.push(Types.conversationIDToKey(u.convID))
+        arr.push(cid)
+      }
+      // mentioned?
+      if (cid === selectedConversation) {
+        loadMore = true
       }
       return arr
     }, [])
@@ -293,14 +296,19 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
       )
 
       Constants.useState.getState().dispatch.unboxRows(conversationIDKeys, true)
-      actions = actions.concat([
-        Chat2Gen.createMarkConversationsStale({
-          conversationIDKeys,
-          updateType: RPCChatTypes.StaleUpdateType[key],
-        }),
-      ])
+
+      if (RPCChatTypes.StaleUpdateType[key] === RPCChatTypes.StaleUpdateType.clear) {
+        conversationIDKeys.forEach(convID =>
+          Constants.getConvoState(convID).dispatch.replaceMessageMap(new Map())
+        )
+        conversationIDKeys.forEach(convID => Constants.getConvoState(convID).dispatch.setMessageOrdinals())
+      }
     }
   })
+  if (loadMore) {
+    const {dispatch} = Constants.getConvoState(selectedConversation)
+    dispatch.loadMoreMessages({reason: 'got stale'})
+  }
   return actions
 }
 
@@ -1640,13 +1648,6 @@ const initChat = () => {
       },
       reason: 'centered',
     })
-  })
-  Container.listenAction(Chat2Gen.markConversationsStale, (_, a) => {
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
-    // mentioned?
-    if (a.payload.conversationIDKeys.includes(Constants.getSelectedConversation())) {
-      dispatch.loadMoreMessages({reason: 'got stale'})
-    }
   })
   Container.listenAction(Chat2Gen.tabSelected, () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
