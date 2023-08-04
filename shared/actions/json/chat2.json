@@ -302,13 +302,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "reportUser": "boolean"
     },
-    "hideConversation": {
-      "_description": "Hide a conversation until future activity",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "unhideConversation": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     "setConvRetentionPolicy": {
       "_description": "Sets the retention policy for a conversation.",
       "conversationIDKey": "Types.ConversationIDKey",

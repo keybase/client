@@ -1092,47 +1092,6 @@ const blockConversation = async (
   })
 }
 
-const hideConversation = async (
-  _: Container.TypedState,
-  action: Chat2Gen.HideConversationPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey} = action.payload
-  // Nav to inbox but don't use findNewConversation since changeSelectedConversation
-  // does that with better information. It knows the conversation is hidden even before
-  // that state bounces back.
-  listenerApi.dispatch(Chat2Gen.createNavigateToInbox())
-  Constants.useState.getState().dispatch.showInfoPanel(false)
-  try {
-    await RPCChatTypes.localSetConversationStatusLocalRpcPromise(
-      {
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        status: RPCChatTypes.ConversationStatus.ignored,
-      },
-      Constants.waitingKeyConvStatusChange(conversationIDKey)
-    )
-  } catch (err) {
-    logger.error('Failed to hide conversation: ' + err)
-  }
-}
-
-const unhideConversation = async (_: Container.TypedState, action: Chat2Gen.UnhideConversationPayload) => {
-  const {conversationIDKey} = action.payload
-  try {
-    await RPCChatTypes.localSetConversationStatusLocalRpcPromise(
-      {
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        status: RPCChatTypes.ConversationStatus.unfiled,
-      },
-      Constants.waitingKeyConvStatusChange(conversationIDKey)
-    )
-  } catch (err) {
-    logger.error('Failed to unhide conversation: ' + err)
-  }
-}
-
 const setConvRetentionPolicy = async (_: unknown, action: Chat2Gen.SetConvRetentionPolicyPayload) => {
   const {conversationIDKey} = action.payload
   const convID = Types.keyToConversationID(conversationIDKey)
@@ -1803,8 +1762,6 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
   Container.listenAction(Chat2Gen.blockConversation, blockConversation)
-  Container.listenAction(Chat2Gen.hideConversation, hideConversation)
-  Container.listenAction(Chat2Gen.unhideConversation, unhideConversation)
 
   Container.listenAction(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)

@@ -140,6 +140,7 @@ export type ConvoState = ConvoStore & {
     giphySend: (result: RPCChatTypes.GiphySearchResult) => void
     giphyToggleWindow: (show: boolean) => void
     hideSearch: () => void
+    hideConversation: (hide: boolean) => void
     loadAttachmentView: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) => void
     loadOrangeLine: () => void
     loadMoreMessages: (p: {
@@ -413,6 +414,29 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       set(s => {
         s.giphyWindow = show
       })
+    },
+    hideConversation: hide => {
+      const conversationIDKey = get().id
+      const f = async () => {
+        const Constants = await import('.')
+        if (hide) {
+          // Nav to inbox but don't use findNewConversation since changeSelectedConversation
+          // does that with better information. It knows the conversation is hidden even before
+          // that state bounces back.
+          reduxDispatch(Chat2Gen.createNavigateToInbox())
+          Constants.useState.getState().dispatch.showInfoPanel(false)
+        }
+
+        await RPCChatTypes.localSetConversationStatusLocalRpcPromise(
+          {
+            conversationID: Types.keyToConversationID(conversationIDKey),
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            status: hide ? RPCChatTypes.ConversationStatus.ignored : RPCChatTypes.ConversationStatus.unfiled,
+          },
+          Constants.waitingKeyConvStatusChange(conversationIDKey)
+        )
+      }
+      Z.ignorePromise(f())
     },
     hideSearch: () => {
       set(s => {

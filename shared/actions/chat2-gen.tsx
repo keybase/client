@@ -29,7 +29,6 @@ export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const fetchUserEmoji = 'chat2:fetchUserEmoji'
-export const hideConversation = 'chat2:hideConversation'
 export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const joinConversation = 'chat2:joinConversation'
 export const jumpToRecent = 'chat2:jumpToRecent'
@@ -71,7 +70,6 @@ export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
-export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
@@ -155,13 +153,6 @@ export const createMessagesExploded = (payload: {
   readonly messageIDs: Array<RPCChatTypes.MessageID>
   readonly explodedBy?: string
 }) => ({payload, type: messagesExploded as typeof messagesExploded})
-/**
- * Hide a conversation until future activity
- */
-export const createHideConversation = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: hideConversation as typeof hideConversation,
-})
 /**
  * If an implied team chat member resets you can add them back in
  */
@@ -589,10 +580,6 @@ export const createSendAudioRecording = (payload: {
   readonly path: string
   readonly amps: Array<number>
 }) => ({payload, type: sendAudioRecording as typeof sendAudioRecording})
-export const createUnhideConversation = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: unhideConversation as typeof unhideConversation,
-})
 
 // Action Payloads
 export type AddUserToChannelPayload = ReturnType<typeof createAddUserToChannel>
@@ -615,7 +602,6 @@ export type DesktopNotificationPayload = ReturnType<typeof createDesktopNotifica
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
 export type FetchUserEmojiPayload = ReturnType<typeof createFetchUserEmoji>
-export type HideConversationPayload = ReturnType<typeof createHideConversation>
 export type IgnorePinnedMessagePayload = ReturnType<typeof createIgnorePinnedMessage>
 export type JoinConversationPayload = ReturnType<typeof createJoinConversation>
 export type JumpToRecentPayload = ReturnType<typeof createJumpToRecent>
@@ -657,7 +643,6 @@ export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessage
 export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
 export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePrompt>
-export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
 export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNotificationSettings>
@@ -686,7 +671,6 @@ export type Actions =
   | DismissBlockButtonsPayload
   | DismissJourneycardPayload
   | FetchUserEmojiPayload
-  | HideConversationPayload
   | IgnorePinnedMessagePayload
   | JoinConversationPayload
   | JumpToRecentPayload
@@ -728,7 +712,6 @@ export type Actions =
   | ToggleMessageReactionPayload
   | UnfurlRemovePayload
   | UnfurlResolvePromptPayload
-  | UnhideConversationPayload
   | UnpinMessagePayload
   | UnsentTextChangedPayload
   | UpdateNotificationSettingsPayload

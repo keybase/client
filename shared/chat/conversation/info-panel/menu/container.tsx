@@ -161,13 +161,14 @@ const InfoPanelMenuConnector = React.memo(function InfoPanelMenuConnector(p: Own
     clearModals()
     navigateAppend({props: {teamID}, selected: 'team'})
   }, [clearModals, navigateAppend, teamID])
+  const hideConversation = ChatConstants.useContext(s => s.dispatch.hideConversation)
   const onHideConv = React.useCallback(() => {
-    dispatch(ChatGen.createHideConversation({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+    hideConversation(true)
+  }, [hideConversation])
   const onMuteConv = ChatConstants.useContext(s => s.dispatch.mute)
   const onUnhideConv = React.useCallback(() => {
-    dispatch(ChatGen.createUnhideConversation({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+    hideConversation(false)
+  }, [hideConversation])
 
   const props = {
     attachTo,

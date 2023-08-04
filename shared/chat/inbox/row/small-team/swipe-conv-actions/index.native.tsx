@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/chat2'
 import * as Kb from '../../../../../common-adapters'
@@ -53,7 +52,6 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
     }
   }
 
-  const dispatch = Container.useDispatch()
   const setMarkAsUnread = Constants.useContext(s => s.dispatch.setMarkAsUnread)
   const onMarkConversationAsUnread = Container.useEvent(() => {
     setMarkAsUnread()
@@ -63,8 +61,10 @@ const SwipeConvActions = React.memo(function SwipeConvActions(p: Props) {
   const onMuteConversation = Container.useEvent(() => {
     mute(!isMuted)
   })
+
+  const hideConversation = Constants.useContext(s => s.dispatch.hideConversation)
   const onHideConversation = Container.useEvent(() => {
-    dispatch(Chat2Gen.createHideConversation({conversationIDKey}))
+    hideConversation(true)
   })
 
   const isMuted = Constants.useContext(s => s.muted)
