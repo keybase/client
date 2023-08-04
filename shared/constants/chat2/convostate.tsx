@@ -164,10 +164,7 @@ export type ConvoState = ConvoStore & {
     messageEdit: (ordinal: Types.Ordinal, text: string) => void
     messageRetry: (outboxID: Types.OutboxID) => void
     messagesAdd: (p: {
-      context:
-        | {type: 'sent'}
-        | {type: 'incoming'}
-        | {type: 'threadLoad'; conversationIDKey: Types.ConversationIDKey}
+      contextType: string
       messages: Array<Types.Message>
       // true if these should be the only messages we know about
       shouldClearOthers?: boolean
@@ -614,7 +611,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           if (messages.length) {
             dispatch.messagesAdd({
               centeredMessageID,
-              context: {conversationIDKey, type: 'threadLoad'},
+              contextType: 'threadLoad',
               forceContainsLatestCalc,
               messages,
               shouldClearOthers,
@@ -907,11 +904,11 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       Z.ignorePromise(f())
     },
     messagesAdd: p => {
-      const {context, shouldClearOthers} = p
+      const {contextType, shouldClearOthers} = p
       // pull out deletes and handle at the end
       const [messages, deletedMessages] = partition<Types.Message>(p.messages, m => m.type !== 'deleted')
       logger.info(
-        `messagesAdd: running in context: ${context.type} messages: ${messages.length} deleted: ${deletedMessages.length}`
+        `messagesAdd: running in context: ${contextType} messages: ${messages.length} deleted: ${deletedMessages.length}`
       )
       const conversationIDKey = get().id
       // we want the clear applied when we call findExisting
@@ -1338,7 +1335,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           } else if (shouldAddMessage) {
             // A normal message
             dispatch.messagesAdd({
-              context: {type: 'incoming'},
+              contextType: 'incoming',
               messages: [message],
             })
           }
@@ -1359,7 +1356,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 )
                 if (modMessage) {
                   dispatch.messagesAdd({
-                    context: {type: 'incoming'},
+                    contextType: 'incoming',
                     messages: [modMessage],
                   })
                 }
