@@ -77,10 +77,9 @@ export default (ownProps: OwnProps) => {
   const _onCopyLink = (label: string, message: Types.Message) => {
     copyToClipboard(DeeplinksConstants.linkFromConvAndMessage(label, message.id))
   }
+  const messageDelete = Constants.useContext(s => s.dispatch.messageDelete)
   const _onDelete = (message: Types.Message) => {
-    dispatch(
-      Chat2Gen.createMessageDelete({conversationIDKey: message.conversationIDKey, ordinal: message.ordinal})
-    )
+    messageDelete(message.ordinal)
   }
   const _onDeleteMessageHistory = (message: Types.Message) => {
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey: message.conversationIDKey, reason: 'misc'}))

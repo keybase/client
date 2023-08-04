@@ -99,13 +99,9 @@ export default (ownProps: OwnProps) => {
   const _onEdit = () => {
     setEditing(ownProps.ordinal)
   }
+  const messageDelete = Constants.useContext(s => s.dispatch.messageDelete)
   const _onExplodeNow = () => {
-    dispatch(
-      Chat2Gen.createMessageDelete({
-        conversationIDKey: ownProps.conversationIDKey,
-        ordinal: ownProps.ordinal,
-      })
-    )
+    messageDelete(ownProps.ordinal)
   }
   const _onForward = () => {
     navigateAppend({
