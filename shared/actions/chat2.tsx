@@ -268,7 +268,6 @@ const onChatChatTLFFinalizePayload = (
 
 const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => {
   const {updates} = action.payload.params
-  let actions: Array<Container.TypedActions> = []
   const keys = ['clear', 'newactivity'] as const
   if (__DEV__) {
     if (keys.length * 2 !== Object.keys(RPCChatTypes.StaleUpdateType).length) {
@@ -309,7 +308,6 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
     const {dispatch} = Constants.getConvoState(selectedConversation)
     dispatch.loadMoreMessages({reason: 'got stale'})
   }
-  return actions
 }
 
 const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvUpdatePayload) => {
