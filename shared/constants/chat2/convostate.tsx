@@ -1,27 +1,29 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as EngineGen from '../../actions/engine-gen-gen'
 import * as Common from './common'
+import * as EngineGen from '../../actions/engine-gen-gen'
 import * as Message from './message'
 import * as Meta from './meta'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as React from 'react'
-import * as Types from '../types/chat2'
-import * as Z from '../../util/zustand'
 import * as RouterConstants from '../router2'
 import * as TeamsConstants from '../teams'
-import {isMobile} from '../platform'
-import {useConfigState, useCurrentUserState} from '../config'
+import * as Types from '../types/chat2'
+import * as Z from '../../util/zustand'
 import HiddenString from '../../util/hidden-string'
 import isEqual from 'lodash/isEqual'
 import logger from '../../logger'
+import partition from 'lodash/partition'
+import shallowEqual from 'shallowequal'
+import sortedIndexOf from 'lodash/sortedIndexOf'
 import type * as TeamsTypes from '../types/teams'
 import {RPCError} from '../../util/errors'
+import {findLast} from '../../util/arrays'
+import {isMobile} from '../platform'
 import {mapGetEnsureValue} from '../../util/map'
 import {noConversationIDKey} from '../types/chat2/common'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
-import {findLast} from '../../util/arrays'
-import shallowEqual from 'shallowequal'
+import {useConfigState, useCurrentUserState} from '../config'
 
 const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
   hits: [],
@@ -146,11 +148,11 @@ export type ConvoState = ConvoStore & {
     loadMoreMessages: (p: {
       forceContainsLatestCalc?: boolean
       messageIDControl?: RPCChatTypes.MessageIDControl
-      centeredMessageIDs?: Array<{
+      centeredMessageID?: {
         conversationIDKey: Types.ConversationIDKey
         messageID: Types.MessageID
         highlightMode: Types.CenterOrdinalHighlightMode
-      }>
+      }
       reason: string
       knownRemotes?: Array<string>
       forceClear?: boolean
@@ -161,6 +163,21 @@ export type ConvoState = ConvoStore & {
     messageDelete: (ordinal: Types.Ordinal) => void
     messageEdit: (ordinal: Types.Ordinal, text: string) => void
     messageRetry: (outboxID: Types.OutboxID) => void
+    messagesAdd: (p: {
+      context:
+        | {type: 'sent'}
+        | {type: 'incoming'}
+        | {type: 'threadLoad'; conversationIDKey: Types.ConversationIDKey}
+      messages: Array<Types.Message>
+      // true if these should be the only messages we know about
+      shouldClearOthers?: boolean
+      centeredMessageID?: {
+        conversationIDKey: Types.ConversationIDKey
+        messageID: Types.MessageID
+        highlightMode: Types.CenterOrdinalHighlightMode
+      }
+      forceContainsLatestCalc?: boolean
+    }) => void
     messagesExploded: (messageIDs: Array<RPCChatTypes.MessageID>, explodedBy?: string) => void
     messagesWereDeleted: (p: {
       messageIDs?: Array<RPCChatTypes.MessageID>
@@ -520,7 +537,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         knownRemotes,
         forceClear = false,
         forceContainsLatestCalc = false,
-        centeredMessageIDs,
+        centeredMessageID,
         scrollDirection: sd = 'none',
         numberOfMessagesToLoad = numMessagesOnInitialLoad,
       } = p
@@ -550,21 +567,16 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         const ConfigConstants = await import('../config')
         const Constants = await import('.')
         // Get the conversationIDKey
-        const key = get().id
+        const {id: conversationIDKey, meta, messageOrdinals, dispatch} = get()
 
-        if (!key || !Types.isValidConversationIDKey(key)) {
+        if (!conversationIDKey || !Types.isValidConversationIDKey(conversationIDKey)) {
           logger.info('bail: no conversationIDKey')
           return
         }
-
-        const conversationIDKey = get().id
-        const meta = get().meta
-
         if (meta.membershipType === 'youAreReset' || meta.rekeyers.size > 0) {
           logger.info('bail: we are reset')
           return
         }
-
         logger.info(
           `calling rpc convo: ${conversationIDKey} num: ${numberOfMessagesToLoad} reason: ${reason}`
         )
@@ -575,10 +587,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           if (!thread) {
             return
           }
-
           const username = ConfigConstants.useCurrentUserState.getState().username
           const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
-          const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+          const getLastOrdinal = () => messageOrdinals?.at(-1) ?? 0
           const uiMessages = JSON.parse(thread) as RPCChatTypes.UIMessages
           let shouldClearOthers = false
           if ((forceClear || sd === 'none') && !calledClear) {
@@ -598,19 +609,16 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           // logger.info(`thread load ordinals ${messages.map(m => m.ordinal)}`)
 
           const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
-          get().dispatch.setMoreToLoad(moreToLoad)
+          dispatch.setMoreToLoad(moreToLoad)
 
           if (messages.length) {
-            reduxDispatch(
-              Chat2Gen.createMessagesAdd({
-                centeredMessageIDs,
-                context: {conversationIDKey, type: 'threadLoad'},
-                conversationIDKey,
-                forceContainsLatestCalc,
-                messages,
-                shouldClearOthers,
-              })
-            )
+            dispatch.messagesAdd({
+              centeredMessageID,
+              context: {conversationIDKey, type: 'threadLoad'},
+              forceContainsLatestCalc,
+              messages,
+              shouldClearOthers,
+            })
           }
         }
 
@@ -898,6 +906,190 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    messagesAdd: p => {
+      const {context, shouldClearOthers} = p
+      // pull out deletes and handle at the end
+      const [messages, deletedMessages] = partition<Types.Message>(p.messages, m => m.type !== 'deleted')
+      logger.info(
+        `messagesAdd: running in context: ${context.type} messages: ${messages.length} deleted: ${deletedMessages.length}`
+      )
+      const conversationIDKey = get().id
+      // we want the clear applied when we call findExisting
+      const oldPendingOutboxToOrdinal = new Map(get().pendingOutboxToOrdinal)
+      const oldMessageMap = new Map(get().messageMap)
+
+      // so we can keep messages if they haven't mutated
+      const previousMessageMap = new Map(get().messageMap)
+      const {dispatch} = get()
+
+      if (shouldClearOthers) {
+        logger.info(`messagesAdd: clearing existing data`)
+        oldPendingOutboxToOrdinal.clear()
+        oldMessageMap.clear()
+        dispatch.clearMessageTypeMap()
+        dispatch.setMessageOrdinals(undefined)
+      }
+
+      // Update any pending messages
+      const pendingOutboxToOrdinal = new Map(oldPendingOutboxToOrdinal)
+      messages.forEach(message => {
+        if (message.submitState === 'pending' && message.outboxID) {
+          logger.info(
+            `messagesAdd: setting new outbox ordinal: ${message.ordinal} outboxID: ${message.outboxID}`
+          )
+          pendingOutboxToOrdinal.set(message.outboxID, message.ordinal)
+        }
+      })
+
+      const findExistingSentOrPending = (m: Types.Message) => {
+        // something we sent
+        if (m.outboxID) {
+          // and we know about it
+          const ordinal = oldPendingOutboxToOrdinal.get(m.outboxID)
+          if (ordinal) {
+            return oldMessageMap.get(ordinal)
+          }
+        }
+        const pendingOrdinal = messageIDToOrdinal(oldMessageMap, oldPendingOutboxToOrdinal, m.id)
+        if (pendingOrdinal) {
+          return oldMessageMap.get(pendingOrdinal)
+        }
+        return null
+      }
+
+      // remove all deleted messages from ordinals that we are passed as a parameter
+      const os =
+        get().messageOrdinals?.reduce((arr, o) => {
+          if (deletedMessages.find(m => m.ordinal === o)) {
+            return arr
+          }
+          arr.push(o)
+          return arr
+        }, new Array<Types.Ordinal>()) ?? []
+
+      dispatch.setMessageOrdinals(os)
+
+      const removedOrdinals: Array<Types.Ordinal> = []
+      const ordinals = messages.reduce<Array<Types.Ordinal>>((arr, message) => {
+        if (message.type === 'placeholder') {
+          // sometimes we send then get a placeholder for that send. Lets see if we already have the message id for the sent
+          // and ignore the placeholder in that instance
+          logger.info(`messagesAdd: got placeholder message with id: ${message.id}`)
+          const existingOrdinal = messageIDToOrdinal(oldMessageMap, pendingOutboxToOrdinal, message.id)
+          if (!existingOrdinal) {
+            arr.push(message.ordinal)
+          } else {
+            logger.info(
+              `messagesAdd: skipping placeholder for message with id ${message.id} because already exists`
+            )
+          }
+        } else {
+          // Sendable so we might have an existing message
+          const existing = findExistingSentOrPending(message)
+          if (!existing || sortedIndexOf(get().messageOrdinals ?? [], existing.ordinal) === -1) {
+            arr.push(message.ordinal)
+          } else {
+            logger.info(
+              `messagesAdd: skipping existing message for ordinal add: ordinal: ${message.ordinal} outboxID: ${message.outboxID}`
+            )
+          }
+          // We might have a placeholder for this message in there with ordinal of its own ID, let's
+          // get rid of it if that is the case
+          const lookupID = message.id || existing?.id
+          if (lookupID) {
+            const oldMsg = oldMessageMap.get(Types.numberToOrdinal(lookupID))
+            if (
+              oldMsg?.type === 'placeholder' &&
+              // don't delete the placeholder if we're just about to replace it ourselves
+              oldMsg.ordinal !== message.ordinal
+            ) {
+              logger.info(`messagesAdd: removing old placeholder: ${oldMsg.ordinal}`)
+              removedOrdinals.push(oldMsg.ordinal)
+            }
+          }
+        }
+        return arr
+      }, [])
+
+      // add new ones, remove deleted ones, sort. This pass is for when we remove placeholder messages
+      // with their resolved ids
+      // need to convert to a set and back due to needing to dedupe, could look into why this is necessary
+      const oss =
+        get().messageOrdinals?.reduce((s, o) => {
+          if (removedOrdinals.includes(o)) {
+            return s
+          }
+          s.add(o)
+          return s
+        }, new Set(ordinals)) ?? new Set(ordinals)
+      dispatch.setMessageOrdinals([...oss].sort((a, b) => a - b))
+
+      // clear out message map of deleted stuff
+      const messageMap = new Map(oldMessageMap)
+      deletedMessages.forEach(m => messageMap.delete(m.ordinal))
+      removedOrdinals.forEach(o => messageMap.delete(o))
+
+      deletedMessages.forEach(m => {
+        dispatch.setMessageTypeMap(m.ordinal, undefined)
+      })
+      removedOrdinals.forEach(o => {
+        dispatch.setMessageTypeMap(o, undefined)
+      })
+
+      // update messages
+      messages.forEach(message => {
+        const oldSentOrPending = findExistingSentOrPending(message)
+        let toSet: Types.Message | undefined
+        if (oldSentOrPending) {
+          toSet = Message.upgradeMessage(oldSentOrPending, message)
+          logger.info(`messagesAdd: upgrade message: ordinal: ${message.ordinal} id: ${message.id}`)
+        } else {
+          toSet = Message.mergeMessage(previousMessageMap.get(message.ordinal), message)
+        }
+        messageMap.set(toSet.ordinal, toSet)
+
+        if (toSet.type === 'text') {
+          dispatch.setMessageTypeMap(toSet.ordinal, undefined)
+        } else {
+          const subType = Message.getMessageRenderType(toSet)
+          dispatch.setMessageTypeMap(toSet.ordinal, subType)
+        }
+      })
+
+      let containsLatestMessage = get().containsLatestMessage || false
+      if (!p.forceContainsLatestCalc && containsLatestMessage) {
+        // do nothing
+      } else {
+        const meta = get().meta
+        const ordinals = get().messageOrdinals ?? []
+        let maxMsgID = 0
+        for (let i = ordinals.length - 1; i >= 0; i--) {
+          const ordinal = ordinals[i]!
+          const message = messageMap.get(ordinal)
+          if (message && message.id > 0) {
+            maxMsgID = message.id
+            break
+          }
+        }
+        if (meta.conversationIDKey === conversationIDKey && maxMsgID >= meta.maxVisibleMsgID) {
+          containsLatestMessage = true
+        } else if (p.forceContainsLatestCalc) {
+          containsLatestMessage = false
+        }
+      }
+      dispatch.setContainsLatestMessage(containsLatestMessage)
+      dispatch.replaceMessageMap(messageMap)
+      dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
+      dispatch.markThreadAsRead()
+      if (p.centeredMessageID) {
+        const cm = p.centeredMessageID
+        const ordinal = Types.numberToOrdinal(Types.messageIDToNumber(cm.messageID))
+        dispatch.setMessageCenterOrdinal({
+          highlightMode: cm.highlightMode,
+          ordinal,
+        })
+      }
+    },
     messagesExploded: (messageIDs, explodedBy) => {
       const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
       logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
@@ -1145,13 +1337,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             )
           } else if (shouldAddMessage) {
             // A normal message
-            reduxDispatch(
-              Chat2Gen.createMessagesAdd({
-                context: {type: 'incoming'},
-                conversationIDKey,
-                messages: [message],
-              })
-            )
+            dispatch.messagesAdd({
+              context: {type: 'incoming'},
+              messages: [message],
+            })
           }
         } else if (cMsg.state === RPCChatTypes.MessageUnboxedState.valid) {
           const {valid} = cMsg
@@ -1169,13 +1358,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                   devicename
                 )
                 if (modMessage) {
-                  reduxDispatch(
-                    Chat2Gen.createMessagesAdd({
-                      context: {type: 'incoming'},
-                      conversationIDKey,
-                      messages: [modMessage],
-                    })
-                  )
+                  dispatch.messagesAdd({
+                    context: {type: 'incoming'},
+                    messages: [modMessage],
+                  })
                 }
               }
               break

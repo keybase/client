@@ -21,18 +21,6 @@ import * as Z from '../../util/zustand'
 import {getConvoState, stores} from './convostate'
 import {explodingModeGregorKeyPrefix, getSelectedConversation, allMessageTypes} from './common'
 
-export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
-  switch (m.type) {
-    case 'attachment':
-      if (m.inlineVideoPlayable && m.attachmentType !== 'audio') {
-        return 'attachment:video'
-      }
-      return `attachment:${m.attachmentType}`
-    default:
-      return m.type
-  }
-}
-
 export const formatTextForQuoting = (text: string) =>
   text
     .split('\n')

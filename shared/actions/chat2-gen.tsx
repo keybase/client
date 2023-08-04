@@ -45,7 +45,6 @@ export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
-export const messagesAdd = 'chat2:messagesAdd'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
@@ -85,29 +84,6 @@ export const createAddUsersToChannel = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly usernames: Array<string>
 }) => ({payload, type: addUsersToChannel as typeof addUsersToChannel})
-/**
- * Add a new message
- *
- * Context types:
- * - sent = we sent it
- * - incoming = a streaming message
- * - threadLoad = we're loading more messages on select / scroll
- */
-export const createMessagesAdd = (payload: {
-  readonly context:
-    | {type: 'sent'}
-    | {type: 'incoming'}
-    | {type: 'threadLoad'; conversationIDKey: Types.ConversationIDKey}
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messages: Array<Types.Message>
-  readonly shouldClearOthers?: boolean
-  readonly centeredMessageIDs?: Array<{
-    conversationIDKey: Types.ConversationIDKey
-    messageID: Types.MessageID
-    highlightMode: Types.CenterOrdinalHighlightMode
-  }>
-  readonly forceContainsLatestCalc?: boolean
-}) => ({payload, type: messagesAdd as typeof messagesAdd})
 /**
  * Add a single user to a conversation. Creates a SystemBulkAddToConv message.
  */
@@ -575,7 +551,6 @@ export type MessageDeleteHistoryPayload = ReturnType<typeof createMessageDeleteH
 export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyPrivately>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
-export type MessagesAddPayload = ReturnType<typeof createMessagesAdd>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
@@ -639,7 +614,6 @@ export type Actions =
   | MessageReplyPrivatelyPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload
-  | MessagesAddPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | OpenChatFromWidgetPayload

@@ -1574,15 +1574,13 @@ const initChat = () => {
     let forceContainsLatestCalc = false
     let messageIDControl: RPCChatTypes.MessageIDControl | undefined = undefined
     const knownRemotes = a.payload.pushBody && a.payload.pushBody.length > 0 ? [a.payload.pushBody] : []
-    const centeredMessageIDs = a.payload.highlightMessageID
-      ? [
-          {
-            conversationIDKey: id,
-            highlightMode: 'flash' as const,
-            messageID: a.payload.highlightMessageID,
-          },
-        ]
-      : []
+    const centeredMessageID = a.payload.highlightMessageID
+      ? {
+          conversationIDKey: id,
+          highlightMode: 'flash' as const,
+          messageID: a.payload.highlightMessageID,
+        }
+      : undefined
 
     if (a.payload.highlightMessageID) {
       reason = 'centered'
@@ -1595,7 +1593,7 @@ const initChat = () => {
       forceContainsLatestCalc = true
     }
     dispatch.loadMoreMessages({
-      centeredMessageIDs,
+      centeredMessageID,
       forceClear,
       forceContainsLatestCalc,
       knownRemotes,
@@ -1630,13 +1628,11 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.loadMessagesCentered, (_, a) => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.loadMoreMessages({
-      centeredMessageIDs: [
-        {
-          conversationIDKey: Constants.getSelectedConversation(),
-          highlightMode: a.payload.highlightMode,
-          messageID: a.payload.messageID,
-        },
-      ],
+      centeredMessageID: {
+        conversationIDKey: Constants.getSelectedConversation(),
+        highlightMode: a.payload.highlightMode,
+        messageID: a.payload.messageID,
+      },
       forceClear: true,
       forceContainsLatestCalc: true,
       messageIDControl: {
@@ -1723,10 +1719,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
   Container.listenAction(Chat2Gen.resetLetThemIn, resetLetThemIn)
 
-  Container.listenAction(Chat2Gen.messagesAdd, () => {
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
-    dispatch.markThreadAsRead()
-  })
   Container.listenAction(Chat2Gen.updateUnreadline, (_, a) => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.markThreadAsRead(a.payload.messageID)
@@ -1916,16 +1908,6 @@ const initChat = () => {
   Container.listenAction([Chat2Gen.replyJump, Chat2Gen.jumpToRecent], (_, a) => {
     const {conversationIDKey} = a.payload
     Constants.getConvoState(conversationIDKey).dispatch.setMessageCenterOrdinal()
-  })
-
-  Container.listenAction(Chat2Gen.messagesAdd, (_, a) => {
-    a.payload.centeredMessageIDs?.forEach(cm => {
-      const ordinal = Types.numberToOrdinal(Types.messageIDToNumber(cm.messageID))
-      Constants.getConvoState(cm.conversationIDKey).dispatch.setMessageCenterOrdinal({
-        highlightMode: cm.highlightMode,
-        ordinal,
-      })
-    })
   })
 }
 
