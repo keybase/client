@@ -157,6 +157,8 @@ export type ConvoState = ConvoStore & {
       numberOfMessagesToLoad?: number
     }) => void
     markThreadAsRead: (unreadLineMessageID?: number) => void
+    messageDelete: (ordinal: Types.Ordinal) => void
+    messageEdit: (ordinal: Types.Ordinal, text: string) => void
     messageRetry: (outboxID: Types.OutboxID) => void
     messagesWereDeleted: (p: {
       messageIDs?: Array<RPCChatTypes.MessageID>
@@ -271,6 +273,25 @@ const messageIDToOrdinal = (
   }
 
   return null
+}
+
+const getClientPrev = (conversationIDKey: Types.ConversationIDKey): Types.MessageID => {
+  let clientPrev: undefined | Types.MessageID
+  const mm = getConvoState(conversationIDKey).messageMap
+  if (mm) {
+    // find last valid messageid we know about
+    const goodOrdinal = findLast(getConvoState(conversationIDKey).messageOrdinals ?? [], o => {
+      const m = mm.get(o)
+      return !!m?.id
+    })
+
+    if (goodOrdinal) {
+      const message = mm.get(goodOrdinal)
+      clientPrev = message && message.id
+    }
+  }
+
+  return clientPrev || 0
 }
 
 type ScrollDirection = 'none' | 'back' | 'forward'
@@ -718,6 +739,115 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           forceUnread: false,
           msgID: readMsgID,
         })
+      }
+      Z.ignorePromise(f())
+    },
+    messageDelete: ordinal => {
+      const {id, dispatch, messageMap, meta} = get()
+      const m = messageMap.get(ordinal)
+      if (m?.type === 'text') {
+        dispatch.updateMessage(ordinal, {submitState: 'deleting'})
+      }
+
+      const conversationIDKey = id
+
+      // Delete a message. We cancel pending messages
+      const f = async () => {
+        const message = messageMap.get(ordinal)
+        if (!message) {
+          logger.warn('Deleting invalid message')
+          return
+        }
+        if (meta.conversationIDKey !== conversationIDKey) {
+          logger.warn('Deleting message w/ no meta')
+          return
+        }
+        // We have to cancel pending messages
+        if (!message.id) {
+          if (message.outboxID) {
+            await RPCChatTypes.localCancelPostRpcPromise(
+              {outboxID: Types.outboxIDToRpcOutboxID(message.outboxID)},
+              Common.waitingKeyCancelPost
+            )
+            get().dispatch.messagesWereDeleted({
+              ordinals: [message.ordinal],
+            })
+          } else {
+            logger.warn('Delete of no message id and no outboxid')
+          }
+        } else {
+          await RPCChatTypes.localPostDeleteNonblockRpcPromise(
+            {
+              clientPrev: 0,
+              conversationID: Types.keyToConversationID(conversationIDKey),
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              outboxID: null,
+              supersedes: message.id,
+              tlfName: meta.tlfname,
+              tlfPublic: false,
+            },
+            Common.waitingKeyDeletePost
+          )
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    messageEdit: (ordinal, text) => {
+      const {id, dispatch, messageMap, meta} = get()
+      const message = messageMap.get(ordinal)
+      if (message?.type === 'text' || message?.type === 'attachment') {
+        dispatch.updateMessage(ordinal, {
+          submitState: 'editing',
+        })
+      }
+      dispatch.setEditing(false)
+      if (!message) {
+        logger.warn("Can't find message to edit", ordinal)
+        return
+      }
+
+      const conversationIDKey = id
+      const f = async () => {
+        if (message.type === 'text' || message.type === 'attachment') {
+          // Skip if the content is the same
+          if (message.type === 'text' && message.text.stringValue() === text) {
+            dispatch.setEditing(false)
+            return
+          } else if (message.type === 'attachment' && message.title === text) {
+            dispatch.setEditing(false)
+            return
+          }
+          const tlfName = meta.tlfname
+          const clientPrev = getClientPrev(conversationIDKey)
+          const outboxID = Common.generateOutboxID()
+          const target = {
+            messageID: message.id,
+            outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : undefined,
+          }
+          await RPCChatTypes.localPostEditNonblockRpcPromise(
+            {
+              body: text,
+              clientPrev,
+              conversationID: Types.keyToConversationID(conversationIDKey),
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              outboxID,
+              target,
+              tlfName,
+              tlfPublic: false,
+            },
+            Common.waitingKeyEditPost
+          )
+
+          if (!message.id) {
+            reduxDispatch(
+              Chat2Gen.createPendingMessageWasEdited({
+                conversationIDKey,
+                ordinal,
+                text: new HiddenString(text),
+              })
+            )
+          }
+        }
       }
       Z.ignorePromise(f())
     },

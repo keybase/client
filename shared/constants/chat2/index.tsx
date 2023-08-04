@@ -117,8 +117,6 @@ export const isTextOrAttachment = (
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 
-export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
-
 export const getBotsAndParticipants = (
   meta: Types.ConversationMeta,
   participantInfo: Types.ParticipantInfo,

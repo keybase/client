@@ -83,12 +83,6 @@
       "sourceConversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    "messageEdit": {
-      "_description": "Submit an edit to the daemon",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
-      "text": "HiddenString"
-    },
     "messageWasEdited": {
       "_description": "Update a message which changed",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -108,11 +102,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageIDs": "Array<RPCChatTypes.MessageID>",
       "explodedBy?": "string"
-    },
-    "messageDelete": {
-      "_description": "Delete a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
     },
     "messageDeleteHistory": {
       "_description": "Deletes all messages",

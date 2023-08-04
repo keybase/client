@@ -132,3 +132,5 @@ export const allMessageTypes: Set<Types.MessageType> = new Set([
   'text',
   'placeholder',
 ])
+
+export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))

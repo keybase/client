@@ -220,19 +220,14 @@ const useSubmit = (
     },
     [dispatch, conversationIDKey, replyTo]
   )
+  const messageEdit = Constants.useContext(s => s.dispatch.messageEdit)
   const onEditMessage = React.useCallback(
     (body: string) => {
       if (editOrdinal !== undefined) {
-        dispatch(
-          Chat2Gen.createMessageEdit({
-            conversationIDKey,
-            ordinal: editOrdinal,
-            text: new Container.HiddenString(body),
-          })
-        )
+        messageEdit(editOrdinal, body)
       }
     },
-    [dispatch, conversationIDKey, editOrdinal]
+    [messageEdit, editOrdinal]
   )
   const onSubmit = Container.useEvent((text: string) => {
     // don't submit empty

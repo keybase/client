@@ -353,27 +353,6 @@ const reducer = Container.makeReducer<Actions, {}>(
       dispatch.replaceMessageMap(messageMap)
       dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
     },
-    [Chat2Gen.messageDelete]: (_, action) => {
-      const {conversationIDKey, ordinal} = action.payload
-      const {dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-      const m = messageMap.get(ordinal)
-      if (m?.type === 'text') {
-        dispatch.updateMessage(ordinal, {
-          submitState: 'deleting',
-        })
-      }
-    },
-    [Chat2Gen.messageEdit]: (_, action) => {
-      const {conversationIDKey, ordinal} = action.payload
-      const {dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-
-      const m = messageMap.get(ordinal)
-      if (m?.type === 'text' || m?.type === 'attachment') {
-        dispatch.updateMessage(ordinal, {
-          submitState: 'editing',
-        })
-      }
-    },
     [Chat2Gen.messageWasEdited]: (_, action) => {
       const {conversationIDKey, messageID, text} = action.payload
       const {mentionsAt, mentionsChannel, mentionsChannelName} = action.payload

@@ -44,9 +44,7 @@ export const markTeamAsRead = 'chat2:markTeamAsRead'
 export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
 export const messageAttachmentNativeShare = 'chat2:messageAttachmentNativeShare'
 export const messageAttachmentUploaded = 'chat2:messageAttachmentUploaded'
-export const messageDelete = 'chat2:messageDelete'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
-export const messageEdit = 'chat2:messageEdit'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
@@ -140,13 +138,6 @@ export const createSetConversationOffline = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly offline: boolean
 }) => ({payload, type: setConversationOffline as typeof setConversationOffline})
-/**
- * Delete a message
- */
-export const createMessageDelete = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: messageDelete as typeof messageDelete})
 /**
  * Deletes all messages
  */
@@ -430,14 +421,6 @@ export const createDesktopNotification = (payload: {
   readonly body: string
 }) => ({payload, type: desktopNotification as typeof desktopNotification})
 /**
- * Submit an edit to the daemon
- */
-export const createMessageEdit = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-  readonly text: HiddenString
-}) => ({payload, type: messageEdit as typeof messageEdit})
-/**
  * Tell server we're typing
  */
 export const createSendTyping = (payload: {
@@ -661,8 +644,6 @@ export type MessageAttachmentNativeSavePayload = ReturnType<typeof createMessage
 export type MessageAttachmentNativeSharePayload = ReturnType<typeof createMessageAttachmentNativeShare>
 export type MessageAttachmentUploadedPayload = ReturnType<typeof createMessageAttachmentUploaded>
 export type MessageDeleteHistoryPayload = ReturnType<typeof createMessageDeleteHistory>
-export type MessageDeletePayload = ReturnType<typeof createMessageDelete>
-export type MessageEditPayload = ReturnType<typeof createMessageEdit>
 export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyPrivately>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
@@ -736,8 +717,6 @@ export type Actions =
   | MessageAttachmentNativeSharePayload
   | MessageAttachmentUploadedPayload
   | MessageDeleteHistoryPayload
-  | MessageDeletePayload
-  | MessageEditPayload
   | MessageReplyPrivatelyPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload

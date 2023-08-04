@@ -1,5 +1,4 @@
 import * as Constants from '../../../../constants/chat2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigConstants from '../../../../constants/config'
 import * as Container from '../../../../util/container'
 import * as Kb from '../../../../common-adapters'
@@ -316,7 +315,6 @@ enum EditCancelRetryType {
 }
 const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCancelRetryType}) {
   const {ecrType} = p
-  const conversationIDKey = React.useContext(ConvoIDContext)
   const ordinal = React.useContext(OrdinalContext)
   const {failureDescription, outboxID} = Constants.useContext(s => {
     const m = s.messageMap.get(ordinal)
@@ -325,10 +323,10 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
     const failureDescription = `This messge failed to send${reason ? '. ' : ''}${capitalize(reason)}`
     return {failureDescription, outboxID}
   }, shallowEqual)
-  const dispatch = Container.useDispatch()
+  const messageDelete = Constants.useContext(s => s.dispatch.messageDelete)
   const onCancel = React.useCallback(() => {
-    dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal}))
-  }, [dispatch, conversationIDKey, ordinal])
+    messageDelete(ordinal)
+  }, [messageDelete, ordinal])
   const setEditing = Constants.useContext(s => s.dispatch.setEditing)
   const onEdit = React.useCallback(() => {
     setEditing(ordinal)

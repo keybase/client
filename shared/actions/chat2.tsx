@@ -352,101 +352,6 @@ const desktopNotify = async (_: unknown, action: Chat2Gen.DesktopNotificationPay
   return actions
 }
 
-// Delete a message. We cancel pending messages
-const messageDelete = async (_: unknown, action: Chat2Gen.MessageDeletePayload) => {
-  const {conversationIDKey, ordinal} = action.payload
-  const message = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
-  if (!message) {
-    logger.warn('Deleting message')
-    logger.debug('Deleting invalid message:', message)
-    return false
-  }
-
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  if (meta.conversationIDKey !== conversationIDKey) {
-    logger.warn('Deleting message w/ no meta')
-    logger.debug('Deleting message w/ no meta', message)
-    return false
-  }
-
-  // We have to cancel pending messages
-  if (!message.id) {
-    if (message.outboxID) {
-      await RPCChatTypes.localCancelPostRpcPromise(
-        {outboxID: Types.outboxIDToRpcOutboxID(message.outboxID)},
-        Constants.waitingKeyCancelPost
-      )
-      Constants.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({ordinals: [message.ordinal]})
-      return
-    } else {
-      logger.warn('Delete of no message id and no outboxid')
-    }
-  } else {
-    await RPCChatTypes.localPostDeleteNonblockRpcPromise(
-      {
-        clientPrev: 0,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        outboxID: null,
-        supersedes: message.id,
-        tlfName: meta.tlfname,
-        tlfPublic: false,
-      },
-      Constants.waitingKeyDeletePost
-    )
-  }
-  return false
-}
-
-const messageEdit = async (
-  _: unknown,
-  action: Chat2Gen.MessageEditPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey, text, ordinal} = action.payload
-  const message = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
-  if (!message) {
-    logger.warn("Can't find message to edit", ordinal)
-    return
-  }
-
-  if (message.type === 'text' || message.type === 'attachment') {
-    // Skip if the content is the same
-    if (message.type === 'text' && message.text.stringValue() === text.stringValue()) {
-      Constants.getConvoState(conversationIDKey).dispatch.setEditing(false)
-      return
-    } else if (message.type === 'attachment' && message.title === text.stringValue()) {
-      Constants.getConvoState(conversationIDKey).dispatch.setEditing(false)
-      return
-    }
-    const meta = Constants.getConvoState(conversationIDKey).meta
-    const tlfName = meta.tlfname
-    const clientPrev = getClientPrev(conversationIDKey)
-    const outboxID = Constants.generateOutboxID()
-    const target = {
-      messageID: message.id,
-      outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : undefined,
-    }
-    await RPCChatTypes.localPostEditNonblockRpcPromise(
-      {
-        body: text.stringValue(),
-        clientPrev,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        outboxID,
-        target,
-        tlfName,
-        tlfPublic: false,
-      },
-      Constants.waitingKeyEditPost
-    )
-
-    if (!message.id) {
-      listenerApi.dispatch(Chat2Gen.createPendingMessageWasEdited({conversationIDKey, ordinal, text}))
-    }
-  }
-}
-
 const onReplyJump = (_: unknown, action: Chat2Gen.ReplyJumpPayload) =>
   Chat2Gen.createLoadMessagesCentered({
     conversationIDKey: action.payload.conversationIDKey,
@@ -1810,11 +1715,6 @@ const initChat = () => {
     dispatch.setCommandMarkdown()
   })
   Container.listenAction(Chat2Gen.messageSendByUsernames, messageSendByUsernames)
-  Container.listenAction(Chat2Gen.messageEdit, messageEdit)
-  Container.listenAction(Chat2Gen.messageEdit, (_, action) => {
-    Constants.getConvoState(action.payload.conversationIDKey).dispatch.setEditing(false)
-  })
-  Container.listenAction(Chat2Gen.messageDelete, messageDelete)
   Container.listenAction(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
   Container.listenAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
