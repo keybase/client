@@ -156,6 +156,7 @@ export type ConvoState = ConvoStore & {
       scrollDirection?: ScrollDirection
       numberOfMessagesToLoad?: number
     }) => void
+    markThreadAsRead: (unreadLineMessageID?: number) => void
     messageRetry: (outboxID: Types.OutboxID) => void
     metaReceivedError: (error: RPCChatTypes.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
@@ -202,6 +203,7 @@ export type ConvoState = ConvoStore & {
     setThreadSearchQuery: (query: string) => void
     setTyping: (t: Set<string>) => void
     threadSearch: (query: string) => void
+    toggleGiphyPrefill: () => void
     toggleThreadSearch: (hide?: boolean) => void
     toggleLocalReaction: (p: {
       decorated: string
@@ -211,6 +213,9 @@ export type ConvoState = ConvoStore & {
     }) => void
     updateMessage: (ordinal: Types.Ordinal, m: Partial<Types.Message>) => void
     updateMeta: (m: Partial<Types.ConversationMeta>) => void
+    updateReactions: (
+      updates: Array<{targetMsgID: RPCChatTypes.MessageID; reactions: Types.Reactions}>
+    ) => void
     unfurlTogglePrompt: (messageID: Types.MessageID, domain: string, show: boolean) => void
     updateAttachmentViewTransfer: (msgId: number, ratio: number) => void
     updateAttachmentViewTransfered: (msgId: number, path: string) => void
@@ -660,6 +665,53 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           // ignore this error in general
         }
+      }
+      Z.ignorePromise(f())
+    },
+    markThreadAsRead: unreadLineMessageID => {
+      const f = async () => {
+        const ConfigConstants = await import('../config')
+        if (!ConfigConstants.useConfigState.getState().loggedIn) {
+          logger.info('bail on not logged in')
+          return
+        }
+        const {id: conversationIDKey, meta, messageMap, messageOrdinals} = get()
+        if (!Types.isValidConversationIDKey(conversationIDKey)) {
+          logger.info('bail on no selected conversation')
+          return
+        }
+        if (!Common.isUserActivelyLookingAtThisThread(conversationIDKey)) {
+          logger.info('bail on not looking at this thread')
+          return
+        }
+        // Check to see if we do not have the latest message, and don't mark anything as read in that case
+        // If we have no information at all, then just mark as read
+        if (!get().containsLatestMessage) {
+          logger.info('bail on not containing latest message')
+          return
+        }
+
+        const ordinal = findLast([...(messageOrdinals ?? [])], (o: Types.Ordinal) => {
+          const m = messageMap.get(o)
+          return m ? !!m.id : false
+        })
+        const message = ordinal ? messageMap.get(ordinal) : undefined
+
+        let readMsgID: number | undefined
+        if (meta.conversationIDKey === conversationIDKey) {
+          readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
+        }
+        if (unreadLineMessageID !== undefined && readMsgID && readMsgID >= unreadLineMessageID) {
+          // If we are marking as unread, don't send the local RPC.
+          return
+        }
+
+        logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
+        await RPCChatTypes.localMarkAsReadLocalRpcPromise({
+          conversationID: Types.keyToConversationID(conversationIDKey),
+          forceUnread: false,
+          msgID: readMsgID,
+        })
       }
       Z.ignorePromise(f())
     },
@@ -1589,6 +1641,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    toggleGiphyPrefill: () => {
+      // if the window is up, just blow it away
+      get().dispatch.setUnsentText(get().giphyWindow ? '' : '/giphy ')
+    },
     toggleLocalReaction: p => {
       const {decorated, emoji, targetOrdinal, username} = p
       set(s => {
@@ -1705,6 +1761,27 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
       get().dispatch.setDraft(get().meta.draft)
       get().dispatch.setMuted(get().meta.isMuted)
+    },
+    updateReactions: updates => {
+      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+      for (const u of updates) {
+        const reactions = u.reactions
+        const targetMsgID = u.targetMsgID
+        const targetOrdinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, u.targetMsgID)
+        if (!targetOrdinal) {
+          logger.info(
+            `updateReactions: couldn't find target ordinal for targetMsgID=${targetMsgID} in convID=${
+              get().id
+            }`
+          )
+          return
+        }
+        const m = messageMap.get(targetOrdinal)
+        if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
+          dispatch.updateMessage(targetOrdinal, {reactions})
+        }
+      }
+      get().dispatch.markThreadAsRead()
     },
   }
   return {

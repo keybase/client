@@ -353,30 +353,6 @@ const reducer = Container.makeReducer<Actions, {}>(
       dispatch.replaceMessageMap(messageMap)
       dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
     },
-    [Chat2Gen.updateReactions]: (_draftState, action) => {
-      const {conversationIDKey, updates} = action.payload
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-      const targetData = updates.map(u => ({
-        reactions: u.reactions,
-        targetMsgID: u.targetMsgID,
-        targetOrdinal: messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, u.targetMsgID),
-      }))
-
-      targetData.forEach(td => {
-        if (!td.targetOrdinal) {
-          logger.info(
-            `updateReactions: couldn't find target ordinal for targetMsgID=${td.targetMsgID} in convID=${conversationIDKey}`
-          )
-          return
-        }
-        const m = messageMap.get(td.targetOrdinal)
-        if (m && m.type !== 'deleted' && m.type !== 'placeholder') {
-          dispatch.updateMessage(td.targetOrdinal, {
-            reactions: td.reactions,
-          })
-        }
-      })
-    },
     [Chat2Gen.messagesWereDeleted]: (_, action) => {
       const {
         deletableMessageTypes = Constants.allMessageTypes,

@@ -1,6 +1,3 @@
-/* eslint-env browser */
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as React from 'react'
@@ -124,12 +121,9 @@ const EmojiButton = (p: EmojiButtonProps) => {
   )
 }
 
-const GiphyButton = (p: {conversationIDKey: Types.ConversationIDKey}) => {
-  const {conversationIDKey} = p
-  const dispatch = Container.useDispatch()
-  const onGiphyToggle = React.useCallback(() => {
-    dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey}))
-  }, [conversationIDKey, dispatch])
+const GiphyButton = () => {
+  const toggleGiphyPrefill = Constants.useContext(s => s.dispatch.toggleGiphyPrefill)
+  const onGiphyToggle = toggleGiphyPrefill
 
   return (
     <Kb.WithTooltip tooltip="GIF">
@@ -310,7 +304,7 @@ const SideButtons = (p: SideButtonsProps) => {
     <Kb.Box2 direction="horizontal">
       {!cannotWrite && (
         <>
-          <GiphyButton conversationIDKey={conversationIDKey} />
+          <GiphyButton />
           <EmojiButton inputRef={inputRef} conversationIDKey={conversationIDKey} />
           <FileButton conversationIDKey={conversationIDKey} htmlInputRef={htmlInputRef} />
         </>

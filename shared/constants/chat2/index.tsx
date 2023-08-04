@@ -14,12 +14,12 @@ import type * as TeamsTypes from '../types/teams'
 import type * as Wallet from '../types/wallets'
 import {RPCError} from '../../util/errors'
 import {inboxUIItemToConversationMeta, updateMeta} from './meta'
-import {isMobile, isTablet, isPhone} from '../platform'
+import {isMobile, isPhone} from '../platform'
 import {noConversationIDKey, pendingWaitingConversationIDKey} from '../types/chat2/common'
 import type * as TeamBuildingTypes from '../types/team-building'
 import * as Z from '../../util/zustand'
 import {getConvoState, stores} from './convostate'
-import {explodingModeGregorKeyPrefix} from './common'
+import {explodingModeGregorKeyPrefix, getSelectedConversation} from './common'
 
 export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
   switch (m.type) {
@@ -48,13 +48,9 @@ export const defaultTopReacjis = [
 ]
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
-export const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 // while we're debugging chat issues
 export const DEBUG_CHAT_DUMP = true
-
-// in split mode the root is the 'inbox'
-export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
 
 export const blockButtonsGregorPrefix = 'blockButtons.'
 
@@ -120,40 +116,8 @@ export const isTextOrAttachment = (
 
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
-export const getSelectedConversation = (): Types.ConversationIDKey => {
-  const maybeVisibleScreen = Router2.getVisibleScreen()
-  if (maybeVisibleScreen?.name === threadRouteName) {
-    // @ts-ignore TODO better types
-    return maybeVisibleScreen.params?.conversationIDKey ?? noConversationIDKey
-  }
-  return noConversationIDKey
-}
 
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
-export const isUserActivelyLookingAtThisThread = (conversationIDKey: Types.ConversationIDKey) => {
-  const selectedConversationIDKey = getSelectedConversation()
-
-  let chatThreadSelected = false
-  if (!isSplit) {
-    chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
-  } else {
-    const maybeVisibleScreen = Router2.getVisibleScreen()
-    chatThreadSelected =
-      (maybeVisibleScreen === null || maybeVisibleScreen === undefined
-        ? undefined
-        : maybeVisibleScreen.name) === threadRouteName
-  }
-
-  const {appFocused} = ConfigConstants.useConfigState.getState()
-  const {active: userActive} = ConfigConstants.useActiveState.getState()
-
-  return (
-    appFocused && // app focused?
-    userActive && // actually interacting w/ the app
-    chatThreadSelected && // looking at the chat tab?
-    conversationIDKey === selectedConversationIDKey // looking at the selected thread?
-  )
-}
 
 export const getBotsAndParticipants = (
   meta: Types.ConversationMeta,
@@ -1032,7 +996,7 @@ export const useState = Z.createZustand<State>((set, get) => {
                 targetMsgID: ru.targetMsgID,
               }))
               logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
-              reduxDispatch(Chat2Gen.createUpdateReactions({conversationIDKey, updates}))
+              getConvoState(conversationIDKey).dispatch.updateReactions(updates)
               useState.getState().dispatch.updateUserReacjis(reactionUpdate.userReacjis)
               break
             }

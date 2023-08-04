@@ -72,7 +72,6 @@ export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const tabSelected = 'chat2:tabSelected'
-export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const unfurlRemove = 'chat2:unfurlRemove'
@@ -81,7 +80,6 @@ export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
-export const updateReactions = 'chat2:updateReactions'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Action Creators
@@ -472,26 +470,12 @@ export const createAttachmentUploadCanceled = (payload: {
   readonly outboxIDs: Array<RPCChatTypes.OutboxID>
 }) => ({payload, type: attachmentUploadCanceled as typeof attachmentUploadCanceled})
 /**
- * The service sent us an update for the reaction map of a message.
- */
-export const createUpdateReactions = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly updates: Array<{targetMsgID: RPCChatTypes.MessageID; reactions: Types.Reactions}>
-}) => ({payload, type: updateReactions as typeof updateReactions})
-/**
  * The user has selected an attachment with a preview
  */
 export const createAttachmentPreviewSelect = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: attachmentPreviewSelect as typeof attachmentPreviewSelect})
-/**
- * Toggle /giphy text to trigger preview window
- */
-export const createToggleGiphyPrefill = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: toggleGiphyPrefill as typeof toggleGiphyPrefill,
-})
 /**
  * Toggle the collapse status of a message
  */
@@ -715,7 +699,6 @@ export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvReten
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
-export type ToggleGiphyPrefillPayload = ReturnType<typeof createToggleGiphyPrefill>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
 export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
@@ -724,7 +707,6 @@ export type UnhideConversationPayload = ReturnType<typeof createUnhideConversati
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
 export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNotificationSettings>
-export type UpdateReactionsPayload = ReturnType<typeof createUpdateReactions>
 export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 
 // All Actions
@@ -793,7 +775,6 @@ export type Actions =
   | SetConversationOfflinePayload
   | SetMinWriterRolePayload
   | TabSelectedPayload
-  | ToggleGiphyPrefillPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload
   | UnfurlRemovePayload
@@ -802,6 +783,5 @@ export type Actions =
   | UnpinMessagePayload
   | UnsentTextChangedPayload
   | UpdateNotificationSettingsPayload
-  | UpdateReactionsPayload
   | UpdateUnreadlinePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}
