@@ -444,12 +444,6 @@ const reducer = Container.makeReducer<Actions, {}>(
         }
       })
     },
-    [Chat2Gen.clearMessages]: () => {
-      for (const [, cs] of Constants.stores) {
-        cs.getState().dispatch.setMessageOrdinals()
-        cs.getState().dispatch.replaceMessageMap(new Map())
-      }
-    },
     ...attachmentActions,
   }
 )

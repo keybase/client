@@ -512,7 +512,10 @@ export const useState = Z.createZustand<State>((set, get) => {
           get().dispatch.clearMetas()
         }
         if (clearExistingMessages) {
-          reduxDispatch(Chat2Gen.createClearMessages())
+          for (const [, cs] of stores) {
+            cs.getState().dispatch.setMessageOrdinals()
+            cs.getState().dispatch.replaceMessageMap(new Map())
+          }
         }
       }
       Z.ignorePromise(f())

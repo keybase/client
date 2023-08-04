@@ -56,7 +56,6 @@
       "highlightMessageID?": "number",
       "participants": "Array<string>"
     },
-    "clearMessages": {},
     "messagesAdd": {
       "_description": [
         "Add a new message",
