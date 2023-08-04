@@ -466,6 +466,7 @@ export type State = Store & {
         | EngineGen.Chat1NotifyChatChatSetConvSettingsPayload
         | EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
         | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
+        | EngineGen.Chat1NotifyChatNewChatActivityPayload
     ) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
@@ -923,6 +924,65 @@ export const useState = Z.createZustand<State>((set, get) => {
           const {convID} = action.payload.params
           const conversationIDKey = Types.conversationIDToKey(convID)
           getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
+          break
+        }
+        case EngineGen.chat1NotifyChatNewChatActivity: {
+          const {activity} = action.payload.params
+          switch (activity.activityType) {
+            case RPCChatTypes.ChatActivityType.incomingMessage: {
+              const {incomingMessage} = activity
+              const conversationIDKey = Types.conversationIDToKey(incomingMessage.convID)
+              getConvoState(conversationIDKey).dispatch.onIncomingMessage(incomingMessage)
+              // actions = actions.concat(chatActivityToMetasAction(state, incomingMessage))
+              break
+            }
+            case RPCChatTypes.ChatActivityType.setStatus:
+              // actions = chatActivityToMetasAction(state, activity.setStatus)
+              break
+            case RPCChatTypes.ChatActivityType.readMessage:
+              // actions = chatActivityToMetasAction(state, activity.readMessage)
+              break
+            case RPCChatTypes.ChatActivityType.newConversation:
+              // actions = chatActivityToMetasAction(state, activity.newConversation)
+              break
+            case RPCChatTypes.ChatActivityType.failedMessage: {
+              // const {failedMessage} = activity
+              // const {outboxRecords} = failedMessage
+              // if (outboxRecords) {
+              //   actions = actions.concat(onErrorMessage(outboxRecords))
+              //   actions = actions.concat(chatActivityToMetasAction(state, failedMessage))
+              // }
+              break
+            }
+            case RPCChatTypes.ChatActivityType.membersUpdate:
+              get().dispatch.unboxRows([Types.conversationIDToKey(activity.membersUpdate.convID)], true)
+              break
+            case RPCChatTypes.ChatActivityType.setAppNotificationSettings: {
+              // const {setAppNotificationSettings} = activity
+              // actions = [
+              //   Chat2Gen.createNotificationSettingsUpdated({
+              //     conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
+              //     settings: setAppNotificationSettings.settings,
+              //   }),
+              // ]
+              break
+            }
+            case RPCChatTypes.ChatActivityType.expunge: {
+              // actions = expungeToActions(activity.expunge)
+              break
+            }
+            case RPCChatTypes.ChatActivityType.ephemeralPurge:
+              // actions = ephemeralPurgeToActions(activity.ephemeralPurge)
+              break
+            case RPCChatTypes.ChatActivityType.reactionUpdate:
+              // reactionUpdateToActions(activity.reactionUpdate)
+              break
+            case RPCChatTypes.ChatActivityType.messagesUpdated: {
+              // actions = messagesUpdatedToActions(state, activity.messagesUpdated)
+              break
+            }
+            default:
+          }
           break
         }
         case EngineGen.chat1NotifyChatChatTypingUpdate: {

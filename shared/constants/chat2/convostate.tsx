@@ -166,6 +166,7 @@ export type ConvoState = ConvoStore & {
         | EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
         | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
     ) => void
+    onIncomingMessage: (incoming: RPCChatTypes.IncomingMessage) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
@@ -787,6 +788,136 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           break
         }
       }
+    },
+    onIncomingMessage: incoming => {
+      const {message: cMsg} = incoming
+      if (!cMsg) return
+
+      const f = async () => {
+        const ConfigConstants = await import('../config')
+        const username = ConfigConstants.useCurrentUserState.getState().username
+        // check for a reaction outbox notification before doing anything
+        if (
+          cMsg.state === RPCChatTypes.MessageUnboxedState.outbox &&
+          cMsg.outbox.messageType === RPCChatTypes.MessageType.reaction
+        ) {
+          get().dispatch.toggleLocalReaction({
+            decorated: cMsg.outbox.decoratedTextBody ?? '',
+            emoji: cMsg.outbox.body,
+            targetOrdinal: cMsg.outbox.supersedes,
+            username,
+          })
+          return
+        }
+
+        const {modifiedMessage, displayDesktopNotification, desktopNotificationSnippet} = incoming
+        const conversationIDKey = get().id
+        const shouldAddMessage = get().containsLatestMessage ?? false
+        const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
+        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+        const message = Message.uiMessageToMessage(
+          conversationIDKey,
+          cMsg,
+          username,
+          getLastOrdinal,
+          devicename
+        )
+        if (message) {
+          // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
+          if (
+            cMsg.state === RPCChatTypes.MessageUnboxedState.valid &&
+            cMsg.valid.messageBody.messageType === RPCChatTypes.MessageType.attachmentuploaded &&
+            message.type === 'attachment'
+          ) {
+            reduxDispatch(
+              Chat2Gen.createMessageAttachmentUploaded({
+                conversationIDKey,
+                message,
+                placeholderID: cMsg.valid.messageBody.attachmentuploaded.messageID,
+              })
+            )
+          } else if (shouldAddMessage) {
+            // A normal message
+            reduxDispatch(
+              Chat2Gen.createMessagesAdd({
+                context: {type: 'incoming'},
+                conversationIDKey,
+                messages: [message],
+              })
+            )
+          }
+        } else if (cMsg.state === RPCChatTypes.MessageUnboxedState.valid) {
+          const {valid} = cMsg
+          const body = valid.messageBody
+          logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
+          // Types that are mutations
+          switch (body.messageType) {
+            case RPCChatTypes.MessageType.edit:
+              if (modifiedMessage) {
+                const modMessage = Message.uiMessageToMessage(
+                  conversationIDKey,
+                  modifiedMessage,
+                  username,
+                  getLastOrdinal,
+                  devicename
+                )
+                if (modMessage) {
+                  reduxDispatch(
+                    Chat2Gen.createMessagesAdd({
+                      context: {type: 'incoming'},
+                      conversationIDKey,
+                      messages: [modMessage],
+                    })
+                  )
+                }
+              }
+              break
+            case RPCChatTypes.MessageType.delete: {
+              const {delete: d} = body
+              if (d.messageIDs) {
+                // check if the delete is acting on an exploding message
+                const messageIDs = d.messageIDs
+                const messages = get().messageMap
+                const isExplodeNow = messageIDs.some(_id => {
+                  const id = Types.numberToOrdinal(_id)
+                  const message = messages.get(id) ?? [...messages.values()].find(msg => msg.id === id)
+                  if ((message?.type === 'text' || message?.type === 'attachment') && message?.exploding) {
+                    return true
+                  }
+                  return false
+                })
+
+                reduxDispatch(
+                  isExplodeNow
+                    ? Chat2Gen.createMessagesExploded({
+                        conversationIDKey,
+                        explodedBy: valid.senderUsername,
+                        messageIDs,
+                      })
+                    : Chat2Gen.createMessagesWereDeleted({conversationIDKey, messageIDs})
+                )
+              }
+              break
+            }
+            default:
+          }
+        }
+        if (
+          !isMobile &&
+          displayDesktopNotification &&
+          desktopNotificationSnippet &&
+          cMsg.state === RPCChatTypes.MessageUnboxedState.valid
+        ) {
+          reduxDispatch(
+            Chat2Gen.createDesktopNotification({
+              author: cMsg.valid.senderUsername,
+              body: desktopNotificationSnippet,
+              conversationIDKey,
+            })
+          )
+        }
+      }
+      Z.ignorePromise(f())
     },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {
