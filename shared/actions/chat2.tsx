@@ -352,55 +352,6 @@ const desktopNotify = async (_: unknown, action: Chat2Gen.DesktopNotificationPay
   return actions
 }
 
-const messageEdit = async (
-  _: unknown,
-  action: Chat2Gen.MessageEditPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey, text, ordinal} = action.payload
-  const message = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
-  if (!message) {
-    logger.warn("Can't find message to edit", ordinal)
-    return
-  }
-
-  if (message.type === 'text' || message.type === 'attachment') {
-    // Skip if the content is the same
-    if (message.type === 'text' && message.text.stringValue() === text.stringValue()) {
-      Constants.getConvoState(conversationIDKey).dispatch.setEditing(false)
-      return
-    } else if (message.type === 'attachment' && message.title === text.stringValue()) {
-      Constants.getConvoState(conversationIDKey).dispatch.setEditing(false)
-      return
-    }
-    const meta = Constants.getConvoState(conversationIDKey).meta
-    const tlfName = meta.tlfname
-    const clientPrev = getClientPrev(conversationIDKey)
-    const outboxID = Constants.generateOutboxID()
-    const target = {
-      messageID: message.id,
-      outboxID: message.outboxID ? Types.outboxIDToRpcOutboxID(message.outboxID) : undefined,
-    }
-    await RPCChatTypes.localPostEditNonblockRpcPromise(
-      {
-        body: text.stringValue(),
-        clientPrev,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        outboxID,
-        target,
-        tlfName,
-        tlfPublic: false,
-      },
-      Constants.waitingKeyEditPost
-    )
-
-    if (!message.id) {
-      listenerApi.dispatch(Chat2Gen.createPendingMessageWasEdited({conversationIDKey, ordinal, text}))
-    }
-  }
-}
-
 const onReplyJump = (_: unknown, action: Chat2Gen.ReplyJumpPayload) =>
   Chat2Gen.createLoadMessagesCentered({
     conversationIDKey: action.payload.conversationIDKey,
@@ -1764,11 +1715,6 @@ const initChat = () => {
     dispatch.setCommandMarkdown()
   })
   Container.listenAction(Chat2Gen.messageSendByUsernames, messageSendByUsernames)
-  Container.listenAction(Chat2Gen.messageEdit, messageEdit)
-  Container.listenAction(Chat2Gen.messageEdit, (_, action) => {
-    Constants.getConvoState(action.payload.conversationIDKey).dispatch.setEditing(false)
-  })
-  Container.listenAction(Chat2Gen.messageDelete, messageDelete)
   Container.listenAction(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
   Container.listenAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
   Container.listenAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
