@@ -56,7 +56,6 @@
       "highlightMessageID?": "number",
       "participants": "Array<string>"
     },
-    "clearMessages": {},
     "messagesAdd": {
       "_description": [
         "Add a new message",
@@ -234,11 +233,6 @@
       "_description": "Mark all conversations in a team as read",
       "teamID": "TeamsTypes.TeamID"
     },
-    "markConversationsStale": {
-      "_description": "Server told us a conversation is out of date",
-      "conversationIDKeys": "Array<Types.ConversationIDKey>",
-      "updateType": "RPCChatTypes.StaleUpdateType"
-    },
     "navigateToInbox": {
       "_description": "Navigation helper. Nav is slightly different on mobile / desktop."
     },
@@ -302,18 +296,6 @@
       "_description": "Block a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "reportUser": "boolean"
-    },
-    "hideConversation": {
-      "_description": "Hide a conversation until future activity",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "unhideConversation": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "setConversationOffline": {
-      "_description": "Conversation was loaded and is offline",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "offline": "boolean"
     },
     "setConvRetentionPolicy": {
       "_description": "Sets the retention policy for a conversation.",

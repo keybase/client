@@ -51,8 +51,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     navigateAppend({props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'})
   }
 
-  const onHideConv = () => dispatch(Chat2Gen.createHideConversation({conversationIDKey}))
-  const onUnhideConv = () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey}))
+  const hideConversation = Constants.useContext(s => s.dispatch.hideConversation)
+  const onHideConv = () => hideConversation(true)
+  const onUnhideConv = () => hideConversation(false)
   const onShowBlockConversationDialog = membersForBlock.length
     ? () => {
         navigateAppend({

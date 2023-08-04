@@ -2,7 +2,6 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
-import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as Types from '../constants/types/chat2'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
@@ -385,15 +384,6 @@ const reducer = Container.makeReducer<Actions, {}>(
         })
       }
     },
-    [Chat2Gen.markConversationsStale]: (_, action) => {
-      const {updateType, conversationIDKeys} = action.payload
-      if (updateType === RPCChatTypes.StaleUpdateType.clear) {
-        conversationIDKeys.forEach(convID =>
-          Constants.getConvoState(convID).dispatch.replaceMessageMap(new Map())
-        )
-        conversationIDKeys.forEach(convID => Constants.getConvoState(convID).dispatch.setMessageOrdinals())
-      }
-    },
     [Chat2Gen.notificationSettingsUpdated]: (_draftState, action) => {
       const {conversationIDKey, settings} = action.payload
       const cs = Constants.getConvoState(conversationIDKey)
@@ -404,15 +394,6 @@ const reducer = Container.makeReducer<Actions, {}>(
           notificationsDesktop: notificationsDesktop,
           notificationsGlobalIgnoreMentions: notificationsGlobalIgnoreMentions,
           notificationsMobile: notificationsMobile,
-        })
-      }
-    },
-    [Chat2Gen.setConversationOffline]: (_draftState, action) => {
-      const {conversationIDKey, offline} = action.payload
-      const cs = Constants.getConvoState(conversationIDKey)
-      if (cs.meta.conversationIDKey === conversationIDKey) {
-        cs.dispatch.updateMeta({
-          offline,
         })
       }
     },
@@ -443,12 +424,6 @@ const reducer = Container.makeReducer<Actions, {}>(
           })
         }
       })
-    },
-    [Chat2Gen.clearMessages]: () => {
-      for (const [, cs] of Constants.stores) {
-        cs.getState().dispatch.setMessageOrdinals()
-        cs.getState().dispatch.replaceMessageMap(new Map())
-      }
     },
     ...attachmentActions,
   }

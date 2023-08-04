@@ -191,29 +191,25 @@ const onChatInboxSynced = (
       break
     // We got some new messages appended
     case RPCChatTypes.SyncInboxResType.incremental: {
+      const items = syncRes.incremental.items || []
       const selectedConversation = Constants.getSelectedConversation()
-      const items = syncRes.incremental?.items || []
+      let loadMore = false
       const metas = items.reduce<Array<Types.ConversationMeta>>((arr, i) => {
         const meta = Constants.unverifiedInboxUIItemToConversationMeta(i.conv)
         if (meta) {
-          if (meta.conversationIDKey === selectedConversation) {
-            // First thing load the messages
-            actions.unshift(
-              Chat2Gen.createMarkConversationsStale({
-                conversationIDKeys: [selectedConversation],
-                updateType: RPCChatTypes.StaleUpdateType.newactivity,
-              })
-            )
-          }
           arr.push(meta)
+          if (meta.conversationIDKey === selectedConversation) {
+            loadMore = true
+          }
         }
         return arr
       }, [])
-      const removals = ((!syncRes.incremental ? undefined : syncRes.incremental.removals) || []).map(
-        Types.stringToConversationIDKey
-      )
+      if (loadMore) {
+        Constants.getConvoState(selectedConversation).dispatch.loadMoreMessages({reason: 'got stale'})
+      }
+      const removals = syncRes.incremental.removals?.map(Types.stringToConversationIDKey)
       // Update new untrusted
-      if (metas.length || removals.length) {
+      if (metas.length || removals?.length) {
         Constants.useState.getState().dispatch.metasReceived(metas, removals)
       }
 
@@ -272,17 +268,23 @@ const onChatChatTLFFinalizePayload = (
 
 const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThreadsStalePayload) => {
   const {updates} = action.payload.params
-  let actions: Array<Container.TypedActions> = []
   const keys = ['clear', 'newactivity'] as const
   if (__DEV__) {
     if (keys.length * 2 !== Object.keys(RPCChatTypes.StaleUpdateType).length) {
       throw new Error('onChatThreadStale invalid enum')
     }
   }
+  let loadMore = false
+  const selectedConversation = Constants.getSelectedConversation()
   keys.forEach(key => {
     const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
+      const cid = Types.conversationIDToKey(u.convID)
       if (u.updateType === RPCChatTypes.StaleUpdateType[key]) {
-        arr.push(Types.conversationIDToKey(u.convID))
+        arr.push(cid)
+      }
+      // mentioned?
+      if (cid === selectedConversation) {
+        loadMore = true
       }
       return arr
     }, [])
@@ -293,15 +295,19 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
       )
 
       Constants.useState.getState().dispatch.unboxRows(conversationIDKeys, true)
-      actions = actions.concat([
-        Chat2Gen.createMarkConversationsStale({
-          conversationIDKeys,
-          updateType: RPCChatTypes.StaleUpdateType[key],
-        }),
-      ])
+
+      if (RPCChatTypes.StaleUpdateType[key] === RPCChatTypes.StaleUpdateType.clear) {
+        conversationIDKeys.forEach(convID =>
+          Constants.getConvoState(convID).dispatch.replaceMessageMap(new Map())
+        )
+        conversationIDKeys.forEach(convID => Constants.getConvoState(convID).dispatch.setMessageOrdinals())
+      }
     }
   })
-  return actions
+  if (loadMore) {
+    const {dispatch} = Constants.getConvoState(selectedConversation)
+    dispatch.loadMoreMessages({reason: 'got stale'})
+  }
 }
 
 const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvUpdatePayload) => {
@@ -1092,47 +1098,6 @@ const blockConversation = async (
   })
 }
 
-const hideConversation = async (
-  _: Container.TypedState,
-  action: Chat2Gen.HideConversationPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey} = action.payload
-  // Nav to inbox but don't use findNewConversation since changeSelectedConversation
-  // does that with better information. It knows the conversation is hidden even before
-  // that state bounces back.
-  listenerApi.dispatch(Chat2Gen.createNavigateToInbox())
-  Constants.useState.getState().dispatch.showInfoPanel(false)
-  try {
-    await RPCChatTypes.localSetConversationStatusLocalRpcPromise(
-      {
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        status: RPCChatTypes.ConversationStatus.ignored,
-      },
-      Constants.waitingKeyConvStatusChange(conversationIDKey)
-    )
-  } catch (err) {
-    logger.error('Failed to hide conversation: ' + err)
-  }
-}
-
-const unhideConversation = async (_: Container.TypedState, action: Chat2Gen.UnhideConversationPayload) => {
-  const {conversationIDKey} = action.payload
-  try {
-    await RPCChatTypes.localSetConversationStatusLocalRpcPromise(
-      {
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        status: RPCChatTypes.ConversationStatus.unfiled,
-      },
-      Constants.waitingKeyConvStatusChange(conversationIDKey)
-    )
-  } catch (err) {
-    logger.error('Failed to unhide conversation: ' + err)
-  }
-}
-
 const setConvRetentionPolicy = async (_: unknown, action: Chat2Gen.SetConvRetentionPolicyPayload) => {
   const {conversationIDKey} = action.payload
   const convID = Types.keyToConversationID(conversationIDKey)
@@ -1682,13 +1647,6 @@ const initChat = () => {
       reason: 'centered',
     })
   })
-  Container.listenAction(Chat2Gen.markConversationsStale, (_, a) => {
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
-    // mentioned?
-    if (a.payload.conversationIDKeys.includes(Constants.getSelectedConversation())) {
-      dispatch.loadMoreMessages({reason: 'got stale'})
-    }
-  })
   Container.listenAction(Chat2Gen.tabSelected, () => {
     const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
     dispatch.loadMoreMessages({reason: 'tab selected'})
@@ -1803,8 +1761,6 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.updateNotificationSettings, updateNotificationSettings)
   Container.listenAction(Chat2Gen.blockConversation, blockConversation)
-  Container.listenAction(Chat2Gen.hideConversation, hideConversation)
-  Container.listenAction(Chat2Gen.unhideConversation, unhideConversation)
 
   Container.listenAction(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
