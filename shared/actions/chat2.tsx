@@ -926,40 +926,21 @@ const resetLetThemIn = async (_: unknown, action: Chat2Gen.ResetLetThemInPayload
   })
 }
 
-const markThreadAsRead = (
-  action?:
-    | Chat2Gen.MessagesAddPayload
-    | Chat2Gen.UpdateUnreadlinePayload
-    | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
-    | Chat2Gen.UpdateReactionsPayload
-    | Chat2Gen.TabSelectedPayload
-) => {
+const markThreadAsRead = (unreadLineMessageID?: number) => {
   const f = async () => {
     if (!ConfigConstants.useConfigState.getState().loggedIn) {
       logger.info('bail on not logged in')
       return
     }
     const conversationIDKey = Constants.getSelectedConversation()
-
     if (!Constants.isValidConversationIDKey(conversationIDKey)) {
       logger.info('bail on no selected conversation')
       return
     }
-
-    const meta = Constants.getConvoState(conversationIDKey).meta
-
-    if (action?.type === Chat2Gen.markInitiallyLoadedThreadAsRead) {
-      if (action?.payload.conversationIDKey !== conversationIDKey) {
-        logger.info('bail on not looking at this thread anymore?')
-        return
-      }
-    }
-
     if (!Constants.isUserActivelyLookingAtThisThread(conversationIDKey)) {
       logger.info('bail on not looking at this thread')
       return
     }
-
     // Check to see if we do not have the latest message, and don't mark anything as read in that case
     // If we have no information at all, then just mark as read
     if (!Constants.getConvoState(conversationIDKey).containsLatestMessage) {
@@ -967,7 +948,7 @@ const markThreadAsRead = (
       return
     }
 
-    let message: Types.Message | undefined
+    const meta = Constants.getConvoState(conversationIDKey).meta
     const mmap = Constants.getConvoState(conversationIDKey).messageMap
     const ordinals = Constants.getConvoState(conversationIDKey).messageOrdinals
     const ordinal =
@@ -976,18 +957,18 @@ const markThreadAsRead = (
         const m = mmap.get(o)
         return m ? !!m.id : false
       })
-    message = ordinal ? mmap.get(ordinal) : undefined
+    const message = ordinal ? mmap.get(ordinal) : undefined
 
     let readMsgID: number | undefined
-    if (meta) {
+    if (meta.conversationIDKey === conversationIDKey) {
       readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
     }
-    if (action?.type === Chat2Gen.updateUnreadline && readMsgID && readMsgID >= action?.payload.messageID) {
+    if (unreadLineMessageID !== undefined && readMsgID && readMsgID >= unreadLineMessageID) {
       // If we are marking as unread, don't send the local RPC.
       return
     }
 
-    logger.info(`marking read messages ${conversationIDKey} ${readMsgID} for ${action?.type ?? ''}`)
+    logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
     await RPCChatTypes.localMarkAsReadLocalRpcPromise({
       conversationID: Types.keyToConversationID(conversationIDKey),
       forceUnread: false,
@@ -1935,16 +1916,21 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)
   Container.listenAction(Chat2Gen.resetLetThemIn, resetLetThemIn)
 
-  Container.listenAction(
-    [
-      Chat2Gen.messagesAdd,
-      Chat2Gen.updateUnreadline,
-      Chat2Gen.markInitiallyLoadedThreadAsRead,
-      Chat2Gen.updateReactions,
-      Chat2Gen.tabSelected,
-    ],
-    (_, a) => markThreadAsRead(a)
-  )
+  Container.listenAction(Chat2Gen.messagesAdd, () => markThreadAsRead())
+  Container.listenAction(Chat2Gen.updateUnreadline, (_, a) => {
+    markThreadAsRead(a.payload.messageID)
+  })
+  Container.listenAction(Chat2Gen.markInitiallyLoadedThreadAsRead, (_, a) => {
+    const conversationIDKey = Constants.getSelectedConversation()
+    if (a.payload.conversationIDKey !== conversationIDKey) {
+      logger.info('bail on not looking at this thread anymore?')
+      return
+    }
+    markThreadAsRead()
+  })
+  Container.listenAction(Chat2Gen.updateReactions, () => markThreadAsRead())
+  Container.listenAction(Chat2Gen.tabSelected, () => markThreadAsRead())
+
   Container.listenAction(Chat2Gen.markTeamAsRead, markTeamAsRead)
   Container.listenAction(Chat2Gen.leaveConversation, () => {
     RouterConstants.useState.getState().dispatch.clearModals()
