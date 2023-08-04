@@ -82,15 +82,6 @@
       "sourceConversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    "messageWasEdited": {
-      "_description": "Update a message which changed",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "RPCChatTypes.MessageID",
-      "text": "HiddenString",
-      "mentionsAt": "Set<string>",
-      "mentionsChannel": "'none' | 'all' | 'here'",
-      "mentionsChannelName": "Map<string, Types.ConversationIDKey>"
-    },
     "messagesExploded": {
       "_description": "Exploding messages expired or were manually detonated.",
       "conversationIDKey": "Types.ConversationIDKey",

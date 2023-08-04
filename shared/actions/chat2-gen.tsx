@@ -45,7 +45,6 @@ export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
-export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
 export const navigateToInbox = 'chat2:navigateToInbox'
@@ -443,17 +442,6 @@ export const createUnsentTextChanged = (payload: {
   readonly text: HiddenString
 }) => ({payload, type: unsentTextChanged as typeof unsentTextChanged})
 /**
- * Update a message which changed
- */
-export const createMessageWasEdited = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: RPCChatTypes.MessageID
-  readonly text: HiddenString
-  readonly mentionsAt: Set<string>
-  readonly mentionsChannel: 'none' | 'all' | 'here'
-  readonly mentionsChannelName: Map<string, Types.ConversationIDKey>
-}) => ({payload, type: messageWasEdited as typeof messageWasEdited})
-/**
  * Update the unreadline line position for a conversation
  */
 export const createUpdateUnreadline = (payload: {
@@ -596,7 +584,6 @@ export type MessageDeleteHistoryPayload = ReturnType<typeof createMessageDeleteH
 export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyPrivately>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
-export type MessageWasEditedPayload = ReturnType<typeof createMessageWasEdited>
 export type MessagesAddPayload = ReturnType<typeof createMessagesAdd>
 export type MessagesExplodedPayload = ReturnType<typeof createMessagesExploded>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
@@ -662,7 +649,6 @@ export type Actions =
   | MessageReplyPrivatelyPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload
-  | MessageWasEditedPayload
   | MessagesAddPayload
   | MessagesExplodedPayload
   | NavigateToInboxPayload
