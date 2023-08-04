@@ -49,7 +49,6 @@ export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageEdit = 'chat2:messageEdit'
 export const messageErrored = 'chat2:messageErrored'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
-export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const messageWasEdited = 'chat2:messageWasEdited'
@@ -335,13 +334,6 @@ export const createMessageReplyPrivately = (payload: {
   readonly sourceConversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: messageReplyPrivately as typeof messageReplyPrivately})
-/**
- * Resend a message
- */
-export const createMessageRetry = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly outboxID: Types.OutboxID
-}) => ({payload, type: messageRetry as typeof messageRetry})
 /**
  * Resolve an unknown @ mention
  */
@@ -718,7 +710,6 @@ export type MessageDeletePayload = ReturnType<typeof createMessageDelete>
 export type MessageEditPayload = ReturnType<typeof createMessageEdit>
 export type MessageErroredPayload = ReturnType<typeof createMessageErrored>
 export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyPrivately>
-export type MessageRetryPayload = ReturnType<typeof createMessageRetry>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type MessageWasEditedPayload = ReturnType<typeof createMessageWasEdited>
@@ -799,7 +790,6 @@ export type Actions =
   | MessageEditPayload
   | MessageErroredPayload
   | MessageReplyPrivatelyPayload
-  | MessageRetryPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload
   | MessageWasEditedPayload

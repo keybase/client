@@ -787,14 +787,6 @@ const messageEdit = async (
   }
 }
 
-const messageRetry = async (_: unknown, action: Chat2Gen.MessageRetryPayload) => {
-  const {outboxID} = action.payload
-  await RPCChatTypes.localRetryPostRpcPromise(
-    {outboxID: Types.outboxIDToRpcOutboxID(outboxID)},
-    Constants.waitingKeyRetryPost
-  )
-}
-
 const onReplyJump = (_: unknown, action: Chat2Gen.ReplyJumpPayload) =>
   Chat2Gen.createLoadMessagesCentered({
     conversationIDKey: action.payload.conversationIDKey,
@@ -2221,7 +2213,6 @@ const initChat = () => {
     markThreadAsRead()
   })
 
-  Container.listenAction(Chat2Gen.messageRetry, messageRetry)
   Container.listenAction(Chat2Gen.messageSend, messageSend)
   Container.listenAction(Chat2Gen.messageSend, (_, a) => {
     const {conversationIDKey} = a.payload

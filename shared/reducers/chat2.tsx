@@ -353,23 +353,6 @@ const reducer = Container.makeReducer<Actions, {}>(
       dispatch.replaceMessageMap(messageMap)
       dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
     },
-    [Chat2Gen.messageRetry]: (_, action) => {
-      const {conversationIDKey, outboxID} = action.payload
-      const {dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-      const outToOrd = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
-      const ordinal = outToOrd?.get(outboxID)
-      if (!ordinal) {
-        return
-      }
-      const m = messageMap.get(ordinal)
-      if (!m) {
-        return
-      }
-      dispatch.updateMessage(ordinal, {
-        errorReason: undefined,
-        submitState: 'pending',
-      })
-    },
     [Chat2Gen.messageErrored]: (_, action) => {
       const {conversationIDKey, errorTyp, outboxID, reason} = action.payload
       const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)

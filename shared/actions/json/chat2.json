@@ -174,11 +174,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "updates": "Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>"
     },
-    "messageRetry": {
-      "_description": "Resend a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "outboxID": "Types.OutboxID"
-    },
     "joinConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
     },

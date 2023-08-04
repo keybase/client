@@ -156,6 +156,7 @@ export type ConvoState = ConvoStore & {
       scrollDirection?: ScrollDirection
       numberOfMessagesToLoad?: number
     }) => void
+    messageRetry: (outboxID: Types.OutboxID) => void
     metaReceivedError: (error: RPCChatTypes.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
     onEngineIncoming: (
@@ -630,6 +631,28 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           }
           // ignore this error in general
         }
+      }
+      Z.ignorePromise(f())
+    },
+    messageRetry: outboxID => {
+      const ordinal = get().pendingOutboxToOrdinal.get(outboxID)
+      if (!ordinal) {
+        return
+      }
+      const m = get().messageMap.get(ordinal)
+      if (!m) {
+        return
+      }
+      get().dispatch.updateMessage(ordinal, {
+        errorReason: undefined,
+        submitState: 'pending',
+      })
+
+      const f = async () => {
+        await RPCChatTypes.localRetryPostRpcPromise(
+          {outboxID: Types.outboxIDToRpcOutboxID(outboxID)},
+          Common.waitingKeyRetryPost
+        )
       }
       Z.ignorePromise(f())
     },
