@@ -50,10 +50,8 @@ export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
-export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
-export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const pinMessage = 'chat2:pinMessage'
 export const previewConversation = 'chat2:previewConversation'
 export const replyJump = 'chat2:replyJump'
@@ -470,13 +468,6 @@ export const createConfirmScreenResponse = (payload: {readonly accept: boolean})
   type: confirmScreenResponse as typeof confirmScreenResponse,
 })
 /**
- * We get new notification settings
- */
-export const createNotificationSettingsUpdated = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly settings: RPCChatTypes.ConversationNotificationInfo
-}) => ({payload, type: notificationSettingsUpdated as typeof notificationSettingsUpdated})
-/**
  * We got an uploaded attachment.
  * While online this is like an edit of the placeholder
  */
@@ -561,11 +552,6 @@ export const createOpenFolder = (payload: {readonly conversationIDKey: Types.Con
   payload,
   type: openFolder as typeof openFolder,
 })
-export const createPendingMessageWasEdited = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-  readonly text: HiddenString
-}) => ({payload, type: pendingMessageWasEdited as typeof pendingMessageWasEdited})
 export const createSendAudioRecording = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly duration: number
@@ -615,10 +601,8 @@ export type MessagesAddPayload = ReturnType<typeof createMessagesAdd>
 export type MessagesExplodedPayload = ReturnType<typeof createMessagesExploded>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
-export type NotificationSettingsUpdatedPayload = ReturnType<typeof createNotificationSettingsUpdated>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
 export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
-export type PendingMessageWasEditedPayload = ReturnType<typeof createPendingMessageWasEdited>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
@@ -683,10 +667,8 @@ export type Actions =
   | MessagesExplodedPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
-  | NotificationSettingsUpdatedPayload
   | OpenChatFromWidgetPayload
   | OpenFolderPayload
-  | PendingMessageWasEditedPayload
   | PinMessagePayload
   | PreviewConversationPayload
   | ReplyJumpPayload

@@ -91,11 +91,6 @@
       "mentionsChannel": "'none' | 'all' | 'here'",
       "mentionsChannelName": "Map<string, Types.ConversationIDKey>"
     },
-    "pendingMessageWasEdited": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
-      "text": "HiddenString"
-    },
     "messagesExploded": {
       "_description": "Exploding messages expired or were manually detonated.",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -286,11 +281,6 @@
       "notificationsDesktop": "Types.NotificationsType",
       "notificationsMobile": "Types.NotificationsType",
       "notificationsGlobalIgnoreMentions": "boolean"
-    },
-    "notificationSettingsUpdated": {
-      "_description": "We get new notification settings",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "settings": "RPCChatTypes.ConversationNotificationInfo"
     },
     "blockConversation": {
       "_description": "Block a conversation",

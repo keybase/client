@@ -373,30 +373,6 @@ const reducer = Container.makeReducer<Actions, {}>(
         }
       }
     },
-    [Chat2Gen.pendingMessageWasEdited]: (_, action) => {
-      const {conversationIDKey, ordinal, text} = action.payload
-      const {dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-      const m = messageMap.get(ordinal)
-      if (m) {
-        dispatch.updateMessage(ordinal, {
-          ...(m.type === 'text' ? {text} : {}),
-          ...(m.type === 'attachment' ? {title: text.stringValue()} : {}),
-        })
-      }
-    },
-    [Chat2Gen.notificationSettingsUpdated]: (_draftState, action) => {
-      const {conversationIDKey, settings} = action.payload
-      const cs = Constants.getConvoState(conversationIDKey)
-      if (cs.meta.conversationIDKey === conversationIDKey) {
-        const {notificationsDesktop, notificationsGlobalIgnoreMentions, notificationsMobile} =
-          Constants.parseNotificationSettings(settings)
-        cs.dispatch.updateMeta({
-          notificationsDesktop: notificationsDesktop,
-          notificationsGlobalIgnoreMentions: notificationsGlobalIgnoreMentions,
-          notificationsMobile: notificationsMobile,
-        })
-      }
-    },
     [Chat2Gen.messagesExploded]: (_, action) => {
       const {conversationIDKey, messageIDs, explodedBy} = action.payload
       const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)

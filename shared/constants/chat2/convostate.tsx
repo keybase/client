@@ -863,13 +863,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           )
 
           if (!message.id) {
-            reduxDispatch(
-              Chat2Gen.createPendingMessageWasEdited({
-                conversationIDKey,
-                ordinal,
-                text: new HiddenString(text),
+            const m = messageMap.get(ordinal)
+            if (m) {
+              dispatch.updateMessage(ordinal, {
+                ...(m.type === 'text' ? {text} : {}),
+                ...(m.type === 'attachment' ? {title: text} : {}),
               })
-            )
+            }
           }
         }
       }
