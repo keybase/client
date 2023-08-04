@@ -109,11 +109,6 @@
       "messageIDs": "Array<RPCChatTypes.MessageID>",
       "explodedBy?": "string"
     },
-    "messageDelete": {
-      "_description": "Delete a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
-    },
     "messageDeleteHistory": {
       "_description": "Deletes all messages",
       "conversationIDKey": "Types.ConversationIDKey"

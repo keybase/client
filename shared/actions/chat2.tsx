@@ -352,52 +352,6 @@ const desktopNotify = async (_: unknown, action: Chat2Gen.DesktopNotificationPay
   return actions
 }
 
-// Delete a message. We cancel pending messages
-const messageDelete = async (_: unknown, action: Chat2Gen.MessageDeletePayload) => {
-  const {conversationIDKey, ordinal} = action.payload
-  const message = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
-  if (!message) {
-    logger.warn('Deleting message')
-    logger.debug('Deleting invalid message:', message)
-    return false
-  }
-
-  const meta = Constants.getConvoState(conversationIDKey).meta
-  if (meta.conversationIDKey !== conversationIDKey) {
-    logger.warn('Deleting message w/ no meta')
-    logger.debug('Deleting message w/ no meta', message)
-    return false
-  }
-
-  // We have to cancel pending messages
-  if (!message.id) {
-    if (message.outboxID) {
-      await RPCChatTypes.localCancelPostRpcPromise(
-        {outboxID: Types.outboxIDToRpcOutboxID(message.outboxID)},
-        Constants.waitingKeyCancelPost
-      )
-      Constants.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({ordinals: [message.ordinal]})
-      return
-    } else {
-      logger.warn('Delete of no message id and no outboxid')
-    }
-  } else {
-    await RPCChatTypes.localPostDeleteNonblockRpcPromise(
-      {
-        clientPrev: 0,
-        conversationID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        outboxID: null,
-        supersedes: message.id,
-        tlfName: meta.tlfname,
-        tlfPublic: false,
-      },
-      Constants.waitingKeyDeletePost
-    )
-  }
-  return false
-}
-
 const messageEdit = async (
   _: unknown,
   action: Chat2Gen.MessageEditPayload,

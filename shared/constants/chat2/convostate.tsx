@@ -157,6 +157,7 @@ export type ConvoState = ConvoStore & {
       numberOfMessagesToLoad?: number
     }) => void
     markThreadAsRead: (unreadLineMessageID?: number) => void
+    messageDelete: (ordinal: Types.Ordinal) => void
     messageRetry: (outboxID: Types.OutboxID) => void
     messagesWereDeleted: (p: {
       messageIDs?: Array<RPCChatTypes.MessageID>
@@ -718,6 +719,56 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           forceUnread: false,
           msgID: readMsgID,
         })
+      }
+      Z.ignorePromise(f())
+    },
+    messageDelete: ordinal => {
+      const {id, dispatch, messageMap, meta} = get()
+      const m = messageMap.get(ordinal)
+      if (m?.type === 'text') {
+        dispatch.updateMessage(ordinal, {submitState: 'deleting'})
+      }
+
+      const conversationIDKey = id
+
+      // Delete a message. We cancel pending messages
+      const f = async () => {
+        const message = messageMap.get(ordinal)
+        if (!message) {
+          logger.warn('Deleting invalid message')
+          return
+        }
+        if (meta.conversationIDKey !== conversationIDKey) {
+          logger.warn('Deleting message w/ no meta')
+          return
+        }
+        // We have to cancel pending messages
+        if (!message.id) {
+          if (message.outboxID) {
+            await RPCChatTypes.localCancelPostRpcPromise(
+              {outboxID: Types.outboxIDToRpcOutboxID(message.outboxID)},
+              Common.waitingKeyCancelPost
+            )
+            get().dispatch.messagesWereDeleted({
+              ordinals: [message.ordinal],
+            })
+          } else {
+            logger.warn('Delete of no message id and no outboxid')
+          }
+        } else {
+          await RPCChatTypes.localPostDeleteNonblockRpcPromise(
+            {
+              clientPrev: 0,
+              conversationID: Types.keyToConversationID(conversationIDKey),
+              identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+              outboxID: null,
+              supersedes: message.id,
+              tlfName: meta.tlfname,
+              tlfPublic: false,
+            },
+            Common.waitingKeyDeletePost
+          )
+        }
       }
       Z.ignorePromise(f())
     },
