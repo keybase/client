@@ -353,54 +353,6 @@ const reducer = Container.makeReducer<Actions, {}>(
       dispatch.replaceMessageMap(messageMap)
       dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
     },
-    [Chat2Gen.messagesWereDeleted]: (_, action) => {
-      const {
-        deletableMessageTypes = Constants.allMessageTypes,
-        messageIDs = [],
-        ordinals = [],
-      } = action.payload
-      const {conversationIDKey, upToMessageID = null} = action.payload
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-
-      const upToOrdinals: Array<Types.Ordinal> = []
-      if (upToMessageID) {
-        ;[...messageMap.entries()].reduce((arr, [ordinal, m]) => {
-          if (m.id < upToMessageID && deletableMessageTypes.has(m.type)) {
-            arr.push(ordinal)
-          }
-          return arr
-        }, upToOrdinals)
-      }
-
-      const allOrdinals = new Set(
-        [
-          ...ordinals,
-          ...messageIDs.map(messageID => messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)),
-          ...upToOrdinals,
-        ].reduce<Array<Types.Ordinal>>((arr, n) => {
-          if (n) {
-            arr.push(n)
-          }
-          return arr
-        }, [])
-      )
-
-      allOrdinals.forEach(ordinal => {
-        const m = messageMap.get(ordinal)
-        if (m) {
-          dispatch.updateMessage(
-            ordinal,
-            Constants.makeMessageDeleted({
-              author: m.author,
-              conversationIDKey: m.conversationIDKey,
-              id: m.id,
-              ordinal: m.ordinal,
-              timestamp: m.timestamp,
-            })
-          )
-        }
-      })
-    },
     [Chat2Gen.messageDelete]: (_, action) => {
       const {conversationIDKey, ordinal} = action.payload
       const {dispatch, messageMap} = Constants.getConvoState(conversationIDKey)

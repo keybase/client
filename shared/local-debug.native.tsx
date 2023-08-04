@@ -23,8 +23,6 @@ const PERF = false
 const config = {
   allowMultipleInstances: false,
   debugFullLogs: false,
-  enableActionLogging: true, // Log actions to the log
-  enableStoreLogging: false, // Log full store changes
   featureFlagsOverride: '', // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
@@ -48,8 +46,6 @@ const config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = false
-  config.enableStoreLogging = false
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
@@ -91,7 +87,6 @@ if (__DEV__) {
 if (config.debugFullLogs) {
   console.warn('\n\n\nlocal debug config.debugFullLogs is ONNNNNn!!!!!1!!!11!!!!\n')
   config.printRPC = true
-  config.enableActionLogging = true
 }
 
 if (PERF) {
@@ -102,8 +97,6 @@ if (PERF) {
   window.console.error = noop
   window.console.info = noop
 
-  config.enableActionLogging = false
-  config.enableStoreLogging = false
   config.filterActionLogs = null
   config.forceImmediateLogging = false
   config.immediateStateLogging = false
@@ -127,8 +120,6 @@ if (serverConfig) {
 
 export const {
   allowMultipleInstances,
-  enableActionLogging,
-  enableStoreLogging,
   featureFlagsOverride,
   filterActionLogs,
   forceImmediateLogging,

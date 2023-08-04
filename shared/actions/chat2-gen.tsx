@@ -53,7 +53,6 @@ export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const messageWasEdited = 'chat2:messageWasEdited'
 export const messagesAdd = 'chat2:messagesAdd'
 export const messagesExploded = 'chat2:messagesExploded'
-export const messagesWereDeleted = 'chat2:messagesWereDeleted'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
@@ -227,16 +226,6 @@ export const createJumpToRecent = (payload: {readonly conversationIDKey: Types.C
 export const createLoadOlderMessagesDueToScroll = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
 }) => ({payload, type: loadOlderMessagesDueToScroll as typeof loadOlderMessagesDueToScroll})
-/**
- * Mark a message as deleted
- */
-export const createMessagesWereDeleted = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageIDs?: Array<RPCChatTypes.MessageID>
-  readonly upToMessageID?: RPCChatTypes.MessageID
-  readonly deletableMessageTypes?: Set<Types.MessageType>
-  readonly ordinals?: Array<Types.Ordinal>
-}) => ({payload, type: messagesWereDeleted as typeof messagesWereDeleted})
 /**
  * Mark all conversations in a team as read
  */
@@ -680,7 +669,6 @@ export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type MessageWasEditedPayload = ReturnType<typeof createMessageWasEdited>
 export type MessagesAddPayload = ReturnType<typeof createMessagesAdd>
 export type MessagesExplodedPayload = ReturnType<typeof createMessagesExploded>
-export type MessagesWereDeletedPayload = ReturnType<typeof createMessagesWereDeleted>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type NotificationSettingsUpdatedPayload = ReturnType<typeof createNotificationSettingsUpdated>
@@ -756,7 +744,6 @@ export type Actions =
   | MessageWasEditedPayload
   | MessagesAddPayload
   | MessagesExplodedPayload
-  | MessagesWereDeletedPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | NotificationSettingsUpdatedPayload

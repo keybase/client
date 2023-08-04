@@ -16,7 +16,6 @@ import type {Tab} from './tabs'
 import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
 import {defaultUseNativeFrame, runMode, isMobile} from './platform'
-import {enableActionLogging} from '../local-debug'
 import {noConversationIDKey} from './types/chat2/common'
 import {type CommonResponseHandler} from '../engine/types'
 import {useAvatarState} from '../common-adapters/avatar-zus'
@@ -905,10 +904,6 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         if (isErrorTransient(e)) {
           logger.info('globalError silencing:', e)
           return
-        }
-        if (enableActionLogging) {
-          const payload = {err: `Global Error: ${e.message} ${e.stack ?? ''}`}
-          logger.action({payload, type: 'config:globalError'})
         }
       }
       set(s => {
