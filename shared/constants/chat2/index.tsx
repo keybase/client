@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsConstants from '../teams'
+import * as UsersConstants from '../users'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as ConfigConstants from '../config'
 import * as Message from './message'
@@ -468,6 +469,7 @@ export type State = Store & {
         | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
         | EngineGen.Chat1NotifyChatNewChatActivityPayload
     ) => void
+    onIncomingInboxUIItem: (inboxUIItem?: RPCChatTypes.InboxUIItem) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
     queueMetaToRequest: (ids: Array<Types.ConversationIDKey>) => void
@@ -933,25 +935,26 @@ export const useState = Z.createZustand<State>((set, get) => {
               const {incomingMessage} = activity
               const conversationIDKey = Types.conversationIDToKey(incomingMessage.convID)
               getConvoState(conversationIDKey).dispatch.onIncomingMessage(incomingMessage)
-              // actions = actions.concat(chatActivityToMetasAction(state, incomingMessage))
+              get().dispatch.onIncomingInboxUIItem(incomingMessage.conv ?? undefined)
               break
             }
             case RPCChatTypes.ChatActivityType.setStatus:
-              // actions = chatActivityToMetasAction(state, activity.setStatus)
+              get().dispatch.onIncomingInboxUIItem(activity.setStatus.conv ?? undefined)
               break
             case RPCChatTypes.ChatActivityType.readMessage:
-              // actions = chatActivityToMetasAction(state, activity.readMessage)
+              get().dispatch.onIncomingInboxUIItem(activity.readMessage.conv ?? undefined)
               break
             case RPCChatTypes.ChatActivityType.newConversation:
-              // actions = chatActivityToMetasAction(state, activity.newConversation)
+              get().dispatch.onIncomingInboxUIItem(activity.newConversation.conv ?? undefined)
               break
             case RPCChatTypes.ChatActivityType.failedMessage: {
-              // const {failedMessage} = activity
-              // const {outboxRecords} = failedMessage
-              // if (outboxRecords) {
-              //   actions = actions.concat(onErrorMessage(outboxRecords))
-              //   actions = actions.concat(chatActivityToMetasAction(state, failedMessage))
-              // }
+              const {failedMessage} = activity
+              const {outboxRecords} = failedMessage
+              if (outboxRecords) {
+                // TODO <<<<<<<<<<<<<<<
+                //   actions = actions.concat(onErrorMessage(outboxRecords))
+                get().dispatch.onIncomingInboxUIItem(failedMessage.conv ?? undefined)
+              }
               break
             }
             case RPCChatTypes.ChatActivityType.membersUpdate:
@@ -1037,6 +1040,27 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
           break
         }
+      }
+    },
+    onIncomingInboxUIItem: conv => {
+      if (!conv) return
+      const meta = inboxUIItemToConversationMeta(conv)
+      const usernameToFullname = (conv.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
+        if (part.fullName) {
+          map[part.assertion] = part.fullName
+        }
+        return map
+      }, {})
+
+      UsersConstants.useState.getState().dispatch.updates(
+        Object.keys(usernameToFullname).map(name => ({
+          info: {fullname: usernameToFullname[name]},
+          name,
+        }))
+      )
+
+      if (meta) {
+        get().dispatch.metasReceived([meta])
       }
     },
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {

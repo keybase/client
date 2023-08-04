@@ -146,37 +146,6 @@ const maybeChangeSelectedConv = () => {
   }
 }
 
-// Helper to handle incoming inbox updates that piggy back on various calls
-const chatActivityToMetasAction = (
-  _: unknown,
-  payload: {
-    readonly conv?: RPCChatTypes.InboxUIItem | null
-  }
-) => {
-  const conv = payload?.conv
-  if (!conv) {
-    return
-  }
-  const meta = Constants.inboxUIItemToConversationMeta(conv)
-  const usernameToFullname = (conv.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
-    if (part.fullName) {
-      map[part.assertion] = part.fullName
-    }
-    return map
-  }, {})
-
-  UsersConstants.useState.getState().dispatch.updates(
-    Object.keys(usernameToFullname).map(name => ({
-      info: {fullname: usernameToFullname[name]},
-      name,
-    }))
-  )
-
-  if (meta) {
-    Constants.useState.getState().dispatch.metasReceived([meta])
-  }
-}
-
 // We got errors from the service
 const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
   const actions = outboxRecords.reduce<Array<Container.TypedActions>>((arr, outboxRecord) => {
