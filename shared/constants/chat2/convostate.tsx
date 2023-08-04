@@ -835,22 +835,34 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
 
       const f = async () => {
-        const {conversationIDKey, ordinal, fileType} = message
+        const {ordinal, fileType} = message
         const fileName = await downloadAttachment(true, message)
         if (!fileName) {
           // failed to download
           logger.info('Downloading attachment failed')
           return
         }
-        reduxDispatch(Chat2Gen.createAttachmentMobileSave({conversationIDKey, ordinal}))
+        const {dispatch} = get()
         try {
+          const m = get().messageMap.get(ordinal)
+          if (m?.type === 'attachment') {
+            dispatch.updateMessage(ordinal, {
+              transferErrMsg: undefined,
+              transferState: 'mobileSaving',
+            })
+          }
           logger.info('Trying to save chat attachment to camera roll')
           await saveAttachmentToCameraRoll(fileName, fileType)
+          if (m?.type === 'attachment') {
+            dispatch.updateMessage(ordinal, {
+              transferErrMsg: undefined,
+              transferState: undefined,
+            })
+          }
         } catch (err) {
           logger.error('Failed to save attachment: ' + err)
           throw new Error('Failed to save attachment: ' + err)
         }
-        reduxDispatch(Chat2Gen.createAttachmentMobileSaved({conversationIDKey, ordinal}))
       }
       Z.ignorePromise(f())
     },

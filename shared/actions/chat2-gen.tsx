@@ -13,8 +13,6 @@ export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
-export const attachmentMobileSave = 'chat2:attachmentMobileSave'
-export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
 export const attachmentPasted = 'chat2:attachmentPasted'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
@@ -260,20 +258,6 @@ export const createUnfurlResolvePrompt = (payload: {
   readonly result: RPCChatTypes.UnfurlPromptResult
 }) => ({payload, type: unfurlResolvePrompt as typeof unfurlResolvePrompt})
 /**
- * Saving an attachment to mobile storage
- */
-export const createAttachmentMobileSave = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: attachmentMobileSave as typeof attachmentMobileSave})
-/**
- * Saving an attachment to mobile storage has finished
- */
-export const createAttachmentMobileSaved = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: attachmentMobileSaved as typeof attachmentMobileSaved})
-/**
  * Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
  * fromAReset means you were in a reset kbfs convo and you want to make a new one
  * Chatting from external places in the app should usually call this
@@ -495,8 +479,6 @@ export type AddUserToChannelPayload = ReturnType<typeof createAddUserToChannel>
 export type AddUsersToChannelPayload = ReturnType<typeof createAddUsersToChannel>
 export type AttachFromDragAndDropPayload = ReturnType<typeof createAttachFromDragAndDrop>
 export type AttachmentDownloadedPayload = ReturnType<typeof createAttachmentDownloaded>
-export type AttachmentMobileSavePayload = ReturnType<typeof createAttachmentMobileSave>
-export type AttachmentMobileSavedPayload = ReturnType<typeof createAttachmentMobileSaved>
 export type AttachmentPastedPayload = ReturnType<typeof createAttachmentPasted>
 export type AttachmentPreviewSelectPayload = ReturnType<typeof createAttachmentPreviewSelect>
 export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachmentUploadCanceled>
@@ -555,8 +537,6 @@ export type Actions =
   | AddUsersToChannelPayload
   | AttachFromDragAndDropPayload
   | AttachmentDownloadedPayload
-  | AttachmentMobileSavePayload
-  | AttachmentMobileSavedPayload
   | AttachmentPastedPayload
   | AttachmentPreviewSelectPayload
   | AttachmentUploadCanceledPayload
