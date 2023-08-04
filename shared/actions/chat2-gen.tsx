@@ -80,7 +80,6 @@ export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
-export const updateReactions = 'chat2:updateReactions'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Action Creators
@@ -471,13 +470,6 @@ export const createAttachmentUploadCanceled = (payload: {
   readonly outboxIDs: Array<RPCChatTypes.OutboxID>
 }) => ({payload, type: attachmentUploadCanceled as typeof attachmentUploadCanceled})
 /**
- * The service sent us an update for the reaction map of a message.
- */
-export const createUpdateReactions = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly updates: Array<{targetMsgID: RPCChatTypes.MessageID; reactions: Types.Reactions}>
-}) => ({payload, type: updateReactions as typeof updateReactions})
-/**
  * The user has selected an attachment with a preview
  */
 export const createAttachmentPreviewSelect = (payload: {
@@ -715,7 +707,6 @@ export type UnhideConversationPayload = ReturnType<typeof createUnhideConversati
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
 export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNotificationSettings>
-export type UpdateReactionsPayload = ReturnType<typeof createUpdateReactions>
 export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
 
 // All Actions
@@ -792,6 +783,5 @@ export type Actions =
   | UnpinMessagePayload
   | UnsentTextChangedPayload
   | UpdateNotificationSettingsPayload
-  | UpdateReactionsPayload
   | UpdateUnreadlinePayload
   | {readonly type: 'common:resetStore', readonly payload: undefined}

@@ -162,11 +162,6 @@
       "emoji": "string",
       "ordinal": "Types.Ordinal"
     },
-    "updateReactions": {
-      "_description": "The service sent us an update for the reaction map of a message.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "updates": "Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>"
-    },
     "joinConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
     },

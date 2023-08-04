@@ -1,5 +1,8 @@
 import * as RPCChatTypes from '../types/rpc-chat-gen'
-import type * as Types from '../types/chat2'
+import * as ConfigConstants from '../config'
+import {isMobile, isTablet} from '../platform'
+import * as Router2 from '../router2'
+import * as Types from '../types/chat2'
 import {conversationIDKeyToString} from '../types/chat2/common'
 
 export const waitingKeyJoinConversation = 'chat:joinConversation'
@@ -67,4 +70,42 @@ export const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason 
     default:
       return RPCChatTypes.GetThreadReason.general
   }
+}
+
+export const getSelectedConversation = (): Types.ConversationIDKey => {
+  const maybeVisibleScreen = Router2.getVisibleScreen()
+  if (maybeVisibleScreen?.name === threadRouteName) {
+    // @ts-ignore TODO better types
+    return maybeVisibleScreen.params?.conversationIDKey ?? Types.noConversationIDKey
+  }
+  return Types.noConversationIDKey
+}
+
+// in split mode the root is the 'inbox'
+export const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
+export const threadRouteName = isSplit ? 'chatRoot' : 'chatConversation'
+
+export const isUserActivelyLookingAtThisThread = (conversationIDKey: Types.ConversationIDKey) => {
+  const selectedConversationIDKey = getSelectedConversation()
+
+  let chatThreadSelected = false
+  if (!isSplit) {
+    chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
+  } else {
+    const maybeVisibleScreen = Router2.getVisibleScreen()
+    chatThreadSelected =
+      (maybeVisibleScreen === null || maybeVisibleScreen === undefined
+        ? undefined
+        : maybeVisibleScreen.name) === threadRouteName
+  }
+
+  const {appFocused} = ConfigConstants.useConfigState.getState()
+  const {active: userActive} = ConfigConstants.useActiveState.getState()
+
+  return (
+    appFocused && // app focused?
+    userActive && // actually interacting w/ the app
+    chatThreadSelected && // looking at the chat tab?
+    conversationIDKey === selectedConversationIDKey // looking at the selected thread?
+  )
 }
