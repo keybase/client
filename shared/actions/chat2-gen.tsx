@@ -47,7 +47,6 @@ export const messageAttachmentUploaded = 'chat2:messageAttachmentUploaded'
 export const messageDelete = 'chat2:messageDelete'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageEdit = 'chat2:messageEdit'
-export const messageErrored = 'chat2:messageErrored'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
@@ -178,15 +177,6 @@ export const createMessagesExploded = (payload: {
   readonly messageIDs: Array<RPCChatTypes.MessageID>
   readonly explodedBy?: string
 }) => ({payload, type: messagesExploded as typeof messagesExploded})
-/**
- * Got an error sending a message
- */
-export const createMessageErrored = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly reason: string
-  readonly errorTyp?: number
-  readonly outboxID: Types.OutboxID
-}) => ({payload, type: messageErrored as typeof messageErrored})
 /**
  * Hide a conversation until future activity
  */
@@ -708,7 +698,6 @@ export type MessageAttachmentUploadedPayload = ReturnType<typeof createMessageAt
 export type MessageDeleteHistoryPayload = ReturnType<typeof createMessageDeleteHistory>
 export type MessageDeletePayload = ReturnType<typeof createMessageDelete>
 export type MessageEditPayload = ReturnType<typeof createMessageEdit>
-export type MessageErroredPayload = ReturnType<typeof createMessageErrored>
 export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyPrivately>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
@@ -788,7 +777,6 @@ export type Actions =
   | MessageDeleteHistoryPayload
   | MessageDeletePayload
   | MessageEditPayload
-  | MessageErroredPayload
   | MessageReplyPrivatelyPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload

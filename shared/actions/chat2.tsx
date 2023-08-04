@@ -146,34 +146,6 @@ const maybeChangeSelectedConv = () => {
   }
 }
 
-// We got errors from the service
-const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
-  const actions = outboxRecords.reduce<Array<Container.TypedActions>>((arr, outboxRecord) => {
-    const s = outboxRecord.state
-    if (s.state === RPCChatTypes.OutboxStateType.error) {
-      const {error} = s
-      const conversationIDKey = Types.conversationIDToKey(outboxRecord.convID)
-      const outboxID = Types.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
-
-      // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
-      const reason = Constants.rpcErrorToString(error)
-      let tempForceRedBox: string | undefined
-      if (error.typ === RPCChatTypes.OutboxErrorType.identify) {
-        // Find out the user who failed identify
-        const match = error.message.match(/"(.*)"/)
-        tempForceRedBox = match?.[1]
-      }
-      arr.push(Chat2Gen.createMessageErrored({conversationIDKey, errorTyp: error.typ, outboxID, reason}))
-      if (tempForceRedBox) {
-        UsersConstants.useState.getState().dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
-      }
-    }
-    return arr
-  }, [])
-
-  return actions
-}
-
 // Some participants are broken/fixed now
 const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatIdentifyUpdatePayload) => {
   const {update} = action.payload.params

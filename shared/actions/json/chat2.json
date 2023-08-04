@@ -78,13 +78,6 @@
       "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode}>",
       "forceContainsLatestCalc?": "boolean"
     },
-    "messageErrored": {
-      "_description": "Got an error sending a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "reason": "string",
-      "errorTyp?": "number",
-      "outboxID": "Types.OutboxID"
-    },
     "messageReplyPrivately": {
       "_description": "Reply privately to a message with quoting",
       "sourceConversationIDKey": "Types.ConversationIDKey",

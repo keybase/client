@@ -949,11 +949,29 @@ export const useState = Z.createZustand<State>((set, get) => {
               break
             case RPCChatTypes.ChatActivityType.failedMessage: {
               const {failedMessage} = activity
+              get().dispatch.onIncomingInboxUIItem(failedMessage.conv ?? undefined)
               const {outboxRecords} = failedMessage
-              if (outboxRecords) {
-                // TODO <<<<<<<<<<<<<<<
-                //   actions = actions.concat(onErrorMessage(outboxRecords))
-                get().dispatch.onIncomingInboxUIItem(failedMessage.conv ?? undefined)
+              if (!outboxRecords) return
+              for (const outboxRecord of outboxRecords) {
+                const s = outboxRecord.state
+                if (s.state !== RPCChatTypes.OutboxStateType.error) return
+                const {error} = s
+                const conversationIDKey = Types.conversationIDToKey(outboxRecord.convID)
+                const outboxID = Types.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
+                // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
+                const reason = Message.rpcErrorToString(error)
+                getConvoState(conversationIDKey).dispatch.onMessageErrored(outboxID, reason, error.typ)
+
+                if (error.typ === RPCChatTypes.OutboxErrorType.identify) {
+                  // Find out the user who failed identify
+                  const match = error.message.match(/"(.*)"/)
+                  const tempForceRedBox = match?.[1]
+                  if (tempForceRedBox) {
+                    UsersConstants.useState
+                      .getState()
+                      .dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
+                  }
+                }
               }
               break
             }

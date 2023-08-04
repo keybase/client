@@ -167,6 +167,7 @@ export type ConvoState = ConvoStore & {
         | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
     ) => void
     onIncomingMessage: (incoming: RPCChatTypes.IncomingMessage) => void
+    onMessageErrored: (outboxID: Types.OutboxID, reason: string, errorTyp?: number) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
@@ -918,6 +919,22 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    onMessageErrored: (outboxID, reason, errorTyp) => {
+      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+      const ordinal = pendingOutboxToOrdinal.get(outboxID)
+      if (!ordinal) {
+        return
+      }
+      const m = messageMap.get(ordinal)
+      if (!m) {
+        return
+      }
+      dispatch.updateMessage(ordinal, {
+        errorReason: reason,
+        errorTyp: errorTyp || undefined,
+        submitState: 'failed',
+      })
     },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {

@@ -353,23 +353,6 @@ const reducer = Container.makeReducer<Actions, {}>(
       dispatch.replaceMessageMap(messageMap)
       dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
     },
-    [Chat2Gen.messageErrored]: (_, action) => {
-      const {conversationIDKey, errorTyp, outboxID, reason} = action.payload
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-      const ordinal = pendingOutboxToOrdinal.get(outboxID)
-      if (!ordinal) {
-        return
-      }
-      const m = messageMap.get(ordinal)
-      if (!m) {
-        return
-      }
-      dispatch.updateMessage(ordinal, {
-        errorReason: reason,
-        errorTyp: errorTyp || undefined,
-        submitState: 'failed',
-      })
-    },
     [Chat2Gen.updateReactions]: (_draftState, action) => {
       const {conversationIDKey, updates} = action.payload
       const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
