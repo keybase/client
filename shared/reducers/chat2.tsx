@@ -117,7 +117,7 @@ const attachmentActions: Container.ActionHandler<Actions, {}> = {
       dispatch.updateMessage(ordinal, {
         downloadPath: (!error && path) || '',
         fileURLCached: true, // assume we have this on the service now
-        transferErrMsg: error ?? 'Error downloading attachment',
+        transferErrMsg: error,
         transferProgress: 0,
         transferState: undefined,
       })
