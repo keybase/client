@@ -1,4 +1,3 @@
-import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as RouterConstants from '../../../../../constants/router2'
 import * as FSConstants from '../../../../../constants/fs'
@@ -35,7 +34,6 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
     return m?.type === 'attachment' ? m : missingMessage
   })
 
-  const dispatch = Container.useDispatch()
   const saltpackOpenFile = CryptoConstants.useState(s => s.dispatch.onSaltpackOpenFile)
   const switchTab = RouterConstants.useState(s => s.dispatch.switchTab)
   const onSaltpackFileOpen = React.useCallback(
@@ -53,9 +51,11 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
   }, [openLocalPathInSystemFileManagerDesktop, downloadPath])
 
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
+  const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
+  const messageAttachmentNativeShare = Constants.useContext(s => s.dispatch.messageAttachmentNativeShare)
   const onDownload = React.useCallback(() => {
     if (Container.isMobile) {
-      message && dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
+      message && messageAttachmentNativeShare(message)
     } else {
       if (!downloadPath) {
         if (fileType === 'application/pdf') {
@@ -68,17 +68,19 @@ const FileContainer = React.memo(function FileContainer(p: OwnProps) {
               return
             default:
           }
-          message &&
-            dispatch(
-              Chat2Gen.createAttachmentDownload({
-                conversationIDKey: message.conversationIDKey,
-                ordinal: message.ordinal,
-              })
-            )
+          message && attachmentDownload(message.ordinal)
         }
       }
     }
-  }, [navigateAppend, dispatch, downloadPath, transferState, fileType, message])
+  }, [
+    navigateAppend,
+    attachmentDownload,
+    messageAttachmentNativeShare,
+    downloadPath,
+    transferState,
+    fileType,
+    message,
+  ])
 
   const arrowColor = Container.isMobile
     ? ''

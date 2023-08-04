@@ -64,17 +64,6 @@ const attachmentActions: Container.ActionHandler<Actions, {}> = {
       })
     }
   },
-  [Chat2Gen.attachmentDownload]: (_, action) => {
-    const {conversationIDKey, ordinal} = action.payload
-    const {dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-    const m = messageMap.get(ordinal)
-    if (m?.type === 'attachment') {
-      dispatch.updateMessage(ordinal, {
-        transferErrMsg: undefined,
-        transferState: 'downloading',
-      })
-    }
-  },
   [Chat2Gen.messageAttachmentUploaded]: (_, action) => {
     const {conversationIDKey, message, placeholderID} = action.payload
     const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)

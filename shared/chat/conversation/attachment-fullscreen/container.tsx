@@ -6,7 +6,6 @@ import * as RouterConstants from '../../../constants/router2'
 import * as Constants from '../../../constants/chat2'
 import * as FSConstants from '../../../constants/fs'
 import * as ConfigConstants from '../../../constants/config'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
 import shallowEqual from 'shallowequal'
@@ -23,7 +22,6 @@ const Connected = (props: OwnProps) => {
   const conversationIDKey = props.conversationIDKey ?? Constants.noConversationIDKey
   const inOrdinal = props.ordinal
   const [ordinal, setOrdinal] = React.useState(inOrdinal)
-  const dispatch = Container.useDispatch()
   const currentDeviceName = ConfigConstants.useCurrentUserState(s => s.deviceName)
   const username = ConfigConstants.useCurrentUserState(s => s.username)
   const ordinals = Constants.useContext(s => s.messageOrdinals)
@@ -97,6 +95,7 @@ const Connected = (props: OwnProps) => {
   )
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
   const showInfoPanel = Constants.useState(s => s.dispatch.showInfoPanel)
+  const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
   return (
     <Fullscreen
       message={message}
@@ -107,12 +106,7 @@ const Connected = (props: OwnProps) => {
         message.downloadPath
           ? undefined
           : () => {
-              dispatch(
-                Chat2Gen.createAttachmentDownload({
-                  conversationIDKey: message.conversationIDKey,
-                  ordinal: message.id,
-                })
-              )
+              attachmentDownload(message.id)
             }
       }
       onNextAttachment={() => {

@@ -74,13 +74,9 @@ export default (ownProps: OwnProps) => {
     messageDelete(message.ordinal)
     clearModals()
   }
+  const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
   const _onDownload = (message: Types.MessageAttachment) => {
-    dispatch(
-      Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.id,
-      })
-    )
+    attachmentDownload(message.id)
   }
   const setEditing = Constants.useContext(s => s.dispatch.setEditing)
   const _onEdit = (message: Types.Message) => {
@@ -124,11 +120,14 @@ export default (ownProps: OwnProps) => {
   const _onReply = (message: Types.Message) => {
     setReplyTo(message.ordinal)
   }
+
+  const messageAttachmentNativeSave = Constants.useContext(s => s.dispatch.messageAttachmentNativeSave)
+  const messageAttachmentNativeShare = Constants.useContext(s => s.dispatch.messageAttachmentNativeShare)
   const _onSaveAttachment = (message: Types.MessageAttachment) => {
-    dispatch(Chat2Gen.createMessageAttachmentNativeSave({message}))
+    messageAttachmentNativeSave(message)
   }
   const _onShareAttachment = (message: Types.MessageAttachment) => {
-    dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
+    messageAttachmentNativeShare(message)
   }
   const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
