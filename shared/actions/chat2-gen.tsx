@@ -35,7 +35,6 @@ export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const markTeamAsRead = 'chat2:markTeamAsRead'
-export const messageAttachmentUploaded = 'chat2:messageAttachmentUploaded'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageSend = 'chat2:messageSend'
@@ -390,15 +389,6 @@ export const createConfirmScreenResponse = (payload: {readonly accept: boolean})
   type: confirmScreenResponse as typeof confirmScreenResponse,
 })
 /**
- * We got an uploaded attachment.
- * While online this is like an edit of the placeholder
- */
-export const createMessageAttachmentUploaded = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly placeholderID: RPCChatTypes.MessageID
-  readonly message: Types.MessageAttachment
-}) => ({payload, type: messageAttachmentUploaded as typeof messageAttachmentUploaded})
-/**
  * We saved an attachment to the local disk
  */
 export const createAttachmentDownloaded = (payload: {
@@ -501,7 +491,6 @@ export type LoadNewerMessagesDueToScrollPayload = ReturnType<typeof createLoadNe
 export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MarkTeamAsReadPayload = ReturnType<typeof createMarkTeamAsRead>
-export type MessageAttachmentUploadedPayload = ReturnType<typeof createMessageAttachmentUploaded>
 export type MessageDeleteHistoryPayload = ReturnType<typeof createMessageDeleteHistory>
 export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyPrivately>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
@@ -559,7 +548,6 @@ export type Actions =
   | LoadOlderMessagesDueToScrollPayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MarkTeamAsReadPayload
-  | MessageAttachmentUploadedPayload
   | MessageDeleteHistoryPayload
   | MessageReplyPrivatelyPayload
   | MessageSendByUsernamesPayload

@@ -152,15 +152,6 @@
       "_description": "The attachment upload modal was canceled",
       "outboxIDs": "Array<RPCChatTypes.OutboxID>"
     },
-    "messageAttachmentUploaded": {
-      "_description": [
-        "We got an uploaded attachment.",
-        "While online this is like an edit of the placeholder"
-      ],
-      "conversationIDKey": "Types.ConversationIDKey",
-      "placeholderID": "RPCChatTypes.MessageID",
-      "message": "Types.MessageAttachment"
-    },
     "sendTyping": {
       "_description": "Tell server we're typing",
       "conversationIDKey": "Types.ConversationIDKey",
