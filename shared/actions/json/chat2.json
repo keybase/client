@@ -125,21 +125,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    "attachmentDownload": {
-      "_description": "We want to save an attachment to the local disk",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
-    },
-    "attachmentMobileSave": {
-      "_description": "Saving an attachment to mobile storage",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
-    },
-    "attachmentMobileSaved": {
-      "_description": "Saving an attachment to mobile storage has finished",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal"
-    },
     "attachmentDownloaded": {
       "_description": "We saved an attachment to the local disk",
       "message": "Types.Message",
@@ -230,14 +215,6 @@
         "'teamMention'" // from team mention
       ],
       "pushBody?": "string"
-    },
-    "messageAttachmentNativeShare": {
-      "_description": "Share to external app on mobile",
-      "message": "Types.Message"
-    },
-    "messageAttachmentNativeSave": {
-      "_description": "Save on mobile (camera roll)",
-      "message": "Types.Message"
     },
     "updateNotificationSettings": {
       "_description": "We're changing the notification settings",

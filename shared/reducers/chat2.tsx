@@ -42,39 +42,6 @@ const messageIDToOrdinal = (
 }
 
 const attachmentActions: Container.ActionHandler<Actions, {}> = {
-  [Chat2Gen.attachmentMobileSave]: (_, action) => {
-    const {conversationIDKey, ordinal} = action.payload
-    const {dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-    const m = messageMap.get(ordinal)
-    if (m?.type === 'attachment') {
-      dispatch.updateMessage(ordinal, {
-        transferErrMsg: undefined,
-        transferState: 'mobileSaving',
-      })
-    }
-  },
-  [Chat2Gen.attachmentMobileSaved]: (_, action) => {
-    const {conversationIDKey, ordinal} = action.payload
-    const {dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-    const m = messageMap.get(ordinal)
-    if (m?.type === 'attachment') {
-      dispatch.updateMessage(ordinal, {
-        transferErrMsg: undefined,
-        transferState: undefined,
-      })
-    }
-  },
-  [Chat2Gen.attachmentDownload]: (_, action) => {
-    const {conversationIDKey, ordinal} = action.payload
-    const {dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-    const m = messageMap.get(ordinal)
-    if (m?.type === 'attachment') {
-      dispatch.updateMessage(ordinal, {
-        transferErrMsg: undefined,
-        transferState: 'downloading',
-      })
-    }
-  },
   [Chat2Gen.messageAttachmentUploaded]: (_, action) => {
     const {conversationIDKey, message, placeholderID} = action.payload
     const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
@@ -150,7 +117,7 @@ const attachmentActions: Container.ActionHandler<Actions, {}> = {
       dispatch.updateMessage(ordinal, {
         downloadPath: (!error && path) || '',
         fileURLCached: true, // assume we have this on the service now
-        transferErrMsg: error ?? 'Error downloading attachment',
+        transferErrMsg: error,
         transferProgress: 0,
         transferState: undefined,
       })

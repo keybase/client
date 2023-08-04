@@ -19,11 +19,12 @@ import sortedIndexOf from 'lodash/sortedIndexOf'
 import type * as TeamsTypes from '../types/teams'
 import {RPCError} from '../../util/errors'
 import {findLast} from '../../util/arrays'
-import {isMobile} from '../platform'
+import {isMobile, isIOS} from '../platform'
 import {mapGetEnsureValue} from '../../util/map'
 import {noConversationIDKey} from '../types/chat2/common'
 import {type StoreApi, type UseBoundStore, useStore} from 'zustand'
 import {useConfigState, useCurrentUserState} from '../config'
+import {saveAttachmentToCameraRoll, showShareActionSheet} from '../../actions/platform-specific'
 
 const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
   hits: [],
@@ -127,6 +128,7 @@ export type ConvoState = ConvoStore & {
       restricted: boolean,
       convs?: Array<string>
     ) => void
+    attachmentDownload: (ordinal: Types.Ordinal) => void
     badgesUpdated: (badge: number) => void
     botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
     clearAttachmentView: () => void
@@ -160,6 +162,8 @@ export type ConvoState = ConvoStore & {
       numberOfMessagesToLoad?: number
     }) => void
     markThreadAsRead: (unreadLineMessageID?: number) => void
+    messageAttachmentNativeSave: (message: Types.Message) => void
+    messageAttachmentNativeShare: (message: Types.Message) => void
     messageDelete: (ordinal: Types.Ordinal) => void
     messageEdit: (ordinal: Types.Ordinal, text: string) => void
     messageRetry: (outboxID: Types.OutboxID) => void
@@ -324,6 +328,34 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
     }
   }
 
+  const downloadAttachment = async (downloadToCache: boolean, message: Types.Message) => {
+    try {
+      const {conversationIDKey} = message
+      const rpcRes = await RPCChatTypes.localDownloadFileAttachmentLocalRpcPromise({
+        conversationID: Types.keyToConversationID(conversationIDKey),
+        downloadToCache,
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        messageID: message.id,
+        preview: false,
+      })
+      reduxDispatch(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filePath}))
+      return rpcRes.filePath
+    } catch (error) {
+      if (error instanceof RPCError) {
+        logger.info(`downloadAttachment error: ${error.message}`)
+        reduxDispatch(
+          Chat2Gen.createAttachmentDownloaded({
+            error: error.message || 'Error downloading attachment',
+            message,
+          })
+        )
+      } else {
+        reduxDispatch(Chat2Gen.createAttachmentDownloaded({error: 'Error downloading attachment', message}))
+      }
+      return false
+    }
+  }
+
   const dispatch: ConvoState['dispatch'] = {
     addBotMember: (username, allowCommands, allowMentions, restricted, convs) => {
       const f = async () => {
@@ -345,6 +377,30 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           return
         }
         closeBotModal()
+      }
+      Z.ignorePromise(f())
+    },
+    attachmentDownload: ordinal => {
+      const {dispatch, messageMap} = get()
+      const m = messageMap.get(ordinal)
+      if (m?.type === 'attachment') {
+        dispatch.updateMessage(ordinal, {
+          transferErrMsg: undefined,
+          transferState: 'downloading',
+        })
+      }
+      // Download an attachment to your device
+      const f = async () => {
+        const message = get().messageMap.get(ordinal)
+        if (message?.type !== 'attachment') {
+          throw new Error('Trying to download missing / incorrect message?')
+        }
+        // already downloaded?
+        if (message.downloadPath) {
+          logger.warn('Attachment already downloaded')
+          return
+        }
+        await downloadAttachment(false, message)
       }
       Z.ignorePromise(f())
     },
@@ -769,6 +825,78 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           forceUnread: false,
           msgID: readMsgID,
         })
+      }
+      Z.ignorePromise(f())
+    },
+    messageAttachmentNativeSave: message => {
+      if (!isMobile) return
+      if (!message || message.type !== 'attachment') {
+        throw new Error('Invalid share message')
+      }
+
+      const f = async () => {
+        const {ordinal, fileType} = message
+        const fileName = await downloadAttachment(true, message)
+        if (!fileName) {
+          // failed to download
+          logger.info('Downloading attachment failed')
+          return
+        }
+        const {dispatch} = get()
+        try {
+          const m = get().messageMap.get(ordinal)
+          if (m?.type === 'attachment') {
+            dispatch.updateMessage(ordinal, {
+              transferErrMsg: undefined,
+              transferState: 'mobileSaving',
+            })
+          }
+          logger.info('Trying to save chat attachment to camera roll')
+          await saveAttachmentToCameraRoll(fileName, fileType)
+          if (m?.type === 'attachment') {
+            dispatch.updateMessage(ordinal, {
+              transferErrMsg: undefined,
+              transferState: undefined,
+            })
+          }
+        } catch (err) {
+          logger.error('Failed to save attachment: ' + err)
+          throw new Error('Failed to save attachment: ' + err)
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    messageAttachmentNativeShare: message => {
+      if (!message || message.type !== 'attachment') {
+        throw new Error('Invalid share message')
+      }
+      // Native share sheet for attachments
+      const f = async () => {
+        const filePath = await downloadAttachment(true, message)
+        if (!filePath) {
+          logger.info('Downloading attachment failed')
+          return
+        }
+
+        if (isIOS && message.fileName.endsWith('.pdf')) {
+          RouterConstants.useState.getState().dispatch.navigateAppend({
+            props: {
+              message,
+              // Prepend the 'file://' prefix here. Otherwise when webview
+              // automatically does that, it triggers onNavigationStateChange
+              // with the new address and we'd call stoploading().
+              url: 'file://' + filePath,
+            },
+            selected: 'chatPDF',
+          })
+          return
+        }
+
+        try {
+          await showShareActionSheet({filePath, mimeType: message.fileType})
+        } catch (e) {
+          logger.error('Failed to share attachment: ' + JSON.stringify(e))
+        }
       }
       Z.ignorePromise(f())
     },

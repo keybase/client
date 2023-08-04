@@ -12,10 +12,7 @@ export const typePrefix = 'chat2:'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
-export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
-export const attachmentMobileSave = 'chat2:attachmentMobileSave'
-export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
 export const attachmentPasted = 'chat2:attachmentPasted'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
@@ -38,8 +35,6 @@ export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const markInitiallyLoadedThreadAsRead = 'chat2:markInitiallyLoadedThreadAsRead'
 export const markTeamAsRead = 'chat2:markTeamAsRead'
-export const messageAttachmentNativeSave = 'chat2:messageAttachmentNativeSave'
-export const messageAttachmentNativeShare = 'chat2:messageAttachmentNativeShare'
 export const messageAttachmentUploaded = 'chat2:messageAttachmentUploaded'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
@@ -263,27 +258,6 @@ export const createUnfurlResolvePrompt = (payload: {
   readonly result: RPCChatTypes.UnfurlPromptResult
 }) => ({payload, type: unfurlResolvePrompt as typeof unfurlResolvePrompt})
 /**
- * Save on mobile (camera roll)
- */
-export const createMessageAttachmentNativeSave = (payload: {readonly message: Types.Message}) => ({
-  payload,
-  type: messageAttachmentNativeSave as typeof messageAttachmentNativeSave,
-})
-/**
- * Saving an attachment to mobile storage
- */
-export const createAttachmentMobileSave = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: attachmentMobileSave as typeof attachmentMobileSave})
-/**
- * Saving an attachment to mobile storage has finished
- */
-export const createAttachmentMobileSaved = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: attachmentMobileSaved as typeof attachmentMobileSaved})
-/**
  * Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
  * fromAReset means you were in a reset kbfs convo and you want to make a new one
  * Chatting from external places in the app should usually call this
@@ -343,13 +317,6 @@ export const createSetConvRetentionPolicy = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly policy: RetentionPolicy
 }) => ({payload, type: setConvRetentionPolicy as typeof setConvRetentionPolicy})
-/**
- * Share to external app on mobile
- */
-export const createMessageAttachmentNativeShare = (payload: {readonly message: Types.Message}) => ({
-  payload,
-  type: messageAttachmentNativeShare as typeof messageAttachmentNativeShare,
-})
 /**
  * Show a desktop notification
  */
@@ -440,13 +407,6 @@ export const createAttachmentDownloaded = (payload: {
   readonly path?: string
 }) => ({payload, type: attachmentDownloaded as typeof attachmentDownloaded})
 /**
- * We want to save an attachment to the local disk
- */
-export const createAttachmentDownload = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-}) => ({payload, type: attachmentDownload as typeof attachmentDownload})
-/**
  * We want to upload some attachments
  */
 export const createAttachmentsUpload = (payload: {
@@ -518,10 +478,7 @@ export const createSendAudioRecording = (payload: {
 export type AddUserToChannelPayload = ReturnType<typeof createAddUserToChannel>
 export type AddUsersToChannelPayload = ReturnType<typeof createAddUsersToChannel>
 export type AttachFromDragAndDropPayload = ReturnType<typeof createAttachFromDragAndDrop>
-export type AttachmentDownloadPayload = ReturnType<typeof createAttachmentDownload>
 export type AttachmentDownloadedPayload = ReturnType<typeof createAttachmentDownloaded>
-export type AttachmentMobileSavePayload = ReturnType<typeof createAttachmentMobileSave>
-export type AttachmentMobileSavedPayload = ReturnType<typeof createAttachmentMobileSaved>
 export type AttachmentPastedPayload = ReturnType<typeof createAttachmentPasted>
 export type AttachmentPreviewSelectPayload = ReturnType<typeof createAttachmentPreviewSelect>
 export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachmentUploadCanceled>
@@ -544,8 +501,6 @@ export type LoadNewerMessagesDueToScrollPayload = ReturnType<typeof createLoadNe
 export type LoadOlderMessagesDueToScrollPayload = ReturnType<typeof createLoadOlderMessagesDueToScroll>
 export type MarkInitiallyLoadedThreadAsReadPayload = ReturnType<typeof createMarkInitiallyLoadedThreadAsRead>
 export type MarkTeamAsReadPayload = ReturnType<typeof createMarkTeamAsRead>
-export type MessageAttachmentNativeSavePayload = ReturnType<typeof createMessageAttachmentNativeSave>
-export type MessageAttachmentNativeSharePayload = ReturnType<typeof createMessageAttachmentNativeShare>
 export type MessageAttachmentUploadedPayload = ReturnType<typeof createMessageAttachmentUploaded>
 export type MessageDeleteHistoryPayload = ReturnType<typeof createMessageDeleteHistory>
 export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyPrivately>
@@ -581,10 +536,7 @@ export type Actions =
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
   | AttachFromDragAndDropPayload
-  | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
-  | AttachmentMobileSavePayload
-  | AttachmentMobileSavedPayload
   | AttachmentPastedPayload
   | AttachmentPreviewSelectPayload
   | AttachmentUploadCanceledPayload
@@ -607,8 +559,6 @@ export type Actions =
   | LoadOlderMessagesDueToScrollPayload
   | MarkInitiallyLoadedThreadAsReadPayload
   | MarkTeamAsReadPayload
-  | MessageAttachmentNativeSavePayload
-  | MessageAttachmentNativeSharePayload
   | MessageAttachmentUploadedPayload
   | MessageDeleteHistoryPayload
   | MessageReplyPrivatelyPayload

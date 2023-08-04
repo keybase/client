@@ -441,17 +441,15 @@ export const useAttachmentSections = (
       })
     )
 
+  const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
+  const messageAttachmentNativeShare = Constants.useContext(s => s.dispatch.messageAttachmentNativeShare)
+
   const onDocDownload = (message: Types.MessageAttachment) => {
     if (Styles.isMobile) {
-      dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
+      messageAttachmentNativeShare(message)
     } else {
       if (!message.downloadPath) {
-        dispatch(
-          Chat2Gen.createAttachmentDownload({
-            conversationIDKey: message.conversationIDKey,
-            ordinal: message.id,
-          })
-        )
+        attachmentDownload(message.id)
       }
     }
   }

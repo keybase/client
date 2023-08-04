@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Container from '../../util/container'
 import * as FSConstants from '../../constants/fs'
-import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Constants from '../../constants/chat2'
 import {downloadFolder} from '../../constants/platform'
 import type {Props} from '.'
 
@@ -10,20 +9,15 @@ const ChatPDF = (props: Props) => {
   const {message} = props
   const title = message?.title || message?.fileName || 'PDF'
   const url = message?.fileURL
-  const dispatch = Container.useDispatch()
   const openLocalPathInSystemFileManagerDesktop = FSConstants.useState(
     s => s.dispatch.dynamic.openLocalPathInSystemFileManagerDesktop
   )
+
+  const attachmentDownload = Constants.useContext(s => s.dispatch.attachmentDownload)
   const onDownload = React.useCallback(() => {
-    message &&
-      dispatch(
-        Chat2Gen.createAttachmentDownload({
-          conversationIDKey: message.conversationIDKey,
-          ordinal: message.id,
-        })
-      )
+    message && attachmentDownload(message.id)
     openLocalPathInSystemFileManagerDesktop?.(downloadFolder)
-  }, [openLocalPathInSystemFileManagerDesktop, dispatch, message])
+  }, [openLocalPathInSystemFileManagerDesktop, attachmentDownload, message])
   return (
     <Kb.Modal2
       header={{

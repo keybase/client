@@ -23,8 +23,6 @@ import KB2 from '../util/electron'
 import NotifyPopup from '../util/notify-popup'
 import logger from '../logger'
 import {RPCError} from '../util/errors'
-import {isIOS} from '../constants/platform'
-import {saveAttachmentToCameraRoll, showShareActionSheet} from './platform-specific'
 
 const {darwinCopyToChatTempUploadFile} = KB2.functions
 
@@ -615,60 +613,6 @@ const openFolder = (_: unknown, action: Chat2Gen.OpenFolderPayload) => {
   return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
 
-const downloadAttachment = async (
-  downloadToCache: boolean,
-  message: Types.Message,
-  listenerApi: Container.ListenerApi
-) => {
-  try {
-    const {conversationIDKey} = message
-    const rpcRes = await RPCChatTypes.localDownloadFileAttachmentLocalRpcPromise({
-      conversationID: Types.keyToConversationID(conversationIDKey),
-      downloadToCache,
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      messageID: message.id,
-      preview: false,
-    })
-    listenerApi.dispatch(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filePath}))
-    return rpcRes.filePath
-  } catch (error) {
-    if (error instanceof RPCError) {
-      logger.info(`downloadAttachment error: ${error.message}`)
-      listenerApi.dispatch(
-        Chat2Gen.createAttachmentDownloaded({error: error.message || 'Error downloading attachment', message})
-      )
-    } else {
-      listenerApi.dispatch(
-        Chat2Gen.createAttachmentDownloaded({error: 'Error downloading attachment', message})
-      )
-    }
-    return false
-  }
-}
-
-// Download an attachment to your device
-const attachmentDownload = async (
-  _: unknown,
-  action: Chat2Gen.AttachmentDownloadPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {conversationIDKey, ordinal} = action.payload
-
-  const message = Constants.getConvoState(conversationIDKey).messageMap.get(ordinal)
-
-  if (message?.type !== 'attachment') {
-    throw new Error('Trying to download missing / incorrect message?')
-  }
-
-  // already downloaded?
-  if (message.downloadPath) {
-    logger.warn('Attachment already downloaded')
-    return
-  }
-
-  await downloadAttachment(false, message, listenerApi)
-}
-
 const attachmentPreviewSelect = (_: unknown, action: Chat2Gen.AttachmentPreviewSelectPayload) => {
   RouterConstants.useState.getState().dispatch.navigateAppend({
     props: {
@@ -969,71 +913,6 @@ const ensureWidgetMetas = () => {
   }
 
   Constants.useState.getState().dispatch.unboxRows(missing, true)
-}
-
-// Native share sheet for attachments
-const mobileMessageAttachmentShare = async (
-  _: Container.TypedState,
-  action: Chat2Gen.MessageAttachmentNativeSharePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {message} = action.payload
-  if (!message || message.type !== 'attachment') {
-    throw new Error('Invalid share message')
-  }
-  const filePath = await downloadAttachment(true, message, listenerApi)
-  if (!filePath) {
-    logger.info('Downloading attachment failed')
-    return
-  }
-
-  if (isIOS && message.fileName.endsWith('.pdf')) {
-    RouterConstants.useState.getState().dispatch.navigateAppend({
-      props: {
-        message,
-        // Prepend the 'file://' prefix here. Otherwise when webview
-        // automatically does that, it triggers onNavigationStateChange
-        // with the new address and we'd call stoploading().
-        url: 'file://' + filePath,
-      },
-      selected: 'chatPDF',
-    })
-    return
-  }
-
-  try {
-    await showShareActionSheet({filePath, mimeType: message.fileType})
-  } catch (e) {
-    logger.error('Failed to share attachment: ' + JSON.stringify(e))
-  }
-}
-
-// Native save to camera roll
-const mobileMessageAttachmentSave = async (
-  _: Container.TypedState,
-  action: Chat2Gen.MessageAttachmentNativeSavePayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const {message} = action.payload
-  if (!message || message.type !== 'attachment') {
-    throw new Error('Invalid share message')
-  }
-  const {conversationIDKey, ordinal, fileType} = message
-  const fileName = await downloadAttachment(true, message, listenerApi)
-  if (!fileName) {
-    // failed to download
-    logger.info('Downloading attachment failed')
-    return
-  }
-  listenerApi.dispatch(Chat2Gen.createAttachmentMobileSave({conversationIDKey, ordinal}))
-  try {
-    logger.info('Trying to save chat attachment to camera roll')
-    await saveAttachmentToCameraRoll(fileName, fileType)
-  } catch (err) {
-    logger.error('Failed to save attachment: ' + err)
-    throw new Error('Failed to save attachment: ' + err)
-  }
-  listenerApi.dispatch(Chat2Gen.createAttachmentMobileSaved({conversationIDKey, ordinal}))
 }
 
 const joinConversation = async (_: unknown, action: Chat2Gen.JoinConversationPayload) => {
@@ -1544,10 +1423,7 @@ const updateDraftState = (_: unknown, action: Chat2Gen.DeselectedConversationPay
 
 const initChat = () => {
   // Platform specific actions
-  if (Container.isMobile) {
-    Container.listenAction(Chat2Gen.messageAttachmentNativeShare, mobileMessageAttachmentShare)
-    Container.listenAction(Chat2Gen.messageAttachmentNativeSave, mobileMessageAttachmentSave)
-  } else {
+  if (!Container.isMobile) {
     Container.listenAction(Chat2Gen.desktopNotification, desktopNotify)
   }
 
@@ -1709,7 +1585,6 @@ const initChat = () => {
 
   // Search handling
   Container.listenAction(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
-  Container.listenAction(Chat2Gen.attachmentDownload, attachmentDownload)
   Container.listenAction(Chat2Gen.attachmentsUpload, attachmentsUpload)
   Container.listenAction(Chat2Gen.attachFromDragAndDrop, attachFromDragAndDrop)
   Container.listenAction(Chat2Gen.attachmentPasted, attachmentPasted)
