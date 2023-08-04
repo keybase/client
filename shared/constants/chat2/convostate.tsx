@@ -202,6 +202,7 @@ export type ConvoState = ConvoStore & {
     setThreadSearchQuery: (query: string) => void
     setTyping: (t: Set<string>) => void
     threadSearch: (query: string) => void
+    toggleGiphyPrefill: () => void
     toggleThreadSearch: (hide?: boolean) => void
     toggleLocalReaction: (p: {
       decorated: string
@@ -1588,6 +1589,10 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         }
       }
       Z.ignorePromise(f())
+    },
+    toggleGiphyPrefill: () => {
+      // if the window is up, just blow it away
+      get().dispatch.setUnsentText(get().giphyWindow ? '' : '/giphy ')
     },
     toggleLocalReaction: p => {
       const {decorated, emoji, targetOrdinal, username} = p

@@ -2089,13 +2089,6 @@ const initChat = () => {
     Constants.useState.getState().dispatch.loadStaticConfig()
   })
 
-  Container.listenAction(Chat2Gen.toggleGiphyPrefill, (_, a) => {
-    const {conversationIDKey} = a.payload
-    const giphyWindow = Constants.getConvoState(conversationIDKey).giphyWindow
-    // if the window is up, just blow it away
-    Constants.getConvoState(conversationIDKey).dispatch.setUnsentText(giphyWindow ? '' : '/giphy ')
-  })
-
   Container.listenAction(EngineGen.chat1NotifyChatChatParticipantsInfo, (_, a) => {
     const {participants: participantMap} = a.payload.params
     Object.keys(participantMap).forEach(convIDStr => {

@@ -72,7 +72,6 @@ export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const tabSelected = 'chat2:tabSelected'
-export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
 export const unfurlRemove = 'chat2:unfurlRemove'
@@ -486,13 +485,6 @@ export const createAttachmentPreviewSelect = (payload: {
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: attachmentPreviewSelect as typeof attachmentPreviewSelect})
 /**
- * Toggle /giphy text to trigger preview window
- */
-export const createToggleGiphyPrefill = (payload: {readonly conversationIDKey: Types.ConversationIDKey}) => ({
-  payload,
-  type: toggleGiphyPrefill as typeof toggleGiphyPrefill,
-})
-/**
  * Toggle the collapse status of a message
  */
 export const createToggleMessageCollapse = (payload: {
@@ -715,7 +707,6 @@ export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvReten
 export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
-export type ToggleGiphyPrefillPayload = ReturnType<typeof createToggleGiphyPrefill>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
 export type ToggleMessageReactionPayload = ReturnType<typeof createToggleMessageReaction>
 export type UnfurlRemovePayload = ReturnType<typeof createUnfurlRemove>
@@ -793,7 +784,6 @@ export type Actions =
   | SetConversationOfflinePayload
   | SetMinWriterRolePayload
   | TabSelectedPayload
-  | ToggleGiphyPrefillPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload
   | UnfurlRemovePayload

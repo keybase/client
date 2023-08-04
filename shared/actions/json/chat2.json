@@ -424,10 +424,6 @@
       "_description": "Ignore pinned message",
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "toggleGiphyPrefill": {
-      "_description": "Toggle /giphy text to trigger preview window",
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     "dismissBlockButtons": {
       "teamID": "RPCTypes.TeamID"
     },
