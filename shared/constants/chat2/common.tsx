@@ -109,3 +109,26 @@ export const isUserActivelyLookingAtThisThread = (conversationIDKey: Types.Conve
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
 }
+
+export const allMessageTypes: Set<Types.MessageType> = new Set([
+  'attachment',
+  'deleted',
+  'requestPayment',
+  'sendPayment',
+  'setChannelname',
+  'setDescription',
+  'systemAddedToTeam',
+  'systemChangeRetention',
+  'systemGitPush',
+  'systemInviteAccepted',
+  'systemJoined',
+  'systemLeft',
+  'systemSBSResolved',
+  'systemSimpleToComplex',
+  'systemChangeAvatar',
+  'systemNewChannel',
+  'systemText',
+  'systemUsersAddedToConversation',
+  'text',
+  'placeholder',
+])

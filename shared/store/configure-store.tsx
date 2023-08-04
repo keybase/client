@@ -1,8 +1,6 @@
 import * as ConfigConstants from '../constants/config'
 import * as ReduxToolKit from '@reduxjs/toolkit'
 import logger from '../logger'
-import {actionLogger} from './action-logger'
-import {enableStoreLogging, enableActionLogging} from '../local-debug'
 import {initListeners} from './configure-listeners'
 import {isMobile} from '../constants/platform'
 import {listenerMiddleware} from '../util/redux-toolkit'
@@ -20,7 +18,6 @@ const crashHandler = (error: any) => {
   ConfigConstants.useConfigState.getState().dispatch.setGlobalError(error)
 }
 
-let loggerMiddleware: any
 let lastError = new Error('')
 
 // @ts-ignore
@@ -46,13 +43,7 @@ const errorCatching = () => next => action => {
 // @ts-ignore
 const freezeMiddleware = _store => next => action => next(Object.freeze(action))
 
-const middlewares = [
-  listenerMiddleware.middleware,
-  errorCatching,
-  ...(__DEV__ ? [freezeMiddleware] : []),
-  ...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
-  ...(enableActionLogging ? [actionLogger] : []),
-]
+const middlewares = [listenerMiddleware.middleware, errorCatching, ...(__DEV__ ? [freezeMiddleware] : [])]
 
 // don't setup listeners again
 if (__DEV__ && !globalThis.DEBUGlistenersInited) {

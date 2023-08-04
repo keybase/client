@@ -158,6 +158,12 @@ export type ConvoState = ConvoStore & {
     }) => void
     markThreadAsRead: (unreadLineMessageID?: number) => void
     messageRetry: (outboxID: Types.OutboxID) => void
+    messagesWereDeleted: (p: {
+      messageIDs?: Array<RPCChatTypes.MessageID>
+      upToMessageID?: RPCChatTypes.MessageID // expunge calls give us a message we should delete up to (don't delete it)
+      deletableMessageTypes?: Set<Types.MessageType> // expunge calls don't delete _all_ messages, only these types
+      ordinals?: Array<Types.Ordinal>
+    }) => void
     metaReceivedError: (error: RPCChatTypes.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
     onEngineIncoming: (
@@ -737,6 +743,53 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    messagesWereDeleted: p => {
+      const {
+        deletableMessageTypes = Common.allMessageTypes,
+        messageIDs = [],
+        ordinals = [],
+        upToMessageID = null,
+      } = p
+      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+
+      const upToOrdinals: Array<Types.Ordinal> = []
+      if (upToMessageID) {
+        ;[...messageMap.entries()].reduce((arr, [ordinal, m]) => {
+          if (m.id < upToMessageID && deletableMessageTypes.has(m.type)) {
+            arr.push(ordinal)
+          }
+          return arr
+        }, upToOrdinals)
+      }
+
+      const allOrdinals = new Set(
+        [
+          ...ordinals,
+          ...messageIDs.map(messageID => messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)),
+          ...upToOrdinals,
+        ].reduce<Array<Types.Ordinal>>((arr, n) => {
+          if (n) {
+            arr.push(n)
+          }
+          return arr
+        }, [])
+      )
+      allOrdinals.forEach(ordinal => {
+        const m = messageMap.get(ordinal)
+        if (m) {
+          dispatch.updateMessage(
+            ordinal,
+            Message.makeMessageDeleted({
+              author: m.author,
+              conversationIDKey: m.conversationIDKey,
+              id: m.id,
+              ordinal: m.ordinal,
+              timestamp: m.timestamp,
+            })
+          )
+        }
+      })
+    },
     metaReceivedError: (error, username) => {
       if (error) {
         if (
@@ -967,15 +1020,17 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                   return false
                 })
 
-                reduxDispatch(
-                  isExplodeNow
-                    ? Chat2Gen.createMessagesExploded({
-                        conversationIDKey,
-                        explodedBy: valid.senderUsername,
-                        messageIDs,
-                      })
-                    : Chat2Gen.createMessagesWereDeleted({conversationIDKey, messageIDs})
-                )
+                if (isExplodeNow) {
+                  reduxDispatch(
+                    Chat2Gen.createMessagesExploded({
+                      conversationIDKey,
+                      explodedBy: valid.senderUsername,
+                      messageIDs,
+                    })
+                  )
+                } else {
+                  get().dispatch.messagesWereDeleted({messageIDs})
+                }
               }
               break
             }

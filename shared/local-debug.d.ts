@@ -1,6 +1,4 @@
 export declare const allowMultipleInstances: boolean
-export declare const enableActionLogging: boolean
-export declare const enableStoreLogging: boolean
 export declare const featureFlagsOverride: boolean
 export declare const filterActionLogs: boolean
 export declare const forceImmediateLogging: boolean

@@ -103,14 +103,6 @@
       "ordinal": "Types.Ordinal",
       "text": "HiddenString"
     },
-    "messagesWereDeleted": {
-      "_description": "Mark a message as deleted",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageIDs?": "Array<RPCChatTypes.MessageID>",
-      "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
-      "deletableMessageTypes?": "Set<Types.MessageType>", // expunge calls don't delete _all_ messages, only these types
-      "ordinals?": "Array<Types.Ordinal>"
-    },
     "messagesExploded": {
       "_description": "Exploding messages expired or were manually detonated.",
       "conversationIDKey": "Types.ConversationIDKey",

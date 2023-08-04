@@ -19,7 +19,7 @@ import {noConversationIDKey, pendingWaitingConversationIDKey} from '../types/cha
 import type * as TeamBuildingTypes from '../types/team-building'
 import * as Z from '../../util/zustand'
 import {getConvoState, stores} from './convostate'
-import {explodingModeGregorKeyPrefix, getSelectedConversation} from './common'
+import {explodingModeGregorKeyPrefix, getSelectedConversation, allMessageTypes} from './common'
 
 export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
   switch (m.type) {
@@ -296,29 +296,6 @@ export const uiParticipantsToParticipantInfo = (uiParticipants: Array<RPCChatTyp
   })
   return participantInfo
 }
-
-export const allMessageTypes: Set<Types.MessageType> = new Set([
-  'attachment',
-  'deleted',
-  'requestPayment',
-  'sendPayment',
-  'setChannelname',
-  'setDescription',
-  'systemAddedToTeam',
-  'systemChangeRetention',
-  'systemGitPush',
-  'systemInviteAccepted',
-  'systemJoined',
-  'systemLeft',
-  'systemSBSResolved',
-  'systemSimpleToComplex',
-  'systemChangeAvatar',
-  'systemNewChannel',
-  'systemText',
-  'systemUsersAddedToConversation',
-  'text',
-  'placeholder',
-])
 
 /**
  * Returns true if the team is big and you're a member
@@ -960,13 +937,10 @@ export const useState = Z.createZustand<State>((set, get) => {
               // The types here are askew. It confuses frontend MessageType with protocol MessageType.
               // Placeholder is an example where it doesn't make sense.
               const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || allMessageTypes
-              reduxDispatch(
-                Chat2Gen.createMessagesWereDeleted({
-                  conversationIDKey,
-                  deletableMessageTypes,
-                  upToMessageID: expunge.expunge.upto,
-                })
-              )
+              getConvoState(conversationIDKey).dispatch.messagesWereDeleted({
+                deletableMessageTypes,
+                upToMessageID: expunge.expunge.upto,
+              })
               break
             }
             case RPCChatTypes.ChatActivityType.ephemeralPurge: {

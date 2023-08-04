@@ -376,7 +376,8 @@ const messageDelete = async (_: unknown, action: Chat2Gen.MessageDeletePayload) 
         {outboxID: Types.outboxIDToRpcOutboxID(message.outboxID)},
         Constants.waitingKeyCancelPost
       )
-      return Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [message.ordinal]})
+      Constants.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({ordinals: [message.ordinal]})
+      return
     } else {
       logger.warn('Delete of no message id and no outboxid')
     }
@@ -966,7 +967,7 @@ const dismissJourneycard = (_: unknown, action: Chat2Gen.DismissJourneycardPaylo
       logger.error(`Failed to dismiss journeycard: ${error.message}`)
     }
   })
-  return Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [ordinal]})
+  Constants.getConvoState(conversationIDKey).dispatch.messagesWereDeleted({ordinals: [ordinal]})
 }
 
 const fetchUserEmoji = async (_: unknown, action: Chat2Gen.FetchUserEmojiPayload) => {
