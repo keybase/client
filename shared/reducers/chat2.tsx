@@ -537,20 +537,6 @@ const reducer = Container.makeReducer<Actions, {}>(
         }
       })
     },
-    [Chat2Gen.updateMessages]: (_, action) => {
-      const {messages, conversationIDKey} = action.payload
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-      messages.forEach(({messageID, message}) => {
-        const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)
-        if (!ordinal) {
-          return
-        }
-
-        if (message.ordinal !== ordinal) {
-          dispatch.updateMessage(ordinal, {ordinal})
-        }
-      })
-    },
     [Chat2Gen.clearMessages]: () => {
       for (const [, cs] of Constants.stores) {
         cs.getState().dispatch.setMessageOrdinals()

@@ -235,6 +235,33 @@ const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   status: 'loading',
 })
 
+// Backend gives us messageIDs sometimes so we need to find our ordinal
+const messageIDToOrdinal = (
+  map: ConvoState['messageMap'],
+  pendingOutboxToOrdinal: ConvoState['pendingOutboxToOrdinal'] | undefined,
+  messageID: Types.MessageID
+) => {
+  // A message we didn't send in this session?
+  let m = map.get(Types.numberToOrdinal(messageID))
+  if (m?.id !== 0 && m?.id === messageID) {
+    return m.ordinal
+  }
+  // Search through our sent messages
+  const pendingOrdinal = [...(pendingOutboxToOrdinal?.values() ?? [])].find(o => {
+    m = map?.get(o)
+    if (m?.id !== 0 && m?.id === messageID) {
+      return true
+    }
+    return false
+  })
+
+  if (pendingOrdinal) {
+    return pendingOrdinal
+  }
+
+  return null
+}
+
 type ScrollDirection = 'none' | 'back' | 'forward'
 export const numMessagesOnInitialLoad = isMobile ? 20 : 100
 export const numMessagesOnScrollback = isMobile ? 100 : 100
@@ -465,7 +492,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const ConfigConstants = await import('../config')
         const Constants = await import('.')
-        const reduxDispatch = Z.getReduxDispatch()
         // Get the conversationIDKey
         const key = get().id
 
@@ -959,7 +985,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             messageID: Types.numberToMessageID(messageID),
           })
         }, [])
-        messages && reduxDispatch(Chat2Gen.createUpdateMessages({conversationIDKey: get().id, messages}))
+        const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+        messages?.forEach(({messageID, message}) => {
+          const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)
+          if (ordinal && message.ordinal !== ordinal) {
+            dispatch.updateMessage(ordinal, {ordinal})
+          }
+        })
       }
       Z.ignorePromise(f())
     },

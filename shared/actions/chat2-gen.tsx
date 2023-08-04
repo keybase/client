@@ -80,7 +80,6 @@ export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
-export const updateMessages = 'chat2:updateMessages'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateReactions = 'chat2:updateReactions'
 export const updateUnreadline = 'chat2:updateUnreadline'
@@ -527,13 +526,6 @@ export const createMessageWasEdited = (payload: {
   readonly mentionsChannelName: Map<string, Types.ConversationIDKey>
 }) => ({payload, type: messageWasEdited as typeof messageWasEdited})
 /**
- * Update messages that we might have in the store
- */
-export const createUpdateMessages = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messages: Array<{messageID: Types.MessageID; message: Types.Message}>
-}) => ({payload, type: updateMessages as typeof updateMessages})
-/**
  * Update the unreadline line position for a conversation
  */
 export const createUpdateUnreadline = (payload: {
@@ -731,7 +723,6 @@ export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePr
 export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
-export type UpdateMessagesPayload = ReturnType<typeof createUpdateMessages>
 export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNotificationSettings>
 export type UpdateReactionsPayload = ReturnType<typeof createUpdateReactions>
 export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
@@ -810,7 +801,6 @@ export type Actions =
   | UnhideConversationPayload
   | UnpinMessagePayload
   | UnsentTextChangedPayload
-  | UpdateMessagesPayload
   | UpdateNotificationSettingsPayload
   | UpdateReactionsPayload
   | UpdateUnreadlinePayload
