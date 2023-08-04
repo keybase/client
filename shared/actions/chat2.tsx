@@ -146,199 +146,6 @@ const maybeChangeSelectedConv = () => {
   }
 }
 
-// We get an incoming message streamed to us
-const onIncomingMessage = (_: unknown, incoming: RPCChatTypes.IncomingMessage) => {
-  const {message: cMsg} = incoming
-  const actions: Array<Container.TypedActions> = []
-  const {modifiedMessage, convID, displayDesktopNotification, desktopNotificationSnippet} = incoming
-
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  if (convID && cMsg) {
-    const conversationIDKey = Types.conversationIDToKey(convID)
-
-    // check for a reaction outbox notification before doing anything
-    if (
-      cMsg.state === RPCChatTypes.MessageUnboxedState.outbox &&
-      cMsg.outbox.messageType === RPCChatTypes.MessageType.reaction
-    ) {
-      Constants.getConvoState(conversationIDKey).dispatch.toggleLocalReaction({
-        decorated: cMsg.outbox.decoratedTextBody ?? '',
-        emoji: cMsg.outbox.body,
-        targetOrdinal: cMsg.outbox.supersedes,
-        username,
-      })
-      return []
-    }
-
-    const shouldAddMessage = Constants.getConvoState(conversationIDKey).containsLatestMessage ?? false
-
-    const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
-    const getLastOrdinal = () => Constants.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? 0
-    const message = Constants.uiMessageToMessage(
-      conversationIDKey,
-      cMsg,
-      username,
-      getLastOrdinal,
-      devicename
-    )
-    if (message) {
-      // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
-      if (
-        cMsg.state === RPCChatTypes.MessageUnboxedState.valid &&
-        cMsg.valid?.messageBody.messageType === RPCChatTypes.MessageType.attachmentuploaded &&
-        cMsg.valid?.messageBody.attachmentuploaded &&
-        message.type === 'attachment'
-      ) {
-        actions.push(
-          Chat2Gen.createMessageAttachmentUploaded({
-            conversationIDKey,
-            message,
-            placeholderID: cMsg.valid.messageBody.attachmentuploaded.messageID,
-          })
-        )
-      } else if (shouldAddMessage) {
-        // A normal message
-        actions.push(
-          Chat2Gen.createMessagesAdd({context: {type: 'incoming'}, conversationIDKey, messages: [message]})
-        )
-      }
-    } else if (cMsg.state === RPCChatTypes.MessageUnboxedState.valid && cMsg.valid) {
-      const {valid} = cMsg
-      const body = valid.messageBody
-      logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
-      // Types that are mutations
-      switch (body.messageType) {
-        case RPCChatTypes.MessageType.edit:
-          if (modifiedMessage) {
-            const modMessage = Constants.uiMessageToMessage(
-              conversationIDKey,
-              modifiedMessage,
-              username,
-              getLastOrdinal,
-              devicename
-            )
-            if (modMessage) {
-              actions.push(
-                Chat2Gen.createMessagesAdd({
-                  context: {type: 'incoming'},
-                  conversationIDKey,
-                  messages: [modMessage],
-                })
-              )
-            }
-          }
-          break
-        case RPCChatTypes.MessageType.delete: {
-          const {delete: d} = body
-          if (d?.messageIDs) {
-            // check if the delete is acting on an exploding message
-            const messageIDs = d.messageIDs
-            const messages = Constants.getConvoState(conversationIDKey).messageMap
-            const isExplodeNow =
-              !!messages &&
-              messageIDs.some(_id => {
-                const id = Types.numberToOrdinal(_id)
-                const message = messages.get(id) ?? [...messages.values()].find(msg => msg.id === id)
-                if ((message?.type === 'text' || message?.type === 'attachment') && message?.exploding) {
-                  return true
-                }
-                return false
-              })
-
-            actions.push(
-              isExplodeNow
-                ? Chat2Gen.createMessagesExploded({
-                    conversationIDKey,
-                    explodedBy: valid.senderUsername,
-                    messageIDs,
-                  })
-                : Chat2Gen.createMessagesWereDeleted({conversationIDKey, messageIDs})
-            )
-          }
-          break
-        }
-        default:
-      }
-    }
-    if (
-      !Container.isMobile &&
-      displayDesktopNotification &&
-      desktopNotificationSnippet &&
-      cMsg.state === RPCChatTypes.MessageUnboxedState.valid &&
-      cMsg.valid
-    ) {
-      actions.push(
-        Chat2Gen.createDesktopNotification({
-          author: cMsg.valid.senderUsername,
-          body: desktopNotificationSnippet,
-          conversationIDKey,
-        })
-      )
-    }
-  }
-
-  return actions
-}
-
-// Helper to handle incoming inbox updates that piggy back on various calls
-const chatActivityToMetasAction = (
-  _: unknown,
-  payload: {
-    readonly conv?: RPCChatTypes.InboxUIItem | null
-  }
-) => {
-  const conv = payload?.conv
-  if (!conv) {
-    return
-  }
-  const meta = Constants.inboxUIItemToConversationMeta(conv)
-  const usernameToFullname = (conv.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
-    if (part.fullName) {
-      map[part.assertion] = part.fullName
-    }
-    return map
-  }, {})
-
-  UsersConstants.useState.getState().dispatch.updates(
-    Object.keys(usernameToFullname).map(name => ({
-      info: {fullname: usernameToFullname[name]},
-      name,
-    }))
-  )
-
-  if (meta) {
-    Constants.useState.getState().dispatch.metasReceived([meta])
-  }
-}
-
-// We got errors from the service
-const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
-  const actions = outboxRecords.reduce<Array<Container.TypedActions>>((arr, outboxRecord) => {
-    const s = outboxRecord.state
-    if (s.state === RPCChatTypes.OutboxStateType.error) {
-      const {error} = s
-      const conversationIDKey = Types.conversationIDToKey(outboxRecord.convID)
-      const outboxID = Types.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
-
-      // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
-      const reason = Constants.rpcErrorToString(error)
-      let tempForceRedBox: string | undefined
-      if (error.typ === RPCChatTypes.OutboxErrorType.identify) {
-        // Find out the user who failed identify
-        const match = error.message.match(/"(.*)"/)
-        tempForceRedBox = match?.[1]
-      }
-      arr.push(Chat2Gen.createMessageErrored({conversationIDKey, errorTyp: error.typ, outboxID, reason}))
-      if (tempForceRedBox) {
-        UsersConstants.useState.getState().dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
-      }
-    }
-    return arr
-  }, [])
-
-  return actions
-}
-
 // Some participants are broken/fixed now
 const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatIdentifyUpdatePayload) => {
   const {update} = action.payload.params
@@ -346,86 +153,6 @@ const onChatIdentifyUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatI
   const broken = (update.breaks.breaks || []).map(b => b.user.username)
   const updates = usernames.map(name => ({info: {broken: broken.includes(name)}, name}))
   UsersConstants.useState.getState().dispatch.updates(updates)
-}
-
-// Get actions to update messagemap / metamap when retention policy expunge happens
-
-const expungeToActions = (expunge: RPCChatTypes.ExpungeInfo) => {
-  const actions: Array<Container.TypedActions> = []
-  const conversationIDKey = Types.conversationIDToKey(expunge.convID)
-  const staticConfig = Constants.useState.getState().staticConfig
-  // The types here are askew. It confuses frontend MessageType with protocol MessageType.
-  // Placeholder is an example where it doesn't make sense.
-  const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || Constants.allMessageTypes
-  actions.push(
-    Chat2Gen.createMessagesWereDeleted({
-      conversationIDKey,
-      deletableMessageTypes,
-      upToMessageID: expunge.expunge.upto,
-    })
-  )
-  return actions
-}
-
-// Get actions to update messagemap / metamap when ephemeral messages expire
-const ephemeralPurgeToActions = (info: RPCChatTypes.EphemeralPurgeNotifInfo) => {
-  const actions: Array<Container.TypedActions> = []
-  const conversationIDKey = Types.conversationIDToKey(info.convID)
-  const messageIDs =
-    !!info.msgs &&
-    info.msgs.reduce<Array<Types.MessageID>>((arr, msg) => {
-      const msgID = Constants.getMessageID(msg)
-      if (msgID) {
-        arr.push(msgID)
-      }
-      return arr
-    }, [])
-  !!messageIDs && actions.push(Chat2Gen.createMessagesExploded({conversationIDKey, messageIDs}))
-  return actions
-}
-
-const messagesUpdatedToActions = (_: unknown, info: RPCChatTypes.MessagesUpdated) => {
-  const conversationIDKey = Types.conversationIDToKey(info.convID)
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
-  const getLastOrdinal = () => Constants.getConvoState(conversationIDKey).messageOrdinals?.at(-1) ?? 0
-  const messages = (info.updates ?? []).reduce<
-    Array<{
-      message: Types.Message
-      messageID: Types.MessageID
-    }>
-  >((l, msg) => {
-    const messageID = Constants.getMessageID(msg)
-    if (!messageID) {
-      return l
-    }
-    const uiMsg = Constants.uiMessageToMessage(conversationIDKey, msg, username, getLastOrdinal, devicename)
-    if (!uiMsg) {
-      return l
-    }
-    return l.concat({
-      message: uiMsg,
-      messageID: Types.numberToMessageID(messageID),
-    })
-  }, [])
-  return [Chat2Gen.createUpdateMessages({conversationIDKey, messages})]
-}
-
-// Get actions to update the messagemap when reactions are updated
-const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
-  const conversationIDKey = Types.conversationIDToKey(info.convID)
-  if (!info.reactionUpdates || info.reactionUpdates.length === 0) {
-    logger.warn(`Got ReactionUpdateNotif with no reactionUpdates for convID=${conversationIDKey}`)
-    return
-  }
-  const updates = info.reactionUpdates.map(ru => ({
-    reactions: Constants.reactionMapToReactions(ru.reactions),
-    targetMsgID: ru.targetMsgID,
-  }))
-  logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
-  const reduxDispatch = Z.getReduxDispatch()
-  reduxDispatch(Chat2Gen.createUpdateReactions({conversationIDKey, updates}))
-  Constants.useState.getState().dispatch.updateUserReacjis(info.userReacjis)
 }
 
 const onChatPromptUnfurl = (_: unknown, action: EngineGen.Chat1NotifyChatChatPromptUnfurlPayload) => {
@@ -577,74 +304,6 @@ const onChatThreadStale = (_: unknown, action: EngineGen.Chat1NotifyChatChatThre
   return actions
 }
 
-const onNewChatActivity = (
-  state: Container.TypedState,
-  action: EngineGen.Chat1NotifyChatNewChatActivityPayload
-) => {
-  const {activity} = action.payload.params
-  logger.info(`Got new chat activity of type: ${activity.activityType}`)
-  let actions: Container.ListenActionReturn = []
-  switch (activity.activityType) {
-    case RPCChatTypes.ChatActivityType.incomingMessage: {
-      const {incomingMessage} = activity
-      actions = actions.concat(onIncomingMessage(state, incomingMessage))
-      actions = actions.concat(chatActivityToMetasAction(state, incomingMessage))
-      break
-    }
-    case RPCChatTypes.ChatActivityType.setStatus:
-      actions = chatActivityToMetasAction(state, activity.setStatus)
-      break
-    case RPCChatTypes.ChatActivityType.readMessage:
-      actions = chatActivityToMetasAction(state, activity.readMessage)
-      break
-    case RPCChatTypes.ChatActivityType.newConversation:
-      actions = chatActivityToMetasAction(state, activity.newConversation)
-      break
-    case RPCChatTypes.ChatActivityType.failedMessage: {
-      const {failedMessage} = activity
-      const {outboxRecords} = failedMessage
-      if (outboxRecords) {
-        actions = actions.concat(onErrorMessage(outboxRecords))
-        actions = actions.concat(chatActivityToMetasAction(state, failedMessage))
-      }
-      break
-    }
-    case RPCChatTypes.ChatActivityType.membersUpdate:
-      Constants.useState
-        .getState()
-        .dispatch.unboxRows([Types.conversationIDToKey(activity.membersUpdate.convID)], true)
-      actions = []
-      break
-    case RPCChatTypes.ChatActivityType.setAppNotificationSettings:
-      {
-        const {setAppNotificationSettings} = activity
-        actions = [
-          Chat2Gen.createNotificationSettingsUpdated({
-            conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
-            settings: setAppNotificationSettings.settings,
-          }),
-        ]
-      }
-      break
-    case RPCChatTypes.ChatActivityType.expunge: {
-      actions = expungeToActions(activity.expunge)
-      break
-    }
-    case RPCChatTypes.ChatActivityType.ephemeralPurge:
-      actions = ephemeralPurgeToActions(activity.ephemeralPurge)
-      break
-    case RPCChatTypes.ChatActivityType.reactionUpdate:
-      reactionUpdateToActions(activity.reactionUpdate)
-      break
-    case RPCChatTypes.ChatActivityType.messagesUpdated: {
-      actions = messagesUpdatedToActions(state, activity.messagesUpdated)
-      break
-    }
-    default:
-  }
-  return actions
-}
-
 const onChatConvUpdate = (_: unknown, action: EngineGen.Chat1NotifyChatChatConvUpdatePayload) => {
   const {conv} = action.payload.params
   if (conv) {
@@ -785,14 +444,6 @@ const messageEdit = async (
       listenerApi.dispatch(Chat2Gen.createPendingMessageWasEdited({conversationIDKey, ordinal, text}))
     }
   }
-}
-
-const messageRetry = async (_: unknown, action: Chat2Gen.MessageRetryPayload) => {
-  const {outboxID} = action.payload
-  await RPCChatTypes.localRetryPostRpcPromise(
-    {outboxID: Types.outboxIDToRpcOutboxID(outboxID)},
-    Constants.waitingKeyRetryPost
-  )
 }
 
 const onReplyJump = (_: unknown, action: Chat2Gen.ReplyJumpPayload) =>
@@ -2221,7 +1872,6 @@ const initChat = () => {
     markThreadAsRead()
   })
 
-  Container.listenAction(Chat2Gen.messageRetry, messageRetry)
   Container.listenAction(Chat2Gen.messageSend, messageSend)
   Container.listenAction(Chat2Gen.messageSend, (_, a) => {
     const {conversationIDKey} = a.payload
@@ -2365,7 +2015,6 @@ const initChat = () => {
   Container.listenAction(EngineGen.chat1NotifyChatChatSubteamRename, onChatSubteamRename)
   Container.listenAction(EngineGen.chat1NotifyChatChatTLFFinalize, onChatChatTLFFinalizePayload)
   Container.listenAction(EngineGen.chat1NotifyChatChatThreadsStale, onChatThreadStale)
-  Container.listenAction(EngineGen.chat1NotifyChatNewChatActivity, onNewChatActivity)
   Container.listenAction(EngineGen.chat1ChatUiChatGiphySearchResults, onGiphyResults)
   Container.listenAction(EngineGen.chat1ChatUiChatGiphyToggleResultWindow, onGiphyToggleWindow)
   Container.listenAction(EngineGen.chat1ChatUiChatShowManageChannels, (_, action) => {

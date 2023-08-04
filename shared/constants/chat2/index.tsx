@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as TeamsConstants from '../teams'
+import * as UsersConstants from '../users'
 import * as EngineGen from '../../actions/engine-gen-gen'
 import * as ConfigConstants from '../config'
 import * as Message from './message'
@@ -466,7 +467,9 @@ export type State = Store & {
         | EngineGen.Chat1NotifyChatChatSetConvSettingsPayload
         | EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
         | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
+        | EngineGen.Chat1NotifyChatNewChatActivityPayload
     ) => void
+    onIncomingInboxUIItem: (inboxUIItem?: RPCChatTypes.InboxUIItem) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
     queueMetaToRequest: (ids: Array<Types.ConversationIDKey>) => void
@@ -925,6 +928,124 @@ export const useState = Z.createZustand<State>((set, get) => {
           getConvoState(conversationIDKey).dispatch.onEngineIncoming(action)
           break
         }
+        case EngineGen.chat1NotifyChatNewChatActivity: {
+          const {activity} = action.payload.params
+          switch (activity.activityType) {
+            case RPCChatTypes.ChatActivityType.incomingMessage: {
+              const {incomingMessage} = activity
+              const conversationIDKey = Types.conversationIDToKey(incomingMessage.convID)
+              getConvoState(conversationIDKey).dispatch.onIncomingMessage(incomingMessage)
+              get().dispatch.onIncomingInboxUIItem(incomingMessage.conv ?? undefined)
+              break
+            }
+            case RPCChatTypes.ChatActivityType.setStatus:
+              get().dispatch.onIncomingInboxUIItem(activity.setStatus.conv ?? undefined)
+              break
+            case RPCChatTypes.ChatActivityType.readMessage:
+              get().dispatch.onIncomingInboxUIItem(activity.readMessage.conv ?? undefined)
+              break
+            case RPCChatTypes.ChatActivityType.newConversation:
+              get().dispatch.onIncomingInboxUIItem(activity.newConversation.conv ?? undefined)
+              break
+            case RPCChatTypes.ChatActivityType.failedMessage: {
+              const {failedMessage} = activity
+              get().dispatch.onIncomingInboxUIItem(failedMessage.conv ?? undefined)
+              const {outboxRecords} = failedMessage
+              if (!outboxRecords) return
+              for (const outboxRecord of outboxRecords) {
+                const s = outboxRecord.state
+                if (s.state !== RPCChatTypes.OutboxStateType.error) return
+                const {error} = s
+                const conversationIDKey = Types.conversationIDToKey(outboxRecord.convID)
+                const outboxID = Types.rpcOutboxIDToOutboxID(outboxRecord.outboxID)
+                // This is temp until fixed by CORE-7112. We get this error but not the call to let us show the red banner
+                const reason = Message.rpcErrorToString(error)
+                getConvoState(conversationIDKey).dispatch.onMessageErrored(outboxID, reason, error.typ)
+
+                if (error.typ === RPCChatTypes.OutboxErrorType.identify) {
+                  // Find out the user who failed identify
+                  const match = error.message.match(/"(.*)"/)
+                  const tempForceRedBox = match?.[1]
+                  if (tempForceRedBox) {
+                    UsersConstants.useState
+                      .getState()
+                      .dispatch.updates([{info: {broken: true}, name: tempForceRedBox}])
+                  }
+                }
+              }
+              break
+            }
+            case RPCChatTypes.ChatActivityType.membersUpdate:
+              get().dispatch.unboxRows([Types.conversationIDToKey(activity.membersUpdate.convID)], true)
+              break
+            case RPCChatTypes.ChatActivityType.setAppNotificationSettings: {
+              const {setAppNotificationSettings} = activity
+              reduxDispatch(
+                Chat2Gen.createNotificationSettingsUpdated({
+                  conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
+                  settings: setAppNotificationSettings.settings,
+                })
+              )
+              break
+            }
+            case RPCChatTypes.ChatActivityType.expunge: {
+              // Get actions to update messagemap / metamap when retention policy expunge happens
+              const {expunge} = activity
+              const conversationIDKey = Types.conversationIDToKey(expunge.convID)
+              const staticConfig = useState.getState().staticConfig
+              // The types here are askew. It confuses frontend MessageType with protocol MessageType.
+              // Placeholder is an example where it doesn't make sense.
+              const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || allMessageTypes
+              reduxDispatch(
+                Chat2Gen.createMessagesWereDeleted({
+                  conversationIDKey,
+                  deletableMessageTypes,
+                  upToMessageID: expunge.expunge.upto,
+                })
+              )
+              break
+            }
+            case RPCChatTypes.ChatActivityType.ephemeralPurge: {
+              const {ephemeralPurge} = activity
+              // Get actions to update messagemap / metamap when ephemeral messages expire
+              const conversationIDKey = Types.conversationIDToKey(ephemeralPurge.convID)
+              const messageIDs = ephemeralPurge.msgs?.reduce<Array<Types.MessageID>>((arr, msg) => {
+                const msgID = Message.getMessageID(msg)
+                if (msgID) {
+                  arr.push(msgID)
+                }
+                return arr
+              }, [])
+              !!messageIDs && reduxDispatch(Chat2Gen.createMessagesExploded({conversationIDKey, messageIDs}))
+              break
+            }
+            case RPCChatTypes.ChatActivityType.reactionUpdate: {
+              // Get actions to update the messagemap when reactions are updated
+              const {reactionUpdate} = activity
+              const conversationIDKey = Types.conversationIDToKey(reactionUpdate.convID)
+              if (!reactionUpdate.reactionUpdates || reactionUpdate.reactionUpdates.length === 0) {
+                logger.warn(`Got ReactionUpdateNotif with no reactionUpdates for convID=${conversationIDKey}`)
+                break
+              }
+              const updates = reactionUpdate.reactionUpdates.map(ru => ({
+                reactions: Message.reactionMapToReactions(ru.reactions),
+                targetMsgID: ru.targetMsgID,
+              }))
+              logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
+              reduxDispatch(Chat2Gen.createUpdateReactions({conversationIDKey, updates}))
+              useState.getState().dispatch.updateUserReacjis(reactionUpdate.userReacjis)
+              break
+            }
+            case RPCChatTypes.ChatActivityType.messagesUpdated: {
+              const {messagesUpdated} = activity
+              const conversationIDKey = Types.conversationIDToKey(messagesUpdated.convID)
+              getConvoState(conversationIDKey).dispatch.onMessagesUpdated(messagesUpdated)
+              break
+            }
+            default:
+          }
+          break
+        }
         case EngineGen.chat1NotifyChatChatTypingUpdate: {
           const {typingUpdates} = action.payload.params
           typingUpdates?.forEach(u => {
@@ -977,6 +1098,27 @@ export const useState = Z.createZustand<State>((set, get) => {
           )
           break
         }
+      }
+    },
+    onIncomingInboxUIItem: conv => {
+      if (!conv) return
+      const meta = inboxUIItemToConversationMeta(conv)
+      const usernameToFullname = (conv.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
+        if (part.fullName) {
+          map[part.assertion] = part.fullName
+        }
+        return map
+      }, {})
+
+      UsersConstants.useState.getState().dispatch.updates(
+        Object.keys(usernameToFullname).map(name => ({
+          info: {fullname: usernameToFullname[name]},
+          name,
+        }))
+      )
+
+      if (meta) {
+        get().dispatch.metasReceived([meta])
       }
     },
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {

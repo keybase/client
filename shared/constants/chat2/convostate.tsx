@@ -156,6 +156,7 @@ export type ConvoState = ConvoStore & {
       scrollDirection?: ScrollDirection
       numberOfMessagesToLoad?: number
     }) => void
+    messageRetry: (outboxID: Types.OutboxID) => void
     metaReceivedError: (error: RPCChatTypes.InboxUIItemError, username: string) => void
     mute: (m: boolean) => void
     onEngineIncoming: (
@@ -165,6 +166,9 @@ export type ConvoState = ConvoStore & {
         | EngineGen.Chat1NotifyChatChatAttachmentUploadProgressPayload
         | EngineGen.Chat1NotifyChatChatAttachmentUploadStartPayload
     ) => void
+    onIncomingMessage: (incoming: RPCChatTypes.IncomingMessage) => void
+    onMessageErrored: (outboxID: Types.OutboxID, reason: string, errorTyp?: number) => void
+    onMessagesUpdated: (messagesUpdated: RPCChatTypes.MessagesUpdated) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
@@ -230,6 +234,33 @@ const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   messages: [],
   status: 'loading',
 })
+
+// Backend gives us messageIDs sometimes so we need to find our ordinal
+const messageIDToOrdinal = (
+  map: ConvoState['messageMap'],
+  pendingOutboxToOrdinal: ConvoState['pendingOutboxToOrdinal'] | undefined,
+  messageID: Types.MessageID
+) => {
+  // A message we didn't send in this session?
+  let m = map.get(Types.numberToOrdinal(messageID))
+  if (m?.id !== 0 && m?.id === messageID) {
+    return m.ordinal
+  }
+  // Search through our sent messages
+  const pendingOrdinal = [...(pendingOutboxToOrdinal?.values() ?? [])].find(o => {
+    m = map?.get(o)
+    if (m?.id !== 0 && m?.id === messageID) {
+      return true
+    }
+    return false
+  })
+
+  if (pendingOrdinal) {
+    return pendingOrdinal
+  }
+
+  return null
+}
 
 type ScrollDirection = 'none' | 'back' | 'forward'
 export const numMessagesOnInitialLoad = isMobile ? 20 : 100
@@ -461,7 +492,6 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       const f = async () => {
         const ConfigConstants = await import('../config')
         const Constants = await import('.')
-        const reduxDispatch = Z.getReduxDispatch()
         // Get the conversationIDKey
         const key = get().id
 
@@ -633,6 +663,28 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    messageRetry: outboxID => {
+      const ordinal = get().pendingOutboxToOrdinal.get(outboxID)
+      if (!ordinal) {
+        return
+      }
+      const m = get().messageMap.get(ordinal)
+      if (!m) {
+        return
+      }
+      get().dispatch.updateMessage(ordinal, {
+        errorReason: undefined,
+        submitState: 'pending',
+      })
+
+      const f = async () => {
+        await RPCChatTypes.localRetryPostRpcPromise(
+          {outboxID: Types.outboxIDToRpcOutboxID(outboxID)},
+          Common.waitingKeyRetryPost
+        )
+      }
+      Z.ignorePromise(f())
+    },
     metaReceivedError: (error, username) => {
       if (error) {
         if (
@@ -764,6 +816,176 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           break
         }
       }
+    },
+    onIncomingMessage: incoming => {
+      const {message: cMsg} = incoming
+      if (!cMsg) return
+
+      const f = async () => {
+        const ConfigConstants = await import('../config')
+        const username = ConfigConstants.useCurrentUserState.getState().username
+        // check for a reaction outbox notification before doing anything
+        if (
+          cMsg.state === RPCChatTypes.MessageUnboxedState.outbox &&
+          cMsg.outbox.messageType === RPCChatTypes.MessageType.reaction
+        ) {
+          get().dispatch.toggleLocalReaction({
+            decorated: cMsg.outbox.decoratedTextBody ?? '',
+            emoji: cMsg.outbox.body,
+            targetOrdinal: cMsg.outbox.supersedes,
+            username,
+          })
+          return
+        }
+
+        const {modifiedMessage, displayDesktopNotification, desktopNotificationSnippet} = incoming
+        const conversationIDKey = get().id
+        const shouldAddMessage = get().containsLatestMessage ?? false
+        const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
+        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+        const message = Message.uiMessageToMessage(
+          conversationIDKey,
+          cMsg,
+          username,
+          getLastOrdinal,
+          devicename
+        )
+        if (message) {
+          // The attachmentuploaded call is like an 'edit' of an attachment. We get the placeholder, then its replaced by the actual image
+          if (
+            cMsg.state === RPCChatTypes.MessageUnboxedState.valid &&
+            cMsg.valid.messageBody.messageType === RPCChatTypes.MessageType.attachmentuploaded &&
+            message.type === 'attachment'
+          ) {
+            reduxDispatch(
+              Chat2Gen.createMessageAttachmentUploaded({
+                conversationIDKey,
+                message,
+                placeholderID: cMsg.valid.messageBody.attachmentuploaded.messageID,
+              })
+            )
+          } else if (shouldAddMessage) {
+            // A normal message
+            reduxDispatch(
+              Chat2Gen.createMessagesAdd({
+                context: {type: 'incoming'},
+                conversationIDKey,
+                messages: [message],
+              })
+            )
+          }
+        } else if (cMsg.state === RPCChatTypes.MessageUnboxedState.valid) {
+          const {valid} = cMsg
+          const body = valid.messageBody
+          logger.info(`Got chat incoming message of messageType: ${body.messageType}`)
+          // Types that are mutations
+          switch (body.messageType) {
+            case RPCChatTypes.MessageType.edit:
+              if (modifiedMessage) {
+                const modMessage = Message.uiMessageToMessage(
+                  conversationIDKey,
+                  modifiedMessage,
+                  username,
+                  getLastOrdinal,
+                  devicename
+                )
+                if (modMessage) {
+                  reduxDispatch(
+                    Chat2Gen.createMessagesAdd({
+                      context: {type: 'incoming'},
+                      conversationIDKey,
+                      messages: [modMessage],
+                    })
+                  )
+                }
+              }
+              break
+            case RPCChatTypes.MessageType.delete: {
+              const {delete: d} = body
+              if (d.messageIDs) {
+                // check if the delete is acting on an exploding message
+                const messageIDs = d.messageIDs
+                const messages = get().messageMap
+                const isExplodeNow = messageIDs.some(_id => {
+                  const id = Types.numberToOrdinal(_id)
+                  const message = messages.get(id) ?? [...messages.values()].find(msg => msg.id === id)
+                  if ((message?.type === 'text' || message?.type === 'attachment') && message?.exploding) {
+                    return true
+                  }
+                  return false
+                })
+
+                reduxDispatch(
+                  isExplodeNow
+                    ? Chat2Gen.createMessagesExploded({
+                        conversationIDKey,
+                        explodedBy: valid.senderUsername,
+                        messageIDs,
+                      })
+                    : Chat2Gen.createMessagesWereDeleted({conversationIDKey, messageIDs})
+                )
+              }
+              break
+            }
+            default:
+          }
+        }
+        if (
+          !isMobile &&
+          displayDesktopNotification &&
+          desktopNotificationSnippet &&
+          cMsg.state === RPCChatTypes.MessageUnboxedState.valid
+        ) {
+          reduxDispatch(
+            Chat2Gen.createDesktopNotification({
+              author: cMsg.valid.senderUsername,
+              body: desktopNotificationSnippet,
+              conversationIDKey,
+            })
+          )
+        }
+      }
+      Z.ignorePromise(f())
+    },
+    onMessageErrored: (outboxID, reason, errorTyp) => {
+      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+      const ordinal = pendingOutboxToOrdinal.get(outboxID)
+      if (!ordinal) {
+        return
+      }
+      const m = messageMap.get(ordinal)
+      if (!m) {
+        return
+      }
+      dispatch.updateMessage(ordinal, {
+        errorReason: reason,
+        errorTyp: errorTyp || undefined,
+        submitState: 'failed',
+      })
+    },
+    onMessagesUpdated: messagesUpdated => {
+      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+      const f = async () => {
+        const ConfigConstants = await import('../config')
+        const username = ConfigConstants.useCurrentUserState.getState().username
+        const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
+        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+        for (const msg of messagesUpdated.updates ?? []) {
+          const messageID = Message.getMessageID(msg)
+          if (!messageID) {
+            return
+          }
+          const message = Message.uiMessageToMessage(get().id, msg, username, getLastOrdinal, devicename)
+          if (!message) {
+            return
+          }
+          const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)
+          if (ordinal && message.ordinal !== ordinal) {
+            dispatch.updateMessage(ordinal, {ordinal})
+          }
+        }
+      }
+      Z.ignorePromise(f())
     },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {

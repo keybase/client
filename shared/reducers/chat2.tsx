@@ -353,40 +353,6 @@ const reducer = Container.makeReducer<Actions, {}>(
       dispatch.replaceMessageMap(messageMap)
       dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
     },
-    [Chat2Gen.messageRetry]: (_, action) => {
-      const {conversationIDKey, outboxID} = action.payload
-      const {dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-      const outToOrd = Constants.getConvoState(conversationIDKey).pendingOutboxToOrdinal
-      const ordinal = outToOrd?.get(outboxID)
-      if (!ordinal) {
-        return
-      }
-      const m = messageMap.get(ordinal)
-      if (!m) {
-        return
-      }
-      dispatch.updateMessage(ordinal, {
-        errorReason: undefined,
-        submitState: 'pending',
-      })
-    },
-    [Chat2Gen.messageErrored]: (_, action) => {
-      const {conversationIDKey, errorTyp, outboxID, reason} = action.payload
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-      const ordinal = pendingOutboxToOrdinal.get(outboxID)
-      if (!ordinal) {
-        return
-      }
-      const m = messageMap.get(ordinal)
-      if (!m) {
-        return
-      }
-      dispatch.updateMessage(ordinal, {
-        errorReason: reason,
-        errorTyp: errorTyp || undefined,
-        submitState: 'failed',
-      })
-    },
     [Chat2Gen.updateReactions]: (_draftState, action) => {
       const {conversationIDKey, updates} = action.payload
       const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
@@ -568,20 +534,6 @@ const reducer = Container.makeReducer<Actions, {}>(
             text: new HiddenString(''),
             unfurls: new Map(),
           })
-        }
-      })
-    },
-    [Chat2Gen.updateMessages]: (_, action) => {
-      const {messages, conversationIDKey} = action.payload
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-      messages.forEach(({messageID, message}) => {
-        const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)
-        if (!ordinal) {
-          return
-        }
-
-        if (message.ordinal !== ordinal) {
-          dispatch.updateMessage(ordinal, {ordinal})
         }
       })
     },

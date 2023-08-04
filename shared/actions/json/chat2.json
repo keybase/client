@@ -78,13 +78,6 @@
       "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode}>",
       "forceContainsLatestCalc?": "boolean"
     },
-    "messageErrored": {
-      "_description": "Got an error sending a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "reason": "string",
-      "errorTyp?": "number",
-      "outboxID": "Types.OutboxID"
-    },
     "messageReplyPrivately": {
       "_description": "Reply privately to a message with quoting",
       "sourceConversationIDKey": "Types.ConversationIDKey",
@@ -173,11 +166,6 @@
       "_description": "The service sent us an update for the reaction map of a message.",
       "conversationIDKey": "Types.ConversationIDKey",
       "updates": "Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>"
-    },
-    "messageRetry": {
-      "_description": "Resend a message",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "outboxID": "Types.OutboxID"
     },
     "joinConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
@@ -380,11 +368,6 @@
       "_description": "Unsent text changed",
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
-    },
-    "updateMessages": {
-      "_description": "Update messages that we might have in the store",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
     },
     "confirmScreenResponse": {
       "_description": "User responded to the chat Stellar confirm screen",

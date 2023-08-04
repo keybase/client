@@ -47,9 +47,7 @@ export const messageAttachmentUploaded = 'chat2:messageAttachmentUploaded'
 export const messageDelete = 'chat2:messageDelete'
 export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageEdit = 'chat2:messageEdit'
-export const messageErrored = 'chat2:messageErrored'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
-export const messageRetry = 'chat2:messageRetry'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const messageWasEdited = 'chat2:messageWasEdited'
@@ -82,7 +80,6 @@ export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
 export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
-export const updateMessages = 'chat2:updateMessages'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateReactions = 'chat2:updateReactions'
 export const updateUnreadline = 'chat2:updateUnreadline'
@@ -179,15 +176,6 @@ export const createMessagesExploded = (payload: {
   readonly messageIDs: Array<RPCChatTypes.MessageID>
   readonly explodedBy?: string
 }) => ({payload, type: messagesExploded as typeof messagesExploded})
-/**
- * Got an error sending a message
- */
-export const createMessageErrored = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly reason: string
-  readonly errorTyp?: number
-  readonly outboxID: Types.OutboxID
-}) => ({payload, type: messageErrored as typeof messageErrored})
 /**
  * Hide a conversation until future activity
  */
@@ -335,13 +323,6 @@ export const createMessageReplyPrivately = (payload: {
   readonly sourceConversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: messageReplyPrivately as typeof messageReplyPrivately})
-/**
- * Resend a message
- */
-export const createMessageRetry = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly outboxID: Types.OutboxID
-}) => ({payload, type: messageRetry as typeof messageRetry})
 /**
  * Resolve an unknown @ mention
  */
@@ -545,13 +526,6 @@ export const createMessageWasEdited = (payload: {
   readonly mentionsChannelName: Map<string, Types.ConversationIDKey>
 }) => ({payload, type: messageWasEdited as typeof messageWasEdited})
 /**
- * Update messages that we might have in the store
- */
-export const createUpdateMessages = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messages: Array<{messageID: Types.MessageID; message: Types.Message}>
-}) => ({payload, type: updateMessages as typeof updateMessages})
-/**
  * Update the unreadline line position for a conversation
  */
 export const createUpdateUnreadline = (payload: {
@@ -716,9 +690,7 @@ export type MessageAttachmentUploadedPayload = ReturnType<typeof createMessageAt
 export type MessageDeleteHistoryPayload = ReturnType<typeof createMessageDeleteHistory>
 export type MessageDeletePayload = ReturnType<typeof createMessageDelete>
 export type MessageEditPayload = ReturnType<typeof createMessageEdit>
-export type MessageErroredPayload = ReturnType<typeof createMessageErrored>
 export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyPrivately>
-export type MessageRetryPayload = ReturnType<typeof createMessageRetry>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type MessageWasEditedPayload = ReturnType<typeof createMessageWasEdited>
@@ -751,7 +723,6 @@ export type UnfurlResolvePromptPayload = ReturnType<typeof createUnfurlResolvePr
 export type UnhideConversationPayload = ReturnType<typeof createUnhideConversation>
 export type UnpinMessagePayload = ReturnType<typeof createUnpinMessage>
 export type UnsentTextChangedPayload = ReturnType<typeof createUnsentTextChanged>
-export type UpdateMessagesPayload = ReturnType<typeof createUpdateMessages>
 export type UpdateNotificationSettingsPayload = ReturnType<typeof createUpdateNotificationSettings>
 export type UpdateReactionsPayload = ReturnType<typeof createUpdateReactions>
 export type UpdateUnreadlinePayload = ReturnType<typeof createUpdateUnreadline>
@@ -797,9 +768,7 @@ export type Actions =
   | MessageDeleteHistoryPayload
   | MessageDeletePayload
   | MessageEditPayload
-  | MessageErroredPayload
   | MessageReplyPrivatelyPayload
-  | MessageRetryPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload
   | MessageWasEditedPayload
@@ -832,7 +801,6 @@ export type Actions =
   | UnhideConversationPayload
   | UnpinMessagePayload
   | UnsentTextChangedPayload
-  | UpdateMessagesPayload
   | UpdateNotificationSettingsPayload
   | UpdateReactionsPayload
   | UpdateUnreadlinePayload

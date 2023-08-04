@@ -333,9 +333,10 @@ const EditCancelRetry = React.memo(function EditCancelRetry(p: {ecrType: EditCan
   const onEdit = React.useCallback(() => {
     setEditing(ordinal)
   }, [setEditing, ordinal])
+  const messageRetry = Constants.useContext(s => s.dispatch.messageRetry)
   const onRetry = React.useCallback(() => {
-    outboxID && dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID}))
-  }, [dispatch, conversationIDKey, outboxID])
+    outboxID && messageRetry(outboxID)
+  }, [messageRetry, outboxID])
 
   const cancel = (
     <Kb.Text type="BodySmall" style={styles.failUnderline} onClick={onCancel}>
