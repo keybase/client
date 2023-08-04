@@ -964,34 +964,26 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       })
     },
     onMessagesUpdated: messagesUpdated => {
+      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
       const f = async () => {
         const ConfigConstants = await import('../config')
         const username = ConfigConstants.useCurrentUserState.getState().username
         const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
         const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
-        const messages = messagesUpdated.updates?.reduce<
-          Array<{message: Types.Message; messageID: Types.MessageID}>
-        >((l, msg) => {
+        for (const msg of messagesUpdated.updates ?? []) {
           const messageID = Message.getMessageID(msg)
           if (!messageID) {
-            return l
+            return
           }
-          const uiMsg = Message.uiMessageToMessage(get().id, msg, username, getLastOrdinal, devicename)
-          if (!uiMsg) {
-            return l
+          const message = Message.uiMessageToMessage(get().id, msg, username, getLastOrdinal, devicename)
+          if (!message) {
+            return
           }
-          return l.concat({
-            message: uiMsg,
-            messageID: Types.numberToMessageID(messageID),
-          })
-        }, [])
-        const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
-        messages?.forEach(({messageID, message}) => {
           const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, messageID)
           if (ordinal && message.ordinal !== ordinal) {
             dispatch.updateMessage(ordinal, {ordinal})
           }
-        })
+        }
       }
       Z.ignorePromise(f())
     },
