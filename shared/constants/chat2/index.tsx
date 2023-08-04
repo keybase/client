@@ -13,25 +13,13 @@ import logger from '../../logger'
 import type * as TeamsTypes from '../types/teams'
 import type * as Wallet from '../types/wallets'
 import {RPCError} from '../../util/errors'
-import {inboxUIItemToConversationMeta, updateMeta} from './meta'
+import {inboxUIItemToConversationMeta, updateMeta, parseNotificationSettings} from './meta'
 import {isMobile, isPhone} from '../platform'
 import {noConversationIDKey, pendingWaitingConversationIDKey} from '../types/chat2/common'
 import type * as TeamBuildingTypes from '../types/team-building'
 import * as Z from '../../util/zustand'
 import {getConvoState, stores} from './convostate'
 import {explodingModeGregorKeyPrefix, getSelectedConversation, allMessageTypes} from './common'
-
-export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
-  switch (m.type) {
-    case 'attachment':
-      if (m.inlineVideoPlayable && m.attachmentType !== 'audio') {
-        return 'attachment:video'
-      }
-      return `attachment:${m.attachmentType}`
-    default:
-      return m.type
-  }
-}
 
 export const formatTextForQuoting = (text: string) =>
   text
@@ -922,12 +910,12 @@ export const useState = Z.createZustand<State>((set, get) => {
               break
             case RPCChatTypes.ChatActivityType.setAppNotificationSettings: {
               const {setAppNotificationSettings} = activity
-              reduxDispatch(
-                Chat2Gen.createNotificationSettingsUpdated({
-                  conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
-                  settings: setAppNotificationSettings.settings,
-                })
-              )
+              const conversationIDKey = Types.conversationIDToKey(setAppNotificationSettings.convID)
+              const settings = setAppNotificationSettings.settings
+              const cs = getConvoState(conversationIDKey)
+              if (cs.meta.conversationIDKey === conversationIDKey) {
+                cs.dispatch.updateMeta(parseNotificationSettings(settings))
+              }
               break
             }
             case RPCChatTypes.ChatActivityType.expunge: {
@@ -955,7 +943,8 @@ export const useState = Z.createZustand<State>((set, get) => {
                 }
                 return arr
               }, [])
-              !!messageIDs && reduxDispatch(Chat2Gen.createMessagesExploded({conversationIDKey, messageIDs}))
+
+              !!messageIDs && getConvoState(conversationIDKey).dispatch.messagesExploded(messageIDs)
               break
             }
             case RPCChatTypes.ChatActivityType.reactionUpdate: {

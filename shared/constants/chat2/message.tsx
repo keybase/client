@@ -20,6 +20,17 @@ import {isMobile} from '../platform'
 import {noConversationIDKey} from '../types/chat2/common'
 import isEqual from 'lodash/isEqual'
 
+export const getMessageRenderType = (m: Types.Message): Types.RenderMessageType => {
+  switch (m.type) {
+    case 'attachment':
+      if (m.inlineVideoPlayable && m.attachmentType !== 'audio') {
+        return 'attachment:video'
+      }
+      return `attachment:${m.attachmentType}`
+    default:
+      return m.type
+  }
+}
 export const isMessageWithReactions = (message: Types.Message): message is Types.MessagesWithReactions => {
   return (
     !(

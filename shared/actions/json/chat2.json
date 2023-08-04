@@ -56,51 +56,10 @@
       "highlightMessageID?": "number",
       "participants": "Array<string>"
     },
-    "messagesAdd": {
-      "_description": [
-        "Add a new message",
-        "",
-        "Context types:",
-        "- sent = we sent it",
-        "- incoming = a streaming message",
-        "- threadLoad = we're loading more messages on select / scroll"
-      ],
-      "context": [
-        "{type: 'sent'}",
-        "{type: 'incoming'}",
-        "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}"
-      ],
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messages": "Array<Types.Message>",
-      // true if these should be the only messages we know about
-      "shouldClearOthers?": "boolean",
-      "centeredMessageIDs?": "Array<{conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, highlightMode: Types.CenterOrdinalHighlightMode}>",
-      "forceContainsLatestCalc?": "boolean"
-    },
     "messageReplyPrivately": {
       "_description": "Reply privately to a message with quoting",
       "sourceConversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
-    },
-    "messageWasEdited": {
-      "_description": "Update a message which changed",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "RPCChatTypes.MessageID",
-      "text": "HiddenString",
-      "mentionsAt": "Set<string>",
-      "mentionsChannel": "'none' | 'all' | 'here'",
-      "mentionsChannelName": "Map<string, Types.ConversationIDKey>"
-    },
-    "pendingMessageWasEdited": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
-      "text": "HiddenString"
-    },
-    "messagesExploded": {
-      "_description": "Exploding messages expired or were manually detonated.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageIDs": "Array<RPCChatTypes.MessageID>",
-      "explodedBy?": "string"
     },
     "messageDeleteHistory": {
       "_description": "Deletes all messages",
@@ -286,11 +245,6 @@
       "notificationsDesktop": "Types.NotificationsType",
       "notificationsMobile": "Types.NotificationsType",
       "notificationsGlobalIgnoreMentions": "boolean"
-    },
-    "notificationSettingsUpdated": {
-      "_description": "We get new notification settings",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "settings": "RPCChatTypes.ConversationNotificationInfo"
     },
     "blockConversation": {
       "_description": "Block a conversation",

@@ -45,15 +45,10 @@ export const messageDeleteHistory = 'chat2:messageDeleteHistory'
 export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
-export const messageWasEdited = 'chat2:messageWasEdited'
-export const messagesAdd = 'chat2:messagesAdd'
-export const messagesExploded = 'chat2:messagesExploded'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
-export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
-export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const pinMessage = 'chat2:pinMessage'
 export const previewConversation = 'chat2:previewConversation'
 export const replyJump = 'chat2:replyJump'
@@ -90,29 +85,6 @@ export const createAddUsersToChannel = (payload: {
   readonly usernames: Array<string>
 }) => ({payload, type: addUsersToChannel as typeof addUsersToChannel})
 /**
- * Add a new message
- *
- * Context types:
- * - sent = we sent it
- * - incoming = a streaming message
- * - threadLoad = we're loading more messages on select / scroll
- */
-export const createMessagesAdd = (payload: {
-  readonly context:
-    | {type: 'sent'}
-    | {type: 'incoming'}
-    | {type: 'threadLoad'; conversationIDKey: Types.ConversationIDKey}
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messages: Array<Types.Message>
-  readonly shouldClearOthers?: boolean
-  readonly centeredMessageIDs?: Array<{
-    conversationIDKey: Types.ConversationIDKey
-    messageID: Types.MessageID
-    highlightMode: Types.CenterOrdinalHighlightMode
-  }>
-  readonly forceContainsLatestCalc?: boolean
-}) => ({payload, type: messagesAdd as typeof messagesAdd})
-/**
  * Add a single user to a conversation. Creates a SystemBulkAddToConv message.
  */
 export const createAddUserToChannel = (payload: {
@@ -144,14 +116,6 @@ export const createDismissJourneycard = (payload: {
   readonly cardType: RPCChatTypes.JourneycardType
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: dismissJourneycard as typeof dismissJourneycard})
-/**
- * Exploding messages expired or were manually detonated.
- */
-export const createMessagesExploded = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageIDs: Array<RPCChatTypes.MessageID>
-  readonly explodedBy?: string
-}) => ({payload, type: messagesExploded as typeof messagesExploded})
 /**
  * If an implied team chat member resets you can add them back in
  */
@@ -445,17 +409,6 @@ export const createUnsentTextChanged = (payload: {
   readonly text: HiddenString
 }) => ({payload, type: unsentTextChanged as typeof unsentTextChanged})
 /**
- * Update a message which changed
- */
-export const createMessageWasEdited = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: RPCChatTypes.MessageID
-  readonly text: HiddenString
-  readonly mentionsAt: Set<string>
-  readonly mentionsChannel: 'none' | 'all' | 'here'
-  readonly mentionsChannelName: Map<string, Types.ConversationIDKey>
-}) => ({payload, type: messageWasEdited as typeof messageWasEdited})
-/**
  * Update the unreadline line position for a conversation
  */
 export const createUpdateUnreadline = (payload: {
@@ -469,13 +422,6 @@ export const createConfirmScreenResponse = (payload: {readonly accept: boolean})
   payload,
   type: confirmScreenResponse as typeof confirmScreenResponse,
 })
-/**
- * We get new notification settings
- */
-export const createNotificationSettingsUpdated = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly settings: RPCChatTypes.ConversationNotificationInfo
-}) => ({payload, type: notificationSettingsUpdated as typeof notificationSettingsUpdated})
 /**
  * We got an uploaded attachment.
  * While online this is like an edit of the placeholder
@@ -561,11 +507,6 @@ export const createOpenFolder = (payload: {readonly conversationIDKey: Types.Con
   payload,
   type: openFolder as typeof openFolder,
 })
-export const createPendingMessageWasEdited = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly ordinal: Types.Ordinal
-  readonly text: HiddenString
-}) => ({payload, type: pendingMessageWasEdited as typeof pendingMessageWasEdited})
 export const createSendAudioRecording = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly duration: number
@@ -610,15 +551,10 @@ export type MessageDeleteHistoryPayload = ReturnType<typeof createMessageDeleteH
 export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyPrivately>
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
-export type MessageWasEditedPayload = ReturnType<typeof createMessageWasEdited>
-export type MessagesAddPayload = ReturnType<typeof createMessagesAdd>
-export type MessagesExplodedPayload = ReturnType<typeof createMessagesExploded>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
-export type NotificationSettingsUpdatedPayload = ReturnType<typeof createNotificationSettingsUpdated>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
 export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
-export type PendingMessageWasEditedPayload = ReturnType<typeof createPendingMessageWasEdited>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
 export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
@@ -678,15 +614,10 @@ export type Actions =
   | MessageReplyPrivatelyPayload
   | MessageSendByUsernamesPayload
   | MessageSendPayload
-  | MessageWasEditedPayload
-  | MessagesAddPayload
-  | MessagesExplodedPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
-  | NotificationSettingsUpdatedPayload
   | OpenChatFromWidgetPayload
   | OpenFolderPayload
-  | PendingMessageWasEditedPayload
   | PinMessagePayload
   | PreviewConversationPayload
   | ReplyJumpPayload
