@@ -168,6 +168,7 @@ export type ConvoState = ConvoStore & {
     ) => void
     onIncomingMessage: (incoming: RPCChatTypes.IncomingMessage) => void
     onMessageErrored: (outboxID: Types.OutboxID, reason: string, errorTyp?: number) => void
+    onMessagesUpdated: (messagesUpdated: RPCChatTypes.MessagesUpdated) => void
     paymentInfoReceived: (messageID: RPCChatTypes.MessageID, paymentInfo: Types.ChatPaymentInfo) => void
     refreshBotRoleInConv: (username: string) => void
     refreshBotSettings: (username: string) => void
@@ -935,6 +936,32 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         errorTyp: errorTyp || undefined,
         submitState: 'failed',
       })
+    },
+    onMessagesUpdated: messagesUpdated => {
+      const f = async () => {
+        const ConfigConstants = await import('../config')
+        const username = ConfigConstants.useCurrentUserState.getState().username
+        const devicename = ConfigConstants.useCurrentUserState.getState().deviceName
+        const getLastOrdinal = () => get().messageOrdinals?.at(-1) ?? 0
+        const messages = messagesUpdated.updates?.reduce<
+          Array<{message: Types.Message; messageID: Types.MessageID}>
+        >((l, msg) => {
+          const messageID = Message.getMessageID(msg)
+          if (!messageID) {
+            return l
+          }
+          const uiMsg = Message.uiMessageToMessage(get().id, msg, username, getLastOrdinal, devicename)
+          if (!uiMsg) {
+            return l
+          }
+          return l.concat({
+            message: uiMsg,
+            messageID: Types.numberToMessageID(messageID),
+          })
+        }, [])
+        messages && reduxDispatch(Chat2Gen.createUpdateMessages({conversationIDKey: get().id, messages}))
+      }
+      Z.ignorePromise(f())
     },
     paymentInfoReceived: (messageID, paymentInfo) => {
       set(s => {

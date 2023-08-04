@@ -979,27 +979,67 @@ export const useState = Z.createZustand<State>((set, get) => {
               get().dispatch.unboxRows([Types.conversationIDToKey(activity.membersUpdate.convID)], true)
               break
             case RPCChatTypes.ChatActivityType.setAppNotificationSettings: {
-              // const {setAppNotificationSettings} = activity
-              // actions = [
-              //   Chat2Gen.createNotificationSettingsUpdated({
-              //     conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
-              //     settings: setAppNotificationSettings.settings,
-              //   }),
-              // ]
+              const {setAppNotificationSettings} = activity
+              reduxDispatch(
+                Chat2Gen.createNotificationSettingsUpdated({
+                  conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
+                  settings: setAppNotificationSettings.settings,
+                })
+              )
               break
             }
             case RPCChatTypes.ChatActivityType.expunge: {
-              // actions = expungeToActions(activity.expunge)
+              // Get actions to update messagemap / metamap when retention policy expunge happens
+              const {expunge} = activity
+              const conversationIDKey = Types.conversationIDToKey(expunge.convID)
+              const staticConfig = useState.getState().staticConfig
+              // The types here are askew. It confuses frontend MessageType with protocol MessageType.
+              // Placeholder is an example where it doesn't make sense.
+              const deletableMessageTypes = staticConfig?.deletableByDeleteHistory || allMessageTypes
+              reduxDispatch(
+                Chat2Gen.createMessagesWereDeleted({
+                  conversationIDKey,
+                  deletableMessageTypes,
+                  upToMessageID: expunge.expunge.upto,
+                })
+              )
               break
             }
-            case RPCChatTypes.ChatActivityType.ephemeralPurge:
-              // actions = ephemeralPurgeToActions(activity.ephemeralPurge)
+            case RPCChatTypes.ChatActivityType.ephemeralPurge: {
+              const {ephemeralPurge} = activity
+              // Get actions to update messagemap / metamap when ephemeral messages expire
+              const conversationIDKey = Types.conversationIDToKey(ephemeralPurge.convID)
+              const messageIDs = ephemeralPurge.msgs?.reduce<Array<Types.MessageID>>((arr, msg) => {
+                const msgID = Message.getMessageID(msg)
+                if (msgID) {
+                  arr.push(msgID)
+                }
+                return arr
+              }, [])
+              !!messageIDs && reduxDispatch(Chat2Gen.createMessagesExploded({conversationIDKey, messageIDs}))
               break
-            case RPCChatTypes.ChatActivityType.reactionUpdate:
-              // reactionUpdateToActions(activity.reactionUpdate)
+            }
+            case RPCChatTypes.ChatActivityType.reactionUpdate: {
+              // Get actions to update the messagemap when reactions are updated
+              const {reactionUpdate} = activity
+              const conversationIDKey = Types.conversationIDToKey(reactionUpdate.convID)
+              if (!reactionUpdate.reactionUpdates || reactionUpdate.reactionUpdates.length === 0) {
+                logger.warn(`Got ReactionUpdateNotif with no reactionUpdates for convID=${conversationIDKey}`)
+                break
+              }
+              const updates = reactionUpdate.reactionUpdates.map(ru => ({
+                reactions: Message.reactionMapToReactions(ru.reactions),
+                targetMsgID: ru.targetMsgID,
+              }))
+              logger.info(`Got ${updates.length} reaction updates for convID=${conversationIDKey}`)
+              reduxDispatch(Chat2Gen.createUpdateReactions({conversationIDKey, updates}))
+              useState.getState().dispatch.updateUserReacjis(reactionUpdate.userReacjis)
               break
+            }
             case RPCChatTypes.ChatActivityType.messagesUpdated: {
-              // actions = messagesUpdatedToActions(state, activity.messagesUpdated)
+              const {messagesUpdated} = activity
+              const conversationIDKey = Types.conversationIDToKey(messagesUpdated.convID)
+              getConvoState(conversationIDKey).dispatch.onMessagesUpdated(messagesUpdated)
               break
             }
             default:
