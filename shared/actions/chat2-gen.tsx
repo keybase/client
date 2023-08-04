@@ -65,7 +65,6 @@ export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
-export const setConversationOffline = 'chat2:setConversationOffline'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const tabSelected = 'chat2:tabSelected'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
@@ -130,13 +129,6 @@ export const createBlockConversation = (payload: {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly reportUser: boolean
 }) => ({payload, type: blockConversation as typeof blockConversation})
-/**
- * Conversation was loaded and is offline
- */
-export const createSetConversationOffline = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly offline: boolean
-}) => ({payload, type: setConversationOffline as typeof setConversationOffline})
 /**
  * Deletes all messages
  */
@@ -659,7 +651,6 @@ export type ResolveMaybeMentionPayload = ReturnType<typeof createResolveMaybeMen
 export type SendAudioRecordingPayload = ReturnType<typeof createSendAudioRecording>
 export type SendTypingPayload = ReturnType<typeof createSendTyping>
 export type SetConvRetentionPolicyPayload = ReturnType<typeof createSetConvRetentionPolicy>
-export type SetConversationOfflinePayload = ReturnType<typeof createSetConversationOffline>
 export type SetMinWriterRolePayload = ReturnType<typeof createSetMinWriterRole>
 export type TabSelectedPayload = ReturnType<typeof createTabSelected>
 export type ToggleMessageCollapsePayload = ReturnType<typeof createToggleMessageCollapse>
@@ -731,7 +722,6 @@ export type Actions =
   | SendAudioRecordingPayload
   | SendTypingPayload
   | SetConvRetentionPolicyPayload
-  | SetConversationOfflinePayload
   | SetMinWriterRolePayload
   | TabSelectedPayload
   | ToggleMessageCollapsePayload

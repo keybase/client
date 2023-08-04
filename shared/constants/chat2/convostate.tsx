@@ -631,9 +631,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             },
             Z.dummyListenerApi
           )
-          reduxDispatch(
-            Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
-          )
+          if (get().meta.conversationIDKey === conversationIDKey) {
+            get().dispatch.updateMeta({offline: results.offline})
+          }
         } catch (error) {
           if (error instanceof RPCError) {
             logger.warn(error.desc)

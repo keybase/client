@@ -309,11 +309,6 @@
     "unhideConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "setConversationOffline": {
-      "_description": "Conversation was loaded and is offline",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "offline": "boolean"
-    },
     "setConvRetentionPolicy": {
       "_description": "Sets the retention policy for a conversation.",
       "conversationIDKey": "Types.ConversationIDKey",

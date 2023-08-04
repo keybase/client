@@ -407,15 +407,6 @@ const reducer = Container.makeReducer<Actions, {}>(
         })
       }
     },
-    [Chat2Gen.setConversationOffline]: (_draftState, action) => {
-      const {conversationIDKey, offline} = action.payload
-      const cs = Constants.getConvoState(conversationIDKey)
-      if (cs.meta.conversationIDKey === conversationIDKey) {
-        cs.dispatch.updateMeta({
-          offline,
-        })
-      }
-    },
     [Chat2Gen.messagesExploded]: (_, action) => {
       const {conversationIDKey, messageIDs, explodedBy} = action.payload
       const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
