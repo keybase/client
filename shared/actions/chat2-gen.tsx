@@ -46,7 +46,6 @@ export const messageReplyPrivately = 'chat2:messageReplyPrivately'
 export const messageSend = 'chat2:messageSend'
 export const messageSendByUsernames = 'chat2:messageSendByUsernames'
 export const messagesAdd = 'chat2:messagesAdd'
-export const messagesExploded = 'chat2:messagesExploded'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
@@ -141,14 +140,6 @@ export const createDismissJourneycard = (payload: {
   readonly cardType: RPCChatTypes.JourneycardType
   readonly ordinal: Types.Ordinal
 }) => ({payload, type: dismissJourneycard as typeof dismissJourneycard})
-/**
- * Exploding messages expired or were manually detonated.
- */
-export const createMessagesExploded = (payload: {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageIDs: Array<RPCChatTypes.MessageID>
-  readonly explodedBy?: string
-}) => ({payload, type: messagesExploded as typeof messagesExploded})
 /**
  * If an implied team chat member resets you can add them back in
  */
@@ -585,7 +576,6 @@ export type MessageReplyPrivatelyPayload = ReturnType<typeof createMessageReplyP
 export type MessageSendByUsernamesPayload = ReturnType<typeof createMessageSendByUsernames>
 export type MessageSendPayload = ReturnType<typeof createMessageSend>
 export type MessagesAddPayload = ReturnType<typeof createMessagesAdd>
-export type MessagesExplodedPayload = ReturnType<typeof createMessagesExploded>
 export type NavigateToInboxPayload = ReturnType<typeof createNavigateToInbox>
 export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
@@ -650,7 +640,6 @@ export type Actions =
   | MessageSendByUsernamesPayload
   | MessageSendPayload
   | MessagesAddPayload
-  | MessagesExplodedPayload
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | OpenChatFromWidgetPayload

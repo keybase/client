@@ -955,7 +955,8 @@ export const useState = Z.createZustand<State>((set, get) => {
                 }
                 return arr
               }, [])
-              !!messageIDs && reduxDispatch(Chat2Gen.createMessagesExploded({conversationIDKey, messageIDs}))
+
+              !!messageIDs && getConvoState(conversationIDKey).dispatch.messagesExploded(messageIDs)
               break
             }
             case RPCChatTypes.ChatActivityType.reactionUpdate: {

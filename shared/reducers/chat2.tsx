@@ -4,7 +4,6 @@ import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Types from '../constants/types/chat2'
 import logger from '../logger'
-import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import sortedIndexOf from 'lodash/sortedIndexOf'
 
@@ -351,34 +350,6 @@ const reducer = Container.makeReducer<Actions, {}>(
       dispatch.setContainsLatestMessage(containsLatestMessage)
       dispatch.replaceMessageMap(messageMap)
       dispatch.setPendingOutboxToOrdinal(pendingOutboxToOrdinal)
-    },
-    [Chat2Gen.messagesExploded]: (_, action) => {
-      const {conversationIDKey, messageIDs, explodedBy} = action.payload
-      const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-      logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
-      const ordinals = messageIDs.reduce<Array<Types.Ordinal>>((arr, mid) => {
-        const ord = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, mid)
-        ord && arr.push(ord)
-        return arr
-      }, [])
-      if (ordinals.length === 0) {
-        // found nothing
-        return
-      }
-      ordinals.forEach(ordinal => {
-        const m = messageMap.get(ordinal)
-        if (m) {
-          dispatch.updateMessage(ordinal, {
-            exploded: true,
-            explodedBy: explodedBy || '',
-            flipGameID: '',
-            mentionsAt: new Set(),
-            reactions: new Map(),
-            text: new HiddenString(''),
-            unfurls: new Map(),
-          })
-        }
-      })
     },
     ...attachmentActions,
   }

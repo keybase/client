@@ -82,12 +82,6 @@
       "sourceConversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    "messagesExploded": {
-      "_description": "Exploding messages expired or were manually detonated.",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageIDs": "Array<RPCChatTypes.MessageID>",
-      "explodedBy?": "string"
-    },
     "messageDeleteHistory": {
       "_description": "Deletes all messages",
       "conversationIDKey": "Types.ConversationIDKey"

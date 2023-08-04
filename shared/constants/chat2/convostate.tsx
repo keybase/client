@@ -161,6 +161,7 @@ export type ConvoState = ConvoStore & {
     messageDelete: (ordinal: Types.Ordinal) => void
     messageEdit: (ordinal: Types.Ordinal, text: string) => void
     messageRetry: (outboxID: Types.OutboxID) => void
+    messagesExploded: (messageIDs: Array<RPCChatTypes.MessageID>, explodedBy?: string) => void
     messagesWereDeleted: (p: {
       messageIDs?: Array<RPCChatTypes.MessageID>
       upToMessageID?: RPCChatTypes.MessageID // expunge calls give us a message we should delete up to (don't delete it)
@@ -897,6 +898,25 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
       }
       Z.ignorePromise(f())
     },
+    messagesExploded: (messageIDs, explodedBy) => {
+      const {pendingOutboxToOrdinal, dispatch, messageMap} = get()
+      logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
+      for (const mid of messageIDs) {
+        const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, mid)
+        const m = ordinal && messageMap.get(ordinal)
+        if (m) {
+          dispatch.updateMessage(ordinal, {
+            exploded: true,
+            explodedBy: explodedBy || '',
+            flipGameID: '',
+            mentionsAt: new Set(),
+            reactions: new Map(),
+            text: new HiddenString(''),
+            unfurls: new Map(),
+          })
+        }
+      }
+    },
     messagesWereDeleted: p => {
       const {
         deletableMessageTypes = Common.allMessageTypes,
@@ -1175,13 +1195,7 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
                 })
 
                 if (isExplodeNow) {
-                  reduxDispatch(
-                    Chat2Gen.createMessagesExploded({
-                      conversationIDKey,
-                      explodedBy: valid.senderUsername,
-                      messageIDs,
-                    })
-                  )
+                  get().dispatch.messagesExploded(messageIDs, valid.senderUsername)
                 } else {
                   get().dispatch.messagesWereDeleted({messageIDs})
                 }
