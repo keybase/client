@@ -41,7 +41,6 @@ export const navigateToThread = 'chat2:navigateToThread'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
 export const pinMessage = 'chat2:pinMessage'
-export const previewConversation = 'chat2:previewConversation'
 export const replyJump = 'chat2:replyJump'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
@@ -254,43 +253,6 @@ export const createUnfurlResolvePrompt = (payload: {
   readonly result: RPCChatTypes.UnfurlPromptResult
 }) => ({payload, type: unfurlResolvePrompt as typeof unfurlResolvePrompt})
 /**
- * Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
- * fromAReset means you were in a reset kbfs convo and you want to make a new one
- * Chatting from external places in the app should usually call this
- * if you want to preview a team chat (and add it to the inbox use selectConversation instead)
- */
-export const createPreviewConversation = (payload: {
-  readonly participants?: Array<string>
-  readonly teamname?: string
-  readonly channelname?: string
-  readonly conversationIDKey?: Types.ConversationIDKey
-  readonly highlightMessageID?: number
-  readonly reason:
-    | 'appLink'
-    | 'channelHeader'
-    | 'convertAdHoc'
-    | 'files'
-    | 'forward'
-    | 'fromAReset'
-    | 'journeyCardPopular'
-    | 'manageView'
-    | 'memberView'
-    | 'messageLink'
-    | 'newChannel'
-    | 'profile'
-    | 'requestedPayment'
-    | 'resetChatWithoutThem'
-    | 'search'
-    | 'sentPayment'
-    | 'teamHeader'
-    | 'teamInvite'
-    | 'teamMember'
-    | 'teamMention'
-    | 'teamRow'
-    | 'tracker'
-    | 'transaction'
-}) => ({payload, type: previewConversation as typeof previewConversation})
-/**
  * Send a text message
  */
 export const createMessageSend = (payload: {
@@ -480,7 +442,6 @@ export type NavigateToThreadPayload = ReturnType<typeof createNavigateToThread>
 export type OpenChatFromWidgetPayload = ReturnType<typeof createOpenChatFromWidget>
 export type OpenFolderPayload = ReturnType<typeof createOpenFolder>
 export type PinMessagePayload = ReturnType<typeof createPinMessage>
-export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
 export type ReplyJumpPayload = ReturnType<typeof createReplyJump>
 export type ResetChatWithoutThemPayload = ReturnType<typeof createResetChatWithoutThem>
 export type ResetLetThemInPayload = ReturnType<typeof createResetLetThemIn>
@@ -534,7 +495,6 @@ export type Actions =
   | OpenChatFromWidgetPayload
   | OpenFolderPayload
   | PinMessagePayload
-  | PreviewConversationPayload
   | ReplyJumpPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload

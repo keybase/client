@@ -156,8 +156,9 @@ const TeamJourneyConnected = (ownProps: OwnProps) => {
     cardType: RPCChatTypes.JourneycardType,
     ordinal: ChatTypes.Ordinal
   ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal}))
+  const previewConversation = Constants.useState(s => s.dispatch.previewConversation)
   const _onGoToChannel = (channelname: string, teamname: string) =>
-    dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname}))
+    previewConversation({channelname, reason: 'journeyCardPopular', teamname})
   const manageChatChannels = TeamConstants.useState(s => s.dispatch.manageChatChannels)
   const _onManageChannels = (teamID: string) => manageChatChannels(teamID)
 

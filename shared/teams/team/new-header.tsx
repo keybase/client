@@ -3,8 +3,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as ChatConstants from '../../constants/chat2'
 import * as ConfigConstants from '../../constants/config'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import TeamMenu from './menu-container'
 import type {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
@@ -289,7 +289,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
 export default HeaderTitle
 
 const useHeaderCallbacks = (teamID: TeamID) => {
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const meta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   const yourUsername = ConfigConstants.useCurrentUserState(s => s.username)
@@ -301,8 +300,8 @@ const useHeaderCallbacks = (teamID: TeamID) => {
     startAddMembersWizard(teamID)
     addMembersWizardPushMembers([{assertion: yourUsername, role: 'writer'}])
   }
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname: meta.teamname}))
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({reason: 'teamHeader', teamname: meta.teamname})
   const onEditAvatar = yourOperations.editTeamDescription
     ? () =>
         nav.safeNavigateAppend({props: {sendChatNotification: true, teamID}, selected: 'profileEditAvatar'})

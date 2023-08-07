@@ -4,7 +4,6 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as RouterConstants from '../../../constants/router2'
@@ -31,7 +30,6 @@ const TeamPicker = (props: Props) => {
   const [error, setError] = React.useState('')
   const fwdMsg = Container.useRPC(RPCChatTypes.localForwardMessageNonblockRpcPromise)
   const submit = Container.useRPC(RPCChatTypes.localForwardMessageConvSearchRpcPromise)
-  const dispatch = Container.useDispatch()
   const [lastTerm, setLastTerm] = React.useState('init')
   if (lastTerm !== term) {
     setLastTerm(term)
@@ -79,6 +77,7 @@ const TeamPicker = (props: Props) => {
     }
   }
 
+  const previewConversation = Constants.useState(s => s.dispatch.previewConversation)
   const onSubmit = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault()
     event?.stopPropagation()
@@ -103,12 +102,10 @@ const TeamPicker = (props: Props) => {
       }
     )
     clearModals()
-    dispatch(
-      Chat2Gen.createPreviewConversation({
-        conversationIDKey: Types.conversationIDToKey(dstConvIDRef.current),
-        reason: 'forward',
-      })
-    )
+    previewConversation({
+      conversationIDKey: Types.conversationIDToKey(dstConvIDRef.current),
+      reason: 'forward',
+    })
   }
 
   const onSelect = (dstConvID: RPCChatTypes.ConversationID) => {

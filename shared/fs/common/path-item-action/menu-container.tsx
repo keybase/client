@@ -2,8 +2,8 @@ import * as RouterConstants from '../../../constants/router2'
 import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
 import * as Constants from '../../../constants/fs'
+import * as ChatConstants from '../../../constants/chat2'
 import * as ConfigConstants from '../../../constants/config'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 import {memoize} from '../../../util/memoize'
@@ -69,9 +69,6 @@ export default (ownProps: OwnProps) => {
   const _sfmiEnabled = Constants.useState(s => s.sfmi.driverStatus.type === Types.DriverStatusType.Enabled)
   const _username = ConfigConstants.useCurrentUserState(s => s.username)
   const _view = _pathItemActionMenu.view
-
-  const dispatch = Container.useDispatch()
-
   const _cancel = cancelDownload
 
   const setPathItemActionMenuView = Constants.useState(s => s.dispatch.setPathItemActionMenuView)
@@ -94,15 +91,14 @@ export default (ownProps: OwnProps) => {
   const _newFolder = React.useCallback(() => {
     newFolderRow(path)
   }, [newFolderRow, path])
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
   const _openChat = () => {
-    dispatch(
-      Chat2Gen.createPreviewConversation({
-        reason: 'files',
-        // tlfToParticipantsOrTeamname will route both public and private
-        // folders to a private chat, which is exactly what we want.
-        ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
-      })
-    )
+    previewConversation({
+      reason: 'files',
+      // tlfToParticipantsOrTeamname will route both public and private
+      // folders to a private chat, which is exactly what we want.
+      ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
+    })
   }
   const startRename = Constants.useState(s => s.dispatch.startRename)
   const download = Constants.useState(s => s.dispatch.download)

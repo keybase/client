@@ -17,6 +17,7 @@ export const openPathInSystemFileManager = 'remote:openPathInSystemFileManager'
 export const pinentryOnCancel = 'remote:pinentryOnCancel'
 export const pinentryOnSubmit = 'remote:pinentryOnSubmit'
 export const powerMonitorEvent = 'remote:powerMonitorEvent'
+export const previewConversation = 'remote:previewConversation'
 export const remoteWindowWantsProps = 'remote:remoteWindowWantsProps'
 export const saltpackFileOpen = 'remote:saltpackFileOpen'
 export const setCriticalUpdate = 'remote:setCriticalUpdate'
@@ -101,6 +102,10 @@ export const createPowerMonitorEvent = (payload: {readonly event: string}) => ({
   payload,
   type: powerMonitorEvent as typeof powerMonitorEvent,
 })
+export const createPreviewConversation = (payload: {readonly participant: string}) => ({
+  payload,
+  type: previewConversation as typeof previewConversation,
+})
 export const createSaltpackFileOpen = (payload: {readonly path: string | HiddenString}) => ({
   payload,
   type: saltpackFileOpen as typeof saltpackFileOpen,
@@ -173,6 +178,7 @@ export type OpenPathInSystemFileManagerPayload = ReturnType<typeof createOpenPat
 export type PinentryOnCancelPayload = ReturnType<typeof createPinentryOnCancel>
 export type PinentryOnSubmitPayload = ReturnType<typeof createPinentryOnSubmit>
 export type PowerMonitorEventPayload = ReturnType<typeof createPowerMonitorEvent>
+export type PreviewConversationPayload = ReturnType<typeof createPreviewConversation>
 export type RemoteWindowWantsPropsPayload = ReturnType<typeof createRemoteWindowWantsProps>
 export type SaltpackFileOpenPayload = ReturnType<typeof createSaltpackFileOpen>
 export type SetCriticalUpdatePayload = ReturnType<typeof createSetCriticalUpdate>
@@ -205,6 +211,7 @@ export type Actions =
   | PinentryOnCancelPayload
   | PinentryOnSubmitPayload
   | PowerMonitorEventPayload
+  | PreviewConversationPayload
   | RemoteWindowWantsPropsPayload
   | SaltpackFileOpenPayload
   | SetCriticalUpdatePayload

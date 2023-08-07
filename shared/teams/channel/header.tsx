@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
-import * as Chat2Gen from '../../actions/chat2-gen'
+import * as ChatConstants from '../../constants/chat2'
 import * as RPCChatGen from '../../constants/types/rpc-chat-gen'
 import {type ConversationIDKey, keyToConversationID} from '../../constants/types/chat2'
 import type {TeamID} from '../../constants/types/teams'
@@ -44,7 +44,6 @@ const HeaderTitle = (props: HeaderTitleProps) => {
     description: description,
     teamID,
   }
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onEditChannel = () => nav.safeNavigateAppend({props: editChannelProps, selected: 'teamEditChannel'})
   const onAddMembers = () =>
@@ -53,8 +52,8 @@ const HeaderTitle = (props: HeaderTitleProps) => {
   const activityLevel = Constants.useState(s => s.activityLevels.channels.get(conversationIDKey) || 'none')
   const newMemberCount = useRecentJoins(conversationIDKey)
 
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'channelHeader'}))
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({conversationIDKey, reason: 'channelHeader'})
 
   const topDescriptors = (
     <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xxtiny" style={styles.flexShrink}>

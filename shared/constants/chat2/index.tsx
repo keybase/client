@@ -1,4 +1,6 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Tabs from '../tabs'
+import * as LinksConstants from '../deeplinks'
 import * as TeamsConstants from '../teams'
 import * as UsersConstants from '../users'
 import * as EngineGen from '../../actions/engine-gen-gen'
@@ -19,7 +21,12 @@ import {noConversationIDKey, pendingWaitingConversationIDKey} from '../types/cha
 import type * as TeamBuildingTypes from '../types/team-building'
 import * as Z from '../../util/zustand'
 import {getConvoState, stores} from './convostate'
-import {explodingModeGregorKeyPrefix, getSelectedConversation, allMessageTypes} from './common'
+import {
+  explodingModeGregorKeyPrefix,
+  getSelectedConversation,
+  allMessageTypes,
+  threadRouteName,
+} from './common'
 
 export const formatTextForQuoting = (text: string) =>
   text
@@ -293,6 +300,13 @@ export const isBigTeam = (state: State, teamID: string): boolean => {
   )
 }
 
+// prettier-ignore
+type PreviewReason =
+  | 'appLink' | 'channelHeader' | 'convertAdHoc' | 'files' | 'forward' | 'fromAReset'
+  | 'journeyCardPopular' | 'manageView' | 'memberView' | 'messageLink' | 'newChannel'
+  | 'profile' | 'requestedPayment' | 'resetChatWithoutThem' | 'search' | 'sentPayment'
+  | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
+
 type Store = {
   // increments when the convo stores values change, badges and unread
   badgeCountsChanged: number
@@ -397,8 +411,17 @@ export type State = Store & {
         | EngineGen.Chat1NotifyChatNewChatActivityPayload
     ) => void
     onIncomingInboxUIItem: (inboxUIItem?: RPCChatTypes.InboxUIItem) => void
+    onRouteChanged: (prev: Router2.NavState, next: Router2.NavState) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
+    previewConversation: (p: {
+      participants?: Array<string>
+      teamname?: string
+      channelname?: string
+      conversationIDKey?: Types.ConversationIDKey // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
+      highlightMessageID?: number
+      reason: PreviewReason
+    }) => void
     queueMetaToRequest: (ids: Array<Types.ConversationIDKey>) => void
     queueMetaHandle: () => void
     refreshBotPublicCommands: (username: string) => void
@@ -1049,6 +1072,74 @@ export const useState = Z.createZustand<State>((set, get) => {
         get().dispatch.metasReceived([meta])
       }
     },
+    onRouteChanged: (prev, next) => {
+      const maybeChangeChatSelection = () => {
+        const wasModal = prev && Router2.getModalStack(prev).length > 0
+        const isModal = next && Router2.getModalStack(next).length > 0
+        // ignore if changes involve a modal
+        if (wasModal || isModal) {
+          return
+        }
+        const p = Router2.getVisibleScreen(prev)
+        const n = Router2.getVisibleScreen(next)
+        const wasChat = p?.name === threadRouteName
+        const isChat = n?.name === threadRouteName
+        // nothing to do with chat
+        if (!wasChat && !isChat) {
+          return
+        }
+        // @ts-ignore
+        const wasID: string | undefined = p?.params?.conversationIDKey
+        // @ts-ignore
+        const isID: string | undefined = n?.params?.conversationIDKey
+
+        logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
+
+        // same? ignore
+        if (wasChat && isChat && wasID === isID) {
+          // if we've never loaded anything, keep going so we load it
+          if (!isID || getConvoState(isID).containsLatestMessage !== undefined) {
+            return
+          }
+        }
+
+        // deselect if there was one
+        const deselectAction = () => {
+          if (wasChat && wasID && Types.isValidConversationIDKey(wasID)) {
+            useState.getState().dispatch.unboxRows([wasID], true)
+          }
+        }
+
+        // still chatting? just select new one
+        if (wasChat && isChat && isID && Types.isValidConversationIDKey(isID)) {
+          deselectAction()
+          getConvoState(isID).dispatch.selectedConversation()
+          return
+        }
+
+        // leaving a chat
+        if (wasChat && !isChat) {
+          deselectAction()
+          return
+        }
+
+        // going into a chat
+        if (isChat && isID && Types.isValidConversationIDKey(isID)) {
+          deselectAction()
+          getConvoState(isID).dispatch.selectedConversation()
+          return
+        }
+      }
+
+      const maybeChatTabSelected = () => {
+        const reduxDispatch = Z.getReduxDispatch()
+        if (Router2.getTab(prev) !== Tabs.chatTab && Router2.getTab(next) === Tabs.chatTab) {
+          reduxDispatch(Chat2Gen.createTabSelected())
+        }
+      }
+      maybeChangeChatSelection()
+      maybeChatTabSelected()
+    },
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {
       const f = async () => {
         // need to let the mdoal hide first else its thrashy
@@ -1071,6 +1162,136 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
       })
+    },
+    previewConversation: p => {
+      // We always make adhoc convos and never preview it
+      const previewConversationPersonMakesAConversation = () => {
+        const {participants, teamname, reason, highlightMessageID} = p
+        if (teamname) return
+        if (!participants) return
+
+        // if stellar just search first, could do others maybe
+        if ((reason === 'requestedPayment' || reason === 'sentPayment') && participants.length === 1) {
+          const username = ConfigConstants.useCurrentUserState.getState().username
+          const toFind = participants[0]
+          for (const cs of stores.values()) {
+            const p = cs.getState().participants
+            if (p.name.length === 2) {
+              const other = p.name.filter(n => n !== username)
+              if (other[0] === toFind) {
+                reduxDispatch(
+                  Chat2Gen.createNavigateToThread({
+                    conversationIDKey: cs.getState().id,
+                    reason: 'justCreated',
+                  })
+                )
+                return
+              }
+            }
+          }
+        }
+        reduxDispatch(
+          Chat2Gen.createNavigateToThread({
+            conversationIDKey: pendingWaitingConversationIDKey,
+            reason: 'justCreated',
+          })
+        )
+        reduxDispatch(Chat2Gen.createCreateConversation({highlightMessageID, participants}))
+      }
+
+      // We preview channels
+      const previewConversationTeam = async () => {
+        const {conversationIDKey, highlightMessageID, teamname, reason} = p
+        if (conversationIDKey) {
+          if (
+            reason === 'messageLink' ||
+            reason === 'teamMention' ||
+            reason === 'channelHeader' ||
+            reason === 'manageView'
+          ) {
+            // Add preview channel to inbox
+            await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
+              convID: Types.keyToConversationID(conversationIDKey),
+            })
+          }
+          reduxDispatch(
+            Chat2Gen.createNavigateToThread({
+              conversationIDKey,
+              highlightMessageID,
+              reason: 'previewResolved',
+            })
+          )
+          return
+        }
+
+        if (!teamname) {
+          return
+        }
+
+        const channelname = p.channelname || 'general'
+        try {
+          const results = await RPCChatTypes.localFindConversationsLocalRpcPromise({
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            membersType: RPCChatTypes.ConversationMembersType.team,
+            oneChatPerTLF: true,
+            tlfName: teamname,
+            topicName: channelname,
+            topicType: RPCChatTypes.TopicType.chat,
+            visibility: RPCTypes.TLFVisibility.private,
+          })
+          const resultMetas = (results.uiConversations || [])
+            .map(row => inboxUIItemToConversationMeta(row))
+            .filter(Boolean)
+
+          const first = resultMetas[0]
+          if (!first) {
+            if (p.reason === 'appLink') {
+              LinksConstants.useState
+                .getState()
+                .dispatch.setLinkError(
+                  "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
+                )
+              Router2.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+              return
+            } else {
+              return
+            }
+          }
+
+          const results2 = await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
+            convID: Types.keyToConversationID(first.conversationIDKey),
+          })
+          const meta = inboxUIItemToConversationMeta(results2.conv)
+          if (meta) {
+            useState.getState().dispatch.metasReceived([meta])
+          }
+          reduxDispatch(
+            Chat2Gen.createNavigateToThread({
+              conversationIDKey: first.conversationIDKey,
+              highlightMessageID,
+              reason: 'previewResolved',
+            })
+          )
+        } catch (error) {
+          if (
+            error instanceof RPCError &&
+            error.code === RPCTypes.StatusCode.scteamnotfound &&
+            reason === 'appLink'
+          ) {
+            LinksConstants.useState
+              .getState()
+              .dispatch.setLinkError(
+                "We couldn't find this team. Please check that you're a member of the team and the channel exists."
+              )
+            Router2.useState.getState().dispatch.navigateAppend('keybaseLinkError')
+            return
+          } else {
+            throw error
+          }
+        }
+      }
+      previewConversationPersonMakesAConversation()
+      Z.ignorePromise(previewConversationTeam())
     },
     queueMetaHandle: () => {
       // Watch the meta queue and take up to 10 items. Choose the last items first since they're likely still visible

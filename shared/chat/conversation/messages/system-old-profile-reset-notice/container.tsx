@@ -15,8 +15,9 @@ export default () => {
   const onOpenConversation = (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(Chat2Gen.createNavigateToThread({conversationIDKey, reason: 'jumpFromReset'}))
   }
+  const previewConversation = Constants.useState(s => s.dispatch.previewConversation)
   const startConversation = (participants: Array<string>) => {
-    dispatch(Chat2Gen.createPreviewConversation({participants, reason: 'fromAReset'}))
+    previewConversation({participants, reason: 'fromAReset'})
   }
   const props = {
     onOpenNewerConversation: nextConversationIDKey

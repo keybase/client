@@ -334,14 +334,14 @@ export const useState = Z.createZustand<State>((set, get) => {
       n?.dispatch(StackActions.popToTop())
     },
     resetState: 'default',
-    setNavState: (next: NavState) => {
+    setNavState: next => {
       const prev = get().navState
       if (prev === next) return
       set(s => {
         s.navState = next
       })
 
-      const checkTeamBuilding = async () => {
+      const updateTeamBuilding = async () => {
         const TBConstants = await import('./team-building')
         const namespaces = ['chat2', 'crypto', 'teams', 'people'] as const
         const namespaceToRoute = new Map([
@@ -361,7 +361,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(checkTeamBuilding())
+      Z.ignorePromise(updateTeamBuilding())
 
       const updateFS = async () => {
         const FS = await import('./fs')
@@ -428,6 +428,12 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(updateSettings())
+
+      const updateChat = async () => {
+        const ChatConstants = await import('./chat2')
+        ChatConstants.useState.getState().dispatch.onRouteChanged(prev, next)
+      }
+      Z.ignorePromise(updateChat())
     },
     switchTab: name => {
       const n = _getNavigator()

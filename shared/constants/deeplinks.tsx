@@ -212,14 +212,17 @@ export const useState = Z.createZustand<State>((set, get) => {
                 logger.warn(`invalid chat message id: ${highlightMessageID}`)
                 return
               }
-              reduxDispatch(
-                ChatGen.createPreviewConversation({
+              const f = async () => {
+                const ChatConstants = await import('./chat2')
+                const {previewConversation} = ChatConstants.useState.getState().dispatch
+                previewConversation({
                   channelname,
                   highlightMessageID,
                   reason: 'appLink',
                   teamname,
                 })
-              )
+              }
+              Z.ignorePromise(f())
               return
             } else {
               const highlightMessageID = parseInt(parts[2]!, 10)
@@ -227,13 +230,16 @@ export const useState = Z.createZustand<State>((set, get) => {
                 logger.warn(`invalid chat message id: ${highlightMessageID}`)
                 return
               }
-              reduxDispatch(
-                ChatGen.createPreviewConversation({
+              const f = async () => {
+                const ChatConstants = await import('./chat2')
+                const {previewConversation} = ChatConstants.useState.getState().dispatch
+                previewConversation({
                   highlightMessageID,
                   participants: parts[1]!.split(','),
                   reason: 'appLink',
                 })
-              )
+              }
+              Z.ignorePromise(f())
               return
             }
           }

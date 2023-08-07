@@ -1,3 +1,4 @@
+import * as ChatTypes from './types/chat2'
 import * as DarkMode from './darkmode'
 import * as DeviceTypes from './types/devices'
 import * as EngineGen from '../actions/engine-gen-gen'
@@ -310,9 +311,23 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
   const dispatch: State['dispatch'] = {
     changedFocus: f => {
+      if (get().appFocused === f) return
       set(s => {
         s.appFocused = f
       })
+
+      const updateChat = async () => {
+        if (!isMobile || !f) {
+          return
+        }
+        const ChatConstants = await import('./chat2')
+        const {dispatch} = ChatConstants.getConvoState(ChatConstants.getSelectedConversation())
+        dispatch.loadMoreMessages({
+          reason: 'foregrounding',
+        })
+        dispatch.markThreadAsRead()
+      }
+      Z.ignorePromise(updateChat())
     },
     checkForUpdate: () => {
       const f = async () => {
@@ -534,6 +549,17 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         case RemoteGen.setSystemDarkMode:
           DarkMode.useDarkModeState.getState().dispatch.setSystemDarkMode(action.payload.dark)
           break
+        case RemoteGen.previewConversation:
+          {
+            const f = async () => {
+              const ChatConstants = await import('./chat2')
+              ChatConstants.useState
+                .getState()
+                .dispatch.previewConversation({participants: [action.payload.participant], reason: 'tracker'})
+            }
+            Z.ignorePromise(f())
+          }
+          break
       }
     },
     filePickerError: error => {
@@ -645,10 +671,25 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           Settings.useContactsState.getState().dispatch.loadContactImportEnabled()
         }
 
+        const updateChat = async () => {
+          const ChatConstants = await import('./chat2')
+          // On login lets load the untrusted inbox. This helps make some flows easier
+          if (useCurrentUserState.getState().username) {
+            const {inboxRefresh} = ChatConstants.useState.getState().dispatch
+            inboxRefresh('bootstrap')
+          }
+          const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+          const ri = rows?.i ?? -1
+          if (ri > 0) {
+            ChatConstants.useState.getState().dispatch.setInboxNumSmallRows(ri, true)
+          }
+        }
+
         getFollowerInfo()
         Z.ignorePromise(updateServerConfig())
         Z.ignorePromise(updateTeams())
         Z.ignorePromise(updateSettings())
+        Z.ignorePromise(updateChat())
       }
     },
     login: (username, passphrase) => {
@@ -1007,6 +1048,18 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         Teams.useState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
       }
       Z.ignorePromise(updateTeams())
+
+      const updateChat = async () => {
+        if (!b) return
+        const ChatConstants = await import('./chat2')
+        b.conversations?.forEach(c => {
+          const id = ChatTypes.conversationIDToKey(c.convID)
+          ChatConstants.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
+          ChatConstants.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
+        })
+        ChatConstants.useState.getState().dispatch.badgesUpdated(b.bigTeamBadgeCount, b.smallTeamBadgeCount)
+      }
+      Z.ignorePromise(updateChat())
     },
     setDefaultUsername: u => {
       set(s => {
@@ -1053,17 +1106,24 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
         const Teams = await import('./teams')
         Teams.useState.getState().dispatch.onGregorPushState(items)
+
+        const ChatConstants = await import('./chat2')
+        ChatConstants.useState.getState().dispatch.updatedGregor(items)
       }
       Z.ignorePromise(f())
     },
     setGregorReachable: (r: Store['gregorReachable']) => {
-      if (get().gregorReachable === r) return
+      const old = get().gregorReachable
+      if (old === r) return
       set(s => {
         s.gregorReachable = r
       })
       // Re-get info about our account if you log in/we're done handshaking/became reachable
       if (r === RPCTypes.Reachable.yes) {
-        Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
+        // not in waiting state
+        if (useDaemonState.getState().handshakeWaiters.size === 0) {
+          Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
+        }
       }
 
       const updateTeams = async () => {
@@ -1100,7 +1160,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
       // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
       if (!causedByStartup || !loggedIn) {
-        Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(false))
+        Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
         useDaemonState.getState().dispatch.loadDaemonAccounts()
       }
 
@@ -1129,9 +1189,17 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(updateFS())
     },
     setMobileAppState: nextAppState => {
+      if (get().mobileAppState === nextAppState) return
       set(s => {
         s.mobileAppState = nextAppState
       })
+      const updateChat = async () => {
+        const ChatConstants = await import('./chat2')
+        if (nextAppState === 'background' && ChatConstants.useState.getState().inboxSearch) {
+          ChatConstants.useState.getState().dispatch.toggleInboxSearch(false)
+        }
+      }
+      Z.ignorePromise(updateChat())
     },
     setNavigatorExists: () => {
       get().dispatch.dynamic.setNavigatorExistsNative?.()

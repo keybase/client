@@ -1,9 +1,7 @@
-import * as Z from '../util/zustand'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
 import * as RouterConstants from '../constants/router2'
 import * as UsersConstants from '../constants/users'
-import * as LinksConstants from '../constants/deeplinks'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
@@ -477,130 +475,6 @@ const confirmScreenResponse = (_: unknown, action: Chat2Gen.ConfirmScreenRespons
   storeStellarConfirmWindowResponse(action.payload.accept)
 }
 
-// We always make adhoc convos and never preview it
-const previewConversationPersonMakesAConversation = (
-  _: unknown,
-  action: Chat2Gen.PreviewConversationPayload
-) => {
-  const {participants, teamname, reason, highlightMessageID} = action.payload
-  if (teamname) return false
-  if (!participants) return false
-
-  // if stellar just search first, could do others maybe
-  if ((reason === 'requestedPayment' || reason === 'sentPayment') && participants.length === 1) {
-    const username = ConfigConstants.useCurrentUserState.getState().username
-    const toFind = participants[0]
-    for (const cs of Constants.stores.values()) {
-      const p = cs.getState().participants
-      if (p.name.length === 2) {
-        const other = p.name.filter(n => n !== username)
-        if (other[0] === toFind) {
-          return Chat2Gen.createNavigateToThread({
-            conversationIDKey: cs.getState().id,
-            reason: 'justCreated',
-          })
-        }
-      }
-    }
-  }
-
-  return [
-    Chat2Gen.createNavigateToThread({
-      conversationIDKey: Constants.pendingWaitingConversationIDKey,
-      reason: 'justCreated',
-    }),
-    Chat2Gen.createCreateConversation({highlightMessageID, participants}),
-  ]
-}
-
-// We preview channels
-const previewConversationTeam = async (_: unknown, action: Chat2Gen.PreviewConversationPayload) => {
-  const {conversationIDKey, highlightMessageID, teamname, reason} = action.payload
-  if (conversationIDKey) {
-    if (
-      reason === 'messageLink' ||
-      reason === 'teamMention' ||
-      reason === 'channelHeader' ||
-      reason === 'manageView'
-    ) {
-      // Add preview channel to inbox
-      await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
-        convID: Types.keyToConversationID(conversationIDKey),
-      })
-    }
-    return Chat2Gen.createNavigateToThread({conversationIDKey, highlightMessageID, reason: 'previewResolved'})
-  }
-
-  if (!teamname) {
-    return false
-  }
-
-  const channelname = action.payload.channelname || 'general'
-
-  try {
-    const results = await RPCChatTypes.localFindConversationsLocalRpcPromise({
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      membersType: RPCChatTypes.ConversationMembersType.team,
-      oneChatPerTLF: true,
-      tlfName: teamname,
-      topicName: channelname,
-      topicType: RPCChatTypes.TopicType.chat,
-      visibility: RPCTypes.TLFVisibility.private,
-    })
-    const resultMetas = (results.uiConversations || [])
-      .map(row => Constants.inboxUIItemToConversationMeta(row))
-      .filter(Boolean)
-
-    const first = resultMetas[0]
-    if (!first) {
-      if (action.payload.reason === 'appLink') {
-        LinksConstants.useState
-          .getState()
-          .dispatch.setLinkError(
-            "We couldn't find this team chat channel. Please check that you're a member of the team and the channel exists."
-          )
-        RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
-        return
-      } else {
-        return []
-      }
-    }
-
-    const results2 = await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
-      convID: Types.keyToConversationID(first.conversationIDKey),
-    })
-    const actions: Array<Container.TypedActions> = []
-    const meta = Constants.inboxUIItemToConversationMeta(results2.conv)
-    if (meta) {
-      Constants.useState.getState().dispatch.metasReceived([meta])
-    }
-    actions.push(
-      Chat2Gen.createNavigateToThread({
-        conversationIDKey: first.conversationIDKey,
-        highlightMessageID,
-        reason: 'previewResolved',
-      })
-    )
-    return actions
-  } catch (error) {
-    if (
-      error instanceof RPCError &&
-      error.code === RPCTypes.StatusCode.scteamnotfound &&
-      reason === 'appLink'
-    ) {
-      LinksConstants.useState
-        .getState()
-        .dispatch.setLinkError(
-          "We couldn't find this team. Please check that you're a member of the team and the channel exists."
-        )
-      RouterConstants.useState.getState().dispatch.navigateAppend('keybaseLinkError')
-      return
-    } else {
-      throw error
-    }
-  }
-}
-
 const openFolder = (_: unknown, action: Chat2Gen.OpenFolderPayload) => {
   const {conversationIDKey} = action.payload
   const meta = Constants.getConvoState(conversationIDKey).meta
@@ -768,7 +642,7 @@ const resetChatWithoutThem = (_: unknown, action: Chat2Gen.ResetChatWithoutThemP
   // remove all bad people
   const goodParticipants = new Set(participantInfo.all)
   meta.resetParticipants.forEach(r => goodParticipants.delete(r))
-  return Chat2Gen.createPreviewConversation({
+  Constants.useState.getState().dispatch.previewConversation({
     participants: [...goodParticipants],
     reason: 'resetChatWithoutThem',
   })
@@ -1340,82 +1214,6 @@ const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButt
   }
 }
 
-const maybeChangeChatSelection = (
-  prev: RouterConstants.State['navState'],
-  next: RouterConstants.State['navState']
-) => {
-  const wasModal = prev && RouterConstants.getModalStack(prev).length > 0
-  const isModal = next && RouterConstants.getModalStack(next).length > 0
-
-  // ignore if changes involve a modal
-  if (wasModal || isModal) {
-    return
-  }
-
-  const p = RouterConstants.getVisibleScreen(prev)
-  const n = RouterConstants.getVisibleScreen(next)
-
-  const wasChat = p?.name === Constants.threadRouteName
-  const isChat = n?.name === Constants.threadRouteName
-
-  // nothing to do with chat
-  if (!wasChat && !isChat) {
-    return
-  }
-
-  // @ts-ignore TODO better param typing
-  const wasID: Types.ConversationIDKey | undefined = p?.params?.conversationIDKey
-  // @ts-ignore TODO better param typing
-  const isID: Types.ConversationIDKey | undefined = n?.params?.conversationIDKey
-
-  logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
-
-  // same? ignore
-  if (wasChat && isChat && wasID === isID) {
-    // if we've never loaded anything, keep going so we load it
-    if (!isID || Constants.getConvoState(isID).containsLatestMessage !== undefined) {
-      return
-    }
-  }
-
-  // deselect if there was one
-  const deselectAction = () => {
-    if (wasChat && wasID && Constants.isValidConversationIDKey(wasID)) {
-      Constants.useState.getState().dispatch.unboxRows([wasID], true)
-    }
-  }
-
-  // still chatting? just select new one
-  if (wasChat && isChat && isID && Constants.isValidConversationIDKey(isID)) {
-    deselectAction()
-    Constants.getConvoState(isID).dispatch.selectedConversation()
-    return
-  }
-
-  // leaving a chat
-  if (wasChat && !isChat) {
-    deselectAction()
-    return
-  }
-
-  // going into a chat
-  if (isChat && isID && Constants.isValidConversationIDKey(isID)) {
-    deselectAction()
-    Constants.getConvoState(isID).dispatch.selectedConversation()
-    return
-  }
-}
-
-const maybeChatTabSelected = (
-  prev: RouterConstants.State['navState'],
-  next: RouterConstants.State['navState']
-) => {
-  const reduxDispatch = Z.getReduxDispatch()
-  if (RouterConstants.getTab(prev) !== Tabs.chatTab && RouterConstants.getTab(next) === Tabs.chatTab) {
-    reduxDispatch(Chat2Gen.createTabSelected())
-  }
-}
-
 const initChat = () => {
   // Platform specific actions
   if (!Container.isMobile) {
@@ -1519,19 +1317,6 @@ const initChat = () => {
     dispatch.loadMoreMessages({reason: 'tab selected'})
   })
 
-  ConfigConstants.useConfigState.subscribe((s, old) => {
-    if (s.appFocused === old.appFocused) return
-
-    if (!Container.isMobile || !s.appFocused) {
-      return
-    }
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
-    dispatch.loadMoreMessages({
-      reason: 'foregrounding',
-    })
-    dispatch.markThreadAsRead()
-  })
-
   Container.listenAction(Chat2Gen.messageSend, messageSend)
   Container.listenAction(Chat2Gen.messageSend, (_, a) => {
     const {conversationIDKey} = a.payload
@@ -1551,32 +1336,7 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.unfurlResolvePrompt, unfurlDismissPrompt)
   Container.listenAction(Chat2Gen.unfurlRemove, unfurlRemove)
 
-  Container.listenAction(Chat2Gen.previewConversation, previewConversationTeam)
-  Container.listenAction(Chat2Gen.previewConversation, previewConversationPersonMakesAConversation)
   Container.listenAction(Chat2Gen.openFolder, openFolder)
-
-  ConfigConstants.useConfigState.subscribe((s, old) => {
-    if (s.loadOnStartPhase === old.loadOnStartPhase) return
-    switch (s.loadOnStartPhase) {
-      case 'startupOrReloginButNotInARush': {
-        // On login lets load the untrusted inbox. This helps make some flows easier
-        if (ConfigConstants.useCurrentUserState.getState().username) {
-          const {inboxRefresh} = Constants.useState.getState().dispatch
-          inboxRefresh('bootstrap')
-        }
-        const f = async () => {
-          const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-          const ri = rows?.i ?? -1
-          if (ri > 0) {
-            Constants.useState.getState().dispatch.setInboxNumSmallRows(ri, true)
-          }
-        }
-        Z.ignorePromise(f())
-        break
-      }
-      default:
-    }
-  })
 
   // Search handling
   Container.listenAction(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
@@ -1632,25 +1392,7 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
 
-  ConfigConstants.useConfigState.subscribe((s, old) => {
-    if (s.badgeState === old.badgeState) return
-    if (!s.badgeState) return
-    s.badgeState.conversations?.forEach(c => {
-      const id = Types.conversationIDToKey(c.convID)
-      Constants.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
-      Constants.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
-    })
-    Constants.useState
-      .getState()
-      .dispatch.badgesUpdated(s.badgeState.bigTeamBadgeCount, s.badgeState.smallTeamBadgeCount)
-  })
-
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)
-
-  ConfigConstants.useConfigState.subscribe((s, old) => {
-    if (s.gregorPushState === old.gregorPushState) return
-    Constants.useState.getState().dispatch.updatedGregor(s.gregorPushState)
-  })
 
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 
@@ -1699,14 +1441,6 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.replyJump, onReplyJump)
-
-  ConfigConstants.useConfigState.subscribe((s, old) => {
-    if (s.mobileAppState === old.mobileAppState) return
-    if (s.mobileAppState === 'background' && Constants.useState.getState().inboxSearch) {
-      Constants.useState.getState().dispatch.toggleInboxSearch(false)
-    }
-  })
-
   Container.listenAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
 
   Container.listenAction(Chat2Gen.pinMessage, pinMessage)
@@ -1723,19 +1457,6 @@ const initChat = () => {
     const {convID, status} = a.payload.params
     const conversationIDKey = Types.stringToConversationIDKey(convID)
     Constants.getConvoState(conversationIDKey).dispatch.botCommandsUpdateStatus(status)
-  })
-
-  RouterConstants.useState.subscribe((s, old) => {
-    const next = s.navState
-    const prev = old.navState
-    if (next === prev) return
-    maybeChangeChatSelection(prev, next)
-    maybeChatTabSelected(prev, next)
-  })
-
-  ConfigConstants.useDaemonState.subscribe((s, old) => {
-    if (s.handshakeVersion === old.handshakeVersion) return
-    Constants.useState.getState().dispatch.loadStaticConfig()
   })
 
   Container.listenAction(EngineGen.chat1NotifyChatChatParticipantsInfo, (_, a) => {

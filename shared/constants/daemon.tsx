@@ -23,14 +23,14 @@ const initialStore: Store = {
   handshakeFailedReason: '',
   handshakeRetriesLeft: maxHandshakeTries,
   handshakeState: 'starting',
-  handshakeVersion: 1,
+  handshakeVersion: 0,
   handshakeWaiters: new Map(),
 }
 
 type State = Store & {
   dispatch: {
     loadDaemonAccounts: () => void
-    loadDaemonBootstrapStatus: (fromGregor: boolean) => Promise<void>
+    loadDaemonBootstrapStatus: (force?: boolean) => Promise<void>
     resetState: () => void
     setError: (e?: Error) => void
     setFailed: (r: string) => void
@@ -88,6 +88,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
     return
   }
 
+  let loadDaemonBootstrapStatusDoneVersion = -1
   // When there are no more waiters, we can show the actual app
 
   let _emitStartupOnLoadDaemonConnectedOnce = false
@@ -130,11 +131,14 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         const name = 'config.getBootstrapStatus'
         const {wait} = get().dispatch
         wait(name, version, true)
-        await get().dispatch.loadDaemonBootstrapStatus(false)
+        await get().dispatch.loadDaemonBootstrapStatus()
         wait(name, version, false)
 
         const DarkMode = await import('./darkmode')
         DarkMode.useDarkModeState.getState().dispatch.loadDarkPrefs()
+
+        const ChatConstants = await import('./chat2')
+        ChatConstants.useState.getState().dispatch.loadStaticConfig()
       }
       Z.ignorePromise(f())
       get().dispatch.loadDaemonAccounts()
@@ -215,11 +219,15 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     // set to true so we reget status when we're reachable again
-    loadDaemonBootstrapStatus: async (fromGregor: boolean) => {
+    loadDaemonBootstrapStatus: async force => {
       const version = get().handshakeVersion
       const {wait} = get().dispatch
+      if (loadDaemonBootstrapStatusDoneVersion === version && !force) {
+        return
+      }
+      loadDaemonBootstrapStatusDoneVersion = version
 
-      const makeCall = async () => {
+      const f = async () => {
         const Constants = await import('./config')
         const ChatConstants = await import('./chat2')
         const {setBootstrap} = Constants.useCurrentUserState.getState().dispatch
@@ -249,7 +257,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         }
 
         // if we're logged in act like getAccounts is done already
-        if (!fromGregor && loggedIn) {
+        if (loggedIn) {
           const {handshakeWaiters} = get()
           if (handshakeWaiters.get(getAccountsWaitKey)) {
             wait(getAccountsWaitKey, version, false)
@@ -257,7 +265,7 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
         }
       }
 
-      await makeCall()
+      return await f()
     },
     onRestartHandshakeNative: _onRestartHandshakeNative,
     resetState: () => {

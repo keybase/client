@@ -2,8 +2,8 @@ import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
+import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
-import * as Chat2Gen from '../../actions/chat2-gen'
 import type * as Types from '../../constants/types/teams'
 import TeamMenu from '../team/menu-container'
 import {pluralize} from '../../util/string'
@@ -17,7 +17,6 @@ type Props = {
 
 const TeamRow = (props: Props) => {
   const {firstItem, showChat = true, teamID} = props
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const teamMeta = Constants.useState(s => Constants.getTeamMeta(s, teamID))
   // useActivityLevels in ../container ensures these are loaded
@@ -27,8 +26,8 @@ const TeamRow = (props: Props) => {
 
   const activity = <Activity level={activityLevel} />
 
-  const onChat = () =>
-    dispatch(Chat2Gen.createPreviewConversation({reason: 'teamRow', teamname: teamMeta.teamname}))
+  const previewConversation = ChatConstants.useState(s => s.dispatch.previewConversation)
+  const onChat = () => previewConversation({reason: 'teamRow', teamname: teamMeta.teamname})
 
   const makePopup = React.useCallback(
     (p: Kb.Popup2Parms) => {
