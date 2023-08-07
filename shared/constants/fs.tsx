@@ -2522,47 +2522,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     setupSubscriptions: () => {
-      const f = async () => {
-        const ConfigConstants = await import('./config')
-        ConfigConstants.useConfigState.subscribe((s, old) => {
-          if (s.loggedIn === old.loggedIn) return
-          if (ConfigConstants.useConfigState.getState().loggedIn) {
-            get().dispatch.checkKbfsDaemonRpcStatus()
-          }
-        })
-
-        ConfigConstants.useConfigState.subscribe((s, old) => {
-          if (s.installerRanCount !== old.installerRanCount) {
-            get().dispatch.checkKbfsDaemonRpcStatus()
-          }
-        })
-
-        ConfigConstants.useConfigState.subscribe((s, old) => {
-          if (s.networkStatus === old.networkStatus) return
-          // We don't trigger the reachability check at init. Reachability checks cause
-          // any pending "reconnect" fire right away, and overrides any random back-off
-          // timer we have at process restart (which is there to avoid surging server
-          // load around app releases). So only do that when OS network status changes
-          // after we're up.
-          const isInit = s.networkStatus?.isInit
-          const f = async () => {
-            if (!isInit) {
-              try {
-                await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
-              } catch (error) {
-                if (!(error instanceof RPCError)) {
-                  return
-                }
-                logger.warn(`failed to check KBFS reachability: ${error.message}`)
-              }
-            }
-          }
-          Z.ignorePromise(f())
-        })
-
-        initPlatformSpecific()
-      }
-      Z.ignorePromise(f())
+      initPlatformSpecific()
     },
     showIncomingShare: initialDestinationParentPath => {
       set(s => {

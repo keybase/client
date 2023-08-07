@@ -587,6 +587,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.installerRanCount++
       })
+
+      const updateFS = async () => {
+        const FS = await import('./fs')
+        FS.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+      }
+      Z.ignorePromise(updateFS())
     },
     loadIsOnline: () => {
       const f = async () => {
@@ -868,11 +874,24 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       })
       const next = get().networkStatus
       if (next === old) return
-      const check = async () => {
+      const updateGregor = async () => {
         const reachability = await RPCTypes.reachabilityCheckReachabilityRpcPromise()
         get().dispatch.setGregorReachable(reachability.reachable)
       }
-      Z.ignorePromise(check())
+      Z.ignorePromise(updateGregor())
+
+      const updateFS = async () => {
+        if (isInit) return
+        try {
+          await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
+        } catch (error) {
+          if (!(error instanceof RPCError)) {
+            return
+          }
+          logger.warn(`failed to check KBFS reachability: ${error.message}`)
+        }
+      }
+      Z.ignorePromise(updateFS())
     },
     powerMonitorEvent: event => {
       const f = async () => {
@@ -1100,6 +1119,14 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       } else {
         Z.resetAllStores()
       }
+
+      const updateFS = async () => {
+        if (loggedIn) {
+          const FS = await import('./fs')
+          FS.useState.getState().dispatch.checkKbfsDaemonRpcStatus()
+        }
+      }
+      Z.ignorePromise(updateFS())
     },
     setMobileAppState: nextAppState => {
       set(s => {
