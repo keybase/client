@@ -125,12 +125,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
-    "attachmentDownloaded": {
-      "_description": "We saved an attachment to the local disk",
-      "message": "Types.Message",
-      "error?": "string",
-      "path?": "string"
-    },
     "attachmentsUpload": {
       "_description": "We want to upload some attachments",
       "conversationIDKey": "Types.ConversationIDKey",

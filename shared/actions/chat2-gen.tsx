@@ -12,7 +12,6 @@ export const typePrefix = 'chat2:'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
-export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentPasted = 'chat2:attachmentPasted'
 export const attachmentPreviewSelect = 'chat2:attachmentPreviewSelect'
 export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
@@ -389,14 +388,6 @@ export const createConfirmScreenResponse = (payload: {readonly accept: boolean})
   type: confirmScreenResponse as typeof confirmScreenResponse,
 })
 /**
- * We saved an attachment to the local disk
- */
-export const createAttachmentDownloaded = (payload: {
-  readonly message: Types.Message
-  readonly error?: string
-  readonly path?: string
-}) => ({payload, type: attachmentDownloaded as typeof attachmentDownloaded})
-/**
  * We want to upload some attachments
  */
 export const createAttachmentsUpload = (payload: {
@@ -468,7 +459,6 @@ export const createSendAudioRecording = (payload: {
 export type AddUserToChannelPayload = ReturnType<typeof createAddUserToChannel>
 export type AddUsersToChannelPayload = ReturnType<typeof createAddUsersToChannel>
 export type AttachFromDragAndDropPayload = ReturnType<typeof createAttachFromDragAndDrop>
-export type AttachmentDownloadedPayload = ReturnType<typeof createAttachmentDownloaded>
 export type AttachmentPastedPayload = ReturnType<typeof createAttachmentPasted>
 export type AttachmentPreviewSelectPayload = ReturnType<typeof createAttachmentPreviewSelect>
 export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachmentUploadCanceled>
@@ -525,7 +515,6 @@ export type Actions =
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
   | AttachFromDragAndDropPayload
-  | AttachmentDownloadedPayload
   | AttachmentPastedPayload
   | AttachmentPreviewSelectPayload
   | AttachmentUploadCanceledPayload

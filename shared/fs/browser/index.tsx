@@ -1,5 +1,4 @@
 import * as Constants from '../../constants/fs'
-import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as React from 'react'
@@ -20,7 +19,7 @@ export default (ownProps: OwnProps) => {
   const {path} = ownProps
   const _kbfsDaemonStatus = Constants.useState(s => s.kbfsDaemonStatus)
   const _pathItem = Constants.useState(s => Constants.getPathItem(s.pathItems, path))
-  const resetBannerType = Container.useSelector(state => Constants.resetBannerType(state, path))
+  const resetBannerType = Constants.useState(s => Constants.resetBannerType(s, path))
   const props = {
     offlineUnsynced: Constants.isOfflineUnsynced(_kbfsDaemonStatus, _pathItem, path),
     path,
