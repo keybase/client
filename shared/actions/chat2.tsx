@@ -1519,19 +1519,6 @@ const initChat = () => {
     dispatch.loadMoreMessages({reason: 'tab selected'})
   })
 
-  ConfigConstants.useConfigState.subscribe((s, old) => {
-    if (s.appFocused === old.appFocused) return
-
-    if (!Container.isMobile || !s.appFocused) {
-      return
-    }
-    const {dispatch} = Constants.getConvoState(Constants.getSelectedConversation())
-    dispatch.loadMoreMessages({
-      reason: 'foregrounding',
-    })
-    dispatch.markThreadAsRead()
-  })
-
   Container.listenAction(Chat2Gen.messageSend, messageSend)
   Container.listenAction(Chat2Gen.messageSend, (_, a) => {
     const {conversationIDKey} = a.payload
@@ -1632,25 +1619,7 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
 
-  ConfigConstants.useConfigState.subscribe((s, old) => {
-    if (s.badgeState === old.badgeState) return
-    if (!s.badgeState) return
-    s.badgeState.conversations?.forEach(c => {
-      const id = Types.conversationIDToKey(c.convID)
-      Constants.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
-      Constants.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
-    })
-    Constants.useState
-      .getState()
-      .dispatch.badgesUpdated(s.badgeState.bigTeamBadgeCount, s.badgeState.smallTeamBadgeCount)
-  })
-
   Container.listenAction(Chat2Gen.setMinWriterRole, setMinWriterRole)
-
-  ConfigConstants.useConfigState.subscribe((s, old) => {
-    if (s.gregorPushState === old.gregorPushState) return
-    Constants.useState.getState().dispatch.updatedGregor(s.gregorPushState)
-  })
 
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 
@@ -1699,14 +1668,6 @@ const initChat = () => {
   })
 
   Container.listenAction(Chat2Gen.replyJump, onReplyJump)
-
-  ConfigConstants.useConfigState.subscribe((s, old) => {
-    if (s.mobileAppState === old.mobileAppState) return
-    if (s.mobileAppState === 'background' && Constants.useState.getState().inboxSearch) {
-      Constants.useState.getState().dispatch.toggleInboxSearch(false)
-    }
-  })
-
   Container.listenAction(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
 
   Container.listenAction(Chat2Gen.pinMessage, pinMessage)

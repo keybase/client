@@ -1,3 +1,4 @@
+import * as ChatTypes from './types/chat2'
 import * as DarkMode from './darkmode'
 import * as DeviceTypes from './types/devices'
 import * as EngineGen from '../actions/engine-gen-gen'
@@ -310,9 +311,23 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
   const dispatch: State['dispatch'] = {
     changedFocus: f => {
+      if (get().appFocused === f) return
       set(s => {
         s.appFocused = f
       })
+
+      const updateChat = async () => {
+        if (!isMobile || !f) {
+          return
+        }
+        const ChatConstants = await import('./chat2')
+        const {dispatch} = ChatConstants.getConvoState(ChatConstants.getSelectedConversation())
+        dispatch.loadMoreMessages({
+          reason: 'foregrounding',
+        })
+        dispatch.markThreadAsRead()
+      }
+      Z.ignorePromise(updateChat())
     },
     checkForUpdate: () => {
       const f = async () => {
@@ -1007,6 +1022,18 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         Teams.useState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
       }
       Z.ignorePromise(updateTeams())
+
+      const updateChat = async () => {
+        if (!b) return
+        const ChatConstants = await import('./chat2')
+        b.conversations?.forEach(c => {
+          const id = ChatTypes.conversationIDToKey(c.convID)
+          ChatConstants.getConvoState(id).dispatch.badgesUpdated(c.badgeCount)
+          ChatConstants.getConvoState(id).dispatch.unreadUpdated(c.unreadMessages)
+        })
+        ChatConstants.useState.getState().dispatch.badgesUpdated(b.bigTeamBadgeCount, b.smallTeamBadgeCount)
+      }
+      Z.ignorePromise(updateChat())
     },
     setDefaultUsername: u => {
       set(s => {
@@ -1053,6 +1080,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
         const Teams = await import('./teams')
         Teams.useState.getState().dispatch.onGregorPushState(items)
+
+        const ChatConstants = await import('./chat2')
+        ChatConstants.useState.getState().dispatch.updatedGregor(items)
       }
       Z.ignorePromise(f())
     },
@@ -1129,9 +1159,17 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(updateFS())
     },
     setMobileAppState: nextAppState => {
+      if (get().mobileAppState === nextAppState) return
       set(s => {
         s.mobileAppState = nextAppState
       })
+      const updateChat = async () => {
+        const ChatConstants = await import('./chat2')
+        if (nextAppState === 'background' && ChatConstants.useState.getState().inboxSearch) {
+          ChatConstants.useState.getState().dispatch.toggleInboxSearch(false)
+        }
+      }
+      Z.ignorePromise(updateChat())
     },
     setNavigatorExists: () => {
       get().dispatch.dynamic.setNavigatorExistsNative?.()
