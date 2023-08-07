@@ -1,4 +1,5 @@
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as Tabs from '../tabs'
 import * as TeamsConstants from '../teams'
 import * as UsersConstants from '../users'
 import * as EngineGen from '../../actions/engine-gen-gen'
@@ -19,7 +20,12 @@ import {noConversationIDKey, pendingWaitingConversationIDKey} from '../types/cha
 import type * as TeamBuildingTypes from '../types/team-building'
 import * as Z from '../../util/zustand'
 import {getConvoState, stores} from './convostate'
-import {explodingModeGregorKeyPrefix, getSelectedConversation, allMessageTypes} from './common'
+import {
+  explodingModeGregorKeyPrefix,
+  getSelectedConversation,
+  allMessageTypes,
+  threadRouteName,
+} from './common'
 
 export const formatTextForQuoting = (text: string) =>
   text
@@ -397,6 +403,7 @@ export type State = Store & {
         | EngineGen.Chat1NotifyChatNewChatActivityPayload
     ) => void
     onIncomingInboxUIItem: (inboxUIItem?: RPCChatTypes.InboxUIItem) => void
+    onRouteChanged: (prev: Router2.NavState, next: Router2.NavState) => void
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => void
     paymentInfoReceived: (paymentInfo: Types.ChatPaymentInfo) => void
     queueMetaToRequest: (ids: Array<Types.ConversationIDKey>) => void
@@ -1048,6 +1055,74 @@ export const useState = Z.createZustand<State>((set, get) => {
       if (meta) {
         get().dispatch.metasReceived([meta])
       }
+    },
+    onRouteChanged: (prev, next) => {
+      const maybeChangeChatSelection = () => {
+        const wasModal = prev && Router2.getModalStack(prev).length > 0
+        const isModal = next && Router2.getModalStack(next).length > 0
+        // ignore if changes involve a modal
+        if (wasModal || isModal) {
+          return
+        }
+        const p = Router2.getVisibleScreen(prev)
+        const n = Router2.getVisibleScreen(next)
+        const wasChat = p?.name === threadRouteName
+        const isChat = n?.name === threadRouteName
+        // nothing to do with chat
+        if (!wasChat && !isChat) {
+          return
+        }
+        // @ts-ignore
+        const wasID: string | undefined = p?.params?.conversationIDKey
+        // @ts-ignore
+        const isID: string | undefined = n?.params?.conversationIDKey
+
+        logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
+
+        // same? ignore
+        if (wasChat && isChat && wasID === isID) {
+          // if we've never loaded anything, keep going so we load it
+          if (!isID || getConvoState(isID).containsLatestMessage !== undefined) {
+            return
+          }
+        }
+
+        // deselect if there was one
+        const deselectAction = () => {
+          if (wasChat && wasID && Types.isValidConversationIDKey(wasID)) {
+            useState.getState().dispatch.unboxRows([wasID], true)
+          }
+        }
+
+        // still chatting? just select new one
+        if (wasChat && isChat && isID && Types.isValidConversationIDKey(isID)) {
+          deselectAction()
+          getConvoState(isID).dispatch.selectedConversation()
+          return
+        }
+
+        // leaving a chat
+        if (wasChat && !isChat) {
+          deselectAction()
+          return
+        }
+
+        // going into a chat
+        if (isChat && isID && Types.isValidConversationIDKey(isID)) {
+          deselectAction()
+          getConvoState(isID).dispatch.selectedConversation()
+          return
+        }
+      }
+
+      const maybeChatTabSelected = () => {
+        const reduxDispatch = Z.getReduxDispatch()
+        if (Router2.getTab(prev) !== Tabs.chatTab && Router2.getTab(next) === Tabs.chatTab) {
+          reduxDispatch(Chat2Gen.createTabSelected())
+        }
+      }
+      maybeChangeChatSelection()
+      maybeChatTabSelected()
     },
     onTeamBuildingFinished: (users: Set<TeamBuildingTypes.User>) => {
       const f = async () => {
