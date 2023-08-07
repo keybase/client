@@ -42,17 +42,6 @@ const messageIDToOrdinal = (
 }
 
 const attachmentActions: Container.ActionHandler<Actions, {}> = {
-  [Chat2Gen.messageAttachmentUploaded]: (_, action) => {
-    const {conversationIDKey, message, placeholderID} = action.payload
-    const {pendingOutboxToOrdinal, dispatch, messageMap} = Constants.getConvoState(conversationIDKey)
-    const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, placeholderID)
-    if (ordinal) {
-      const m = messageMap.get(ordinal)
-      dispatch.updateMessage(ordinal, m ? Constants.upgradeMessage(m, message) : message)
-      const subType = Constants.getMessageRenderType(message)
-      Constants.getConvoState(conversationIDKey).dispatch.setMessageTypeMap(ordinal, subType)
-    }
-  },
   [EngineGen.chat1NotifyChatChatAttachmentDownloadComplete]: (_, action) => {
     const {convID, msgID} = action.payload.params
     const conversationIDKey = Types.conversationIDToKey(convID)

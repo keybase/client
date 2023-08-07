@@ -1453,13 +1453,14 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
             cMsg.valid.messageBody.messageType === RPCChatTypes.MessageType.attachmentuploaded &&
             message.type === 'attachment'
           ) {
-            reduxDispatch(
-              Chat2Gen.createMessageAttachmentUploaded({
-                conversationIDKey,
-                message,
-                placeholderID: cMsg.valid.messageBody.attachmentuploaded.messageID,
-              })
-            )
+            const placeholderID = cMsg.valid.messageBody.attachmentuploaded.messageID
+            const ordinal = messageIDToOrdinal(get().messageMap, get().pendingOutboxToOrdinal, placeholderID)
+            if (ordinal) {
+              const m = get().messageMap.get(ordinal)
+              dispatch.updateMessage(ordinal, m ? Message.upgradeMessage(m, message) : message)
+              const subType = Message.getMessageRenderType(message)
+              dispatch.setMessageTypeMap(ordinal, subType)
+            }
           } else if (shouldAddMessage) {
             // A normal message
             dispatch.messagesAdd({
