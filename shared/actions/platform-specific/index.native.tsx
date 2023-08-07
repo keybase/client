@@ -232,7 +232,8 @@ const loadStartupDetails = async () => {
     tab: tab as Tabs.Tab,
     wasFromPush,
   })
-  afterStartupDetails(true)
+
+  afterStartupDetails(false)
 }
 
 const setPermissionDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) => {
@@ -434,16 +435,16 @@ export const initPlatformListener = () => {
 
     // loadStartupDetails finished already
     if (ConfigConstants.useConfigState.getState().startup.loaded) {
-      afterStartupDetails = (_done: boolean) => {}
+      afterStartupDetails = (_inc: boolean) => {}
     } else {
       // Else we have to wait for the loadStartupDetails to finish
       const {wait} = ConfigConstants.useDaemonState.getState().dispatch
       const version = s.handshakeVersion
       const startupDetailsWaiting = 'platform.native-waitStartupDetails'
-      afterStartupDetails = (done: boolean) => {
-        wait(startupDetailsWaiting, version, done ? false : true)
+      afterStartupDetails = (inc: boolean) => {
+        wait(startupDetailsWaiting, version, inc)
       }
-      afterStartupDetails(false)
+      afterStartupDetails(true)
     }
 
     if (isAndroid) {

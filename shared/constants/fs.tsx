@@ -13,7 +13,6 @@ import {RPCError} from '../util/errors'
 import logger from '../logger'
 import {isLinux, isMobile} from './platform'
 import {tlfToPreferredOrder} from '../util/kbfs'
-import initPlatformSpecific from '../actions/fs/platform-specific'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
@@ -2522,7 +2521,11 @@ export const useState = Z.createZustand<State>((set, get) => {
       })
     },
     setupSubscriptions: () => {
-      initPlatformSpecific()
+      const f = async () => {
+        const initPlatformSpecific = await import('../actions/fs/platform-specific')
+        initPlatformSpecific.default()
+      }
+      Z.ignorePromise(f())
     },
     showIncomingShare: initialDestinationParentPath => {
       set(s => {

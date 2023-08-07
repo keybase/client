@@ -4,7 +4,6 @@ import * as CryptoConstants from './crypto'
 import * as ProfileConstants from './profile'
 import * as RouterConstants from './router2'
 import * as SettingsConstants from './settings'
-import * as ChatConstants from './chat2'
 import * as Tabs from './tabs'
 import * as TeamsConstants from './teams'
 import * as Z from '../util/zustand'
@@ -213,13 +212,17 @@ export const useState = Z.createZustand<State>((set, get) => {
                 logger.warn(`invalid chat message id: ${highlightMessageID}`)
                 return
               }
-              const {previewConversation} = ChatConstants.useState.getState().dispatch
-              previewConversation({
-                channelname,
-                highlightMessageID,
-                reason: 'appLink',
-                teamname,
-              })
+              const f = async () => {
+                const ChatConstants = await import('./chat2')
+                const {previewConversation} = ChatConstants.useState.getState().dispatch
+                previewConversation({
+                  channelname,
+                  highlightMessageID,
+                  reason: 'appLink',
+                  teamname,
+                })
+              }
+              Z.ignorePromise(f())
               return
             } else {
               const highlightMessageID = parseInt(parts[2]!, 10)
@@ -227,12 +230,16 @@ export const useState = Z.createZustand<State>((set, get) => {
                 logger.warn(`invalid chat message id: ${highlightMessageID}`)
                 return
               }
-              const {previewConversation} = ChatConstants.useState.getState().dispatch
-              previewConversation({
-                highlightMessageID,
-                participants: parts[1]!.split(','),
-                reason: 'appLink',
-              })
+              const f = async () => {
+                const ChatConstants = await import('./chat2')
+                const {previewConversation} = ChatConstants.useState.getState().dispatch
+                previewConversation({
+                  highlightMessageID,
+                  participants: parts[1]!.split(','),
+                  reason: 'appLink',
+                })
+              }
+              Z.ignorePromise(f())
               return
             }
           }

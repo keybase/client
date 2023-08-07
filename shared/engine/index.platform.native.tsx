@@ -79,6 +79,10 @@ function createClient(
     }
   })
 
+  // we're always connected
+  setTimeout(() => {
+    connectCallback()
+  }, 100)
   return client
 }
 

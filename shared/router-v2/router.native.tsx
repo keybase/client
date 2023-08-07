@@ -333,7 +333,6 @@ const RNApp = React.memo(function RNApp() {
       onStateChange,
     })
   }
-
   const barStyle = useBarStyle()
 
   return (

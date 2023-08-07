@@ -334,7 +334,7 @@ export const useState = Z.createZustand<State>((set, get) => {
       n?.dispatch(StackActions.popToTop())
     },
     resetState: 'default',
-    setNavState: (next: NavState) => {
+    setNavState: next => {
       const prev = get().navState
       if (prev === next) return
       set(s => {

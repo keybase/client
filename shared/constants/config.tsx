@@ -1113,13 +1113,17 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     setGregorReachable: (r: Store['gregorReachable']) => {
-      if (get().gregorReachable === r) return
+      const old = get().gregorReachable
+      if (old === r) return
       set(s => {
         s.gregorReachable = r
       })
       // Re-get info about our account if you log in/we're done handshaking/became reachable
       if (r === RPCTypes.Reachable.yes) {
-        Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
+        //not in waiting state
+        if (useDaemonState.getState().handshakeWaiters.size === 0) {
+          Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
+        }
       }
 
       const updateTeams = async () => {
@@ -1156,7 +1160,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
 
       // Ignore the 'fake' loggedIn cause we'll get the daemonHandshake and we don't want to do this twice
       if (!causedByStartup || !loggedIn) {
-        Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(false))
+        Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus())
         useDaemonState.getState().dispatch.loadDaemonAccounts()
       }
 
