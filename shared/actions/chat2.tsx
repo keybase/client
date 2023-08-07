@@ -893,81 +893,6 @@ const toggleMessageCollapse = async (_: unknown, action: Chat2Gen.ToggleMessageC
   })
 }
 
-// TODO This will break if you try to make 2 new conversations at the same time because there is
-// only one pending conversation state.
-// The fix involves being able to make multiple pending conversations
-const createConversation = async (
-  _: unknown,
-  action: Chat2Gen.CreateConversationPayload,
-  listenerApi: Container.ListenerApi
-) => {
-  const username = ConfigConstants.useCurrentUserState.getState().username
-  if (!username) {
-    logger.error('Making a convo while logged out?')
-    return
-  }
-  try {
-    const result = await RPCChatTypes.localNewConversationLocalRpcPromise(
-      {
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-        tlfName: [...new Set([username, ...action.payload.participants])].join(','),
-        tlfVisibility: RPCTypes.TLFVisibility.private,
-        topicType: RPCChatTypes.TopicType.chat,
-      },
-      Constants.waitingKeyCreating
-    )
-    const {conv, uiConv} = result
-    const conversationIDKey = Types.conversationIDToKey(conv.info.id)
-    if (!conversationIDKey) {
-      logger.warn("Couldn't make a new conversation?")
-    } else {
-      const meta = Constants.inboxUIItemToConversationMeta(uiConv)
-      if (meta) {
-        Constants.useState.getState().dispatch.metasReceived([meta])
-      }
-
-      const participantInfo: Types.ParticipantInfo = Constants.uiParticipantsToParticipantInfo(
-        uiConv.participants ?? []
-      )
-      if (participantInfo.all.length > 0) {
-        Constants.getConvoState(Types.stringToConversationIDKey(uiConv.convID)).dispatch.setParticipants(
-          participantInfo
-        )
-      }
-      listenerApi.dispatch(
-        Chat2Gen.createNavigateToThread({
-          conversationIDKey,
-          highlightMessageID: action.payload.highlightMessageID,
-          reason: 'justCreated',
-        })
-      )
-    }
-  } catch (error) {
-    if (error instanceof RPCError) {
-      const errUsernames = error.fields?.filter((elem: any) => elem.key === 'usernames') as
-        | undefined
-        | Array<{key: string; value: string}>
-      let disallowedUsers: Array<string> = []
-      if (errUsernames?.length) {
-        const {value} = errUsernames[0] ?? {value: ''}
-        disallowedUsers = value.split(',')
-      }
-      const allowedUsers = action.payload.participants.filter(x => !disallowedUsers?.includes(x))
-      Constants.useState
-        .getState()
-        .dispatch.conversationErrored(allowedUsers, disallowedUsers, error.code, error.desc)
-      listenerApi.dispatch(
-        Chat2Gen.createNavigateToThread({
-          conversationIDKey: Constants.pendingErrorConversationIDKey,
-          highlightMessageID: action.payload.highlightMessageID,
-          reason: 'justCreated',
-        })
-      )
-    }
-  }
-}
-
 const messageReplyPrivately = async (_: unknown, action: Chat2Gen.MessageReplyPrivatelyPayload) => {
   const {sourceConversationIDKey, ordinal} = action.payload
   const message = Constants.getConvoState(sourceConversationIDKey).messageMap.get(ordinal)
@@ -1386,7 +1311,6 @@ const initChat = () => {
 
   Container.listenAction(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   Container.listenAction(Chat2Gen.toggleMessageCollapse, toggleMessageCollapse)
-  Container.listenAction(Chat2Gen.createConversation, createConversation)
   Container.listenAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
   Container.listenAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 

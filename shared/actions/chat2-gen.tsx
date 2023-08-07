@@ -18,7 +18,6 @@ export const attachmentUploadCanceled = 'chat2:attachmentUploadCanceled'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const blockConversation = 'chat2:blockConversation'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
-export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissJourneycard = 'chat2:dismissJourneycard'
@@ -60,13 +59,6 @@ export const updateNotificationSettings = 'chat2:updateNotificationSettings'
 export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Action Creators
-/**
- * Actually start a conversation
- */
-export const createCreateConversation = (payload: {
-  readonly highlightMessageID?: number
-  readonly participants: Array<string>
-}) => ({payload, type: createConversation as typeof createConversation})
 /**
  * Add a list of users to a conversation. Creates a SystemBulkAddToConv message.
  */
@@ -419,7 +411,6 @@ export type AttachmentUploadCanceledPayload = ReturnType<typeof createAttachment
 export type AttachmentsUploadPayload = ReturnType<typeof createAttachmentsUpload>
 export type BlockConversationPayload = ReturnType<typeof createBlockConversation>
 export type ConfirmScreenResponsePayload = ReturnType<typeof createConfirmScreenResponse>
-export type CreateConversationPayload = ReturnType<typeof createCreateConversation>
 export type DesktopNotificationPayload = ReturnType<typeof createDesktopNotification>
 export type DismissBlockButtonsPayload = ReturnType<typeof createDismissBlockButtons>
 export type DismissJourneycardPayload = ReturnType<typeof createDismissJourneycard>
@@ -472,7 +463,6 @@ export type Actions =
   | AttachmentsUploadPayload
   | BlockConversationPayload
   | ConfirmScreenResponsePayload
-  | CreateConversationPayload
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissJourneycardPayload
