@@ -14,7 +14,7 @@ const CodePageContainer = () => {
   const currentDeviceName = currentDeviceAlreadyProvisioned ? storeDeviceName : provisionDeviceName
   const deviceID = ConfigConstants.useCurrentUserState(s => s.deviceID)
   const currentDevice =
-    DevicesConstants.useDevicesState(s => s.deviceMap.get(deviceID)) ?? DevicesConstants.emptyDevice
+    DevicesConstants.useState(s => s.deviceMap.get(deviceID)) ?? DevicesConstants.emptyDevice
   const error = Constants.useState(s => s.error)
 
   const otherDevice = Constants.useState(s => s.codePageOtherDevice)

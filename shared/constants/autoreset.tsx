@@ -36,6 +36,7 @@ type State = Store & {
     cancelReset: () => void
     resetState: 'default'
     resetAccount: (password?: string) => void
+    setupSubscriptions: () => void
     startAccountReset: (skipPassword: boolean, username: string) => void
     updateARState: (active: boolean, endTime: number) => void
   }
@@ -160,6 +161,18 @@ export const useState = Z.createZustand<State>((set, get) => {
       Z.ignorePromise(f())
     },
     resetState: 'default',
+    setupSubscriptions: () => {
+      const f = async () => {
+        const ConfigConstants = await import('./config')
+        ConfigConstants.useConfigState.subscribe((s, old) => {
+          if (s.badgeState === old.badgeState) return
+          if (!s.badgeState) return
+          const {resetState} = s.badgeState
+          get().dispatch.updateARState(resetState.active, resetState.endTime)
+        })
+      }
+      Z.ignorePromise(f())
+    },
     startAccountReset: (skipPassword, _username) => {
       const f = async () => {
         const RecoverConstants = await import('./recover-password')

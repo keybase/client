@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as TeamsConstants from '../../../../constants/teams'
@@ -84,11 +83,12 @@ const getChannelSuggestions = (
 }
 
 export const useDataSource = (conversationIDKey: Types.ConversationIDKey, filter: string) => {
-  const dispatch = Container.useDispatch()
   const [lastCID, setLastCID] = React.useState(conversationIDKey)
+
+  const channelSuggestionsTriggered = Constants.useContext(s => s.dispatch.channelSuggestionsTriggered)
   if (lastCID !== conversationIDKey) {
     setLastCID(conversationIDKey)
-    dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey}))
+    channelSuggestionsTriggered()
   }
 
   const meta = Constants.useContext(s => s.meta)

@@ -266,6 +266,7 @@ type State = Store & {
     setUserSwitching: (sw: boolean) => void
     setUseNativeFrame: (use: boolean) => void
     setWindowIsMax: (m: boolean) => void
+    setupSubscriptions: () => void
     showMain: () => void
     toggleRuntimeStats: () => void
     updateApp: () => void
@@ -813,13 +814,23 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       })
     },
     osNetworkStatusChanged: (online: boolean, type: Types.ConnectionType, isInit?: boolean) => {
+      const old = get().networkStatus
       set(s => {
-        s.networkStatus = {
-          isInit,
-          online,
-          type,
+        if (!s.networkStatus) {
+          s.networkStatus = {isInit, online, type}
+        } else {
+          s.networkStatus.isInit = isInit
+          s.networkStatus.online = online
+          s.networkStatus.type = type
         }
       })
+      const next = get().networkStatus
+      if (next === old) return
+      const check = async () => {
+        const reachability = await RPCTypes.reachabilityCheckReachabilityRpcPromise()
+        get().dispatch.setGregorReachable(reachability.reachable)
+      }
+      Z.ignorePromise(check())
     },
     powerMonitorEvent: event => {
       const f = async () => {
@@ -1023,6 +1034,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.windowState.isMaximized = m
       })
     },
+    setupSubscriptions: () => {},
     showMain: () => {
       get().dispatch.dynamic.showMainNative?.()
     },

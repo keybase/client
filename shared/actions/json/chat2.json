@@ -7,12 +7,6 @@
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
-    "deselectedConversation": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
-    "channelSuggestionsTriggered": {
-      "conversationIDKey": "Types.ConversationIDKey"
-    },
     "previewConversation": {
       "_description": [
         "Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)",

@@ -131,6 +131,7 @@ export type ConvoState = ConvoStore & {
     attachmentDownload: (ordinal: Types.Ordinal) => void
     badgesUpdated: (badge: number) => void
     botCommandsUpdateStatus: (b: RPCChatTypes.UIBotCommandsUpdateStatus) => void
+    channelSuggestionsTriggered: () => void
     clearAttachmentView: () => void
     clearMessageTypeMap: () => void
     dismissBottomBanner: () => void
@@ -250,6 +251,7 @@ export type ConvoState = ConvoStore & {
     unreadUpdated: (unread: number) => void
     // this is how you set the unset value, including ''
     setUnsentText: (u: string) => void
+    setupSubscriptions: () => void
   }
   getExplodingMode: () => number
   getEditInfo: () => {exploded: boolean; ordinal: Types.Ordinal; text: string} | undefined
@@ -447,6 +449,13 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
           s.botSettings = settingsMap
         }
       })
+    },
+    channelSuggestionsTriggered: () => {
+      const meta = get().meta
+      // If this is an impteam, try to refresh mutual team info
+      if (!meta.teamname) {
+        get().dispatch.refreshMutualTeamsInConv()
+      }
     },
     clearAttachmentView: () => {
       set(s => {
@@ -2102,6 +2111,9 @@ const createSlice: Z.ImmerStateCreator<ConvoState> = (set, get) => {
         s.unsentText = u
       })
     },
+    setupSubscriptions: () => {
+      // TODO
+    },
     threadSearch: query => {
       set(s => {
         s.threadSearchInfo.hits = []
@@ -2386,6 +2398,7 @@ const createConvoStore = (id: Types.ConversationIDKey) => {
   const next = Z.createZustand<ConvoState>(createSlice)
   next.setState({id})
   stores.set(id, next)
+  next.getState().dispatch.setupSubscriptions()
   return next
 }
 

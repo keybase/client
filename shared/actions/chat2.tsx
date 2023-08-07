@@ -1652,15 +1652,6 @@ const initChat = () => {
     Constants.useState.getState().dispatch.updatedGregor(s.gregorPushState)
   })
 
-  Container.listenAction(Chat2Gen.channelSuggestionsTriggered, (_, action) => {
-    const {conversationIDKey} = action.payload
-    const meta = Constants.getConvoState(conversationIDKey).meta
-    // If this is an impteam, try to refresh mutual team info
-    if (!meta.teamname) {
-      Constants.getConvoState(conversationIDKey).dispatch.refreshMutualTeamsInConv()
-    }
-  })
-
   Container.listenAction(Chat2Gen.fetchUserEmoji, fetchUserEmoji)
 
   Container.listenAction(Chat2Gen.addUsersToChannel, addUsersToChannel)

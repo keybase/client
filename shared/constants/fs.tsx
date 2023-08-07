@@ -13,6 +13,7 @@ import {RPCError} from '../util/errors'
 import logger from '../logger'
 import {isLinux, isMobile} from './platform'
 import {tlfToPreferredOrder} from '../util/kbfs'
+import initPlatformSpecific from '../actions/fs/platform-specific'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
@@ -1211,6 +1212,7 @@ type State = Store & {
     setTlfsAsUnloaded: () => void
     setTlfSyncConfig: (tlfPath: Types.Path, enabled: boolean) => void
     setSorting: (path: Types.Path, sortSetting: Types.SortSetting) => void
+    setupSubscriptions: () => void
     showIncomingShare: (initialDestinationParentPath: Types.Path) => void
     showMoveOrCopy: (initialDestinationParentPath: Types.Path) => void
     startManualConflictResolution: (tlfPath: Types.Path) => void
@@ -2518,6 +2520,78 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.tlfs.loaded = false
       })
+    },
+    setupSubscriptions: () => {
+      const f = async () => {
+        const ConfigConstants = await import('./config')
+        ConfigConstants.useConfigState.subscribe((s, old) => {
+          if (s.loggedIn === old.loggedIn) return
+          if (ConfigConstants.useConfigState.getState().loggedIn) {
+            get().dispatch.checkKbfsDaemonRpcStatus()
+          }
+        })
+
+        ConfigConstants.useConfigState.subscribe((s, old) => {
+          if (s.installerRanCount !== old.installerRanCount) {
+            get().dispatch.checkKbfsDaemonRpcStatus()
+          }
+        })
+
+        ConfigConstants.useConfigState.subscribe((s, old) => {
+          if (s.networkStatus === old.networkStatus) return
+          // We don't trigger the reachability check at init. Reachability checks cause
+          // any pending "reconnect" fire right away, and overrides any random back-off
+          // timer we have at process restart (which is there to avoid surging server
+          // load around app releases). So only do that when OS network status changes
+          // after we're up.
+          const isInit = s.networkStatus?.isInit
+          const f = async () => {
+            if (!isInit) {
+              try {
+                await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
+              } catch (error) {
+                if (!(error instanceof RPCError)) {
+                  return
+                }
+                logger.warn(`failed to check KBFS reachability: ${error.message}`)
+              }
+            }
+          }
+          Z.ignorePromise(f())
+        })
+
+        RouterConstants.useState.subscribe((s, old) => {
+          const next = s.navState
+          const prev = old.navState
+          if (next === prev) return
+
+          const {criticalUpdate} = get()
+          // Clear critical update when we nav away from tab
+          if (
+            criticalUpdate &&
+            prev &&
+            RouterConstants.getTab(prev) === Tabs.fsTab &&
+            next &&
+            RouterConstants.getTab(next) !== Tabs.fsTab
+          ) {
+            get().dispatch.setCriticalUpdate(false)
+          }
+
+          const fsRrouteNames = ['fsRoot', 'barePreview']
+          const wasScreen = fsRrouteNames.includes(RouterConstants.getVisibleScreen(prev)?.name ?? '')
+          const isScreen = fsRrouteNames.includes(RouterConstants.getVisibleScreen(next)?.name ?? '')
+          if (wasScreen !== isScreen) {
+            if (wasScreen) {
+              get().dispatch.userOut()
+            } else {
+              get().dispatch.userIn()
+            }
+          }
+        })
+
+        initPlatformSpecific()
+      }
+      Z.ignorePromise(f())
     },
     showIncomingShare: initialDestinationParentPath => {
       set(s => {
