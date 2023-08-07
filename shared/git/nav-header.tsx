@@ -27,7 +27,7 @@ export const HeaderTitle = () => (
 )
 
 export const HeaderRightActions = () => {
-  const setError = Constants.useGitState(state => state.dispatch.setError)
+  const setError = Constants.useState(state => state.dispatch.setError)
   const navigateAppend = RouterConstants.useState(s => s.dispatch.navigateAppend)
 
   const makePopup = React.useCallback(

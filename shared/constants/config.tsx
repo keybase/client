@@ -12,6 +12,7 @@ import logger from '../logger'
 import type * as RPCTypesGregor from './types/rpc-gregor-gen'
 import type * as Types from './types/config'
 import type {ConversationIDKey} from './types/chat2'
+import type * as TeamTypes from './types/teams'
 import type {Tab} from './tabs'
 import uniq from 'lodash/uniq'
 import {RPCError, convertToError, isEOFError, isErrorTransient, niceError} from '../util/errors'
@@ -22,6 +23,7 @@ import {useAvatarState} from '../common-adapters/avatar-zus'
 import {useCurrentUserState} from './current-user'
 import {useDaemonState} from './daemon'
 import {initPlatformListener} from '../actions/platform-specific'
+import {mapGetEnsureValue} from '../util/map'
 
 const ignorePromise = (f: Promise<void>) => {
   f.then(() => {}).catch(() => {})
@@ -605,30 +607,43 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         s.loadOnStartPhase = phase
       })
 
-      if (phase !== 'startupOrReloginButNotInARush') return
-
-      const getFollowerInfo = () => {
-        const {uid} = useCurrentUserState.getState()
-        logger.info(`getFollowerInfo: init; uid=${uid}`)
-        if (uid) {
-          // request follower info in the background
-          RPCTypes.configRequestFollowingAndUnverifiedFollowersRpcPromise()
-            .then(() => {})
-            .catch(() => {})
+      if (phase === 'startupOrReloginButNotInARush') {
+        const getFollowerInfo = () => {
+          const {uid} = useCurrentUserState.getState()
+          logger.info(`getFollowerInfo: init; uid=${uid}`)
+          if (uid) {
+            // request follower info in the background
+            RPCTypes.configRequestFollowingAndUnverifiedFollowersRpcPromise()
+              .then(() => {})
+              .catch(() => {})
+          }
         }
-      }
 
-      const updateServerConfig = async () => {
-        const Platform = await import('./platform')
-        if (get().loggedIn) {
-          await RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
-            serverConfigPath: Platform.serverConfigFileName,
-          })
+        const updateServerConfig = async () => {
+          const Platform = await import('./platform')
+          if (get().loggedIn) {
+            await RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
+              serverConfigPath: Platform.serverConfigFileName,
+            })
+          }
         }
-      }
 
-      getFollowerInfo()
-      Z.ignorePromise(updateServerConfig())
+        const updateTeams = async () => {
+          const Teams = await import('./teams')
+          Teams.useState.getState().dispatch.getTeams()
+          Teams.useState.getState().dispatch.refreshTeamRoleMap()
+        }
+
+        const updateSettings = async () => {
+          const Settings = await import('./settings')
+          Settings.useContactsState.getState().dispatch.loadContactImportEnabled()
+        }
+
+        getFollowerInfo()
+        Z.ignorePromise(updateServerConfig())
+        Z.ignorePromise(updateTeams())
+        Z.ignorePromise(updateSettings())
+      }
     },
     login: (username, passphrase) => {
       const cancelDesc = 'Canceling RPC'
@@ -924,9 +939,55 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       }
     },
     setBadgeState: b => {
+      if (get().badgeState === b) return
       set(s => {
         s.badgeState = b
       })
+
+      const updateDevices = async () => {
+        if (!b) return
+        const Devices = await import('./devices')
+        const {setBadges} = Devices.useState.getState().dispatch
+        const {newDevices, revokedDevices} = b
+        setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
+      }
+      Z.ignorePromise(updateDevices())
+
+      const updateAutoReset = async () => {
+        const AR = await import('./autoreset')
+        if (!b) return
+        const {resetState} = b
+        AR.useState.getState().dispatch.updateARState(resetState.active, resetState.endTime)
+      }
+      Z.ignorePromise(updateAutoReset())
+
+      const updateGit = async () => {
+        const Git = await import('./git')
+        const {setBadges} = Git.useState.getState().dispatch
+        setBadges(new Set(b?.newGitRepoGlobalUniqueIDs))
+      }
+      Z.ignorePromise(updateGit())
+
+      const updateTeams = async () => {
+        const loggedIn = useConfigState.getState().loggedIn
+        if (!loggedIn) {
+          // Don't make any calls we don't have permission to.
+          return
+        }
+        if (!b) return
+        const deletedTeams = b.deletedTeams || []
+        const newTeams = new Set<string>(b.newTeams || [])
+        const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = b.teamsWithResetUsers || []
+        const teamsWithResetUsersMap = new Map<TeamTypes.TeamID, Set<string>>()
+        teamsWithResetUsers.forEach(entry => {
+          const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
+          existing.add(entry.username)
+        })
+        // if the user wasn't on the teams tab, loads will be triggered by navigation around the app
+        const Teams = await import('./teams')
+        Teams.useState.getState().dispatch.setNewTeamInfo(deletedTeams, newTeams, teamsWithResetUsersMap)
+      }
+      Z.ignorePromise(updateTeams())
     },
     setDefaultUsername: u => {
       set(s => {
@@ -970,6 +1031,9 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
         const lastSeenItem = items.find(i => i.item.category === 'whatsNewLastSeenVersion')
         const WhatsNew = await import('./whats-new')
         WhatsNew.useState.getState().dispatch.updateLastSeen(lastSeenItem)
+
+        const Teams = await import('./teams')
+        Teams.useState.getState().dispatch.onGregorPushState(items)
       }
       Z.ignorePromise(f())
     },
@@ -982,6 +1046,12 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       if (r === RPCTypes.Reachable.yes) {
         Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
       }
+
+      const updateTeams = async () => {
+        const Teams = await import('./teams')
+        Teams.useState.getState().dispatch.eagerLoadTeams()
+      }
+      Z.ignorePromise(updateTeams())
     },
     setHTTPSrvInfo: (address, token) => {
       logger.info(`config reducer: http server info: addr: ${address} token: ${token}`)

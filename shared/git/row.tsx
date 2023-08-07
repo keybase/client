@@ -22,13 +22,13 @@ type OwnProps = {
 const noGit = Constants.makeGitInfo()
 const ConnectedRow = (ownProps: OwnProps) => {
   const {id, expanded} = ownProps
-  const git = Constants.useGitState(s => s.idToInfo.get(id) || noGit)
+  const git = Constants.useState(s => s.idToInfo.get(id) || noGit)
   const teamID = TeamConstants.useState(s =>
     git.teamname ? TeamConstants.getTeamID(s, git.teamname) : undefined
   )
   const isNew = React.useContext(NewContext).has(id)
   const you = ConfigConstants.useCurrentUserState(s => s.username)
-  const setTeamRepoSettings = Constants.useGitState(s => s.dispatch.setTeamRepoSettings)
+  const setTeamRepoSettings = Constants.useState(s => s.dispatch.setTeamRepoSettings)
   const _onBrowseGitRepo = (path: FsTypes.Path) => {
     FsConstants.makeActionForOpenPathInFilesTab(path)
   }

@@ -14,11 +14,10 @@ type State = Types.State & {
     clearBadges: () => void
     resetState: 'default'
     setBadges: (set: Set<string>) => void
-    setupSubscriptions: () => void
   }
 }
 
-export const useState = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>(set => {
   const dispatch: State['dispatch'] = {
     clearBadges: () => {
       Z.ignorePromise(RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise())
@@ -42,19 +41,6 @@ export const useState = Z.createZustand<State>((set, get) => {
       set(s => {
         s.isNew = b
       })
-    },
-    setupSubscriptions: () => {
-      const f = async () => {
-        const ConfigConstants = await import('./config')
-        ConfigConstants.useConfigState.subscribe((s, old) => {
-          if (s.badgeState === old.badgeState) return
-          if (!s.badgeState) return
-          const {setBadges} = get().dispatch
-          const {newDevices, revokedDevices} = s.badgeState
-          setBadges(new Set([...(newDevices ?? []), ...(revokedDevices ?? [])]))
-        })
-      }
-      Z.ignorePromise(f())
     },
   }
 

@@ -2560,35 +2560,6 @@ export const useState = Z.createZustand<State>((set, get) => {
           Z.ignorePromise(f())
         })
 
-        RouterConstants.useState.subscribe((s, old) => {
-          const next = s.navState
-          const prev = old.navState
-          if (next === prev) return
-
-          const {criticalUpdate} = get()
-          // Clear critical update when we nav away from tab
-          if (
-            criticalUpdate &&
-            prev &&
-            RouterConstants.getTab(prev) === Tabs.fsTab &&
-            next &&
-            RouterConstants.getTab(next) !== Tabs.fsTab
-          ) {
-            get().dispatch.setCriticalUpdate(false)
-          }
-
-          const fsRrouteNames = ['fsRoot', 'barePreview']
-          const wasScreen = fsRrouteNames.includes(RouterConstants.getVisibleScreen(prev)?.name ?? '')
-          const isScreen = fsRrouteNames.includes(RouterConstants.getVisibleScreen(next)?.name ?? '')
-          if (wasScreen !== isScreen) {
-            if (wasScreen) {
-              get().dispatch.userOut()
-            } else {
-              get().dispatch.userIn()
-            }
-          }
-        })
-
         initPlatformSpecific()
       }
       Z.ignorePromise(f())

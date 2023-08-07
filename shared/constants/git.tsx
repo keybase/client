@@ -81,7 +81,7 @@ type State = Types.State & {
   }
 }
 
-export const useGitState = Z.createZustand<State>((set, get) => {
+export const useState = Z.createZustand<State>((set, get) => {
   const callAndHandleError = (f: () => Promise<void>, loadAfter = true) => {
     const wrapper = async () => {
       try {

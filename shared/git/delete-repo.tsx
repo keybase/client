@@ -10,14 +10,14 @@ const NullWrapper = (props: Props) => (props.name ? <DeleteRepo {...props} /> : 
 const emptyGit = Constants.makeGitInfo()
 export default (ownProps: OwnProps) => {
   const {id} = ownProps
-  const git = Constants.useGitState(s => s.idToInfo.get(id) || emptyGit)
-  const error = Constants.useGitState(s => s.error)
+  const git = Constants.useState(s => s.idToInfo.get(id) || emptyGit)
+  const error = Constants.useState(s => s.error)
   const name = git.name || ''
   const teamname = git.teamname || ''
   const waitingKey = Constants.loadingWaitingKey
 
-  const deletePersonalRepo = Constants.useGitState(s => s.dispatch.deletePersonalRepo)
-  const deleteTeamRepo = Constants.useGitState(s => s.dispatch.deleteTeamRepo)
+  const deletePersonalRepo = Constants.useState(s => s.dispatch.deletePersonalRepo)
+  const deleteTeamRepo = Constants.useState(s => s.dispatch.deleteTeamRepo)
   const navigateUp = RouterConstants.useState(s => s.dispatch.navigateUp)
 
   const _onDelete = (teamname: string | undefined, name: string, notifyTeam: boolean) => {
