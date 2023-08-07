@@ -1,6 +1,5 @@
 import * as Platforms from './platform'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as Tabs from './tabs'
 import * as RouterConstants from './router2'
 import * as SettingsConstants from './settings'
 import * as PushConstants from './push'

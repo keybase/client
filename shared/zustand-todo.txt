@@ -1,10 +1,8 @@
 remove engine-gen dispatch in index-impl when chat2 is done
 move chat actions engine stuff to engineconstants
-commentd out things in chat constants.usestate
 
 remove ConversationIDKeyContext
 remove convid as param
-    toggleThreadSearch: todo stuff
     use .at() instead of length-1
     remove other meta related actions
-    remove useselector etc
+    remove chat.init in configure listeners
