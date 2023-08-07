@@ -300,6 +300,13 @@ export const isBigTeam = (state: State, teamID: string): boolean => {
   )
 }
 
+// prettier-ignore
+type PreviewReason =
+  | 'appLink' | 'channelHeader' | 'convertAdHoc' | 'files' | 'forward' | 'fromAReset'
+  | 'journeyCardPopular' | 'manageView' | 'memberView' | 'messageLink' | 'newChannel'
+  | 'profile' | 'requestedPayment' | 'resetChatWithoutThem' | 'search' | 'sentPayment'
+  | 'teamHeader' | 'teamInvite' | 'teamMember' | 'teamMention' | 'teamRow' | 'tracker' | 'transaction'
+
 type Store = {
   // increments when the convo stores values change, badges and unread
   badgeCountsChanged: number
@@ -413,30 +420,7 @@ export type State = Store & {
       channelname?: string
       conversationIDKey?: Types.ConversationIDKey // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
       highlightMessageID?: number
-      reason:
-        | 'appLink'
-        | 'channelHeader'
-        | 'convertAdHoc'
-        | 'files'
-        | 'forward'
-        | 'fromAReset'
-        | 'journeyCardPopular'
-        | 'manageView'
-        | 'memberView'
-        | 'messageLink'
-        | 'newChannel'
-        | 'profile'
-        | 'requestedPayment'
-        | 'resetChatWithoutThem'
-        | 'search'
-        | 'sentPayment'
-        | 'teamHeader'
-        | 'teamInvite'
-        | 'teamMember'
-        | 'teamMention'
-        | 'teamRow'
-        | 'tracker'
-        | 'transaction'
+      reason: PreviewReason
     }) => void
     queueMetaToRequest: (ids: Array<Types.ConversationIDKey>) => void
     queueMetaHandle: () => void
