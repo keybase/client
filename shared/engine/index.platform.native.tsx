@@ -78,11 +78,6 @@ function createClient(
       logger.error('>>>> meta engine event JS thrown!', e)
     }
   })
-
-  // we're always connected
-  setTimeout(() => {
-    connectCallback()
-  }, 100)
   return client
 }
 
