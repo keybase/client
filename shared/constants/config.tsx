@@ -660,10 +660,25 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
           Settings.useContactsState.getState().dispatch.loadContactImportEnabled()
         }
 
+        const updateChat = async () => {
+          const ChatConstants = await import('./chat2')
+          // On login lets load the untrusted inbox. This helps make some flows easier
+          if (useCurrentUserState.getState().username) {
+            const {inboxRefresh} = ChatConstants.useState.getState().dispatch
+            inboxRefresh('bootstrap')
+          }
+          const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
+          const ri = rows?.i ?? -1
+          if (ri > 0) {
+            ChatConstants.useState.getState().dispatch.setInboxNumSmallRows(ri, true)
+          }
+        }
+
         getFollowerInfo()
         Z.ignorePromise(updateServerConfig())
         Z.ignorePromise(updateTeams())
         Z.ignorePromise(updateSettings())
+        Z.ignorePromise(updateChat())
       }
     },
     login: (username, passphrase) => {

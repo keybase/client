@@ -1,4 +1,5 @@
 import {createNavigationContainerRef, StackActions, CommonActions} from '@react-navigation/core'
+import * as Chat2Gen from '../actions/chat2-gen'
 import * as Z from '../util/zustand'
 import * as Container from '../util/container'
 import * as Tabs from '../constants/tabs'
@@ -341,7 +342,7 @@ export const useState = Z.createZustand<State>((set, get) => {
         s.navState = next
       })
 
-      const checkTeamBuilding = async () => {
+      const updateTeamBuilding = async () => {
         const TBConstants = await import('./team-building')
         const namespaces = ['chat2', 'crypto', 'teams', 'people'] as const
         const namespaceToRoute = new Map([
@@ -361,7 +362,7 @@ export const useState = Z.createZustand<State>((set, get) => {
           }
         }
       }
-      Z.ignorePromise(checkTeamBuilding())
+      Z.ignorePromise(updateTeamBuilding())
 
       const updateFS = async () => {
         const FS = await import('./fs')
@@ -428,6 +429,78 @@ export const useState = Z.createZustand<State>((set, get) => {
         }
       }
       Z.ignorePromise(updateSettings())
+
+      const updateChat = async () => {
+        const ChatConstants = await import('./chat2')
+
+        const maybeChangeChatSelection = () => {
+          const wasModal = prev && getModalStack(prev).length > 0
+          const isModal = next && getModalStack(next).length > 0
+          // ignore if changes involve a modal
+          if (wasModal || isModal) {
+            return
+          }
+          const p = getVisibleScreen(prev)
+          const n = getVisibleScreen(next)
+          const wasChat = p?.name === ChatConstants.threadRouteName
+          const isChat = n?.name === ChatConstants.threadRouteName
+          // nothing to do with chat
+          if (!wasChat && !isChat) {
+            return
+          }
+          // @ts-ignore
+          const wasID: string | undefined = p?.params?.conversationIDKey
+          // @ts-ignore
+          const isID: string | undefined = n?.params?.conversationIDKey
+
+          logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
+
+          // same? ignore
+          if (wasChat && isChat && wasID === isID) {
+            // if we've never loaded anything, keep going so we load it
+            if (!isID || ChatConstants.getConvoState(isID).containsLatestMessage !== undefined) {
+              return
+            }
+          }
+
+          // deselect if there was one
+          const deselectAction = () => {
+            if (wasChat && wasID && ChatConstants.isValidConversationIDKey(wasID)) {
+              ChatConstants.useState.getState().dispatch.unboxRows([wasID], true)
+            }
+          }
+
+          // still chatting? just select new one
+          if (wasChat && isChat && isID && ChatConstants.isValidConversationIDKey(isID)) {
+            deselectAction()
+            ChatConstants.getConvoState(isID).dispatch.selectedConversation()
+            return
+          }
+
+          // leaving a chat
+          if (wasChat && !isChat) {
+            deselectAction()
+            return
+          }
+
+          // going into a chat
+          if (isChat && isID && ChatConstants.isValidConversationIDKey(isID)) {
+            deselectAction()
+            ChatConstants.getConvoState(isID).dispatch.selectedConversation()
+            return
+          }
+        }
+
+        const maybeChatTabSelected = () => {
+          const reduxDispatch = Z.getReduxDispatch()
+          if (getTab(prev) !== Tabs.chatTab && getTab(next) === Tabs.chatTab) {
+            reduxDispatch(Chat2Gen.createTabSelected())
+          }
+        }
+        maybeChangeChatSelection()
+        maybeChatTabSelected()
+      }
+      Z.ignorePromise(updateChat())
     },
     switchTab: name => {
       const n = _getNavigator()

@@ -135,6 +135,9 @@ export const useDaemonState = Z.createZustand<State>((set, get) => {
 
         const DarkMode = await import('./darkmode')
         DarkMode.useDarkModeState.getState().dispatch.loadDarkPrefs()
+
+        const ChatConstants = await import('./chat2')
+        ChatConstants.useState.getState().dispatch.loadStaticConfig()
       }
       Z.ignorePromise(f())
       get().dispatch.loadDaemonAccounts()

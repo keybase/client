@@ -1,4 +1,3 @@
-import * as Z from '../util/zustand'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigConstants from '../constants/config'
 import * as RouterConstants from '../constants/router2'
@@ -1340,82 +1339,6 @@ const dismissBlockButtons = async (_: unknown, action: Chat2Gen.DismissBlockButt
   }
 }
 
-const maybeChangeChatSelection = (
-  prev: RouterConstants.State['navState'],
-  next: RouterConstants.State['navState']
-) => {
-  const wasModal = prev && RouterConstants.getModalStack(prev).length > 0
-  const isModal = next && RouterConstants.getModalStack(next).length > 0
-
-  // ignore if changes involve a modal
-  if (wasModal || isModal) {
-    return
-  }
-
-  const p = RouterConstants.getVisibleScreen(prev)
-  const n = RouterConstants.getVisibleScreen(next)
-
-  const wasChat = p?.name === Constants.threadRouteName
-  const isChat = n?.name === Constants.threadRouteName
-
-  // nothing to do with chat
-  if (!wasChat && !isChat) {
-    return
-  }
-
-  // @ts-ignore TODO better param typing
-  const wasID: Types.ConversationIDKey | undefined = p?.params?.conversationIDKey
-  // @ts-ignore TODO better param typing
-  const isID: Types.ConversationIDKey | undefined = n?.params?.conversationIDKey
-
-  logger.info('maybeChangeChatSelection ', {isChat, isID, wasChat, wasID})
-
-  // same? ignore
-  if (wasChat && isChat && wasID === isID) {
-    // if we've never loaded anything, keep going so we load it
-    if (!isID || Constants.getConvoState(isID).containsLatestMessage !== undefined) {
-      return
-    }
-  }
-
-  // deselect if there was one
-  const deselectAction = () => {
-    if (wasChat && wasID && Constants.isValidConversationIDKey(wasID)) {
-      Constants.useState.getState().dispatch.unboxRows([wasID], true)
-    }
-  }
-
-  // still chatting? just select new one
-  if (wasChat && isChat && isID && Constants.isValidConversationIDKey(isID)) {
-    deselectAction()
-    Constants.getConvoState(isID).dispatch.selectedConversation()
-    return
-  }
-
-  // leaving a chat
-  if (wasChat && !isChat) {
-    deselectAction()
-    return
-  }
-
-  // going into a chat
-  if (isChat && isID && Constants.isValidConversationIDKey(isID)) {
-    deselectAction()
-    Constants.getConvoState(isID).dispatch.selectedConversation()
-    return
-  }
-}
-
-const maybeChatTabSelected = (
-  prev: RouterConstants.State['navState'],
-  next: RouterConstants.State['navState']
-) => {
-  const reduxDispatch = Z.getReduxDispatch()
-  if (RouterConstants.getTab(prev) !== Tabs.chatTab && RouterConstants.getTab(next) === Tabs.chatTab) {
-    reduxDispatch(Chat2Gen.createTabSelected())
-  }
-}
-
 const initChat = () => {
   // Platform specific actions
   if (!Container.isMobile) {
@@ -1542,29 +1465,6 @@ const initChat = () => {
   Container.listenAction(Chat2Gen.previewConversation, previewConversationPersonMakesAConversation)
   Container.listenAction(Chat2Gen.openFolder, openFolder)
 
-  ConfigConstants.useConfigState.subscribe((s, old) => {
-    if (s.loadOnStartPhase === old.loadOnStartPhase) return
-    switch (s.loadOnStartPhase) {
-      case 'startupOrReloginButNotInARush': {
-        // On login lets load the untrusted inbox. This helps make some flows easier
-        if (ConfigConstants.useCurrentUserState.getState().username) {
-          const {inboxRefresh} = Constants.useState.getState().dispatch
-          inboxRefresh('bootstrap')
-        }
-        const f = async () => {
-          const rows = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.inboxSmallRows'})
-          const ri = rows?.i ?? -1
-          if (ri > 0) {
-            Constants.useState.getState().dispatch.setInboxNumSmallRows(ri, true)
-          }
-        }
-        Z.ignorePromise(f())
-        break
-      }
-      default:
-    }
-  })
-
   // Search handling
   Container.listenAction(Chat2Gen.attachmentPreviewSelect, attachmentPreviewSelect)
   Container.listenAction(Chat2Gen.attachmentsUpload, attachmentsUpload)
@@ -1684,19 +1584,6 @@ const initChat = () => {
     const {convID, status} = a.payload.params
     const conversationIDKey = Types.stringToConversationIDKey(convID)
     Constants.getConvoState(conversationIDKey).dispatch.botCommandsUpdateStatus(status)
-  })
-
-  RouterConstants.useState.subscribe((s, old) => {
-    const next = s.navState
-    const prev = old.navState
-    if (next === prev) return
-    maybeChangeChatSelection(prev, next)
-    maybeChatTabSelected(prev, next)
-  })
-
-  ConfigConstants.useDaemonState.subscribe((s, old) => {
-    if (s.handshakeVersion === old.handshakeVersion) return
-    Constants.useState.getState().dispatch.loadStaticConfig()
   })
 
   Container.listenAction(EngineGen.chat1NotifyChatChatParticipantsInfo, (_, a) => {
