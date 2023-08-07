@@ -1120,7 +1120,7 @@ export const useConfigState = Z.createZustand<State>((set, get) => {
       })
       // Re-get info about our account if you log in/we're done handshaking/became reachable
       if (r === RPCTypes.Reachable.yes) {
-        //not in waiting state
+        // not in waiting state
         if (useDaemonState.getState().handshakeWaiters.size === 0) {
           Z.ignorePromise(useDaemonState.getState().dispatch.loadDaemonBootstrapStatus(true))
         }
